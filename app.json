@@ -2,14 +2,14 @@
   "expo": {
     "name": "tango",
     "sdkVersion": "23.0.0",
-    "description": "You can see source code here. https://github.com/her0e1c1/sample-expo",
+    "description": "You can see source code here. https://github.com/her0e1c1/tango",
     "version": "1.0.1",
-    "slug": "your-app-slug",
+    "slug": "your-app-tango",
     "ios": {
-      "bundleIdentifier": "com.her0e1c1"
+      "bundleIdentifier": "com.her0e1c1.tango"
     },
     "android": {
-      "package": "com.her0e1c1"
+      "package": "com.her0e1c1.tango"
     }
   }
 }
