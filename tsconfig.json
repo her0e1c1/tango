@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "strictNullChecks": true,
+    "declaration": false,
+    "noResolve": false,
+    "allowJs": false,
+    "jsx": "react",
+    "module": "commonjs",
+    "target": "es5",
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "outDir": "./dist/"
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
