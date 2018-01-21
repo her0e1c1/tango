@@ -2,10 +2,10 @@ import * as React from 'react';
 import { StackNavigator, TabNavigator } from 'react-navigation';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import * as RN from 'react-native';
 import { connect } from 'react-redux';
-import * as Redux from 'redux';
+
 import Deck from './deck';
+import Settings from './settings';
 
 const RootTabs = TabNavigator(
   {
@@ -23,7 +23,7 @@ const RootTabs = TabNavigator(
       },
     },
     Settings: {
-      screen: () => <RN.View style={{ flex: 1, backgroundColor: '#123' }} />,
+      screen: () => Settings,
       navigationOptions: {
         tabBarLabel: 'Settings',
         tabBarIcon: ({ tintColor, focused }) => (
@@ -40,17 +40,3 @@ const RootTabs = TabNavigator(
 );
 
 export default RootTabs;
-
-/*
-class _Root extends React.Component {
-  componentDidMount() {}
-  render() {
-    return <RootTabs />;
-  }
-}
-const mapStateToProps = (state: RootState) => ({});
-const mapDispatchToProps = {
-  selectAll: Action.select,
-};
-export const RootTabs2 = connect(mapStateToProps, mapDispatchToProps)(_Root);
-*/
