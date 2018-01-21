@@ -40,44 +40,6 @@ export const Detail = (props: { item: Item }) => (
   </RN.View>
 );
 
-@connect((_: RootState) => ({}), { insertByURL: Action.insertByURL })
-export class SearchURL extends React.Component<any, any> {
-  constructor(props) {
-    super(props);
-    this.state = {
-      text: '',
-      loading: false,
-    };
-  }
-  render() {
-    return (
-      <RN.View>
-        <RN.ActivityIndicator size="large" animating={this.state.loading} />
-        <RN.TextInput
-          value={this.state.text}
-          style={{ backgroundColor: '#999', fontSize: 40 }}
-          onChangeText={text => this.setState({ text })}
-          onEndEditing={() => {
-            if (this.state.text.match(/^https?/)) {
-              this.setState({ loading: true }, async () => {
-                try {
-                  await this.props.insertByURL(this.state.text);
-                } catch {
-                  alert('CAN NOT FETCH :(');
-                } finally {
-                  this.setState({ loading: false });
-                }
-              });
-            } else if (this.state.text !== '') {
-              alert('INVALID URL: ' + this.state.text);
-            }
-          }}
-        />
-      </RN.View>
-    );
-  }
-}
-
 type State = { loading: boolean; text: string; index: number };
 @connect((_: RootState) => ({ state: Action.getAll(state) }), {
   insert: Action.insert,

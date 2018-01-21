@@ -16,3 +16,8 @@ interface Card {
   deck_id: number;
   tags: Tag[];
 }
+
+type DeckState = { [key: string]: Deck };
+interface RootState {
+  deck: DeckState;
+}

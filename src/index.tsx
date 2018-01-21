@@ -1,13 +1,14 @@
+/// <reference path="./index.d.ts" />
+
 import * as React from 'react';
-import * as RN from 'react-native';
-import { connect } from 'react-redux';
 import * as Redux from 'redux';
 import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
-import * as Action from 'src/action';
-import Root from './container/root';
 
-const reducers = { card: Action.card };
+import * as Action from 'src/action';
+import Root from './component/root';
+
+const reducers = { card: Action.card, deck: Action.deck };
 
 const store = Redux.createStore(
   Redux.combineReducers(reducers),

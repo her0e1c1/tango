@@ -23,7 +23,7 @@ const RootTabs = TabNavigator(
       },
     },
     Settings: {
-      screen: () => Settings,
+      screen: Settings,
       navigationOptions: {
         tabBarLabel: 'Settings',
         tabBarIcon: ({ tintColor, focused }) => (

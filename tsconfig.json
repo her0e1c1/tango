@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "strictNullChecks": true,
+    "noUnusedLocals": true,
     "declaration": false,
     "noResolve": false,
     "allowJs": false,
