@@ -4,8 +4,16 @@ import { connect } from 'react-redux';
 import * as Redux from 'redux';
 import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
-
-// <RN.ActivityIndicator size="large" animating={this.state.loading} />
+import Card from './card';
+/*
+        <RN.Modal transparent>
+          <RN.ActivityIndicator
+            size="large"
+            animating={this.state.loading || true}
+            style={{ position: 'absolute', top: 50, left: 50, zIndex: 2 }}
+          />
+        </RN.Modal>
+*/
 
 @connect((_: RootState) => ({}), { insertByURL: Action.insertByURL })
 export class SearchURL extends React.Component<any, any> {
@@ -24,7 +32,7 @@ export class SearchURL extends React.Component<any, any> {
           style={{ backgroundColor: '#999', fontSize: 40 }}
           onChangeText={text => this.setState({ text })}
           onEndEditing={() => {
-            if (this.state.text.match(/^https?/)) {
+            if (this.state.text.match(/^https?:\/\//)) {
               this.setState({ loading: true }, async () => {
                 try {
                   await this.props.insertByURL(this.state.text);
@@ -45,12 +53,21 @@ export class SearchURL extends React.Component<any, any> {
 }
 
 @connect((state: RootState) => ({ decks: Object.values(state.deck) }), {
+  selectCard: Action.selectCard,
   selectDeck: Action.selectDeck,
   deleteDeck: Action.deleteDeck,
+  insertByURL: Action.insertByURL,
 })
 export default class Deck extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      item: null,
+    };
+  }
   componentDidMount() {
     this.props.selectDeck();
+    this.props.selectCard();
   }
   render() {
     return (
@@ -64,8 +81,18 @@ export default class Deck extends React.Component {
       >
         <RN.Button title="debug" onPress={() => this.props.selectDeck()} />
         <SearchURL />
+        <RN.Modal
+          visible={this.state.item !== null}
+          onRequestClose={() => false}
+        >
+          <RN.Button
+            title="CLOSE"
+            onPress={() => this.setState({ item: null })}
+          />
+          <Card deck={this.state.item} />
+        </RN.Modal>
         <RN.FlatList
-          data={this.props.decks.map((d, i) => ({ ...d, key: i }))}
+          data={this.props.decks.map(d => ({ ...d, key: d.id }))}
           renderItem={({ item }) => (
             <Swipeout
               autoClose
@@ -76,9 +103,16 @@ export default class Deck extends React.Component {
                   onPress: () => this.props.deleteDeck(item),
                 },
               ]}
+              left={[
+                {
+                  text: 'COPY',
+                  backgroundColor: 'blue',
+                  onPress: () => this.props.insertByURL(item.url),
+                },
+              ]}
             >
               <RN.TouchableOpacity
-                onPress={() => 1}
+                onPress={() => this.setState({ item })}
                 onLongPress={() => alert(item.url)}
               >
                 <RN.View

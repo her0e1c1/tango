@@ -55,10 +55,10 @@ export const deleteDeck = (deck: Deck) => async (dispatch, getState) => {
 // but for now, use timestamp as id
 export const insertByURL = (url: string) => async (dispatch, getState) => {
   const deck_id = new Date().getTime();
-  await dispatch(insertDeck({ url: url, name: 'sample', id: deck_id }));
   const res = await fetch(url);
   const text = await res.text();
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
+  await dispatch(insertDeck({ url: url, name: 'sample', id: deck_id }));
   await Promise.all(
     data.map(async d => {
       const card: Card = { name: d[0], body: d[1], deck_id };
@@ -68,16 +68,27 @@ export const insertByURL = (url: string) => async (dispatch, getState) => {
 };
 
 // can config limit
-export const select = (limit: 50) => async (dispatch, getState) => {
+export const selectCard = (limit: number = 50) => async (
+  dispatch,
+  getState
+) => {
   db.transaction(tx =>
-    tx.executeSql(`select * from card limit ?;`, [limit], (_, result) => {
-      const cards = result.rows._array;
-      dispatch({ type: 'BULK_INSERT', payload: { cards } });
-    })
+    tx.executeSql(
+      `select * from card limit ?`,
+      [limit],
+      (_, result) => {
+        const cards = result.rows._array;
+        dispatch({ type: 'BULK_INSERT', payload: { cards } });
+      },
+      (...args) => alert(JSON.stringify(args))
+    )
   );
 };
 
-export const selectDeck = (limit?: 50) => async (dispatch, getState) => {
+export const selectDeck = (limit: number = 50) => async (
+  dispatch,
+  getState
+) => {
   db.transaction(tx =>
     tx.executeSql(
       `select * from deck;`,
@@ -98,7 +109,8 @@ export const insertCard = (
     tx.executeSql(
       `insert into card (name, body, deck_id) values (?, ?, ?);`,
       [card.name, card.body, card.deck_id],
-      (_, result) => {}
+      (_, result) => {},
+      (...args) => alert(JSON.stringify(args))
     )
   );
 };
@@ -119,13 +131,8 @@ export const insertDeck = (deck: Pick<Deck, 'id' | 'name' | 'url'>) => async (
   );
 };
 
-export const getAll = state =>
-  Object.keys(state.card.byId).map(id => state.card.byId[id]);
-
-export const getAllDeck = state =>
-  Object.keys(state.card.byId).map(id => state.card.byId[id]);
-
 export const card = (state = { byId: {} }, action: Redux.Action) => {
+  console.log(action);
   if (action.type == 'INSERT') {
     const ns = _.clone(state);
     const c = action.payload.card;
@@ -149,7 +156,6 @@ export const deck = (
   state: { [key: string]: Deck } = {},
   action: Redux.Action
 ) => {
-  console.log(action);
   if (action.type == 'DECK_INSERT') {
     const d: Deck = action.payload.deck;
     return { ...state, [d.id]: d };
