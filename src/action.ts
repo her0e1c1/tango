@@ -3,7 +3,7 @@ import * as Expo from 'expo';
 import * as Redux from 'redux';
 const Papa = require('papaparse');
 
-const db = Expo.SQLite.openDatabase('db3.db');
+const db = Expo.SQLite.openDatabase('db4.db');
 
 db.transaction((tx: any) => {
   // PRAGMA foreign_keys = ON;
@@ -17,6 +17,7 @@ db.transaction((tx: any) => {
   tx.executeSql(
     `create table if not exists card (
         id integer primary key not null,
+        deck_id integer,
         name text,
         body text
     );`
@@ -42,17 +43,26 @@ export const deleteCard = (card: Card) => async (dispatch, getState) => {
   );
 };
 
+export const deleteDeck = (deck: Deck) => async (dispatch, getState) => {
+  db.transaction(tx =>
+    tx.executeSql(`delete from deck where id = ?;`, [deck.id], (_, result) => {
+      dispatch({ type: 'DECK_DELETE', payload: { deck } });
+    })
+  );
+};
+
+// should use select last_insert_rowid()
+// but for now, use timestamp as id
 export const insertByURL = (url: string) => async (dispatch, getState) => {
-  console.log('hoge');
-  dispatch(insertDeck({ url: 'hoge', name: 'name' }));
-  return true;
+  const deck_id = new Date().getTime();
+  await dispatch(insertDeck({ url: url, name: 'sample', id: deck_id }));
   const res = await fetch(url);
   const text = await res.text();
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
   await Promise.all(
     data.map(async d => {
-      const card: Card = { name: d[0], body: d[1] };
-      await dispatch(insert(card));
+      const card: Card = { name: d[0], body: d[1], deck_id };
+      await dispatch(insertCard(card));
     })
   );
 };
@@ -60,7 +70,7 @@ export const insertByURL = (url: string) => async (dispatch, getState) => {
 // can config limit
 export const select = (limit: 50) => async (dispatch, getState) => {
   db.transaction(tx =>
-    tx.executeSql(`select * from card limit  ?;`, [limit], (_, result) => {
+    tx.executeSql(`select * from card limit ?;`, [limit], (_, result) => {
       const cards = result.rows._array;
       dispatch({ type: 'BULK_INSERT', payload: { cards } });
     })
@@ -81,25 +91,27 @@ export const selectDeck = (limit?: 50) => async (dispatch, getState) => {
   );
 };
 
-export const insert = (card: Pick<Card, 'name' | 'body'>) => async (
-  dispatch,
-  getState
-) => {
+export const insertCard = (
+  card: Pick<Card, 'name' | 'body' | 'deck_id'>
+) => async (dispatch, getState) => {
   db.transaction(tx =>
     tx.executeSql(
-      `insert into card (name, body) values (?, ?);`,
-      [card.name, card.body],
+      `insert into card (name, body, deck_id) values (?, ?, ?);`,
+      [card.name, card.body, card.deck_id],
       (_, result) => {}
     )
   );
 };
 
-export const insertDeck = (deck: Deck) => async (dispatch, getState) => {
+export const insertDeck = (deck: Pick<Deck, 'id' | 'name' | 'url'>) => async (
+  dispatch,
+  getState
+) => {
   db.transaction(tx =>
     tx.executeSql(
-      `insert into deck (name, url) values (?, ?) ;`,
-      [deck.name, deck.url],
-      (info, result) => {
+      `insert into deck (id, name, url) values (?, ?, ?)`,
+      [deck.id, deck.name, deck.url],
+      (_, result) => {
         dispatch({ type: 'DECK_INSERT', payload: { deck } });
       },
       (...args) => alert(JSON.stringify(args))

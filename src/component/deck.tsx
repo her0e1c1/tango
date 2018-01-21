@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Redux from 'redux';
+import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 
 // <RN.ActivityIndicator size="large" animating={this.state.loading} />
@@ -23,8 +24,6 @@ export class SearchURL extends React.Component<any, any> {
           style={{ backgroundColor: '#999', fontSize: 40 }}
           onChangeText={text => this.setState({ text })}
           onEndEditing={() => {
-            this.props.insertByURL();
-            return true;
             if (this.state.text.match(/^https?/)) {
               this.setState({ loading: true }, async () => {
                 try {
@@ -47,6 +46,7 @@ export class SearchURL extends React.Component<any, any> {
 
 @connect((state: RootState) => ({ decks: Object.values(state.deck) }), {
   selectDeck: Action.selectDeck,
+  deleteDeck: Action.deleteDeck,
 })
 export default class Deck extends React.Component {
   componentDidMount() {
@@ -67,18 +67,34 @@ export default class Deck extends React.Component {
         <RN.FlatList
           data={this.props.decks.map((d, i) => ({ ...d, key: i }))}
           renderItem={({ item }) => (
-            <RN.TouchableOpacity onPress={() => 1}>
-              <RN.View
-                style={{
-                  backgroundColor: '#fff',
-                  borderStyle: 'solid',
-                  borderWidth: 1,
-                  alignItems: 'center',
-                }}
+            <Swipeout
+              autoClose
+              right={[
+                {
+                  text: 'DEL',
+                  backgroundColor: 'red',
+                  onPress: () => this.props.deleteDeck(item),
+                },
+              ]}
+            >
+              <RN.TouchableOpacity
+                onPress={() => 1}
+                onLongPress={() => alert(item.url)}
               >
-                <RN.Text style={{ fontSize: 20 }}>{item.name}</RN.Text>
-              </RN.View>
-            </RN.TouchableOpacity>
+                <RN.View
+                  style={{
+                    backgroundColor: '#fff',
+                    borderStyle: 'solid',
+                    borderWidth: 1,
+                    alignItems: 'center',
+                  }}
+                >
+                  <RN.Text style={{ fontSize: 20 }}>{`${item.name}(${
+                    item.id
+                  })`}</RN.Text>
+                </RN.View>
+              </RN.TouchableOpacity>
+            </Swipeout>
           )}
         />
       </RN.View>
