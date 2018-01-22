@@ -5,16 +5,21 @@ import * as Redux from 'redux';
 import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import Card from './card';
-/*
-        <RN.Modal transparent>
-          <RN.ActivityIndicator
-            size="large"
-            animating={this.state.loading || true}
-            style={{ position: 'absolute', top: 50, left: 50, zIndex: 2 }}
-          />
-        </RN.Modal>
-*/
 
+const LoadingIcon = () => (
+  <RN.Modal transparent>
+    <RN.View
+      style={{
+        flex: 1,
+        backgroundColor: 'rgba(#333a)',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <RN.ActivityIndicator size="large" animating={true} />
+    </RN.View>
+  </RN.Modal>
+);
 @connect((_: RootState) => ({}), { insertByURL: Action.insertByURL })
 export class SearchURL extends React.Component<any, any> {
   constructor(props) {
