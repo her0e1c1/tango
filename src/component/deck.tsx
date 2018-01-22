@@ -87,6 +87,7 @@ export default class Deck extends React.Component {
         <RN.Button title="debug" onPress={() => this.props.selectDeck()} />
         <SearchURL />
         <RN.Modal
+          supportedOrientations={['portrait', 'landscape']}
           visible={this.state.item !== null}
           onRequestClose={() => false}
         >

@@ -32,17 +32,31 @@ const Item = (props: { item: Item; onPress: (n: number) => void }) => (
 
 @connect((state: RootState) => ({ cards: Object.values(state.card.byId) }), {})
 export default class Card extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      item: null,
+    };
+  }
   render() {
     const cards = this.props.cards.filter(
       c => c.deck_id === this.props.deck.id
     );
-    return (
+    return !this.state.item ? (
       <RN.ScrollView>
-        <RN.Button title="hi" />
-        <CardView />
-        <RN.Button title="hi" />
-        {cards.map(x => <Item key={x.id} item={x} onPress={() => 1} />)}
+        {cards.map(item => (
+          <Item
+            key={item.id}
+            item={item}
+            onPress={() => this.setState({ item })}
+          />
+        ))}
       </RN.ScrollView>
+    ) : (
+      <CardView
+        item={this.state.item}
+        onClose={() => this.setState({ item: null })}
+      />
     );
   }
 }

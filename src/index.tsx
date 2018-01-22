@@ -7,6 +7,7 @@ import { Provider } from 'react-redux';
 
 import * as Action from 'src/action';
 import Root from './component/root';
+import View from 'src/component/view';
 
 const reducers = { card: Action.card, deck: Action.deck };
 
