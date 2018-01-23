@@ -55,7 +55,12 @@ export default class Card extends React.Component {
         ))}
       </RN.ScrollView>
     ) : (
-      <CardView items={cards} onClose={() => this.setState({ item: null })} />
+      <RN.Modal
+        supportedOrientations={['portrait', 'landscape']}
+        onRequestClose={() => {}}
+      >
+        <CardView items={cards} onClose={() => this.setState({ item: null })} />
+      </RN.Modal>
     );
   }
 }

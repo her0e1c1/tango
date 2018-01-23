@@ -4,6 +4,17 @@ import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import DeckSwiper from 'react-native-deck-swiper';
 
+const DEBUG = false;
+const COLOR = (color, type) => {
+  if (DEBUG) {
+    return color;
+  }
+  if (type === 'word') {
+    return '#fff';
+  }
+  return 'black';
+};
+
 const html = `
 <html>
 <head>
@@ -28,81 +39,87 @@ MathJax.Hub.Config({
 </html>
 `;
 
+export const CardView = ({ item }) => (
+  <RN.WebView
+    automaticallyAdjustContentInsets={false}
+    scrollEnabled={false}
+    bounces={false}
+    source={{ html: html.replace('%%%', item.body) }}
+    style={{ backgroundColor: COLOR('pink') }}
+  />
+);
+
+const CardViewDetail = ({ item }) => (
+  <RN.View style={{}}>
+    <RN.Text style={{ color: COLOR('red', 'word'), fontSize: 25 /*config*/ }}>
+      {item.name}
+    </RN.Text>
+  </RN.View>
+);
+
 export default class View extends React.Component<
   { item: Card },
-  { visible: boolean }
+  { visible: boolean; showBody: boolean }
 > {
   constructor(props) {
     super(props);
-    this.state = { visible: true, item: null };
+    this.state = { visible: false, item: null, index: 0, showBody: false };
+  }
+  componentDidMount() {
+    RN.StatusBar.setHidden(true);
   }
   render() {
     const disable = this.state.visible;
     return (
-      <DeckSwiper
-        backgroundColor={'black'}
-        swipeAnimationDuration={100}
-        onTapCard={() => this.setState({ visible: true })}
-        cardVerticalMargin={0}
-        cardHorizontalMargin={0}
-        cards={this.props.items}
-        showSecondCard={true}
-        goBackToPreviousCardOnSwipeLeft={true}
-        zoomFriction={0}
-        renderCard={item => (
-          <RN.View style={{ flex: 1 }}>
-            <RN.Button
-              title={this.state.visible ? 'ON' : 'OFF'}
-              onPress={() => this.setState({ visible: true })}
-            />
-            <RN.View style={{ flex: 1 }}>
-              <RN.WebView
-                automaticallyAdjustContentInsets={false}
-                source={{ html: html.replace('%%%', item.body) }}
-                style={{ backgroundColor: 'black' }}
-              />
+      <RN.View style={{ flex: 1 }}>
+        <RN.View style={{ flex: 1 }}>
+          <DeckSwiper
+            style={{ flex: 1 }}
+            backgroundColor={COLOR('yellow')}
+            cardIndex={this.state.index}
+            swipeAnimationDuration={100}
+            onSwipedRight={index => this.setState({ index: index + 1 })}
+            cardVerticalMargin={0}
+            cardHorizontalMargin={0}
+            cards={this.props.items}
+            showSecondCard={false}
+            goBackToPreviousCardOnSwipeLeft={true}
+            zoomFriction={0}
+            onSwipedBottom={() => this.props.onClose()}
+            disableBottomSwipe={false}
+            renderCard={item => (
+              <RN.TouchableWithoutFeedback
+                style={{ flex: 1 }}
+                onPress={() =>
+                  this.setState({ showBody: !this.state.showBody })
+                }
+                onLongPress={() => this.setState({ visible: true })}
+              >
+                <RN.View style={{ flex: 1, backgroundColor: COLOR('#621') }}>
+                  <CardViewDetail item={item} />
+                  {this.state.showBody && <CardView item={item} />}
+                </RN.View>
+              </RN.TouchableWithoutFeedback>
+            )}
+          />
+        </RN.View>
+        <RN.Modal
+          animationType={'fade'}
+          supportedOrientations={['portrait', 'landscape']}
+          visible={this.state.visible}
+          onRequestClose={() => {}}
+        >
+          <RN.TouchableWithoutFeedback
+            style={{ flex: 1, backgroundColor: 'black' }}
+            // onPress={() => {}}
+            onLongPress={() => this.setState({ visible: false })}
+          >
+            <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
+              <CardView item={this.props.items[this.state.index]} />
             </RN.View>
-            <RN.Modal
-              // transparent
-              animationType={'fade'}
-              supportedOrientations={['portrait', 'landscape']}
-              visible={this.state.visible}
-              onRequestClose={() => {}}
-            >
-              <RN.Button
-                title="CLOSING ON MODAL"
-                onPress={() => this.setState({ visible: false })}
-              />
-            </RN.Modal>
-          </RN.View>
-        )}
-      />
+          </RN.TouchableWithoutFeedback>
+        </RN.Modal>
+      </RN.View>
     );
   }
 }
-
-/*
-
-          <RN.TouchableHighlight
-            style={{ flex: 1 }}
-            onPress={() => alert('hi')}
-            onLongPress={() => this.setState({ visible: true })}
-          >
-            <RN.View style={{ flex: 1 }}>
-              <RN.Button title="CLOSING" onPress={() => this.props.onClose()} />
-            </RN.View>
-          </RN.TouchableHighlight>
-
-
-        <RN.TouchableHighlight
-          style={{ flex: 1 }}
-          onLongPress={() => this.setState({ visible: true })}
-        >
-        </RN.TouchableHighlight>
-          <RN.TouchableOpacity
-            style={{ flex: 1 }}
-            onLongPress={() => this.setState({ visible: false })}
-          >
-          </RN.TouchableOpacity>
-
-*/
