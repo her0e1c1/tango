@@ -5,6 +5,7 @@ import * as Swiper from 'react-native-swiper';
 import { connect } from 'react-redux';
 import GestureRecognizer from 'react-native-swipe-gestures';
 import Swipeout from 'react-native-swipeout';
+import DeckSwiper from 'react-native-deck-swiper';
 import * as Action from 'src/action';
 import CardView from './view';
 
@@ -35,6 +36,7 @@ export default class Card extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      index: 0,
       item: null,
     };
   }
@@ -44,18 +46,27 @@ export default class Card extends React.Component {
     );
     return !this.state.item ? (
       <RN.ScrollView>
-        {cards.map(item => (
+        {cards.map((item, index) => (
           <Item
             key={item.id}
             item={item}
-            onPress={() => this.setState({ item })}
+            onPress={() => this.setState({ item, index })}
           />
         ))}
       </RN.ScrollView>
     ) : (
-      <CardView
-        item={this.state.item}
-        onClose={() => this.setState({ item: null })}
+      <DeckSwiper
+        backgroundColor={'black'}
+        onTapCard={() => alert('TAP')}
+        cardVerticalMargin={0}
+        cardHorizontalMargin={0}
+        cards={cards}
+        showSecondCard={false}
+        goBackToPreviousCardOnSwipeLeft={true}
+        zoomFriction={0}
+        renderCard={card => (
+          <CardView item={card} onClose={() => this.setState({ item: null })} />
+        )}
       />
     );
   }

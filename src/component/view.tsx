@@ -40,31 +40,21 @@ export default class View extends React.Component<
     return (
       <RN.View style={{ flex: 1 }}>
         <RN.Button title={this.state.visible ? 'ON' : 'OFF'} />
-        <RN.TouchableHighlight
-          style={{ flex: 1 }}
-          onLongPress={() => this.setState({ visible: true })}
-        >
-          <RN.View style={{ flex: 1 }}>
-            <RN.WebView
-              automaticallyAdjustContentInsets={false}
-              source={{ html: html.replace('%%%', code) }}
-            />
-          </RN.View>
-        </RN.TouchableHighlight>
+        <RN.View style={{ flex: 1 }}>
+          <RN.WebView
+            automaticallyAdjustContentInsets={false}
+            source={{ html: html.replace('%%%', code) }}
+          />
+        </RN.View>
         <RN.Modal
           transparent
           supportedOrientations={['portrait', 'landscape']}
           visible={this.state.visible}
           onRequestClose={() => {}}
         >
-          <RN.TouchableOpacity
-            style={{ flex: 1 }}
-            onLongPress={() => this.setState({ visible: false })}
-          >
-            <RN.View style={{ flex: 1 }}>
-              <RN.Button title="CLOSING" onPress={() => this.props.onClose()} />
-            </RN.View>
-          </RN.TouchableOpacity>
+          <RN.View style={{ flex: 1 }}>
+            <RN.Button title="CLOSING" onPress={() => this.props.onClose()} />
+          </RN.View>
         </RN.Modal>
       </RN.View>
     );
@@ -72,5 +62,27 @@ export default class View extends React.Component<
 }
 
 /*
+
+          <RN.TouchableHighlight
+            style={{ flex: 1 }}
+            onPress={() => alert('hi')}
+            onLongPress={() => this.setState({ visible: true })}
+          >
+            <RN.View style={{ flex: 1 }}>
+              <RN.Button title="CLOSING" onPress={() => this.props.onClose()} />
+            </RN.View>
+          </RN.TouchableHighlight>
+
+
+        <RN.TouchableHighlight
+          style={{ flex: 1 }}
+          onLongPress={() => this.setState({ visible: true })}
+        >
+        </RN.TouchableHighlight>
+          <RN.TouchableOpacity
+            style={{ flex: 1 }}
+            onLongPress={() => this.setState({ visible: false })}
+          >
+          </RN.TouchableOpacity>
 
 */
