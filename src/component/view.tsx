@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
+import DeckSwiper from 'react-native-deck-swiper';
 
 const html = `
 <html>
@@ -33,30 +34,49 @@ export default class View extends React.Component<
 > {
   constructor(props) {
     super(props);
-    this.state = { visible: true };
+    this.state = { visible: true, item: null };
   }
   render() {
-    const code = this.props.item.body;
+    const disable = this.state.visible;
     return (
-      <RN.View style={{ flex: 1 }}>
-        <RN.Button title={this.state.visible ? 'ON' : 'OFF'} />
-        <RN.View style={{ flex: 1 }}>
-          <RN.WebView
-            automaticallyAdjustContentInsets={false}
-            source={{ html: html.replace('%%%', code) }}
-          />
-        </RN.View>
-        <RN.Modal
-          transparent
-          supportedOrientations={['portrait', 'landscape']}
-          visible={this.state.visible}
-          onRequestClose={() => {}}
-        >
+      <DeckSwiper
+        backgroundColor={'black'}
+        swipeAnimationDuration={100}
+        onTapCard={() => this.setState({ visible: true })}
+        cardVerticalMargin={0}
+        cardHorizontalMargin={0}
+        cards={this.props.items}
+        showSecondCard={true}
+        goBackToPreviousCardOnSwipeLeft={true}
+        zoomFriction={0}
+        renderCard={item => (
           <RN.View style={{ flex: 1 }}>
-            <RN.Button title="CLOSING" onPress={() => this.props.onClose()} />
+            <RN.Button
+              title={this.state.visible ? 'ON' : 'OFF'}
+              onPress={() => this.setState({ visible: true })}
+            />
+            <RN.View style={{ flex: 1 }}>
+              <RN.WebView
+                automaticallyAdjustContentInsets={false}
+                source={{ html: html.replace('%%%', item.body) }}
+                style={{ backgroundColor: 'black' }}
+              />
+            </RN.View>
+            <RN.Modal
+              // transparent
+              animationType={'fade'}
+              supportedOrientations={['portrait', 'landscape']}
+              visible={this.state.visible}
+              onRequestClose={() => {}}
+            >
+              <RN.Button
+                title="CLOSING ON MODAL"
+                onPress={() => this.setState({ visible: false })}
+              />
+            </RN.Modal>
           </RN.View>
-        </RN.Modal>
-      </RN.View>
+        )}
+      />
     );
   }
 }

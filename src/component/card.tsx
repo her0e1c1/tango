@@ -55,19 +55,7 @@ export default class Card extends React.Component {
         ))}
       </RN.ScrollView>
     ) : (
-      <DeckSwiper
-        backgroundColor={'black'}
-        onTapCard={() => alert('TAP')}
-        cardVerticalMargin={0}
-        cardHorizontalMargin={0}
-        cards={cards}
-        showSecondCard={false}
-        goBackToPreviousCardOnSwipeLeft={true}
-        zoomFriction={0}
-        renderCard={card => (
-          <CardView item={card} onClose={() => this.setState({ item: null })} />
-        )}
-      />
+      <CardView items={cards} onClose={() => this.setState({ item: null })} />
     );
   }
 }
