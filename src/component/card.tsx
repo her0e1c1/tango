@@ -59,7 +59,11 @@ export default class Card extends React.Component {
         supportedOrientations={['portrait', 'landscape']}
         onRequestClose={() => {}}
       >
-        <CardView items={cards} onClose={() => this.setState({ item: null })} />
+        <CardView
+          index={this.state.index}
+          items={cards}
+          onClose={() => this.setState({ item: null })}
+        />
       </RN.Modal>
     );
   }

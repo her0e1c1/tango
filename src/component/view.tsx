@@ -63,7 +63,12 @@ export default class View extends React.Component<
 > {
   constructor(props) {
     super(props);
-    this.state = { visible: false, item: null, index: 0, showBody: false };
+    this.state = {
+      visible: false,
+      item: null,
+      index: this.props.index,
+      showBody: false,
+    };
   }
   componentDidMount() {
     RN.StatusBar.setHidden(true);
