@@ -5,7 +5,7 @@ import * as Action from 'src/action';
 import DeckSwiper from 'react-native-deck-swiper';
 
 const DEBUG = false;
-const COLOR = (color, type) => {
+const COLOR = (color, type?) => {
   if (DEBUG) {
     return color;
   }
@@ -94,13 +94,18 @@ export default class View extends React.Component<
             disableBottomSwipe={false}
             renderCard={item => (
               <RN.TouchableWithoutFeedback
-                style={{ flex: 1 }}
+                style={{ flex: 1, backgroundColor: COLOR('#194') }}
                 onPress={() =>
                   this.setState({ showBody: !this.state.showBody })
                 }
                 onLongPress={() => this.setState({ visible: true })}
               >
-                <RN.View style={{ flex: 1, backgroundColor: COLOR('#621') }}>
+                <RN.View
+                  style={{
+                    flex: 1,
+                    backgroundColor: COLOR('#621'),
+                  }}
+                >
                   <CardViewDetail item={item} />
                   {this.state.showBody && <CardView item={item} />}
                 </RN.View>
