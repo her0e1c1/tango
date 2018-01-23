@@ -42,7 +42,7 @@ MathJax.Hub.Config({
 export const CardView = ({ item }) => (
   <RN.WebView
     automaticallyAdjustContentInsets={false}
-    scrollEnabled={false}
+    scrollEnabled={true}
     bounces={false}
     source={{ html: html.replace('%%%', item.body) }}
     style={{ backgroundColor: COLOR('pink') }}
