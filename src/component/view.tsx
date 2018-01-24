@@ -3,6 +3,7 @@ import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import DeckSwiper from 'react-native-deck-swiper';
+import PinchZoomView from 'react-native-pinch-zoom-view';
 
 const DEBUG = false;
 const COLOR = (color, type?) => {
@@ -19,7 +20,7 @@ const html = `
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5.0, user-scalable=yes" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/styles/default.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
@@ -32,7 +33,7 @@ MathJax.Hub.Config({
 </script>
 </head>
 
-<body style="background-color: black">
+<body style="background-color: black; font-size: 18px">
 <pre><code className="golang">%%%</code></pre>
 </body>
 
