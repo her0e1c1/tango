@@ -70,9 +70,9 @@ export default class Deck extends React.Component {
       item: null,
     };
   }
-  componentDidMount() {
-    this.props.selectDeck();
-    this.props.selectCard();
+  async componentDidMount() {
+    await this.props.selectDeck();
+    await this.props.selectCard();
   }
   render() {
     return (
@@ -119,7 +119,7 @@ export default class Deck extends React.Component {
             >
               <RN.TouchableOpacity
                 onPress={() => this.setState({ item })}
-                onLongPress={() => alert(item.url)}
+                onLongPress={() => alert(JSON.stringify(item))}
               >
                 <RN.View
                   style={{

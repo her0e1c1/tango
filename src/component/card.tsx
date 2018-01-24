@@ -31,7 +31,7 @@ const Item = (props: { item: Item; onPress: (n: number) => void }) => (
   </Swipeout>
 );
 
-@connect((state: RootState) => ({ cards: Object.values(state.card.byId) }), {})
+@connect((state: RootState) => ({ card: state.card }), {})
 export default class Card extends React.Component {
   constructor(props) {
     super(props);
@@ -41,9 +41,8 @@ export default class Card extends React.Component {
     };
   }
   render() {
-    const cards = this.props.cards.filter(
-      c => c.deck_id === this.props.deck.id
-    );
+    const ids = this.props.card.byDeckId[this.props.deck.id] || [];
+    const cards = ids.map(id => this.props.card.byId[id]).slice(0, 200);
     return !this.state.item ? (
       <RN.ScrollView>
         {cards.map((item, index) => (
@@ -60,7 +59,7 @@ export default class Card extends React.Component {
         onRequestClose={() => {}}
       >
         <CardView
-          index={this.state.index}
+          index={this.state.index || 0}
           items={cards}
           onClose={() => this.setState({ item: null })}
         />

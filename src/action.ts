@@ -68,14 +68,11 @@ export const insertByURL = (url: string) => async (dispatch, getState) => {
 };
 
 // can config limit
-export const selectCard = (limit: number = 50) => async (
-  dispatch,
-  getState
-) => {
+export const selectCard = (deck_id?: number) => async (dispatch, getState) => {
   db.transaction(tx =>
     tx.executeSql(
-      `select * from card limit ?`,
-      [limit],
+      `select * from card`,
+      [],
       (_, result) => {
         const cards = result.rows._array;
         dispatch({ type: 'BULK_INSERT', payload: { cards } });
@@ -131,16 +128,27 @@ export const insertDeck = (deck: Pick<Deck, 'id' | 'name' | 'url'>) => async (
   );
 };
 
-export const card = (state = { byId: {} }, action: Redux.Action) => {
+export const card = (
+  state = { byId: {}, byDeckId: {} },
+  action: Redux.Action
+) => {
   console.log(action);
   if (action.type == 'INSERT') {
     const ns = _.clone(state);
     const c = action.payload.card;
     ns.byId[c.id] = c;
+    ns.byDeckId[c.deck_id]
+      ? ns.byDeckId[c.deck_id].push(c.id)
+      : (ns.byDeckId[c.deck_id] = [c.id]);
     return ns;
   } else if (action.type == 'BULK_INSERT') {
     const ns = _.clone(state);
-    action.payload.cards.forEach(c => (ns.byId[c.id] = c));
+    action.payload.cards.forEach(c => {
+      ns.byId[c.id] = c;
+      ns.byDeckId[c.deck_id]
+        ? ns.byDeckId[c.deck_id].push(c.id)
+        : (ns.byDeckId[c.deck_id] = [c.id]);
+    });
     return ns;
   } else if (action.type == 'DELETE') {
     const ns = _.clone(state);
