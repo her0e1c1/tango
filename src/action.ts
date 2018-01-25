@@ -37,17 +37,29 @@ const createAction = (type: string, payloadCreator?: any) => {
 
 export const deleteCard = (card: Card) => async (dispatch, getState) => {
   db.transaction(tx =>
-    tx.executeSql(`delete from card where id = ?;`, [card.id], (_, result) => {
-      dispatch({ type: 'DELETE', payload: { card } });
-    })
+    tx.executeSql(
+      `delete from card where id = ?;`,
+      [card.id],
+      (_, result) => {
+        dispatch({ type: 'DELETE', payload: { card } });
+      },
+      (...args) => alert(JSON.stringify(args))
+    )
   );
 };
 
 export const deleteDeck = (deck: Deck) => async (dispatch, getState) => {
   db.transaction(tx =>
-    tx.executeSql(`delete from deck where id = ?;`, [deck.id], (_, result) => {
-      dispatch({ type: 'DECK_DELETE', payload: { deck } });
-    })
+    tx.executeSql(
+      `delete from deck where id = ?; commit`,
+      [deck.id],
+      (_, result) => {
+        console.log(result, deck);
+        if (result.rowsAffected === 1)
+          dispatch({ type: 'DECK_DELETE', payload: { deck } });
+      },
+      (...args) => alert(JSON.stringify(args))
+    )
   );
 };
 
@@ -132,7 +144,7 @@ export const card = (
   state = { byId: {}, byDeckId: {} },
   action: Redux.Action
 ) => {
-  console.log(action);
+  console.log(action.type);
   if (action.type == 'INSERT') {
     const ns = _.clone(state);
     const c = action.payload.card;
@@ -164,6 +176,7 @@ export const deck = (
   state: { [key: string]: Deck } = {},
   action: Redux.Action
 ) => {
+  // console.log(action);
   if (action.type == 'DECK_INSERT') {
     const d: Deck = action.payload.deck;
     return { ...state, [d.id]: d };

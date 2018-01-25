@@ -12,7 +12,7 @@ import CardView from './view';
 const Item = (props: { item: Item; onPress: (n: number) => void }) => (
   <Swipeout
     autoClose
-    left={[
+    right={[
       {
         text: 'DEL',
         backgroundColor: 'red',
