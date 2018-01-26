@@ -14,6 +14,7 @@ interface Card {
   name: string;
   body: string;
   deck_id: number;
+  mastered: boolean;
   tags: Tag[];
 }
 
@@ -21,3 +22,5 @@ type DeckState = { [key: string]: Deck };
 interface RootState {
   deck: DeckState;
 }
+
+type Callback = () => void
