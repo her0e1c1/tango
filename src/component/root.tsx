@@ -16,7 +16,7 @@ const RootTabs = TabNavigator(
         tabBarLabel: 'Decks',
         tabBarIcon: ({ tintColor, focused }) => (
           <Ionicons
-            name={focused ? 'cards' : 'cards-outline'}
+            name={focused ? 'ios-card' : 'ios-card-outline'}
             size={26}
             style={{ color: tintColor }}
           />
