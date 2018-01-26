@@ -87,7 +87,10 @@ export class SearchURL extends React.Component<
   deleteDeck: Action.deleteDeck,
   insertByURL: Action.insertByURL,
 })
-export default class Deck extends React.Component<{}, { selectedDeck?: Deck }> {
+export default class Deck extends React.Component<
+  {},
+  { selectedDeck?: Deck; showSearchBar: boolean }
+> {
   constructor(props) {
     super(props);
     this.state = {
