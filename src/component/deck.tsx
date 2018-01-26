@@ -5,9 +5,50 @@ import * as Redux from 'redux';
 import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import Card from './card';
+import styled from 'styled-components';
+
+const MainText = styled(RN.Text)`
+  color: white;
+  font-size: 16px;
+`;
+
+const Container = styled(RN.View)`
+  flex: 1;
+  background-color: skyblue;
+  padding-top: 20; /* space for ios status bar */
+  padding-horizontal: 20px;
+`;
+
+const Header = ({ showSearchBar, onOpen, onClose }) => (
+  <RN.View
+    style={{
+      flex: 1,
+    }}
+  >
+    {showSearchBar ? (
+      <SearchURL onClose={onClose} />
+    ) : (
+      <RN.View
+        style={{
+          flex: 1,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+        }}
+      >
+        <MainText>TANGO FOR MEMO</MainText>
+        <RN.TouchableWithoutFeedback onPress={onOpen}>
+          <MainText>+ Import</MainText>
+        </RN.TouchableWithoutFeedback>
+      </RN.View>
+    )}
+  </RN.View>
+);
 
 @connect((_: RootState) => ({}), { insertByURL: Action.insertByURL })
-export class SearchURL extends React.Component<any, any> {
+export class SearchURL extends React.Component<
+  any,
+  { text: string; loading: boolean }
+> {
   constructor(props) {
     super(props);
     this.state = {
@@ -17,12 +58,16 @@ export class SearchURL extends React.Component<any, any> {
   }
   render() {
     return (
-      <RN.View>
+      <RN.View style={{ flex: 1 }}>
         <RN.TextInput
+          autoFocus
+          keyboardType="url"
           value={this.state.text}
-          style={{ backgroundColor: '#999', fontSize: 40 }}
+          placeholder="https:// ... (CSV URL)"
+          style={{ backgroundColor: 'white', fontSize: 16 }}
           onChangeText={text => this.setState({ text })}
           onEndEditing={() => {
+            this.props.onClose();
             if (this.state.text.match(/^https?:\/\//)) {
               this.setState({ loading: true }, async () => {
                 try {
@@ -54,6 +99,7 @@ export default class Deck extends React.Component {
     super(props);
     this.state = {
       item: null,
+      showSearchBar: false,
     };
   }
   async componentDidMount() {
@@ -62,16 +108,12 @@ export default class Deck extends React.Component {
   }
   render() {
     return (
-      <RN.View
-        style={{
-          flex: 1,
-          alignItems: 'stretch',
-          justifyContent: 'center',
-          backgroundColor: 'skyblue',
-        }}
-      >
-        <RN.Button title="debug" onPress={() => this.props.selectDeck()} />
-        <SearchURL />
+      <Container>
+        <Header
+          showSearchBar={this.state.showSearchBar}
+          onOpen={() => this.setState({ showSearchBar: true })}
+          onClose={() => this.setState({ showSearchBar: false })}
+        />
         <RN.Modal
           supportedOrientations={['portrait', 'landscape']}
           visible={this.state.item !== null}
@@ -123,7 +165,7 @@ export default class Deck extends React.Component {
             </Swipeout>
           )}
         />
-      </RN.View>
+      </Container>
     );
   }
 }
