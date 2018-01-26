@@ -16,21 +16,16 @@ const Container = styled(RN.View)`
   flex: 1;
   background-color: skyblue;
   padding-top: 20; /* space for ios status bar */
-  padding-horizontal: 20px;
+  padding-horizontal: 10px;
 `;
 
 const Header = ({ showSearchBar, onOpen, onClose }) => (
-  <RN.View
-    style={{
-      flex: 1,
-    }}
-  >
+  <RN.View style={{ marginBottom: 10 }}>
     {showSearchBar ? (
       <SearchURL onClose={onClose} />
     ) : (
       <RN.View
         style={{
-          flex: 1,
           flexDirection: 'row',
           justifyContent: 'space-between',
         }}
@@ -58,32 +53,30 @@ export class SearchURL extends React.Component<
   }
   render() {
     return (
-      <RN.View style={{ flex: 1 }}>
-        <RN.TextInput
-          autoFocus
-          keyboardType="url"
-          value={this.state.text}
-          placeholder="https:// ... (CSV URL)"
-          style={{ backgroundColor: 'white', fontSize: 16 }}
-          onChangeText={text => this.setState({ text })}
-          onEndEditing={() => {
-            this.props.onClose();
-            if (this.state.text.match(/^https?:\/\//)) {
-              this.setState({ loading: true }, async () => {
-                try {
-                  await this.props.insertByURL(this.state.text);
-                } catch {
-                  alert('CAN NOT FETCH :(');
-                } finally {
-                  this.setState({ loading: false });
-                }
-              });
-            } else if (this.state.text !== '') {
-              alert('INVALID URL: ' + this.state.text);
-            }
-          }}
-        />
-      </RN.View>
+      <RN.TextInput
+        autoFocus
+        keyboardType="url"
+        value={this.state.text}
+        placeholder="https:// ... (CSV URL)"
+        style={{ backgroundColor: 'white', fontSize: 16 }}
+        onChangeText={text => this.setState({ text })}
+        onEndEditing={() => {
+          this.props.onClose();
+          if (this.state.text.match(/^https?:\/\//)) {
+            this.setState({ loading: true }, async () => {
+              try {
+                await this.props.insertByURL(this.state.text);
+              } catch {
+                alert('CAN NOT FETCH :(');
+              } finally {
+                this.setState({ loading: false });
+              }
+            });
+          } else if (this.state.text !== '') {
+            alert('INVALID URL: ' + this.state.text);
+          }
+        }}
+      />
     );
   }
 }
@@ -94,7 +87,7 @@ export class SearchURL extends React.Component<
   deleteDeck: Action.deleteDeck,
   insertByURL: Action.insertByURL,
 })
-export default class Deck extends React.Component<{}, {selectedDeck?: Deck}> {
+export default class Deck extends React.Component<{}, { selectedDeck?: Deck }> {
   constructor(props) {
     super(props);
     this.state = {
@@ -107,19 +100,24 @@ export default class Deck extends React.Component<{}, {selectedDeck?: Deck}> {
   }
   render() {
     return (
-      <Container style={{ justifyContent: 'flex-start' }}>
+      <Container>
         <Header
           showSearchBar={this.state.showSearchBar}
           onOpen={() => this.setState({ showSearchBar: true })}
           onClose={() => this.setState({ showSearchBar: false })}
         />
-        {this.state.selectedDeck && <Card deck={this.state.selectedDeck} onClose={() => this.setState({ selectedDeck: null }} />}
+        {this.state.selectedDeck && (
+          <Card
+            deck={this.state.selectedDeck}
+            onClose={() => this.setState({ selectedDeck: null })}
+          />
+        )}
         <RN.FlatList
-          style={{ flex: 1, backgroundColor: '#878' }}
+          style={{ flex: 1 }}
           data={this.props.decks.map(d => ({ ...d, key: d.id }))}
           renderItem={({ item }) => (
             <Swipeout
-              style={{ flex: 1, backgroundColor: '#909' }}
+              style={{ flex: 1 }}
               autoClose
               right={[
                 {
@@ -137,7 +135,7 @@ export default class Deck extends React.Component<{}, {selectedDeck?: Deck}> {
               ]}
             >
               <RN.TouchableOpacity
-                style={{ flex: 1, backgroundColor: '#444' }}
+                style={{ flex: 1 }}
                 onPress={() => this.setState({ selectedDeck: item })}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
