@@ -6,16 +6,17 @@ import { connect } from 'react-redux';
 
 import Deck from './deck';
 import Settings from './settings';
+import Help from './help';
 
 const RootTabs = TabNavigator(
   {
     Deck: {
       screen: Deck,
       navigationOptions: {
-        tabBarLabel: 'Deck',
+        tabBarLabel: 'Decks',
         tabBarIcon: ({ tintColor, focused }) => (
           <Ionicons
-            name={focused ? 'ios-home' : 'ios-home-outline'}
+            name={focused ? 'cards' : 'cards-outline'}
             size={26}
             style={{ color: tintColor }}
           />
@@ -28,7 +29,20 @@ const RootTabs = TabNavigator(
         tabBarLabel: 'Settings',
         tabBarIcon: ({ tintColor, focused }) => (
           <Ionicons
-            name={focused ? 'ios-phone-portrait' : 'ios-phone-portrait-outline'}
+            name={focused ? 'ios-settings' : 'ios-settings-outline'}
+            size={26}
+            style={{ color: tintColor }}
+          />
+        ),
+      },
+    },
+    Help: {
+      screen: Help,
+      navigationOptions: {
+        tabBarLabel: 'Help',
+        tabBarIcon: ({ tintColor, focused }) => (
+          <Ionicons
+            name={focused ? 'ios-help-circle' : 'ios-help-circle-outline'}
             size={26}
             style={{ color: tintColor }}
           />
