@@ -94,11 +94,10 @@ export class SearchURL extends React.Component<
   deleteDeck: Action.deleteDeck,
   insertByURL: Action.insertByURL,
 })
-export default class Deck extends React.Component {
+export default class Deck extends React.Component<{}, {selectedDeck?: Deck}> {
   constructor(props) {
     super(props);
     this.state = {
-      item: null,
       showSearchBar: false,
     };
   }
@@ -108,27 +107,19 @@ export default class Deck extends React.Component {
   }
   render() {
     return (
-      <Container>
+      <Container style={{ justifyContent: 'flex-start' }}>
         <Header
           showSearchBar={this.state.showSearchBar}
           onOpen={() => this.setState({ showSearchBar: true })}
           onClose={() => this.setState({ showSearchBar: false })}
         />
-        <RN.Modal
-          supportedOrientations={['portrait', 'landscape']}
-          visible={this.state.item !== null}
-          onRequestClose={() => false}
-        >
-          <RN.Button
-            title="CLOSE"
-            onPress={() => this.setState({ item: null })}
-          />
-          <Card deck={this.state.item} />
-        </RN.Modal>
+        {this.state.selectedDeck && <Card deck={this.state.selectedDeck} onClose={() => this.setState({ selectedDeck: null }} />}
         <RN.FlatList
+          style={{ flex: 1, backgroundColor: '#878' }}
           data={this.props.decks.map(d => ({ ...d, key: d.id }))}
           renderItem={({ item }) => (
             <Swipeout
+              style={{ flex: 1, backgroundColor: '#909' }}
               autoClose
               right={[
                 {
@@ -146,7 +137,8 @@ export default class Deck extends React.Component {
               ]}
             >
               <RN.TouchableOpacity
-                onPress={() => this.setState({ item })}
+                style={{ flex: 1, backgroundColor: '#444' }}
+                onPress={() => this.setState({ selectedDeck: item })}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
                 <RN.View

@@ -32,12 +32,14 @@ const Item = (props: { item: Item; onPress: (n: number) => void }) => (
 );
 
 @connect((state: RootState) => ({ card: state.card }), {})
-export default class Card extends React.Component {
+export default class Card extends React.Component<
+  { onClose: Callback; deck: Deck },
+  { index: number; item?: Card }
+> {
   constructor(props) {
     super(props);
     this.state = {
       index: 0,
-      item: null,
     };
   }
   render() {
@@ -45,6 +47,7 @@ export default class Card extends React.Component {
     const cards = ids.map(id => this.props.card.byId[id]).slice(0, 200);
     return !this.state.item ? (
       <RN.ScrollView>
+        <RN.Button title="BACK" onPress={() => this.props.onClose()} />
         {cards.map((item, index) => (
           <Item
             key={item.id}
