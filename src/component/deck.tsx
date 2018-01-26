@@ -12,6 +12,22 @@ const MainText = styled(RN.Text)`
   font-size: 16px;
 `;
 
+const DeckCard = styled(RN.View)`
+  flex: 1;
+  align-self: stretch;
+  padding: 20px;
+  margin-bottom: 10px;
+  background-color: white;
+  border-style: solid;
+  border-width: 0px;
+`;
+
+const DeckTitle = styled(RN.Text)`
+  color: black;
+  font-weight: bold;
+  font-size: 20px;
+`;
+
 const Container = styled(RN.View)`
   flex: 1;
   background-color: skyblue;
@@ -116,12 +132,11 @@ export default class Deck extends React.Component<
           />
         )}
         <RN.FlatList
-          style={{ flex: 1 }}
           data={this.props.decks.map(d => ({ ...d, key: d.id }))}
           renderItem={({ item }) => (
             <Swipeout
-              style={{ flex: 1 }}
               autoClose
+              style={{ backgroundColor: 'skyblue' }}
               right={[
                 {
                   text: 'DEL',
@@ -138,22 +153,13 @@ export default class Deck extends React.Component<
               ]}
             >
               <RN.TouchableOpacity
-                style={{ flex: 1 }}
                 onPress={() => this.setState({ selectedDeck: item })}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
-                <RN.View
-                  style={{
-                    backgroundColor: '#fff',
-                    borderStyle: 'solid',
-                    borderWidth: 1,
-                    alignItems: 'center',
-                  }}
-                >
-                  <RN.Text style={{ fontSize: 20 }}>{`${item.name}(${
-                    item.id
-                  })`}</RN.Text>
-                </RN.View>
+                <DeckCard>
+                  <DeckTitle>{item.name}</DeckTitle>
+                  <RN.Text>x of y cards mastered</RN.Text>
+                </DeckCard>
               </RN.TouchableOpacity>
             </Swipeout>
           )}
