@@ -6,20 +6,6 @@ import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import Card from './card';
 
-const LoadingIcon = () => (
-  <RN.Modal transparent>
-    <RN.View
-      style={{
-        flex: 1,
-        backgroundColor: 'rgba(#333a)',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
-      <RN.ActivityIndicator size="large" animating={true} />
-    </RN.View>
-  </RN.Modal>
-);
 @connect((_: RootState) => ({}), { insertByURL: Action.insertByURL })
 export class SearchURL extends React.Component<any, any> {
   constructor(props) {
@@ -81,7 +67,7 @@ export default class Deck extends React.Component {
           flex: 1,
           alignItems: 'stretch',
           justifyContent: 'center',
-          backgroundColor: 'green',
+          backgroundColor: 'skyblue',
         }}
       >
         <RN.Button title="debug" onPress={() => this.props.selectDeck()} />
