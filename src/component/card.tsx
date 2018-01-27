@@ -20,40 +20,8 @@ const CardTitle = styled(RN.Text)`
   font-size: 13px;
 `;
 
-@connect((state: RootState) => ({}), {
-  deleteCard: Action.deleteCard,
-})
-export class CardItem extends React.Component<
-  { onPress: Callback; item: Card },
-  {}
-> {
-  render() {
-    const { item } = this.props;
-    return (
-      <Swipeout
-        autoClose
-        right={[
-          {
-            text: 'DEL',
-            backgroundColor: 'red',
-            onPress: () => this.props.deleteCard(item),
-          },
-        ]}
-      >
-        <RN.TouchableOpacity
-          onPress={() => this.props.onPress()}
-          onLongPress={() => alert(JSON.stringify(item))}
-        >
-          <CardCard>
-            <CardTitle>{item.name}</CardTitle>
-          </CardCard>
-        </RN.TouchableOpacity>
-      </Swipeout>
-    );
-  }
-}
-
 @connect((state: RootState) => ({ card: state.card, deck: state.nav.deck }), {
+  deleteCard: Action.deleteCard,
   goTo: Action.goTo,
 })
 export default class CardList extends React.Component<{}, {}> {
@@ -63,11 +31,26 @@ export default class CardList extends React.Component<{}, {}> {
     return (
       <RN.ScrollView>
         {cards.map((item, index) => (
-          <CardItem
+          <Swipeout
             key={item.id}
-            item={item}
-            onPress={() => this.props.goTo({ card: item, index })}
-          />
+            autoClose
+            right={[
+              {
+                text: 'DEL',
+                backgroundColor: 'red',
+                onPress: () => this.props.deleteCard(item),
+              },
+            ]}
+          >
+            <RN.TouchableOpacity
+              onPress={() => this.props.goTo({ card: item, index })}
+              onLongPress={() => alert(JSON.stringify(item))}
+            >
+              <CardCard>
+                <CardTitle>{item.name}</CardTitle>
+              </CardCard>
+            </RN.TouchableOpacity>
+          </Swipeout>
         ))}
       </RN.ScrollView>
     );
