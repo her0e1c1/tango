@@ -67,83 +67,80 @@ const CardViewDetail = ({ item }) => (
   }),
   {
     goTo: Action.goTo,
+    goBack: Action.goBack,
   }
 )
 export default class View extends React.Component<
-  { item: Card },
-  { visible: boolean; showBody: boolean }
+  {},
+  { visible: boolean; showBody: boolean; item: Card }
 > {
   constructor(props) {
     super(props);
     this.state = {
       visible: false,
-      item: null,
-      index: this.props.index,
       showBody: false,
     };
   }
   componentDidMount() {
     RN.StatusBar.setHidden(true);
   }
+  componentWillUnmount() {
+    RN.StatusBar.setHidden(false);
+  }
   render() {
     const ids = this.props.card.byDeckId[this.props.deck.id] || [];
     const cards = ids.map(id => this.props.card.byId[id]).slice(0, 200);
     const disable = this.state.visible;
-    return (
+    return !this.state.visible ? (
       <RN.View style={{ flex: 1 }}>
-        <RN.View style={{ flex: 1 }}>
-          <DeckSwiper
-            style={{ flex: 1 }}
-            backgroundColor={COLOR('yellow')}
-            cardIndex={this.state.index}
-            swipeAnimationDuration={100}
-            onSwipedRight={index => this.setState({ index: index + 1 })}
-            cardVerticalMargin={0}
-            cardHorizontalMargin={0}
-            cards={cards}
-            showSecondCard={false}
-            goBackToPreviousCardOnSwipeLeft={true}
-            zoomFriction={0}
-            onSwipedBottom={() => this.props.onClose()}
-            disableBottomSwipe={false}
-            renderCard={item => (
-              <RN.TouchableWithoutFeedback
-                style={{ flex: 1, backgroundColor: COLOR('#194') }}
-                onPress={() =>
-                  this.setState({ showBody: !this.state.showBody })
-                }
-                onLongPress={() => this.setState({ visible: true })}
+        <DeckSwiper
+          backgroundColor={COLOR('yellow')}
+          cardIndex={this.props.index}
+          swipeAnimationDuration={100}
+          onSwipedRight={index => this.props.goTo({ index: index + 1 })}
+          cardVerticalMargin={0}
+          cardHorizontalMargin={0}
+          cards={cards}
+          showSecondCard={false}
+          goBackToPreviousCardOnSwipeLeft={true}
+          zoomFriction={0}
+          onSwipedBottom={() => this.props.goBack()}
+          disableBottomSwipe={false}
+          renderCard={item => (
+            <RN.TouchableWithoutFeedback
+              onPress={() => this.setState({ showBody: !this.state.showBody })}
+              onLongPress={() => this.setState({ visible: true })}
+            >
+              <RN.View
+                style={{
+                  flex: 1,
+                  backgroundColor: COLOR('#621'),
+                }}
               >
-                <RN.View
-                  style={{
-                    flex: 1,
-                    backgroundColor: COLOR('#621'),
-                  }}
-                >
-                  <CardViewDetail item={item} />
-                  {this.state.showBody && <CardView item={item} />}
-                </RN.View>
-              </RN.TouchableWithoutFeedback>
-            )}
-          />
-        </RN.View>
-        <RN.Modal
-          animationType={'fade'}
-          supportedOrientations={['portrait', 'landscape']}
-          visible={this.state.visible}
-          onRequestClose={() => {}}
-        >
-          <RN.TouchableWithoutFeedback
-            style={{ flex: 1, backgroundColor: 'black' }}
-            // onPress={() => {}}
-            onLongPress={() => this.setState({ visible: false })}
-          >
-            <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
-              <CardView /* item={this.props.items[this.state.index]} */ />
-            </RN.View>
-          </RN.TouchableWithoutFeedback>
-        </RN.Modal>
+                <CardViewDetail item={item} />
+                {this.state.showBody && <CardView item={item} />}
+              </RN.View>
+            </RN.TouchableWithoutFeedback>
+          )}
+        />
       </RN.View>
+    ) : (
+      <RN.Modal
+        animationType={'none'}
+        supportedOrientations={['portrait', 'landscape']}
+        visible={true}
+        onRequestClose={() => {}}
+      >
+        <RN.TouchableWithoutFeedback
+          style={{ flex: 1, backgroundColor: 'black' }}
+          // onPress={() => {}}
+          onLongPress={() => this.setState({ visible: false })}
+        >
+          <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
+            <CardView item={this.props.item} />
+          </RN.View>
+        </RN.TouchableWithoutFeedback>
+      </RN.Modal>
     );
   }
 }
