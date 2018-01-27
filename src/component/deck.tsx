@@ -14,8 +14,6 @@ const MainText = styled(RN.Text)`
 `;
 
 const DeckCard = styled(RN.View)`
-  flex: 1;
-  align-self: stretch;
   padding: 20px;
   background-color: white;
   border-style: solid;
