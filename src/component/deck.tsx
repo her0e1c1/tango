@@ -34,10 +34,19 @@ const Container = styled(RN.View)`
   padding-horizontal: 10px;
 `;
 
-const Header = () => (
+const Header = ({ onBack, deck }) => (
   <RN.View style={{ marginBottom: 10 }}>
-    <MainText style={{ marginBottom: 5 }}>TANGO FOR MEMO</MainText>
-    <SearchBar />
+    <RN.View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 5,
+      }}
+    >
+      <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
+      {deck && <RN.Button title="< BACK" onPress={onBack} />}
+    </RN.View>
+    {!deck && <SearchBar />}
   </RN.View>
 );
 
@@ -139,14 +148,8 @@ export class DeckItem extends React.Component<
 })
 export default class DeckList extends React.Component<
   {},
-  { selectedDeck?: Deck; showSearchBar: boolean }
+  { selectedDeck?: Deck }
 > {
-  constructor(props) {
-    super(props);
-    this.state = {
-      showSearchBar: true,
-    };
-  }
   async componentDidMount() {
     await this.props.selectDeck();
     await this.props.selectCard();
@@ -155,14 +158,13 @@ export default class DeckList extends React.Component<
     return (
       <Container>
         <Header
-          showSearchBar={this.state.showSearchBar}
-          onOpen={() => this.setState({ showSearchBar: true })}
-          onClose={() => this.setState({ showSearchBar: false })}
+          deck={this.state.selectedDeck}
+          onBack={() => this.setState({ selectedDeck: undefined })}
         />
         {this.state.selectedDeck ? (
           <Card
             deck={this.state.selectedDeck}
-            onClose={() => this.setState({ selectedDeck: null })}
+            onClose={() => this.setState({ selectedDeck: undefined })}
           />
         ) : (
           <RN.FlatList

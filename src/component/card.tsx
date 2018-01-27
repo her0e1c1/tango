@@ -9,7 +9,7 @@ import DeckSwiper from 'react-native-deck-swiper';
 import * as Action from 'src/action';
 import CardView from './view';
 
-const Item = (props: { item: Item; onPress: (n: number) => void }) => (
+const CardItem = (props: { item: Item; onPress: (n: number) => void }) => (
   <Swipeout
     autoClose
     right={[
@@ -47,9 +47,8 @@ export default class CardList extends React.Component<
     const cards = ids.map(id => this.props.card.byId[id]).slice(0, 200);
     return !this.state.item ? (
       <RN.ScrollView>
-        <RN.Button title="BACK" onPress={() => this.props.onClose()} />
         {cards.map((item, index) => (
-          <Item
+          <CardItem
             key={item.id}
             item={item}
             onPress={() => this.setState({ item, index })}
