@@ -34,29 +34,16 @@ const Container = styled(RN.View)`
   padding-horizontal: 10px;
 `;
 
-const Header = ({ showSearchBar, onOpen, onClose }) => (
+const Header = () => (
   <RN.View style={{ marginBottom: 10 }}>
-    {showSearchBar ? (
-      <SearchURL onClose={onClose} />
-    ) : (
-      <RN.View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        }}
-      >
-        <MainText>TANGO FOR MEMO</MainText>
-        <RN.TouchableWithoutFeedback onPress={onOpen}>
-          <MainText>+ Import</MainText>
-        </RN.TouchableWithoutFeedback>
-      </RN.View>
-    )}
+    <MainText style={{ marginBottom: 5 }}>TANGO FOR MEMO</MainText>
+    <SearchBar />
   </RN.View>
 );
 
 @connect((_: RootState) => ({}), { insertByURL: Action.insertByURL })
-export class SearchURL extends React.Component<
-  any,
+export class SearchBar extends React.Component<
+  {},
   { text: string; loading: boolean }
 > {
   constructor(props) {
@@ -68,33 +55,71 @@ export class SearchURL extends React.Component<
   }
   render() {
     return (
-      <RN.TextInput
-        autoFocus
-        keyboardType="url"
-        value={this.state.text}
-        placeholder="https:// ... (CSV URL)"
-        style={{ backgroundColor: 'white', fontSize: 16 }}
-        onChangeText={text => this.setState({ text })}
-        onEndEditing={() => {
-          this.props.onClose();
-          if (this.state.text.match(/^https?:\/\//)) {
-            this.setState({ loading: true }, async () => {
-              try {
-                await this.props.insertByURL(this.state.text);
-              } catch {
-                alert('CAN NOT FETCH :(');
-              } finally {
-                this.setState({ loading: false });
-              }
-            });
-          } else if (this.state.text !== '') {
-            alert('INVALID URL: ' + this.state.text);
-          }
-        }}
-      />
+      <RN.View style={{ flexDirection: 'row' }}>
+        <RN.TextInput
+          // autoFocus
+          keyboardType="url"
+          value={this.state.text}
+          placeholder="Input your CSV url ..."
+          style={{ backgroundColor: 'white', fontSize: 16, flex: 1 }}
+          onChangeText={text => this.setState({ text })}
+          onEndEditing={() => {
+            this.props.onClose();
+            if (this.state.text.match(/^https?:\/\//)) {
+              this.setState({ loading: true }, async () => {
+                try {
+                  await this.props.insertByURL(this.state.text);
+                } catch {
+                  alert('CAN NOT FETCH :(');
+                } finally {
+                  this.setState({ loading: false });
+                }
+              });
+            } else if (this.state.text !== '') {
+              alert('INVALID URL: ' + this.state.text);
+            }
+          }}
+        />
+        <RN.Button
+          title="Q"
+          color="#841584"
+          onPress={() => alert('implement later :)')}
+        />
+      </RN.View>
     );
   }
 }
+
+const DeckItem = ({ item, onPress }) => (
+  <Swipeout
+    autoClose
+    style={{ backgroundColor: 'skyblue', marginBottom: 10 }}
+    right={[
+      {
+        text: 'DEL',
+        backgroundColor: 'red',
+        onPress: () => this.props.deleteDeck(item),
+      },
+    ]}
+    left={[
+      {
+        text: 'COPY',
+        backgroundColor: 'blue',
+        onPress: () => this.props.insertByURL(item.url),
+      },
+    ]}
+  >
+    <RN.TouchableOpacity
+      onPress={onPress}
+      onLongPress={() => alert(JSON.stringify(item))}
+    >
+      <DeckCard>
+        <DeckTitle>{item.name}</DeckTitle>
+        <RN.Text>x of y cards mastered</RN.Text>
+      </DeckCard>
+    </RN.TouchableOpacity>
+  </Swipeout>
+);
 
 @connect((state: RootState) => ({ decks: Object.values(state.deck) }), {
   selectCard: Action.selectCard,
@@ -109,7 +134,7 @@ export default class Deck extends React.Component<
   constructor(props) {
     super(props);
     this.state = {
-      showSearchBar: false,
+      showSearchBar: true,
     };
   }
   async componentDidMount() {
@@ -124,45 +149,22 @@ export default class Deck extends React.Component<
           onOpen={() => this.setState({ showSearchBar: true })}
           onClose={() => this.setState({ showSearchBar: false })}
         />
-        {this.state.selectedDeck && (
+        {this.state.selectedDeck ? (
           <Card
             deck={this.state.selectedDeck}
             onClose={() => this.setState({ selectedDeck: null })}
           />
-        )}
-        <RN.FlatList
-          data={this.props.decks.map(d => ({ ...d, key: d.id }))}
-          renderItem={({ item }) => (
-            <Swipeout
-              autoClose
-              style={{ backgroundColor: 'skyblue', marginBottom: 10 }}
-              right={[
-                {
-                  text: 'DEL',
-                  backgroundColor: 'red',
-                  onPress: () => this.props.deleteDeck(item),
-                },
-              ]}
-              left={[
-                {
-                  text: 'COPY',
-                  backgroundColor: 'blue',
-                  onPress: () => this.props.insertByURL(item.url),
-                },
-              ]}
-            >
-              <RN.TouchableOpacity
+        ) : (
+          <RN.FlatList
+            data={this.props.decks.map(d => ({ ...d, key: d.id }))}
+            renderItem={({ item }) => (
+              <DeckItem
+                item={item}
                 onPress={() => this.setState({ selectedDeck: item })}
-                onLongPress={() => alert(JSON.stringify(item))}
-              >
-                <DeckCard>
-                  <DeckTitle>{item.name}</DeckTitle>
-                  <RN.Text>x of y cards mastered</RN.Text>
-                </DeckCard>
-              </RN.TouchableOpacity>
-            </Swipeout>
-          )}
-        />
+              />
+            )}
+          />
+        )}
       </Container>
     );
   }
