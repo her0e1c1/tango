@@ -44,7 +44,11 @@ const Header = ({ onBack, deck }) => (
       }}
     >
       <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
-      {deck && <RN.Button title="< BACK" onPress={onBack} />}
+      {deck && (
+        <RN.TouchableWithoutFeedback onPress={onBack}>
+          <MainText>{'< BACK'}</MainText>
+        </RN.TouchableWithoutFeedback>
+      )}
     </RN.View>
     {!deck && <SearchBar />}
   </RN.View>
@@ -150,6 +154,7 @@ export default class DeckList extends React.Component<
   {},
   { selectedDeck?: Deck }
 > {
+  state = {};
   async componentDidMount() {
     await this.props.selectDeck();
     await this.props.selectCard();
