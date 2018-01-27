@@ -41,7 +41,8 @@ export const deleteCard = (card: Card) => async (dispatch, getState) => {
       `delete from card where id = ?;`,
       [card.id],
       (_, result) => {
-        dispatch({ type: 'DELETE', payload: { card } });
+        if (result.rowsAffected === 1)
+          dispatch({ type: 'DELETE', payload: { card } });
       },
       (...args) => alert(JSON.stringify(args))
     )
@@ -70,7 +71,8 @@ export const insertByURL = (url: string) => async (dispatch, getState) => {
   const res = await fetch(url);
   const text = await res.text();
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
-  await dispatch(insertDeck({ url: url, name: 'sample', id: deck_id }));
+  const name = url.split('/').pop() || 'sample';
+  await dispatch(insertDeck({ url, name, id: deck_id }));
   await Promise.all(
     data.map(async d => {
       const card: Card = { name: d[0], body: d[1], deck_id };
@@ -118,7 +120,10 @@ export const insertCard = (
     tx.executeSql(
       `insert into card (name, body, deck_id) values (?, ?, ?);`,
       [card.name, card.body, card.deck_id],
-      (_, result) => {},
+      (_, result) => {
+        // need to know id
+        // dispatch({ type: 'INSERT', payload: { card } });
+      },
       (...args) => alert(JSON.stringify(args))
     )
   );
@@ -165,6 +170,7 @@ export const card = (
     const ns = _.clone(state);
     const c = action.payload.card;
     delete ns.byId[c.id];
+    ns.byDeckId = _.pull(ns.byDeckId, c.id);
     return ns;
   } else {
     return state;

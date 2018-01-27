@@ -7,8 +7,6 @@ import * as Action from 'src/action';
 import CardView from './view';
 
 const CardCard = styled(RN.View)`
-  flex: 1;
-  align-self: stretch;
   padding: 10px;
   background-color: white;
   border-style: solid;
@@ -27,7 +25,10 @@ const CardTitle = styled(RN.Text)`
 export default class CardList extends React.Component<{}, {}> {
   render() {
     const ids = this.props.card.byDeckId[this.props.deck.id] || [];
-    const cards = ids.map(id => this.props.card.byId[id]).slice(0, 200);
+    const cards = ids
+      .map(id => this.props.card.byId[id])
+      .filter(x => !!x) // TODO: fix bug
+      .slice(0, 50);
     return (
       <RN.ScrollView>
         {cards.map((item, index) => (

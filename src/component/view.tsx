@@ -5,7 +5,7 @@ import * as Action from 'src/action';
 import DeckSwiper from 'react-native-deck-swiper';
 import PinchZoomView from 'react-native-pinch-zoom-view';
 
-const DEBUG = false;
+const DEBUG = true;
 const COLOR = (color, type?) => {
   if (DEBUG) {
     return color;
@@ -56,6 +56,25 @@ const CardViewDetail = ({ item }) => (
       {item.name}
     </RN.Text>
   </RN.View>
+);
+
+const CardViewFocus = ({ item, onLongPress }) => (
+  <RN.Modal
+    animationType={'none'}
+    supportedOrientations={['portrait', 'landscape']}
+    visible={true}
+    onRequestClose={() => {}}
+  >
+    <RN.TouchableWithoutFeedback
+      style={{ flex: 1, backgroundColor: 'black' }}
+      // onPress={() => {}}
+      onLongPress={onLongPress}
+    >
+      <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
+        <CardView item={item} />
+      </RN.View>
+    </RN.TouchableWithoutFeedback>
+  </RN.Modal>
 );
 
 @connect(
@@ -118,29 +137,21 @@ export default class View extends React.Component<
                 }}
               >
                 <CardViewDetail item={item} />
-                {this.state.showBody && <CardView item={item} />}
               </RN.View>
             </RN.TouchableWithoutFeedback>
           )}
         />
       </RN.View>
     ) : (
-      <RN.Modal
-        animationType={'none'}
-        supportedOrientations={['portrait', 'landscape']}
-        visible={true}
-        onRequestClose={() => {}}
-      >
-        <RN.TouchableWithoutFeedback
-          style={{ flex: 1, backgroundColor: 'black' }}
-          // onPress={() => {}}
-          onLongPress={() => this.setState({ visible: false })}
-        >
-          <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
-            <CardView item={this.props.item} />
-          </RN.View>
-        </RN.TouchableWithoutFeedback>
-      </RN.Modal>
+      <CardViewFocus
+        item={this.props.item}
+        onLongPress={() => this.setState({ visible: false })}
+      />
     );
   }
 }
+/*
+
+
+                {this.state.showBody && <CardView item={item} />}
+              */

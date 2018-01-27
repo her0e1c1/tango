@@ -82,7 +82,6 @@ export class SearchBar extends React.Component<
           style={{ backgroundColor: 'white', fontSize: 16, flex: 1 }}
           onChangeText={text => this.setState({ text })}
           onEndEditing={() => {
-            this.props.onClose();
             if (this.state.text.match(/^https?:\/\//)) {
               this.setState({ loading: true }, async () => {
                 try {
