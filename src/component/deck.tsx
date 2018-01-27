@@ -16,7 +16,6 @@ const DeckCard = styled(RN.View)`
   flex: 1;
   align-self: stretch;
   padding: 20px;
-  margin-bottom: 10px;
   background-color: white;
   border-style: solid;
   border-width: 0px;
@@ -136,7 +135,7 @@ export default class Deck extends React.Component<
           renderItem={({ item }) => (
             <Swipeout
               autoClose
-              style={{ backgroundColor: 'skyblue' }}
+              style={{ backgroundColor: 'skyblue', marginBottom: 10 }}
               right={[
                 {
                   text: 'DEL',
