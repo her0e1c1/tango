@@ -5,7 +5,7 @@ import * as Action from 'src/action';
 import DeckSwiper from 'react-native-deck-swiper';
 import PinchZoomView from 'react-native-pinch-zoom-view';
 
-const DEBUG = true;
+const DEBUG = false;
 const COLOR = (color, type?) => {
   if (DEBUG) {
     return color;
@@ -58,24 +58,34 @@ const CardViewDetail = ({ item }) => (
   </RN.View>
 );
 
-const CardViewFocus = ({ item, onLongPress }) => (
-  <RN.Modal
-    animationType={'none'}
-    supportedOrientations={['portrait', 'landscape']}
-    visible={true}
-    onRequestClose={() => {}}
-  >
-    <RN.TouchableWithoutFeedback
-      style={{ flex: 1, backgroundColor: 'black' }}
-      // onPress={() => {}}
-      onLongPress={onLongPress}
-    >
-      <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
-        <CardView item={item} />
-      </RN.View>
-    </RN.TouchableWithoutFeedback>
-  </RN.Modal>
-);
+class CardViewFocus extends React.Component<{}, {}> {
+  componentDidMount() {
+    RN.StatusBar.setHidden(true);
+  }
+  componentWillUnmount() {
+    RN.StatusBar.setHidden(false);
+  }
+  render() {
+    return (
+      <RN.Modal
+        animationType={'none'}
+        supportedOrientations={['portrait', 'landscape']}
+        visible={true}
+        onRequestClose={() => {}}
+      >
+        <RN.TouchableWithoutFeedback
+          style={{ flex: 1, backgroundColor: 'black' }}
+          // onPress={() => {}}
+          onLongPress={this.props.onLongPress}
+        >
+          <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
+            <CardView item={this.props.item} />
+          </RN.View>
+        </RN.TouchableWithoutFeedback>
+      </RN.Modal>
+    );
+  }
+}
 
 @connect(
   (state: RootState) => ({
@@ -99,12 +109,6 @@ export default class View extends React.Component<
       visible: false,
       showBody: false,
     };
-  }
-  componentDidMount() {
-    RN.StatusBar.setHidden(true);
-  }
-  componentWillUnmount() {
-    RN.StatusBar.setHidden(false);
   }
   render() {
     const ids = this.props.card.byDeckId[this.props.deck.id] || [];
@@ -137,6 +141,7 @@ export default class View extends React.Component<
                 }}
               >
                 <CardViewDetail item={item} />
+                {this.state.showBody && <CardView item={item} />}
               </RN.View>
             </RN.TouchableWithoutFeedback>
           )}
@@ -150,8 +155,3 @@ export default class View extends React.Component<
     );
   }
 }
-/*
-
-
-                {this.state.showBody && <CardView item={item} />}
-              */
