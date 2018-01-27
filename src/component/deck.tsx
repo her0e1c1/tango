@@ -6,6 +6,7 @@ import * as Redux from 'redux';
 import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import CardList from './card';
+import CardView from './view';
 
 const MainText = styled(RN.Text)`
   color: white;
@@ -176,7 +177,8 @@ export default class Home extends React.Component<{}, {}> {
     return (
       <Container>
         <Header />
-        {nav.deck && <CardList />}
+        {nav.card && nav.index && <CardView />}
+        {nav.deck && !nav.index && <CardList />}
         {!nav.deck && <DeckList />}
       </Container>
     );

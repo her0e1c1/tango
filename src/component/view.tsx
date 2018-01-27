@@ -58,6 +58,17 @@ const CardViewDetail = ({ item }) => (
   </RN.View>
 );
 
+@connect(
+  (state: RootState) => ({
+    card: state.card,
+    item: state.nav.card,
+    deck: state.nav.deck,
+    index: state.nav.index,
+  }),
+  {
+    goTo: Action.goTo,
+  }
+)
 export default class View extends React.Component<
   { item: Card },
   { visible: boolean; showBody: boolean }
@@ -75,6 +86,8 @@ export default class View extends React.Component<
     RN.StatusBar.setHidden(true);
   }
   render() {
+    const ids = this.props.card.byDeckId[this.props.deck.id] || [];
+    const cards = ids.map(id => this.props.card.byId[id]).slice(0, 200);
     const disable = this.state.visible;
     return (
       <RN.View style={{ flex: 1 }}>
@@ -87,7 +100,7 @@ export default class View extends React.Component<
             onSwipedRight={index => this.setState({ index: index + 1 })}
             cardVerticalMargin={0}
             cardHorizontalMargin={0}
-            cards={this.props.items}
+            cards={cards}
             showSecondCard={false}
             goBackToPreviousCardOnSwipeLeft={true}
             zoomFriction={0}
@@ -126,7 +139,7 @@ export default class View extends React.Component<
             onLongPress={() => this.setState({ visible: false })}
           >
             <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
-              <CardView item={this.props.items[this.state.index]} />
+              <CardView /* item={this.props.items[this.state.index]} */ />
             </RN.View>
           </RN.TouchableWithoutFeedback>
         </RN.Modal>

@@ -53,36 +53,23 @@ export class CardItem extends React.Component<
   }
 }
 
-@connect((state: RootState) => ({ card: state.card, deck: state.nav.deck }), {})
-export default class CardList extends React.Component<
-  {},
-  { index: number; item?: Card }
-> {
-  constructor(props) {
-    super(props);
-    this.state = {
-      index: 0,
-    };
-  }
+@connect((state: RootState) => ({ card: state.card, deck: state.nav.deck }), {
+  goTo: Action.goTo,
+})
+export default class CardList extends React.Component<{}, {}> {
   render() {
     const ids = this.props.card.byDeckId[this.props.deck.id] || [];
     const cards = ids.map(id => this.props.card.byId[id]).slice(0, 200);
-    return !this.state.item ? (
+    return (
       <RN.ScrollView>
         {cards.map((item, index) => (
           <CardItem
             key={item.id}
             item={item}
-            onPress={() => this.setState({ item, index })}
+            onPress={() => this.props.goTo({ card: item, index })}
           />
         ))}
       </RN.ScrollView>
-    ) : (
-      <CardView
-        index={this.state.index || 0}
-        items={cards}
-        onClose={() => this.setState({ item: null })}
-      />
     );
   }
 }
