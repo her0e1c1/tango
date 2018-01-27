@@ -90,44 +90,54 @@ export class SearchBar extends React.Component<
   }
 }
 
-const DeckItem = ({ item, onPress }) => (
-  <Swipeout
-    autoClose
-    style={{ backgroundColor: 'skyblue', marginBottom: 10 }}
-    right={[
-      {
-        text: 'DEL',
-        backgroundColor: 'red',
-        onPress: () => this.props.deleteDeck(item),
-      },
-    ]}
-    left={[
-      {
-        text: 'COPY',
-        backgroundColor: 'blue',
-        onPress: () => this.props.insertByURL(item.url),
-      },
-    ]}
-  >
-    <RN.TouchableOpacity
-      onPress={onPress}
-      onLongPress={() => alert(JSON.stringify(item))}
-    >
-      <DeckCard>
-        <DeckTitle>{item.name}</DeckTitle>
-        <RN.Text>x of y cards mastered</RN.Text>
-      </DeckCard>
-    </RN.TouchableOpacity>
-  </Swipeout>
-);
+@connect((state: RootState) => ({}), {
+  deleteDeck: Action.deleteDeck,
+  insertByURL: Action.insertByURL,
+})
+export class DeckItem extends React.Component<
+  { onPress: Callback; item: Deck },
+  {}
+> {
+  render() {
+    const { item } = this.props;
+    return (
+      <Swipeout
+        autoClose
+        style={{ backgroundColor: 'skyblue', marginBottom: 10 }}
+        right={[
+          {
+            text: 'DEL',
+            backgroundColor: 'red',
+            onPress: () => this.props.deleteDeck(item),
+          },
+        ]}
+        left={[
+          {
+            text: 'COPY',
+            backgroundColor: 'blue',
+            onPress: () => this.props.insertByURL(item.url),
+          },
+        ]}
+      >
+        <RN.TouchableOpacity
+          onPress={this.props.onPress}
+          onLongPress={() => alert(JSON.stringify(item))}
+        >
+          <DeckCard>
+            <DeckTitle>{item.name}</DeckTitle>
+            <RN.Text>x of y cards mastered</RN.Text>
+          </DeckCard>
+        </RN.TouchableOpacity>
+      </Swipeout>
+    );
+  }
+}
 
 @connect((state: RootState) => ({ decks: Object.values(state.deck) }), {
   selectCard: Action.selectCard,
   selectDeck: Action.selectDeck,
-  deleteDeck: Action.deleteDeck,
-  insertByURL: Action.insertByURL,
 })
-export default class Deck extends React.Component<
+export default class DeckList extends React.Component<
   {},
   { selectedDeck?: Deck; showSearchBar: boolean }
 > {

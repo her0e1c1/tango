@@ -32,7 +32,7 @@ const Item = (props: { item: Item; onPress: (n: number) => void }) => (
 );
 
 @connect((state: RootState) => ({ card: state.card }), {})
-export default class Card extends React.Component<
+export default class CardList extends React.Component<
   { onClose: Callback; deck: Deck },
   { index: number; item?: Card }
 > {
