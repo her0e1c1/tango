@@ -1,11 +1,11 @@
+import styled from 'styled-components';
 import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Redux from 'redux';
 import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
-import Card from './card';
-import styled from 'styled-components';
+import CardList from './card';
 
 const MainText = styled(RN.Text)`
   color: white;
@@ -34,25 +34,31 @@ const Container = styled(RN.View)`
   padding-horizontal: 10px;
 `;
 
-const Header = ({ onBack, deck }) => (
-  <RN.View style={{ marginBottom: 10 }}>
-    <RN.View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 5,
-      }}
-    >
-      <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
-      {deck && (
-        <RN.TouchableWithoutFeedback onPress={onBack}>
-          <MainText>{'< BACK'}</MainText>
-        </RN.TouchableWithoutFeedback>
-      )}
-    </RN.View>
-    {!deck && <SearchBar />}
-  </RN.View>
-);
+@connect((state: RootState) => ({ nav: state.nav }), { goBack: Action.goBack })
+export class Header extends React.Component {
+  render() {
+    const { deck } = this.props.nav;
+    return (
+      <RN.View style={{ marginBottom: 10 }}>
+        <RN.View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 5,
+          }}
+        >
+          <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
+          {deck && (
+            <RN.TouchableWithoutFeedback onPress={() => this.props.goBack()}>
+              <MainText>{'< BACK'}</MainText>
+            </RN.TouchableWithoutFeedback>
+          )}
+        </RN.View>
+        {!deck && <SearchBar />}
+      </RN.View>
+    );
+  }
+}
 
 @connect((_: RootState) => ({}), { insertByURL: Action.insertByURL })
 export class SearchBar extends React.Component<
@@ -106,11 +112,9 @@ export class SearchBar extends React.Component<
 @connect((state: RootState) => ({}), {
   deleteDeck: Action.deleteDeck,
   insertByURL: Action.insertByURL,
+  goTo: Action.goTo,
 })
-export class DeckItem extends React.Component<
-  { onPress: Callback; item: Deck },
-  {}
-> {
+export class DeckItem extends React.Component<{ item: Deck }, {}> {
   render() {
     const { item } = this.props;
     return (
@@ -133,7 +137,7 @@ export class DeckItem extends React.Component<
         ]}
       >
         <RN.TouchableOpacity
-          onPress={this.props.onPress}
+          onPress={() => this.props.goTo({ deck: item })}
           onLongPress={() => alert(JSON.stringify(item))}
         >
           <DeckCard>
@@ -146,42 +150,34 @@ export class DeckItem extends React.Component<
   }
 }
 
-@connect((state: RootState) => ({ decks: Object.values(state.deck) }), {
+@connect((state: RootState) => ({ decks: Object.values(state.deck) }), {})
+export class DeckList extends React.Component<{}, {}> {
+  render() {
+    return (
+      <RN.FlatList
+        data={this.props.decks.map(d => ({ ...d, key: d.id }))}
+        renderItem={({ item }) => <DeckItem item={item} />}
+      />
+    );
+  }
+}
+
+@connect((state: RootState) => ({ nav: state.nav }), {
   selectCard: Action.selectCard,
   selectDeck: Action.selectDeck,
 })
-export default class DeckList extends React.Component<
-  {},
-  { selectedDeck?: Deck }
-> {
-  state = {};
+export default class Home extends React.Component<{}, {}> {
   async componentDidMount() {
     await this.props.selectDeck();
     await this.props.selectCard();
   }
   render() {
+    const { nav } = this.props;
     return (
       <Container>
-        <Header
-          deck={this.state.selectedDeck}
-          onBack={() => this.setState({ selectedDeck: undefined })}
-        />
-        {this.state.selectedDeck ? (
-          <Card
-            deck={this.state.selectedDeck}
-            onClose={() => this.setState({ selectedDeck: undefined })}
-          />
-        ) : (
-          <RN.FlatList
-            data={this.props.decks.map(d => ({ ...d, key: d.id }))}
-            renderItem={({ item }) => (
-              <DeckItem
-                item={item}
-                onPress={() => this.setState({ selectedDeck: item })}
-              />
-            )}
-          />
-        )}
+        <Header />
+        {nav.deck && <CardList />}
+        {!nav.deck && <DeckList />}
       </Container>
     );
   }

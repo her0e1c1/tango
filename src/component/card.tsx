@@ -1,39 +1,61 @@
-import * as _ from 'lodash';
+import styled from 'styled-components';
 import * as React from 'react';
 import * as RN from 'react-native';
-import * as Swiper from 'react-native-swiper';
 import { connect } from 'react-redux';
-import GestureRecognizer from 'react-native-swipe-gestures';
 import Swipeout from 'react-native-swipeout';
-import DeckSwiper from 'react-native-deck-swiper';
 import * as Action from 'src/action';
 import CardView from './view';
 
-const CardItem = (props: { item: Item; onPress: (n: number) => void }) => (
-  <Swipeout
-    autoClose
-    right={[
-      {
-        text: 'DEL',
-        backgroundColor: 'red',
-        // onPress: () => props.deleteCard(props.item),
-      },
-    ]}
-  >
-    <RN.TouchableOpacity
-      onPress={() => props.onPress()}
-      onLongPress={() => alert(JSON.stringify(props.item))}
-    >
-      <RN.View style={{ backgroundColor: '#555', borderWidth: 1 }}>
-        <RN.Text style={{ fontSize: 25 /*config*/ }}>{props.item.name}</RN.Text>
-      </RN.View>
-    </RN.TouchableOpacity>
-  </Swipeout>
-);
+const CardCard = styled(RN.View)`
+  flex: 1;
+  align-self: stretch;
+  padding: 10px;
+  background-color: white;
+  border-style: solid;
+  border-width: 1px;
+`;
 
-@connect((state: RootState) => ({ card: state.card }), {})
+const CardTitle = styled(RN.Text)`
+  color: black;
+  font-size: 13px;
+`;
+
+@connect((state: RootState) => ({}), {
+  deleteCard: Action.deleteCard,
+})
+export class CardItem extends React.Component<
+  { onPress: Callback; item: Card },
+  {}
+> {
+  render() {
+    const { item } = this.props;
+    return (
+      <Swipeout
+        autoClose
+        right={[
+          {
+            text: 'DEL',
+            backgroundColor: 'red',
+            onPress: () => this.props.deleteCard(item),
+          },
+        ]}
+      >
+        <RN.TouchableOpacity
+          onPress={() => this.props.onPress()}
+          onLongPress={() => alert(JSON.stringify(item))}
+        >
+          <CardCard>
+            <CardTitle>{item.name}</CardTitle>
+          </CardCard>
+        </RN.TouchableOpacity>
+      </Swipeout>
+    );
+  }
+}
+
+@connect((state: RootState) => ({ card: state.card, deck: state.nav.deck }), {})
 export default class CardList extends React.Component<
-  { onClose: Callback; deck: Deck },
+  {},
   { index: number; item?: Card }
 > {
   constructor(props) {
@@ -56,16 +78,11 @@ export default class CardList extends React.Component<
         ))}
       </RN.ScrollView>
     ) : (
-      <RN.Modal
-        supportedOrientations={['portrait', 'landscape']}
-        onRequestClose={() => {}}
-      >
-        <CardView
-          index={this.state.index || 0}
-          items={cards}
-          onClose={() => this.setState({ item: null })}
-        />
-      </RN.Modal>
+      <CardView
+        index={this.state.index || 0}
+        items={cards}
+        onClose={() => this.setState({ item: null })}
+      />
     );
   }
 }

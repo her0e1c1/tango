@@ -144,7 +144,6 @@ export const card = (
   state = { byId: {}, byDeckId: {} },
   action: Redux.Action
 ) => {
-  console.log(action.type);
   if (action.type == 'INSERT') {
     const ns = _.clone(state);
     const c = action.payload.card;
@@ -176,7 +175,6 @@ export const deck = (
   state: { [key: string]: Deck } = {},
   action: Redux.Action
 ) => {
-  // console.log(action);
   if (action.type == 'DECK_INSERT') {
     const d: Deck = action.payload.deck;
     return { ...state, [d.id]: d };
@@ -192,4 +190,38 @@ export const deck = (
   } else {
     return state;
   }
+};
+
+export const goTo = (nav: NavState) => async (dispatch, getState) => {
+  dispatch({ type: 'NAV_GO_TO', payload: { nav } });
+};
+
+export const goBack = () => async (dispatch, getState) => {
+  const { deck, card, index }: NavState = getState().nav;
+  let nav = {};
+  if (index) {
+    nav = { deck, card };
+  } else if (card) {
+    nav = { deck };
+  }
+  dispatch({ type: 'NAV_GO_BACK', payload: { nav } });
+};
+
+type NavState = { deck?: Deck; card?: Card; index?: number };
+export const nav = (state: NavState = {}, action: Redux.Action): NavState => {
+  if (action.type == 'NAV_GO_TO') {
+    return { ...state, ...action.payload.nav };
+  } else if (action.type == 'NAV_GO_BACK') {
+    return action.payload.nav;
+  } else if (action.type == 'NAV_HOME') {
+    return { deck: undefined, card: undefined, index: undefined };
+  } else {
+    return state;
+  }
+};
+
+export const reducers = {
+  deck,
+  card,
+  nav,
 };
