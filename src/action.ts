@@ -274,7 +274,7 @@ export const goBack = () => async (dispatch, getState) => {
   const { deck, card, index }: NavState = getState().nav;
   let nav = {};
   if (index) {
-    nav = { deck, card };
+    nav = { deck };
   } else if (card) {
     nav = { deck };
   }
