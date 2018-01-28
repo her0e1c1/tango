@@ -33,7 +33,10 @@ const Container = styled(RN.View)`
   padding-horizontal: 10px;
 `;
 
-@connect((state: RootState) => ({ nav: state.nav }), { goBack: Action.goBack })
+@connect((state: RootState) => ({ nav: state.nav }), {
+  goBack: Action.goBack,
+  goHome: Action.goHome,
+})
 export class Header extends React.Component {
   render() {
     const { deck } = this.props.nav;
@@ -48,7 +51,10 @@ export class Header extends React.Component {
         >
           <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
           {deck && (
-            <RN.TouchableWithoutFeedback onPress={() => this.props.goBack()}>
+            <RN.TouchableWithoutFeedback
+              onPress={() => this.props.goBack()}
+              onLongPress={() => this.props.goHome()}
+            >
               <MainText>{'< BACK'}</MainText>
             </RN.TouchableWithoutFeedback>
           )}

@@ -242,6 +242,11 @@ export const goToPrevCard = () => async (dispatch, getState) => {
   const nav = { index: state.nav.index - 1 };
   dispatch(goTo(nav));
 };
+
+export const goHome = () => async (dispatch, getState) => {
+  dispatch({ type: 'NAV_HOME' });
+};
+
 export const goBack = () => async (dispatch, getState) => {
   const { deck, card, index }: NavState = getState().nav;
   let nav = {};
