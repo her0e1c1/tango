@@ -14,7 +14,6 @@ import View from 'src/component/view';
 
 const logger = ({ getState, dispatch }) => next => action => {
   console.log('ACTION: ', action.type);
-  console.log('NAV: ', getState().nav);
   const rv = next(action);
   return rv;
 };
@@ -22,6 +21,7 @@ const logger = ({ getState, dispatch }) => next => action => {
 const persistConfig = {
   key: 'root',
   storage: storage,
+  // whitelist: ['nav'],
 };
 
 const persistedReducer = persistReducer(
