@@ -3,7 +3,7 @@
     "name": "tango",
     "sdkVersion": "23.0.0",
     "description": "You can see source code here. https://github.com/her0e1c1/tango",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "slug": "your-app-tango",
     "ios": {
       "bundleIdentifier": "com.her0e1c1.tango"
