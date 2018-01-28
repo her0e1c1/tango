@@ -21,6 +21,7 @@ const logger = ({ getState, dispatch }) => next => action => {
 const persistConfig = {
   key: 'root',
   storage: storage,
+  // whitelist: [],
   // whitelist: ['nav'],
 };
 
@@ -30,15 +31,23 @@ const persistedReducer = persistReducer(
 );
 
 const store = Redux.createStore(
-  persistedReducer,
+  // persistedReducer,
+  Redux.combineReducers(Action.reducers),
   Redux.compose(Redux.applyMiddleware(thunk, logger))
 );
 const persistor = persistStore(store);
 
+/*
 export default () => (
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
       <Root />
     </PersistGate>
+  </Provider>
+);
+*/
+export default () => (
+  <Provider store={store}>
+    <Root />
   </Provider>
 );
