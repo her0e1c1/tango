@@ -51,12 +51,12 @@ export class Header extends React.Component {
         >
           <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
           {deck && (
-            <RN.TouchableWithoutFeedback
+            <RN.TouchableOpacity
               onPress={() => this.props.goBack()}
               onLongPress={() => this.props.goHome()}
             >
               <MainText>{'< BACK'}</MainText>
-            </RN.TouchableWithoutFeedback>
+            </RN.TouchableOpacity>
           )}
         </RN.View>
         {!deck && <SearchBar />}
