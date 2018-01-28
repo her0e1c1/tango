@@ -189,7 +189,6 @@ export default class Home extends React.Component<{}, {}> {
     return (
       <Container>
         <Header />
-        <RN.Text>{nav.index}</RN.Text>
         {nav.deck && nav.index !== undefined && <CardView />}
         {nav.deck && nav.index == undefined && <CardList />}
         {!nav.deck && <DeckList />}
