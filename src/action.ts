@@ -160,6 +160,11 @@ export const toggleMastered = (card: Card) => async (dispatch, getState) => {
   );
 };
 
+export const shuffleCardsOrSort = () => async (dispatch, getState) => {
+  const config = getState().config;
+  dispatch({ type: 'CARD_SHUFFLE', payload: { config } });
+};
+
 // selector
 export const getCurrentCard = (state: RootState) => {
   const cards = getCurrentCardList(state);
@@ -220,6 +225,12 @@ export const card = (
     delete ns.byId[c.id];
     ns.byDeckId = _.pull(ns.byDeckId, c.id);
     return ns;
+  } else if (action.type == 'CARD_SHUFFLE') {
+    const config: ConfigState = action.payload.config;
+    const byDeckId = Object.entries(state.byDeckId)
+      .map(e => ({ [e[0]]: config.shuffled ? _.shuffle(e[1]) : e[1].sort() }))
+      .reduce((obj, e) => ({ ...obj, ...e }));
+    return { ...state, byDeckId };
   } else {
     return state;
   }
@@ -301,7 +312,7 @@ export const updateConfig = (config: ConfigState) => async (
 };
 
 export const config = (
-  state: ConfigState = { showMastered: true },
+  state: ConfigState = { showMastered: true, shuffled: false },
   action: Redux.Action
 ): ConfigState => {
   if (action.type == 'CONFIG') {

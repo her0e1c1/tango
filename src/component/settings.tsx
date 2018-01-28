@@ -3,7 +3,10 @@ import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 
-@connect((state: RootState) => ({ state }), { update: Action.updateConfig })
+@connect((state: RootState) => ({ state }), {
+  update: Action.updateConfig,
+  shuffle: Action.shuffleCardsOrSort,
+})
 export class Settings extends React.Component<{ state: RootState }, {}> {
   render() {
     const { config } = this.props.state;
@@ -26,6 +29,14 @@ export class Settings extends React.Component<{ state: RootState }, {}> {
               showMastered: !config.showMastered,
             })
           }
+        />
+        <RN.Text>Shuffle</RN.Text>
+        <RN.Button
+          title={config.shuffled ? 'ON' : 'OFF'}
+          onPress={async () => {
+            await this.props.update({ shuffled: !config.shuffled });
+            await this.props.shuffle();
+          }}
         />
       </RN.View>
     );
