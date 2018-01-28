@@ -173,10 +173,8 @@ export const getCurrentCardList = (state: RootState): Card[] => {
   const limit: number = 100;
   if (deck) {
     const ids = state.card.byDeckId[deck.id] || [];
-    const cards = ids
-      .map(id => state.card.byId[id])
-      .filter(c => !!c) // defensive
-      .slice(0, limit);
+    const cards = ids.map(id => state.card.byId[id]).filter(c => !!c); // defensive
+    // .slice(0, limit);
     return cards;
   } else {
     return [];
