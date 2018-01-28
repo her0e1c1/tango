@@ -49,20 +49,22 @@ export default class CardList extends React.Component<{ cards: Card[] }, {}> {
               },
             ]}
           >
-            <RN.TouchableOpacity
-              onPress={() => this.props.goTo({ card: item, index })}
-              onLongPress={() => alert(JSON.stringify(item))}
-            >
-              <CardCard>
+            <CardCard>
+              <RN.TouchableOpacity onPress={() => alert('tap')}>
                 <Circle
                   style={{
                     marginHorizontal: 5,
                     backgroundColor: item.mastered ? 'green' : 'white',
                   }}
                 />
+              </RN.TouchableOpacity>
+              <RN.TouchableOpacity
+                onPress={() => this.props.goTo({ card: item, index })}
+                onLongPress={() => alert(JSON.stringify(item))}
+              >
                 <CardTitle>{item.name}</CardTitle>
-              </CardCard>
-            </RN.TouchableOpacity>
+              </RN.TouchableOpacity>
+            </CardCard>
           </Swipeout>
         ))}
       </RN.ScrollView>
