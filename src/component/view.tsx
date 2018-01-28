@@ -6,15 +6,8 @@ import * as Action from 'src/action';
 import DeckSwiper from 'react-native-deck-swiper';
 import PinchZoomView from 'react-native-pinch-zoom-view';
 
-const SideControl = styled(RN.TouchableOpacity)`
-  top: 0;
-  width: 100;
-  zindex: 1;
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0);
-`;
-
 const DEBUG = false;
+
 const COLOR = (color, type?) => {
   if (DEBUG) {
     return color;
@@ -24,6 +17,24 @@ const COLOR = (color, type?) => {
   }
   return 'black';
 };
+
+const SideControl = styled(RN.TouchableOpacity)`
+  top: 0;
+  width: 100;
+  zindex: 1;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0);
+`;
+
+const CardViewDetail = styled(RN.Text)`
+  color: ${COLOR('red', 'word')};
+  font-size: 25;
+`;
+
+const CardContainer = styled(RN.View)`
+  flex: 1;
+  backgroundcolor: ${COLOR('#621')};
+`;
 
 const html = `
 <html>
@@ -60,14 +71,6 @@ export const CardView = ({ item }) => (
     source={{ html: html.replace('%%%', item.body) }}
     style={{ backgroundColor: COLOR('pink') }}
   />
-);
-
-const CardViewDetail = ({ item }) => (
-  <RN.View style={{}}>
-    <RN.Text style={{ color: COLOR('red', 'word'), fontSize: 25 /*config*/ }}>
-      {item.name}
-    </RN.Text>
-  </RN.View>
 );
 
 @(connect(
@@ -130,6 +133,7 @@ class CardViewFocus extends React.Component<
     item: state.nav.card,
     deck: state.nav.deck,
     index: state.nav.index,
+    cards: Action.getCurrentCardList(state),
   }),
   {
     goTo: Action.goTo,
@@ -138,7 +142,7 @@ class CardViewFocus extends React.Component<
 )
 export default class View extends React.Component<
   {},
-  { visible: boolean; showBody: boolean; item: Card }
+  { visible: boolean; showBody: boolean }
 > {
   constructor(props) {
     super(props);
@@ -148,10 +152,11 @@ export default class View extends React.Component<
     };
   }
   render() {
-    const ids = this.props.card.byDeckId[this.props.deck.id] || [];
-    const cards = ids.map(id => this.props.card.byId[id]).slice(0, 200);
-    const disable = this.state.visible;
-    return !this.state.visible ? (
+    const window = RN.Dimensions.get('window');
+    const width = window.width - 20; // HOTFIX: may fix Swiper width?
+    return this.state.visible ? (
+      <CardViewFocus onLongPress={() => this.setState({ visible: false })} />
+    ) : (
       <RN.View style={{ flex: 1 }}>
         <DeckSwiper
           backgroundColor={COLOR('yellow')}
@@ -161,7 +166,7 @@ export default class View extends React.Component<
           onSwipedLeft={index => this.props.goTo({ index: index - 1 })}
           cardVerticalMargin={0}
           cardHorizontalMargin={0}
-          cards={cards}
+          cards={this.props.cards}
           showSecondCard={false}
           goBackToPreviousCardOnSwipeLeft={true}
           zoomFriction={0}
@@ -172,21 +177,14 @@ export default class View extends React.Component<
               onPress={() => this.setState({ showBody: !this.state.showBody })}
               onLongPress={() => this.setState({ visible: true })}
             >
-              <RN.View
-                style={{
-                  flex: 1,
-                  backgroundColor: COLOR('#621'),
-                }}
-              >
-                <CardViewDetail item={item} />
+              <CardContainer style={{ width }}>
+                <CardViewDetail>{item.name}</CardViewDetail>
                 {this.state.showBody && <CardView item={item} />}
-              </RN.View>
+              </CardContainer>
             </RN.TouchableWithoutFeedback>
           )}
         />
       </RN.View>
-    ) : (
-      <CardViewFocus onLongPress={() => this.setState({ visible: false })} />
     );
   }
 }
