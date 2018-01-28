@@ -113,14 +113,21 @@ export class SearchBar extends React.Component<
   }
 }
 
-@connect((state: RootState) => ({}), {
+@connect((state: RootState) => ({ card: state.card }), {
   deleteDeck: Action.deleteDeck,
   insertByURL: Action.insertByURL,
   goTo: Action.goTo,
 })
-export class DeckItem extends React.Component<{ item: Deck }, {}> {
+export class DeckItem extends React.Component<
+  { deck: Deck; card: CardState },
+  {}
+> {
   render() {
-    const { item } = this.props;
+    const { deck } = this.props;
+    const allCardIds = this.props.card.byDeckId[deck.id] || [];
+    const mastered = allCardIds
+      .map(id => this.props.card.byId[id])
+      .filter(x => !!x && x.mastered);
     return (
       <Swipeout
         autoClose
@@ -129,24 +136,26 @@ export class DeckItem extends React.Component<{ item: Deck }, {}> {
           {
             text: 'DEL',
             backgroundColor: 'red',
-            onPress: () => this.props.deleteDeck(item),
+            onPress: () => this.props.deleteDeck(deck),
           },
         ]}
         left={[
           {
             text: 'COPY',
             backgroundColor: 'blue',
-            onPress: () => this.props.insertByURL(item.url),
+            onPress: () => this.props.insertByURL(deck.url),
           },
         ]}
       >
         <RN.TouchableOpacity
-          onPress={() => this.props.goTo({ deck: item })}
-          onLongPress={() => alert(JSON.stringify(item))}
+          onPress={() => this.props.goTo({ deck: deck })}
+          onLongPress={() => alert(JSON.stringify(deck))}
         >
           <DeckCard>
-            <DeckTitle>{item.name}</DeckTitle>
-            <RN.Text>x of y cards mastered</RN.Text>
+            <DeckTitle>{deck.name}</DeckTitle>
+            <RN.Text>
+              {mastered.length} of {allCardIds.length} cards mastered
+            </RN.Text>
           </DeckCard>
         </RN.TouchableOpacity>
       </Swipeout>
@@ -160,7 +169,7 @@ export class DeckList extends React.Component<{}, {}> {
     return (
       <RN.FlatList
         data={this.props.decks.map(d => ({ ...d, key: d.id }))}
-        renderItem={({ item }) => <DeckItem item={item} />}
+        renderItem={({ item }) => <DeckItem deck={item} />}
       />
     );
   }

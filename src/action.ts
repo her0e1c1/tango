@@ -183,28 +183,30 @@ export const getCurrentCardList = (state: RootState): Card[] => {
   }
 };
 
+const updateCard = (state: CardState, cards: Card[]) => {
+  const ns = _.clone(state);
+  cards.forEach(c => {
+    ns.byId[c.id] = c;
+    const ids = ns.byDeckId[c.deck_id];
+    if (!ids) {
+      ns.byDeckId[c.deck_id] = [c.id];
+    } else if (!ids.includes(c.id)) {
+      ns.byDeckId[c.deck_id].push(c.id);
+    }
+  });
+  return ns;
+};
 // reducer
 export const card = (
-  state = { byId: {}, byDeckId: {} },
+  state: CardState = { byId: {}, byDeckId: {} },
   action: Redux.Action
 ) => {
   if (action.type == 'INSERT') {
-    const ns = _.clone(state);
     const c = action.payload.card;
-    ns.byId[c.id] = c;
-    ns.byDeckId[c.deck_id]
-      ? ns.byDeckId[c.deck_id].push(c.id)
-      : (ns.byDeckId[c.deck_id] = [c.id]);
-    return ns;
+    return updateCard(state, [c]);
   } else if (action.type == 'BULK_INSERT') {
-    const ns = _.clone(state);
-    action.payload.cards.forEach(c => {
-      ns.byId[c.id] = c;
-      ns.byDeckId[c.deck_id]
-        ? ns.byDeckId[c.deck_id].push(c.id)
-        : (ns.byDeckId[c.deck_id] = [c.id]);
-    });
-    return ns;
+    const cs = action.payload.cards;
+    return updateCard(state, cs);
   } else if (action.type == 'DELETE') {
     const ns = _.clone(state);
     const c = action.payload.card;
