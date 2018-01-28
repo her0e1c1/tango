@@ -145,6 +145,31 @@ export const insertDeck = (deck: Pick<Deck, 'id' | 'name' | 'url'>) => async (
   );
 };
 
+// selector
+export const getCurrentCard = (state: RootState) => {
+  const cards = getCurrentCardList(state);
+  if (state.nav.index) {
+    console.log(state.nav.index, cards[state.nav.index]);
+    return cards[state.nav.index];
+  }
+  return state.nav.card;
+};
+export const getCurrentCardList = (state: RootState): Card[] => {
+  const deck = state.nav.deck;
+  const limit: number = 100;
+  if (deck) {
+    const ids = state.card.byDeckId[deck.id] || [];
+    const cards = ids
+      .map(id => state.card.byId[id])
+      .filter(c => !!c) // defensive
+      .slice(0, limit);
+    return cards;
+  } else {
+    return [];
+  }
+};
+
+// reducer
 export const card = (
   state = { byId: {}, byDeckId: {} },
   action: Redux.Action
@@ -199,9 +224,24 @@ export const deck = (
 };
 
 export const goTo = (nav: NavState) => async (dispatch, getState) => {
-  dispatch({ type: 'NAV_GO_TO', payload: { nav } });
+  const { index } = nav;
+  // todo: fix
+  if (index === undefined || 1 <= index) {
+    dispatch({ type: 'NAV_GO_TO', payload: { nav } });
+  }
 };
 
+export const goToNextCard = () => async (dispatch, getState) => {
+  const state = getState();
+  const nav = { index: state.nav.index + 1 };
+  dispatch(goTo(nav));
+};
+
+export const goToPrevCard = () => async (dispatch, getState) => {
+  const state = getState();
+  const nav = { index: state.nav.index - 1 };
+  dispatch(goTo(nav));
+};
 export const goBack = () => async (dispatch, getState) => {
   const { deck, card, index }: NavState = getState().nav;
   let nav = {};
@@ -213,7 +253,6 @@ export const goBack = () => async (dispatch, getState) => {
   dispatch({ type: 'NAV_GO_BACK', payload: { nav } });
 };
 
-type NavState = { deck?: Deck; card?: Card; index?: number };
 export const nav = (state: NavState = {}, action: Redux.Action): NavState => {
   if (action.type == 'NAV_GO_TO') {
     return { ...state, ...action.payload.nav };
