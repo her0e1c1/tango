@@ -170,11 +170,20 @@ export const getCurrentCard = (state: RootState) => {
 };
 export const getCurrentCardList = (state: RootState): Card[] => {
   const deck = state.nav.deck;
-  const limit: number = 100;
+  const config = state.config;
   if (deck) {
     const ids = state.card.byDeckId[deck.id] || [];
-    const cards = ids.map(id => state.card.byId[id]).filter(c => !!c); // defensive
-    // .slice(0, limit);
+    const cards = ids
+      .map(id => state.card.byId[id])
+      .filter(c => !!c) // defensive
+      .filter(c => {
+        if (config.showMastered) {
+          return true;
+        } else {
+          return !c.mastered;
+        }
+      });
+
     return cards;
   } else {
     return [];
@@ -284,8 +293,27 @@ export const nav = (state: NavState = {}, action: Redux.Action): NavState => {
   }
 };
 
+export const updateConfig = (config: ConfigState) => async (
+  dispatch,
+  getState
+) => {
+  dispatch({ type: 'CONFIG', payload: { config } });
+};
+
+export const config = (
+  state: ConfigState = { showMastered: true },
+  action: Redux.Action
+): ConfigState => {
+  if (action.type == 'CONFIG') {
+    return { ...state, ...action.payload.config };
+  } else {
+    return state;
+  }
+};
+
 export const reducers = {
   deck,
   card,
   nav,
+  config,
 };
