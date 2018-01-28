@@ -38,6 +38,12 @@ export class Settings extends React.Component<{ state: RootState }, {}> {
             await this.props.shuffle();
           }}
         />
+        <RN.Text>Start {config.start}</RN.Text>
+        <RN.Slider
+          minimumValue={0}
+          value={config.start / 1000}
+          onValueChange={v => this.props.update({ start: parseInt(1000 * v) })}
+        />
       </RN.View>
     );
   }

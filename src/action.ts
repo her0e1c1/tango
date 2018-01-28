@@ -188,8 +188,7 @@ export const getCurrentCardList = (state: RootState): Card[] => {
           return !c.mastered;
         }
       });
-
-    return cards;
+    return cards.slice(config.start);
   } else {
     return [];
   }
@@ -312,7 +311,7 @@ export const updateConfig = (config: ConfigState) => async (
 };
 
 export const config = (
-  state: ConfigState = { showMastered: true, shuffled: false },
+  state: ConfigState = { showMastered: true, shuffled: false, start: 0 },
   action: Redux.Action
 ): ConfigState => {
   if (action.type == 'CONFIG') {

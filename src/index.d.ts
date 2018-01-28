@@ -25,7 +25,7 @@ type CardState = {
 };
 type NavState = { deck?: Deck; card?: Card; index?: number };
 
-type ConfigState = { showMastered: boolean; shuffled: boolean };
+type ConfigState = { showMastered: boolean; shuffled: boolean; start: number };
 
 interface RootState {
   deck: DeckState;
