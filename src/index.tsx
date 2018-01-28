@@ -4,19 +4,31 @@ import * as React from 'react';
 import * as Redux from 'redux';
 import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
+import { persistReducer } from 'redux-persist';
+import * as storage from 'redux-persist/lib/storage';
 
 import * as Action from 'src/action';
 import Root from './component/root';
 import View from 'src/component/view';
 
-const logger = ({ getState, dispatch }) => (next) => (action) => {
+const logger = ({ getState, dispatch }) => next => action => {
   console.log('ACTION: ', action.type);
   const rv = next(action);
-  return rv
+  return rv;
 };
 
+const persistConfig = {
+  key: 'root',
+  storage: storage,
+};
+
+const persistedReducer = persistReducer(
+  persistConfig,
+  Redux.combineReducers(Action.reducers)
+);
+
 const store = Redux.createStore(
-  Redux.combineReducers(Action.reducers),
+  persistedReducer,
   Redux.compose(Redux.applyMiddleware(thunk, logger))
 );
 
