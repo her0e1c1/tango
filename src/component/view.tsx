@@ -129,15 +129,13 @@ class CardViewFocus extends React.Component<
 
 @connect(
   (state: RootState) => ({
-    card: state.card,
-    item: state.nav.card,
-    deck: state.nav.deck,
     index: state.nav.index,
     cards: Action.getCurrentCardList(state),
   }),
   {
     goTo: Action.goTo,
     goBack: Action.goBack,
+    toggle: Action.toggleMastered,
   }
 )
 export default class View extends React.Component<
@@ -164,6 +162,11 @@ export default class View extends React.Component<
           swipeAnimationDuration={100}
           onSwipedRight={index => this.props.goTo({ index: index + 1 })}
           onSwipedLeft={index => this.props.goTo({ index: index - 1 })}
+          onSwipedTop={async index => {
+            await this.props.toggle(this.props.cards[this.props.index]);
+            await this.props.goTo({ index: index + 1 });
+          }}
+          disableBottomSwipe={false}
           cardVerticalMargin={0}
           cardHorizontalMargin={0}
           cards={this.props.cards}
@@ -171,7 +174,6 @@ export default class View extends React.Component<
           goBackToPreviousCardOnSwipeLeft={true}
           zoomFriction={0}
           onSwipedBottom={() => this.props.goBack()}
-          disableBottomSwipe={false}
           renderCard={item => (
             <RN.TouchableWithoutFeedback
               onPress={() => this.setState({ showBody: !this.state.showBody })}
