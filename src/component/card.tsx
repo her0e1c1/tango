@@ -18,20 +18,15 @@ const CardTitle = styled(RN.Text)`
   font-size: 13px;
 `;
 
-@connect((state: RootState) => ({ card: state.card, deck: state.nav.deck }), {
+@connect((state: RootState) => ({ cards: Action.getCurrentCardList(state) }), {
   deleteCard: Action.deleteCard,
   goTo: Action.goTo,
 })
 export default class CardList extends React.Component<{}, {}> {
   render() {
-    const ids = this.props.card.byDeckId[this.props.deck.id] || [];
-    const cards = ids
-      .map(id => this.props.card.byId[id])
-      .filter(x => !!x) // TODO: fix bug
-      .slice(0, 50);
     return (
       <RN.ScrollView>
-        {cards.map((item, index) => (
+        {this.props.cards.map((item, index) => (
           <Swipeout
             key={item.id}
             autoClose
