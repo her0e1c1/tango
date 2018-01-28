@@ -19,8 +19,13 @@ interface Card {
 }
 
 type DeckState = { [key: string]: Deck };
+type CardState = { byId: {[key: string]: Card}, byDeckId: {[key: string]: number[]} };
+type NavState = { deck?: Deck; card?: Card; index?: number };
+
 interface RootState {
   deck: DeckState;
+  card: CardState;
+  nav: NavState;
 }
 
-type Callback = () => void
+type Callback = () => void;
