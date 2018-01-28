@@ -3,7 +3,7 @@ import * as Expo from 'expo';
 import * as Redux from 'redux';
 const Papa = require('papaparse');
 
-const db = Expo.SQLite.openDatabase('db4.db');
+const db = Expo.SQLite.openDatabase('db5.db');
 
 db.transaction((tx: any) => {
   // PRAGMA foreign_keys = ON;
@@ -17,6 +17,7 @@ db.transaction((tx: any) => {
   tx.executeSql(
     `create table if not exists card (
         id integer primary key not null,
+        mastered boolean default 0 not null,
         deck_id integer,
         name text,
         body text
