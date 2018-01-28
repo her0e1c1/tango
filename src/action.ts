@@ -146,6 +146,21 @@ export const insertDeck = (deck: Pick<Deck, 'id' | 'name' | 'url'>) => async (
   );
 };
 
+export const toggleMastered = (card: Card) => async (dispatch, getState) => {
+  const mastered = !card.mastered;
+  console.log('tap', mastered, card.id);
+  db.transaction(tx =>
+    tx.executeSql(
+      `update card set mastered = ? where id = ?`,
+      [mastered, card.id],
+      (_, result) => {
+        dispatch({ type: 'INSERT', payload: { card: { ...card, mastered } } });
+      },
+      (...args) => alert(JSON.stringify(args))
+    )
+  );
+};
+
 // selector
 export const getCurrentCard = (state: RootState) => {
   const cards = getCurrentCardList(state);

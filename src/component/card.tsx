@@ -32,6 +32,7 @@ const CardTitle = styled(RN.Text)`
 @connect((state: RootState) => ({ cards: Action.getCurrentCardList(state) }), {
   deleteCard: Action.deleteCard,
   goTo: Action.goTo,
+  toggle: Action.toggleMastered,
 })
 export default class CardList extends React.Component<{ cards: Card[] }, {}> {
   render() {
@@ -50,7 +51,7 @@ export default class CardList extends React.Component<{ cards: Card[] }, {}> {
             ]}
           >
             <CardCard>
-              <RN.TouchableOpacity onPress={() => alert('tap')}>
+              <RN.TouchableOpacity onPress={() => this.props.toggle(item)}>
                 <Circle
                   style={{
                     marginHorizontal: 5,
