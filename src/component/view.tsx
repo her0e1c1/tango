@@ -1,9 +1,18 @@
+import styled from 'styled-components';
 import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import DeckSwiper from 'react-native-deck-swiper';
 import PinchZoomView from 'react-native-pinch-zoom-view';
+
+const SideControl = styled(RN.TouchableOpacity)`
+  top: 0;
+  width: 100;
+  zindex: 1;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0);
+`;
 
 const DEBUG = false;
 const COLOR = (color, type?) => {
@@ -31,10 +40,13 @@ MathJax.Hub.Config({
   tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
 });
 </script>
+
 </head>
 
 <body style="background-color: black; font-size: 18px">
-<pre><code className="golang">%%%</code></pre>
+<pre>
+<code style="background-color: black; color: silver;" className="golang" style="">%%%</code>
+</pre>
 </body>
 
 </html>
@@ -58,7 +70,21 @@ const CardViewDetail = ({ item }) => (
   </RN.View>
 );
 
-class CardViewFocus extends React.Component<{}, {}> {
+@(connect(
+  (state: RootState) => ({
+    card: Action.getCurrentCard(state),
+    nav: state.nav,
+  }),
+  {
+    goTo: Action.goTo,
+    goToNextCard: Action.goToNextCard,
+    goToPrevCard: Action.goToPrevCard,
+  }
+) as any)
+class CardViewFocus extends React.Component<
+  { onLongPress: Callback; card: Card },
+  {}
+> {
   componentDidMount() {
     RN.StatusBar.setHidden(true);
   }
@@ -66,6 +92,8 @@ class CardViewFocus extends React.Component<{}, {}> {
     RN.StatusBar.setHidden(false);
   }
   render() {
+    const window = RN.Dimensions.get('window');
+    const height = window.height;
     return (
       <RN.Modal
         animationType={'none'}
@@ -75,11 +103,20 @@ class CardViewFocus extends React.Component<{}, {}> {
       >
         <RN.TouchableWithoutFeedback
           style={{ flex: 1, backgroundColor: 'black' }}
-          // onPress={() => {}}
           onLongPress={this.props.onLongPress}
         >
           <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
-            <CardView item={this.props.item} />
+            <CardView item={this.props.card} />
+            <SideControl
+              style={{ left: 0, height }}
+              onPress={() => this.props.goToPrevCard()}
+              onLongPress={() => alert(JSON.stringify(this.props.nav))}
+            />
+            <SideControl
+              style={{ right: 0, height }}
+              onPress={() => this.props.goToNextCard()}
+              onLongPress={() => alert(JSON.stringify(this.props.card.name))}
+            />
           </RN.View>
         </RN.TouchableWithoutFeedback>
       </RN.Modal>
@@ -121,6 +158,7 @@ export default class View extends React.Component<
           cardIndex={this.props.index}
           swipeAnimationDuration={100}
           onSwipedRight={index => this.props.goTo({ index: index + 1 })}
+          onSwipedLeft={index => this.props.goTo({ index: index - 1 })}
           cardVerticalMargin={0}
           cardHorizontalMargin={0}
           cards={cards}
@@ -148,10 +186,7 @@ export default class View extends React.Component<
         />
       </RN.View>
     ) : (
-      <CardViewFocus
-        item={this.props.item}
-        onLongPress={() => this.setState({ visible: false })}
-      />
+      <CardViewFocus onLongPress={() => this.setState({ visible: false })} />
     );
   }
 }
