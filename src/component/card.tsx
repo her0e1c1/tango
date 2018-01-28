@@ -15,7 +15,6 @@ const Circle = styled(RN.View)`
 `;
 
 const CardCard = styled(RN.View)`
-  flex: 1;
   flex-direction: row;
   align-items: center;
   background-color: white;
@@ -36,8 +35,12 @@ const CardTitle = styled(RN.Text)`
 export default class CardList extends React.Component<{ cards: Card[] }, {}> {
   render() {
     return (
-      <RN.ScrollView>
-        {this.props.cards.map((item, index) => (
+      <RN.FlatList
+        data={this.props.cards.map((item, index) => ({
+          ...item,
+          key: item.id,
+        }))}
+        renderItem={({ item, index }) => (
           <Swipeout
             key={item.id}
             autoClose
@@ -70,8 +73,8 @@ export default class CardList extends React.Component<{ cards: Card[] }, {}> {
               </RN.TouchableOpacity>
             </CardCard>
           </Swipeout>
-        ))}
-      </RN.ScrollView>
+        )}
+      />
     );
   }
 }
