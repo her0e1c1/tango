@@ -18,7 +18,6 @@ const CardCard = styled(RN.View)`
   flex: 1;
   flex-direction: row;
   align-items: center;
-  padding: 10px 0;
   background-color: white;
   border-style: solid;
   border-width: 1px;
@@ -60,6 +59,10 @@ export default class CardList extends React.Component<{ cards: Card[] }, {}> {
                 />
               </RN.TouchableOpacity>
               <RN.TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                }}
                 onPress={() => this.props.goTo({ card: item, index })}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
