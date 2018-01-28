@@ -148,7 +148,6 @@ export const insertDeck = (deck: Pick<Deck, 'id' | 'name' | 'url'>) => async (
 
 export const toggleMastered = (card: Card) => async (dispatch, getState) => {
   const mastered = !card.mastered;
-  console.log('tap', mastered, card.id);
   db.transaction(tx =>
     tx.executeSql(
       `update card set mastered = ? where id = ?`,
@@ -165,7 +164,6 @@ export const toggleMastered = (card: Card) => async (dispatch, getState) => {
 export const getCurrentCard = (state: RootState) => {
   const cards = getCurrentCardList(state);
   if (state.nav.index) {
-    console.log(state.nav.index, cards[state.nav.index]);
     return cards[state.nav.index];
   }
   return state.nav.card;
