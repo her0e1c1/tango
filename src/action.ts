@@ -258,9 +258,10 @@ export const deck = (
 
 export const goTo = (nav: NavState) => async (dispatch, getState) => {
   const { index } = nav;
-  // todo: fix
-  if (index === undefined || 1 <= index) {
+  if (index === undefined || 0 <= index) {
     dispatch({ type: 'NAV_GO_TO', payload: { nav } });
+  } else if (index < 0) {
+    dispatch(goBack());
   }
 };
 
