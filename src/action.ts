@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import * as Expo from 'expo';
 import * as Redux from 'redux';
+import * as I from 'src/interface';
 const Papa = require('papaparse');
 
 const db = Expo.SQLite.openDatabase('db5.db');
@@ -36,7 +37,10 @@ const createAction = (type: string, payloadCreator?: any) => {
   return actionCreator;
 };
 
-export const deleteCard = (card: Card) => async (dispatch, getState) => {
+export const deleteCard = (card: Card): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
   db.transaction(tx =>
     tx.executeSql(
       `delete from card where id = ?;`,
@@ -50,7 +54,10 @@ export const deleteCard = (card: Card) => async (dispatch, getState) => {
   );
 };
 
-export const deleteDeck = (deck: Deck) => async (dispatch, getState) => {
+export const deleteDeck = (deck: Deck): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
   db.transaction(tx =>
     tx.executeSql(
       `delete from deck where id = ?; commit`,
@@ -67,7 +74,10 @@ export const deleteDeck = (deck: Deck) => async (dispatch, getState) => {
 
 // should use select last_insert_rowid()
 // but for now, use timestamp as id
-export const insertByURL = (url: string) => async (dispatch, getState) => {
+export const insertByURL = (url: string): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
   const deck_id = new Date().getTime();
   const res = await fetch(url);
   const text = await res.text();
@@ -83,7 +93,10 @@ export const insertByURL = (url: string) => async (dispatch, getState) => {
 };
 
 // can config limit
-export const selectCard = (deck_id?: number) => async (dispatch, getState) => {
+export const selectCard = (deck_id?: number): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
   db.transaction(tx =>
     tx.executeSql(
       `select * from card`,
@@ -97,7 +110,7 @@ export const selectCard = (deck_id?: number) => async (dispatch, getState) => {
   );
 };
 
-export const selectDeck = (limit: number = 50) => async (
+export const selectDeck = (limit: number = 50): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -116,7 +129,7 @@ export const selectDeck = (limit: number = 50) => async (
 
 export const insertCard = (
   card: Pick<Card, 'name' | 'body' | 'deck_id'>
-) => async (dispatch, getState) => {
+): I.ThunkAction => async (dispatch, getState) => {
   db.transaction(tx =>
     tx.executeSql(
       `insert into card (name, body, deck_id) values (?, ?, ?);`,
@@ -130,10 +143,9 @@ export const insertCard = (
   );
 };
 
-export const insertDeck = (deck: Pick<Deck, 'id' | 'name' | 'url'>) => async (
-  dispatch,
-  getState
-) => {
+export const insertDeck = (
+  deck: Pick<Deck, 'id' | 'name' | 'url'>
+): I.ThunkAction => async (dispatch, getState) => {
   db.transaction(tx =>
     tx.executeSql(
       `insert into deck (id, name, url) values (?, ?, ?)`,
@@ -146,7 +158,10 @@ export const insertDeck = (deck: Pick<Deck, 'id' | 'name' | 'url'>) => async (
   );
 };
 
-export const toggleMastered = (card: Card) => async (dispatch, getState) => {
+export const toggleMastered = (card: Card): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
   const mastered = !card.mastered;
   db.transaction(tx =>
     tx.executeSql(
@@ -160,7 +175,10 @@ export const toggleMastered = (card: Card) => async (dispatch, getState) => {
   );
 };
 
-export const shuffleCardsOrSort = () => async (dispatch, getState) => {
+export const shuffleCardsOrSort = (): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
   const config = getState().config;
   dispatch({ type: 'CARD_SHUFFLE', payload: { config } });
 };
@@ -256,7 +274,10 @@ export const deck = (
   }
 };
 
-export const goTo = (nav: NavState) => async (dispatch, getState) => {
+export const goTo = (nav: NavState): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
   const { index } = nav;
   if (index === undefined || 0 <= index) {
     dispatch({ type: 'NAV_GO_TO', payload: { nav } });
@@ -265,19 +286,19 @@ export const goTo = (nav: NavState) => async (dispatch, getState) => {
   }
 };
 
-export const goToNextCard = () => async (dispatch, getState) => {
+export const goToNextCard = (): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
   const nav = { index: state.nav.index + 1 };
   dispatch(goTo(nav));
 };
 
-export const goToPrevCard = () => async (dispatch, getState) => {
+export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
   const nav = { index: state.nav.index - 1 };
   dispatch(goTo(nav));
 };
 
-export const goHome = () => async (dispatch, getState) => {
+export const goHome = (): I.ThunkAction => async (dispatch, getState) => {
   dispatch({ type: 'NAV_HOME' });
 };
 
