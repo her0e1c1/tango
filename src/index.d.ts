@@ -32,7 +32,9 @@ type themeType = 'default' | 'dark';
 interface Theme {
   mainBackgroundColor: string;
   mainColor: string;
+  titleColor: string;
   cardBackgroundColor: string;
+  circleBackgroundColor: string;
 }
 
 type ConfigState = {
@@ -50,3 +52,7 @@ interface RootState {
 }
 
 type Callback = () => void;
+
+interface AppContext {
+  theme: Theme;
+}

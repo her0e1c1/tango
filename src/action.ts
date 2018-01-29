@@ -218,14 +218,18 @@ export const getTheme = (state: RootState): Theme => {
     return {
       mainBackgroundColor: 'black',
       mainColor: 'silver',
-      cardBackgroundColor: '#333',
+      titleColor: 'silver',
+      cardBackgroundColor: '#111',
+      circleBackgroundColor: '#222',
     };
   } else {
     // default
     return {
       mainBackgroundColor: 'skyblue',
       mainColor: 'black',
+      titleColor: 'white',
       cardBackgroundColor: 'white',
+      circleBackgroundColor: 'white',
     };
   }
 };

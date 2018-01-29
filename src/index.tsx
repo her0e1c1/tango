@@ -7,6 +7,8 @@ import { Provider } from 'react-redux';
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { PersistGate } from 'redux-persist/lib/integration/react';
+import { ThemeProvider } from 'styled-components';
+import { connect } from 'react-redux';
 
 import * as Action from 'src/action';
 import Root from './component/root';
@@ -36,10 +38,21 @@ const store = Redux.createStore(
 );
 const persistor = persistStore(store);
 
+@connect((state: RootState) => ({ state }), {})
+class Wrap extends React.Component {
+  render() {
+    return (
+      <ThemeProvider theme={Action.getTheme(this.props.state)}>
+        <Root />
+      </ThemeProvider>
+    );
+  }
+}
+
 export default () => (
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
-      <Root />
+      <Wrap />
     </PersistGate>
   </Provider>
 );

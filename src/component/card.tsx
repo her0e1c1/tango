@@ -8,6 +8,8 @@ import CardView from './view';
 import * as I from 'src/interface';
 
 const Circle = styled(RN.View)`
+  background-color: ${({ theme, mastered }: AppContext) =>
+    mastered ? 'green' : theme.circleBackgroundColor};
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -18,13 +20,13 @@ const Circle = styled(RN.View)`
 const CardCard = styled(RN.View)`
   flex-direction: row;
   align-items: center;
-  background-color: ${(t: Theme) => t.cardBackgroundColor};
+  background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
   border-style: solid;
   border-width: 1px;
 `;
 
 const CardTitle = styled(RN.Text)`
-  color: ${(t: Theme) => t.mainColor};
+  color: ${({ theme }: AppContext) => theme.mainColor};
   font-size: 13px;
 `;
 
@@ -60,13 +62,11 @@ export class CardList extends React.Component<Props, {}> {
               },
             ]}
           >
-            <CardCard {...Action.getTheme(this.props.state)}>
+            <CardCard>
               <RN.TouchableOpacity onPress={() => this.props.toggle(item)}>
                 <Circle
-                  style={{
-                    marginHorizontal: 5,
-                    backgroundColor: item.mastered ? 'green' : 'white',
-                  }}
+                  style={{ marginHorizontal: 5 }}
+                  mastered={item.mastered}
                 />
               </RN.TouchableOpacity>
               <RN.TouchableOpacity
@@ -77,9 +77,7 @@ export class CardList extends React.Component<Props, {}> {
                 onPress={() => this.props.goTo({ card: item, index })}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
-                <CardTitle {...Action.getTheme(this.props.state)}>
-                  {item.name}
-                </CardTitle>
+                <CardTitle>{item.name}</CardTitle>
               </RN.TouchableOpacity>
             </CardCard>
           </Swipeout>

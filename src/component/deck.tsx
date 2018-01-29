@@ -7,15 +7,17 @@ import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import CardList from './card';
 import CardView from './view';
+import { Context } from 'vm';
+import { AppConfig } from 'react-native';
 
 const MainText = styled(RN.Text)`
-  color: ${(t: Theme) => t.mainColor};
+  color: ${({ theme }: AppContext) => theme.titleColor};
   font-size: 16px;
 `;
 
 const DeckCard = styled(RN.View)`
   padding: 20px;
-  background-color: ${(t: Theme) => t.cardBackgroundColor};
+  background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
   border-style: solid;
   border-width: 0px;
 `;
@@ -28,7 +30,7 @@ const DeckTitle = styled(RN.Text)`
 
 const Container = styled(RN.View)`
   flex: 1;
-  background-color: ${(t: Theme) => t.mainBackgroundColor};
+  background-color: ${({ theme }: AppContext) => theme.mainBackgroundColor};
   padding-top: 20; /* space for ios status bar */
   padding-horizontal: 10px;
 `;
@@ -49,17 +51,13 @@ export class Header extends React.Component {
             marginBottom: 5,
           }}
         >
-          <MainText {...Action.getTheme(this.props.state)}>
-            TANGO FOR MEMO {deck && `(${deck.name})`}
-          </MainText>
+          <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
           {deck && (
             <RN.TouchableOpacity
               onPress={() => this.props.goBack()}
               onLongPress={() => this.props.goHome()}
             >
-              <MainText {...Action.getTheme(this.props.state)}>
-                {'< BACK'}
-              </MainText>
+              <MainText>{'< BACK'}</MainText>
             </RN.TouchableOpacity>
           )}
         </RN.View>
@@ -155,7 +153,7 @@ export class DeckItem extends React.Component<
           onPress={() => this.props.goTo({ deck: deck })}
           onLongPress={() => alert(JSON.stringify(deck))}
         >
-          <DeckCard {...Action.getTheme(this.props.state)}>
+          <DeckCard>
             <DeckTitle>{deck.name}</DeckTitle>
             <RN.Text>
               {mastered.length} of {allCardIds.length} cards mastered
@@ -218,7 +216,7 @@ export default class Home extends React.Component<{}, {}> {
   render() {
     const { nav } = this.props;
     return (
-      <Container {...Action.getTheme(this.props.state)}>
+      <Container>
         <Header />
         {nav.deck && nav.index !== undefined && <CardView />}
         {nav.deck && nav.index == undefined && <CardList />}
