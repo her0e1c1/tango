@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import CardView from './view';
+import * as I from 'src/interface';
 
 const Circle = styled(RN.View)`
   width: 20px;
@@ -27,12 +28,18 @@ const CardTitle = styled(RN.Text)`
   font-size: 13px;
 `;
 
-@connect((state: RootState) => ({ cards: Action.getCurrentCardList(state) }), {
+const mapStateToProps = (state: RootState) => ({
+  cards: Action.getCurrentCardList(state),
+});
+const _mapStateToProps = I.returntypeof(mapStateToProps);
+const mapDispatchToProps = {
   deleteCard: Action.deleteCard,
   goTo: Action.goTo,
   toggle: Action.toggleMastered,
-})
-export default class CardList extends React.Component<{ cards: Card[] }, {}> {
+};
+type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
+
+export class CardList extends React.Component<Props, {}> {
   render() {
     return (
       <RN.FlatList
@@ -78,3 +85,5 @@ export default class CardList extends React.Component<{ cards: Card[] }, {}> {
     );
   }
 }
+
+export default connect(mapStateToProps, mapDispatchToProps)(CardList);
