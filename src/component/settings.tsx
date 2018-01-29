@@ -52,6 +52,13 @@ export class Settings extends React.Component<Props, {}> {
             this.props.update({ start: parseInt(String(1000 * v)) })
           }
         />
+        <RN.Text>theme {config.theme}</RN.Text>
+        <RN.Picker
+          selectedValue={config.theme}
+          onValueChange={theme => this.props.update({ theme })}
+        >
+          {['default', 'dark'].map(x => <RN.Picker.Item label={x} value={x} />)}
+        </RN.Picker>
       </RN.View>
     );
   }

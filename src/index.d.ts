@@ -19,13 +19,28 @@ interface Card {
 }
 
 type DeckState = { [key: string]: Deck };
+
 type CardState = {
   byId: { [key: string]: Card };
   byDeckId: { [key: string]: number[] };
 };
+
 type NavState = { deck?: Deck; card?: Card; index?: number };
 
-type ConfigState = { showMastered: boolean; shuffled: boolean; start: number };
+type themeType = 'default' | 'dark';
+
+interface Theme {
+  mainBackgroundColor: string;
+  mainColor: string;
+  cardBackgroundColor: string;
+}
+
+type ConfigState = {
+  showMastered: boolean;
+  shuffled: boolean;
+  start: number;
+  theme: themeType;
+};
 
 interface RootState {
   deck: DeckState;

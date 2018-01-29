@@ -9,13 +9,13 @@ import CardList from './card';
 import CardView from './view';
 
 const MainText = styled(RN.Text)`
-  color: white;
+  color: ${(t: Theme) => t.mainColor};
   font-size: 16px;
 `;
 
 const DeckCard = styled(RN.View)`
   padding: 20px;
-  background-color: white;
+  background-color: ${(t: Theme) => t.cardBackgroundColor};
   border-style: solid;
   border-width: 0px;
 `;
@@ -28,12 +28,12 @@ const DeckTitle = styled(RN.Text)`
 
 const Container = styled(RN.View)`
   flex: 1;
-  background-color: skyblue;
+  background-color: ${(t: Theme) => t.mainBackgroundColor};
   padding-top: 20; /* space for ios status bar */
   padding-horizontal: 10px;
 `;
 
-@connect((state: RootState) => ({ nav: state.nav }), {
+@connect((state: RootState) => ({ nav: state.nav, state }), {
   goBack: Action.goBack,
   goHome: Action.goHome,
 })
@@ -49,13 +49,17 @@ export class Header extends React.Component {
             marginBottom: 5,
           }}
         >
-          <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
+          <MainText {...Action.getTheme(this.props.state)}>
+            TANGO FOR MEMO {deck && `(${deck.name})`}
+          </MainText>
           {deck && (
             <RN.TouchableOpacity
               onPress={() => this.props.goBack()}
               onLongPress={() => this.props.goHome()}
             >
-              <MainText>{'< BACK'}</MainText>
+              <MainText {...Action.getTheme(this.props.state)}>
+                {'< BACK'}
+              </MainText>
             </RN.TouchableOpacity>
           )}
         </RN.View>
@@ -113,7 +117,7 @@ export class SearchBar extends React.Component<
   }
 }
 
-@connect((state: RootState) => ({ card: state.card }), {
+@connect((state: RootState) => ({ card: state.card, state }), {
   deleteDeck: Action.deleteDeck,
   insertByURL: Action.insertByURL,
   goTo: Action.goTo,
@@ -131,7 +135,7 @@ export class DeckItem extends React.Component<
     return (
       <Swipeout
         autoClose
-        style={{ backgroundColor: 'skyblue', marginBottom: 10 }}
+        style={{ marginBottom: 10 }}
         right={[
           {
             text: 'DEL',
@@ -151,7 +155,7 @@ export class DeckItem extends React.Component<
           onPress={() => this.props.goTo({ deck: deck })}
           onLongPress={() => alert(JSON.stringify(deck))}
         >
-          <DeckCard>
+          <DeckCard {...Action.getTheme(this.props.state)}>
             <DeckTitle>{deck.name}</DeckTitle>
             <RN.Text>
               {mastered.length} of {allCardIds.length} cards mastered
@@ -202,7 +206,7 @@ export class DeckList extends React.Component<{}, { refreshing: boolean }> {
   }
 }
 
-@connect((state: RootState) => ({ nav: state.nav }), {
+@connect((state: RootState) => ({ nav: state.nav, state }), {
   selectCard: Action.selectCard,
   selectDeck: Action.selectDeck,
 })
@@ -214,7 +218,7 @@ export default class Home extends React.Component<{}, {}> {
   render() {
     const { nav } = this.props;
     return (
-      <Container>
+      <Container {...Action.getTheme(this.props.state)}>
         <Header />
         {nav.deck && nav.index !== undefined && <CardView />}
         {nav.deck && nav.index == undefined && <CardList />}

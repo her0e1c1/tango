@@ -18,17 +18,18 @@ const Circle = styled(RN.View)`
 const CardCard = styled(RN.View)`
   flex-direction: row;
   align-items: center;
-  background-color: white;
+  background-color: ${(t: Theme) => t.cardBackgroundColor};
   border-style: solid;
   border-width: 1px;
 `;
 
 const CardTitle = styled(RN.Text)`
-  color: black;
+  color: ${(t: Theme) => t.mainColor};
   font-size: 13px;
 `;
 
 const mapStateToProps = (state: RootState) => ({
+  state,
   cards: Action.getCurrentCardList(state),
 });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
@@ -59,7 +60,7 @@ export class CardList extends React.Component<Props, {}> {
               },
             ]}
           >
-            <CardCard>
+            <CardCard {...Action.getTheme(this.props.state)}>
               <RN.TouchableOpacity onPress={() => this.props.toggle(item)}>
                 <Circle
                   style={{
@@ -76,7 +77,9 @@ export class CardList extends React.Component<Props, {}> {
                 onPress={() => this.props.goTo({ card: item, index })}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
-                <CardTitle>{item.name}</CardTitle>
+                <CardTitle {...Action.getTheme(this.props.state)}>
+                  {item.name}
+                </CardTitle>
               </RN.TouchableOpacity>
             </CardCard>
           </Swipeout>

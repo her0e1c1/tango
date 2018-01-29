@@ -212,6 +212,24 @@ export const getCurrentCardList = (state: RootState): Card[] => {
   }
 };
 
+export const getTheme = (state: RootState): Theme => {
+  const theme = state.config.theme;
+  if (theme === 'dark') {
+    return {
+      mainBackgroundColor: 'black',
+      mainColor: 'silver',
+      cardBackgroundColor: '#333',
+    };
+  } else {
+    // default
+    return {
+      mainBackgroundColor: 'skyblue',
+      mainColor: 'black',
+      cardBackgroundColor: 'white',
+    };
+  }
+};
+
 const updateCard = (state: CardState, cards: Card[]) => {
   const ns = _.clone(state);
   cards.forEach(c => {
@@ -333,7 +351,12 @@ export const updateConfig = (config: Partial<ConfigState>) => async (
 };
 
 export const config = (
-  state: ConfigState = { showMastered: true, shuffled: false, start: 0 },
+  state: ConfigState = {
+    showMastered: true,
+    shuffled: false,
+    start: 0,
+    theme: 'default',
+  },
   action: Redux.Action
 ): ConfigState => {
   if (action.type == 'CONFIG') {
