@@ -174,13 +174,29 @@ export class DeckItem extends React.Component<
   }
 }
 
-@connect((state: RootState) => ({ decks: Object.values(state.deck) }), {})
-export class DeckList extends React.Component<{}, {}> {
+@connect((state: RootState) => ({ decks: Object.values(state.deck) }), {
+  selectCard: Action.selectCard,
+  selectDeck: Action.selectDeck,
+})
+export class DeckList extends React.Component<{}, { refreshing: boolean }> {
+  constructor(props) {
+    super(props);
+    this.state = {
+      refreshing: false,
+    };
+  }
   render() {
     return (
       <RN.FlatList
         data={this.props.decks.map(d => ({ ...d, key: d.id }))}
         renderItem={({ item }) => <DeckItem deck={item} />}
+        onRefresh={async () => {
+          // TODO: fix later
+          await this.props.selectDeck();
+          await this.props.selectCard();
+          await this.setState({ refreshing: false });
+        }}
+        refreshing={this.state.refreshing}
       />
     );
   }
