@@ -156,6 +156,17 @@ export class DeckItem extends React.Component<
             <RN.Text>
               {mastered.length} of {allCardIds.length} cards mastered
             </RN.Text>
+            <RN.View
+              style={{ height: 20, marginTop: 10, backgroundColor: 'silver' }}
+            >
+              <RN.View
+                style={{
+                  height: 20,
+                  width: mastered.length / allCardIds.length * 100,
+                  backgroundColor: 'green',
+                }}
+              />
+            </RN.View>
           </DeckCard>
         </RN.TouchableOpacity>
       </Swipeout>
