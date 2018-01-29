@@ -10,7 +10,6 @@ import { PersistGate } from 'redux-persist/lib/integration/react';
 
 import * as Action from 'src/action';
 import Root from './component/root';
-import View from 'src/component/view';
 
 const logger = ({ getState, dispatch }) => next => action => {
   console.log('ACTION: ', action.type);

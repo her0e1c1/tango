@@ -4,7 +4,6 @@ import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import DeckSwiper from 'react-native-deck-swiper';
-import PinchZoomView from 'react-native-pinch-zoom-view';
 
 const DEBUG = false;
 
