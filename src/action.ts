@@ -325,7 +325,7 @@ export const nav = (state: NavState = {}, action: Redux.Action): NavState => {
   }
 };
 
-export const updateConfig = (config: ConfigState) => async (
+export const updateConfig = (config: Partial<ConfigState>) => async (
   dispatch,
   getState
 ) => {

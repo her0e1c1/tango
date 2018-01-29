@@ -2,12 +2,18 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
+import * as I from 'src/interface';
+import { settings } from 'cluster';
 
-@connect((state: RootState) => ({ state }), {
+const mapStateToProps = (state: RootState) => ({ state });
+const _mapStateToProps = I.returntypeof(mapStateToProps);
+const mapDispatchToProps = {
   update: Action.updateConfig,
   shuffle: Action.shuffleCardsOrSort,
-})
-export class Settings extends React.Component<{ state: RootState }, {}> {
+};
+type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
+
+export class Settings extends React.Component<Props, {}> {
   render() {
     const { config } = this.props.state;
     return (
@@ -42,10 +48,12 @@ export class Settings extends React.Component<{ state: RootState }, {}> {
         <RN.Slider
           minimumValue={0}
           value={config.start / 1000}
-          onValueChange={v => this.props.update({ start: parseInt(1000 * v) })}
+          onValueChange={v =>
+            this.props.update({ start: parseInt(String(1000 * v)) })
+          }
         />
       </RN.View>
     );
   }
 }
-export default Settings;
+export default connect(mapStateToProps, mapDispatchToProps)(Settings);
