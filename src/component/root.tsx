@@ -4,14 +4,14 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { connect } from 'react-redux';
 
-import Deck from './deck';
+import Main from './main';
 import Settings from './settings';
 import Help from './help';
 
 const RootTabs = TabNavigator(
   {
-    Deck: {
-      screen: Deck,
+    Main: {
+      screen: Main,
       navigationOptions: {
         tabBarLabel: 'Decks',
         tabBarIcon: ({ tintColor, focused }) => (
