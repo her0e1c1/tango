@@ -11,7 +11,7 @@ import { ThemeProvider } from 'styled-components';
 import { connect } from 'react-redux';
 
 import * as Action from 'src/action';
-import Root from './component/root';
+import Root from './component';
 
 const logger = ({ getState, dispatch }) => next => action => {
   console.log('ACTION: ', action.type);
