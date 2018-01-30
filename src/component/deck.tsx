@@ -7,6 +7,7 @@ import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
 import { DeckCard, DeckTitle } from './styled';
+import ProgressBar from './progressBar';
 
 class DeckList extends React.Component<Props, { refreshing: boolean }> {
   constructor(props) {
@@ -56,24 +57,7 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
               >
                 <DeckCard>
                   <DeckTitle>{item.name}</DeckTitle>
-                  <RN.Text>
-                    {mastered.length} of {allCardIds.length} cards mastered
-                  </RN.Text>
-                  <RN.View
-                    style={{
-                      height: 20,
-                      marginTop: 10,
-                      backgroundColor: 'silver',
-                    }}
-                  >
-                    <RN.View
-                      style={{
-                        height: 20,
-                        width: mastered.length / allCardIds.length * 100,
-                        backgroundColor: 'green',
-                      }}
-                    />
-                  </RN.View>
+                  <ProgressBar deck_id={item.id} />
                 </DeckCard>
               </RN.TouchableOpacity>
             </Swipeout>

@@ -4,6 +4,7 @@ import * as RN from 'react-native';
 import DeckSwiper from 'react-native-deck-swiper';
 import styled, { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
+import ProgressBar from './progressBar';
 
 const DEBUG = false;
 

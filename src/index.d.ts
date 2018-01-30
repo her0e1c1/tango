@@ -16,6 +16,7 @@ interface Card {
   hint: string;
   mastered: boolean;
   deck_id: number;
+  deck: Deck;
   tags: Tag[];
 }
 
