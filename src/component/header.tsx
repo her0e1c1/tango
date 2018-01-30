@@ -12,17 +12,6 @@ const MainText = styled(RN.Text)`
   font-size: 16px;
 `;
 
-const mapStateToProps = (state: RootState) => ({
-  nav: state.nav,
-  state,
-});
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {
-  goBack: Action.goBack,
-  goHome: Action.goHome,
-};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-
 export class Header extends React.Component<Props, {}> {
   render() {
     if (!this.props.state.config.showHeader) {
@@ -54,4 +43,14 @@ export class Header extends React.Component<Props, {}> {
   }
 }
 
+const mapStateToProps = (state: RootState) => ({
+  nav: state.nav,
+  state,
+});
+const _mapStateToProps = I.returntypeof(mapStateToProps);
+const mapDispatchToProps = {
+  goBack: Action.goBack,
+  goHome: Action.goHome,
+};
+type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(Header);

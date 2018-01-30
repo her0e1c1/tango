@@ -6,14 +6,6 @@ import * as Redux from 'redux';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
 
-const mapStateToProps = (state: RootState) => ({
-  nav: state.nav,
-  state,
-});
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = { insertByURL: Action.insertByURL };
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-
 export class SearchBar extends React.Component<
   Props,
   { text: string; loading: boolean }
@@ -61,4 +53,11 @@ export class SearchBar extends React.Component<
   }
 }
 
+const mapStateToProps = (state: RootState) => ({
+  nav: state.nav,
+  state,
+});
+const _mapStateToProps = I.returntypeof(mapStateToProps);
+const mapDispatchToProps = { insertByURL: Action.insertByURL };
+type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(SearchBar);

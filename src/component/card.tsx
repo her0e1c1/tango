@@ -30,18 +30,6 @@ const CardTitle = styled(RN.Text)`
   font-size: 13px;
 `;
 
-const mapStateToProps = (state: RootState) => ({
-  state,
-  cards: Action.getCurrentCardList(state),
-});
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {
-  deleteCard: Action.deleteCard,
-  goTo: Action.goTo,
-  toggle: Action.toggleMastered,
-};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-
 export class CardList extends React.Component<Props, {}> {
   render() {
     return (
@@ -87,4 +75,15 @@ export class CardList extends React.Component<Props, {}> {
   }
 }
 
+const mapStateToProps = (state: RootState) => ({
+  state,
+  cards: Action.getCurrentCardList(state),
+});
+const _mapStateToProps = I.returntypeof(mapStateToProps);
+const mapDispatchToProps = {
+  deleteCard: Action.deleteCard,
+  goTo: Action.goTo,
+  toggle: Action.toggleMastered,
+};
+type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(CardList);
