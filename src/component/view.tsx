@@ -175,7 +175,9 @@ export default class View extends React.Component<
           goBackToPreviousCardOnSwipeLeft={true}
           zoomFriction={0}
           onSwipedBottom={() => this.props.goBack()}
-          renderCard={item => (
+          renderCard={(
+            item = {} as Card // Sometimes item is undefined :(
+          ) => (
             <RN.TouchableWithoutFeedback
               onPress={() => this.setState({ showBody: !this.state.showBody })}
               onLongPress={() => this.setState({ visible: true })}
