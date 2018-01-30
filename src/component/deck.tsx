@@ -9,26 +9,7 @@ import CardList from './card';
 import CardView from './view';
 import Header from './header';
 import * as I from 'src/interface';
-
-const DeckCard = styled(RN.View)`
-  padding: 20px;
-  background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
-  border-style: solid;
-  border-width: 0px;
-`;
-
-const DeckTitle = styled(RN.Text)`
-  color: ${({ theme }: AppContext) => theme.mainColor};
-  font-weight: bold;
-  font-size: 20px;
-`;
-
-const Container = styled(RN.View)`
-  flex: 1;
-  background-color: ${({ theme }: AppContext) => theme.mainBackgroundColor};
-  padding-top: 20; /* space for ios status bar */
-  padding-horizontal: 10px;
-`;
+import { Container, DeckCard, DeckTitle } from './styled';
 
 const mapStateToProps = (state: RootState) => ({
   card: state.card,
