@@ -20,19 +20,19 @@ const COLOR = (color, type?) => {
 const SideControl = styled(RN.TouchableOpacity)`
   top: 0;
   width: 100;
-  zindex: 1;
+  z-index: 1;
   position: absolute;
   background-color: rgba(0, 0, 0, 0);
 `;
 
 const CardViewDetail = styled(RN.Text)`
-  color: ${COLOR('red', 'word')};
+  color: ${({ theme }: AppContext) => theme.mainColor};
   font-size: 25;
 `;
 
 const CardContainer = styled(RN.View)`
   flex: 1;
-  backgroundcolor: ${COLOR('#621')};
+  background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
 `;
 
 const html = `
@@ -138,7 +138,7 @@ class CardViewFocus extends React.Component<
   }
 )
 export default class View extends React.Component<
-  {},
+  AppContext,
   { visible: boolean; showBody: boolean }
 > {
   constructor(props) {
@@ -156,7 +156,7 @@ export default class View extends React.Component<
     ) : (
       <RN.View style={{ flex: 1 }}>
         <DeckSwiper
-          backgroundColor={COLOR('yellow')}
+          // backgroundColor={this.context.theme.cardBackgroundColor}
           cardIndex={this.props.index}
           swipeAnimationDuration={100}
           onSwipedRight={index => this.props.goTo({ index: index + 1 })}

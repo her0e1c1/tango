@@ -13,8 +13,9 @@ interface Card {
   id: number;
   name: string;
   body: string;
-  deck_id: number;
+  hint: string;
   mastered: boolean;
+  deck_id: number;
   tags: Tag[];
 }
 
@@ -27,7 +28,7 @@ type CardState = {
 
 type NavState = { deck?: Deck; card?: Card; index?: number };
 
-type themeType = 'default' | 'dark';
+type themeType = 'default' | 'dark' | 'debug';
 
 interface Theme {
   mainBackgroundColor: string;
