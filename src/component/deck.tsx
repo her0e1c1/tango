@@ -17,7 +17,7 @@ const DeckCard = styled(RN.View)`
 `;
 
 const DeckTitle = styled(RN.Text)`
-  color: black;
+  color: ${({ theme }: AppContext) => theme.mainColor};
   font-weight: bold;
   font-size: 20px;
 `;
