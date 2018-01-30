@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { withTheme } from 'styled-components';
 import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
@@ -126,6 +127,7 @@ class CardViewFocus extends React.Component<
   }
 }
 
+@withTheme
 @connect(
   (state: RootState) => ({
     index: state.nav.index,
@@ -141,6 +143,7 @@ export default class View extends React.Component<
   AppContext,
   { visible: boolean; showBody: boolean }
 > {
+  // static contextTypes = { theme: PropTypes.func };
   constructor(props) {
     super(props);
     this.state = {
@@ -156,7 +159,7 @@ export default class View extends React.Component<
     ) : (
       <RN.View style={{ flex: 1 }}>
         <DeckSwiper
-          // backgroundColor={this.context.theme.cardBackgroundColor}
+          backgroundColor={this.props.theme.cardBackgroundColor}
           cardIndex={this.props.index}
           swipeAnimationDuration={100}
           onSwipedRight={index => this.props.goTo({ index: index + 1 })}
