@@ -44,6 +44,13 @@ export class Settings extends React.Component<Props, {}> {
             await this.props.shuffle();
           }}
         />
+        <RN.Text>Show header</RN.Text>
+        <RN.Button
+          title={config.showHeader ? 'ON' : 'OFF'}
+          onPress={async () => {
+            await this.props.update({ showHeader: !config.showHeader });
+          }}
+        />
         <RN.Text>Start {config.start}</RN.Text>
         <RN.Slider
           minimumValue={0}

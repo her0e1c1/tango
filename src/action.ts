@@ -357,6 +357,7 @@ export const updateConfig = (config: Partial<ConfigState>) => async (
 export const config = (
   state: ConfigState = {
     showMastered: true,
+    showHeader: true,
     shuffled: false,
     start: 0,
     theme: 'default',

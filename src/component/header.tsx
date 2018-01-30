@@ -25,6 +25,9 @@ type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 
 export class Header extends React.Component<Props, {}> {
   render() {
+    if (!this.props.state.config.showHeader) {
+      return <RN.View />;
+    }
     const { deck } = this.props.nav;
     return (
       <RN.View style={{ marginBottom: 10 }}>

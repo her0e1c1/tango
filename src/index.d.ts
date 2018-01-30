@@ -39,6 +39,7 @@ interface Theme {
 
 type ConfigState = {
   showMastered: boolean;
+  showHeader: boolean;
   shuffled: boolean;
   start: number;
   theme: themeType;
