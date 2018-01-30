@@ -11,7 +11,7 @@ import { ThemeProvider } from 'styled-components';
 import { connect } from 'react-redux';
 
 import * as Action from 'src/action';
-import Root from './component';
+import RootTabs from './component';
 
 const logger = ({ getState, dispatch }) => next => action => {
   console.log('ACTION: ', action.type);
@@ -43,7 +43,7 @@ class Wrap extends React.Component {
   render() {
     return (
       <ThemeProvider theme={Action.getTheme(this.props.state)}>
-        <Root />
+        <RootTabs />
       </ThemeProvider>
     );
   }
