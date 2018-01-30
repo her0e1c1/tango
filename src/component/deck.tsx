@@ -7,13 +7,7 @@ import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import CardList from './card';
 import CardView from './view';
-import { Context } from 'vm';
-import { AppConfig } from 'react-native';
-
-const MainText = styled(RN.Text)`
-  color: ${({ theme }: AppContext) => theme.titleColor};
-  font-size: 16px;
-`;
+import Header from './header';
 
 const DeckCard = styled(RN.View)`
   padding: 20px;
@@ -34,86 +28,6 @@ const Container = styled(RN.View)`
   padding-top: 20; /* space for ios status bar */
   padding-horizontal: 10px;
 `;
-
-@connect((state: RootState) => ({ nav: state.nav, state }), {
-  goBack: Action.goBack,
-  goHome: Action.goHome,
-})
-export class Header extends React.Component {
-  render() {
-    const { deck } = this.props.nav;
-    return (
-      <RN.View style={{ marginBottom: 10 }}>
-        <RN.View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginBottom: 5,
-          }}
-        >
-          <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
-          {deck && (
-            <RN.TouchableOpacity
-              onPress={() => this.props.goBack()}
-              onLongPress={() => this.props.goHome()}
-            >
-              <MainText>{'< BACK'}</MainText>
-            </RN.TouchableOpacity>
-          )}
-        </RN.View>
-        {!deck && <SearchBar />}
-      </RN.View>
-    );
-  }
-}
-
-@connect((_: RootState) => ({}), { insertByURL: Action.insertByURL })
-export class SearchBar extends React.Component<
-  {},
-  { text: string; loading: boolean }
-> {
-  constructor(props) {
-    super(props);
-    this.state = {
-      text: '',
-      loading: false,
-    };
-  }
-  render() {
-    return (
-      <RN.View style={{ flexDirection: 'row' }}>
-        <RN.TextInput
-          // autoFocus
-          keyboardType="url"
-          value={this.state.text}
-          placeholder="Input your CSV url ..."
-          style={{ backgroundColor: 'white', fontSize: 16, flex: 1 }}
-          onChangeText={text => this.setState({ text })}
-          onEndEditing={() => {
-            if (this.state.text.match(/^https?:\/\//)) {
-              this.setState({ loading: true }, async () => {
-                try {
-                  await this.props.insertByURL(this.state.text);
-                } catch {
-                  alert('CAN NOT FETCH :(');
-                } finally {
-                  this.setState({ loading: false });
-                }
-              });
-            } else if (this.state.text !== '') {
-              alert('INVALID URL: ' + this.state.text);
-            }
-          }}
-        />
-        <RN.Button
-          title="Q"
-          color="#841584"
-          onPress={() => alert('implement later :)')}
-        />
-      </RN.View>
-    );
-  }
-}
 
 @connect((state: RootState) => ({ card: state.card, state }), {
   deleteDeck: Action.deleteDeck,
