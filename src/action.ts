@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as Expo from 'expo';
 import * as Redux from 'redux';
 import * as I from 'src/interface';
+import { resolve } from 'url';
 const Papa = require('papaparse');
 
 const db = Expo.SQLite.openDatabase('db5.db');
@@ -25,17 +26,6 @@ db.transaction((tx: any) => {
     );`
   );
 });
-
-// declare const createAction(type: string): void;
-const createAction = (type: string, payloadCreator?: any) => {
-  const _payloadCreator = payloadCreator || (() => {});
-  const actionCreator = (...args: any[]) => {
-    const payload = _payloadCreator(...args);
-    return { type, payload };
-  };
-  actionCreator.type = type;
-  return actionCreator;
-};
 
 export const deleteCard = (card: Card): I.ThunkAction => async (
   dispatch,
@@ -74,22 +64,22 @@ export const deleteDeck = (deck: Deck): I.ThunkAction => async (
 
 // should use select last_insert_rowid()
 // but for now, use timestamp as id
-export const insertByURL = (url: string): I.ThunkAction => async (
+export const insertByURL = async (url: string): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
   const deck_id = new Date().getTime();
+  console.log(`FETCH START: ${url} (${deck_id})`);
   const res = await fetch(url);
   const text = await res.text();
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
   const name = url.split('/').pop() || 'sample';
+  for (let i = 0; i < data.length; i++) {
+    const d = data[i];
+    const card: Card = { name: d[0], body: d[1], deck_id };
+    await dispatch(insertCard(card));
+  }
   await dispatch(insertDeck({ url, name, id: deck_id }));
-  await Promise.all(
-    data.map(async d => {
-      const card: Card = { name: d[0], body: d[1], deck_id };
-      await dispatch(insertCard(card));
-    })
-  );
 };
 
 // can config limit
@@ -130,7 +120,7 @@ export const selectDeck = (limit: number = 50): I.ThunkAction => async (
 export const insertCard = (
   card: Pick<Card, 'name' | 'body' | 'deck_id'>
 ): I.ThunkAction => async (dispatch, getState) => {
-  db.transaction(tx =>
+  await db.transaction(tx =>
     tx.executeSql(
       `insert into card (name, body, deck_id) values (?, ?, ?);`,
       [card.name, card.body, card.deck_id],
@@ -145,18 +135,20 @@ export const insertCard = (
 
 export const insertDeck = (
   deck: Pick<Deck, 'id' | 'name' | 'url'>
-): I.ThunkAction => async (dispatch, getState) => {
-  db.transaction(tx =>
-    tx.executeSql(
-      `insert into deck (id, name, url) values (?, ?, ?)`,
-      [deck.id, deck.name, deck.url],
-      (_, result) => {
-        dispatch({ type: 'DECK_INSERT', payload: { deck } });
-      },
-      (...args) => alert(JSON.stringify(args))
+): I.ThunkAction => (dispatch, getState) =>
+  new Promise((resolve, reject) =>
+    db.transaction(tx =>
+      tx.executeSql(
+        `insert into deck (id, name, url) values (?, ?, ?)`,
+        [deck.id, deck.name, deck.url],
+        async (_, result) => {
+          await dispatch({ type: 'DECK_INSERT', payload: { deck } });
+          resolve();
+        },
+        (...args) => reject(alert(JSON.stringify(args)))
+      )
     )
   );
-};
 
 export const toggleMastered = (card: Card): I.ThunkAction => async (
   dispatch,
@@ -354,6 +346,35 @@ export const updateConfig = (config: Partial<ConfigState>) => async (
   dispatch({ type: 'CONFIG', payload: { config } });
 };
 
+export const startLoading = () => async (dispatch, getState) => {
+  dispatch({ type: 'CONFIG', payload: { config: { isLoading: true } } });
+};
+
+export const endLoading = () => async (dispatch, getState) => {
+  dispatch({ type: 'CONFIG', payload: { config: { isLoading: false } } });
+};
+
+export const tryInsertByURL = (text: string) => async (dispatch, getState) => {
+  if (text.match(/^https?:\/\//)) {
+    await dispatch(startLoading());
+    try {
+      await dispatch(await insertByURL(text));
+    } catch {
+      const errorCode: errorCode = 'CAN_NOT_FETCH';
+      await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
+    } finally {
+      await dispatch(endLoading());
+    }
+  } else if (text !== '') {
+    const errorCode: errorCode = 'INVALID_URL';
+    await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
+  }
+};
+
+export const clearError = () => async (dispatch, getState) => {
+  await dispatch({ type: 'CONFIG', payload: { config: { undefined } } });
+};
+
 export const config = (
   state: ConfigState = {
     showMastered: true,
@@ -361,6 +382,8 @@ export const config = (
     shuffled: false,
     start: 0,
     theme: 'default',
+    isLoading: false, // maybe not here
+    errorCode: undefined,
   },
   action: Redux.Action
 ): ConfigState => {

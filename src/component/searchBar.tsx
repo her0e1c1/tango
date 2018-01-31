@@ -4,16 +4,10 @@ import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
 
-export class SearchBar extends React.Component<
-  Props,
-  { text: string; loading: boolean }
-> {
+export class SearchBar extends React.Component<Props, { text: string }> {
   constructor(props) {
     super(props);
-    this.state = {
-      text: '',
-      loading: false,
-    };
+    this.state = { text: '' };
   }
   render() {
     return (
@@ -25,19 +19,16 @@ export class SearchBar extends React.Component<
           placeholder="Input your CSV url ..."
           style={{ backgroundColor: 'white', fontSize: 16, flex: 1 }}
           onChangeText={text => this.setState({ text })}
-          onEndEditing={() => {
-            if (this.state.text.match(/^https?:\/\//)) {
-              this.setState({ loading: true }, async () => {
-                try {
-                  await this.props.insertByURL(this.state.text);
-                } catch {
-                  alert('CAN NOT FETCH :(');
-                } finally {
-                  this.setState({ loading: false });
-                }
-              });
-            } else if (this.state.text !== '') {
-              alert('INVALID URL: ' + this.state.text);
+          onEndEditing={async () => {
+            await this.props.insertByURL(this.state.text);
+            const { errorCode } = this.props.state.config;
+            if (errorCode) {
+              if (errorCode == 'INVALID_URL') {
+                alert('INVALID URL :(');
+              } else if (errorCode == 'CAN_NOT_FETCH') {
+                alert('CAN NOT FETCH :(');
+              }
+              this.props.clearError();
             }
           }}
         />
@@ -56,6 +47,9 @@ const mapStateToProps = (state: RootState) => ({
   state,
 });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = { insertByURL: Action.insertByURL };
+const mapDispatchToProps = {
+  insertByURL: Action.tryInsertByURL,
+  clearError: Action.clearError,
+};
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(SearchBar);

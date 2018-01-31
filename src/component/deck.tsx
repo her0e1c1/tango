@@ -76,7 +76,7 @@ const mapStateToProps = (state: RootState) => ({
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   deleteDeck: Action.deleteDeck,
-  insertByURL: Action.insertByURL,
+  insertByURL: Action.tryInsertByURL,
   goTo: Action.goTo,
   selectCard: Action.selectCard,
   selectDeck: Action.selectDeck,
