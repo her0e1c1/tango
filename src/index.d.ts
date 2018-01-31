@@ -39,12 +39,16 @@ interface Theme {
   circleBackgroundColor: string;
 }
 
+type errorCode = 'INVALID_URL' | 'CAN_NOT_FETCH';
+
 type ConfigState = {
   showMastered: boolean;
   showHeader: boolean;
   shuffled: boolean;
   start: number;
   theme: themeType;
+  isLoading: boolean;
+  errorCode?: errorCode;
 };
 
 interface RootState {
