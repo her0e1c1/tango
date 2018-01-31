@@ -14,7 +14,8 @@ const MainText = styled(RN.Text)`
 
 export class Header extends React.Component<Props, {}> {
   render() {
-    if (!this.props.state.config.showHeader) {
+    const { state } = this.props;
+    if (!state.config.showHeader) {
       return <RN.View />;
     }
     const { deck } = this.props.nav;
