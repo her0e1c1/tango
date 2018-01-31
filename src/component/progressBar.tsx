@@ -34,10 +34,11 @@ class ProgressBar extends React.Component<Props & { deck_id: number }, {}> {
         />
         <RN.View
           style={{
-            // TODO: centralized
             flex: 1,
             position: 'absolute',
+            left: 0,
             right: 0,
+            alignItems: 'center',
             backgroundColor: 'rgba(0, 0, 0, 0)',
             paddingRight: 5,
           }}
