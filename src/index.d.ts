@@ -17,6 +17,7 @@ interface Card {
   mastered: boolean;
   deck_id: number;
   deck: Deck;
+  category: string;
   tags: Tag[];
 }
 

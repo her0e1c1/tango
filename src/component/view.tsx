@@ -5,6 +5,7 @@ import DeckSwiper from 'react-native-deck-swiper';
 import styled, { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
 import ProgressBar from './progressBar';
+import CardView from './cardView';
 
 const DEBUG = false;
 
@@ -35,43 +36,6 @@ const CardContainer = styled(RN.View)`
   flex: 1;
   background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
 `;
-
-const html = `
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5.0, user-scalable=yes" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/styles/dark.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
-<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
-});
-</script>
-
-</head>
-
-<body style="background-color: black; font-size: 18px">
-<pre>
-<code style="background-color: black; color: silver;" className="golang" style="">%%%</code>
-</pre>
-</body>
-
-</html>
-`;
-
-export const CardView = ({ item }) => (
-  <RN.WebView
-    automaticallyAdjustContentInsets={false}
-    scrollEnabled={true}
-    bounces={false}
-    source={{ html: html.replace('%%%', item.body) }}
-    style={{ backgroundColor: COLOR('pink') }}
-  />
-);
 
 @(connect(
   (state: RootState) => ({
@@ -109,7 +73,7 @@ class CardViewFocus extends React.Component<
           onLongPress={this.props.onLongPress}
         >
           <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
-            <CardView item={this.props.card} />
+            <CardView card={this.props.card} />
             <SideControl
               style={{ left: 0, height }}
               onPress={() => this.props.goToPrevCard()}
@@ -185,7 +149,7 @@ export default class View extends React.Component<
             >
               <CardContainer style={{ width }}>
                 <CardViewDetail>{item.name}</CardViewDetail>
-                {this.state.showBody && <CardView item={item} />}
+                {this.state.showBody && <CardView card={item} />}
               </CardContainer>
             </RN.TouchableWithoutFeedback>
           )}
