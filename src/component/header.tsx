@@ -28,7 +28,7 @@ export class Header extends React.Component<Props, {}> {
             marginBottom: 5,
           }}
         >
-          <MainText>TANGO FOR MEMO {deck && `(${deck.name})`}</MainText>
+          <MainText>TANGO {deck && `[${deck.name}]`}</MainText>
           {deck && (
             <RN.TouchableOpacity
               onPress={() => this.props.goBack()}
