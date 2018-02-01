@@ -66,7 +66,7 @@ export class Settings extends React.Component<Props, {}> {
             style={{ flex: 1 }}
             minimumValue={0}
             value={config.start / 1000}
-            onValueChange={v =>
+            onSlidingComplete={v =>
               this.props.update({ start: parseInt(String(1000 * v)) })
             }
           />
