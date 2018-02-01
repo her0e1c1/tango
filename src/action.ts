@@ -53,9 +53,16 @@ export const deleteDeck = (deck: Deck): I.ThunkAction => async (
       `delete from deck where id = ?; commit`,
       [deck.id],
       (_, result) => {
-        console.log(result, deck);
-        if (result.rowsAffected === 1)
+        if (result.rowsAffected === 1) {
           dispatch({ type: 'DECK_DELETE', payload: { deck } });
+          tx.executeSql(
+            'delete from card where deck_id = ?',
+            [deck.id],
+            (_, result) => {
+              dispatch({ type: 'CARD_BULK_DELETE', payload: { deck } });
+            }
+          );
+        }
       },
       (...args) => alert(JSON.stringify(args))
     )
@@ -268,6 +275,12 @@ export const card = (
   } else if (action.type == 'BULK_INSERT') {
     const cs = action.payload.cards;
     return updateCard(state, cs);
+  } else if (action.type == 'CARD_BULK_DELETE') {
+    const deck_id = action.payload.deck.id;
+    const ids = state.byDeckId[deck_id];
+    ids.forEach(id => delete state.byId[id]);
+    delete state.byDeckId[deck_id];
+    return { ...state };
   } else if (action.type == 'DELETE') {
     const ns = _.clone(state);
     const c = action.payload.card;
