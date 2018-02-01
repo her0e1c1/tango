@@ -12,7 +12,8 @@ export const DeckCard = styled(RN.View)`
   padding: 20px;
   background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
   border-style: solid;
-  border-width: 0px;
+  border-color: ${({ theme }: AppContext) => theme.cardBorderColor};
+  border-width: 1px;
 `;
 
 export const DeckTitle = styled(RN.Text)`

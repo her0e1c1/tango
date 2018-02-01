@@ -36,6 +36,7 @@ interface Theme {
   mainColor: string;
   titleColor: string;
   cardBackgroundColor: string;
+  cardBorderColor: string;
   circleBackgroundColor: string;
 }
 

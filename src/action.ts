@@ -228,6 +228,7 @@ export const getTheme = (state: RootState): Theme => {
       mainColor: 'silver',
       titleColor: 'silver',
       cardBackgroundColor: '#111',
+      cardBorderColor: 'gray',
       circleBackgroundColor: '#222',
     };
   } else {
@@ -236,6 +237,7 @@ export const getTheme = (state: RootState): Theme => {
       mainBackgroundColor: 'skyblue',
       mainColor: 'black',
       titleColor: 'white',
+      cardBorderColor: 'white',
       cardBackgroundColor: 'white',
       circleBackgroundColor: 'white',
     };
