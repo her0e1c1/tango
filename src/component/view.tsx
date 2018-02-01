@@ -9,18 +9,6 @@ import CardView from './cardView';
 import * as SD from './styled';
 import * as I from 'src/interface';
 
-const DEBUG = false;
-
-const COLOR = (color, type?) => {
-  if (DEBUG) {
-    return color;
-  }
-  if (type === 'word') {
-    return '#fff';
-  }
-  return 'black';
-};
-
 @(connect(
   (state: RootState) => ({
     card: Action.getCurrentCard(state),
