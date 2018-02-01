@@ -59,3 +59,22 @@ export const CardTitle = styled(RN.Text)`
   color: ${({ theme }: AppContext) => theme.mainColor};
   font-size: 13px;
 `;
+
+export const SideControl = styled(RN.TouchableOpacity)`
+  top: 0;
+  width: 100;
+  z-index: 1;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0);
+`;
+
+export const CardViewDetail = styled(RN.Text)`
+  font-size: 25;
+  color: ${({ theme }: AppContext) => theme.mainColor};
+  text-align: center;
+`;
+
+export const CardContainer = styled(RN.View)`
+  flex: 1;
+  background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
+`;

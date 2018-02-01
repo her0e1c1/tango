@@ -6,6 +6,7 @@ import styled, { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
 import ProgressBar from './progressBar';
 import CardView from './cardView';
+import * as SD from './styled';
 
 const DEBUG = false;
 
@@ -18,24 +19,6 @@ const COLOR = (color, type?) => {
   }
   return 'black';
 };
-
-const SideControl = styled(RN.TouchableOpacity)`
-  top: 0;
-  width: 100;
-  z-index: 1;
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0);
-`;
-
-const CardViewDetail = styled(RN.Text)`
-  color: ${({ theme }: AppContext) => theme.mainColor};
-  font-size: 25;
-`;
-
-const CardContainer = styled(RN.View)`
-  flex: 1;
-  background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
-`;
 
 @(connect(
   (state: RootState) => ({
@@ -74,12 +57,12 @@ class CardViewFocus extends React.Component<
         >
           <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
             <CardView card={this.props.card} />
-            <SideControl
+            <SD.SideControl
               style={{ left: 0, height }}
               onPress={() => this.props.goToPrevCard()}
               onLongPress={() => alert(JSON.stringify(this.props.nav))}
             />
-            <SideControl
+            <SD.SideControl
               style={{ right: 0, height }}
               onPress={() => this.props.goToNextCard()}
               onLongPress={() => alert(JSON.stringify(this.props.card.name))}
@@ -147,10 +130,10 @@ export default class View extends React.Component<
               onPress={() => this.setState({ showBody: !this.state.showBody })}
               onLongPress={() => this.setState({ visible: true })}
             >
-              <CardContainer style={{ width }}>
-                <CardViewDetail>{item.name}</CardViewDetail>
+              <SD.CardContainer style={{ width }}>
+                <SD.CardViewDetail>{item.name}</SD.CardViewDetail>
                 {this.state.showBody && <CardView card={item} />}
-              </CardContainer>
+              </SD.CardContainer>
             </RN.TouchableWithoutFeedback>
           )}
         />
