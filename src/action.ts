@@ -62,22 +62,19 @@ export const deleteDeck = (deck: Deck): I.ThunkAction => async (
   );
 };
 
-// should use select last_insert_rowid()
-// but for now, use timestamp as id
 export const insertByURL = async (url: string): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const deck_id = new Date().getTime();
-  console.log(`FETCH START: ${url} (${deck_id})`);
+  console.log(`FETCH START: ${url}`);
   const res = await fetch(url);
   const text = await res.text();
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
   const name = url.split('/').pop() || 'sample';
   const cards: Card[] = data.map(d => ({ name: d[0], body: d[1] }));
-  await dispatch(insertDeck({ url, name, id: deck_id }));
+  const deck_id = await dispatch(insertDeck({ url, name }));
   await dispatch(bulkInsertCards(deck_id, cards));
-  console.log(`FETCH DONE`);
+  console.log(`FETCH DONE ${deck_id}`);
 };
 
 // can config limit
@@ -147,17 +144,21 @@ export const bulkInsertCards = (
     })
   );
 
-export const insertDeck = (
-  deck: Pick<Deck, 'id' | 'name' | 'url'>
-): I.ThunkAction => (dispatch, getState) =>
+export const insertDeck = (deck: Pick<Deck, 'name' | 'url'>): I.ThunkAction => (
+  dispatch,
+  getState
+) =>
   new Promise((resolve, reject) =>
     db.transaction(tx =>
       tx.executeSql(
-        `insert into deck (id, name, url) values (?, ?, ?)`,
-        [deck.id, deck.name, deck.url],
+        `insert into deck (name, url) values (?, ?)`,
+        [deck.name, deck.url],
         async (_, result) => {
           const id = result.insertId;
-          await dispatch({ type: 'DECK_INSERT', payload: { deck } });
+          await dispatch({
+            type: 'DECK_INSERT',
+            payload: { deck: { ...deck, id } },
+          });
           resolve(id);
         },
         (...args) => reject(alert(JSON.stringify(args)))
