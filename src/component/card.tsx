@@ -6,29 +6,7 @@ import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import CardView from './view';
 import * as I from 'src/interface';
-
-const Circle = styled(RN.View)`
-  background-color: ${({ theme, mastered }: AppContext) =>
-    mastered ? 'green' : theme.circleBackgroundColor};
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border-width: 1px;
-  border-style: solid;
-`;
-
-const CardCard = styled(RN.View)`
-  flex-direction: row;
-  align-items: center;
-  background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
-  border-style: solid;
-  border-width: 1px;
-`;
-
-const CardTitle = styled(RN.Text)`
-  color: ${({ theme }: AppContext) => theme.mainColor};
-  font-size: 13px;
-`;
+import * as SD from './styled';
 
 export class CardList extends React.Component<Props, {}> {
   render() {
@@ -50,9 +28,9 @@ export class CardList extends React.Component<Props, {}> {
               },
             ]}
           >
-            <CardCard>
+            <SD.CardCard>
               <RN.TouchableOpacity onPress={() => this.props.toggle(item)}>
-                <Circle
+                <SD.Circle
                   style={{ marginHorizontal: 5 }}
                   mastered={item.mastered}
                 />
@@ -65,9 +43,9 @@ export class CardList extends React.Component<Props, {}> {
                 onPress={() => this.props.goTo({ card: item, index })}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
-                <CardTitle>{item.name}</CardTitle>
+                <SD.CardTitle>{item.name}</SD.CardTitle>
               </RN.TouchableOpacity>
-            </CardCard>
+            </SD.CardCard>
           </Swipeout>
         )}
       />

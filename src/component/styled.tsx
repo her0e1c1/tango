@@ -36,3 +36,26 @@ export const SettingsText = styled(RN.Text)`
   color: ${({ theme }: AppContext) => theme.mainColor};
   font-size: 16;
 `;
+
+export const Circle = styled(RN.View)`
+  background-color: ${({ theme, mastered }: AppContext) =>
+    mastered ? 'green' : theme.circleBackgroundColor};
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border-width: 1px;
+  border-style: solid;
+`;
+
+export const CardCard = styled(RN.View)`
+  flex-direction: row;
+  align-items: center;
+  background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
+  border-style: solid;
+  border-width: 1px;
+`;
+
+export const CardTitle = styled(RN.Text)`
+  color: ${({ theme }: AppContext) => theme.mainColor};
+  font-size: 13px;
+`;
