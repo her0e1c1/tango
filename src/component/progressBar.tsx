@@ -1,9 +1,6 @@
-import styled from 'styled-components';
 import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
-import * as Redux from 'redux';
-import * as Action from 'src/action';
 import * as I from 'src/interface';
 
 const getAllCards = (state: RootState, deck_id: number) => {
