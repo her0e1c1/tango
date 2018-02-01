@@ -13,6 +13,9 @@ const getAllCards = (state: RootState, deck_id: number) => {
 
 class ProgressBar extends React.Component<Props & { deck_id?: number }, {}> {
   render() {
+    if (!this.props.state.config.showHeader) {
+      return null;
+    }
     const { deck } = this.props.state.nav;
     const deck_id = this.props.deck_id || (deck && deck.id);
     if (!deck_id) {
