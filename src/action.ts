@@ -75,8 +75,8 @@ export const insertByURL = async (url: string): I.ThunkAction => async (
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
   const name = url.split('/').pop() || 'sample';
   const cards: Card[] = data.map(d => ({ name: d[0], body: d[1] }));
-  await dispatch(bulkInsertCards(deck_id, cards));
   await dispatch(insertDeck({ url, name, id: deck_id }));
+  await dispatch(bulkInsertCards(deck_id, cards));
   console.log(`FETCH DONE`);
 };
 
@@ -115,46 +115,35 @@ export const selectDeck = (limit: number = 50): I.ThunkAction => async (
   );
 };
 
-export const insertCard = (
-  card: Pick<Card, 'name' | 'body' | 'deck_id'>
-): I.ThunkAction => async (dispatch, getState) => {
-  await db.transaction(tx =>
-    tx.executeSql(
-      `insert into card (name, body, deck_id) values (?, ?, ?);`,
-      [card.name, card.body, card.deck_id],
-      (_, result) => {
-        // need to know id
-        // dispatch({ type: 'INSERT', payload: { card } });
-      },
-      (...args) => alert(JSON.stringify(args))
-    )
-  );
-};
-
 // FIXME: how can I bulk insert?
 export const bulkInsertCards = (
   deck_id: number,
   cards: Pick<Card, 'name' | 'body'>[]
 ): I.ThunkAction => (dispatch, getState) =>
   new Promise((resolve, reject) =>
-    db.transaction(tx => {
-      cards.forEach(card =>
-        tx.executeSql(
-          `insert into card (name, body, deck_id) values (?, ?, ?);
-          `,
-          [card.name, card.body, deck_id],
-          (_, result) => {
-            const id = result.insertId;
-            id &&
-              dispatch({
-                type: 'INSERT',
-                payload: { card: { ...card, deck_id, id } as Card },
-              });
-            resolve(); // should call only when last card is inserted
-          },
-          (...args) => reject(alert(JSON.stringify(args)))
+    db.transaction(async tx => {
+      await Promise.all(
+        cards.map(
+          card =>
+            new Promise(resolve =>
+              tx.executeSql(
+                `insert into card (name, body, deck_id) values (?, ?, ?);`,
+                [card.name, card.body, deck_id],
+                async (_, result) => {
+                  const id = result.insertId;
+                  id &&
+                    (await dispatch({
+                      type: 'INSERT',
+                      payload: { card: { ...card, deck_id, id } as Card },
+                    }));
+                  resolve();
+                },
+                (...args) => reject(alert(JSON.stringify(args)))
+              )
+            )
         )
       );
+      resolve();
     })
   );
 
