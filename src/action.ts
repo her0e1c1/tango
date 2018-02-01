@@ -74,12 +74,10 @@ export const insertByURL = async (url: string): I.ThunkAction => async (
   const text = await res.text();
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
   const name = url.split('/').pop() || 'sample';
-  for (let i = 0; i < data.length; i++) {
-    const d = data[i];
-    const card: Card = { name: d[0], body: d[1], deck_id };
-    await dispatch(insertCard(card));
-  }
+  const cards: Card[] = data.map(d => ({ name: d[0], body: d[1] }));
+  await dispatch(bulkInsertCards(deck_id, cards));
   await dispatch(insertDeck({ url, name, id: deck_id }));
+  console.log(`FETCH DONE`);
 };
 
 // can config limit
@@ -133,6 +131,33 @@ export const insertCard = (
   );
 };
 
+// FIXME: how can I bulk insert?
+export const bulkInsertCards = (
+  deck_id: number,
+  cards: Pick<Card, 'name' | 'body'>[]
+): I.ThunkAction => (dispatch, getState) =>
+  new Promise((resolve, reject) =>
+    db.transaction(tx => {
+      cards.forEach(card =>
+        tx.executeSql(
+          `insert into card (name, body, deck_id) values (?, ?, ?);
+          `,
+          [card.name, card.body, deck_id],
+          (_, result) => {
+            const id = result.insertId;
+            id &&
+              dispatch({
+                type: 'INSERT',
+                payload: { card: { ...card, deck_id, id } as Card },
+              });
+            resolve(); // should call only when last card is inserted
+          },
+          (...args) => reject(alert(JSON.stringify(args)))
+        )
+      );
+    })
+  );
+
 export const insertDeck = (
   deck: Pick<Deck, 'id' | 'name' | 'url'>
 ): I.ThunkAction => (dispatch, getState) =>
@@ -142,8 +167,9 @@ export const insertDeck = (
         `insert into deck (id, name, url) values (?, ?, ?)`,
         [deck.id, deck.name, deck.url],
         async (_, result) => {
+          const id = result.insertId;
           await dispatch({ type: 'DECK_INSERT', payload: { deck } });
-          resolve();
+          resolve(id);
         },
         (...args) => reject(alert(JSON.stringify(args)))
       )
