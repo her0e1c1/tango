@@ -2,11 +2,12 @@ import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
 import DeckSwiper from 'react-native-deck-swiper';
-import styled, { withTheme } from 'styled-components';
+import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
 import ProgressBar from './progressBar';
 import CardView from './cardView';
 import * as SD from './styled';
+import * as I from 'src/interface';
 
 const DEBUG = false;
 
@@ -75,18 +76,7 @@ class CardViewFocus extends React.Component<
 }
 
 @withTheme
-@connect(
-  (state: RootState) => ({
-    index: state.nav.index,
-    cards: Action.getCurrentCardList(state),
-  }),
-  {
-    goTo: Action.goTo,
-    goBack: Action.goBack,
-    toggle: Action.toggleMastered,
-  }
-)
-export default class View extends React.Component<
+class View extends React.Component<
   AppContext,
   { visible: boolean; showBody: boolean }
 > {
@@ -141,3 +131,16 @@ export default class View extends React.Component<
     );
   }
 }
+
+const mapStateToProps = (state: RootState) => ({
+  index: state.nav.index,
+  cards: Action.getCurrentCardList(state),
+});
+const _mapStateToProps = I.returntypeof(mapStateToProps);
+const mapDispatchToProps = {
+  goTo: Action.goTo,
+  goBack: Action.goBack,
+  toggle: Action.toggleMastered,
+};
+type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
+export default connect(mapStateToProps, mapDispatchToProps)(View);
