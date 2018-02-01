@@ -11,9 +11,15 @@ const getAllCards = (state: RootState, deck_id: number) => {
   return allCardIds.map(id => state.card.byId[id]);
 };
 
-class ProgressBar extends React.Component<Props & { deck_id: number }, {}> {
+class ProgressBar extends React.Component<Props & { deck_id?: number }, {}> {
   render() {
-    const cards = getAllCards(this.props.state, this.props.deck_id);
+    const { deck } = this.props.state.nav;
+    const deck_id = this.props.deck_id || (deck && deck.id);
+    if (!deck_id) {
+      return null;
+    }
+    const index = `(${this.props.state.nav.index})` || '';
+    const cards = getAllCards(this.props.state, deck_id);
     const mastered = cards.filter(x => !!x && x.mastered);
     const width = cards.length > 0 ? mastered.length / cards.length * 100 : 0;
     return (
@@ -48,7 +54,7 @@ class ProgressBar extends React.Component<Props & { deck_id: number }, {}> {
               fontSize: 13,
               fontWeight: 'bold',
             }}
-          >{`${mastered.length}/${cards.length}`}</RN.Text>
+          >{`${mastered.length}/${cards.length}${index}`}</RN.Text>
         </RN.View>
       </RN.View>
     );

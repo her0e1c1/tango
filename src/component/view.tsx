@@ -77,7 +77,7 @@ class CardViewFocus extends React.Component<
 
 @withTheme
 class View extends React.Component<
-  AppContext,
+  Props & AppContext,
   { visible: boolean; showBody: boolean }
 > {
   // static contextTypes = { theme: PropTypes.func };
@@ -95,44 +95,51 @@ class View extends React.Component<
       <CardViewFocus onLongPress={() => this.setState({ visible: false })} />
     ) : (
       <RN.View style={{ flex: 1 }}>
-        <DeckSwiper
-          backgroundColor={this.props.theme.cardBackgroundColor}
-          cardIndex={this.props.index}
-          swipeAnimationDuration={100}
-          onSwipedRight={index => this.props.goTo({ index: index + 1 })}
-          onSwipedLeft={index => this.props.goTo({ index: index - 1 })}
-          onSwipedTop={async index => {
-            await this.props.toggle(this.props.cards[this.props.index]);
-            await this.props.goTo({ index: index + 1 });
-          }}
-          disableBottomSwipe={false}
-          cardVerticalMargin={0}
-          cardHorizontalMargin={0}
-          cards={this.props.cards}
-          showSecondCard={false}
-          goBackToPreviousCardOnSwipeLeft={true}
-          zoomFriction={0}
-          onSwipedBottom={() => this.props.goBack()}
-          renderCard={(
-            item = {} as Card // Sometimes item is undefined :(
-          ) => (
-            <RN.TouchableWithoutFeedback
-              onPress={() => this.setState({ showBody: !this.state.showBody })}
-              onLongPress={() => this.setState({ visible: true })}
-            >
-              <SD.CardContainer style={{ width }}>
-                <SD.CardViewDetail>{item.name}</SD.CardViewDetail>
-                {this.state.showBody && <CardView card={item} />}
-              </SD.CardContainer>
-            </RN.TouchableWithoutFeedback>
-          )}
-        />
+        <ProgressBar />
+        <RN.View style={{ marginTop: 10 }}>
+          {/* I think DeckSwiper position is absolute */}
+          <DeckSwiper
+            backgroundColor={this.props.theme.cardBackgroundColor}
+            cardIndex={this.props.index}
+            swipeAnimationDuration={100}
+            onSwipedRight={index => this.props.goTo({ index: index + 1 })}
+            onSwipedLeft={index => this.props.goTo({ index: index - 1 })}
+            onSwipedTop={async index => {
+              await this.props.toggle(this.props.cards[this.props.index]);
+              await this.props.goTo({ index: index + 1 });
+            }}
+            disableBottomSwipe={false}
+            cardVerticalMargin={0}
+            cardHorizontalMargin={0}
+            cards={this.props.cards}
+            showSecondCard={false}
+            goBackToPreviousCardOnSwipeLeft={true}
+            zoomFriction={0}
+            onSwipedBottom={() => this.props.goBack()}
+            renderCard={(
+              item = {} as Card // Sometimes item is undefined :(
+            ) => (
+              <RN.TouchableWithoutFeedback
+                onPress={() =>
+                  this.setState({ showBody: !this.state.showBody })
+                }
+                onLongPress={() => this.setState({ visible: true })}
+              >
+                <SD.CardContainer style={{ width }}>
+                  <SD.CardViewDetail>{item.name}</SD.CardViewDetail>
+                  {this.state.showBody && <CardView card={item} />}
+                </SD.CardContainer>
+              </RN.TouchableWithoutFeedback>
+            )}
+          />
+        </RN.View>
       </RN.View>
     );
   }
 }
 
 const mapStateToProps = (state: RootState) => ({
+  state,
   index: state.nav.index,
   cards: Action.getCurrentCardList(state),
 });
