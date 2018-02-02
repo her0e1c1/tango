@@ -27,6 +27,8 @@ export class SearchBar extends React.Component<Props, { text: string }> {
                 alert('INVALID URL :(');
               } else if (errorCode == 'CAN_NOT_FETCH') {
                 alert('CAN NOT FETCH :(');
+              } else if (errorCode == 'NO_CARDS') {
+                alert('There are not cards in input url');
               }
               this.props.clearError();
             } else {

@@ -69,7 +69,7 @@ export const deleteDeck = (deck: Deck): I.ThunkAction => async (
   );
 };
 
-export const insertByURL = async (url: string): I.ThunkAction => async (
+export const insertByURL = (url: string): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -77,6 +77,11 @@ export const insertByURL = async (url: string): I.ThunkAction => async (
   const res = await fetch(url);
   const text = await res.text();
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
+  if (data.length === 0) {
+    const errorCode: errorCode = 'NO_CARDS';
+    await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
+    return;
+  }
   const name = url.split('/').pop() || 'sample';
   const cards: Card[] = data.map(d => ({ name: d[0], body: d[1] }));
   const deck_id = await dispatch(insertDeck({ url, name }));

@@ -41,7 +41,7 @@ interface Theme {
   circleBackgroundColor: string;
 }
 
-type errorCode = 'INVALID_URL' | 'CAN_NOT_FETCH';
+type errorCode = 'INVALID_URL' | 'CAN_NOT_FETCH' | 'NO_CARDS';
 
 type ConfigState = {
   showMastered: boolean;
