@@ -21,9 +21,7 @@ MathJax.Hub.Config({
   tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
 });
 </script>
-</head>
-{BODY}
-</html>
+</head>{BODY}</html>
 `;
 
 @withTheme
@@ -37,15 +35,14 @@ class CardView extends React.Component<
     background-color: ${theme.cardBackgroundColor};
     color: ${theme.mainColor};
     font-size: 18px;
+    margin: 0;
+    padding: 0;
     `;
   }
   getBody() {
-    const body = `
-    <body style="${this.getStyle()}">
-    <pre><code style="${this.getStyle()}" className="golang"></code>${
+    const body = `<body style="${this.getStyle()}"></body><pre><code style="${this.getStyle()}" className="golang"></code>${
       this.props.card.body
-    }</code></pre>
-    </body>
+    }</code></pre></body>
     `;
     return body;
   }
@@ -60,7 +57,9 @@ class CardView extends React.Component<
             .replace('{BODY}', this.getBody())
             .replace('{THEME}', this.props.state.config.theme),
         }}
-        style={{ backgroundColor: this.props.theme.cardBackgroundColor }}
+        style={{
+          backgroundColor: this.props.theme.cardBackgroundColor,
+        }}
       />
     );
   }
