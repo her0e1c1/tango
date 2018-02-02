@@ -2,9 +2,9 @@
   "expo": {
     "name": "tango",
     "sdkVersion": "23.0.0",
-    "description": "You can see source code here. https://github.com/her0e1c1/tango",
+    "description": "The flash cards. You can memorize anything ! Source : https://github.com/her0e1c1/tango",
     "version": "1.0.9",
-    "slug": "your-app-tango",
+    "slug": "tango",
     "ios": {
       "bundleIdentifier": "com.her0e1c1.tango"
     },
