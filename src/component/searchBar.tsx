@@ -29,6 +29,8 @@ export class SearchBar extends React.Component<Props, { text: string }> {
                 alert('CAN NOT FETCH :(');
               }
               this.props.clearError();
+            } else {
+              this.setState({ text: '' });
             }
           }}
         />
@@ -42,10 +44,7 @@ export class SearchBar extends React.Component<Props, { text: string }> {
   }
 }
 
-const mapStateToProps = (state: RootState) => ({
-  nav: state.nav,
-  state,
-});
+const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   insertByURL: Action.tryInsertByURL,
