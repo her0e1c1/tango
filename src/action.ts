@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 import * as Expo from 'expo';
 import * as Redux from 'redux';
 import * as I from 'src/interface';
-import { resolve } from 'url';
 const Papa = require('papaparse');
 
 const db = Expo.SQLite.openDatabase('db5.db');
