@@ -9,60 +9,7 @@ import CardView from './cardView';
 import MasteredCircle from './masteredCircle';
 import * as SD from './styled';
 import * as I from 'src/interface';
-
-@(connect(
-  (state: RootState) => ({
-    card: Action.getCurrentCard(state),
-    nav: state.nav,
-  }),
-  {
-    goTo: Action.goTo,
-    goToNextCard: Action.goToNextCard,
-    goToPrevCard: Action.goToPrevCard,
-  }
-) as any)
-class CardViewFocus extends React.Component<
-  { onLongPress: Callback; card: Card },
-  {}
-> {
-  componentDidMount() {
-    RN.StatusBar.setHidden(true);
-  }
-  componentWillUnmount() {
-    RN.StatusBar.setHidden(false);
-  }
-  render() {
-    const window = RN.Dimensions.get('window');
-    const height = window.height;
-    return (
-      <RN.Modal
-        animationType={'none'}
-        supportedOrientations={['portrait', 'landscape']}
-        visible={true}
-        onRequestClose={() => {}}
-      >
-        <RN.TouchableWithoutFeedback
-          style={{ flex: 1, backgroundColor: 'black' }}
-          onLongPress={this.props.onLongPress}
-        >
-          <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
-            <CardView card={this.props.card} />
-            <SD.SideControl
-              style={{ left: 0, height }}
-              onPress={() => this.props.goToPrevCard()}
-              onLongPress={() => alert(JSON.stringify(this.props.nav))}
-            />
-            <SD.SideControl
-              style={{ right: 0, height }}
-              onPress={() => this.props.goToNextCard()}
-              onLongPress={() => alert(JSON.stringify(this.props.card.name))}
-            />
-          </RN.View>
-        </RN.TouchableWithoutFeedback>
-      </RN.Modal>
-    );
-  }
-}
+import CardDetail from './cardDetail';
 
 @withTheme
 class View extends React.Component<
@@ -82,7 +29,7 @@ class View extends React.Component<
     const width = window.width - 20; // HOTFIX: may fix Swiper width?
     const height = window.height * (3 / 4);
     return this.state.visible ? (
-      <CardViewFocus onLongPress={() => this.setState({ visible: false })} />
+      <CardDetail onLongPress={() => this.setState({ visible: false })} />
     ) : (
       <RN.View style={{ flex: 1 }}>
         <ProgressBar />
