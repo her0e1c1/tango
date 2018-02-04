@@ -40,7 +40,7 @@ class CardView extends React.Component<
     `;
   }
   getBody() {
-    const body = `<body style="${this.getStyle()}"></body><pre><code style="${this.getStyle()}" className="golang"></code>${
+    const body = `<body style="${this.getStyle()}"><pre><code style="${this.getStyle()}" className="golang">${
       this.props.card.body
     }</code></pre></body>
     `;
