@@ -12,8 +12,6 @@ export class Settings extends React.Component<Props, {}> {
     const { config } = this.props.state;
     return (
       <Container>
-        <Header />
-
         <SettingsItem>
           <SettingsText>Show Mastered Cards</SettingsText>
           <NB.CheckBox
