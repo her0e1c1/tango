@@ -3,7 +3,7 @@
     "name": "tango",
     "sdkVersion": "23.0.0",
     "description": "The flush cards. You can memorize anything ! Source : https://github.com/her0e1c1/tango",
-    "version": "1.0.9",
+    "version": "1.1.0",
     "slug": "tango",
     "ios": {
       "bundleIdentifier": "com.her0e1c1.tango"
