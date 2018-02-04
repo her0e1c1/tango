@@ -35,8 +35,11 @@ export const deleteCard = (card: Card): I.ThunkAction => async (
       `delete from card where id = ?;`,
       [card.id],
       (_, result) => {
-        if (result.rowsAffected === 1)
+        if (result.rowsAffected === 1) {
           dispatch({ type: 'DELETE', payload: { card } });
+        } else {
+          alert('You can not delete');
+        }
       },
       (...args) => alert(JSON.stringify(args))
     )
@@ -61,6 +64,8 @@ export const deleteDeck = (deck: Deck): I.ThunkAction => async (
               dispatch({ type: 'CARD_BULK_DELETE', payload: { deck } });
             }
           );
+        } else {
+          alert('You can not delete');
         }
       },
       (...args) => alert(JSON.stringify(args))
@@ -177,19 +182,25 @@ export const insertDeck = (deck: Pick<Deck, 'name' | 'url'>): I.ThunkAction => (
     )
   );
 
-export const toggleMastered = (card: Card): I.ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const mastered = !card.mastered;
-  db.transaction(tx =>
-    tx.executeSql(
-      `update card set mastered = ? where id = ?`,
-      [mastered, card.id],
-      (_, result) => {
-        dispatch({ type: 'INSERT', payload: { card: { ...card, mastered } } });
-      },
-      (...args) => alert(JSON.stringify(args))
+export const toggleMastered = (
+  card: Card,
+  mastered?: boolean
+): I.ThunkAction => async (dispatch, getState) => {
+  const m = mastered === undefined ? !card.mastered : mastered;
+  return new Promise((resolve, reject) =>
+    db.transaction(tx =>
+      tx.executeSql(
+        `update card set mastered = ? where id = ?`,
+        [m, card.id],
+        (_, result) => {
+          dispatch({
+            type: 'INSERT',
+            payload: { card: { ...card, mastered: m } },
+          });
+          resolve();
+        },
+        (...args) => reject(alert(JSON.stringify(args)))
+      )
     )
   );
 };
@@ -335,10 +346,27 @@ export const goTo = (nav: NavState): I.ThunkAction => async (
   }
 };
 
+export const goToNextCardSetMastered = (
+  mastered?: boolean
+): I.ThunkAction => async (dispatch, getState) => {
+  const state = getState();
+  const card = getCurrentCard(state);
+  if (card) {
+    await dispatch(toggleMastered(card, mastered));
+    await dispatch(goToNextCard());
+  }
+};
+
+export const goToNextCardToggleMastered = () => goToNextCardSetMastered();
+export const goToNextCardNotMastered = () => goToNextCardSetMastered(false);
+export const goToNextCardMastered = () => goToNextCardSetMastered(true);
+
 export const goToNextCard = (): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
-  const nav = { index: state.nav.index + 1 };
-  dispatch(goTo(nav));
+  if (state.config.showMastered) {
+    const nav = { index: state.nav.index + 1 };
+    dispatch(goTo(nav));
+  }
 };
 
 export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
@@ -410,6 +438,24 @@ export const clearError = () => async (dispatch, getState) => {
   await dispatch({ type: 'CONFIG', payload: { config: { undefined } } });
 };
 
+const swipeMapping = {
+  goBack,
+  goToPrevCard,
+  goToNextCard,
+  goToNextCardNotMastered,
+  goToNextCardToggleMastered,
+};
+
+const cardSwipe = (direction): I.ThunkAction => async (dispatch, getState) => {
+  const cardSwipe = getState().config.cardSwipe;
+  console.log(direction);
+  dispatch(swipeMapping[cardSwipe[direction]]());
+};
+export const cardSwipeUp = () => cardSwipe('up');
+export const cardSwipeDown = () => cardSwipe('down');
+export const cardSwipeLeft = () => cardSwipe('left');
+export const cardSwipeRight = () => cardSwipe('right');
+
 export const config = (
   state: ConfigState = {
     showMastered: true,
@@ -419,6 +465,12 @@ export const config = (
     theme: 'default',
     isLoading: false, // maybe not here
     errorCode: undefined,
+    cardSwipe: {
+      up: 'goToNextCardToggleMastered',
+      down: 'goBack',
+      left: 'goToPrevCard',
+      right: 'goToNextCardNotMastered',
+    },
   },
   action: Redux.Action
 ): ConfigState => {

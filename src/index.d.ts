@@ -42,6 +42,13 @@ interface Theme {
 }
 
 type errorCode = 'INVALID_URL' | 'CAN_NOT_FETCH' | 'NO_CARDS';
+type cardSwipe =
+  | 'goBack'
+  | 'goToPrevCard'
+  | 'goToNextCard'
+  | 'goToNextCardMastered'
+  | 'goToNextCardNotMastered'
+  | 'goToNextCardToggleMastered';
 
 type ConfigState = {
   showMastered: boolean;
@@ -51,6 +58,12 @@ type ConfigState = {
   theme: themeType;
   isLoading: boolean;
   errorCode?: errorCode;
+  cardSwipe: {
+    up: cardSwipe;
+    down: cardSwipe;
+    left: cardSwipe;
+    right: cardSwipe;
+  };
 };
 
 interface RootState {

@@ -39,12 +39,10 @@ class View extends React.Component<
             // backgroundColor={this.props.theme.cardBackgroundColor}
             cardIndex={this.props.index}
             swipeAnimationDuration={100}
-            onSwipedRight={index => this.props.goTo({ index: index + 1 })}
-            onSwipedLeft={index => this.props.goTo({ index: index - 1 })}
-            onSwipedTop={async index => {
-              await this.props.toggle(this.props.cards[this.props.index]);
-              await this.props.goTo({ index: index + 1 });
-            }}
+            onSwipedRight={() => this.props.cardSwipeRight()}
+            onSwipedLeft={() => this.props.cardSwipeLeft()}
+            onSwipedTop={index => this.props.cardSwipeUp()}
+            onSwipedBottom={() => this.props.cardSwipeDown()}
             disableBottomSwipe={false}
             marginBottom={0}
             cardVerticalMargin={10}
@@ -53,7 +51,6 @@ class View extends React.Component<
             showSecondCard={false}
             goBackToPreviousCardOnSwipeLeft={true}
             zoomFriction={0}
-            onSwipedBottom={() => this.props.goBack()}
             renderCard={(
               item = {} as Card // Sometimes item is undefined :(
             ) => (
@@ -90,7 +87,10 @@ const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   goTo: Action.goTo,
   goBack: Action.goBack,
-  toggle: Action.toggleMastered,
+  cardSwipeUp: Action.cardSwipeUp,
+  cardSwipeDown: Action.cardSwipeDown,
+  cardSwipeLeft: Action.cardSwipeLeft,
+  cardSwipeRight: Action.cardSwipeRight,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(View);
