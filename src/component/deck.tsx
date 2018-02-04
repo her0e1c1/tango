@@ -21,7 +21,6 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
       <RN.FlatList
         data={this.props.decks.map(d => ({ ...d, key: d.id }))}
         onRefresh={async () => {
-          // TODO: fix later
           await this.props.selectDeck();
           await this.props.selectCard();
           await this.setState({ refreshing: false });

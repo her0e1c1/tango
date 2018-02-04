@@ -74,7 +74,7 @@ export const CardViewDetail = styled(RN.Text)`
   text-align: center;
 `;
 
+// If you use flex:1, height will be out of screen ...
 export const CardContainer = styled(RN.View)`
-  flex: 1;
   background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
 `;

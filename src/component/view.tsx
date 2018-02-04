@@ -6,6 +6,7 @@ import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
 import ProgressBar from './progressBar';
 import CardView from './cardView';
+import MasteredCircle from './masteredCircle';
 import * as SD from './styled';
 import * as I from 'src/interface';
 
@@ -79,15 +80,16 @@ class View extends React.Component<
   render() {
     const window = RN.Dimensions.get('window');
     const width = window.width - 20; // HOTFIX: may fix Swiper width?
+    const height = window.height * (3 / 4);
     return this.state.visible ? (
       <CardViewFocus onLongPress={() => this.setState({ visible: false })} />
     ) : (
       <RN.View style={{ flex: 1 }}>
         <ProgressBar />
-        <RN.View style={{ marginTop: 10 }}>
+        <RN.View style={{ marginTop: 5 }}>
           {/* I think DeckSwiper position is absolute */}
           <DeckSwiper
-            backgroundColor={this.props.theme.cardBackgroundColor}
+            // backgroundColor={this.props.theme.cardBackgroundColor}
             cardIndex={this.props.index}
             swipeAnimationDuration={100}
             onSwipedRight={index => this.props.goTo({ index: index + 1 })}
@@ -97,7 +99,8 @@ class View extends React.Component<
               await this.props.goTo({ index: index + 1 });
             }}
             disableBottomSwipe={false}
-            cardVerticalMargin={0}
+            marginBottom={0}
+            cardVerticalMargin={10}
             cardHorizontalMargin={0}
             cards={this.props.cards}
             showSecondCard={false}
@@ -113,8 +116,13 @@ class View extends React.Component<
                 }
                 onLongPress={() => this.setState({ visible: true })}
               >
-                <SD.CardContainer style={{ width }}>
-                  <SD.CardViewDetail>{item.name}</SD.CardViewDetail>
+                <SD.CardContainer style={{ width, height }}>
+                  <RN.View style={{ flexDirection: 'row' }}>
+                    <MasteredCircle card={item} />
+                    <RN.View style={{ flex: 1 }}>
+                      <SD.CardViewDetail>{item.name}</SD.CardViewDetail>
+                    </RN.View>
+                  </RN.View>
                   {this.state.showBody && <CardView card={item} />}
                 </SD.CardContainer>
               </RN.TouchableWithoutFeedback>

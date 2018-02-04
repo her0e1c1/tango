@@ -1,12 +1,11 @@
-import styled from 'styled-components';
 import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
-import CardView from './view';
 import * as I from 'src/interface';
 import * as SD from './styled';
+import MasteredCircle from './masteredCircle';
 
 export class CardList extends React.Component<Props, {}> {
   render() {
@@ -29,12 +28,7 @@ export class CardList extends React.Component<Props, {}> {
             ]}
           >
             <SD.CardCard>
-              <RN.TouchableOpacity onPress={() => this.props.toggle(item)}>
-                <SD.Circle
-                  style={{ marginHorizontal: 5 }}
-                  mastered={item.mastered}
-                />
-              </RN.TouchableOpacity>
+              <MasteredCircle card={item} />
               <RN.TouchableOpacity
                 style={{
                   flex: 1,
