@@ -447,14 +447,14 @@ const swipeMapping = {
 };
 
 const cardSwipe = (direction): I.ThunkAction => async (dispatch, getState) => {
-  const cardSwipe = getState().config.cardSwipe;
+  const config = getState().config;
   console.log(direction);
-  dispatch(swipeMapping[cardSwipe[direction]]());
+  dispatch(swipeMapping[config[direction]]());
 };
-export const cardSwipeUp = () => cardSwipe('up');
-export const cardSwipeDown = () => cardSwipe('down');
-export const cardSwipeLeft = () => cardSwipe('left');
-export const cardSwipeRight = () => cardSwipe('right');
+export const cardSwipeUp = () => cardSwipe('cardSwipeUp');
+export const cardSwipeDown = () => cardSwipe('cardSwipeDown');
+export const cardSwipeLeft = () => cardSwipe('cardSwipeLeft');
+export const cardSwipeRight = () => cardSwipe('cardSwipeRight');
 
 export const config = (
   state: ConfigState = {
@@ -465,12 +465,10 @@ export const config = (
     theme: 'default',
     isLoading: false, // maybe not here
     errorCode: undefined,
-    cardSwipe: {
-      up: 'goToNextCardToggleMastered',
-      down: 'goBack',
-      left: 'goToPrevCard',
-      right: 'goToNextCardNotMastered',
-    },
+    cardSwipeUp: 'goToNextCardToggleMastered',
+    cardSwipeDown: 'goBack',
+    cardSwipeLeft: 'goToPrevCard',
+    cardSwipeRight: 'goToNextCardNotMastered',
   },
   action: Redux.Action
 ): ConfigState => {

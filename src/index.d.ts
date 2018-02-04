@@ -58,12 +58,10 @@ type ConfigState = {
   theme: themeType;
   isLoading: boolean;
   errorCode?: errorCode;
-  cardSwipe: {
-    up: cardSwipe;
-    down: cardSwipe;
-    left: cardSwipe;
-    right: cardSwipe;
-  };
+  cardSwipeUp: cardSwipe;
+  cardSwipeDown: cardSwipe;
+  cardSwipeLeft: cardSwipe;
+  cardSwipeRight: cardSwipe;
 };
 
 interface RootState {

@@ -43,13 +43,24 @@ class View extends React.Component<
             onSwipedLeft={() => this.props.cardSwipeLeft()}
             onSwipedTop={index => this.props.cardSwipeUp()}
             onSwipedBottom={() => this.props.cardSwipeDown()}
+            goBackToPreviousCardOnSwipeTop={
+              this.props.state.config.cardSwipeUp === 'goToPrevCard'
+            }
+            goBackToPreviousCardOnSwipeDown={
+              this.props.state.config.cardSwipeDown === 'goToPrevCard'
+            }
+            goBackToPreviousCardOnSwipeLeft={
+              this.props.state.config.cardSwipeLeft === 'goToPrevCard'
+            }
+            goBackToPreviousCardOnSwipeRight={
+              this.props.state.config.cardSwipeRight == 'goToPrevCard'
+            }
             disableBottomSwipe={false}
             marginBottom={0}
             cardVerticalMargin={10}
             cardHorizontalMargin={0}
             cards={this.props.cards}
             showSecondCard={false}
-            goBackToPreviousCardOnSwipeLeft={true}
             zoomFriction={0}
             renderCard={(
               item = {} as Card // Sometimes item is undefined :(

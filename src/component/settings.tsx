@@ -7,6 +7,15 @@ import Header from './header';
 import { connect } from 'react-redux';
 import { Container, SettingsItem, SettingsText } from './styled';
 
+const cardSwipeTypes: cardSwipe[] = [
+  'goBack',
+  'goToPrevCard',
+  'goToNextCard',
+  'goToNextCardMastered',
+  'goToNextCardNotMastered',
+  'goToNextCardToggleMastered',
+];
+
 export class Settings extends React.Component<Props, {}> {
   render() {
     const { config } = this.props.state;
@@ -82,6 +91,24 @@ export class Settings extends React.Component<Props, {}> {
             }}
           />
         </SettingsItem>
+
+        {[
+          ['cardSwipeUp', 'up'],
+          ['cardSwipeDown', 'down'],
+          ['cardSwipeLeft', 'left'],
+          ['cardSwipeRight', 'right'],
+        ].map(([type, label]) => (
+          <SettingsItem>
+            <SettingsText>Swipe {label}</SettingsText>
+            <NB.Picker
+              textStyle={{ color: 'cornflowerblue' }}
+              selectedValue={config[type]}
+              onValueChange={v => this.props.update({ [type]: v })}
+            >
+              {cardSwipeTypes.map(x => <NB.Picker.Item label={x} value={x} />)}
+            </NB.Picker>
+          </SettingsItem>
+        ))}
       </Container>
     );
   }
