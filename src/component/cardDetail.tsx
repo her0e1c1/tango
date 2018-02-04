@@ -1,12 +1,8 @@
 import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
-import DeckSwiper from 'react-native-deck-swiper';
-import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
-import ProgressBar from './progressBar';
 import CardView from './cardView';
-import MasteredCircle from './masteredCircle';
 import * as SD from './styled';
 import * as I from 'src/interface';
 
@@ -30,16 +26,13 @@ class CardDetail extends React.Component<
         visible={true}
         onRequestClose={() => {}}
       >
-        <RN.TouchableWithoutFeedback
-          style={{ flex: 1, backgroundColor: 'black' }}
-          onLongPress={this.props.onLongPress}
-        >
-          <RN.View style={{ flex: 1, backgroundColor: 'black' }}>
+        <RN.TouchableWithoutFeedback onLongPress={this.props.onLongPress}>
+          <RN.View style={{ flex: 1 }}>
             <CardView card={this.props.card} />
             <SD.SideControl
               style={{ left: 0, height }}
               onPress={() => this.props.goToPrevCard()}
-              onLongPress={() => alert(JSON.stringify(this.props.nav))}
+              onLongPress={() => {}}
             />
             <SD.SideControl
               style={{ right: 0, height }}
