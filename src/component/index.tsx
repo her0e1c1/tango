@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { TabNavigator } from 'react-navigation';
+import { TabNavigator, TabBarBottom } from 'react-navigation';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { withTheme } from 'styled-components';
 
 import Main from './main';
 import Settings from './settings';
@@ -48,7 +49,30 @@ const RootTabs = TabNavigator(
       },
     },
   },
-  { tabBarPosition: 'bottom', swipeEnabled: false, animationEnabled: true }
+  {
+    tabBarComponent: withTheme((props: AppContext) => {
+      return (
+        <TabBarBottom
+          {...{
+            ...props,
+            style: { backgroundColor: props.theme.cardBackgroundColor },
+          }}
+        />
+      );
+    }),
+    tabBarPosition: 'bottom',
+    swipeEnabled: false,
+    animationEnabled: true,
+    tabBarOptions: {
+      // activeTintColor: 'blue',
+      labelStyle: {
+        fontSize: 12,
+      },
+      style: {
+        backgroundColor: 'white',
+      },
+    },
+  }
 );
 
 export default RootTabs;
