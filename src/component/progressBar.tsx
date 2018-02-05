@@ -18,9 +18,10 @@ class ProgressBar extends React.Component<Props & { deck_id?: number }, {}> {
     if (!deck_id) {
       return null;
     }
-    const index = this.props.state.nav.index
-      ? `(${this.props.state.nav.index})`
-      : '';
+    const index =
+      this.props.state.nav.index !== undefined
+        ? `(${this.props.state.nav.index})`
+        : '';
     const cards = getAllCards(this.props.state, deck_id);
     const mastered = cards.filter(x => !!x && x.mastered);
     const width = cards.length > 0 ? mastered.length / cards.length * 100 : 0;
