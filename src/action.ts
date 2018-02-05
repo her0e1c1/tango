@@ -442,14 +442,19 @@ const swipeMapping = {
   goBack,
   goToPrevCard,
   goToNextCard,
+  goToNextCardMastered,
   goToNextCardNotMastered,
   goToNextCardToggleMastered,
 };
 
 const cardSwipe = (direction): I.ThunkAction => async (dispatch, getState) => {
   const config = getState().config;
-  console.log(direction);
-  dispatch(swipeMapping[config[direction]]());
+  const f = swipeMapping[config[direction]];
+  if (f) {
+    dispatch(f());
+  } else {
+    console.log(`${direction} action is not found`);
+  }
 };
 export const cardSwipeUp = () => cardSwipe('cardSwipeUp');
 export const cardSwipeDown = () => cardSwipe('cardSwipeDown');
