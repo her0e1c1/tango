@@ -5,7 +5,7 @@ import * as Redux from 'redux';
 import * as I from 'src/interface';
 const Papa = require('papaparse');
 
-const db = Expo.SQLite.openDatabase('db5.db');
+const db = Expo.SQLite.openDatabase('db6.db');
 
 db.transaction((tx: any) => {
   // PRAGMA foreign_keys = ON;
@@ -90,7 +90,11 @@ export const insertByURL = (url: string): I.ThunkAction => async (
     return;
   }
   const name = url.split('/').pop() || 'sample';
-  const cards: Card[] = data.map(d => ({ name: d[0], body: d[1] }));
+  const cards: Card[] = data.map(d => ({
+    name: d[0],
+    body: d[1],
+    category: d[2],
+  }));
   const deck_id = await dispatch(insertDeck({ url, name }));
   await dispatch(bulkInsertCards(deck_id, cards));
   console.log(`FETCH DONE ${deck_id}`);
