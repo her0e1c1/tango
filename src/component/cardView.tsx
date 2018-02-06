@@ -24,6 +24,16 @@ MathJax.Hub.Config({
 </head>{BODY}</html>
 `;
 
+const mappingCategory = {
+  c: 'c',
+  py: 'python',
+  python: 'python',
+  go: 'golang',
+  golang: 'golang',
+  hs: 'haskell',
+  haskell: 'haskell',
+};
+
 @withTheme
 class CardView extends React.Component<
   Props & { card: Card } & AppContext,
@@ -39,12 +49,17 @@ class CardView extends React.Component<
     padding: 0;
     `;
   }
-  getBody() {
-    const body = `<body style="${this.getStyle()}"><pre><code style="${this.getStyle()}" className="golang">${
-      this.props.card.body
-    }</code></pre></body>
-    `;
-    return body;
+  getBody(): string {
+    const { card } = this.props;
+    const { body } = card;
+    if (card.category in mappingCategory) {
+      const lang = mappingCategory[card.category];
+      return `<body style="${this.getStyle()}"><pre><code style="${this.getStyle()}" className="${lang}">${body}</code></pre></body>`;
+    } else if (['math', 'tex'].includes(card.category)) {
+      return `<body style="${this.getStyle()}">${body}</body>`;
+    } else {
+      return `<body style="${this.getStyle()}">${body}</body>`;
+    }
   }
   render() {
     return (
