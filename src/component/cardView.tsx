@@ -46,6 +46,8 @@ class CardView extends React.Component<
     background-color: ${theme.cardBackgroundColor};
     color: ${theme.mainColor};
     font-size: 18px;
+    tab-size: 2;
+    letter-spacing: 0px; 
     margin: 0;
     padding: 0;
     `;
