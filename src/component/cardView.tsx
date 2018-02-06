@@ -58,7 +58,7 @@ class CardView extends React.Component<
     } else if (['math', 'tex'].includes(card.category)) {
       return `<body style="${this.getStyle()}">${body}</body>`;
     } else {
-      return `<body style="${this.getStyle()}">${body}</body>`;
+      return `<body style="${this.getStyle()}"><pre>${body}</pre></body>`;
     }
   }
   render() {
