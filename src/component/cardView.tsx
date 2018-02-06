@@ -24,6 +24,7 @@ MathJax.Hub.Config({
 </head>{BODY}</html>
 `;
 
+const mathCategory = ['math', 'tex', 'latex'];
 const mappingCategory = {
   c: 'c',
   py: 'python',
@@ -55,7 +56,7 @@ class CardView extends React.Component<
     if (card.category in mappingCategory) {
       const lang = mappingCategory[card.category];
       return `<body style="${this.getStyle()}"><pre><code style="${this.getStyle()}" className="${lang}">${body}</code></pre></body>`;
-    } else if (['math', 'tex'].includes(card.category)) {
+    } else if (mathCategory.includes(card.category)) {
       return `<body style="${this.getStyle()}">${body}</body>`;
     } else {
       return `<body style="${this.getStyle()}"><pre>${body}</pre></body>`;
