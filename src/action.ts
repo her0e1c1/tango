@@ -22,7 +22,9 @@ db.transaction((tx: any) => {
         mastered boolean default 0 not null,
         deck_id integer,
         name text,
-        body text
+        body text,
+        category text,
+        hint text
     );`
   );
 });
