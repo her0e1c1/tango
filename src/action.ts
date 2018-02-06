@@ -1,3 +1,4 @@
+import * as RN from 'react-native';
 import * as _ from 'lodash';
 import * as Expo from 'expo';
 import * as Redux from 'redux';
@@ -460,6 +461,11 @@ export const cardSwipeUp = () => cardSwipe('cardSwipeUp');
 export const cardSwipeDown = () => cardSwipe('cardSwipeDown');
 export const cardSwipeLeft = () => cardSwipe('cardSwipeLeft');
 export const cardSwipeRight = () => cardSwipe('cardSwipeRight');
+
+export const clearAll = () => async (dispatch, getState) => {
+  dispatch({ type: 'CLEAR_ALL' });
+  RN.AsyncStorage.clear();
+};
 
 export const config = (
   state: ConfigState = {

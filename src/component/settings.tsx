@@ -85,7 +85,7 @@ export class Settings extends React.Component<Props, {}> {
             title="Clear"
             onPress={() => {
               RN.Alert.alert('Are you sure?', '', [
-                { text: 'OK', onPress: () => RN.AsyncStorage.clear() }, // TODO: update component
+                { text: 'OK', onPress: () => this.props.clearAll() },
                 { text: 'Cancel', onPress: () => {} },
               ]);
             }}
@@ -119,6 +119,7 @@ const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   update: Action.updateConfig,
   shuffle: Action.shuffleCardsOrSort,
+  clearAll: Action.clearAll,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(Settings);

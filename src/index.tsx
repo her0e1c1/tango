@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 
 import * as Action from 'src/action';
 import RootTabs from './component';
+import { start } from 'repl';
 
 const logger = ({ getState, dispatch }) => next => action => {
   console.log('ACTION: ', action.type);
@@ -26,9 +27,17 @@ const persistConfig = {
   // whitelist: ['nav'],
 };
 
+const rootReducer = (state, action) => {
+  if (action.type == 'CLEAR_ALL') {
+    state = undefined;
+  }
+  return Redux.combineReducers(Action.reducers)(state, action);
+};
+
 const persistedReducer = persistReducer(
   persistConfig,
-  Redux.combineReducers(Action.reducers)
+  rootReducer
+  // Redux.combineReducers(Action.reducers)
 );
 
 const store = Redux.createStore(
