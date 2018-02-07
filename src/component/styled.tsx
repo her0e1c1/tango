@@ -22,6 +22,16 @@ export const DeckTitle = styled(RN.Text)`
   font-size: 20px;
 `;
 
+export const CardCategory = styled(RN.Text)`
+  border-width: 1px;
+  border-color: ${({ theme }: AppContext) => theme.titleColor};
+  color: ${({ theme }: AppContext) => theme.mainColor};
+  font-weight: bold;
+  font-size: 16px;
+  border-radius: 10px;
+  padding: 5px;
+`;
+
 export const SettingsItem = styled(RN.View)`
   flex-direction: row;
   justify-content: space-between;

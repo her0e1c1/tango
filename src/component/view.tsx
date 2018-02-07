@@ -68,16 +68,17 @@ class View extends React.Component<Props & AppContext, { visible: boolean }> {
                 onLongPress={() => this.setState({ visible: true })}
               >
                 <SD.CardContainer style={{ width, height }}>
+                  <RN.View style={{ flexDirection: 'row' }}>
+                    <MasteredCircle card={item} />
+                    {item.category && (
+                      <SD.CardCategory>{item.category}</SD.CardCategory>
+                    )}
+                  </RN.View>
                   {mathCategory.includes(item.category) ? (
                     <CardView card={item} />
                   ) : (
                     [
-                      <RN.View style={{ flexDirection: 'row' }}>
-                        <MasteredCircle card={item} />
-                        <RN.View style={{ flex: 1 }}>
-                          <SD.CardViewDetail>{item.name}</SD.CardViewDetail>
-                        </RN.View>
-                      </RN.View>,
+                      <SD.CardViewDetail>{item.name}</SD.CardViewDetail>,
                       this.props.state.config.showBody && (
                         <CardView card={item} />
                       ),
