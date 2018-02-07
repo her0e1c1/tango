@@ -10,6 +10,7 @@ import MasteredCircle from './masteredCircle';
 import * as SD from './styled';
 import * as I from 'src/interface';
 import CardDetail from './cardDetail';
+import { mathCategory } from './cardView';
 
 @withTheme
 class View extends React.Component<Props & AppContext, { visible: boolean }> {
@@ -67,13 +68,21 @@ class View extends React.Component<Props & AppContext, { visible: boolean }> {
                 onLongPress={() => this.setState({ visible: true })}
               >
                 <SD.CardContainer style={{ width, height }}>
-                  <RN.View style={{ flexDirection: 'row' }}>
-                    <MasteredCircle card={item} />
-                    <RN.View style={{ flex: 1 }}>
-                      <SD.CardViewDetail>{item.name}</SD.CardViewDetail>
-                    </RN.View>
-                  </RN.View>
-                  {this.props.state.config.showBody && <CardView card={item} />}
+                  {mathCategory.includes(item.category) ? (
+                    <CardView card={item} />
+                  ) : (
+                    [
+                      <RN.View style={{ flexDirection: 'row' }}>
+                        <MasteredCircle card={item} />
+                        <RN.View style={{ flex: 1 }}>
+                          <SD.CardViewDetail>{item.name}</SD.CardViewDetail>
+                        </RN.View>
+                      </RN.View>,
+                      this.props.state.config.showBody && (
+                        <CardView card={item} />
+                      ),
+                    ]
+                  )}
                 </SD.CardContainer>
               </RN.TouchableWithoutFeedback>
             )}
