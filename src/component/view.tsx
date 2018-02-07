@@ -12,17 +12,10 @@ import * as I from 'src/interface';
 import CardDetail from './cardDetail';
 
 @withTheme
-class View extends React.Component<
-  Props & AppContext,
-  { visible: boolean; showBody: boolean }
-> {
-  // static contextTypes = { theme: PropTypes.func };
+class View extends React.Component<Props & AppContext, { visible: boolean }> {
   constructor(props) {
     super(props);
-    this.state = {
-      visible: false,
-      showBody: false,
-    };
+    this.state = { visible: false };
   }
   render() {
     const window = RN.Dimensions.get('window');
@@ -67,7 +60,9 @@ class View extends React.Component<
             ) => (
               <RN.TouchableWithoutFeedback
                 onPress={() =>
-                  this.setState({ showBody: !this.state.showBody })
+                  this.props.updateConfig({
+                    showBody: !this.props.state.config.showBody,
+                  })
                 }
                 onLongPress={() => this.setState({ visible: true })}
               >
@@ -78,7 +73,7 @@ class View extends React.Component<
                       <SD.CardViewDetail>{item.name}</SD.CardViewDetail>
                     </RN.View>
                   </RN.View>
-                  {this.state.showBody && <CardView card={item} />}
+                  {this.props.state.config.showBody && <CardView card={item} />}
                 </SD.CardContainer>
               </RN.TouchableWithoutFeedback>
             )}
@@ -96,6 +91,7 @@ const mapStateToProps = (state: RootState) => ({
 });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
+  updateConfig: Action.updateConfig,
   goTo: Action.goTo,
   goBack: Action.goBack,
   cardSwipeUp: Action.cardSwipeUp,

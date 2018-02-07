@@ -57,7 +57,7 @@ class CardView extends React.Component<
     const { body } = card;
     if (card.category in mappingCategory) {
       const lang = mappingCategory[card.category];
-      return `<body style="${this.getStyle()}"><pre><code style="${this.getStyle()}" className="${lang}">${body}</code></pre></body>`;
+      return `<body style="${this.getStyle()}"><pre style="tab-size:2;"><code style="${this.getStyle()}" className="${lang}">${body}</code></pre></body>`;
     } else if (mathCategory.includes(card.category)) {
       return `<body style="${this.getStyle()}">${body}</body>`;
     } else {

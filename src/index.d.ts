@@ -54,6 +54,8 @@ type ConfigState = {
   showMastered: boolean;
   showHeader: boolean;
   shuffled: boolean;
+  showBody: boolean;
+  hideBodyWhenCardChanged: boolean;
   start: number;
   theme: themeType;
   isLoading: boolean;

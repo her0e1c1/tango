@@ -456,6 +456,9 @@ const swipeMapping = {
 
 const cardSwipe = (direction): I.ThunkAction => async (dispatch, getState) => {
   const config = getState().config;
+  if (config.hideBodyWhenCardChanged) {
+    dispatch(updateConfig({ showBody: false }));
+  }
   const f = swipeMapping[config[direction]];
   if (f) {
     dispatch(f());
@@ -477,6 +480,8 @@ export const config = (
   state: ConfigState = {
     showMastered: true,
     showHeader: true,
+    showBody: false,
+    hideBodyWhenCardChanged: true,
     shuffled: false,
     start: 0,
     theme: 'default',
