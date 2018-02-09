@@ -9,6 +9,15 @@ import MasteredCircle from './masteredCircle';
 
 export class CardList extends React.Component<Props, {}> {
   render() {
+    if (this.props.cards.length <= 0) {
+      return (
+        <RN.View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <SD.CardTitle>NO CARDS</SD.CardTitle>
+        </RN.View>
+      );
+    }
     return (
       <RN.FlatList
         data={this.props.cards.map((item, index) => ({

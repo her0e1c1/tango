@@ -19,6 +19,9 @@ class View extends React.Component<Props & AppContext, { visible: boolean }> {
     this.state = { visible: false };
   }
   render() {
+    if (this.props.cards.length <= this.props.state.nav.index) {
+      return null;
+    }
     const window = RN.Dimensions.get('window');
     const width = window.width - 20; // HOTFIX: may fix Swiper width?
     const height = window.height * (3 / 4);
@@ -49,6 +52,7 @@ class View extends React.Component<Props & AppContext, { visible: boolean }> {
             goBackToPreviousCardOnSwipeRight={
               this.props.state.config.cardSwipeRight == 'goToPrevCard'
             }
+            onSwipedAll={() => this.props.goBack()}
             disableBottomSwipe={false}
             marginBottom={0}
             cardVerticalMargin={10}
