@@ -1,10 +1,8 @@
 import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
-import DeckSwiper from 'react-native-deck-swiper';
 import styled, { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
-import ProgressBar from './progressBar';
 import * as I from 'src/interface';
 
 const html = `

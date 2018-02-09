@@ -3,7 +3,7 @@ import * as I from 'src/interface';
 import * as React from 'react';
 import * as RN from 'react-native';
 import CardList from './card';
-import CardView from './view';
+import DeckSwiper from './deckSwiper';
 import DeckList from './deck';
 import Header from './header';
 import { connect } from 'react-redux';
@@ -21,7 +21,7 @@ class Main extends React.Component<Props, {}> {
       <Container>
         {config.isLoading && <LoadingIcon />}
         <Header />
-        {nav.deck && nav.index !== undefined && <CardView />}
+        {nav.deck && nav.index !== undefined && <DeckSwiper />}
         {nav.deck && nav.index === undefined && <CardList />}
         {!nav.deck && <DeckList />}
       </Container>
