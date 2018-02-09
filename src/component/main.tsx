@@ -29,9 +29,7 @@ class Main extends React.Component<Props, {}> {
   }
 }
 
-const mapStateToProps = (state: RootState) => ({
-  state,
-});
+const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   selectCard: Action.selectCard,
