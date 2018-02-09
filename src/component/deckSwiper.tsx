@@ -27,8 +27,8 @@ class View extends React.Component<
 
   changeEvent(dimensions) {
     this.setState({
-      width: dimensions.window.width,
-      height: dimensions.window.height,
+      width: dimensions.window.width - 20,
+      height: dimensions.window.height * (3 / 4),
     });
   }
   componentDidMount() {
