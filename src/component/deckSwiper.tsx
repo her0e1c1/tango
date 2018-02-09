@@ -23,12 +23,20 @@ class View extends React.Component<
     const width = window.width - 20; // HOTFIX: may fix Swiper width?
     const height = window.height * (3 / 4);
     this.state = { visible: false, width, height };
-    RN.Dimensions.addEventListener('change', dimensions => {
-      this.setState({
-        width: dimensions.window.width,
-        height: dimensions.window.height,
-      });
+  }
+
+  changeEvent(dimensions) {
+    this.setState({
+      width: dimensions.window.width,
+      height: dimensions.window.height,
     });
+  }
+  componentDidMount() {
+    this.changeEvent = this.changeEvent.bind(this);
+    RN.Dimensions.addEventListener('change', this.changeEvent);
+  }
+  componentWillUnmount() {
+    RN.Dimensions.removeEventListener('change', this.changeEvent);
   }
   render() {
     if (this.props.cards.length <= this.props.state.nav.index) {
