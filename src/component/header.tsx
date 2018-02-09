@@ -18,7 +18,7 @@ export class Header extends React.Component<Props, {}> {
     if (!state.config.showHeader) {
       return <RN.View />;
     }
-    const { deck } = this.props.nav;
+    const { deck } = this.props.state.nav;
     return (
       <RN.View style={{ marginBottom: 10 }}>
         <RN.View
@@ -44,10 +44,7 @@ export class Header extends React.Component<Props, {}> {
   }
 }
 
-const mapStateToProps = (state: RootState) => ({
-  nav: state.nav,
-  state,
-});
+const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   goBack: Action.goBack,
