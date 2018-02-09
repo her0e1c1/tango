@@ -360,7 +360,11 @@ export const goToNextCardSetMastered = (
   const card = getCurrentCard(state);
   if (card) {
     await dispatch(toggleMastered(card, mastered));
-    await dispatch(goToNextCard());
+    if (state.config.showMastered) {
+      await dispatch(goToNextCard());
+    } else if (mastered === false) {
+      await dispatch(goToNextCard());
+    }
   }
 };
 
@@ -370,10 +374,8 @@ export const goToNextCardMastered = () => goToNextCardSetMastered(true);
 
 export const goToNextCard = (): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
-  if (state.config.showMastered) {
-    const nav = { index: state.nav.index + 1 };
-    dispatch(goTo(nav));
-  }
+  const nav = { index: state.nav.index + 1 };
+  dispatch(goTo(nav));
 };
 
 export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
