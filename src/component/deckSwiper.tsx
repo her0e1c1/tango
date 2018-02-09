@@ -13,18 +13,29 @@ import CardDetail from './cardDetail';
 import { mathCategory } from './cardView';
 
 @withTheme
-class View extends React.Component<Props & AppContext, { visible: boolean }> {
+class View extends React.Component<
+  Props & AppContext,
+  { visible: boolean; width: number; height: number }
+> {
   constructor(props) {
     super(props);
-    this.state = { visible: false };
+    const window = RN.Dimensions.get('window');
+    const width = window.width - 20; // HOTFIX: may fix Swiper width?
+    const height = window.height * (3 / 4);
+    this.state = { visible: false, width, height };
+    RN.Dimensions.addEventListener('change', dimensions => {
+      this.setState({
+        width: dimensions.window.width,
+        height: dimensions.window.height,
+      });
+    });
   }
   render() {
     if (this.props.cards.length <= this.props.state.nav.index) {
       return null;
     }
-    const window = RN.Dimensions.get('window');
-    const width = window.width - 20; // HOTFIX: may fix Swiper width?
-    const height = window.height * (3 / 4);
+    const width = this.state.width;
+    const height = this.state.height;
     return this.state.visible ? (
       <CardDetail onLongPress={() => this.setState({ visible: false })} />
     ) : (
