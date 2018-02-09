@@ -31,7 +31,7 @@ class View extends React.Component<Props & AppContext, { visible: boolean }> {
           {/* I think DeckSwiper position is absolute */}
           <DeckSwiper
             // backgroundColor={this.props.theme.cardBackgroundColor}
-            cardIndex={this.props.index}
+            cardIndex={this.props.state.nav.index}
             swipeAnimationDuration={100}
             onSwipedRight={() => this.props.cardSwipeRight()}
             onSwipedLeft={() => this.props.cardSwipeLeft()}
@@ -96,7 +96,6 @@ class View extends React.Component<Props & AppContext, { visible: boolean }> {
 
 const mapStateToProps = (state: RootState) => ({
   state,
-  index: state.nav.index,
   cards: Action.getCurrentCardList(state),
 });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
