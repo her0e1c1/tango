@@ -1,51 +1,15 @@
 /// <reference path="./index.d.ts" />
 
 import * as React from 'react';
-import * as Redux from 'redux';
-import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
-import { persistReducer, persistStore } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { ThemeProvider } from 'styled-components';
 import { connect } from 'react-redux';
 
-import * as Action from 'src/action';
 import RootTabs from './component';
-import { start } from 'repl';
-
-const logger = ({ getState, dispatch }) => next => action => {
-  console.log('ACTION: ', action.type);
-  const rv = next(action);
-  return rv;
-};
-
-const persistConfig = {
-  key: 'root',
-  storage: storage,
-  // whitelist: [],
-  // whitelist: ['nav'],
-};
-
-const rootReducer = (state, action) => {
-  if (action.type == 'CLEAR_ALL') {
-    state = undefined;
-  }
-  return Redux.combineReducers(Action.reducers)(state, action);
-};
-
-const persistedReducer = persistReducer(
-  persistConfig,
-  rootReducer
-  // Redux.combineReducers(Action.reducers)
-);
-
-const store = Redux.createStore(
-  persistedReducer,
-  // Redux.combineReducers(Action.reducers),
-  Redux.compose(Redux.applyMiddleware(thunk, logger))
-);
-const persistor = persistStore(store);
+import store from './store';
+import * as Action from 'src/action';
 
 @connect((state: RootState) => ({ state }), {})
 class Wrap extends React.Component {
@@ -60,7 +24,7 @@ class Wrap extends React.Component {
 
 export default () => (
   <Provider store={store}>
-    <PersistGate loading={null} persistor={persistor}>
+    <PersistGate loading={null} persistor={persistStore(store)}>
       <Wrap />
     </PersistGate>
   </Provider>

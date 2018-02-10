@@ -273,74 +273,6 @@ export const getTheme = (state: RootState): Theme => {
   }
 };
 
-const updateCard = (state: CardState, cards: Card[]) => {
-  const ns = _.clone(state);
-  cards.forEach(c => {
-    ns.byId[c.id] = c;
-    const ids = ns.byDeckId[c.deck_id];
-    if (!ids) {
-      ns.byDeckId[c.deck_id] = [c.id];
-    } else if (!ids.includes(c.id)) {
-      ns.byDeckId[c.deck_id].push(c.id);
-    }
-  });
-  return ns;
-};
-// reducer
-export const card = (
-  state: CardState = { byId: {}, byDeckId: {} },
-  action: Redux.Action
-) => {
-  if (action.type == 'INSERT') {
-    const c = action.payload.card;
-    return updateCard(state, [c]);
-  } else if (action.type == 'BULK_INSERT') {
-    const cs = action.payload.cards;
-    return updateCard(state, cs);
-  } else if (action.type == 'CARD_BULK_DELETE') {
-    const deck_id = action.payload.deck.id;
-    const ids = state.byDeckId[deck_id];
-    ids.forEach(id => delete state.byId[id]);
-    delete state.byDeckId[deck_id];
-    return { ...state };
-  } else if (action.type == 'DELETE') {
-    const ns = _.clone(state);
-    const c = action.payload.card;
-    delete ns.byId[c.id];
-    ns.byDeckId = _.pull(ns.byDeckId, c.id);
-    return ns;
-  } else if (action.type == 'CARD_SHUFFLE') {
-    const config: ConfigState = action.payload.config;
-    const byDeckId = Object.entries(state.byDeckId)
-      .map(e => ({ [e[0]]: config.shuffled ? _.shuffle(e[1]) : e[1].sort() }))
-      .reduce((obj, e) => ({ ...obj, ...e }));
-    return { ...state, byDeckId };
-  } else {
-    return state;
-  }
-};
-
-export const deck = (
-  state: { [key: string]: Deck } = {},
-  action: Redux.Action
-) => {
-  if (action.type == 'DECK_INSERT') {
-    const d: Deck = action.payload.deck;
-    return { ...state, [d.id]: d };
-  } else if (action.type == 'DECK_BULK_INSERT') {
-    action.payload.decks.forEach(d => {
-      state[d.id] = d;
-    });
-    return { ...state };
-  } else if (action.type == 'DECK_DELETE') {
-    const d: Deck = action.payload.deck;
-    delete state[d.id];
-    return { ...state };
-  } else {
-    return state;
-  }
-};
-
 export const goTo = (nav: NavState): I.ThunkAction => async (
   dispatch,
   getState
@@ -397,18 +329,6 @@ export const goBack = () => async (dispatch, getState) => {
     nav = { deck };
   }
   dispatch({ type: 'NAV_GO_BACK', payload: { nav } });
-};
-
-export const nav = (state: NavState = {}, action: Redux.Action): NavState => {
-  if (action.type == 'NAV_GO_TO') {
-    return { ...state, ...action.payload.nav };
-  } else if (action.type == 'NAV_GO_BACK') {
-    return action.payload.nav;
-  } else if (action.type == 'NAV_HOME') {
-    return { deck: undefined, card: undefined, index: undefined };
-  } else {
-    return state;
-  }
 };
 
 export const updateConfig = (config: Partial<ConfigState>) => async (
@@ -476,36 +396,4 @@ export const cardSwipeRight = () => cardSwipe('cardSwipeRight');
 export const clearAll = () => async (dispatch, getState) => {
   dispatch({ type: 'CLEAR_ALL' });
   RN.AsyncStorage.clear();
-};
-
-export const config = (
-  state: ConfigState = {
-    showMastered: true,
-    showHeader: true,
-    showBody: false,
-    hideBodyWhenCardChanged: true,
-    shuffled: false,
-    start: 0,
-    theme: 'default',
-    isLoading: false, // maybe not here
-    errorCode: undefined,
-    cardSwipeUp: 'goToNextCardToggleMastered',
-    cardSwipeDown: 'goBack',
-    cardSwipeLeft: 'goToPrevCard',
-    cardSwipeRight: 'goToNextCardNotMastered',
-  },
-  action: Redux.Action
-): ConfigState => {
-  if (action.type == 'CONFIG') {
-    return { ...state, ...action.payload.config };
-  } else {
-    return state;
-  }
-};
-
-export const reducers = {
-  deck,
-  card,
-  nav,
-  config,
 };
