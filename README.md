@@ -22,3 +22,11 @@ Start expo
 ```
 yarn start
 ```
+
+# Config
+
+You need to setup the configuration file.
+
+```
+cp src/secret.ts.example src/secret.ts
+```
