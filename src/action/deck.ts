@@ -1,5 +1,6 @@
 import * as I from 'src/interface';
 import { db } from 'src/store/sqlite';
+import * as firebase from 'firebase';
 import { bulkInsertCards } from './card';
 import { startLoading, endLoading } from './config';
 
@@ -111,3 +112,11 @@ export const insertDeck = (deck: Pick<Deck, 'name' | 'url'>): I.ThunkAction => (
       )
     )
   );
+
+export const upload = (deck: Deck): I.ThunkAction => (dispatch, getState) => {
+  const uid = getState().user.uid;
+  firebase
+    .database()
+    .ref(`users/${uid}/decks/${deck.id}`)
+    .set(deck);
+};

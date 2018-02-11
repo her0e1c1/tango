@@ -3,5 +3,6 @@ export * from './deck';
 export * from './nav';
 export * from './config';
 
+import * as deck from './deck';
 import * as auth from './auth';
-export { auth };
+export { auth, deck };

@@ -36,6 +36,11 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
               ]}
               left={[
                 {
+                  text: 'UP',
+                  backgroundColor: 'green',
+                  onPress: () => this.props.upload(item),
+                },
+                {
                   text: 'COPY',
                   backgroundColor: 'blue',
                   onPress: () => this.props.insertByURL(item.url),
@@ -70,6 +75,7 @@ const mapDispatchToProps = {
   goTo: Action.goTo,
   selectCard: Action.selectCard,
   selectDeck: Action.selectDeck,
+  upload: Action.deck.upload,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(DeckList);
