@@ -3,7 +3,7 @@ import * as I from 'src/interface';
 import * as React from 'react';
 import CardList from './cardList';
 import DeckSwiper from './deckSwiper';
-import DeckList from './deck';
+import DeckList from './deckList';
 import Header from './header';
 import { connect } from 'react-redux';
 import { Container } from './styled';
