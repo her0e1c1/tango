@@ -4,6 +4,10 @@ import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import reducers from './reducers';
 
+import * as firebase from 'firebase';
+import * as C from 'src/constant';
+firebase.initializeApp(C.firebaseConfig);
+
 const logger = ({ getState, dispatch }) => next => action => {
   console.log('ACTION: ', action.type);
   const rv = next(action);
