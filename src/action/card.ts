@@ -38,3 +38,26 @@ export const selectCard = (deck_id?: number): I.ThunkAction => async (
     )
   );
 };
+
+export const toggleMastered = (
+  card: Card,
+  mastered?: boolean
+): I.ThunkAction => async (dispatch, getState) => {
+  const m = mastered === undefined ? !card.mastered : mastered;
+  return new Promise((resolve, reject) =>
+    db.transaction(tx =>
+      tx.executeSql(
+        `update card set mastered = ? where id = ?`,
+        [m, card.id],
+        (_, result) => {
+          dispatch({
+            type: 'INSERT',
+            payload: { card: { ...card, mastered: m } },
+          });
+          resolve();
+        },
+        (...args) => reject(alert(JSON.stringify(args)))
+      )
+    )
+  );
+};

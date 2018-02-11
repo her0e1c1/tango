@@ -1,28 +1,7 @@
+import * as RN from 'react-native';
 import * as I from 'src/interface';
-import { db } from 'src/store/sqlite';
-
-export const toggleMastered = (
-  card: Card,
-  mastered?: boolean
-): I.ThunkAction => async (dispatch, getState) => {
-  const m = mastered === undefined ? !card.mastered : mastered;
-  return new Promise((resolve, reject) =>
-    db.transaction(tx =>
-      tx.executeSql(
-        `update card set mastered = ? where id = ?`,
-        [m, card.id],
-        (_, result) => {
-          dispatch({
-            type: 'INSERT',
-            payload: { card: { ...card, mastered: m } },
-          });
-          resolve();
-        },
-        (...args) => reject(alert(JSON.stringify(args)))
-      )
-    )
-  );
-};
+import { toggleMastered } from './card';
+import { updateConfig } from './config';
 
 export const shuffleCardsOrSort = (): I.ThunkAction => async (
   dispatch,
@@ -117,25 +96,6 @@ export const goTo = (nav: NavState): I.ThunkAction => async (
   } else if (index < 0) {
     dispatch(goBack());
   }
-};
-
-export const updateConfig = (config: Partial<ConfigState>) => async (
-  dispatch,
-  getState
-) => {
-  dispatch({ type: 'CONFIG', payload: { config } });
-};
-
-export const startLoading = () => async (dispatch, getState) => {
-  dispatch({ type: 'CONFIG', payload: { config: { isLoading: true } } });
-};
-
-export const endLoading = () => async (dispatch, getState) => {
-  dispatch({ type: 'CONFIG', payload: { config: { isLoading: false } } });
-};
-
-export const clearError = () => async (dispatch, getState) => {
-  await dispatch({ type: 'CONFIG', payload: { config: { undefined } } });
 };
 
 const swipeMapping = {
