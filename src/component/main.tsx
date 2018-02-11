@@ -32,7 +32,7 @@ const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   selectCard: Action.selectCard,
-  selectDeck: Action.selectDeck,
+  selectDeck: Action.deck.select,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(Main);

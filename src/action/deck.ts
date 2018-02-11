@@ -43,12 +43,12 @@ export const insertByURL = (url: string): I.ThunkAction => async (
     body: d[1],
     category: d[2],
   }));
-  const deck_id = await dispatch(insertDeck({ url, name }));
+  const deck_id = await dispatch(insert({ url, name }));
   await dispatch(bulkInsertCards(deck_id!, cards));
   console.log(`FETCH DONE ${deck_id}`);
 };
 
-export const deleteDeck = (deck: Deck): I.ThunkAction => async (
+export const remove = (deck: Deck): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -75,7 +75,7 @@ export const deleteDeck = (deck: Deck): I.ThunkAction => async (
   );
 };
 
-export const selectDeck = (limit: number = 50): I.ThunkAction => async (
+export const select = (limit: number = 50): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -92,7 +92,7 @@ export const selectDeck = (limit: number = 50): I.ThunkAction => async (
   );
 };
 
-export const insertDeck = (deck: Pick<Deck, 'name' | 'url'>): I.ThunkAction => (
+export const insert = (deck: Pick<Deck, 'name' | 'url'>): I.ThunkAction => (
   dispatch,
   getState
 ) =>
