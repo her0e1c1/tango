@@ -1,7 +1,7 @@
 import * as Expo from 'expo';
 import * as I from 'src/interface';
 import * as C from 'src/constant';
-import { auth, firebase } from 'src/store/firebase';
+import * as firebase from 'firebase';
 
 export const loginWithFacebook = (): I.ThunkAction => async (
   dispatch,
@@ -32,9 +32,14 @@ export const loginWithFacebook = (): I.ThunkAction => async (
 };
 
 export const init = (): I.ThunkAction => async (dispatch, getState) => {
-  auth.onAuthStateChanged(user => {
+  firebase.auth().onAuthStateChanged(user => {
     if (user != null) {
       console.log(user);
+      firebase
+        .database()
+        .ref(`/user/${user.uid}/lastOnline`)
+        .onDisconnect()
+        .set(firebase.database.ServerValue.TIMESTAMP);
       dispatch({ type: 'USER_INIT', payload: user });
     } else {
       console.log('NOT LOGGED IN YET');
