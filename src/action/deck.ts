@@ -114,7 +114,10 @@ export const insert = (deck: Pick<Deck, 'name' | 'url'>): I.ThunkAction => (
     )
   );
 
-export const upload = (deck: Deck): I.ThunkAction => (dispatch, getState) => {
+export const upload = (deck: Deck): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
   const uid = getState().user.uid;
   if (uid) {
     const cards = Selector.getCardList(getState(), deck.id);
