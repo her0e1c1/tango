@@ -12,6 +12,24 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
     super(props);
     this.state = { refreshing: false };
   }
+  getLeftItems(deck: Deck) {
+    const { uid } = this.props.state.user;
+    const items = [
+      {
+        text: 'COPY',
+        backgroundColor: 'blue',
+        onPress: () => this.props.insertByURL(deck.url),
+      },
+    ];
+    if (uid) {
+      items.push({
+        text: 'UP',
+        backgroundColor: 'green',
+        onPress: () => this.props.upload(deck),
+      });
+    }
+    return items;
+  }
   render() {
     return (
       <RN.FlatList
@@ -34,18 +52,7 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
                   onPress: () => this.props.deleteDeck(item),
                 },
               ]}
-              left={[
-                {
-                  text: 'UP',
-                  backgroundColor: 'green',
-                  onPress: () => this.props.upload(item),
-                },
-                {
-                  text: 'COPY',
-                  backgroundColor: 'blue',
-                  onPress: () => this.props.insertByURL(item.url),
-                },
-              ]}
+              left={this.getLeftItems(item)}
             >
               <RN.TouchableOpacity
                 onPress={() => this.props.goTo({ deck: item })}

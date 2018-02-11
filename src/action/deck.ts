@@ -3,6 +3,7 @@ import { db } from 'src/store/sqlite';
 import * as firebase from 'firebase';
 import { bulkInsertCards } from './card';
 import { startLoading, endLoading } from './config';
+import * as Selector from 'src/selector';
 
 const Papa = require('papaparse');
 
@@ -115,8 +116,17 @@ export const insertDeck = (deck: Pick<Deck, 'name' | 'url'>): I.ThunkAction => (
 
 export const upload = (deck: Deck): I.ThunkAction => (dispatch, getState) => {
   const uid = getState().user.uid;
-  firebase
-    .database()
-    .ref(`users/${uid}/decks/${deck.id}`)
-    .set(deck);
+  if (uid) {
+    const cards = Selector.getCardList(getState(), deck.id);
+    const data = {};
+    cards.forEach(c => (data[`/card/${c.id}`] = c));
+    data[`/deck/${deck.id}`] = deck;
+    firebase
+      .database()
+      .ref(`/user/${uid}`)
+      .update(data)
+      .catch(e => alert(e));
+  } else {
+    alert('You need to log in first');
+  }
 };
