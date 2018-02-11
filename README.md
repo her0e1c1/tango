@@ -30,3 +30,6 @@ You need to setup the configuration file.
 ```
 cp src/secret.ts.example src/secret.ts
 ```
+
+# CI
+- https://circleci.com/gh/her0e1c1/tango
