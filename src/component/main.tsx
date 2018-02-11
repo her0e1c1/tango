@@ -1,7 +1,6 @@
 import * as Action from 'src/action';
 import * as I from 'src/interface';
 import * as React from 'react';
-import * as RN from 'react-native';
 import CardList from './cardList';
 import DeckSwiper from './deckSwiper';
 import DeckList from './deck';

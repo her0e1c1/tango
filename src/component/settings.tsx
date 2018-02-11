@@ -18,10 +18,18 @@ const cardSwipeTypes: cardSwipe[] = [
 
 export class Settings extends React.Component<Props, {}> {
   render() {
-    const { config } = this.props.state;
+    const { config, user } = this.props.state;
     return (
       <Container>
         <RN.ScrollView>
+          <SettingsItem>
+            <SettingsText>Login</SettingsText>
+            <RN.Button
+              title={(user && user.displayName) || 'LOGIN'}
+              onPress={() => this.props.login()}
+            />
+          </SettingsItem>
+
           <SettingsItem>
             <SettingsText>Show Mastered Cards</SettingsText>
             <NB.CheckBox
@@ -138,6 +146,7 @@ const mapDispatchToProps = {
   update: Action.updateConfig,
   shuffle: Action.shuffleCardsOrSort,
   clearAll: Action.clearAll,
+  login: Action.auth.loginWithFacebook,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(Settings);

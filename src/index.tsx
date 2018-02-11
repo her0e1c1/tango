@@ -13,6 +13,9 @@ import * as Action from 'src/action';
 
 @connect((state: RootState) => ({ state }), {})
 class Wrap extends React.Component {
+  componentDidMount() {
+    store.dispatch(Action.auth.init());
+  }
   render() {
     return (
       <ThemeProvider theme={Action.getTheme(this.props.state)}>

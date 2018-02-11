@@ -66,11 +66,17 @@ type ConfigState = {
   cardSwipeRight: cardSwipe;
 };
 
+interface UserState {
+  uid: string;
+  displayName: string | null;
+}
+
 interface RootState {
   deck: DeckState;
   card: CardState;
   nav: NavState;
   config: ConfigState;
+  user: UserState;
 }
 
 type Callback = () => void;
