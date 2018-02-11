@@ -3,6 +3,7 @@ interface Deck {
   name: string;
   cards: Card[];
   url?: string;
+  isPublic: boolean;
 }
 
 interface Tag {

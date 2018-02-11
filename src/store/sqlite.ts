@@ -8,6 +8,7 @@ db.transaction((tx: any) => {
     `create table if not exists deck (
         id integer primary key not null,
         name text,
+        isPublic integer,
         url text
     );`
   );
