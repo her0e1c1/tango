@@ -4,6 +4,7 @@ import * as firebase from 'firebase';
 import { bulkInsertCards } from './card';
 import { startLoading, endLoading } from './config';
 import * as Selector from 'src/selector';
+import * as Action from 'src/action';
 
 const Papa = require('papaparse');
 
@@ -131,5 +132,35 @@ export const upload = (deck: Deck): I.ThunkAction => async (
       .catch(e => alert(e));
   } else {
     alert('You need to log in first');
+  }
+};
+
+// create a new deck every time for now
+export const importFromFireBase = (deck_id: number): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  const { uid } = getState().user;
+  if (uid) {
+    firebase
+      .database()
+      .ref(`/user/${uid}/deck/${deck_id}`)
+      .once('value', async snapshot => {
+        const v = snapshot.val();
+        const id = await dispatch(insert(v as Deck));
+        firebase
+          .database()
+          .ref(`/user/${uid}/card`)
+          .orderByChild('deck_id')
+          .equalTo(deck_id)
+          .once('value', async snapshot => {
+            const v = snapshot.val();
+            const cards = Object.values(v) as Card[];
+            await dispatch(Action.bulkInsertCards(id, cards));
+          })
+          .catch(e => console.log(e));
+      });
+  } else {
+    alert('NOT LOGGED IN YET');
   }
 };
