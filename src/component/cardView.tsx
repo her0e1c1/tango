@@ -74,17 +74,16 @@ class CardView extends React.Component<
   }
   render() {
     const { card } = this.props;
-    if (knownCategory.includes(card.category)) {
+    if (!knownCategory.includes(card.category)) {
       return (
-        <RN.View
+        <RN.ScrollView // doesn't work
           style={{
             flex: 1,
-            flexWrap: 'nowrap',
             backgroundColor: this.props.theme.cardBackgroundColor,
           }}
         >
           <BodyText>{card.body}</BodyText>
-        </RN.View>
+        </RN.ScrollView>
       );
     }
     return (
