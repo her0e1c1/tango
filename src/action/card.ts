@@ -61,3 +61,35 @@ export const toggleMastered = (
     )
   );
 };
+
+// FIXME: how can I bulk insert?
+export const bulkInsertCards = (
+  deck_id: number,
+  cards: Pick<Card, 'name' | 'body' | 'category'>[]
+): I.ThunkAction => (dispatch, getState) =>
+  new Promise((resolve, reject) =>
+    db.transaction(async tx => {
+      await Promise.all(
+        cards.map(
+          card =>
+            new Promise(resolve =>
+              tx.executeSql(
+                `insert into card (name, body, category, deck_id) values (?, ?, ?, ?);`,
+                [card.name, card.body, card.category, deck_id],
+                async (_, result) => {
+                  const id = result.insertId;
+                  id &&
+                    (await dispatch({
+                      type: 'INSERT',
+                      payload: { card: { ...card, deck_id, id } as Card },
+                    }));
+                  resolve();
+                },
+                (...args) => reject(alert(JSON.stringify(args)))
+              )
+            )
+        )
+      );
+      resolve();
+    })
+  );

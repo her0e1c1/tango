@@ -1,6 +1,8 @@
 import * as I from 'src/interface';
 import { db } from 'src/store/sqlite';
-import { startLoading, endLoading } from './nav';
+import { bulkInsertCards } from './card';
+import { startLoading, endLoading } from './config';
+
 const Papa = require('papaparse');
 
 export const tryInsertByURL = (text: string) => async (dispatch, getState) => {
@@ -43,38 +45,6 @@ export const insertByURL = (url: string): I.ThunkAction => async (
   await dispatch(bulkInsertCards(deck_id!, cards));
   console.log(`FETCH DONE ${deck_id}`);
 };
-
-// FIXME: how can I bulk insert?
-export const bulkInsertCards = (
-  deck_id: number,
-  cards: Pick<Card, 'name' | 'body' | 'category'>[]
-): I.ThunkAction => (dispatch, getState) =>
-  new Promise((resolve, reject) =>
-    db.transaction(async tx => {
-      await Promise.all(
-        cards.map(
-          card =>
-            new Promise(resolve =>
-              tx.executeSql(
-                `insert into card (name, body, category, deck_id) values (?, ?, ?, ?);`,
-                [card.name, card.body, card.category, deck_id],
-                async (_, result) => {
-                  const id = result.insertId;
-                  id &&
-                    (await dispatch({
-                      type: 'INSERT',
-                      payload: { card: { ...card, deck_id, id } as Card },
-                    }));
-                  resolve();
-                },
-                (...args) => reject(alert(JSON.stringify(args)))
-              )
-            )
-        )
-      );
-      resolve();
-    })
-  );
 
 export const deleteDeck = (deck: Deck): I.ThunkAction => async (
   dispatch,
