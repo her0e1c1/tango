@@ -1,9 +1,14 @@
-import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
-import styled, { withTheme } from 'styled-components';
+import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
+import styled from 'styled-components';
 import * as I from 'src/interface';
+
+export const BodyText = styled(RN.Text)`
+  color: ${({ theme }: AppContext) => theme.mainColor};
+  font-size: 16px;
+`;
 
 const html = `
 <html>
@@ -32,6 +37,7 @@ const mappingCategory = {
   hs: 'haskell',
   haskell: 'haskell',
 };
+const knownCategory = mathCategory.concat(Object.keys(mappingCategory));
 
 @withTheme
 class CardView extends React.Component<
@@ -67,6 +73,20 @@ class CardView extends React.Component<
     }
   }
   render() {
+    const { card } = this.props;
+    if (knownCategory.includes(card.category)) {
+      return (
+        <RN.View
+          style={{
+            flex: 1,
+            flexWrap: 'nowrap',
+            backgroundColor: this.props.theme.cardBackgroundColor,
+          }}
+        >
+          <BodyText>{card.body}</BodyText>
+        </RN.View>
+      );
+    }
     return (
       <RN.WebView
         automaticallyAdjustContentInsets={false}
