@@ -2,11 +2,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as I from 'src/interface';
-
-const getAllCards = (state: RootState, deck_id: number) => {
-  const allCardIds = state.card.byDeckId[deck_id] || [];
-  return allCardIds.map(id => state.card.byId[id]);
-};
+import * as Selector from 'src/selector';
 
 class ProgressBar extends React.Component<Props & { deck_id?: number }, {}> {
   render() {
@@ -22,7 +18,7 @@ class ProgressBar extends React.Component<Props & { deck_id?: number }, {}> {
       this.props.state.nav.index !== undefined
         ? `(${this.props.state.nav.index})`
         : '';
-    const cards = getAllCards(this.props.state, deck_id);
+    const cards = Selector.getCardList(this.props.state, deck_id);
     const mastered = cards.filter(x => !!x && x.mastered);
     const width = cards.length > 0 ? mastered.length / cards.length * 100 : 0;
     return (

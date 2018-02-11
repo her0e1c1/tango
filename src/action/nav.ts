@@ -1,5 +1,7 @@
 import * as RN from 'react-native';
 import * as I from 'src/interface';
+import { getCurrentCard } from 'src/selector';
+export * from 'src/selector';
 import { toggleMastered } from './card';
 import { updateConfig } from './config';
 
@@ -9,35 +11,6 @@ export const shuffleCardsOrSort = (): I.ThunkAction => async (
 ) => {
   const config = getState().config;
   dispatch({ type: 'CARD_SHUFFLE', payload: { config } });
-};
-
-// selector
-export const getCurrentCard = (state: RootState) => {
-  const cards = getCurrentCardList(state);
-  if (state.nav.index) {
-    return cards[state.nav.index];
-  }
-  return state.nav.card;
-};
-export const getCurrentCardList = (state: RootState): Card[] => {
-  const deck = state.nav.deck;
-  const config = state.config;
-  if (deck) {
-    const ids = state.card.byDeckId[deck.id] || [];
-    const cards = ids
-      .map(id => state.card.byId[id])
-      .filter(c => !!c) // defensive
-      .filter(c => {
-        if (config.showMastered) {
-          return true;
-        } else {
-          return !c.mastered;
-        }
-      });
-    return cards.slice(config.start);
-  } else {
-    return [];
-  }
 };
 
 export const goToNextCardSetMastered = (
