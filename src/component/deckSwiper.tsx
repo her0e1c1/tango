@@ -6,11 +6,11 @@ import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
 import ProgressBar from './progressBar';
 import CardView from './cardView';
-import MasteredCircle from './masteredCircle';
 import * as SD from './styled';
 import * as I from 'src/interface';
 import CardDetail from './cardDetail';
 import { mathCategory } from './cardView';
+import MasteredCircle from './masteredCircle';
 
 @withTheme
 class View extends React.Component<
@@ -44,11 +44,17 @@ class View extends React.Component<
     }
     const width = this.state.width;
     const height = this.state.height;
+    const card = Action.getCurrentCard(this.props.state);
     return this.state.visible ? (
       <CardDetail onLongPress={() => this.setState({ visible: false })} />
     ) : (
       <RN.View style={{ flex: 1 }}>
-        <ProgressBar />
+        <RN.View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+          {card && <MasteredCircle card={card} />}
+          <RN.View style={{ flex: 1 }}>
+            <ProgressBar />
+          </RN.View>
+        </RN.View>
         <RN.View style={{ marginTop: 5 }}>
           {/* I think DeckSwiper position is absolute */}
           <DeckSwiper
@@ -91,12 +97,6 @@ class View extends React.Component<
                 onLongPress={() => this.setState({ visible: true })}
               >
                 <SD.CardContainer style={{ width, height }}>
-                  <RN.View style={{ flexDirection: 'row' }}>
-                    <MasteredCircle card={item} />
-                    {item.category && (
-                      <SD.CardCategory>{item.category}</SD.CardCategory>
-                    )}
-                  </RN.View>
                   {mathCategory.includes(item.category) ? (
                     <CardView card={item} />
                   ) : (

@@ -1,9 +1,20 @@
+import styled from 'styled-components';
 import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
-import * as SD from './styled';
+
+export const Circle = styled(RN.View)`
+  background-color: ${({ theme, mastered }: AppContext) =>
+    mastered ? 'green' : theme.circleBackgroundColor};
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border-width: 1px;
+  border-style: solid;
+  margin: 5px;
+`;
 
 export class MasteredCircle extends React.Component<
   Props & { card: Card },
@@ -13,7 +24,7 @@ export class MasteredCircle extends React.Component<
     const card = this.props.card;
     return (
       <RN.TouchableOpacity onPress={() => this.props.toggle(card)}>
-        <SD.Circle style={{ margin: 5 }} mastered={card.mastered} />
+        <Circle mastered={card.mastered} />
       </RN.TouchableOpacity>
     );
   }

@@ -47,16 +47,6 @@ export const SettingsText = styled(RN.Text)`
   font-size: 16;
 `;
 
-export const Circle = styled(RN.View)`
-  background-color: ${({ theme, mastered }: AppContext) =>
-    mastered ? 'green' : theme.circleBackgroundColor};
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border-width: 1px;
-  border-style: solid;
-`;
-
 export const CardCard = styled(RN.View)`
   flex-direction: row;
   align-items: center;

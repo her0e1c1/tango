@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
 import SearchBar from './searchBar';
+import * as SD from './styled';
 
 const MainText = styled(RN.Text)`
   color: ${({ theme }: AppContext) => theme.titleColor};
@@ -18,6 +19,7 @@ export class Header extends React.Component<Props, {}> {
       return <RN.View />;
     }
     const { deck } = this.props.state.nav;
+    const card = Action.getCurrentCard(state);
     return (
       <RN.View style={{ marginBottom: 10 }}>
         <RN.View
@@ -27,7 +29,13 @@ export class Header extends React.Component<Props, {}> {
             marginBottom: 5,
           }}
         >
-          <MainText>TANGO {deck && `[${deck.name}]`}</MainText>
+          <RN.View style={{ flexDirection: 'row' }}>
+            <MainText>TANGO {deck && `[${deck.name}]`}</MainText>
+            {card &&
+              card.category && (
+                <SD.CardCategory>{card.category}</SD.CardCategory>
+              )}
+          </RN.View>
           {deck && (
             <RN.TouchableOpacity
               onPress={() => this.props.goBack()}
@@ -48,7 +56,6 @@ const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   goBack: Action.goBack,
   goHome: Action.goHome,
-  login: Action.auth.loginWithFacebook,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(Header);
