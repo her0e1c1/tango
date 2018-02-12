@@ -12,28 +12,55 @@ const Help = () => (
   </RN.View>
 );
 
-class Data extends React.Component<Props, { decks: Deck[] }> {
-  state = { decks: [] as Deck[] };
+class Data extends React.Component<Props, { decks: Deck[]; cards: Card[] }> {
+  state = { decks: [] as Deck[], cards: [] as Card[] };
   componentDidMount() {
     const { uid } = this.props.state.user;
     firebase
       .database()
       .ref(`/user/${uid}/deck`)
+      .on('value', snapshot => {
+        const v = snapshot && snapshot.val();
+        v && this.setState({ decks: v });
+      });
+  }
+  setCards(deck_id: number) {
+    const { uid } = this.props.state.user;
+    firebase
+      .database()
+      .ref(`/user/${uid}/card`)
+      .orderByChild('deck_id')
+      .equalTo(deck_id)
       .once('value', snapshot => {
         const v = snapshot.val();
-        v && this.setState({ decks: v });
-        console.log(snapshot);
+        v && this.setState({ cards: Object.values(v) });
       });
   }
   render() {
-    const { decks } = this.state;
+    const { decks, cards } = this.state;
+    console.log(decks, 'deck');
     return (
       <SD.Container>
-        {decks.map(d => (
-          <RN.TouchableOpacity onPress={() => this.props.import(d.id)}>
-            <RN.Text>{d.name}</RN.Text>
-          </RN.TouchableOpacity>
-        ))}
+        <RN.FlatList
+          data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
+          renderItem={({ item }: { item: Deck }) => (
+            <RN.TouchableOpacity onPress={() => this.setCards(item.id)}>
+              <SD.DeckCard style={{ marginBottom: 10 }}>
+                <SD.DeckTitle>{item.name}</SD.DeckTitle>
+              </SD.DeckCard>
+            </RN.TouchableOpacity>
+          )}
+        />
+        <RN.FlatList
+          data={cards.filter(x => !!x).map((d, key) => ({ ...d, key }))}
+          renderItem={({ item }: { item: Card }) => (
+            <RN.TouchableOpacity onPress={() => this.props.import(item.id)}>
+              <SD.DeckCard style={{ marginBottom: 10 }}>
+                <SD.DeckTitle>{item.name}</SD.DeckTitle>
+              </SD.DeckCard>
+            </RN.TouchableOpacity>
+          )}
+        />
       </SD.Container>
     );
   }
