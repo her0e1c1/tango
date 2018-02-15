@@ -17,7 +17,7 @@ export class SearchBar extends React.Component<Props, { text: string }> {
           keyboardType="url"
           value={this.state.text}
           placeholder="Input your CSV url ..."
-          style={{ backgroundColor: 'white', fontSize: 16, flex: 1 }}
+          style={{ backgroundColor: 'white', fontSize: 14, flex: 1, paddingLeft: 15 }}
           onChangeText={text => this.setState({ text })}
           onEndEditing={async () => {
             await this.props.insertByURL(this.state.text);

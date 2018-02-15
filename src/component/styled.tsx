@@ -9,7 +9,7 @@ export const Container = styled(RN.View)`
 `;
 
 export const DeckCard = styled(RN.View)`
-  padding: 20px;
+  padding: 15px;
   background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
   border-style: solid;
   border-color: ${({ theme }: AppContext) => theme.cardBorderColor};
@@ -19,7 +19,8 @@ export const DeckCard = styled(RN.View)`
 export const DeckTitle = styled(RN.Text)`
   color: ${({ theme }: AppContext) => theme.mainColor};
   font-weight: bold;
-  font-size: 20px;
+  font-size: 16px;
+  margin-bottom: 5px;
 `;
 
 export const CardCategory = styled(RN.Text)`
@@ -52,7 +53,7 @@ export const CardCard = styled(RN.View)`
   align-items: center;
   background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
   border-style: solid;
-  border-width: 1px;
+  border-bottom-width: 1px;
 `;
 
 export const CardTitle = styled(RN.Text)`

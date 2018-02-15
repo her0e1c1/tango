@@ -25,7 +25,7 @@ class ProgressBar extends React.Component<Props & { deck_id?: number }, {}> {
       <RN.View
         style={{
           height: 20,
-          backgroundColor: 'silver',
+          backgroundColor: '#DEE2E6',
           flexDirection: 'row',
           alignItems: 'center',
         }}
@@ -34,7 +34,7 @@ class ProgressBar extends React.Component<Props & { deck_id?: number }, {}> {
           style={{
             height: 20,
             width: `${width}%`,
-            backgroundColor: 'green',
+            backgroundColor: '#51CF66',
           }}
         />
         <RN.View
