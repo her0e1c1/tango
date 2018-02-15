@@ -9,7 +9,7 @@ import * as SD from './styled';
 
 const MainText = styled(RN.Text)`
   color: ${({ theme }: AppContext) => theme.titleColor};
-  font-size: 16px;
+  font-size: 18px;
 `;
 
 export class Header extends React.Component<Props, {}> {

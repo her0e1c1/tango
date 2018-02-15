@@ -31,7 +31,7 @@ export const getTheme = (state: RootState): Theme => {
   } else {
     // default
     return {
-      mainBackgroundColor: 'skyblue',
+      mainBackgroundColor: '#1C7ED6',
       mainColor: 'black',
       titleColor: 'white',
       cardBorderColor: 'white',

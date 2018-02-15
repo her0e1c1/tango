@@ -7,12 +7,10 @@ import * as I from 'src/interface';
 
 export const Circle = styled(RN.View)`
   background-color: ${({ theme, mastered }: AppContext) =>
-    mastered ? 'green' : theme.circleBackgroundColor};
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border-width: 1px;
-  border-style: solid;
+    mastered ? '#51CF66' : theme.circleBackgroundColor};
+  width: 15px;
+  height: 15px;
+  border-radius: 15px;
   margin: 5px;
 `;
 
