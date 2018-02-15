@@ -8,9 +8,9 @@ import * as I from 'src/interface';
 export const Circle = styled(RN.View)`
   background-color: ${({ theme, mastered }: AppContext) =>
     mastered ? '#51CF66' : theme.circleBackgroundColor};
-  width: 15px;
-  height: 15px;
-  border-radius: 15px;
+  width: 20px;
+  height: 20px;
+  border-radius: 20px;
   margin: 5px;
 `;
 

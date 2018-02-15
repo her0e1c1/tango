@@ -8,6 +8,7 @@ import * as I from 'src/interface';
 export const BodyText = styled(RN.Text)`
   color: ${({ theme }: AppContext) => theme.mainColor};
   font-size: 16px;
+  padding: 0 5px;
 `;
 
 const html = `
@@ -53,7 +54,7 @@ class CardView extends React.Component<
     tab-size: 2;
     letter-spacing: 0px; 
     margin: 0;
-    padding: 0;
+    padding: 0 5px;
     `;
   }
   getBody(): string {

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as RN from 'react-native';
+import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
@@ -17,7 +18,7 @@ export class SearchBar extends React.Component<Props, { text: string }> {
           keyboardType="url"
           value={this.state.text}
           placeholder="Input your CSV url ..."
-          style={{ backgroundColor: 'white', fontSize: 14, flex: 1, paddingLeft: 15 }}
+          style={{ backgroundColor: 'white', fontSize: 14, flex: 1, paddingLeft: 15, marginRight: 5 }}
           onChangeText={text => this.setState({ text })}
           onEndEditing={async () => {
             await this.props.insertByURL(this.state.text);
@@ -36,11 +37,9 @@ export class SearchBar extends React.Component<Props, { text: string }> {
             }
           }}
         />
-        <RN.Button
-          title="Q"
-          color="#841584"
-          onPress={() => alert('implement later :)')}
-        />
+        <NB.Button light onPress={() => alert('implement later :)')}>
+          <NB.Icon name='md-qr-scanner' />
+        </NB.Button>
       </RN.View>
     );
   }
