@@ -2,22 +2,21 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as I from 'src/interface';
+import * as Action from 'src/action';
 import * as Selector from 'src/selector';
 
-class ProgressBar extends React.Component<Props & { deck_id?: number }, {}> {
+class ProgressBar extends React.Component<
+  Props & { deck_id: number; showCardIndex?: boolean },
+  {}
+> {
   render() {
     if (!this.props.state.config.showHeader) {
       return null;
     }
-    const { deck } = this.props.state.nav;
-    const deck_id = this.props.deck_id || (deck && deck.id);
-    if (!deck_id) {
-      return null;
-    }
-    const index =
-      this.props.state.nav.index !== undefined
-        ? `(${this.props.state.nav.index})`
-        : '';
+    const deck_id = this.props.deck_id;
+    const index = this.props.showCardIndex
+      ? `(${this.props.state.config.cardIndex})`
+      : '';
     const cards = Selector.getCardList(this.props.state, deck_id);
     const mastered = cards.filter(x => !!x && x.mastered);
     const width = cards.length > 0 ? mastered.length / cards.length * 100 : 0;
