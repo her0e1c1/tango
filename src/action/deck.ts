@@ -53,9 +53,9 @@ export const remove = (deck: Deck): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  db.transaction(tx =>
+  db.transaction(tx => {
     tx.executeSql(
-      `delete from deck where id = ?; commit`,
+      `delete from deck where id = ?`,
       [deck.id],
       (_, result) => {
         if (result.rowsAffected === 1) {
@@ -65,15 +65,16 @@ export const remove = (deck: Deck): I.ThunkAction => async (
             [deck.id],
             (_, result) => {
               dispatch({ type: 'CARD_BULK_DELETE', payload: { deck } });
-            }
+            },
+            (...args) => alert(JSON.stringify(args))
           );
         } else {
           alert('You can not delete');
         }
       },
       (...args) => alert(JSON.stringify(args))
-    )
-  );
+    );
+  });
 };
 
 export const select = (limit: number = 50): I.ThunkAction => async (
