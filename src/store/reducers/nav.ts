@@ -1,13 +1,14 @@
 import * as Redux from 'redux';
+import { Root } from 'src/component/main';
 
-export default (state: NavState = {}, action: Redux.Action): NavState => {
-  if (action.type == 'NAV_GO_TO') {
-    return { ...state, ...action.payload.nav };
-  } else if (action.type == 'NAV_GO_BACK') {
-    return action.payload.nav;
-  } else if (action.type == 'NAV_HOME') {
-    return { deck: undefined, card: undefined, index: undefined };
-  } else {
-    return state;
-  }
+const initialState = Root.router.getStateForAction(
+  Root.router.getActionForPathAndParams('home')
+);
+
+export default (
+  state: NavState = initialState,
+  action: Redux.Action
+): NavState => {
+  const nextState = Root.router.getStateForAction(action, state);
+  return nextState || state;
 };

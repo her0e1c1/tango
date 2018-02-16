@@ -11,6 +11,7 @@ export default (
     theme: 'default',
     isLoading: false, // maybe not here
     errorCode: undefined,
+    cardIndex: 0,
     cardSwipeUp: 'goToNextCardToggleMastered',
     cardSwipeDown: 'goBack',
     cardSwipeLeft: 'goToPrevCard',
