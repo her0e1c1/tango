@@ -6,11 +6,17 @@ import * as Action from 'src/action';
 import * as I from 'src/interface';
 import { DeckCard, DeckTitle } from './styled';
 import ProgressBar from './progressBar';
+import { withNavigation } from 'react-navigation';
 
+@withNavigation
 class DeckList extends React.Component<Props, { refreshing: boolean }> {
   constructor(props) {
     super(props);
     this.state = { refreshing: false };
+  }
+  async componentDidMount() {
+    await this.props.selectDeck();
+    await this.props.selectCard();
   }
   getLeftItems(deck: Deck) {
     const { uid } = this.props.state.user;
@@ -55,12 +61,14 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
               left={this.getLeftItems(item)}
             >
               <RN.TouchableOpacity
-                onPress={() => this.props.goTo({ deck: item })}
+                onPress={() => {
+                  this.props.navigation.navigate('deck', { deck_id: item.id });
+                }}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
                 <DeckCard>
                   <DeckTitle>{item.name}</DeckTitle>
-                  <ProgressBar deck_id={item.id} />
+                  <ProgressBar deck_id={item && item.id} />
                 </DeckCard>
               </RN.TouchableOpacity>
             </Swipeout>
@@ -79,7 +87,6 @@ const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   deleteDeck: Action.deck.remove,
   insertByURL: Action.tryInsertByURL,
-  goTo: Action.goTo,
   selectCard: Action.selectCard,
   selectDeck: Action.deck.select,
   upload: Action.deck.upload,
