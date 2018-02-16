@@ -3,6 +3,7 @@ import thunk from 'redux-thunk';
 import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import reducers from './reducers';
+import { createReactNavigationReduxMiddleware } from 'react-navigation-redux-helpers';
 
 import * as firebase from 'firebase';
 import * as C from 'src/constant';
@@ -13,6 +14,11 @@ const logger = ({ getState, dispatch }) => next => action => {
   const rv = next(action);
   return rv;
 };
+
+const middleware = createReactNavigationReduxMiddleware(
+  'root',
+  state => state.nav
+);
 
 const persistConfig = {
   key: 'root',
@@ -35,9 +41,9 @@ const persistedReducer = persistReducer(
 );
 
 const store = Redux.createStore(
-  persistedReducer,
-  // Redux.combineReducers(reducers),
-  Redux.compose(Redux.applyMiddleware(thunk, logger))
+  // persistedReducer,
+  Redux.combineReducers(reducers),
+  Redux.compose(Redux.applyMiddleware(thunk, logger, middleware))
 );
 
 export default store;
