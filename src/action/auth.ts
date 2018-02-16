@@ -12,7 +12,6 @@ export const loginWithFacebook = (): I.ThunkAction => async (
       C.facebookAppId,
       { permissions: ['public_profile'] }
     );
-    console.log(type, token);
 
     if (type === 'success') {
       // Build Firebase credential with the Facebook access token.
@@ -34,7 +33,6 @@ export const loginWithFacebook = (): I.ThunkAction => async (
 export const init = (): I.ThunkAction => async (dispatch, getState) => {
   firebase.auth().onAuthStateChanged(user => {
     if (user != null) {
-      console.log(user);
       firebase
         .database()
         .ref(`/user/${user.uid}/lastOnline`)
