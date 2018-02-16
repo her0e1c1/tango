@@ -41,8 +41,8 @@ const persistedReducer = persistReducer(
 );
 
 const store = Redux.createStore(
-  // persistedReducer,
-  Redux.combineReducers(reducers),
+  persistedReducer, // need PersistGate too
+  // Redux.combineReducers(reducers),
   Redux.compose(Redux.applyMiddleware(thunk, logger, middleware))
 );
 

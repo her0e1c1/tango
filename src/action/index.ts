@@ -5,4 +5,5 @@ export * from './config';
 
 import * as deck from './deck';
 import * as auth from './auth';
-export { auth, deck };
+import * as config from './config';
+export { auth, deck, config };

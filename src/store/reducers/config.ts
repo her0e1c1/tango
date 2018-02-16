@@ -16,6 +16,7 @@ export default (
     cardSwipeDown: 'goBack',
     cardSwipeLeft: 'goToPrevCard',
     cardSwipeRight: 'goToNextCardNotMastered',
+    version: 1,
   },
   action: Redux.Action
 ): ConfigState => {

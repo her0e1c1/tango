@@ -134,6 +134,11 @@ export class Settings extends React.Component<Props, {}> {
               </NB.Picker>
             </SettingsItem>
           ))}
+
+          <SettingsItem>
+            <SettingsText>Version</SettingsText>
+            <SettingsText>{config.version}</SettingsText>
+          </SettingsItem>
         </RN.ScrollView>
       </Container>
     );
@@ -143,9 +148,9 @@ export class Settings extends React.Component<Props, {}> {
 const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
-  update: Action.updateConfig,
+  update: Action.config.updateConfig,
   shuffle: Action.shuffleCardsOrSort,
-  clearAll: Action.clearAll,
+  clearAll: Action.config.clearAll,
   login: Action.auth.loginWithFacebook,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;

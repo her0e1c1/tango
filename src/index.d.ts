@@ -72,6 +72,7 @@ type ConfigState = {
   cardSwipeDown: cardSwipe;
   cardSwipeLeft: cardSwipe;
   cardSwipeRight: cardSwipe;
+  version: number;
 };
 
 interface UserState {

@@ -1,4 +1,3 @@
-import * as RN from 'react-native';
 import * as I from 'src/interface';
 import { getCurrentCard } from 'src/selector';
 export * from 'src/selector';
@@ -89,8 +88,3 @@ export const cardSwipeUp = (i: number) => cardSwipe('cardSwipeUp', i);
 export const cardSwipeDown = (i: number) => cardSwipe('cardSwipeDown', i);
 export const cardSwipeLeft = (i: number) => cardSwipe('cardSwipeLeft', i);
 export const cardSwipeRight = (i: number) => cardSwipe('cardSwipeRight', i);
-
-export const clearAll = () => async (dispatch, getState) => {
-  dispatch({ type: 'CLEAR_ALL' });
-  RN.AsyncStorage.clear();
-};

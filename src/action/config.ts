@@ -1,3 +1,6 @@
+import * as RN from 'react-native';
+import * as I from 'src/interface';
+
 export const updateConfig = (config: Partial<ConfigState>) => async (
   dispatch,
   getState
@@ -40,5 +43,21 @@ export const getTheme = (state: RootState): Theme => {
       cardBackgroundColor: 'white',
       circleBackgroundColor: '#DEE2E6',
     };
+  }
+};
+
+export const clearAll = () => async (dispatch, getState) => {
+  dispatch({ type: 'CLEAR_ALL' });
+  RN.AsyncStorage.clear();
+};
+
+export const checkVersion = (current): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  const { version } = getState().config;
+  if (current !== version) {
+    await dispatch(clearAll());
+    await dispatch(updateConfig({ version: current }));
   }
 };

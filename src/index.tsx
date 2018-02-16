@@ -15,6 +15,7 @@ import * as Action from 'src/action';
 class Wrap extends React.Component {
   componentDidMount() {
     store.dispatch(Action.auth.init());
+    store.dispatch(Action.checkVersion(3));
   }
   render() {
     return (
@@ -27,9 +28,8 @@ class Wrap extends React.Component {
 
 export default () => (
   <Provider store={store}>
-    <Wrap />
-    {/*<PersistGate loading={null} persistor={persistStore(store)}>
+    <PersistGate loading={null} persistor={persistStore(store)}>
       <Wrap />
-    </PersistGate>*/}
+    </PersistGate>
   </Provider>
 );
