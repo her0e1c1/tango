@@ -38,7 +38,6 @@ class Data extends React.Component<Props, { decks: Deck[]; cards: Card[] }> {
   }
   render() {
     const { decks, cards } = this.state;
-    console.log(decks, 'deck');
     return (
       <SD.Container>
         <RN.FlatList
@@ -69,7 +68,6 @@ class Data extends React.Component<Props, { decks: Deck[]; cards: Card[] }> {
 const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
-  goTo: Action.goTo,
   goToNextCard: Action.goToNextCard,
   goToPrevCard: Action.goToPrevCard,
   import: Action.deck.importFromFireBase,
