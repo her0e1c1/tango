@@ -5,7 +5,6 @@
   "scripts": {
     "start": "react-native-scripts start",
     "eject": "react-native-scripts eject",
-    "cln": "rm -fr dist",
     "android": "react-native-scripts android",
     "al": "yarn android:log",
     "android:log": " react-native log-android",
@@ -16,6 +15,7 @@
     "build:w": "yarn tsc:w",
     "login": "exp login",
     "status": "exp build:status",
+	"cln": "rm -fr ./dist && git checkout ./dist/package.json",
     "test": "node node_modules/jest/bin/jest.js --watch"
   },
   "devDependencies": {
