@@ -11,8 +11,10 @@ import * as I from 'src/interface';
 import CardDetail from './cardDetail';
 import { mathCategory } from './cardView';
 import MasteredCircle from './masteredCircle';
+import { withNavigation } from 'react-navigation';
 
 @withTheme
+@withNavigation
 class View extends React.Component<
   Props & AppContext,
   { visible: boolean; width: number; height: number }
@@ -39,12 +41,15 @@ class View extends React.Component<
     RN.Dimensions.removeEventListener('change', this.changeEvent);
   }
   render() {
-    if (this.props.cards.length <= this.props.state.nav.index) {
-      return null;
-    }
+    const { deck_id } = this.props.navigation.state.params;
     const width = this.state.width;
     const height = this.state.height;
-    const card = Action.getCurrentCard(this.props.state);
+    const cards = Action.getCardList(this.props.state, deck_id);
+    const { cardIndex } = this.props.state.config;
+    if (cardIndex < 0 || cards.length <= cardIndex) {
+      return null;
+    }
+    const card = cards[cardIndex];
     return this.state.visible ? (
       <CardDetail onLongPress={() => this.setState({ visible: false })} />
     ) : (
@@ -52,19 +57,20 @@ class View extends React.Component<
         <RN.View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
           {card && <MasteredCircle card={card} />}
           <RN.View style={{ flex: 1 }}>
-            <ProgressBar />
+            <ProgressBar deck_id={deck_id} showCardIndex />
           </RN.View>
         </RN.View>
         <RN.View style={{ marginTop: 5 }}>
           {/* I think DeckSwiper position is absolute */}
           <DeckSwiper
             // backgroundColor={this.props.theme.cardBackgroundColor}
-            cardIndex={this.props.state.nav.index}
-            swipeAnimationDuration={100}
-            onSwipedRight={() => this.props.cardSwipeRight()}
-            onSwipedLeft={() => this.props.cardSwipeLeft()}
-            onSwipedTop={index => this.props.cardSwipeUp()}
-            onSwipedBottom={() => this.props.cardSwipeDown()}
+            cardIndex={this.props.state.config.cardIndex}
+            cards={cards}
+            onSwipedRight={index => this.props.cardSwipeRight(index)}
+            onSwipedLeft={index => this.props.cardSwipeLeft(index)}
+            onSwipedTop={index => this.props.cardSwipeUp(index)}
+            onSwipedBottom={index => this.props.cardSwipeDown(index)}
+            // onTapCard={() => {}}
             goBackToPreviousCardOnSwipeTop={
               this.props.state.config.cardSwipeUp === 'goToPrevCard'
             }
@@ -77,14 +83,14 @@ class View extends React.Component<
             goBackToPreviousCardOnSwipeRight={
               this.props.state.config.cardSwipeRight == 'goToPrevCard'
             }
-            onSwipedAll={() => this.props.goBack()}
+            onSwipedAll={() => this.props.navigation.goBack()}
             disableBottomSwipe={false}
-            marginBottom={0}
-            cardVerticalMargin={10}
-            cardHorizontalMargin={0}
-            cards={this.props.cards}
             showSecondCard={false}
+            marginBottom={0}
+            cardHorizontalMargin={0}
             zoomFriction={0}
+            cardVerticalMargin={10}
+            swipeAnimationDuration={100}
             renderCard={(
               item = {} as Card // Sometimes item is undefined :(
             ) => (
@@ -117,15 +123,10 @@ class View extends React.Component<
   }
 }
 
-const mapStateToProps = (state: RootState) => ({
-  state,
-  cards: Action.getCurrentCardList(state),
-});
+const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   updateConfig: Action.updateConfig,
-  goTo: Action.goTo,
-  goBack: Action.goBack,
   cardSwipeUp: Action.cardSwipeUp,
   cardSwipeDown: Action.cardSwipeDown,
   cardSwipeLeft: Action.cardSwipeLeft,
