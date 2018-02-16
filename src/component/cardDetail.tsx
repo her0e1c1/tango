@@ -5,11 +5,16 @@ import { connect } from 'react-redux';
 import CardView from './cardView';
 import * as SD from './styled';
 import * as I from 'src/interface';
+import { withNavigation } from 'react-navigation';
 
+@withNavigation
 class CardDetail extends React.Component<
   Props & { onLongPress: Callback },
   {}
 > {
+  static navigationOptions = () => ({
+    gesturesEnabled: false,
+  });
   componentDidMount() {
     RN.StatusBar.setHidden(true);
   }
@@ -17,8 +22,10 @@ class CardDetail extends React.Component<
     RN.StatusBar.setHidden(false);
   }
   render() {
+    const { deck_id } = this.props.navigation.state.params;
     const window = RN.Dimensions.get('window');
     const height = window.height;
+    const card = Action.getCurrentCard(this.props.state, deck_id);
     return (
       <RN.Modal
         animationType={'none'}
@@ -28,7 +35,7 @@ class CardDetail extends React.Component<
       >
         <RN.TouchableWithoutFeedback onLongPress={this.props.onLongPress}>
           <RN.View style={{ flex: 1 }}>
-            <CardView card={this.props.card} />
+            <CardView card={card} />
             <SD.SideControl
               style={{ left: 0, height }}
               onPress={() => this.props.goToPrevCard()}
@@ -46,13 +53,9 @@ class CardDetail extends React.Component<
   }
 }
 
-const mapStateToProps = (state: RootState) => ({
-  state,
-  card: Action.getCurrentCard(state) || ({} as Card),
-});
+const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
-  goTo: Action.goTo,
   goToNextCard: Action.goToNextCard,
   goToPrevCard: Action.goToPrevCard,
 };
