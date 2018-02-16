@@ -5,7 +5,8 @@ export const Container = styled(RN.View)`
   flex: 1;
   background-color: ${({ theme }: AppContext) => theme.mainBackgroundColor};
   padding-top: 20; /* space for ios status bar */
-  padding: 10px 0px;
+  padding-left: 10px;
+  padding-right: 10px;
 `;
 
 export const DeckCard = styled(RN.View)`
