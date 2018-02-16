@@ -12,8 +12,7 @@ import * as Selector from 'src/selector';
 @withNavigation
 export class CardList extends React.Component<Props, {}> {
   render() {
-    const { deck_id } = this.props.navigation.state.params;
-    const cards = Selector.getCardList(this.props.state, deck_id);
+    const cards = Selector.getCurrentCardList(this.props.state);
     if (cards.length <= 0) {
       return (
         <RN.View
@@ -25,7 +24,7 @@ export class CardList extends React.Component<Props, {}> {
     }
     return (
       <RN.FlatList
-        data={cards.filter(x => !!x).map((item, index) => ({
+        data={cards.map((item, index) => ({
           ...item,
           key: item.id,
         }))}
@@ -65,7 +64,6 @@ export class CardList extends React.Component<Props, {}> {
                   }
                   this.props.updateConfig({ cardIndex });
                 }}
-                // onPress={() => this.props.goTo({ card: item, index })}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
                 <SD.CardTitle>{item.name}</SD.CardTitle>

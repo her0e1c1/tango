@@ -44,7 +44,7 @@ class View extends React.Component<
     const { deck_id } = this.props.navigation.state.params;
     const width = this.state.width;
     const height = this.state.height;
-    const cards = Action.getCardList(this.props.state, deck_id);
+    const cards = Action.getCurrentCardList(this.props.state);
     const { cardIndex } = this.props.state.config;
     if (cardIndex < 0 || cards.length <= cardIndex) {
       return null;

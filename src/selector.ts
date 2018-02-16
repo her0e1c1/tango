@@ -10,19 +10,15 @@ export const getCardList = (state: RootState, deck_id: number) => {
 };
 
 export const getCurrentCard = (state: RootState): Card => {
-  const r = state.nav.routes[state.nav.index];
-  const deck_id = r && r.params && r.params.deck_id;
-  const cards = getCurrentCardList(state, deck_id);
+  const cards = getCurrentCardList(state);
   if (state.config.cardIndex >= 0) {
     return cards[state.config.cardIndex];
   }
   return {} as Card;
 };
-export const getCurrentCardList = (
-  state: RootState,
-  deck_id: number
-): Card[] => {
+export const getCurrentCardList = (state: RootState): Card[] => {
   const config = state.config;
+  const deck_id = getCurrentDeck(state).id;
   if (deck_id) {
     const ids = state.card.byDeckId[deck_id] || [];
     const cards = ids
