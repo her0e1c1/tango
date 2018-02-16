@@ -29,7 +29,12 @@ type CardState = {
   byDeckId: { [key: string]: number[] };
 };
 
-type NavState = { deck?: Deck; card?: Card; index?: number };
+interface Route {
+  key: string;
+  routeName: string;
+  params?: any;
+}
+type NavState = { index: number; routes: Route[] };
 
 type themeType = 'default' | 'dark' | 'debug';
 
@@ -61,6 +66,7 @@ type ConfigState = {
   theme: themeType;
   isLoading: boolean;
   errorCode?: errorCode;
+  cardIndex: number;
   cardSwipeUp: cardSwipe;
   cardSwipeDown: cardSwipe;
   cardSwipeLeft: cardSwipe;
