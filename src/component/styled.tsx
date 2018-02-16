@@ -38,7 +38,7 @@ export const SettingsItem = styled(RN.View)`
   justify-content: space-between;
   align-items: center;
   background-color: ${({ theme }: AppContext) => theme.cardBackgroundColor};
-  padding: 10px 10px;
+  padding: 10px;
   border-bottom-width: 1px;
   border-style: solid;
 `;

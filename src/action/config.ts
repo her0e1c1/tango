@@ -36,7 +36,7 @@ export const getTheme = (state: RootState): Theme => {
       titleColor: 'white',
       cardBorderColor: 'white',
       cardBackgroundColor: 'white',
-      circleBackgroundColor: 'white',
+      circleBackgroundColor: '#DEE2E6',
     };
   }
 };
