@@ -11,7 +11,7 @@ import RootTabs from './component';
 import store from './store';
 import * as Action from 'src/action';
 
-@connect((state: RootState) => ({ state }), {})
+@connect((state: RootState) => ({ state }))
 class Wrap extends React.Component {
   componentDidMount() {
     store.dispatch(Action.auth.init());
@@ -27,8 +27,9 @@ class Wrap extends React.Component {
 
 export default () => (
   <Provider store={store}>
-    <PersistGate loading={null} persistor={persistStore(store)}>
+    <Wrap />
+    {/*<PersistGate loading={null} persistor={persistStore(store)}>
       <Wrap />
-    </PersistGate>
+    </PersistGate>*/}
   </Provider>
 );
