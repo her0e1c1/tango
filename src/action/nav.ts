@@ -4,6 +4,7 @@ import { getCurrentCard } from 'src/selector';
 export * from 'src/selector';
 import { toggleMastered } from './card';
 import { updateConfig } from './config';
+import { NavigationActions } from 'react-navigation';
 
 export const shuffleCardsOrSort = (): I.ThunkAction => async (
   dispatch,
@@ -44,16 +45,19 @@ export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
   if (cardIndex >= 0) {
     await dispatch(updateConfig({ cardIndex }));
   } else {
-    await dispatch({ type: 'Navigation/BACK' });
+    await dispatch(goBack());
   }
 };
 
 export const goHome = (): I.ThunkAction => async (dispatch, getState) => {
-  dispatch({ type: 'NAV_HOME' });
+  const { routes } = getState().nav;
+  for (let i = 0; i < routes.length - 1; i++) {
+    dispatch(NavigationActions.back());
+  }
 };
 
 export const goBack = () => async (dispatch, getState) => {
-  await dispatch({ type: 'Navigation/BACK' });
+  await dispatch(NavigationActions.back());
 };
 
 const swipeMapping = {
