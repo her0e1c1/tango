@@ -34,14 +34,18 @@ export const goToNextCardMastered = () => goToNextCardSetMastered(true);
 
 export const goToNextCard = (): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
-  const nav = { index: state.nav.index + 1 };
-  dispatch(goTo(nav));
+  const cardIndex = state.config.cardIndex + 1;
+  await dispatch(updateConfig({ cardIndex }));
 };
 
 export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
-  const nav = { index: state.nav.index - 1 };
-  dispatch(goTo(nav));
+  const cardIndex = state.config.cardIndex - 1;
+  if (cardIndex >= 0) {
+    await dispatch(updateConfig({ cardIndex }));
+  } else {
+    await dispatch({ type: 'Navigation/BACK' });
+  }
 };
 
 export const goHome = (): I.ThunkAction => async (dispatch, getState) => {
@@ -49,26 +53,7 @@ export const goHome = (): I.ThunkAction => async (dispatch, getState) => {
 };
 
 export const goBack = () => async (dispatch, getState) => {
-  const { deck, card, index }: NavState = getState().nav;
-  let nav = {};
-  if (index) {
-    nav = { deck };
-  } else if (card) {
-    nav = { deck };
-  }
-  dispatch({ type: 'NAV_GO_BACK', payload: { nav } });
-};
-
-export const goTo = (nav: NavState): I.ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const { index } = nav;
-  if (index === undefined || 0 <= index) {
-    dispatch({ type: 'NAV_GO_TO', payload: { nav } });
-  } else if (index < 0) {
-    dispatch(goBack());
-  }
+  await dispatch({ type: 'Navigation/BACK' });
 };
 
 const swipeMapping = {
@@ -80,22 +65,26 @@ const swipeMapping = {
   goToNextCardToggleMastered,
 };
 
-const cardSwipe = (direction): I.ThunkAction => async (dispatch, getState) => {
+const cardSwipe = (direction, index: number): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  await dispatch(updateConfig({ cardIndex: index }));
   const config = getState().config;
   if (config.hideBodyWhenCardChanged) {
-    dispatch(updateConfig({ showBody: false }));
+    await dispatch(updateConfig({ showBody: false }));
   }
   const f = swipeMapping[config[direction]];
   if (f) {
-    dispatch(f());
+    await dispatch(f());
   } else {
     console.log(`${direction} action is not found`);
   }
 };
-export const cardSwipeUp = () => cardSwipe('cardSwipeUp');
-export const cardSwipeDown = () => cardSwipe('cardSwipeDown');
-export const cardSwipeLeft = () => cardSwipe('cardSwipeLeft');
-export const cardSwipeRight = () => cardSwipe('cardSwipeRight');
+export const cardSwipeUp = (i: number) => cardSwipe('cardSwipeUp', i);
+export const cardSwipeDown = (i: number) => cardSwipe('cardSwipeDown', i);
+export const cardSwipeLeft = (i: number) => cardSwipe('cardSwipeLeft', i);
+export const cardSwipeRight = (i: number) => cardSwipe('cardSwipeRight', i);
 
 export const clearAll = () => async (dispatch, getState) => {
   dispatch({ type: 'CLEAR_ALL' });
