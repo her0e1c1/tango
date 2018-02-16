@@ -42,6 +42,7 @@ interface Theme {
   mainBackgroundColor: string;
   mainColor: string;
   titleColor: string;
+  masteredColor: string;
   cardBackgroundColor: string;
   cardBorderColor: string;
   circleBackgroundColor: string;

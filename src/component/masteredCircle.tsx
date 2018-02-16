@@ -5,9 +5,9 @@ import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
 
-export const Circle = styled(RN.View)`
+const Circle = styled(RN.View)`
   background-color: ${({ theme, mastered }: AppContext) =>
-    mastered ? '#51CF66' : theme.circleBackgroundColor};
+    mastered ? theme.masteredColor : theme.circleBackgroundColor};
   width: 20px;
   height: 20px;
   border-radius: 20px;

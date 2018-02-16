@@ -2,9 +2,10 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as I from 'src/interface';
-import * as Action from 'src/action';
 import * as Selector from 'src/selector';
+import { withTheme } from 'styled-components';
 
+@withTheme
 class ProgressBar extends React.Component<
   Props & { deck_id: number; showCardIndex?: boolean },
   {}
@@ -33,7 +34,7 @@ class ProgressBar extends React.Component<
           style={{
             height: 20,
             width: `${width}%`,
-            backgroundColor: '#51CF66',
+            backgroundColor: this.props.theme.masteredColor,
           }}
         />
         <RN.View
