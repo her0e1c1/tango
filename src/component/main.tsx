@@ -1,4 +1,6 @@
 import * as Action from 'src/action';
+import * as RN from 'react-native';
+import SearchBar from './searchBar';
 import * as I from 'src/interface';
 import * as React from 'react';
 import CardList from './cardList';
@@ -8,31 +10,72 @@ import Header from './header';
 import { connect } from 'react-redux';
 import { Container } from './styled';
 import { LoadingIcon } from './utils';
+import { StackNavigator } from 'react-navigation';
+import { addNavigationHelpers } from 'react-navigation';
+import { createReduxBoundAddListener } from 'react-navigation-redux-helpers';
+
+const wrap = C => () => (
+  <Container>
+    <Header />
+    <C />
+  </Container>
+);
+
+const Home = ({ state }: { state: RootState }) => (
+  <RN.View>
+    {state.config.isLoading && <LoadingIcon />}
+    <SearchBar />
+    <RN.View style={{ margin: 5 }} />
+    <DeckList />
+  </RN.View>
+);
+
+export const Root = StackNavigator(
+  {
+    home: { screen: wrap(connect(state => ({ state }))(Home)) },
+    deck: { screen: wrap(CardList) },
+    card: { screen: wrap(DeckSwiper) },
+  },
+  { initialRouteName: 'home', navigationOptions: { header: null } }
+);
+
+const defaultGetStateForAction = Root.router.getStateForAction;
+
+Root.router.getStateForAction = (action, state) => {
+  // console.log(action, state);
+  if (action && action.routeName == 'deck' && action.params.deck_id) {
+    const deck_id = action.params.deck_id;
+    const routes = [
+      ...state.routes,
+      {
+        key: `deck/${deck_id}`,
+        routeName: 'deck',
+        params: { deck_id },
+      },
+    ];
+    return {
+      ...state,
+      routes,
+      index: routes.length - 1,
+    };
+  }
+  return defaultGetStateForAction(action, state);
+};
 
 class Main extends React.Component<Props, {}> {
-  async componentDidMount() {
-    await this.props.selectDeck();
-    await this.props.selectCard();
-  }
   render() {
-    const { nav, config } = this.props.state;
-    return (
-      <Container>
-        {config.isLoading && <LoadingIcon />}
-        <Header />
-        {nav.deck && nav.index !== undefined && <DeckSwiper />}
-        {nav.deck && nav.index === undefined && <CardList />}
-        {!nav.deck && <DeckList />}
-      </Container>
-    );
+    const addListener = createReduxBoundAddListener('root');
+    const navigation = addNavigationHelpers({
+      dispatch: this.props.dispatch,
+      state: this.props.state.nav,
+      addListener,
+    });
+    return <Root navigation={navigation} />;
   }
 }
 
 const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {
-  selectCard: Action.selectCard,
-  selectDeck: Action.deck.select,
-};
+const mapDispatchToProps = {};
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps, mapDispatchToProps)(Main);
+export default connect(mapStateToProps)(Main);
