@@ -9,11 +9,11 @@ export const updateConfig = (config: Partial<ConfigState>) => async (
 };
 
 export const startLoading = () => async (dispatch, getState) => {
-  dispatch({ type: 'CONFIG', payload: { config: { isLoading: true } } });
+  dispatch(updateConfig({ isLoading: true }));
 };
 
 export const endLoading = () => async (dispatch, getState) => {
-  dispatch({ type: 'CONFIG', payload: { config: { isLoading: false } } });
+  dispatch(updateConfig({ isLoading: false }));
 };
 
 export const clearError = () => async (dispatch, getState) => {
@@ -47,8 +47,8 @@ export const getTheme = (state: RootState): Theme => {
 };
 
 export const clearAll = () => async (dispatch, getState) => {
-  dispatch({ type: 'CLEAR_ALL' });
-  RN.AsyncStorage.clear();
+  await dispatch({ type: 'CLEAR_ALL' });
+  await RN.AsyncStorage.clear();
 };
 
 export const checkVersion = (current): I.ThunkAction => async (
