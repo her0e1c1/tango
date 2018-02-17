@@ -40,6 +40,7 @@ export const init = (): I.ThunkAction => async (dispatch, getState) => {
         .set(firebase.database.ServerValue.TIMESTAMP);
       dispatch({ type: 'USER_INIT', payload: user });
     } else {
+      dispatch({ type: 'USER_LOGOUT' });
       console.log('NOT LOGGED IN YET');
     }
   });
