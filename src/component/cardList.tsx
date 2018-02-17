@@ -18,7 +18,9 @@ export class CardList extends React.Component<Props, {}> {
         <RN.View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
-          <SD.CardTitle>NO CARDS</SD.CardTitle>
+          <SD.CardTitle>
+            NO CARDS {`start from ${this.props.state.config.start}`}
+          </SD.CardTitle>
         </RN.View>
       );
     }
