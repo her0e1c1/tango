@@ -40,7 +40,6 @@ const mappingCategory = {
 };
 const knownCategory = mathCategory.concat(Object.keys(mappingCategory));
 
-@withTheme
 class CardView extends React.Component<
   Props & { card: Card } & AppContext,
   {}
@@ -109,4 +108,6 @@ const mapStateToProps = (state: RootState) => ({ state });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {};
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps, mapDispatchToProps)(CardView);
+export default withTheme(
+  connect(mapStateToProps, mapDispatchToProps)(CardView)
+);
