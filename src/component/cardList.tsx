@@ -48,21 +48,11 @@ export class CardList extends React.Component<Props, {}> {
                   paddingVertical: 10,
                 }}
                 onPress={() => {
+                  this.props.goToCard(item);
                   this.props.navigation.navigate('card', {
                     card_id: item.id,
                     deck_id: item.deck_id,
                   });
-                  const cards = Action.getCardList(
-                    this.props.state,
-                    item.deck_id
-                  );
-                  let cardIndex = 0;
-                  for (let i = 0; i < cards.length; i++) {
-                    if (cards[i].id == item.id) {
-                      cardIndex = i;
-                    }
-                  }
-                  this.props.updateConfig({ cardIndex });
                 }}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
@@ -81,7 +71,7 @@ const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {
   deleteCard: Action.deleteCard,
   toggle: Action.toggleMastered,
-  updateConfig: Action.updateConfig,
+  goToCard: Action.nav.goToCard,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(CardList);

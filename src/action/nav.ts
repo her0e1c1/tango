@@ -1,6 +1,7 @@
 import * as I from 'src/interface';
 import { getCurrentCard } from 'src/selector';
 export * from 'src/selector';
+import * as Selector from 'src/selector';
 import { toggleMastered } from './card';
 import { updateConfig } from './config';
 import { NavigationActions } from 'react-navigation';
@@ -46,6 +47,20 @@ export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
   } else {
     await dispatch(goBack());
   }
+};
+
+export const goToCard = (card: Card): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  const cards = Selector.getCurrentCardList(getState());
+  let cardIndex = 0;
+  for (let i = 0; i < cards.length; i++) {
+    if (cards[i].id == card.id) {
+      cardIndex = i;
+    }
+  }
+  dispatch(updateConfig({ cardIndex }));
 };
 
 export const goHome = (): I.ThunkAction => async (dispatch, getState) => {
