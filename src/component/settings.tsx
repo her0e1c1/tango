@@ -108,7 +108,14 @@ export class Settings extends React.Component<Props, {}> {
               title="Clear"
               onPress={() => {
                 RN.Alert.alert('Are you sure?', '', [
-                  { text: 'OK', onPress: () => this.props.clearAll() },
+                  {
+                    text: 'CLEAR ALL',
+                    onPress: () => this.props.clearAll(true),
+                  },
+                  {
+                    text: 'CLEAR (keep login)',
+                    onPress: () => this.props.clearAll(),
+                  },
                   { text: 'Cancel', onPress: () => {} },
                 ]);
               }}
