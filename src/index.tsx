@@ -20,7 +20,7 @@ const Theme = connect(state => ({ state }))(({ state }) => (
 class Main extends React.Component {
   componentDidMount() {
     store.dispatch(Action.auth.init());
-    store.dispatch(Action.checkVersion(3));
+    store.dispatch(Action.config.checkVersion(3));
   }
   render() {
     return (
