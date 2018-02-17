@@ -54,12 +54,14 @@ class View extends React.Component<
       <CardDetail onLongPress={() => this.setState({ visible: false })} />
     ) : (
       <RN.View style={{ flex: 1 }}>
-        <RN.View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-          {card && <MasteredCircle card={card} />}
-          <RN.View style={{ flex: 1 }}>
-            <ProgressBar deck_id={deck_id} showCardIndex />
+        {this.props.state.config.showHeader && (
+          <RN.View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+            {card && <MasteredCircle card={card} />}
+            <RN.View style={{ flex: 1 }}>
+              <ProgressBar deck_id={deck_id} showCardIndex />
+            </RN.View>
           </RN.View>
-        </RN.View>
+        )}
         <RN.View style={{ marginTop: 5 }}>
           {/* I think DeckSwiper position is absolute */}
           <DeckSwiper

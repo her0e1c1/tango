@@ -11,9 +11,6 @@ class ProgressBar extends React.Component<
   {}
 > {
   render() {
-    if (!this.props.state.config.showHeader) {
-      return null;
-    }
     const deck_id = this.props.deck_id;
     const index = this.props.showCardIndex
       ? `(${this.props.state.config.cardIndex})`
