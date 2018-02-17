@@ -1,7 +1,8 @@
 import card from './card';
-import deck from './deck';
 import config from './config';
+import deck from './deck';
 import nav from './nav';
+import share from './share';
 import user from './user';
 
-export default { card, deck, config, nav, user };
+export default { card, deck, config, nav, share, user };
