@@ -5,7 +5,6 @@ import { bulkInsertCards } from './card';
 import { startLoading, endLoading } from './config';
 import * as Selector from 'src/selector';
 import * as Action from 'src/action';
-
 const Papa = require('papaparse');
 
 export const tryInsertByURL = (text: string) => async (dispatch, getState) => {
