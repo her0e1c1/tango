@@ -59,12 +59,15 @@ class CardList extends React.Component<{ state: RootState } & { deck: Deck }> {
     this.props.dispatch(Action.share.fetchCardsByDeckId(deck.id));
   }
   render() {
+    const { deck } = this.props.navigation.state.params;
     const uid = this.props.state.user.uid;
     const cards = Object.values(this.props.state.share.user[uid].card.byId);
     return (
       <SD.Container>
         <RN.FlatList
-          data={cards.filter(x => !!x).map((d, key) => ({ ...d, key }))}
+          data={cards
+            .filter(x => !!x && x.deck_id === deck.id)
+            .map((d, key) => ({ ...d, key }))}
           renderItem={({ item }: { item: Card }) => (
             <RN.TouchableOpacity
               onPress={() =>

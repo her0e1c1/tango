@@ -34,7 +34,6 @@ export const deleteDeck = (deck_id: number): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  console.log('del', deck_id);
   const { uid } = getState().user;
   firebase
     .database()
@@ -51,10 +50,10 @@ export const deleteDeck = (deck_id: number): I.ThunkAction => async (
       const cards = Object.values(v) as Card[];
       cards.forEach(c => (data[`/user/${uid}/card/${c.id}`] = null));
       data[`/user/${uid}/deck/${deck_id}`] = null;
-      console.log(data);
       firebase
         .database()
         .ref()
         .update(data);
+      dispatch({ type: 'SHARE_DECK_BULK_DELETE', payload: { deck_id, uid } });
     });
 };
