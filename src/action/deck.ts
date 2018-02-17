@@ -142,6 +142,7 @@ export const importFromFireBase = (deck_id: number): I.ThunkAction => async (
 ) => {
   const { uid } = getState().user;
   if (uid) {
+    await dispatch(startLoading());
     firebase
       .database()
       .ref(`/user/${uid}/deck/${deck_id}`)
@@ -157,8 +158,12 @@ export const importFromFireBase = (deck_id: number): I.ThunkAction => async (
             const v = snapshot.val();
             const cards = Object.values(v) as Card[];
             await dispatch(Action.bulkInsertCards(id, cards));
+            await dispatch(endLoading());
           })
-          .catch(e => console.log(e));
+          .catch(e => {
+            dispatch(endLoading());
+            console.log(e);
+          });
       });
   } else {
     alert('NOT LOGGED IN YET');

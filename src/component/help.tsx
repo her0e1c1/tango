@@ -2,11 +2,11 @@ import * as Action from 'src/action';
 import * as Selector from 'src/selector';
 import * as React from 'react';
 import * as RN from 'react-native';
-import * as I from 'src/interface';
 import * as SD from './styled';
 import { connect } from 'react-redux';
 import { StackNavigator } from 'react-navigation';
 import { withNavigation } from 'react-navigation';
+import { LoadingIcon } from './utils';
 import CardView from './cardView';
 
 @withNavigation
@@ -19,6 +19,7 @@ class DeckList extends React.Component<{ state: RootState }, {}> {
     const decks = Selector.getMyDecks(this.props.state);
     return (
       <SD.Container>
+        {this.props.state.config.isLoading && <LoadingIcon />}
         <RN.FlatList
           data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
           renderItem={({ item }: { item: Deck }) => (
@@ -36,6 +37,12 @@ class DeckList extends React.Component<{ state: RootState }, {}> {
                 }}
               >
                 <SD.DeckTitle>{item.name}</SD.DeckTitle>
+                <RN.Button
+                  title="+"
+                  onPress={() =>
+                    this.props.dispatch(Action.deck.importFromFireBase(item.id))
+                  }
+                />
                 <RN.Button
                   title="DEL"
                   onPress={() =>
