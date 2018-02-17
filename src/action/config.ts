@@ -46,9 +46,12 @@ export const getTheme = (state: RootState): Theme => {
   }
 };
 
-export const clearAll = () => async (dispatch, getState) => {
+export const clearAll = (clearStorage?: boolean) => async (
+  dispatch,
+  getState
+) => {
+  clearStorage && (await RN.AsyncStorage.clear());
   await dispatch({ type: 'CLEAR_ALL' });
-  await RN.AsyncStorage.clear();
 };
 
 export const checkVersion = (current): I.ThunkAction => async (
