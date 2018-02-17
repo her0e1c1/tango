@@ -72,7 +72,6 @@ const cardSwipe = (direction, index: number): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  await dispatch(updateConfig({ cardIndex: index }));
   const config = getState().config;
   if (config.hideBodyWhenCardChanged) {
     await dispatch(updateConfig({ showBody: false }));
