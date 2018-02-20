@@ -16,9 +16,6 @@ class DeckList extends React.Component<
   { refreshing: boolean }
 > {
   state = { refreshing: false };
-  componentDidMount() {
-    this.props.dispatch(Action.share.fetchDecks());
-  }
   render() {
     const decks = Selector.getMyDecks(this.props.state);
     return (

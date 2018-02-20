@@ -2,6 +2,7 @@ import * as Expo from 'expo';
 import * as I from 'src/interface';
 import * as C from 'src/constant';
 import * as firebase from 'firebase';
+import * as Action from 'src/action';
 
 export const loginWithGoogle = (): I.ThunkAction => async (
   dispatch,
@@ -54,14 +55,15 @@ export const loginWithFacebook = (): I.ThunkAction => async (
 };
 
 export const init = (): I.ThunkAction => async (dispatch, getState) => {
-  firebase.auth().onAuthStateChanged(user => {
+  firebase.auth().onAuthStateChanged(async user => {
     if (user != null) {
       firebase
         .database()
         .ref(`/user/${user.uid}/lastOnline`)
         .onDisconnect()
         .set(firebase.database.ServerValue.TIMESTAMP);
-      dispatch({ type: 'USER_INIT', payload: user });
+      await dispatch({ type: 'USER_INIT', payload: user });
+      await dispatch(Action.share.fetchDecks());
     } else {
       dispatch({ type: 'USER_LOGOUT' });
       console.log('NOT LOGGED IN YET');
