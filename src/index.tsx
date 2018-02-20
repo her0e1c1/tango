@@ -25,11 +25,14 @@ class Main extends React.Component {
   render() {
     return (
       <Provider store={store}>
-        <PersistGate loading={<LoadingIcon />} persistor={persistStore(store)}>
           <Theme />
-        </PersistGate>
       </Provider>
     );
   }
 }
 export default Main;
+/*
+        <PersistGate loading={<LoadingIcon />} persistor={persistStore(store)}>
+          <Theme />
+        </PersistGate>
+*/
