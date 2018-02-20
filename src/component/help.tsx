@@ -28,6 +28,7 @@ class DeckList extends React.Component<
             await this.setState({ refreshing: false });
           }}
           refreshing={this.state.refreshing}
+          ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
           renderItem={({ item }: { item: Deck }) => (
             <RN.TouchableOpacity
               onPress={() =>

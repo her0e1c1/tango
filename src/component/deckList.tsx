@@ -46,6 +46,7 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
           await this.setState({ refreshing: false });
         }}
         refreshing={this.state.refreshing}
+        ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
         renderItem={({ item }: { item: Deck }) => {
           return (
             <Swipeout
