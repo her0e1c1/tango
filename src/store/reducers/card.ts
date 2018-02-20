@@ -4,6 +4,7 @@ import * as Redux from 'redux';
 const updateCard = (state: CardState, cards: Card[]) => {
   const ns = _.clone(state);
   cards.forEach(c => {
+    c.category === undefined && (c.category = null); // firebase can not store undefined ...
     ns.byId[c.id] = c;
     const ids = ns.byDeckId[c.deck_id];
     if (!ids) {
