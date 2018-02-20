@@ -3,6 +3,29 @@ import * as I from 'src/interface';
 import * as C from 'src/constant';
 import * as firebase from 'firebase';
 
+export const loginWithGoogle = (): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  const result = await Expo.Google.logInAsync({
+    androidClientId: C.GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: C.GOOGLE_IOS_CLIENT_ID,
+    scopes: ['profile', 'email'],
+  });
+  const { type, idToken } = result;
+  if (type === 'success') {
+    const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
+    firebase
+      .auth()
+      .signInWithCredential(credential)
+      .catch(error => {
+        console.log(error);
+      });
+  } else {
+    alert(`Can not login with Google account`);
+  }
+};
+
 export const loginWithFacebook = (): I.ThunkAction => async (
   dispatch,
   getState

@@ -26,7 +26,19 @@ export class Settings extends React.Component<Props, {}> {
             <SettingsText>Login</SettingsText>
             <RN.Button
               title={(user && user.displayName) || 'LOGIN'}
-              onPress={() => this.props.login()}
+              onPress={() =>
+                RN.Alert.alert('Choose account', '', [
+                  {
+                    text: 'Facebook',
+                    onPress: () => this.props.loginWithFacebook(),
+                  },
+                  {
+                    text: 'Google',
+                    onPress: () => this.props.loginWithGoogle(),
+                  },
+                  { text: 'Cancel', onPress: () => {} },
+                ])
+              }
             />
           </SettingsItem>
 
@@ -158,7 +170,8 @@ const mapDispatchToProps = {
   update: Action.config.updateConfig,
   shuffle: Action.shuffleCardsOrSort,
   clearAll: Action.config.clearAll,
-  login: Action.auth.loginWithFacebook,
+  loginWithFacebook: Action.auth.loginWithFacebook,
+  loginWithGoogle: Action.auth.loginWithGoogle,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(Settings);
