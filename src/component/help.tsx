@@ -11,7 +11,11 @@ import CardView from './cardView';
 
 @withNavigation
 @connect(state => ({ state }))
-class DeckList extends React.Component<{ state: RootState }, {}> {
+class DeckList extends React.Component<
+  { state: RootState },
+  { refreshing: boolean }
+> {
+  state = { refreshing: false };
   componentDidMount() {
     this.props.dispatch(Action.share.fetchDecks());
   }
@@ -22,6 +26,11 @@ class DeckList extends React.Component<{ state: RootState }, {}> {
         {this.props.state.config.isLoading && <LoadingIcon />}
         <RN.FlatList
           data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
+          onRefresh={async () => {
+            await this.props.dispatch(Action.share.fetchDecks());
+            await this.setState({ refreshing: false });
+          }}
+          refreshing={this.state.refreshing}
           renderItem={({ item }: { item: Deck }) => (
             <RN.TouchableOpacity
               onPress={() =>
