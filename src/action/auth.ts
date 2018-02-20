@@ -68,3 +68,7 @@ export const init = (): I.ThunkAction => async (dispatch, getState) => {
     }
   });
 };
+
+export const logout = (): I.ThunkAction => async (dispatch, getState) => {
+  dispatch({ type: 'USER_LOGOUT' });
+};

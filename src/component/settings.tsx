@@ -16,28 +16,41 @@ const cardSwipeTypes: cardSwipe[] = [
   'goToNextCardToggleMastered',
 ];
 
+const handleLogin = props =>
+  RN.Alert.alert('Choose account', '', [
+    {
+      text: 'Facebook',
+      onPress: () => props.loginWithFacebook(),
+    },
+    {
+      text: 'Google',
+      onPress: () => props.loginWithGoogle(),
+    },
+    { text: 'Cancel', onPress: () => {} },
+  ]);
+
+const handleLogout = props =>
+  RN.Alert.alert('Do you want to logout?', '', [
+    {
+      text: 'Logout',
+      onPress: () => props.logout(),
+    },
+    { text: 'Cancel', onPress: () => {} },
+  ]);
+
 export class Settings extends React.Component<Props, {}> {
   render() {
     const { config, user } = this.props.state;
+    const isLogin = user && user.displayName;
     return (
       <Container>
         <RN.ScrollView>
           <SettingsItem>
             <SettingsText>Login</SettingsText>
             <RN.Button
-              title={(user && user.displayName) || 'LOGIN'}
+              title={isLogin ? user.displayName! : 'LOGIN'}
               onPress={() =>
-                RN.Alert.alert('Choose account', '', [
-                  {
-                    text: 'Facebook',
-                    onPress: () => this.props.loginWithFacebook(),
-                  },
-                  {
-                    text: 'Google',
-                    onPress: () => this.props.loginWithGoogle(),
-                  },
-                  { text: 'Cancel', onPress: () => {} },
-                ])
+                !isLogin ? handleLogin(this.props) : handleLogout(this.props)
               }
             />
           </SettingsItem>
@@ -172,6 +185,7 @@ const mapDispatchToProps = {
   clearAll: Action.config.clearAll,
   loginWithFacebook: Action.auth.loginWithFacebook,
   loginWithGoogle: Action.auth.loginWithGoogle,
+  logout: Action.auth.logout,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(Settings);
