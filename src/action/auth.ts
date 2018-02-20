@@ -19,6 +19,7 @@ export const loginWithGoogle = (): I.ThunkAction => async (
     firebase
       .auth()
       .signInWithCredential(credential)
+      .then(() => dispatch(init()))
       .catch(error => {
         console.log(error);
       });
@@ -45,6 +46,7 @@ export const loginWithFacebook = (): I.ThunkAction => async (
       firebase
         .auth()
         .signInWithCredential(credential)
+        .then(() => dispatch(init()))
         .catch(error => {
           console.log(error);
         });
