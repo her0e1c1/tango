@@ -53,14 +53,3 @@ export const clearAll = (clearStorage?: boolean) => async (
   clearStorage && (await RN.AsyncStorage.clear());
   await dispatch({ type: 'CLEAR_ALL' });
 };
-
-export const checkVersion = (current): I.ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const { version } = getState().config;
-  if (current !== version) {
-    await dispatch(clearAll());
-    await dispatch(updateConfig({ version: current }));
-  }
-};

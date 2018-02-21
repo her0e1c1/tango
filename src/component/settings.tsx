@@ -6,6 +6,7 @@ import * as RN from 'react-native';
 import Header from './header';
 import { connect } from 'react-redux';
 import { Container, SettingsItem, SettingsText } from './styled';
+import { version } from 'punycode';
 
 const cardSwipeTypes: cardSwipe[] = [
   'goBack',
@@ -39,6 +40,12 @@ const handleLogout = props =>
   ]);
 
 export class Settings extends React.Component<Props, {}> {
+  state = { version: undefined };
+  componentDidMount() {
+    RN.AsyncStorage.getItem('version').then(version =>
+      this.setState({ version })
+    );
+  }
   render() {
     const { config, user } = this.props.state;
     const isLogin = user && user.displayName;
@@ -169,7 +176,7 @@ export class Settings extends React.Component<Props, {}> {
 
           <SettingsItem>
             <SettingsText>Version</SettingsText>
-            <SettingsText>{config.version}</SettingsText>
+            <SettingsText>{this.state.version || ''}</SettingsText>
           </SettingsItem>
         </RN.ScrollView>
       </Container>
