@@ -32,7 +32,7 @@ const checkUpdate = async (): Promise<boolean> => {
 
 class Main extends React.Component {
   async componentWillMount() {
-    if (checkUpdate()) {
+    if (await checkUpdate()) {
       await store.dispatch(Action.config.clearAll(true));
       // Set item after clear all otherwise version would also be cleared
       await RN.AsyncStorage.setItem('version', String(C.CURRENT_VERSION));
