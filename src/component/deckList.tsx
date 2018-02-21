@@ -82,7 +82,7 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
 
 const mapStateToProps = (state: RootState) => ({
   state,
-  decks: Object.values(state.deck),
+  decks: Object.values(state.deck.byId),
 });
 const _mapStateToProps = I.returntypeof(mapStateToProps);
 const mapDispatchToProps = {

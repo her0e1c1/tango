@@ -22,7 +22,7 @@ interface Card {
   tags: Tag[];
 }
 
-type DeckState = { [key: string]: Deck };
+type DeckState = { byId: { [key: string]: Deck } };
 
 type CardState = {
   byId: { [key: string]: Card };
