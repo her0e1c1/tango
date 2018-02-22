@@ -13,6 +13,7 @@ import { LoadingIcon } from './utils';
 import { StackNavigator } from 'react-navigation';
 import { addNavigationHelpers } from 'react-navigation';
 import { createReduxBoundAddListener } from 'react-navigation-redux-helpers';
+import { CardEdit } from './cardEdit';
 
 const wrap = C => () => (
   <Container>
@@ -35,6 +36,7 @@ export const Root = StackNavigator(
     home: { screen: wrap(connect(state => ({ state }))(Home)) },
     deck: { screen: wrap(CardList) },
     card: { screen: wrap(DeckSwiper) },
+    cardEdit: { screen: wrap(CardEdit) },
   },
   { initialRouteName: 'home', navigationOptions: { header: null } }
 );

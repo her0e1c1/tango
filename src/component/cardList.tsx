@@ -56,7 +56,9 @@ export class CardList extends React.Component<Props, {}> {
                     deck_id: item.deck_id,
                   });
                 }}
-                onLongPress={() => alert(JSON.stringify(item))}
+                onLongPress={() =>
+                  this.props.navigation.navigate('cardEdit', { card: item })
+                }
               >
                 <SD.CardTitle>{item.name}</SD.CardTitle>
               </RN.TouchableOpacity>

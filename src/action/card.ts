@@ -1,6 +1,26 @@
 import * as I from 'src/interface';
 import { db } from 'src/store/sqlite';
 
+export const updateCard = (card: Card): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  db.transaction(tx =>
+    tx.executeSql(
+      `update card set name = ?, body = ?, hint = ? where id = ?;`,
+      [card.name, card.body, card.hint, card.id],
+      (_, result) => {
+        if (result.rowsAffected === 1) {
+          dispatch({ type: 'BULK_INSERT', payload: { cards: [card] } });
+        } else {
+          alert('You can not update');
+        }
+      },
+      (...args) => alert(JSON.stringify(args))
+    )
+  );
+};
+
 export const deleteCard = (card: Card): I.ThunkAction => async (
   dispatch,
   getState
