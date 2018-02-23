@@ -22,6 +22,9 @@ export class Header extends React.Component<Props, {}> {
       return <RN.View />;
     }
     const showBackButton = this.props.state.nav.routes.length > 1;
+    const showPlusButton = ['deck', 'card'].includes(
+      this.props.navigation.state.routeName
+    );
     const card = Action.getCurrentCard(state);
     const deck = Action.getCurrentDeck(state);
     return (
@@ -33,20 +36,31 @@ export class Header extends React.Component<Props, {}> {
             marginBottom: 5,
           }}
         >
-          <RN.View style={{ flexDirection: 'row' }}>
-            <MainText>TANGO {deck && deck.name && `[${deck.name}]`}</MainText>
-            {card &&
-              card.category && (
-                <SD.CardCategory>{card.category}</SD.CardCategory>
-              )}
-          </RN.View>
           {showBackButton && (
             <RN.TouchableOpacity
               onPress={() => this.props.navigation.goBack()}
               onLongPress={() => this.props.goHome()}
             >
-              <MainText>{'< BACK'}</MainText>
+              <MainText>{'<'}</MainText>
             </RN.TouchableOpacity>
+          )}
+          <RN.View style={{ flexDirection: 'row' }}>
+            <MainText>{deck && deck.name && `${deck.name}`}</MainText>
+            {card &&
+              card.category && (
+                <SD.CardCategory>{card.category}</SD.CardCategory>
+              )}
+          </RN.View>
+          {showPlusButton ? (
+            <RN.TouchableOpacity
+              onPress={() =>
+                this.props.navigation.navigate('cardNew', { deck_id: deck.id })
+              }
+            >
+              <MainText>{'+'}</MainText>
+            </RN.TouchableOpacity>
+          ) : (
+            <RN.View />
           )}
         </RN.View>
       </RN.View>
