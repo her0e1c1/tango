@@ -184,16 +184,11 @@ export class Settings extends React.Component<Props, {}> {
           </SettingsItem>
 
           <SettingsItem>
-            <SettingsText>Refresh Token</SettingsText>
             <RN.TouchableOpacity
               onPress={() => this.props.refresh()}
-              onLongPress={() =>
-                alert(
-                  `${config.googleAccessToken}(${config.googleRefreshToken})`
-                )
-              }
+              onLongPress={() => alert(config.googleRefreshToken)}
             >
-              <SettingsText>Refresh</SettingsText>
+              <SettingsText>Refresh: {config.googleAccessToken}</SettingsText>
             </RN.TouchableOpacity>
           </SettingsItem>
         </RN.ScrollView>
