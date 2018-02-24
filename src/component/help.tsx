@@ -105,9 +105,46 @@ const ShareView = props => (
   </SD.Container>
 );
 
+@withNavigation
+@connect(state => ({ state }))
+class DriveList extends React.Component<
+  { state: RootState },
+  { refreshing: boolean }
+> {
+  state = { refreshing: false };
+  componentDidMount() {
+    this.props.dispatch(Action.drive.getSpreadSheets());
+  }
+  render() {
+    const decks = Selector.getMyDrives(this.props.state);
+    return (
+      <SD.Container>
+        <RN.FlatList
+          data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
+          onRefresh={async () => {
+            await this.props.dispatch(Action.drive.getSpreadSheets());
+            await this.setState({ refreshing: false });
+          }}
+          refreshing={this.state.refreshing}
+          renderItem={({ item }: { item: Drive }) => (
+            <RN.TouchableOpacity
+              onPress={() =>
+                this.props.dispatch(Action.drive.importFromSpreadSheet(item))
+              }
+            >
+              <SD.DeckTitle>{item.title}</SD.DeckTitle>
+            </RN.TouchableOpacity>
+          )}
+        />
+      </SD.Container>
+    );
+  }
+}
+
 export const Root = StackNavigator(
   {
-    share: { screen: DeckList },
+    // share: { screen: DeckList },
+    share: { screen: DriveList },
     shareCards: { screen: CardList },
     shareView: { screen: withNavigation(ShareView) },
   },
