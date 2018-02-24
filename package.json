@@ -15,7 +15,7 @@
     "build:w": "yarn tsc:w",
     "login": "exp login",
     "status": "exp build:status",
-	"cln": "rm -fr ./dist && git checkout ./dist/package.json",
+    "cln": "rm -fr ./dist && git checkout ./dist/package.json",
     "test": "node node_modules/jest/bin/jest.js --watch"
   },
   "devDependencies": {
@@ -54,6 +54,7 @@
     "lodash": "^4.17.4",
     "native-base": "^2.3.7",
     "papaparse": "^4.3.6",
+    "query-string": "^5.1.0",
     "react": "16.0.0",
     "react-native": "0.50.3",
     "react-native-deck-swiper": "",
