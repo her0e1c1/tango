@@ -31,13 +31,21 @@ export const insertByURL = (url: string): I.ThunkAction => async (
   console.log(`FETCH START: ${url}`);
   const res = await fetch(url);
   const text = await res.text();
+  const name = url.split('/').pop() || 'sample';
+  await dispatch(insertByText(text, name, url));
+};
+
+export const insertByText = (
+  text: string,
+  name: string,
+  url?: string
+): I.ThunkAction => async (dispatch, getState) => {
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
   if (data.length === 0) {
     const errorCode: errorCode = 'NO_CARDS';
     await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
     return;
   }
-  const name = url.split('/').pop() || 'sample';
   const cards: Card[] = data.map(d => ({
     name: d[0],
     body: d[1],
