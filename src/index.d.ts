@@ -13,6 +13,9 @@ interface Drive {
   mimeType: 'application/vnd.google-apps.spreadsheet';
   modifiedDate: string;
   createdDate: string;
+  labels: {
+    trashed: boolean;
+  };
 }
 
 interface Tag {
