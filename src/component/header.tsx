@@ -47,7 +47,7 @@ export class Header extends React.Component<Props, {}> {
           <RN.View style={{ flexDirection: 'row' }}>
             <MainText>{deck && deck.name && `${deck.name}`}</MainText>
             {card &&
-              card.category && (
+              card.category != null && (
                 <SD.CardCategory>{card.category}</SD.CardCategory>
               )}
           </RN.View>
