@@ -24,6 +24,10 @@ const handleLogin = props =>
       onPress: () => props.loginWithFacebook(),
     },
     {
+      text: 'Google(with Drive)',
+      onPress: () => props.loginWithGoogleOnWeb(),
+    },
+    {
       text: 'Google',
       onPress: () => props.loginWithGoogle(),
     },
@@ -178,6 +182,20 @@ export class Settings extends React.Component<Props, {}> {
             <SettingsText>Version</SettingsText>
             <SettingsText>{this.state.version || ''}</SettingsText>
           </SettingsItem>
+
+          <SettingsItem>
+            <SettingsText>Refresh Token</SettingsText>
+            <RN.TouchableOpacity
+              onPress={() => this.props.refresh()}
+              onLongPress={() =>
+                alert(
+                  `${config.googleAccessToken}(${config.googleRefreshToken})`
+                )
+              }
+            >
+              <SettingsText>Refresh</SettingsText>
+            </RN.TouchableOpacity>
+          </SettingsItem>
         </RN.ScrollView>
       </Container>
     );
@@ -192,6 +210,8 @@ const mapDispatchToProps = {
   clearAll: Action.config.clearAll,
   loginWithFacebook: Action.auth.loginWithFacebook,
   loginWithGoogle: Action.auth.loginWithGoogle,
+  loginWithGoogleOnWeb: Action.auth.loginWithGoogleOnWeb,
+  refresh: Action.auth.refreshToken,
   logout: Action.auth.logout,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
