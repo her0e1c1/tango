@@ -16,6 +16,8 @@ export default (
     cardSwipeDown: 'goBack',
     cardSwipeLeft: 'goToPrevCard',
     cardSwipeRight: 'goToNextCardNotMastered',
+    googleAccessToken: undefined,
+    googleRefreshToken: undefined,
   },
   action: Redux.Action
 ): ConfigState => {
