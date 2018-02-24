@@ -21,7 +21,7 @@ export class CardEdit extends React.Component<
   render() {
     const card = this.state;
     return (
-      <RN.View>
+      <RN.ScrollView>
         <MasteredCircle card={card} />
         <RN.Text>Title:</RN.Text>
         <RN.TextInput
@@ -42,11 +42,6 @@ export class CardEdit extends React.Component<
           onChangeText={hint => this.setState({ hint })}
         />
         <RN.Button
-          color={'red'}
-          title="DUMP"
-          onPress={() => alert(JSON.stringify(card))}
-        />
-        <RN.Button
           color={this.props.theme.mainColor}
           title="UPDATE THIS CARD"
           onPress={async () => {
@@ -54,7 +49,7 @@ export class CardEdit extends React.Component<
             this.props.navigation.goBack();
           }}
         />
-      </RN.View>
+      </RN.ScrollView>
     );
   }
 }
