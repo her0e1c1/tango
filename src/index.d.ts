@@ -6,6 +6,15 @@ interface Deck {
   isPublic: boolean;
 }
 
+interface Drive {
+  id: number;
+  title: string;
+  alternateLink: string;
+  mimeType: 'application/vnd.google-apps.spreadsheet';
+  modifiedDate: string;
+  createdDate: string;
+}
+
 interface Tag {
   name: string;
 }
@@ -72,6 +81,8 @@ type ConfigState = {
   cardSwipeDown: cardSwipe;
   cardSwipeLeft: cardSwipe;
   cardSwipeRight: cardSwipe;
+  googleAccessToken?: string;
+  googleRefreshToken?: string;
 };
 
 interface ShareState {
@@ -88,6 +99,10 @@ interface UserState {
   displayName: string | null;
 }
 
+interface DriveState {
+  byId: { [key: string]: Drive };
+}
+
 interface RootState {
   deck: DeckState;
   card: CardState;
@@ -95,6 +110,7 @@ interface RootState {
   config: ConfigState;
   share: ShareState;
   user: UserState;
+  drive: DriveState;
 }
 
 type Callback = () => void;
