@@ -1,7 +1,7 @@
 import * as I from 'src/interface';
 import { exec } from 'src/store/sqlite';
 import * as firebase from 'firebase';
-import { bulkInsertCards } from './card';
+import { bulkInsertCards, bulkUpdateCards } from './card';
 import { startLoading, endLoading } from './config';
 import * as Selector from 'src/selector';
 import * as Action from 'src/action';
@@ -58,19 +58,16 @@ export const insertByText = (
   text: string,
   deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid'>
 ): I.ThunkAction => async (dispatch, getState) => {
-  let deck_id: number;
+  const cards = await dispatch(parseTextToCsv(text));
   if (deck.fkid) {
     const d = await dispatch(Action.deck.getByFkid(deck.fkid));
     if (!!d) {
-      deck_id = d.id;
-      await dispatch(update({ ...deck, id: deck_id }));
-    } else {
-      deck_id = await dispatch(insert(deck));
+      await dispatch(update({ ...deck, id: d.id }));
+      await dispatch(bulkUpdateCards(d.id, cards));
+      return;
     }
-  } else {
-    deck_id = await dispatch(insert(deck));
   }
-  const cards = await dispatch(parseTextToCsv(text));
+  const deck_id = await dispatch(insert(deck));
   await dispatch(bulkInsertCards(deck_id!, cards));
   console.log(`FETCH DONE ${deck_id}`);
 };
