@@ -41,6 +41,7 @@ export const insertByText = (
   url?: string
 ): I.ThunkAction => async (dispatch, getState) => {
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
+  console.log('PARSED');
   if (data.length === 0) {
     const errorCode: errorCode = 'NO_CARDS';
     await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
@@ -60,28 +61,25 @@ export const remove = (deck: Deck): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      `delete from deck where id = ?`,
-      [deck.id],
-      (_, result) => {
-        if (result.rowsAffected === 1) {
+  console.log(`REMOVE ${deck.id}`);
+  db.transaction(
+    tx => {
+      tx.executeSql(
+        `
+        delete from deck where id = ?;
+        delete from card where deck_id = ?;
+        `,
+        [deck.id, deck.id],
+        (_, result) => {
           dispatch({ type: 'DECK_DELETE', payload: { deck } });
-          tx.executeSql(
-            'delete from card where deck_id = ?',
-            [deck.id],
-            (_, result) => {
-              dispatch({ type: 'CARD_BULK_DELETE', payload: { deck } });
-            },
-            (...args) => alert(JSON.stringify(args))
-          );
-        } else {
-          alert('You can not delete');
-        }
-      },
-      (...args) => alert(JSON.stringify(args))
-    );
-  });
+          dispatch({ type: 'CARD_BULK_DELETE', payload: { deck } });
+        },
+        (...args) => alert(JSON.stringify(args))
+      );
+    },
+    (...args) => console.log(JSON.stringify(args)),
+    (...args) => console.log(JSON.stringify(args))
+  );
 };
 
 export const select = (limit: number = 50): I.ThunkAction => async (
