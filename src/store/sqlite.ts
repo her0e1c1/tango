@@ -55,7 +55,8 @@ export const createTables = async () => {
 };
 
 export const dropTables = async () => {
-  await exec('drop table deck; drop table card;');
+  await exec('drop table card');
+  await exec('drop table deck');
   await createTables();
 };
 

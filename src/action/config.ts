@@ -57,5 +57,5 @@ export const clearAll = (clearStorage?: boolean) => async (
 
 export const drop = (): I.ThunkAction => async (dispatch, getState) => {
   await dropTables();
-  await dispatch(clearAll());
+  await dispatch(clearAll(true));
 };
