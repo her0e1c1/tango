@@ -1,5 +1,6 @@
 import * as RN from 'react-native';
 import * as I from 'src/interface';
+import { dropTables } from 'src/store/sqlite';
 
 export const updateConfig = (config: Partial<ConfigState>) => async (
   dispatch,
@@ -52,4 +53,9 @@ export const clearAll = (clearStorage?: boolean) => async (
 ) => {
   clearStorage && (await RN.AsyncStorage.clear());
   await dispatch({ type: 'CLEAR_ALL' });
+};
+
+export const drop = (): I.ThunkAction => async (dispatch, getState) => {
+  await dropTables();
+  await dispatch(clearAll());
 };
