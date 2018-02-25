@@ -1,5 +1,5 @@
 import * as I from 'src/interface';
-import { db } from 'src/store/sqlite';
+import { db, exec } from 'src/store/sqlite';
 import * as firebase from 'firebase';
 import { bulkInsertCards } from './card';
 import { startLoading, endLoading } from './config';
@@ -32,16 +32,17 @@ export const insertByURL = (url: string): I.ThunkAction => async (
   const res = await fetch(url);
   const text = await res.text();
   const name = url.split('/').pop() || 'sample';
-  await dispatch(insertByText(text, name, url));
+  await dispatch(insertByText(text, name, 'url', url));
 };
 
 export const insertByText = (
   text: string,
   name: string,
-  url?: string
+  type: DeckType,
+  url?: string,
+  fkid?: string
 ): I.ThunkAction => async (dispatch, getState) => {
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
-  console.log('PARSED');
   if (data.length === 0) {
     const errorCode: errorCode = 'NO_CARDS';
     await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
@@ -52,7 +53,9 @@ export const insertByText = (
     body: d[1],
     category: d[2],
   }));
-  const deck_id = await dispatch(insert({ url, name }));
+  console.log(name, type, url, fkid);
+  const deck_id = await dispatch(insert({ url, name, type, fkid }));
+  console.log('deck id', deck_id);
   await dispatch(bulkInsertCards(deck_id!, cards));
   console.log(`FETCH DONE ${deck_id}`);
 };
@@ -61,7 +64,6 @@ export const remove = (deck: Deck): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  console.log(`REMOVE ${deck.id}`);
   db.transaction(
     tx => {
       tx.executeSql(
@@ -99,27 +101,20 @@ export const select = (limit: number = 50): I.ThunkAction => async (
   );
 };
 
-export const insert = (deck: Pick<Deck, 'name' | 'url'>): I.ThunkAction => (
-  dispatch,
-  getState
-) =>
-  new Promise((resolve, reject) =>
-    db.transaction(tx =>
-      tx.executeSql(
-        `insert into deck (name, url) values (?, ?)`,
-        [deck.name, deck.url],
-        async (_, result) => {
-          const id = result.insertId;
-          await dispatch({
-            type: 'DECK_INSERT',
-            payload: { deck: { ...deck, id } },
-          });
-          resolve(id);
-        },
-        (...args) => reject(alert(JSON.stringify(args)))
-      )
-    )
-  );
+export const insert = (
+  deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid'>
+): I.ThunkAction => async (dispatch, getState) => {
+  const sql = `insert into deck (name, url, type, fkid) values (?, ?, ?, ?)`;
+  const values = [deck.name, deck.url, deck.type, deck.fkid || null];
+  const result = await exec(sql, values);
+  const id = result.insertId;
+  console.log('DONE', result, id);
+  await dispatch({
+    type: 'DECK_INSERT',
+    payload: { deck: { ...deck, id } },
+  });
+  return id;
+};
 
 export const upload = (deck: Deck): I.ThunkAction => async (
   dispatch,

@@ -41,10 +41,15 @@ export const importFromSpreadSheet = (
       }
     );
     if (res.ok) {
-      console.log('FETCH OK');
       const text = await res.text();
       await dispatch(
-        Action.deck.insertByText(text, drive.title, drive.alternateLink)
+        Action.deck.insertByText(
+          text,
+          drive.title,
+          'drive',
+          drive.alternateLink,
+          drive.id
+        )
       );
     } else {
       alert('CAN NOT FETCH');
