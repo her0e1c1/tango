@@ -34,9 +34,9 @@ interface Card {
   hint: string;
   mastered: boolean;
   deck_id: number;
-  deck: Deck;
   category: string;
-  tags: Tag[];
+  // deck: Deck;
+  // tags: Tag[];
 }
 
 type DeckState = { byId: { [key: string]: Deck } };
