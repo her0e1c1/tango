@@ -45,10 +45,11 @@ export const parseTextToCsv = (text: string): I.ThunkAction => async (
     await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
     throw 'No rows in text';
   }
-  const cards: Card[] = data.map(d => ({
+  const cards: Card[] = data.map((d, i) => ({
     name: d[0],
     body: d[1],
     category: d[2],
+    fkid: i + 1,
   }));
   return cards;
 };
@@ -57,9 +58,19 @@ export const insertByText = (
   text: string,
   deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid'>
 ): I.ThunkAction => async (dispatch, getState) => {
-  const { url, name, type, fkid } = deck;
+  let deck_id: number;
+  if (deck.fkid) {
+    const d = await dispatch(Action.deck.getByFkid(deck.fkid));
+    if (!!d) {
+      deck_id = d.id;
+      await dispatch(update({ ...deck, id: deck_id }));
+    } else {
+      deck_id = await dispatch(insert(deck));
+    }
+  } else {
+    deck_id = await dispatch(insert(deck));
+  }
   const cards = await dispatch(parseTextToCsv(text));
-  const deck_id = await dispatch(insert({ url, name, type, fkid }));
   await dispatch(bulkInsertCards(deck_id!, cards));
   console.log(`FETCH DONE ${deck_id}`);
 };
@@ -68,7 +79,7 @@ export const remove = (deck: Deck): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  // TOOD: use transaction
+  // TODO: use transaction
   await exec('delete from deck where id = ?', [deck.id]);
   await exec('delete from card where deck_id = ?', [deck.id]);
   dispatch({ type: 'DECK_DELETE', payload: { deck } });
@@ -84,6 +95,14 @@ export const select = (limit: number = 50): I.ThunkAction => async (
   await dispatch({ type: 'DECK_BULK_INSERT', payload: { decks } });
 };
 
+export const getByFkid = (fkid: string): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  const result = await exec(`select * from deck where fkid = ?;`, [fkid]);
+  return result.rows._array[0];
+};
+
 export const insert = (
   deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid'>
 ): I.ThunkAction => async (dispatch, getState) => {
@@ -96,6 +115,19 @@ export const insert = (
     payload: { deck: { ...deck, id } },
   });
   return id;
+};
+
+export const update = (
+  deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid' | 'id'>
+): I.ThunkAction => async (dispatch, getState) => {
+  const sql =
+    'update deck set name = ?, url = ?, type =?, fkid =?; where id = ?';
+  const values = [deck.name, deck.url, deck.type, deck.fkid || null, deck.id];
+  await exec(sql, values);
+  await dispatch({
+    type: 'DECK_INSERT',
+    payload: { deck: { ...deck } },
+  });
 };
 
 export const upload = (deck: Deck): I.ThunkAction => async (
