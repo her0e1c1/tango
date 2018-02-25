@@ -22,7 +22,6 @@ const wrap = C => () => (
 
 const Home = ({ state }: { state: RootState }) => (
   <RN.View>
-    {state.config.isLoading && <LoadingIcon />}
     <SearchBar />
     <RN.View style={{ margin: 5 }} />
     <DeckList />

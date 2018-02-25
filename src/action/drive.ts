@@ -27,8 +27,8 @@ export const importFromSpreadSheet = (
   gid: number = 0
 ): I.ThunkAction => async (dispatch, getState) => {
   const accessToken = getState().config.googleAccessToken;
-  console.log(accessToken);
   try {
+    await dispatch(Action.config.startLoading());
     const res = await fetch(
       `https://docs.google.com/spreadsheets/d/${
         drive.id
@@ -40,12 +40,18 @@ export const importFromSpreadSheet = (
         }),
       }
     );
-    const text = await res.text();
-    console.log(text);
-    await dispatch(
-      Action.deck.insertByText(text, drive.title, drive.alternateLink)
-    );
+    if (res.ok) {
+      console.log('FETCH OK');
+      const text = await res.text();
+      await dispatch(
+        Action.deck.insertByText(text, drive.title, drive.alternateLink)
+      );
+    } else {
+      alert('CAN NOT FETCH');
+    }
   } catch (e) {
     console.log(e);
+  } finally {
+    await dispatch(Action.config.endLoading());
   }
 };

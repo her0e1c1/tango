@@ -133,6 +133,7 @@ export const loginWithFacebook = (): I.ThunkAction => async (
 
 export const init = (): I.ThunkAction => async (dispatch, getState) => {
   firebase.auth().onAuthStateChanged(async user => {
+    await dispatch(Action.config.endLoading());
     if (user != null) {
       firebase
         .database()
@@ -141,6 +142,7 @@ export const init = (): I.ThunkAction => async (dispatch, getState) => {
         .set(firebase.database.ServerValue.TIMESTAMP);
       await dispatch({ type: 'USER_INIT', payload: user });
       await dispatch(Action.share.fetchDecks());
+      await dispatch(Action.drive.getSpreadSheets());
     } else {
       dispatch({ type: 'USER_LOGOUT' });
       console.log('NOT LOGGED IN YET');

@@ -8,6 +8,7 @@ import { StackNavigator } from 'react-navigation';
 import { withNavigation } from 'react-navigation';
 import { LoadingIcon } from './utils';
 import CardView from './cardView';
+import { DriveList } from './drive';
 
 @withNavigation
 @connect(state => ({ state }))
@@ -37,7 +38,6 @@ class DeckList extends React.Component<
             >
               <SD.DeckCard
                 style={{
-                  marginBottom: 10,
                   flex: 1,
                   flexDirection: 'row',
                   justifyContent: 'space-between',
@@ -104,42 +104,6 @@ const ShareView = props => (
     <CardView card={props.navigation.state.params.card} />
   </SD.Container>
 );
-
-@withNavigation
-@connect(state => ({ state }))
-class DriveList extends React.Component<
-  { state: RootState },
-  { refreshing: boolean }
-> {
-  state = { refreshing: false };
-  componentDidMount() {
-    this.props.dispatch(Action.drive.getSpreadSheets());
-  }
-  render() {
-    const decks = Selector.getMyDrives(this.props.state);
-    return (
-      <SD.Container>
-        <RN.FlatList
-          data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
-          onRefresh={async () => {
-            await this.props.dispatch(Action.drive.getSpreadSheets());
-            await this.setState({ refreshing: false });
-          }}
-          refreshing={this.state.refreshing}
-          renderItem={({ item }: { item: Drive }) => (
-            <RN.TouchableOpacity
-              onPress={() =>
-                this.props.dispatch(Action.drive.importFromSpreadSheet(item))
-              }
-            >
-              <SD.DeckTitle>{item.title}</SD.DeckTitle>
-            </RN.TouchableOpacity>
-          )}
-        />
-      </SD.Container>
-    );
-  }
-}
 
 export const Root = StackNavigator(
   {

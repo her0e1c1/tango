@@ -13,11 +13,16 @@ import store from './store';
 import * as Action from 'src/action';
 import * as C from 'src/constant';
 
-const Theme = connect(state => ({ state }))(({ state }) => (
-  <ThemeProvider theme={Action.getTheme(state as RootState)}>
-    <RootTabs />
-  </ThemeProvider>
-));
+const Theme = connect(state => ({ state }))(
+  ({ state }: { state: RootState }) => (
+    <ThemeProvider theme={Action.getTheme(state)}>
+      <RN.View style={{ flex: 1 }}>
+        {state.config.isLoading && <LoadingIcon />}
+        <RootTabs />
+      </RN.View>
+    </ThemeProvider>
+  )
+);
 
 const checkUpdate = async (): Promise<boolean> => {
   const v = await RN.AsyncStorage.getItem('version');
