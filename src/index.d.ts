@@ -28,6 +28,7 @@ interface Tag {
 
 interface Card {
   id: number;
+  fkid: string;
   name: string;
   body: string;
   hint: string;

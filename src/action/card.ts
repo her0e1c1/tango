@@ -85,7 +85,7 @@ export const toggleMastered = (
 // FIXME: how can I bulk insert?
 export const bulkInsertCards = (
   deck_id: number,
-  cards: Pick<Card, 'name' | 'body' | 'category' | 'hint'>[]
+  cards: Pick<Card, 'name' | 'body' | 'category' | 'hint' | 'fkid'>[]
 ): I.ThunkAction => (dispatch, getState) =>
   new Promise((resolve, reject) =>
     db.transaction(async tx => {

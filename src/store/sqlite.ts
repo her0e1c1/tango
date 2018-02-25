@@ -40,6 +40,7 @@ create table if not exists deck (
 const CREATE_CARD = `
 create table if not exists card (
   id integer primary key not null,
+  fkid text,
   mastered boolean default 0 not null,
   deck_id integer,
   name text,
