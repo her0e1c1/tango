@@ -1,11 +1,11 @@
 import * as I from 'src/interface';
-import { db, exec } from 'src/store/sqlite';
+import { exec } from 'src/store/sqlite';
 import * as firebase from 'firebase';
 import { bulkInsertCards } from './card';
 import { startLoading, endLoading } from './config';
 import * as Selector from 'src/selector';
 import * as Action from 'src/action';
-const Papa = require('papaparse');
+import * as Papa from 'papaparse';
 
 export const tryInsertByURL = (text: string) => async (dispatch, getState) => {
   if (text.match(/^https?:\/\//)) {
