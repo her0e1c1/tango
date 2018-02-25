@@ -15,13 +15,23 @@ interface Result {
 export const exec = (sql: string, values: any[] = []): Promise<Result> =>
   new Promise((resolve, reject) =>
     db.transaction(tx =>
-      tx.executeSql(sql, values, (_, result) => resolve(result), reject)
+      tx.executeSql(
+        sql,
+        values,
+        (_, result) => resolve(result),
+        e => {
+          alert(JSON.stringify(e));
+          reject();
+        }
+      )
     )
   );
 
 const CREATE_DECK = `
 create table if not exists deck (
   id integer primary key not null,
+  fkid text,
+  type text,
   name text,
   isPublic integer,
   url text
