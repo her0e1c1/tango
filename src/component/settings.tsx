@@ -145,6 +145,10 @@ export class Settings extends React.Component<Props, {}> {
               onPress={() => {
                 RN.Alert.alert('Are you sure?', '', [
                   {
+                    text: 'DROP ALL TABLES',
+                    onPress: () => this.props.drop(),
+                  },
+                  {
                     text: 'CLEAR ALL',
                     onPress: () => this.props.clearAll(true),
                   },
@@ -208,6 +212,7 @@ const mapDispatchToProps = {
   loginWithGoogleOnWeb: Action.auth.loginWithGoogleOnWeb,
   refresh: Action.auth.refreshToken,
   logout: Action.auth.logout,
+  drop: Action.config.drop,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(Settings);
