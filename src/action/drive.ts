@@ -19,7 +19,7 @@ const fetchAPI = (
     }),
   });
   if (res.ok) {
-    return await res.json();
+    return await res;
   } else {
     throw res;
   }
@@ -47,9 +47,10 @@ export const getSpreadSheets = (): I.ThunkAction => async (
   getState
 ) => {
   try {
-    const json = await dispatch(
+    const res = await dispatch(
       fetchAPI('https://www.googleapis.com/drive/v2/files')
     );
+    const json = await res.json();
     await dispatch({
       type: 'DRIVE_BULK_INSERT',
       payload: { drives: json.items },
@@ -63,33 +64,24 @@ export const importFromSpreadSheet = (
   drive: Drive,
   gid: number = 0
 ): I.ThunkAction => async (dispatch, getState) => {
-  const accessToken = getState().config.googleAccessToken;
   try {
     await dispatch(Action.config.startLoading());
-    const res = await fetch(
-      `https://docs.google.com/spreadsheets/d/${
-        drive.id
-      }/export?gid=${gid}&exportFormat=csv`,
-      {
-        method: 'GET',
-        headers: new Headers({
-          Authorization: `Bearer ${accessToken}`,
-        }),
-      }
+    const res = await dispatch(
+      fetchAPI(
+        `https://docs.google.com/spreadsheets/d/${
+          drive.id
+        }/export?gid=${gid}&exportFormat=csv`
+      )
     );
-    if (res.ok) {
-      const text = await res.text();
-      await dispatch(
-        Action.deck.insertByText(text, {
-          name: drive.title,
-          url: drive.alternateLink,
-          type: 'drive',
-          fkid: drive.id,
-        })
-      );
-    } else {
-      alert('CAN NOT FETCH');
-    }
+    const text = await res.text();
+    await dispatch(
+      Action.deck.insertByText(text, {
+        name: drive.title,
+        url: drive.alternateLink,
+        type: 'drive',
+        fkid: drive.id,
+      })
+    );
   } catch (e) {
     console.log(e);
   } finally {
