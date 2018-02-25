@@ -42,7 +42,8 @@ export const Root = StackNavigator(
   { initialRouteName: 'home', navigationOptions: { header: null } }
 );
 
-class Main extends React.Component<Props, {}> {
+@connect(state => ({ state }))
+class Main extends React.Component<{}, {}> {
   render() {
     const addListener = createReduxBoundAddListener('root');
     const navigation = addNavigationHelpers({
@@ -54,8 +55,4 @@ class Main extends React.Component<Props, {}> {
   }
 }
 
-const mapStateToProps = (state: RootState) => ({ state });
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps)(Main);
+export default Main;
