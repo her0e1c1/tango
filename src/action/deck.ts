@@ -32,27 +32,33 @@ export const insertByURL = (url: string): I.ThunkAction => async (
   const res = await fetch(url);
   const text = await res.text();
   const name = url.split('/').pop() || 'sample';
-  await dispatch(insertByText(text, name, 'url', url));
+  await dispatch(insertByText(text, { name, url, type: 'url' }));
 };
 
-export const insertByText = (
-  text: string,
-  name: string,
-  type: DeckType,
-  url?: string,
-  fkid?: string
-): I.ThunkAction => async (dispatch, getState) => {
+export const parseTextToCsv = (text: string): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
   const data = Papa.parse(text).data.filter(row => row.length >= 2);
   if (data.length === 0) {
     const errorCode: errorCode = 'NO_CARDS';
     await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
-    return;
+    throw 'No rows in text';
   }
   const cards: Card[] = data.map(d => ({
     name: d[0],
     body: d[1],
     category: d[2],
   }));
+  return cards;
+};
+
+export const insertByText = (
+  text: string,
+  deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid'>
+): I.ThunkAction => async (dispatch, getState) => {
+  const { url, name, type, fkid } = deck;
+  const cards = await dispatch(parseTextToCsv(text));
   const deck_id = await dispatch(insert({ url, name, type, fkid }));
   await dispatch(bulkInsertCards(deck_id!, cards));
   console.log(`FETCH DONE ${deck_id}`);
