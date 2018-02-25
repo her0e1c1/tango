@@ -23,6 +23,7 @@ export class CardEdit extends React.Component<
     return (
       <RN.ScrollView>
         <MasteredCircle card={card} />
+        <RN.Text>Id: {`${card.id}(${card.fkid})`}</RN.Text>
         <RN.Text>Title:</RN.Text>
         <RN.TextInput
           value={card.name}
