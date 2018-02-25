@@ -53,9 +53,7 @@ export const insertByText = (
     body: d[1],
     category: d[2],
   }));
-  console.log(name, type, url, fkid);
   const deck_id = await dispatch(insert({ url, name, type, fkid }));
-  console.log('deck id', deck_id);
   await dispatch(bulkInsertCards(deck_id!, cards));
   console.log(`FETCH DONE ${deck_id}`);
 };
@@ -64,41 +62,20 @@ export const remove = (deck: Deck): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  db.transaction(
-    tx => {
-      tx.executeSql(
-        `
-        delete from deck where id = ?;
-        delete from card where deck_id = ?;
-        `,
-        [deck.id, deck.id],
-        (_, result) => {
-          dispatch({ type: 'DECK_DELETE', payload: { deck } });
-          dispatch({ type: 'CARD_BULK_DELETE', payload: { deck } });
-        },
-        (...args) => alert(JSON.stringify(args))
-      );
-    },
-    (...args) => console.log(JSON.stringify(args)),
-    (...args) => console.log(JSON.stringify(args))
-  );
+  const sql =
+    'delete from deck where id = ?; delete from card where deck_id = ?;';
+  await exec(sql, [deck.id, deck.id]);
+  dispatch({ type: 'DECK_DELETE', payload: { deck } });
+  dispatch({ type: 'CARD_BULK_DELETE', payload: { deck } });
 };
 
 export const select = (limit: number = 50): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  db.transaction(tx =>
-    tx.executeSql(
-      `select * from deck;`,
-      [],
-      (_, result) => {
-        const decks = result.rows._array;
-        dispatch({ type: 'DECK_BULK_INSERT', payload: { decks } });
-      },
-      (...args) => alert(JSON.stringify(args))
-    )
-  );
+  const result = await exec(`select * from deck;`);
+  const decks = result.rows._array;
+  await dispatch({ type: 'DECK_BULK_INSERT', payload: { decks } });
 };
 
 export const insert = (
@@ -108,7 +85,6 @@ export const insert = (
   const values = [deck.name, deck.url, deck.type, deck.fkid || null];
   const result = await exec(sql, values);
   const id = result.insertId;
-  console.log('DONE', result, id);
   await dispatch({
     type: 'DECK_INSERT',
     payload: { deck: { ...deck, id } },
