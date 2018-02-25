@@ -1,7 +1,5 @@
-import * as Action from 'src/action';
 import * as RN from 'react-native';
 import SearchBar from './searchBar';
-import * as I from 'src/interface';
 import * as React from 'react';
 import CardList from './cardList';
 import DeckSwiper from './deckSwiper';
