@@ -1,16 +1,20 @@
+type DeckType = 'drive' | 'firebase' | 'url';
+type DriveType = 'application/vnd.google-apps.spreadsheet';
+
 interface Deck {
   id: number;
+  fkid?: string; // id for firebase or spreadsheet
+  type?: DeckType;
   name: string;
-  cards: Card[];
   url?: string;
   isPublic: boolean;
 }
 
 interface Drive {
-  id: number;
+  id: string;
   title: string;
   alternateLink: string;
-  mimeType: 'application/vnd.google-apps.spreadsheet';
+  mimeType: DriveType;
   modifiedDate: string;
   createdDate: string;
   labels: {
