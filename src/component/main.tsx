@@ -42,29 +42,6 @@ export const Root = StackNavigator(
   { initialRouteName: 'home', navigationOptions: { header: null } }
 );
 
-const defaultGetStateForAction = Root.router.getStateForAction;
-
-Root.router.getStateForAction = (action, state) => {
-  // console.log(action, state);
-  if (action && action.routeName == 'deck' && action.params.deck_id) {
-    const deck_id = action.params.deck_id;
-    const routes = [
-      ...state.routes,
-      {
-        key: `deck/${deck_id}`,
-        routeName: 'deck',
-        params: { deck_id },
-      },
-    ];
-    return {
-      ...state,
-      routes,
-      index: routes.length - 1,
-    };
-  }
-  return defaultGetStateForAction(action, state);
-};
-
 class Main extends React.Component<Props, {}> {
   render() {
     const addListener = createReduxBoundAddListener('root');
