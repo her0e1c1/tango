@@ -105,10 +105,16 @@ const ShareView = props => (
   </SD.Container>
 );
 
+const List = () => (
+  <RN.View style={{ flex: 1 }}>
+    <DriveList />
+    <DeckList />
+  </RN.View>
+);
+
 export const Root = StackNavigator(
   {
-    // share: { screen: DeckList },
-    share: { screen: DriveList },
+    share: { screen: List },
     shareCards: { screen: CardList },
     shareView: { screen: withNavigation(ShareView) },
   },
