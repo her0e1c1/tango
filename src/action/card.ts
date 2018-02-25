@@ -6,8 +6,9 @@ export const updateCard = (card: Card): I.ThunkAction => async (
   getState
 ) => {
   // TODO: mastered
-  const sql = 'update card set name = ?, body = ?, hint = ? where id = ?';
-  await exec(sql, [card.name, card.body, card.hint, card.id]);
+  const sql =
+    'update card set name = ?, body = ?, hint = ?, mastered = ? where id = ?';
+  await exec(sql, [card.name, card.body, card.hint, card.id, card.mastered]);
   dispatch({ type: 'BULK_INSERT', payload: { cards: [card] } });
 };
 
@@ -76,6 +77,7 @@ export const bulkUpdateCards = (
     'name' | 'body' | 'category' | 'hint' | 'fkid' | 'mastered'
   >[]
 ): I.ThunkAction => async (dispatch, getState) => {
+  // TODO: get from db not redux
   const state = getState().card;
   const map = (state.byDeckId[deck_id] || [])
     .map(id => state.byId[id])

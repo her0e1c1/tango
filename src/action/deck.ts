@@ -48,7 +48,9 @@ export const parseTextToCsv = (text: string): I.ThunkAction => async (
   const cards: Card[] = data.map((d, i) => ({
     name: d[0],
     body: d[1],
-    category: d[2],
+    hint: d[2],
+    category: d[3],
+    mastered: !!d[4] ? 1 : 0,
     fkid: i + 1,
   }));
   return cards;
