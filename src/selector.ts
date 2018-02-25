@@ -1,4 +1,4 @@
-export const getMyDrives = (state: RootState): Deck[] => {
+export const getMyDrives = (state: RootState): Drive[] => {
   return Object.values(state.drive.byId);
 };
 
