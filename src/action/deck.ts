@@ -7,18 +7,18 @@ import * as Selector from 'src/selector';
 import * as Action from 'src/action';
 import * as Papa from 'papaparse';
 
-export const tryInsertByURL = (text: string) => async (dispatch, getState) => {
-  if (text.match(/^https?:\/\//)) {
+export const tryInsertByURL = (url: string) => async (dispatch, getState) => {
+  if (url.match(/^https?:\/\//)) {
     await dispatch(startLoading());
     try {
-      await dispatch(await insertByURL(text));
+      await dispatch(await insertByURL(url));
     } catch {
       const errorCode: errorCode = 'CAN_NOT_FETCH';
       await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
     } finally {
       await dispatch(endLoading());
     }
-  } else if (text !== '') {
+  } else if (url !== '') {
     const errorCode: errorCode = 'INVALID_URL';
     await dispatch({ type: 'CONFIG', payload: { config: { errorCode } } });
   }
