@@ -33,6 +33,11 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
         backgroundColor: 'green',
         onPress: () => this.props.upload(deck),
       });
+      items.push({
+        text: 'DRIVE',
+        backgroundColor: 'skyblue',
+        onPress: () => this.props.uploadDrive(deck),
+      });
     }
     return items;
   }
@@ -91,6 +96,7 @@ const mapDispatchToProps = {
   selectCard: Action.selectCard,
   selectDeck: Action.deck.select,
   upload: Action.deck.upload,
+  uploadDrive: Action.drive.upload,
 };
 type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
 export default connect(mapStateToProps, mapDispatchToProps)(DeckList);

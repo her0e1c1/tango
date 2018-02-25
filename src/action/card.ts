@@ -29,7 +29,6 @@ export const selectCard = (deck_id?: number): I.ThunkAction => async (
 ) => {
   const result = await exec('select * from card');
   const cards = result.rows._array;
-  cards.forEach(c => console.log(c.fkid, 'fk'));
   dispatch({ type: 'BULK_INSERT', payload: { cards } });
 };
 

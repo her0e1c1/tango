@@ -1,27 +1,30 @@
 import * as I from 'src/interface';
 import * as Action from 'src/action';
 import * as queryString from 'query-string';
+import * as Selector from 'src/selector';
 
 const fetchAPI = (
   url: string,
-  options: { method?: string; body?: any } = {}
+  options: { method?: string; body?: any; isJson?: boolean } = {}
 ): I.ThunkAction => async (dispatch, getState) => {
-  let { method = 'GET', body } = options;
+  let { method = 'GET', body, isJson = false } = options;
   if (body) {
-    body = queryString.stringify(body);
+    body = JSON.stringify(body);
   }
   const accessToken = getState().config.googleAccessToken;
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+  };
+  if (isJson) {
+    headers['Content-Type'] = 'application/json';
+  }
   const res = await fetch(url, {
     method,
     body,
-    headers: new Headers({
-      Authorization: `Bearer ${accessToken}`,
-    }),
+    headers: new Headers(headers),
   });
   if (res.ok) {
-    return await res;
-  } else {
-    throw res;
+    return res;
   }
 };
 
@@ -33,13 +36,26 @@ export const upload = (deck: Deck): I.ThunkAction => async (
     alert('CAN NOT UPLOAD');
     return;
   }
-  const range = 'A:Z';
-  fetchAPI(
-    `https://sheets.googleapis.com/v4/spreadsheets/${
-      deck.fkid
-    }/values/${range}?valueInputOption=RAW`,
-    { method: 'PUT' }
-  );
+  const cards = Selector.getCardList(getState(), deck.id);
+  cards.sort((a, b) => a.id - b.id);
+  const values = cards.map(c => [
+    c.name || '',
+    c.body || '',
+    c.hint || '',
+    c.category || '',
+    c.mastered ? '1' : '',
+  ]);
+  const range = encodeURIComponent('A:Z');
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${
+    deck.fkid
+  }/values/${range}?valueInputOption=RAW`;
+  try {
+    const res = await dispatch(
+      fetchAPI(url, { method: 'PUT', body: { values }, isJson: true })
+    );
+  } catch (e) {
+    alert(JSON.stringify(e));
+  }
 };
 
 export const getSpreadSheets = (): I.ThunkAction => async (
