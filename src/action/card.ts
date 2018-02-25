@@ -5,13 +5,10 @@ export const updateCard = (card: Card): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const sql = 'update card set name = ?, body = ?, hint = ? where id = ?;';
-  const result = await exec(sql, [card.name, card.body, card.hint, card.id]);
-  if (result.rowsAffected === 1) {
-    dispatch({ type: 'BULK_INSERT', payload: { cards: [card] } });
-  } else {
-    alert('You can not update');
-  }
+  // TODO: mastered
+  const sql = 'update card set name = ?, body = ?, hint = ? where id = ?';
+  await exec(sql, [card.name, card.body, card.hint, card.id]);
+  dispatch({ type: 'BULK_INSERT', payload: { cards: [card] } });
 };
 
 export const deleteCard = (card: Card): I.ThunkAction => async (
@@ -32,6 +29,7 @@ export const selectCard = (deck_id?: number): I.ThunkAction => async (
 ) => {
   const result = await exec('select * from card');
   const cards = result.rows._array;
+  cards.forEach(c => console.log(c.fkid, 'fk'));
   dispatch({ type: 'BULK_INSERT', payload: { cards } });
 };
 
@@ -52,8 +50,15 @@ export const bulkInsertCards = (
 ): I.ThunkAction => async (dispatch, getState) => {
   const ps = cards.map(async card => {
     const sql =
-      'insert into card (name, body, category, hint, deck_id) values (?, ?, ?, ?, ?);';
-    const values = [card.name, card.body, card.category, card.hint, deck_id];
+      'insert into card (name, body, category, hint, deck_id, fkid) values (?, ?, ?, ?, ?, ?);';
+    const values = [
+      card.name,
+      card.body,
+      card.category,
+      card.hint,
+      deck_id,
+      card.fkid ? String(card.fkid) : null, // otherwise it converts 1 to "1.0"
+    ];
     const result = await exec(sql, values);
     const id = result.insertId;
     id &&
@@ -61,6 +66,25 @@ export const bulkInsertCards = (
         type: 'INSERT',
         payload: { card: { ...card, deck_id, id } as Card },
       }));
+  });
+  await Promise.all(ps);
+};
+
+export const bulkUpdateCards = (
+  deck_id: number,
+  cards: Pick<
+    Card,
+    'name' | 'body' | 'category' | 'hint' | 'fkid' | 'mastered'
+  >[]
+): I.ThunkAction => async (dispatch, getState) => {
+  const state = getState().card;
+  const map = (state.byDeckId[deck_id] || [])
+    .map(id => state.byId[id])
+    .filter(x => !!x)
+    .map(c => ({ [c.fkid]: c.id }))
+    .reduce((acc, x) => Object.assign(acc, x), {});
+  const ps = cards.map(async card => {
+    await dispatch(updateCard({ ...card, deck_id, id: map[card.fkid] }));
   });
   await Promise.all(ps);
 };
