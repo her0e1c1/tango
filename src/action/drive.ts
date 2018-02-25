@@ -1,18 +1,55 @@
 import * as I from 'src/interface';
 import * as Action from 'src/action';
+import * as queryString from 'query-string';
+
+const fetchAPI = (
+  url: string,
+  options: { method?: string; body?: any } = {}
+): I.ThunkAction => async (dispatch, getState) => {
+  let { method = 'GET', body } = options;
+  if (body) {
+    body = queryString.stringify(body);
+  }
+  const accessToken = getState().config.googleAccessToken;
+  const res = await fetch(url, {
+    method,
+    body,
+    headers: new Headers({
+      Authorization: `Bearer ${accessToken}`,
+    }),
+  });
+  if (res.ok) {
+    return await res.json();
+  } else {
+    throw res;
+  }
+};
+
+export const upload = (deck: Deck): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  if (deck.type !== 'drive' || !deck.fkid) {
+    alert('CAN NOT UPLOAD');
+    return;
+  }
+  const range = 'A:Z';
+  fetchAPI(
+    `https://sheets.googleapis.com/v4/spreadsheets/${
+      deck.fkid
+    }/values/${range}?valueInputOption=RAW`,
+    { method: 'PUT' }
+  );
+};
 
 export const getSpreadSheets = (): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const accessToken = getState().config.googleAccessToken;
   try {
-    const json = await fetch('https://www.googleapis.com/drive/v2/files', {
-      method: 'GET',
-      headers: new Headers({
-        Authorization: `Bearer ${accessToken}`,
-      }),
-    }).then(r => r.json());
+    const json = await dispatch(
+      fetchAPI('https://www.googleapis.com/drive/v2/files')
+    );
     await dispatch({
       type: 'DRIVE_BULK_INSERT',
       payload: { drives: json.items },
