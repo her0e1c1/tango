@@ -68,9 +68,9 @@ export const remove = (deck: Deck): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const sql =
-    'delete from deck where id = ?; delete from card where deck_id = ?;';
-  await exec(sql, [deck.id, deck.id]);
+  // TOOD: use transaction
+  await exec('delete from deck where id = ?', [deck.id]);
+  await exec('delete from card where deck_id = ?', [deck.id]);
   dispatch({ type: 'DECK_DELETE', payload: { deck } });
   dispatch({ type: 'CARD_BULK_DELETE', payload: { deck } });
 };
