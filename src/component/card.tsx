@@ -45,6 +45,7 @@ export class CardDetail extends React.Component<{ onLongPress: Callback }, {}> {
     RN.StatusBar.setHidden(false);
   }
   render() {
+    const { dispatch } = this.props;
     const window = RN.Dimensions.get('window');
     const height = window.height;
     const card = Action.getCurrentCard(this.props.state);
@@ -60,12 +61,12 @@ export class CardDetail extends React.Component<{ onLongPress: Callback }, {}> {
             <CardView card={card} />
             <SD.SideControl
               style={{ left: 0, height }}
-              onPress={() => this.props.dispatch(Action.nav.goToPrevCard())}
+              onPress={() => dispatch(Action.nav.goToPrevCard())}
               onLongPress={() => {}}
             />
             <SD.SideControl
               style={{ right: 0, height }}
-              onPress={() => this.props.dispatch(Action.nav.goToNextCard())}
+              onPress={() => dispatch(Action.nav.goToNextCard())}
               onLongPress={() => alert(JSON.stringify(card.name))}
             />
           </RN.View>
@@ -79,6 +80,7 @@ export class CardDetail extends React.Component<{ onLongPress: Callback }, {}> {
 @connect(state => ({ state }))
 export class CardList extends React.Component<{}, {}> {
   render() {
+    const { dispatch } = this.props;
     const cards = Selector.getCurrentCardList(this.props.state);
     if (cards.length <= 0) {
       return (
@@ -105,7 +107,7 @@ export class CardList extends React.Component<{}, {}> {
               {
                 text: 'DEL',
                 backgroundColor: 'red',
-                onPress: () => this.props.dispatch(Action.deleteCard(item)),
+                onPress: () => dispatch(Action.deleteCard(item)),
               },
             ]}
           >
@@ -117,7 +119,7 @@ export class CardList extends React.Component<{}, {}> {
                   paddingVertical: 10,
                 }}
                 onPress={() => {
-                  this.props.dispatch(Action.nav.goToCard(item));
+                  dispatch(Action.nav.goToCard(item));
                   this.props.navigation.navigate('card', {
                     card_id: item.id,
                     deck_id: item.deck_id,
