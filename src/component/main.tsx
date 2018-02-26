@@ -1,7 +1,7 @@
 import * as RN from 'react-native';
 import SearchBar from './searchBar';
 import * as React from 'react';
-import CardList from './cardList';
+import { CardList } from './card';
 import DeckSwiper from './deckSwiper';
 import DeckList from './deckList';
 import Header from './header';
