@@ -4,12 +4,9 @@ import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import CardView from './cardView';
 import * as SD from './styled';
-import * as I from 'src/interface';
 
-class CardDetail extends React.Component<
-  Props & { onLongPress: Callback },
-  {}
-> {
+@connect(state => ({ state }))
+export class CardDetail extends React.Component<{ onLongPress: Callback }, {}> {
   static navigationOptions = () => ({
     gesturesEnabled: false,
   });
@@ -35,12 +32,12 @@ class CardDetail extends React.Component<
             <CardView card={card} />
             <SD.SideControl
               style={{ left: 0, height }}
-              onPress={() => this.props.goToPrevCard()}
+              onPress={() => this.props.dispatch(Action.nav.goToPrevCard())}
               onLongPress={() => {}}
             />
             <SD.SideControl
               style={{ right: 0, height }}
-              onPress={() => this.props.goToNextCard()}
+              onPress={() => this.props.dispatch(Action.nav.goToNextCard())}
               onLongPress={() => alert(JSON.stringify(card.name))}
             />
           </RN.View>
@@ -49,12 +46,3 @@ class CardDetail extends React.Component<
     );
   }
 }
-
-const mapStateToProps = (state: RootState) => ({ state });
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {
-  goToNextCard: Action.nav.goToNextCard,
-  goToPrevCard: Action.nav.goToPrevCard,
-};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps, mapDispatchToProps)(CardDetail);

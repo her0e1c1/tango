@@ -8,7 +8,7 @@ import ProgressBar from './progressBar';
 import CardView from './cardView';
 import * as SD from './styled';
 import * as I from 'src/interface';
-import CardDetail from './cardDetail';
+import { CardDetail } from './card';
 import { mathCategory } from './cardView';
 import MasteredCircle from './masteredCircle';
 import { withNavigation } from 'react-navigation';
