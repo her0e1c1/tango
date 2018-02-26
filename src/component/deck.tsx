@@ -9,45 +9,51 @@ import ProgressBar from './progressBar';
 import { withNavigation } from 'react-navigation';
 
 @withNavigation
-class DeckList extends React.Component<Props, { refreshing: boolean }> {
+@connect(state => ({ state }))
+export class DeckList extends React.Component<{}, { refreshing: boolean }> {
   constructor(props) {
     super(props);
     this.state = { refreshing: false };
   }
   async componentDidMount() {
-    await this.props.selectDeck();
-    await this.props.selectCard();
+    const { dispatch } = this.props;
+    await dispatch(Action.deck.select());
+    await dispatch(Action.selectCard());
   }
   getLeftItems(deck: Deck) {
+    const { dispatch } = this.props;
     const { uid } = this.props.state.user;
     const items = [
       {
         text: 'COPY',
         backgroundColor: 'blue',
-        onPress: () => this.props.insertByURL(deck.url),
+        onPress: () => dispatch(Action.deck.insertByURL(deck.url)),
       },
     ];
     if (uid) {
       items.push({
         text: 'UP',
         backgroundColor: 'green',
-        onPress: () => this.props.upload(deck),
+        onPress: () => dispatch(Action.deck.upload(deck)),
       });
       items.push({
         text: 'DRIVE',
         backgroundColor: 'skyblue',
-        onPress: () => this.props.uploadDrive(deck),
+        onPress: () => dispatch(Action.drive.upload(deck)),
       });
     }
     return items;
   }
+
   render() {
+    const decks = Object.values(this.props.state.deck.byId);
+    const { dispatch } = this.props;
     return (
       <RN.FlatList
-        data={this.props.decks.map(d => ({ ...d, key: d.id }))}
+        data={decks.map(d => ({ ...d, key: d.id }))}
         onRefresh={async () => {
-          await this.props.selectDeck();
-          await this.props.selectCard();
+          await dispatch(Action.deck.select());
+          await dispatch(Action.selectCard());
           await this.setState({ refreshing: false });
         }}
         refreshing={this.state.refreshing}
@@ -61,7 +67,7 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
                 {
                   text: 'DEL',
                   backgroundColor: 'red',
-                  onPress: () => this.props.deleteDeck(item),
+                  onPress: () => dispatch(Action.deck.remove(item)),
                 },
               ]}
               left={this.getLeftItems(item)}
@@ -84,19 +90,3 @@ class DeckList extends React.Component<Props, { refreshing: boolean }> {
     );
   }
 }
-
-const mapStateToProps = (state: RootState) => ({
-  state,
-  decks: Object.values(state.deck.byId),
-});
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {
-  deleteDeck: Action.deck.remove,
-  insertByURL: Action.tryInsertByURL,
-  selectCard: Action.selectCard,
-  selectDeck: Action.deck.select,
-  upload: Action.deck.upload,
-  uploadDrive: Action.drive.upload,
-};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps, mapDispatchToProps)(DeckList);
