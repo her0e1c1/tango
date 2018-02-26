@@ -3,10 +3,8 @@ import * as I from 'src/interface';
 import * as NB from 'native-base';
 import * as React from 'react';
 import * as RN from 'react-native';
-import Header from './header';
 import { connect } from 'react-redux';
 import { Container, SettingsItem, SettingsText } from './styled';
-import { version } from 'punycode';
 
 const cardSwipeTypes: cardSwipe[] = [
   'goBack',
@@ -17,40 +15,47 @@ const cardSwipeTypes: cardSwipe[] = [
   'goToNextCardToggleMastered',
 ];
 
-const handleLogin = props =>
-  RN.Alert.alert('Choose account', '', [
-    {
-      text: 'Facebook',
-      onPress: () => props.loginWithFacebook(),
-    },
-    {
-      text: 'Google(with Drive)',
-      onPress: () => props.loginWithGoogleOnWeb(),
-    },
-    {
-      text: 'Google',
-      onPress: () => props.loginWithGoogle(),
-    },
-    { text: 'Cancel', onPress: () => {} },
-  ]);
-
-const handleLogout = props =>
-  RN.Alert.alert('Do you want to logout?', '', [
-    {
-      text: 'Logout',
-      onPress: () => props.logout(),
-    },
-    { text: 'Cancel', onPress: () => {} },
-  ]);
-
-export class Settings extends React.Component<Props, {}> {
+@connect(state => ({ state }))
+export class Settings extends React.Component<{ state: RootState }, {}> {
   state = { version: undefined };
+
   componentDidMount() {
     RN.AsyncStorage.getItem('version').then(version =>
       this.setState({ version })
     );
   }
+  handleLogin() {
+    const { dispatch } = this.props;
+    RN.Alert.alert('Choose account', '', [
+      {
+        text: 'Facebook',
+        onPress: () => dispatch(Action.auth.loginWithFacebook()),
+      },
+      {
+        text: 'Google(with Drive)',
+        onPress: () => dispatch(Action.auth.loginWithGoogleOnWeb()),
+      },
+      {
+        text: 'Google',
+        onPress: () => dispatch(Action.auth.loginWithGoogle()),
+      },
+      { text: 'Cancel', onPress: () => {} },
+    ]);
+  }
+
+  handleLogout() {
+    const { dispatch } = this.props;
+    RN.Alert.alert('Do you want to logout?', '', [
+      {
+        text: 'Logout',
+        onPress: () => dispatch(Action.auth.logout()),
+      },
+      { text: 'Cancel', onPress: () => {} },
+    ]);
+  }
+
   render() {
+    const { dispatch } = this.props;
     const { config, user } = this.props.state;
     const isLogin = user && user.displayName;
     return (
@@ -61,7 +66,7 @@ export class Settings extends React.Component<Props, {}> {
             <RN.Button
               title={isLogin ? user.displayName! : 'LOGIN'}
               onPress={() =>
-                !isLogin ? handleLogin(this.props) : handleLogout(this.props)
+                !isLogin ? this.handleLogin() : this.handleLogout()
               }
             />
           </SettingsItem>
@@ -71,9 +76,11 @@ export class Settings extends React.Component<Props, {}> {
             <NB.CheckBox
               checked={config.showMastered}
               onPress={() =>
-                this.props.update({
-                  showMastered: !config.showMastered,
-                })
+                dispatch(
+                  Action.config.updateConfig({
+                    showMastered: !config.showMastered,
+                  })
+                )
               }
             />
           </SettingsItem>
@@ -83,8 +90,10 @@ export class Settings extends React.Component<Props, {}> {
             <NB.CheckBox
               checked={config.shuffled}
               onPress={async () => {
-                await this.props.update({ shuffled: !config.shuffled });
-                await this.props.shuffle();
+                await dispatch(
+                  Action.config.updateConfig({ shuffled: !config.shuffled })
+                );
+                await dispatch(Action.shuffleCardsOrSort());
               }}
             />
           </SettingsItem>
@@ -94,7 +103,9 @@ export class Settings extends React.Component<Props, {}> {
             <NB.CheckBox
               checked={config.showHeader}
               onPress={async () => {
-                await this.props.update({ showHeader: !config.showHeader });
+                await dispatch(
+                  Action.config.updateConfig({ showHeader: !config.showHeader })
+                );
               }}
             />
           </SettingsItem>
@@ -106,9 +117,11 @@ export class Settings extends React.Component<Props, {}> {
             <NB.CheckBox
               checked={config.hideBodyWhenCardChanged}
               onPress={() =>
-                this.props.update({
-                  hideBodyWhenCardChanged: !config.hideBodyWhenCardChanged,
-                })
+                dispatch(
+                  Action.config.updateConfig({
+                    hideBodyWhenCardChanged: !config.hideBodyWhenCardChanged,
+                  })
+                )
               }
             />
           </SettingsItem>
@@ -133,7 +146,11 @@ export class Settings extends React.Component<Props, {}> {
               minimumValue={0}
               value={config.start / 1000}
               onSlidingComplete={v =>
-                this.props.update({ start: parseInt(String(1000 * v)) })
+                dispatch(
+                  Action.config.updateConfig({
+                    start: parseInt(String(1000 * v)),
+                  })
+                )
               }
             />
           </SettingsItem>
@@ -146,15 +163,15 @@ export class Settings extends React.Component<Props, {}> {
                 RN.Alert.alert('Are you sure?', '', [
                   {
                     text: 'DROP ALL TABLES',
-                    onPress: () => this.props.drop(),
+                    onPress: () => dispatch(Action.config.drop()),
                   },
                   {
                     text: 'CLEAR ALL',
-                    onPress: () => this.props.clearAll(true),
+                    onPress: () => dispatch(Action.config.clearAll(true)),
                   },
                   {
                     text: 'CLEAR (keep login)',
-                    onPress: () => this.props.clearAll(),
+                    onPress: () => dispatch(Action.config.clearAll()),
                   },
                   { text: 'Cancel', onPress: () => {} },
                 ]);
@@ -173,7 +190,9 @@ export class Settings extends React.Component<Props, {}> {
               <NB.Picker
                 textStyle={{ color: 'cornflowerblue' }}
                 selectedValue={config[type]}
-                onValueChange={v => this.props.update({ [type]: v })}
+                onValueChange={v =>
+                  dispatch(Action.config.updateConfig({ [type]: v }))
+                }
               >
                 {cardSwipeTypes.map(x => (
                   <NB.Picker.Item label={x} value={x} />
@@ -189,7 +208,7 @@ export class Settings extends React.Component<Props, {}> {
 
           <SettingsItem>
             <RN.TouchableOpacity
-              onPress={() => this.props.refresh()}
+              onPress={() => dispatch(Action.auth.refreshToken())}
               onLongPress={() => alert(config.googleRefreshToken)}
             >
               <SettingsText>Refresh: {config.googleAccessToken}</SettingsText>
@@ -200,19 +219,3 @@ export class Settings extends React.Component<Props, {}> {
     );
   }
 }
-
-const mapStateToProps = (state: RootState) => ({ state });
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {
-  update: Action.config.updateConfig,
-  shuffle: Action.shuffleCardsOrSort,
-  clearAll: Action.config.clearAll,
-  loginWithFacebook: Action.auth.loginWithFacebook,
-  loginWithGoogle: Action.auth.loginWithGoogle,
-  loginWithGoogleOnWeb: Action.auth.loginWithGoogleOnWeb,
-  refresh: Action.auth.refreshToken,
-  logout: Action.auth.logout,
-  drop: Action.config.drop,
-};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps, mapDispatchToProps)(Settings);

@@ -4,7 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { withTheme } from 'styled-components';
 
 import Main from './main';
-import Settings from './settings';
+import { Settings } from './settings';
 import Help from './help';
 
 const RootTabs = TabNavigator(
