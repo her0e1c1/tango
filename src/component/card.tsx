@@ -1,3 +1,4 @@
+import styled from 'styled-components';
 import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
@@ -5,9 +6,32 @@ import { connect } from 'react-redux';
 import CardView from './cardView';
 import * as SD from './styled';
 import { withNavigation } from 'react-navigation';
-import MasteredCircle from './masteredCircle';
 import Swipeout from 'react-native-swipeout';
 import * as Selector from 'src/selector';
+
+const Circle = styled(RN.View)`
+  background-color: ${({ theme, mastered }: AppContext) =>
+    mastered ? theme.masteredColor : theme.circleBackgroundColor};
+  width: 20px;
+  height: 20px;
+  border-radius: 20px;
+  margin: 5px;
+`;
+
+@connect(state => ({ state }))
+export class MasteredCircle extends React.Component<{ card: Card }, {}> {
+  render() {
+    const { dispatch } = this.props;
+    const card = this.props.card;
+    return (
+      <RN.TouchableOpacity
+        onPress={() => dispatch(Action.toggleMastered(card))}
+      >
+        <Circle mastered={card.mastered} />
+      </RN.TouchableOpacity>
+    );
+  }
+}
 
 @connect(state => ({ state }))
 export class CardDetail extends React.Component<{ onLongPress: Callback }, {}> {
