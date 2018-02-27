@@ -24,7 +24,7 @@ export const fetchCardsByDeckId = (deck_id: number): I.ThunkAction => async (
     .orderByChild('deck_id')
     .equalTo(deck_id)
     .on('value', snapshot => {
-      const v = snapshot.val();
+      const v = snapshot && snapshot.val();
       v &&
         dispatch({ type: 'SHARE_CARD_BULK_INSERT', payload: { card: v, uid } });
     });

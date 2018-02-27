@@ -1,12 +1,11 @@
 import * as I from 'src/interface';
 import * as Action from 'src/action';
-import * as queryString from 'query-string';
 import * as Selector from 'src/selector';
 
 const fetchAPI = (
   url: string,
   options: { method?: string; body?: any; isJson?: boolean } = {}
-): I.ThunkAction => async (dispatch, getState) => {
+): I.ThunkAction<Response> => async (dispatch, getState) => {
   let { method = 'GET', body, isJson = false } = options;
   if (body) {
     body = JSON.stringify(body);
@@ -26,6 +25,7 @@ const fetchAPI = (
   if (res.ok) {
     return res;
   }
+  throw res;
 };
 
 export const upload = (deck: Deck): I.ThunkAction => async (

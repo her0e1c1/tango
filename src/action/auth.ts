@@ -11,7 +11,7 @@ export const refreshToken = (): I.ThunkAction => async (dispatch, getState) => {
   const refresh_token = getState().config.googleRefreshToken;
   if (!refresh_token) {
     console.log(`You can't refresh`);
-    return false;
+    return;
   }
   const body = queryString.stringify({
     refresh_token,

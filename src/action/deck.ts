@@ -35,7 +35,7 @@ export const insertByURL = (url: string): I.ThunkAction => async (
   await dispatch(insertByText(text, { name, url, type: 'url' }));
 };
 
-export const parseTextToCsv = (text: string): I.ThunkAction => async (
+export const parseTextToCsv = (text: string): I.ThunkAction<Card[]> => async (
   dispatch,
   getState
 ) => {
@@ -104,7 +104,7 @@ export const getByFkid = (fkid: string): I.ThunkAction => async (
 
 export const insert = (
   deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid'>
-): I.ThunkAction => async (dispatch, getState) => {
+): I.ThunkAction<number> => async (dispatch, getState) => {
   const sql = `insert into deck (name, url, type, fkid) values (?, ?, ?, ?)`;
   const values = [deck.name, deck.url, deck.type, deck.fkid || null];
   const result = await exec(sql, values);
