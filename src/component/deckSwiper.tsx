@@ -9,7 +9,7 @@ import * as SD from './styled';
 import * as I from 'src/interface';
 import { CardDetail } from './card';
 import { mathCategory } from './cardView';
-import MasteredCircle from './masteredCircle';
+import { MasteredCircle } from './card';
 import { withNavigation } from 'react-navigation';
 
 @withNavigation

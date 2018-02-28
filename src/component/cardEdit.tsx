@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
-import MasteredCircle from './masteredCircle';
+import { MasteredCircle } from './card';
 import { withTheme } from 'styled-components';
 import { withNavigation } from 'react-navigation';
 
