@@ -1,19 +1,11 @@
-import styled from 'styled-components';
 import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
 import * as SD from './styled';
-import { withTheme } from 'styled-components';
 import { withNavigation } from 'react-navigation';
 
-const MainText = styled(RN.Text)`
-  color: ${({ theme }: AppContext) => theme.titleColor};
-  font-size: 18px;
-`;
-
-@withTheme
 @withNavigation
 export class Header extends React.Component<Props, {}> {
   render() {
@@ -41,11 +33,11 @@ export class Header extends React.Component<Props, {}> {
               onPress={() => this.props.navigation.goBack()}
               onLongPress={() => this.props.goHome()}
             >
-              <MainText>{'<'}</MainText>
+              <SD.MainText>{'<'}</SD.MainText>
             </RN.TouchableOpacity>
           )}
           <RN.View style={{ flexDirection: 'row' }}>
-            <MainText>{deck && deck.name && `${deck.name}`}</MainText>
+            <SD.MainText>{deck && deck.name && `${deck.name}`}</SD.MainText>
             {card &&
               card.category != null && (
                 <SD.CardCategory>{card.category}</SD.CardCategory>
@@ -57,7 +49,7 @@ export class Header extends React.Component<Props, {}> {
                 this.props.navigation.navigate('cardNew', { deck_id: deck.id })
               }
             >
-              <MainText>{'+'}</MainText>
+              <SD.MainText>{'+'}</SD.MainText>
             </RN.TouchableOpacity>
           ) : (
             <RN.View />

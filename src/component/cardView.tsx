@@ -2,14 +2,8 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
-import styled from 'styled-components';
+import * as SD from './styled';
 import * as I from 'src/interface';
-
-export const BodyText = styled(RN.Text)`
-  color: ${({ theme }: AppContext) => theme.mainColor};
-  font-size: 16px;
-  padding: 0 5px;
-`;
 
 const html = `
 <html>
@@ -82,7 +76,7 @@ class CardView extends React.Component<
             backgroundColor: this.props.theme.cardBackgroundColor,
           }}
         >
-          <BodyText>{card.body}</BodyText>
+          <SD.BodyText>{card.body}</SD.BodyText>
         </RN.ScrollView>
       );
     }

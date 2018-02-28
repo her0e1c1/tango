@@ -19,6 +19,17 @@ export const Circle = styled(View as React.SFC<{ mastered: boolean }>)`
   margin: 5px;
 `;
 
+export const BodyText = styled(RN.Text)`
+  color: ${({ theme }) => theme.mainColor};
+  font-size: 16px;
+  padding: 0 5px;
+`;
+
+export const MainText = styled(RN.Text)`
+  color: ${({ theme }) => theme.titleColor};
+  font-size: 18px;
+`;
+
 export const Container = styled(RN.View)`
   flex: 1;
   background-color: ${({ theme }) => theme.mainBackgroundColor};
