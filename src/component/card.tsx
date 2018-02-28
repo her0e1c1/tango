@@ -1,4 +1,3 @@
-import styled from 'styled-components';
 import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';

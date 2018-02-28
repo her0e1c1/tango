@@ -1,19 +1,16 @@
+import * as React from 'react';
 import * as RN from 'react-native';
 import * as styledComponents from 'styled-components';
 import { ThemedStyledComponentsModule } from 'styled-components';
 
-const {
-  default: styled,
-  css,
-  injectGlobal,
-  keyframes,
-  ThemeProvider,
-} = styledComponents as ThemedStyledComponentsModule<Theme>;
+const { default: styled } = styledComponents as ThemedStyledComponentsModule<
+  Theme
+>;
 
-export { css, injectGlobal, keyframes, ThemeProvider };
-export default styled;
+// FIXME: wait for this syntax to be available: styled(RN.View)<Props>`...`
+const View = props => <RN.View {...props} />;
 
-export const Circle = styled(RN.View)`
+export const Circle = styled(View as React.SFC<{ mastered: boolean }>)`
   background-color: ${({ theme, mastered }) =>
     mastered ? theme.masteredColor : theme.circleBackgroundColor};
   width: 20px;
