@@ -2,7 +2,6 @@ import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
 import DeckSwiper from 'react-native-deck-swiper';
-import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
 import ProgressBar from './progressBar';
 import CardView from './cardView';
@@ -13,7 +12,6 @@ import { mathCategory } from './cardView';
 import MasteredCircle from './masteredCircle';
 import { withNavigation } from 'react-navigation';
 
-@withTheme
 @withNavigation
 class View extends React.Component<
   Props & AppContext,

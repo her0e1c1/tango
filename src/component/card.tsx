@@ -9,15 +9,6 @@ import { withNavigation } from 'react-navigation';
 import Swipeout from 'react-native-swipeout';
 import * as Selector from 'src/selector';
 
-const Circle = styled(RN.View)`
-  background-color: ${({ theme, mastered }: AppContext) =>
-    mastered ? theme.masteredColor : theme.circleBackgroundColor};
-  width: 20px;
-  height: 20px;
-  border-radius: 20px;
-  margin: 5px;
-`;
-
 @connect(state => ({ state }))
 export class MasteredCircle extends React.Component<{ card: Card }, {}> {
   render() {
@@ -27,7 +18,7 @@ export class MasteredCircle extends React.Component<{ card: Card }, {}> {
       <RN.TouchableOpacity
         onPress={() => dispatch(Action.toggleMastered(card))}
       >
-        <Circle mastered={card.mastered} />
+        <SD.Circle mastered={card.mastered} />
       </RN.TouchableOpacity>
     );
   }
