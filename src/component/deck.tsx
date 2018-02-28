@@ -5,7 +5,7 @@ import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
 import { DeckCard, DeckTitle } from './styled';
-import ProgressBar from './progressBar';
+import { ProgressBar } from './progressBar';
 import { withNavigation } from 'react-navigation';
 
 @withNavigation

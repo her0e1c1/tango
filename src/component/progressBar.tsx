@@ -1,13 +1,12 @@
 import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
-import * as I from 'src/interface';
 import * as Selector from 'src/selector';
-import { withTheme } from 'styled-components';
+import * as SD from './styled';
 
-@withTheme
-class ProgressBar extends React.Component<
-  Props & { deck_id: number; showCardIndex?: boolean },
+@connect(state => ({ state }))
+export class ProgressBar extends React.Component<
+  { state: RootState } & { deck_id: number; showCardIndex?: boolean },
   {}
 > {
   render() {
@@ -27,13 +26,7 @@ class ProgressBar extends React.Component<
           alignItems: 'center',
         }}
       >
-        <RN.View
-          style={{
-            height: 20,
-            width: `${width}%`,
-            backgroundColor: this.props.theme.masteredColor,
-          }}
-        />
+        <SD.ProgressBar width={`${width}%`} />
         <RN.View
           style={{
             flex: 1,
@@ -56,9 +49,3 @@ class ProgressBar extends React.Component<
     );
   }
 }
-
-const mapStateToProps = (state: RootState) => ({ state });
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps, mapDispatchToProps)(ProgressBar);

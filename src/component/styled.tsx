@@ -19,6 +19,12 @@ export const Circle = styled(View as React.SFC<{ mastered: boolean }>)`
   margin: 5px;
 `;
 
+export const ProgressBar = styled(View as React.SFC<{ width: string }>)`
+  height: 20;
+  width: ${props => props.width};
+  background-color: ${props => props.theme.masteredColor};
+`;
+
 export const BodyText = styled(RN.Text)`
   color: ${({ theme }) => theme.mainColor};
   font-size: 16px;

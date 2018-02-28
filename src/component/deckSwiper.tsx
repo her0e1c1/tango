@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import DeckSwiper from 'react-native-deck-swiper';
 import { connect } from 'react-redux';
-import ProgressBar from './progressBar';
+import { ProgressBar } from './progressBar';
 import CardView from './cardView';
 import * as SD from './styled';
 import * as I from 'src/interface';
