@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "@types/expo": "^24.0.3",
+    "@types/react-navigation": "^1.2.1",
     "@types/react-redux": "^5.0.14",
     "expo": "^23.0.4",
     "firebase": "^4.9.1",
