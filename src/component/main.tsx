@@ -7,7 +7,6 @@ import { DeckList } from './deck';
 import { Header } from './header';
 import { connect } from 'react-redux';
 import { Container } from './styled';
-import { LoadingIcon } from './utils';
 import { StackNavigator } from 'react-navigation';
 import { addNavigationHelpers } from 'react-navigation';
 import { createReduxBoundAddListener } from 'react-navigation-redux-helpers';
@@ -30,21 +29,20 @@ const Home = ({ state }: { state: RootState }) => (
 
 export const Root = StackNavigator(
   {
-    home: { screen: wrap(connect(state => ({ state }))(Home)) },
-    deck: { screen: wrap(CardList) },
-    card: { screen: wrap(DeckSwiper) },
-    cardNew: { screen: wrap(CardNew) },
-    cardEdit: { screen: wrap(CardEdit) },
+    home: { screen: wrap(connect(state => ({ state }))(Home)) as any },
+    deck: { screen: wrap(CardList) as any },
+    card: { screen: wrap(DeckSwiper) as any },
+    cardNew: { screen: wrap(CardNew) as any },
+    cardEdit: { screen: wrap(CardEdit) as any },
   },
   { initialRouteName: 'home', navigationOptions: { header: null } }
 );
 
-@connect(state => ({ state }))
-class Main extends React.Component<{}, {}> {
+class Main extends React.Component<ConnectedProps, {}> {
   render() {
     const addListener = createReduxBoundAddListener('root');
     const navigation = addNavigationHelpers({
-      dispatch: this.props.dispatch,
+      dispatch: this.props.dispatch as any,
       state: this.props.state.nav,
       addListener,
     });
@@ -52,4 +50,4 @@ class Main extends React.Component<{}, {}> {
   }
 }
 
-export default Main;
+export default connect(state => ({ state }))(Main);

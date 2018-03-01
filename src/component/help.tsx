@@ -114,11 +114,14 @@ const List = () => (
 
 export const Root = StackNavigator(
   {
-    share: { screen: List },
+    share: { screen: List as any },
     shareCards: { screen: CardList },
-    shareView: { screen: withNavigation(ShareView) },
+    shareView: { screen: withNavigation(ShareView) as any },
   },
-  { initialRouteName: 'share', navigationOptions: { header: null } }
+  {
+    initialRouteName: 'share',
+    navigationOptions: { header: null },
+  }
 );
 
 export default Root;
