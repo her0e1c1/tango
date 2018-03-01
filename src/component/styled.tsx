@@ -25,6 +25,20 @@ export const ProgressBar = styled(View as React.SFC<{ width: string }>)`
   background-color: ${props => props.theme.masteredColor};
 `;
 
+export const CardEditTitle = styled(RN.Text)`
+  font-weight: bold;
+  font-size: 20;
+  color: ${props => props.theme.mainColor};
+`;
+
+export const CardEditInputView = styled(RN.View)`
+  background-color: ${props => props.theme.bgTextInput};
+  color: ${props => props.theme.mainColor};
+  margin-top: 5;
+  margin-bottom: 10;
+  height: 100px;
+`;
+
 export const BodyText = styled(RN.Text)`
   color: ${({ theme }) => theme.mainColor};
   font-size: 16px;

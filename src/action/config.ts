@@ -32,6 +32,7 @@ export const getTheme = (state: RootState): Theme => {
       cardBackgroundColor: '#111',
       cardBorderColor: 'gray',
       circleBackgroundColor: '#222',
+      bgTextInput: 'gray',
     };
   } else {
     // default
@@ -43,6 +44,7 @@ export const getTheme = (state: RootState): Theme => {
       cardBorderColor: 'white',
       cardBackgroundColor: 'white',
       circleBackgroundColor: '#DEE2E6',
+      bgTextInput: 'white',
     };
   }
 };

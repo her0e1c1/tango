@@ -63,6 +63,7 @@ interface Theme {
   cardBackgroundColor: string;
   cardBorderColor: string;
   circleBackgroundColor: string;
+  bgTextInput: string;
 }
 
 type errorCode = 'INVALID_URL' | 'CAN_NOT_FETCH' | 'NO_CARDS';

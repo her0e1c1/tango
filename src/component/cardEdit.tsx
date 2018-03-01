@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as RN from 'react-native';
+import * as SD from './styled';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import { MasteredCircle } from './card';
@@ -23,25 +24,35 @@ export class CardEdit extends React.Component<
     return (
       <RN.ScrollView>
         <MasteredCircle card={card} />
-        <RN.Text>Id: {`${card.id}(${card.fkid})`}</RN.Text>
-        <RN.Text>Title:</RN.Text>
-        <RN.TextInput
-          value={card.name}
-          multiline
-          onChangeText={name => this.setState({ name })}
-        />
-        <RN.Text>Body:</RN.Text>
-        <RN.TextInput
-          value={card.body}
-          multiline
-          onChangeText={body => this.setState({ body })}
-        />
-        <RN.Text>Hint:</RN.Text>
-        <RN.TextInput
-          value={card.hint}
-          multiline
-          onChangeText={hint => this.setState({ hint })}
-        />
+        <SD.CardEditTitle>ID: {`${card.id}(${card.fkid})`}</SD.CardEditTitle>
+
+        <SD.CardEditTitle>TITLE:</SD.CardEditTitle>
+        <SD.CardEditInputView>
+          <RN.TextInput
+            value={card.name}
+            multiline
+            onChangeText={name => this.setState({ name })}
+          />
+        </SD.CardEditInputView>
+
+        <SD.CardEditTitle>BODY:</SD.CardEditTitle>
+        <SD.CardEditInputView>
+          <RN.TextInput
+            value={card.body}
+            multiline
+            onChangeText={body => this.setState({ body })}
+          />
+        </SD.CardEditInputView>
+
+        <SD.CardEditTitle>HINT:</SD.CardEditTitle>
+        <SD.CardEditInputView>
+          <RN.TextInput
+            value={card.hint}
+            multiline
+            onChangeText={hint => this.setState({ hint })}
+          />
+        </SD.CardEditInputView>
+
         <RN.Button
           color={this.props.theme.mainColor}
           title="UPDATE THIS CARD"
@@ -70,25 +81,36 @@ export class CardNew extends React.Component<
   render() {
     const card = this.state;
     return (
-      <RN.View>
-        <RN.Text>Title:</RN.Text>
-        <RN.TextInput
-          value={card.name}
-          multiline
-          onChangeText={name => this.setState({ name })}
-        />
-        <RN.Text>Body:</RN.Text>
-        <RN.TextInput
-          value={card.body}
-          multiline
-          onChangeText={body => this.setState({ body })}
-        />
-        <RN.Text>Hint:</RN.Text>
-        <RN.TextInput
-          value={card.hint}
-          multiline
-          onChangeText={hint => this.setState({ hint })}
-        />
+      <RN.ScrollView>
+        <SD.CardEditTitle>TITLE:</SD.CardEditTitle>
+        <SD.CardEditInputView style={{ height: 50 }}>
+          <RN.TextInput
+            value={card.name}
+            multiline
+            onChangeText={name => this.setState({ name })}
+          />
+        </SD.CardEditInputView>
+
+        <SD.CardEditTitle>BODY:</SD.CardEditTitle>
+        <SD.CardEditInputView>
+          <RN.TextInput
+            value={card.body}
+            multiline
+            numberOfLines={5}
+            onChangeText={body => this.setState({ body })}
+          />
+        </SD.CardEditInputView>
+
+        <SD.CardEditTitle>HINT:</SD.CardEditTitle>
+        <SD.CardEditInputView>
+          <RN.TextInput
+            value={card.hint}
+            multiline
+            numberOfLines={5}
+            onChangeText={hint => this.setState({ hint })}
+          />
+        </SD.CardEditInputView>
+
         <RN.Button
           color={this.props.theme.mainColor}
           title="CREATE A NEW CARD"
@@ -99,7 +121,7 @@ export class CardNew extends React.Component<
             this.props.navigation.goBack();
           }}
         />
-      </RN.View>
+      </RN.ScrollView>
     );
   }
 }
