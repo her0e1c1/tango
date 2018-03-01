@@ -131,7 +131,9 @@ export class Settings extends React.Component<{ state: RootState }, {}> {
             <NB.Picker
               textStyle={{ color: 'cornflowerblue' }}
               selectedValue={config.theme}
-              onValueChange={theme => this.props.update({ theme })}
+              onValueChange={theme =>
+                dispatch(Action.config.updateConfig({ theme }))
+              }
             >
               {['default', 'dark'].map(x => (
                 <NB.Picker.Item label={x} value={x} />
