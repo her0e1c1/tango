@@ -7,9 +7,8 @@ import { connect } from 'react-redux';
 import { withNavigation } from 'react-navigation';
 
 @withNavigation
-@connect(state => ({ state }))
-export class DriveList extends React.Component<
-  { state: RootState },
+export class _DriveList extends React.Component<
+  ConnectedProps,
   { refreshing: boolean }
 > {
   state = { refreshing: false };
@@ -40,3 +39,4 @@ export class DriveList extends React.Component<
     );
   }
 }
+export const DriveList = connect(state => ({ state }))(_DriveList);

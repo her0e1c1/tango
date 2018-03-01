@@ -5,7 +5,6 @@ import { bulkInsertCards, bulkUpdateCards } from './card';
 import { startLoading, endLoading } from './config';
 import * as Selector from 'src/selector';
 import * as Action from 'src/action';
-import * as Papa from 'papaparse';
 
 export const tryInsertByURL = (url: string) => async (dispatch, getState) => {
   if (url.match(/^https?:\/\//)) {
@@ -24,7 +23,7 @@ export const tryInsertByURL = (url: string) => async (dispatch, getState) => {
   }
 };
 
-export const insertByURL = (url: string): I.ThunkAction => async (
+export const insertByURL = (url: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -94,7 +93,7 @@ export const select = (limit: number = 50): I.ThunkAction => async (
   await dispatch({ type: 'DECK_BULK_INSERT', payload: { decks } });
 };
 
-export const getByFkid = (fkid: string): I.ThunkAction => async (
+export const getByFkid = (fkid: string): ThunkAction<Deck> => async (
   dispatch,
   getState
 ) => {

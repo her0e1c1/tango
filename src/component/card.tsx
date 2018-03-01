@@ -8,8 +8,10 @@ import { withNavigation } from 'react-navigation';
 import Swipeout from 'react-native-swipeout';
 import * as Selector from 'src/selector';
 
-@connect(state => ({ state }))
-export class MasteredCircle extends React.Component<{ card: Card }, {}> {
+export class _MasteredCircle extends React.Component<
+  ConnectedProps & { card: Card },
+  {}
+> {
   render() {
     const { dispatch } = this.props;
     const card = this.props.card;
@@ -22,9 +24,12 @@ export class MasteredCircle extends React.Component<{ card: Card }, {}> {
     );
   }
 }
+export const MasteredCircle = connect(state => ({ state }))(_MasteredCircle);
 
-@connect(state => ({ state }))
-export class CardDetail extends React.Component<{ onLongPress: Callback }, {}> {
+export class _CardDetail extends React.Component<
+  ConnectedProps & { onLongPress: Callback },
+  {}
+> {
   static navigationOptions = () => ({
     gesturesEnabled: false,
   });
@@ -65,10 +70,10 @@ export class CardDetail extends React.Component<{ onLongPress: Callback }, {}> {
     );
   }
 }
+export const CardDetail = connect(state => ({ state }))(_CardDetail);
 
 @withNavigation
-@connect(state => ({ state }))
-export class CardList extends React.Component<{}, {}> {
+export class _CardList extends React.Component<ConnectedProps, {}> {
   render() {
     const { dispatch } = this.props;
     const cards = Selector.getCurrentCardList(this.props.state);
@@ -128,3 +133,4 @@ export class CardList extends React.Component<{}, {}> {
     );
   }
 }
+export const CardList = connect(state => ({ state }))(_CardList);

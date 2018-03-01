@@ -2,14 +2,13 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
-import * as I from 'src/interface';
 import * as SD from './styled';
 import { withNavigation } from 'react-navigation';
 
 @withNavigation
-export class Header extends React.Component<Props, {}> {
+export class _Header extends React.Component<ConnectedProps, {}> {
   render() {
-    const { state } = this.props;
+    const { state, dispatch } = this.props;
     if (!state.config.showHeader) {
       return <RN.View />;
     }
@@ -31,7 +30,7 @@ export class Header extends React.Component<Props, {}> {
           {showBackButton && (
             <RN.TouchableOpacity
               onPress={() => this.props.navigation.goBack()}
-              onLongPress={() => this.props.goHome()}
+              onLongPress={() => dispatch(Action.nav.goHome())}
             >
               <SD.MainText>{'<'}</SD.MainText>
             </RN.TouchableOpacity>
@@ -60,8 +59,4 @@ export class Header extends React.Component<Props, {}> {
   }
 }
 
-const mapStateToProps = (state: RootState) => ({ state });
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = { goHome: Action.goHome };
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps, mapDispatchToProps)(Header);
+export const Header = connect(state => ({ state }))(_Header);

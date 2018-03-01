@@ -9,9 +9,8 @@ import { withNavigation } from 'react-navigation';
 
 @withTheme
 @withNavigation
-@connect(state => ({ state }))
-export class CardEdit extends React.Component<
-  { state: RootState; card: Card } & AppContext,
+export class _CardEdit extends React.Component<
+  ConnectedProps & { card: Card } & AppContext,
   Card
 > {
   constructor(props) {
@@ -65,12 +64,12 @@ export class CardEdit extends React.Component<
     );
   }
 }
+export const CardEdit = connect(state => ({ state }))(_CardEdit);
 
 @withTheme
 @withNavigation
-@connect(state => ({ state }))
-export class CardNew extends React.Component<
-  { state: RootState } & AppContext,
+export class _CardNew extends React.Component<
+  ConnectedProps & AppContext,
   Card
 > {
   constructor(props) {
@@ -125,3 +124,4 @@ export class CardNew extends React.Component<
     );
   }
 }
+export const CardNew = connect(state => ({ state }))(_CardNew);

@@ -9,8 +9,10 @@ import { withNavigation } from 'react-navigation';
 import * as Selector from 'src/selector';
 
 @withNavigation
-@connect(state => ({ state }))
-export class DeckList extends React.Component<{}, { refreshing: boolean }> {
+export class _DeckList extends React.Component<
+  ConnectedProps,
+  { refreshing: boolean }
+> {
   constructor(props) {
     super(props);
     this.state = { refreshing: false };
@@ -27,7 +29,10 @@ export class DeckList extends React.Component<{}, { refreshing: boolean }> {
       {
         text: 'COPY',
         backgroundColor: 'blue',
-        onPress: () => dispatch(Action.deck.insertByURL(deck.url)),
+        onPress: () =>
+          deck.url
+            ? dispatch(Action.deck.insertByURL(deck.url))
+            : alert('NO URL :('),
       },
     ];
     if (uid) {
@@ -90,10 +95,10 @@ export class DeckList extends React.Component<{}, { refreshing: boolean }> {
     );
   }
 }
+export const DeckList = connect(state => ({ state }))(_DeckList);
 
-@connect(state => ({ state }))
-export class ProgressBar extends React.Component<
-  { state: RootState } & { deck_id: number; showCardIndex?: boolean },
+export class _ProgressBar extends React.Component<
+  ConnectedProps & { deck_id: number; showCardIndex?: boolean },
   {}
 > {
   render() {
@@ -136,3 +141,4 @@ export class ProgressBar extends React.Component<
     );
   }
 }
+export const ProgressBar = connect(state => ({ state }))(_ProgressBar);

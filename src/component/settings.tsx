@@ -15,8 +15,7 @@ const cardSwipeTypes: cardSwipe[] = [
   'goToNextCardToggleMastered',
 ];
 
-@connect(state => ({ state }))
-export class Settings extends React.Component<{ state: RootState }, {}> {
+export class _Settings extends React.Component<ConnectedProps, {}> {
   state = { version: undefined };
 
   componentDidMount() {
@@ -221,3 +220,4 @@ export class Settings extends React.Component<{ state: RootState }, {}> {
     );
   }
 }
+export const Settings = connect(state => ({ state }))(_Settings);

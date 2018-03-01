@@ -45,8 +45,8 @@ export class CodeScanner extends React.Component<{
 }
 
 @withNavigation
-export class SearchBar extends React.Component<
-  Props,
+export class _SearchBar extends React.Component<
+  ConnectedProps,
   { text: string; showScanner: boolean }
 > {
   constructor(props) {
@@ -55,11 +55,12 @@ export class SearchBar extends React.Component<
   }
 
   async onEndEditing() {
+    const { dispatch } = this.props;
     const { text } = this.state;
     if (!text) {
       return;
     }
-    await this.props.insertByURL(this.state.text);
+    await dispatch(Action.deck.insertByURL(this.state.text));
     const { errorCode } = this.props.state.config;
     if (errorCode) {
       if (errorCode == 'INVALID_URL') {
@@ -69,7 +70,7 @@ export class SearchBar extends React.Component<
       } else if (errorCode == 'NO_CARDS') {
         alert('There are not cards in input url');
       }
-      this.props.clearError();
+      dispatch(Action.config.clearError());
     } else {
       this.setState({ text: '' });
     }
@@ -108,12 +109,4 @@ export class SearchBar extends React.Component<
     );
   }
 }
-
-const mapStateToProps = (state: RootState) => ({ state });
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {
-  insertByURL: Action.tryInsertByURL,
-  clearError: Action.clearError,
-};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps, mapDispatchToProps)(SearchBar);
+export default connect(state => ({ state }))(_SearchBar);

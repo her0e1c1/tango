@@ -11,9 +11,8 @@ import CardView from './cardView';
 import { DriveList } from './drive';
 
 @withNavigation
-@connect(state => ({ state }))
-class DeckList extends React.Component<
-  { state: RootState },
+class _DeckList extends React.Component<
+  ConnectedProps,
   { refreshing: boolean }
 > {
   state = { refreshing: false };
@@ -64,10 +63,10 @@ class DeckList extends React.Component<
     );
   }
 }
+const DeckList = connect(state => ({ state }))(_DeckList);
 
 @withNavigation
-@connect(state => ({ state }))
-class CardList extends React.Component<{ state: RootState } & { deck: Deck }> {
+class _CardList extends React.Component<ConnectedProps & { deck: Deck }> {
   componentDidMount() {
     const { deck } = this.props.navigation.state.params;
     this.props.dispatch(Action.share.fetchCardsByDeckId(deck.id));
@@ -98,6 +97,7 @@ class CardList extends React.Component<{ state: RootState } & { deck: Deck }> {
     );
   }
 }
+const CardList = connect(state => ({ state }))(_CardList);
 
 const ShareView = props => (
   <SD.Container>

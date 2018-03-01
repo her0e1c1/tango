@@ -127,3 +127,20 @@ type Callback = () => void;
 interface AppContext {
   theme: Theme;
 }
+
+type _ThunkAction<R, S, E> = (
+  dispatch: Dispatch<S>,
+  getState: () => S,
+  extraArgument: E
+) => R;
+
+type ThunkAction<T = void> = _ThunkAction<Promise<T>, RootState, undefined>;
+
+interface Dispatch<S> {
+  <R, E>(asyncAction: _ThunkAction<R, S, E>): R;
+}
+
+interface ConnectedProps {
+  state: RootState;
+  dispatch: Dispatch<RootState>;
+}
