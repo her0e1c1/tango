@@ -8,7 +8,6 @@ import { DeckCard, DeckTitle } from './styled';
 import { withNavigation } from 'react-navigation';
 import * as Selector from 'src/selector';
 
-@withNavigation
 export class _DeckList extends React.Component<
   ConnectedProps,
   { refreshing: boolean }
@@ -79,7 +78,7 @@ export class _DeckList extends React.Component<
             >
               <RN.TouchableOpacity
                 onPress={() => {
-                  this.props.navigation.navigate('deck', { deck_id: item.id });
+                  dispatch(Action.nav.goTo('deck', { deck_id: item.id }));
                 }}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
