@@ -5,18 +5,15 @@ import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import { MasteredCircle } from './card';
 import { withTheme } from 'styled-components';
-import { withNavigation } from 'react-navigation';
 
 @withTheme
-@withNavigation
 export class _CardEdit extends React.Component<
-  ConnectedProps & { card: Card } & AppContext,
+  ConnectedProps & { card_id: number },
   Card
 > {
   constructor(props) {
     super(props);
-    const { card } = this.props.navigation.state.params;
-    this.state = card;
+    this.state = this.props.state.card.byId[this.props.card_id];
   }
   render() {
     const card = this.state;
@@ -57,7 +54,7 @@ export class _CardEdit extends React.Component<
           title="UPDATE THIS CARD"
           onPress={async () => {
             await this.props.dispatch(Action.updateCard(this.state));
-            this.props.navigation.goBack();
+            await this.props.dispatch(Action.nav.goBack());
           }}
         />
       </RN.ScrollView>
@@ -67,15 +64,13 @@ export class _CardEdit extends React.Component<
 export const CardEdit = connect(state => ({ state }))(_CardEdit);
 
 @withTheme
-@withNavigation
 export class _CardNew extends React.Component<
-  ConnectedProps & AppContext,
+  ConnectedProps & { deck_id: number },
   Card
 > {
   constructor(props) {
     super(props);
-    const { deck_id } = this.props.navigation.state.params;
-    this.state = { deck_id } as Card;
+    this.state = { deck_id: this.props.deck_id } as Card;
   }
   render() {
     const card = this.state;
@@ -117,7 +112,7 @@ export class _CardNew extends React.Component<
             await this.props.dispatch(
               Action.bulkInsertCards(this.state.deck_id, [this.state])
             );
-            this.props.navigation.goBack();
+            await this.props.dispatch(Action.nav.goBack());
           }}
         />
       </RN.ScrollView>
