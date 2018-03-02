@@ -19,6 +19,7 @@
   "prettier.printWidth": 80,
   "cSpell.words": [
     "fkid",
-    "papaparse"
+    "papaparse",
+    "swipeout"
   ],
 }
