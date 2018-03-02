@@ -5,6 +5,7 @@ import { bulkInsertCards, bulkUpdateCards } from './card';
 import { startLoading, endLoading } from './config';
 import * as Selector from 'src/selector';
 import * as Action from 'src/action';
+import * as Papa from 'papaparse';
 
 export const tryInsertByURL = (url: string) => async (dispatch, getState) => {
   if (url.match(/^https?:\/\//)) {
