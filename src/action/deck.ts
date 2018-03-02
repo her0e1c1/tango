@@ -4,8 +4,7 @@ import * as firebase from 'firebase';
 import { bulkInsertCards, bulkUpdateCards } from './card';
 import { startLoading, endLoading } from './config';
 import * as Selector from 'src/selector';
-import * as Action from 'src/action';
-import * as Papa from 'papaparse';
+const Papa = require('papaparse');
 
 export const tryInsertByURL = (url: string) => async (dispatch, getState) => {
   if (url.match(/^https?:\/\//)) {
@@ -62,7 +61,7 @@ export const insertByText = (
 ): I.ThunkAction => async (dispatch, getState) => {
   const cards = await dispatch(parseTextToCsv(text));
   if (deck.fkid) {
-    const d = await dispatch(Action.deck.getByFkid(deck.fkid));
+    const d = await dispatch(getByFkid(deck.fkid));
     if (!!d) {
       await dispatch(update({ ...deck, id: d.id }));
       await dispatch(bulkUpdateCards(d.id, cards));
@@ -89,7 +88,7 @@ export const select = (limit: number = 50): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const result = await exec(`select * from deck;`);
+  const result = await exec('select * from deck');
   const decks = result.rows._array;
   await dispatch({ type: 'DECK_BULK_INSERT', payload: { decks } });
 };
@@ -98,7 +97,7 @@ export const getByFkid = (fkid: string): ThunkAction<Deck> => async (
   dispatch,
   getState
 ) => {
-  const result = await exec(`select * from deck where fkid = ?;`, [fkid]);
+  const result = await exec('select * from deck where fkid = ?', [fkid]);
   return result.rows._array[0];
 };
 
@@ -171,7 +170,7 @@ export const importFromFireBase = (deck_id: number): I.ThunkAction => async (
           .once('value', async snapshot => {
             const v = snapshot.val();
             const cards = Object.values(v) as Card[];
-            await dispatch(Action.bulkInsertCards(id, cards));
+            await dispatch(Action.bulkInsertCards(id, cards)); // TODO: fix later
             await dispatch(endLoading());
           })
           .catch(e => {
