@@ -29,12 +29,12 @@ const Home = ({ state }: { state: RootState }) => (
 
 export const Root = StackNavigator(
   {
-    home: { screen: wrap(connect(state => ({ state }))(Home)) as any },
-    deck: { screen: wrap(CardList) as any },
-    card: { screen: wrap(DeckSwiper) as any },
-    cardNew: { screen: wrap(CardNew) as any },
-    cardEdit: { screen: wrap(CardEdit) as any },
-  },
+    home: { screen: wrap(connect(state => ({ state }))(Home)) },
+    deck: { screen: wrap(CardList) },
+    card: { screen: wrap(DeckSwiper) },
+    cardNew: { screen: wrap(CardNew) },
+    cardEdit: { screen: wrap(CardEdit) },
+  } as any,
   { initialRouteName: 'home', navigationOptions: { header: null } }
 );
 
