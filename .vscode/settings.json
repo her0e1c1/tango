@@ -19,6 +19,8 @@
   "prettier.printWidth": 80,
   "cSpell.words": [
     "fkid",
+    "hljs",
+    "mathjax",
     "papaparse",
     "swipeout"
   ],
