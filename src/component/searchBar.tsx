@@ -4,7 +4,6 @@ import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as I from 'src/interface';
-import { withNavigation } from 'react-navigation';
 import { LoadingIcon } from './utils';
 import { BarCodeScanner, Permissions } from 'expo';
 
@@ -44,7 +43,6 @@ export class CodeScanner extends React.Component<{
   }
 }
 
-@withNavigation
 export class _SearchBar extends React.Component<
   ConnectedProps,
   { text: string; showScanner: boolean }

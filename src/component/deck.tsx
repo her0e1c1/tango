@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
 import { DeckCard, DeckTitle } from './styled';
-import { withNavigation } from 'react-navigation';
 import * as Selector from 'src/selector';
 
 export class _DeckList extends React.Component<
