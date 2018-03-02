@@ -4,7 +4,6 @@ import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import CardView from './cardView';
 import * as SD from './styled';
-import { withNavigation } from 'react-navigation';
 import Swipeout from 'react-native-swipeout';
 import * as Selector from 'src/selector';
 
@@ -72,7 +71,6 @@ export class _CardDetail extends React.Component<
 }
 export const CardDetail = connect(state => ({ state }))(_CardDetail);
 
-@withNavigation
 export class _CardList extends React.Component<ConnectedProps, {}> {
   render() {
     const { dispatch } = this.props;
@@ -115,13 +113,15 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
                 }}
                 onPress={() => {
                   dispatch(Action.nav.goToCard(item));
-                  this.props.navigation.navigate('card', {
-                    card_id: item.id,
-                    deck_id: item.deck_id,
-                  });
+                  dispatch(
+                    Action.nav.goTo('card', {
+                      card_id: item.id,
+                      deck_id: item.deck_id,
+                    })
+                  );
                 }}
                 onLongPress={() =>
-                  this.props.navigation.navigate('cardEdit', { card: item })
+                  dispatch(Action.nav.goTo('cardEdit', { card: item }))
                 }
               >
                 <SD.CardTitle>{item.name}</SD.CardTitle>
