@@ -29,7 +29,7 @@ export class _Header extends React.Component<ConnectedProps, {}> {
         >
           {showBackButton && (
             <RN.TouchableOpacity
-              onPress={() => this.props.navigation.goBack()}
+              onPress={() => dispatch(Action.nav.goBack())}
               onLongPress={() => dispatch(Action.nav.goHome())}
             >
               <SD.MainText>{'<'}</SD.MainText>
@@ -45,7 +45,7 @@ export class _Header extends React.Component<ConnectedProps, {}> {
           {showPlusButton ? (
             <RN.TouchableOpacity
               onPress={() =>
-                this.props.navigation.navigate('cardNew', { deck_id: deck.id })
+                dispatch(Action.nav.goTo('cardNew', { deck_id: deck.id }))
               }
             >
               <SD.MainText>{'+'}</SD.MainText>
