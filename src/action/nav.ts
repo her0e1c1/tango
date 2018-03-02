@@ -73,6 +73,9 @@ export const goHome = (): I.ThunkAction => async (dispatch, getState) => {
 export const goBack = () => async (dispatch, getState) => {
   await dispatch(NavigationActions.back());
 };
+export const goTo = (routeName, params?) => async (dispatch, getState) => {
+  await dispatch(NavigationActions.navigate({ routeName, params }));
+};
 
 const swipeMapping = {
   goBack,
