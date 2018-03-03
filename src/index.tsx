@@ -6,23 +6,34 @@ import { Provider, connect } from 'react-redux';
 import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { ThemeProvider } from 'styled-components';
+import { addNavigationHelpers } from 'react-navigation';
+import { createReduxBoundAddListener } from 'react-navigation-redux-helpers';
 
 import { LoadingIcon } from 'src/component/utils';
-import RootTabs from './component';
+import Root from './component';
 import store from './store';
 import * as Action from 'src/action';
 import * as C from 'src/constant';
 
-const Theme = connect(state => ({ state }))(
-  ({ state }: { state: RootState }) => (
-    <ThemeProvider theme={Action.getTheme(state)}>
-      <RN.View style={{ flex: 1 }}>
-        {state.config.isLoading && <LoadingIcon />}
-        <RootTabs />
-      </RN.View>
-    </ThemeProvider>
-  )
-);
+class _Theme extends React.Component<ConnectedProps, {}> {
+  render() {
+    const { state } = this.props;
+    const addListener = createReduxBoundAddListener('root');
+    const navigation = addNavigationHelpers({
+      dispatch: this.props.dispatch as any,
+      state: this.props.state.nav,
+      addListener,
+    });
+    return (
+      <ThemeProvider theme={Action.getTheme(state)}>
+        <RN.View style={{ flex: 1 }}>
+          <Root navigation={navigation} />
+        </RN.View>
+      </ThemeProvider>
+    );
+  }
+}
+const Theme = connect(state => ({ state }))(_Theme);
 
 const checkUpdate = async (): Promise<boolean> => {
   const v = await RN.AsyncStorage.getItem('version');

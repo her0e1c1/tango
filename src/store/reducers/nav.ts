@@ -1,8 +1,8 @@
 import * as Redux from 'redux';
-import { Root } from 'src/component/main';
+import Root from 'src/component';
 
 const initialState = Root.router.getStateForAction(
-  Root.router.getActionForPathAndParams('home')
+  Root.router.getActionForPathAndParams('Main')
 );
 
 export default (

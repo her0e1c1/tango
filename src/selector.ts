@@ -12,7 +12,9 @@ export const getMyDecks = (state: RootState): Deck[] => {
 };
 
 export const getCurrentDeck = (state: RootState): Deck => {
-  const r = state.nav.routes[state.nav.index];
+  const stack = state.nav.routes[0];
+  const index = stack.index;
+  const r = stack.routes[index];
   const deck_id = r && r.params && r.params.deck_id;
   return state.deck.byId[deck_id] || {};
 };

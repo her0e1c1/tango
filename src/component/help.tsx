@@ -10,7 +10,6 @@ import { LoadingIcon } from './utils';
 import CardView from './cardView';
 import { DriveList } from './drive';
 
-@withNavigation
 class _DeckList extends React.Component<
   ConnectedProps,
   { refreshing: boolean }
@@ -32,7 +31,11 @@ class _DeckList extends React.Component<
           renderItem={({ item }: { item: Deck }) => (
             <RN.TouchableOpacity
               onPress={() =>
-                this.props.navigation.navigate('shareCards', { deck: item })
+                this.props.dispatch(
+                  Action.nav.goTo('shareCards', {
+                    deck_id: item.id,
+                  })
+                )
               }
             >
               <SD.DeckCard
@@ -65,26 +68,26 @@ class _DeckList extends React.Component<
 }
 const DeckList = connect(state => ({ state }))(_DeckList);
 
-@withNavigation
-class _CardList extends React.Component<ConnectedProps & { deck: Deck }> {
+class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
   componentDidMount() {
-    const { deck } = this.props.navigation.state.params;
-    this.props.dispatch(Action.share.fetchCardsByDeckId(deck.id));
+    const { deck_id } = this.props;
+    this.props.dispatch(Action.share.fetchCardsByDeckId(deck_id));
   }
   render() {
-    const { deck } = this.props.navigation.state.params;
+    const { deck_id, dispatch } = this.props;
     const uid = this.props.state.user.uid;
-    const cards = Object.values(this.props.state.share.user[uid].card.byId);
+    const cards = [] as Card[]; // Object.values(this.props.state.share.user[uid].card.byId);
+    //const cards = Object.values(this.props.state.share.user[uid].card.byId);
     return (
       <SD.Container>
         <RN.FlatList
           data={cards
-            .filter(x => !!x && x.deck_id === deck.id)
+            .filter(x => !!x && x.deck_id === deck_id)
             .map((d, key) => ({ ...d, key }))}
           renderItem={({ item }: { item: Card }) => (
             <RN.TouchableOpacity
               onPress={() =>
-                this.props.navigation.navigate('shareView', { card: item })
+                dispatch(Action.nav.goTo('shareView', { card: item }))
               }
             >
               <SD.DeckCard style={{ marginBottom: 10 }}>
@@ -114,10 +117,14 @@ const List = () => (
 
 export const Root = StackNavigator(
   {
-    share: { screen: List as any },
-    shareCards: { screen: CardList },
-    shareView: { screen: withNavigation(ShareView) as any },
-  },
+    share: { screen: List },
+    shareCards: {
+      screen: withNavigation(({ navigation }) => (
+        <CardList deck_id={navigation.state.params.deck_id} />
+      )),
+    },
+    shareView: { screen: withNavigation(ShareView) },
+  } as any,
   {
     initialRouteName: 'share',
     navigationOptions: { header: null },

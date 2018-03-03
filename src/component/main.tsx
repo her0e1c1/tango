@@ -8,8 +8,6 @@ import { Header } from './header';
 import { connect } from 'react-redux';
 import { Container } from './styled';
 import { StackNavigator } from 'react-navigation';
-import { addNavigationHelpers } from 'react-navigation';
-import { createReduxBoundAddListener } from 'react-navigation-redux-helpers';
 import { CardEdit, CardNew } from './cardEdit';
 
 const wrap = C => () => (
@@ -38,16 +36,4 @@ export const Root = StackNavigator(
   { initialRouteName: 'home', navigationOptions: { header: null } }
 );
 
-class Main extends React.Component<ConnectedProps, {}> {
-  render() {
-    const addListener = createReduxBoundAddListener('root');
-    const navigation = addNavigationHelpers({
-      dispatch: this.props.dispatch as any,
-      state: this.props.state.nav,
-      addListener,
-    });
-    return <Root navigation={navigation} />;
-  }
-}
-
-export default connect(state => ({ state }))(Main);
+export default Root;
