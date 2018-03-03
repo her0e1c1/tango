@@ -10,11 +10,9 @@ import * as I from 'src/interface';
 import { CardDetail } from './card';
 import { mathCategory } from './cardView';
 import { MasteredCircle } from './card';
-import { withNavigation } from 'react-navigation';
 
-@withNavigation
 class View extends React.Component<
-  Props & AppContext,
+  { deck_id: number } & ConnectedProps,
   { visible: boolean; width: number; height: number }
 > {
   constructor(props) {
@@ -39,7 +37,7 @@ class View extends React.Component<
     RN.Dimensions.removeEventListener('change', this.changeEvent);
   }
   render() {
-    const { deck_id } = this.props.navigation.state.params;
+    const { dispatch, deck_id } = this.props;
     const width = this.state.width;
     const height = this.state.height;
     const cards = Action.getCurrentCardList(this.props.state);
@@ -66,10 +64,10 @@ class View extends React.Component<
             // backgroundColor={this.props.theme.cardBackgroundColor}
             cardIndex={this.props.state.config.cardIndex}
             cards={cards}
-            onSwipedRight={index => this.props.cardSwipeRight(index)}
-            onSwipedLeft={index => this.props.cardSwipeLeft(index)}
-            onSwipedTop={index => this.props.cardSwipeUp(index)}
-            onSwipedBottom={index => this.props.cardSwipeDown(index)}
+            onSwipedRight={index => dispatch(Action.nav.cardSwipeRight(index))}
+            onSwipedLeft={index => dispatch(Action.nav.cardSwipeLeft(index))}
+            onSwipedTop={index => dispatch(Action.nav.cardSwipeUp(index))}
+            onSwipedBottom={index => dispatch(Action.nav.cardSwipeDown(index))}
             // onTapCard={() => {}}
             goBackToPreviousCardOnSwipeTop={
               this.props.state.config.cardSwipeUp === 'goToPrevCard'
@@ -83,7 +81,7 @@ class View extends React.Component<
             goBackToPreviousCardOnSwipeRight={
               this.props.state.config.cardSwipeRight == 'goToPrevCard'
             }
-            onSwipedAll={() => this.props.navigation.goBack()}
+            onSwipedAll={() => dispatch(Action.nav.goBack())}
             disableBottomSwipe={false}
             showSecondCard={false}
             marginBottom={0}
@@ -96,14 +94,16 @@ class View extends React.Component<
             ) => (
               <RN.TouchableWithoutFeedback
                 onPress={() =>
-                  this.props.updateConfig({
-                    showBody: !this.props.state.config.showBody,
-                  })
+                  dispatch(
+                    Action.config.updateConfig({
+                      showBody: !this.props.state.config.showBody,
+                    })
+                  )
                 }
                 onLongPress={() => this.setState({ visible: true })}
               >
                 <SD.CardContainer style={{ width, height }}>
-                  {mathCategory.includes(item.category) ? (
+                  {item.category && mathCategory.includes(item.category) ? (
                     <CardView card={item} />
                   ) : (
                     [
@@ -122,15 +122,4 @@ class View extends React.Component<
     );
   }
 }
-
-const mapStateToProps = (state: RootState) => ({ state });
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {
-  updateConfig: Action.updateConfig,
-  cardSwipeUp: Action.cardSwipeUp,
-  cardSwipeDown: Action.cardSwipeDown,
-  cardSwipeLeft: Action.cardSwipeLeft,
-  cardSwipeRight: Action.cardSwipeRight,
-};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default connect(mapStateToProps, mapDispatchToProps)(View);
+export default connect(state => ({ state }))(View);
