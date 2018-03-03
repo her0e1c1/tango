@@ -4,9 +4,10 @@ import * as styledComponents from 'styled-components';
 import { ThemedStyledComponentsModule } from 'styled-components';
 import { TabBarBottom as _TabBarBottom } from 'react-navigation';
 
-const { default: styled } = styledComponents as ThemedStyledComponentsModule<
-  Theme
->;
+const {
+  default: styled,
+  withTheme,
+} = styledComponents as ThemedStyledComponentsModule<Theme>;
 
 // FIXME: wait for this syntax to be available: styled(RN.View)<Props>`...`
 const View = props => <RN.View {...props} />;
@@ -134,3 +135,7 @@ export const CardContainer = styled(RN.View)`
 export const TabBarBottom = styled(_TabBarBottom)`
   background-color: ${({ theme }) => theme.cardBackgroundColor};
 `;
+
+export const Button = withTheme<RN.ButtonProperties & { theme: Theme }>(
+  ({ theme, ...rest }) => <RN.Button {...rest} color={theme.mainColor} />
+);

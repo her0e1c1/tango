@@ -4,9 +4,7 @@ import * as SD from './styled';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import { MasteredCircle } from './card';
-import { withTheme } from 'styled-components';
 
-@withTheme
 export class _CardEdit extends React.Component<
   ConnectedProps & { card_id: number },
   Card
@@ -49,8 +47,7 @@ export class _CardEdit extends React.Component<
           />
         </SD.CardEditInputView>
 
-        <RN.Button
-          color={this.props.theme.mainColor}
+        <SD.Button
           title="UPDATE THIS CARD"
           onPress={async () => {
             await this.props.dispatch(Action.updateCard(this.state));
@@ -63,7 +60,6 @@ export class _CardEdit extends React.Component<
 }
 export const CardEdit = connect(state => ({ state }))(_CardEdit);
 
-@withTheme
 export class _CardNew extends React.Component<
   ConnectedProps & { deck_id: number },
   Card
@@ -104,9 +100,7 @@ export class _CardNew extends React.Component<
             onChangeText={hint => this.setState({ hint })}
           />
         </SD.CardEditInputView>
-
-        <RN.Button
-          color={this.props.theme.mainColor}
+        <SD.Button
           title="CREATE A NEW CARD"
           onPress={async () => {
             await this.props.dispatch(
