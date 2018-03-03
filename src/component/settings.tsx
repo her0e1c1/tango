@@ -204,7 +204,7 @@ export class _Settings extends React.Component<ConnectedProps, {}> {
 
           <SettingsItem>
             <SettingsText>GIT HASH</SettingsText>
-            <SettingsText>{C.GIT_HASH}</SettingsText>
+            <SettingsText>{C.GIT_HASH.substring(0, 7)}</SettingsText>
           </SettingsItem>
 
           <SettingsItem>
