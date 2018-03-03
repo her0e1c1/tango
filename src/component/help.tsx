@@ -75,8 +75,8 @@ class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
   }
   render() {
     const { deck_id, dispatch } = this.props;
-    const uid = this.props.state.user.uid;
     const cards = [] as Card[]; // Object.values(this.props.state.share.user[uid].card.byId);
+    // const uid = this.props.state.user.uid;
     //const cards = Object.values(this.props.state.share.user[uid].card.byId);
     return (
       <SD.Container>
