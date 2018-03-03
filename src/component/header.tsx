@@ -5,17 +5,34 @@ import * as Action from 'src/action';
 import * as SD from './styled';
 import { withNavigation } from 'react-navigation';
 
-@withNavigation
+const ShowBackButton = (state: RootState): boolean => {
+  const i = state.nav.index;
+  const r = state.nav.routes;
+  return !!r && r[i].index >= 1;
+};
+
+const ShowPlusButton = (state: RootState): boolean => {
+  const i = state.nav.index;
+  const r = state.nav.routes;
+  if (r) {
+    const i2 = r[i].index;
+    const r2 = r[i].routes;
+    if (r2) {
+      return ['deck', 'card'].includes(r2[i2].routeName);
+    }
+  }
+  return false;
+};
+
 export class _Header extends React.Component<ConnectedProps, {}> {
   render() {
     const { state, dispatch } = this.props;
     if (!state.config.showHeader) {
       return <RN.View />;
     }
-    const showBackButton = this.props.state.nav.routes.length > 1;
-    const showPlusButton = ['deck', 'card'].includes(
-      this.props.navigation.state.routeName
-    );
+    console.log(this.props.state.nav, '> NAV');
+    const showBackButton = ShowBackButton(this.props.state);
+    const showPlusButton = ShowPlusButton(this.props.state);
     const card = Action.getCurrentCard(state);
     const deck = Action.getCurrentDeck(state);
     return (
@@ -58,5 +75,4 @@ export class _Header extends React.Component<ConnectedProps, {}> {
     );
   }
 }
-
 export const Header = connect(state => ({ state }))(_Header);
