@@ -1,4 +1,4 @@
-# tango for memo
+# Tango
 
 You can memorize anything with this awesome flash cards now!
 
