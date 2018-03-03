@@ -15,6 +15,7 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
+      - run: cp ./src/secret.ts.example ./src/secret.ts
       - run: yarn build
   deploy-job:
     docker:
