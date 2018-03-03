@@ -30,7 +30,6 @@ export class _Header extends React.Component<ConnectedProps, {}> {
     if (!state.config.showHeader) {
       return <RN.View />;
     }
-    console.log(this.props.state.nav, '> NAV');
     const showBackButton = ShowBackButton(this.props.state);
     const showPlusButton = ShowPlusButton(this.props.state);
     const card = Action.getCurrentCard(state);
