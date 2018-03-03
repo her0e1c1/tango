@@ -3,7 +3,6 @@ import * as RN from 'react-native';
 import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
 import * as SD from './styled';
-import * as I from 'src/interface';
 
 const html = `
 <html>
@@ -35,7 +34,7 @@ const mappingCategory = {
 const knownCategory = mathCategory.concat(Object.keys(mappingCategory));
 
 class CardView extends React.Component<
-  Props & { card: Card } & AppContext,
+  { card: Card } & ConnectedProps & AppContext,
   {}
 > {
   getStyle() {
@@ -97,11 +96,4 @@ class CardView extends React.Component<
     );
   }
 }
-
-const mapStateToProps = (state: RootState) => ({ state });
-const _mapStateToProps = I.returntypeof(mapStateToProps);
-const mapDispatchToProps = {};
-type Props = typeof _mapStateToProps & typeof mapDispatchToProps;
-export default withTheme(
-  connect(mapStateToProps, mapDispatchToProps)(CardView)
-);
+export default withTheme(connect(state => ({ state }))(CardView));
