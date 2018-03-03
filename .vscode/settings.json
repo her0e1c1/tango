@@ -18,10 +18,13 @@
   "prettier.trailingComma": "es5",
   "prettier.printWidth": 80,
   "cSpell.words": [
+    "deck",
     "fkid",
     "hljs",
     "mathjax",
     "papaparse",
-    "swipeout"
+    "swipeout",
+    "swiper",
+    "unmount"
   ],
 }
