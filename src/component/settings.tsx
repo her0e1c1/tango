@@ -1,5 +1,5 @@
 import * as Action from 'src/action';
-import * as I from 'src/interface';
+import * as C from 'src/constant';
 import * as NB from 'native-base';
 import * as React from 'react';
 import * as RN from 'react-native';
@@ -201,6 +201,11 @@ export class _Settings extends React.Component<ConnectedProps, {}> {
               </NB.Picker>
             </SettingsItem>
           ))}
+
+          <SettingsItem>
+            <SettingsText>GIT HASH</SettingsText>
+            <SettingsText>{C.GIT_HASH}</SettingsText>
+          </SettingsItem>
 
           <SettingsItem>
             <SettingsText>Version</SettingsText>
