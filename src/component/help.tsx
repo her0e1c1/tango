@@ -119,7 +119,7 @@ export const Root = StackNavigator(
   {
     share: { screen: List },
     shareCards: {
-      screen: withNavigation(({ navigation }) => (
+      screen: withNavigation(({ navigation }: any) => (
         <CardList deck_id={navigation.state.params.deck_id} />
       )),
     },

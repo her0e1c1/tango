@@ -12,7 +12,7 @@ export class CodeScanner extends React.Component<{
   state = { hasCameraPermission: null, visible: true };
 
   async componentWillMount() {
-    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+    const { status } = await Permissions.askAsync(Permissions.CAMERA as any); // TODO: update @types
     if (status === 'granted') {
       this.setState({ hasCameraPermission: true });
     } else {

@@ -47,12 +47,13 @@ export const loginWithGoogleOnWeb = (): I.ThunkAction => async (
     `&scope=${scope}`;
   try {
     let result = await Expo.AuthSession.startAsync({ authUrl });
+    const code = (result as any).params.code; // TODO: update @types
     const body = queryString.stringify({
       grant_type: 'authorization_code',
       redirect_uri: redirectUrl,
       client_id: C.GOOGLE_WEB_CLIENT_ID,
       client_secret: C.GOOGLE_WEB_CLIENT_SECRET,
-      code: result.params.code,
+      code,
     });
     const json = await fetch('https://accounts.google.com/o/oauth2/token', {
       method: 'POST',
@@ -93,7 +94,8 @@ export const loginWithGoogle = (): I.ThunkAction => async (
     // webClientId: C.GOOGLE_WEB_CLIENT_ID,
     scopes: C.GOOGLE_AUTH_SCOPE,
   });
-  const { type, idToken } = result;
+  const { type } = result;
+  const idToken = (result as any).idToken; // TODO: update @types
   if (type === 'success') {
     const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
     firebase
@@ -111,11 +113,12 @@ export const loginWithFacebook = (): I.ThunkAction => async (
   getState
 ) => {
   try {
-    const { type, token } = await Expo.Facebook.logInWithReadPermissionsAsync(
+    const result = await Expo.Facebook.logInWithReadPermissionsAsync(
       C.facebookAppId,
       { permissions: ['public_profile'] }
     );
-
+    const { type } = result;
+    const token = (result as any).token; // TODO: update @types
     if (type === 'success') {
       // Build Firebase credential with the Facebook access token.
       const credential = firebase.auth.FacebookAuthProvider.credential(token);
