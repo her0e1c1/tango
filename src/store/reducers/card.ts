@@ -34,7 +34,7 @@ export default (
     const ns = _.clone(state);
     const c = action.payload.card;
     delete ns.byId[c.id];
-    ns.byDeckId = _.pull(ns.byDeckId, c.id);
+    _.pull(ns.byDeckId[c.deck_id], c.id);
     return ns;
   } else if (equal(action, type.card_shuffle)) {
     const config: ConfigState = action.payload.config;
