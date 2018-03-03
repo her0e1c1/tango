@@ -4,9 +4,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import * as SD from './styled';
 import { connect } from 'react-redux';
-import { withNavigation } from 'react-navigation';
 
-@withNavigation
 export class _DriveList extends React.Component<
   ConnectedProps,
   { refreshing: boolean }
