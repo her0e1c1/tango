@@ -30,10 +30,10 @@ class View extends React.Component<
   }
   componentDidMount() {
     this.changeEvent = this.changeEvent.bind(this);
-    RN.Dimensions.addEventListener('change', this.changeEvent);
+    RN.Dimensions.addEventListener('change', this.changeEvent as any); // TODO: upgrade @types/react-native
   }
   componentWillUnmount() {
-    RN.Dimensions.removeEventListener('change', this.changeEvent);
+    RN.Dimensions.removeEventListener('change', this.changeEvent as any); // TODO: upgrade @types/react-native
   }
   render() {
     const { dispatch, deck_id } = this.props;
