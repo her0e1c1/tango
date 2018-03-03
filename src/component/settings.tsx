@@ -6,6 +6,9 @@ import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import { Container, SettingsItem, SettingsText } from './styled';
 
+// HOTFIX: Wait for index.d.ts to be fixed
+const Picker = (props: any) => <NB.Picker {...props} />;
+
 const cardSwipeTypes: cardSwipe[] = [
   'goBack',
   'goToPrevCard',
@@ -127,7 +130,7 @@ export class _Settings extends React.Component<ConnectedProps, {}> {
 
           <SettingsItem>
             <SettingsText>theme</SettingsText>
-            <NB.Picker
+            <Picker
               textStyle={{ color: 'cornflowerblue' }}
               selectedValue={config.theme}
               onValueChange={theme =>
@@ -137,7 +140,7 @@ export class _Settings extends React.Component<ConnectedProps, {}> {
               {['default', 'dark'].map(x => (
                 <NB.Picker.Item label={x} value={x} />
               ))}
-            </NB.Picker>
+            </Picker>
           </SettingsItem>
 
           <SettingsItem style={{ justifyContent: 'flex-start' }}>
@@ -188,7 +191,7 @@ export class _Settings extends React.Component<ConnectedProps, {}> {
           ].map(([type, label]) => (
             <SettingsItem>
               <SettingsText>Swipe {label}</SettingsText>
-              <NB.Picker
+              <Picker
                 textStyle={{ color: 'cornflowerblue' }}
                 selectedValue={config[type]}
                 onValueChange={v =>
@@ -198,7 +201,7 @@ export class _Settings extends React.Component<ConnectedProps, {}> {
                 {cardSwipeTypes.map(x => (
                   <NB.Picker.Item label={x} value={x} />
                 ))}
-              </NB.Picker>
+              </Picker>
             </SettingsItem>
           ))}
 
