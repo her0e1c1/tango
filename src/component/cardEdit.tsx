@@ -14,6 +14,7 @@ export class _CardEdit extends React.Component<
     this.state = this.props.state.card.byId[this.props.card_id];
   }
   render() {
+    if (!this.props.card_id) return null; // HOTFIX
     const card = this.state;
     return (
       <RN.ScrollView>
