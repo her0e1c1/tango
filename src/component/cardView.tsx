@@ -52,22 +52,23 @@ class CardView extends React.Component<
   getBody(): string {
     const { card } = this.props;
     const { name, body } = card;
-    if (card.category in mappingCategory) {
-      const lang = mappingCategory[card.category];
-      return `<body style="${this.getStyle()}"><pre style="tab-size:2;"><code style="${this.getStyle()}" className="${lang}">${body}</code></pre></body>`;
-    } else if (mathCategory.includes(card.category)) {
-      if (this.props.state.config.showBody) {
-        return `<body style="${this.getStyle()}">${name}<br/>${body}</body>`;
-      } else {
-        return `<body style="${this.getStyle()}">${name}</body>`;
+    if (card.category) {
+      if (card.category in mappingCategory) {
+        const lang = mappingCategory[card.category];
+        return `<body style="${this.getStyle()}"><pre style="tab-size:2;"><code style="${this.getStyle()}" className="${lang}">${body}</code></pre></body>`;
+      } else if (mathCategory.includes(card.category)) {
+        if (this.props.state.config.showBody) {
+          return `<body style="${this.getStyle()}">${name}<br/>${body}</body>`;
+        } else {
+          return `<body style="${this.getStyle()}">${name}</body>`;
+        }
       }
-    } else {
-      return `<body style="${this.getStyle()}"><pre>${body}</pre></body>`;
     }
+    return `<body style="${this.getStyle()}"><pre>${body}</pre></body>`;
   }
   render() {
     const { card } = this.props;
-    if (!knownCategory.includes(card.category)) {
+    if (!(card.category && knownCategory.includes(card.category))) {
       return (
         <RN.ScrollView // doesn't work
           style={{

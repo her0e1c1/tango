@@ -64,7 +64,7 @@ export const insertByText = (
   if (deck.fkid) {
     const d = await dispatch(getByFkid(deck.fkid));
     if (!!d) {
-      await dispatch(update({ ...deck, id: d.id }));
+      await dispatch(update({ ...deck, id: d.id, isPublic: false }));
       await dispatch(bulkUpdateCards(d.id, cards));
       return;
     }
