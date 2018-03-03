@@ -6,6 +6,7 @@ import { withTheme } from 'styled-components';
 import Main from './main';
 import { Settings } from './settings';
 import Help from './help';
+import * as SD from './styled';
 
 const RootTabs = TabNavigator(
   {
@@ -50,16 +51,7 @@ const RootTabs = TabNavigator(
     },
   },
   {
-    tabBarComponent: withTheme((props: AppContext) => {
-      return (
-        <TabBarBottom
-          {...{
-            ...props,
-            style: { backgroundColor: props.theme.cardBackgroundColor },
-          }}
-        />
-      );
-    }),
+    tabBarComponent: SD.TabBarBottom,
     tabBarPosition: 'bottom',
     swipeEnabled: false,
     animationEnabled: true,
@@ -67,9 +59,6 @@ const RootTabs = TabNavigator(
       // activeTintColor: 'blue',
       labelStyle: {
         fontSize: 12,
-      },
-      style: {
-        backgroundColor: 'white',
       },
     },
   }

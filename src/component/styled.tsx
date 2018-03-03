@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import * as styledComponents from 'styled-components';
 import { ThemedStyledComponentsModule } from 'styled-components';
+import { TabBarBottom as _TabBarBottom } from 'react-navigation';
 
 const { default: styled } = styledComponents as ThemedStyledComponentsModule<
   Theme
@@ -127,5 +128,9 @@ export const CardViewDetail = styled(RN.Text)`
 
 // If you use flex:1, height will be out of screen ...
 export const CardContainer = styled(RN.View)`
+  background-color: ${({ theme }) => theme.cardBackgroundColor};
+`;
+
+export const TabBarBottom = styled(_TabBarBottom)`
   background-color: ${({ theme }) => theme.cardBackgroundColor};
 `;
