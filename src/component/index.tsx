@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { TabNavigator, TabBarBottom } from 'react-navigation';
+import { TabNavigator } from 'react-navigation';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { withTheme } from 'styled-components';
 
 import Main from './main';
 import { Settings } from './settings';
