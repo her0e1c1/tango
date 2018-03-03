@@ -46,12 +46,13 @@ type CardState = {
   byDeckId: { [key: string]: number[] };
 };
 
-interface Route {
+type NavState = {
+  routes?: NavState[];
+  index: number;
   key: string;
   routeName: string;
   params?: any;
-}
-type NavState = { index: number; routes: Route[] };
+};
 
 type themeType = 'default' | 'dark' | 'debug';
 
