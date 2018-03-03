@@ -18,7 +18,9 @@
   "prettier.trailingComma": "es5",
   "prettier.printWidth": 80,
   "cSpell.words": [
+    "appspot",
     "deck",
+    "firebaseapp",
     "fkid",
     "hljs",
     "mathjax",
