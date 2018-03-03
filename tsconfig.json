@@ -1,11 +1,8 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "lib": [
-       "es2017",
-       "dom",
-       "es7"
-    ],
+    "lib": ["es2017", "dom", "es7"],
+    "types": ["react-native"],
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "declaration": false,
