@@ -11,10 +11,21 @@ export const getMyDecks = (state: RootState): Deck[] => {
   }
 };
 
+export const getCurrentPage = (state: RootState): NavState | undefined => {
+  const i = state.nav.index;
+  const r = state.nav.routes;
+  if (r) {
+    const i2 = r[i].index;
+    const r2 = r[i].routes;
+    if (r2) {
+      return r2[i2];
+    }
+  }
+  return undefined;
+};
+
 export const getCurrentDeck = (state: RootState): Deck => {
-  const stack = state.nav.routes[0];
-  const index = stack.index;
-  const r = stack.routes[index];
+  const r = getCurrentPage(state);
   const deck_id = r && r.params && r.params.deck_id;
   return state.deck.byId[deck_id] || {};
 };
