@@ -5,13 +5,14 @@ import * as Selector from 'src/selector';
 import { toggleMastered } from './card';
 import { updateConfig } from './config';
 import { NavigationActions } from 'react-navigation';
+import * as type from './type';
 
 export const shuffleCardsOrSort = (): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
   const config = getState().config;
-  dispatch({ type: 'CARD_SHUFFLE', payload: { config } });
+  dispatch(type.card_shuffle(config));
 };
 
 export const goToNextCardSetMastered = (

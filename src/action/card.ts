@@ -1,15 +1,15 @@
 import * as I from 'src/interface';
 import { exec } from 'src/store/sqlite';
+import * as type from './type';
 
 export const updateCard = (card: Card): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  // TODO: mastered
   const sql =
     'update card set name = ?, body = ?, hint = ?, mastered = ? where id = ?';
   await exec(sql, [card.name, card.body, card.hint, card.id, card.mastered]);
-  dispatch({ type: 'BULK_INSERT', payload: { cards: [card] } });
+  dispatch(type.card_bulk_insert([card]));
 };
 
 export const deleteCard = (card: Card): I.ThunkAction => async (
@@ -18,7 +18,7 @@ export const deleteCard = (card: Card): I.ThunkAction => async (
 ) => {
   const result = await exec('delete from card where id = ?', [card.id]);
   if (result.rowsAffected === 1) {
-    dispatch({ type: 'DELETE', payload: { card } });
+    dispatch(type.card_delete(card));
   } else {
     alert('You can not delete');
   }
@@ -30,7 +30,7 @@ export const selectCard = (deck_id?: number): I.ThunkAction => async (
 ) => {
   const result = await exec('select * from card');
   const cards = result.rows._array;
-  dispatch({ type: 'BULK_INSERT', payload: { cards } });
+  await dispatch(type.card_bulk_insert(cards));
 };
 
 export const toggleMastered = (
@@ -40,7 +40,7 @@ export const toggleMastered = (
   const m = mastered === undefined ? !card.mastered : mastered;
   const sql = 'update card set mastered = ? where id = ?';
   await exec(sql, [m, card.id]);
-  dispatch({ type: 'INSERT', payload: { card: { ...card, mastered: m } } });
+  await dispatch(type.card_bulk_insert([{ ...card, mastered: m }]));
 };
 
 // FIXME: how can I bulk insert?
@@ -62,10 +62,9 @@ export const bulkInsertCards = (
     const result = await exec(sql, values);
     const id = result.insertId;
     id &&
-      (await dispatch({
-        type: 'INSERT',
-        payload: { card: { ...card, deck_id, id } as Card },
-      }));
+      (await dispatch(
+        type.card_bulk_insert([{ ...card, deck_id, id, mastered: false }])
+      ));
   });
   await Promise.all(ps);
 };

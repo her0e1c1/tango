@@ -1,6 +1,7 @@
 import * as I from 'src/interface';
 import * as Action from 'src/action';
 import * as Selector from 'src/selector';
+import * as type from './type';
 
 const fetchAPI = (
   url: string,
@@ -50,7 +51,7 @@ export const upload = (deck: Deck): I.ThunkAction => async (
     deck.fkid
   }/values/${range}?valueInputOption=RAW`;
   try {
-    const res = await dispatch(
+    await dispatch(
       fetchAPI(url, { method: 'PUT', body: { values }, isJson: true })
     );
   } catch (e) {
@@ -67,10 +68,7 @@ export const getSpreadSheets = (): I.ThunkAction => async (
       fetchAPI('https://www.googleapis.com/drive/v2/files')
     );
     const json = await res.json();
-    await dispatch({
-      type: 'DRIVE_BULK_INSERT',
-      payload: { drives: json.items },
-    });
+    await dispatch(type.drive_bulk_insert(json.items));
   } catch (e) {
     console.log(e);
   }

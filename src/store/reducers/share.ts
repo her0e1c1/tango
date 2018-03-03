@@ -1,5 +1,8 @@
-export default (state: ShareState = { user: {} }, action: Redux.Action) => {
-  if (action.type == 'SHARE_DECK_BULK_INSERT') {
+import * as type from 'src/action/type';
+import { equal } from './util';
+
+export default (state: ShareState = { user: {} }, action: Action) => {
+  if (equal(action, type.share_deck_bulk_insert)) {
     const p = action.payload;
     if (!state.user[p.uid]) {
       state.user[p.uid] = {
@@ -11,7 +14,7 @@ export default (state: ShareState = { user: {} }, action: Redux.Action) => {
       ([k, v]) => (state.user[p.uid].deck.byId[k] = v)
     );
     return { ...state };
-  } else if (action.type == 'SHARE_CARD_BULK_INSERT') {
+  } else if (equal(action, type.share_card_bulk_insert)) {
     const p = action.payload;
     if (!state.user[p.uid]) {
       state.user[p.uid] = {
@@ -19,11 +22,11 @@ export default (state: ShareState = { user: {} }, action: Redux.Action) => {
         card: { byId: {} },
       };
     }
-    Object.entries(p.card).forEach(
+    Object.entries(p.cards).forEach(
       ([k, v]) => (state.user[p.uid].card.byId[k] = v)
     );
     return { ...state };
-  } else if (action.type == 'SHARE_DECK_BULK_DELETE') {
+  } else if (equal(action, type.share_deck_bulk_delete)) {
     const p = action.payload;
     const deck_id = p.deck_id;
     if (state.user[p.uid]) {

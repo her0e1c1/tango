@@ -1,5 +1,6 @@
 import * as I from 'src/interface';
 import * as firebase from 'firebase';
+import * as type from './type';
 
 export const fetchDecks = (): I.ThunkAction => async (dispatch, getState) => {
   const { uid } = getState().user;
@@ -8,8 +9,7 @@ export const fetchDecks = (): I.ThunkAction => async (dispatch, getState) => {
     .ref(`/user/${uid}/deck`)
     .on('value', snapshot => {
       const v = snapshot && snapshot.val();
-      v &&
-        dispatch({ type: 'SHARE_DECK_BULK_INSERT', payload: { deck: v, uid } });
+      v && dispatch(type.share_deck_bulk_insert(v, uid));
     });
 };
 
@@ -25,8 +25,7 @@ export const fetchCardsByDeckId = (deck_id: number): I.ThunkAction => async (
     .equalTo(deck_id)
     .on('value', snapshot => {
       const v = snapshot && snapshot.val();
-      v &&
-        dispatch({ type: 'SHARE_CARD_BULK_INSERT', payload: { card: v, uid } });
+      v && dispatch(type.share_card_bulk_insert(v, uid));
     });
 };
 
@@ -54,6 +53,7 @@ export const deleteDeck = (deck_id: number): I.ThunkAction => async (
         .database()
         .ref()
         .update(data);
+      dispatch(type.share_deck_bulk_delete(deck_id, uid));
       dispatch({ type: 'SHARE_DECK_BULK_DELETE', payload: { deck_id, uid } });
     });
 };

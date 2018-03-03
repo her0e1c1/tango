@@ -1,13 +1,14 @@
-import * as Redux from 'redux';
+import * as type from 'src/action/type';
+import { equal } from './util';
 
 export default (
   state: UserState = { uid: '', displayName: null },
-  action: Redux.Action
+  action: Action
 ) => {
-  if (action.type == 'USER_INIT') {
-    const { uid, displayName } = action.payload;
+  if (equal(action, type.user_init)) {
+    const { uid, displayName } = action.payload.user;
     return { ...state, uid, displayName };
-  } else if (action.type == 'USER_LOGOUT') {
+  } else if (equal(action, type.user_logout)) {
     return { ...state, uid: '', displayName: null };
   } else {
     return state;

@@ -1,3 +1,8 @@
+interface Action<P = undefined> {
+  type: string;
+  payload: P;
+}
+
 type DeckType = 'drive' | 'firebase' | 'url';
 type DriveType = 'application/vnd.google-apps.spreadsheet';
 
@@ -34,7 +39,8 @@ interface Card {
   hint: string;
   mastered: boolean;
   deck_id: number;
-  category: string;
+  // firebase can not store undefined ...
+  category: string | null;
   // deck: Deck;
   // tags: Tag[];
 }

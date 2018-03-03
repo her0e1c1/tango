@@ -4,6 +4,7 @@ import * as firebase from 'firebase';
 import { bulkInsertCards, bulkUpdateCards } from './card';
 import { startLoading, endLoading } from './config';
 import * as Selector from 'src/selector';
+import * as type from './type';
 const Papa = require('papaparse');
 
 export const tryInsertByURL = (url: string) => async (dispatch, getState) => {
@@ -80,17 +81,17 @@ export const remove = (deck: Deck): I.ThunkAction => async (
   // TODO: use transaction
   await exec('delete from deck where id = ?', [deck.id]);
   await exec('delete from card where deck_id = ?', [deck.id]);
-  dispatch({ type: 'DECK_DELETE', payload: { deck } });
-  dispatch({ type: 'CARD_BULK_DELETE', payload: { deck } });
+  dispatch(type.deck_bulk_delete([deck]));
+  dispatch(type.card_bulk_delete(deck.id));
 };
 
-export const select = (limit: number = 50): I.ThunkAction => async (
+export const select = (limit: number = 100): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
   const result = await exec('select * from deck');
   const decks = result.rows._array;
-  await dispatch({ type: 'DECK_BULK_INSERT', payload: { decks } });
+  await dispatch(type.deck_bulk_insert(decks));
 };
 
 export const getByFkid = (fkid: string): ThunkAction<Deck> => async (
@@ -108,24 +109,18 @@ export const insert = (
   const values = [deck.name, deck.url, deck.type, deck.fkid || null];
   const result = await exec(sql, values);
   const id = result.insertId;
-  await dispatch({
-    type: 'DECK_INSERT',
-    payload: { deck: { ...deck, id } },
-  });
+  await dispatch(type.deck_bulk_insert([{ ...deck, id, isPublic: false }]));
   return id;
 };
 
 export const update = (
-  deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid' | 'id'>
+  deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid' | 'id' | 'isPublic'>
 ): I.ThunkAction => async (dispatch, getState) => {
   const sql =
     'update deck set name = ?, url = ?, type =?, fkid =?; where id = ?';
   const values = [deck.name, deck.url, deck.type, deck.fkid || null, deck.id];
   await exec(sql, values);
-  await dispatch({
-    type: 'DECK_INSERT',
-    payload: { deck: { ...deck } },
-  });
+  await dispatch(type.deck_bulk_insert([deck]));
 };
 
 export const upload = (deck: Deck): I.ThunkAction => async (
@@ -170,7 +165,7 @@ export const importFromFireBase = (deck_id: number): I.ThunkAction => async (
           .once('value', async snapshot => {
             const v = snapshot.val();
             const cards = Object.values(v) as Card[];
-            await dispatch(Action.bulkInsertCards(id, cards)); // TODO: fix later
+            await dispatch(bulkInsertCards(id, cards));
             await dispatch(endLoading());
           })
           .catch(e => {

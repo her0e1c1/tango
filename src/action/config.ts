@@ -1,12 +1,13 @@
 import * as RN from 'react-native';
 import * as I from 'src/interface';
 import { dropTables } from 'src/store/sqlite';
+import * as type from './type';
 
 export const updateConfig = (config: Partial<ConfigState>) => async (
   dispatch,
   getState
 ) => {
-  dispatch({ type: 'CONFIG', payload: { config } });
+  dispatch(type.config(config));
 };
 
 export const startLoading = () => async (dispatch, getState) => {
@@ -18,7 +19,7 @@ export const endLoading = () => async (dispatch, getState) => {
 };
 
 export const clearError = () => async (dispatch, getState) => {
-  await dispatch({ type: 'CONFIG', payload: { config: { undefined } } });
+  await dispatch(type.config({ errorCode: undefined }));
 };
 
 export const getTheme = (state: RootState): Theme => {
@@ -54,7 +55,7 @@ export const clearAll = (clearStorage?: boolean) => async (
   getState
 ) => {
   clearStorage && (await RN.AsyncStorage.clear());
-  await dispatch({ type: 'CLEAR_ALL' });
+  await dispatch(type.clear_all());
 };
 
 export const drop = (): I.ThunkAction => async (dispatch, getState) => {

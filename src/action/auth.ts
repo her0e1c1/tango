@@ -6,6 +6,7 @@ import * as Action from 'src/action';
 import { AuthSession } from 'expo';
 import * as queryString from 'query-string';
 import { updateConfig } from 'src/action';
+import * as type from './type';
 
 export const refreshToken = (): I.ThunkAction => async (dispatch, getState) => {
   const refresh_token = getState().config.googleRefreshToken;
@@ -140,16 +141,16 @@ export const init = (): I.ThunkAction => async (dispatch, getState) => {
         .ref(`/user/${user.uid}/lastOnline`)
         .onDisconnect()
         .set(firebase.database.ServerValue.TIMESTAMP);
-      await dispatch({ type: 'USER_INIT', payload: user });
+      await dispatch(type.user_init(user));
       await dispatch(Action.share.fetchDecks());
       await dispatch(Action.drive.getSpreadSheets());
     } else {
-      dispatch({ type: 'USER_LOGOUT' });
+      dispatch(type.user_logout());
       console.log('NOT LOGGED IN YET');
     }
   });
 };
 
 export const logout = (): I.ThunkAction => async (dispatch, getState) => {
-  dispatch({ type: 'USER_LOGOUT' });
+  dispatch(type.user_logout());
 };

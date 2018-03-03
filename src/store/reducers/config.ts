@@ -1,4 +1,5 @@
-import * as Redux from 'redux';
+import * as type from 'src/action/type';
+import { equal } from './util';
 
 export default (
   state: ConfigState = {
@@ -19,9 +20,9 @@ export default (
     googleAccessToken: undefined,
     googleRefreshToken: undefined,
   },
-  action: Redux.Action
+  action: Action
 ): ConfigState => {
-  if (action.type == 'CONFIG') {
+  if (equal(action, type.config)) {
     return { ...state, ...action.payload.config };
   } else {
     return state;

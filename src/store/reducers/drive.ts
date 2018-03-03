@@ -1,7 +1,8 @@
-import * as Redux from 'redux';
+import * as type from 'src/action/type';
+import { equal } from './util';
 
-export default (state: DriveState = { byId: {} }, action: Redux.Action) => {
-  if (action.type == 'DRIVE_BULK_INSERT') {
+export default (state: DriveState = { byId: {} }, action: Action) => {
+  if (equal(action, type.drive_bulk_insert)) {
     const drives: Drive[] = action.payload.drives;
     drives
       .filter(d => d.mimeType === 'application/vnd.google-apps.spreadsheet')
