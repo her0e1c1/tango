@@ -49,7 +49,7 @@ export const parseTextToCsv = (text: string): I.ThunkAction<Card[]> => async (
     name: d[0],
     body: d[1],
     hint: d[2],
-    category: d[3],
+    category: d[3] ? d[3].trim() : null,
     mastered: !!d[4] ? 1 : 0,
     fkid: i + 1,
   }));
