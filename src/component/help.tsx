@@ -5,10 +5,10 @@ import * as RN from 'react-native';
 import * as SD from './styled';
 import { connect } from 'react-redux';
 import { StackNavigator } from 'react-navigation';
-import { withNavigation } from 'react-navigation';
 import { LoadingIcon } from './utils';
 import CardView from './cardView';
 import { DriveList } from './drive';
+import { Header } from './header';
 
 class _DeckList extends React.Component<
   ConnectedProps,
@@ -75,9 +75,12 @@ class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
   }
   render() {
     const { deck_id, dispatch } = this.props;
-    const cards = [] as Card[]; // Object.values(this.props.state.share.user[uid].card.byId);
-    // const uid = this.props.state.user.uid;
-    //const cards = Object.values(this.props.state.share.user[uid].card.byId);
+    const uid = this.props.state.user.uid;
+    let cards = [] as Card[];
+    const user = this.props.state.share.user[uid];
+    if (user && user.card) {
+      cards = Object.values(user.card.byId);
+    }
     return (
       <SD.Container>
         <RN.FlatList
@@ -102,12 +105,6 @@ class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
 }
 const CardList = connect(state => ({ state }))(_CardList);
 
-const ShareView = props => (
-  <SD.Container>
-    <CardView card={props.navigation.state.params.card} />
-  </SD.Container>
-);
-
 const List = () => (
   <RN.View style={{ flex: 1 }}>
     <DriveList />
@@ -115,15 +112,18 @@ const List = () => (
   </RN.View>
 );
 
+const wrap = C => props => (
+  <SD.Container>
+    <Header />
+    <C {...props.navigation.state.params} />
+  </SD.Container>
+);
+
 export const Root = StackNavigator(
   {
-    share: { screen: List },
-    shareCards: {
-      screen: withNavigation(({ navigation }: any) => (
-        <CardList deck_id={navigation.state.params.deck_id} />
-      )),
-    },
-    shareView: { screen: withNavigation(ShareView) },
+    share: { screen: wrap(List) },
+    shareCards: { screen: wrap(CardList) },
+    shareView: { screen: wrap(CardView) },
   } as any,
   {
     initialRouteName: 'share',
