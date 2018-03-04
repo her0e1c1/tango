@@ -1,7 +1,7 @@
 import * as I from 'src/interface';
-import * as Action from 'src/action';
 import * as Selector from 'src/selector';
 import * as type from './type';
+import * as Action from 'src/action';
 
 const fetchAPI = (
   url: string,

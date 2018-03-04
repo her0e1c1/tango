@@ -10,10 +10,10 @@ import { Container } from './styled';
 import { StackNavigator } from 'react-navigation';
 import { CardEdit, CardNew } from './cardEdit';
 
-const wrap = C => () => (
+const wrap = C => props => (
   <Container>
     <Header />
-    <C />
+    <C {...props.navigation.state.params} />
   </Container>
 );
 

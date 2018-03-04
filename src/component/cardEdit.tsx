@@ -4,6 +4,7 @@ import * as SD from './styled';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import { MasteredCircle } from './card';
+import { ErrorPage } from './utils';
 
 export class _CardEdit extends React.Component<
   ConnectedProps & { card_id: number },
@@ -14,10 +15,18 @@ export class _CardEdit extends React.Component<
     this.state = this.props.state.card.byId[this.props.card_id];
   }
   render() {
-    if (!this.props.card_id) return null; // HOTFIX
+    if (!this.props.card_id) return <ErrorPage />; // DEFENSIVE
     const card = this.state;
     return (
       <RN.ScrollView>
+        <SD.Button
+          title="UPDATE THIS CARD"
+          onPress={async () => {
+            await this.props.dispatch(Action.card.updateCard(this.state));
+            await this.props.dispatch(Action.nav.goBack());
+          }}
+        />
+
         <MasteredCircle card={card} />
         <SD.CardEditTitle>ID: {`${card.id}(${card.fkid})`}</SD.CardEditTitle>
 
@@ -47,14 +56,6 @@ export class _CardEdit extends React.Component<
             onChangeText={hint => this.setState({ hint })}
           />
         </SD.CardEditInputView>
-
-        <SD.Button
-          title="UPDATE THIS CARD"
-          onPress={async () => {
-            await this.props.dispatch(Action.card.updateCard(this.state));
-            await this.props.dispatch(Action.nav.goBack());
-          }}
-        />
       </RN.ScrollView>
     );
   }
@@ -73,6 +74,16 @@ export class _CardNew extends React.Component<
     const card = this.state;
     return (
       <RN.ScrollView>
+        <SD.Button
+          title="CREATE A NEW CARD"
+          onPress={async () => {
+            await this.props.dispatch(
+              Action.card.bulkInsertCards(this.state.deck_id, [this.state])
+            );
+            await this.props.dispatch(Action.nav.goBack());
+          }}
+        />
+
         <SD.CardEditTitle>TITLE:</SD.CardEditTitle>
         <SD.CardEditInputView style={{ height: 50 }}>
           <RN.TextInput
@@ -101,15 +112,6 @@ export class _CardNew extends React.Component<
             onChangeText={hint => this.setState({ hint })}
           />
         </SD.CardEditInputView>
-        <SD.Button
-          title="CREATE A NEW CARD"
-          onPress={async () => {
-            await this.props.dispatch(
-              Action.card.bulkInsertCards(this.state.deck_id, [this.state])
-            );
-            await this.props.dispatch(Action.nav.goBack());
-          }}
-        />
       </RN.ScrollView>
     );
   }

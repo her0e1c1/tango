@@ -19,3 +19,5 @@ export const LoadingIcon = () => (
     <RN.ActivityIndicator size="large" animating={true} />
   </RN.View>
 );
+
+export const ErrorPage = () => <RN.View>ERROR! Something wrong :(</RN.View>;
