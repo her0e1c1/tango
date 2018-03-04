@@ -117,7 +117,7 @@ export const update = (
   deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid' | 'id' | 'isPublic'>
 ): I.ThunkAction => async (dispatch, getState) => {
   const sql =
-    'update deck set name = ?, url = ?, type =?, fkid =?; where id = ?';
+    'update deck set name = ?, url = ?, type =?, fkid =? where id = ?';
   const values = [deck.name, deck.url, deck.type, deck.fkid || null, deck.id];
   await exec(sql, values);
   await dispatch(type.deck_bulk_insert([deck]));
