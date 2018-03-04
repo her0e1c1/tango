@@ -25,7 +25,7 @@ class _Theme extends React.Component<ConnectedProps, {}> {
       addListener,
     });
     return (
-      <ThemeProvider theme={Action.getTheme(state)}>
+      <ThemeProvider theme={Action.config.getTheme(state)}>
         <RN.View style={{ flex: 1 }}>
           <Root navigation={navigation} />
         </RN.View>

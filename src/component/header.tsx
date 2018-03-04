@@ -3,6 +3,7 @@ import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as SD from './styled';
+import * as Selector from 'src/selector';
 
 const ShowBackButton = (state: RootState): boolean => {
   const i = state.nav.index;
@@ -31,8 +32,8 @@ export class _Header extends React.Component<ConnectedProps, {}> {
     }
     const showBackButton = ShowBackButton(this.props.state);
     const showPlusButton = ShowPlusButton(this.props.state);
-    const card = Action.getCurrentCard(state);
-    const deck = Action.getCurrentDeck(state);
+    const card = Selector.getCurrentCard(state);
+    const deck = Selector.getCurrentDeck(state);
     return (
       <RN.View style={{ marginBottom: 10 }}>
         <RN.View

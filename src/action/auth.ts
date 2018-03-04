@@ -5,7 +5,6 @@ import * as firebase from 'firebase';
 import * as Action from 'src/action';
 import { AuthSession } from 'expo';
 import * as queryString from 'query-string';
-import { updateConfig } from 'src/action';
 import * as type from './type';
 
 export const refreshToken = (): I.ThunkAction => async (dispatch, getState) => {
@@ -27,7 +26,9 @@ export const refreshToken = (): I.ThunkAction => async (dispatch, getState) => {
       'content-type': 'application/x-www-form-urlencoded',
     }),
   }).then(r => r.json());
-  await dispatch(updateConfig({ googleAccessToken: json.access_token }));
+  await dispatch(
+    Action.config.updateConfig({ googleAccessToken: json.access_token })
+  );
 };
 
 export const loginWithGoogleOnWeb = (): I.ThunkAction => async (
@@ -72,7 +73,7 @@ export const loginWithGoogleOnWeb = (): I.ThunkAction => async (
       .then(async () => {
         await dispatch(init());
         await dispatch(
-          updateConfig({
+          Action.config.updateConfig({
             googleAccessToken: json.access_token,
             googleRefreshToken: json.refresh_token,
           })

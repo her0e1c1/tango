@@ -16,7 +16,7 @@ export class _MasteredCircle extends React.Component<
     const card = this.props.card;
     return (
       <RN.TouchableOpacity
-        onPress={() => dispatch(Action.toggleMastered(card))}
+        onPress={() => dispatch(Action.card.toggleMastered(card))}
       >
         <SD.Circle mastered={card.mastered} />
       </RN.TouchableOpacity>
@@ -42,7 +42,7 @@ export class _CardDetail extends React.Component<
     const { dispatch } = this.props;
     const window = RN.Dimensions.get('window');
     const height = window.height;
-    const card = Action.getCurrentCard(this.props.state);
+    const card = Selector.getCurrentCard(this.props.state);
     return (
       <RN.Modal
         animationType={'none'}
@@ -100,7 +100,7 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
               {
                 text: 'DEL',
                 backgroundColor: 'red',
-                onPress: () => dispatch(Action.deleteCard(item)),
+                onPress: () => dispatch(Action.card.deleteCard(item)),
               },
             ]}
           >

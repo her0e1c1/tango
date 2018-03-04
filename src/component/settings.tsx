@@ -95,7 +95,7 @@ export class _Settings extends React.Component<ConnectedProps, {}> {
                 await dispatch(
                   Action.config.updateConfig({ shuffled: !config.shuffled })
                 );
-                await dispatch(Action.shuffleCardsOrSort());
+                await dispatch(Action.nav.shuffleCardsOrSort());
               }}
             />
           </SettingsItem>

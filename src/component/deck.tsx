@@ -18,7 +18,7 @@ export class _DeckList extends React.Component<
   async componentDidMount() {
     const { dispatch } = this.props;
     await dispatch(Action.deck.select());
-    await dispatch(Action.selectCard());
+    await dispatch(Action.card.selectCard());
   }
   getLeftItems(deck: Deck) {
     const { dispatch } = this.props;
@@ -56,7 +56,7 @@ export class _DeckList extends React.Component<
         data={decks.map(d => ({ ...d, key: d.id }))}
         onRefresh={async () => {
           await dispatch(Action.deck.select());
-          await dispatch(Action.selectCard());
+          await dispatch(Action.card.selectCard());
           await this.setState({ refreshing: false });
         }}
         refreshing={this.state.refreshing}

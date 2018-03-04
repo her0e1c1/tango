@@ -51,7 +51,7 @@ export class _CardEdit extends React.Component<
         <SD.Button
           title="UPDATE THIS CARD"
           onPress={async () => {
-            await this.props.dispatch(Action.updateCard(this.state));
+            await this.props.dispatch(Action.card.updateCard(this.state));
             await this.props.dispatch(Action.nav.goBack());
           }}
         />
@@ -105,7 +105,7 @@ export class _CardNew extends React.Component<
           title="CREATE A NEW CARD"
           onPress={async () => {
             await this.props.dispatch(
-              Action.bulkInsertCards(this.state.deck_id, [this.state])
+              Action.card.bulkInsertCards(this.state.deck_id, [this.state])
             );
             await this.props.dispatch(Action.nav.goBack());
           }}

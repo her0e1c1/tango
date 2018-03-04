@@ -9,6 +9,7 @@ import * as SD from './styled';
 import { CardDetail } from './card';
 import { mathCategory } from './cardView';
 import { MasteredCircle } from './card';
+import * as Selector from 'src/selector';
 
 class View extends React.Component<
   { deck_id: number } & ConnectedProps,
@@ -39,7 +40,7 @@ class View extends React.Component<
     const { dispatch, deck_id } = this.props;
     const width = this.state.width;
     const height = this.state.height;
-    const cards = Action.getCurrentCardList(this.props.state);
+    const cards = Selector.getCurrentCardList(this.props.state);
     const { cardIndex } = this.props.state.config;
     if (cardIndex < 0 || cards.length <= cardIndex) {
       return null;
