@@ -30,6 +30,7 @@ export const card_shuffle = (config: ConfigState) => ({
 
 export const clear_all = () => ({
   type: 'CLEAR_ALL',
+  payload: undefined,
 });
 
 export const config = (config: Partial<ConfigState>) => ({

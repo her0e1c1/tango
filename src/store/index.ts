@@ -4,6 +4,8 @@ import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import reducers from './reducers';
 import { createReactNavigationReduxMiddleware } from 'react-navigation-redux-helpers';
+import * as type from 'src/action/type';
+import { equal } from './reducers/util';
 
 import * as firebase from 'firebase';
 import * as C from 'src/constant';
@@ -28,7 +30,7 @@ const persistConfig = {
 };
 
 const rootReducer = (state, action) => {
-  if (action.type == 'CLEAR_ALL') {
+  if (equal(action, type.clear_all)) {
     state = undefined;
   }
   return Redux.combineReducers(reducers)(state, action);
