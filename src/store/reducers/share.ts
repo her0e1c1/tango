@@ -31,7 +31,7 @@ export default (state: ShareState = { user: {} }, action: Action) => {
     const deck_id = p.deck_id;
     if (state.user[p.uid]) {
       delete state.user[p.uid].deck.byId[deck_id];
-      const cards = Object.values(state.user[p.uid].card.byId) as Card[];
+      const cards = Object.values(state.user[p.uid].card.byId);
       const ids = cards.filter(c => c.deck_id === deck_id).map(c => c.id);
       ids.forEach(id => delete state.user[p.uid].card.byId[id]);
     }
