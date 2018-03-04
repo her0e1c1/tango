@@ -8,7 +8,8 @@ export const updateCard = (card: Card): I.ThunkAction => async (
 ) => {
   const sql =
     'update card set name = ?, body = ?, hint = ?, mastered = ? where id = ?';
-  await exec(sql, [card.name, card.body, card.hint, card.id, card.mastered]);
+  const values = [card.name, card.body, card.hint, card.id, card.mastered];
+  await exec(sql, values);
   dispatch(type.card_bulk_insert([card]));
 };
 
@@ -46,25 +47,26 @@ export const toggleMastered = (
 // FIXME: how can I bulk insert?
 export const bulkInsertCards = (
   deck_id: number,
-  cards: Pick<Card, 'name' | 'body' | 'category' | 'hint' | 'fkid'>[]
+  cards: Pick<
+    Card,
+    'name' | 'body' | 'category' | 'hint' | 'fkid' | 'mastered'
+  >[]
 ): I.ThunkAction => async (dispatch, getState) => {
   const ps = cards.map(async card => {
     const sql =
-      'insert into card (name, body, category, hint, deck_id, fkid) values (?, ?, ?, ?, ?, ?);';
+      'insert into card (name, body, category, hint, deck_id, fkid, mastered) values (?, ?, ?, ?, ?, ?, ?);';
     const values = [
       card.name,
       card.body,
       card.category,
       card.hint,
       deck_id,
-      card.fkid ? String(card.fkid) : null, // otherwise it converts 1 to "1.0"
+      card.fkid ? String(card.fkid) : null, // otherwise it converts 1 to "1.0",
+      card.mastered,
     ];
     const result = await exec(sql, values);
     const id = result.insertId;
-    id &&
-      (await dispatch(
-        type.card_bulk_insert([{ ...card, deck_id, id, mastered: false }])
-      ));
+    id && (await dispatch(type.card_bulk_insert([{ ...card, deck_id, id }])));
   });
   await Promise.all(ps);
 };
