@@ -13,13 +13,13 @@ export const updateCard = (
       const sql = 'select id from card where fkid = ? and deck_id = ?';
       const result = await exec(sql, [card.fkid, card.deck_id]);
       const cards = result.rows._array as Card[];
-      if (cards) {
+      if (cards.length) {
         id = cards[0].id;
       }
     }
   }
   if (!id) {
-    console.log(`CAN NOT UPDATE ${card}`);
+    dispatch(bulkInsertCards(card.deck_id, [card]));
     return;
   }
   const sql =
