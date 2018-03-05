@@ -2,6 +2,7 @@ import * as I from 'src/interface';
 import { exec } from 'src/store/sqlite';
 import * as type from './type';
 
+// update or insert
 export const updateCard = (card: Card): I.ThunkAction => async (
   dispatch,
   getState
@@ -9,8 +10,12 @@ export const updateCard = (card: Card): I.ThunkAction => async (
   const sql =
     'update card set name = ?, body = ?, hint = ?, mastered = ? where id = ?';
   const values = [card.name, card.body, card.hint, card.id, card.mastered];
-  await exec(sql, values);
-  dispatch(type.card_bulk_insert([card]));
+  const result = await exec(sql, values);
+  if (result.rowsAffected === 1) {
+    dispatch(type.card_bulk_insert([card]));
+  } else {
+    dispatch(bulkInsertCards(card.deck_id, [card]));
+  }
 };
 
 export const deleteCard = (card: Card): I.ThunkAction => async (
