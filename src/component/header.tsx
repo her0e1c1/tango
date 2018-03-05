@@ -35,41 +35,39 @@ export class _Header extends React.Component<ConnectedProps, {}> {
     const card = Selector.getCurrentCard(state);
     const deck = Selector.getCurrentDeck(state);
     return (
-      <RN.View style={{ marginBottom: 10 }}>
-        <RN.View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginBottom: 5,
-          }}
-        >
-          {showBackButton && (
-            <RN.TouchableOpacity
-              onPress={() => dispatch(Action.nav.goBack())}
-              onLongPress={() => dispatch(Action.nav.goHome())}
-            >
-              <SD.MainText>{'<'}</SD.MainText>
-            </RN.TouchableOpacity>
-          )}
-          <RN.View style={{ flexDirection: 'row' }}>
-            <SD.MainText>{deck && deck.name && `${deck.name}`}</SD.MainText>
-            {card &&
-              card.category != null && (
-                <SD.CardCategory>{card.category}</SD.CardCategory>
-              )}
-          </RN.View>
-          {showPlusButton ? (
-            <RN.TouchableOpacity
-              onPress={() =>
-                dispatch(Action.nav.goTo('cardNew', { deck_id: deck.id }))
-              }
-            >
-              <SD.MainText>{'+'}</SD.MainText>
-            </RN.TouchableOpacity>
-          ) : (
-            <RN.View />
-          )}
+      <RN.View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          marginBottom: 0,
+        }}
+      >
+        {showBackButton && (
+          <RN.TouchableOpacity
+            onPress={() => dispatch(Action.nav.goBack())}
+            onLongPress={() => dispatch(Action.nav.goHome())}
+          >
+            <SD.MainText>{'<'}</SD.MainText>
+          </RN.TouchableOpacity>
+        )}
+        <RN.View style={{ flexDirection: 'row' }}>
+          <SD.MainText>{deck && deck.name && `${deck.name}`}</SD.MainText>
+          {card &&
+            card.category != null && (
+              <SD.CardCategory>{card.category}</SD.CardCategory>
+            )}
         </RN.View>
+        {showPlusButton ? (
+          <RN.TouchableOpacity
+            onPress={() =>
+              dispatch(Action.nav.goTo('cardNew', { deck_id: deck.id }))
+            }
+          >
+            <SD.MainText>{'+'}</SD.MainText>
+          </RN.TouchableOpacity>
+        ) : (
+          <RN.View />
+        )}
       </RN.View>
     );
   }

@@ -87,7 +87,7 @@ class View extends React.Component<
             marginBottom={0}
             cardHorizontalMargin={0}
             zoomFriction={0}
-            cardVerticalMargin={10}
+            cardVerticalMargin={0}
             swipeAnimationDuration={100}
             renderCard={(
               item = {} as Card // Sometimes item is undefined :(

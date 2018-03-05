@@ -18,7 +18,6 @@ export const Circle = styled(View as React.SFC<{ mastered: boolean }>)`
   width: 20px;
   height: 20px;
   border-radius: 20px;
-  margin: 5px;
 `;
 
 export const ProgressBar = styled(View as React.SFC<{ width: string }>)`

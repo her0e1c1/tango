@@ -12,7 +12,9 @@ import { CardEdit, CardNew } from './cardEdit';
 
 const wrap = C => props => (
   <Container>
-    <Header />
+    <RN.View style={{ marginBottom: 5 }}>
+      <Header />
+    </RN.View>
     <C {...props.navigation.state.params} />
   </Container>
 );
