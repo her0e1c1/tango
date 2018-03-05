@@ -6,6 +6,7 @@ export default (
     showMastered: true,
     showHeader: true,
     showBody: false,
+    showHint: false,
     hideBodyWhenCardChanged: true,
     shuffled: false,
     start: 0,

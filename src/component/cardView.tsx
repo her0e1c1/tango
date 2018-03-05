@@ -49,9 +49,17 @@ class CardView extends React.Component<
     padding: 0 5px;
     `;
   }
+  getBodyContent() {
+    if (this.props.state.config.showHint) {
+      return this.props.card.hint || 'NO HINT ;(';
+    }
+    return this.props.card.body;
+  }
   getBody(): string {
     const { card } = this.props;
-    const { name, body } = card;
+    const { name } = card;
+    const body = this.getBodyContent();
+
     if (card.category) {
       if (card.category in mappingCategory) {
         const lang = mappingCategory[card.category];
@@ -76,7 +84,7 @@ class CardView extends React.Component<
             backgroundColor: this.props.theme.cardBackgroundColor,
           }}
         >
-          <SD.BodyText>{card.body}</SD.BodyText>
+          <SD.BodyText>{this.getBodyContent()}</SD.BodyText>
         </RN.ScrollView>
       );
     }

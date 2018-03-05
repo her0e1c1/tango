@@ -10,6 +10,13 @@ export const updateConfig = (config: Partial<ConfigState>) => async (
   dispatch(type.config(config));
 };
 
+export const toggle = (key: keyof ConfigState): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  dispatch(updateConfig({ [key]: !getState().config[key] }));
+};
+
 export const startLoading = () => async (dispatch, getState) => {
   dispatch(updateConfig({ isLoading: true }));
 };

@@ -94,7 +94,7 @@ const cardSwipe = (direction, index: number): I.ThunkAction => async (
 ) => {
   const config = getState().config;
   if (config.hideBodyWhenCardChanged) {
-    await dispatch(updateConfig({ showBody: false }));
+    await dispatch(updateConfig({ showBody: false, showHint: false }));
   }
   const f = swipeMapping[config[direction]];
   if (f) {

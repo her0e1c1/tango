@@ -87,6 +87,7 @@ type ConfigState = {
   showHeader: boolean;
   shuffled: boolean;
   showBody: boolean;
+  showHint: boolean;
   hideBodyWhenCardChanged: boolean;
   start: number;
   theme: themeType;

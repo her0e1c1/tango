@@ -10,6 +10,7 @@ import { CardDetail } from './card';
 import { mathCategory } from './cardView';
 import { MasteredCircle } from './card';
 import * as Selector from 'src/selector';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 class View extends React.Component<
   { deck_id: number } & ConnectedProps,
@@ -51,11 +52,29 @@ class View extends React.Component<
     ) : (
       <RN.View style={{ flex: 1 }}>
         {this.props.state.config.showHeader && (
-          <RN.View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+          <RN.View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'baseline',
+            }}
+          >
             {card && <MasteredCircle card={card} />}
             <RN.View style={{ flex: 1 }}>
               <ProgressBar deck_id={deck_id} showCardIndex />
             </RN.View>
+            <RN.TouchableOpacity
+              onPress={() => dispatch(Action.config.toggle('showHint'))}
+            >
+              <Ionicons
+                name={
+                  this.props.state.config.showHint
+                    ? 'ios-help-circle'
+                    : 'ios-help-circle-outline'
+                }
+                size={20}
+                style={{ margin: 0, padding: 0 }}
+              />
+            </RN.TouchableOpacity>
           </RN.View>
         )}
         <RN.View style={{ marginTop: 5 }}>
@@ -108,7 +127,8 @@ class View extends React.Component<
                   ) : (
                     [
                       <SD.CardViewDetail>{item.name}</SD.CardViewDetail>,
-                      this.props.state.config.showBody && (
+                      (this.props.state.config.showBody ||
+                        this.props.state.config.showHint) && (
                         <CardView card={item} />
                       ),
                     ]
