@@ -62,19 +62,22 @@ class View extends React.Component<
             <RN.View style={{ flex: 1 }}>
               <ProgressBar deck_id={deck_id} showCardIndex />
             </RN.View>
-            <RN.TouchableOpacity
-              onPress={() => dispatch(Action.config.toggle('showHint'))}
-            >
-              <Ionicons
-                name={
-                  this.props.state.config.showHint
-                    ? 'ios-help-circle'
-                    : 'ios-help-circle-outline'
-                }
-                size={20}
-                style={{ margin: 0, padding: 0 }}
-              />
-            </RN.TouchableOpacity>
+            {card &&
+              !!card.hint && (
+                <RN.TouchableOpacity
+                  onPress={() => dispatch(Action.config.toggle('showHint'))}
+                >
+                  <Ionicons
+                    name={
+                      this.props.state.config.showHint
+                        ? 'ios-help-circle'
+                        : 'ios-help-circle-outline'
+                    }
+                    size={20}
+                    style={{ margin: 0, padding: 0 }}
+                  />
+                </RN.TouchableOpacity>
+              )}
           </RN.View>
         )}
         <RN.View style={{ marginTop: 5 }}>
