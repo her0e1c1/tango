@@ -1,20 +1,36 @@
 import * as I from 'src/interface';
 import { exec } from 'src/store/sqlite';
 import * as type from './type';
+import { Omit } from 'react-redux';
 
 // update or insert
-export const updateCard = (card: Card): I.ThunkAction => async (
-  dispatch,
-  getState
-) => {
+export const updateCard = (
+  card: Omit<Card, 'id'> & { id?: number }
+): I.ThunkAction => async (dispatch, getState) => {
+  let id = card.id;
+  if (!card.id) {
+    if (card.deck_id && card.fkid) {
+      const sql = 'select id from card where fkid = ? and deck_id = ?';
+      const result = await exec(sql, [card.fkid, card.deck_id]);
+      const cards = result.rows._array as Card[];
+      if (cards) {
+        id = cards[0].id;
+      }
+    }
+  }
+  if (!id) {
+    console.log(`CAN NOT UPDATE ${card}`);
+    return;
+  }
   const sql =
     'update card set name = ?, body = ?, hint = ?, mastered = ? where id = ?';
-  const values = [card.name, card.body, card.hint, card.id, card.mastered];
+  const values = [card.name, card.body, card.hint, card.mastered, id];
   const result = await exec(sql, values);
+  const c: Card = { ...card, id };
   if (result.rowsAffected === 1) {
-    dispatch(type.card_bulk_insert([card]));
+    dispatch(type.card_bulk_insert([c]));
   } else {
-    dispatch(bulkInsertCards(card.deck_id, [card]));
+    dispatch(bulkInsertCards(card.deck_id, [c]));
   }
 };
 
