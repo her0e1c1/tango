@@ -11,15 +11,19 @@ const RootTabs = TabNavigator(
   {
     Main: {
       screen: Main,
-      navigationOptions: {
-        tabBarLabel: 'Decks',
-        tabBarIcon: ({ tintColor, focused }) => (
-          <Ionicons
-            name={focused ? 'ios-card' : 'ios-card-outline'}
-            size={26}
-            style={{ color: tintColor }}
-          />
-        ),
+      navigationOptions: ({ navigation }) => {
+        const r = navigation.state.routes;
+        return {
+          tabBarLabel: 'Decks',
+          tabBarVisible: r.length === 1,
+          tabBarIcon: ({ tintColor, focused }) => (
+            <Ionicons
+              name={focused ? 'ios-card' : 'ios-card-outline'}
+              size={26}
+              style={{ color: tintColor }}
+            />
+          ),
+        };
       },
     },
     Cloud: {
