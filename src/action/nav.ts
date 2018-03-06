@@ -1,6 +1,4 @@
 import * as I from 'src/interface';
-import { getCurrentCard } from 'src/selector';
-export * from 'src/selector';
 import * as Selector from 'src/selector';
 import { toggleMastered } from './card';
 import { updateConfig } from './config';
@@ -19,7 +17,7 @@ export const goToNextCardSetMastered = (
   mastered?: boolean
 ): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
-  const card = getCurrentCard(state);
+  const card = Selector.getCurrentCard(state);
   if (card) {
     await dispatch(toggleMastered(card, mastered));
     if (state.config.showMastered) {
@@ -36,15 +34,17 @@ export const goToNextCardMastered = () => goToNextCardSetMastered(true);
 
 export const goToNextCard = (): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
-  const cardIndex = state.config.cardIndex + 1;
-  await dispatch(updateConfig({ cardIndex }));
+  const deck = Selector.getCurrentDeck(state);
+  const currentIndex = deck.currentIndex + 1;
+  await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
 };
 
 export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
-  const cardIndex = state.config.cardIndex - 1;
-  if (cardIndex >= 0) {
-    await dispatch(updateConfig({ cardIndex }));
+  const deck = Selector.getCurrentDeck(state);
+  const currentIndex = deck.currentIndex - 1;
+  if (currentIndex >= 0) {
+    await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
   } else {
     await dispatch(goBack());
   }
@@ -54,14 +54,14 @@ export const goToCard = (card: Card): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const cards = Selector.getCurrentCardList(getState());
-  let cardIndex = 0;
-  for (let i = 0; i < cards.length; i++) {
-    if (cards[i].id == card.id) {
-      cardIndex = i;
-    }
-  }
-  dispatch(updateConfig({ cardIndex }));
+  // const cards = Selector.getCurrentCardList(getState());
+  // let cardIndex = 0;
+  // for (let i = 0; i < cards.length; i++) {
+  //   if (cards[i].id == card.id) {
+  //     cardIndex = i;
+  //   }
+  // }
+  // dispatch(updateConfig({ cardIndex }));
 };
 
 export const goHome = (): I.ThunkAction => async (dispatch, getState) => {

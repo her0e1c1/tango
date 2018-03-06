@@ -77,7 +77,8 @@ export class _DeckList extends React.Component<
             >
               <RN.TouchableOpacity
                 onPress={() => {
-                  dispatch(Action.nav.goTo('deck', { deck_id: item.id }));
+                  dispatch(Action.nav.goTo('card', { deck_id: item.id }));
+                  // dispatch(Action.nav.goTo('deck', { deck_id: item.id }));
                 }}
                 onLongPress={() => alert(JSON.stringify(item))}
               >
@@ -101,9 +102,8 @@ export class _ProgressBar extends React.Component<
 > {
   render() {
     const deck_id = this.props.deck_id;
-    const index = this.props.showCardIndex
-      ? `(${this.props.state.config.cardIndex})`
-      : '';
+    const deck = this.props.state.deck.byId[deck_id];
+    const index = `(${deck.currentIndex})`;
     const cards = Selector.getCardList(this.props.state, deck_id);
     const mastered = cards.filter(x => !!x && x.mastered);
     const width = cards.length > 0 ? mastered.length / cards.length * 100 : 0;

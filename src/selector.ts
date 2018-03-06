@@ -37,8 +37,9 @@ export const getCardList = (state: RootState, deck_id: number) => {
 
 export const getCurrentCard = (state: RootState): Card => {
   const cards = getCurrentCardList(state);
-  if (state.config.cardIndex >= 0) {
-    return cards[state.config.cardIndex];
+  const deck = getCurrentDeck(state);
+  if (deck.currentIndex >= 0) {
+    return cards[deck.currentIndex];
   }
   return {} as Card;
 };

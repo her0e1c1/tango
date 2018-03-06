@@ -13,6 +13,9 @@ interface Deck {
   name: string;
   url?: string;
   isPublic: boolean;
+
+  // when user selects a deck, show this index card
+  currentIndex: number;
 }
 
 interface Drive {
@@ -93,7 +96,6 @@ type ConfigState = {
   theme: themeType;
   isLoading: boolean;
   errorCode?: errorCode;
-  cardIndex: number;
   cardSwipeUp: cardSwipe;
   cardSwipeDown: cardSwipe;
   cardSwipeLeft: cardSwipe;

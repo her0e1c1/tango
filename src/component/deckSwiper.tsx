@@ -42,7 +42,9 @@ class View extends React.Component<
     const width = this.state.width;
     const height = this.state.height;
     const cards = Selector.getCurrentCardList(this.props.state);
-    const { cardIndex } = this.props.state.config;
+    const deck = Selector.getCurrentDeck(this.props.state);
+    const cardIndex = deck.currentIndex;
+    console.log(cardIndex, deck.id);
     if (cardIndex < 0 || cards.length <= cardIndex) {
       return null;
     }
@@ -84,7 +86,7 @@ class View extends React.Component<
           {/* I think DeckSwiper position is absolute */}
           <DeckSwiper
             // backgroundColor={this.props.theme.cardBackgroundColor}
-            cardIndex={this.props.state.config.cardIndex}
+            cardIndex={cardIndex}
             cards={cards}
             onSwipedRight={index => dispatch(Action.nav.cardSwipeRight(index))}
             onSwipedLeft={index => dispatch(Action.nav.cardSwipeLeft(index))}

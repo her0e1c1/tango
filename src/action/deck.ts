@@ -109,7 +109,9 @@ export const insert = (
   const values = [deck.name, deck.url, deck.type, deck.fkid || null];
   const result = await exec(sql, values);
   const id = result.insertId;
-  await dispatch(type.deck_bulk_insert([{ ...deck, id, isPublic: false }]));
+  await dispatch(
+    type.deck_bulk_insert([{ ...deck, id, isPublic: false, currentIndex: 0 }])
+  );
   return id;
 };
 
@@ -120,7 +122,7 @@ export const update = (
     'update deck set name = ?, url = ?, type =?, fkid =? where id = ?';
   const values = [deck.name, deck.url, deck.type, deck.fkid || null, deck.id];
   await exec(sql, values);
-  await dispatch(type.deck_bulk_insert([deck]));
+  await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex: 0 }]));
 };
 
 export const upload = (deck: Deck): I.ThunkAction => async (
