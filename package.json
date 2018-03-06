@@ -37,7 +37,7 @@
     "raw-loader": "^0.5.1",
     "react-native-scripts": "1.8.1",
     "react-test-renderer": "16.0.0",
-    "typescript": "2.7.1",
+    "typescript": "^2.7.2",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^1.16.2"
   },
