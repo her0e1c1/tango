@@ -44,7 +44,6 @@ class View extends React.Component<
     const cards = Selector.getCurrentCardList(this.props.state);
     const deck = Selector.getCurrentDeck(this.props.state);
     const cardIndex = deck.currentIndex;
-    console.log(cardIndex, deck.id);
     if (cardIndex < 0 || cards.length <= cardIndex) {
       return null;
     }
