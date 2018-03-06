@@ -25,6 +25,11 @@ export class _DeckList extends React.Component<
     const { uid } = this.props.state.user;
     const items = [
       {
+        text: 'LIST',
+        backgroundColor: 'darkgreen',
+        onPress: () => dispatch(Action.nav.goTo('deck', { deck_id: deck.id })),
+      },
+      {
         text: 'COPY',
         backgroundColor: 'blue',
         onPress: () =>
@@ -78,7 +83,6 @@ export class _DeckList extends React.Component<
               <RN.TouchableOpacity
                 onPress={() => {
                   dispatch(Action.nav.goTo('card', { deck_id: item.id }));
-                  // dispatch(Action.nav.goTo('deck', { deck_id: item.id }));
                 }}
                 onLongPress={() => alert(JSON.stringify(item))}
               >

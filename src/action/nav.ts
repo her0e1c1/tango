@@ -54,14 +54,16 @@ export const goToCard = (card: Card): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  // const cards = Selector.getCurrentCardList(getState());
-  // let cardIndex = 0;
-  // for (let i = 0; i < cards.length; i++) {
-  //   if (cards[i].id == card.id) {
-  //     cardIndex = i;
-  //   }
-  // }
-  // dispatch(updateConfig({ cardIndex }));
+  const state = getState();
+  const cards = Selector.getCurrentCardList(getState());
+  const deck = state.deck.byId[card.deck_id];
+  let currentIndex = 0;
+  for (let i = 0; i < cards.length; i++) {
+    if (cards[i].id == card.id) {
+      currentIndex = i;
+    }
+  }
+  dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
 };
 
 export const goHome = (): I.ThunkAction => async (dispatch, getState) => {
