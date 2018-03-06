@@ -30,4 +30,5 @@
     "swiper",
     "unmount"
   ],
+  "typescript.tsdk": "node_modules/typescript/lib",
 }
