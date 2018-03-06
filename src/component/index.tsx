@@ -4,7 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import Main from './main';
 import { Settings } from './settings';
-import Help from './help';
+import Cloud from './cloud';
 import * as SD from './styled';
 
 const RootTabs = TabNavigator(
@@ -22,6 +22,19 @@ const RootTabs = TabNavigator(
         ),
       },
     },
+    Cloud: {
+      screen: Cloud,
+      navigationOptions: {
+        tabBarLabel: 'Cloud',
+        tabBarIcon: ({ tintColor, focused }) => (
+          <Ionicons
+            name={focused ? 'ios-cloud' : 'ios-cloud-outline'}
+            size={26}
+            style={{ color: tintColor }}
+          />
+        ),
+      },
+    },
     Settings: {
       screen: Settings,
       navigationOptions: {
@@ -29,19 +42,6 @@ const RootTabs = TabNavigator(
         tabBarIcon: ({ tintColor, focused }) => (
           <Ionicons
             name={focused ? 'ios-settings' : 'ios-settings-outline'}
-            size={26}
-            style={{ color: tintColor }}
-          />
-        ),
-      },
-    },
-    Help: {
-      screen: Help,
-      navigationOptions: {
-        tabBarLabel: 'Help',
-        tabBarIcon: ({ tintColor, focused }) => (
-          <Ionicons
-            name={focused ? 'ios-help-circle' : 'ios-help-circle-outline'}
             size={26}
             style={{ color: tintColor }}
           />
