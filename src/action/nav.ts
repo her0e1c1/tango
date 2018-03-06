@@ -79,6 +79,12 @@ export const goTo = (routeName, params?) => async (dispatch, getState) => {
   await dispatch(NavigationActions.navigate({ routeName, params }));
 };
 
+export const swipeAll = () => async (dispatch, getState) => {
+  const deck = Selector.getCurrentDeck(getState());
+  await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex: 0 }]));
+  await dispatch(goBack());
+};
+
 const swipeMapping = {
   goBack,
   goToPrevCard,
