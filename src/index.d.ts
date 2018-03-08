@@ -48,6 +48,7 @@ type DeckState = { byId: { [key: string]: Deck } };
 type CardState = {
   byId: { [key: string]: Card };
   byDeckId: { [key: string]: number[] };
+  edit: Card;
 };
 
 type NavState = {

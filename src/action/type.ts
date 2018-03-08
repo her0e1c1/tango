@@ -23,6 +23,11 @@ export const card_bulk_delete = (deck_id: number) => ({
   payload: { deck_id },
 });
 
+export const card_edit = (card: Partial<Card>) => ({
+  type: 'CARD_EDIT',
+  payload: { card },
+});
+
 export const card_shuffle = (config: ConfigState) => ({
   type: 'CARD_SHUFFLE',
   payload: { config },

@@ -40,39 +40,33 @@ export class _CardEdit extends React.Component<
   ConnectedProps & { card_id: number },
   Card
 > {
-  constructor(props) {
-    super(props);
-    this.state = this.props.state.card.byId[this.props.card_id];
+  async componentDidMount() {
+    const { dispatch } = this.props;
+    const card = this.props.state.card.byId[this.props.card_id];
+    await dispatch(Action.card.edit(card));
   }
   render() {
+    const { dispatch } = this.props;
     if (!this.props.card_id) return <ErrorPage />; // DEFENSIVE
-    const card = this.state;
+    const card = this.props.state.card.edit;
     return (
       <RN.ScrollView>
-        <SD.Button
-          title="UPDATE THIS CARD"
-          onPress={async () => {
-            await this.props.dispatch(Action.card.updateCard(this.state));
-            await this.props.dispatch(Action.nav.goBack());
-          }}
-        />
-
         <MasteredCircle card={card} />
         <SD.CardEditTitle>ID: {`${card.id}(${card.fkid})`}</SD.CardEditTitle>
         <Field
           name={'TITLE'}
           value={card.name}
-          onChangeText={name => this.setState({ name })}
+          onChangeText={name => dispatch(Action.card.edit({ name }))}
         />
         <Field
           name={'BODY'}
           value={card.body}
-          onChangeText={body => this.setState({ body })}
+          onChangeText={body => dispatch(Action.card.edit({ body }))}
         />
         <Field
           name={'HINT'}
           value={card.hint}
-          onChangeText={hint => this.setState({ hint })}
+          onChangeText={hint => dispatch(Action.card.edit({ hint }))}
         />
       </RN.ScrollView>
     );

@@ -111,3 +111,10 @@ export const bulkUpdateCards = (
   });
   await Promise.all(ps);
 };
+
+export const edit = (card: Partial<Card>): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  dispatch(type.card_edit(card));
+};

@@ -18,7 +18,7 @@ const updateCard = (state: CardState, cards: Card[]) => {
 };
 
 export default (
-  state: CardState = { byId: {}, byDeckId: {} },
+  state: CardState = { byId: {}, byDeckId: {}, edit: {} as Card },
   action: Action
 ) => {
   if (equal(action, type.card_bulk_insert)) {
@@ -42,6 +42,9 @@ export default (
       .map(e => ({ [e[0]]: config.shuffled ? _.shuffle(e[1]) : e[1].sort() }))
       .reduce((obj, e) => ({ ...obj, ...e }));
     return { ...state, byDeckId };
+  } else if (equal(action, type.card_edit)) {
+    const edit = Object.assign(state.edit || {}, action.payload.card);
+    return { ...state, edit };
   } else {
     return state;
   }

@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as SD from './styled';
 import * as Selector from 'src/selector';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const ShowBackButton = (state: RootState): boolean => {
   const i = state.nav.index;
@@ -30,28 +31,40 @@ export class LeftButton extends React.Component<Props, {}> {
 }
 
 export class RightButton extends React.Component<Props, {}> {
-  render() {
-    const { dispatch } = this.props;
-    const card = Selector.getCurrentCard(this.props.state);
-    const page = Selector.getCurrentPage(this.props.state);
-    let showPlusButton = false;
-    if (page) {
-      showPlusButton = ['deck', 'card'].includes(page.routeName);
+  getIcon(name: string) {
+    if (name === 'cardEdit') {
+      return <SD.MainText style={{ fontSize: 20 }}>{'DONE'}</SD.MainText>;
+    } else if (name === 'card') {
+      return <Ionicons name="ios-create" size={24} />;
+    } else if (['deck', 'card'].includes(name)) {
+      return <SD.MainText style={{ fontSize: 24 }}>{'+'}</SD.MainText>;
+    } else {
+      return <RN.View />;
     }
-    return !showPlusButton ? (
-      <RN.View />
-    ) : (
-      <RN.TouchableOpacity
-        onPress={() =>
-          dispatch(
-            Action.nav.goTo('cardEdit', {
-              deck_id: card.deck_id,
-              card_id: card.id,
-            })
-          )
-        }
-      >
-        <SD.MainText style={{ fontSize: 24 }}>{'+'}</SD.MainText>
+  }
+  async doAction(name: string) {
+    const { dispatch } = this.props;
+    if (name === 'cardEdit') {
+      await dispatch(Action.card.updateCard(this.props.state.card.edit));
+      await dispatch(Action.nav.goBack());
+    } else {
+      const card = Selector.getCurrentCard(this.props.state);
+      await dispatch(
+        Action.nav.goTo('cardEdit', {
+          deck_id: card.deck_id,
+          card_id: card.id,
+        })
+      );
+    }
+  }
+  render() {
+    const page = Selector.getCurrentPage(this.props.state);
+    if (!page) {
+      return <RN.View />;
+    }
+    return (
+      <RN.TouchableOpacity onPress={() => this.doAction(page.routeName)}>
+        {this.getIcon(page.routeName)}
       </RN.TouchableOpacity>
     );
   }
