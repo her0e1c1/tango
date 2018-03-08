@@ -71,9 +71,9 @@ export const getSpreadSheets = (retry: boolean = true): I.ThunkAction => async (
     await dispatch(type.drive_bulk_insert(json.items));
   } catch (e) {
     if (retry) {
-      const ok = await Action.auth.refreshToken();
+      const ok = await dispatch(Action.auth.refreshToken());
       if (ok) {
-        getSpreadSheets(false);
+        await dispatch(getSpreadSheets(false));
         return;
       }
     }
