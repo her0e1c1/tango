@@ -7,11 +7,14 @@ import { AuthSession } from 'expo';
 import * as queryString from 'query-string';
 import * as type from './type';
 
-export const refreshToken = (): I.ThunkAction => async (dispatch, getState) => {
+export const refreshToken = (): I.ThunkAction<boolean> => async (
+  dispatch,
+  getState
+) => {
   const refresh_token = getState().config.googleRefreshToken;
   if (!refresh_token) {
     console.log(`You can't refresh`);
-    return;
+    return false;
   }
   const body = queryString.stringify({
     refresh_token,
@@ -29,6 +32,7 @@ export const refreshToken = (): I.ThunkAction => async (dispatch, getState) => {
   await dispatch(
     Action.config.updateConfig({ googleAccessToken: json.access_token })
   );
+  return true;
 };
 
 export const loginWithGoogleOnWeb = (): I.ThunkAction => async (

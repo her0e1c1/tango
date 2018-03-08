@@ -59,7 +59,7 @@ export const upload = (deck: Deck): I.ThunkAction => async (
   }
 };
 
-export const getSpreadSheets = (): I.ThunkAction => async (
+export const getSpreadSheets = (retry: boolean = true): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -70,6 +70,14 @@ export const getSpreadSheets = (): I.ThunkAction => async (
     const json = await res.json();
     await dispatch(type.drive_bulk_insert(json.items));
   } catch (e) {
+    if (retry) {
+      const ok = await Action.auth.refreshToken();
+      if (ok) {
+        getSpreadSheets(false);
+        return;
+      }
+    }
+    await dispatch(Action.auth.logout());
     console.log(e);
   }
 };
