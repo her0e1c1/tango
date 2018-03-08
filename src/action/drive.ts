@@ -64,11 +64,10 @@ export const getSpreadSheets = (retry: boolean = true): I.ThunkAction => async (
   getState
 ) => {
   try {
-    const res = await dispatch(
-      fetchAPI('https://www.googleapis.com/drive/v2/files')
-    );
+    const url = 'https://www.googleapis.com/drive/v3/files?corpora=user';
+    const res = await dispatch(fetchAPI(url));
     const json = await res.json();
-    await dispatch(type.drive_bulk_insert(json.items));
+    await dispatch(type.drive_bulk_insert(json.files));
   } catch (e) {
     if (retry) {
       const ok = await dispatch(Action.auth.refreshToken());
@@ -98,8 +97,7 @@ export const importFromSpreadSheet = (
     const text = await res.text();
     await dispatch(
       Action.deck.insertByText(text, {
-        name: drive.title,
-        url: drive.alternateLink,
+        name: drive.name,
         type: 'drive',
         fkid: drive.id,
       })

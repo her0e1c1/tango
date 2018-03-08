@@ -20,14 +20,9 @@ interface Deck {
 
 interface Drive {
   id: string;
-  title: string;
-  alternateLink: string;
+  kind: string; // "drive#file"
+  name: string;
   mimeType: DriveType;
-  modifiedDate: string;
-  createdDate: string;
-  labels: {
-    trashed: boolean;
-  };
 }
 
 interface Tag {

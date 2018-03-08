@@ -28,7 +28,7 @@ export class _DriveList extends React.Component<
               }
             >
               <SD.DeckCard style={{ marginBottom: 10 }}>
-                <SD.DeckTitle>{item.title}</SD.DeckTitle>
+                <SD.DeckTitle>{item.name}</SD.DeckTitle>
               </SD.DeckCard>
             </RN.TouchableOpacity>
           )}

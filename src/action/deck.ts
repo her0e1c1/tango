@@ -50,7 +50,7 @@ export const parseTextToCsv = (text: string): I.ThunkAction<Card[]> => async (
     body: d[1],
     hint: d[2],
     category: d[3] ? d[3].trim() : null,
-    mastered: !!d[4].trim() ? 1 : 0,
+    mastered: !!d[4] && d[4].trim() ? 1 : 0,
     fkid: i + 1,
   }));
   return cards;
