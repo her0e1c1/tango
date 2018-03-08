@@ -6,6 +6,36 @@ import * as Action from 'src/action';
 import { MasteredCircle } from './card';
 import { ErrorPage } from './utils';
 
+type TextInputRef =
+  | React.Component<RN.TextInputProperties, {}> & { focus: any } // no document?
+  | null;
+
+class Field extends React.Component<
+  { value: string; name: string; onChangeText: (value: string) => void },
+  {}
+> {
+  private input: TextInputRef;
+  render() {
+    return (
+      <RN.View>
+        <SD.CardEditTitle>{`${this.props.name}:`}</SD.CardEditTitle>
+        <RN.TouchableWithoutFeedback
+          onPress={() => this.input && this.input.focus()}
+        >
+          <SD.CardEditInputView>
+            <RN.TextInput
+              ref={r => (this.input = r as TextInputRef)}
+              value={this.props.value}
+              multiline
+              onChangeText={this.props.onChangeText}
+            />
+          </SD.CardEditInputView>
+        </RN.TouchableWithoutFeedback>
+      </RN.View>
+    );
+  }
+}
+
 export class _CardEdit extends React.Component<
   ConnectedProps & { card_id: number },
   Card
@@ -29,33 +59,21 @@ export class _CardEdit extends React.Component<
 
         <MasteredCircle card={card} />
         <SD.CardEditTitle>ID: {`${card.id}(${card.fkid})`}</SD.CardEditTitle>
-
-        <SD.CardEditTitle>TITLE:</SD.CardEditTitle>
-        <SD.CardEditInputView>
-          <RN.TextInput
-            value={card.name}
-            multiline
-            onChangeText={name => this.setState({ name })}
-          />
-        </SD.CardEditInputView>
-
-        <SD.CardEditTitle>BODY:</SD.CardEditTitle>
-        <SD.CardEditInputView>
-          <RN.TextInput
-            value={card.body}
-            multiline
-            onChangeText={body => this.setState({ body })}
-          />
-        </SD.CardEditInputView>
-
-        <SD.CardEditTitle>HINT:</SD.CardEditTitle>
-        <SD.CardEditInputView>
-          <RN.TextInput
-            value={card.hint}
-            multiline
-            onChangeText={hint => this.setState({ hint })}
-          />
-        </SD.CardEditInputView>
+        <Field
+          name={'TITLE'}
+          value={card.name}
+          onChangeText={name => this.setState({ name })}
+        />
+        <Field
+          name={'BODY'}
+          value={card.body}
+          onChangeText={body => this.setState({ body })}
+        />
+        <Field
+          name={'HINT'}
+          value={card.hint}
+          onChangeText={hint => this.setState({ hint })}
+        />
       </RN.ScrollView>
     );
   }
@@ -83,35 +101,21 @@ export class _CardNew extends React.Component<
             await this.props.dispatch(Action.nav.goBack());
           }}
         />
-
-        <SD.CardEditTitle>TITLE:</SD.CardEditTitle>
-        <SD.CardEditInputView style={{ height: 50 }}>
-          <RN.TextInput
-            value={card.name}
-            multiline
-            onChangeText={name => this.setState({ name })}
-          />
-        </SD.CardEditInputView>
-
-        <SD.CardEditTitle>BODY:</SD.CardEditTitle>
-        <SD.CardEditInputView>
-          <RN.TextInput
-            value={card.body}
-            multiline
-            numberOfLines={5}
-            onChangeText={body => this.setState({ body })}
-          />
-        </SD.CardEditInputView>
-
-        <SD.CardEditTitle>HINT:</SD.CardEditTitle>
-        <SD.CardEditInputView>
-          <RN.TextInput
-            value={card.hint}
-            multiline
-            numberOfLines={5}
-            onChangeText={hint => this.setState({ hint })}
-          />
-        </SD.CardEditInputView>
+        <Field
+          name={'TITLE'}
+          value={card.name}
+          onChangeText={name => this.setState({ name })}
+        />
+        <Field
+          name={'BODY'}
+          value={card.body}
+          onChangeText={body => this.setState({ body })}
+        />
+        <Field
+          name={'HINT'}
+          value={card.hint}
+          onChangeText={hint => this.setState({ hint })}
+        />
       </RN.ScrollView>
     );
   }

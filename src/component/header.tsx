@@ -11,18 +11,51 @@ const ShowBackButton = (state: RootState): boolean => {
   return !!r && r[i].index >= 1;
 };
 
-const ShowPlusButton = (state: RootState): boolean => {
-  const i = state.nav.index;
-  const r = state.nav.routes;
-  if (r) {
-    const i2 = r[i].index;
-    const r2 = r[i].routes;
-    if (r2) {
-      return ['deck', 'card'].includes(r2[i2].routeName);
-    }
+type Props = Pick<ConnectedProps, 'dispatch' | 'state'>;
+export class LeftButton extends React.Component<Props, {}> {
+  render() {
+    const { dispatch } = this.props;
+    const showBackButton = ShowBackButton(this.props.state);
+    return !showBackButton ? (
+      <RN.View />
+    ) : (
+      <RN.TouchableOpacity
+        onPress={() => dispatch(Action.nav.goBack())}
+        onLongPress={() => dispatch(Action.nav.goHome())}
+      >
+        <SD.MainText style={{ fontSize: 24 }}>{'<'}</SD.MainText>
+      </RN.TouchableOpacity>
+    );
   }
-  return false;
-};
+}
+
+export class RightButton extends React.Component<Props, {}> {
+  render() {
+    const { dispatch } = this.props;
+    const card = Selector.getCurrentCard(this.props.state);
+    const page = Selector.getCurrentPage(this.props.state);
+    let showPlusButton = false;
+    if (page) {
+      showPlusButton = ['deck', 'card'].includes(page.routeName);
+    }
+    return !showPlusButton ? (
+      <RN.View />
+    ) : (
+      <RN.TouchableOpacity
+        onPress={() =>
+          dispatch(
+            Action.nav.goTo('cardEdit', {
+              deck_id: card.deck_id,
+              card_id: card.id,
+            })
+          )
+        }
+      >
+        <SD.MainText style={{ fontSize: 24 }}>{'+'}</SD.MainText>
+      </RN.TouchableOpacity>
+    );
+  }
+}
 
 export class _Header extends React.Component<ConnectedProps, {}> {
   render() {
@@ -30,9 +63,6 @@ export class _Header extends React.Component<ConnectedProps, {}> {
     if (!state.config.showHeader) {
       return <RN.View />;
     }
-    const showBackButton = ShowBackButton(this.props.state);
-    const showPlusButton = ShowPlusButton(this.props.state);
-    const card = Selector.getCurrentCard(state);
     const deck = Selector.getCurrentDeck(state);
     return (
       <RN.View
@@ -42,32 +72,11 @@ export class _Header extends React.Component<ConnectedProps, {}> {
           marginBottom: 0,
         }}
       >
-        {showBackButton && (
-          <RN.TouchableOpacity
-            onPress={() => dispatch(Action.nav.goBack())}
-            onLongPress={() => dispatch(Action.nav.goHome())}
-          >
-            <SD.MainText>{'<'}</SD.MainText>
-          </RN.TouchableOpacity>
-        )}
+        <LeftButton state={state} dispatch={dispatch} />
         <RN.View style={{ flexDirection: 'row' }}>
           <SD.MainText>{deck && deck.name && `${deck.name}`}</SD.MainText>
-          {card &&
-            card.category != null && (
-              <SD.CardCategory>{card.category}</SD.CardCategory>
-            )}
         </RN.View>
-        {showPlusButton ? (
-          <RN.TouchableOpacity
-            onPress={() =>
-              dispatch(Action.nav.goTo('cardNew', { deck_id: deck.id }))
-            }
-          >
-            <SD.MainText>{'+'}</SD.MainText>
-          </RN.TouchableOpacity>
-        ) : (
-          <RN.View />
-        )}
+        <RightButton state={state} dispatch={dispatch} />
       </RN.View>
     );
   }
