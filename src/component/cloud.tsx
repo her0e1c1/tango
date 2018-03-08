@@ -5,7 +5,6 @@ import * as RN from 'react-native';
 import * as SD from './styled';
 import { connect } from 'react-redux';
 import { StackNavigator } from 'react-navigation';
-import { LoadingIcon } from './utils';
 import CardView from './cardView';
 import { DriveList } from './drive';
 import { Header } from './header';
@@ -19,7 +18,6 @@ class _DeckList extends React.Component<
     const decks = Selector.getMyDecks(this.props.state);
     return (
       <SD.Container>
-        {this.props.state.config.isLoading && <LoadingIcon />}
         <RN.FlatList
           data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
           onRefresh={async () => {
