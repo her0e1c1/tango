@@ -84,6 +84,7 @@ export class _CardNew extends React.Component<
   }
   render() {
     const card = this.state;
+    if (!card) return <ErrorPage />; // DEFENSIVE
     return (
       <RN.ScrollView>
         <SD.Button
