@@ -64,9 +64,11 @@ export const getSpreadSheets = (retry: boolean = true): I.ThunkAction => async (
   getState
 ) => {
   try {
-    const url = 'https://www.googleapis.com/drive/v3/files?corpora=user';
+    const url =
+      'https://www.googleapis.com/drive/v3/files?corpora=user&q=trashed%3Dfalse';
     const res = await dispatch(fetchAPI(url));
     const json = await res.json();
+    console.log(json);
     await dispatch(type.drive_bulk_insert(json.files));
   } catch (e) {
     if (retry) {
@@ -81,9 +83,23 @@ export const getSpreadSheets = (retry: boolean = true): I.ThunkAction => async (
   }
 };
 
+export const getSheets = (drive: Drive): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${drive.id}`;
+    const res = await dispatch(fetchAPI(url));
+    const json: { sheets: Sheet[] } = await res.json();
+    await dispatch(type.drive_bulk_insert([{ ...drive, sheets: json.sheets }]));
+  } catch (e) {
+    alert(JSON.stringify(e));
+  }
+};
+
 export const importFromSpreadSheet = (
   drive: Drive,
-  gid: number = 0
+  gid: number
 ): I.ThunkAction => async (dispatch, getState) => {
   try {
     await dispatch(Action.config.startLoading());

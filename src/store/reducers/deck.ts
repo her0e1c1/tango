@@ -4,6 +4,8 @@ import { equal } from './util';
 export default (state: DeckState = { byId: {} }, action: Action) => {
   if (equal(action, type.deck_bulk_insert)) {
     action.payload.decks.forEach(d => {
+      // HOTFIX: some deck returns without id
+      if (!d.id) return;
       let currentIndex = d.currentIndex;
       if (currentIndex === undefined) {
         const deck = state.byId[d.id];

@@ -6,7 +6,7 @@ import * as SD from './styled';
 import { connect } from 'react-redux';
 import { StackNavigator } from 'react-navigation';
 import CardView from './cardView';
-import { DriveList } from './drive';
+import { SpreadSheetList, Sheet } from './drive';
 import { Header } from './header';
 
 class _DeckList extends React.Component<
@@ -103,12 +103,19 @@ class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
 }
 const CardList = connect(state => ({ state }))(_CardList);
 
-const List = () => (
+const _List = props => (
   <RN.View style={{ flex: 1 }}>
-    <DriveList />
+    <RN.TouchableOpacity
+      onPress={() => props.dispatch(Action.nav.goTo('spreadsheet'))}
+    >
+      <SD.DeckCard>
+        <SD.DeckTitle>Google Spread Sheet &gt;</SD.DeckTitle>
+      </SD.DeckCard>
+    </RN.TouchableOpacity>
     <DeckList />
   </RN.View>
 );
+export const List = connect(state => ({ state }))(_List);
 
 const wrap = C => props => (
   <SD.Container>
@@ -120,6 +127,8 @@ const wrap = C => props => (
 export const Root = StackNavigator(
   {
     share: { screen: wrap(List) },
+    sheet: { screen: wrap(Sheet) },
+    spreadsheet: { screen: wrap(SpreadSheetList) },
     shareCards: { screen: wrap(CardList) },
     shareView: { screen: wrap(CardView) },
   } as any,

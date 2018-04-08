@@ -116,6 +116,7 @@ class View extends React.Component<
               item = {} as Card // Sometimes item is undefined :(
             ) => (
               <RN.TouchableWithoutFeedback
+                key={item.id}
                 onPress={() =>
                   dispatch(
                     Action.config.updateConfig({

@@ -18,11 +18,19 @@ interface Deck {
   currentIndex: number;
 }
 
+interface Sheet {
+  properties: {
+    sheetId: number;
+    title: string;
+  };
+}
+
 interface Drive {
   id: string;
   kind: string; // "drive#file"
   name: string;
   mimeType: DriveType;
+  sheets: Sheet[];
 }
 
 interface Tag {

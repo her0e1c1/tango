@@ -66,13 +66,7 @@ export const goToCard = (card: Card): I.ThunkAction => async (
   dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
 };
 
-export const goHome = (): I.ThunkAction => async (dispatch, getState) => {
-  // TODO: fix later
-  // const { routes } = getState().nav;
-  // for (let i = 0; i < routes.length - 1; i++) {
-  //   dispatch(NavigationActions.back());
-  // }
-};
+export const goHome = (): I.ThunkAction => async (dispatch, getState) => {};
 
 export const goBack = () => async (dispatch, getState) => {
   await dispatch(NavigationActions.back());
