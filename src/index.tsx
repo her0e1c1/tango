@@ -1,5 +1,6 @@
 /// <reference path="./index.d.ts" />
 
+import * as Expo from 'expo';
 import * as React from 'react';
 import * as RN from 'react-native';
 import { Provider, connect } from 'react-redux';
@@ -9,6 +10,7 @@ import { ThemeProvider } from 'styled-components';
 import { addNavigationHelpers } from 'react-navigation';
 import { createReduxBoundAddListener } from 'react-navigation-redux-helpers';
 
+import { Root as NBRoot } from 'native-base'; // for ActionSheet.show error
 import { LoadingIcon } from 'src/component/utils';
 import Root from './component';
 import store from './store';
@@ -58,14 +60,19 @@ const updateIfNeeded = async () => {
 class Main extends React.Component {
   state = { loading: true };
   async componentWillMount() {
+    await Expo.Font.loadAsync({
+      Roboto: require('native-base/Fonts/Roboto.ttf'),
+      Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
+      Ionicons: require('@expo/vector-icons/fonts/Ionicons.ttf'),
+    });
     try {
       await updateIfNeeded();
     } finally {
       await this.setState({ loading: false });
     }
   }
-  componentDidMount() {
-    store.dispatch(Action.auth.init());
+  async componentDidMount() {
+    await store.dispatch(Action.auth.init());
   }
   render() {
     if (this.state.loading) {
@@ -74,7 +81,9 @@ class Main extends React.Component {
     return (
       <Provider store={store}>
         <PersistGate loading={<LoadingIcon />} persistor={persistStore(store)}>
-          <Theme />
+          <NBRoot>
+            <Theme />
+          </NBRoot>
         </PersistGate>
       </Provider>
     );

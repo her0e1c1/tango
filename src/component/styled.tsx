@@ -84,6 +84,12 @@ export const CardCategory = styled(RN.Text)`
   padding: 5px;
 `;
 
+export const ConfigContainer = styled(RN.View)`
+  flex: 1;
+  padding-top: 20;
+  background-color: #eeeeee;
+`;
+
 export const SettingsItem = styled(RN.View)`
   flex-direction: row;
   justify-content: space-between;

@@ -4,10 +4,6 @@ import * as NB from 'native-base';
 import * as React from 'react';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
-import { Container, SettingsItem, SettingsText } from './styled';
-
-// HOTFIX: Wait for index.d.ts to be fixed
-const Picker = (props: any) => <NB.Picker {...props} />;
 
 const cardSwipeTypes: cardSwipe[] = [
   'goBack',
@@ -17,6 +13,27 @@ const cardSwipeTypes: cardSwipe[] = [
   'goToNextCardNotMastered',
   'goToNextCardToggleMastered',
 ];
+
+const clearAppCache = dispatch => {
+  NB.ActionSheet.show(
+    {
+      title: 'Clear app cache',
+      options: ['Clear', 'Clear (keep login)', 'Drop Tables', 'Cancel'],
+      cancelButtonIndex: 3,
+    },
+    index => {
+      switch (index) {
+        case 0:
+          dispatch(Action.config.clearAll());
+        case 1:
+          dispatch(Action.config.clearAll(true));
+        case 2:
+          dispatch(Action.config.drop());
+        default: // cancel
+      }
+    }
+  );
+};
 
 export class _Config extends React.Component<ConnectedProps, {}> {
   state = { version: undefined };
@@ -61,170 +78,210 @@ export class _Config extends React.Component<ConnectedProps, {}> {
     const { config, user } = this.props.state;
     const isLogin = user && user.displayName;
     return (
-      <Container>
-        <RN.ScrollView>
-          <SettingsItem>
-            <SettingsText>Login</SettingsText>
-            <RN.Button
-              title={isLogin ? user.displayName! : 'LOGIN'}
-              onPress={() =>
-                !isLogin ? this.handleLogin() : this.handleLogout()
-              }
-            />
-          </SettingsItem>
+      <NB.Container>
+        <NB.Header />
+        <NB.Content>
+          <NB.List>
+            <NB.Separator bordered>
+              <NB.Text>Basic {isLogin ? `: ${user.displayName}` : ''}</NB.Text>
+            </NB.Separator>
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>Login</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <NB.Button
+                  small
+                  onPress={() =>
+                    !isLogin ? this.handleLogin() : this.handleLogout()
+                  }
+                >
+                  <NB.Text>{isLogin ? 'Logout' : 'Login'}</NB.Text>
+                </NB.Button>
+              </NB.Right>
+            </NB.ListItem>
 
-          <SettingsItem>
-            <SettingsText>Show Mastered Cards</SettingsText>
-            <NB.CheckBox
-              checked={config.showMastered}
-              onPress={() =>
-                dispatch(
-                  Action.config.updateConfig({
-                    showMastered: !config.showMastered,
-                  })
-                )
-              }
-            />
-          </SettingsItem>
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>Show Mastered Cards</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <RN.Switch
+                  value={config.showMastered}
+                  onValueChange={() =>
+                    dispatch(
+                      Action.config.updateConfig({
+                        showMastered: !config.showMastered,
+                      })
+                    )
+                  }
+                />
+              </NB.Right>
+            </NB.ListItem>
 
-          <SettingsItem>
-            <SettingsText>Shuffle cards</SettingsText>
-            <NB.CheckBox
-              checked={config.shuffled}
-              onPress={async () => {
-                await dispatch(
-                  Action.config.updateConfig({ shuffled: !config.shuffled })
-                );
-                await dispatch(Action.nav.shuffleCardsOrSort());
-              }}
-            />
-          </SettingsItem>
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>Shuffle cards</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <RN.Switch
+                  value={config.shuffled}
+                  onValueChange={async () => {
+                    await dispatch(
+                      Action.config.updateConfig({ shuffled: !config.shuffled })
+                    );
+                    await dispatch(Action.nav.shuffleCardsOrSort());
+                  }}
+                />
+              </NB.Right>
+            </NB.ListItem>
 
-          <SettingsItem>
-            <SettingsText>Show header in main screen</SettingsText>
-            <NB.CheckBox
-              checked={config.showHeader}
-              onPress={async () => {
-                await dispatch(
-                  Action.config.updateConfig({ showHeader: !config.showHeader })
-                );
-              }}
-            />
-          </SettingsItem>
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>Show header in main screen</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <RN.Switch
+                  value={config.showHeader}
+                  onValueChange={async () => {
+                    await dispatch(
+                      Action.config.updateConfig({
+                        showHeader: !config.showHeader,
+                      })
+                    );
+                  }}
+                />
+              </NB.Right>
+            </NB.ListItem>
 
-          <SettingsItem>
-            <SettingsText>
-              Hide body when you go to next/prev cards
-            </SettingsText>
-            <NB.CheckBox
-              checked={config.hideBodyWhenCardChanged}
-              onPress={() =>
-                dispatch(
-                  Action.config.updateConfig({
-                    hideBodyWhenCardChanged: !config.hideBodyWhenCardChanged,
-                  })
-                )
-              }
-            />
-          </SettingsItem>
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>Hide body when you go to next/prev cards</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <RN.Switch
+                  value={config.hideBodyWhenCardChanged}
+                  onValueChange={() =>
+                    dispatch(
+                      Action.config.updateConfig({
+                        hideBodyWhenCardChanged: !config.hideBodyWhenCardChanged,
+                      })
+                    )
+                  }
+                />
+              </NB.Right>
+            </NB.ListItem>
 
-          <SettingsItem>
-            <SettingsText>theme</SettingsText>
-            <Picker
-              textStyle={{ color: 'cornflowerblue' }}
-              selectedValue={config.theme}
-              onValueChange={theme =>
-                dispatch(Action.config.updateConfig({ theme }))
-              }
-            >
-              {['default', 'dark'].map((x, i) => (
-                <NB.Picker.Item key={i} label={x} value={x} />
-              ))}
-            </Picker>
-          </SettingsItem>
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>Theme</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <NB.Picker
+                  style={{
+                    width: RN.Platform.OS === 'android' ? 120 : undefined,
+                  }}
+                  selectedValue={config.theme}
+                  onValueChange={theme =>
+                    dispatch(Action.config.updateConfig({ theme }))
+                  }
+                  {...{ iosIcon: <NB.Icon name="ios-arrow-down-outline" /> }}
+                >
+                  {['default', 'dark'].map((x, i) => (
+                    <NB.Picker.Item key={i} label={x} value={x} />
+                  ))}
+                </NB.Picker>
+              </NB.Right>
+            </NB.ListItem>
 
-          <SettingsItem style={{ justifyContent: 'flex-start' }}>
-            <SettingsText>Start from {config.start}</SettingsText>
-            <RN.Slider
-              style={{ flex: 1 }}
-              minimumValue={0}
-              value={config.start / 1000}
-              onSlidingComplete={v =>
-                dispatch(
-                  Action.config.updateConfig({
-                    start: parseInt(String(1000 * v)),
-                  })
-                )
-              }
-            />
-          </SettingsItem>
+            <NB.Separator bordered>
+              <NB.Text>Swipe Gestures</NB.Text>
+            </NB.Separator>
 
-          <SettingsItem>
-            <SettingsText>App Cache</SettingsText>
-            <RN.Button
-              title="Clear"
-              onPress={() => {
-                RN.Alert.alert('Are you sure?', '', [
-                  {
-                    text: 'DROP ALL TABLES',
-                    onPress: () => dispatch(Action.config.drop()),
-                  },
-                  {
-                    text: 'CLEAR ALL',
-                    onPress: () => dispatch(Action.config.clearAll(true)),
-                  },
-                  {
-                    text: 'CLEAR (keep login)',
-                    onPress: () => dispatch(Action.config.clearAll()),
-                  },
-                  { text: 'Cancel', onPress: () => {} },
-                ]);
-              }}
-            />
-          </SettingsItem>
+            {[
+              ['cardSwipeUp', 'up'],
+              ['cardSwipeDown', 'down'],
+              ['cardSwipeLeft', 'left'],
+              ['cardSwipeRight', 'right'],
+            ].map(([type, label], i) => (
+              <NB.ListItem icon key={i}>
+                <NB.Body>
+                  <NB.Text>{label}</NB.Text>
+                </NB.Body>
+                <NB.Right>
+                  <NB.Picker
+                    style={{
+                      width: RN.Platform.OS === 'android' ? 250 : undefined,
+                    }}
+                    selectedValue={config[type]}
+                    onValueChange={v =>
+                      dispatch(Action.config.updateConfig({ [type]: v }))
+                    }
+                    {...{
+                      iosIcon: <NB.Icon name="ios-arrow-down-outline" />,
+                      textStyle: { color: 'cornflowerblue' },
+                    }}
+                  >
+                    {cardSwipeTypes.map((x, i) => (
+                      <NB.Picker.Item key={i} label={x} value={x} />
+                    ))}
+                  </NB.Picker>
+                </NB.Right>
+              </NB.ListItem>
+            ))}
 
-          {[
-            ['cardSwipeUp', 'up'],
-            ['cardSwipeDown', 'down'],
-            ['cardSwipeLeft', 'left'],
-            ['cardSwipeRight', 'right'],
-          ].map(([type, label], i) => (
-            <SettingsItem key={i}>
-              <SettingsText>Swipe {label}</SettingsText>
-              <Picker
-                textStyle={{ color: 'cornflowerblue' }}
-                selectedValue={config[type]}
-                onValueChange={v =>
-                  dispatch(Action.config.updateConfig({ [type]: v }))
-                }
-              >
-                {cardSwipeTypes.map((x, i) => (
-                  <NB.Picker.Item key={i} label={x} value={x} />
-                ))}
-              </Picker>
-            </SettingsItem>
-          ))}
+            <NB.Separator bordered>
+              <NB.Text>Developer</NB.Text>
+            </NB.Separator>
 
-          <SettingsItem>
-            <SettingsText>GIT HASH</SettingsText>
-            <SettingsText>{C.GIT_HASH.substring(0, 7)}</SettingsText>
-          </SettingsItem>
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>Git Hash</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <NB.Text>{C.GIT_HASH.substring(0, 7)}</NB.Text>
+              </NB.Right>
+            </NB.ListItem>
 
-          <SettingsItem>
-            <SettingsText>Version</SettingsText>
-            <SettingsText>{this.state.version || ''}</SettingsText>
-          </SettingsItem>
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>Version</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <NB.Text>{this.state.version || ''}</NB.Text>
+              </NB.Right>
+            </NB.ListItem>
 
-          <SettingsItem>
-            <RN.TouchableOpacity
-              onPress={() => dispatch(Action.auth.refreshToken())}
-              onLongPress={() => alert(config.googleRefreshToken)}
-            >
-              <SettingsText>Refresh: {config.googleAccessToken}</SettingsText>
-            </RN.TouchableOpacity>
-          </SettingsItem>
-        </RN.ScrollView>
-      </Container>
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>Refresh</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <RN.TouchableOpacity
+                  onPress={() => dispatch(Action.auth.refreshToken())}
+                  onLongPress={() => alert(config.googleAccessToken)}
+                >
+                  <NB.Text>
+                    {config.googleAccessToken &&
+                      config.googleAccessToken.substring(0, 20)}
+                  </NB.Text>
+                </RN.TouchableOpacity>
+              </NB.Right>
+            </NB.ListItem>
+
+            <NB.ListItem icon>
+              <NB.Body>
+                <NB.Text>App Cache</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <NB.Button small danger onPress={() => clearAppCache(dispatch)}>
+                  <NB.Text>Clear</NB.Text>
+                </NB.Button>
+              </NB.Right>
+            </NB.ListItem>
+          </NB.List>
+        </NB.Content>
+      </NB.Container>
     );
   }
 }
