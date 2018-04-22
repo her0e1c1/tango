@@ -137,8 +137,8 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                 dispatch(Action.config.updateConfig({ theme }))
               }
             >
-              {['default', 'dark'].map(x => (
-                <NB.Picker.Item label={x} value={x} />
+              {['default', 'dark'].map((x, i) => (
+                <NB.Picker.Item key={i} label={x} value={x} />
               ))}
             </Picker>
           </SettingsItem>
@@ -188,8 +188,8 @@ export class _Config extends React.Component<ConnectedProps, {}> {
             ['cardSwipeDown', 'down'],
             ['cardSwipeLeft', 'left'],
             ['cardSwipeRight', 'right'],
-          ].map(([type, label]) => (
-            <SettingsItem>
+          ].map(([type, label], i) => (
+            <SettingsItem key={i}>
               <SettingsText>Swipe {label}</SettingsText>
               <Picker
                 textStyle={{ color: 'cornflowerblue' }}
@@ -198,8 +198,8 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                   dispatch(Action.config.updateConfig({ [type]: v }))
                 }
               >
-                {cardSwipeTypes.map(x => (
-                  <NB.Picker.Item label={x} value={x} />
+                {cardSwipeTypes.map((x, i) => (
+                  <NB.Picker.Item key={i} label={x} value={x} />
                 ))}
               </Picker>
             </SettingsItem>
