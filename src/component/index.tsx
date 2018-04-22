@@ -3,7 +3,7 @@ import { TabNavigator } from 'react-navigation';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import Main from './main';
-import { Settings } from './settings';
+import { Config } from './config';
 import Cloud from './cloud';
 import * as SD from './styled';
 
@@ -40,7 +40,7 @@ const RootTabs = TabNavigator(
       },
     },
     Settings: {
-      screen: Settings,
+      screen: Config,
       navigationOptions: {
         tabBarLabel: 'Settings',
         tabBarIcon: ({ tintColor, focused }) => (
