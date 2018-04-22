@@ -3,6 +3,7 @@ import * as Selector from 'src/selector';
 import * as React from 'react';
 import * as RN from 'react-native';
 import * as SD from './styled';
+import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import { StackNavigator } from 'react-navigation';
 import CardView from './cardView';
@@ -118,10 +119,10 @@ const _List = props => (
 export const List = connect(state => ({ state }))(_List);
 
 const wrap = C => props => (
-  <SD.Container>
+  <NB.Container>
     <Header />
     <C {...props.navigation.state.params} />
-  </SD.Container>
+  </NB.Container>
 );
 
 export const Root = StackNavigator(

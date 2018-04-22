@@ -1,10 +1,8 @@
 import * as React from 'react';
-import * as RN from 'react-native';
+import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
-import * as SD from './styled';
 import * as Selector from 'src/selector';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const ShowBackButton = (state: RootState): boolean => {
   const i = state.nav.index;
@@ -18,14 +16,17 @@ export class LeftButton extends React.Component<Props, {}> {
     const { dispatch } = this.props;
     const showBackButton = ShowBackButton(this.props.state);
     return !showBackButton ? (
-      <RN.View />
+      <NB.Left />
     ) : (
-      <RN.TouchableOpacity
-        onPress={() => dispatch(Action.nav.goBack())}
-        onLongPress={() => dispatch(Action.nav.goHome())}
-      >
-        <SD.MainText style={{ fontSize: 24 }}>{'<'}</SD.MainText>
-      </RN.TouchableOpacity>
+      <NB.Left>
+        <NB.Button
+          transparent
+          onPress={() => dispatch(Action.nav.goBack())}
+          onLongPress={() => dispatch(Action.nav.goHome())}
+        >
+          <NB.Icon name="arrow-back" />
+        </NB.Button>
+      </NB.Left>
     );
   }
 }
@@ -33,13 +34,13 @@ export class LeftButton extends React.Component<Props, {}> {
 export class RightButton extends React.Component<Props, {}> {
   getIcon(name: string) {
     if (name === 'cardEdit') {
-      return <SD.MainText style={{ fontSize: 20 }}>{'DONE'}</SD.MainText>;
+      return <NB.Text>{'DONE'}</NB.Text>;
     } else if (name === 'card') {
-      return <Ionicons name="ios-create" size={24} />;
+      return <NB.Icon name="ios-create" />;
     } else if (['deck', 'card'].includes(name)) {
-      return <SD.MainText style={{ fontSize: 24 }}>{'+'}</SD.MainText>;
+      return <NB.Icon name="md-add" />;
     } else {
-      return <RN.View />;
+      return <NB.View />;
     }
   }
   async doAction(name: string) {
@@ -60,12 +61,14 @@ export class RightButton extends React.Component<Props, {}> {
   render() {
     const page = Selector.getCurrentPage(this.props.state);
     if (!page) {
-      return <RN.View />;
+      return <NB.Right />;
     }
     return (
-      <RN.TouchableOpacity onPress={() => this.doAction(page.routeName)}>
-        {this.getIcon(page.routeName)}
-      </RN.TouchableOpacity>
+      <NB.Right>
+        <NB.Button transparent onPress={() => this.doAction(page.routeName)}>
+          {this.getIcon(page.routeName)}
+        </NB.Button>
+      </NB.Right>
     );
   }
 }
@@ -74,23 +77,17 @@ export class _Header extends React.Component<ConnectedProps, {}> {
   render() {
     const { state, dispatch } = this.props;
     if (!state.config.showHeader) {
-      return <RN.View />;
+      return <NB.Header />;
     }
     const deck = Selector.getCurrentDeck(state);
     return (
-      <RN.View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          marginBottom: 0,
-        }}
-      >
+      <NB.Header>
         <LeftButton state={state} dispatch={dispatch} />
-        <RN.View style={{ flexDirection: 'row' }}>
-          <SD.MainText>{deck && deck.name && `${deck.name}`}</SD.MainText>
-        </RN.View>
+        <NB.Body>
+          <NB.Title>{deck && deck.name && `${deck.name}`} </NB.Title>
+        </NB.Body>
         <RightButton state={state} dispatch={dispatch} />
-      </RN.View>
+      </NB.Header>
     );
   }
 }

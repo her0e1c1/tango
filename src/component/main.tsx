@@ -1,4 +1,5 @@
 import * as RN from 'react-native';
+import * as NB from 'native-base';
 import SearchBar from './searchBar';
 import * as React from 'react';
 import { CardList } from './card';
@@ -6,17 +7,14 @@ import DeckSwiper from './deckSwiper';
 import { DeckList } from './deck';
 import { Header } from './header';
 import { connect } from 'react-redux';
-import { Container } from './styled';
 import { StackNavigator } from 'react-navigation';
 import { CardEdit, CardNew } from './cardEdit';
 
 const wrap = C => props => (
-  <Container>
-    <RN.View style={{ marginBottom: 5 }}>
-      <Header />
-    </RN.View>
+  <NB.Container>
+    <Header />
     <C {...props.navigation.state.params} />
-  </Container>
+  </NB.Container>
 );
 
 const Home = ({ state }: { state: RootState }) => (
