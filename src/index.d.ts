@@ -47,8 +47,6 @@ interface Card {
   deck_id: number;
   // firebase can not store undefined ...
   category: string | null;
-  // deck: Deck;
-  // tags: Tag[];
 }
 
 type DeckState = { byId: { [key: string]: Deck } };

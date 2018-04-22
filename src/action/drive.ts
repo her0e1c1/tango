@@ -68,7 +68,6 @@ export const getSpreadSheets = (retry: boolean = true): I.ThunkAction => async (
       'https://www.googleapis.com/drive/v3/files?corpora=user&q=trashed%3Dfalse';
     const res = await dispatch(fetchAPI(url));
     const json = await res.json();
-    console.log(json);
     await dispatch(type.drive_bulk_insert(json.files));
   } catch (e) {
     if (retry) {
