@@ -20,6 +20,7 @@ const clearAppCache = dispatch => {
       title: 'Clear app cache',
       options: ['Clear', 'Clear (keep login)', 'Drop Tables', 'Cancel'],
       cancelButtonIndex: 3,
+      destructiveButtonIndex: 2,
     },
     index => {
       switch (index) {
