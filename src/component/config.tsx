@@ -196,6 +196,25 @@ export class _Config extends React.Component<ConnectedProps, {}> {
             </NB.ListItem>
 
             <NB.Separator bordered>
+              <NB.Text>Interval: {config.cardInterval}s</NB.Text>
+            </NB.Separator>
+
+            <NB.ListItem icon>
+              <NB.Body style={{ paddingRight: 10 }}>
+                <RN.Slider
+                  step={1}
+                  value={config.cardInterval}
+                  minimumValue={1}
+                  maximumValue={30}
+                  onSlidingComplete={cardInterval =>
+                    dispatch(Action.config.updateConfig({ cardInterval }))
+                  }
+                  style={{ flex: 1 }}
+                />
+              </NB.Body>
+            </NB.ListItem>
+
+            <NB.Separator bordered>
               <NB.Text>Swipe Gestures</NB.Text>
             </NB.Separator>
 
