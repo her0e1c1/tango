@@ -59,12 +59,26 @@ export class RightButton extends React.Component<Props, {}> {
     }
   }
   render() {
+    const { dispatch } = this.props;
     const page = Selector.getCurrentPage(this.props.state);
     if (!page) {
       return <NB.Right />;
     }
+    const card = Selector.getCurrentCard(this.props.state) || {};
     return (
       <NB.Right>
+        {!!card.hint && (
+          <NB.Button
+            transparent
+            onPress={() => dispatch(Action.config.toggle('showHint'))}
+          >
+            <NB.Icon
+              name={
+                this.props.state.config.showHint ? 'md-help-circle' : 'md-help'
+              }
+            />
+          </NB.Button>
+        )}
         <NB.Button transparent onPress={() => this.doAction(page.routeName)}>
           {this.getIcon(page.routeName)}
         </NB.Button>
