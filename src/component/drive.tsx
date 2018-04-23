@@ -4,7 +4,6 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import * as SD from './styled';
 import { connect } from 'react-redux';
-import { StackNavigator } from 'react-navigation';
 
 export class _Sheet extends React.Component<
   ConnectedProps & { driveId: number },

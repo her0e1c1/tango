@@ -6,7 +6,6 @@ import DeckSwiper from 'react-native-deck-swiper';
 import { connect } from 'react-redux';
 import { Controller } from './controller';
 import { CardDetail } from './card';
-import { mathCategory } from './cardView';
 import { MasteredCircle } from './card';
 import * as Selector from 'src/selector';
 
@@ -36,7 +35,7 @@ class View extends React.Component<
     RN.Dimensions.removeEventListener('change', this.changeEvent as any); // TODO: upgrade @types/react-native
   }
   render() {
-    const { dispatch, deck_id } = this.props;
+    const { dispatch } = this.props;
     const width = this.state.width;
     const height = this.state.height;
     const cards = Selector.getCurrentCardList(this.props.state);
