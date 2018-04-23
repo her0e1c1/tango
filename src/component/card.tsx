@@ -1,6 +1,7 @@
 import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
+import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import CardView from './cardView';
 import * as SD from './styled';
@@ -27,8 +28,9 @@ export const MasteredCircle = connect(state => ({ state }))(_MasteredCircle);
 
 export class _CardDetail extends React.Component<
   ConnectedProps & { onLongPress: Callback },
-  {}
+  { view: boolean }
 > {
+  state = { view: false };
   static navigationOptions = () => ({
     gesturesEnabled: false,
   });
@@ -44,28 +46,61 @@ export class _CardDetail extends React.Component<
     const height = window.height;
     const card = Selector.getCurrentCard(this.props.state);
     return (
-      <RN.Modal
-        animationType={'none'}
-        supportedOrientations={['portrait', 'landscape']}
-        visible={true}
-        onRequestClose={() => {}}
+      <RN.View
+        style={{
+          position: 'absolute',
+          flex: 1,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          zIndex: 1,
+        }}
       >
-        <RN.TouchableWithoutFeedback onLongPress={this.props.onLongPress}>
+        <RN.TouchableWithoutFeedback
+          onPress={() => this.state.view || this.props.onLongPress()}
+          onLongPress={() => {}}
+        >
           <RN.View style={{ flex: 1 }}>
             <CardView card={card} />
-            <SD.SideControl
-              style={{ left: 0, height }}
-              onPress={() => dispatch(Action.nav.goToPrevCard())}
-              onLongPress={() => {}}
-            />
-            <SD.SideControl
-              style={{ right: 0, height }}
-              onPress={() => dispatch(Action.nav.goToNextCard())}
-              onLongPress={() => alert(JSON.stringify(card.name))}
-            />
           </RN.View>
         </RN.TouchableWithoutFeedback>
-      </RN.Modal>
+        <RN.View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 50,
+            flexDirection: 'row',
+            zIndex: 2,
+          }}
+        >
+          {/* <RN.View style={{ backgroundColor: '#cd000050', flex: 1 }} />
+          <RN.View style={{ backgroundColor: '#00cd0050', flex: 1 }} /> */}
+          <RN.TouchableOpacity
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: '#0000cd10',
+            }}
+            onPress={() => this.setState({ view: !this.state.view })}
+          >
+            {!this.state.view && <NB.Icon name="md-eye-off" />}
+          </RN.TouchableOpacity>
+        </RN.View>
+        <SD.SideControl
+          style={{ left: 0, height }}
+          onPress={() => dispatch(Action.nav.goToPrevCard())}
+          onLongPress={() => {}}
+        />
+        <SD.SideControl
+          style={{ right: 0, height }}
+          onPress={() => dispatch(Action.nav.goToNextCard())}
+          onLongPress={() => alert(JSON.stringify(card.name))}
+        />
+      </RN.View>
     );
   }
 }

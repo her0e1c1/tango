@@ -1,11 +1,12 @@
 import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
+import * as NB from 'native-base';
+import * as SD from './styled';
 import DeckSwiper from 'react-native-deck-swiper';
 import { connect } from 'react-redux';
 import { Controller } from './controller';
 import CardView from './cardView';
-import * as SD from './styled';
 import { CardDetail } from './card';
 import { mathCategory } from './cardView';
 import * as Selector from 'src/selector';
@@ -45,17 +46,16 @@ class View extends React.Component<
     if (cardIndex < 0 || cards.length <= cardIndex) {
       return null;
     }
-    const card = cards[cardIndex];
     return this.state.visible ? (
       <CardDetail onLongPress={() => this.setState({ visible: false })} />
     ) : (
       // Need to wrap with View otherwise <Header/> is not shown
       <RN.View style={{ flex: 1 }}>
-        <Controller />
         <RN.View style={{ flex: 1 }}>
           <DeckSwiper
             /* I think DeckSwiper position is absolute */
             // backgroundColor={this.props.theme.cardBackgroundColor}
+            backgroundColor={'white'}
             cardIndex={cardIndex}
             cards={cards}
             onSwipedRight={index => dispatch(Action.nav.cardSwipeRight(index))}
@@ -79,7 +79,7 @@ class View extends React.Component<
             disableBottomSwipe={false}
             showSecondCard={false}
             cardHorizontalMargin={10}
-            cardVerticalMargin={10}
+            cardVerticalMargin={0}
             marginBottom={0}
             zoomFriction={0}
             swipeAnimationDuration={100}
@@ -88,32 +88,28 @@ class View extends React.Component<
             ) => (
               <RN.TouchableWithoutFeedback
                 key={item.id}
-                onPress={() =>
-                  dispatch(
-                    Action.config.updateConfig({
-                      showBody: !this.props.state.config.showBody,
-                    })
-                  )
-                }
-                onLongPress={() => this.setState({ visible: true })}
+                onPress={() => this.setState({ visible: true })}
               >
-                <SD.CardContainer style={{ width, height }}>
-                  {item.category && mathCategory.includes(item.category) ? (
-                    <CardView card={item} />
-                  ) : (
-                    [
-                      <SD.CardViewDetail>{item.name}</SD.CardViewDetail>,
-                      (this.props.state.config.showBody ||
-                        this.props.state.config.showHint) && (
-                        <CardView card={item} />
-                      ),
-                    ]
-                  )}
-                </SD.CardContainer>
+                <RN.View
+                  style={{
+                    width,
+                    height,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <RN.Text style={{ fontSize: 24 }}>{item.name}</RN.Text>
+                </RN.View>
               </RN.TouchableWithoutFeedback>
             )}
           />
         </RN.View>
+
+        <NB.Footer>
+          <NB.Body>
+            <Controller />
+          </NB.Body>
+        </NB.Footer>
       </RN.View>
     );
   }
