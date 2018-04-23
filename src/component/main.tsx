@@ -1,5 +1,4 @@
 import * as NB from 'native-base';
-import * as RN from 'react-native';
 // import SearchBar from './searchBar';
 import * as React from 'react';
 import { CardList } from './card';

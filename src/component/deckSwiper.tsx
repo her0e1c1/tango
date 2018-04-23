@@ -4,12 +4,10 @@ import * as RN from 'react-native';
 import DeckSwiper from 'react-native-deck-swiper';
 import { connect } from 'react-redux';
 import { Controller } from './controller';
-import { ProgressBar } from './deck';
 import CardView from './cardView';
 import * as SD from './styled';
 import { CardDetail } from './card';
 import { mathCategory } from './cardView';
-import { MasteredCircle } from './card';
 import * as Selector from 'src/selector';
 
 class View extends React.Component<
