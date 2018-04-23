@@ -31,7 +31,7 @@ class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
             this.setState({ pause: !this.state.pause }, () => {
               if (this.state.pause) {
                 this.goToNextCard = setInterval(
-                  () => dispatch(Action.nav.goToNextCard()),
+                  () => dispatch(Action.nav.cardSwipeRight(deck.currentIndex)),
                   this.props.state.config.cardInterval * 1000
                 );
               } else {
