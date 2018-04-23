@@ -9,6 +9,7 @@ export default (
     showHint: false,
     hideBodyWhenCardChanged: true,
     shuffled: false,
+    cardInterval: 5,
     start: 0,
     theme: 'default',
     isLoading: false, // maybe not here
