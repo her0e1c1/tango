@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import DeckSwiper from 'react-native-deck-swiper';
 import { connect } from 'react-redux';
+import { Controller } from './controller';
 import { ProgressBar } from './deck';
 import CardView from './cardView';
 import * as SD from './styled';
@@ -10,7 +11,6 @@ import { CardDetail } from './card';
 import { mathCategory } from './cardView';
 import { MasteredCircle } from './card';
 import * as Selector from 'src/selector';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 class View extends React.Component<
   { deck_id: number } & ConnectedProps,
@@ -51,39 +51,12 @@ class View extends React.Component<
     return this.state.visible ? (
       <CardDetail onLongPress={() => this.setState({ visible: false })} />
     ) : (
+      // Need to wrap with View otherwise <Header/> is not shown
       <RN.View style={{ flex: 1 }}>
-        {this.props.state.config.showHeader && (
-          <RN.View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'baseline',
-            }}
-          >
-            {card && <MasteredCircle card={card} />}
-            <RN.View style={{ flex: 1 }}>
-              <ProgressBar deck_id={deck_id} showCardIndex />
-            </RN.View>
-            {card &&
-              !!card.hint && (
-                <RN.TouchableOpacity
-                  onPress={() => dispatch(Action.config.toggle('showHint'))}
-                >
-                  <Ionicons
-                    name={
-                      this.props.state.config.showHint
-                        ? 'ios-help-circle'
-                        : 'ios-help-circle-outline'
-                    }
-                    size={20}
-                    style={{ margin: 0, padding: 0 }}
-                  />
-                </RN.TouchableOpacity>
-              )}
-          </RN.View>
-        )}
-        <RN.View style={{ marginTop: 5 }}>
-          {/* I think DeckSwiper position is absolute */}
+        <Controller />
+        <RN.View style={{ flex: 1 }}>
           <DeckSwiper
+            /* I think DeckSwiper position is absolute */
             // backgroundColor={this.props.theme.cardBackgroundColor}
             cardIndex={cardIndex}
             cards={cards}
@@ -107,10 +80,10 @@ class View extends React.Component<
             onSwipedAll={() => dispatch(Action.nav.swipeAll())}
             disableBottomSwipe={false}
             showSecondCard={false}
+            cardHorizontalMargin={10}
+            cardVerticalMargin={10}
             marginBottom={0}
-            cardHorizontalMargin={0}
             zoomFriction={0}
-            cardVerticalMargin={0}
             swipeAnimationDuration={100}
             renderCard={(
               item = {} as Card // Sometimes item is undefined :(
