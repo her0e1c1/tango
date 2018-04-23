@@ -94,6 +94,7 @@ type ConfigState = {
   showBody: boolean;
   showHint: boolean;
   hideBodyWhenCardChanged: boolean;
+  cardInterval: number;
   start: number;
   theme: themeType;
   isLoading: boolean;
