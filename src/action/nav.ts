@@ -66,6 +66,14 @@ export const goToCard = (card: Card): I.ThunkAction => async (
   dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
 };
 
+export const goToCardByIndex = (
+  deck: Deck,
+  currentIndex: number
+): I.ThunkAction => async (dispatch, getState) => {
+  console.log('INDEX:', deck.currentIndex, currentIndex);
+  dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
+};
+
 export const goHome = (): I.ThunkAction => async (dispatch, getState) => {};
 
 export const goBack = () => async (dispatch, getState) => {
