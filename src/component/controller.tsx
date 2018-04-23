@@ -8,9 +8,6 @@ import * as Selector from 'src/selector';
 class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
   state = { pause: false };
   private goToNextCard: number;
-  constructor(props) {
-    super(props);
-  }
   componentWillUnmount() {
     if (this.goToNextCard) {
       clearInterval(this.goToNextCard);
@@ -46,19 +43,21 @@ class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
         >
           <NB.Icon
             name={this.state.pause ? 'md-pause' : 'md-play'}
-            style={{ margin: 10 }}
+            style={{ margin: 5 }}
           />
         </NB.Button>
-        <RN.Slider
-          style={{ flex: 1 }}
-          value={deck.currentIndex}
-          step={1}
-          minimumValue={0}
-          maximumValue={cards.length - 1}
-          onSlidingComplete={v =>
-            dispatch(Action.nav.goToCardByIndex(deck, Math.floor(v)))
-          }
-        />
+        <RN.View style={{ flex: 1, paddingRight: 10 }}>
+          <RN.Slider
+            style={{ flex: 1 }}
+            value={deck.currentIndex}
+            step={1}
+            minimumValue={0}
+            maximumValue={cards.length - 1}
+            onSlidingComplete={v =>
+              dispatch(Action.nav.goToCardByIndex(deck, Math.floor(v)))
+            }
+          />
+        </RN.View>
       </RN.View>
     );
   }
