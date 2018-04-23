@@ -16,11 +16,10 @@ export class _MasteredCircle extends React.Component<
     const { dispatch } = this.props;
     const card = this.props.card;
     return (
-      <RN.TouchableOpacity
+      <NB.CheckBox
+        checked={Boolean(card.mastered)}
         onPress={() => dispatch(Action.card.toggleMastered(card))}
-      >
-        <SD.Circle mastered={card.mastered} />
-      </RN.TouchableOpacity>
+      />
     );
   }
 }

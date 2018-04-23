@@ -92,7 +92,7 @@ export class _Header extends React.Component<ConnectedProps, {}> {
   render() {
     const { state, dispatch } = this.props;
     if (!state.config.showHeader) {
-      return <NB.Header />;
+      return <NB.View />;
     }
     const deck = Selector.getCurrentDeck(state);
     return (

@@ -2,13 +2,12 @@ import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';
-import * as SD from './styled';
 import DeckSwiper from 'react-native-deck-swiper';
 import { connect } from 'react-redux';
 import { Controller } from './controller';
-import CardView from './cardView';
 import { CardDetail } from './card';
 import { mathCategory } from './cardView';
+import { MasteredCircle } from './card';
 import * as Selector from 'src/selector';
 
 class View extends React.Component<
@@ -42,21 +41,31 @@ class View extends React.Component<
     const height = this.state.height;
     const cards = Selector.getCurrentCardList(this.props.state);
     const deck = Selector.getCurrentDeck(this.props.state);
-    const cardIndex = deck.currentIndex;
-    if (cardIndex < 0 || cards.length <= cardIndex) {
-      return null;
+    const currentIndex = deck.currentIndex;
+    if (currentIndex < 0 || cards.length <= currentIndex) {
+      return;
     }
+
     return this.state.visible ? (
       <CardDetail onLongPress={() => this.setState({ visible: false })} />
     ) : (
       // Need to wrap with View otherwise <Header/> is not shown
       <RN.View style={{ flex: 1 }}>
         <RN.View style={{ flex: 1 }}>
+          <RN.View
+            style={{
+              position: 'absolute',
+              margin: 5,
+              zIndex: 1,
+            }}
+          >
+            <MasteredCircle card={cards[currentIndex] || {}} />
+          </RN.View>
           <DeckSwiper
             /* I think DeckSwiper position is absolute */
             // backgroundColor={this.props.theme.cardBackgroundColor}
             backgroundColor={'white'}
-            cardIndex={cardIndex}
+            cardIndex={currentIndex}
             cards={cards}
             onSwipedRight={index => dispatch(Action.nav.cardSwipeRight(index))}
             onSwipedLeft={index => dispatch(Action.nav.cardSwipeLeft(index))}
@@ -98,7 +107,9 @@ class View extends React.Component<
                     alignItems: 'center',
                   }}
                 >
-                  <RN.Text style={{ fontSize: 24 }}>{item.name}</RN.Text>
+                  <RN.Text style={{ fontSize: 24 }}>
+                    {this.props.state.config.showHint ? item.hint : item.name}
+                  </RN.Text>
                 </RN.View>
               </RN.TouchableWithoutFeedback>
             )}
