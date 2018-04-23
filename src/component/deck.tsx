@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as RN from 'react-native';
 import * as SD from './styled';
+import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import Swipeout from 'react-native-swipeout';
 import * as Action from 'src/action';
@@ -68,30 +69,45 @@ export class _DeckList extends React.Component<
         ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
         renderItem={({ item }: { item: Deck }) => {
           return (
-            <Swipeout
-              autoClose
-              style={{ marginBottom: 10 }}
-              right={[
-                {
-                  text: 'DEL',
-                  backgroundColor: 'red',
-                  onPress: () => dispatch(Action.deck.remove(item)),
-                },
-              ]}
-              left={this.getLeftItems(item)}
-            >
-              <RN.TouchableOpacity
-                onPress={() => {
-                  dispatch(Action.nav.goTo('card', { deck_id: item.id }));
-                }}
-                onLongPress={() => alert(JSON.stringify(item))}
-              >
-                <DeckCard>
-                  <DeckTitle>{item.name}</DeckTitle>
-                  <ProgressBar deck_id={item && item.id} />
-                </DeckCard>
-              </RN.TouchableOpacity>
-            </Swipeout>
+            <NB.SwipeRow
+              key={item.id}
+              leftOpenValue={50}
+              rightOpenValue={-50}
+              swipeToOpenPercent={30}
+              directionalDistanceChangeThreshold={2}
+              {...{
+                left: (
+                  <NB.Button
+                    primary
+                    onPress={() =>
+                      dispatch(Action.nav.goTo('deck', { deck_id: item.id }))
+                    }
+                  >
+                    <NB.Icon active name="list" />
+                  </NB.Button>
+                ),
+                right: (
+                  <NB.Button
+                    danger
+                    onPress={() => dispatch(Action.deck.remove(item))}
+                  >
+                    <NB.Icon active name="trash" />
+                  </NB.Button>
+                ),
+                body: (
+                  <RN.TouchableOpacity
+                    style={{ flex: 1 }}
+                    onPress={() => {
+                      dispatch(Action.nav.goTo('card', { deck_id: item.id }));
+                    }}
+                    onLongPress={() => alert(JSON.stringify(item))}
+                  >
+                    <NB.Title>{item.name}</NB.Title>
+                    {/* <ProgressBar deck_id={item && item.id} /> */}
+                  </RN.TouchableOpacity>
+                ),
+              }}
+            />
           );
         }}
       />
