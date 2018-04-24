@@ -57,27 +57,19 @@ export const CardCategory = styled(RN.Text)`
   padding: 5px;
 `;
 
-export const SettingsItem = styled(RN.View)`
+export const CardListItem = styled(RN.View)`
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
   background-color: ${({ theme }) => theme.cardBackgroundColor};
-  padding: 10px;
-  border-bottom-width: 1px;
-  border-style: solid;
-`;
 
-export const CardCard = styled(RN.View)`
-  flex-direction: row;
-  align-items: center;
-  background-color: ${({ theme }) => theme.cardBackgroundColor};
   border-style: solid;
+  border-color: #c9c9c9;
   border-bottom-width: 1px;
 `;
 
 export const CardTitle = styled(RN.Text)`
   color: ${({ theme }) => theme.mainColor};
-  font-size: 13px;
+  font-size: 12px;
 `;
 
 export const SideControl = styled(RN.TouchableOpacity)`

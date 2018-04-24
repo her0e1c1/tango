@@ -138,11 +138,13 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
               },
             ]}
           >
-            <SD.CardCard>
+            <SD.CardListItem>
               <MasteredCircle card={item} />
               <RN.TouchableOpacity
                 style={{
                   flex: 1,
+                  marginLeft: 15, // <NB.CheckBox/> has left: 10
+                  marginRight: 5,
                   paddingVertical: 10,
                 }}
                 onPress={() => {
@@ -160,7 +162,7 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
               >
                 <SD.CardTitle>{item.name}</SD.CardTitle>
               </RN.TouchableOpacity>
-            </SD.CardCard>
+            </SD.CardListItem>
           </Swipeout>
         )}
       />
