@@ -127,42 +127,47 @@ export const CardEdit = connect(state => ({ state }))(_CardEdit);
 
 export class _CardNew extends React.Component<
   ConnectedProps & { deck_id: number },
-  Card
+  {}
 > {
-  constructor(props) {
-    super(props);
-    this.state = { deck_id: this.props.deck_id } as Card;
+  async componentDidMount() {
+    const { dispatch } = this.props;
+    await dispatch(
+      Action.card.edit({
+        deck_id: this.props.deck_id,
+        id: undefined,
+        mastered: false,
+        fkid: undefined,
+        category: undefined,
+        name: '',
+        body: '',
+        hint: '',
+      })
+    );
   }
   render() {
-    const card = this.state;
-    if (!card) return <ErrorPage />; // DEFENSIVE
+    const { dispatch } = this.props;
+    if (!this.props.deck_id) return <ErrorPage />; // DEFENSIVE
+    const card = this.props.state.card.edit;
     return (
-      <RN.ScrollView>
-        <SD.Button
-          title="CREATE A NEW CARD"
-          onPress={async () => {
-            await this.props.dispatch(
-              Action.card.bulkInsertCards(this.state.deck_id, [this.state])
-            );
-            await this.props.dispatch(Action.nav.goBack());
-          }}
-        />
-        <Field
-          name={'TITLE'}
-          value={card.name}
-          onChangeText={name => this.setState({ name })}
-        />
-        <Field
-          name={'BODY'}
-          value={card.body}
-          onChangeText={body => this.setState({ body })}
-        />
-        <Field
-          name={'HINT'}
-          value={card.hint}
-          onChangeText={hint => this.setState({ hint })}
-        />
-      </RN.ScrollView>
+      <NB.Content padder style={{ marginBottom: 50 }}>
+        <NB.Form>
+          <Field
+            name={'TITLE'}
+            value={card.name}
+            onChangeText={name => dispatch(Action.card.edit({ name }))}
+          />
+          <Field
+            name={'BODY'}
+            value={card.body}
+            onChangeText={body => dispatch(Action.card.edit({ body }))}
+          />
+          <Field
+            name={'HINT'}
+            value={card.hint}
+            onChangeText={hint => dispatch(Action.card.edit({ hint }))}
+          />
+        </NB.Form>
+      </NB.Content>
     );
   }
 }
