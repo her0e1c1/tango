@@ -132,15 +132,8 @@ export class _CardNew extends React.Component<
   async componentDidMount() {
     const { dispatch } = this.props;
     await dispatch(
-      Action.card.edit({
+      Action.card.edit_init({
         deck_id: this.props.deck_id,
-        id: undefined,
-        mastered: false,
-        fkid: undefined,
-        category: undefined,
-        name: '',
-        body: '',
-        hint: '',
       })
     );
   }
@@ -157,14 +150,14 @@ export class _CardNew extends React.Component<
             onChangeText={name => dispatch(Action.card.edit({ name }))}
           />
           <Field
-            name={'BODY'}
-            value={card.body}
-            onChangeText={body => dispatch(Action.card.edit({ body }))}
-          />
-          <Field
             name={'HINT'}
             value={card.hint}
             onChangeText={hint => dispatch(Action.card.edit({ hint }))}
+          />
+          <Field
+            name={'BODY'}
+            value={card.body}
+            onChangeText={body => dispatch(Action.card.edit({ body }))}
           />
         </NB.Form>
       </NB.Content>

@@ -42,6 +42,8 @@ export default (
       .map(e => ({ [e[0]]: config.shuffled ? _.shuffle(e[1]) : e[1].sort() }))
       .reduce((obj, e) => ({ ...obj, ...e }));
     return { ...state, byDeckId };
+  } else if (equal(action, type.card_edit_init)) {
+    return { ...state, edit: action.payload.card };
   } else if (equal(action, type.card_edit)) {
     const edit = Object.assign(state.edit || {}, action.payload.card);
     return { ...state, edit };

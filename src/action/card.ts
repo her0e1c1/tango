@@ -83,7 +83,7 @@ export const bulkInsertCards = (
       card.hint,
       deck_id,
       card.fkid ? String(card.fkid) : null, // otherwise it converts 1 to "1.0",
-      card.mastered,
+      Boolean(card.mastered),
     ];
     const result = await exec(sql, values);
     const id = result.insertId;
@@ -117,4 +117,11 @@ export const edit = (card: Partial<Card>): I.ThunkAction => async (
   getState
 ) => {
   dispatch(type.card_edit(card));
+};
+
+export const edit_init = (card: Partial<Card>): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  dispatch(type.card_edit_init(card));
 };
