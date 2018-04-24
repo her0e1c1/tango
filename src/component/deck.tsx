@@ -100,8 +100,7 @@ export class _DeckList extends React.Component<
                     }}
                     onLongPress={() => alert(JSON.stringify(item))}
                   >
-                    <NB.Title>{item.name}</NB.Title>
-                    {/* <ProgressBar deck_id={item && item.id} /> */}
+                    <NB.Text>{item.name}</NB.Text>
                   </RN.TouchableOpacity>
                 ),
               }}
