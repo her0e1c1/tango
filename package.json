@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "react-native-scripts start",
+    "start": "exp start",
     "eject": "react-native-scripts eject",
     "android": "react-native-scripts android",
     "al": "yarn android:log",
