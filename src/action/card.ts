@@ -77,10 +77,10 @@ export const bulkInsertCards = (
     const sql =
       'insert into card (name, body, category, hint, deck_id, fkid, mastered) values (?, ?, ?, ?, ?, ?, ?);';
     const values = [
-      card.name,
-      card.body,
+      card.name || '',
+      card.body || '',
+      card.hint || '',
       card.category,
-      card.hint,
       deck_id,
       card.fkid ? String(card.fkid) : null, // otherwise it converts 1 to "1.0",
       Boolean(card.mastered),
