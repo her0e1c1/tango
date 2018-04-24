@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as RN from 'react-native';
+import * as NB from 'native-base';
 import * as SD from './styled';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
@@ -11,34 +12,37 @@ type TextInputRef =
   | null;
 
 class Field extends React.Component<
-  { value: string; name: string; onChangeText: (value: string) => void },
+  {
+    value: string;
+    name: string;
+    rowSpan?: number;
+    onChangeText: (value: string) => void;
+  },
   {}
 > {
   private input: TextInputRef;
   render() {
     return (
-      <RN.View>
-        <SD.CardEditTitle>{`${this.props.name}:`}</SD.CardEditTitle>
-        <RN.TouchableWithoutFeedback
-          onPress={() => this.input && this.input.focus()}
-        >
-          <SD.CardEditInputView>
-            <RN.TextInput
-              ref={r => (this.input = r as TextInputRef)}
-              value={this.props.value}
-              multiline
-              onChangeText={this.props.onChangeText}
-            />
-          </SD.CardEditInputView>
-        </RN.TouchableWithoutFeedback>
-      </RN.View>
+      <NB.View>
+        <NB.Separator>
+          <NB.Text>{this.props.name}</NB.Text>
+        </NB.Separator>
+        <NB.Textarea
+          style={{ flex: 1, backgroundColor: 'white', marginBottom: 10 }}
+          rowSpan={this.props.rowSpan || 5}
+          value={this.props.value}
+          onChangeText={this.props.onChangeText}
+        />
+      </NB.View>
     );
   }
 }
 
+// Because save icon is in header, you can not use component state
+// and use reducer state instead to pass user input
 export class _CardEdit extends React.Component<
   ConnectedProps & { card_id: number },
-  Card
+  {}
 > {
   async componentDidMount() {
     const { dispatch } = this.props;
@@ -50,25 +54,78 @@ export class _CardEdit extends React.Component<
     if (!this.props.card_id) return <ErrorPage />; // DEFENSIVE
     const card = this.props.state.card.edit;
     return (
-      <RN.ScrollView>
-        <MasteredCircle card={card} />
-        <SD.CardEditTitle>ID: {`${card.id}(${card.fkid})`}</SD.CardEditTitle>
-        <Field
-          name={'TITLE'}
-          value={card.name}
-          onChangeText={name => dispatch(Action.card.edit({ name }))}
-        />
-        <Field
-          name={'BODY'}
-          value={card.body}
-          onChangeText={body => dispatch(Action.card.edit({ body }))}
-        />
-        <Field
-          name={'HINT'}
-          value={card.hint}
-          onChangeText={hint => dispatch(Action.card.edit({ hint }))}
-        />
-      </RN.ScrollView>
+      <NB.Content padder style={{ marginBottom: 50 }}>
+        <NB.List>
+          <NB.ListItem noBorder>
+            <NB.Body>
+              <NB.Text>ID</NB.Text>
+            </NB.Body>
+            <NB.Right>
+              <NB.Text>{`${card.id}(${card.fkid})`}</NB.Text>
+            </NB.Right>
+          </NB.ListItem>
+
+          <NB.ListItem noBorder>
+            <NB.Body>
+              <NB.Text>Mastered</NB.Text>
+            </NB.Body>
+            <NB.Right>
+              <RN.Switch
+                value={Boolean(card.mastered)}
+                onValueChange={mastered =>
+                  dispatch(Action.card.edit({ mastered }))
+                }
+              />
+            </NB.Right>
+          </NB.ListItem>
+        </NB.List>
+        <NB.Form>
+          <Field
+            name={'TITLE'}
+            value={card.name}
+            onChangeText={name => dispatch(Action.card.edit({ name }))}
+          />
+          <Field
+            name={'HINT'}
+            value={card.hint}
+            onChangeText={hint => dispatch(Action.card.edit({ hint }))}
+          />
+          <Field
+            name={'BODY'}
+            value={card.body}
+            rowSpan={10}
+            onChangeText={body => dispatch(Action.card.edit({ body }))}
+          />
+        </NB.Form>
+        <NB.Button
+          danger
+          full
+          style={{ marginVertical: 10 }}
+          onPress={() =>
+            RN.Alert.alert(
+              'Delete This Card',
+              'Are you sure?',
+              [
+                {
+                  text: 'Cancel',
+                  onPress: () => undefined,
+                  style: 'cancel',
+                },
+                {
+                  text: 'Delete',
+                  onPress: async () => {
+                    await dispatch(Action.card.deleteCard(card));
+                    await dispatch(Action.nav.goBack());
+                  },
+                },
+              ],
+              { cancelable: false }
+            )
+          }
+        >
+          <NB.Text>DELETE</NB.Text>
+        </NB.Button>
+      </NB.Content>
     );
   }
 }
