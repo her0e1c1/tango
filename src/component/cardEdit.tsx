@@ -4,12 +4,7 @@ import * as NB from 'native-base';
 import * as SD from './styled';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
-import { MasteredCircle } from './card';
 import { ErrorPage } from './utils';
-
-type TextInputRef =
-  | React.Component<RN.TextInputProperties, {}> & { focus: any } // no document?
-  | null;
 
 class Field extends React.Component<
   {
@@ -20,7 +15,6 @@ class Field extends React.Component<
   },
   {}
 > {
-  private input: TextInputRef;
   render() {
     return (
       <NB.View>
