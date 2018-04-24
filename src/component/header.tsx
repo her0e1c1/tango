@@ -4,6 +4,7 @@ import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as Selector from 'src/selector';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const ShowBackButton = (state: RootState): boolean => {
   const i = state.nav.index;
@@ -35,9 +36,9 @@ export class LeftButton extends React.Component<Props, {}> {
 export class RightButton extends React.Component<Props, {}> {
   getIcon(name: string) {
     if (name === 'cardEdit') {
-      return <NB.Text>{'DONE'}</NB.Text>;
+      return <Icon name="save" size={20} />;
     } else if (name === 'card') {
-      return <NB.Icon name="ios-create" />;
+      return <Icon name="edit" size={20} />;
     } else if (['deck', 'card'].includes(name)) {
       return <NB.Icon name="md-add" />;
     } else {
