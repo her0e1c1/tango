@@ -2,12 +2,13 @@ import * as Action from 'src/action';
 import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';
+import * as Selector from 'src/selector';
 import DeckSwiper from 'react-native-deck-swiper';
 import { connect } from 'react-redux';
 import { Controller } from './controller';
 import { CardDetail } from './card';
 import { MasteredCircle } from './card';
-import * as Selector from 'src/selector';
+import { CardView, mathCategory } from './cardView';
 
 class View extends React.Component<
   { deck_id: number } & ConnectedProps,
@@ -42,7 +43,7 @@ class View extends React.Component<
     const deck = Selector.getCurrentDeck(this.props.state);
     const currentIndex = deck.currentIndex;
     if (currentIndex < 0 || cards.length <= currentIndex) {
-      return;
+      return <RN.View />;
     }
 
     return this.state.visible ? (
@@ -63,6 +64,7 @@ class View extends React.Component<
           <DeckSwiper
             /* I think DeckSwiper position is absolute */
             // backgroundColor={this.props.theme.cardBackgroundColor}
+            cardStyle={{ height, width }}
             backgroundColor={'white'}
             cardIndex={currentIndex}
             cards={cards}
@@ -98,18 +100,27 @@ class View extends React.Component<
                 key={item.id}
                 onPress={() => this.setState({ visible: true })}
               >
-                <RN.View
-                  style={{
-                    width,
-                    height,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <RN.Text style={{ fontSize: 24 }}>
-                    {this.props.state.config.showHint ? item.hint : item.name}
-                  </RN.Text>
-                </RN.View>
+                {mathCategory.includes(item.category!) ? (
+                  <RN.View style={{ flex: 1 }}>
+                    <CardView
+                      center
+                      body={item.name}
+                      category={item.category}
+                    />
+                  </RN.View>
+                ) : (
+                  <RN.View
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <RN.Text style={{ fontSize: 24 }}>
+                      {this.props.state.config.showHint ? item.hint : item.name}
+                    </RN.Text>
+                  </RN.View>
+                )}
               </RN.TouchableWithoutFeedback>
             )}
           />
