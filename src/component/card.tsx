@@ -56,14 +56,19 @@ export class _CardDetail extends React.Component<
           zIndex: 1,
         }}
       >
-        <RN.TouchableWithoutFeedback
-          onPress={() => this.state.view || this.props.onLongPress()}
-          onLongPress={() => {}}
-        >
-          <RN.View style={{ flex: 1 }}>
-            <CardView body={card.body} category={card.category} />
-          </RN.View>
-        </RN.TouchableWithoutFeedback>
+        {this.state.view ? (
+          // Android can not wrap TouchableWithoutFeedback
+          // because scroll in webview doesn't work
+          <CardView body={card.body} category={card.category} />
+        ) : (
+          <RN.TouchableWithoutFeedback
+            onPress={() => this.state.view || this.props.onLongPress()}
+          >
+            <RN.View style={{ flex: 1 }}>
+              <CardView body={card.body} category={card.category} />
+            </RN.View>
+          </RN.TouchableWithoutFeedback>
+        )}
         <RN.View
           style={{
             position: 'absolute',
@@ -71,34 +76,48 @@ export class _CardDetail extends React.Component<
             right: 0,
             bottom: 0,
             height: 50,
-            flexDirection: 'row',
             zIndex: 2,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundColor: '#0000cd10',
           }}
         >
-          {/* <RN.View style={{ backgroundColor: '#cd000050', flex: 1 }} />
-          <RN.View style={{ backgroundColor: '#00cd0050', flex: 1 }} /> */}
+          <RN.TouchableOpacity
+            onPress={() => dispatch(Action.nav.goToPrevCard())}
+            style={{
+              width: 50,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <NB.Icon name="arrow-back" />
+          </RN.TouchableOpacity>
           <RN.TouchableOpacity
             style={{
               flex: 1,
               justifyContent: 'center',
               alignItems: 'center',
-              backgroundColor: '#0000cd10',
             }}
-            onPress={() => this.setState({ view: !this.state.view })}
+            onPress={() =>
+              this.state.view
+                ? this.props.onLongPress()
+                : this.setState({ view: true })
+            }
           >
-            {!this.state.view && <NB.Icon name="md-eye-off" />}
+            <NB.Icon name={!this.state.view ? 'md-eye-off' : 'arrow-down'} />
+          </RN.TouchableOpacity>
+          <RN.TouchableOpacity
+            onPress={() => dispatch(Action.nav.goToNextCard())}
+            style={{
+              width: 50,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <NB.Icon name="arrow-forward" />
           </RN.TouchableOpacity>
         </RN.View>
-        <SD.SideControl
-          style={{ left: 0, height }}
-          onPress={() => dispatch(Action.nav.goToPrevCard())}
-          onLongPress={() => {}}
-        />
-        <SD.SideControl
-          style={{ right: 0, height }}
-          onPress={() => dispatch(Action.nav.goToNextCard())}
-          onLongPress={() => alert(JSON.stringify(card.name))}
-        />
       </RN.View>
     );
   }
