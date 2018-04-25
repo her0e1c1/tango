@@ -74,13 +74,14 @@ export const bulkInsertCards = (
   >[]
 ): I.ThunkAction => async (dispatch, getState) => {
   const ps = cards.map(async card => {
+    // if you change order of fields, you need to check the mapping between sql string and its values
     const sql =
-      'insert into card (name, body, category, hint, deck_id, fkid, mastered) values (?, ?, ?, ?, ?, ?, ?);';
+      'insert into card (name, body, hint, category, deck_id, fkid, mastered) values (?, ?, ?, ?, ?, ?, ?);';
     const values = [
       card.name || '',
       card.body || '',
       card.hint || '',
-      card.category,
+      card.category || '',
       deck_id,
       card.fkid ? String(card.fkid) : null, // otherwise it converts 1 to "1.0",
       Boolean(card.mastered),
