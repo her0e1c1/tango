@@ -22,15 +22,15 @@ const clearAppCache = dispatch => {
       cancelButtonIndex: 3,
       destructiveButtonIndex: 2,
     },
-    index => {
-      switch (index) {
-        case 0:
-          dispatch(Action.config.clearAll());
-        case 1:
-          dispatch(Action.config.clearAll(true));
-        case 2:
-          dispatch(Action.config.drop());
-        default: // cancel
+    async index => {
+      if (index === 0) {
+        await dispatch(Action.config.clearAll(true));
+      } else if (index === 1) {
+        await dispatch(Action.config.clearAll());
+      } else if (index === 2) {
+        await dispatch(Action.config.drop());
+      } else {
+        // DO NOTHING
       }
     }
   );
