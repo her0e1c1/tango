@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as Selector from 'src/selector';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import SearchBar from './searchBar';
 
 const ShowBackButton = (state: RootState): boolean => {
   const i = state.nav.index;
@@ -109,6 +110,16 @@ export class _Header extends React.Component<ConnectedProps, {}> {
     const { state, dispatch } = this.props;
     if (!state.config.showHeader) {
       return <NB.View />;
+    }
+    const page = Selector.getCurrentPage(this.props.state);
+    if (page && page.routeName === 'home') {
+      return (
+        <NB.Header>
+          <NB.Body>
+            <SearchBar />
+          </NB.Body>
+        </NB.Header>
+      );
     }
     const deck = Selector.getCurrentDeck(state);
     return (
