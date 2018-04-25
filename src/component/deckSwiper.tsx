@@ -104,7 +104,9 @@ class View extends React.Component<
                   <RN.View style={{ flex: 1 }}>
                     <CardView
                       center
-                      body={item.name}
+                      body={
+                        this.props.state.config.showHint ? item.hint : item.name
+                      }
                       category={item.category}
                     />
                   </RN.View>
