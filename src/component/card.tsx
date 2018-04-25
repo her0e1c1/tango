@@ -131,9 +131,7 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
         <RN.View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
-          <SD.CardTitle>
-            NO CARDS {`start from ${this.props.state.config.start}`}
-          </SD.CardTitle>
+          <SD.CardTitle>NO CARDS</SD.CardTitle>
         </RN.View>
       );
     }
