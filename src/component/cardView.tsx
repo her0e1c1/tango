@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
-import * as SD from './styled';
 
 const html = `
 <html>
@@ -31,63 +30,59 @@ const mappingCategory = {
   hs: 'haskell',
   haskell: 'haskell',
 };
-const knownCategory = mathCategory.concat(Object.keys(mappingCategory));
 
-class CardView extends React.Component<
-  { card: Card } & ConnectedProps & AppContext,
+class _CardView extends React.Component<
+  {
+    body: string;
+    category?: string | null;
+    center?: boolean;
+  } & ConnectedProps &
+    AppContext,
   {}
 > {
-  getStyle() {
+  getStyle(): string {
     const { theme } = this.props;
-    return `
-    background-color: ${theme.cardBackgroundColor};
+    let common = `
     color: ${theme.mainColor};
+    background-color: ${theme.cardBackgroundColor};
     font-size: 18px;
     tab-size: 2;
     letter-spacing: 0px; 
-    margin: 0;
+    margin: 0 auto;
     padding: 0 5px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
     `;
-  }
-  getBodyContent() {
-    if (this.props.state.config.showHint) {
-      return this.props.card.hint || 'NO HINT ;(';
-    }
-    return this.props.card.body;
+    return common;
   }
   getBody(): string {
-    const { card } = this.props;
-    const { name } = card;
-    const body = this.getBodyContent();
-
-    if (card.category) {
-      if (card.category in mappingCategory) {
-        const lang = mappingCategory[card.category];
-        return `<body style="${this.getStyle()}"><pre style="tab-size:2;"><code style="${this.getStyle()}" className="${lang}">${body}</code></pre></body>`;
-      } else if (mathCategory.includes(card.category)) {
-        if (this.props.state.config.showBody) {
-          return `<body style="${this.getStyle()}">${name}<br/>${body}</body>`;
-        } else {
-          return `<body style="${this.getStyle()}">${name}</body>`;
-        }
+    const { body, category } = this.props;
+    if (category) {
+      if (category in mappingCategory) {
+        const lang = mappingCategory[category];
+        return `
+        <body style="${this.getStyle()}">
+          <div style="overflow: scroll;">
+            <pre><code className="${lang}">${body}</code></pre>
+          </div>
+        </body>`;
+      } else if (mathCategory.includes(category)) {
+        return `
+        <body style="${this.getStyle()}">
+          <div style="overflow: scroll;">${body}</div>
+        </body>`;
       }
     }
-    return `<body style="${this.getStyle()}"><pre>${body}</pre></body>`;
+    return `
+    <body style="${this.getStyle()}">
+      <div style="overflow: scroll;">
+        <pre>${body}</pre>
+      </div>
+    </body>`;
   }
   render() {
-    const { card } = this.props;
-    if (!(card.category && knownCategory.includes(card.category))) {
-      return (
-        <RN.ScrollView // doesn't work
-          style={{
-            flex: 1,
-            backgroundColor: this.props.theme.cardBackgroundColor,
-          }}
-        >
-          <SD.BodyText>{this.getBodyContent()}</SD.BodyText>
-        </RN.ScrollView>
-      );
-    }
     return (
       <RN.WebView
         automaticallyAdjustContentInsets={false}
@@ -105,4 +100,5 @@ class CardView extends React.Component<
     );
   }
 }
-export default withTheme(connect(state => ({ state }))(CardView));
+export const CardView = withTheme(connect(state => ({ state }))(_CardView));
+export default CardView;
