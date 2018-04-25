@@ -35,8 +35,13 @@ export const goToNextCardMastered = () => goToNextCardSetMastered(true);
 export const goToNextCard = (): I.ThunkAction => async (dispatch, getState) => {
   const state = getState();
   const deck = Selector.getCurrentDeck(state);
+  const cards = Selector.getCurrentCardList(state);
   const currentIndex = deck.currentIndex + 1;
-  await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
+  if (currentIndex <= cards.length - 1) {
+    await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
+  } else {
+    await dispatch(swipeAll());
+  }
 };
 
 export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
