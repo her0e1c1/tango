@@ -57,6 +57,7 @@ class View extends React.Component<
               position: 'absolute',
               margin: 5,
               zIndex: 1,
+              paddingRight: 10, // <NB.CheckBox /> has left: 10. Android hide the half of it
             }}
           >
             <MasteredCircle card={cards[currentIndex] || {}} />
