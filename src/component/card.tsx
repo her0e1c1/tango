@@ -61,7 +61,7 @@ export class _CardDetail extends React.Component<
           onLongPress={() => {}}
         >
           <RN.View style={{ flex: 1 }}>
-            <CardView card={card} />
+            <CardView body={card.body} category={card.category} />
           </RN.View>
         </RN.TouchableWithoutFeedback>
         <RN.View
