@@ -70,7 +70,6 @@ export const goToCardByIndex = (
   deck: Deck,
   currentIndex: number
 ): I.ThunkAction => async (dispatch, getState) => {
-  console.log('INDEX:', deck.currentIndex, currentIndex);
   dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
 };
 
@@ -81,6 +80,23 @@ export const goBack = () => async (dispatch, getState) => {
 };
 export const goTo = (routeName, params?) => async (dispatch, getState) => {
   await dispatch(NavigationActions.navigate({ routeName, params }));
+};
+
+export const goToCardById = (card_id: number, deck_id: number) => async (
+  dispatch,
+  getState
+) => {
+  const a = NavigationActions.reset({
+    index: 1,
+    actions: [
+      NavigationActions.navigate({ routeName: 'home' }),
+      NavigationActions.navigate({
+        routeName: 'card',
+        params: { card_id, deck_id },
+      }),
+    ],
+  });
+  await dispatch(a);
 };
 
 export const swipeAll = () => async (dispatch, getState) => {
