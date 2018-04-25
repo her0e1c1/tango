@@ -41,8 +41,6 @@ export class _CardDetail extends React.Component<
   }
   render() {
     const { dispatch } = this.props;
-    const window = RN.Dimensions.get('window');
-    const height = window.height;
     const card = Selector.getCurrentCard(this.props.state);
     return (
       <RN.View
