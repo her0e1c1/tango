@@ -152,7 +152,6 @@ export const init = (): I.ThunkAction => async (dispatch, getState) => {
       await dispatch(type.user_init(user));
       await dispatch(Action.share.fetchDecks());
       await dispatch(Action.drive.getSpreadSheets());
-      console.log(getState().config.googleAccessToken);
     } else {
       dispatch(type.user_logout());
       console.log('NOT LOGGED IN YET');
