@@ -12,41 +12,44 @@ interface Result {
   };
 }
 
-export const exec = (sql: string, values: any[] = []): Promise<Result> =>
-  new Promise((resolve, reject) =>
+export const exec = (sql: string, values: any[] = []): Promise<Result> => {
+  __DEV__ && console.log('SQL', sql, values);
+  return new Promise((resolve, reject) =>
     db.transaction(tx =>
       tx.executeSql(
         sql,
         values,
         (_, result) => resolve(result),
         e => {
-          alert(JSON.stringify(e));
+          console.log('ERROR', e, sql, values);
+          alert('Database has some problems');
           reject();
         }
       )
     )
   );
+};
 
 const CREATE_DECK = `
 create table if not exists deck (
   id integer primary key not null,
-  fkid text,
-  type text,
-  name text,
-  isPublic integer,
-  url text
+  isPublic integer default 0 not null,
+  name text default '' not null,
+  url text default '' not null,
+  spreadsheetId text default '' not null,
+  spreadsheetGid text default '' not null
 );`;
 
 const CREATE_CARD = `
 create table if not exists card (
   id integer primary key not null,
-  fkid text,
+  deck_id integer not null,
+  spreadsheetRowId integer,
   mastered boolean default 0 not null,
-  deck_id integer,
-  name text,
-  body text,
-  category text,
-  hint text
+  name text default '' not null,
+  body text default '' not null,
+  category text default '' not null,
+  hint text default '' not null
 );
 `;
 

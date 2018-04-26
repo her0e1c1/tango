@@ -32,10 +32,7 @@ export class _Sheet extends React.Component<
             <RN.TouchableOpacity
               onPress={() =>
                 this.props.dispatch(
-                  Action.drive.importFromSpreadSheet(
-                    drive,
-                    item.properties.sheetId
-                  )
+                  Action.drive.importFromSpreadSheet(drive, item)
                 )
               }
             >

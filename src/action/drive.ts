@@ -33,7 +33,7 @@ export const upload = (deck: Deck): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
-  if (deck.type !== 'drive' || !deck.fkid) {
+  if (!(deck.spreadsheetId && deck.spreadsheetGid)) {
     alert('CAN NOT UPLOAD');
     return;
   }
@@ -46,17 +46,46 @@ export const upload = (deck: Deck): I.ThunkAction => async (
     c.category || '',
     c.mastered ? '1' : '',
   ]);
-  const range = encodeURIComponent('A:Z');
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${
-    deck.fkid
-  }/values/${range}?valueInputOption=RAW`;
+  const range = encodeURIComponent(`'${deck.name}'!A:Z`);
+
+  const base = `https://sheets.googleapis.com/v4/spreadsheets/${
+    deck.spreadsheetId
+  }/values/${range}`;
   try {
+    // TODO: create a backup sheet before clear
+    await dispatch(fetchAPI(`${base}:clear`, { method: 'POST', isJson: true }));
     await dispatch(
-      fetchAPI(url, { method: 'PUT', body: { values }, isJson: true })
+      fetchAPI(`${base}?valueInputOption=RAW`, {
+        method: 'PUT',
+        body: { values },
+        isJson: true,
+      })
     );
   } catch (e) {
-    alert(JSON.stringify(e));
+    alert('CAN NOT UPLOAD');
+    console.log(e);
   }
+};
+export const refreshToken = (
+  retry: boolean = true
+): I.ThunkAction<boolean> => async (dispatch, getState) => {
+  try {
+    const ok = await dispatch(Action.auth.refreshToken());
+    if (ok) {
+      return true;
+    }
+  } catch (e) {
+    console.log(e);
+  }
+  if (retry) {
+    const ok = await dispatch(refreshToken(false));
+    if (ok) {
+      return true;
+    }
+  } else {
+    await dispatch(Action.auth.logout());
+  }
+  return false;
 };
 
 export const getSpreadSheets = (retry: boolean = true): I.ThunkAction => async (
@@ -98,8 +127,9 @@ export const getSheets = (drive: Drive): I.ThunkAction => async (
 
 export const importFromSpreadSheet = (
   drive: Drive,
-  gid: number
+  sheet: Sheet
 ): I.ThunkAction => async (dispatch, getState) => {
+  const gid = sheet.properties.sheetId;
   try {
     await dispatch(Action.config.startLoading());
     const res = await dispatch(
@@ -109,14 +139,18 @@ export const importFromSpreadSheet = (
         }/export?gid=${gid}&exportFormat=csv`
       )
     );
-    const text = await res.text();
-    await dispatch(
-      Action.deck.insertByText(text, {
-        name: drive.name,
-        type: 'drive',
-        fkid: drive.id,
-      })
-    );
+    if (res.ok) {
+      const text = await res.text();
+      await dispatch(
+        Action.deck.insertByText(text, {
+          name: sheet.properties.title,
+          spreadsheetId: drive.id,
+          spreadsheetGid: String(gid),
+        })
+      );
+    } else {
+      alert('CAN NOT IMPORT');
+    }
   } catch (e) {
     console.log(e);
   } finally {

@@ -28,11 +28,16 @@ export const insertByURL = (url: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  console.log(`FETCH START: ${url}`);
+  __DEV__ && console.log(`FETCH START: ${url}`);
   const res = await fetch(url);
   const text = await res.text();
   const name = url.split('/').pop() || 'sample';
-  await dispatch(insertByText(text, { name, url, type: 'url' }));
+  await dispatch(
+    insertByText(text, {
+      name,
+      url,
+    })
+  );
 };
 
 export const parseTextToCsv = (text: string): I.ThunkAction<Card[]> => async (
@@ -58,20 +63,21 @@ export const parseTextToCsv = (text: string): I.ThunkAction<Card[]> => async (
 
 export const insertByText = (
   text: string,
-  deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid'>
+  deck: DeckInsert
 ): I.ThunkAction => async (dispatch, getState) => {
   const cards = await dispatch(parseTextToCsv(text));
-  if (deck.fkid) {
-    const d = await dispatch(getByFkid(deck.fkid));
-    if (!!d) {
-      await dispatch(update({ ...deck, id: d.id, isPublic: false }));
-      await dispatch(bulkUpdateCards(d.id, cards));
-      return;
-    }
+
+  // if a deck exists by fk keys, just update it
+  const d = await dispatch(getByFkid(deck));
+  if (!!d) {
+    await dispatch(update({ ...d }));
+    await dispatch(bulkUpdateCards(d.id, cards));
+    return;
   }
+
   const deck_id = await dispatch(insert(deck));
   await dispatch(bulkInsertCards(deck_id!, cards));
-  console.log(`FETCH DONE ${deck_id}`);
+  __DEV__ && console.log(`FETCH DONE ${deck_id}`);
 };
 
 export const remove = (deck: Deck): I.ThunkAction => async (
@@ -94,19 +100,28 @@ export const select = (limit: number = 100): I.ThunkAction => async (
   await dispatch(type.deck_bulk_insert(decks));
 };
 
-export const getByFkid = (fkid: string): ThunkAction<Deck> => async (
-  dispatch,
-  getState
-) => {
-  const result = await exec('select * from deck where fkid = ?', [fkid]);
+export const getByFkid = (
+  deck: Pick<Deck, 'spreadsheetId' | 'spreadsheetGid'>
+): ThunkAction<DeckSelect> => async (dispatch, getState) => {
+  let sql = '',
+    values = [] as any[];
+  if (deck.spreadsheetId && deck.spreadsheetGid) {
+    sql = 'select * from deck where spreadsheetId = ? and spreadsheetGid = ?';
+    values = [deck.spreadsheetId, deck.spreadsheetGid];
+  } else {
+    // TODO: get by firebase id or url
+    return;
+  }
+  const result = await exec(sql, values);
   return result.rows._array[0];
 };
 
-export const insert = (
-  deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid'>
-): I.ThunkAction<number> => async (dispatch, getState) => {
-  const sql = `insert into deck (name, url, type, fkid) values (?, ?, ?, ?)`;
-  const values = [deck.name, deck.url, deck.type, deck.fkid || null];
+export const insert = (deck: DeckInsert): I.ThunkAction<number> => async (
+  dispatch,
+  getState
+) => {
+  const sql = `insert into deck (name, url, spreadsheetId, spreadsheetGid) values (?, ?, ?, ?)`;
+  const values = [deck.name, deck.url, deck.spreadsheetId, deck.spreadsheetGid];
   const result = await exec(sql, values);
   const id = result.insertId;
   await dispatch(
@@ -115,12 +130,12 @@ export const insert = (
   return id;
 };
 
-export const update = (
-  deck: Pick<Deck, 'name' | 'url' | 'type' | 'fkid' | 'id' | 'isPublic'>
-): I.ThunkAction => async (dispatch, getState) => {
-  const sql =
-    'update deck set name = ?, url = ?, type =?, fkid =? where id = ?';
-  const values = [deck.name, deck.url, deck.type, deck.fkid || null, deck.id];
+export const update = (deck: DeckUpdate): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  const sql = 'update deck set name = ?, url = ? where id = ?';
+  const values = [deck.name, deck.url, deck.id];
   await exec(sql, values);
   await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex: 0 }]));
 };

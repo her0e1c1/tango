@@ -3,24 +3,33 @@ interface Action<P = undefined> {
   payload: P;
 }
 
-type DeckType = 'drive' | 'firebase' | 'url';
 type DriveType = 'application/vnd.google-apps.spreadsheet';
 
 interface Deck {
   id: number;
-  fkid?: string; // id for firebase or spreadsheet
-  type?: DeckType;
   name: string;
-  url?: string;
   isPublic: boolean;
+  url?: string;
+  spreadsheetId?: string;
+  spreadsheetGid?: string;
 
   // when user selects a deck, show this index card
+  // this should not be stored in sqlite
   currentIndex: number;
 }
 
+// TODO: use ts 2.8
+// after fix this https://github.com/DefinitelyTyped/DefinitelyTyped/issues/24573
+type DeckInsert = Pick<
+  Deck,
+  'name' | 'url' | 'spreadsheetId' | 'spreadsheetGid'
+>;
+type DeckUpdate = DeckInsert & Pick<Deck, 'id' | 'isPublic'>;
+type DeckSelect = DeckUpdate | undefined;
+
 interface Sheet {
   properties: {
-    sheetId: number;
+    sheetId: number; // GID
     title: string;
   };
 }

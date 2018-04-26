@@ -69,20 +69,28 @@ export class _DeckList extends React.Component<
           return (
             <NB.SwipeRow
               key={item.id}
-              leftOpenValue={50}
+              leftOpenValue={100}
               rightOpenValue={-50}
               swipeToOpenPercent={30}
               directionalDistanceChangeThreshold={2}
               {...{
                 left: (
-                  <NB.Button
-                    primary
-                    onPress={() =>
-                      dispatch(Action.nav.goTo('deck', { deck_id: item.id }))
-                    }
-                  >
-                    <NB.Icon active name="list" />
-                  </NB.Button>
+                  <NB.View style={{ flexDirection: 'row' }}>
+                    <NB.Button
+                      primary
+                      onPress={() =>
+                        dispatch(Action.nav.goTo('deck', { deck_id: item.id }))
+                      }
+                    >
+                      <NB.Icon active name="list" />
+                    </NB.Button>
+                    <NB.Button
+                      info
+                      onPress={() => dispatch(Action.drive.upload(item))}
+                    >
+                      <NB.Icon active name="cloud-upload" />
+                    </NB.Button>
+                  </NB.View>
                 ),
                 right: (
                   <NB.Button
