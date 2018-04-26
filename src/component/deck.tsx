@@ -112,7 +112,15 @@ export class _DeckList extends React.Component<
                       )
                     }
                   >
-                    <NB.Text>{item.name}</NB.Text>
+                    <NB.View
+                      style={{
+                        flex: 1,
+                        paddingLeft: 20 /* cuz of paddingRight already :(*/,
+                      }}
+                    >
+                      <NB.Text>{item.name}</NB.Text>
+                      <ProgressBar deck_id={item.id} />
+                    </NB.View>
                   </RN.TouchableOpacity>
                 ),
               }}
