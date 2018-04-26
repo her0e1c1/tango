@@ -18,6 +18,7 @@ interface Deck {
   // this should not be stored in sqlite
   currentIndex: number;
   category?: Category;
+  convertToBr?: boolean;
 }
 
 // TODO: use ts 2.8

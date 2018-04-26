@@ -272,6 +272,20 @@ export class _DeckEdit extends React.Component<
             </NB.Picker>
           </NB.Body>
         </NB.ListItem>
+
+        <NB.ListItem noBorder>
+          <NB.Left>
+            <NB.Text>Convert two \n to {'<br/>'} tag</NB.Text>
+          </NB.Left>
+          <NB.Body>
+            <RN.Switch
+              value={Boolean(deck.convertToBr)}
+              onValueChange={convertToBr =>
+                dispatch(Action.deck.edit({ convertToBr }))
+              }
+            />
+          </NB.Body>
+        </NB.ListItem>
       </NB.Content>
     );
   }

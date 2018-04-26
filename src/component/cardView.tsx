@@ -36,6 +36,7 @@ class _CardView extends React.Component<
     body: string;
     category?: string | null;
     center?: boolean;
+    convertToBr?: boolean;
   } & ConnectedProps &
     AppContext,
   {}
@@ -59,28 +60,32 @@ class _CardView extends React.Component<
   }
   getBody(): string {
     const { body, category } = this.props;
+    let b = body;
+    if (this.props.convertToBr) {
+      b = b.replace(/\n\n/g, '<br/>');
+    }
     if (category) {
       if (category in mappingCategory) {
         const lang = mappingCategory[category];
         return `
         <body style="${this.getStyle()}">
           <div style="overflow: scroll;">
-            <pre><code className="${lang}">${body}</code></pre>
+            <pre><code className="${lang}">${b}</code></pre>
           </div>
         </body>`;
       } else if (mathCategory.includes(category)) {
         return `
         <body style="${this.getStyle()}">
-          <div style="overflow: scroll;">${body}</div>
+          <div style="overflow: scroll;">${b}</div>
         </body>`;
       } else if (['raw'].includes(category)) {
-        return `<body style="${this.getStyle()}">${body}</body>`;
+        return `<body style="${this.getStyle()}">${b}</body>`;
       }
     }
     return `
     <body style="${this.getStyle()}">
       <div style="overflow: scroll;">
-        <pre>${body}</pre>
+        <pre>${b}</pre>
       </div>
     </body>`;
   }
