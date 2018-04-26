@@ -108,7 +108,7 @@ class View extends React.Component<
                       body={
                         this.props.state.config.showHint ? item.hint : item.name
                       }
-                      category={item.category}
+                      category={item.category || deck.category}
                     />
                   </RN.View>
                 ) : (

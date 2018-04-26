@@ -73,6 +73,8 @@ class _CardView extends React.Component<
         <body style="${this.getStyle()}">
           <div style="overflow: scroll;">${body}</div>
         </body>`;
+      } else if (['raw'].includes(category)) {
+        return `<body style="${this.getStyle()}">${body}</body>`;
       }
     }
     return `

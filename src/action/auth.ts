@@ -150,7 +150,7 @@ export const init = (): I.ThunkAction => async (dispatch, getState) => {
         .onDisconnect()
         .set(firebase.database.ServerValue.TIMESTAMP);
       await dispatch(type.user_init(user));
-      await dispatch(Action.share.fetchDecks());
+      // await dispatch(Action.share.fetchDecks());
       const ok = await dispatch(Action.drive.refreshToken());
       ok && (await dispatch(Action.drive.getSpreadSheets()));
     } else {

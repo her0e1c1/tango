@@ -42,6 +42,8 @@ export class _CardDetail extends React.Component<
   render() {
     const { dispatch } = this.props;
     const card = Selector.getCurrentCard(this.props.state);
+    const deck = Selector.getCurrentDeck(this.props.state);
+    const category = card.category || deck.category;
     return (
       <RN.View
         style={{
@@ -57,13 +59,13 @@ export class _CardDetail extends React.Component<
         {this.state.view ? (
           // Android can not wrap TouchableWithoutFeedback
           // because scroll in webview doesn't work
-          <CardView body={card.body} category={card.category} />
+          <CardView body={card.body} category={category} />
         ) : (
           <RN.TouchableWithoutFeedback
             onPress={() => this.state.view || this.props.onLongPress()}
           >
             <RN.View style={{ flex: 1 }}>
-              <CardView body={card.body} category={card.category} />
+              <CardView body={card.body} category={category} />
             </RN.View>
           </RN.TouchableWithoutFeedback>
         )}

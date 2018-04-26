@@ -3,6 +3,7 @@ import * as RN from 'react-native';
 import * as SD from './styled';
 import * as NB from 'native-base';
 import { connect } from 'react-redux';
+import * as C from 'src/constant';
 import * as Action from 'src/action';
 import * as Selector from 'src/selector';
 
@@ -13,11 +14,6 @@ export class _DeckList extends React.Component<
   constructor(props) {
     super(props);
     this.state = { refreshing: false };
-  }
-  async componentDidMount() {
-    const { dispatch } = this.props;
-    await dispatch(Action.deck.select());
-    await dispatch(Action.card.selectCard());
   }
   getLeftItems(deck: Deck) {
     const { dispatch } = this.props;
@@ -118,7 +114,7 @@ export class _DeckList extends React.Component<
                         paddingLeft: 20 /* cuz of paddingRight already :(*/,
                       }}
                     >
-                      <NB.Text>{item.name}</NB.Text>
+                      <NB.Title>{item.name}</NB.Title>
                       <ProgressBar deck_id={item.id} />
                     </NB.View>
                   </RN.TouchableOpacity>
@@ -252,6 +248,28 @@ export class _DeckEdit extends React.Component<
           </NB.Left>
           <NB.Body>
             <NB.Text>{deck.url}</NB.Text>
+          </NB.Body>
+        </NB.ListItem>
+
+        <NB.ListItem icon>
+          <NB.Left>
+            <NB.Text>Category</NB.Text>
+          </NB.Left>
+          <NB.Body>
+            <NB.Picker
+              style={{
+                width: RN.Platform.OS === 'android' ? 120 : undefined,
+              }}
+              selectedValue={deck.category || ''}
+              onValueChange={category =>
+                dispatch(Action.deck.edit({ category }))
+              }
+              {...{ iosIcon: <NB.Icon name="arrow-down" /> }}
+            >
+              {['']
+                .concat(C.CATEGORY)
+                .map((x, i) => <NB.Picker.Item key={i} label={x} value={x} />)}
+            </NB.Picker>
           </NB.Body>
         </NB.ListItem>
       </NB.Content>

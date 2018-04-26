@@ -4,6 +4,7 @@ interface Action<P = undefined> {
 }
 
 type DriveType = 'application/vnd.google-apps.spreadsheet';
+type Category = 'math' | 'python' | 'golang' | 'haskell' | 'raw';
 
 interface Deck {
   id: number;
@@ -16,6 +17,7 @@ interface Deck {
   // when user selects a deck, show this index card
   // this should not be stored in sqlite
   currentIndex: number;
+  category?: Category;
 }
 
 // TODO: use ts 2.8
