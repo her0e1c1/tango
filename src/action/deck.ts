@@ -70,7 +70,9 @@ export const insertByText = (
   // if a deck exists by fk keys, just update it
   const d = await dispatch(getByFkid(deck));
   if (!!d) {
-    await dispatch(update({ ...d }));
+    // overwrite
+    const name = deck.name || d.name;
+    await dispatch(update({ ...d, name }));
     await dispatch(bulkUpdateCards(d.id, cards));
     return;
   }
