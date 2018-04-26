@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { Controller } from './controller';
 import { CardDetail } from './card';
 import { MasteredCircle } from './card';
-import { CardView, mathCategory } from './cardView';
+import { CardView } from './cardView';
 
 class View extends React.Component<
   { deck_id: number } & ConnectedProps,
