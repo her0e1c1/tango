@@ -4,7 +4,7 @@ interface Action<P = undefined> {
 }
 
 type DriveType = 'application/vnd.google-apps.spreadsheet';
-type Category = 'math' | 'python' | 'golang' | 'haskell' | 'raw';
+type Category = 'math' | 'python' | 'golang' | 'haskell' | 'raw' | 'markdown';
 
 interface Deck {
   id: number;

@@ -1,11 +1,12 @@
 export * from 'src/secret';
 
 export const CATEGORY: Category[] = [
+  'raw',
+  'markdown',
   'math',
   'python',
   'golang',
   'haskell',
-  'raw',
 ];
 
 export const CURRENT_VERSION = 7;
