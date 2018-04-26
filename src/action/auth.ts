@@ -151,7 +151,8 @@ export const init = (): I.ThunkAction => async (dispatch, getState) => {
         .set(firebase.database.ServerValue.TIMESTAMP);
       await dispatch(type.user_init(user));
       await dispatch(Action.share.fetchDecks());
-      await dispatch(Action.drive.getSpreadSheets());
+      const ok = await dispatch(Action.drive.refreshToken());
+      ok && (await dispatch(Action.drive.getSpreadSheets()));
     } else {
       dispatch(type.user_logout());
       console.log('NOT LOGGED IN YET');

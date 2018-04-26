@@ -88,7 +88,7 @@ export const refreshToken = (
   return false;
 };
 
-export const getSpreadSheets = (retry: boolean = true): I.ThunkAction => async (
+export const getSpreadSheets = (): I.ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -99,14 +99,6 @@ export const getSpreadSheets = (retry: boolean = true): I.ThunkAction => async (
     const json = await res.json();
     await dispatch(type.drive_bulk_insert(json.files));
   } catch (e) {
-    if (retry) {
-      const ok = await dispatch(Action.auth.refreshToken());
-      if (ok) {
-        await dispatch(getSpreadSheets(false));
-        return;
-      }
-    }
-    await dispatch(Action.auth.logout());
     console.log(e);
   }
 };
