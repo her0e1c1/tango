@@ -36,7 +36,7 @@ export class LeftButton extends React.Component<Props, {}> {
 
 export class RightButton extends React.Component<Props, {}> {
   getIcon(name: string) {
-    if (['cardEdit', 'cardNew'].includes(name)) {
+    if (['cardEdit', 'cardNew', 'deckEdit'].includes(name)) {
       return <Icon name="save" size={20} />;
     } else if (name === 'card') {
       return <Icon name="edit" size={20} />;
@@ -54,6 +54,10 @@ export class RightButton extends React.Component<Props, {}> {
     } else if (name === 'cardNew') {
       const card = this.props.state.card.edit;
       await dispatch(Action.card.bulkInsertCards(card.deck_id, [card]));
+      await dispatch(Action.nav.goBack());
+    } else if (name === 'deckEdit') {
+      const deck = this.props.state.deck.edit;
+      await dispatch(Action.deck.update(deck));
       await dispatch(Action.nav.goBack());
     } else if (name === 'deck') {
       // TODO: Fix to cardList

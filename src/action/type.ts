@@ -8,6 +8,11 @@ export const deck_bulk_delete = (decks: Deck[]) => ({
   payload: { decks },
 });
 
+export const deck_edit = (deck: Partial<Deck>) => ({
+  type: 'DECK_EDIT',
+  payload: { deck },
+});
+
 export const card_bulk_insert = (cards: Card[]) => ({
   type: 'CARD_BULK_INSERT',
   payload: { cards },

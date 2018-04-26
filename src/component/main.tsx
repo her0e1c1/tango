@@ -1,9 +1,8 @@
 import * as NB from 'native-base';
-// import SearchBar from './searchBar';
 import * as React from 'react';
 import { CardList } from './card';
 import DeckSwiper from './deckSwiper';
-import { DeckList } from './deck';
+import { DeckList, DeckEdit } from './deck';
 import { Header } from './header';
 import { StackNavigator } from 'react-navigation';
 import { CardEdit, CardNew } from './cardEdit';
@@ -20,6 +19,7 @@ export const Root = StackNavigator(
     home: { screen: wrap(DeckList) },
     deck: { screen: wrap(CardList) },
     card: { screen: wrap(DeckSwiper) },
+    deckEdit: { screen: wrap(DeckEdit) },
     cardNew: { screen: wrap(CardNew) },
     cardEdit: { screen: wrap(CardEdit) },
   } as any,

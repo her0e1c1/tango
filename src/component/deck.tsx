@@ -106,7 +106,11 @@ export class _DeckList extends React.Component<
                     onPress={() => {
                       dispatch(Action.nav.goTo('card', { deck_id: item.id }));
                     }}
-                    onLongPress={() => alert(JSON.stringify(item))}
+                    onLongPress={() =>
+                      dispatch(
+                        Action.nav.goTo('deckEdit', { deck_id: item.id })
+                      )
+                    }
                   >
                     <NB.Text>{item.name}</NB.Text>
                   </RN.TouchableOpacity>
@@ -165,3 +169,85 @@ export class _ProgressBar extends React.Component<
   }
 }
 export const ProgressBar = connect(state => ({ state }))(_ProgressBar);
+
+export class _DeckEdit extends React.Component<
+  ConnectedProps & { deck_id: number },
+  {}
+> {
+  async componentDidMount() {
+    const { dispatch } = this.props;
+    const deck = this.props.state.deck.byId[this.props.deck_id];
+    await dispatch(Action.deck.edit(deck));
+  }
+  render() {
+    const { dispatch } = this.props;
+    const deck = this.props.state.deck.edit || {};
+    return (
+      <NB.Content>
+        <NB.ListItem noBorder>
+          <NB.Left>
+            <NB.Text>ID</NB.Text>
+          </NB.Left>
+          <NB.Body>
+            <NB.Text>{deck.id}</NB.Text>
+          </NB.Body>
+        </NB.ListItem>
+
+        <NB.ListItem noBorder>
+          <NB.Left>
+            <NB.Text>Name</NB.Text>
+          </NB.Left>
+          <NB.Body>
+            <NB.Input
+              style={{ backgroundColor: 'white' }}
+              value={deck.name}
+              onChangeText={name => dispatch(Action.deck.edit({ name }))}
+            />
+          </NB.Body>
+        </NB.ListItem>
+
+        <NB.ListItem noBorder>
+          <NB.Left>
+            <NB.Text>Public</NB.Text>
+          </NB.Left>
+          <NB.Body>
+            <RN.Switch
+              value={Boolean(deck.isPublic)}
+              onValueChange={isPublic =>
+                dispatch(Action.deck.edit({ isPublic }))
+              }
+            />
+          </NB.Body>
+        </NB.ListItem>
+
+        <NB.ListItem noBorder>
+          <NB.Left>
+            <NB.Text>Spread Sheet Id</NB.Text>
+          </NB.Left>
+          <NB.Body>
+            <NB.Text>{deck.spreadsheetId}</NB.Text>
+          </NB.Body>
+        </NB.ListItem>
+
+        <NB.ListItem noBorder>
+          <NB.Left>
+            <NB.Text>Spread Sheet Gid</NB.Text>
+          </NB.Left>
+          <NB.Body>
+            <NB.Text>{deck.spreadsheetGid}</NB.Text>
+          </NB.Body>
+        </NB.ListItem>
+
+        <NB.ListItem noBorder>
+          <NB.Left>
+            <NB.Text>URL</NB.Text>
+          </NB.Left>
+          <NB.Body>
+            <NB.Text>{deck.url}</NB.Text>
+          </NB.Body>
+        </NB.ListItem>
+      </NB.Content>
+    );
+  }
+}
+export const DeckEdit = connect(state => ({ state }))(_DeckEdit);

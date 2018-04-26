@@ -196,3 +196,10 @@ export const importFromFireBase = (deck_id: number): I.ThunkAction => async (
     alert('NOT LOGGED IN YET');
   }
 };
+
+export const edit = (deck: Partial<Deck>): I.ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  dispatch(type.deck_edit(deck));
+};
