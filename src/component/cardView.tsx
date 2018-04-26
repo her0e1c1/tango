@@ -63,6 +63,7 @@ class _CardView extends React.Component<
     let b = body;
     if (this.props.convertToBr) {
       b = b.replace(/\n\n/g, '<br/>');
+      b = b.replace(/\$\$/g, '$$$$$$$$'); // $ is a escape char
     }
     if (category) {
       if (category in mappingCategory) {
