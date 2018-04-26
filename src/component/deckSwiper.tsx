@@ -101,14 +101,14 @@ class View extends React.Component<
                 key={item.id}
                 onPress={() => this.setState({ visible: true })}
               >
-                {mathCategory.includes(item.category!) ? (
+                {item.category === 'math' || deck.category === 'math' ? (
                   <RN.View style={{ flex: 1 }}>
                     <CardView
                       center
                       body={
                         this.props.state.config.showHint ? item.hint : item.name
                       }
-                      category={item.category || deck.category}
+                      category={'math'}
                     />
                   </RN.View>
                 ) : (
