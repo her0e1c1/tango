@@ -14,12 +14,12 @@ const RootTabs = TabNavigator(
       navigationOptions: ({ navigation }) => {
         const r = navigation.state.routes;
         return {
-          tabBarLabel: 'Decks',
+          // tabBarLabel: 'Decks',
           tabBarVisible: r.length === 1,
           tabBarIcon: ({ tintColor, focused }) => (
             <Ionicons
               name={focused ? 'ios-card' : 'ios-card-outline'}
-              size={26}
+              size={30}
               style={{ color: tintColor }}
             />
           ),
@@ -29,11 +29,11 @@ const RootTabs = TabNavigator(
     Cloud: {
       screen: Cloud,
       navigationOptions: {
-        tabBarLabel: 'Cloud',
+        // tabBarLabel: 'Clouds',
         tabBarIcon: ({ tintColor, focused }) => (
           <Ionicons
             name={focused ? 'ios-cloud' : 'ios-cloud-outline'}
-            size={26}
+            size={30}
             style={{ color: tintColor }}
           />
         ),
@@ -42,11 +42,11 @@ const RootTabs = TabNavigator(
     Settings: {
       screen: Config,
       navigationOptions: {
-        tabBarLabel: 'Settings',
+        // tabBarLabel: 'Settings',
         tabBarIcon: ({ tintColor, focused }) => (
           <Ionicons
             name={focused ? 'ios-settings' : 'ios-settings-outline'}
-            size={26}
+            size={30}
             style={{ color: tintColor }}
           />
         ),
@@ -60,6 +60,7 @@ const RootTabs = TabNavigator(
     animationEnabled: true,
     tabBarOptions: {
       // activeTintColor: 'blue',
+      showLabel: false,
       labelStyle: {
         fontSize: 12,
       },
