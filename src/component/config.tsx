@@ -80,7 +80,11 @@ export class _Config extends React.Component<ConnectedProps, {}> {
     const isLogin = user && user.displayName;
     return (
       <NB.Container>
-        <NB.Header />
+        <NB.Header>
+          <NB.Body>
+            <NB.Title>Settings</NB.Title>
+          </NB.Body>
+        </NB.Header>
         <NB.Content>
           <NB.List>
             <NB.Separator bordered>
