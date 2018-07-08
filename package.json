@@ -19,6 +19,9 @@
     "test": "node node_modules/jest/bin/jest.js --watch"
   },
   "devDependencies": {
+    "@types/expo": "^24.0.3",
+    "@types/react-navigation": "^1.2.1",
+    "@types/react-redux": "^5.0.14",
     "@types/enzyme": "^2.8.0",
     "@types/jest": "^19.2.4",
     "@types/lodash": "^4.14.71",
@@ -46,9 +49,6 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@types/expo": "^24.0.3",
-    "@types/react-navigation": "^1.2.1",
-    "@types/react-redux": "^5.0.14",
     "expo": "^23.0.4",
     "firebase": "^4.9.1",
     "lodash": "^4.17.4",
