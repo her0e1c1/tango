@@ -9,7 +9,7 @@ import { StackNavigator } from 'react-navigation';
 import CardView from './cardView';
 import { SpreadSheetList, Sheet } from './drive';
 import { Header } from './header';
-import { InputUrl } from './searchBar';
+import { InputUrl } from './inputUrl';
 
 class _DeckList extends React.Component<
   ConnectedProps,
