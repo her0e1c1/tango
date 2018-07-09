@@ -120,7 +120,7 @@ export class _Header extends React.Component<ConnectedProps, {}> {
       return (
         <NB.Header>
           <NB.Body>
-            <SearchBar />
+            <NB.Title>Decks</NB.Title>
           </NB.Body>
         </NB.Header>
       );
