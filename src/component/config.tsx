@@ -223,10 +223,10 @@ export class _Config extends React.Component<ConnectedProps, {}> {
             </NB.Separator>
 
             {[
-              ['cardSwipeUp', 'up'],
-              ['cardSwipeDown', 'down'],
-              ['cardSwipeLeft', 'left'],
-              ['cardSwipeRight', 'right'],
+              ['cardSwipeUp', '↑'],
+              ['cardSwipeDown', '↓'],
+              ['cardSwipeLeft', '←'],
+              ['cardSwipeRight', '→'],
             ].map(([type, label], i) => (
               <NB.ListItem icon key={i}>
                 <NB.Body>

@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import * as Selector from 'src/selector';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import SearchBar from './searchBar';
 
 const ShowBackButton = (state: RootState): boolean => {
   const i = state.nav.index;
