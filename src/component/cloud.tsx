@@ -9,6 +9,7 @@ import { StackNavigator } from 'react-navigation';
 import CardView from './cardView';
 import { SpreadSheetList, Sheet } from './drive';
 import { Header } from './header';
+import { InputUrl } from './searchBar';
 
 class _DeckList extends React.Component<
   ConnectedProps,
@@ -106,6 +107,15 @@ const CardList = connect(state => ({ state }))(_CardList);
 
 const _List = props => (
   <NB.List>
+    <NB.ListItem onPress={() => props.dispatch(Action.nav.goTo('inputUrl'))}>
+      <NB.Left>
+        <NB.Title>Input CSV URL (by QR code)</NB.Title>
+      </NB.Left>
+      <NB.Right>
+        <NB.Icon active name="arrow-forward" />
+      </NB.Right>
+    </NB.ListItem>
+
     <NB.ListItem onPress={() => props.dispatch(Action.nav.goTo('spreadsheet'))}>
       <NB.Left>
         <NB.Title>Google Spread Sheet</NB.Title>
@@ -132,6 +142,7 @@ export const Root = StackNavigator(
   {
     share: { screen: wrap(List) },
     sheet: { screen: wrap(Sheet) },
+    inputUrl: { screen: InputUrl },
     spreadsheet: { screen: wrap(SpreadSheetList) },
     shareCards: { screen: wrap(CardList) },
     shareView: { screen: wrap(CardView) },

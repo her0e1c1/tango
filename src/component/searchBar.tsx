@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import * as Action from 'src/action';
 import { LoadingIcon } from './utils';
 import { BarCodeScanner, Permissions } from 'expo';
+import { Header } from './header';
 
 export class CodeScanner extends React.Component<{
   onScan: (x: { type?: string; data: string }) => void;
@@ -26,23 +27,21 @@ export class CodeScanner extends React.Component<{
       return <LoadingIcon />;
     }
     return (
-      <RN.Modal
-        visible={this.state.visible}
-        animationType={'fade'}
-        onRequestClose={() => this.setState({ visible: false })}
-      >
-        <BarCodeScanner
-          onBarCodeRead={data =>
-            this.setState({ visible: false }, () => this.props.onScan(data))
-          }
-          style={RN.StyleSheet.absoluteFill}
-        />
-      </RN.Modal>
+      <BarCodeScanner
+        onBarCodeRead={data =>
+          this.setState({ visible: false }, async () => {
+            await this.props.onScan(data);
+          })
+        }
+        // this doesn't show a back button
+        // style={RN.StyleSheet.absoluteFill}
+        style={{ flex: 1 }}
+      />
     );
   }
 }
 
-export class _SearchBar extends React.Component<
+class _InputUrl extends React.Component<
   ConnectedProps,
   { text: string; showScanner: boolean }
 > {
@@ -74,36 +73,47 @@ export class _SearchBar extends React.Component<
   }
 
   render() {
-    return this.state.showScanner ? (
-      <CodeScanner
-        onScan={({ type, data }) =>
-          this.setState({ text: data, showScanner: false }, () =>
-            this.onEndEditing()
-          )
-        }
-      />
-    ) : (
-      <RN.View style={{ flexDirection: 'row' }}>
-        <RN.TextInput
-          // autoFocus
-          keyboardType="url"
-          value={this.state.text}
-          placeholder="Input your CSV url ..."
-          style={{
-            backgroundColor: 'white',
-            fontSize: 14,
-            flex: 1,
-            paddingLeft: 15,
-            marginRight: 5,
-          }}
-          onChangeText={text => this.setState({ text })}
-          onEndEditing={() => this.onEndEditing()}
-        />
-        <NB.Button light onPress={() => this.setState({ showScanner: true })}>
-          <NB.Icon name="md-qr-scanner" />
-        </NB.Button>
+    return (
+      <RN.View style={{ flex: 1 }}>
+        <Header />
+        <RN.View style={{ flexDirection: 'row' }}>
+          <RN.TextInput
+            // autoFocus
+            keyboardType="url"
+            value={this.state.text}
+            placeholder="Input your CSV url ..."
+            style={{
+              backgroundColor: 'white',
+              fontSize: 14,
+              flex: 1,
+              paddingLeft: 15,
+              marginRight: 5,
+            }}
+            onChangeText={text => this.setState({ text })}
+            onEndEditing={() => this.onEndEditing()}
+          />
+          <NB.Button
+            light
+            onPress={() =>
+              this.setState({ showScanner: !this.state.showScanner })
+            }
+          >
+            <NB.Icon
+              name={this.state.showScanner ? 'qr-scanner' : 'md-qr-scanner'}
+            />
+          </NB.Button>
+        </RN.View>
+        {this.state.showScanner && (
+          <CodeScanner
+            onScan={({ type, data }) =>
+              this.setState({ text: data, showScanner: false }, () =>
+                this.onEndEditing()
+              )
+            }
+          />
+        )}
       </RN.View>
     );
   }
 }
-export default connect(state => ({ state }))(_SearchBar);
+export const InputUrl = connect(state => ({ state }))(_InputUrl);
