@@ -13,7 +13,8 @@ const ShowBackButton = (state: RootState): boolean => {
 };
 
 type Props = Pick<ConnectedProps, 'dispatch' | 'state'>;
-export class LeftButton extends React.Component<Props, {}> {
+
+class LeftButton extends React.Component<Props, {}> {
   render() {
     const { dispatch } = this.props;
     const showBackButton = ShowBackButton(this.props.state);
@@ -33,7 +34,7 @@ export class LeftButton extends React.Component<Props, {}> {
   }
 }
 
-export class RightButton extends React.Component<Props, {}> {
+class RightButton extends React.Component<Props, {}> {
   getIcon(name: string) {
     if (['cardEdit', 'cardNew', 'deckEdit'].includes(name)) {
       return <Icon name="save" size={20} />;
@@ -108,35 +109,54 @@ export class RightButton extends React.Component<Props, {}> {
   }
 }
 
-export class _Header extends React.Component<ConnectedProps, {}> {
+class Body extends React.Component<Props, {}> {
+  getTitle() {
+    const page = Selector.getCurrentPage(this.props.state);
+    const names = {
+      home: 'Decks',
+      share: 'Import Decks',
+      spreadsheet: 'Google Spread Sheet',
+    };
+    if (page) {
+      return names[page.routeName] || '';
+    }
+    return '';
+  }
+  render() {
+    const { state, dispatch } = this.props;
+    const title = this.getTitle();
+    if (title) {
+      return (
+        <NB.Body>
+          <NB.Title>{title}</NB.Title>
+        </NB.Body>
+      );
+    }
+    const deck = Selector.getCurrentDeck(state);
+    return (
+      <NB.Body>
+        <RN.TouchableOpacity
+          onPress={() =>
+            dispatch(Action.nav.goTo('deck', { deck_id: deck.id }))
+          }
+        >
+          <NB.Title>{deck && deck.name && `${deck.name}`} </NB.Title>
+        </RN.TouchableOpacity>
+      </NB.Body>
+    );
+  }
+}
+
+class _Header extends React.Component<ConnectedProps, {}> {
   render() {
     const { state, dispatch } = this.props;
     if (!state.config.showHeader) {
       return <NB.View />;
     }
-    const page = Selector.getCurrentPage(this.props.state);
-    if (page && page.routeName === 'home') {
-      return (
-        <NB.Header>
-          <NB.Body>
-            <NB.Title>Decks</NB.Title>
-          </NB.Body>
-        </NB.Header>
-      );
-    }
-    const deck = Selector.getCurrentDeck(state);
     return (
       <NB.Header>
         <LeftButton state={state} dispatch={dispatch} />
-        <NB.Body>
-          <RN.TouchableOpacity
-            onPress={() =>
-              dispatch(Action.nav.goTo('deck', { deck_id: deck.id }))
-            }
-          >
-            <NB.Title>{deck && deck.name && `${deck.name}`} </NB.Title>
-          </RN.TouchableOpacity>
-        </NB.Body>
+        <Body state={state} dispatch={dispatch} />
         <RightButton state={state} dispatch={dispatch} />
       </NB.Header>
     );
