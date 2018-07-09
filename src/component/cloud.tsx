@@ -105,23 +105,26 @@ class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
 const CardList = connect(state => ({ state }))(_CardList);
 
 const _List = props => (
-  <RN.View style={{ flex: 1 }}>
-    <RN.TouchableOpacity
-      onPress={() => props.dispatch(Action.nav.goTo('spreadsheet'))}
-    >
-      <SD.DeckCard>
-        <SD.DeckTitle>Google Spread Sheet &gt;</SD.DeckTitle>
-      </SD.DeckCard>
-    </RN.TouchableOpacity>
-    <DeckList />
-  </RN.View>
+  <NB.List>
+    <NB.ListItem onPress={() => props.dispatch(Action.nav.goTo('spreadsheet'))}>
+      <NB.Left>
+        <NB.Title>Google Spread Sheet</NB.Title>
+      </NB.Left>
+      <NB.Right>
+        <NB.Icon active name="arrow-forward" />
+      </NB.Right>
+    </NB.ListItem>
+  </NB.List>
 );
-export const List = connect(state => ({ state }))(_List);
+
+const List = connect(state => ({ state }))(_List);
 
 const wrap = C => props => (
   <NB.Container>
     <Header />
-    <C {...props.navigation.state.params} />
+    <NB.Content>
+      <C {...props.navigation.state.params} />
+    </NB.Content>
   </NB.Container>
 );
 
