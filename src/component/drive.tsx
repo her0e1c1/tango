@@ -14,6 +14,16 @@ export class _Sheet extends React.Component<
     const drive = this.props.state.drive.byId[this.props.driveId];
     this.props.dispatch(Action.drive.getSheets(drive));
   }
+  checkImported(item: Sheet): boolean {
+    const decks = Selector.getDecks(this.props.state);
+    return (
+      decks.filter(
+        d =>
+          d.spreadsheetId == String(this.props.driveId) &&
+          d.spreadsheetGid == String(item.properties.sheetId)
+      ).length > 0
+    );
+  }
   render() {
     const drive = this.props.state.drive.byId[this.props.driveId];
     if (!drive) {
@@ -35,7 +45,12 @@ export class _Sheet extends React.Component<
               )
             }
           >
-            <NB.Title>{item.properties.title}</NB.Title>
+            <NB.Left>
+              <NB.Title>{item.properties.title}</NB.Title>
+            </NB.Left>
+            <NB.Right>
+              {this.checkImported(item) && <NB.Icon name="md-checkmark" />}
+            </NB.Right>
           </NB.ListItem>
         )}
       />

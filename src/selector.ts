@@ -1,3 +1,7 @@
+export const getDecks = (state: RootState): Deck[] => {
+  return Object.values(state.deck.byId);
+};
+
 export const getMyDrives = (state: RootState): Drive[] => {
   return Object.values(state.drive.byId);
 };

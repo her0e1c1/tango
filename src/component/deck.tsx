@@ -49,7 +49,7 @@ export class _DeckList extends React.Component<
   }
 
   render() {
-    const decks = Object.values(this.props.state.deck.byId);
+    const decks = Selector.getDecks(this.props.state);
     const { dispatch } = this.props;
     return (
       <RN.FlatList
