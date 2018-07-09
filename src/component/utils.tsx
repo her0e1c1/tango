@@ -14,4 +14,8 @@ export const LoadingIcon = () => (
   </RN.View>
 );
 
-export const ErrorPage = () => <RN.View>ERROR! Something wrong :(</RN.View>;
+export const ErrorPage = () => (
+  <RN.View>
+    <RN.Text>ERROR! Something wrong :(</RN.Text>
+  </RN.View>
+);
