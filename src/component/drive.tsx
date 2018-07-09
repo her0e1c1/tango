@@ -2,7 +2,7 @@ import * as Action from 'src/action';
 import * as Selector from 'src/selector';
 import * as React from 'react';
 import * as RN from 'react-native';
-import * as SD from './styled';
+import * as NB from 'native-base';
 import { connect } from 'react-redux';
 
 export class _Sheet extends React.Component<
@@ -21,28 +21,24 @@ export class _Sheet extends React.Component<
     }
     const sheets = drive.sheets || [];
     return (
-      <SD.Container>
-        <RN.FlatList
-          data={sheets.filter(x => !!x).map((d, key) => ({ ...d, key }))}
-          onRefresh={async () => {
-            await this.setState({ refreshing: false });
-          }}
-          refreshing={this.state.refreshing}
-          renderItem={({ item }: { item: Sheet }) => (
-            <RN.TouchableOpacity
-              onPress={() =>
-                this.props.dispatch(
-                  Action.drive.importFromSpreadSheet(drive, item)
-                )
-              }
-            >
-              <SD.DeckCard style={{ marginBottom: 10 }}>
-                <SD.DeckTitle>{item.properties.title}</SD.DeckTitle>
-              </SD.DeckCard>
-            </RN.TouchableOpacity>
-          )}
-        />
-      </SD.Container>
+      <RN.FlatList
+        data={sheets.filter(x => !!x).map((d, key) => ({ ...d, key }))}
+        onRefresh={async () => {
+          await this.setState({ refreshing: false });
+        }}
+        refreshing={this.state.refreshing}
+        renderItem={({ item }: { item: Sheet }) => (
+          <NB.ListItem
+            onPress={() =>
+              this.props.dispatch(
+                Action.drive.importFromSpreadSheet(drive, item)
+              )
+            }
+          >
+            <NB.Title>{item.properties.title}</NB.Title>
+          </NB.ListItem>
+        )}
+      />
     );
   }
 }
@@ -57,27 +53,28 @@ export class _SpreadSheetList extends React.Component<
     const { dispatch } = this.props;
     const decks = Selector.getMyDrives(this.props.state);
     return (
-      <SD.Container>
-        <RN.FlatList
-          data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
-          onRefresh={async () => {
-            await this.props.dispatch(Action.drive.getSpreadSheets());
-            await this.setState({ refreshing: false });
-          }}
-          refreshing={this.state.refreshing}
-          renderItem={({ item }: { item: Drive }) => (
-            <RN.TouchableOpacity
-              onPress={() =>
-                dispatch(Action.nav.goTo('sheet', { driveId: item.id }))
-              }
-            >
-              <SD.DeckCard style={{ marginBottom: 10 }}>
-                <SD.DeckTitle>{item.name}</SD.DeckTitle>
-              </SD.DeckCard>
-            </RN.TouchableOpacity>
-          )}
-        />
-      </SD.Container>
+      <RN.FlatList
+        data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
+        onRefresh={async () => {
+          await this.props.dispatch(Action.drive.getSpreadSheets());
+          await this.setState({ refreshing: false });
+        }}
+        refreshing={this.state.refreshing}
+        renderItem={({ item }: { item: Drive }) => (
+          <NB.ListItem
+            onPress={() =>
+              dispatch(Action.nav.goTo('sheet', { driveId: item.id }))
+            }
+          >
+            <NB.Left>
+              <NB.Title>{item.name}</NB.Title>
+            </NB.Left>
+            <NB.Right>
+              <NB.Icon active name="arrow-forward" />
+            </NB.Right>
+          </NB.ListItem>
+        )}
+      />
     );
   }
 }

@@ -66,6 +66,8 @@ class _DeckList extends React.Component<
     );
   }
 }
+
+// @ts-ignore
 const DeckList = connect(state => ({ state }))(_DeckList);
 
 class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
