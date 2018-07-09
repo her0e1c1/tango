@@ -7,7 +7,33 @@ import * as C from 'src/constant';
 import * as Action from 'src/action';
 import * as Selector from 'src/selector';
 
-export class _DeckList extends React.Component<
+const deckAction = (dispatch: any, item: Deck) => {
+  NB.ActionSheet.show(
+    {
+      title: 'Deck Action',
+      options: [
+        'Show Card List',
+        'Edit This Deck',
+        'Upload To Google Spread Sheet',
+        'Cancel',
+      ],
+      cancelButtonIndex: 3,
+    },
+    async index => {
+      if (index === 0) {
+        await dispatch(Action.nav.goTo('deck', { deck_id: item.id }));
+      } else if (index === 1) {
+        await dispatch(Action.nav.goTo('deckEdit', { deck_id: item.id }));
+      } else if (index === 2) {
+        await dispatch(Action.drive.upload(item));
+      } else {
+        // DO NOTHING
+      }
+    }
+  );
+};
+
+class _DeckList extends React.Component<
   ConnectedProps,
   { refreshing: boolean }
 > {
@@ -65,28 +91,19 @@ export class _DeckList extends React.Component<
           return (
             <NB.SwipeRow
               key={item.id}
-              leftOpenValue={100}
+              leftOpenValue={50}
               rightOpenValue={-50}
               swipeToOpenPercent={30}
               directionalDistanceChangeThreshold={2}
               {...{
+                // You can not show more than one item
                 left: (
-                  <NB.View style={{ flexDirection: 'row' }}>
-                    <NB.Button
-                      primary
-                      onPress={() =>
-                        dispatch(Action.nav.goTo('deck', { deck_id: item.id }))
-                      }
-                    >
-                      <NB.Icon active name="list" />
-                    </NB.Button>
-                    <NB.Button
-                      info
-                      onPress={() => dispatch(Action.drive.upload(item))}
-                    >
-                      <NB.Icon active name="cloud-upload" />
-                    </NB.Button>
-                  </NB.View>
+                  <NB.Button
+                    primary
+                    onPress={async () => await deckAction(dispatch, item)}
+                  >
+                    <NB.Icon active name="list" />
+                  </NB.Button>
                 ),
                 right: (
                   <NB.Button
