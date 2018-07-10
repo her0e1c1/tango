@@ -72,6 +72,32 @@ export class _CardDetail extends React.Component<
             </RN.View>
           </RN.TouchableWithoutFeedback>
         )}
+        {!this.state.view && (
+          <RN.TouchableOpacity
+            onPress={() => dispatch(Action.nav.cardSwipeLeft())}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 50,
+            }}
+          />
+        )}
+        {!this.state.view && (
+          <RN.TouchableOpacity
+            onPress={() =>
+              !this.state.view && dispatch(Action.nav.cardSwipeRight())
+            }
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: 50,
+            }}
+          />
+        )}
         <RN.View
           style={{
             position: 'absolute',
@@ -87,16 +113,6 @@ export class _CardDetail extends React.Component<
           }}
         >
           <RN.TouchableOpacity
-            onPress={() => dispatch(Action.nav.goToPrevCard())}
-            style={{
-              width: 50,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <NB.Icon name="arrow-back" />
-          </RN.TouchableOpacity>
-          <RN.TouchableOpacity
             style={{
               flex: 1,
               justifyContent: 'center',
@@ -109,16 +125,6 @@ export class _CardDetail extends React.Component<
             }
           >
             <NB.Icon name={!this.state.view ? 'md-eye-off' : 'arrow-down'} />
-          </RN.TouchableOpacity>
-          <RN.TouchableOpacity
-            onPress={() => dispatch(Action.nav.goToNextCard())}
-            style={{
-              width: 50,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <NB.Icon name="arrow-forward" />
           </RN.TouchableOpacity>
         </RN.View>
       </RN.View>
