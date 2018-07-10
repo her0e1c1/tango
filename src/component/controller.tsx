@@ -7,10 +7,10 @@ import * as Selector from 'src/selector';
 
 class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
   state = { pause: false };
-  private goToNextCard: number;
+  private interval: number;
   componentWillUnmount() {
-    if (this.goToNextCard) {
-      clearInterval(this.goToNextCard);
+    if (this.interval) {
+      clearInterval(this.interval);
     }
   }
   render() {
@@ -27,16 +27,16 @@ class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
           onPress={() => {
             this.setState({ pause: !this.state.pause }, () => {
               if (this.state.pause) {
-                this.goToNextCard = setInterval(() => {
+                this.interval = setInterval(() => {
                   if (deck.currentIndex < cards.length - 1) {
                     dispatch(Action.nav.cardSwipeRight());
                   } else {
                     this.setState({ pause: false });
-                    clearInterval(this.goToNextCard);
+                    clearInterval(this.interval);
                   }
                 }, this.props.state.config.cardInterval * 1000);
               } else {
-                clearInterval(this.goToNextCard);
+                clearInterval(this.interval);
               }
             });
           }}
