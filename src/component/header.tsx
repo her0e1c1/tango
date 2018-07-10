@@ -87,7 +87,8 @@ class RightButton extends React.Component<Props, {}> {
     return (
       <NB.Right>
         {page.routeName === 'card' &&
-          !!card.hint && (
+          card.hint &&
+          !!card.hint.trim() && (
             <NB.Button
               transparent
               onPress={() => dispatch(Action.config.toggle('showHint'))}
