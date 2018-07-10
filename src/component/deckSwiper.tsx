@@ -62,6 +62,28 @@ class View extends React.Component<
           >
             <MasteredCircle card={cards[currentIndex] || {}} />
           </RN.View>
+          <RN.TouchableOpacity
+            onPress={() => dispatch(Action.nav.goToPrevCard())}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 50,
+              zIndex: 1,
+            }}
+          />
+          <RN.TouchableOpacity
+            onPress={() => dispatch(Action.nav.goToNextCard())}
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: 50,
+              zIndex: 1,
+            }}
+          />
           <DeckSwiper
             /* I think DeckSwiper position is absolute */
             // backgroundColor={this.props.theme.cardBackgroundColor}
