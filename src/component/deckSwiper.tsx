@@ -91,10 +91,10 @@ class View extends React.Component<
             backgroundColor={'white'}
             cardIndex={currentIndex}
             cards={cards}
-            onSwipedRight={index => dispatch(Action.nav.cardSwipeRight(index))}
-            onSwipedLeft={index => dispatch(Action.nav.cardSwipeLeft(index))}
-            onSwipedTop={index => dispatch(Action.nav.cardSwipeUp(index))}
-            onSwipedBottom={index => dispatch(Action.nav.cardSwipeDown(index))}
+            onSwipedRight={() => dispatch(Action.nav.cardSwipeRight())}
+            onSwipedLeft={() => dispatch(Action.nav.cardSwipeLeft())}
+            onSwipedTop={() => dispatch(Action.nav.cardSwipeUp())}
+            onSwipedBottom={() => dispatch(Action.nav.cardSwipeDown())}
             // onTapCard={() => {}}
             goBackToPreviousCardOnSwipeTop={
               this.props.state.config.cardSwipeUp === 'goToPrevCard'

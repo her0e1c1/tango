@@ -119,10 +119,7 @@ const swipeMapping = {
   goToNextCardToggleMastered,
 };
 
-const cardSwipe = (direction, index: number): I.ThunkAction => async (
-  dispatch,
-  getState
-) => {
+const cardSwipe = (direction): I.ThunkAction => async (dispatch, getState) => {
   const config = getState().config;
   if (config.hideBodyWhenCardChanged) {
     await dispatch(updateConfig({ showBody: false, showHint: false }));
@@ -134,7 +131,7 @@ const cardSwipe = (direction, index: number): I.ThunkAction => async (
     console.log(`${direction} action is not found`);
   }
 };
-export const cardSwipeUp = (i: number) => cardSwipe('cardSwipeUp', i);
-export const cardSwipeDown = (i: number) => cardSwipe('cardSwipeDown', i);
-export const cardSwipeLeft = (i: number) => cardSwipe('cardSwipeLeft', i);
-export const cardSwipeRight = (i: number) => cardSwipe('cardSwipeRight', i);
+export const cardSwipeUp = () => cardSwipe('cardSwipeUp');
+export const cardSwipeDown = () => cardSwipe('cardSwipeDown');
+export const cardSwipeLeft = () => cardSwipe('cardSwipeLeft');
+export const cardSwipeRight = () => cardSwipe('cardSwipeRight');
