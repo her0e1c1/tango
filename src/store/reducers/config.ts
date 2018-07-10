@@ -17,7 +17,7 @@ export default (
     cardSwipeUp: 'goToNextCardToggleMastered',
     cardSwipeDown: 'goBack',
     cardSwipeLeft: 'goToPrevCard',
-    cardSwipeRight: 'goToNextCardNotMastered',
+    cardSwipeRight: 'goToNextCard',
     googleAccessToken: undefined,
     googleRefreshToken: undefined,
   },
