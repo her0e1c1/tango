@@ -41,39 +41,6 @@ class _DeckList extends React.Component<
     super(props);
     this.state = { refreshing: false };
   }
-  getLeftItems(deck: Deck) {
-    const { dispatch } = this.props;
-    const { uid } = this.props.state.user;
-    const items = [
-      {
-        text: 'LIST',
-        backgroundColor: 'darkgreen',
-        onPress: () => dispatch(Action.nav.goTo('deck', { deck_id: deck.id })),
-      },
-      {
-        text: 'COPY',
-        backgroundColor: 'blue',
-        onPress: () =>
-          deck.url
-            ? dispatch(Action.deck.insertByURL(deck.url))
-            : alert('NO URL :('),
-      },
-    ];
-    if (uid) {
-      items.push({
-        text: 'UP',
-        backgroundColor: 'green',
-        onPress: () => dispatch(Action.deck.upload(deck)),
-      });
-      items.push({
-        text: 'DRIVE',
-        backgroundColor: 'skyblue',
-        onPress: () => dispatch(Action.drive.upload(deck)),
-      });
-    }
-    return items;
-  }
-
   render() {
     const decks = Selector.getDecks(this.props.state);
     const { dispatch } = this.props;
