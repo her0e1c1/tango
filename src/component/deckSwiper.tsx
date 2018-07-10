@@ -12,14 +12,14 @@ import { CardView } from './cardView';
 
 class View extends React.Component<
   { deck_id: number } & ConnectedProps,
-  { visible: boolean; width: number; height: number }
+  { width: number; height: number }
 > {
   constructor(props) {
     super(props);
     const window = RN.Dimensions.get('window');
     const width = window.width - 20; // HOTFIX: may fix Swiper width?
     const height = window.height * (3 / 4);
-    this.state = { visible: false, width, height };
+    this.state = { width, height };
   }
 
   changeEvent(dimensions) {
@@ -46,8 +46,10 @@ class View extends React.Component<
       return <RN.View />;
     }
 
-    return this.state.visible ? (
-      <CardDetail onLongPress={() => this.setState({ visible: false })} />
+    return this.props.state.config.showBody ? (
+      <CardDetail
+        onLongPress={() => dispatch(Action.config.toggle('showBody'))}
+      />
     ) : (
       // Need to wrap with View otherwise <Header/> is not shown
       <RN.View style={{ flex: 1 }}>
@@ -121,7 +123,7 @@ class View extends React.Component<
             ) => (
               <RN.TouchableWithoutFeedback
                 key={item.id}
-                onPress={() => this.setState({ visible: true })}
+                onPress={() => dispatch(Action.config.toggle('showBody'))}
               >
                 {item.category === 'math' || deck.category === 'math' ? (
                   <RN.View style={{ flex: 1 }}>
