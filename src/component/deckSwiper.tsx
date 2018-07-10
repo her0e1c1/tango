@@ -63,7 +63,7 @@ class View extends React.Component<
             <MasteredCircle card={cards[currentIndex] || {}} />
           </RN.View>
           <RN.TouchableOpacity
-            onPress={() => dispatch(Action.nav.goToPrevCard())}
+            onPress={() => dispatch(Action.nav.cardSwipeLeft())}
             style={{
               position: 'absolute',
               left: 0,
@@ -74,7 +74,7 @@ class View extends React.Component<
             }}
           />
           <RN.TouchableOpacity
-            onPress={() => dispatch(Action.nav.goToNextCard())}
+            onPress={() => dispatch(Action.nav.cardSwipeRight())}
             style={{
               position: 'absolute',
               right: 0,
