@@ -128,6 +128,8 @@ class View extends React.Component<
                     <CardView
                       center
                       body={
+                        // Keep react-native-deck-swiper@1.4.6
+                        // otherwise showHint will not be updated
                         this.props.state.config.showHint ? item.hint : item.name
                       }
                       category={'math'}

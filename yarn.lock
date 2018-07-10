@@ -6785,9 +6785,9 @@ react-native-branch@2.0.0-beta.3:
   version "2.0.0-beta.3"
   resolved "https://registry.yarnpkg.com/react-native-branch/-/react-native-branch-2.0.0-beta.3.tgz#2167af86bbc9f964bd45bd5f37684e5b54965e32"
 
-react-native-deck-swiper@^1.4.6:
-  version "1.5.17"
-  resolved "https://registry.yarnpkg.com/react-native-deck-swiper/-/react-native-deck-swiper-1.5.17.tgz#edc218360d25b6ee9f09e3a664cca02f43d18ce9"
+react-native-deck-swiper@1.4.6:
+  version "1.4.6"
+  resolved "https://registry.yarnpkg.com/react-native-deck-swiper/-/react-native-deck-swiper-1.4.6.tgz#d4604ab6c448f29c0f2cc3ddcc8b53c9c667ec8b"
   dependencies:
     prop-types "15.5.10"
 
@@ -6879,10 +6879,6 @@ react-native-scripts@1.8.1:
   dependencies:
     color "^2.0.1"
     lodash "^4.16.6"
-
-react-native-swipe-gestures@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/react-native-swipe-gestures/-/react-native-swipe-gestures-1.0.2.tgz#914e1a72a94bc55b322b4622a01103ab879296dd"
 
 react-native-swipeout@^2.3.3:
   version "2.3.3"
