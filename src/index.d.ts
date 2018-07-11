@@ -51,7 +51,7 @@ interface Tag {
 
 interface Card {
   id: number;
-  fkid: string;
+  fkid: string; // TODO: remove
   name: string;
   body: string;
   hint: string;

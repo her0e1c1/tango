@@ -65,7 +65,6 @@ export const toggleMastered = (
   await dispatch(type.card_bulk_insert([{ ...card, mastered: m }]));
 };
 
-// FIXME: how can I bulk insert?
 export const bulkInsertCards = (
   deck_id: number,
   cards: Pick<
@@ -73,23 +72,38 @@ export const bulkInsertCards = (
     'name' | 'body' | 'category' | 'hint' | 'fkid' | 'mastered'
   >[]
 ): I.ThunkAction => async (dispatch, getState) => {
-  const ps = cards.map(async card => {
-    // if you change order of fields, you need to check the mapping between sql string and its values
-    const sql =
-      'insert into card (name, body, hint, category, deck_id, fkid, mastered) values (?, ?, ?, ?, ?, ?, ?);';
-    const values = [
-      card.name || '',
-      card.body || '',
-      card.hint || '',
-      card.category || '',
+  const result = await exec('select count(*) from card;');
+  // When you bulk insert, you can not get multi inserted ids after sql issued.
+  // So you need to generate ids by yourself
+  const count = result.rows._array[0]['count(*)'];
+  const cards_with_id: Card[] = cards.map((c, i) => ({
+    ...c,
+    deck_id,
+    id: count + i + 1,
+  }));
+  // if you change order of fields, you need to check the mapping between sql string and its values
+  const sql =
+    'insert into card (id, name, body, hint, category, deck_id, mastered) values ' +
+    cards.map(_ => '(?, ?, ?, ?, ?, ?, ?)').join(',') +
+    ';';
+  const values = cards_with_id
+    .map(c => [
+      c.id,
+      c.name || '',
+      c.body || '',
+      c.hint || '',
+      c.category || '',
       deck_id,
-      card.fkid ? String(card.fkid) : null, // otherwise it converts 1 to "1.0",
-      Boolean(card.mastered),
-    ];
-    const result = await exec(sql, values);
-    const id = result.insertId;
-    id && (await dispatch(type.card_bulk_insert([{ ...card, deck_id, id }])));
-  });
+      Boolean(c.mastered),
+    ])
+    .reduce((acc, x) => acc.concat(x));
+  const result2 = await exec(sql, values);
+  const missing = cards.length - result2.rowsAffected;
+  if (result2.rowsAffected !== cards.length)
+    alert(`${missing} CARDS ARE MISSING`);
+  const ps = cards_with_id.map(
+    async c => await dispatch(type.card_bulk_insert([{ ...c }]))
+  );
   await Promise.all(ps);
 };
 

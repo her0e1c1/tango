@@ -30,6 +30,10 @@ export const exec = (sql: string, values: any[] = []): Promise<Result> => {
   );
 };
 
+// IMPORTANT: You can not insert undefined or null
+// if it's a non-nullable column
+// Error messages are unfriendly so keep in mind that
+// you convert them to other values like empty string
 const CREATE_DECK = `
 create table if not exists deck (
   id integer primary key not null,
