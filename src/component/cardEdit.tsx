@@ -55,10 +55,7 @@ export class _CardEdit extends React.Component<
               <NB.Text>ID</NB.Text>
             </NB.Body>
             <NB.Right>
-              <NB.Text>
-                {card.id}
-                {card.fkid && `(${card.fkid})`}
-              </NB.Text>
+              <NB.Text>{card.id}</NB.Text>
             </NB.Right>
           </NB.ListItem>
 

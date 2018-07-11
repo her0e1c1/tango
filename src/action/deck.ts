@@ -142,7 +142,7 @@ export const update = (deck: DeckUpdate): I.ThunkAction => async (
   getState
 ) => {
   const sql = 'update deck set name = ?, url = ? where id = ?';
-  const values = [deck.name, deck.url, deck.id];
+  const values = [deck.name, deck.url || '', deck.id];
   await exec(sql, values);
   await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex: 0 }]));
 };
