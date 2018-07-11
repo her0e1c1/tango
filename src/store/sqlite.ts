@@ -44,7 +44,6 @@ const CREATE_CARD = `
 create table if not exists card (
   id integer primary key not null,
   deck_id integer not null,
-  spreadsheetRowId integer,
   mastered boolean default 0 not null,
   name text default '' not null,
   body text default '' not null,
