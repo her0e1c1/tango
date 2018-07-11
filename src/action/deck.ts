@@ -123,7 +123,12 @@ export const insert = (deck: DeckInsert): I.ThunkAction<number> => async (
   getState
 ) => {
   const sql = `insert into deck (name, url, spreadsheetId, spreadsheetGid) values (?, ?, ?, ?)`;
-  const values = [deck.name, deck.url, deck.spreadsheetId, deck.spreadsheetGid];
+  const values = [
+    deck.name,
+    deck.url || '',
+    deck.spreadsheetId || '',
+    deck.spreadsheetGid || '',
+  ];
   const result = await exec(sql, values);
   const id = result.insertId;
   await dispatch(
