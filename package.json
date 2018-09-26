@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "exp start",
+    "start": "expo start",
     "eject": "react-native-scripts eject",
     "android": "react-native-scripts android",
     "android:log": " react-native log-android",
@@ -12,7 +12,7 @@
     "tsv": "yarn run tsc -v",
     "tsw": "yarn run tsc -w",
     "build": "yarn cln && yarn fix && yarn run tsc",
-    "login": "exp login",
+    "login": "expo login",
     "status": "exp build:status",
     "fix": "cd node_modules/@types && rm -fr ./expo/node_modules  ./react-navigation/node_modules",
     "cln": "rm -fr ./dist && git checkout ./dist/package.json",
