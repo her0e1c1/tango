@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "module": "commonjs",
+    "target": "es5",
     "lib": ["es2017", "es7"],
     "types": ["react-native"],
     "strictNullChecks": true,
@@ -9,8 +11,6 @@
     "noResolve": false,
     "allowJs": false,
     "jsx": "react",
-    "module": "commonjs",
-    "target": "es5",
     "experimentalDecorators": true,
     "sourceMap": false,
     "noImplicitAny": false,
