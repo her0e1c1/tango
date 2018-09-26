@@ -174,3 +174,10 @@ interface ConnectedProps {
   // import { Dispatch } from 'redux'
   dispatch: any;
 }
+
+// Because there is a conflict between @types/react-native and lib: ["dom"] in tsconfig.json,
+// react-native doesn't include alert so it must be defined manually
+interface ReactNativeAlert {
+  (string): void;
+}
+declare const alert: ReactNativeAlert;
