@@ -21,7 +21,7 @@
   "devDependencies": {
     "@types/enzyme": "^2.8.0",
     "@types/expo": "^27.0.10",
-    "@types/react-native": "^0.56.0",
+    "@types/react-native": "^0.55.0",
     "@types/jest": "^19.2.4",
     "@types/lodash": "^4.14.71",
     "@types/query-string": "^5.0.0",
