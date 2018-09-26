@@ -167,5 +167,10 @@ interface Dispatch<S> {
 
 interface ConnectedProps {
   state: RootState;
-  dispatch: Dispatch<RootState>;
+
+  // this doesn't work
+  // dispatch: Dispatch<RootState>;
+  // but this code works
+  // import { Dispatch } from 'redux'
+  dispatch: any;
 }
