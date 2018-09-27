@@ -29,9 +29,9 @@ jobs:
           - v1-dependencies-
       - run: printf "cat <<EOS\n`cat ./src/secret.ts.example`\nEOS\n" | sh > ./src/secret.ts
       - run: yarn build
-      - run: node ./node_modules/exp/bin/exp.js login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD"
-      - run: node ./node_modules/exp/bin/exp.js whoami
-      - run: node ./node_modules/exp/bin/exp.js publish --non-interactive
+      - run: yarn expo login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD"
+      - run: yarn expo whoami
+      - run: yarn expo publish --non-interactive
 
 workflows:
    version: 2
