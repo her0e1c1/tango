@@ -56,7 +56,7 @@ export const getTheme = (state: RootState): Theme => {
   }
 };
 
-export const clearAll = (clearStorage?: boolean) => async (
+export const clearAll = (clearStorage?: boolean): ThunkAction => async (
   dispatch,
   getState
 ) => {
