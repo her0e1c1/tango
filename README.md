@@ -38,3 +38,4 @@ cp src/secret.ts.example src/secret.ts
 
 - react-native ver must be 0.55 not 0.56 (expo error)
 - expo clients support more than 24
+- papaparse requires stream on react-native
