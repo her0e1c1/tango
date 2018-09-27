@@ -1,1 +1,1 @@
-export default require("./dist").default;
+export default require("./dist/react-native").default;
