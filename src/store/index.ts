@@ -8,10 +8,6 @@ import { NavigationState } from 'react-navigation';
 import * as type from 'src/action/type';
 import { equal } from './reducers/util';
 
-import * as firebase from 'firebase';
-import * as C from 'src/constant';
-firebase.initializeApp(C.firebaseConfig);
-
 const logger = ({ getState, dispatch }) => next => action => {
   console.log('ACTION: ', action.type);
   const rv = next(action);

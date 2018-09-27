@@ -48,16 +48,8 @@ export class _Config extends React.Component<ConnectedProps, {}> {
     const { dispatch } = this.props;
     RN.Alert.alert('Choose account', '', [
       {
-        text: 'Facebook',
-        onPress: () => dispatch(Action.auth.loginWithFacebook()),
-      },
-      {
-        text: 'Google(with Drive)',
-        onPress: () => dispatch(Action.auth.loginWithGoogleOnWeb()),
-      },
-      {
         text: 'Google',
-        onPress: () => dispatch(Action.auth.loginWithGoogle()),
+        onPress: () => dispatch(Action.loginWithGoogle()),
       },
       { text: 'Cancel', onPress: () => {} },
     ]);

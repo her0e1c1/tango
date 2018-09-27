@@ -2,7 +2,6 @@ import * as firebase from 'firebase';
 
 import * as type from './type';
 import { db } from 'src/firebase';
-export * from './type';
 
 const checkLogin = (state: RootState): string | undefined => {
   const uid = state.config.uid;

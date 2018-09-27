@@ -34,6 +34,7 @@ export const refreshToken = (): ThunkAction<boolean> => async (
   return true;
 };
 
+/*
 export const loginWithGoogleOnWeb = (): ThunkAction => async (
   dispatch,
   getState
@@ -138,6 +139,7 @@ export const loginWithFacebook = (): ThunkAction => async (
     alert(JSON.stringify(e));
   }
 };
+*/
 
 export const init = (): ThunkAction => async (dispatch, getState) => {
   firebase.auth().onAuthStateChanged(async user => {
