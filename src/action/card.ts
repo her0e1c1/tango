@@ -1,4 +1,3 @@
-import * as I from 'src/interface';
 import { exec } from 'src/store/sqlite';
 import * as type from './type';
 import { Omit } from 'react-redux';
@@ -6,7 +5,7 @@ import { Omit } from 'react-redux';
 // update or insert
 export const updateCard = (
   card: Omit<Card, 'id'> & { id?: number }
-): I.ThunkAction => async (dispatch, getState) => {
+): ThunkAction => async (dispatch, _getState) => {
   let id = card.id;
   if (!card.id) {
     if (card.deck_id && card.fkid) {
@@ -34,7 +33,7 @@ export const updateCard = (
   }
 };
 
-export const deleteCard = (card: Card): I.ThunkAction => async (
+export const deleteCard = (card: Card): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -46,7 +45,7 @@ export const deleteCard = (card: Card): I.ThunkAction => async (
   }
 };
 
-export const selectCard = (deck_id?: number): I.ThunkAction => async (
+export const selectCard = (deck_id?: number): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -58,7 +57,7 @@ export const selectCard = (deck_id?: number): I.ThunkAction => async (
 export const toggleMastered = (
   card: Card,
   mastered?: boolean
-): I.ThunkAction => async (dispatch, getState) => {
+): ThunkAction => async (dispatch, getState) => {
   const m = mastered === undefined ? !card.mastered : mastered;
   const sql = 'update card set mastered = ? where id = ?';
   await exec(sql, [m, card.id]);
@@ -71,7 +70,7 @@ export const bulkInsertCards = (
     Card,
     'name' | 'body' | 'category' | 'hint' | 'fkid' | 'mastered'
   >[]
-): I.ThunkAction => async (dispatch, getState) => {
+): ThunkAction => async (dispatch, getState) => {
   const result = await exec('select count(*) from card;');
   // When you bulk insert, you can not get multi inserted ids after sql issued.
   // So you need to generate ids by yourself
@@ -113,7 +112,7 @@ export const bulkUpdateCards = (
     Card,
     'name' | 'body' | 'category' | 'hint' | 'fkid' | 'mastered'
   >[]
-): I.ThunkAction => async (dispatch, getState) => {
+): ThunkAction => async (dispatch, getState) => {
   // TODO: get from db not redux
   const state = getState().card;
   const map = (state.byDeckId[deck_id] || [])
@@ -127,14 +126,14 @@ export const bulkUpdateCards = (
   await Promise.all(ps);
 };
 
-export const edit = (card: Partial<Card>): I.ThunkAction => async (
+export const edit = (card: Partial<Card>): ThunkAction => async (
   dispatch,
   getState
 ) => {
   dispatch(type.card_edit(card));
 };
 
-export const edit_init = (card: Partial<Card>): I.ThunkAction => async (
+export const edit_init = (card: Partial<Card>): ThunkAction => async (
   dispatch,
   getState
 ) => {

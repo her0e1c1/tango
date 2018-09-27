@@ -1,5 +1,4 @@
 import * as Expo from 'expo';
-import * as I from 'src/interface';
 import * as C from 'src/constant';
 import * as firebase from 'firebase';
 import * as Action from 'src/action';
@@ -7,7 +6,7 @@ import { AuthSession } from 'expo';
 import * as queryString from 'query-string';
 import * as type from './type';
 
-export const refreshToken = (): I.ThunkAction<boolean> => async (
+export const refreshToken = (): ThunkAction<boolean> => async (
   dispatch,
   getState
 ) => {
@@ -35,7 +34,7 @@ export const refreshToken = (): I.ThunkAction<boolean> => async (
   return true;
 };
 
-export const loginWithGoogleOnWeb = (): I.ThunkAction => async (
+export const loginWithGoogleOnWeb = (): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -89,7 +88,7 @@ export const loginWithGoogleOnWeb = (): I.ThunkAction => async (
   }
 };
 
-export const loginWithGoogle = (): I.ThunkAction => async (
+export const loginWithGoogle = (): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -113,7 +112,7 @@ export const loginWithGoogle = (): I.ThunkAction => async (
   }
 };
 
-export const loginWithFacebook = (): I.ThunkAction => async (
+export const loginWithFacebook = (): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -140,7 +139,7 @@ export const loginWithFacebook = (): I.ThunkAction => async (
   }
 };
 
-export const init = (): I.ThunkAction => async (dispatch, getState) => {
+export const init = (): ThunkAction => async (dispatch, getState) => {
   firebase.auth().onAuthStateChanged(async user => {
     await dispatch(Action.config.endLoading());
     if (user != null) {
@@ -160,6 +159,6 @@ export const init = (): I.ThunkAction => async (dispatch, getState) => {
   });
 };
 
-export const logout = (): I.ThunkAction => async (dispatch, getState) => {
+export const logout = (): ThunkAction => async (dispatch, getState) => {
   dispatch(type.user_logout());
 };

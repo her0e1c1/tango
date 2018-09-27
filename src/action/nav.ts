@@ -1,11 +1,10 @@
-import * as I from 'src/interface';
 import * as Selector from 'src/selector';
 import { toggleMastered } from './card';
 import { updateConfig } from './config';
 import { NavigationActions } from 'react-navigation';
 import * as type from './type';
 
-export const shuffleCardsOrSort = (): I.ThunkAction => async (
+export const shuffleCardsOrSort = (): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -15,7 +14,7 @@ export const shuffleCardsOrSort = (): I.ThunkAction => async (
 
 export const goToNextCardSetMastered = (
   mastered?: boolean
-): I.ThunkAction => async (dispatch, getState) => {
+): ThunkAction => async (dispatch, getState) => {
   const state = getState();
   const card = Selector.getCurrentCard(state);
   if (card) {
@@ -32,7 +31,7 @@ export const goToNextCardToggleMastered = () => goToNextCardSetMastered();
 export const goToNextCardNotMastered = () => goToNextCardSetMastered(false);
 export const goToNextCardMastered = () => goToNextCardSetMastered(true);
 
-export const goToNextCard = (): I.ThunkAction => async (dispatch, getState) => {
+export const goToNextCard = (): ThunkAction => async (dispatch, getState) => {
   const state = getState();
   const deck = Selector.getCurrentDeck(state);
   const cards = Selector.getCurrentCardList(state);
@@ -44,7 +43,7 @@ export const goToNextCard = (): I.ThunkAction => async (dispatch, getState) => {
   }
 };
 
-export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
+export const goToPrevCard = (): ThunkAction => async (dispatch, getState) => {
   const state = getState();
   const deck = Selector.getCurrentDeck(state);
   const currentIndex = deck.currentIndex - 1;
@@ -55,7 +54,7 @@ export const goToPrevCard = (): I.ThunkAction => async (dispatch, getState) => {
   }
 };
 
-export const goToCard = (card: Card): I.ThunkAction => async (
+export const goToCard = (card: Card): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -74,11 +73,11 @@ export const goToCard = (card: Card): I.ThunkAction => async (
 export const goToCardByIndex = (
   deck: Deck,
   currentIndex: number
-): I.ThunkAction => async (dispatch, getState) => {
+): ThunkAction => async (dispatch, getState) => {
   dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
 };
 
-export const goHome = (): I.ThunkAction => async (dispatch, getState) => {};
+export const goHome = (): ThunkAction => async (dispatch, getState) => {};
 
 export const goBack = () => async (dispatch, getState) => {
   await dispatch(NavigationActions.back());
@@ -119,7 +118,7 @@ const swipeMapping = {
   goToNextCardToggleMastered,
 };
 
-const cardSwipe = (direction): I.ThunkAction => async (dispatch, getState) => {
+const cardSwipe = (direction): ThunkAction => async (dispatch, getState) => {
   const config = getState().config;
   if (config.hideBodyWhenCardChanged) {
     await dispatch(updateConfig({ showBody: false, showHint: false }));

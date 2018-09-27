@@ -1,4 +1,3 @@
-import * as I from 'src/interface';
 import * as Selector from 'src/selector';
 import * as type from './type';
 import * as Action from 'src/action';
@@ -6,7 +5,7 @@ import * as Action from 'src/action';
 const fetchAPI = (
   url: string,
   options: { method?: string; body?: any; isJson?: boolean } = {}
-): I.ThunkAction<Response> => async (dispatch, getState) => {
+): ThunkAction<Response> => async (dispatch, getState) => {
   let { method = 'GET', body, isJson = false } = options;
   if (body) {
     body = JSON.stringify(body);
@@ -29,7 +28,7 @@ const fetchAPI = (
   throw res;
 };
 
-export const upload = (deck: Deck): I.ThunkAction => async (
+export const upload = (deck: Deck): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -68,7 +67,7 @@ export const upload = (deck: Deck): I.ThunkAction => async (
 };
 export const refreshToken = (
   retry: boolean = true
-): I.ThunkAction<boolean> => async (dispatch, getState) => {
+): ThunkAction<boolean> => async (dispatch, getState) => {
   try {
     const ok = await dispatch(Action.auth.refreshToken());
     if (ok) {
@@ -88,7 +87,7 @@ export const refreshToken = (
   return false;
 };
 
-export const getSpreadSheets = (): I.ThunkAction => async (
+export const getSpreadSheets = (): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -103,7 +102,7 @@ export const getSpreadSheets = (): I.ThunkAction => async (
   }
 };
 
-export const getSheets = (drive: Drive): I.ThunkAction => async (
+export const getSheets = (drive: Drive): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -120,7 +119,7 @@ export const getSheets = (drive: Drive): I.ThunkAction => async (
 export const importFromSpreadSheet = (
   drive: Drive,
   sheet: Sheet
-): I.ThunkAction => async (dispatch, getState) => {
+): ThunkAction => async (dispatch, getState) => {
   const gid = sheet.properties.sheetId;
   try {
     await dispatch(Action.config.startLoading());

@@ -1,8 +1,7 @@
-import * as I from 'src/interface';
 import * as firebase from 'firebase';
 import * as type from './type';
 
-export const fetchDecks = (): I.ThunkAction => async (dispatch, getState) => {
+export const fetchDecks = (): ThunkAction => async (dispatch, getState) => {
   const { uid } = getState().user;
   firebase
     .database()
@@ -13,7 +12,7 @@ export const fetchDecks = (): I.ThunkAction => async (dispatch, getState) => {
     });
 };
 
-export const fetchCardsByDeckId = (deck_id: number): I.ThunkAction => async (
+export const fetchCardsByDeckId = (deck_id: number): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -29,7 +28,7 @@ export const fetchCardsByDeckId = (deck_id: number): I.ThunkAction => async (
     });
 };
 
-export const deleteDeck = (deck_id: number): I.ThunkAction => async (
+export const deleteDeck = (deck_id: number): ThunkAction => async (
   dispatch,
   getState
 ) => {

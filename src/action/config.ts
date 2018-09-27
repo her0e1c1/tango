@@ -1,5 +1,4 @@
 import * as RN from 'react-native';
-import * as I from 'src/interface';
 import { dropTables } from 'src/store/sqlite';
 import * as type from './type';
 
@@ -10,7 +9,7 @@ export const updateConfig = (config: Partial<ConfigState>) => async (
   dispatch(type.config(config));
 };
 
-export const toggle = (key: keyof ConfigState): I.ThunkAction => async (
+export const toggle = (key: keyof ConfigState): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -65,7 +64,7 @@ export const clearAll = (clearStorage?: boolean) => async (
   await dispatch(type.clear_all());
 };
 
-export const drop = (): I.ThunkAction => async (dispatch, getState) => {
+export const drop = (): ThunkAction => async (dispatch, getState) => {
   await dropTables();
   await dispatch(clearAll(true));
 };

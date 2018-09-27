@@ -159,7 +159,7 @@ type _ThunkAction<R, S, E> = (
   extraArgument: E
 ) => R;
 
-type ThunkAction<T = void> = _ThunkAction<Promise<T>, RootState, undefined>;
+type ThunkAction<T = void> = _ThunkAction<T, RootState, undefined, Action>;
 
 interface Dispatch<S> {
   <R, E>(asyncAction: _ThunkAction<R, S, E>): R;

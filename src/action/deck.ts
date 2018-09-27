@@ -1,4 +1,3 @@
-import * as I from 'src/interface';
 import { exec } from 'src/store/sqlite';
 import * as firebase from 'firebase';
 import { bulkInsertCards, bulkUpdateCards } from './card';
@@ -40,7 +39,7 @@ export const insertByURL = (url: string): ThunkAction => async (
   );
 };
 
-export const parseTextToCsv = (text: string): I.ThunkAction<Card[]> => async (
+export const parseTextToCsv = (text: string): ThunkAction<Card[]> => async (
   dispatch,
   getState
 ) => {
@@ -64,7 +63,7 @@ export const parseTextToCsv = (text: string): I.ThunkAction<Card[]> => async (
 export const insertByText = (
   text: string,
   deck: DeckInsert
-): I.ThunkAction => async (dispatch, getState) => {
+): ThunkAction => async (dispatch, getState) => {
   const cards = await dispatch(parseTextToCsv(text));
 
   // if a deck exists by fk keys, just update it
@@ -82,7 +81,7 @@ export const insertByText = (
   __DEV__ && console.log(`FETCH DONE ${deck_id}`);
 };
 
-export const remove = (deck: Deck): I.ThunkAction => async (
+export const remove = (deck: Deck): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -93,7 +92,7 @@ export const remove = (deck: Deck): I.ThunkAction => async (
   dispatch(type.card_bulk_delete(deck.id));
 };
 
-export const select = (limit: number = 100): I.ThunkAction => async (
+export const select = (limit: number = 100): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -118,7 +117,7 @@ export const getByFkid = (
   return result.rows._array[0];
 };
 
-export const insert = (deck: DeckInsert): I.ThunkAction<number> => async (
+export const insert = (deck: DeckInsert): ThunkAction<number> => async (
   dispatch,
   getState
 ) => {
@@ -137,7 +136,7 @@ export const insert = (deck: DeckInsert): I.ThunkAction<number> => async (
   return id;
 };
 
-export const update = (deck: DeckUpdate): I.ThunkAction => async (
+export const update = (deck: DeckUpdate): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -147,7 +146,7 @@ export const update = (deck: DeckUpdate): I.ThunkAction => async (
   await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex: 0 }]));
 };
 
-export const upload = (deck: Deck): I.ThunkAction => async (
+export const upload = (deck: Deck): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -168,7 +167,7 @@ export const upload = (deck: Deck): I.ThunkAction => async (
 };
 
 // create a new deck every time for now
-export const importFromFireBase = (deck_id: number): I.ThunkAction => async (
+export const importFromFireBase = (deck_id: number): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -202,7 +201,7 @@ export const importFromFireBase = (deck_id: number): I.ThunkAction => async (
   }
 };
 
-export const edit = (deck: Partial<Deck>): I.ThunkAction => async (
+export const edit = (deck: Partial<Deck>): ThunkAction => async (
   dispatch,
   getState
 ) => {
