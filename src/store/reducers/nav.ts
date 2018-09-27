@@ -1,6 +1,6 @@
 import * as Redux from 'redux';
 import { NavigationActions } from 'react-navigation';
-import Root from 'src/component';
+import Root from 'src/react-native/component';
 
 const initialState = Root.router.getStateForAction(
   NavigationActions.init()

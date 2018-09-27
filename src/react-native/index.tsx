@@ -1,4 +1,4 @@
-/// <reference path="./index.d.ts" />
+/// <reference path="../index.d.ts" />
 
 import * as Expo from 'expo';
 import * as React from 'react';
@@ -11,9 +11,9 @@ import { addNavigationHelpers } from 'react-navigation';
 import { createReduxBoundAddListener } from 'react-navigation-redux-helpers';
 
 import { Root as NBRoot } from 'native-base'; // for ActionSheet.show error
-import { LoadingIcon } from 'src/component/utils';
+import { LoadingIcon } from './component/utils';
 import Root from './component';
-import store from './store';
+import store from '../store';
 import * as Action from 'src/action';
 import * as C from 'src/constant';
 
