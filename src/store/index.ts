@@ -4,6 +4,7 @@ import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import reducers from './reducers';
 import { createReactNavigationReduxMiddleware } from 'react-navigation-redux-helpers';
+import { NavigationState } from 'react-navigation';
 import * as type from 'src/action/type';
 import { equal } from './reducers/util';
 
@@ -17,10 +18,11 @@ const logger = ({ getState, dispatch }) => next => action => {
   return rv;
 };
 
-const middleware = createReactNavigationReduxMiddleware(
-  'root',
-  state => state.nav
-);
+// NavigationState is a bit different from the one in index.d.ts
+// maybe good to just ignore this error
+const middleware = createReactNavigationReduxMiddleware<{
+  nav: NavigationState;
+}>('root', state => state.nav);
 
 const persistConfig = {
   key: 'root',
