@@ -4,7 +4,7 @@
     "module": "commonjs",
     "target": "es5",
     "lib": ["es2017", "es7"],
-    "types": ["react-native"],
+    "types": ["react-native", "react"],
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "declaration": false,
@@ -17,6 +17,7 @@
     "noImplicitReturns": true,
     "noUnusedParameters": false,
     "noUnusedLocals": true,
+    "skipLibCheck": true,
     "outDir": "./dist/"
   },
   "include": ["./src/**/*"],
