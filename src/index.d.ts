@@ -104,6 +104,7 @@ type ConfigState = {
   cardSwipeRight: cardSwipe;
   googleAccessToken?: string;
   googleRefreshToken?: string;
+  uid?: string;
 };
 
 interface UserState {
