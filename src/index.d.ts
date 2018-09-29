@@ -52,8 +52,8 @@ interface Tag {
 interface Card {
   id: number;
   fkid: string; // TODO: remove
-  name: string;
-  body: string;
+  frontText: string;
+  backText: string;
   hint: string;
   mastered: boolean;
   deckId: number;

@@ -64,13 +64,13 @@ export class _CardDetail extends React.Component<
         {this.state.view ? (
           // Android can not wrap TouchableWithoutFeedback
           // because scroll in webview doesn't work
-          <CardView body={card.body} {...params} />
+          <CardView body={card.backText} {...params} />
         ) : (
           <RN.TouchableWithoutFeedback
             onPress={() => this.state.view || this.props.onLongPress()}
           >
             <RN.View style={{ flex: 1 }}>
-              <CardView body={card.body} {...params} />
+              <CardView body={card.backText} {...params} />
             </RN.View>
           </RN.TouchableWithoutFeedback>
         )}
@@ -183,7 +183,7 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
                   dispatch(Action.nav.goTo('cardEdit', { card_id: item.id }))
                 }
               >
-                <SD.CardTitle>{item.name}</SD.CardTitle>
+                <SD.CardTitle>{item.frontText}</SD.CardTitle>
               </RN.TouchableOpacity>
             </SD.CardListItem>
           </Swipeout>

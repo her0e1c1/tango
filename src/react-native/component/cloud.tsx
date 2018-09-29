@@ -96,7 +96,7 @@ class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
               }
             >
               <SD.DeckCard style={{ marginBottom: 10 }}>
-                <SD.DeckTitle>{item.name}</SD.DeckTitle>
+                <SD.DeckTitle>{item.frontText}</SD.DeckTitle>
               </SD.DeckCard>
             </RN.TouchableOpacity>
           )}

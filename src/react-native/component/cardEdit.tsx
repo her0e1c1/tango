@@ -93,8 +93,8 @@ export class _CardEdit extends React.Component<
         <NB.Form>
           <Field
             name={'TITLE'}
-            value={card.name}
-            onChangeText={name => this.cardEdit({ name })}
+            value={card.frontText}
+            onChangeText={name => this.cardEdit({ frontText })}
           />
           <Field
             name={'HINT'}
@@ -103,9 +103,9 @@ export class _CardEdit extends React.Component<
           />
           <Field
             name={'BODY'}
-            value={card.body}
+            value={card.backText}
             rowSpan={10}
-            onChangeText={body => this.cardEdit({ body })}
+            onChangeText={body => this.cardEdit({ backText })}
           />
         </NB.Form>
         <NB.Button
@@ -154,7 +154,7 @@ export class _CardNew extends React.Component<
         <NB.Form>
           <Field
             name={'TITLE'}
-            value={card.name}
+            value={card.frontText}
             // onChangeText={name => this.cardEdit({ name })}
           />
           <Field
@@ -164,7 +164,7 @@ export class _CardNew extends React.Component<
           />
           <Field
             name={'BODY'}
-            value={card.body}
+            value={card.backText}
             // onChangeText={body => dispatch(Action.card.edit({ body }))}
           />
         </NB.Form>

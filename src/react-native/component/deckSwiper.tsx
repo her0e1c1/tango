@@ -132,7 +132,9 @@ class View extends React.Component<
                       body={
                         // Keep react-native-deck-swiper@1.4.6
                         // otherwise showHint will not be updated
-                        this.props.state.config.showHint ? item.hint : item.name
+                        this.props.state.config.showHint
+                          ? item.hint
+                          : item.frontText
                       }
                       category={'math'}
                     />
@@ -146,7 +148,9 @@ class View extends React.Component<
                     }}
                   >
                     <RN.Text style={{ fontSize: 24 }}>
-                      {this.props.state.config.showHint ? item.hint : item.name}
+                      {this.props.state.config.showHint
+                        ? item.hint
+                        : item.frontText}
                     </RN.Text>
                   </RN.View>
                 )}
