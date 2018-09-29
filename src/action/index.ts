@@ -11,6 +11,7 @@ export { card, auth, deck, nav, config, drive };
 
 import * as Papa from 'papaparse';
 import * as WebAction from 'src/web/action';
+import * as type from 'src/action/type';
 
 export const insertByURL = (url: string): ThunkAction => async (
   dispatch,

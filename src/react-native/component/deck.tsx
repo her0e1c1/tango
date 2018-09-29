@@ -161,13 +161,11 @@ export class _DeckEdit extends React.Component<
   ConnectedProps & { deck_id: number },
   {}
 > {
-  async componentDidMount() {
-    const { dispatch } = this.props;
+  deckEdit(edit: Partial<Deck>) {
     const deck = this.props.state.deck.byId[this.props.deck_id];
-    await dispatch(Action.deck.edit(deck));
+    this.props.dispatch(Action.deckUpdate({ ...deck, ...edit }));
   }
   render() {
-    const { dispatch } = this.props;
     const deck = this.props.state.deck.edit || {};
     return (
       <NB.Content>
@@ -188,7 +186,7 @@ export class _DeckEdit extends React.Component<
             <NB.Input
               style={{ backgroundColor: 'white' }}
               value={deck.name}
-              onChangeText={name => dispatch(Action.deck.edit({ name }))}
+              onChangeText={name => this.deckEdit({ name })}
             />
           </NB.Body>
         </NB.ListItem>
@@ -200,9 +198,7 @@ export class _DeckEdit extends React.Component<
           <NB.Body>
             <RN.Switch
               value={Boolean(deck.isPublic)}
-              onValueChange={isPublic =>
-                dispatch(Action.deck.edit({ isPublic }))
-              }
+              onValueChange={isPublic => this.deckEdit({ isPublic })}
             />
           </NB.Body>
         </NB.ListItem>
@@ -244,9 +240,7 @@ export class _DeckEdit extends React.Component<
                 width: RN.Platform.OS === 'android' ? 120 : undefined,
               }}
               selectedValue={deck.category || ''}
-              onValueChange={category =>
-                dispatch(Action.deck.edit({ category }))
-              }
+              onValueChange={category => this.deckEdit({ category })}
               {...{ iosIcon: <NB.Icon name="arrow-down" /> }}
             >
               {[''].concat(C.CATEGORY).map((x, i) => (
@@ -263,9 +257,7 @@ export class _DeckEdit extends React.Component<
           <NB.Body>
             <RN.Switch
               value={Boolean(deck.convertToBr)}
-              onValueChange={convertToBr =>
-                dispatch(Action.deck.edit({ convertToBr }))
-              }
+              onValueChange={convertToBr => this.deckEdit({ convertToBr })}
             />
           </NB.Body>
         </NB.ListItem>
