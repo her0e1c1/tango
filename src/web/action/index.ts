@@ -26,11 +26,6 @@ export const login = (): ThunkAction => async (dispatch, getState) => {
   dispatch(configUpdate({ uid: result.user.uid, googleAccessToken }));
 };
 
-export const logout = (): ThunkAction => async (dispatch, getState) => {
-  await firebase.auth().signOut();
-  dispatch(configUpdate({ uid: '', googleAccessToken: '' }));
-};
-
 export const deckFetch = (): ThunkAction => async (dispatch, getState) => {
   const uid = getState().config.uid;
   if (uid) {

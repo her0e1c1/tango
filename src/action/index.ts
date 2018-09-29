@@ -6,8 +6,15 @@ export * from 'src/react-native/action';
 export * from 'src/web/action';
 export { auth, nav, config };
 
+import * as firebase from 'firebase';
 import * as Papa from 'papaparse';
+import * as type from './type';
 import * as WebAction from 'src/web/action';
+
+export const logout = (): ThunkAction => async (dispatch, getState) => {
+  await firebase.auth().signOut();
+  dispatch(type.configUpdate({ uid: '', googleAccessToken: '' }));
+};
 
 export const refreshToken = (): ThunkAction<boolean> => async (
   dispatch,

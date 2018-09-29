@@ -68,8 +68,8 @@ export class _Config extends React.Component<ConnectedProps, {}> {
 
   render() {
     const { dispatch } = this.props;
-    const { config, user } = this.props.state;
-    const isLogin = user && user.displayName;
+    const { config } = this.props.state;
+    const isLogin = config && !!config.uid;
     return (
       <NB.Container>
         <NB.Header>
@@ -80,7 +80,9 @@ export class _Config extends React.Component<ConnectedProps, {}> {
         <NB.Content>
           <NB.List>
             <NB.Separator bordered>
-              <NB.Text>Basic {isLogin ? `: ${user.displayName}` : ''}</NB.Text>
+              <NB.Text>
+                Basic {isLogin ? `: ${config.displayName}` : ''}
+              </NB.Text>
             </NB.Separator>
             <NB.ListItem icon>
               <NB.Body>
