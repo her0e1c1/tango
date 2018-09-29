@@ -35,6 +35,12 @@ export default (
     delete ns.byId[c.id];
     _.pull(ns.byDeckId[c.deckId], c.id);
     return ns;
+  } else if (equal(action, type.deckDelete)) {
+    const id = action.payload.deckId;
+    Object.values(state.byId).forEach(
+      c => c.deckId === id && delete state.byId[c.id]
+    );
+    return state;
   } else if (equal(action, type.card_shuffle)) {
     const config: ConfigState = action.payload.config;
     const byDeckId = Object.entries(state.byDeckId)

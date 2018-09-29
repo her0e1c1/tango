@@ -48,7 +48,11 @@ interface Card {
   category: string | null;
 }
 
-type DeckState = { byId: { [key: string]: Deck }; edit: Deck };
+type DeckState = {
+  byId: { [key: string]: Deck };
+  edit: Deck;
+  categories: string[];
+};
 
 type CardState = {
   byId: { [key: string]: Card };

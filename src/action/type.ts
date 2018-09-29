@@ -3,6 +3,11 @@ export const deckBulkInsert = (decks: Deck[]) => ({
   payload: { decks },
 });
 
+export const deckDelete = (deckId: string) => ({
+  type: 'DECK_DELETE',
+  payload: { deckId },
+});
+
 export const deckBulkDelete = (deckIds: string[]) => ({
   type: 'DECK_BULK_DELETE',
   payload: { deckIds },

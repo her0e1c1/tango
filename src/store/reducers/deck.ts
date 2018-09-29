@@ -1,3 +1,4 @@
+import { uniq } from 'lodash';
 import * as type from 'src/action/type';
 import { equal } from './util';
 
@@ -6,7 +7,8 @@ export default (
   action: Action
 ) => {
   if (equal(action, type.deckBulkInsert)) {
-    action.payload.decks.forEach(d => {
+    const decks = action.payload.decks;
+    decks.forEach(d => {
       // HOTFIX: some deck returns without id
       if (!d.id) return;
       let currentIndex = d.currentIndex;
@@ -24,7 +26,14 @@ export default (
       }
       state.byId[d.id] = { ...d, currentIndex };
     });
-    return { ...state };
+    return {
+      ...state,
+      categories: uniq(decks.map(c => c.category)).filter(c => !!c),
+    };
+    // } else if (equal(action, type.deckDelete)) {
+    //   const id = action.payload.deckId;
+    //   delete state.byId[id];
+    //   return state;
   } else if (equal(action, type.deckBulkDelete)) {
     action.payload.deckIds.forEach(id => delete state.byId[id]);
     return { ...state };
