@@ -1,7 +1,7 @@
 import * as Selector from 'src/selector';
-import { toggleMastered } from './card';
 import { updateConfig } from './config';
 import { NavigationActions } from 'react-navigation';
+import * as Action from 'src/action';
 import * as type from './type';
 
 export const shuffleCardsOrSort = (): ThunkAction => async (
@@ -18,7 +18,7 @@ export const goToNextCardSetMastered = (
   const state = getState();
   const card = Selector.getCurrentCard(state);
   if (card) {
-    await dispatch(toggleMastered(card, mastered));
+    await dispatch(Action.cardUpdate({ ...card, mastered: !card.mastered }));
     if (state.config.showMastered) {
       await dispatch(goToNextCard());
     } else if (mastered === false) {

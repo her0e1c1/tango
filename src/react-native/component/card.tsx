@@ -18,7 +18,9 @@ export class _MasteredCircle extends React.Component<
     return (
       <NB.CheckBox
         checked={Boolean(card.mastered)}
-        onPress={() => dispatch(Action.card.toggleMastered(card))}
+        onPress={() =>
+          dispatch(Action.cardUpdate({ ...card, mastered: !card.mastered }))
+        }
       />
     );
   }

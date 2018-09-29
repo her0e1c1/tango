@@ -1,16 +1,6 @@
 import { exec } from 'src/store/sqlite';
 import * as type from './type';
 
-export const toggleMastered = (
-  card: Card,
-  mastered?: boolean
-): ThunkAction => async (dispatch, getState) => {
-  const m = mastered === undefined ? !card.mastered : mastered;
-  const sql = 'update card set mastered = ? where id = ?';
-  await exec(sql, [m, card.id]);
-  await dispatch(type.card_bulk_insert([{ ...card, mastered: m }]));
-};
-
 export const bulkInsertCards = (
   deck_id: number,
   cards: Pick<
