@@ -23,7 +23,7 @@ export const loginWithGoogle = (): ThunkAction => async (
       .auth()
       .signInWithCredential(credential)
       .then(() => dispatch(init()))
-      .catch(error => console.log(error));
+      .catch(error => __DEV__ && console.log(error));
   } else {
     alert(`Can not login with Google account`);
   }
@@ -31,7 +31,7 @@ export const loginWithGoogle = (): ThunkAction => async (
 
 export const init = (): ThunkAction => async (dispatch, getState) => {
   auth.onAuthStateChanged(async user => {
-    console.log('DEBUG: INIT', user);
+    __DEV__ && console.log('DEBUG: INIT', user);
     await dispatch(WebAction.configUpdate({ uid: user.uid }));
     await dispatch(WebAction.deckFetch());
     /*

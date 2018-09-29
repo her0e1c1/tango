@@ -49,7 +49,7 @@ class RightButton extends React.Component<Props, {}> {
   async doAction(name: string) {
     const { dispatch } = this.props;
     if (name === 'cardEdit') {
-      await dispatch(Action.card.updateCard(this.props.state.card.edit));
+      await dispatch(Action.cardUpdate(this.props.state.card.edit));
       await dispatch(Action.nav.goBack());
     } else if (name === 'cardNew') {
       const card = this.props.state.card.edit;
