@@ -1,10 +1,6 @@
-import * as Expo from 'expo';
 import * as C from 'src/constant';
-import * as firebase from 'firebase';
 import * as Action from 'src/action';
-import { AuthSession } from 'expo';
 import * as queryString from 'query-string';
-import * as type from './type';
 
 export const refreshToken = (): ThunkAction<boolean> => async (
   dispatch,
