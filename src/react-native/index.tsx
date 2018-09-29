@@ -13,7 +13,7 @@ import { createReduxBoundAddListener } from 'react-navigation-redux-helpers';
 import { Root as NBRoot } from 'native-base'; // for ActionSheet.show error
 import { LoadingIcon } from './component/utils';
 import Root from './component';
-import store from '../store';
+import store from './store';
 import * as Action from 'src/action';
 import * as ReactNativeAction from 'src/react-native/action';
 import * as C from 'src/constant';
