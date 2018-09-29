@@ -49,7 +49,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
     RN.Alert.alert('Choose account', '', [
       {
         text: 'Google',
-        onPress: () => dispatch(Action.loginWithGoogle()),
+        onPress: () => dispatch(Action.native.loginWithGoogle()),
       },
       { text: 'Cancel', onPress: () => {} },
     ]);

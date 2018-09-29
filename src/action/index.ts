@@ -1,10 +1,9 @@
 import * as nav from './nav';
-import * as auth from './auth';
 import * as config from './config';
+import * as native from 'src/react-native/action';
 
-export * from 'src/react-native/action';
 export * from 'src/web/action';
-export { auth, nav, config };
+export { nav, config, native };
 
 import * as firebase from 'firebase';
 import * as Papa from 'papaparse';
