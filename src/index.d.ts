@@ -3,7 +3,6 @@ interface Action<P = undefined> {
   payload: P;
 }
 
-type DriveType = 'application/vnd.google-apps.spreadsheet';
 type Category = 'math' | 'python' | 'golang' | 'haskell' | 'raw' | 'markdown';
 
 interface Deck {
@@ -37,20 +36,8 @@ interface Sheet {
   };
 }
 
-interface Drive {
-  id: string;
-  kind: string; // "drive#file"
-  name: string;
-  mimeType: DriveType;
-  sheets: Sheet[];
-}
-
-interface Tag {
-  name: string;
-}
-
 interface Card {
-  id: number;
+  id: string;
   fkid: string; // TODO: remove
   frontText: string;
   backText: string;
@@ -133,11 +120,7 @@ interface RootState {
   card: CardState;
   nav: NavState;
   config: ConfigState;
-  user: UserState;
-  drive: DriveState;
 }
-
-type Callback = () => void;
 
 interface AppContext {
   theme: Theme;
