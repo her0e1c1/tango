@@ -47,13 +47,3 @@ export const configUpdate = (config: Partial<ConfigState>) => ({
   type: 'CONFIG_UPDATE',
   payload: { config },
 });
-
-export const user_init = (user: UserState) => ({
-  type: 'USER_INIT',
-  payload: { user },
-});
-
-export const user_logout = () => ({
-  type: 'USER_LOGOUT',
-  payload: undefined,
-});
