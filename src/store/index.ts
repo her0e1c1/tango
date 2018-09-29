@@ -2,14 +2,12 @@ import * as Redux from 'redux';
 import thunk from 'redux-thunk';
 import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import reducers from './reducers';
 import { createReactNavigationReduxMiddleware } from 'react-navigation-redux-helpers';
 import { NavigationState } from 'react-navigation';
-import * as type from 'src/action/type';
-import { equal } from './reducers/util';
+import { root } from './reducer';
 
 const logger = ({ getState, dispatch }) => next => action => {
-  console.log('ACTION: ', action.type);
+  __DEV__ && console.log('ACTION: ', action.type);
   const rv = next(action);
   return rv;
 };
@@ -27,16 +25,9 @@ const persistConfig = {
   whitelist: ['nav'],
 };
 
-const rootReducer = (state, action) => {
-  if (equal(action, type.clear_all)) {
-    state = undefined;
-  }
-  return Redux.combineReducers(reducers)(state, action);
-};
-
 const persistedReducer = persistReducer(
   persistConfig,
-  rootReducer
+  root
   // Redux.combineReducers(reducers)
 );
 
