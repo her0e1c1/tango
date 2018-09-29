@@ -57,7 +57,7 @@ class RightButton extends React.Component<Props, {}> {
       await dispatch(Action.nav.goBack());
     } else if (name === 'deckEdit') {
       const deck = this.props.state.deck.edit;
-      await dispatch(Action.deck.update(deck));
+      await dispatch(Action.deckUpdate(deck));
       await dispatch(Action.nav.goBack());
     } else if (name === 'deck') {
       // TODO: Fix to cardList
