@@ -119,15 +119,6 @@ type ConfigState = {
   googleRefreshToken?: string;
 };
 
-interface ShareState {
-  user: {
-    [uid: string]: {
-      deck: { byId: { [key: string]: Deck } };
-      card: { byId: { [key: string]: Card } };
-    };
-  };
-}
-
 interface UserState {
   uid: string;
   displayName: string | null;
@@ -142,7 +133,6 @@ interface RootState {
   card: CardState;
   nav: NavState;
   config: ConfigState;
-  share: ShareState;
   user: UserState;
   drive: DriveState;
 }
