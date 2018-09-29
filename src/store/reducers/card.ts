@@ -29,7 +29,7 @@ export default (
     ids.forEach(id => delete state.byId[id]);
     delete state.byDeckId[deck_id];
     return { ...state };
-  } else if (equal(action, type.card_delete)) {
+  } else if (equal(action, type.cardDelete)) {
     const ns = _.clone(state);
     const c = action.payload.card;
     delete ns.byId[c.id];

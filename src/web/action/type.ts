@@ -23,7 +23,7 @@ export const cardBulkInsert = (cards: Card[]) => ({
   payload: { cards },
 });
 
-export const cardDelete = (id: string) => ({
+export const cardDelete = (card: Card) => ({
   type: 'CARD_DELETE',
-  payload: { id },
+  payload: { card },
 });
