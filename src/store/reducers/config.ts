@@ -23,7 +23,7 @@ export default (
   },
   action: Action
 ): ConfigState => {
-  if (equal(action, type.config)) {
+  if (equal(action, type.configUpdate)) {
     return { ...state, ...action.payload.config };
   } else {
     return state;

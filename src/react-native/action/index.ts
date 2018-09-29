@@ -2,7 +2,9 @@ import * as Expo from 'expo';
 import * as C from 'src/constant';
 import * as firebase from 'firebase';
 import * as Action from 'src/action';
+import * as WebAction from 'src/web/action';
 import * as type from 'src/action/type';
+import { auth } from 'src/firebase';
 
 export const loginWithGoogle = (): ThunkAction => async (
   dispatch,
@@ -28,7 +30,10 @@ export const loginWithGoogle = (): ThunkAction => async (
 };
 
 export const init = (): ThunkAction => async (dispatch, getState) => {
-  firebase.auth().onAuthStateChanged(async user => {
+  auth.onAuthStateChanged(async user => {
+    console.log('DEBUG: INIT', user);
+    await dispatch(WebAction.configUpdate({ uid: user.uid }));
+    await dispatch(WebAction.deckFetch());
     /*
     await dispatch(Action.config.endLoading());
     if (user != null) {
@@ -45,6 +50,6 @@ export const init = (): ThunkAction => async (dispatch, getState) => {
       dispatch(type.user_logout());
       console.log('NOT LOGGED IN YET');
     }
-  });
     */
+  });
 };

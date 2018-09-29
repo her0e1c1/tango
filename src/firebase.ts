@@ -6,4 +6,8 @@ require('firebase/firestore');
 firebase.initializeApp(C.FIREBASE_CONFIG);
 
 export const db = firebase.firestore();
+db.settings({
+  timestampsInSnapshots: true,
+});
+
 export const auth = firebase.auth();

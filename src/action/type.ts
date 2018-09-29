@@ -48,8 +48,8 @@ export const clear_all = () => ({
   payload: undefined,
 });
 
-export const config = (config: Partial<ConfigState>) => ({
-  type: 'CONFIG',
+export const configUpdate = (config: Partial<ConfigState>) => ({
+  type: 'CONFIG_UPDATE',
   payload: { config },
 });
 

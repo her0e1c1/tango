@@ -6,7 +6,7 @@ export const updateConfig = (config: Partial<ConfigState>) => async (
   dispatch,
   getState
 ) => {
-  dispatch(type.config(config));
+  dispatch(type.configUpdate(config));
 };
 
 export const toggle = (key: keyof ConfigState): ThunkAction => async (
@@ -25,7 +25,7 @@ export const endLoading = () => async (dispatch, getState) => {
 };
 
 export const clearError = () => async (dispatch, getState) => {
-  await dispatch(type.config({ errorCode: undefined }));
+  await dispatch(type.configUpdate({ errorCode: undefined }));
 };
 
 export const getTheme = (state: RootState): Theme => {

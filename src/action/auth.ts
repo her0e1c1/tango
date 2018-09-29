@@ -141,26 +141,4 @@ export const loginWithFacebook = (): ThunkAction => async (
 };
 */
 
-export const init = (): ThunkAction => async (dispatch, getState) => {
-  firebase.auth().onAuthStateChanged(async user => {
-    await dispatch(Action.config.endLoading());
-    if (user != null) {
-      firebase
-        .database()
-        .ref(`/user/${user.uid}/lastOnline`)
-        .onDisconnect()
-        .set(firebase.database.ServerValue.TIMESTAMP);
-      await dispatch(type.user_init(user));
-      // await dispatch(Action.share.fetchDecks());
-      const ok = await dispatch(Action.drive.refreshToken());
-      ok && (await dispatch(Action.drive.getSpreadSheets()));
-    } else {
-      dispatch(type.user_logout());
-      console.log('NOT LOGGED IN YET');
-    }
-  });
-};
-
-export const logout = (): ThunkAction => async (dispatch, getState) => {
-  dispatch(type.user_logout());
-};
+export const init = (): ThunkAction => async (dispatch, getState) => {};
