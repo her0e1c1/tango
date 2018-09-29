@@ -53,7 +53,7 @@ class RightButton extends React.Component<Props, {}> {
       await dispatch(Action.nav.goBack());
     } else if (name === 'cardNew') {
       const card = this.props.state.card.edit;
-      await dispatch(Action.cardBulkInsert(card.deck_id, [card]));
+      await dispatch(Action.cardBulkInsert(card.deckId, [card]));
       await dispatch(Action.nav.goBack());
     } else if (name === 'deckEdit') {
       const deck = this.props.state.deck.edit;
@@ -71,7 +71,7 @@ class RightButton extends React.Component<Props, {}> {
       const card = Selector.getCurrentCard(this.props.state);
       await dispatch(
         Action.nav.goTo('cardEdit', {
-          deck_id: card.deck_id,
+          deck_id: card.deckId,
           card_id: card.id,
         })
       );

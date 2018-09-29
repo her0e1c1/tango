@@ -5,13 +5,12 @@ import { equal } from './util';
 const updateCard = (state: CardState, cards: Card[]) => {
   const ns = _.clone(state);
   cards.forEach(c => {
-    c.category === undefined && (c.category = null); // firebase can not store undefined ...
     ns.byId[c.id] = c;
-    const ids = ns.byDeckId[c.deck_id];
+    const ids = ns.byDeckId[c.deckId];
     if (!ids) {
-      ns.byDeckId[c.deck_id] = [c.id];
+      ns.byDeckId[c.deckId] = [c.id];
     } else if (!ids.includes(c.id)) {
-      ns.byDeckId[c.deck_id].push(c.id);
+      ns.byDeckId[c.deckId].push(c.id);
     }
   });
   return ns;
@@ -21,7 +20,7 @@ export default (
   state: CardState = { byId: {}, byDeckId: {}, edit: {} as Card },
   action: Action
 ) => {
-  if (equal(action, type.card_bulk_insert)) {
+  if (equal(action, type.cardBulkInsert)) {
     const cs = action.payload.cards;
     return updateCard(state, cs);
   } else if (equal(action, type.card_bulk_delete)) {
@@ -34,7 +33,7 @@ export default (
     const ns = _.clone(state);
     const c = action.payload.card;
     delete ns.byId[c.id];
-    _.pull(ns.byDeckId[c.deck_id], c.id);
+    _.pull(ns.byDeckId[c.deckId], c.id);
     return ns;
   } else if (equal(action, type.card_shuffle)) {
     const config: ConfigState = action.payload.config;

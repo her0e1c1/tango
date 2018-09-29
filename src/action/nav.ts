@@ -60,7 +60,7 @@ export const goToCard = (card: Card): ThunkAction => async (
 ) => {
   const state = getState();
   const cards = Selector.getCurrentCardList(getState());
-  const deck = state.deck.byId[card.deck_id];
+  const deck = state.deck.byId[card.deckId];
   let currentIndex = 0;
   for (let i = 0; i < cards.length; i++) {
     if (cards[i].id == card.id) {

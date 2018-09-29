@@ -177,7 +177,7 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
                 }}
                 onPress={() => {
                   dispatch(Action.nav.goToCard(item));
-                  dispatch(Action.nav.goToCardById(item.id, item.deck_id));
+                  dispatch(Action.nav.goToCardById(item.id, item.deckId));
                 }}
                 onLongPress={() =>
                   dispatch(Action.nav.goTo('cardEdit', { card_id: item.id }))

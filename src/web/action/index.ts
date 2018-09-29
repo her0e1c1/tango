@@ -72,10 +72,11 @@ export const deckCreate = (
       })
     );
     await batch.commit();
-    await dispatch(
-      type.deckBulkInsert([{ ...deck, id: docRef.id, createdAt: new Date() }])
+    await dispatch(deckFetch());
+    const state = getState();
+    Object.values(state.deck.byId).forEach(deck =>
+      dispatch(cardFetch(deck.id))
     );
-    // await dispatch(type.cardBulkInsert());
   } else {
     alert('You need to log in first');
   }

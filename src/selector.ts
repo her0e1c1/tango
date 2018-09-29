@@ -36,6 +36,7 @@ export const getCurrentDeck = (state: RootState): Deck => {
 
 export const getCardList = (state: RootState, deck_id: number) => {
   const all = state.card.byDeckId[deck_id] || [];
+  console.log('DEBUG: ', all.length, deck_id);
   return all.map(id => state.card.byId[id]);
 };
 

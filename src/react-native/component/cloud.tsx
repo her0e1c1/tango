@@ -87,7 +87,7 @@ class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
       <SD.Container>
         <RN.FlatList
           data={cards
-            .filter(x => !!x && x.deck_id === deck_id)
+            .filter(x => !!x && x.deckId === deck_id)
             .map((d, key) => ({ ...d, key }))}
           renderItem={({ item }: { item: Card }) => (
             <RN.TouchableOpacity
