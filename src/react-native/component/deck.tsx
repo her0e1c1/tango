@@ -48,7 +48,7 @@ class _DeckList extends React.Component<
       <RN.FlatList
         data={decks.map(d => ({ ...d, key: d.id }))}
         onRefresh={async () => {
-          await dispatch(Action.deck.select());
+          // await dispatch(Action.deck.select());
           await dispatch(Action.card.selectCard());
           await this.setState({ refreshing: false });
         }}
@@ -75,7 +75,7 @@ class _DeckList extends React.Component<
                 right: (
                   <NB.Button
                     danger
-                    onPress={() => dispatch(Action.deck.remove(item))}
+                    onPress={() => dispatch(Action.deckDelete(item.id))}
                   >
                     <NB.Icon active name="trash" />
                   </NB.Button>
@@ -123,7 +123,7 @@ export class _ProgressBar extends React.Component<
     const index = `(${deck.currentIndex})`;
     const cards = Selector.getCardList(this.props.state, deck_id);
     const mastered = cards.filter(x => !!x && x.mastered);
-    const width = cards.length > 0 ? mastered.length / cards.length * 100 : 0;
+    const width = cards.length > 0 ? (mastered.length / cards.length) * 100 : 0;
     return (
       <RN.View
         style={{
@@ -250,9 +250,9 @@ export class _DeckEdit extends React.Component<
               }
               {...{ iosIcon: <NB.Icon name="arrow-down" /> }}
             >
-              {['']
-                .concat(C.CATEGORY)
-                .map((x, i) => <NB.Picker.Item key={i} label={x} value={x} />)}
+              {[''].concat(C.CATEGORY).map((x, i) => (
+                <NB.Picker.Item key={i} label={x} value={x} />
+              ))}
             </NB.Picker>
           </NB.Body>
         </NB.ListItem>
