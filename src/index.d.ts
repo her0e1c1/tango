@@ -52,7 +52,7 @@ type DeckState = { byId: { [key: string]: Deck }; edit: Deck };
 
 type CardState = {
   byId: { [key: string]: Card };
-  byDeckId: { [key: string]: number[] };
+  byDeckId: { [key: string]: string[] };
   edit: Card;
 };
 
