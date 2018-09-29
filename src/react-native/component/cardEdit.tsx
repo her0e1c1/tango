@@ -88,11 +88,9 @@ export class _CardEdit extends React.Component<
                 }
                 {...{ iosIcon: <NB.Icon name="arrow-down" /> }}
               >
-                {['']
-                  .concat(C.CATEGORY)
-                  .map((x, i) => (
-                    <NB.Picker.Item key={i} label={x} value={x} />
-                  ))}
+                {[''].concat(C.CATEGORY).map((x, i) => (
+                  <NB.Picker.Item key={i} label={x} value={x} />
+                ))}
               </NB.Picker>
             </NB.Right>
           </NB.ListItem>
@@ -132,7 +130,7 @@ export class _CardEdit extends React.Component<
                 {
                   text: 'Delete',
                   onPress: async () => {
-                    await dispatch(Action.card.deleteCard(card));
+                    await dispatch(Action.cardDelete(card.id));
                     await dispatch(Action.nav.goBack());
                   },
                 },

@@ -33,27 +33,6 @@ export const updateCard = (
   }
 };
 
-export const deleteCard = (card: Card): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const result = await exec('delete from card where id = ?', [card.id]);
-  if (result.rowsAffected === 1) {
-    dispatch(type.card_delete(card));
-  } else {
-    alert('You can not delete');
-  }
-};
-
-export const selectCard = (deck_id?: number): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const result = await exec('select * from card');
-  const cards = result.rows._array;
-  await dispatch(type.card_bulk_insert(cards));
-};
-
 export const toggleMastered = (
   card: Card,
   mastered?: boolean

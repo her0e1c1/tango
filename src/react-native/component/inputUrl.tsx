@@ -56,7 +56,7 @@ class _InputUrl extends React.Component<
     if (!text) {
       return;
     }
-    await dispatch(Action.deck.insertByURL(this.state.text));
+    await dispatch(Action.insertByURL(this.state.text));
     const { errorCode } = this.props.state.config;
     if (errorCode) {
       if (errorCode == 'INVALID_URL') {

@@ -60,7 +60,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
     RN.Alert.alert('Do you want to logout?', '', [
       {
         text: 'Logout',
-        onPress: () => dispatch(Action.auth.logout()),
+        onPress: () => dispatch(Action.logout()),
       },
       { text: 'Cancel', onPress: () => {} },
     ]);

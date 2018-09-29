@@ -160,7 +160,7 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
               {
                 text: 'DEL',
                 backgroundColor: 'red',
-                onPress: () => dispatch(Action.card.deleteCard(item)),
+                onPress: () => dispatch(Action.cardDelete(item.id)),
               },
             ]}
           >
