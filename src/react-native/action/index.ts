@@ -2,8 +2,6 @@ import * as Expo from 'expo';
 import * as C from 'src/constant';
 import * as firebase from 'firebase';
 import * as Action from 'src/action';
-import * as WebAction from 'src/web/action';
-import * as type from 'src/action/type';
 import { auth } from 'src/firebase';
 
 export const loginWithGoogle = (): ThunkAction => async (
@@ -32,8 +30,8 @@ export const loginWithGoogle = (): ThunkAction => async (
 export const init = (): ThunkAction => async (dispatch, getState) => {
   auth.onAuthStateChanged(async user => {
     __DEV__ && console.log('DEBUG: INIT', user);
-    await dispatch(WebAction.configUpdate({ uid: user.uid }));
-    await dispatch(WebAction.deckFetch());
+    await dispatch(Action.configUpdate({ uid: user.uid }));
+    await dispatch(Action.deckFetch());
     /*
     await dispatch(Action.config.endLoading());
     if (user != null) {
