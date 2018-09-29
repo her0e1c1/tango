@@ -10,6 +10,7 @@ import * as firebase from 'firebase';
 import * as Papa from 'papaparse';
 import * as type from './type';
 import * as WebAction from 'src/web/action';
+import { db } from 'src/firebase';
 
 export const logout = (): ThunkAction => async (dispatch, getState) => {
   await firebase.auth().signOut();

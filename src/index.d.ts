@@ -6,7 +6,7 @@ interface Action<P = undefined> {
 type Category = 'math' | 'python' | 'golang' | 'haskell' | 'raw' | 'markdown';
 
 interface Deck {
-  id: number;
+  id: string;
   name: string;
   isPublic: boolean;
   url?: string;
