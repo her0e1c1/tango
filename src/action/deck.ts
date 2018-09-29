@@ -81,26 +81,6 @@ export const insertByText = (
   __DEV__ && console.log(`FETCH DONE ${deck_id}`);
 };
 
-export const remove = (deck: Deck): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  // TODO: use transaction
-  await exec('delete from deck where id = ?', [deck.id]);
-  await exec('delete from card where deck_id = ?', [deck.id]);
-  dispatch(type.deck_bulk_delete([deck]));
-  dispatch(type.card_bulk_delete(deck.id));
-};
-
-export const select = (limit: number = 100): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const result = await exec('select * from deck');
-  const decks = result.rows._array;
-  await dispatch(type.deck_bulk_insert(decks));
-};
-
 export const getByFkid = (
   deck: Pick<Deck, 'spreadsheetId' | 'spreadsheetGid'>
 ): ThunkAction<DeckSelect> => async (dispatch, getState) => {
@@ -163,41 +143,6 @@ export const upload = (deck: Deck): ThunkAction => async (
       .catch(e => alert(e));
   } else {
     alert('You need to log in first');
-  }
-};
-
-// create a new deck every time for now
-export const importFromFireBase = (deck_id: number): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const { uid } = getState().user;
-  if (uid) {
-    await dispatch(startLoading());
-    firebase
-      .database()
-      .ref(`/user/${uid}/deck/${deck_id}`)
-      .once('value', async snapshot => {
-        const v = snapshot.val();
-        const id = await dispatch(insert(v as Deck));
-        firebase
-          .database()
-          .ref(`/user/${uid}/card`)
-          .orderByChild('deck_id')
-          .equalTo(deck_id)
-          .once('value', async snapshot => {
-            const v = snapshot.val();
-            const cards = Object.values(v) as Card[];
-            await dispatch(bulkInsertCards(id, cards));
-            await dispatch(endLoading());
-          })
-          .catch(e => {
-            dispatch(endLoading());
-            console.log(e);
-          });
-      });
-  } else {
-    alert('NOT LOGGED IN YET');
   }
 };
 

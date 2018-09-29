@@ -7,4 +7,5 @@ import * as share from './share';
 import * as drive from './drive';
 
 export * from 'src/react-native/action';
+export * from 'src/web/action';
 export { card, auth, deck, nav, config, share, drive };
