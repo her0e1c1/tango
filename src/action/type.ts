@@ -1,9 +1,9 @@
-export const deck_bulk_insert = (decks: Deck[]) => ({
+export const deckBulkInsert = (decks: Deck[]) => ({
   type: 'DECK_BULK_INSERT',
   payload: { decks },
 });
 
-export const deck_bulk_delete = (deckIds: string[]) => ({
+export const deckBulkDelete = (deckIds: string[]) => ({
   type: 'DECK_BULK_DELETE',
   payload: { deckIds },
 });
@@ -18,7 +18,7 @@ export const cardDelete = (card: Card) => ({
   payload: { card },
 });
 
-export const card_bulk_delete = (deck_id: number) => ({
+export const cardBulkDelete = (deck_id: number) => ({
   type: 'CARD_BULK_DELETE',
   payload: { deck_id },
 });
@@ -41,11 +41,6 @@ export const clear_all = () => ({
 export const configUpdate = (config: Partial<ConfigState>) => ({
   type: 'CONFIG_UPDATE',
   payload: { config },
-});
-
-export const drive_bulk_insert = (drives: Drive[]) => ({
-  type: 'SHARE_BULK_INSERT',
-  payload: { drives },
 });
 
 export const user_init = (user: UserState) => ({

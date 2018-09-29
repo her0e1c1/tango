@@ -37,7 +37,7 @@ export const goToNextCard = (): ThunkAction => async (dispatch, getState) => {
   const cards = Selector.getCurrentCardList(state);
   const currentIndex = deck.currentIndex + 1;
   if (currentIndex <= cards.length - 1) {
-    await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
+    await dispatch(type.deckBulkInsert([{ ...deck, currentIndex }]));
   } else {
     await dispatch(swipeAll());
   }
@@ -48,7 +48,7 @@ export const goToPrevCard = (): ThunkAction => async (dispatch, getState) => {
   const deck = Selector.getCurrentDeck(state);
   const currentIndex = deck.currentIndex - 1;
   if (currentIndex >= 0) {
-    await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
+    await dispatch(type.deckBulkInsert([{ ...deck, currentIndex }]));
   } else {
     await dispatch(goBack());
   }
@@ -67,14 +67,14 @@ export const goToCard = (card: Card): ThunkAction => async (
       currentIndex = i;
     }
   }
-  dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
+  dispatch(type.deckBulkInsert([{ ...deck, currentIndex }]));
 };
 
 export const goToCardByIndex = (
   deck: Deck,
   currentIndex: number
 ): ThunkAction => async (dispatch, getState) => {
-  dispatch(type.deck_bulk_insert([{ ...deck, currentIndex }]));
+  dispatch(type.deckBulkInsert([{ ...deck, currentIndex }]));
 };
 
 export const goHome = (): ThunkAction => async (dispatch, getState) => {};
@@ -105,7 +105,7 @@ export const goToCardById = (card_id: number, deck_id: number) => async (
 
 export const swipeAll = () => async (dispatch, getState) => {
   const deck = Selector.getCurrentDeck(getState());
-  await dispatch(type.deck_bulk_insert([{ ...deck, currentIndex: 0 }]));
+  await dispatch(type.deckBulkInsert([{ ...deck, currentIndex: 0 }]));
   await dispatch(goBack());
 };
 

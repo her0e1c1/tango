@@ -5,7 +5,7 @@ export default (
   state: DeckState = { byId: {}, edit: {} as Deck },
   action: Action
 ) => {
-  if (equal(action, type.deck_bulk_insert)) {
+  if (equal(action, type.deckBulkInsert)) {
     action.payload.decks.forEach(d => {
       // HOTFIX: some deck returns without id
       if (!d.id) return;
@@ -25,7 +25,7 @@ export default (
       state.byId[d.id] = { ...d, currentIndex };
     });
     return { ...state };
-  } else if (equal(action, type.deck_bulk_delete)) {
+  } else if (equal(action, type.deckBulkDelete)) {
     action.payload.deckIds.forEach(id => delete state.byId[id]);
     return { ...state };
   } else {

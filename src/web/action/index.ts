@@ -1,6 +1,6 @@
 import * as firebase from 'firebase';
 
-import * as type from './type';
+import * as type from 'src/action/type';
 import { db } from 'src/firebase';
 
 const checkLogin = (state: RootState): string | undefined => {

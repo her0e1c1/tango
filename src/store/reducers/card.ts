@@ -23,7 +23,7 @@ export default (
   if (equal(action, type.cardBulkInsert)) {
     const cs = action.payload.cards;
     return updateCard(state, cs);
-  } else if (equal(action, type.card_bulk_delete)) {
+  } else if (equal(action, type.cardBulkDelete)) {
     const deck_id = action.payload.deck_id;
     const ids = state.byDeckId[deck_id];
     ids.forEach(id => delete state.byId[id]);
