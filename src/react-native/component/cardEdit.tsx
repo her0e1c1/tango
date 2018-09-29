@@ -38,10 +38,9 @@ export class _CardEdit extends React.Component<
   ConnectedProps & { card_id: number },
   {}
 > {
-  async componentDidMount() {
-    const { dispatch } = this.props;
+  cardEdit(edit: Partial<Card>) {
     const card = this.props.state.card.byId[this.props.card_id];
-    await dispatch(Action.card.edit(card));
+    this.props.dispatch(Action.cardUpdate({ ...card, ...edit }));
   }
   render() {
     const { dispatch } = this.props;
@@ -66,9 +65,7 @@ export class _CardEdit extends React.Component<
             <NB.Right>
               <RN.Switch
                 value={Boolean(card.mastered)}
-                onValueChange={mastered =>
-                  dispatch(Action.card.edit({ mastered }))
-                }
+                onValueChange={mastered => this.cardEdit({ mastered })}
               />
             </NB.Right>
           </NB.ListItem>
@@ -83,9 +80,7 @@ export class _CardEdit extends React.Component<
                   width: RN.Platform.OS === 'android' ? 120 : undefined,
                 }}
                 selectedValue={card.category || ''}
-                onValueChange={category =>
-                  dispatch(Action.card.edit({ category }))
-                }
+                onValueChange={category => this.cardEdit({ category })}
                 {...{ iosIcon: <NB.Icon name="arrow-down" /> }}
               >
                 {[''].concat(C.CATEGORY).map((x, i) => (
@@ -99,18 +94,18 @@ export class _CardEdit extends React.Component<
           <Field
             name={'TITLE'}
             value={card.name}
-            onChangeText={name => dispatch(Action.card.edit({ name }))}
+            onChangeText={name => this.cardEdit({ name })}
           />
           <Field
             name={'HINT'}
             value={card.hint}
-            onChangeText={hint => dispatch(Action.card.edit({ hint }))}
+            onChangeText={hint => this.cardEdit({ hint })}
           />
           <Field
             name={'BODY'}
             value={card.body}
             rowSpan={10}
-            onChangeText={body => dispatch(Action.card.edit({ body }))}
+            onChangeText={body => this.cardEdit({ body })}
           />
         </NB.Form>
         <NB.Button
@@ -151,16 +146,7 @@ export class _CardNew extends React.Component<
   ConnectedProps & { deck_id: number },
   {}
 > {
-  async componentDidMount() {
-    const { dispatch } = this.props;
-    await dispatch(
-      Action.card.edit_init({
-        deck_id: this.props.deck_id,
-      })
-    );
-  }
   render() {
-    const { dispatch } = this.props;
     if (!this.props.deck_id) return <ErrorPage />; // DEFENSIVE
     const card = this.props.state.card.edit;
     return (
@@ -169,17 +155,17 @@ export class _CardNew extends React.Component<
           <Field
             name={'TITLE'}
             value={card.name}
-            onChangeText={name => dispatch(Action.card.edit({ name }))}
+            // onChangeText={name => this.cardEdit({ name })}
           />
           <Field
             name={'HINT'}
             value={card.hint}
-            onChangeText={hint => dispatch(Action.card.edit({ hint }))}
+            // onChangeText={hint => dispatch(Action.card.edit({ hint }))}
           />
           <Field
             name={'BODY'}
             value={card.body}
-            onChangeText={body => dispatch(Action.card.edit({ body }))}
+            // onChangeText={body => dispatch(Action.card.edit({ body }))}
           />
         </NB.Form>
       </NB.Content>
