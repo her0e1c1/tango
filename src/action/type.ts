@@ -43,21 +43,6 @@ export const configUpdate = (config: Partial<ConfigState>) => ({
   payload: { config },
 });
 
-export const share_deck_bulk_insert = (deck: Deck, uid: string) => ({
-  type: 'SHARE_DECK_BULK_INSERT',
-  payload: { deck, uid },
-});
-
-export const share_deck_bulk_delete = (deck_id: number, uid: string) => ({
-  type: 'SHARE_DECK_BULK_DELETE',
-  payload: { deck_id, uid },
-});
-
-export const share_card_bulk_insert = (cards: Card[], uid: string) => ({
-  type: 'SHARE_CARD_BULK_INSERT',
-  payload: { cards, uid },
-});
-
 export const drive_bulk_insert = (drives: Drive[]) => ({
   type: 'SHARE_BULK_INSERT',
   payload: { drives },
