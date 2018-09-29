@@ -43,7 +43,8 @@ export const deckFetch = (): ThunkAction => async (dispatch, getState) => {
       const d = doc.data() as Deck;
       decks.push({ ...d, id: doc.id });
     });
-    dispatch(type.deckBulkInsert(decks));
+    await dispatch(type.deckBulkInsert(decks));
+    decks.forEach(d => dispatch(cardFetch(d.id)));
   } else {
     alert('need to login');
   }
@@ -71,9 +72,10 @@ export const deckCreate = (
       })
     );
     await batch.commit();
-    dispatch(
+    await dispatch(
       type.deckBulkInsert([{ ...deck, id: docRef.id, createdAt: new Date() }])
     );
+    // await dispatch(type.cardBulkInsert());
   } else {
     alert('You need to log in first');
   }
