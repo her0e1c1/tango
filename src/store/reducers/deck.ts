@@ -28,9 +28,6 @@ export default (
   } else if (equal(action, type.deck_bulk_delete)) {
     action.payload.decks.forEach(d => delete state.byId[d.id]);
     return { ...state };
-  } else if (equal(action, type.deck_edit)) {
-    const edit = Object.assign(state.edit || {}, action.payload.deck);
-    return { ...state, edit };
   } else {
     return state;
   }

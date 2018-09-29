@@ -44,9 +44,6 @@ export default (
     return { ...state, byDeckId };
   } else if (equal(action, type.card_edit_init)) {
     return { ...state, edit: action.payload.card };
-  } else if (equal(action, type.card_edit)) {
-    const edit = Object.assign(state.edit || {}, action.payload.card);
-    return { ...state, edit };
   } else {
     return state;
   }
