@@ -11,12 +11,7 @@ const deckAction = (dispatch: any, item: Deck) => {
   NB.ActionSheet.show(
     {
       title: 'Deck Action',
-      options: [
-        'Show Card List',
-        'Edit This Deck',
-        'Upload To Google Spread Sheet',
-        'Cancel',
-      ],
+      options: ['Show Card List', 'Edit This Deck', 'Cancel'],
       cancelButtonIndex: 3,
     },
     async index => {
@@ -24,8 +19,6 @@ const deckAction = (dispatch: any, item: Deck) => {
         await dispatch(Action.nav.goTo('deck', { deck_id: item.id }));
       } else if (index === 1) {
         await dispatch(Action.nav.goTo('deckEdit', { deck_id: item.id }));
-      } else if (index === 2) {
-        await dispatch(Action.drive.upload(item));
       } else {
         // DO NOTHING
       }

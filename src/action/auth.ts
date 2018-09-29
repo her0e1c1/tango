@@ -136,5 +136,3 @@ export const loginWithFacebook = (): ThunkAction => async (
   }
 };
 */
-
-export const init = (): ThunkAction => async (dispatch, getState) => {};

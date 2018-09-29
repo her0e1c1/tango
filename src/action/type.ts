@@ -3,9 +3,9 @@ export const deck_bulk_insert = (decks: Deck[]) => ({
   payload: { decks },
 });
 
-export const deck_bulk_delete = (decks: Deck[]) => ({
+export const deck_bulk_delete = (deckIds: string[]) => ({
   type: 'DECK_BULK_DELETE',
-  payload: { decks },
+  payload: { deckIds },
 });
 
 export const card_bulk_insert = (cards: Card[]) => ({

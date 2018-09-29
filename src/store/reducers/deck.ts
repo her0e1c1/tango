@@ -26,7 +26,7 @@ export default (
     });
     return { ...state };
   } else if (equal(action, type.deck_bulk_delete)) {
-    action.payload.decks.forEach(d => delete state.byId[d.id]);
+    action.payload.deckIds.forEach(id => delete state.byId[id]);
     return { ...state };
   } else {
     return state;

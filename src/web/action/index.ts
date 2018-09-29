@@ -111,7 +111,7 @@ export const deckDelete = (deckId: string): ThunkAction => async (
     batch.delete(db.collection('deck').doc(deckId));
     querySnapshot.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
-    await dispatch(type.deckDelete(deckId));
+    await dispatch(type.deckBulkDelete([deckId]));
   } else {
     alert('You need to log in first');
   }
