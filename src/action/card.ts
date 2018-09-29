@@ -1,6 +1,5 @@
 import { exec } from 'src/store/sqlite';
 import * as type from './type';
-import { Omit } from 'react-redux';
 
 export const toggleMastered = (
   card: Card,
@@ -51,26 +50,6 @@ export const bulkInsertCards = (
   const ps = cards_with_id.map(
     async c => await dispatch(type.card_bulk_insert([{ ...c }]))
   );
-  await Promise.all(ps);
-};
-
-export const bulkUpdateCards = (
-  deck_id: number,
-  cards: Pick<
-    Card,
-    'name' | 'body' | 'category' | 'hint' | 'fkid' | 'mastered'
-  >[]
-): ThunkAction => async (dispatch, getState) => {
-  // TODO: get from db not redux
-  const state = getState().card;
-  const map = (state.byDeckId[deck_id] || [])
-    .map(id => state.byId[id])
-    .filter(x => !!x)
-    .map(c => ({ [c.fkid]: c.id }))
-    .reduce((acc, x) => Object.assign(acc, x), {});
-  const ps = cards.map(async card => {
-    await dispatch(updateCard({ ...card, deck_id, id: map[card.fkid] }));
-  });
   await Promise.all(ps);
 };
 
