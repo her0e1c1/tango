@@ -9,7 +9,6 @@ export { auth, nav, config };
 import * as firebase from 'firebase';
 import * as Papa from 'papaparse';
 import * as type from './type';
-import * as WebAction from 'src/web/action';
 import { db } from 'src/firebase';
 
 export const logout = (): ThunkAction => async (dispatch, getState) => {
@@ -77,7 +76,7 @@ export const insertByText = (text, deck): ThunkAction => (
     }))
     .filter(c => !!c.frontText);
   const d = { name: deck.name, isPublic: false };
-  dispatch(WebAction.deckCreate(d, cards));
+  dispatch(deckCreate(d, cards));
   /*
   Papa.parse(text, {
     complete: async results => {
