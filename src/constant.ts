@@ -9,7 +9,7 @@ export const CATEGORY: Category[] = [
   'haskell',
 ];
 
-export const CURRENT_VERSION = 7;
+export const CURRENT_VERSION = 9;
 
 export const GOOGLE_AUTH_SCOPE = [
   'https://www.googleapis.com/auth/spreadsheets',
