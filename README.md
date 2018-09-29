@@ -40,3 +40,4 @@ cp src/secret.ts.example src/secret.ts
 - expo clients support more than 24
 - papaparse requires stream on react-native
 - just ignore libraries ts errors to set skipLibCheck true
+- firestore can not store undefined so use null instead
