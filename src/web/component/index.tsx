@@ -5,7 +5,7 @@ import { PersistGate } from 'redux-persist/lib/integration/react';
 import { Route } from 'react-router-dom';
 import { Layout } from 'antd';
 
-import { store, persistor, history } from 'src/store';
+import { store, persistor, history } from '../store';
 import { Header } from './header';
 import { DeckList } from './deck';
 import { CardList } from './card';
