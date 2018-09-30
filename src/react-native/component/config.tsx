@@ -1,4 +1,4 @@
-import * as Action from 'src/action';
+import * as Action from 'src/react-native/action';
 import * as C from 'src/constant';
 import * as NB from 'native-base';
 import * as React from 'react';

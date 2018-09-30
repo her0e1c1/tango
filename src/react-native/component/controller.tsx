@@ -1,4 +1,4 @@
-import * as Action from 'src/action';
+import * as Action from 'src/react-native/action';
 import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';

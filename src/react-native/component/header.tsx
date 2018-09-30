@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as NB from 'native-base';
 import * as RN from 'react-native';
 import { connect } from 'react-redux';
-import * as Action from 'src/action';
+import * as Action from 'src/react-native/action';
 import * as Selector from 'src/selector';
 import Icon from 'react-native-vector-icons/FontAwesome';
 

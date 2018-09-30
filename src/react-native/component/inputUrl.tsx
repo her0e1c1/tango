@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';
 import { connect } from 'react-redux';
-import * as Action from 'src/action';
+import * as Action from 'src/react-native/action';
 import { LoadingIcon } from './utils';
 import { BarCodeScanner, Permissions } from 'expo';
 import { Header } from './header';
