@@ -19,6 +19,10 @@ interface Deck {
   currentIndex: number;
   category?: Category;
   convertToBr?: boolean;
+
+  // google spread sheet
+  spreadsheetId?: string;
+  spreadsheetGid?: string;
 }
 
 interface Sheet {
