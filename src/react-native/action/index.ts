@@ -4,6 +4,8 @@ import * as firebase from 'firebase';
 import * as Action from 'src/action';
 import { auth } from 'src/firebase';
 
+export * from 'src/action';
+
 export const loginWithGoogle = (): ThunkAction => async (
   dispatch,
   getState
