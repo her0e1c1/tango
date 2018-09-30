@@ -13,7 +13,7 @@ export const equal = <T>(
 };
 
 export const deck = (
-  state: DeckState = { byId: {}, edit: {} as Deck },
+  state: DeckState = { byId: {}, edit: {} as Deck, categories: [] },
   action: Action
 ) => {
   if (equal(action, type.deckBulkInsert)) {
