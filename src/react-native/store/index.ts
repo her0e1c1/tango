@@ -4,7 +4,7 @@ import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { createReactNavigationReduxMiddleware } from 'react-navigation-redux-helpers';
 import { NavigationState } from 'react-navigation';
-import { root } from 'src/store/reducer';
+import { root } from './reducer';
 
 const logger = ({ getState, dispatch }) => next => action => {
   __DEV__ && console.log('ACTION: ', action.type);
