@@ -24,8 +24,8 @@ class LeftButton extends React.Component<Props, {}> {
       <NB.Left>
         <NB.Button
           transparent
-          onPress={() => dispatch(Action.nav.goBack())}
-          onLongPress={() => dispatch(Action.nav.goHome())}
+          onPress={() => dispatch(Action.goBack())}
+          // onLongPress={() => dispatch(Action.goHome())}
         >
           <NB.Icon name="arrow-back" />
         </NB.Button>
@@ -50,27 +50,27 @@ class RightButton extends React.Component<Props, {}> {
     const { dispatch } = this.props;
     if (name === 'cardEdit') {
       await dispatch(Action.cardUpdate(this.props.state.card.edit));
-      await dispatch(Action.nav.goBack());
+      await dispatch(Action.goBack());
     } else if (name === 'cardNew') {
       const card = this.props.state.card.edit;
       await dispatch(Action.cardBulkInsert([card]));
-      await dispatch(Action.nav.goBack());
+      await dispatch(Action.goBack());
     } else if (name === 'deckEdit') {
       const deck = this.props.state.deck.edit;
       await dispatch(Action.deckUpdate(deck));
-      await dispatch(Action.nav.goBack());
+      await dispatch(Action.goBack());
     } else if (name === 'deck') {
       // TODO: Fix to cardList
       const deck = Selector.getCurrentDeck(this.props.state);
       await dispatch(
-        Action.nav.goTo('cardNew', {
+        Action.goTo('cardNew', {
           deck_id: deck.id,
         })
       );
     } else {
       const card = Selector.getCurrentCard(this.props.state);
       await dispatch(
-        Action.nav.goTo('cardEdit', {
+        Action.goTo('cardEdit', {
           deck_id: card.deckId,
           card_id: card.id,
         })
@@ -140,9 +140,7 @@ class Body extends React.Component<Props, {}> {
     return (
       <NB.Body>
         <RN.TouchableOpacity
-          onPress={() =>
-            dispatch(Action.nav.goTo('deck', { deck_id: deck.id }))
-          }
+          onPress={() => dispatch(Action.goTo('deck', { deck_id: deck.id }))}
         >
           <NB.Title>{deck && deck.name && `${deck.name}`} </NB.Title>
         </RN.TouchableOpacity>

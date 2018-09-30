@@ -5,7 +5,7 @@ import { withRouter } from 'react-router-dom';
 import * as Action from 'src/web/action';
 import { Link } from 'react-router-dom';
 
-class _DeckCategory extends React.Component<ConnectedProps> {
+class _DeckCategory extends React.Component<ConnectedProps & { deck: Deck }> {
   state = { input: '' };
   render() {
     const deck: Deck = this.props.deck;

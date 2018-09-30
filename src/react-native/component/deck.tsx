@@ -41,7 +41,7 @@ class _DeckList extends React.Component<
       <RN.FlatList
         data={decks.map(d => ({ ...d, key: d.id }))}
         onRefresh={async () => {
-          await dispatch(Action.cardFetchAll());
+          await dispatch(Action.deckFetch());
           await this.setState({ refreshing: false });
         }}
         refreshing={this.state.refreshing}
