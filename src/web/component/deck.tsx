@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Table, Icon, AutoComplete, Popconfirm } from 'antd';
 import { withRouter } from 'react-router-dom';
-import * as Action from 'src/action';
+import * as Action from 'src/web/action';
 import { Link } from 'react-router-dom';
 
 class _DeckCategory extends React.Component<ConnectedProps> {

@@ -1,11 +1,3 @@
-import * as nav from './nav';
-import * as config from './config';
-import * as native from 'src/react-native/action';
-import * as web from 'src/web/action';
-
-export * from 'src/web/action';
-export { nav, config, native, web };
-
 import * as firebase from 'firebase';
 import * as Papa from 'papaparse';
 import * as type from './type';

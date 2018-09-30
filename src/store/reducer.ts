@@ -1,5 +1,5 @@
 import * as Redux from 'redux';
-import { NavigationActions } from 'react-navigation';
+// import { NavigationActions } from 'react-navigation';
 import Root from 'src/react-native/component';
 import * as _ from 'lodash';
 import { uniq } from 'lodash';
@@ -134,6 +134,7 @@ export const card = (
   }
 };
 
+/*
 const initialState = Root.router.getStateForAction(
   NavigationActions.init()
   // WARN: some sample code recommends code like this
@@ -162,3 +163,4 @@ export const root = (state, action) => {
   }
   return Redux.combineReducers(reducers)(state, action);
 };
+*/

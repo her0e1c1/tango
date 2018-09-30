@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import * as Action from 'src/action';
+import * as Action from 'src/web/action';
 import * as Papa from 'papaparse';
 import { Icon, Form, Upload, Button, Input } from 'antd';
 const FormItem = Form.Item;

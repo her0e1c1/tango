@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Layout, Menu } from 'antd';
-import * as Action from 'src/action';
+import * as Action from 'src/web/action';
 import { Link, withRouter } from 'react-router-dom';
 
 const Logo = () => (

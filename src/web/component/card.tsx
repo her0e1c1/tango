@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Table, Input, Icon, Select } from 'antd';
 import { withRouter } from 'react-router-dom';
-import * as Action from 'src/action';
+import * as Action from 'src/web/action';
 var Latex = require('react-latex'); // TODO: Create a parser
 
 const renderMath = text => <Latex>{text}</Latex>;
