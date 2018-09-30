@@ -108,9 +108,10 @@ export const card = (
     return { ...state };
   } else if (equal(action, type.cardDelete)) {
     const ns = _.clone(state);
-    const c = action.payload.card;
-    delete ns.byId[c.id];
-    _.pull(ns.byDeckId[c.deckId], c.id);
+    const id = action.payload.id;
+    const deckId = ns.byId[id].deckId;
+    delete ns.byId[id];
+    _.pull(ns.byDeckId[deckId], id);
     return ns;
   } else if (equal(action, type.deckDelete)) {
     const id = action.payload.deckId;

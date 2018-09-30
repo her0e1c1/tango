@@ -263,7 +263,7 @@ export const cardUpdate = (card: Card): ThunkAction => async (
   }
 };
 
-export const cardDelete = (card: Card): ThunkAction => async (
+export const cardDelete = (id: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -271,9 +271,9 @@ export const cardDelete = (card: Card): ThunkAction => async (
   if (uid) {
     await db
       .collection('card')
-      .doc(card.id)
+      .doc(id)
       .delete();
-    await dispatch(type.cardDelete(card));
+    await dispatch(type.cardDelete(id));
   } else {
     alert('You need to log in first');
   }
