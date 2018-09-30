@@ -66,7 +66,7 @@ class _InputUrl extends React.Component<
       } else if (errorCode == 'NO_CARDS') {
         alert('There are not cards in input url');
       }
-      dispatch(Action.config.clearError());
+      dispatch(Action.clearError());
     } else {
       this.setState({ text: '' });
     }

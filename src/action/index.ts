@@ -35,9 +35,7 @@ export const refreshToken = (): ThunkAction<boolean> => async (
       'content-type': 'application/x-www-form-urlencoded',
     }),
   }).then(r => r.json());
-  await dispatch(
-    Action.config.updateConfig({ googleAccessToken: json.access_token })
-  );
+  await dispatch(configUpdate({ googleAccessToken: json.access_token }));
   return true;
 };
 
@@ -147,7 +145,7 @@ export const deckFetch = (): ThunkAction => async (dispatch, getState) => {
   }
 };
 export const deckCreate = (
-  deck: Omit<Deck, 'id' | 'createdAt'>,
+  deck: Pick<Deck, 'name' | 'isPublic'>,
   cards: Omit<Card, 'id' | 'createdAt'>[]
 ): ThunkAction => async (dispatch, getState) => {
   // NOTE: firestore can not store undefined value.

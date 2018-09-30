@@ -105,7 +105,8 @@ export const loginWithGoogleOnWeb = (): ThunkAction => async (
       .auth()
       .signInWithCredential(credential)
       .then(async () => {
-        await dispatch(init());
+        await dispat:289
+        ch(init());
         await dispatch(
           Action.config.updateConfig({
             googleAccessToken: json.access_token,
@@ -286,7 +287,7 @@ const swipeMapping = {
 const cardSwipe = (direction): ThunkAction => async (dispatch, getState) => {
   const config = getState().config;
   if (config.hideBodyWhenCardChanged) {
-    await dispatch(updateConfig({ showBody: false, showHint: false }));
+    await dispatch(configUpdate({ showBody: false, showHint: false }));
   }
   const f = swipeMapping[config[direction]];
   if (f) {

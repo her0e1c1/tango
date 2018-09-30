@@ -126,7 +126,7 @@ export class _CardEdit extends React.Component<
                   text: 'Delete',
                   onPress: async () => {
                     await dispatch(Action.cardDelete(card));
-                    await dispatch(Action.nav.goBack());
+                    await dispatch(Action.goBack());
                   },
                 },
               ],

@@ -2,19 +2,6 @@ export const getDecks = (state: RootState): Deck[] => {
   return Object.values(state.deck.byId);
 };
 
-export const getMyDrives = (state: RootState): Drive[] => {
-  return Object.values(state.drive.byId);
-};
-
-export const getMyDecks = (state: RootState): Deck[] => {
-  const uid = state.user.uid;
-  if (state.share.user[uid]) {
-    return Object.values(state.share.user[uid].deck.byId);
-  } else {
-    return [];
-  }
-};
-
 export const getCurrentPage = (state: RootState): NavState | undefined => {
   const i = state.nav.index;
   const r = state.nav.routes;

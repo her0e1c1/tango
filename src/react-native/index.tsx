@@ -14,7 +14,7 @@ import { Root as NBRoot } from 'native-base'; // for ActionSheet.show error
 import { LoadingIcon } from './component/utils';
 import Root from './component';
 import store from './store';
-import * as Action from 'src/action';
+import * as Action from 'src/react-native/action';
 import * as ReactNativeAction from 'src/react-native/action';
 import * as C from 'src/constant';
 
@@ -28,7 +28,7 @@ class _Theme extends React.Component<ConnectedProps, {}> {
       addListener,
     });
     return (
-      <ThemeProvider theme={Action.config.getTheme(state)}>
+      <ThemeProvider theme={Action.getTheme(state)}>
         <RN.View style={{ flex: 1 }}>
           {state.config.isLoading && <LoadingIcon />}
           <Root navigation={navigation} />
@@ -52,7 +52,7 @@ const checkUpdate = async (): Promise<boolean> => {
 
 const updateIfNeeded = async () => {
   if (await checkUpdate()) {
-    await store.dispatch(Action.config.clearAll(true));
+    await store.dispatch(Action.clearAll(true));
     // Set item after clear all otherwise version would also be cleared
     await RN.AsyncStorage.setItem('version', String(C.CURRENT_VERSION));
   }
