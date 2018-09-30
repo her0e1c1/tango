@@ -10,8 +10,6 @@ interface Deck {
   name: string;
   isPublic: boolean;
   url?: string;
-  spreadsheetId?: string;
-  spreadsheetGid?: string;
 
   // when user selects a deck, show this index card
   // this should not be stored in sqlite
@@ -19,15 +17,6 @@ interface Deck {
   category?: Category;
   convertToBr?: boolean;
 }
-
-// TODO: use ts 2.8
-// after fix this https://github.com/DefinitelyTyped/DefinitelyTyped/issues/24573
-type DeckInsert = Pick<
-  Deck,
-  'name' | 'url' | 'spreadsheetId' | 'spreadsheetGid'
->;
-type DeckUpdate = DeckInsert & Pick<Deck, 'id' | 'isPublic'>;
-type DeckSelect = DeckUpdate | undefined;
 
 interface Sheet {
   properties: {
@@ -46,6 +35,8 @@ interface Card {
   deckId: number;
   // firebase can not store undefined ...
   category: string | null;
+  tags: string[];
+  createdAt: Date;
 }
 
 type DeckState = {
