@@ -48,7 +48,7 @@ class View extends React.Component<
 
     return this.props.state.config.showBody ? (
       <CardDetail
-        onLongPress={() => dispatch(Action.config.toggle('showBody'))}
+        onLongPress={() => dispatch(Action.configToggle('showBody'))}
       />
     ) : (
       // Need to wrap with View otherwise <Header/> is not shown
@@ -123,7 +123,7 @@ class View extends React.Component<
             ) => (
               <RN.TouchableWithoutFeedback
                 key={item.id}
-                onPress={() => dispatch(Action.config.toggle('showBody'))}
+                onPress={() => dispatch(Action.configToggle('showBody'))}
               >
                 {item.category === 'math' || deck.category === 'math' ? (
                   <RN.View style={{ flex: 1 }}>

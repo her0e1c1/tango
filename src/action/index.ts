@@ -280,3 +280,17 @@ export const cardDelete = (card: Card): ThunkAction => async (
     alert('You need to log in first');
   }
 };
+
+export const configUpdate = (config: Partial<ConfigState>) => async (
+  dispatch,
+  getState
+) => {
+  dispatch(type.configUpdate(config));
+};
+
+export const configToggle = (key: keyof ConfigState): ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  dispatch(configUpdate({ [key]: !getState().config[key] }));
+};

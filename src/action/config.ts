@@ -1,19 +1,6 @@
 import * as RN from 'react-native';
 import * as type from './type';
 
-export const updateConfig = (config: Partial<ConfigState>) => async (
-  dispatch,
-  getState
-) => {
-  dispatch(type.configUpdate(config));
-};
-
-export const toggle = (key: keyof ConfigState): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  dispatch(updateConfig({ [key]: !getState().config[key] }));
-};
 
 export const startLoading = () => async (dispatch, getState) => {
   dispatch(updateConfig({ isLoading: true }));
