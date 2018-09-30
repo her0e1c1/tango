@@ -69,6 +69,7 @@ export const config = (
     googleAccessToken: undefined,
     googleRefreshToken: undefined,
     uid: '',
+    displayName: '',
   },
   action: Action
 ): ConfigState => {

@@ -106,17 +106,9 @@ type ConfigState = {
   cardSwipeRight: cardSwipe;
   googleAccessToken?: string;
   googleRefreshToken?: string;
-  uid?: string;
-};
-
-interface UserState {
   uid: string;
-  displayName: string | null;
-}
-
-interface DriveState {
-  byId: { [key: string]: Drive };
-}
+  displayName: string;
+};
 
 interface RootState {
   deck: DeckState;
