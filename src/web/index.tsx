@@ -8,4 +8,6 @@ import 'katex/dist/katex.css';
 import Root from './component';
 import 'src/firebase';
 
+// because @types/react-native has a conflict with lib: ["dom"] in tsconfig.json
+// @ts-ignore
 ReactDOM.render(<Root />, document.getElementById('root'));
