@@ -1,16 +1,20 @@
-import * as Action from 'src/react-native/action';
-import * as Selector from 'src/selector';
 import * as React from 'react';
-import * as RN from 'react-native';
-import * as SD from './styled';
 import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import { StackNavigator } from 'react-navigation';
-import CardView from './cardView';
-import { SpreadSheetList, Sheet } from './drive';
+// import * as RN from 'react-native';
+
+import * as Action from 'src/react-native/action';
 import { Header } from './header';
 import { InputUrl } from './inputUrl';
+/*
+import * as Selector from 'src/selector';
+import * as SD from './styled';
+import CardView from './cardView';
+import { SpreadSheetList, Sheet } from './drive';
+*/
 
+/*
 class _DeckList extends React.Component<
   ConnectedProps,
   { refreshing: boolean }
@@ -32,7 +36,7 @@ class _DeckList extends React.Component<
             <RN.TouchableOpacity
               onPress={() =>
                 this.props.dispatch(
-                  Action.nav.goTo('shareCards', {
+                  Action.goTo('shareCards', {
                     deck_id: item.id,
                   })
                 )
@@ -49,7 +53,7 @@ class _DeckList extends React.Component<
                 <RN.Button
                   title="+"
                   onPress={() =>
-                    this.props.dispatch(Action.deck.importFromFireBase(item.id))
+                    this.props.dispatch(Action.importFromFireBase(item.id))
                   }
                 />
                 <RN.Button
@@ -70,7 +74,7 @@ class _DeckList extends React.Component<
 // @ts-ignore
 const DeckList = connect(state => ({ state }))(_DeckList);
 
-class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
+class _CardList extends React.Component<ConnectedProps & { deck_id: string }> {
   componentDidMount() {
     const { deck_id } = this.props;
     this.props.dispatch(Action.share.fetchCardsByDeckId(deck_id));
@@ -91,9 +95,7 @@ class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
             .map((d, key) => ({ ...d, key }))}
           renderItem={({ item }: { item: Card }) => (
             <RN.TouchableOpacity
-              onPress={() =>
-                dispatch(Action.nav.goTo('shareView', { card: item }))
-              }
+              onPress={() => dispatch(Action.goTo('shareView', { card: item }))}
             >
               <SD.DeckCard style={{ marginBottom: 10 }}>
                 <SD.DeckTitle>{item.frontText}</SD.DeckTitle>
@@ -106,10 +108,11 @@ class _CardList extends React.Component<ConnectedProps & { deck_id: number }> {
   }
 }
 const CardList = connect(state => ({ state }))(_CardList);
+*/
 
 const _List = props => (
   <NB.List>
-    <NB.ListItem onPress={() => props.dispatch(Action.nav.goTo('inputUrl'))}>
+    <NB.ListItem onPress={() => props.dispatch(Action.goTo('inputUrl'))}>
       <NB.Left>
         <NB.Title>Input CSV URL (by QR code)</NB.Title>
       </NB.Left>
@@ -117,8 +120,8 @@ const _List = props => (
         <NB.Icon active name="arrow-forward" />
       </NB.Right>
     </NB.ListItem>
-
-    <NB.ListItem onPress={() => props.dispatch(Action.nav.goTo('spreadsheet'))}>
+    {/*
+    <NB.ListItem onPress={() => props.dispatch(Action.goTo('spreadsheet'))}>
       <NB.Left>
         <NB.Title>Google Spread Sheet</NB.Title>
       </NB.Left>
@@ -126,6 +129,7 @@ const _List = props => (
         <NB.Icon active name="arrow-forward" />
       </NB.Right>
     </NB.ListItem>
+*/}
   </NB.List>
 );
 
@@ -143,11 +147,11 @@ const wrap = C => props => (
 export const Root = StackNavigator(
   {
     share: { screen: wrap(List) },
-    sheet: { screen: wrap(Sheet) },
     inputUrl: { screen: InputUrl },
-    spreadsheet: { screen: wrap(SpreadSheetList) },
-    shareCards: { screen: wrap(CardList) },
-    shareView: { screen: wrap(CardView) },
+    // sheet: { screen: wrap(Sheet) },
+    // spreadsheet: { screen: wrap(SpreadSheetList) },
+    // shareCards: { screen: wrap(CardList) },
+    // shareView: { screen: wrap(CardView) },
   } as any,
   {
     initialRouteName: 'share',

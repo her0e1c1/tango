@@ -1,3 +1,4 @@
+/*
 import * as Action from 'src/react-native/action';
 import * as Selector from 'src/selector';
 import * as React from 'react';
@@ -92,3 +93,4 @@ export class _SpreadSheetList extends React.Component<
   }
 }
 export const SpreadSheetList = connect(state => ({ state }))(_SpreadSheetList);
+*/
