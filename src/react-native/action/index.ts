@@ -176,7 +176,7 @@ export const goTo = (routeName, params?) => async (dispatch, getState) => {
   await dispatch(NavigationActions.navigate({ routeName, params }));
 };
 
-export const goToCardById = (card_id: number, deck_id: number) => async (
+export const goToCardById = (cardId: string, deckId: string) => async (
   dispatch,
   getState
 ) => {
@@ -186,7 +186,7 @@ export const goToCardById = (card_id: number, deck_id: number) => async (
       NavigationActions.navigate({ routeName: 'home' }),
       NavigationActions.navigate({
         routeName: 'card',
-        params: { card_id, deck_id },
+        params: { cardId, deckId },
       }),
     ],
   });

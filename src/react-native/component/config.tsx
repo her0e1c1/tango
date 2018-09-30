@@ -49,7 +49,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
     RN.Alert.alert('Choose account', '', [
       {
         text: 'Google',
-        onPress: () => dispatch(Action.native.loginWithGoogle()),
+        onPress: () => dispatch(Action.loginWithGoogle()),
       },
       { text: 'Cancel', onPress: () => {} },
     ]);
@@ -109,7 +109,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                   value={config.showMastered}
                   onValueChange={() =>
                     dispatch(
-                      Action.config.updateConfig({
+                      Action.configUpdate({
                         showMastered: !config.showMastered,
                       })
                     )
@@ -127,9 +127,9 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                   value={config.shuffled}
                   onValueChange={async () => {
                     await dispatch(
-                      Action.config.updateConfig({ shuffled: !config.shuffled })
+                      Action.configUpdate({ shuffled: !config.shuffled })
                     );
-                    await dispatch(Action.nav.shuffleCardsOrSort());
+                    await dispatch(Action.shuffleCardsOrSort());
                   }}
                 />
               </NB.Right>
@@ -144,7 +144,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                   value={config.showHeader}
                   onValueChange={async () => {
                     await dispatch(
-                      Action.config.updateConfig({
+                      Action.configUpdate({
                         showHeader: !config.showHeader,
                       })
                     );
@@ -162,7 +162,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                   value={config.hideBodyWhenCardChanged}
                   onValueChange={() =>
                     dispatch(
-                      Action.config.updateConfig({
+                      Action.configUpdate({
                         hideBodyWhenCardChanged: !config.hideBodyWhenCardChanged,
                       })
                     )
@@ -182,7 +182,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                   }}
                   selectedValue={config.theme}
                   onValueChange={theme =>
-                    dispatch(Action.config.updateConfig({ theme }))
+                    dispatch(Action.configUpdate({ theme }))
                   }
                   {...{ iosIcon: <NB.Icon name="ios-arrow-down-outline" /> }}
                 >
@@ -205,7 +205,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                   minimumValue={1}
                   maximumValue={30}
                   onSlidingComplete={cardInterval =>
-                    dispatch(Action.config.updateConfig({ cardInterval }))
+                    dispatch(Action.configUpdate({ cardInterval }))
                   }
                   style={{ flex: 1 }}
                 />
@@ -233,7 +233,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                     }}
                     selectedValue={config[type]}
                     onValueChange={v =>
-                      dispatch(Action.config.updateConfig({ [type]: v }))
+                      dispatch(Action.configUpdate({ [type]: v }))
                     }
                     {...{
                       iosIcon: <NB.Icon name="ios-arrow-down-outline" />,
@@ -276,7 +276,7 @@ export class _Config extends React.Component<ConnectedProps, {}> {
               </NB.Body>
               <NB.Right>
                 <RN.TouchableOpacity
-                  onPress={() => dispatch(Action.auth.refreshToken())}
+                  onPress={() => dispatch(Action.refreshToken())}
                   onLongPress={() => alert(config.googleAccessToken)}
                 >
                   <NB.Text>

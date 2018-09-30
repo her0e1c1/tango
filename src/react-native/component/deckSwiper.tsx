@@ -65,7 +65,7 @@ class View extends React.Component<
             <MasteredCircle card={cards[currentIndex] || {}} />
           </RN.View>
           <RN.TouchableOpacity
-            onPress={() => dispatch(Action.nav.cardSwipeLeft())}
+            onPress={() => dispatch(Action.cardSwipeLeft())}
             style={{
               position: 'absolute',
               left: 0,
@@ -76,7 +76,7 @@ class View extends React.Component<
             }}
           />
           <RN.TouchableOpacity
-            onPress={() => dispatch(Action.nav.cardSwipeRight())}
+            onPress={() => dispatch(Action.cardSwipeRight())}
             style={{
               position: 'absolute',
               right: 0,
@@ -93,10 +93,10 @@ class View extends React.Component<
             backgroundColor={'white'}
             cardIndex={currentIndex}
             cards={cards}
-            onSwipedRight={() => dispatch(Action.nav.cardSwipeRight())}
-            onSwipedLeft={() => dispatch(Action.nav.cardSwipeLeft())}
-            onSwipedTop={() => dispatch(Action.nav.cardSwipeUp())}
-            onSwipedBottom={() => dispatch(Action.nav.cardSwipeDown())}
+            onSwipedRight={() => dispatch(Action.cardSwipeRight())}
+            onSwipedLeft={() => dispatch(Action.cardSwipeLeft())}
+            onSwipedTop={() => dispatch(Action.cardSwipeUp())}
+            onSwipedBottom={() => dispatch(Action.cardSwipeDown())}
             // onTapCard={() => {}}
             goBackToPreviousCardOnSwipeTop={
               this.props.state.config.cardSwipeUp === 'goToPrevCard'
@@ -110,7 +110,7 @@ class View extends React.Component<
             goBackToPreviousCardOnSwipeRight={
               this.props.state.config.cardSwipeRight == 'goToPrevCard'
             }
-            onSwipedAll={() => dispatch(Action.nav.swipeAll())}
+            onSwipedAll={() => dispatch(Action.swipeAll())}
             disableBottomSwipe={false}
             showSecondCard={false}
             cardHorizontalMargin={10}

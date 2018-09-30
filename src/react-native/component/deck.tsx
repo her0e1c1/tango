@@ -16,9 +16,9 @@ const deckAction = (dispatch: any, item: Deck) => {
     },
     async index => {
       if (index === 0) {
-        await dispatch(Action.nav.goTo('deck', { deck_id: item.id }));
+        await dispatch(Action.goTo('deck', { deck_id: item.id }));
       } else if (index === 1) {
-        await dispatch(Action.nav.goTo('deckEdit', { deck_id: item.id }));
+        await dispatch(Action.goTo('deckEdit', { deck_id: item.id }));
       } else {
         // DO NOTHING
       }
@@ -76,12 +76,10 @@ class _DeckList extends React.Component<
                   <RN.TouchableOpacity
                     style={{ flex: 1 }}
                     onPress={() => {
-                      dispatch(Action.nav.goTo('card', { deck_id: item.id }));
+                      dispatch(Action.goTo('card', { deck_id: item.id }));
                     }}
                     onLongPress={() =>
-                      dispatch(
-                        Action.nav.goTo('deckEdit', { deck_id: item.id })
-                      )
+                      dispatch(Action.goTo('deckEdit', { deck_id: item.id }))
                     }
                   >
                     <NB.View
@@ -91,7 +89,7 @@ class _DeckList extends React.Component<
                       }}
                     >
                       <NB.Title>{item.name}</NB.Title>
-                      <ProgressBar deck_id={item.id} />
+                      <ProgressBar deckId={item.id} />
                     </NB.View>
                   </RN.TouchableOpacity>
                 ),
@@ -106,14 +104,14 @@ class _DeckList extends React.Component<
 export const DeckList = connect(state => ({ state }))(_DeckList);
 
 export class _ProgressBar extends React.Component<
-  ConnectedProps & { deck_id: number; showCardIndex?: boolean },
+  ConnectedProps & { deckId: string; showCardIndex?: boolean },
   {}
 > {
   render() {
-    const deck_id = this.props.deck_id;
-    const deck = this.props.state.deck.byId[deck_id];
+    const deckId = this.props.deckId;
+    const deck = this.props.state.deck.byId[deckId];
     const index = `(${deck.currentIndex})`;
-    const cards = Selector.getCardList(this.props.state, deck_id);
+    const cards = Selector.getCardList(this.props.state, deckId);
     const mastered = cards.filter(x => !!x && x.mastered);
     const width = cards.length > 0 ? (mastered.length / cards.length) * 100 : 0;
     return (

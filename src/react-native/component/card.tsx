@@ -28,7 +28,7 @@ export class _MasteredCircle extends React.Component<
 export const MasteredCircle = connect(state => ({ state }))(_MasteredCircle);
 
 export class _CardDetail extends React.Component<
-  ConnectedProps & { onLongPress: Callback },
+  ConnectedProps & { onLongPress: () => void },
   { view: boolean }
 > {
   state = { view: false };
@@ -76,7 +76,7 @@ export class _CardDetail extends React.Component<
         )}
         {!this.state.view && (
           <RN.TouchableOpacity
-            onPress={() => dispatch(Action.nav.cardSwipeLeft())}
+            onPress={() => dispatch(Action.cardSwipeLeft())}
             style={{
               position: 'absolute',
               left: 0,
@@ -89,7 +89,7 @@ export class _CardDetail extends React.Component<
         {!this.state.view && (
           <RN.TouchableOpacity
             onPress={() =>
-              !this.state.view && dispatch(Action.nav.cardSwipeRight())
+              !this.state.view && dispatch(Action.cardSwipeRight())
             }
             style={{
               position: 'absolute',
@@ -176,11 +176,11 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
                   paddingVertical: 10,
                 }}
                 onPress={() => {
-                  dispatch(Action.nav.goToCard(item));
-                  dispatch(Action.nav.goToCardById(item.id, item.deckId));
+                  dispatch(Action.goToCard(item));
+                  dispatch(Action.goToCardById(item.id, item.deckId));
                 }}
                 onLongPress={() =>
-                  dispatch(Action.nav.goTo('cardEdit', { card_id: item.id }))
+                  dispatch(Action.goTo('cardEdit', { card_id: item.id }))
                 }
               >
                 <SD.CardTitle>{item.frontText}</SD.CardTitle>

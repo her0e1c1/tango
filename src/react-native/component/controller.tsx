@@ -29,7 +29,7 @@ class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
               if (this.state.pause) {
                 this.interval = setInterval(() => {
                   if (deck.currentIndex < cards.length - 1) {
-                    dispatch(Action.nav.cardSwipeRight());
+                    dispatch(Action.cardSwipeRight());
                   } else {
                     this.setState({ pause: false });
                     clearInterval(this.interval);
@@ -54,7 +54,7 @@ class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
             minimumValue={0}
             maximumValue={cards.length - 1}
             onSlidingComplete={v =>
-              dispatch(Action.nav.goToCardByIndex(deck, Math.floor(v)))
+              dispatch(Action.goToCardByIndex(deck, Math.floor(v)))
             }
           />
         </RN.View>

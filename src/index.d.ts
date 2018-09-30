@@ -35,7 +35,7 @@ interface Card {
   backText: string;
   hint: string;
   mastered: boolean;
-  deckId: number;
+  deckId: string;
   // firebase can not store undefined ...
   category: string | null;
   tags: string[];

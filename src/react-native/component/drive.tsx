@@ -77,9 +77,7 @@ export class _SpreadSheetList extends React.Component<
         refreshing={this.state.refreshing}
         renderItem={({ item }: { item: Drive }) => (
           <NB.ListItem
-            onPress={() =>
-              dispatch(Action.nav.goTo('sheet', { driveId: item.id }))
-            }
+            onPress={() => dispatch(Action.goTo('sheet', { driveId: item.id }))}
           >
             <NB.Left>
               <NB.Title>{item.name}</NB.Title>
