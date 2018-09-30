@@ -53,7 +53,7 @@ class RightButton extends React.Component<Props, {}> {
       await dispatch(Action.nav.goBack());
     } else if (name === 'cardNew') {
       const card = this.props.state.card.edit;
-      await dispatch(Action.cardBulkInsert(card.deckId, [card]));
+      await dispatch(Action.cardBulkInsert([card]));
       await dispatch(Action.nav.goBack());
     } else if (name === 'deckEdit') {
       const deck = this.props.state.deck.edit;
@@ -93,7 +93,7 @@ class RightButton extends React.Component<Props, {}> {
           !!card.hint.trim() && (
             <NB.Button
               transparent
-              onPress={() => dispatch(Action.config.toggle('showHint'))}
+              onPress={() => dispatch(Action.configToggle('showHint'))}
             >
               <NB.Icon
                 name={
