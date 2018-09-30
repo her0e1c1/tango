@@ -24,11 +24,11 @@ const clearAppCache = dispatch => {
     },
     async index => {
       if (index === 0) {
-        await dispatch(Action.config.clearAll(true));
+        await dispatch(Action.clearAll(true));
       } else if (index === 1) {
-        await dispatch(Action.config.clearAll());
+        await dispatch(Action.clearAll());
       } else if (index === 2) {
-        await dispatch(Action.config.drop());
+        await dispatch(Action.drop());
       } else {
         // DO NOTHING
       }

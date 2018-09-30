@@ -1,9 +1,11 @@
 import * as Expo from 'expo';
+import * as RN from 'react-native';
 import * as C from 'src/constant';
 import * as firebase from 'firebase';
 import { NavigationActions } from 'react-navigation';
 
 import * as Action from 'src/action';
+import { configUpdate } from 'src/action';
 import * as type from 'src/action/type';
 import { auth } from 'src/firebase';
 import * as Selector from 'src/selector';
@@ -297,3 +299,55 @@ export const cardSwipeUp = () => cardSwipe('cardSwipeUp');
 export const cardSwipeDown = () => cardSwipe('cardSwipeDown');
 export const cardSwipeLeft = () => cardSwipe('cardSwipeLeft');
 export const cardSwipeRight = () => cardSwipe('cardSwipeRight');
+
+export const startLoading = () => async (dispatch, getState) => {
+  dispatch(configUpdate({ isLoading: true }));
+};
+
+export const endLoading = () => async (dispatch, getState) => {
+  dispatch(configUpdate({ isLoading: false }));
+};
+
+export const clearError = () => async (dispatch, getState) => {
+  await dispatch(type.configUpdate({ errorCode: undefined }));
+};
+
+export const getTheme = (state: RootState): Theme => {
+  const theme = state.config.theme;
+  if (theme === 'dark') {
+    return {
+      mainBackgroundColor: 'black',
+      mainColor: 'silver',
+      titleColor: 'silver',
+      masteredColor: 'darkgreen',
+      cardBackgroundColor: '#111',
+      cardBorderColor: 'gray',
+      circleBackgroundColor: '#222',
+      bgTextInput: 'gray',
+    };
+  } else {
+    // default
+    return {
+      mainBackgroundColor: '#1C7ED6',
+      mainColor: 'black',
+      titleColor: 'white',
+      masteredColor: '#51CF66',
+      cardBorderColor: 'white',
+      cardBackgroundColor: 'white',
+      circleBackgroundColor: '#DEE2E6',
+      bgTextInput: 'white',
+    };
+  }
+};
+
+export const clearAll = (clearStorage?: boolean): ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  clearStorage && (await RN.AsyncStorage.clear());
+  await dispatch(type.clear_all());
+};
+
+export const drop = (): ThunkAction => async (dispatch, getState) => {
+  await dispatch(clearAll(true));
+};
