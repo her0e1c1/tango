@@ -36,8 +36,12 @@ export const loginWithGoogle = (): ThunkAction => async (
 export const init = (): ThunkAction => async (dispatch, getState) => {
   auth.onAuthStateChanged(async user => {
     __DEV__ && console.log('DEBUG: INIT', user);
-    await dispatch(Action.configUpdate({ uid: user.uid }));
-    await dispatch(Action.deckFetch());
+    if (user) {
+      await dispatch(Action.configUpdate({ uid: user.uid }));
+      await dispatch(Action.deckFetch());
+    } else {
+      alert('no user');
+    }
     /*
     await dispatch(Action.config.endLoading());
     if (user != null) {
