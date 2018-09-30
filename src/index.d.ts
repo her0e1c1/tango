@@ -1,3 +1,5 @@
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
 interface Action<P = undefined> {
   type: string;
   payload: P;
@@ -10,6 +12,7 @@ interface Deck {
   name: string;
   isPublic: boolean;
   url?: string;
+  createdAt: Date;
 
   // when user selects a deck, show this index card
   // this should not be stored in sqlite
