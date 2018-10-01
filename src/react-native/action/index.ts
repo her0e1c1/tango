@@ -7,7 +7,7 @@ import { NavigationActions } from 'react-navigation';
 import * as Action from 'src/action';
 import { configUpdate } from 'src/action';
 import * as type from 'src/action/type';
-import { auth } from 'src/firebase';
+import { auth, db } from 'src/firebase';
 import * as Selector from 'src/selector';
 
 export * from 'src/action';
@@ -64,6 +64,8 @@ export const loginWithFacebook = (): ThunkAction => async (
 };
 
 export const init = (): ThunkAction => async (dispatch, getState) => {
+  // await dispatch(Action.config.endLoading());
+  // const ok = await dispatch(Action.drive.refreshToken());
   auth.onAuthStateChanged(async user => {
     __DEV__ && console.log('DEBUG: INIT', user);
     if (user) {
@@ -72,25 +74,8 @@ export const init = (): ThunkAction => async (dispatch, getState) => {
       );
       await dispatch(Action.deckFetch());
     } else {
-      alert('no user');
-    }
-    /*
-    await dispatch(Action.config.endLoading());
-    if (user != null) {
-      firebase
-        .database()
-        .ref(`/user/${user.uid}/lastOnline`)
-        .onDisconnect()
-        .set(firebase.database.ServerValue.TIMESTAMP);
-      await dispatch(type.user_init(user));
-      // await dispatch(Action.share.fetchDecks());
-      const ok = await dispatch(Action.drive.refreshToken());
-      ok && (await dispatch(Action.drive.getSpreadSheets()));
-    } else {
-      dispatch(type.user_logout());
       console.log('NOT LOGGED IN YET');
     }
-    */
   });
 };
 
