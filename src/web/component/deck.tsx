@@ -2,7 +2,6 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Table, Icon, AutoComplete, Popconfirm } from 'antd';
 import { ColumnProps } from 'antd/lib/table/interface';
-import { withRouter } from 'react-router-dom';
 import * as Action from 'src/web/action';
 import { Link } from 'react-router-dom';
 
@@ -83,4 +82,4 @@ class _DeckList extends React.Component<ConnectedProps> {
   }
 }
 
-export const DeckList = withRouter(connect(state => ({ state }))(_DeckList));
+export const DeckList = connect(state => ({ state }))(_DeckList);
