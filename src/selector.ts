@@ -1,5 +1,14 @@
-export const getDecks = (state: RootState): Deck[] => {
-  return Object.values(state.deck.byId);
+export const getDecks = (
+  state: RootState,
+  isPublic: boolean = false
+): Deck[] => {
+  if (isPublic) {
+    return Object.values(state.deck.byId).filter(
+      d => d.uid != state.config.uid
+    );
+  } else {
+    return Object.values(state.deck.byId);
+  }
 };
 
 export const getCurrentPage = (state: RootState): NavState | undefined => {

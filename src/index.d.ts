@@ -13,6 +13,7 @@ interface Deck {
   isPublic: boolean;
   url: string | null;
   createdAt: Date;
+  uid: string;
 
   // when user selects a deck, show this index card
   // this should not be stored in sqlite
@@ -34,13 +35,12 @@ interface Sheet {
 
 interface Card {
   id: string;
-  fkid: string; // TODO: remove
   frontText: string;
   backText: string;
   hint: string;
   mastered: boolean;
   deckId: string;
-  // firebase can not store undefined ...
+  uid: string;
   category: string | null;
   tags: string[];
   createdAt: Date;

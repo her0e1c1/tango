@@ -30,10 +30,7 @@ class _DeckList extends React.Component<
   ConnectedProps,
   { refreshing: boolean }
 > {
-  constructor(props) {
-    super(props);
-    this.state = { refreshing: false };
-  }
+  state = { refreshing: false };
   render() {
     const decks = Selector.getDecks(this.props.state);
     const { dispatch } = this.props;

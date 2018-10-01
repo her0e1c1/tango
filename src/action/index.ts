@@ -131,24 +131,24 @@ export const deckFetch = (isPublic: boolean = false): ThunkAction => async (
   getState
 ) => {
   const uid = getState().config.uid;
-  if (uid) {
-    const query = db.collection('deck').orderBy('createdAt');
-    let querySnapshot: firebase.firestore.QuerySnapshot;
-    if (isPublic) {
-      querySnapshot = await query.where('isPublic', '==', true).get();
-    } else {
-      querySnapshot = await query.where('uid', '==', uid).get();
-    }
-    const decks = [] as Deck[];
-    querySnapshot.forEach(doc => {
-      const d = doc.data() as Deck;
-      decks.push({ ...d, id: doc.id });
-    });
-    await dispatch(type.deckBulkInsert(decks));
-    decks.forEach(d => dispatch(cardFetch(d.id)));
-  } else {
+  if (!isPublic && !uid) {
     alert('need to login');
+    return;
   }
+  const query = db.collection('deck').orderBy('createdAt');
+  let querySnapshot: firebase.firestore.QuerySnapshot;
+  if (isPublic) {
+    querySnapshot = await query.where('isPublic', '==', true).get();
+  } else {
+    querySnapshot = await query.where('uid', '==', uid).get();
+  }
+  const decks = [] as Deck[];
+  querySnapshot.forEach(doc => {
+    const d = doc.data() as Deck;
+    decks.push({ ...d, id: doc.id });
+  });
+  await dispatch(type.deckBulkInsert(decks));
+  decks.forEach(d => dispatch(cardFetch(d.id)));
 };
 
 export const deckCreate = (

@@ -2,32 +2,31 @@ import * as React from 'react';
 import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import { StackNavigator } from 'react-navigation';
-// import * as RN from 'react-native';
+import * as RN from 'react-native';
 
 import * as Action from 'src/react-native/action';
 import { Header } from './header';
 import { InputUrl } from './inputUrl';
-/*
+
 import * as Selector from 'src/selector';
 import * as SD from './styled';
-import CardView from './cardView';
-import { SpreadSheetList, Sheet } from './drive';
-*/
 
-/*
 class _DeckList extends React.Component<
   ConnectedProps,
   { refreshing: boolean }
 > {
   state = { refreshing: false };
+  componentDidMount() {
+    this.props.dispatch(Action.deckFetch(true));
+  }
   render() {
-    const decks = Selector.getMyDecks(this.props.state);
+    const decks = Selector.getDecks(this.props.state, true);
     return (
       <SD.Container>
         <RN.FlatList
           data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
           onRefresh={async () => {
-            await this.props.dispatch(Action.share.fetchDecks());
+            // await this.props.dispatch(Action.share.fetchDecks());
             await this.setState({ refreshing: false });
           }}
           refreshing={this.state.refreshing}
@@ -52,14 +51,16 @@ class _DeckList extends React.Component<
                 <SD.DeckTitle>{item.name}</SD.DeckTitle>
                 <RN.Button
                   title="+"
-                  onPress={() =>
-                    this.props.dispatch(Action.importFromFireBase(item.id))
+                  onPress={
+                    () => {}
+                    // this.props.dispatch(Action.importFromFireBase(item.id))
                   }
                 />
                 <RN.Button
                   title="DEL"
-                  onPress={() =>
-                    this.props.dispatch(Action.share.deleteDeck(item.id))
+                  onPress={
+                    () => {}
+                    //this.props.dispatch(Action.share.deleteDeck(item.id))
                   }
                 />
               </SD.DeckCard>
@@ -71,9 +72,8 @@ class _DeckList extends React.Component<
   }
 }
 
-// @ts-ignore
 const DeckList = connect(state => ({ state }))(_DeckList);
-
+/*
 class _CardList extends React.Component<ConnectedProps & { deck_id: string }> {
   componentDidMount() {
     const { deck_id } = this.props;
@@ -120,16 +120,14 @@ const _List = props => (
         <NB.Icon active name="arrow-forward" />
       </NB.Right>
     </NB.ListItem>
-    {/*
-    <NB.ListItem onPress={() => props.dispatch(Action.goTo('spreadsheet'))}>
+    <NB.ListItem onPress={() => props.dispatch(Action.goTo('deckList'))}>
       <NB.Left>
-        <NB.Title>Google Spread Sheet</NB.Title>
+        <NB.Title>Public Deck List</NB.Title>
       </NB.Left>
       <NB.Right>
         <NB.Icon active name="arrow-forward" />
       </NB.Right>
     </NB.ListItem>
-*/}
   </NB.List>
 );
 
@@ -148,6 +146,7 @@ export const Root = StackNavigator(
   {
     share: { screen: wrap(List) },
     inputUrl: { screen: InputUrl },
+    deckList: { screen: wrap(DeckList) },
     // sheet: { screen: wrap(Sheet) },
     // spreadsheet: { screen: wrap(SpreadSheetList) },
     // shareCards: { screen: wrap(CardList) },
