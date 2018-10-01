@@ -25,6 +25,7 @@ export const login = (): ThunkAction => async (dispatch, getState) => {
   __DEV__ && console.log('DEBUG: LOGIN', result.user);
   if (result.user) {
     const { displayName, uid } = result.user;
+    // @ts-ignore: credential doesn't have accessToken as key
     const googleAccessToken = result.credential.accessToken;
     dispatch(configUpdate({ uid, displayName, googleAccessToken }));
   }
