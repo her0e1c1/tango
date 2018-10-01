@@ -19,8 +19,8 @@ class _DeckCategory extends React.Component<ConnectedProps & { deck: Deck }> {
         style={{ width: 200 }}
         defaultValue={deck.category}
         dataSource={categories}
-        onSelect={v =>
-          this.props.dispatch(Action.deckUpdate({ ...deck, category: v }))
+        onSelect={(category: string) =>
+          this.props.dispatch(Action.deckUpdate({ ...deck, category }))
         }
         onChange={e => this.setState({ input: e })}
       />

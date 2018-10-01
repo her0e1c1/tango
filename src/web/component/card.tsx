@@ -83,7 +83,7 @@ class _CardList extends React.Component<
             mode="tags"
             size="small"
             defaultValue={card.tags}
-            onChange={tags =>
+            onChange={(tags: string[]) =>
               this.props.dispatch(Action.cardUpdate({ ...card, tags }))
             }
           />

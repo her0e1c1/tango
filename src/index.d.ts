@@ -5,7 +5,7 @@ interface Action<P = undefined> {
   payload: P;
 }
 
-type Category = 'math' | 'python' | 'golang' | 'haskell' | 'raw' | 'markdown';
+type Category = string; // 'math' | 'python' | 'golang' | 'haskell' | 'raw' | 'markdown';
 
 interface Deck {
   id: string;
