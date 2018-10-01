@@ -7,9 +7,7 @@ import * as RN from 'react-native';
 import * as Action from 'src/react-native/action';
 import { Header } from './header';
 import { InputUrl } from './inputUrl';
-
 import * as Selector from 'src/selector';
-import * as SD from './styled';
 
 class _PublicDeckList extends React.Component<
   ConnectedProps,
@@ -22,44 +20,40 @@ class _PublicDeckList extends React.Component<
   render() {
     const decks = Selector.getDecks(this.props.state, true);
     return (
-      <SD.Container>
-        <RN.FlatList
-          data={decks.filter(x => !!x).map((d, key) => ({ ...d, key }))}
-          onRefresh={async () => {
-            // await this.props.dispatch(Action.share.fetchDecks());
-            await this.setState({ refreshing: false });
-          }}
-          refreshing={this.state.refreshing}
-          ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
-          renderItem={({ item }: { item: Deck }) => (
-            <RN.TouchableOpacity
-              onPress={() =>
-                this.props.dispatch(
-                  Action.goTo('shareCards', {
-                    deck_id: item.id,
-                  })
-                )
-              }
-            >
-              <SD.DeckCard
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <SD.DeckTitle>{item.name}</SD.DeckTitle>
-                <RN.Button
-                  title="+"
+      <RN.FlatList
+        data={decks.map((d, key) => ({ ...d, key }))}
+        onRefresh={async () => {
+          // await this.props.dispatch(Action.share.fetchDecks());
+          await this.setState({ refreshing: false });
+        }}
+        refreshing={this.state.refreshing}
+        ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
+        renderItem={({ item }: { item: Deck }) => (
+          <RN.TouchableOpacity
+            onPress={() =>
+              this.props.dispatch(
+                Action.goTo('shareCards', {
+                  deck_id: item.id,
+                })
+              )
+            }
+          >
+            <NB.ListItem>
+              <NB.Left>
+                <NB.Title>{item.name}</NB.Title>
+              </NB.Left>
+              <NB.Right>
+                <NB.Icon
+                  name="md-add"
                   onPress={() =>
                     this.props.dispatch(Action.deckImportPublic(item.id))
                   }
                 />
-              </SD.DeckCard>
-            </RN.TouchableOpacity>
-          )}
-        />
-      </SD.Container>
+              </NB.Right>
+            </NB.ListItem>
+          </RN.TouchableOpacity>
+        )}
+      />
     );
   }
 }
@@ -139,9 +133,9 @@ export const Root = StackNavigator(
     share: { screen: wrap(List) },
     inputUrl: { screen: InputUrl },
     publicDeckList: { screen: wrap(PublicDeckList) },
+    // shareCards: { screen: wrap(CardList) },
     // sheet: { screen: wrap(Sheet) },
     // spreadsheet: { screen: wrap(SpreadSheetList) },
-    // shareCards: { screen: wrap(CardList) },
     // shareView: { screen: wrap(CardView) },
   } as any,
   {
