@@ -41,8 +41,20 @@ module.exports = {
         use: [
           'file-loader'
         ]
+      },
+      {
+        // can not write in .babelrc because of expo
+        test: /\.m?js$/,
+        exclude: /(node_modules|bower_components)/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            plugins: [
+              ["import", { "libraryName": "antd", "libraryDirectory": "lib"}, "ant"],
+            ]
+          }
+        }
       }
-
     ],
   },
   resolve: {

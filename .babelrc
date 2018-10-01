@@ -5,7 +5,4 @@
       "plugins": ["transform-react-jsx-source"]
     }
   },
-  "plugins": [
-    ["import", { "libraryName": "antd", "libraryDirectory": "lib"}, "ant"],
-  ],
 }
