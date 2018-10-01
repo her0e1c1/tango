@@ -35,16 +35,16 @@ class Field extends React.Component<
 // Because save icon is in header, you can not use component state
 // and use reducer state instead to pass user input
 export class _CardEdit extends React.Component<
-  ConnectedProps & { card_id: number },
+  ConnectedProps & { cardId: string },
   {}
 > {
   cardEdit(edit: Partial<Card>) {
-    const card = this.props.state.card.byId[this.props.card_id];
+    const card = this.props.state.card.byId[this.props.cardId];
     this.props.dispatch(Action.cardUpdate({ ...card, ...edit }));
   }
   render() {
     const { dispatch } = this.props;
-    if (!this.props.card_id) return <ErrorPage />; // DEFENSIVE
+    if (!this.props.cardId) return <ErrorPage />; // DEFENSIVE
     const card = this.props.state.card.edit;
     return (
       <NB.Content padder style={{ marginBottom: 50 }}>
@@ -143,29 +143,38 @@ export class _CardEdit extends React.Component<
 export const CardEdit = connect(state => ({ state }))(_CardEdit);
 
 export class _CardNew extends React.Component<
-  ConnectedProps & { deck_id: number },
+  ConnectedProps & { deckId: string },
   {}
 > {
+  componentDidMount() {
+    const deckId = this.props.deckId;
+    this.props.dispatch(Action.cardEdit({ deckId }));
+  }
+  cardEdit(card: Partial<Card>) {
+    this.props.dispatch(
+      Action.cardEdit({ ...this.props.state.card.edit, ...card })
+    );
+  }
   render() {
-    if (!this.props.deck_id) return <ErrorPage />; // DEFENSIVE
+    if (!this.props.deckId) return <ErrorPage />; // DEFENSIVE
     const card = this.props.state.card.edit;
     return (
       <NB.Content padder style={{ marginBottom: 50 }}>
         <NB.Form>
           <Field
-            name={'TITLE'}
+            name={'Front Text'}
             value={card.frontText}
-            // onChangeText={name => this.cardEdit({ name })}
+            onChangeText={frontText => this.cardEdit({ frontText })}
           />
           <Field
-            name={'HINT'}
-            value={card.hint}
-            // onChangeText={hint => dispatch(Action.card.edit({ hint }))}
-          />
-          <Field
-            name={'BODY'}
+            name={'Back Text'}
             value={card.backText}
-            // onChangeText={body => dispatch(Action.card.edit({ body }))}
+            onChangeText={backText => this.cardEdit({ backText })}
+          />
+          <Field
+            name={'Hint'}
+            value={card.hint}
+            onChangeText={hint => this.cardEdit({ hint })}
           />
         </NB.Form>
       </NB.Content>

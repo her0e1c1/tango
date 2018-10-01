@@ -49,37 +49,6 @@ export const deck = (
   }
 };
 
-export const config = (
-  state: ConfigState = {
-    showMastered: true,
-    showHeader: true,
-    showBody: false,
-    showHint: false,
-    hideBodyWhenCardChanged: true,
-    shuffled: false,
-    cardInterval: 5,
-    start: 0,
-    theme: 'default',
-    isLoading: false, // maybe not here
-    errorCode: undefined,
-    cardSwipeUp: 'goToNextCardToggleMastered',
-    cardSwipeDown: 'goBack',
-    cardSwipeLeft: 'goToPrevCard',
-    cardSwipeRight: 'goToNextCard',
-    googleAccessToken: undefined,
-    googleRefreshToken: undefined,
-    uid: '',
-    displayName: '',
-  },
-  action: Action
-): ConfigState => {
-  if (equal(action, type.configUpdate)) {
-    return { ...state, ...action.payload.config };
-  } else {
-    return state;
-  }
-};
-
 const updateCard = (state: CardState, cards: Card[]) => {
   const ns = _.clone(state);
   cards.forEach(c => {
@@ -126,8 +95,40 @@ export const card = (
       .map(e => ({ [e[0]]: config.shuffled ? _.shuffle(e[1]) : e[1].sort() }))
       .reduce((obj, e) => ({ ...obj, ...e }));
     return { ...state, byDeckId };
-  } else if (equal(action, type.card_edit_init)) {
-    return { ...state, edit: action.payload.card };
+  } else if (equal(action, type.cardEdit)) {
+    const edit = Object.assign(state.edit || {}, action.payload.card);
+    return { ...state, edit };
+  } else {
+    return state;
+  }
+};
+
+export const config = (
+  state: ConfigState = {
+    showMastered: true,
+    showHeader: true,
+    showBody: false,
+    showHint: false,
+    hideBodyWhenCardChanged: true,
+    shuffled: false,
+    cardInterval: 5,
+    start: 0,
+    theme: 'default',
+    isLoading: false, // maybe not here
+    errorCode: undefined,
+    cardSwipeUp: 'goToNextCardToggleMastered',
+    cardSwipeDown: 'goBack',
+    cardSwipeLeft: 'goToPrevCard',
+    cardSwipeRight: 'goToNextCard',
+    googleAccessToken: undefined,
+    googleRefreshToken: undefined,
+    uid: '',
+    displayName: '',
+  },
+  action: Action
+): ConfigState => {
+  if (equal(action, type.configUpdate)) {
+    return { ...state, ...action.payload.config };
   } else {
     return state;
   }
