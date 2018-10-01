@@ -189,36 +189,26 @@ export const deckUpdate = (deck: Deck): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const uid = getState().config.uid;
-  if (uid) {
-    await db
-      .collection('deck')
-      .doc(deck.id)
-      .set({ ...deck, uid });
-    dispatch(type.deckBulkInsert([deck]));
-  } else {
-    alert('You need to log in first');
-  }
+  await db
+    .collection('deck')
+    .doc(deck.id)
+    .set({ ...deck });
+  dispatch(type.deckBulkInsert([deck]));
 };
 
 export const deckDelete = (deckId: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const uid = getState().config.uid;
-  if (uid) {
-    const querySnapshot = await db
-      .collection('card')
-      .where('deckId', '==', deckId)
-      .get();
-    const batch = db.batch();
-    batch.delete(db.collection('deck').doc(deckId));
-    querySnapshot.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-    await dispatch(type.deckBulkDelete([deckId]));
-  } else {
-    alert('You need to log in first');
-  }
+  const querySnapshot = await db
+    .collection('card')
+    .where('deckId', '==', deckId)
+    .get();
+  const batch = db.batch();
+  batch.delete(db.collection('deck').doc(deckId));
+  querySnapshot.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
+  await dispatch(type.deckBulkDelete([deckId]));
 };
 
 // deck.isPublic must be true
@@ -275,45 +265,30 @@ export const cardCreate = (card: Card): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const uid = getState().config.uid;
-  if (uid) {
-    const docRef = await db.collection('card').add(card);
-    await dispatch(type.cardBulkInsert([{ ...card, id: docRef.id }]));
-  } else {
-    alert('need to login');
-  }
+  const docRef = await db.collection('card').add(card);
+  await dispatch(type.cardBulkInsert([{ ...card, id: docRef.id }]));
 };
 
 export const cardUpdate = (card: Card): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const uid = getState().config.uid;
-  if (uid) {
-    await db
-      .collection('card')
-      .doc(card.id)
-      .set(card);
-    await dispatch(type.cardBulkInsert([card]));
-  } else {
-    alert('need to login');
-  }
+  await db
+    .collection('card')
+    .doc(card.id)
+    .set(card);
+  await dispatch(type.cardBulkInsert([card]));
 };
 
 export const cardDelete = (id: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const uid = getState().config.uid;
-  if (uid) {
-    await db
-      .collection('card')
-      .doc(id)
-      .delete();
-    await dispatch(type.cardDelete(id));
-  } else {
-    alert('You need to log in first');
-  }
+  await db
+    .collection('card')
+    .doc(id)
+    .delete();
+  await dispatch(type.cardDelete(id));
 };
 
 export const configUpdate = (config: Partial<ConfigState>) => async (
