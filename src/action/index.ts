@@ -5,6 +5,7 @@ import * as queryString from 'query-string';
 import * as C from 'src/constant';
 import * as type from './type';
 import { db } from 'src/firebase';
+import * as Selector from 'src/selector';
 
 export * from './type';
 
@@ -148,7 +149,7 @@ export const deckFetch = (isPublic: boolean = false): ThunkAction => async (
     decks.push({ ...d, id: doc.id });
   });
   await dispatch(type.deckBulkInsert(decks));
-  decks.forEach(d => dispatch(cardFetch(d.id)));
+  // decks.forEach(d => dispatch(cardFetch(d.id)));
 };
 
 export const deckCreate = (
@@ -220,26 +221,54 @@ export const deckDelete = (deckId: string): ThunkAction => async (
   }
 };
 
-export const cardFetch = (deckId: string): ThunkAction => async (
+// deck.isPublic must be true
+export const deckImportPublic = (deckId: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
+  const doc = await db
+    .collection('deck')
+    .doc(deckId)
+    .get();
+  const deck = { ...doc.data(), id: doc.id } as Deck;
+  await dispatch(cardFetch(deckId, true));
+  await dispatch(type.deckBulkInsert([deck]));
+  const cards = Selector.getCardList(getState(), deckId);
+  // this method should work even if user is not logged in yet
   const uid = getState().config.uid;
   if (uid) {
-    const querySnapshot = await db
-      .collection('card')
-      .where('deckId', '==', deckId)
-      .where('uid', '==', uid)
-      .get();
-    const cards = [] as Card[];
-    querySnapshot.forEach(doc => {
-      const d = doc.data() as Card;
-      cards.push({ ...d, id: doc.id });
-    });
-    dispatch(type.cardBulkInsert(cards));
+    await dispatch(deckCreate(deck, cards));
   } else {
-    alert('need to login');
+    const d = { ...deck, uid: '' };
+    await dispatch(type.deckBulkInsert([d]));
   }
+};
+
+export const cardFetch = (
+  deckId: string,
+  isPublic: boolean = false
+): ThunkAction => async (dispatch, getState) => {
+  const uid = getState().config.uid;
+  if (!isPublic && !uid) {
+    alert('need to login');
+    return;
+  }
+  const query = db.collection('card').where('deckId', '==', deckId);
+  let querySnapshot: firebase.firestore.QuerySnapshot;
+  if (isPublic) {
+    // no need to filter by public deck???
+    querySnapshot = await query.get();
+    // querySnapshot = await query.where('deck.isPublic', '==', true).get();
+  } else {
+    // need to include the same condition as defined in security rules
+    querySnapshot = await query.where('uid', '==', uid).get();
+  }
+  const cards = [] as Card[];
+  querySnapshot.forEach(doc => {
+    const d = doc.data() as Card;
+    cards.push({ ...d, id: doc.id });
+  });
+  dispatch(type.cardBulkInsert(cards));
 };
 
 export const cardCreate = (card: Card): ThunkAction => async (

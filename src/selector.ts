@@ -7,7 +7,9 @@ export const getDecks = (
       d => d.uid != state.config.uid
     );
   } else {
-    return Object.values(state.deck.byId);
+    return Object.values(state.deck.byId).filter(
+      d => d.uid == state.config.uid
+    );
   }
 };
 

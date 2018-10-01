@@ -51,16 +51,8 @@ class _DeckList extends React.Component<
                 <SD.DeckTitle>{item.name}</SD.DeckTitle>
                 <RN.Button
                   title="+"
-                  onPress={
-                    () => {}
-                    // this.props.dispatch(Action.importFromFireBase(item.id))
-                  }
-                />
-                <RN.Button
-                  title="DEL"
-                  onPress={
-                    () => {}
-                    //this.props.dispatch(Action.share.deleteDeck(item.id))
+                  onPress={() =>
+                    this.props.dispatch(Action.deckImportPublic(item.id))
                   }
                 />
               </SD.DeckCard>
