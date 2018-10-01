@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Table, Icon, AutoComplete, Popconfirm } from 'antd';
+import { Table, Icon, AutoComplete, Popconfirm, Switch } from 'antd';
 import { ColumnProps } from 'antd/lib/table/interface';
 import * as Action from 'src/web/action';
 import { Link } from 'react-router-dom';
@@ -48,6 +48,17 @@ class _DeckList extends React.Component<ConnectedProps> {
       {
         title: 'category',
         render: (deck: Deck) => <DeckCategory deck={deck} />,
+      },
+      {
+        title: 'publish',
+        render: (deck: Deck) => (
+          <Switch
+            checked={deck.isPublic}
+            onChange={isPublic =>
+              this.props.dispatch(Action.deckUpdate({ ...deck, isPublic }))
+            }
+          />
+        ),
       },
       {
         title: 'delete',
