@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import * as Action from 'src/web/action';
 import * as Papa from 'papaparse';
@@ -47,7 +47,10 @@ class _CsvUpload extends React.Component<
 }
 export const CsvUpload = connect(state => ({ state }))(_CsvUpload);
 
-class _DeckCreate extends React.Component<ConnectedProps> {
+class _DeckCreate extends React.Component<
+  ConnectedProps & RouteComponentProps,
+  { deckName: string; cards: Card[] }
+> {
   state = { deckName: '', cards: [] as Card[] };
   render() {
     return (

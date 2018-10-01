@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Layout, Menu } from 'antd';
 import * as Action from 'src/web/action';
-import { Link, withRouter } from 'react-router-dom';
+import { Link, withRouter, RouteComponentProps } from 'react-router-dom';
 
 const Logo = () => (
   <Link to="/">
@@ -18,7 +18,7 @@ const Logo = () => (
   </Link>
 );
 
-class _Header extends React.Component<ConnectedProps> {
+class _Header extends React.Component<ConnectedProps & RouteComponentProps> {
   render() {
     return (
       <Layout.Header style={{ background: '#fff', padding: 0, height: 50 }}>
