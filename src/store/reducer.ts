@@ -44,6 +44,9 @@ export const deck = (
   } else if (equal(action, type.deckBulkDelete)) {
     action.payload.deckIds.forEach(id => delete state.byId[id]);
     return { ...state };
+  } else if (equal(action, type.deckEdit)) {
+    const edit = Object.assign(state.edit || {}, action.payload.deck);
+    return { ...state, edit };
   } else {
     return state;
   }

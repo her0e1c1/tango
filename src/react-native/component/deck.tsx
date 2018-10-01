@@ -149,12 +149,15 @@ export class _ProgressBar extends React.Component<
 export const ProgressBar = connect(state => ({ state }))(_ProgressBar);
 
 export class _DeckEdit extends React.Component<
-  ConnectedProps & { deck_id: number },
+  ConnectedProps & { deck_id: string },
   {}
 > {
+  componentDidMount() {
+    this.deckEdit({});
+  }
   deckEdit(edit: Partial<Deck>) {
     const deck = this.props.state.deck.byId[this.props.deck_id];
-    this.props.dispatch(Action.deckUpdate({ ...deck, ...edit }));
+    this.props.dispatch(Action.deckEdit({ ...deck, ...edit }));
   }
   render() {
     const deck = this.props.state.deck.edit || {};

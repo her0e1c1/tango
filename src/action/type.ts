@@ -13,6 +13,11 @@ export const deckBulkDelete = (deckIds: string[]) => ({
   payload: { deckIds },
 });
 
+export const deckEdit = (deck: Partial<Deck>) => ({
+  type: 'DECK_EDIT',
+  payload: { deck },
+});
+
 export const cardBulkInsert = (cards: Card[]) => ({
   type: 'CARD_BULK_INSERT',
   payload: { cards },
