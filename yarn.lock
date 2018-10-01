@@ -864,7 +864,7 @@
     "@types/history" "*"
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^16.0.0":
+"@types/react@*", "@types/react@^16.5.1":
   version "16.4.14"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.4.14.tgz#47c604c8e46ed674bbdf4aabf82b34b9041c6a04"
   dependencies:
@@ -4245,7 +4245,7 @@ find-up@^3.0.0:
   dependencies:
     locate-path "^3.0.0"
 
-firebase@^5.0.0:
+firebase@^5.5.0:
   version "5.5.2"
   resolved "https://registry.yarnpkg.com/firebase/-/firebase-5.5.2.tgz#05fa180c058941dcbfc248882e829f2945aa0568"
   dependencies:
