@@ -12,6 +12,17 @@ import * as Selector from 'src/selector';
 
 export * from 'src/action';
 
+const signIn = (
+  credential: firebase.auth.AuthCredential
+): ThunkAction => async (dispatch, getState) => {
+  try {
+    await firebase.auth().signInWithCredential(credential);
+    dispatch(init());
+  } catch (e) {
+    __DEV__ && console.log(e);
+  }
+};
+
 export const loginWithGoogle = (): ThunkAction => async (
   dispatch,
   getState
@@ -25,13 +36,30 @@ export const loginWithGoogle = (): ThunkAction => async (
   const idToken = (result as any).idToken; // TODO: update @types
   if (type === 'success') {
     const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
-    firebase
-      .auth()
-      .signInWithCredential(credential)
-      .then(() => dispatch(init()))
-      .catch(error => __DEV__ && console.log(error));
+    dispatch(signIn(credential));
   } else {
     alert(`Can not login with Google account`);
+  }
+};
+
+export const loginWithFacebook = (): ThunkAction => async (
+  dispatch,
+  _getState
+) => {
+  try {
+    const result = await Expo.Facebook.logInWithReadPermissionsAsync(
+      C.FACEBOOK_APP_ID,
+      { permissions: ['public_profile'] }
+    );
+    const { type } = result;
+    const token = (result as any).token; // TODO: update @types
+    if (type === 'success') {
+      // Build Firebase credential with the Facebook access token.
+      const credential = firebase.auth.FacebookAuthProvider.credential(token);
+      dispatch(signIn(credential));
+    }
+  } catch (e) {
+    alert(JSON.stringify(e));
   }
 };
 
@@ -39,7 +67,9 @@ export const init = (): ThunkAction => async (dispatch, getState) => {
   auth.onAuthStateChanged(async user => {
     __DEV__ && console.log('DEBUG: INIT', user);
     if (user) {
-      await dispatch(Action.configUpdate({ uid: user.uid }));
+      await dispatch(
+        Action.configUpdate({ uid: user.uid, displayName: user.displayName })
+      );
       await dispatch(Action.deckFetch());
     } else {
       alert('no user');
@@ -120,56 +150,6 @@ export const loginWithGoogleOnWeb = (): ThunkAction => async (
   }
 };
 
-export const loginWithGoogle = (): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const result = await Expo.Google.logInAsync({
-    androidClientId: C.GOOGLE_ANDROID_CLIENT_ID,
-    iosClientId: C.GOOGLE_IOS_CLIENT_ID,
-    // webClientId: C.GOOGLE_WEB_CLIENT_ID,
-    scopes: C.GOOGLE_AUTH_SCOPE,
-  });
-  const { type } = result;
-  const idToken = (result as any).idToken; // TODO: update @types
-  if (type === 'success') {
-    const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
-    firebase
-      .auth()
-      .signInWithCredential(credential)
-      .then(() => dispatch(init()))
-      .catch(error => console.log(error));
-  } else {
-    alert(`Can not login with Google account`);
-  }
-};
-
-export const loginWithFacebook = (): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  try {
-    const result = await Expo.Facebook.logInWithReadPermissionsAsync(
-      C.facebookAppId,
-      { permissions: ['public_profile'] }
-    );
-    const { type } = result;
-    const token = (result as any).token; // TODO: update @types
-    if (type === 'success') {
-      // Build Firebase credential with the Facebook access token.
-      const credential = firebase.auth.FacebookAuthProvider.credential(token);
-
-      // Sign in with credential from the Facebook user.
-      firebase
-        .auth()
-        .signInWithCredential(credential)
-        .then(() => dispatch(init()))
-        .catch(error => console.log(error));
-    }
-  } catch (e) {
-    alert(JSON.stringify(e));
-  }
-};
 */
 
 export const goBack = () => async (dispatch, getState) => {
