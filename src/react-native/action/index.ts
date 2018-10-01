@@ -16,7 +16,7 @@ const signIn = (
   credential: firebase.auth.AuthCredential
 ): ThunkAction => async (dispatch, getState) => {
   try {
-    await firebase.auth().signInWithCredential(credential);
+    await firebase.auth().signInAndRetrieveDataWithCredential(credential);
     dispatch(init());
   } catch (e) {
     __DEV__ && console.log(e);
