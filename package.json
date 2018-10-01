@@ -6,6 +6,7 @@
     "start": "expo start",
     "web": "webpack-dev-server -d --config webpack.config.js",
     "web-build": "webpack -p --config webpack.config.js",
+    "web-deploy": "firebase deploy --only hosting",
     "eject": "react-native-scripts eject",
     "android": "react-native-scripts android",
     "android:log": " react-native log-android",
