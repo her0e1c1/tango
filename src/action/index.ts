@@ -13,7 +13,7 @@ export const logout = (): ThunkAction => async (dispatch, getState) => {
   dispatch(type.configUpdate({ uid: '', googleAccessToken: '' }));
 };
 
-export const refreshToken = (): ThunkAction<boolean> => async (
+export const refreshToken = (): ThunkAction<Promise<boolean>> => async (
   dispatch,
   getState
 ) => {

@@ -11,7 +11,7 @@ interface Deck {
   id: string;
   name: string;
   isPublic: boolean;
-  url?: string;
+  url: string | null;
   createdAt: Date;
 
   // when user selects a deck, show this index card
@@ -21,8 +21,8 @@ interface Deck {
   convertToBr?: boolean;
 
   // google spread sheet
-  spreadsheetId?: string;
-  spreadsheetGid?: string;
+  spreadsheetId: string | null;
+  spreadsheetGid: string | null;
 }
 
 interface Sheet {
@@ -107,7 +107,7 @@ type ConfigState = {
   googleAccessToken?: string;
   googleRefreshToken?: string;
   uid: string;
-  displayName: string;
+  displayName: string | null;
 };
 
 interface RootState {
@@ -121,7 +121,7 @@ interface AppContext {
   theme: Theme;
 }
 
-type _ThunkAction<R, S, E> = (
+type _ThunkAction<R, S, E, A> = (
   dispatch: Dispatch<S>,
   getState: () => S,
   extraArgument: E

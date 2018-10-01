@@ -1,13 +1,16 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Table, Input, Icon, Select } from 'antd';
-import { withRouter } from 'react-router-dom';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 import * as Action from 'src/web/action';
+
 var Latex = require('react-latex'); // TODO: Create a parser
 
 const renderMath = text => <Latex>{text}</Latex>;
 
-class _CardList extends React.Component<ConnectedProps> {
+class _CardList extends React.Component<
+  ConnectedProps & RouteComponentProps<{ id: string }>
+> {
   state = { editFrontTextId: '', editBackTextId: '' };
   componentDidMount() {
     this.columns = [
