@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Table, Input, Icon, Select } from 'antd';
+import { ColumnProps } from 'antd/lib/table/interface';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import * as Action from 'src/web/action';
 
@@ -11,6 +12,7 @@ const renderMath = text => <Latex>{text}</Latex>;
 class _CardList extends React.Component<
   ConnectedProps & RouteComponentProps<{ id: string }>
 > {
+  columns: ColumnProps<Card>[];
   state = { editFrontTextId: '', editBackTextId: '' };
   componentDidMount() {
     this.columns = [

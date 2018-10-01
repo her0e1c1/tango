@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Table, Icon, AutoComplete, Popconfirm } from 'antd';
+import { ColumnProps } from 'antd/lib/table/interface';
 import { withRouter } from 'react-router-dom';
 import * as Action from 'src/web/action';
 import { Link } from 'react-router-dom';
@@ -31,6 +32,7 @@ export const DeckCategory = connect(state => ({ state }))(_DeckCategory);
 
 // TODO: show number (だけどcardをprefetchする必要がある)
 class _DeckList extends React.Component<ConnectedProps> {
+  columns: ColumnProps<Deck>[];
   state = { loading: true };
   async componentDidMount() {
     this.columns = [
