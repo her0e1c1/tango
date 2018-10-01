@@ -119,6 +119,7 @@ class Body extends React.Component<Props, {}> {
       share: 'Import Decks',
       spreadsheet: 'Google Spread Sheet',
       inputUrl: 'Import By Url',
+      publicDeckList: 'Public Decks',
     };
     if (page) {
       return names[page.routeName] || '';

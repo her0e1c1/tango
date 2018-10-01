@@ -11,7 +11,7 @@ import { InputUrl } from './inputUrl';
 import * as Selector from 'src/selector';
 import * as SD from './styled';
 
-class _DeckList extends React.Component<
+class _PublicDeckList extends React.Component<
   ConnectedProps,
   { refreshing: boolean }
 > {
@@ -64,7 +64,7 @@ class _DeckList extends React.Component<
   }
 }
 
-const DeckList = connect(state => ({ state }))(_DeckList);
+const PublicDeckList = connect(state => ({ state }))(_PublicDeckList);
 /*
 class _CardList extends React.Component<ConnectedProps & { deck_id: string }> {
   componentDidMount() {
@@ -112,7 +112,7 @@ const _List = props => (
         <NB.Icon active name="arrow-forward" />
       </NB.Right>
     </NB.ListItem>
-    <NB.ListItem onPress={() => props.dispatch(Action.goTo('deckList'))}>
+    <NB.ListItem onPress={() => props.dispatch(Action.goTo('publicDeckList'))}>
       <NB.Left>
         <NB.Title>Public Deck List</NB.Title>
       </NB.Left>
@@ -138,7 +138,7 @@ export const Root = StackNavigator(
   {
     share: { screen: wrap(List) },
     inputUrl: { screen: InputUrl },
-    deckList: { screen: wrap(DeckList) },
+    publicDeckList: { screen: wrap(PublicDeckList) },
     // sheet: { screen: wrap(Sheet) },
     // spreadsheet: { screen: wrap(SpreadSheetList) },
     // shareCards: { screen: wrap(CardList) },
