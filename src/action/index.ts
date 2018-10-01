@@ -222,6 +222,7 @@ export const cardFetch = (deckId: string): ThunkAction => async (
     const querySnapshot = await db
       .collection('card')
       .where('deckId', '==', deckId)
+      .where('uid', '==', uid)
       .get();
     const cards = [] as Card[];
     querySnapshot.forEach(doc => {
