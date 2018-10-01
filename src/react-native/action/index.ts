@@ -49,7 +49,7 @@ export const loginWithFacebook = (): ThunkAction => async (
   try {
     const result = await Expo.Facebook.logInWithReadPermissionsAsync(
       C.FACEBOOK_APP_ID,
-      { permissions: ['public_profile'] }
+      { permissions: ['public_profile'], behavior: 'web' }
     );
     const { type } = result;
     const token = (result as any).token; // TODO: update @types
@@ -59,7 +59,7 @@ export const loginWithFacebook = (): ThunkAction => async (
       dispatch(signIn(credential));
     }
   } catch (e) {
-    alert(JSON.stringify(e));
+    alert('Can not login');
   }
 };
 
