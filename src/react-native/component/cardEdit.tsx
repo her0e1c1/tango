@@ -38,9 +38,13 @@ export class _CardEdit extends React.Component<
   ConnectedProps & { cardId: string },
   {}
 > {
-  cardEdit(edit: Partial<Card>) {
+  componentDidMount() {
     const card = this.props.state.card.byId[this.props.cardId];
-    this.props.dispatch(Action.cardUpdate({ ...card, ...edit }));
+    this.props.dispatch(Action.cardEdit({ ...card }));
+  }
+  cardEdit(edit: Partial<Card>) {
+    const card = this.props.state.card.edit;
+    this.props.dispatch(Action.cardEdit({ ...card, ...edit }));
   }
   render() {
     const { dispatch } = this.props;

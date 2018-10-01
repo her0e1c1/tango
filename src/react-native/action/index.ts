@@ -7,7 +7,7 @@ import { NavigationActions } from 'react-navigation';
 import * as Action from 'src/action';
 import { configUpdate } from 'src/action';
 import * as type from 'src/action/type';
-import { auth, db } from 'src/firebase';
+import { auth } from 'src/firebase';
 import * as Selector from 'src/selector';
 
 export * from 'src/action';

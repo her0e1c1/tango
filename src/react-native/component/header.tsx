@@ -71,7 +71,6 @@ class RightButton extends React.Component<Props, {}> {
       const card = Selector.getCurrentCard(this.props.state);
       await dispatch(
         Action.goTo('cardEdit', {
-          deckId: card.deckId,
           cardId: card.id,
         })
       );
