@@ -134,19 +134,6 @@ interface Dispatch<S, E, A extends Action> {
   <R>(asyncAction: _ThunkAction<R, S, E, A>): R;
 }
 
-/*
-type _ThunkAction<R, S, E, A> = (
-  dispatch: Dispatch<S, E, A>,
-  getState: () => S,
-  extraArgument: E
-) => R;
-
-interface Dispatch<S> {
-  <A extends Action>(action: A): void;
-  <R, E>(asyncAction: _ThunkAction<R, S, E, A>): R;
-}
-*/
-
 interface ConnectedProps {
   state: RootState;
 
