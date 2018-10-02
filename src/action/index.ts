@@ -127,14 +127,13 @@ export const importFromSpreadSheet = (
 };
 */
 
-export const deckFetch = (isPublic: boolean = false): ThunkAction => async (
-  dispatch,
-  getState
-) => {
+export const deckFetch = (
+  isPublic: boolean = false
+): ThunkAction<Promise<Deck[]>> => async (dispatch, getState) => {
   const uid = getState().config.uid;
   if (!isPublic && !uid) {
     alert('need to login');
-    return;
+    return [];
   }
   const query = db.collection('deck').orderBy('createdAt');
   let querySnapshot: firebase.firestore.QuerySnapshot;
@@ -149,7 +148,7 @@ export const deckFetch = (isPublic: boolean = false): ThunkAction => async (
     decks.push({ ...d, id: doc.id });
   });
   await dispatch(type.deckBulkInsert(decks));
-  // decks.forEach(d => dispatch(cardFetch(d.id)));
+  return decks;
 };
 
 export const deckCreate = (

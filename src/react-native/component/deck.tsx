@@ -16,9 +16,9 @@ const deckAction = (dispatch: any, item: Deck) => {
     },
     async index => {
       if (index === 0) {
-        await dispatch(Action.goTo('deck', { deck_id: item.id }));
+        await dispatch(Action.goTo('deck', { deckId: item.id }));
       } else if (index === 1) {
-        await dispatch(Action.goTo('deckEdit', { deck_id: item.id }));
+        await dispatch(Action.goTo('deckEdit', { deckId: item.id }));
       } else {
         // DO NOTHING
       }
@@ -73,10 +73,10 @@ class _DeckList extends React.Component<
                   <RN.TouchableOpacity
                     style={{ flex: 1 }}
                     onPress={() => {
-                      dispatch(Action.goTo('card', { deck_id: item.id }));
+                      dispatch(Action.goTo('card', { deckId: item.id }));
                     }}
                     onLongPress={() =>
-                      dispatch(Action.goTo('deckEdit', { deck_id: item.id }))
+                      dispatch(Action.goTo('deckEdit', { deckId: item.id }))
                     }
                   >
                     <NB.View
@@ -146,14 +146,14 @@ export class _ProgressBar extends React.Component<
 export const ProgressBar = connect(state => ({ state }))(_ProgressBar);
 
 export class _DeckEdit extends React.Component<
-  ConnectedProps & { deck_id: string },
+  ConnectedProps & { deckId: string },
   {}
 > {
   componentDidMount() {
     this.deckEdit({});
   }
   deckEdit(edit: Partial<Deck>) {
-    const deck = this.props.state.deck.byId[this.props.deck_id];
+    const deck = this.props.state.deck.byId[this.props.deckId];
     this.props.dispatch(Action.deckEdit({ ...deck, ...edit }));
   }
   render() {

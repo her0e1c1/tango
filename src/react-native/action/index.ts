@@ -72,7 +72,8 @@ export const init = (): ThunkAction => async (dispatch, getState) => {
       await dispatch(
         Action.configUpdate({ uid: user.uid, displayName: user.displayName })
       );
-      await dispatch(Action.deckFetch());
+      const decks = (await dispatch(Action.deckFetch())) as Deck[]; // TODO: fix
+      decks.forEach(d => dispatch(Action.cardFetch(d.id)));
     } else {
       console.log('NOT LOGGED IN YET');
     }

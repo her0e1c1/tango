@@ -121,17 +121,31 @@ interface AppContext {
   theme: Theme;
 }
 
-type _ThunkAction<R, S, E, A> = (
-  dispatch: Dispatch<S>,
+type _ThunkAction<R, S, E, A extends Action> = (
+  dispatch: ThunkDispatch<S, E, A>,
   getState: () => S,
   extraArgument: E
 ) => R;
 
-type ThunkAction<T = void> = _ThunkAction<T, RootState, undefined, Action>;
+type ThunkAction<R = void> = _ThunkAction<R, RootState, undefined, Action>;
+
+interface Dispatch<S, E, A extends Action> {
+  <T extends A>(action: T): T;
+  <R>(asyncAction: _ThunkAction<R, S, E, A>): R;
+}
+
+/*
+type _ThunkAction<R, S, E, A> = (
+  dispatch: Dispatch<S, E, A>,
+  getState: () => S,
+  extraArgument: E
+) => R;
 
 interface Dispatch<S> {
-  <R, E>(asyncAction: _ThunkAction<R, S, E>): R;
+  <A extends Action>(action: A): void;
+  <R, E>(asyncAction: _ThunkAction<R, S, E, A>): R;
 }
+*/
 
 interface ConnectedProps {
   state: RootState;

@@ -28,8 +28,8 @@ export const getCurrentPage = (state: RootState): NavState | undefined => {
 
 export const getCurrentDeck = (state: RootState): Deck => {
   const r = getCurrentPage(state);
-  const deck_id = r && r.params && r.params.deck_id;
-  return state.deck.byId[deck_id] || {};
+  const deckId = r && r.params && r.params.deckId;
+  return state.deck.byId[deckId] || {};
 };
 
 export const getCardList = (state: RootState, deckId: string) => {
@@ -47,9 +47,9 @@ export const getCurrentCard = (state: RootState): Card => {
 };
 export const getCurrentCardList = (state: RootState): Card[] => {
   const config = state.config;
-  const deck_id = getCurrentDeck(state).id;
-  if (deck_id) {
-    const ids = state.card.byDeckId[deck_id] || [];
+  const deckId = getCurrentDeck(state).id;
+  if (deckId) {
+    const ids = state.card.byDeckId[deckId] || [];
     const cards = ids
       .map(id => state.card.byId[id])
       .filter(c => !!c) // defensive
