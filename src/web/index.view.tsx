@@ -1,7 +1,17 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'katex/dist/katex.css';
-var Latex = require('react-latex'); // TODO: Create a parser
+import * as katex from 'katex';
+
+const convert = (text: string) => {
+  text = text.replace(/\$\$(.*?)\$\$/g, (_, x) =>
+    katex.renderToString(x, { displayMode: true, throwOnError: false })
+  );
+  text = text.replace(/\$(.*?)\$/g, (_, x) =>
+    katex.renderToString(x, { displayMode: false, throwOnError: false })
+  );
+  return text;
+};
 
 class Root extends React.Component {
   state = { data: '' };
@@ -17,9 +27,7 @@ class Root extends React.Component {
   }
   render() {
     return (
-      <div>
-        <Latex>{this.state.data}</Latex>
-      </div>
+      <div dangerouslySetInnerHTML={{ __html: convert(this.state.data) }} />
     );
   }
 }
