@@ -32,6 +32,7 @@ jobs:
       - run: yarn expo login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD"
       - run: yarn expo whoami
       - run: yarn expo publish --non-interactive
+      - run: yarn firebase deploy --token "$FIREBASE_TOKEN"
 
 workflows:
    version: 2
