@@ -2,11 +2,13 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
-  // externals: /react-native|react-navigation/,
-  entry: './src/web/index.tsx',
+  entry: {
+    index: './src/web/index.tsx',
+    view: './src/web/index.view.tsx',
+  },
   output: {
     path: path.resolve(__dirname, 'public'),
-    filename: 'bundle.js',
+    filename: '[name].js'
   },
   devServer: {
     contentBase: path.resolve(__dirname, 'public'),

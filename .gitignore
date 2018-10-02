@@ -21,9 +21,9 @@ yarn-error.log*
 src/secret.ts
 
 .firebase
-bundle.js
 
 # webpack build
 *.ttf
 *.woff
 *.woff2
+/public/*.js
