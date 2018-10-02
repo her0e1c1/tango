@@ -27,7 +27,9 @@ class Root extends React.Component {
   }
   render() {
     return (
+      <div>test
       <div dangerouslySetInnerHTML={{ __html: convert(this.state.data) }} />
+      </div>
     );
   }
 }
