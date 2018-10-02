@@ -16,14 +16,16 @@ const convert = (text: string) => {
 class Root extends React.Component {
   state = { data: '' };
   componentDidMount() {
-    // You can fire the `message` event on browser directly
+    // postMessage works with window.addEventListener("message", ...)
     // postMessage("string", location.origin)
-    window.addEventListener('message', message => {
+
+    // on react native, you need to use document instead
+    document.addEventListener('message', message => {
       __DEV__ && console.log('DEBUG MESSAGE: ', message);
       // webpack also sends message which is not string but object
       const data = message.data;
       if (typeof data === 'string') this.setState({ data });
-    });
+    }, false);
   }
   render() {
     return (
