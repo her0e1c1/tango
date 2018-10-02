@@ -33,3 +33,6 @@ cp src/secret.ts.example src/secret.ts
 
 # CI
 - https://circleci.com/gh/her0e1c1/tango
+
+# Firebase Hosting
+- https://tang04mem0.firebaseapp.com
