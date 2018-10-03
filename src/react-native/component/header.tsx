@@ -140,7 +140,7 @@ class Body extends React.Component<Props, {}> {
     return (
       <NB.Body>
         <RN.TouchableOpacity
-          onPress={() => dispatch(Action.goTo('deck', { deck_id: deck.id }))}
+          onPress={() => dispatch(Action.goTo('deck', { deckId: deck.id }))}
         >
           <NB.Title>{deck && deck.name && `${deck.name}`} </NB.Title>
         </RN.TouchableOpacity>
