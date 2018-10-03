@@ -43,7 +43,8 @@ class _CardList extends React.Component<
   columns: ColumnProps<Card>[];
   state = { editFrontTextId: '', editBackTextId: '' };
   componentDidMount() {
-    const deck = this.props.state.deck.byId[this.props.match.params.deckId];
+    const deck =
+      this.props.state.deck.byId[this.props.match.params.deckId] || {};
     this.columns = [
       {
         title: 'Front Text',
