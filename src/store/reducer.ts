@@ -37,10 +37,10 @@ export const deck = (
       ...state,
       categories: uniq(decks.map(c => c.category)).filter(c => !!c),
     };
-    // } else if (equal(action, type.deckDelete)) {
-    //   const id = action.payload.deckId;
-    //   delete state.byId[id];
-    //   return state;
+  } else if (equal(action, type.deckDelete)) {
+    const id = action.payload.deckId;
+    delete state.byId[id];
+    return { ...state };
   } else if (equal(action, type.deckBulkDelete)) {
     action.payload.deckIds.forEach(id => delete state.byId[id]);
     return { ...state };

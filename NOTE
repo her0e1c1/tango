@@ -5,3 +5,5 @@
 - just ignore libraries ts errors to set skipLibCheck true
 - firestore can not store undefined so use null instead
 - event.target.value is defined in lib.dom by typescript
+- in reducer code, not return state; but return {...state}. You need to change reference to tell the components to update
+- snapshot.docChangesは、指定した条件全てのデータを初期化時にfetchする。つまり、大量のデータに対して使うべきでない. (ページごとにsubscribe/unsubscribeをして明示的にどのページのデータをリアルタイムで必要とするか考える必要がある)

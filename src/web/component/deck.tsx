@@ -77,7 +77,8 @@ class _DeckList extends React.Component<ConnectedProps> {
         render: (deck: Deck) => <div />,
       },
     ];
-    await this.props.dispatch(Action.deckFetch());
+    // await this.props.dispatch(Action.deckFetch());
+    await this.props.dispatch(Action.setEventListener());
     this.setState({ loading: false });
   }
   render() {

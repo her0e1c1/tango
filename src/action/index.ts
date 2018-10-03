@@ -127,6 +127,46 @@ export const importFromSpreadSheet = (
 };
 */
 
+export const setEventListener = (): ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  const uid = getState().config.uid;
+  db.collection('deck')
+    .where('uid', '==', uid)
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        const id = change.doc.id;
+        const deck = change.doc.data() as Deck;
+        if (change.type === 'added') {
+          dispatch(type.deckBulkInsert([{ ...deck, id }]));
+        } else if (change.type === 'modified') {
+          dispatch(type.deckBulkInsert([deck]));
+        } else if (change.type === 'removed') {
+          dispatch(type.deckDelete(id));
+        }
+      });
+    });
+  /*
+  db.collection('card')
+    .where('uid', '==', uid)
+    .onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        const id = change.doc.id;
+        const card = change.doc.data() as Card;
+        if (change.type === 'added') {
+          // dispatch(type.cardBulkInsert([{ ...card, id }]));
+        } else if (change.type === 'modified') {
+          dispatch(type.cardBulkInsert([card]));
+        } else if (change.type === 'removed') {
+          dispatch(type.cardDelete(id));
+        }
+      });
+    });
+  */
+};
+
 export const deckFetch = (
   isPublic: boolean = false
 ): ThunkAction<Promise<Deck[]>> => async (dispatch, getState) => {
@@ -174,11 +214,13 @@ export const deckCreate = (
       })
     );
     await batch.commit();
+    /*
     await dispatch(deckFetch());
     const state = getState();
     Object.values(state.deck.byId).forEach(deck =>
       dispatch(cardFetch(deck.id))
     );
+    */
   } else {
     alert('You need to log in first');
   }
@@ -192,7 +234,7 @@ export const deckUpdate = (deck: Deck): ThunkAction => async (
     .collection('deck')
     .doc(deck.id)
     .set({ ...deck });
-  dispatch(type.deckBulkInsert([deck]));
+  // dispatch(type.deckBulkInsert([deck]));
 };
 
 export const deckDelete = (deckId: string): ThunkAction => async (
@@ -207,7 +249,7 @@ export const deckDelete = (deckId: string): ThunkAction => async (
   batch.delete(db.collection('deck').doc(deckId));
   querySnapshot.forEach(doc => batch.delete(doc.ref));
   await batch.commit();
-  await dispatch(type.deckBulkDelete([deckId]));
+  // await dispatch(type.deckBulkDelete([deckId]));
 };
 
 // deck.isPublic must be true
