@@ -9,7 +9,6 @@ class Root extends React.Component {
   componentDidMount() {
     // postMessage works with window.addEventListener("message", ...)
     // postMessage("string", location.origin)
-
     // on react native, you need to use document instead
     document.addEventListener(
       'message',
@@ -24,7 +23,23 @@ class Root extends React.Component {
     );
   }
   render() {
-    return <MathView text={this.state.data} />;
+    return (
+      <div
+        style={{
+          fontSize: 18,
+          tabSize: 2,
+          letterSpacing: 0,
+          margin: '0 auto',
+          padding: '0 5px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+        }}
+      >
+        <MathView text={this.state.data} />
+      </div>
+    );
   }
 }
 
