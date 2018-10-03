@@ -1,17 +1,8 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'katex/dist/katex.css';
-import * as katex from 'katex';
 
-const convert = (text: string) => {
-  text = text.replace(/\$\$(.*?)\$\$/g, (_, x) =>
-    katex.renderToString(x, { displayMode: true, throwOnError: false })
-  );
-  text = text.replace(/\$(.*?)\$/g, (_, x) =>
-    katex.renderToString(x, { displayMode: false, throwOnError: false })
-  );
-  return text;
-};
+import { MathView } from './component/card';
 
 class Root extends React.Component {
   state = { data: '' };
@@ -22,10 +13,10 @@ class Root extends React.Component {
     // on react native, you need to use document instead
     document.addEventListener(
       'message',
-      message => {
-        __DEV__ && console.log('DEBUG MESSAGE: ', message);
+      event => {
+        __DEV__ && console.log('DEBUG MESSAGE: ', event);
         // @ts-ignore
-        const data = message.data;
+        const data = event.data;
         // webpack also sends message which is not string but object
         if (typeof data === 'string') this.setState({ data });
       },
@@ -33,9 +24,7 @@ class Root extends React.Component {
     );
   }
   render() {
-    return (
-      <div dangerouslySetInnerHTML={{ __html: convert(this.state.data) }} />
-    );
+    return <MathView text={this.state.data} />;
   }
 }
 

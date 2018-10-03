@@ -20,7 +20,7 @@ const Root = () => (
           <Layout.Content style={{ padding: '0 5px', backgroundColor: '#fff' }}>
             <Route exact path="/" component={DeckList} />
             <Route exact path="/new" component={DeckCreate} />
-            <Route exact path="/deck/:id" component={CardList} />
+            <Route exact path="/deck/:deckId" component={CardList} />
           </Layout.Content>
         </Layout>
       </Router>
