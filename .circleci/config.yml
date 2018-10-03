@@ -33,7 +33,7 @@ jobs:
       - run: yarn expo whoami
       - run: yarn expo publish --non-interactive
       - run: yarn web-build
-      - run: yarn firebase deploy --token "$FIREBASE_TOKEN"
+      - run: yarn firebase deploy --token "$FIREBASE_TOKEN" --only hosting
 
 workflows:
    version: 2
