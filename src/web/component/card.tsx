@@ -12,6 +12,7 @@ export class MathView extends React.Component<{ text: string }> {
     text = text.replace(/eqnarray/g, 'aligned');
     text = text.replace(/&=&/g, '&=');
     text = text.replace(/&&/g, '&');
+    text = text.replace(/\\rm/g, '\\text');
 
     // NOTE: . does not match \n. need to use [\s\S] instead
     text = text.replace(/\$\$([\s\S]*?)\$\$/g, (_, x) => {
