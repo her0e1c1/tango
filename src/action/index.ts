@@ -276,6 +276,21 @@ export const deckImportPublic = (deckId: string): ThunkAction => async (
   }
 };
 
+export const deckGenerateCsv = (
+  deckId: string
+): ThunkAction<Promise<string>> => async (dispatch, getState) => {
+  const card = getState().card;
+  const ids = card.byDeckId[deckId];
+  const cards = ids.map(id => card.byId[id]);
+  const data = cards.map(c => [
+    c.frontText,
+    c.backText,
+    c.category,
+    c.tags.join(','),
+  ]);
+  return Papa.unparse(data);
+};
+
 export const cardFetch = (
   deckId: string,
   isPublic: boolean = false

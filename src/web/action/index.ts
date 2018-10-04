@@ -1,6 +1,7 @@
 import * as firebase from 'firebase';
-import { configUpdate } from 'src/action';
+import { configUpdate, deckGenerateCsv, cardFetch } from 'src/action';
 export * from 'src/action';
+const FileSaver = require('file-saver');
 
 export const login = (): ThunkAction => async (dispatch, getState) => {
   const provider = new firebase.auth.GoogleAuthProvider();
@@ -12,4 +13,19 @@ export const login = (): ThunkAction => async (dispatch, getState) => {
     const googleAccessToken = result.credential.accessToken;
     dispatch(configUpdate({ uid, displayName, googleAccessToken }));
   }
+};
+
+export const deckDownload = (id: string): ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  await dispatch(cardFetch(id));
+  const deck = getState().deck.byId[id];
+  const csv = await dispatch(deckGenerateCsv(id));
+  const blob = new Blob([csv], { type: 'text/plain;charset=utf-8' });
+  let name = deck.name;
+  if (!name.endsWith('.csv')) {
+    name += '.csv';
+  }
+  FileSaver.saveAs(blob, name);
 };

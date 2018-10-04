@@ -73,8 +73,13 @@ class _DeckList extends React.Component<ConnectedProps> {
         ),
       },
       {
-        title: 'export',
-        render: (deck: Deck) => <div />,
+        title: 'download',
+        render: (deck: Deck) => (
+          <Icon
+            type="download"
+            onClick={() => this.props.dispatch(Action.deckDownload(deck.id))}
+          />
+        ),
       },
     ];
     // await this.props.dispatch(Action.deckFetch());
