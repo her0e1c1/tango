@@ -38,77 +38,80 @@ export class MathView extends React.Component<{ text: string }> {
   }
 }
 
+const Text = props => (
+  <div
+    style={{ width: '40vw', overflow: 'hidden', minHeight: 100 }}
+    onClick={props.onClick}
+  >
+    {props.card.id === props.editTextId ? (
+      <Input.TextArea
+        style={{ height: 200 }}
+        value={props.text}
+        ref={i => i && i.focus()}
+        onBlur={props.onBlur}
+        onChange={props.onChange}
+      />
+    ) : props.deck.category !== 'math' ? (
+      <MathView text={props.text} />
+    ) : (
+      props.text
+    )}
+  </div>
+);
+
 class _CardList extends React.Component<
   ConnectedProps & RouteComponentProps<{ deckId: string }>
 > {
   columns: ColumnProps<Card>[];
   state = { editFrontTextId: '', editBackTextId: '' };
   componentDidMount() {
+    const { deckId } = this.props.match.params;
+    this.props.dispatch(Action.cardFetch(deckId));
+  }
+  getColumns() {
     const deck =
       this.props.state.deck.byId[this.props.match.params.deckId] || {};
-    this.columns = [
+    return [
       {
         title: 'Front Text',
         render: (card: Card) => (
-          <div
-            style={{ width: '40vw', overflow: 'hidden' }}
+          <Text
+            deck={deck}
+            card={card}
+            text={card.frontText}
+            editTextId={this.state.editFrontTextId}
             onClick={() => this.setState({ editFrontTextId: card.id })}
-          >
-            {card.id === this.state.editFrontTextId ? (
-              <Input.TextArea
-                style={{ height: 200 }}
-                value={card.frontText}
-                ref={i => i && i.focus()}
-                onBlur={() => {
-                  this.setState({ editFrontTextId: '' });
-                  this.props.dispatch(Action.cardUpdate(card));
-                }}
-                onChange={e =>
-                  this.props.dispatch(
-                    Action.cardBulkInsert([
-                      { ...card, frontText: e.target.value },
-                    ])
-                  )
-                }
-              />
-            ) : deck.category === 'math' ? (
-              <MathView text={card.frontText} />
-            ) : (
-              card.frontText
-            )}
-          </div>
+            onBlur={() => {
+              this.setState({ editFrontTextId: '' });
+              this.props.dispatch(Action.cardUpdate(card));
+            }}
+            onChange={e =>
+              this.props.dispatch(
+                Action.cardBulkInsert([{ ...card, frontText: e.target.value }])
+              )
+            }
+          />
         ),
       },
       {
         title: 'Back Text',
         render: (card: Card) => (
-          <div
-            style={{ width: '40vw', overflow: 'hidden' }}
+          <Text
+            deck={deck}
+            card={card}
+            text={card.backText}
+            editTextId={this.state.editBackTextId}
             onClick={() => this.setState({ editBackTextId: card.id })}
-          >
-            {card.id === this.state.editBackTextId ? (
-              <Input.TextArea
-                style={{ height: 200 }}
-                value={card.backText}
-                ref={i => i && i.focus()}
-                onBlur={() => {
-                  this.setState({ editBackTextId: '' });
-                  this.props.dispatch(Action.cardUpdate(card));
-                }}
-                onChange={e =>
-                  this.props.dispatch(
-                    Action.cardBulkInsert([
-                      { ...card, backText: e.target.value },
-                    ])
-                  )
-                }
-              />
-            ) : deck.category === 'math' ? (
-              <MathView text={card.backText} />
-            ) : (
-              card.backText
-            )}
-          </div>
+            onBlur={() => {
+              this.setState({ editBackTextId: '' });
+              this.props.dispatch(Action.cardUpdate(card));
+            }}
+            onChange={e =>
+              this.props.dispatch(
+                Action.cardBulkInsert([{ ...card, backText: e.target.value }])
+              )
+            }
+          />
         ),
       },
       {
@@ -134,8 +137,6 @@ class _CardList extends React.Component<
         ),
       },
     ];
-    const { deckId } = this.props.match.params;
-    this.props.dispatch(Action.cardFetch(deckId));
   }
   render() {
     const { deckId } = this.props.match.params;
@@ -143,17 +144,15 @@ class _CardList extends React.Component<
       c => deckId === c.deckId
     );
     return (
-      <div>
-        <Table
-          rowKey="id"
-          dataSource={data}
-          columns={this.columns}
-          pagination={{
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '50', '100'],
-          }}
-        />
-      </div>
+      <Table
+        rowKey="id"
+        dataSource={data}
+        columns={this.getColumns()}
+        pagination={{
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '50', '100'],
+        }}
+      />
     );
   }
 }
