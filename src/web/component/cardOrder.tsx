@@ -75,4 +75,5 @@ class _CardOrder extends React.Component<
   }
 }
 
+// @ts-ignore
 export const CardOrder = withRouter(connect(state => ({ state }))(_CardOrder));
