@@ -71,6 +71,7 @@
     "papaparse": "^4.3.7",
     "query-string": "^5.1.0",
     "react": "^16.5.1",
+    "react-beautiful-dnd": "^9.0.2",
     "react-dom": "^16.5.1",
     "react-latex": "^1.2.0",
     "react-native": "^0.55.0",
