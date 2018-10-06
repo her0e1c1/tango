@@ -15,6 +15,10 @@ interface Deck {
   createdAt: Date;
   uid: string;
 
+  // the order which user defines.
+  // this should not be shuffled
+  cardIds: string[];
+
   // when user selects a deck, show this index card
   // this should not be stored in sqlite
   currentIndex: number;
