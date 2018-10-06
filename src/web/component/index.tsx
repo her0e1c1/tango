@@ -9,6 +9,7 @@ import { store, persistor, history } from '../store';
 import { Header } from './header';
 import { DeckList } from './deck';
 import { CardList } from './card';
+import { CardOrder } from './cardOrder';
 import { DeckCreate } from './new';
 
 const Root = () => (
@@ -21,6 +22,7 @@ const Root = () => (
             <Route exact path="/" component={DeckList} />
             <Route exact path="/new" component={DeckCreate} />
             <Route exact path="/deck/:deckId" component={CardList} />
+            <Route exact path="/deck/:deckId/order" component={CardOrder} />
           </Layout.Content>
         </Layout>
       </Router>
