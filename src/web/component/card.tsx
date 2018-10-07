@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Table, Input, Icon, Select } from 'antd';
+import { Table, Input, Icon, Select, Checkbox } from 'antd';
 import { ColumnProps } from 'antd/lib/table/interface';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import * as Action from 'src/web/action';
@@ -38,85 +38,85 @@ export class MathView extends React.Component<{ text: string }> {
   }
 }
 
-const Text = props => (
-  <div
-    style={{ width: '40vw', overflow: 'hidden', minHeight: 100 }}
-    onClick={props.onClick}
-  >
-    {props.card.id === props.editTextId ? (
-      <Input.TextArea
-        style={{ height: 200 }}
-        value={props.text}
-        ref={i => i && i.focus()}
-        onBlur={props.onBlur}
-        onChange={props.onChange}
-      />
-    ) : props.deck.category !== 'math' ? (
-      <MathView text={props.text} />
-    ) : (
-      props.text
-    )}
-  </div>
-);
-
 class _CardList extends React.Component<
   ConnectedProps & RouteComponentProps<{ deckId: string }>
 > {
-  columns: ColumnProps<Card>[];
-  state = { editFrontTextId: '', editBackTextId: '' };
+  state = {
+    editFrontTextId: '',
+    editBackTextId: '',
+    editHintId: '',
+    columns: ['frontText', 'backText', 'hint'] as CardText[],
+  };
   componentDidMount() {
     const { deckId } = this.props.match.params;
     this.props.dispatch(Action.cardFetch(deckId));
   }
-  getColumns() {
+  getText(card: Card, text: CardText, stateKey: string) {
     const deck =
       this.props.state.deck.byId[this.props.match.params.deckId] || {};
-    return [
-      {
+    const width = 81 / this.state.columns.length;
+    return (
+      <div
+        style={{ width: `${width}vw`, overflow: 'hidden', minHeight: 100 }}
+        onClick={() => this.setState({ [stateKey]: card.id })}
+      >
+        {card.id === this.state[stateKey] ? (
+          <Input.TextArea
+            style={{ height: 200 }}
+            value={card[text]}
+            ref={i => i && i.focus()}
+            onBlur={() => {
+              this.setState({ [stateKey]: '' });
+              this.props.dispatch(Action.cardUpdate(card));
+            }}
+            onChange={e =>
+              this.props.dispatch(
+                Action.cardBulkInsert([{ ...card, [text]: e.target.value }])
+              )
+            }
+          />
+        ) : deck.category === 'math' ? (
+          <MathView text={card[text]} />
+        ) : (
+          card[text]
+        )}
+      </div>
+    );
+  }
+
+  getColumns() {
+    const columns = [] as ColumnProps<Card>[];
+    if (this.state.columns.includes('frontText')) {
+      columns.push({
         title: 'Front Text',
-        render: (card: Card) => (
-          <Text
-            deck={deck}
-            card={card}
-            text={card.frontText}
-            editTextId={this.state.editFrontTextId}
-            onClick={() => this.setState({ editFrontTextId: card.id })}
-            onBlur={() => {
-              this.setState({ editFrontTextId: '' });
-              this.props.dispatch(Action.cardUpdate(card));
-            }}
-            onChange={e =>
-              this.props.dispatch(
-                Action.cardBulkInsert([{ ...card, frontText: e.target.value }])
-              )
-            }
-          />
-        ),
-      },
-      {
+        render: (card: Card) =>
+          this.getText(card, 'frontText', 'editFrontTextId'),
+      });
+    }
+    if (this.state.columns.includes('backText')) {
+      columns.push({
         title: 'Back Text',
-        render: (card: Card) => (
-          <Text
-            deck={deck}
-            card={card}
-            text={card.backText}
-            editTextId={this.state.editBackTextId}
-            onClick={() => this.setState({ editBackTextId: card.id })}
-            onBlur={() => {
-              this.setState({ editBackTextId: '' });
-              this.props.dispatch(Action.cardUpdate(card));
-            }}
-            onChange={e =>
-              this.props.dispatch(
-                Action.cardBulkInsert([{ ...card, backText: e.target.value }])
-              )
-            }
-          />
-        ),
-      },
-      {
-        title: 'tags',
-        render: (card: Card) => (
+        render: (card: Card) =>
+          this.getText(card, 'backText', 'editBackTextId'),
+      });
+    }
+    if (this.state.columns.includes('hint')) {
+      columns.push({
+        title: 'Hint',
+        render: (card: Card) => this.getText(card, 'hint', 'editHintId'),
+      });
+    }
+    columns.push({
+      title: 'Action',
+      render: (card: Card) => (
+        <div
+          style={{
+            width: '10vw',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+          }}
+        >
           <Select
             mode="tags"
             size="small"
@@ -125,18 +125,14 @@ class _CardList extends React.Component<
               this.props.dispatch(Action.cardUpdate({ ...card, tags }))
             }
           />
-        ),
-      },
-      {
-        title: 'delete',
-        render: (card: Card) => (
           <Icon
             type="delete"
             onClick={() => this.props.dispatch(Action.cardDelete(card.id))}
           />
-        ),
-      },
-    ];
+        </div>
+      ),
+    });
+    return columns;
   }
   render() {
     const { deckId } = this.props.match.params;
@@ -148,6 +144,11 @@ class _CardList extends React.Component<
     );
     return (
       <div>
+        <Checkbox.Group
+          options={['frontText', 'backText', 'hint']}
+          defaultValue={this.state.columns}
+          onChange={columns => this.setState({ columns })}
+        />
         <Select
           style={{ width: 500 }}
           mode="tags"
@@ -165,8 +166,9 @@ class _CardList extends React.Component<
           dataSource={data}
           columns={this.getColumns()}
           pagination={{
+            defaultPageSize: 20,
             showSizeChanger: true,
-            pageSizeOptions: ['10', '50', '100'],
+            pageSizeOptions: ['20', '50', '100'],
           }}
         />
       </div>

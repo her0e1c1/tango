@@ -49,6 +49,7 @@ interface Card {
   tags: string[];
   createdAt: Date;
 }
+type CardText = 'frontText' | 'backText' | 'hint';
 
 type DeckState = {
   byId: { [key: string]: Deck };
