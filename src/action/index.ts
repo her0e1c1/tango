@@ -9,6 +9,20 @@ import * as Selector from 'src/selector';
 
 export * from './type';
 
+export const rowToCard = (row: string[]): Partial<Card> => ({
+  frontText: row[0] || '',
+  backText: row[1] || '',
+  hint: row[2] || '',
+  tags: row[3] ? row[3].split(',') : [],
+});
+
+export const cardToRow = (card: Card): string[] => [
+  card.frontText,
+  card.backText,
+  card.hint,
+  card.tags.join(','),
+];
+
 export const logout = (): ThunkAction => async (dispatch, getState) => {
   await firebase.auth().signOut();
   dispatch(type.configUpdate({ uid: '', googleAccessToken: '' }));
@@ -60,7 +74,6 @@ export const insertByText = (text, deck): ThunkAction => (
   dispatch,
   _getState
 ) => {
-  // info.file.originFileObj
   const results = Papa.parse(text);
   __DEV__ && console.log('DEBUG: CSV COMPLETE', results);
   const cards: Card[] = results.data
@@ -68,28 +81,11 @@ export const insertByText = (text, deck): ThunkAction => (
       frontText: d[0] || '',
       backText: d[1] || '',
       hint: d[2] || '',
-      tags: [],
+      tags: d[3] ? d[3].split(',') : [],
     }))
     .filter(c => !!c.frontText);
   const d = { name: deck.name, isPublic: false };
   dispatch(deckCreate(d, cards));
-  /*
-  Papa.parse(text, {
-    complete: async results => {
-      __DEV__ && console.log('DEBUG: CSV COMPLETE', results);
-      const cards: Card[] = results.data
-        .map(d => ({
-          frontText: d[0] || '',
-          backText: d[1] || '',
-          hint: d[2] || '',
-          tags: [],
-        }))
-        .filter(c => !!c.frontText);
-      const d = { name: deck.name, isPublic: false };
-      dispatch(WebAction.deckCreate(d, cards));
-    },
-  });
-  */
 };
 
 /*
@@ -199,28 +195,30 @@ export const deckCreate = (
   // Need to convert to empty string instead
   const uid = getState().config.uid;
   if (uid) {
-    const docRef = await db.collection('deck').add({
+    const batch = db.batch();
+    const docDeck = db.collection('deck').doc();
+    const cardIds = [] as string[];
+    cards.forEach(async c => {
+      const doc = db.collection('card').doc();
+      cardIds.push(doc.id);
+      const card = {
+        ...c,
+        deckId: docDeck.id,
+        uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      batch.set(doc, card);
+      //  dispatch(type.cardBulkInsert([{ ...card, id: doc.id }]));
+    });
+    const d = {
       ...deck,
       uid,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    const batch = db.batch();
-    cards.forEach(c =>
-      batch.set(db.collection('card').doc(), {
-        ...c,
-        deckId: docRef.id,
-        uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      })
-    );
+      cardIds,
+    };
+    batch.set(docDeck, d);
+    // dispatch(type.deckBulkInsert([{ ...d, id: docDeck.id }]));
     await batch.commit();
-    /*
-    await dispatch(deckFetch());
-    const state = getState();
-    Object.values(state.deck.byId).forEach(deck =>
-      dispatch(cardFetch(deck.id))
-    );
-    */
   } else {
     alert('You need to log in first');
   }
@@ -282,12 +280,7 @@ export const deckGenerateCsv = (
   const card = getState().card;
   const ids = card.byDeckId[deckId];
   const cards = ids.map(id => card.byId[id]);
-  const data = cards.map(c => [
-    c.frontText,
-    c.backText,
-    c.category,
-    c.tags.join(','),
-  ]);
+  const data = cards.map(cardToRow);
   return Papa.unparse(data);
 };
 

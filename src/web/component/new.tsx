@@ -28,12 +28,7 @@ class _CsvUpload extends React.Component<
               __DEV__ && console.log('DEBUG: CSV COMPLETE', results);
               const name = info.file.name;
               const cards: Card[] = results.data
-                .map(d => ({
-                  frontText: d[0] || '',
-                  backText: d[1] || '',
-                  hint: d[2] || '',
-                  tags: [],
-                }))
+                .map(Action.rowToCard)
                 .filter(c => !!c.frontText);
               this.props.complete(name, cards);
             },
