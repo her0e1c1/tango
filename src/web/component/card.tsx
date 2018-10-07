@@ -141,18 +141,35 @@ class _CardList extends React.Component<
   render() {
     const { deckId } = this.props.match.params;
     const data = Object.values(this.props.state.card.byId).filter(
-      c => deckId === c.deckId
+      c =>
+        deckId === c.deckId &&
+        (this.props.state.config.selectedTags.length === 0 ||
+          this.props.state.config.selectedTags.some(t => c.tags.includes(t)))
     );
     return (
-      <Table
-        rowKey="id"
-        dataSource={data}
-        columns={this.getColumns()}
-        pagination={{
-          showSizeChanger: true,
-          pageSizeOptions: ['10', '50', '100'],
-        }}
-      />
+      <div>
+        <Select
+          style={{ width: 500 }}
+          mode="tags"
+          defaultValue={[]}
+          onChange={(selectedTags: string[]) =>
+            this.props.dispatch(Action.configUpdate({ selectedTags }))
+          }
+        >
+          {this.props.state.card.tags.map(t => (
+            <Select.Option value={t}>{t}</Select.Option>
+          ))}
+        </Select>
+        <Table
+          rowKey="id"
+          dataSource={data}
+          columns={this.getColumns()}
+          pagination={{
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '50', '100'],
+          }}
+        />
+      </div>
     );
   }
 }

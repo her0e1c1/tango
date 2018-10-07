@@ -67,11 +67,18 @@ const updateCard = (state: CardState, cards: Card[]) => {
 };
 
 export const card = (
-  state: CardState = { byId: {}, byDeckId: {}, edit: {} as Card },
+  state: CardState = {
+    byId: {},
+    byDeckId: {},
+    tags: [],
+    edit: {} as Card,
+  },
   action: Action
 ) => {
   if (equal(action, type.cardBulkInsert)) {
     const cs = action.payload.cards;
+    cs.forEach(c => c.tags.forEach(t => state.tags.push(t)));
+    state.tags = uniq(state.tags);
     return updateCard(state, cs);
   } else if (equal(action, type.cardBulkDelete)) {
     const deck_id = action.payload.deck_id;
@@ -127,6 +134,7 @@ export const config = (
     googleRefreshToken: undefined,
     uid: '',
     displayName: '',
+    selectedTags: [],
   },
   action: Action
 ): ConfigState => {

@@ -59,6 +59,7 @@ type DeckState = {
 type CardState = {
   byId: { [key: string]: Card };
   byDeckId: { [key: string]: string[] };
+  tags: string[];
   edit: Card;
 };
 
@@ -112,6 +113,7 @@ type ConfigState = {
   googleRefreshToken?: string;
   uid: string;
   displayName: string | null;
+  selectedTags: string[];
 };
 
 interface RootState {
