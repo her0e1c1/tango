@@ -130,7 +130,7 @@ export const config = (
     uid: '',
     displayName: '',
     selectedTags: [],
-    lastUpdatedAt: new Date(0),
+    lastUpdatedAt: 0,
   },
   action: Action
 ): ConfigState => {
