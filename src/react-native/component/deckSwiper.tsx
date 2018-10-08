@@ -135,7 +135,7 @@ class View extends React.Component<
                         ? item.hint
                         : item.frontText
                     }
-                    category={item.category || deck.category}
+                    category={deck.category}
                   />
                 </RN.View>
               </RN.TouchableWithoutFeedback>

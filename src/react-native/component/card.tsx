@@ -46,7 +46,7 @@ export class _CardDetail extends React.Component<
     const card = Selector.getCurrentCard(this.props.state);
     const deck = Selector.getCurrentDeck(this.props.state);
     const params = {
-      category: card.category || deck.category,
+      category: deck.category,
       convertToBr: deck.convertToBr,
     };
     return (

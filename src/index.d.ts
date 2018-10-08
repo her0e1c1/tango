@@ -46,7 +46,6 @@ interface Card {
   mastered: boolean;
   deckId: string;
   uid: string;
-  category: string | null;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;

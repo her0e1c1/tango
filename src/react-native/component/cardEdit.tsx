@@ -3,7 +3,6 @@ import * as RN from 'react-native';
 import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import * as Action from 'src/react-native/action';
-import * as C from 'src/constant';
 import { ErrorPage } from './utils';
 
 class Field extends React.Component<
@@ -71,26 +70,6 @@ export class _CardEdit extends React.Component<
                 value={Boolean(card.mastered)}
                 onValueChange={mastered => this.cardEdit({ mastered })}
               />
-            </NB.Right>
-          </NB.ListItem>
-
-          <NB.ListItem noBorder>
-            <NB.Body>
-              <NB.Text>Category</NB.Text>
-            </NB.Body>
-            <NB.Right>
-              <NB.Picker
-                style={{
-                  width: RN.Platform.OS === 'android' ? 120 : undefined,
-                }}
-                selectedValue={card.category || ''}
-                onValueChange={category => this.cardEdit({ category })}
-                {...{ iosIcon: <NB.Icon name="arrow-down" /> }}
-              >
-                {[''].concat(C.CATEGORY).map((x, i) => (
-                  <NB.Picker.Item key={i} label={x} value={x} />
-                ))}
-              </NB.Picker>
             </NB.Right>
           </NB.ListItem>
         </NB.List>
