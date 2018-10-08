@@ -17,10 +17,13 @@ class _DeckCategory extends React.Component<ConnectedProps & { deck: Deck }> {
     return (
       <AutoComplete
         style={{ width: 200 }}
+        value={this.state.input || deck.category}
         defaultValue={deck.category}
         dataSource={categories}
         onSelect={(category: string) =>
-          this.props.dispatch(Action.deckUpdate({ ...deck, category }))
+          this.setState({ input: '' }, () =>
+            this.props.dispatch(Action.deckUpdate({ ...deck, category }))
+          )
         }
         onChange={e => this.setState({ input: e })}
       />
@@ -82,8 +85,7 @@ class _DeckList extends React.Component<ConnectedProps> {
         ),
       },
     ];
-    // await this.props.dispatch(Action.deckFetch());
-    await this.props.dispatch(Action.setEventListener());
+
     this.setState({ loading: false });
   }
   render() {

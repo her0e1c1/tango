@@ -12,7 +12,7 @@ export const history = createHistory();
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['config'],
+  whitelist: ['config', 'deck', 'card'],
 };
 
 const reducers = combineReducers({

@@ -1,8 +1,6 @@
 import * as firebase from 'firebase';
 import * as Papa from 'papaparse';
-import * as queryString from 'query-string';
 
-import * as C from 'src/constant';
 import * as type from './type';
 import { db } from 'src/firebase';
 import * as Selector from 'src/selector';
@@ -26,32 +24,6 @@ export const cardToRow = (card: Card): string[] => [
 export const logout = (): ThunkAction => async (dispatch, getState) => {
   await firebase.auth().signOut();
   dispatch(type.configUpdate({ uid: '', googleAccessToken: '' }));
-};
-
-export const refreshToken = (): ThunkAction<Promise<boolean>> => async (
-  dispatch,
-  getState
-) => {
-  const refresh_token = getState().config.googleRefreshToken;
-  if (!refresh_token) {
-    console.log(`You can't refresh`);
-    return false;
-  }
-  const body = queryString.stringify({
-    refresh_token,
-    grant_type: 'refresh_token',
-    client_id: C.GOOGLE_WEB_CLIENT_ID,
-    client_secret: C.GOOGLE_WEB_CLIENT_SECRET,
-  });
-  const json = await fetch('https://accounts.google.com/o/oauth2/token', {
-    method: 'POST',
-    body,
-    headers: new Headers({
-      'content-type': 'application/x-www-form-urlencoded',
-    }),
-  }).then(r => r.json());
-  await dispatch(configUpdate({ googleAccessToken: json.access_token }));
-  return true;
 };
 
 export const insertByURL = (url: string): ThunkAction => async (
@@ -88,49 +60,23 @@ export const insertByText = (text, deck): ThunkAction => (
   dispatch(deckCreate(d, cards));
 };
 
-/*
-export const importFromSpreadSheet = (
-  drive: Drive,
-  sheet: Sheet
-): ThunkAction => async (dispatch, getState) => {
-  const gid = sheet.properties.sheetId;
-  try {
-    await dispatch(Action.config.startLoading());
-    const res = await dispatch(
-      fetchAPI(
-        `https://docs.google.com/spreadsheets/d/${
-          drive.id
-        }/export?gid=${gid}&exportFormat=csv`
-      )
-    );
-    if (res.ok) {
-      const text = await res.text();
-      await dispatch(
-        Action.deck.insertByText(text, {
-          name: sheet.properties.title,
-          spreadsheetId: drive.id,
-          spreadsheetGid: String(gid),
-        })
-      );
-    } else {
-      alert('CAN NOT IMPORT');
-    }
-  } catch (e) {
-    console.log(e);
-  } finally {
-    await dispatch(Action.config.endLoading());
-  }
-};
-*/
-
 export const setEventListener = (): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const uid = getState().config.uid;
+  const state = getState();
+  const uid = state.config.uid;
+  if (!uid) {
+    return; // DO NOTHING
+  }
+  if (Object.keys(state.deck.byId).length === 0) {
+    const decks = await dispatch(deckFetch());
+    decks.forEach(async d => await dispatch(cardFetch(d.id)));
+  }
   db.collection('deck')
     .where('uid', '==', uid)
-    .orderBy('createdAt', 'desc')
+    .where('updatedAt', '>=', new Date())
+    .orderBy('updatedAt', 'desc')
     .onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
         const id = change.doc.id;
@@ -144,15 +90,16 @@ export const setEventListener = (): ThunkAction => async (
         }
       });
     });
-  /*
   db.collection('card')
     .where('uid', '==', uid)
+    .where('updatedAt', '>=', new Date())
+    .orderBy('updatedAt', 'desc')
     .onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
         const id = change.doc.id;
         const card = change.doc.data() as Card;
         if (change.type === 'added') {
-          // dispatch(type.cardBulkInsert([{ ...card, id }]));
+          dispatch(type.cardBulkInsert([{ ...card, id }]));
         } else if (change.type === 'modified') {
           dispatch(type.cardBulkInsert([card]));
         } else if (change.type === 'removed') {
@@ -160,7 +107,6 @@ export const setEventListener = (): ThunkAction => async (
         }
       });
     });
-  */
 };
 
 export const deckFetch = (
@@ -171,7 +117,8 @@ export const deckFetch = (
     alert('need to login');
     return [];
   }
-  const query = db.collection('deck').orderBy('createdAt');
+  const query = db.collection('deck');
+  // const query = db.collection('deck').orderBy('updatedAt', 'desc');
   let querySnapshot: firebase.firestore.QuerySnapshot;
   if (isPublic) {
     querySnapshot = await query.where('isPublic', '==', true).get();
@@ -194,34 +141,36 @@ export const deckCreate = (
   // NOTE: firestore can not store undefined value.
   // Need to convert to empty string instead
   const uid = getState().config.uid;
-  if (uid) {
-    const batch = db.batch();
-    const docDeck = db.collection('deck').doc();
-    const cardIds = [] as string[];
-    cards.forEach(async c => {
-      const doc = db.collection('card').doc();
-      cardIds.push(doc.id);
-      const card = {
-        ...c,
-        deckId: docDeck.id,
-        uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      };
-      batch.set(doc, card);
-      //  dispatch(type.cardBulkInsert([{ ...card, id: doc.id }]));
-    });
-    const d = {
-      ...deck,
-      uid,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      cardIds,
-    };
-    batch.set(docDeck, d);
-    // dispatch(type.deckBulkInsert([{ ...d, id: docDeck.id }]));
-    await batch.commit();
-  } else {
+  if (!uid) {
     alert('You need to log in first');
+    return;
   }
+  const createdAt = firebase.firestore.FieldValue.serverTimestamp();
+  const updatedAt = createdAt;
+  const batch = db.batch();
+  const docDeck = db.collection('deck').doc();
+  const cardIds = [] as string[];
+  cards.forEach(async c => {
+    const doc = db.collection('card').doc();
+    cardIds.push(doc.id);
+    const card = {
+      ...c,
+      deckId: docDeck.id,
+      uid,
+      createdAt,
+      updatedAt,
+    };
+    batch.set(doc, card);
+  });
+  const d = {
+    ...deck,
+    uid,
+    createdAt,
+    updatedAt,
+    cardIds,
+  };
+  batch.set(docDeck, d);
+  await batch.commit();
 };
 
 export const deckUpdate = (deck: Deck): ThunkAction => async (
@@ -231,8 +180,10 @@ export const deckUpdate = (deck: Deck): ThunkAction => async (
   await db
     .collection('deck')
     .doc(deck.id)
-    .set({ ...deck });
-  // dispatch(type.deckBulkInsert([deck]));
+    .set({
+      ...deck,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
 };
 
 export const deckDelete = (deckId: string): ThunkAction => async (
@@ -248,7 +199,6 @@ export const deckDelete = (deckId: string): ThunkAction => async (
   batch.delete(db.collection('deck').doc(deckId));
   querySnapshot.forEach(doc => batch.delete(doc.ref));
   await batch.commit();
-  // await dispatch(type.deckBulkDelete([deckId]));
 };
 
 // deck.isPublic must be true
@@ -326,8 +276,10 @@ export const cardUpdate = (card: Card): ThunkAction => async (
   await db
     .collection('card')
     .doc(card.id)
-    .set(card);
-  await dispatch(type.cardBulkInsert([card]));
+    .set({
+      ...card,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
 };
 
 export const cardDelete = (id: string): ThunkAction => async (
@@ -338,7 +290,6 @@ export const cardDelete = (id: string): ThunkAction => async (
     .collection('card')
     .doc(id)
     .delete();
-  await dispatch(type.cardDelete(id));
 };
 
 export const configUpdate = (config: Partial<ConfigState>) => async (

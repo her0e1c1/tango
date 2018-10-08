@@ -12,6 +12,7 @@ interface Deck {
   name: string;
   isPublic: boolean;
   url: string | null;
+  updatedAt: Date;
   createdAt: Date;
   uid: string;
 
@@ -48,6 +49,7 @@ interface Card {
   category: string | null;
   tags: string[];
   createdAt: Date;
+  updatedAt: Date;
 }
 type CardText = 'frontText' | 'backText' | 'hint';
 

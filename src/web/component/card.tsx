@@ -47,10 +47,6 @@ class _CardList extends React.Component<
     editHintId: '',
     columns: ['frontText', 'backText', 'hint'] as CardText[],
   };
-  componentDidMount() {
-    const { deckId } = this.props.match.params;
-    this.props.dispatch(Action.cardFetch(deckId));
-  }
   getText(card: Card, text: CardText, stateKey: string) {
     const deck =
       this.props.state.deck.byId[this.props.match.params.deckId] || {};
