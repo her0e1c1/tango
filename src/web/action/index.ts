@@ -24,7 +24,6 @@ export const deckDownload = (id: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  await dispatch(Action.cardFetch(id));
   const deck = getState().deck.byId[id];
   const csv = await dispatch(Action.deckGenerateCsv(id));
   const blob = new Blob([csv], { type: 'text/plain;charset=utf-8' });

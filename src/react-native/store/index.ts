@@ -21,8 +21,7 @@ const middleware = createReactNavigationReduxMiddleware<{
 const persistConfig = {
   key: 'root',
   storage: storage,
-  // blacklist: ['share', 'drive', 'nav'],
-  whitelist: ['nav'],
+  whitelist: ['nav', 'deck', 'card', 'config'],
 };
 
 const persistedReducer = persistReducer(

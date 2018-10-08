@@ -22,7 +22,6 @@ class _CardOrder extends React.Component<
     return cardIds.map(id => this.props.state.card.byId[id]).filter(c => !!c);
   }
   async componentDidMount() {
-    await this.props.dispatch(Action.cardFetch(this.deck.id));
     this.setState({ cardIds: this.getCards().map(c => c.id) });
   }
   reorder(startIndex, endIndex) {

@@ -136,10 +136,6 @@ export class _CardDetail extends React.Component<
 export const CardDetail = connect(state => ({ state }))(_CardDetail);
 
 export class _CardList extends React.Component<ConnectedProps, {}> {
-  componentDidMount() {
-    const deck = Selector.getCurrentDeck(this.props.state);
-    this.props.dispatch(Action.cardFetch(deck.id));
-  }
   render() {
     const { dispatch } = this.props;
     const cards = Selector.getCurrentCardList(this.props.state);
