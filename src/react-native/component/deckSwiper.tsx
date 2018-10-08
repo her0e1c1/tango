@@ -125,35 +125,19 @@ class View extends React.Component<
                 key={item.id}
                 onPress={() => dispatch(Action.configToggle('showBody'))}
               >
-                {item.category === 'math' || deck.category === 'math' ? (
-                  <RN.View style={{ flex: 1 }}>
-                    <CardView
-                      center
-                      body={
-                        // Keep react-native-deck-swiper@1.4.6
-                        // otherwise showHint will not be updated
-                        this.props.state.config.showHint
-                          ? item.hint
-                          : item.frontText
-                      }
-                      category={'math'}
-                    />
-                  </RN.View>
-                ) : (
-                  <RN.View
-                    style={{
-                      flex: 1,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <RN.Text style={{ fontSize: 24 }}>
-                      {this.props.state.config.showHint
+                <RN.View style={{ flex: 1 }}>
+                  <CardView
+                    center
+                    body={
+                      // Keep react-native-deck-swiper@1.4.6
+                      // otherwise showHint will not be updated
+                      this.props.state.config.showHint
                         ? item.hint
-                        : item.frontText}
-                    </RN.Text>
-                  </RN.View>
-                )}
+                        : item.frontText
+                    }
+                    category={item.category || deck.category}
+                  />
+                </RN.View>
               </RN.TouchableWithoutFeedback>
             )}
           />
