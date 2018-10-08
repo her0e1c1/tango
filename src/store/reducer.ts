@@ -119,7 +119,6 @@ export const config = (
     hideBodyWhenCardChanged: true,
     shuffled: false,
     cardInterval: 5,
-    start: 0,
     theme: 'default',
     isLoading: false, // maybe not here
     errorCode: undefined,
@@ -128,7 +127,6 @@ export const config = (
     cardSwipeLeft: 'goToPrevCard',
     cardSwipeRight: 'goToNextCard',
     googleAccessToken: undefined,
-    googleRefreshToken: undefined,
     uid: '',
     displayName: '',
     selectedTags: [],

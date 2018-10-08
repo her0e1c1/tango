@@ -103,7 +103,6 @@ type ConfigState = {
   showHint: boolean;
   hideBodyWhenCardChanged: boolean;
   cardInterval: number;
-  start: number;
   theme: themeType;
   isLoading: boolean;
   errorCode?: errorCode;
@@ -112,7 +111,6 @@ type ConfigState = {
   cardSwipeLeft: cardSwipe;
   cardSwipeRight: cardSwipe;
   googleAccessToken?: string;
-  googleRefreshToken?: string;
   uid: string;
   displayName: string | null;
   selectedTags: string[];

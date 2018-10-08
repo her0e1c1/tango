@@ -60,7 +60,7 @@ export const getCurrentCardList = (state: RootState): Card[] => {
           return !c.mastered;
         }
       });
-    return cards.slice(config.start);
+    return cards;
   } else {
     return [];
   }
