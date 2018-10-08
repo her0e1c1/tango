@@ -276,23 +276,6 @@ export class _Config extends React.Component<ConnectedProps, {}> {
 
             <NB.ListItem icon>
               <NB.Body>
-                <NB.Text>Refresh</NB.Text>
-              </NB.Body>
-              <NB.Right>
-                <RN.TouchableOpacity
-                  onPress={() => dispatch(Action.refreshToken())}
-                  onLongPress={() => alert(config.googleAccessToken)}
-                >
-                  <NB.Text>
-                    {config.googleAccessToken &&
-                      config.googleAccessToken.substring(0, 20)}
-                  </NB.Text>
-                </RN.TouchableOpacity>
-              </NB.Right>
-            </NB.ListItem>
-
-            <NB.ListItem icon>
-              <NB.Body>
                 <NB.Text>App Cache</NB.Text>
               </NB.Body>
               <NB.Right>
