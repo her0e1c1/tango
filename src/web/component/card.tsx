@@ -152,7 +152,7 @@ class _CardList extends React.Component<
         <Select
           style={{ width: 500 }}
           mode="tags"
-          defaultValue={[]}
+          defaultValue={this.props.state.config.selectedTags}
           onChange={(selectedTags: string[]) =>
             this.props.dispatch(Action.configUpdate({ selectedTags }))
           }
