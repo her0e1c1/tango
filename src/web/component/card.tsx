@@ -137,9 +137,8 @@ class _CardList extends React.Component<
       .map(id => this.props.state.card.byId[id])
       .filter(
         c =>
-          deckId === c.deckId &&
-          (this.props.state.config.selectedTags.length === 0 ||
-            this.props.state.config.selectedTags.some(t => c.tags.includes(t)))
+          this.props.state.config.selectedTags.length === 0 ||
+          this.props.state.config.selectedTags.some(t => c.tags.includes(t))
       );
     return (
       <div>
