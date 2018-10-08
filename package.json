@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "expo start",
+    "expo": "expo start",
     "web": "webpack-dev-server -d --config webpack.config.js",
     "web-build": "webpack -p --config webpack.config.js",
     "web-deploy": "firebase deploy --only hosting",
