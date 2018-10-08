@@ -114,6 +114,8 @@ type ConfigState = {
   uid: string;
   displayName: string | null;
   selectedTags: string[];
+  // seems like redux changes a date object
+  lastUpdatedAt: number; // Date;
 };
 
 interface RootState {

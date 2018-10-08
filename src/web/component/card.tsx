@@ -161,7 +161,7 @@ class _CardList extends React.Component<
         </Select>
         <Table
           rowKey="id"
-          dataSource={cards}
+          dataSource={cards.filter(x => !!x)}
           columns={this.getColumns()}
           pagination={{
             defaultPageSize: 20,

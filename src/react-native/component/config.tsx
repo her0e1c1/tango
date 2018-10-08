@@ -276,6 +276,19 @@ export class _Config extends React.Component<ConnectedProps, {}> {
 
             <NB.ListItem icon>
               <NB.Body>
+                <NB.Text>Last Updated</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <NB.Text>
+                  {new Date(
+                    this.props.state.config.lastUpdatedAt
+                  ).toLocaleString() || ''}
+                </NB.Text>
+              </NB.Right>
+            </NB.ListItem>
+
+            <NB.ListItem icon>
+              <NB.Body>
                 <NB.Text>App Cache</NB.Text>
               </NB.Body>
               <NB.Right>

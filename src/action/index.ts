@@ -4,6 +4,7 @@ import * as Papa from 'papaparse';
 import * as type from './type';
 import { db } from 'src/firebase';
 import * as Selector from 'src/selector';
+import { deck } from 'src/store/reducer';
 
 export * from './type';
 
@@ -73,39 +74,61 @@ export const setEventListener = (): ThunkAction => async (
     const decks = await dispatch(deckFetch());
     decks.forEach(async d => await dispatch(cardFetch(d.id)));
   }
+  const a = new Date();
+  const updatedAt = getState().config.lastUpdatedAt;
+  __DEV__ &&
+    console.log(
+      'LAST UPDATED AT: ',
+      updatedAt,
+      ' => ',
+      new Date().getTime(),
+      '=>',
+      new Date(updatedAt)
+    );
   db.collection('deck')
     .where('uid', '==', uid)
-    .where('updatedAt', '>=', new Date())
+    .where('updatedAt', '>=', new Date(updatedAt))
     .orderBy('updatedAt', 'desc')
-    .onSnapshot(snapshot => {
+    .onSnapshot(async snapshot => {
+      // it seems docChanges().forEach is not async func
+      const decks = [] as Deck[];
       snapshot.docChanges().forEach(change => {
         const id = change.doc.id;
         const deck = change.doc.data() as Deck;
         if (change.type === 'added') {
-          dispatch(type.deckBulkInsert([{ ...deck, id }]));
+          decks.push({ ...deck, id });
         } else if (change.type === 'modified') {
           dispatch(type.deckBulkInsert([deck]));
         } else if (change.type === 'removed') {
           dispatch(type.deckDelete(id));
         }
       });
+      if (decks.length > 0) {
+        await dispatch(type.deckBulkInsert(decks));
+      }
+      await dispatch(configUpdate({ lastUpdatedAt: new Date().getTime() }));
     });
   db.collection('card')
     .where('uid', '==', uid)
-    .where('updatedAt', '>=', new Date())
+    .where('updatedAt', '>=', new Date(updatedAt))
     .orderBy('updatedAt', 'desc')
-    .onSnapshot(snapshot => {
+    .onSnapshot(async snapshot => {
+      const cards = [] as Card[];
       snapshot.docChanges().forEach(change => {
         const id = change.doc.id;
         const card = change.doc.data() as Card;
         if (change.type === 'added') {
-          dispatch(type.cardBulkInsert([{ ...card, id }]));
+          cards.push({ ...card, id });
         } else if (change.type === 'modified') {
           dispatch(type.cardBulkInsert([card]));
         } else if (change.type === 'removed') {
           dispatch(type.cardDelete(id));
         }
       });
+      if (cards.length > 0) {
+        await dispatch(type.cardBulkInsert(cards));
+      }
+      dispatch(configUpdate({ lastUpdatedAt: new Date().getTime() }));
     });
 };
 
