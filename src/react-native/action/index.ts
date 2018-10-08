@@ -12,6 +12,22 @@ import * as Selector from 'src/selector';
 
 export * from 'src/action';
 
+export const init = (): ThunkAction => async (dispatch, getState) => {
+  // await dispatch(Action.config.endLoading());
+  // const ok = await dispatch(Action.drive.refreshToken());
+  auth.onAuthStateChanged(async user => {
+    __DEV__ && console.log('DEBUG: INIT', user);
+    if (user) {
+      await dispatch(
+        Action.configUpdate({ uid: user.uid, displayName: user.displayName })
+      );
+      await dispatch(Action.setEventListener());
+    } else {
+      console.log('NOT LOGGED IN YET');
+    }
+  });
+};
+
 const signIn = (
   credential: firebase.auth.AuthCredential
 ): ThunkAction => async (dispatch, getState) => {
@@ -62,81 +78,6 @@ export const loginWithFacebook = (): ThunkAction => async (
     alert('Can not login');
   }
 };
-
-export const init = (): ThunkAction => async (dispatch, getState) => {
-  // await dispatch(Action.config.endLoading());
-  // const ok = await dispatch(Action.drive.refreshToken());
-  auth.onAuthStateChanged(async user => {
-    __DEV__ && console.log('DEBUG: INIT', user);
-    if (user) {
-      await dispatch(
-        Action.configUpdate({ uid: user.uid, displayName: user.displayName })
-      );
-      const decks = (await dispatch(Action.deckFetch())) as Deck[]; // TODO: fix
-      decks.forEach(d => dispatch(Action.cardFetch(d.id)));
-    } else {
-      console.log('NOT LOGGED IN YET');
-    }
-  });
-};
-
-/*
-export const loginWithGoogleOnWeb = (): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  // need to register this url in admin console
-  const redirectUrl = AuthSession.getRedirectUrl();
-  const scope = C.GOOGLE_AUTH_SCOPE.join('%20');
-  const authUrl =
-    `https://accounts.google.com/o/oauth2/v2/auth?` +
-    `&client_id=${C.GOOGLE_WEB_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(redirectUrl)}` +
-    `&response_type=code` +
-    `&access_type=offline` +
-    `&prompt=consent` +
-    `&scope=${scope}`;
-  try {
-    let result = await Expo.AuthSession.startAsync({ authUrl });
-    const code = (result as any).params.code; // TODO: update @types
-    const body = queryString.stringify({
-      grant_type: 'authorization_code',
-      redirect_uri: redirectUrl,
-      client_id: C.GOOGLE_WEB_CLIENT_ID,
-      client_secret: C.GOOGLE_WEB_CLIENT_SECRET,
-      code,
-    });
-    const json = await fetch('https://accounts.google.com/o/oauth2/token', {
-      method: 'POST',
-      body,
-      headers: new Headers({
-        'content-type': 'application/x-www-form-urlencoded',
-      }),
-    }).then(r => r.json());
-    const credential = firebase.auth.GoogleAuthProvider.credential(
-      null, // you can skip id token
-      json.access_token
-    );
-    firebase
-      .auth()
-      .signInWithCredential(credential)
-      .then(async () => {
-        await dispat:289
-        ch(init());
-        await dispatch(
-          Action.config.updateConfig({
-            googleAccessToken: json.access_token,
-            googleRefreshToken: json.refresh_token,
-          })
-        );
-      })
-      .catch(error => console.log(error));
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-*/
 
 export const goBack = () => async (dispatch, getState) => {
   await dispatch(NavigationActions.back());

@@ -15,7 +15,6 @@ import { LoadingIcon } from './component/utils';
 import Root from './component';
 import store from './store';
 import * as Action from 'src/react-native/action';
-import * as ReactNativeAction from 'src/react-native/action';
 import * as C from 'src/constant';
 
 class _Theme extends React.Component<ConnectedProps, {}> {
@@ -73,7 +72,7 @@ class Main extends React.Component {
     }
   }
   async componentDidMount() {
-    await store.dispatch(ReactNativeAction.init());
+    await store.dispatch(Action.init());
   }
   render() {
     if (this.state.loading) {
