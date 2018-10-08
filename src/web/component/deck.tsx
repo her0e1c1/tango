@@ -32,7 +32,6 @@ class _DeckCategory extends React.Component<ConnectedProps & { deck: Deck }> {
 }
 export const DeckCategory = connect(state => ({ state }))(_DeckCategory);
 
-// TODO: show number (だけどcardをprefetchする必要がある)
 class _DeckList extends React.Component<ConnectedProps> {
   columns: ColumnProps<Deck>[];
   state = { loading: true };
@@ -47,6 +46,10 @@ class _DeckList extends React.Component<ConnectedProps> {
             <Icon type="edit" />
           </div>
         ),
+      },
+      {
+        title: 'number',
+        render: (deck: Deck) => deck.cardIds.length,
       },
       {
         title: 'category',
