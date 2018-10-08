@@ -132,12 +132,15 @@ class _CardList extends React.Component<
   }
   render() {
     const { deckId } = this.props.match.params;
-    const data = Object.values(this.props.state.card.byId).filter(
-      c =>
-        deckId === c.deckId &&
-        (this.props.state.config.selectedTags.length === 0 ||
-          this.props.state.config.selectedTags.some(t => c.tags.includes(t)))
-    );
+    const deck = this.props.state.deck.byId[deckId];
+    const cards = deck.cardIds
+      .map(id => this.props.state.card.byId[id])
+      .filter(
+        c =>
+          deckId === c.deckId &&
+          (this.props.state.config.selectedTags.length === 0 ||
+            this.props.state.config.selectedTags.some(t => c.tags.includes(t)))
+      );
     return (
       <div>
         <Checkbox.Group
@@ -159,7 +162,7 @@ class _CardList extends React.Component<
         </Select>
         <Table
           rowKey="id"
-          dataSource={data}
+          dataSource={cards}
           columns={this.getColumns()}
           pagination={{
             defaultPageSize: 20,
