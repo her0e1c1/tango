@@ -3,7 +3,6 @@ import * as RN from 'react-native';
 import * as SD from './styled';
 import * as NB from 'native-base';
 import { connect } from 'react-redux';
-import * as C from 'src/constant';
 import * as Action from 'src/react-native/action';
 import * as Selector from 'src/selector';
 
@@ -234,7 +233,7 @@ export class _DeckEdit extends React.Component<
               onValueChange={category => this.deckEdit({ category })}
               {...{ iosIcon: <NB.Icon name="arrow-down" /> }}
             >
-              {[''].concat(C.CATEGORY).map((x, i) => (
+              {[''].concat(this.props.state.deck.categories).map((x, i) => (
                 <NB.Picker.Item key={i} label={x} value={x} />
               ))}
             </NB.Picker>
