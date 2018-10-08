@@ -87,12 +87,9 @@ export const card = (
     delete state.byDeckId[deck_id];
     return { ...state };
   } else if (equal(action, type.cardDelete)) {
-    const ns = _.clone(state);
     const id = action.payload.id;
-    const deckId = ns.byId[id].deckId;
-    delete ns.byId[id];
-    _.pull(ns.byDeckId[deckId], id);
-    return ns;
+    delete state.byId[id];
+    return { ...state };
   } else if (equal(action, type.deckDelete)) {
     const id = action.payload.deckId;
     Object.values(state.byId).forEach(

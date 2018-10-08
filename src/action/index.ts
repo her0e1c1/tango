@@ -190,13 +190,27 @@ export const deckDelete = (deckId: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
+  // need to update updatedAt field in order to listen to delete event
+  // but don't update card.updatedAt because it wll call a lot of requests
+  // so if a deck is deleted, delete its cards together from reducer state
+  await dispatch(deckUpdate(getState().deck.byId[deckId]));
+
+  const uid = getState().config.uid;
+  const batch = db.batch();
+  const doc = db.collection('deck').doc(deckId);
+  /*
+  // this code has firebase internal error. to avoid this, just call deckUpdate first
+  batch.set(
+    doc,
+    { updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+    { merge: true }
+  );
+  */
+  batch.delete(doc);
   const querySnapshot = await db
     .collection('card')
-    .where('deckId', '==', deckId)
-    .where('uid', '==', getState().config.uid)
+    .where('uid', '==', uid)
     .get();
-  const batch = db.batch();
-  batch.delete(db.collection('deck').doc(deckId));
   querySnapshot.forEach(doc => batch.delete(doc.ref));
   await batch.commit();
 };
