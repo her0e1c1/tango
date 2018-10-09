@@ -18,6 +18,10 @@ interface Deck {
 
   // the order which user defines.
   // this should not be shuffled
+  // because cards in a deck should be reordered,
+  // card interface should not have a order column.
+  // it's hard to change the order.
+  // so it needs to define in deck
   cardIds: string[];
 
   // when user selects a deck, show this index card

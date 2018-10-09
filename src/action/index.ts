@@ -1,10 +1,10 @@
+import { pull } from 'lodash';
 import * as firebase from 'firebase';
 import * as Papa from 'papaparse';
 
 import * as type from './type';
 import { db } from 'src/firebase';
 import * as Selector from 'src/selector';
-import { deck } from 'src/store/reducer';
 
 export * from './type';
 
@@ -74,7 +74,7 @@ export const setEventListener = (): ThunkAction => async (
     const decks = await dispatch(deckFetch());
     decks.forEach(async d => await dispatch(cardFetch(d.id)));
   }
-  const a = new Date();
+  // FIEME: maybe client timestamp is different from server's one
   const updatedAt = getState().config.lastUpdatedAt;
   __DEV__ &&
     console.log(
@@ -94,11 +94,11 @@ export const setEventListener = (): ThunkAction => async (
       const decks = [] as Deck[];
       snapshot.docChanges().forEach(change => {
         const id = change.doc.id;
-        const deck = change.doc.data() as Deck;
+        const deck = { ...change.doc.data(), id } as Deck;
         if (change.type === 'added') {
-          decks.push({ ...deck, id });
+          decks.push(deck);
         } else if (change.type === 'modified') {
-          dispatch(type.deckBulkInsert([deck]));
+          decks.push(deck);
         } else if (change.type === 'removed') {
           dispatch(type.deckDelete(id));
         }
@@ -116,11 +116,11 @@ export const setEventListener = (): ThunkAction => async (
       const cards = [] as Card[];
       snapshot.docChanges().forEach(change => {
         const id = change.doc.id;
-        const card = change.doc.data() as Card;
+        const card = { ...change.doc.data(), id } as Card;
         if (change.type === 'added') {
-          cards.push({ ...card, id });
+          cards.push(card);
         } else if (change.type === 'modified') {
-          dispatch(type.cardBulkInsert([card]));
+          cards.push(card);
         } else if (change.type === 'removed') {
           dispatch(type.cardDelete(id));
         }
@@ -323,10 +323,25 @@ export const cardDelete = (id: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  await db
-    .collection('card')
-    .doc(id)
-    .delete();
+  const card = getState().card.byId[id];
+  const deckRef = db.collection('deck').doc(card.deckId);
+  const cardRef = db.collection('card').doc(id);
+  try {
+    // NOTE: once a deck notified, need to delete the card which belongs to it
+    await db.runTransaction(async t => {
+      const deckDoc = await t.get(deckRef);
+      const deck = deckDoc.data() as Deck;
+      const cardIds = pull(deck.cardIds, id);
+      await t.update(deckRef, {
+        ...deck,
+        cardIds,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      await t.delete(cardRef);
+    });
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 export const configUpdate = (config: Partial<ConfigState>) => async (
