@@ -156,8 +156,6 @@ export const deckCreate = (
   deck: Pick<Deck, 'name' | 'isPublic'>,
   cards: Omit<Card, 'id' | 'createdAt'>[]
 ): ThunkAction => async (dispatch, getState) => {
-  // NOTE: firestore can not store undefined value.
-  // Need to convert to empty string instead
   const uid = getState().config.uid;
   if (!uid) {
     alert('You need to log in first');
