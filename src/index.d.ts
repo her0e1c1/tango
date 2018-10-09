@@ -14,6 +14,7 @@ interface Deck {
   url: string | null;
   updatedAt: Date;
   createdAt: Date;
+  deletedAt?: Date; // soft delete flag
   uid: string;
 
   // the order which user defines.

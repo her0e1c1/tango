@@ -16,8 +16,6 @@ export const deck = (
   if (equal(action, type.deckBulkInsert)) {
     const decks = action.payload.decks;
     decks.forEach(d => {
-      // HOTFIX: some deck returns without id
-      if (!d.id) return;
       let currentIndex = d.currentIndex;
       if (currentIndex === undefined) {
         const deck = state.byId[d.id];

@@ -68,23 +68,15 @@ export const setEventListener = (): ThunkAction => async (
   const state = getState();
   const uid = state.config.uid;
   if (!uid) {
-    return; // DO NOTHING
+    return; // after user log in, then call this function
   }
   if (Object.keys(state.deck.byId).length === 0) {
     const decks = await dispatch(deckFetch());
     decks.forEach(async d => await dispatch(cardFetch(d.id)));
   }
-  // FIEME: maybe client timestamp is different from server's one
+  // FIXME: maybe client timestamp is different from server's one
   const updatedAt = getState().config.lastUpdatedAt;
-  __DEV__ &&
-    console.log(
-      'LAST UPDATED AT: ',
-      updatedAt,
-      ' => ',
-      new Date().getTime(),
-      '=>',
-      new Date(updatedAt)
-    );
+  __DEV__ && console.log('LAST UPDATED AT: ', new Date(updatedAt));
   db.collection('deck')
     .where('uid', '==', uid)
     .where('updatedAt', '>=', new Date(updatedAt))
@@ -95,12 +87,15 @@ export const setEventListener = (): ThunkAction => async (
       snapshot.docChanges().forEach(change => {
         const id = change.doc.id;
         const deck = { ...change.doc.data(), id } as Deck;
-        if (change.type === 'added') {
+        // when initialized, modified event is not triggered but added is after updating deletedAt
+        if (deck.deletedAt != null) {
+          dispatch(type.deckDelete(id));
+        } else if (change.type === 'added') {
           decks.push(deck);
         } else if (change.type === 'modified') {
           decks.push(deck);
         } else if (change.type === 'removed') {
-          dispatch(type.deckDelete(id));
+          // NOT REACHED
         }
       });
       if (decks.length > 0) {
@@ -140,7 +135,7 @@ export const deckFetch = (
     alert('need to login');
     return [];
   }
-  const query = db.collection('deck');
+  const query = db.collection('deck').where('deletedAt', '==', null);
   // const query = db.collection('deck').orderBy('updatedAt', 'desc');
   let querySnapshot: firebase.firestore.QuerySnapshot;
   if (isPublic) {
@@ -191,6 +186,7 @@ export const deckCreate = (
     createdAt,
     updatedAt,
     cardIds,
+    deletedAt: null,
   };
   batch.set(docDeck, d);
   await batch.commit();
@@ -213,28 +209,22 @@ export const deckDelete = (deckId: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  // need to update updatedAt field in order to listen to delete event
-  // but don't update card.updatedAt because it wll call a lot of requests
-  // so if a deck is deleted, delete its cards together from reducer state
+  // For deck, using soft delete flag with deletedAt
+  // here update updatedAt, deletedAt and cardIds in deck.
   await dispatch(deckUpdate(getState().deck.byId[deckId]));
 
   const uid = getState().config.uid;
   const batch = db.batch();
-  const doc = db.collection('deck').doc(deckId);
-  /*
-  // this code has firebase internal error. to avoid this, just call deckUpdate first
-  batch.set(
-    doc,
-    { updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
-    { merge: true }
-  );
-  */
-  batch.delete(doc);
   const querySnapshot = await db
     .collection('card')
     .where('uid', '==', uid)
     .get();
   querySnapshot.forEach(doc => batch.delete(doc.ref));
+  const doc = db.collection('deck').doc(deckId);
+  batch.update(doc, {
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
   await batch.commit();
 };
 
