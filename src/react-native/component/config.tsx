@@ -18,17 +18,13 @@ const clearAppCache = dispatch => {
   NB.ActionSheet.show(
     {
       title: 'Clear app cache',
-      options: ['Clear', 'Clear (keep login)', 'Drop Tables', 'Cancel'],
-      cancelButtonIndex: 3,
-      destructiveButtonIndex: 2,
+      options: ['Clear', 'Cancel'],
+      cancelButtonIndex: 1,
+      destructiveButtonIndex: 0,
     },
     async index => {
       if (index === 0) {
         await dispatch(Action.clearAll(true));
-      } else if (index === 1) {
-        await dispatch(Action.clearAll());
-      } else if (index === 2) {
-        await dispatch(Action.drop());
       } else {
         // DO NOTHING
       }

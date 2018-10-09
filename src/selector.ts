@@ -33,7 +33,7 @@ export const getCurrentDeck = (state: RootState): Deck => {
 };
 
 export const getCardList = (state: RootState, deckId: string) => {
-  const all = state.card.byDeckId[deckId] || [];
+  const all = state.deck.byId[deckId].cardIds || [];
   return all.map(id => state.card.byId[id]);
 };
 
@@ -49,9 +49,7 @@ export const getCurrentCardList = (state: RootState): Card[] => {
   const config = state.config;
   const deckId = getCurrentDeck(state).id;
   if (deckId) {
-    const ids = state.card.byDeckId[deckId] || [];
-    const cards = ids
-      .map(id => state.card.byId[id])
+    const cards = getCardList(state, deckId)
       .filter(c => !!c) // defensive
       .filter(c => {
         if (config.showMastered) {
