@@ -48,6 +48,10 @@ class _DeckList extends React.Component<ConnectedProps> {
         ),
       },
       {
+        title: 'order',
+        render: deck => <Link to={`/deck/${deck.id}/order`}>order</Link>,
+      },
+      {
         title: 'number',
         render: (deck: Deck) => deck.cardIds.length,
       },
