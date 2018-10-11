@@ -38,6 +38,51 @@ export class MathView extends React.Component<{ text: string }> {
   }
 }
 
+class EditCard extends React.Component<
+  {
+    text: string;
+    edit: boolean;
+    width: number;
+    category?: string;
+    onClick: () => void;
+    onBlur: (text: string) => void;
+  },
+  { text: string }
+> {
+  constructor(props) {
+    super(props);
+    this.state = { text: this.props.text };
+  }
+  render() {
+    const text = this.state.text;
+    return (
+      <div
+        style={{
+          width: `${this.props.width}vw`,
+          overflow: 'hidden',
+          minHeight: 100,
+        }}
+        onClick={this.props.onClick}
+      >
+        {this.props.edit ? (
+          <Input.TextArea
+            style={{ height: 200 }}
+            defaultValue={text}
+            value={this.state.text}
+            ref={i => i && i.focus()}
+            onBlur={() => this.props.onBlur(this.state.text)}
+            onChange={e => this.setState({ text: e.target.value })}
+          />
+        ) : this.props.category === 'math' ? (
+          <MathView text={text} />
+        ) : (
+          text
+        )}
+      </div>
+    );
+  }
+}
+
 class _CardList extends React.Component<
   ConnectedProps & RouteComponentProps<{ deckId: string }>
 > {
@@ -45,38 +90,24 @@ class _CardList extends React.Component<
     editFrontTextId: '',
     editBackTextId: '',
     editHintId: '',
-    columns: ['frontText', 'backText', 'hint'] as CardText[],
+    columns: ['frontText', 'backText', 'hint'] as CardTextKey[],
   };
-  getText(card: Card, text: CardText, stateKey: string) {
+  getText(card: Card, text: CardTextKey, stateKey: string) {
     const deck =
       this.props.state.deck.byId[this.props.match.params.deckId] || {};
     const width = 81 / this.state.columns.length;
     return (
-      <div
-        style={{ width: `${width}vw`, overflow: 'hidden', minHeight: 100 }}
+      <EditCard
+        edit={card.id == this.state[stateKey]}
+        text={card[text]}
+        width={width}
+        category={deck.category}
         onClick={() => this.setState({ [stateKey]: card.id })}
-      >
-        {card.id === this.state[stateKey] ? (
-          <Input.TextArea
-            style={{ height: 200 }}
-            value={card[text]}
-            ref={i => i && i.focus()}
-            onBlur={() => {
-              this.setState({ [stateKey]: '' });
-              this.props.dispatch(Action.cardUpdate(card));
-            }}
-            onChange={e =>
-              this.props.dispatch(
-                Action.cardBulkInsert([{ ...card, [text]: e.target.value }])
-              )
-            }
-          />
-        ) : deck.category === 'math' ? (
-          <MathView text={card[text]} />
-        ) : (
-          card[text]
-        )}
-      </div>
+        onBlur={value => {
+          this.setState({ [stateKey]: '' });
+          this.props.dispatch(Action.cardUpdate({ ...card, [text]: value }));
+        }}
+      />
     );
   }
 
