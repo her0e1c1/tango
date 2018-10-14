@@ -66,7 +66,6 @@ type DeckState = {
 
 type CardState = {
   byId: { [key: string]: Card };
-  byDeckId: { [key: string]: string[] };
   tags: string[];
   edit: Card;
 };

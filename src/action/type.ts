@@ -28,11 +28,6 @@ export const cardDelete = (id: string) => ({
   payload: { id },
 });
 
-export const cardBulkDelete = (deck_id: number) => ({
-  type: 'CARD_BULK_DELETE',
-  payload: { deck_id },
-});
-
 export const cardEdit = (card: Partial<Card>) => ({
   type: 'CARD_EDIT',
   payload: { card },

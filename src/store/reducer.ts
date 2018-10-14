@@ -50,24 +50,9 @@ export const deck = (
   }
 };
 
-const updateCard = (state: CardState, cards: Card[]) => {
-  const ns = _.clone(state);
-  cards.forEach(c => {
-    ns.byId[c.id] = c;
-    const ids = ns.byDeckId[c.deckId];
-    if (!ids) {
-      ns.byDeckId[c.deckId] = [c.id];
-    } else if (!ids.includes(c.id)) {
-      ns.byDeckId[c.deckId].push(c.id);
-    }
-  });
-  return ns;
-};
-
 export const card = (
   state: CardState = {
     byId: {},
-    byDeckId: {},
     tags: [],
     edit: {} as Card,
   },
@@ -75,14 +60,9 @@ export const card = (
 ) => {
   if (equal(action, type.cardBulkInsert)) {
     const cs = action.payload.cards;
-    cs.forEach(c => c.tags.forEach(t => state.tags.push(t)));
+    cs.forEach(c => (state.byId[c.id] = c));
+    cs.forEach(c => (c.tags || []).forEach(t => state.tags.push(t)));
     state.tags = uniq(state.tags);
-    return updateCard(state, cs);
-  } else if (equal(action, type.cardBulkDelete)) {
-    const deck_id = action.payload.deck_id;
-    const ids = state.byDeckId[deck_id];
-    ids.forEach(id => delete state.byId[id]);
-    delete state.byDeckId[deck_id];
     return { ...state };
   } else if (equal(action, type.cardDelete)) {
     const id = action.payload.id;
@@ -94,12 +74,12 @@ export const card = (
       c => c.deckId === id && delete state.byId[c.id]
     );
     return state;
-  } else if (equal(action, type.card_shuffle)) {
-    const config: ConfigState = action.payload.config;
-    const byDeckId = Object.entries(state.byDeckId)
-      .map(e => ({ [e[0]]: config.shuffled ? _.shuffle(e[1]) : e[1].sort() }))
-      .reduce((obj, e) => ({ ...obj, ...e }));
-    return { ...state, byDeckId };
+    // } else if (equal(action, type.card_shuffle)) {
+    //   const config: ConfigState = action.payload.config;
+    //   const byDeckId = Object.entries(state.byDeckId)
+    //     .map(e => ({ [e[0]]: config.shuffled ? _.shuffle(e[1]) : e[1].sort() }))
+    //     .reduce((obj, e) => ({ ...obj, ...e }));
+    //   return { ...state, byDeckId };
   } else if (equal(action, type.cardEditInit)) {
     return { ...state, edit: { tags: [] } };
   } else if (equal(action, type.cardEdit)) {
