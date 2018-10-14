@@ -251,6 +251,18 @@ export class _DeckEdit extends React.Component<
             />
           </NB.Body>
         </NB.ListItem>
+
+        <NB.ListItem noBorder>
+          <NB.Left>
+            <NB.Text>Only Body Converted</NB.Text>
+          </NB.Left>
+          <NB.Body>
+            <RN.Switch
+              value={Boolean(deck.onlyBody)}
+              onValueChange={onlyBody => this.deckEdit({ onlyBody })}
+            />
+          </NB.Body>
+        </NB.ListItem>
       </NB.Content>
     );
   }

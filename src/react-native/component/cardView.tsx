@@ -15,7 +15,7 @@ class _CardView extends React.Component<
 > {
   webView: RN.WebView | null;
   render() {
-    return this.props.category !== 'math' ? (
+    return !this.props.category ? (
       <RN.View
         style={{
           flex: 1,
@@ -47,4 +47,3 @@ class _CardView extends React.Component<
   }
 }
 export const CardView = withTheme(connect(state => ({ state }))(_CardView));
-export default CardView;

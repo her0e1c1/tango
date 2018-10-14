@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';
 import { connect } from 'react-redux';
-import CardView from './cardView';
+import { CardView } from './cardView';
 import * as SD from './styled';
 import Swipeout from 'react-native-swipeout';
 import * as Selector from 'src/selector';

@@ -30,6 +30,7 @@ interface Deck {
   currentIndex: number;
   category?: Category;
   convertToBr?: boolean;
+  onlyBody?: boolean;
 
   // google spread sheet
   spreadsheetId: string | null;
