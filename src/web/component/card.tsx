@@ -11,13 +11,29 @@ import 'highlight.js/styles/googlecode.css';
 
 export const renderCard = (data: string, category?: string | null) => {
   if (category === 'math') {
-    return <MathView text={data} />;
+    return <MathView text={data || ''} />;
   } else if (C.LANGUAGES.includes(category || '')) {
     return <Highlight className={category}>{data}</Highlight>;
   } else {
     return data;
   }
 };
+
+export const renderView = (data: string, category: string | null) => (
+  <div
+    style={{
+      fontSize: 18,
+      tabSize: 2,
+      letterSpacing: 0,
+      whiteSpace: 'nowrap',
+      flexWrap: 'nowrap',
+      minHeight: '100vh',
+      minWidth: '100vw',
+    }}
+  >
+    {renderCard(data, category)}
+  </div>
+);
 
 export class MathView extends React.Component<{ text: string }> {
   convert(text: string) {
@@ -228,3 +244,26 @@ class _CardList extends React.Component<
 }
 
 export const CardList = withRouter(connect(state => ({ state }))(_CardList));
+
+class _CardView extends React.Component<
+  ConnectedProps & RouteComponentProps<{ cardId: string; key: CardTextKey }>
+> {
+  iframe: HTMLIFrameElement | null;
+  render() {
+    const { cardId, key } = this.props.match.params;
+    const card = this.props.state.card.byId[cardId];
+    const deck = this.props.state.deck.byId[card.deckId];
+    const origin = 'https://tang04mem0.firebaseapp.com';
+    return (
+      <iframe
+        ref={r => (this.iframe = r)}
+        src={`${origin}/view?category=${deck.category}`}
+        style={{ width: '100vw', height: '100vh' }}
+        onLoad={() =>
+          this.iframe!.contentWindow!.postMessage(card[key], origin)
+        }
+      />
+    );
+  }
+}
+export const CardView = withRouter(connect(state => ({ state }))(_CardView));

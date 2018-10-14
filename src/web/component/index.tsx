@@ -10,7 +10,7 @@ import * as Action from 'src/action';
 import { store, persistor, history } from '../store';
 import { Header } from './header';
 import { DeckList } from './deck';
-import { CardList } from './card';
+import { CardList, CardView } from './card';
 import { CardOrder } from './cardOrder';
 import { DeckCreate, CardCreate, CardEdit } from './form';
 
@@ -29,6 +29,7 @@ class _Main extends React.Component<ConnectedProps> {
           <Route exact path="/deck/:deckId/order" component={CardOrder} />
           <Route exact path="/deck/:deckId/new" component={CardCreate} />
           <Route exact path="/card/:cardId/edit" component={CardEdit} />
+          <Route exact path="/card/:cardId/:key" component={CardView} />
         </Layout.Content>
       </Layout>
     );

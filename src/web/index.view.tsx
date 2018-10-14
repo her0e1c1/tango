@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'katex/dist/katex.css';
-import { renderCard } from './component/card';
+import { renderView } from './component/card';
 
 class Root extends React.Component {
   theme: string;
@@ -18,41 +18,24 @@ class Root extends React.Component {
       require(`highlight.js/styles/googlecode.css`);
     }
   }
+  setEvent(event) {
+    __DEV__ && console.log('DEBUG MESSAGE: ', event);
+    // @ts-ignore
+    const data = event.data;
+    // webpack also sends message which is not string but object
+    const origin = 'https://tang04mem0.firebaseapp.com';
+    if (typeof data === 'string' && event.origin === origin)
+      this.setState({ data });
+  }
   componentDidMount() {
     // postMessage works with window.addEventListener("message", ...)
     // postMessage("string", location.origin)
     // on react native, you need to use document instead
-    document.addEventListener(
-      'message',
-      event => {
-        __DEV__ && console.log('DEBUG MESSAGE: ', event);
-        // @ts-ignore
-        const data = event.data;
-        // webpack also sends message which is not string but object
-        if (typeof data === 'string') this.setState({ data });
-      },
-      false
-    );
+    window.addEventListener('message', e => this.setEvent(e), false);
+    document.addEventListener('message', e => this.setEvent(e), false);
   }
   render() {
-    return (
-      <div
-        style={{
-          fontSize: 18,
-          tabSize: 2,
-          letterSpacing: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          whiteSpace: 'nowrap',
-          flexWrap: 'nowrap',
-          minHeight: '100vh',
-          minWidth: '100vw',
-        }}
-      >
-        {renderCard(this.state.data, this.category)}
-      </div>
-    );
+    return renderView(this.state.data || '', this.category);
   }
 }
 
