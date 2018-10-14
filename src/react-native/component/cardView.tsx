@@ -36,7 +36,7 @@ class _CardView extends React.Component<
         scrollEnabled={true}
         ref={r => (this.webView = r)}
         onLoadEnd={() => {
-          this.webView!.postMessage(this.props.body);
+          this.webView!.postMessage(JSON.stringify({ text: this.props.body }));
         }}
         source={{
           uri: `https://tang04mem0.firebaseapp.com/view?category=${

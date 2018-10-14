@@ -23,9 +23,12 @@ class Root extends React.Component {
     // @ts-ignore
     const data = event.data;
     // webpack also sends message which is not string but object
-    const origin = 'https://tang04mem0.firebaseapp.com';
-    if (typeof data === 'string' && event.origin === origin)
-      this.setState({ data });
+    try {
+      const d = JSON.parse(data);
+      this.setState({ data: d.text });
+    } catch {
+      // DO NOTHING
+    }
   }
   componentDidMount() {
     // postMessage works with window.addEventListener("message", ...)
