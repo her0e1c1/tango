@@ -54,11 +54,13 @@ class Root extends React.Component {
           fontSize: 18,
           tabSize: 2,
           letterSpacing: 0,
-          overflow: 'scroll',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          whiteSpace: 'nowrap',
+          flexWrap: 'nowrap',
           minHeight: '100vh',
+          minWidth: '100vw',
         }}
       >
         {this.renderData()}
