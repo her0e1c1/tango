@@ -9,7 +9,7 @@ import * as C from 'src/constant';
 import * as Action from 'src/web/action';
 import 'highlight.js/styles/googlecode.css';
 
-export const renderCard = (data: string, category?: string) => {
+export const renderCard = (data: string, category?: string | null) => {
   if (category === 'math') {
     return <MathView text={data} />;
   } else if (C.LANGUAGES.includes(category || '')) {
