@@ -286,12 +286,29 @@ export const cardFetch = (
   dispatch(type.cardBulkInsert(cards));
 };
 
-export const cardCreate = (card: Card): ThunkAction => async (
+export const cardCreate = (card: Omit<Card, 'id'>): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const docRef = await db.collection('card').add(card);
-  await dispatch(type.cardBulkInsert([{ ...card, id: docRef.id }]));
+  const uid = getState().config.uid;
+  const deckRef = db.collection('deck').doc(card.deckId);
+  const cardRef = db.collection('card').doc();
+  await db.runTransaction(async t => {
+    const deckDoc = await t.get(deckRef); // need to call first
+    await t.set(cardRef, {
+      ...card,
+      uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    const deck = deckDoc.data() as Deck;
+    const cardIds = [...deck.cardIds, cardRef.id];
+    await t.update(deckRef, {
+      ...deck,
+      cardIds,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  });
 };
 
 export const cardUpdate = (card: Card): ThunkAction => async (

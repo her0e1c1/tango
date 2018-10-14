@@ -31,11 +31,38 @@ class Field extends React.Component<
   }
 }
 
+class CardForm extends React.Component<{
+  card: Card;
+  onChangeText: (c: Partial<Card>) => void;
+}> {
+  render() {
+    const card = this.props.card;
+    return (
+      <NB.Form>
+        <Field
+          name={'Front Text'}
+          value={card.frontText}
+          onChangeText={frontText => this.props.onChangeText({ frontText })}
+        />
+        <Field
+          name={'Back Text'}
+          value={card.backText}
+          onChangeText={backText => this.props.onChangeText({ backText })}
+        />
+        <Field
+          name={'Hint'}
+          value={card.hint}
+          onChangeText={hint => this.props.onChangeText({ hint })}
+        />
+      </NB.Form>
+    );
+  }
+}
+
 // Because save icon is in header, you can not use component state
 // and use reducer state instead to pass user input
 export class _CardEdit extends React.Component<
-  ConnectedProps & { cardId: string },
-  {}
+  ConnectedProps & { cardId: string }
 > {
   componentDidMount() {
     const card = this.props.state.card.byId[this.props.cardId];
@@ -73,24 +100,10 @@ export class _CardEdit extends React.Component<
             </NB.Right>
           </NB.ListItem>
         </NB.List>
-        <NB.Form>
-          <Field
-            name={'TITLE'}
-            value={card.frontText}
-            onChangeText={frontText => this.cardEdit({ frontText })}
-          />
-          <Field
-            name={'HINT'}
-            value={card.hint}
-            onChangeText={hint => this.cardEdit({ hint })}
-          />
-          <Field
-            name={'BODY'}
-            value={card.backText}
-            rowSpan={10}
-            onChangeText={backText => this.cardEdit({ backText })}
-          />
-        </NB.Form>
+        <CardForm
+          card={this.props.state.card.edit}
+          onChangeText={card => this.cardEdit(card)}
+        />
         <NB.Button
           danger
           full
@@ -126,40 +139,28 @@ export class _CardEdit extends React.Component<
 export const CardEdit = connect(state => ({ state }))(_CardEdit);
 
 export class _CardNew extends React.Component<
-  ConnectedProps & { deckId: string },
-  {}
+  ConnectedProps & { deckId: string }
 > {
   componentDidMount() {
-    const deckId = this.props.deckId;
-    this.props.dispatch(Action.cardEdit({ deckId }));
-  }
-  cardEdit(card: Partial<Card>) {
-    this.props.dispatch(
-      Action.cardEdit({ ...this.props.state.card.edit, ...card })
-    );
+    this.props.dispatch(Action.cardEditInit());
   }
   render() {
     if (!this.props.deckId) return <ErrorPage />; // DEFENSIVE
-    const card = this.props.state.card.edit;
+    const deckId = this.props.deckId;
     return (
       <NB.Content padder style={{ marginBottom: 50 }}>
-        <NB.Form>
-          <Field
-            name={'Front Text'}
-            value={card.frontText}
-            onChangeText={frontText => this.cardEdit({ frontText })}
-          />
-          <Field
-            name={'Back Text'}
-            value={card.backText}
-            onChangeText={backText => this.cardEdit({ backText })}
-          />
-          <Field
-            name={'Hint'}
-            value={card.hint}
-            onChangeText={hint => this.cardEdit({ hint })}
-          />
-        </NB.Form>
+        <CardForm
+          card={this.props.state.card.edit}
+          onChangeText={card =>
+            this.props.dispatch(
+              Action.cardEdit({
+                ...this.props.state.card.edit,
+                ...card,
+                deckId,
+              })
+            )
+          }
+        />
       </NB.Content>
     );
   }

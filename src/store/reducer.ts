@@ -100,8 +100,10 @@ export const card = (
       .map(e => ({ [e[0]]: config.shuffled ? _.shuffle(e[1]) : e[1].sort() }))
       .reduce((obj, e) => ({ ...obj, ...e }));
     return { ...state, byDeckId };
+  } else if (equal(action, type.cardEditInit)) {
+    return { ...state, edit: { tags: [] } };
   } else if (equal(action, type.cardEdit)) {
-    const edit = Object.assign(state.edit || {}, action.payload.card);
+    const edit = { ...state.edit, ...action.payload.card };
     return { ...state, edit };
   } else {
     return state;

@@ -38,6 +38,11 @@ export const cardEdit = (card: Partial<Card>) => ({
   payload: { card },
 });
 
+export const cardEditInit = () => ({
+  type: 'CARD_EDIT_INIT',
+  payload: {},
+});
+
 export const card_shuffle = (config: ConfigState) => ({
   type: 'CARD_SHUFFLE',
   payload: { config },
