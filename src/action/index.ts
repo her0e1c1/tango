@@ -296,6 +296,10 @@ export const cardCreate = (card: Omit<Card, 'id'>): ThunkAction => async (
   await db.runTransaction(async t => {
     const deckDoc = await t.get(deckRef); // need to call first
     await t.set(cardRef, {
+      frontText: '',
+      backText: '',
+      hint: '',
+      tags: [],
       ...card,
       uid,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),

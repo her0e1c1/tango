@@ -12,7 +12,7 @@ import { Header } from './header';
 import { DeckList } from './deck';
 import { CardList } from './card';
 import { CardOrder } from './cardOrder';
-import { DeckCreate } from './new';
+import { DeckCreate, CardCreate, CardEdit } from './form';
 
 class _Main extends React.Component<ConnectedProps> {
   async componentDidMount() {
@@ -27,6 +27,8 @@ class _Main extends React.Component<ConnectedProps> {
           <Route exact path="/new" component={DeckCreate} />
           <Route exact path="/deck/:deckId" component={CardList} />
           <Route exact path="/deck/:deckId/order" component={CardOrder} />
+          <Route exact path="/deck/:deckId/new" component={CardCreate} />
+          <Route exact path="/card/:cardId/edit" component={CardEdit} />
         </Layout.Content>
       </Layout>
     );

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Table, Input, Icon, Select, Checkbox } from 'antd';
+import { Table, Input, Icon, Select, Checkbox, Button } from 'antd';
 import { ColumnProps } from 'antd/lib/table/interface';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import * as Action from 'src/web/action';
@@ -38,7 +38,7 @@ export class MathView extends React.Component<{ text: string }> {
   }
 }
 
-class EditCard extends React.Component<
+export class EditCard extends React.Component<
   {
     text: string;
     edit: boolean;
@@ -144,6 +144,10 @@ class _CardList extends React.Component<
             alignItems: 'flex-start',
           }}
         >
+          <Icon
+            type="edit"
+            onClick={() => this.props.history.push(`/card/${card.id}/edit`)}
+          />
           <Select
             mode="tags"
             size="small"
@@ -173,6 +177,14 @@ class _CardList extends React.Component<
       );
     return (
       <div>
+        <Button
+          onClick={() => this.props.history.push(`/deck/${deckId}/new`)}
+          type="primary"
+          style={{ marginTop: 5 }}
+        >
+          Add a card
+        </Button>
+        <div />
         <Checkbox.Group
           options={['frontText', 'backText', 'hint']}
           defaultValue={this.state.columns}
