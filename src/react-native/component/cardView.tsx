@@ -15,7 +15,8 @@ class _CardView extends React.Component<
 > {
   webView: RN.WebView | null;
   render() {
-    return !this.props.category ? (
+    const body = this.props.body || '';
+    return !this.props.category || body.trim() === '' ? (
       <RN.View
         style={{
           flex: 1,
