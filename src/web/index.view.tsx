@@ -1,11 +1,26 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'katex/dist/katex.css';
+import Highlight from 'react-highlight';
 
+import * as C from 'src/constant';
 import { MathView } from './component/card';
 
 class Root extends React.Component {
+  theme: string;
+  category: string | null;
   state = { data: '' };
+  constructor(props) {
+    super(props);
+    const params = new URLSearchParams(location.search);
+    this.category = params.get('category');
+    this.theme = params.get('theme') || 'default';
+    if (this.theme === 'dark') {
+      require(`highlight.js/styles/dark.css`);
+    } else {
+      require(`highlight.js/styles/default.css`);
+    }
+  }
   componentDidMount() {
     // postMessage works with window.addEventListener("message", ...)
     // postMessage("string", location.origin)
@@ -22,6 +37,16 @@ class Root extends React.Component {
       false
     );
   }
+  renderData() {
+    const c = this.category;
+    if (c === 'math') {
+      return <MathView text={this.state.data} />;
+    } else if (C.LANGUAGES.includes(c || '')) {
+      return <Highlight className={c}>{this.state.data}</Highlight>;
+    } else {
+      return this.state.data;
+    }
+  }
   render() {
     return (
       <div
@@ -37,7 +62,7 @@ class Root extends React.Component {
           height: '100vh',
         }}
       >
-        <MathView text={this.state.data} />
+        {this.renderData()}
       </div>
     );
   }

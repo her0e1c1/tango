@@ -38,7 +38,9 @@ class _CardView extends React.Component<
           this.webView!.postMessage(this.props.body);
         }}
         source={{
-          uri: 'https://tang04mem0.firebaseapp.com/view/',
+          uri: `https://tang04mem0.firebaseapp.com/view?category=${
+            this.props.category
+          }`,
         }}
       />
     );

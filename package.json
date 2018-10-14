@@ -73,6 +73,7 @@
     "react": "^16.5.1",
     "react-beautiful-dnd": "^9.0.2",
     "react-dom": "^16.5.1",
+    "react-highlight": "^0.12.0",
     "react-latex": "^1.2.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-30.0.0.tar.gz",
     "react-native-deck-swiper": "1.4.6",
