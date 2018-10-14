@@ -4,6 +4,7 @@ export const LANGUAGES = [
   'c',
   'kotlin',
   'python',
+  'go',
   'golang',
   'java',
   'javascript',

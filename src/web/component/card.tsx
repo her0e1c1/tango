@@ -3,8 +3,21 @@ import { connect } from 'react-redux';
 import { Table, Input, Icon, Select, Checkbox, Button } from 'antd';
 import { ColumnProps } from 'antd/lib/table/interface';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
-import * as Action from 'src/web/action';
+import Highlight from 'react-highlight';
 import * as katex from 'katex';
+import * as C from 'src/constant';
+import * as Action from 'src/web/action';
+import 'highlight.js/styles/googlecode.css';
+
+export const renderCard = (data: string, category?: string) => {
+  if (category === 'math') {
+    return <MathView text={data} />;
+  } else if (C.LANGUAGES.includes(category || '')) {
+    return <Highlight className={category}>{data}</Highlight>;
+  } else {
+    return data;
+  }
+};
 
 export class MathView extends React.Component<{ text: string }> {
   convert(text: string) {
@@ -72,10 +85,8 @@ export class EditCard extends React.Component<
             onBlur={() => this.props.onBlur(this.state.text)}
             onChange={e => this.setState({ text: e.target.value })}
           />
-        ) : this.props.category === 'math' ? (
-          <MathView text={text} />
         ) : (
-          text
+          renderCard(text, this.props.category)
         )}
       </div>
     );
