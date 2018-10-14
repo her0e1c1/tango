@@ -51,7 +51,7 @@ export class EditCard extends React.Component<
 > {
   constructor(props) {
     super(props);
-    this.state = { text: this.props.text };
+    this.state = { text: this.props.text || '' };
   }
   render() {
     const text = this.state.text;
@@ -67,7 +67,6 @@ export class EditCard extends React.Component<
         {this.props.edit ? (
           <Input.TextArea
             style={{ height: 200 }}
-            defaultValue={text}
             value={this.state.text}
             ref={i => i && i.focus()}
             onBlur={() => this.props.onBlur(this.state.text)}

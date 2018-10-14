@@ -106,7 +106,7 @@ class _CardCreate extends React.Component<
         edit={this.state[key]}
         width={100}
         category={deck.category}
-        text={card.frontText}
+        text={card[key]}
         onClick={() => this.setState({ [key]: true })}
         onBlur={val =>
           this.setState({
