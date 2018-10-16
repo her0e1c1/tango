@@ -152,11 +152,11 @@ export class _CardList extends React.Component<ConnectedProps, {}> {
     }
     return (
       <RN.FlatList
-        data={cards.map((item, index) => ({
+        data={cards.map(item => ({
           ...item,
           key: item.id,
         }))}
-        renderItem={({ item, index }) => (
+        renderItem={({ item }) => (
           <Swipeout
             key={item.id}
             autoClose
