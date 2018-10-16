@@ -8,7 +8,6 @@ import * as Action from 'src/action';
 import { configUpdate } from 'src/action';
 import * as type from 'src/action/type';
 import { auth } from 'src/firebase';
-import * as Selector from 'src/selector';
 import { getSelector } from 'src/selector';
 
 export * from 'src/action';

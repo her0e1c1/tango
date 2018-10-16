@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import { CardView } from './cardView';
 import * as SD from './styled';
 import Swipeout from 'react-native-swipeout';
-import * as Selector from 'src/selector';
 import { getSelector } from 'src/selector';
 
 export class _MasteredCircle extends React.Component<
