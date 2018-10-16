@@ -94,8 +94,18 @@ class CardSelector extends EntitySelector<Card, CardModel> {
   }
   get currentList() {
     const deckId = this.selector.deck.current.id;
+    if (!deckId) return [];
     return this.filter({ deckId });
   }
+  get currentCard(): Card {
+    const cards = this.selector.card.currentList;
+    const deck = this.selector.deck.current;
+    if (deck.currentIndex >= 0) {
+      return cards[deck.currentIndex];
+    }
+    return {} as Card;
+  }
+
   filter(props: { deckId?: string; mastered?: boolean }): CardModel[] {
     let { deckId, mastered } = props;
     if (!deckId) {
@@ -152,25 +162,3 @@ class CardModel implements Model {
     return this.tags.length > 0 ? this.tags[0] : this.deck.category;
   }
 }
-
-export const getCurrentPage = (state: RootState): NavState | undefined => {
-  const i = state.nav.index;
-  const r = state.nav.routes;
-  if (r) {
-    const i2 = r[i].index;
-    const r2 = r[i].routes;
-    if (r2) {
-      return r2[i2];
-    }
-  }
-  return undefined;
-};
-
-export const getCurrentCard = (state: RootState): Card => {
-  const cards = getSelector(state).card.currentList;
-  const deck = getSelector(state).deck.current;
-  if (deck.currentIndex >= 0) {
-    return cards[deck.currentIndex];
-  }
-  return {} as Card;
-};

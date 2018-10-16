@@ -69,7 +69,7 @@ class RightButton extends React.Component<Props, {}> {
         })
       );
     } else {
-      const card = Selector.getCurrentCard(this.props.state);
+      const card = selector.card.currentCard;
       await dispatch(
         Action.goTo('cardEdit', {
           cardId: card.id,
@@ -79,11 +79,12 @@ class RightButton extends React.Component<Props, {}> {
   }
   render() {
     const { dispatch } = this.props;
-    const page = Selector.getCurrentPage(this.props.state);
+    const selector = getSelector(this.props.state);
+    const page = selector.deck.getCurrentPage();
     if (!page) {
       return <NB.Right />;
     }
-    const card = Selector.getCurrentCard(this.props.state) || {};
+    const card = selector.card.currentCard;
     return (
       <NB.Right>
         {page.routeName === 'card' &&

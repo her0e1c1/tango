@@ -116,7 +116,7 @@ export const goToNextCardSetMastered = (
   mastered?: boolean
 ): ThunkAction => async (dispatch, getState) => {
   const state = getState();
-  const card = Selector.getCurrentCard(state);
+  const card = getSelector(state).card.currentCard;
   if (card) {
     await dispatch(Action.cardUpdate({ ...card, mastered: !card.mastered }));
     if (state.config.showMastered) {
