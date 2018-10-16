@@ -4,7 +4,7 @@ import * as SD from './styled';
 import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import * as Action from 'src/react-native/action';
-import * as Selector from 'src/selector';
+import { getSelector } from 'src/selector';
 
 const deckAction = (dispatch: any, item: Deck) => {
   NB.ActionSheet.show(
@@ -31,11 +31,13 @@ class _DeckList extends React.Component<
 > {
   state = { refreshing: false };
   render() {
-    const decks = Selector.getDecks(this.props.state);
     const { dispatch } = this.props;
     return (
       <RN.FlatList
-        data={decks.map(d => ({ ...d, key: d.id }))}
+        data={getSelector(this.props.state).deck.mine.map(d => ({
+          ...d,
+          key: d.id,
+        }))}
         onRefresh={async () => {
           await dispatch(Action.deckFetch());
           await this.setState({ refreshing: false });
@@ -105,9 +107,10 @@ export class _ProgressBar extends React.Component<
 > {
   render() {
     const deckId = this.props.deckId;
-    const deck = this.props.state.deck.byId[deckId];
+    const selector = getSelector(this.props.state);
+    const deck = selector.deck.getByIdOrEmpty(deckId);
     const index = `(${deck.currentIndex})`;
-    const cards = Selector.getCardList(this.props.state, deckId);
+    const cards = selector.card.deckId(deckId);
     const mastered = cards.filter(x => !!x && x.mastered);
     const width = cards.length > 0 ? (mastered.length / cards.length) * 100 : 0;
     return (

@@ -4,7 +4,7 @@ import * as Papa from 'papaparse';
 
 import * as type from './type';
 import { db } from 'src/firebase';
-import * as Selector from 'src/selector';
+import { getSelector } from 'src/selector';
 
 export * from './type';
 
@@ -238,7 +238,8 @@ export const deckImportPublic = (deckId: string): ThunkAction => async (
   const deck = { ...doc.data(), id: doc.id } as Deck;
   await dispatch(cardFetch(deckId, true));
   await dispatch(type.deckBulkInsert([deck]));
-  const cards = Selector.getCardList(getState(), deckId);
+
+  const cards = getSelector(getState()).card.deckId(deckId);
   // this method should work even if user is not logged in yet
   const uid = getState().config.uid;
   if (uid) {

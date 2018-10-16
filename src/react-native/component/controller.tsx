@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';
 import { connect } from 'react-redux';
-import * as Selector from 'src/selector';
+import { getSelector } from 'src/selector';
 
 class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
   state = { pause: false };
@@ -15,8 +15,9 @@ class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
   }
   render() {
     const { dispatch } = this.props;
-    const deck = Selector.getCurrentDeck(this.props.state);
-    const cards = Selector.getCurrentCardList(this.props.state);
+    const selector = getSelector(this.props.state);
+    const deck = selector.deck.current;
+    const cards = selector.card.filter({ mastered: true, current: true });
     if (!deck || cards.length === 0) {
       return <RN.View />;
     }

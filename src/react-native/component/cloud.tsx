@@ -7,7 +7,7 @@ import * as RN from 'react-native';
 import * as Action from 'src/react-native/action';
 import { Header } from './header';
 import { InputUrl } from './inputUrl';
-import * as Selector from 'src/selector';
+import { getSelector } from 'src/selector';
 
 class _PublicDeckList extends React.Component<
   ConnectedProps,
@@ -18,10 +18,10 @@ class _PublicDeckList extends React.Component<
     this.props.dispatch(Action.deckFetch(true));
   }
   render() {
-    const decks = Selector.getDecks(this.props.state, true);
+    const decks = getSelector(this.props.state).deck.public;
     return (
       <RN.FlatList
-        data={decks.map((d, key) => ({ ...d, key }))}
+        data={decks.map(d => ({ ...d, key: d.id }))}
         onRefresh={async () => {
           // await this.props.dispatch(Action.share.fetchDecks());
           await this.setState({ refreshing: false });
@@ -98,17 +98,17 @@ const CardList = connect(state => ({ state }))(_CardList);
 
 const _List = props => (
   <NB.List>
-    <NB.ListItem onPress={() => props.dispatch(Action.goTo('inputUrl'))}>
+    <NB.ListItem onPress={() => props.dispatch(Action.goTo('publicDeckList'))}>
       <NB.Left>
-        <NB.Title>Input CSV URL (by QR code)</NB.Title>
+        <NB.Title>Public Deck List</NB.Title>
       </NB.Left>
       <NB.Right>
         <NB.Icon active name="arrow-forward" />
       </NB.Right>
     </NB.ListItem>
-    <NB.ListItem onPress={() => props.dispatch(Action.goTo('publicDeckList'))}>
+    <NB.ListItem onPress={() => props.dispatch(Action.goTo('inputUrl'))}>
       <NB.Left>
-        <NB.Title>Public Deck List</NB.Title>
+        <NB.Title>Input CSV URL (by QR code)</NB.Title>
       </NB.Left>
       <NB.Right>
         <NB.Icon active name="arrow-forward" />

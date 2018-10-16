@@ -9,6 +9,7 @@ import { configUpdate } from 'src/action';
 import * as type from 'src/action/type';
 import { auth } from 'src/firebase';
 import * as Selector from 'src/selector';
+import { getSelector } from 'src/selector';
 
 export * from 'src/action';
 
@@ -132,8 +133,9 @@ export const goToNextCardMastered = () => goToNextCardSetMastered(true);
 
 export const goToNextCard = (): ThunkAction => async (dispatch, getState) => {
   const state = getState();
+  const selector = getSelector(getState());
   const deck = Selector.getCurrentDeck(state);
-  const cards = Selector.getCurrentCardList(state);
+  const cards = selector.card.filter({ current: true });
   const currentIndex = deck.currentIndex + 1;
   if (currentIndex <= cards.length - 1) {
     await dispatch(type.deckBulkInsert([{ ...deck, currentIndex }]));
@@ -157,9 +159,9 @@ export const goToCard = (card: Card): ThunkAction => async (
   dispatch,
   getState
 ) => {
-  const state = getState();
-  const cards = Selector.getCurrentCardList(getState());
-  const deck = state.deck.byId[card.deckId];
+  const selector = getSelector(getState());
+  const cards = selector.card.filter({ current: true });
+  const deck = selector.deck.getByIdOrEmpty(card.deckId);
   let currentIndex = 0;
   for (let i = 0; i < cards.length; i++) {
     if (cards[i].id == card.id) {

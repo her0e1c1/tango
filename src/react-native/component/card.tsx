@@ -7,6 +7,7 @@ import { CardView } from './cardView';
 import * as SD from './styled';
 import Swipeout from 'react-native-swipeout';
 import * as Selector from 'src/selector';
+import { getSelector } from 'src/selector';
 
 export class _MasteredCircle extends React.Component<
   ConnectedProps & { card: Card },
@@ -138,7 +139,7 @@ export const CardDetail = connect(state => ({ state }))(_CardDetail);
 export class _CardList extends React.Component<ConnectedProps, {}> {
   render() {
     const { dispatch } = this.props;
-    const cards = Selector.getCurrentCardList(this.props.state);
+    const cards = getSelector(this.props.state).card.filter({ current: true });
     if (cards.length <= 0) {
       return (
         <RN.View

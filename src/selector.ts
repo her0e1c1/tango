@@ -2,8 +2,9 @@ export const getSelector = (state: RootState) => new Selector(state);
 
 type ModelKey = 'deck' | 'card';
 class Model {
-  constructor(id: string, selector: Selector) {}
+  constructor(public id: string, selector: Selector) {}
 }
+
 class Selector {
   state: RootState;
   card: CardSelector;
@@ -58,6 +59,24 @@ class DeckSelector extends EntitySelector<Deck, DeckModel> {
       .all()
       .filter(d => d.uid !== this.selector.state.config.uid);
   }
+  getCurrentPage(): NavState | undefined {
+    const state = this.selector.state;
+    const i = state.nav.index;
+    const r = state.nav.routes;
+    if (r) {
+      const i2 = r[i].index;
+      const r2 = r[i].routes;
+      if (r2) {
+        return r2[i2];
+      }
+    }
+    return undefined;
+  }
+  get current(): DeckModel {
+    const r = this.getCurrentPage();
+    const deckId = r && r.params && r.params.deckId;
+    return this.getByIdOrEmpty(deckId);
+  }
 }
 
 class CardSelector extends EntitySelector<Card, CardModel> {
@@ -69,15 +88,29 @@ class CardSelector extends EntitySelector<Card, CardModel> {
       return [];
     }
     return deck.cardIds
-      .map(id => this.selector.card.getById(id))
+      .map(id => this.getById(id))
       .filter(c => !!c) as CardModel[];
   }
-  filter(deckId: string): CardModel[] {
+  filter(props: {
+    deckId?: string;
+    mastered?: boolean;
+    current?: boolean;
+  }): CardModel[] {
+    let { deckId, mastered, current } = props;
+    if (!deckId) {
+      if (!current) return this.all();
+      deckId = this.selector.deck.current.id;
+    }
     const cards = this.deckId(deckId);
     const tags = this.selector.state.config.selectedTags;
     return cards.filter(c => {
       if (tags.length > 0 && !tags.some(t => c.tags.includes(t))) {
         return false;
+      }
+      if (mastered !== undefined) {
+        if (mastered === true && c.mastered) {
+          return false;
+        }
       }
       if (c.deckId !== deckId) {
         return false;
@@ -106,7 +139,7 @@ interface CardModel extends Card {}
 class CardModel implements Model {
   constructor(public id: string, public selector: Selector) {
     this.selector = selector;
-    const card = selector.card.getById(id);
+    const card = selector.card.getByIdFromReducer(id);
     if (!card) {
       throw 'No deck';
     }
@@ -122,21 +155,6 @@ class CardModel implements Model {
     return this.tags.length > 0 ? this.tags[0] : this.deck.category;
   }
 }
-
-export const getDecks = (
-  state: RootState,
-  isPublic: boolean = false
-): Deck[] => {
-  if (isPublic) {
-    return Object.values(state.deck.byId).filter(
-      d => d.uid != state.config.uid
-    );
-  } else {
-    return Object.values(state.deck.byId).filter(
-      d => d.uid == state.config.uid
-    );
-  }
-};
 
 export const getCurrentPage = (state: RootState): NavState | undefined => {
   const i = state.nav.index;
@@ -157,34 +175,11 @@ export const getCurrentDeck = (state: RootState): Deck => {
   return state.deck.byId[deckId] || {};
 };
 
-export const getCardList = (state: RootState, deckId: string) => {
-  const all = state.deck.byId[deckId].cardIds || [];
-  return all.map(id => state.card.byId[id]);
-};
-
 export const getCurrentCard = (state: RootState): Card => {
-  const cards = getCurrentCardList(state);
+  const cards = getSelector(state).card.filter({ current: true });
   const deck = getCurrentDeck(state);
   if (deck.currentIndex >= 0) {
     return cards[deck.currentIndex];
   }
   return {} as Card;
-};
-export const getCurrentCardList = (state: RootState): Card[] => {
-  const config = state.config;
-  const deckId = getCurrentDeck(state).id;
-  if (deckId) {
-    const cards = getCardList(state, deckId)
-      .filter(c => !!c) // defensive
-      .filter(c => {
-        if (config.showMastered) {
-          return true;
-        } else {
-          return !c.mastered;
-        }
-      });
-    return cards;
-  } else {
-    return [];
-  }
 };

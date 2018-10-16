@@ -2,7 +2,7 @@ import * as Action from 'src/react-native/action';
 import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';
-import * as Selector from 'src/selector';
+import { getSelector } from 'src/selector';
 import DeckSwiper from 'react-native-deck-swiper';
 import { connect } from 'react-redux';
 import { Controller } from './controller';
@@ -39,8 +39,9 @@ class View extends React.Component<
     const { dispatch } = this.props;
     const width = this.state.width;
     const height = this.state.height;
-    const cards = Selector.getCurrentCardList(this.props.state);
-    const deck = Selector.getCurrentDeck(this.props.state);
+    const selector = getSelector(this.props.state);
+    const cards = selector.card.filter({ mastered: true, current: true });
+    const deck = selector.deck.current;
     const currentIndex = deck.currentIndex;
     if (currentIndex < 0 || cards.length <= currentIndex) {
       return <RN.View />;
