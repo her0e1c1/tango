@@ -4,6 +4,7 @@ import * as RN from 'react-native';
 import { connect } from 'react-redux';
 import * as Action from 'src/react-native/action';
 import * as Selector from 'src/selector';
+import { getSelector } from 'src/selector';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const ShowBackButton = (state: RootState): boolean => {
@@ -48,6 +49,7 @@ class RightButton extends React.Component<Props, {}> {
   }
   async doAction(name: string) {
     const { dispatch } = this.props;
+    const selector = getSelector(this.props.state);
     if (name === 'cardEdit') {
       await dispatch(Action.cardUpdate(this.props.state.card.edit));
       await dispatch(Action.goBack());
@@ -60,8 +62,7 @@ class RightButton extends React.Component<Props, {}> {
       await dispatch(Action.deckUpdate(deck));
       await dispatch(Action.goBack());
     } else if (name === 'deck') {
-      // TODO: Fix to cardList
-      const deck = Selector.getCurrentDeck(this.props.state);
+      const deck = selector.deck.current;
       await dispatch(
         Action.goTo('cardNew', {
           deckId: deck.id,
@@ -112,8 +113,7 @@ class RightButton extends React.Component<Props, {}> {
 }
 
 class Body extends React.Component<Props, {}> {
-  getTitle() {
-    const page = Selector.getCurrentPage(this.props.state);
+  getTitle(page?: NavState) {
     const names = {
       home: 'Decks',
       share: 'Import Decks',
@@ -127,8 +127,9 @@ class Body extends React.Component<Props, {}> {
     return '';
   }
   render() {
-    const { state, dispatch } = this.props;
-    const title = this.getTitle();
+    const selector = getSelector(this.props.state);
+    const { dispatch } = this.props;
+    const title = this.getTitle(selector.deck.getCurrentPage());
     if (title) {
       return (
         <NB.Body>
@@ -136,7 +137,7 @@ class Body extends React.Component<Props, {}> {
         </NB.Body>
       );
     }
-    const deck = Selector.getCurrentDeck(state);
+    const deck = selector.deck.current;
     return (
       <NB.Body>
         <RN.TouchableOpacity

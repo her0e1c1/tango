@@ -59,6 +59,7 @@ class DeckSelector extends EntitySelector<Deck, DeckModel> {
       .all()
       .filter(d => d.uid !== this.selector.state.config.uid);
   }
+  // native method
   getCurrentPage(): NavState | undefined {
     const state = this.selector.state;
     const i = state.nav.index;
@@ -91,15 +92,14 @@ class CardSelector extends EntitySelector<Card, CardModel> {
       .map(id => this.getById(id))
       .filter(c => !!c) as CardModel[];
   }
-  filter(props: {
-    deckId?: string;
-    mastered?: boolean;
-    current?: boolean;
-  }): CardModel[] {
-    let { deckId, mastered, current } = props;
+  get currentList() {
+    const deckId = this.selector.deck.current.id;
+    return this.filter({ deckId });
+  }
+  filter(props: { deckId?: string; mastered?: boolean }): CardModel[] {
+    let { deckId, mastered } = props;
     if (!deckId) {
-      if (!current) return this.all();
-      deckId = this.selector.deck.current.id;
+      return this.all();
     }
     const cards = this.deckId(deckId);
     const tags = this.selector.state.config.selectedTags;
@@ -111,9 +111,6 @@ class CardSelector extends EntitySelector<Card, CardModel> {
         if (mastered === true && c.mastered) {
           return false;
         }
-      }
-      if (c.deckId !== deckId) {
-        return false;
       }
       return true;
     });
@@ -169,15 +166,9 @@ export const getCurrentPage = (state: RootState): NavState | undefined => {
   return undefined;
 };
 
-export const getCurrentDeck = (state: RootState): Deck => {
-  const r = getCurrentPage(state);
-  const deckId = r && r.params && r.params.deckId;
-  return state.deck.byId[deckId] || {};
-};
-
 export const getCurrentCard = (state: RootState): Card => {
-  const cards = getSelector(state).card.filter({ current: true });
-  const deck = getCurrentDeck(state);
+  const cards = getSelector(state).card.currentList;
+  const deck = getSelector(state).deck.current;
   if (deck.currentIndex >= 0) {
     return cards[deck.currentIndex];
   }

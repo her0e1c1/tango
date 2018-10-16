@@ -132,10 +132,9 @@ export const goToNextCardNotMastered = () => goToNextCardSetMastered(false);
 export const goToNextCardMastered = () => goToNextCardSetMastered(true);
 
 export const goToNextCard = (): ThunkAction => async (dispatch, getState) => {
-  const state = getState();
   const selector = getSelector(getState());
-  const deck = Selector.getCurrentDeck(state);
-  const cards = selector.card.filter({ current: true });
+  const deck = selector.deck.current;
+  const cards = selector.card.currentList;
   const currentIndex = deck.currentIndex + 1;
   if (currentIndex <= cards.length - 1) {
     await dispatch(type.deckBulkInsert([{ ...deck, currentIndex }]));
@@ -145,8 +144,8 @@ export const goToNextCard = (): ThunkAction => async (dispatch, getState) => {
 };
 
 export const goToPrevCard = (): ThunkAction => async (dispatch, getState) => {
-  const state = getState();
-  const deck = Selector.getCurrentDeck(state);
+  const selector = getSelector(getState());
+  const deck = selector.deck.current;
   const currentIndex = deck.currentIndex - 1;
   if (currentIndex >= 0) {
     await dispatch(type.deckBulkInsert([{ ...deck, currentIndex }]));
@@ -160,7 +159,7 @@ export const goToCard = (card: Card): ThunkAction => async (
   getState
 ) => {
   const selector = getSelector(getState());
-  const cards = selector.card.filter({ current: true });
+  const cards = selector.card.currentList;
   const deck = selector.deck.getByIdOrEmpty(card.deckId);
   let currentIndex = 0;
   for (let i = 0; i < cards.length; i++) {
@@ -179,7 +178,8 @@ export const goToCardByIndex = (
 };
 
 export const swipeAll = () => async (dispatch, getState) => {
-  const deck = Selector.getCurrentDeck(getState());
+  const selector = getSelector(getState());
+  const deck = selector.deck.current;
   await dispatch(type.deckBulkInsert([{ ...deck, currentIndex: 0 }]));
   // await dispatch(goBack());
 };

@@ -17,7 +17,7 @@ class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
     const { dispatch } = this.props;
     const selector = getSelector(this.props.state);
     const deck = selector.deck.current;
-    const cards = selector.card.filter({ mastered: true, current: true });
+    const cards = selector.card.currentList;
     if (!deck || cards.length === 0) {
       return <RN.View />;
     }

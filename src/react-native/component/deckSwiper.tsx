@@ -40,7 +40,7 @@ class View extends React.Component<
     const width = this.state.width;
     const height = this.state.height;
     const selector = getSelector(this.props.state);
-    const cards = selector.card.filter({ mastered: true, current: true });
+    const cards = selector.card.currentList;
     const deck = selector.deck.current;
     const currentIndex = deck.currentIndex;
     if (currentIndex < 0 || cards.length <= currentIndex) {

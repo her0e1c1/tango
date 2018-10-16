@@ -44,8 +44,9 @@ export class _CardDetail extends React.Component<
   }
   render() {
     const { dispatch } = this.props;
+    const selector = getSelector(this.props.state);
     const card = Selector.getCurrentCard(this.props.state);
-    const deck = Selector.getCurrentDeck(this.props.state);
+    const deck = selector.deck.current;
     const params = {
       category: deck.category,
       convertToBr: deck.convertToBr,
@@ -139,7 +140,7 @@ export const CardDetail = connect(state => ({ state }))(_CardDetail);
 export class _CardList extends React.Component<ConnectedProps, {}> {
   render() {
     const { dispatch } = this.props;
-    const cards = getSelector(this.props.state).card.filter({ current: true });
+    const cards = getSelector(this.props.state).card.currentList;
     if (cards.length <= 0) {
       return (
         <RN.View
