@@ -3,6 +3,16 @@ export const deckBulkInsert = (decks: Deck[]) => ({
   payload: { decks },
 });
 
+export const deckInsert = (deck: Deck) => deckBulkInsert([deck]);
+
+export const deckBulkUpdate = (decks: Partial<Deck> & Pick<Deck, 'id'>[]) => ({
+  type: 'DECK_BULK_UPDATE',
+  payload: { decks },
+});
+
+export const deckUpdate = (deck: Partial<Deck> & Pick<Deck, 'id'>) =>
+  deckBulkUpdate([deck]);
+
 export const deckDelete = (deckId: string) => ({
   type: 'DECK_DELETE',
   payload: { deckId },

@@ -237,7 +237,7 @@ export const deckImportPublic = (deckId: string): ThunkAction => async (
     .get();
   const deck = { ...doc.data(), id: doc.id } as Deck;
   await dispatch(cardFetch(deckId, true));
-  await dispatch(type.deckBulkInsert([deck]));
+  await dispatch(type.deckInsert(deck));
 
   const cards = getSelector(getState()).card.deckId(deckId);
   // this method should work even if user is not logged in yet
@@ -246,7 +246,7 @@ export const deckImportPublic = (deckId: string): ThunkAction => async (
     await dispatch(deckCreate(deck, cards));
   } else {
     const d = { ...deck, uid: '' };
-    await dispatch(type.deckBulkInsert([d]));
+    await dispatch(type.deckInsert(d));
   }
 };
 

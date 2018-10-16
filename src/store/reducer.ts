@@ -9,6 +9,7 @@ export const equal = <T>(
   return action.type === type().type;
 };
 
+// NOTE: should handle both Deck and DeckModel
 export const deck = (
   state: DeckState = { byId: {}, edit: {} as Deck, categories: ['math'] },
   action: Action
@@ -35,6 +36,10 @@ export const deck = (
       ...state,
       categories: uniq(decks.map(c => c.category)).filter(c => !!c),
     };
+  } else if (equal(action, type.deckBulkUpdate)) {
+    const decks = action.payload.decks;
+    decks.forEach(d => (state.byId[d.id] = { ...state.byId[d.id], ...d }));
+    return { ...state };
   } else if (equal(action, type.deckDelete)) {
     const id = action.payload.deckId;
     delete state.byId[id];
