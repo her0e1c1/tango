@@ -111,7 +111,6 @@ class View extends React.Component<
             goBackToPreviousCardOnSwipeRight={
               this.props.state.config.cardSwipeRight == 'goToPrevCard'
             }
-            onSwipedAll={() => dispatch(Action.swipeAll())}
             disableBottomSwipe={false}
             showSecondCard={false}
             cardHorizontalMargin={10}

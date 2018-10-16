@@ -149,7 +149,7 @@ export const goToPrevCard = (): ThunkAction => async (dispatch, getState) => {
   if (currentIndex >= 0) {
     await dispatch(type.deckUpdate({ id: deck.id, currentIndex }));
   } else {
-    // await dispatch(goBack());
+    await dispatch(goBack());
   }
 };
 
@@ -180,11 +180,11 @@ export const swipeAll = () => async (dispatch, getState) => {
   const selector = getSelector(getState());
   const deck = selector.deck.current;
   await dispatch(type.deckUpdate({ id: deck.id, currentIndex: 0 }));
-  // await dispatch(goBack());
+  await dispatch(goBack());
 };
 
 const swipeMapping = {
-  // goBack,
+  goBack,
   goToPrevCard,
   goToNextCard,
   goToNextCardMastered,
