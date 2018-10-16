@@ -1,3 +1,5 @@
+import * as C from 'src/constant';
+
 export const getSelector = (state: RootState) => new Selector(state);
 
 type ModelKey = 'deck' | 'card';
@@ -159,10 +161,18 @@ class CardModel implements Model {
     return this.selector.deck.getById(this.deckId)!;
   }
   get category(): string | undefined {
-    const c = this.tags.length > 0 ? this.tags[0] : this.deck.category;
     // TODO: remove
-    if (c === 'hs') return 'haskell';
-    if (c === 'go') return 'golang';
+    const convert = c => {
+      if (c === 'hs') return 'haskell';
+      if (c === 'go') return 'golang';
+      return c;
+    };
+    const categories = this.tags.concat([this.deck.category || '']);
+    for (let c of categories) {
+      c = convert(c);
+      if (C.CATEGORY.includes(c)) return c;
+    }
+    const c = this.tags.length > 0 ? this.tags[0] : this.deck.category;
     return c;
   }
 }
