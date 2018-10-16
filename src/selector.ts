@@ -159,6 +159,10 @@ class CardModel implements Model {
     return this.selector.deck.getById(this.deckId)!;
   }
   get category(): string | undefined {
-    return this.tags.length > 0 ? this.tags[0] : this.deck.category;
+    const c = this.tags.length > 0 ? this.tags[0] : this.deck.category;
+    // TODO: remove
+    if (c === 'hs') return 'haskell';
+    if (c === 'go') return 'golang';
+    return c;
   }
 }

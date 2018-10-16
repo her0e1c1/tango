@@ -47,7 +47,7 @@ export class _CardDetail extends React.Component<
     const card = selector.card.currentCard;
     const deck = selector.deck.current;
     const params = {
-      category: deck.category,
+      category: card.category,
       convertToBr: deck.convertToBr,
     };
     return (

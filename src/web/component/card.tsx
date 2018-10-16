@@ -243,13 +243,12 @@ class _CardView extends React.Component<
   render() {
     const { cardId, key } = this.props.match.params;
     const card = this.props.state.card.byId[cardId];
-    const deck = this.props.state.deck.byId[card.deckId];
     const origin = 'http://localhost:8090';
     // const origin = 'https://tang04mem0.firebaseapp.com';
     return (
       <iframe
         ref={r => (this.iframe = r)}
-        src={`${origin}/view?category=${deck.category}`}
+        src={`${origin}/view?category=${card.category}`}
         style={{ width: '100vw', height: '100vh' }}
         onLoad={() =>
           this.iframe!.contentWindow!.postMessage(
