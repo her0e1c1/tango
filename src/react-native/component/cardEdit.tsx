@@ -90,6 +90,15 @@ export class _CardEdit extends React.Component<
 
           <NB.ListItem noBorder>
             <NB.Body>
+              <NB.Text>Category</NB.Text>
+            </NB.Body>
+            <NB.Right>
+              <NB.Text>{card.category || ''}</NB.Text>
+            </NB.Right>
+          </NB.ListItem>
+
+          <NB.ListItem noBorder>
+            <NB.Body>
               <NB.Text>Mastered</NB.Text>
             </NB.Body>
             <NB.Right>
