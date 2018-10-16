@@ -4,6 +4,7 @@ import { Table, Input, Icon, Select, Checkbox, Button } from 'antd';
 import { ColumnProps } from 'antd/lib/table/interface';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import Highlight from 'react-highlight';
+import { getSelector } from 'src/selector';
 import * as katex from 'katex';
 import * as C from 'src/constant';
 import * as Action from 'src/web/action';
@@ -119,15 +120,13 @@ class _CardList extends React.Component<
     columns: ['frontText', 'backText', 'hint'] as CardTextKey[],
   };
   getText(card: Card, text: CardTextKey, stateKey: string) {
-    const deck =
-      this.props.state.deck.byId[this.props.match.params.deckId] || {};
     const width = 81 / this.state.columns.length;
     return (
       <EditCard
         edit={card.id == this.state[stateKey]}
         text={card[text]}
         width={width}
-        category={deck.category}
+        category={card.category}
         onClick={() => this.setState({ [stateKey]: card.id })}
         onBlur={value => {
           this.setState({ [stateKey]: '' });
@@ -193,14 +192,6 @@ class _CardList extends React.Component<
   }
   render() {
     const { deckId } = this.props.match.params;
-    const deck = this.props.state.deck.byId[deckId];
-    const cards = deck.cardIds
-      .map(id => this.props.state.card.byId[id])
-      .filter(
-        c =>
-          this.props.state.config.selectedTags.length === 0 ||
-          this.props.state.config.selectedTags.some(t => c.tags.includes(t))
-      );
     return (
       <div>
         <Button
@@ -230,7 +221,7 @@ class _CardList extends React.Component<
         </Select>
         <Table
           rowKey="id"
-          dataSource={cards.filter(x => !!x)}
+          dataSource={getSelector(this.props.state).card.filter(deckId)}
           columns={this.getColumns()}
           pagination={{
             defaultPageSize: 20,

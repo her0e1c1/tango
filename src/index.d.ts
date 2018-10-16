@@ -55,6 +55,10 @@ interface Card {
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
+
+  // model property
+  deck: Deck;
+  category?: string;
 }
 type CardTextKey = 'frontText' | 'backText' | 'hint';
 

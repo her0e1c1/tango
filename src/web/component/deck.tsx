@@ -4,6 +4,7 @@ import { Table, Icon, AutoComplete, Popconfirm, Switch } from 'antd';
 import { ColumnProps } from 'antd/lib/table/interface';
 import * as Action from 'src/web/action';
 import { Link } from 'react-router-dom';
+import { getSelector } from 'src/selector';
 
 class _DeckCategory extends React.Component<ConnectedProps & { deck: Deck }> {
   state = { input: '' };
@@ -96,12 +97,11 @@ class _DeckList extends React.Component<ConnectedProps> {
     this.setState({ loading: false });
   }
   render() {
-    const data = Object.values(this.props.state.deck.byId);
     return (
       <Table
         rowKey="id"
         loading={this.state.loading}
-        dataSource={data}
+        dataSource={getSelector(this.props.state).deck.all()}
         columns={this.columns}
       />
     );
