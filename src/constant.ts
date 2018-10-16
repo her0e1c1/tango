@@ -14,7 +14,9 @@ export const LANGUAGES = [
   'swift',
 ];
 
-export const CATEGORY: Category[] = ['raw', 'markdown', 'math'];
+export const CATEGORY: Category[] = ['raw', 'markdown', 'math'].concat(
+  LANGUAGES
+);
 
 export const CURRENT_VERSION = 9;
 

@@ -242,7 +242,7 @@ class _CardView extends React.Component<
   iframe: HTMLIFrameElement | null;
   render() {
     const { cardId, key } = this.props.match.params;
-    const card = this.props.state.card.byId[cardId];
+    const card = getSelector(this.props.state).card.getByIdOrEmpty(cardId);
     const origin = 'http://localhost:8090';
     // const origin = 'https://tang04mem0.firebaseapp.com';
     return (

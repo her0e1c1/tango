@@ -5,6 +5,7 @@ import * as NB from 'native-base';
 import { connect } from 'react-redux';
 import * as Action from 'src/react-native/action';
 import { getSelector } from 'src/selector';
+import * as C from 'src/constant';
 
 const deckAction = (dispatch: any, item: Deck) => {
   NB.ActionSheet.show(
@@ -236,9 +237,12 @@ export class _DeckEdit extends React.Component<
               onValueChange={category => this.deckEdit({ category })}
               {...{ iosIcon: <NB.Icon name="arrow-down" /> }}
             >
-              {[''].concat(this.props.state.deck.categories).map((x, i) => (
-                <NB.Picker.Item key={i} label={x} value={x} />
-              ))}
+              {['']
+                .concat(C.CATEGORY)
+                .concat(this.props.state.deck.categories)
+                .map((x, i) => (
+                  <NB.Picker.Item key={i} label={x} value={x} />
+                ))}
             </NB.Picker>
           </NB.Body>
         </NB.ListItem>
