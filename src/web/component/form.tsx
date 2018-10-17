@@ -23,17 +23,11 @@ class _CsvUpload extends React.Component<
         //   return true;
         // }}
         customRequest={() => {}} // prevent complete function from calling 3 times ...
-        onChange={info => {
-          Papa.parse(info.file.originFileObj, {
-            complete: async results => {
-              __DEV__ && console.log('DEBUG: CSV COMPLETE', results);
-              const name = info.file.name;
-              const cards: Card[] = results.data
-                .map(Action.rowToCard)
-                .filter(c => !!c.frontText);
-              this.props.complete(name, cards);
-            },
-          });
+        onChange={async info => {
+          const cards = await this.props.dispatch(
+            Action.parseByFile(info.file.originFileObj!)
+          );
+          this.props.complete(info.file.name, cards);
         }}
       >
         <Icon type={this.state.loading ? 'loading' : 'plus'} />

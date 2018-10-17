@@ -36,29 +36,11 @@ export const insertByURL = (url: string): ThunkAction => async (
   const text = await res.text();
   const name = url.split('/').pop() || 'sample';
   await dispatch(
-    insertByText(text, {
+    parseByText(text, {
       name,
       url,
     })
   );
-};
-
-export const insertByText = (text, deck): ThunkAction => (
-  dispatch,
-  _getState
-) => {
-  const results = Papa.parse(text);
-  __DEV__ && console.log('DEBUG: CSV COMPLETE', results);
-  const cards: Card[] = results.data
-    .map(d => ({
-      frontText: d[0] || '',
-      backText: d[1] || '',
-      hint: d[2] || '',
-      tags: d[3] ? d[3].split(',') : [],
-    }))
-    .filter(c => !!c.frontText);
-  const d = { name: deck.name, isPublic: false };
-  dispatch(deckCreate(d, cards));
 };
 
 export const setEventListener = (): ThunkAction => async (
@@ -153,7 +135,7 @@ export const deckFetch = (
 };
 
 export const deckCreate = (
-  deck: Pick<Deck, 'name' | 'isPublic'>,
+  deck: Pick<Deck, 'name'>,
   cards: Omit<Card, 'id' | 'createdAt'>[]
 ): ThunkAction => async (dispatch, getState) => {
   const uid = getState().config.uid;
@@ -180,6 +162,7 @@ export const deckCreate = (
   });
   const d = {
     ...deck,
+    isPublic: false,
     uid,
     createdAt,
     updatedAt,
@@ -366,4 +349,54 @@ export const configToggle = (key: keyof ConfigState): ThunkAction => async (
   getState
 ) => {
   dispatch(configUpdate({ [key]: !getState().config[key] }));
+};
+
+export const cardFetchFromUrl = async (
+  url: string,
+  start?: number,
+  end?: number
+): Promise<string> => {
+  const res = await fetch(url);
+  const text = await res.text();
+  const s = text.split('\n');
+  if (start === undefined) {
+    start = 0;
+  }
+  if (end === undefined) {
+    end = s.length - 1;
+  }
+  return s.slice(start, end).join('\n');
+};
+
+const papaComplete = async (results): Promise<Card[]> => {
+  const cards = results.data
+    .map(rowToCard)
+    .filter(c => !!c.frontText) as Card[];
+  for (let c of cards) {
+    if (c.tags.includes('url')) {
+      const s = c.backText.split(/#L(\d+)(-L(\d+))?/);
+      c.backText = await cardFetchFromUrl(s[0], Number(s[1]), Number(s[3]));
+    }
+  }
+  __DEV__ && console.log('DEBUG: CSV COMPLETE', results, cards);
+  return cards;
+};
+
+export const parseByText = (
+  text: string,
+  deck: Pick<Deck, 'name' | 'url'>
+): ThunkAction => async (dispatch, _getState) => {
+  const cards = await papaComplete(Papa.parse(text));
+  dispatch(deckCreate(deck, cards));
+};
+
+export const parseByFile = (file: File): ThunkAction => (
+  _dispatch,
+  _getState
+) => {
+  return new Promise((resolve, _reject) =>
+    Papa.parse(file, {
+      complete: async results => resolve(await papaComplete(results)),
+    })
+  );
 };

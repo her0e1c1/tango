@@ -56,6 +56,11 @@ interface Card {
   createdAt: Date;
   updatedAt: Date;
 
+  // fetch data from web
+  url?: string;
+  startLine: number;
+  endLine: number;
+
   // model property
   deck?: Deck;
   category?: string;

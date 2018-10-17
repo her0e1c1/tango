@@ -20,7 +20,6 @@ class _CardView extends React.Component<
       <RN.View
         style={{
           flex: 1,
-
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: 'white',
