@@ -99,13 +99,13 @@ class CardSelector extends EntitySelector<Card, CardModel> {
     if (!deckId) return [];
     return this.filter({ deckId });
   }
-  get currentCard(): Card {
+  get currentCard(): CardModel {
     const cards = this.selector.card.currentList;
     const deck = this.selector.deck.current;
     if (deck.currentIndex >= 0) {
       return cards[deck.currentIndex];
     }
-    return {} as Card;
+    return {} as CardModel;
   }
 
   filter(props: { deckId?: string; mastered?: boolean }): CardModel[] {

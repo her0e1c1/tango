@@ -37,6 +37,10 @@ interface Deck {
   spreadsheetGid: string | null;
 }
 
+interface DeckModel extends Deck {
+  toJSON(): Deck;
+}
+
 interface Sheet {
   properties: {
     sheetId: number; // GID
@@ -60,11 +64,14 @@ interface Card {
   url?: string;
   startLine: number;
   endLine: number;
+}
 
-  // model property
+interface CardModel extends Card {
+  toJSON(): card;
   deck?: Deck;
   category?: string;
 }
+
 type CardTextKey = 'frontText' | 'backText' | 'hint';
 
 type DeckState = {

@@ -88,14 +88,14 @@ export class _CardEdit extends React.Component<
             </NB.Right>
           </NB.ListItem>
 
-          <NB.ListItem noBorder>
+          {/* <NB.ListItem noBorder>
             <NB.Body>
               <NB.Text>Category</NB.Text>
             </NB.Body>
             <NB.Right>
               <NB.Text>{card.category || ''}</NB.Text>
             </NB.Right>
-          </NB.ListItem>
+          </NB.ListItem> */}
 
           <NB.ListItem noBorder>
             <NB.Body>

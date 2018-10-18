@@ -88,12 +88,15 @@ class _CardCreate extends React.Component<
 > {
   state = { card: {} as Card };
   renderText(key: CardTextKey) {
+    // TODO: refactor
     const card = this.state.card;
+    const { deckId } = this.props.match.params;
+    const deck = this.props.state.deck.byId[deckId];
     return (
       <EditCard
         edit={this.state[key]}
         width={100}
-        category={card.category}
+        category={deck.category}
         text={card[key]}
         onClick={() => this.setState({ [key]: true })}
         onBlur={val =>

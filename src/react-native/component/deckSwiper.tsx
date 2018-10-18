@@ -119,7 +119,7 @@ class View extends React.Component<
             zoomFriction={0}
             swipeAnimationDuration={100}
             renderCard={(
-              item = {} as Card // Sometimes item is undefined :(
+              item = {} as CardModel // Sometimes item is undefined :(
             ) => (
               <RN.TouchableWithoutFeedback
                 key={item.id}

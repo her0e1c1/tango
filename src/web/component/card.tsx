@@ -119,7 +119,7 @@ class _CardList extends React.Component<
     editHintId: '',
     columns: ['frontText', 'backText', 'hint'] as CardTextKey[],
   };
-  getText(card: Card, text: CardTextKey, stateKey: string) {
+  getText(card: CardModel, text: CardTextKey, stateKey: string) {
     const width = 81 / this.state.columns.length;
     return (
       <EditCard
@@ -141,26 +141,26 @@ class _CardList extends React.Component<
     if (this.state.columns.includes('frontText')) {
       columns.push({
         title: 'Front Text',
-        render: (card: Card) =>
+        render: (card: CardModel) =>
           this.getText(card, 'frontText', 'editFrontTextId'),
       });
     }
     if (this.state.columns.includes('backText')) {
       columns.push({
         title: 'Back Text',
-        render: (card: Card) =>
+        render: (card: CardModel) =>
           this.getText(card, 'backText', 'editBackTextId'),
       });
     }
     if (this.state.columns.includes('hint')) {
       columns.push({
         title: 'Hint',
-        render: (card: Card) => this.getText(card, 'hint', 'editHintId'),
+        render: (card: CardModel) => this.getText(card, 'hint', 'editHintId'),
       });
     }
     columns.push({
       title: 'Action',
-      render: (card: Card) => (
+      render: (card: CardModel) => (
         <div
           style={{
             width: '10vw',
