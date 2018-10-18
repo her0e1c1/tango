@@ -33,12 +33,12 @@ interface Deck {
   onlyBody?: boolean;
 
   // google spread sheet
-  spreadsheetId: string | null;
-  spreadsheetGid: string | null;
+  spreadsheetId?: string | null;
+  spreadsheetGid?: string | null;
 }
 
 interface DeckModel extends Deck {
-  toJSON(): Deck;
+  toJSON(deck: Partial<Deck>): Deck;
 }
 
 interface Sheet {
@@ -62,12 +62,12 @@ interface Card {
 
   // fetch data from web
   url?: string;
-  startLine: number;
-  endLine: number;
+  startLine?: number;
+  endLine?: number;
 }
 
 interface CardModel extends Card {
-  toJSON(): card;
+  toJSON(card: Partial<Card>): card;
   deck?: Deck;
   category?: string;
 }

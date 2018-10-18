@@ -48,15 +48,15 @@ abstract class EntitySelector<
   }
 }
 
-class DeckSelector extends EntitySelector<Deck, DeckModel> {
+class DeckSelector extends EntitySelector<Deck, _DeckModel> {
   key: ModelKey = 'deck';
-  model = DeckModel;
-  get mine(): DeckModel[] {
+  model = _DeckModel;
+  get mine(): _DeckModel[] {
     return this.selector.deck
       .all()
       .filter(d => d.uid === this.selector.state.config.uid);
   }
-  get public(): DeckModel[] {
+  get public(): _DeckModel[] {
     return this.selector.deck
       .all()
       .filter(d => d.uid !== this.selector.state.config.uid);
@@ -75,40 +75,40 @@ class DeckSelector extends EntitySelector<Deck, DeckModel> {
     }
     return undefined;
   }
-  get current(): DeckModel {
+  get current(): _DeckModel {
     const r = this.getCurrentPage();
     const deckId = r && r.params && r.params.deckId;
     return this.getByIdOrEmpty(deckId);
   }
 }
 
-class CardSelector extends EntitySelector<Card, CardModel> {
+class CardSelector extends EntitySelector<Card, _CardModel> {
   key: ModelKey = 'card';
-  model = CardModel;
-  deckId(deckId: string): CardModel[] {
+  model = _CardModel;
+  deckId(deckId: string): _CardModel[] {
     const deck = this.selector.deck.getById(deckId);
     if (!deck) {
       return [];
     }
     return deck.cardIds
       .map(id => this.getById(id))
-      .filter(c => !!c) as CardModel[];
+      .filter(c => !!c) as _CardModel[];
   }
   get currentList() {
     const deckId = this.selector.deck.current.id;
     if (!deckId) return [];
     return this.filter({ deckId });
   }
-  get currentCard(): CardModel {
+  get currentCard(): _CardModel {
     const cards = this.selector.card.currentList;
     const deck = this.selector.deck.current;
     if (deck.currentIndex >= 0) {
       return cards[deck.currentIndex];
     }
-    return {} as CardModel;
+    return {} as _CardModel;
   }
 
-  filter(props: { deckId?: string; mastered?: boolean }): CardModel[] {
+  filter(props: { deckId?: string; mastered?: boolean }): _CardModel[] {
     let { deckId, mastered } = props;
     if (!deckId) {
       return this.all();
@@ -132,8 +132,8 @@ class CardSelector extends EntitySelector<Card, CardModel> {
 // prevent interface re-declaration
 // https://github.com/Microsoft/TypeScript/issues/340#issuecomment-184964440
 
-interface DeckModel extends Deck {}
-class DeckModel implements Model {
+interface _DeckModel extends Deck {}
+class _DeckModel implements Model {
   constructor(public id: string, public selector: Selector) {
     this.selector = selector;
     const deck = selector.deck.getByIdFromReducer(id);
@@ -142,10 +142,38 @@ class DeckModel implements Model {
     }
     Object.assign(this, deck);
   }
+  toJSON(deck?: Partial<Deck>): Deck {
+    const keys = [
+      'id',
+      'uid',
+      'cardIds',
+      'createdAt',
+      'updatedAt',
+      'name',
+      'isPublic',
+      'deletedAt',
+      'currentIndex',
+      'category',
+      'url',
+    ];
+    const json = {} as Deck;
+    keys.forEach(key => {
+      let val = this[key];
+      if (deck) {
+        val = deck[key];
+      }
+      if (val !== undefined) {
+        json[key] = val;
+      }
+    });
+    return json;
+  }
 }
+// FIXME: can not export _DeckModel
+export const DeckModel = _DeckModel;
 
-interface CardModel extends Card {}
-class CardModel implements Model {
+interface _CardModel extends Card {}
+class _CardModel implements Model {
   constructor(public id: string, public selector: Selector) {
     this.selector = selector;
     const card = selector.card.getByIdFromReducer(id);
@@ -157,7 +185,7 @@ class CardModel implements Model {
       throw 'No deck';
     }
   }
-  get deck(): Deck {
+  get deck(): _DeckModel {
     return this.selector.deck.getById(this.deckId)!;
   }
   get category(): string | undefined {
@@ -175,4 +203,31 @@ class CardModel implements Model {
     const c = this.tags.length > 0 ? this.tags[0] : this.deck.category;
     return c;
   }
+  toJSON(card?: Partial<Card>): Card {
+    const keys = [
+      'id',
+      'uid',
+      'frontText',
+      'backText',
+      'hint',
+      'mastered',
+      'deckId',
+      'tags',
+      'createdAt',
+      'updatedAt',
+    ];
+    const json = {} as Card;
+    keys.forEach(key => {
+      let val = this[key];
+      if (card) {
+        val = card[key];
+      }
+      if (val !== undefined) {
+        json[key] = val;
+      }
+    });
+    return json;
+  }
 }
+// FIXME: can not export _CardModel
+export const CardModel = _CardModel;

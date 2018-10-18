@@ -4,7 +4,7 @@ import * as Papa from 'papaparse';
 
 import * as type from './type';
 import { db } from 'src/firebase';
-import { getSelector } from 'src/selector';
+import { getSelector, CardModel, DeckModel } from 'src/selector';
 
 export * from './type';
 
@@ -177,11 +177,12 @@ export const deckUpdate = (deck: Deck): ThunkAction => async (
   dispatch,
   getState
 ) => {
+  const dm = new DeckModel(deck.id, getSelector(getState()));
   await db
     .collection('deck')
     .doc(deck.id)
     .set({
-      ...deck,
+      ...dm.toJSON(deck),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 };
@@ -303,11 +304,12 @@ export const cardUpdate = (card: Card): ThunkAction => async (
   dispatch,
   getState
 ) => {
+  const cm = new CardModel(card.id, getSelector(getState()));
   await db
     .collection('card')
     .doc(card.id)
     .set({
-      ...card,
+      ...cm.toJSON(card),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 };
