@@ -2,7 +2,6 @@ import * as React from 'react';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import * as Action from 'src/web/action';
-import * as Papa from 'papaparse';
 import { Icon, Form, Upload, Button, Input, Select } from 'antd';
 import { EditCard } from './card';
 const FormItem = Form.Item;
@@ -66,10 +65,7 @@ class _DeckCreate extends React.Component<
             onClick={async () => {
               await this.props.dispatch(
                 Action.deckCreate(
-                  {
-                    name: this.state.deckName,
-                    isPublic: false,
-                  },
+                  { name: this.state.deckName },
                   this.state.cards
                 )
               );
