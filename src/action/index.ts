@@ -243,7 +243,7 @@ export const deckGenerateCsv = (
     .map((id, i) => {
       const c = card.byId[id];
       if (c === undefined) {
-        console.log('DEBUG INVALID CARD: ', c, i);
+        console.error('DEBUG INVALID CARD: ', id, i);
       }
       return c;
     })
