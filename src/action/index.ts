@@ -239,7 +239,12 @@ export const deckGenerateCsv = (
 ): ThunkAction<Promise<string>> => async (dispatch, getState) => {
   const deck = getState().deck.byId[deckId];
   const card = getState().card;
-  const cards = deck.cardIds.map(id => card.byId[id]).filter(c => !!c);
+  const cards = deck.cardIds.map(id => card.byId[id]).filter((c, i) => {
+    if (!c) {
+      console.log('DEBUG INVALID CARD: ', c, i);
+    }
+    return !!c;
+  });
   const data = cards.map(cardToRow);
   return Papa.unparse(data);
 };
