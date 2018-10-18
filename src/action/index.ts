@@ -241,7 +241,7 @@ export const deckGenerateCsv = (
   const card = getState().card;
   const cards = deck.cardIds.map(id => card.byId[id]).filter((c, i) => {
     if (!c) {
-      console.log('DEBUG INVALID CARD: ', c, i);
+      __DEV__ && console.log('DEBUG INVALID CARD: ', c, i);
     }
     return !!c;
   });
