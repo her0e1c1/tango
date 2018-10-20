@@ -25,8 +25,11 @@ export const renderView = (data: string, category: string | null) => (
     style={{
       fontSize: 18,
       tabSize: 2,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
       letterSpacing: 0,
-      whiteSpace: 'nowrap',
+      // whiteSpace: 'nowrap',
       flexWrap: 'nowrap',
       minHeight: '100vh',
       minWidth: '100vw',
@@ -169,6 +172,10 @@ class _CardList extends React.Component<
             alignItems: 'flex-start',
           }}
         >
+          <Icon
+            type="file"
+            onClick={() => this.props.history.push(`/card/${card.id}/backText`)}
+          />
           <Icon
             type="edit"
             onClick={() => this.props.history.push(`/card/${card.id}/edit`)}
