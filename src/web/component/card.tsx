@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Table, Input, Icon, Select, Checkbox, Button } from 'antd';
+import { Table, Input, Icon, Select, Checkbox, Button, Popconfirm } from 'antd';
 import { ColumnProps } from 'antd/lib/table/interface';
-import { withRouter, RouteComponentProps } from 'react-router-dom';
+import { withRouter, RouteComponentProps, Link } from 'react-router-dom';
 import Highlight from 'react-highlight';
 import { getSelector } from 'src/selector';
 import * as katex from 'katex';
@@ -120,7 +120,7 @@ class _CardList extends React.Component<
     editFrontTextId: '',
     editBackTextId: '',
     editHintId: '',
-    columns: ['frontText', 'backText', 'hint'] as CardTextKey[],
+    columns: ['frontText', 'backText'] as CardTextKey[],
   };
   getText(card: CardModel, text: CardTextKey, stateKey: string) {
     const width = 81 / this.state.columns.length;
@@ -163,6 +163,7 @@ class _CardList extends React.Component<
     }
     columns.push({
       title: 'Action',
+      width: 120,
       render: (card: CardModel) => (
         <div
           style={{
@@ -172,25 +173,29 @@ class _CardList extends React.Component<
             alignItems: 'flex-start',
           }}
         >
-          <Icon
-            type="file"
-            onClick={() => this.props.history.push(`/card/${card.id}/backText`)}
-          />
-          <Icon
-            type="edit"
-            onClick={() => this.props.history.push(`/card/${card.id}/edit`)}
-          />
+          <div style={{ display: 'flex' }}>
+            <Link to={`/card/${card.id}/backText`} target="_blank">
+              <Icon type="file" />
+            </Link>
+            <Icon
+              type="edit"
+              onClick={() => this.props.history.push(`/card/${card.id}/edit`)}
+            />
+            <Popconfirm
+              title="Are you sur?"
+              onConfirm={() => this.props.dispatch(Action.cardDelete(card.id))}
+            >
+              <Icon type="delete" />
+            </Popconfirm>
+          </div>
           <Select
+            style={{ width: 120 }}
             mode="tags"
             size="small"
             defaultValue={card.tags}
             onChange={(tags: string[]) =>
               this.props.dispatch(Action.cardUpdate({ ...card, tags }))
             }
-          />
-          <Icon
-            type="delete"
-            onClick={() => this.props.dispatch(Action.cardDelete(card.id))}
           />
         </div>
       ),
