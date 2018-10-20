@@ -174,13 +174,12 @@ class _CardList extends React.Component<
           }}
         >
           <div style={{ display: 'flex' }}>
-            <Link to={`/card/${card.id}/backText`} target="_blank">
+            <Link to={`/card/${card.id}/view/backText`} target="_blank">
               <Icon type="file" />
             </Link>
-            <Icon
-              type="edit"
-              onClick={() => this.props.history.push(`/card/${card.id}/edit`)}
-            />
+            <Link to={`/card/${card.id}/edit`} target="_blank">
+              <Icon type="edit" />
+            </Link>
             <Popconfirm
               title="Are you sur?"
               onConfirm={() => this.props.dispatch(Action.cardDelete(card.id))}

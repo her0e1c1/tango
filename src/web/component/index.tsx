@@ -29,7 +29,7 @@ class _Main extends React.Component<ConnectedProps> {
           <Route exact path="/deck/:deckId/order" component={CardOrder} />
           <Route exact path="/deck/:deckId/new" component={CardCreate} />
           <Route exact path="/card/:cardId/edit" component={CardEdit} />
-          <Route exact path="/card/:cardId/:key" component={CardView} />
+          <Route exact path="/card/:cardId/view/:key" component={CardView} />
         </Layout.Content>
       </Layout>
     );
