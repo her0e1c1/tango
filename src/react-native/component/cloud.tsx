@@ -21,9 +21,9 @@ class _PublicDeckList extends React.Component<
     const decks = getSelector(this.props.state).deck.public;
     return (
       <RN.FlatList
-        data={decks.map(d => ({ ...d, key: d.id }))}
+        data={decks.map(d => ({ ...d, key: String(d.id) }))}
         onRefresh={async () => {
-          // await this.props.dispatch(Action.share.fetchDecks());
+          await this.props.dispatch(Action.deckFetch({ isPublic: true }));
           await this.setState({ refreshing: false });
         }}
         refreshing={this.state.refreshing}

@@ -153,7 +153,12 @@ export const deckCreate = (
     const doc = db.collection('card').doc();
     cardIds.push(doc.id);
     const card = {
-      ...c,
+      // ...c,  // maybe pass CardModel here
+      tags: c.tags,
+      frontText: c.frontText,
+      backText: c.backText,
+      hint: c.hint,
+      id: doc.id,
       deckId: docDeck.id,
       uid,
       createdAt,
@@ -163,6 +168,7 @@ export const deckCreate = (
   });
   const d = {
     ...deck,
+    id: docDeck.id,
     isPublic: false,
     uid,
     createdAt,
@@ -222,7 +228,6 @@ export const deckImportPublic = (deckId: string): ThunkAction => async (
     .get();
   const deck = { ...doc.data(), id: doc.id } as Deck;
   await dispatch(cardFetch(deckId, true));
-  await dispatch(type.deckInsert(deck));
 
   const cards = getSelector(getState()).card.deckId(deckId);
   // this method should work even if user is not logged in yet
