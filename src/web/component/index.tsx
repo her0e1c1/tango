@@ -13,6 +13,7 @@ import { DeckList } from './deck';
 import { CardList, CardView } from './card';
 import { CardOrder } from './cardOrder';
 import { DeckCreate, CardCreate, CardEdit } from './form';
+import { PublicDeckList } from './public';
 
 class _Main extends React.Component<ConnectedProps> {
   async componentDidMount() {
@@ -25,6 +26,7 @@ class _Main extends React.Component<ConnectedProps> {
         <Layout.Content style={{ padding: '0 5px', backgroundColor: '#fff' }}>
           <Route exact path="/" component={DeckList} />
           <Route exact path="/new" component={DeckCreate} />
+          <Route exact path="/public" component={PublicDeckList} />
           <Route exact path="/deck/:deckId" component={CardList} />
           <Route exact path="/deck/:deckId/order" component={CardOrder} />
           <Route exact path="/deck/:deckId/new" component={CardCreate} />

@@ -109,9 +109,10 @@ export const setEventListener = (): ThunkAction => async (
     });
 };
 
-export const deckFetch = (
-  isPublic: boolean = false
-): ThunkAction<Promise<Deck[]>> => async (dispatch, getState) => {
+export const deckFetch = (props?: {
+  isPublic: boolean;
+}): ThunkAction<Promise<Deck[]>> => async (dispatch, getState) => {
+  const isPublic = props && props.isPublic;
   const uid = getState().config.uid;
   if (!isPublic && !uid) {
     alert('need to login');

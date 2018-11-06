@@ -57,9 +57,7 @@ class DeckSelector extends EntitySelector<Deck, _DeckModel> {
       .filter(d => d.uid === this.selector.state.config.uid);
   }
   get public(): _DeckModel[] {
-    return this.selector.deck
-      .all()
-      .filter(d => d.uid !== this.selector.state.config.uid);
+    return this.selector.deck.all().filter(d => d.isPublic);
   }
   // native method
   getCurrentPage(): NavState | undefined {

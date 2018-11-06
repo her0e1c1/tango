@@ -36,13 +36,16 @@ class _Header extends React.Component<ConnectedProps & RouteComponentProps> {
               }
             } else if (key === '2') {
               this.props.history.push(`/new`);
+            } else if (key === '3') {
+              this.props.history.push(`/public`);
             }
           }}
         >
           <Menu.Item key="1">
-            {this.props.state.config.uid ? 'Logout' : 'Login'}
+            {this.props.state.config.uid ? 'LOGOUT' : 'LOGIN'}
           </Menu.Item>
           <Menu.Item key="2">NEW</Menu.Item>
+          <Menu.Item key="3">PUBLIC</Menu.Item>
         </Menu>
       </Layout.Header>
     );

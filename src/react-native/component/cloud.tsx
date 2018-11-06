@@ -15,7 +15,7 @@ class _PublicDeckList extends React.Component<
 > {
   state = { refreshing: false };
   componentDidMount() {
-    this.props.dispatch(Action.deckFetch(true));
+    this.props.dispatch(Action.deckFetch({ isPublic: true }));
   }
   render() {
     const decks = getSelector(this.props.state).deck.public;

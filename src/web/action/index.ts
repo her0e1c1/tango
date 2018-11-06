@@ -23,10 +23,14 @@ export const login = (): ThunkAction => async (dispatch, getState) => {
   }
 };
 
-export const deckDownload = (id: string): ThunkAction => async (
-  dispatch,
-  getState
-) => {
+export const deckDownload = (
+  id: string,
+  opt?: { public: boolean }
+): ThunkAction => async (dispatch, getState) => {
+  const fetch = opt && opt.public;
+  if (fetch) {
+    await dispatch(Action.deckImportPublic(id));
+  }
   const deck = getState().deck.byId[id];
   const csv = await dispatch(Action.deckGenerateCsv(id));
   const blob = new Blob([csv], { type: 'text/plain;charset=utf-8' });
