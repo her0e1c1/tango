@@ -20,21 +20,23 @@ export const renderCard = (data: string, category?: string | null) => {
   }
 };
 
+const styleMath = {
+  fontSize: 18,
+  tabSize: 2,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  letterSpacing: 0,
+  // flexWrap: 'nowrap',
+};
+const styleCode = {
+  fontSize: 18,
+  tabSize: 2,
+  margin: '0 auto',
+};
+
 export const renderView = (data: string, category: string | null) => (
-  <div
-    style={{
-      fontSize: 18,
-      tabSize: 2,
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      letterSpacing: 0,
-      // whiteSpace: 'nowrap',
-      flexWrap: 'nowrap',
-      minHeight: '100vh',
-      minWidth: '100vw',
-    }}
-  >
+  <div style={C.LANGUAGES.includes(category || '') ? styleCode : styleMath}>
     {renderCard(data, category)}
   </div>
 );
