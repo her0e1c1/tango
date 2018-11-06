@@ -27,6 +27,9 @@ const styleMath = {
   justifyContent: 'center',
   alignItems: 'center',
   letterSpacing: 0,
+  // need, otherwise flex area can not be expanded
+  minHeight: '100vh',
+  minWidth: '100vw',
   // flexWrap: 'nowrap',
 };
 const styleCode = {
