@@ -2,6 +2,7 @@ export * from 'src/secret';
 
 export const LANGUAGES = [
   'c',
+  'cpp',
   'kotlin',
   'python',
   'golang',
