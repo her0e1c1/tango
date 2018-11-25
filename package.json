@@ -5,7 +5,7 @@
   "scripts": {
     "exp": "expo start",
     "web": "webpack-dev-server -d --config webpack.config.js",
-    "web-build": "webpack -p --config webpack.config.js",
+    "web-build": "env NODE_ENV=production webpack -p --config webpack.config.js",
     "web-deploy": "firebase deploy --only hosting",
     "firebase-token": "firebase login:ci",
     "eject": "react-native-scripts eject",

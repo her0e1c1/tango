@@ -1,6 +1,10 @@
 const path = require('path');
 const webpack = require('webpack');
 
+// it seems like -p doesn't set NODE_ENV
+// https://github.com/webpack/webpack/issues/7074
+console.log('NODE_ENV: ', process.env.NODE_ENV);
+
 module.exports = {
   entry: {
     index: './src/web/index.tsx',
