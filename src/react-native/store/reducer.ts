@@ -28,7 +28,7 @@ const reducers = {
 };
 
 export const root = (state, action) => {
-  if (equal(action, type.clear_all)) {
+  if (equal(action, type.clearAll)) {
     state = undefined;
   }
   return Redux.combineReducers(reducers)(state, action);

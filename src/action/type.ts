@@ -53,7 +53,7 @@ export const card_shuffle = (config: ConfigState) => ({
   payload: { config },
 });
 
-export const clear_all = () => ({
+export const clearAll = () => ({
   type: 'CLEAR_ALL',
   payload: undefined,
 });

@@ -24,7 +24,7 @@ export const cardToRow = (card: Card): string[] => [
 
 export const logout = (): ThunkAction => async (dispatch, getState) => {
   await firebase.auth().signOut();
-  dispatch(type.configUpdate({ uid: '', googleAccessToken: '' }));
+  dispatch(type.clearAll());
 };
 
 export const insertByURL = (url: string): ThunkAction => async (

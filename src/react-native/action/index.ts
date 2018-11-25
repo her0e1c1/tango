@@ -254,7 +254,7 @@ export const clearAll = (clearStorage?: boolean): ThunkAction => async (
   getState
 ) => {
   clearStorage && (await RN.AsyncStorage.clear());
-  await dispatch(type.clear_all());
+  await dispatch(type.clearAll());
 };
 
 export const drop = (): ThunkAction => async (dispatch, getState) => {
