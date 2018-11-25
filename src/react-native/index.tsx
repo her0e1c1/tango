@@ -57,6 +57,16 @@ const updateIfNeeded = async () => {
   }
 };
 
+class ErrorBoundary extends React.Component {
+  componentDidCatch(error) {
+    console.log(error, 'ERROR!');
+    store.dispatch(Action.clearAll(true));
+  }
+  render() {
+    return this.props.children;
+  }
+}
+
 class Main extends React.Component {
   state = { loading: true };
   async componentWillMount() {
@@ -79,13 +89,18 @@ class Main extends React.Component {
       return <LoadingIcon />;
     }
     return (
-      <Provider store={store}>
-        <PersistGate loading={<LoadingIcon />} persistor={persistStore(store)}>
-          <NBRoot>
-            <Theme />
-          </NBRoot>
-        </PersistGate>
-      </Provider>
+      <ErrorBoundary>
+        <Provider store={store}>
+          <PersistGate
+            loading={<LoadingIcon />}
+            persistor={persistStore(store)}
+          >
+            <NBRoot>
+              <Theme />
+            </NBRoot>
+          </PersistGate>
+        </Provider>
+      </ErrorBoundary>
     );
   }
 }
