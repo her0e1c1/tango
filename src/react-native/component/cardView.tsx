@@ -3,17 +3,21 @@ import * as RN from 'react-native';
 import { withTheme } from 'styled-components';
 import { connect } from 'react-redux';
 
-class _CardView extends React.Component<
-  {
-    body: string;
-    category?: string | null;
-    center?: boolean;
-    convertToBr?: boolean;
-  } & ConnectedProps &
-    AppContext,
-  {}
-> {
+type Props = {
+  body: string;
+  category?: string | null;
+  center?: boolean;
+  convertToBr?: boolean;
+} & ConnectedProps &
+  AppContext;
+
+class _CardView extends React.Component<Props, {}> {
   webView: RN.WebView | null;
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.body !== this.props.body) {
+      this.webView!.postMessage(JSON.stringify({ text: this.props.body }));
+    }
+  }
   render() {
     const body = this.props.body || '';
     return !this.props.category || body.trim() === '' ? (
