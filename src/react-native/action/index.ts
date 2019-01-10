@@ -1,7 +1,7 @@
 import * as Expo from 'expo';
 import * as RN from 'react-native';
 import * as C from 'src/constant';
-import * as firebase from 'firebase';
+import * as firebase from 'firebase/app';
 import { NavigationActions } from 'react-navigation';
 
 import * as Action from 'src/action';

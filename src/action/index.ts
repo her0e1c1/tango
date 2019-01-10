@@ -1,5 +1,5 @@
 import { pull } from 'lodash';
-import * as firebase from 'firebase';
+import * as firebase from 'firebase/app';
 import * as Papa from 'papaparse';
 
 import * as type from './type';
