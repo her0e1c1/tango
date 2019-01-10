@@ -207,6 +207,7 @@ export const deckDelete = (deckId: string): ThunkAction => async (
   const querySnapshot = await db
     .collection('card')
     .where('uid', '==', uid)
+    .where('deckId', '==', deckId)
     .get();
   querySnapshot.forEach(doc => batch.delete(doc.ref));
   const doc = db.collection('deck').doc(deckId);
