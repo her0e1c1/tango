@@ -1,6 +1,14 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Table, Icon, AutoComplete, Popconfirm, Switch } from 'antd';
+import {
+  Table,
+  Icon,
+  AutoComplete,
+  Popconfirm,
+  Switch,
+  Popover,
+  message,
+} from 'antd';
 import { ColumnProps } from 'antd/lib/table/interface';
 import * as Action from 'src/web/action';
 import { Link } from 'react-router-dom';
@@ -91,6 +99,25 @@ class _DeckList extends React.Component<ConnectedProps> {
             onClick={() => this.props.dispatch(Action.deckDownload(deck.id))}
           />
         ),
+      },
+      {
+        title: 'upload',
+        render: (deck: Deck) =>
+          deck.sheetId ? (
+            <Popover content={deck.sheetId}>
+              <Icon
+                type="upload"
+                onClick={async () => {
+                  const ok = await this.props.dispatch(
+                    Action.sheetUpload(deck)
+                  );
+                  ok ? message.success('success!') : message.error('failed');
+                }}
+              />
+            </Popover>
+          ) : (
+            ''
+          ),
       },
     ];
 

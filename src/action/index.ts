@@ -136,7 +136,7 @@ export const deckFetch = (props?: {
 };
 
 export const deckCreate = (
-  deck: Pick<Deck, 'name'>,
+  deck: Pick<Deck, 'name' | 'sheetId' | 'url'>,
   cards: Omit<Card, 'id' | 'createdAt'>[]
 ): ThunkAction => async (dispatch, getState) => {
   const uid = getState().config.uid;
@@ -170,6 +170,8 @@ export const deckCreate = (
     // ...deck,
     id: docDeck.id,
     name: deck.name,
+    sheetId: deck.sheetId || null,
+    url: deck.url || null,
     isPublic: false,
     uid,
     createdAt,
@@ -451,7 +453,7 @@ export const sheetFetch = (): ThunkAction => async (dispatch, getState) => {
       sheets: { properties: { title: string; sheetId: string } }[];
     };
     const sheets = json2.sheets.map(s => ({
-      id: `${ss.id}::${s.properties.sheetId}`,
+      id: `${ss.id}::${s.properties.title}`,
       index: s.properties.sheetId,
       title: s.properties.title,
       name: ss.name,
@@ -485,4 +487,29 @@ export const sheetImoprt = (id: string): ThunkAction => async (
       sheetId: sheet.id,
     })
   );
+};
+
+export const sheetUpload = (
+  deck: Deck
+): ThunkAction<Promise<boolean>> => async (_dispatch, getState) => {
+  const selector = getSelector(getState());
+  if (!deck.sheetId) {
+    alert('CAN NOT UPLOAD');
+    return false;
+  }
+  const [spreadSheetId, title] = deck.sheetId.split('::', 2);
+  const cards = selector.card.deckId(deck.id);
+  const values = cards.map(cardToRow);
+  const range = encodeURIComponent(`${title}!A:E`);
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadSheetId}/values/${range}?valueInputOption=RAW`;
+  const headers = {
+    Authorization: `Bearer ${getState().config.googleAccessToken}`,
+    'Content-Type': 'application/json',
+  };
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: new Headers(headers),
+    body: JSON.stringify({ values }),
+  });
+  return res.ok;
 };
