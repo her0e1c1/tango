@@ -167,8 +167,9 @@ export const deckCreate = (
     batch.set(doc, card);
   });
   const d = {
-    ...deck,
+    // ...deck,
     id: docDeck.id,
+    name: deck.name,
     isPublic: false,
     uid,
     createdAt,
@@ -401,7 +402,7 @@ const papaComplete = async (results): Promise<Card[]> => {
 
 export const parseByText = (
   text: string,
-  deck: Pick<Deck, 'name' | 'url'>
+  deck: Pick<Deck, 'name' | 'url' | 'sheetId'>
 ): ThunkAction => async (dispatch, _getState) => {
   const cards = await papaComplete(Papa.parse(text));
   dispatch(deckCreate(deck, cards));
@@ -435,8 +436,53 @@ export const sheetFetch = (): ThunkAction => async (dispatch, getState) => {
   const json = (await res.json()) as {
     files: { kind: string; id: string; mimeType: string; name: string }[];
   };
-  const sheets = json.files
-    .filter(f => f.mimeType === 'application/vnd.google-apps.spreadsheet')
-    .map(f => ({ id: f.id, name: f.name })) as Sheet[];
-  dispatch(type.sheetBulkInsert(sheets));
+  const spreadSheets = (json.files || []).filter(
+    f => f.mimeType === 'application/vnd.google-apps.spreadsheet'
+  );
+
+  for (let ss of spreadSheets) {
+    const url2 = `https://sheets.googleapis.com/v4/spreadsheets/${ss.id}`;
+    const res2 = await fetch(url2, {
+      method: 'GET',
+      headers: new Headers(headers),
+    });
+    const json2 = (await res2.json()) as {
+      spreadsheetId: string;
+      sheets: { properties: { title: string; sheetId: string } }[];
+    };
+    const sheets = json2.sheets.map(s => ({
+      id: `${ss.id}::${s.properties.sheetId}`,
+      index: s.properties.sheetId,
+      title: s.properties.title,
+      name: ss.name,
+      spreadSheetId: ss.id,
+    })) as Sheet[];
+    dispatch(type.sheetBulkInsert(sheets));
+  }
+};
+
+export const sheetImoprt = (id: string): ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  const state = getState();
+  const sheet = state.sheet.byId[id];
+  const url = `https://docs.google.com/spreadsheets/d/${
+    sheet.spreadSheetId
+  }/export?gid=${sheet.index}&exportFormat=csv`;
+  const headers = {
+    Authorization: `Bearer ${state.config.googleAccessToken}`,
+    'Content-Type': 'application/json',
+  };
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: new Headers(headers),
+  });
+  const text = await res.text();
+  dispatch(
+    parseByText(text, {
+      name: `${sheet.title} (${sheet.name})`,
+      sheetId: sheet.id,
+    })
+  );
 };

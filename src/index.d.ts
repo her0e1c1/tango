@@ -11,7 +11,8 @@ interface Deck {
   id: string;
   name: string;
   isPublic: boolean;
-  url: string | null;
+  url?: string;
+  sheetId?: string;
   updatedAt: Date;
   createdAt: Date;
   deletedAt?: Date; // soft delete flag
@@ -67,7 +68,13 @@ interface Card {
 }
 
 interface Sheet {
-  id: string;
+  // for sheet
+  id: string; // spreadSheetId::index
+  index: string;
+  title: string;
+
+  // for spread sheet
+  spreadSheetId: string;
   name: string;
 }
 

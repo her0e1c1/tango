@@ -54,12 +54,14 @@ class _DeckCreate extends React.Component<
           />
         </FormItem>
         <FormItem label="Google Spread Sheet">
-          <Select>
+          <Select
+            onSelect={id => this.props.dispatch(Action.sheetImoprt(String(id)))}
+          >
             {Object.keys(this.props.state.sheet.byId)
               .map(id => this.props.state.sheet.byId[id])
               .map(sheet => (
                 <Select.Option key={sheet.id} value={sheet.id}>
-                  {sheet.name}
+                  {`${sheet.title} (${sheet.name})`}
                 </Select.Option>
               ))}
           </Select>
