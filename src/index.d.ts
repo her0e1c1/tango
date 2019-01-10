@@ -66,6 +66,11 @@ interface Card {
   endLine?: number;
 }
 
+interface Sheet {
+  id: string;
+  name: string;
+}
+
 interface CardModel extends Card {
   toJSON(card: Partial<Card>): card;
   deck?: Deck;
@@ -84,6 +89,10 @@ type CardState = {
   byId: { [key: string]: Card };
   tags: string[];
   edit: Card;
+};
+
+type SheetState = {
+  byId: { [key: string]: Sheet };
 };
 
 type NavState = {
@@ -144,6 +153,7 @@ interface RootState {
   card: CardState;
   nav: NavState;
   config: ConfigState;
+  sheet: SheetState;
 }
 
 interface AppContext {

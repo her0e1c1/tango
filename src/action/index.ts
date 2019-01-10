@@ -417,3 +417,26 @@ export const parseByFile = (file: File): ThunkAction => (
     })
   );
 };
+
+export const sheetFetch = (): ThunkAction => async (dispatch, getState) => {
+  const state = getState();
+  const q = encodeURIComponent(
+    "trashed=false and mimeType='application/vnd.google-apps.spreadsheet'"
+  );
+  const url = `https://www.googleapis.com/drive/v3/files?corpora=user&q=${q}&pageSize=1000`;
+  const headers = {
+    Authorization: `Bearer ${state.config.googleAccessToken}`,
+    'Content-Type': 'application/json',
+  };
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: new Headers(headers),
+  });
+  const json = (await res.json()) as {
+    files: { kind: string; id: string; mimeType: string; name: string }[];
+  };
+  const sheets = json.files
+    .filter(f => f.mimeType === 'application/vnd.google-apps.spreadsheet')
+    .map(f => ({ id: f.id, name: f.name })) as Sheet[];
+  dispatch(type.sheetBulkInsert(sheets));
+};

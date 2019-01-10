@@ -41,6 +41,9 @@ class _DeckCreate extends React.Component<
   { deckName: string; cards: Card[] }
 > {
   state = { deckName: '', cards: [] as Card[] };
+  componentDidMount() {
+    this.props.dispatch(Action.sheetFetch());
+  }
   render() {
     return (
       <Form layout="horizontal">
@@ -49,6 +52,17 @@ class _DeckCreate extends React.Component<
             value={this.state.deckName}
             onChange={e => this.setState({ deckName: e.target.value })}
           />
+        </FormItem>
+        <FormItem label="Google Spread Sheet">
+          <Select>
+            {Object.keys(this.props.state.sheet.byId)
+              .map(id => this.props.state.sheet.byId[id])
+              .map(sheet => (
+                <Select.Option key={sheet.id} value={sheet.id}>
+                  {sheet.name}
+                </Select.Option>
+              ))}
+          </Select>
         </FormItem>
         <FormItem
           label="Import From CSV"

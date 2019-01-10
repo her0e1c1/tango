@@ -21,7 +21,7 @@ export const CATEGORY: Category[] = ['raw', 'markdown', 'math'].concat(
 
 export const CURRENT_VERSION = 9;
 
-export const GOOGLE_AUTH_SCOPE = [
+export const GOOGLE_AUTH_SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
   'https://www.googleapis.com/auth/drive.readonly',
   'profile',

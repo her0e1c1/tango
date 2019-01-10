@@ -5,7 +5,7 @@ import storage from 'redux-persist/lib/storage';
 import { persistStore, persistReducer } from 'redux-persist';
 import { routerMiddleware, routerReducer } from 'react-router-redux';
 import createHistory from 'history/createBrowserHistory';
-import { deck, card, config, equal } from 'src/store/reducer';
+import { deck, card, config, sheet, equal } from 'src/store/reducer';
 import * as type from 'src/action/type';
 
 export const history = createHistory();
@@ -20,6 +20,7 @@ const reducers = combineReducers({
   deck,
   card,
   config,
+  sheet,
   router: routerReducer,
 });
 

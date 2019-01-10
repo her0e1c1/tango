@@ -95,6 +95,21 @@ export const card = (
   }
 };
 
+export const sheet = (
+  state: SheetState = {
+    byId: {},
+  },
+  action: Action
+) => {
+  if (equal(action, type.sheetBulkInsert)) {
+    const ss = action.payload.sheets;
+    ss.forEach(s => (state.byId[s.id] = s));
+    return { ...state };
+  } else {
+    return state;
+  }
+};
+
 export const config = (
   state: ConfigState = {
     showMastered: true,

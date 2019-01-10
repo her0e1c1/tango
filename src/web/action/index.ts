@@ -1,15 +1,13 @@
 import * as firebase from 'firebase/app';
 import * as Action from 'src/action';
+import * as C from 'src/constant';
 const FileSaver = require('file-saver');
 
 export * from 'src/action';
 
-export const init = (): ThunkAction => async (dispatch, getState) => {
-  await this.props.dispatch(Action.setEventListener());
-};
-
 export const login = (): ThunkAction => async (dispatch, getState) => {
   const provider = new firebase.auth.GoogleAuthProvider();
+  C.GOOGLE_AUTH_SCOPES.forEach(s => provider.addScope(s));
   const result = await firebase.auth().signInWithPopup(provider);
   __DEV__ && console.log('DEBUG: LOGIN', result.user);
   if (result.user) {

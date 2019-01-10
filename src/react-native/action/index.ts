@@ -46,7 +46,7 @@ export const loginWithGoogle = (): ThunkAction => async (
   const result = await Expo.Google.logInAsync({
     androidClientId: C.GOOGLE_ANDROID_CLIENT_ID,
     iosClientId: C.GOOGLE_IOS_CLIENT_ID,
-    scopes: C.GOOGLE_AUTH_SCOPE,
+    scopes: C.GOOGLE_AUTH_SCOPES,
   });
   const { type } = result;
   const idToken = (result as any).idToken; // TODO: update @types

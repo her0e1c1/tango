@@ -53,6 +53,11 @@ export const card_shuffle = (config: ConfigState) => ({
   payload: { config },
 });
 
+export const sheetBulkInsert = (sheets: Sheet[]) => ({
+  type: 'SHEET_BULK_INSERT',
+  payload: { sheets },
+});
+
 export const clearAll = () => ({
   type: 'CLEAR_ALL',
   payload: undefined,
