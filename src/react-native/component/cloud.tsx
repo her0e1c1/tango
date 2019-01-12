@@ -59,42 +59,48 @@ class _PublicDeckList extends React.Component<
 }
 
 const PublicDeckList = connect(state => ({ state }))(_PublicDeckList);
-/*
-class _CardList extends React.Component<ConnectedProps & { deck_id: string }> {
+
+class _SpreadSheetList extends React.Component<
+  ConnectedProps,
+  { refreshing: boolean }
+> {
+  state = { refreshing: false };
   componentDidMount() {
-    const { deck_id } = this.props;
-    this.props.dispatch(Action.share.fetchCardsByDeckId(deck_id));
+    this.props.dispatch(Action.sheetFetch());
   }
   render() {
-    const { deck_id, dispatch } = this.props;
-    const uid = this.props.state.user.uid;
-    let cards = [] as Card[];
-    const user = this.props.state.share.user[uid];
-    if (user && user.card) {
-      cards = Object.values(user.card.byId);
-    }
+    const sheets = getSelector(this.props.state).sheet.all();
     return (
-      <SD.Container>
-        <RN.FlatList
-          data={cards
-            .filter(x => !!x && x.deckId === deck_id)
-            .map((d, key) => ({ ...d, key }))}
-          renderItem={({ item }: { item: Card }) => (
-            <RN.TouchableOpacity
-              onPress={() => dispatch(Action.goTo('shareView', { card: item }))}
-            >
-              <SD.DeckCard style={{ marginBottom: 10 }}>
-                <SD.DeckTitle>{item.frontText}</SD.DeckTitle>
-              </SD.DeckCard>
-            </RN.TouchableOpacity>
-          )}
-        />
-      </SD.Container>
+      <RN.FlatList
+        data={sheets.map(d => ({ ...d, key: String(d.id) }))}
+        onRefresh={async () => {
+          await this.setState({ refreshing: false });
+        }}
+        refreshing={this.state.refreshing}
+        ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
+        renderItem={({ item }: { item: Sheet }) => (
+          <RN.TouchableOpacity>
+            <NB.ListItem>
+              <NB.Left>
+                <NB.Title>{`${item.title} (${item.name})`}</NB.Title>
+              </NB.Left>
+              <NB.Right>
+                <NB.Icon
+                  name="md-add"
+                  onPress={() =>
+                    this.props.dispatch(Action.sheetImoprt(item.id))
+                  }
+                />
+              </NB.Right>
+            </NB.ListItem>
+          </RN.TouchableOpacity>
+        )}
+      />
     );
   }
 }
-const CardList = connect(state => ({ state }))(_CardList);
-*/
+
+const SpreadSheetList = connect(state => ({ state }))(_SpreadSheetList);
 
 const _List = props => (
   <NB.List>
@@ -109,6 +115,14 @@ const _List = props => (
     <NB.ListItem onPress={() => props.dispatch(Action.goTo('inputUrl'))}>
       <NB.Left>
         <NB.Title>Input CSV URL (by QR code)</NB.Title>
+      </NB.Left>
+      <NB.Right>
+        <NB.Icon active name="arrow-forward" />
+      </NB.Right>
+    </NB.ListItem>
+    <NB.ListItem onPress={() => props.dispatch(Action.goTo('spreadSheetList'))}>
+      <NB.Left>
+        <NB.Title>Import From Google Spread Sheet</NB.Title>
       </NB.Left>
       <NB.Right>
         <NB.Icon active name="arrow-forward" />
@@ -133,10 +147,7 @@ export const Root = StackNavigator(
     share: { screen: wrap(List) },
     inputUrl: { screen: InputUrl },
     publicDeckList: { screen: wrap(PublicDeckList) },
-    // shareCards: { screen: wrap(CardList) },
-    // sheet: { screen: wrap(Sheet) },
-    // spreadsheet: { screen: wrap(SpreadSheetList) },
-    // shareView: { screen: wrap(CardView) },
+    spreadSheetList: { screen: wrap(SpreadSheetList) },
   } as any,
   {
     initialRouteName: 'share',

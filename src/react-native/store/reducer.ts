@@ -3,7 +3,7 @@ import { NavigationActions } from 'react-navigation';
 import Root from 'src/react-native/component';
 
 import * as type from 'src/action/type';
-import { deck, card, config, equal } from 'src/store/reducer';
+import { deck, card, config, sheet, equal } from 'src/store/reducer';
 
 const initialState = Root.router.getStateForAction(
   NavigationActions.init()
@@ -24,6 +24,7 @@ const reducers = {
   nav,
   deck,
   card,
+  sheet,
   config,
 };
 

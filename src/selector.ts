@@ -2,7 +2,7 @@ import * as C from 'src/constant';
 
 export const getSelector = (state: RootState) => new Selector(state);
 
-type ModelKey = 'deck' | 'card';
+type ModelKey = 'deck' | 'card' | 'sheet';
 class Model {
   constructor(public id: string, selector: Selector) {}
 }
@@ -11,19 +11,21 @@ class Selector {
   state: RootState;
   card: CardSelector;
   deck: DeckSelector;
+  sheet: SheetSelector;
   constructor(state: RootState) {
     this.state = state;
     this.card = new CardSelector(this);
     this.deck = new DeckSelector(this);
+    this.sheet = new SheetSelector(this);
   }
 }
 
 abstract class EntitySelector<
-  IEntity extends Card | Deck,
+  IEntity extends Card | Deck | Sheet,
   OEntity extends Model & IEntity
 > {
   key: ModelKey;
-  model: typeof Model;
+  model?: typeof Model;
   constructor(public selector: Selector) {}
 
   getByIdFromReducer(id: string): IEntity | undefined {
@@ -32,7 +34,9 @@ abstract class EntitySelector<
 
   getById(id: string): OEntity | undefined {
     const e = this.getByIdFromReducer(id);
-    return e && (new this.model(e.id, this.selector) as OEntity);
+    if (!e) return;
+    else if (this.model) return new this.model(e.id, this.selector) as OEntity;
+    else return e as OEntity;
   }
 
   getByIdOrEmpty(id: string): OEntity {
@@ -229,3 +233,7 @@ class _CardModel implements Model {
 }
 // FIXME: can not export _CardModel
 export const CardModel = _CardModel;
+
+class SheetSelector extends EntitySelector<Sheet, Sheet> {
+  key: ModelKey = 'sheet';
+}

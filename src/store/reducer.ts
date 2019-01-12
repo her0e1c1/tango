@@ -121,12 +121,10 @@ export const config = (
     cardInterval: 5,
     theme: 'default',
     isLoading: false, // maybe not here
-    errorCode: undefined,
     cardSwipeUp: 'goToNextCardToggleMastered',
     cardSwipeDown: 'goBack',
     cardSwipeLeft: 'goToPrevCard',
     cardSwipeRight: 'goToNextCard',
-    googleAccessToken: undefined,
     uid: '',
     displayName: '',
     selectedTags: [],

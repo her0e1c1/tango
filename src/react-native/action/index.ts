@@ -19,7 +19,10 @@ export const init = (): ThunkAction => async (dispatch, getState) => {
     __DEV__ && console.log('DEBUG: INIT', user);
     if (user) {
       await dispatch(
-        Action.configUpdate({ uid: user.uid, displayName: user.displayName })
+        Action.configUpdate({
+          uid: user.uid,
+          displayName: user.displayName,
+        })
       );
       await dispatch(Action.setEventListener());
     } else {
@@ -30,7 +33,7 @@ export const init = (): ThunkAction => async (dispatch, getState) => {
 
 const signIn = (
   credential: firebase.auth.AuthCredential
-): ThunkAction => async (dispatch, getState) => {
+): ThunkAction => async (dispatch, _getState) => {
   try {
     await firebase.auth().signInAndRetrieveDataWithCredential(credential);
     dispatch(init());
@@ -49,10 +52,18 @@ export const loginWithGoogle = (): ThunkAction => async (
     scopes: C.GOOGLE_AUTH_SCOPES,
   });
   const { type } = result;
-  const idToken = (result as any).idToken; // TODO: update @types
+  __DEV__ && console.log('DEBUG: result', result);
+  // @ts-ignore: TODO: update @types
+  const { idToken, accessToken, refreshToken } = result;
   if (type === 'success') {
     const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
-    dispatch(signIn(credential));
+    await dispatch(signIn(credential));
+    await dispatch(
+      Action.configUpdate({
+        googleAccessToken: accessToken,
+        googleRefreshToken: refreshToken,
+      })
+    );
   } else {
     alert(`Can not login with Google account`);
   }

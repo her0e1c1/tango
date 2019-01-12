@@ -4,6 +4,8 @@ import * as Papa from 'papaparse';
 
 import * as type from './type';
 import { db } from 'src/firebase';
+import * as C from 'src/constant';
+import * as queryString from 'query-string';
 import { getSelector, CardModel, DeckModel } from 'src/selector';
 
 export * from './type';
@@ -25,6 +27,30 @@ export const cardToRow = (card: Card): string[] => [
 export const logout = (): ThunkAction => async (dispatch, getState) => {
   await firebase.auth().signOut();
   dispatch(type.clearAll());
+};
+
+export const refreshToken = (): ThunkAction => async (dispatch, getState) => {
+  const refresh_token = getState().config.googleRefreshToken;
+  if (!refresh_token) {
+    console.log(`You can't refresh`);
+    return;
+  }
+  const body = queryString.stringify({
+    refresh_token,
+    grant_type: 'refresh_token',
+    client_id: C.GOOGLE_WEB_CLIENT_ID,
+    client_secret: C.GOOGLE_WEB_CLIENT_SECRET,
+  });
+  const res = await fetch('https://accounts.google.com/o/oauth2/token', {
+    method: 'POST',
+    body,
+    headers: new Headers({
+      'content-type': 'application/x-www-form-urlencoded',
+    }),
+  });
+  if (!res.ok) return;
+  const json = await res.json();
+  await dispatch(configUpdate({ googleAccessToken: json.access_token }));
 };
 
 export const insertByURL = (url: string): ThunkAction => async (
@@ -438,6 +464,10 @@ export const sheetFetch = (): ThunkAction => async (dispatch, getState) => {
   const json = (await res.json()) as {
     files: { kind: string; id: string; mimeType: string; name: string }[];
   };
+  if (!res.ok) {
+    alert(`ERROR: ${JSON.stringify(json)}`);
+    return;
+  }
   const spreadSheets = (json.files || []).filter(
     f => f.mimeType === 'application/vnd.google-apps.spreadsheet'
   );

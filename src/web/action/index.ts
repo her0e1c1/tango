@@ -14,8 +14,13 @@ export const login = (): ThunkAction => async (dispatch, getState) => {
     const { displayName, uid } = result.user;
     // @ts-ignore: credential doesn't have accessToken as key
     const googleAccessToken = result.credential.accessToken;
+
     await dispatch(
-      Action.configUpdate({ uid, displayName, googleAccessToken })
+      Action.configUpdate({
+        uid,
+        displayName,
+        googleAccessToken,
+      })
     );
     await dispatch(Action.setEventListener());
   }

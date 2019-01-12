@@ -32,10 +32,6 @@ interface Deck {
   category?: Category;
   convertToBr?: boolean;
   onlyBody?: boolean;
-
-  // google spread sheet
-  spreadsheetId?: string | null;
-  spreadsheetGid?: string | null;
 }
 
 interface DeckModel extends Deck {
@@ -148,6 +144,7 @@ type ConfigState = {
   cardSwipeLeft: cardSwipe;
   cardSwipeRight: cardSwipe;
   googleAccessToken?: string;
+  googleRefreshToken?: string;
   uid: string;
   displayName: string | null;
   selectedTags: string[];

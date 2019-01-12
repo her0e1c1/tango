@@ -11,7 +11,12 @@ const deckAction = (dispatch: any, item: Deck) => {
   NB.ActionSheet.show(
     {
       title: 'Deck Action',
-      options: ['Show Card List', 'Edit This Deck', 'Cancel'],
+      options: [
+        'Show Card List',
+        'Edit This Deck',
+        'Upload To Google Spread Sheet',
+        'Cancel',
+      ],
       cancelButtonIndex: 3,
     },
     async index => {
@@ -19,6 +24,12 @@ const deckAction = (dispatch: any, item: Deck) => {
         await dispatch(Action.goTo('deck', { deckId: item.id }));
       } else if (index === 1) {
         await dispatch(Action.goTo('deckEdit', { deckId: item.id }));
+      } else if (index === 2) {
+        if (item.sheetId) {
+          await dispatch(Action.goTo('deckEdit', { deckId: item.id }));
+        } else {
+          alert('NO SPREAD SHEET');
+        }
       } else {
         // DO NOTHING
       }
@@ -66,7 +77,15 @@ class _DeckList extends React.Component<
                 right: (
                   <NB.Button
                     danger
-                    onPress={() => dispatch(Action.deckDelete(item.id))}
+                    onPress={() => {
+                      RN.Alert.alert('Are you sure?', '', [
+                        {
+                          text: 'Delete',
+                          onPress: () => dispatch(Action.deckDelete(item.id)),
+                        },
+                        { text: 'Cancel', onPress: () => {} },
+                      ]);
+                    }}
                   >
                     <NB.Icon active name="trash" />
                   </NB.Button>
@@ -202,16 +221,7 @@ export class _DeckEdit extends React.Component<
             <NB.Text>Spread Sheet Id</NB.Text>
           </NB.Left>
           <NB.Body>
-            <NB.Text>{deck.spreadsheetId}</NB.Text>
-          </NB.Body>
-        </NB.ListItem>
-
-        <NB.ListItem noBorder>
-          <NB.Left>
-            <NB.Text>Spread Sheet Gid</NB.Text>
-          </NB.Left>
-          <NB.Body>
-            <NB.Text>{deck.spreadsheetGid}</NB.Text>
+            <NB.Text>{deck.sheetId}</NB.Text>
           </NB.Body>
         </NB.ListItem>
 

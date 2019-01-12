@@ -252,6 +252,23 @@ export class _Config extends React.Component<ConnectedProps, {}> {
               <NB.Text>Developer</NB.Text>
             </NB.Separator>
 
+            <NB.ListItem
+              icon
+              onPress={() => this.props.dispatch(Action.refreshToken())}
+            >
+              <NB.Body>
+                <NB.Text>Google Access Token</NB.Text>
+              </NB.Body>
+              <NB.Right>
+                <NB.Text>
+                  {(this.props.state.config.googleAccessToken || '').substring(
+                    0,
+                    10
+                  )}
+                </NB.Text>
+              </NB.Right>
+            </NB.ListItem>
+
             <NB.ListItem icon>
               <NB.Body>
                 <NB.Text>Git Hash</NB.Text>
