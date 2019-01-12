@@ -254,7 +254,17 @@ export class _Config extends React.Component<ConnectedProps, {}> {
 
             <NB.ListItem
               icon
-              onPress={() => this.props.dispatch(Action.refreshToken())}
+              onPress={() =>
+                this.props.dispatch(
+                  Action.refreshToken({
+                    ios: RN.Platform.OS === 'ios',
+                    android: RN.Platform.OS === 'android',
+                  })
+                )
+              }
+              onLongPress={() =>
+                alert(this.props.state.config.googleAccessToken)
+              }
             >
               <NB.Body>
                 <NB.Text>Google Access Token</NB.Text>

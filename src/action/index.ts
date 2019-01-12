@@ -29,17 +29,28 @@ export const logout = (): ThunkAction => async (dispatch, getState) => {
   dispatch(type.clearAll());
 };
 
-export const refreshToken = (): ThunkAction => async (dispatch, getState) => {
+export const refreshToken = (type: {
+  ios: boolean;
+  android: boolean;
+}): ThunkAction => async (dispatch, getState) => {
   const refresh_token = getState().config.googleRefreshToken;
   if (!refresh_token) {
     console.log(`You can't refresh`);
     return;
   }
+  const params = {} as any;
+  if (type.ios) {
+    params.client_id = C.GOOGLE_IOS_CLIENT_ID;
+  } else if (type.android) {
+    params.client_id = C.GOOGLE_ANDROID_CLIENT_ID;
+  } else {
+    params.client_id = C.GOOGLE_WEB_CLIENT_ID;
+    params.client_secret = C.GOOGLE_WEB_CLIENT_SECRET;
+  }
   const body = queryString.stringify({
     refresh_token,
     grant_type: 'refresh_token',
-    client_id: C.GOOGLE_WEB_CLIENT_ID,
-    client_secret: C.GOOGLE_WEB_CLIENT_SECRET,
+    ...params,
   });
   const res = await fetch('https://accounts.google.com/o/oauth2/token', {
     method: 'POST',
@@ -48,7 +59,7 @@ export const refreshToken = (): ThunkAction => async (dispatch, getState) => {
       'content-type': 'application/x-www-form-urlencoded',
     }),
   });
-  if (!res.ok) return;
+  if (!res.ok) return alert(`${res.statusText}`);
   const json = await res.json();
   await dispatch(configUpdate({ googleAccessToken: json.access_token }));
 };
