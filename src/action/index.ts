@@ -102,8 +102,11 @@ export const setEventListener = (): ThunkAction => async (
     return; // after user log in, then call this function
   }
   if (Object.keys(state.deck.byId).length === 0) {
+    await dispatch(loadingStart());
     const decks = await dispatch(deckFetch());
     decks.forEach(async d => await dispatch(cardFetch(d.id)));
+    await dispatch(configUpdate({ lastUpdatedAt: new Date().getTime() }));
+    await dispatch(loadingEnd());
   }
   // FIXME: maybe client timestamp is different from server's one
   const updatedAt = getState().config.lastUpdatedAt;
