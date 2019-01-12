@@ -129,6 +129,7 @@ export const config = (
     displayName: '',
     selectedTags: [],
     lastUpdatedAt: 0,
+    loadingCount: 0,
   },
   action: Action
 ): ConfigState => {

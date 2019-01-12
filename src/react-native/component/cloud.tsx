@@ -45,9 +45,11 @@ class _PublicDeckList extends React.Component<
               <NB.Right>
                 <NB.Icon
                   name="md-add"
-                  onPress={() =>
-                    this.props.dispatch(Action.deckImportPublic(item.id))
-                  }
+                  onPress={async () => {
+                    await this.props.dispatch(Action.loadingStart());
+                    await this.props.dispatch(Action.deckImportPublic(item.id));
+                    await this.props.dispatch(Action.loadingEnd());
+                  }}
                 />
               </NB.Right>
             </NB.ListItem>
@@ -87,9 +89,11 @@ class _SpreadSheetList extends React.Component<
               <NB.Right>
                 <NB.Icon
                   name="md-add"
-                  onPress={() =>
-                    this.props.dispatch(Action.sheetImoprt(item.id))
-                  }
+                  onPress={async () => {
+                    await this.props.dispatch(Action.loadingStart());
+                    await this.props.dispatch(Action.sheetImport(item.id));
+                    await this.props.dispatch(Action.loadingEnd());
+                  }}
                 />
               </NB.Right>
             </NB.ListItem>

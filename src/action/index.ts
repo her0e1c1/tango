@@ -24,6 +24,18 @@ export const cardToRow = (card: Card): string[] => [
   card.tags.join(','),
 ];
 
+export const loadingStart = (): ThunkAction => async (dispatch, getState) => {
+  dispatch(
+    type.configUpdate({ loadingCount: getState().config.loadingCount + 1 })
+  );
+};
+
+export const loadingEnd = (): ThunkAction => async (dispatch, getState) => {
+  dispatch(
+    type.configUpdate({ loadingCount: getState().config.loadingCount - 1 })
+  );
+};
+
 export const logout = (): ThunkAction => async (dispatch, getState) => {
   await firebase.auth().signOut();
   dispatch(type.clearAll());
@@ -66,7 +78,7 @@ export const refreshToken = (type: {
 
 export const insertByURL = (url: string): ThunkAction => async (
   dispatch,
-  getState
+  _getState
 ) => {
   __DEV__ && console.log(`FETCH START: ${url}`);
   const res = await fetch(url);
@@ -356,7 +368,7 @@ export const cardCreate = (card: Omit<Card, 'id'>): ThunkAction => async (
 };
 
 export const cardUpdate = (card: Card): ThunkAction => async (
-  dispatch,
+  _dispatch,
   getState
 ) => {
   const cm = new CardModel(card.id, getSelector(getState()));
@@ -504,7 +516,7 @@ export const sheetFetch = (): ThunkAction => async (dispatch, getState) => {
   }
 };
 
-export const sheetImoprt = (id: string): ThunkAction => async (
+export const sheetImport = (id: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
@@ -538,6 +550,7 @@ export const sheetUpload = (
     alert('CAN NOT UPLOAD');
     return false;
   }
+
   const [spreadSheetId, title] = deck.sheetId.split('::', 2);
   const cards = selector.card.deckId(deck.id);
   const values = cards.map(cardToRow);

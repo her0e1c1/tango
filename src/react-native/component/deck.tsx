@@ -26,7 +26,9 @@ const deckAction = (dispatch: any, item: Deck) => {
         await dispatch(Action.goTo('deckEdit', { deckId: item.id }));
       } else if (index === 2) {
         if (item.sheetId) {
-          await dispatch(Action.goTo('deckEdit', { deckId: item.id }));
+          await dispatch(Action.loadingStart());
+          await dispatch(Action.sheetUpload(item));
+          await dispatch(Action.loadingEnd());
         } else {
           alert('NO SPREAD SHEET');
         }
@@ -81,7 +83,11 @@ class _DeckList extends React.Component<
                       RN.Alert.alert('Are you sure?', '', [
                         {
                           text: 'Delete',
-                          onPress: () => dispatch(Action.deckDelete(item.id)),
+                          onPress: async () => {
+                            await dispatch(Action.loadingStart());
+                            await dispatch(Action.deckDelete(item.id));
+                            await dispatch(Action.loadingEnd());
+                          },
                         },
                         { text: 'Cancel', onPress: () => {} },
                       ]);

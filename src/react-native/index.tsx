@@ -29,7 +29,7 @@ class _Theme extends React.Component<ConnectedProps, {}> {
     return (
       <ThemeProvider theme={Action.getTheme(state)}>
         <RN.View style={{ flex: 1 }}>
-          {state.config.isLoading && <LoadingIcon />}
+          {state.config.loadingCount > 0 && <LoadingIcon />}
           <Root navigation={navigation} />
         </RN.View>
       </ThemeProvider>

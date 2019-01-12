@@ -138,6 +138,7 @@ type ConfigState = {
   cardInterval: number;
   theme: themeType;
   isLoading: boolean;
+  loadingCount: number;
   errorCode?: errorCode;
   cardSwipeUp: cardSwipe;
   cardSwipeDown: cardSwipe;
