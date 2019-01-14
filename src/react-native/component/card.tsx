@@ -77,7 +77,7 @@ export class _CardDetail extends React.Component<
         )}
         {!this.state.view && (
           <RN.TouchableOpacity
-            onPress={() => dispatch(Action.cardSwipeLeft())}
+            onPress={() => dispatch(Action.goToPrevCard())}
             style={{
               position: 'absolute',
               left: 0,
@@ -89,9 +89,7 @@ export class _CardDetail extends React.Component<
         )}
         {!this.state.view && (
           <RN.TouchableOpacity
-            onPress={() =>
-              !this.state.view && dispatch(Action.cardSwipeRight())
-            }
+            onPress={() => !this.state.view && dispatch(Action.goToNextCard())}
             style={{
               position: 'absolute',
               right: 0,

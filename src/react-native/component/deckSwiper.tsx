@@ -78,7 +78,7 @@ class View extends React.Component<
             </NB.Badge>
           </RN.View>
           <RN.TouchableOpacity
-            onPress={() => dispatch(Action.cardSwipeLeft())}
+            onPress={() => dispatch(Action.goToPrevCard())}
             style={{
               position: 'absolute',
               left: 0,
@@ -89,7 +89,7 @@ class View extends React.Component<
             }}
           />
           <RN.TouchableOpacity
-            onPress={() => dispatch(Action.cardSwipeRight())}
+            onPress={() => dispatch(Action.goToNextCard())}
             style={{
               position: 'absolute',
               right: 0,
