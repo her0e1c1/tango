@@ -113,7 +113,7 @@ export const config = (
     cardInterval: 5,
     theme: 'default',
     isLoading: false, // maybe not here
-    cardSwipeUp: 'goToNextCardToggleMastered',
+    cardSwipeUp: 'goToNextCardMastered',
     cardSwipeDown: 'goToNextCardNotMastered',
     cardSwipeLeft: 'goToPrevCard',
     cardSwipeRight: 'goToNextCard',

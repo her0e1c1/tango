@@ -131,8 +131,9 @@ export const goToNextCardSetMastered = (
       score = score >= 0 ? card.score + 1 : 0;
     } else if (mastered === false) {
       score = score <= 0 ? card.score - 1 : 0;
-      score = card.score - 1;
-    } else score = 0;
+    } else {
+      score = 0;
+    }
     await dispatch(goToNextCard());
     await dispatch(Action.cardUpdate({ ...card, score }));
   }
