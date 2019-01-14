@@ -11,9 +11,9 @@ import { getSelector } from 'src/selector';
 
 class _PublicDeckList extends React.Component<
   ConnectedProps,
-  { refreshing: boolean }
+  { refreshing: boolean; loadingId?: string }
 > {
-  state = { refreshing: false };
+  state = { refreshing: false, loadingId: undefined };
   componentDidMount() {
     this.props.dispatch(Action.deckFetch({ isPublic: true }));
   }
@@ -43,14 +43,22 @@ class _PublicDeckList extends React.Component<
                 <NB.Title>{item.name}</NB.Title>
               </NB.Left>
               <NB.Right>
-                <NB.Icon
-                  name="md-add"
-                  onPress={async () => {
-                    await this.props.dispatch(Action.loadingStart());
-                    await this.props.dispatch(Action.deckImportPublic(item.id));
-                    await this.props.dispatch(Action.loadingEnd());
-                  }}
-                />
+                {this.state.loadingId !== item.id && (
+                  <NB.Icon
+                    name="md-add"
+                    style={{ fontSize: 30 }}
+                    onPress={() => {
+                      this.setState({ loadingId: item.id }, async () => {
+                        await this.props.dispatch(Action.loadingStart());
+                        await this.props.dispatch(
+                          Action.deckImportPublic(item.id)
+                        );
+                        await this.props.dispatch(Action.loadingEnd());
+                        this.setState({ loadingId: undefined });
+                      });
+                    }}
+                  />
+                )}
               </NB.Right>
             </NB.ListItem>
           </RN.TouchableOpacity>
