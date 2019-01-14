@@ -116,7 +116,7 @@ export const config = (
     cardSwipeUp: 'goToNextCardToggleMastered',
     cardSwipeDown: 'goToNextCardNotMastered',
     cardSwipeLeft: 'goToPrevCard',
-    cardSwipeRight: 'goToNextCardMastered',
+    cardSwipeRight: 'goToNextCard',
     uid: '',
     displayName: '',
     selectedTags: [],
