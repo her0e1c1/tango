@@ -126,6 +126,10 @@ export const config = (
   action: Action
 ): ConfigState => {
   if (equal(action, type.configUpdate)) {
+    const { loadingCount } = action.payload.config;
+    if (loadingCount !== undefined && loadingCount < 0) {
+      return state; // DO NOTHING
+    }
     return { ...state, ...action.payload.config };
   } else {
     return state;

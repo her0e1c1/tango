@@ -72,9 +72,9 @@ const PublicDeckList = connect(state => ({ state }))(_PublicDeckList);
 
 class _SpreadSheetList extends React.Component<
   ConnectedProps,
-  { refreshing: boolean }
+  { refreshing: boolean; loadingIds: string[] }
 > {
-  state = { refreshing: false };
+  state = { refreshing: false, loadingIds: [] as string[] };
   componentDidMount() {
     this.props.dispatch(Action.sheetFetch());
   }
@@ -95,14 +95,25 @@ class _SpreadSheetList extends React.Component<
                 <NB.Title>{`${item.title} (${item.name})`}</NB.Title>
               </NB.Left>
               <NB.Right>
-                <NB.Icon
-                  name="md-add"
-                  onPress={async () => {
-                    await this.props.dispatch(Action.loadingStart());
-                    await this.props.dispatch(Action.sheetImport(item.id));
-                    await this.props.dispatch(Action.loadingEnd());
-                  }}
-                />
+                {!this.state.loadingIds.includes(item.id) && (
+                  <NB.Icon
+                    name="md-add"
+                    onPress={async () => {
+                      const prev = this.state.loadingIds;
+                      this.setState(
+                        { loadingIds: prev.concat([item.id]) },
+                        async () => {
+                          await this.props.dispatch(Action.loadingStart());
+                          await this.props.dispatch(
+                            Action.sheetImport(item.id)
+                          );
+                          await this.props.dispatch(Action.loadingEnd());
+                          this.setState({ loadingIds: prev });
+                        }
+                      );
+                    }}
+                  />
+                )}
               </NB.Right>
             </NB.ListItem>
           </RN.TouchableOpacity>

@@ -316,7 +316,7 @@ export class _DeckStart extends React.Component<
                 cardOrderIds: deck.getCardOrderIds(),
               } as Deck)
             );
-            await this.props.dispatch(Action.goTo('card', { deckId: deck.id }));
+            await this.props.dispatch(Action.goToFirstCard());
           }}
         >
           <NB.Text>Learn {deck.getCardOrderIds().length} card(s)!</NB.Text>

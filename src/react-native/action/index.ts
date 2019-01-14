@@ -93,10 +93,6 @@ export const loginWithFacebook = (): ThunkAction => async (
 export const goBack = () => async (dispatch, _getState) => {
   await dispatch(NavigationActions.back());
 };
-export const replace = (routeName, params?) => async (
-  dispatch,
-  _getState
-) => {};
 export const goTo = (routeName, params?) => async (dispatch, _getState) => {
   await dispatch(NavigationActions.navigate({ routeName, params }));
 };
@@ -116,6 +112,12 @@ export const goToCardById = (cardId: string, deckId: string) => async (
     ],
   });
   await dispatch(a);
+};
+
+export const goToFirstCard = () => async (dispatch, getState) => {
+  const selector = getSelector(getState());
+  const card = selector.card.currentCard;
+  dispatch(goToCardById(card.id, card.deckId));
 };
 
 export const goToNextCardSetMastered = (
