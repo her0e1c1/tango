@@ -1,4 +1,4 @@
-import { pull } from 'lodash';
+import { pull, shuffle } from 'lodash';
 import * as firebase from 'firebase/app';
 import * as Papa from 'papaparse';
 
@@ -185,6 +185,21 @@ export const deckFetch = (props?: {
   });
   await dispatch(type.deckBulkInsert(decks));
   return decks;
+};
+
+export const deckSwipeStart = (deckId: string): ThunkAction => async (
+  dispatch,
+  getState
+) => {
+  const selector = getSelector(getState());
+  const deck = selector.deck.getByIdOrEmpty(deckId);
+  let cardOrderIds = [...deck.cardIds];
+  if (getState().config.shuffled) {
+    cardOrderIds = shuffle(cardOrderIds);
+  }
+  await dispatch(
+    type.deckInsert({ id: deck.id, currentIndex: 0, cardOrderIds } as Deck)
+  );
 };
 
 export const deckCreate = (

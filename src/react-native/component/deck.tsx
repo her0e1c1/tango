@@ -100,7 +100,11 @@ class _DeckList extends React.Component<
                   <RN.TouchableOpacity
                     style={{ flex: 1 }}
                     onPress={() => {
-                      dispatch(Action.goTo('card', { deckId: item.id }));
+                      if (item.currentIndex == 0) {
+                        dispatch(Action.goTo('deckStart', { deckId: item.id }));
+                      } else {
+                        dispatch(Action.goTo('card', { deckId: item.id }));
+                      }
                     }}
                     onLongPress={() =>
                       dispatch(Action.goTo('deckEdit', { deckId: item.id }))
@@ -291,3 +295,87 @@ export class _DeckEdit extends React.Component<
   }
 }
 export const DeckEdit = connect(state => ({ state }))(_DeckEdit);
+
+export class _DeckStart extends React.Component<
+  ConnectedProps & { deckId: string },
+  {}
+> {
+  render() {
+    const selector = getSelector(this.props.state);
+    const deck = selector.deck.getByIdOrEmpty(this.props.deckId);
+    const allTags = deck.getTags();
+    return (
+      <NB.Content>
+        <NB.Button
+          full
+          onPress={async () => {
+            await this.props.dispatch(Action.deckSwipeStart(deck.id));
+            await this.props.dispatch(Action.goTo('card', { deckId: deck.id }));
+          }}
+        >
+          <NB.Text>START</NB.Text>
+        </NB.Button>
+
+        {allTags.length > 0 && (
+          <NB.ListItem
+            style={{ justifyContent: 'flex-end', flexDirection: 'row' }}
+          >
+            <NB.Button
+              small
+              onPress={() =>
+                this.props.dispatch(
+                  Action.deckBulkInsert([
+                    { id: deck.id, selectedTags: allTags } as Deck,
+                  ])
+                )
+              }
+            >
+              <NB.Text>ALL</NB.Text>
+            </NB.Button>
+            <NB.Text style={{ padding: 5 }}>/</NB.Text>
+            <NB.Button
+              light
+              small
+              onPress={() =>
+                this.props.dispatch(
+                  Action.deckBulkInsert([
+                    { id: deck.id, selectedTags: [] as any } as Deck,
+                  ])
+                )
+              }
+            >
+              <NB.Text>CLEAR</NB.Text>
+            </NB.Button>
+          </NB.ListItem>
+        )}
+
+        {allTags.map((tag, i) => (
+          <NB.ListItem
+            key={i}
+            onPress={() => {
+              let tags = deck.selectedTags;
+              if (tags.includes(tag)) {
+                tags = tags.filter(t => t != tag);
+              } else {
+                tags = [...tags, tag];
+              }
+              this.props.dispatch(
+                Action.deckBulkInsert([
+                  { id: deck.id, selectedTags: tags } as Deck,
+                ])
+              );
+            }}
+          >
+            <NB.Left>
+              <NB.Text>{tag}</NB.Text>
+            </NB.Left>
+            <NB.Right>
+              <NB.Radio selected={deck.selectedTags.includes(tag)} />
+            </NB.Right>
+          </NB.ListItem>
+        ))}
+      </NB.Content>
+    );
+  }
+}
+export const DeckStart = connect(state => ({ state }))(_DeckStart);

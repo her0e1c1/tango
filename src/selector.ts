@@ -1,4 +1,5 @@
 import * as C from 'src/constant';
+import { uniq } from 'lodash';
 
 export const getSelector = (state: RootState) => new Selector(state);
 
@@ -87,19 +88,18 @@ class DeckSelector extends EntitySelector<Deck, _DeckModel> {
 class CardSelector extends EntitySelector<Card, _CardModel> {
   key: ModelKey = 'card';
   model = _CardModel;
-  deckId(deckId: string): _CardModel[] {
+  deckId(deckId: string, opt?: { cardOrderIds?: boolean }): _CardModel[] {
     const deck = this.selector.deck.getById(deckId);
     if (!deck) {
       return [];
     }
-    return deck.cardIds
-      .map(id => this.getById(id))
-      .filter(c => !!c) as _CardModel[];
+    const ids = opt && opt.cardOrderIds ? deck.cardOrderIds : deck.cardIds;
+    return ids.map(id => this.getById(id)).filter(c => !!c) as _CardModel[];
   }
   get currentList() {
     const deckId = this.selector.deck.current.id;
     if (!deckId) return [];
-    return this.filter({ deckId });
+    return this.filter(deckId);
   }
   get currentCard(): _CardModel {
     const cards = this.selector.card.currentList;
@@ -110,21 +110,14 @@ class CardSelector extends EntitySelector<Card, _CardModel> {
     return {} as _CardModel;
   }
 
-  filter(props: { deckId?: string; mastered?: boolean }): _CardModel[] {
-    let { deckId, mastered } = props;
-    if (!deckId) {
-      return this.all();
-    }
-    const cards = this.deckId(deckId);
-    const tags = this.selector.state.config.selectedTags;
+  filter(deckId: string): _CardModel[] {
+    const deck = this.selector.deck.getById(deckId);
+    if (!deck) return [];
+    const cards = this.deckId(deckId, { cardOrderIds: true });
+    const tags = deck.selectedTags;
     return cards.filter(c => {
       if (tags.length > 0 && !tags.some(t => c.tags.includes(t))) {
         return false;
-      }
-      if (mastered !== undefined) {
-        if (mastered === true && c.mastered) {
-          return false;
-        }
       }
       return true;
     });
@@ -143,6 +136,10 @@ class _DeckModel implements Model {
       throw 'No deck';
     }
     Object.assign(this, deck);
+  }
+  getTags() {
+    const cards = this.selector.card.deckId(this.id);
+    return uniq(cards.map(c => c.tags).reduce((a, acc) => [...a, ...acc], []));
   }
   toJSON(deck?: Partial<Deck>): Deck {
     const keys = [

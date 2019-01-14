@@ -129,7 +129,6 @@ export class _Config extends React.Component<ConnectedProps, {}> {
                     await dispatch(
                       Action.configUpdate({ shuffled: !config.shuffled })
                     );
-                    await dispatch(Action.shuffleCardsOrSort());
                   }}
                 />
               </NB.Right>

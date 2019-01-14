@@ -59,6 +59,11 @@ class _Controller extends React.Component<ConnectedProps, { pause: boolean }> {
             }
           />
         </RN.View>
+        <RN.View style={{ paddingRight: 10, justifyContent: 'center' }}>
+          <RN.Text>
+            {deck.currentIndex} / {cards.length}
+          </RN.Text>
+        </RN.View>
       </RN.View>
     );
   }

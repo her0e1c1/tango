@@ -25,6 +25,8 @@ interface Deck {
   // it's hard to change the order.
   // so it needs to define in deck
   cardIds: string[];
+  // used for deck swiper
+  cardOrderIds: string[];
 
   // when user selects a deck, show this index card
   // this should not be stored in sqlite
@@ -32,6 +34,7 @@ interface Deck {
   category?: Category;
   convertToBr?: boolean;
   onlyBody?: boolean;
+  selectedTags: string[];
 }
 
 interface DeckModel extends Deck {

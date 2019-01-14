@@ -11,26 +11,21 @@ export const equal = <T>(
 
 // NOTE: should handle both Deck and DeckModel
 export const deck = (
-  state: DeckState = { byId: {}, edit: {} as Deck, categories: ['math'] },
+  state: DeckState = { byId: {}, edit: {} as Deck, categories: [] },
   action: Action
 ) => {
   if (equal(action, type.deckBulkInsert)) {
     const decks = action.payload.decks;
     decks.forEach(d => {
-      let currentIndex = d.currentIndex;
-      if (currentIndex === undefined) {
-        const deck = state.byId[d.id];
-        if (deck) {
-          if (deck.currentIndex === undefined) {
-            currentIndex = 0;
-          } else {
-            currentIndex = deck.currentIndex;
-          }
-        } else {
-          currentIndex = 0;
-        }
-      }
-      state.byId[d.id] = { ...d, currentIndex };
+      const deck = state.byId[d.id] || {};
+      state.byId[d.id] = {
+        cardIds: [],
+        cardOrderIds: [],
+        selectedTags: [],
+        currentIndex: 0,
+        ...deck,
+        ...d,
+      };
     });
     return {
       ...state,
@@ -79,12 +74,6 @@ export const card = (
       c => c.deckId === id && delete state.byId[c.id]
     );
     return state;
-    // } else if (equal(action, type.card_shuffle)) {
-    //   const config: ConfigState = action.payload.config;
-    //   const byDeckId = Object.entries(state.byDeckId)
-    //     .map(e => ({ [e[0]]: config.shuffled ? _.shuffle(e[1]) : e[1].sort() }))
-    //     .reduce((obj, e) => ({ ...obj, ...e }));
-    //   return { ...state, byDeckId };
   } else if (equal(action, type.cardEditInit)) {
     return { ...state, edit: { tags: [] } };
   } else if (equal(action, type.cardEdit)) {

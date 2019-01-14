@@ -237,7 +237,7 @@ class _CardList extends React.Component<
         </Select>
         <Table
           rowKey="id"
-          dataSource={getSelector(this.props.state).card.filter({ deckId })}
+          dataSource={getSelector(this.props.state).card.filter(deckId)}
           columns={this.getColumns()}
           pagination={{
             defaultPageSize: 20,

@@ -88,15 +88,6 @@ export class _CardEdit extends React.Component<
             </NB.Right>
           </NB.ListItem>
 
-          {/* <NB.ListItem noBorder>
-            <NB.Body>
-              <NB.Text>Category</NB.Text>
-            </NB.Body>
-            <NB.Right>
-              <NB.Text>{card.category || ''}</NB.Text>
-            </NB.Right>
-          </NB.ListItem> */}
-
           <NB.ListItem noBorder>
             <NB.Body>
               <NB.Text>Mastered</NB.Text>
@@ -108,7 +99,17 @@ export class _CardEdit extends React.Component<
               />
             </NB.Right>
           </NB.ListItem>
+
+          <NB.ListItem noBorder>
+            <NB.Body>
+              <NB.Text>Tags</NB.Text>
+            </NB.Body>
+            <NB.Right>
+              <NB.Text>{card.tags.join(', ')}</NB.Text>
+            </NB.Right>
+          </NB.ListItem>
         </NB.List>
+
         <CardForm
           card={this.props.state.card.edit}
           onChangeText={card => this.cardEdit(card)}
