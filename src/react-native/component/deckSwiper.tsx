@@ -7,7 +7,6 @@ import DeckSwiper from 'react-native-deck-swiper';
 import { connect } from 'react-redux';
 import { Controller } from './controller';
 import { CardDetail } from './card';
-import { MasteredCircle } from './card';
 import { CardView } from './cardView';
 
 class View extends React.Component<
@@ -45,14 +44,15 @@ class View extends React.Component<
   getDeckAndCards() {
     const selector = getSelector(this.props.state);
     const cards = selector.card.currentList;
+    const currentCard = selector.card.currentCard;
     const deck = selector.deck.current;
-    return { deck, cards };
+    return { deck, cards, currentCard };
   }
   render() {
     const { dispatch } = this.props;
     const width = this.state.width;
     const height = this.state.height;
-    const { deck, cards } = this.getDeckAndCards();
+    const { deck, cards, currentCard } = this.getDeckAndCards();
     if (deck.currentIndex < 0 || cards.length <= deck.currentIndex) {
       return <RN.View />;
     }
@@ -73,7 +73,9 @@ class View extends React.Component<
               paddingRight: 10, // <NB.CheckBox /> has left: 10. Android hide the half of it
             }}
           >
-            <MasteredCircle card={cards[deck.currentIndex] || {}} />
+            <NB.Badge primary>
+              <NB.Text>{currentCard.score}</NB.Text>
+            </NB.Badge>
           </RN.View>
           <RN.TouchableOpacity
             onPress={() => dispatch(Action.cardSwipeLeft())}

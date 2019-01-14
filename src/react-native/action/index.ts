@@ -124,12 +124,12 @@ export const goToNextCardSetMastered = (
   const state = getState();
   const card = getSelector(state).card.currentCard;
   if (card) {
-    await dispatch(Action.cardUpdate({ ...card, mastered: !card.mastered }));
-    if (state.config.showMastered) {
-      await dispatch(goToNextCard());
-    } else if (mastered === false) {
-      await dispatch(goToNextCard());
-    }
+    let score;
+    if (mastered === true) score = card.score + 1;
+    else if (mastered === false) score = card.score - 1;
+    else score = 0;
+    await dispatch(goToNextCard());
+    await dispatch(Action.cardUpdate({ ...card, score }));
   }
 };
 

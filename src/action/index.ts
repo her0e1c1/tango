@@ -15,6 +15,7 @@ export const rowToCard = (row: string[]): Partial<Card> => ({
   backText: row[1] || '',
   hint: row[2] || '',
   tags: row[3] ? row[3].split(',') : [],
+  score: row[4] ? parseInt(row[4]) : 0,
 });
 
 export const cardToRow = (card: Card): string[] => [
@@ -22,6 +23,7 @@ export const cardToRow = (card: Card): string[] => [
   card.backText,
   card.hint,
   card.tags.join(','),
+  String(card.score),
 ];
 
 export const loadingStart = (): ThunkAction => async (dispatch, getState) => {
@@ -191,14 +193,15 @@ export const deckSwipeStart = (deckId: string): ThunkAction => async (
   dispatch,
   getState
 ) => {
+  // must filter cards here
   const selector = getSelector(getState());
-  const deck = selector.deck.getByIdOrEmpty(deckId);
-  let cardOrderIds = [...deck.cardIds];
+  const cards = selector.card.deckId(deckId);
+  let cardOrderIds = cards.filter(c => c.isShown).map(c => c.id);
   if (getState().config.shuffled) {
     cardOrderIds = shuffle(cardOrderIds);
   }
   await dispatch(
-    type.deckInsert({ id: deck.id, currentIndex: 0, cardOrderIds } as Deck)
+    type.deckInsert({ id: deckId, currentIndex: 0, cardOrderIds } as Deck)
   );
 };
 

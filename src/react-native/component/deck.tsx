@@ -309,44 +309,74 @@ export class _DeckStart extends React.Component<
         <NB.Button
           full
           onPress={async () => {
-            await this.props.dispatch(Action.deckSwipeStart(deck.id));
+            await this.props.dispatch(
+              Action.deckInsert({
+                id: deck.id,
+                currentIndex: 0,
+                cardOrderIds: deck.getCardOrderIds(),
+              } as Deck)
+            );
             await this.props.dispatch(Action.goTo('card', { deckId: deck.id }));
           }}
         >
-          <NB.Text>START</NB.Text>
+          <NB.Text>Learn {deck.getCardOrderIds().length} card(s)!</NB.Text>
         </NB.Button>
 
+        <NB.Separator bordered>
+          <NB.Text>max score {deck.scoreMax}</NB.Text>
+        </NB.Separator>
+
+        <NB.ListItem>
+          <RN.Slider
+            step={1}
+            value={deck.scoreMax}
+            minimumValue={-10}
+            maximumValue={10}
+            onSlidingComplete={scoreMax =>
+              this.props.dispatch(
+                Action.deckInsert({ id: deck.id, scoreMax } as Deck)
+              )
+            }
+            style={{ flex: 1 }}
+          />
+        </NB.ListItem>
+
         {allTags.length > 0 && (
-          <NB.ListItem
-            style={{ justifyContent: 'flex-end', flexDirection: 'row' }}
-          >
-            <NB.Button
-              small
-              onPress={() =>
-                this.props.dispatch(
-                  Action.deckBulkInsert([
-                    { id: deck.id, selectedTags: allTags } as Deck,
-                  ])
-                )
-              }
+          <React.Fragment>
+            <NB.Separator bordered>
+              <NB.Text>Filter by tags</NB.Text>
+            </NB.Separator>
+            <NB.ListItem
+              style={{ justifyContent: 'flex-end', flexDirection: 'row' }}
             >
-              <NB.Text>ALL</NB.Text>
-            </NB.Button>
-            <NB.Text style={{ padding: 5 }}>/</NB.Text>
-            <NB.Button
-              light
-              small
-              onPress={() =>
-                this.props.dispatch(
-                  Action.deckBulkInsert([
-                    { id: deck.id, selectedTags: [] as any } as Deck,
-                  ])
-                )
-              }
-            >
-              <NB.Text>CLEAR</NB.Text>
-            </NB.Button>
-          </NB.ListItem>
+              <NB.Button
+                small
+                onPress={() =>
+                  this.props.dispatch(
+                    Action.deckBulkInsert([
+                      { id: deck.id, selectedTags: allTags } as Deck,
+                    ])
+                  )
+                }
+              >
+                <NB.Text>ALL</NB.Text>
+              </NB.Button>
+              <NB.Text style={{ padding: 5 }}>/</NB.Text>
+              <NB.Button
+                light
+                small
+                onPress={() =>
+                  this.props.dispatch(
+                    Action.deckBulkInsert([
+                      { id: deck.id, selectedTags: [] as any } as Deck,
+                    ])
+                  )
+                }
+              >
+                <NB.Text>CLEAR</NB.Text>
+              </NB.Button>
+            </NB.ListItem>
+          </React.Fragment>
         )}
 
         {allTags.map((tag, i) => (

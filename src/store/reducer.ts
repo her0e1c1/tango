@@ -60,7 +60,10 @@ export const card = (
 ) => {
   if (equal(action, type.cardBulkInsert)) {
     const cs = action.payload.cards;
-    cs.forEach(c => (state.byId[c.id] = c));
+    cs.forEach(c => {
+      const current = state.byId[c.id] || {};
+      state.byId[c.id] = { score: 0, ...current, ...c };
+    });
     cs.forEach(c => (c.tags || []).forEach(t => state.tags.push(t)));
     state.tags = uniq(state.tags);
     return { ...state };
@@ -111,9 +114,9 @@ export const config = (
     theme: 'default',
     isLoading: false, // maybe not here
     cardSwipeUp: 'goToNextCardToggleMastered',
-    cardSwipeDown: 'goBack',
+    cardSwipeDown: 'goToNextCardNotMastered',
     cardSwipeLeft: 'goToPrevCard',
-    cardSwipeRight: 'goToNextCard',
+    cardSwipeRight: 'goToNextCardMastered',
     uid: '',
     displayName: '',
     selectedTags: [],

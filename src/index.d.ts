@@ -31,10 +31,12 @@ interface Deck {
   // when user selects a deck, show this index card
   // this should not be stored in sqlite
   currentIndex: number;
+  selectedTags: string[];
+  scoreMax?: number;
+
   category?: Category;
   convertToBr?: boolean;
   onlyBody?: boolean;
-  selectedTags: string[];
 }
 
 interface DeckModel extends Deck {
@@ -54,6 +56,7 @@ interface Card {
   backText: string;
   hint: string;
   mastered: boolean;
+  score: number;
   deckId: string;
   uid: string;
   tags: string[];

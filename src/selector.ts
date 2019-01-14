@@ -1,5 +1,5 @@
 import * as C from 'src/constant';
-import { uniq } from 'lodash';
+import { uniq, shuffle } from 'lodash';
 
 export const getSelector = (state: RootState) => new Selector(state);
 
@@ -97,9 +97,7 @@ class CardSelector extends EntitySelector<Card, _CardModel> {
     return ids.map(id => this.getById(id)).filter(c => !!c) as _CardModel[];
   }
   get currentList() {
-    const deckId = this.selector.deck.current.id;
-    if (!deckId) return [];
-    return this.filter(deckId);
+    return this.deckId(this.selector.deck.current.id, { cardOrderIds: true });
   }
   get currentCard(): _CardModel {
     const cards = this.selector.card.currentList;
@@ -114,13 +112,7 @@ class CardSelector extends EntitySelector<Card, _CardModel> {
     const deck = this.selector.deck.getById(deckId);
     if (!deck) return [];
     const cards = this.deckId(deckId, { cardOrderIds: true });
-    const tags = deck.selectedTags;
-    return cards.filter(c => {
-      if (tags.length > 0 && !tags.some(t => c.tags.includes(t))) {
-        return false;
-      }
-      return true;
-    });
+    return cards.filter(c => c.isShown);
   }
 }
 
@@ -137,6 +129,16 @@ class _DeckModel implements Model {
     }
     Object.assign(this, deck);
   }
+
+  getCardOrderIds(): string[] {
+    const cards = this.selector.card.deckId(this.id);
+    let cardOrderIds = cards.filter(c => c.isShown).map(c => c.id);
+    if (this.selector.state.config.shuffled) {
+      cardOrderIds = shuffle(cardOrderIds);
+    }
+    return cardOrderIds;
+  }
+
   getTags() {
     const cards = this.selector.card.deckId(this.id);
     return uniq(cards.map(c => c.tags).reduce((a, acc) => [...a, ...acc], []));
@@ -187,6 +189,17 @@ class _CardModel implements Model {
   get deck(): _DeckModel {
     return this.selector.deck.getById(this.deckId)!;
   }
+  get isShown(): boolean {
+    const deck = this.deck;
+    const tags = this.deck.selectedTags;
+    if (tags.length > 0 && !tags.some(t => this.tags.includes(t))) {
+      return false;
+    }
+    if (deck.scoreMax != undefined && this.score > deck.scoreMax) {
+      return false;
+    }
+    return true;
+  }
   get category(): string | undefined {
     // TODO: remove
     const convert = c => {
@@ -212,6 +225,7 @@ class _CardModel implements Model {
       'mastered',
       'deckId',
       'tags',
+      'score',
       'createdAt',
       'updatedAt',
     ];
