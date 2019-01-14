@@ -89,6 +89,7 @@ class RightButton extends React.Component<Props, {}> {
         {page.routeName === 'card' &&
           // if string is empty, it causes the error:
           // out of <Text />, so you need to return boolean instead of string
+          !!card &&
           !!card.hint &&
           !!card.hint.trim() && (
             <NB.Button

@@ -11,7 +11,7 @@ import { MasteredCircle } from './card';
 import { CardView } from './cardView';
 
 class View extends React.Component<
-  { deck_id: number } & ConnectedProps,
+  ConnectedProps,
   { width: number; height: number }
 > {
   constructor(props) {
@@ -28,22 +28,32 @@ class View extends React.Component<
       height: dimensions.window.height * (3 / 4),
     });
   }
-  componentDidMount() {
+  async componentDidMount() {
+    const { deck, cards } = this.getDeckAndCards();
+    if (deck.currentIndex < 0 || cards.length <= deck.currentIndex) {
+      await this.props.dispatch(
+        Action.deckInsert({ id: deck.id, currentIndex: 0 } as Deck)
+      );
+      await this.props.dispatch(Action.goBack());
+    }
     this.changeEvent = this.changeEvent.bind(this);
     RN.Dimensions.addEventListener('change', this.changeEvent as any); // TODO: upgrade @types/react-native
   }
   componentWillUnmount() {
     RN.Dimensions.removeEventListener('change', this.changeEvent as any); // TODO: upgrade @types/react-native
   }
+  getDeckAndCards() {
+    const selector = getSelector(this.props.state);
+    const cards = selector.card.currentList;
+    const deck = selector.deck.current;
+    return { deck, cards };
+  }
   render() {
     const { dispatch } = this.props;
     const width = this.state.width;
     const height = this.state.height;
-    const selector = getSelector(this.props.state);
-    const cards = selector.card.currentList;
-    const deck = selector.deck.current;
-    const currentIndex = deck.currentIndex;
-    if (currentIndex < 0 || cards.length <= currentIndex) {
+    const { deck, cards } = this.getDeckAndCards();
+    if (deck.currentIndex < 0 || cards.length <= deck.currentIndex) {
       return <RN.View />;
     }
 
@@ -63,7 +73,7 @@ class View extends React.Component<
               paddingRight: 10, // <NB.CheckBox /> has left: 10. Android hide the half of it
             }}
           >
-            <MasteredCircle card={cards[currentIndex] || {}} />
+            <MasteredCircle card={cards[deck.currentIndex] || {}} />
           </RN.View>
           <RN.TouchableOpacity
             onPress={() => dispatch(Action.cardSwipeLeft())}
@@ -92,7 +102,7 @@ class View extends React.Component<
             // backgroundColor={this.props.theme.cardBackgroundColor}
             cardStyle={{ height, width }}
             backgroundColor={'white'}
-            cardIndex={currentIndex}
+            cardIndex={deck.currentIndex}
             cards={cards}
             onSwipedRight={() => dispatch(Action.cardSwipeRight())}
             onSwipedLeft={() => dispatch(Action.cardSwipeLeft())}
