@@ -9,7 +9,6 @@ import * as katex from 'katex';
 import * as C from 'src/constant';
 import * as Action from 'src/web/action';
 import 'highlight.js/styles/googlecode.css';
-import { deck } from 'src/store/reducer';
 
 export const renderCard = (data: string, category?: string | null) => {
   if (category === 'math') {
@@ -233,8 +232,10 @@ class _CardList extends React.Component<
             )
           }
         >
-          {this.props.state.card.tags.map(t => (
-            <Select.Option value={t}>{t}</Select.Option>
+          {this.props.state.card.tags.map((t, i) => (
+            <Select.Option key={i} value={t}>
+              {t}
+            </Select.Option>
           ))}
         </Select>
         <Table
