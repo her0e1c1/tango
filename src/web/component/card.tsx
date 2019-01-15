@@ -9,6 +9,7 @@ import * as katex from 'katex';
 import * as C from 'src/constant';
 import * as Action from 'src/web/action';
 import 'highlight.js/styles/googlecode.css';
+import { deck } from 'src/store/reducer';
 
 export const renderCard = (data: string, category?: string | null) => {
   if (category === 'math') {
@@ -226,9 +227,10 @@ class _CardList extends React.Component<
         <Select
           style={{ width: 500 }}
           mode="tags"
-          defaultValue={this.props.state.config.selectedTags}
           onChange={(selectedTags: string[]) =>
-            this.props.dispatch(Action.configUpdate({ selectedTags }))
+            this.props.dispatch(
+              Action.deckInsert({ id: deckId, selectedTags } as Deck)
+            )
           }
         >
           {this.props.state.card.tags.map(t => (

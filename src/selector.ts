@@ -111,7 +111,7 @@ class CardSelector extends EntitySelector<Card, _CardModel> {
   filter(deckId: string): _CardModel[] {
     const deck = this.selector.deck.getById(deckId);
     if (!deck) return [];
-    const cards = this.deckId(deckId, { cardOrderIds: true });
+    const cards = this.deckId(deckId);
     return cards.filter(c => c.isShown);
   }
 }
