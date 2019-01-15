@@ -200,3 +200,4 @@ interface ReactNativeAlert {
   (string): void;
 }
 declare const alert: ReactNativeAlert;
+declare const __REDIRECT_URI__: string;

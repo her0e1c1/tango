@@ -1,29 +1,80 @@
 import * as firebase from 'firebase/app';
 import * as Action from 'src/action';
 import * as C from 'src/constant';
+import { auth } from 'src/firebase';
+export * from 'src/action';
+import * as queryString from 'query-string';
+import { configUpdate } from 'src/action/type';
 const FileSaver = require('file-saver');
 
-export * from 'src/action';
+export const init = (): ThunkAction => async (dispatch, getState) => {
+  auth.onAuthStateChanged(async user => {
+    __DEV__ && console.log('DEBUG: INIT', user);
+    if (user) {
+      await dispatch(
+        Action.configUpdate({
+          uid: user.uid,
+          displayName: user.displayName,
+        })
+      );
+      await dispatch(Action.setEventListener());
+    } else {
+      console.log('NOT LOGGED IN YET');
+    }
+  });
+};
 
-export const login = (): ThunkAction => async (dispatch, getState) => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  C.GOOGLE_AUTH_SCOPES.forEach(s => provider.addScope(s));
-  const result = await firebase.auth().signInWithPopup(provider);
-  __DEV__ && console.log('DEBUG: LOGIN', result.user);
-  if (result.user) {
-    const { displayName, uid } = result.user;
-    // @ts-ignore: credential doesn't have accessToken as key
-    const googleAccessToken = result.credential.accessToken;
-
+// you can get code after auth login
+export const setGoogleTokens = (code: string): ThunkAction => async (
+  dispatch,
+  _getState
+) => {
+  const body = queryString.stringify({
+    grant_type: 'authorization_code',
+    redirect_uri: __REDIRECT_URI__,
+    client_id: C.GOOGLE_WEB_CLIENT_ID,
+    client_secret: C.GOOGLE_WEB_CLIENT_SECRET,
+    code: code,
+  });
+  const res = await fetch('https://accounts.google.com/o/oauth2/token', {
+    method: 'POST',
+    body,
+    headers: new Headers({
+      'content-type': 'application/x-www-form-urlencoded',
+    }),
+  });
+  const json = (await res.json()) as {
+    access_token: string;
+    id_token: string;
+    refresh_token: string;
+  };
+  if (json.access_token && json.refresh_token && json.id_token) {
+    const credential = firebase.auth.GoogleAuthProvider.credential(
+      json.id_token
+    );
+    await firebase.auth().signInAndRetrieveDataWithCredential(credential);
+    await dispatch(init());
     await dispatch(
-      Action.configUpdate({
-        uid,
-        displayName,
-        googleAccessToken,
+      configUpdate({
+        googleAccessToken: json.access_token,
+        googleRefreshToken: json.refresh_token,
       })
     );
-    await dispatch(Action.setEventListener());
   }
+};
+
+export const login = (): ThunkAction => async (dispatch, getState) => {
+  const redirectUrl = __REDIRECT_URI__;
+  const scope = C.GOOGLE_AUTH_SCOPES.join('%20');
+  const authUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `&client_id=${C.GOOGLE_WEB_CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(redirectUrl)}` +
+    `&response_type=code` +
+    `&access_type=offline` +
+    `&prompt=consent` +
+    `&scope=${scope}`;
+  location.href = authUrl;
 };
 
 export const deckDownload = (

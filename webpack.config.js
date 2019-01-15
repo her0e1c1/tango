@@ -56,7 +56,10 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             plugins: [
-              ["import", { "libraryName": "antd", "libraryDirectory": "lib"}, "ant"],
+              ["import", {
+                "libraryName": "antd",
+                "libraryDirectory": "lib"
+              }, "ant"],
             ]
           }
         }
@@ -72,6 +75,7 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
+      __REDIRECT_URI__: JSON.stringify(process.env.NODE_ENV === 'production' ? "https://tang04mem0.firebaseapp.com" : "http://localhost:8090")
     }),
   ],
 };

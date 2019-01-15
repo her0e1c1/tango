@@ -43,7 +43,7 @@ export const logout = (): ThunkAction => async (dispatch, getState) => {
   dispatch(type.clearAll());
 };
 
-export const refreshToken = (type: {
+export const refreshToken = (type?: {
   ios: boolean;
   android: boolean;
 }): ThunkAction => async (dispatch, getState) => {
@@ -53,9 +53,9 @@ export const refreshToken = (type: {
     return;
   }
   const params = {} as any;
-  if (type.ios) {
+  if (type && type.ios) {
     params.client_id = C.GOOGLE_IOS_CLIENT_ID;
-  } else if (type.android) {
+  } else if (type && type.android) {
     params.client_id = C.GOOGLE_ANDROID_CLIENT_ID;
   } else {
     params.client_id = C.GOOGLE_WEB_CLIENT_ID;
@@ -73,8 +73,8 @@ export const refreshToken = (type: {
       'content-type': 'application/x-www-form-urlencoded',
     }),
   });
-  if (!res.ok) return alert(`${res.statusText}`);
   const json = await res.json();
+  if (!res.ok) return alert(`${JSON.stringify(json)}`);
   await dispatch(configUpdate({ googleAccessToken: json.access_token }));
 };
 
