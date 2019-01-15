@@ -63,7 +63,9 @@ export const setGoogleTokens = (code: string): ThunkAction => async (
   }
 };
 
-export const login = (): ThunkAction => async (dispatch, getState) => {
+export const login = (): ThunkAction => async (_dispatch, _getState) => {
+  // If you call this api, you need to ask google to verify your app.
+  // Otherwise it will show this app is not verified when user logs in
   const redirectUrl = __REDIRECT_URI__;
   const scope = C.GOOGLE_AUTH_SCOPES.join('%20');
   const authUrl =

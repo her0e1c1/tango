@@ -75,6 +75,7 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
+      // You need to set uri in the from of Authorized redirect URIs at https://console.cloud.google.com
       __REDIRECT_URI__: JSON.stringify(process.env.NODE_ENV === 'production' ? "https://tang04mem0.firebaseapp.com" : "http://localhost:8090")
     }),
   ],
