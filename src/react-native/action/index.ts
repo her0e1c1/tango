@@ -128,9 +128,9 @@ export const goToNextCardSetMastered = (
   if (card) {
     let score;
     if (mastered === true) {
-      score = score >= 0 ? card.score + 1 : 0;
+      score = card.score >= 0 ? card.score + 1 : 0;
     } else if (mastered === false) {
-      score = score <= 0 ? card.score - 1 : 0;
+      score = card.score <= 0 ? card.score - 1 : 0;
     } else {
       score = 0;
     }
