@@ -105,7 +105,7 @@ export class _CardEdit extends React.Component<
               <NB.Text>Tags</NB.Text>
             </NB.Body>
             <NB.Right>
-              <NB.Text>{card.tags.join(', ')}</NB.Text>
+              <NB.Text>{(card.tags || []).join(', ')}</NB.Text>
             </NB.Right>
           </NB.ListItem>
         </NB.List>
