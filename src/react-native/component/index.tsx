@@ -53,6 +53,7 @@ const RootTabs = TabNavigator(
       },
     },
   },
+  // @ts-ignore
   {
     tabBarComponent: SD.TabBarBottom,
     tabBarPosition: 'bottom',
