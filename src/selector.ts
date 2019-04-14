@@ -155,6 +155,7 @@ class _DeckModel implements Model {
       'deletedAt',
       'currentIndex',
       'category',
+      'sheetId',
       'url',
     ];
     const json = {} as Deck;
