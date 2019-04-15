@@ -25,13 +25,9 @@ const deckAction = (dispatch: any, item: Deck) => {
       } else if (index === 1) {
         await dispatch(Action.goTo('deckEdit', { deckId: item.id }));
       } else if (index === 2) {
-        if (item.sheetId) {
-          await dispatch(Action.loadingStart());
-          await dispatch(Action.sheetUpload(item));
-          await dispatch(Action.loadingEnd());
-        } else {
-          alert('NO SPREAD SHEET');
-        }
+        await dispatch(Action.loadingStart());
+        await dispatch(Action.sheetUpload(item));
+        await dispatch(Action.loadingEnd());
       } else {
         // DO NOTHING
       }
