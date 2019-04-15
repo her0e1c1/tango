@@ -586,5 +586,8 @@ export const sheetUpload = (
     headers: new Headers(headers),
     body: JSON.stringify({ values }),
   });
+  if (!res.ok) {
+    alert('status code is not ok');
+  }
   return res.ok;
 };
