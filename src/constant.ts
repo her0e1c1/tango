@@ -5,6 +5,7 @@ export const LANGUAGES = [
   'cpp',
   'kotlin',
   'python',
+  'py',
   'golang',
   'java',
   'javascript',
@@ -12,6 +13,7 @@ export const LANGUAGES = [
   'php',
   'ruby',
   'shell',
+  'sh',
   'swift',
 ];
 
