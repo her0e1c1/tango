@@ -29,8 +29,7 @@ jobs:
           - v1-dependencies-
       - run: printf "cat <<EOS\n`cat ./src/secret.ts.example`\nEOS\n" | sh > ./src/secret.ts
       - run: NODE_ENV=production yarn build
-      - run: yarn expo login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD" 
-      # - run: yarn expo login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD" 2>&1 > /dev/null
+      - run: yarn expo login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD" 2>&1 > /dev/null
       - run: yarn expo whoami
       - run: yarn expo publish --non-interactive
       - run: yarn web-build
