@@ -6,7 +6,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "publish": "expo-cli publish --config storybook/app.json",
+    "publish": "expo-cli publish",
+    "publish:story": "expo-cli publish --config storybook/app.json",
     "test": "jest",
     "test:watch": "jest --watch",
     "eject": "expo eject"
