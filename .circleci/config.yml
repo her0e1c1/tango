@@ -29,10 +29,10 @@ jobs:
           - v1-dependencies-
       - run: printf "cat <<EOS\n`cat ./src/secret.ts.example`\nEOS\n" | sh > ./src/secret.ts
       # - run: NODE_ENV=production yarn build
-      - run: yarn global add expo-cli 
-      - run: expo-cli login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD" 2>&1 > /dev/null
-      - run: expo-cli whoami
-      - run: expo-cli publish --non-interactive
+      - run: yarn add expo-cli 
+      - run: yarn run expo-cli login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD" 2>&1 > /dev/null
+      - run: yarn run expo-cli whoami
+      - run: yarn run expo-cli publish --non-interactive
       # - run: yarn web-build
       # - run: yarn firebase deploy --token "$FIREBASE_TOKEN" --only hosting
 
