@@ -124,8 +124,7 @@ const FrontText = () => {
   return (
     <NB.View style={{ flex: 1, display: showBackText ? 'none' : undefined }}>
       <Header
-        bodyText={'HOGE'}
-        // bodyText={deck.name}
+        bodyText={deck.name}
         rightIcon="edit"
         rightOnPress={React.useCallback(() => goTo('CardEdit', { cardId }), [])}
       />
