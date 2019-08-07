@@ -1,14 +1,14 @@
 import { pull, shuffle } from 'lodash';
+import * as RN from 'react-native';
 import * as firebase from 'firebase/app';
 import * as Papa from 'papaparse';
-
-import * as type from './type';
-import { db } from 'src/firebase';
+import { ThunkAction } from 'redux-thunk';
 import * as C from 'src/constant';
-import * as queryString from 'query-string';
-import { getSelector, CardModel, DeckModel } from 'src/selector';
+import * as type from 'src/action/type';
+import { db } from 'src/firebase';
+// import console = require('console');
 
-export * from './type';
+type ThunkResult<R = void> = ThunkAction<R, RootState, undefined, Action>;
 
 export const rowToCard = (row: string[]): Partial<Card> => ({
   frontText: row[0] || '',
@@ -26,192 +26,137 @@ export const cardToRow = (card: Card): string[] => [
   String(card.score),
 ];
 
-export const loadingStart = (): ThunkAction => async (dispatch, getState) => {
-  dispatch(
-    type.configUpdate({ loadingCount: getState().config.loadingCount + 1 })
-  );
+const papaComplete = async (results): Promise<Card[]> => {
+  const cards = results.data
+    .map(rowToCard)
+    .filter(c => !!c.frontText) as Card[];
+  // for (let c of cards) {
+  //   if (c.tags.includes('url')) {
+  //     const s = c.backText.split(/#L(\d+)(-L(\d+))?/);
+  //     c.backText = await cardFetchFromUrl(s[0], Number(s[1]), Number(s[3]));
+  //   }
+  // }
+  __DEV__ && console.log('DEBUG: CSV COMPLETE', results, cards);
+  return cards;
 };
 
-export const loadingEnd = (): ThunkAction => async (dispatch, getState) => {
-  dispatch(
-    type.configUpdate({ loadingCount: getState().config.loadingCount - 1 })
-  );
+const defaultHeader = {
+  'Content-Type': 'application/json',
 };
 
-export const logout = (): ThunkAction => async (dispatch, getState) => {
-  await firebase.auth().signOut();
-  dispatch(type.clearAll());
-};
-
-export const refreshToken = (type?: {
-  ios: boolean;
-  android: boolean;
-}): ThunkAction => async (dispatch, getState) => {
-  const refresh_token = getState().config.googleRefreshToken;
-  if (!refresh_token) {
-    console.log(`You can't refresh`);
-    return;
+const tryFetch = (
+  url: string,
+  params: {
+    method?: 'GET' | 'POST';
+    header?: {};
+    body?: string;
+    retry?: boolean;
+    googleToken?: boolean;
   }
-  const params = {} as any;
-  if (type && type.ios) {
-    params.client_id = C.GOOGLE_IOS_CLIENT_ID;
-  } else if (type && type.android) {
-    params.client_id = C.GOOGLE_ANDROID_CLIENT_ID;
-  } else {
-    params.client_id = C.GOOGLE_WEB_CLIENT_ID;
-    params.client_secret = C.GOOGLE_WEB_CLIENT_SECRET;
+): ThunkResult<any> => async (dispatch, getState) => {
+  const { retry = true } = params;
+  __DEV__ && console.log('TRY FETCH: ', retry, url);
+  const header = { ...defaultHeader, ...params.header } as any;
+  if (params.googleToken) {
+    const token = getState().config.googleAccessToken;
+    header.Authorization = `Bearer ${token}`;
   }
-  const body = queryString.stringify({
-    refresh_token,
-    grant_type: 'refresh_token',
-    ...params,
+  const res = await fetch(url, {
+    method: params.method || 'GET',
+    headers: new Headers(header),
+    body: params.body,
   });
-  const res = await fetch('https://accounts.google.com/o/oauth2/token', {
-    method: 'POST',
-    body,
-    headers: new Headers({
-      'content-type': 'application/x-www-form-urlencoded',
-    }),
-  });
-  const json = await res.json();
-  if (!res.ok) return alert(`${JSON.stringify(json)}`);
-  await dispatch(configUpdate({ googleAccessToken: json.access_token }));
+  if (res.status === 401 && retry) {
+    await dispatch(refreshToken());
+    return await tryFetch(url, { ...params, retry: false });
+  }
+  return res;
 };
 
-export const insertByURL = (url: string): ThunkAction => async (
-  dispatch,
-  _getState
-) => {
-  __DEV__ && console.log(`FETCH START: ${url}`);
-  const res = await fetch(url);
-  const text = await res.text();
-  const name = url.split('/').pop() || 'sample';
-  await dispatch(
-    parseByText(text, {
-      name,
-      url,
-    })
-  );
-};
-
-export const setEventListener = (): ThunkAction => async (
+export const deckStart = (cards: Card[]): ThunkResult => async (
   dispatch,
   getState
 ) => {
-  const state = getState();
-  const uid = state.config.uid;
-  if (!uid) {
-    return; // after user log in, then call this function
-  }
-  if (Object.keys(state.deck.byId).length === 0) {
-    await dispatch(loadingStart());
-    const decks = await dispatch(deckFetch());
-    decks.forEach(async d => await dispatch(cardFetch(d.id)));
-    await dispatch(configUpdate({ lastUpdatedAt: new Date().getTime() }));
-    await dispatch(loadingEnd());
-  }
-  // FIXME: maybe client timestamp is different from server's one
-  const updatedAt = getState().config.lastUpdatedAt;
-  __DEV__ && console.log('LAST UPDATED AT: ', new Date(updatedAt));
-  db.collection('deck')
-    .where('uid', '==', uid)
-    .where('updatedAt', '>=', new Date(updatedAt))
-    .orderBy('updatedAt', 'desc')
-    .onSnapshot(async snapshot => {
-      // it seems docChanges().forEach is not async func
-      const decks = [] as Deck[];
-      snapshot.docChanges().forEach(change => {
-        const id = change.doc.id;
-        const deck = { ...change.doc.data(), id } as Deck;
-        // when initialized, modified event is not triggered but added is after updating deletedAt
-        if (deck.deletedAt != null) {
-          dispatch(type.deckDelete(id));
-        } else if (change.type === 'added') {
-          decks.push(deck);
-        } else if (change.type === 'modified') {
-          decks.push(deck);
-        } else if (change.type === 'removed') {
-          // NOT REACHED
-        }
-      });
-      if (decks.length > 0) {
-        await dispatch(type.deckBulkInsert(decks));
-      }
-      await dispatch(configUpdate({ lastUpdatedAt: new Date().getTime() }));
-    });
-  db.collection('card')
-    .where('uid', '==', uid)
-    .where('updatedAt', '>=', new Date(updatedAt))
-    .orderBy('updatedAt', 'desc')
-    .onSnapshot(async snapshot => {
-      const cards = [] as Card[];
-      snapshot.docChanges().forEach(change => {
-        const id = change.doc.id;
-        const card = { ...change.doc.data(), id } as Card;
-        if (change.type === 'added') {
-          cards.push(card);
-        } else if (change.type === 'modified') {
-          cards.push(card);
-        } else if (change.type === 'removed') {
-          dispatch(type.cardDelete(id));
-        }
-      });
-      if (cards.length > 0) {
-        await dispatch(type.cardBulkInsert(cards));
-      }
-      dispatch(configUpdate({ lastUpdatedAt: new Date().getTime() }));
-    });
-};
-
-export const deckFetch = (props?: {
-  isPublic: boolean;
-}): ThunkAction<Promise<Deck[]>> => async (dispatch, getState) => {
-  const isPublic = props && props.isPublic;
-  const uid = getState().config.uid;
-  if (!isPublic && !uid) {
-    alert('need to login');
-    return [];
-  }
-  const query = db.collection('deck').where('deletedAt', '==', null);
-  // const query = db.collection('deck').orderBy('updatedAt', 'desc');
-  let querySnapshot: firebase.firestore.QuerySnapshot;
-  if (isPublic) {
-    querySnapshot = await query.where('isPublic', '==', true).get();
-  } else {
-    querySnapshot = await query.where('uid', '==', uid).get();
-  }
-  const decks = [] as Deck[];
-  querySnapshot.forEach(doc => {
-    const d = doc.data() as Deck;
-    decks.push({ ...d, id: doc.id });
-  });
-  await dispatch(type.deckBulkInsert(decks));
-  return decks;
-};
-
-export const deckSwipeStart = (deckId: string): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  // must filter cards here
-  const selector = getSelector(getState());
-  const cards = selector.card.deckId(deckId);
-  let cardOrderIds = cards.filter(c => c.isShown).map(c => c.id);
-  if (getState().config.shuffled) {
+  const deckId = cards[0].deckId; // caller cares!
+  const config = getState().config;
+  let cardOrderIds = cards.map(c => c.id);
+  if (config.shuffled) {
     cardOrderIds = shuffle(cardOrderIds);
   }
-  await dispatch(
-    type.deckInsert({ id: deckId, currentIndex: 0, cardOrderIds } as Deck)
-  );
+  await dispatch(deckUpdate({ id: deckId, currentIndex: 0, cardOrderIds }));
+  await dispatch(type.configUpdate({ showBackText: false, showHint: false }));
+};
+
+export const goToCard = (cardId): ThunkResult => async (dispatch, getState) => {
+  const card = getState().card.byId[cardId];
+  const deck = getState().deck.byId[card.deckId];
+  let currentIndex = deck.cardOrderIds.findIndex(id => id === cardId);
+  if (currentIndex === -1) currentIndex = 0;
+  await dispatch(deckUpdate({ id: deck.id, currentIndex }));
+};
+
+const getCardScore = (card: Card, mastered?: boolean) => {
+  let score;
+  if (mastered === true) {
+    score = card.score >= 0 ? card.score + 1 : 0;
+  } else if (mastered === false) {
+    score = card.score <= 0 ? card.score - 1 : 0;
+  } else {
+    score = 0;
+  }
+  return score;
+};
+
+export const deckSwipe = (
+  direction: SwipeDirection,
+  deckId: string
+): ThunkResult => async (dispatch, getState) => {
+  const deck = getState().deck.byId[deckId];
+  const cardId = deck.cardOrderIds[deck.currentIndex];
+  const card = getState().card.byId[cardId];
+  const config = getState().config;
+  const value = config[direction];
+
+  if (config.hideBodyWhenCardChanged) {
+    await dispatch(type.configUpdate({ showBackText: false, showHint: false }));
+  }
+  if (value === 'GoBack') {
+    await dispatch(deckUpdate({ id: deck.id, currentIndex: -1 }));
+    return;
+  }
+
+  let score;
+  if (value === 'GoToNextCardMastered') {
+    score = getCardScore(card, true);
+  } else if (value === 'GoToNextCardNotMastered') {
+    score = getCardScore(card, false);
+  } else if (value === 'GoToNextCardToggleMastered') {
+    score = getCardScore(card);
+  }
+  if (score !== undefined) {
+    await dispatch(type.cardUpdate({ id: card.id, score }));
+  }
+
+  let currentIndex = deck.currentIndex;
+  if (value === 'GoToPrevCard') {
+    currentIndex -= 1;
+  } else {
+    currentIndex += 1;
+  }
+  if (!(0 <= currentIndex && currentIndex < deck.cardOrderIds.length)) {
+    await dispatch(deckUpdate({ id: deck.id, currentIndex: -1 }));
+  } else {
+    await dispatch(deckUpdate({ id: deck.id, currentIndex }));
+  }
 };
 
 export const deckCreate = (
   deck: Pick<Deck, 'name' | 'sheetId' | 'url'>,
   cards: Omit<Card, 'id' | 'createdAt'>[]
-): ThunkAction => async (dispatch, getState) => {
+): ThunkResult => async (dispatch, getState) => {
   const uid = getState().config.uid;
   if (!uid) {
-    alert('You need to log in first');
+    dispatch(type.error('NEED_TO_LOGIN', 'You need to login'));
     return;
   }
   const createdAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -219,15 +164,11 @@ export const deckCreate = (
   const batch = db.batch();
   const docDeck = db.collection('deck').doc();
   const cardIds = [] as string[];
-  cards.forEach(async c => {
+  cards.forEach(c => {
     const doc = db.collection('card').doc();
     cardIds.push(doc.id);
     const card = {
-      // ...c,  // maybe pass CardModel here
-      tags: c.tags,
-      frontText: c.frontText,
-      backText: c.backText,
-      hint: c.hint,
+      ...c,
       id: doc.id,
       deckId: docDeck.id,
       uid,
@@ -237,44 +178,41 @@ export const deckCreate = (
     batch.set(doc, card);
   });
   const d = {
-    // ...deck,
+    ...deck,
     id: docDeck.id,
-    name: deck.name,
-    sheetId: deck.sheetId || null,
-    url: deck.url || null,
-    isPublic: false,
     uid,
     createdAt,
     updatedAt,
     cardIds,
+    scoreMax: null,
+    sheetId: deck.sheetId || null,
+    url: deck.url || null,
+    isPublic: false,
     deletedAt: null,
   };
   batch.set(docDeck, d);
   await batch.commit();
 };
 
-export const deckUpdate = (deck: Deck): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const dm = new DeckModel(deck.id, getSelector(getState()));
-  await db
-    .collection('deck')
+export const deckUpdate = (
+  deck: Partial<Deck> & { id: string }
+) => async () => {
+  db.collection('deck')
     .doc(deck.id)
-    .set({
-      ...dm.toJSON(deck),
+    .update({
+      ...deck,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 };
 
-export const deckDelete = (deckId: string): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  // For deck, using soft delete flag with deletedAt
-  // here update updatedAt, deletedAt and cardIds in deck.
-  await dispatch(deckUpdate(getState().deck.byId[deckId]));
+export const deckEditUpdate = (): ThunkResult => async (dispatch, getState) => {
+  const edit = getState().deck.edit;
+  await dispatch(deckUpdate(edit));
+};
 
+// For deck, using soft delete flag with deletedAt
+// here update updatedAt, deletedAt and cardIds in deck.
+export const deckDelete = (deckId: string) => async (dispatch, getState) => {
   const uid = getState().config.uid;
   const batch = db.batch();
   const querySnapshot = await db
@@ -291,303 +229,151 @@ export const deckDelete = (deckId: string): ThunkAction => async (
   await batch.commit();
 };
 
-// deck.isPublic must be true
-export const deckImportPublic = (deckId: string): ThunkAction => async (
+export const cardUpdate = (card: Partial<Card> & { id: string }) => async (
   dispatch,
   getState
 ) => {
-  const doc = await db
-    .collection('deck')
-    .doc(deckId)
-    .get();
-  const deck = { ...doc.data(), id: doc.id } as Deck;
-  await dispatch(cardFetch(deckId, true));
-
-  const cards = getSelector(getState()).card.deckId(deckId);
-  // this method should work even if user is not logged in yet
-  const uid = getState().config.uid;
-  if (uid) {
-    await dispatch(deckCreate(deck, cards));
-  } else {
-    const d = { ...deck, uid: '' };
-    await dispatch(type.deckInsert(d));
-  }
-};
-
-export const deckGenerateCsv = (
-  deckId: string
-): ThunkAction<Promise<string>> => async (dispatch, getState) => {
-  const deck = getState().deck.byId[deckId];
-  const card = getState().card;
-  const cards = deck.cardIds
-    .map((id, i) => {
-      const c = card.byId[id];
-      if (c === undefined) {
-        console.error('DEBUG INVALID CARD: ', id, i);
-      }
-      return c;
-    })
-    .filter(c => !!c);
-  const data = cards.map(cardToRow);
-  return Papa.unparse(data);
-};
-
-export const cardFetch = (
-  deckId: string,
-  isPublic: boolean = false
-): ThunkAction => async (dispatch, getState) => {
-  const uid = getState().config.uid;
-  if (!isPublic && !uid) {
-    alert('need to login');
-    return;
-  }
-  const query = db.collection('card').where('deckId', '==', deckId);
-  let querySnapshot: firebase.firestore.QuerySnapshot;
-  if (isPublic) {
-    // no need to filter by public deck???
-    querySnapshot = await query.get();
-    // querySnapshot = await query.where('deck.isPublic', '==', true).get();
-  } else {
-    // need to include the same condition as defined in security rules
-    querySnapshot = await query.where('uid', '==', uid).get();
-  }
-  const cards = [] as Card[];
-  querySnapshot.forEach(doc => {
-    const d = doc.data() as Card;
-    cards.push({ ...d, id: doc.id });
-  });
-  dispatch(type.cardBulkInsert(cards));
-};
-
-export const cardCreate = (card: Omit<Card, 'id'>): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  const uid = getState().config.uid;
-  const deckRef = db.collection('deck').doc(card.deckId);
-  const cardRef = db.collection('card').doc();
-  await db.runTransaction(async t => {
-    const deckDoc = await t.get(deckRef); // need to call first
-    await t.set(cardRef, {
-      frontText: '',
-      backText: '',
-      hint: '',
-      tags: [],
-      ...card,
-      uid,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    const deck = deckDoc.data() as Deck;
-    const cardIds = [...deck.cardIds, cardRef.id];
-    await t.update(deckRef, {
-      ...deck,
-      cardIds,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-  });
-};
-
-export const cardUpdate = (card: Card): ThunkAction => async (
-  _dispatch,
-  getState
-) => {
-  const cm = new CardModel(card.id, getSelector(getState()));
   await db
     .collection('card')
     .doc(card.id)
-    .set({
-      ...cm.toJSON(card),
+    .update({
+      ...card,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 };
 
-export const cardDelete = (id: string): ThunkAction => async (
-  dispatch,
-  getState
-) => {
+export const cardDelete = (id: string) => async (dispatch, getState) => {
   const card = getState().card.byId[id];
+  __DEV__ && console.log('CARD DELETED', card.id, card.deckId);
   const deckRef = db.collection('deck').doc(card.deckId);
   const cardRef = db.collection('card').doc(id);
-  try {
-    // NOTE: once a deck notified, need to delete the card which belongs to it
-    await db.runTransaction(async t => {
-      const deckDoc = await t.get(deckRef);
-      const deck = deckDoc.data() as Deck;
-      const cardIds = pull(deck.cardIds, id);
-      await t.update(deckRef, {
-        ...deck,
-        cardIds,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-      await t.delete(cardRef);
+  // NOTE: once a deck notified, need to delete the card which belongs to it
+  await db.runTransaction(async t => {
+    const deckDoc = await t.get(deckRef);
+    const deck = deckDoc.data() as Deck;
+    const cardIds = pull(deck.cardIds, id);
+    await t.update(deckRef, {
+      cardIds,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
-  } catch (e) {
-    console.log(e);
-  }
+    await t.delete(cardRef);
+  });
 };
 
-export const configUpdate = (config: Partial<ConfigState>) => async (
+export const cardEditUpdate = (): ThunkResult => async (dispatch, getState) => {
+  const edit = getState().card.edit;
+  await dispatch(cardUpdate(edit));
+};
+
+export const configToggle = (key: keyof ConfigState) => async (
   dispatch,
   getState
 ) => {
-  dispatch(type.configUpdate(config));
+  const value = getState().config[key];
+  dispatch(type.configUpdate({ [key]: !value }));
 };
 
-export const configToggle = (key: keyof ConfigState): ThunkAction => async (
-  dispatch,
-  getState
-) => {
-  dispatch(configUpdate({ [key]: !getState().config[key] }));
-};
-
-export const cardFetchFromUrl = async (
-  url: string,
-  start?: number,
-  end?: number
-): Promise<string> => {
-  const res = await fetch(url);
-  const text = await res.text();
-  const s = text.split('\n');
-  if (start === undefined) {
-    start = 0;
+// FIXME: I don't know but there is no refresh token for web.
+export const refreshToken = (): ThunkResult => async (dispatch, getState) => {
+  const refresh_token = getState().config.googleRefreshToken;
+  if (!refresh_token) throw `You can't refresh`;
+  const params = {} as any;
+  if (RN.Platform.OS === 'ios') {
+    params.client_id = C.GOOGLE_IOS_CLIENT_ID;
+  } else if (RN.Platform.OS === 'android') {
+    params.client_id = C.GOOGLE_ANDROID_CLIENT_ID;
+  } else {
+    params.client_id = C.GOOGLE_WEB_CLIENT_ID;
+    params.client_secret = C.GOOGLE_WEB_CLIENT_SECRET;
   }
-  if (end === undefined) {
-    end = s.length - 1;
+  const res = await dispatch(
+    tryFetch('https://accounts.google.com/o/oauth2/token', {
+      retry: false,
+      method: 'POST',
+      header: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        refresh_token,
+        grant_type: 'refresh_token',
+        ...params,
+      }).toString(),
+    })
+  );
+  if (res.ok) {
+    const json = await res.json();
+    await dispatch(type.configUpdate({ googleAccessToken: json.access_token }));
+  } else {
+    await dispatch(type.error('FAILED_TO_REFRESH_TOKEN'));
   }
-  return s.slice(start, end).join('\n');
 };
 
-const papaComplete = async (results): Promise<Card[]> => {
-  const cards = results.data
-    .map(rowToCard)
-    .filter(c => !!c.frontText) as Card[];
-  for (let c of cards) {
-    if (c.tags.includes('url')) {
-      const s = c.backText.split(/#L(\d+)(-L(\d+))?/);
-      c.backText = await cardFetchFromUrl(s[0], Number(s[1]), Number(s[3]));
+export const sheetFetch = (): ThunkResult => async (dispatch, getState) => {
+  const q = encodeURIComponent(
+    "trashed=false and mimeType='application/vnd.google-apps.spreadsheet'"
+  );
+  const url = `https://www.googleapis.com/drive/v3/files?corpora=user&q=${q}&pageSize=1000`;
+  const res = await dispatch(tryFetch(url, { googleToken: true }));
+  if (!res.ok) {
+    dispatch(type.error('FAILED_TO_REFRESH_TOKEN'));
+  } else {
+    const json = (await res.json()) as { files: any[] };
+    const spreadSheets = json.files.filter(
+      f => f.mimeType === 'application/vnd.google-apps.spreadsheet'
+    );
+    for (let ss of spreadSheets) {
+      await dispatch(spreadSheetFetch(ss.id, ss.name));
     }
   }
-  __DEV__ && console.log('DEBUG: CSV COMPLETE', results, cards);
-  return cards;
+};
+
+export const spreadSheetFetch = (
+  id: string,
+  name: string
+): ThunkResult => async (dispatch, getState) => {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}`;
+  const res = await dispatch(tryFetch(url, { googleToken: true }));
+  if (!res.ok) {
+    return;
+  }
+  const json = (await res.json()) as ({
+    spreadsheetId: string;
+    sheets: { properties: { title: string; sheetId: string } }[];
+  });
+  const sheets = json.sheets.map(s => ({
+    id: `${id}::${s.properties.title}`,
+    index: s.properties.sheetId,
+    title: s.properties.title,
+    name: name,
+    spreadSheetId: id,
+  })) as Sheet[];
+  dispatch(type.sheetBulkInsert(sheets));
 };
 
 export const parseByText = (
   text: string,
   deck: Pick<Deck, 'name' | 'url' | 'sheetId'>
-): ThunkAction => async (dispatch, _getState) => {
+): ThunkResult => async (dispatch, getState) => {
   const cards = await papaComplete(Papa.parse(text));
-  dispatch(deckCreate(deck, cards));
+  await dispatch(deckCreate(deck, cards));
 };
 
-export const parseByFile = (file: File): ThunkAction => (
-  _dispatch,
-  _getState
-) => {
-  return new Promise((resolve, _reject) =>
-    Papa.parse(file, {
-      complete: async results => resolve(await papaComplete(results)),
-    })
-  );
-};
-
-export const sheetFetch = (): ThunkAction => async (dispatch, getState) => {
-  const state = getState();
-  const q = encodeURIComponent(
-    "trashed=false and mimeType='application/vnd.google-apps.spreadsheet'"
-  );
-  const url = `https://www.googleapis.com/drive/v3/files?corpora=user&q=${q}&pageSize=1000`;
-  const headers = {
-    Authorization: `Bearer ${state.config.googleAccessToken}`,
-    'Content-Type': 'application/json',
-  };
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: new Headers(headers),
-  });
-  const json = (await res.json()) as {
-    files: { kind: string; id: string; mimeType: string; name: string }[];
-  };
-  if (!res.ok) {
-    alert(`ERROR: ${JSON.stringify(json)}`);
-    return;
-  }
-  const spreadSheets = (json.files || []).filter(
-    f => f.mimeType === 'application/vnd.google-apps.spreadsheet'
-  );
-
-  for (let ss of spreadSheets) {
-    const url2 = `https://sheets.googleapis.com/v4/spreadsheets/${ss.id}`;
-    const res2 = await fetch(url2, {
-      method: 'GET',
-      headers: new Headers(headers),
-    });
-    const json2 = (await res2.json()) as {
-      spreadsheetId: string;
-      sheets: { properties: { title: string; sheetId: string } }[];
-    };
-    const sheets = json2.sheets.map(s => ({
-      id: `${ss.id}::${s.properties.title}`,
-      index: s.properties.sheetId,
-      title: s.properties.title,
-      name: ss.name,
-      spreadSheetId: ss.id,
-    })) as Sheet[];
-    dispatch(type.sheetBulkInsert(sheets));
-  }
-};
-
-export const sheetImport = (id: string): ThunkAction => async (
+export const sheetImport = (id: string): ThunkResult => async (
   dispatch,
   getState
 ) => {
-  const state = getState();
-  const sheet = state.sheet.byId[id];
+  const sheet = getState().sheet.byId[id];
   const url = `https://docs.google.com/spreadsheets/d/${
     sheet.spreadSheetId
   }/export?gid=${sheet.index}&exportFormat=csv`;
-  const headers = {
-    Authorization: `Bearer ${state.config.googleAccessToken}`,
-    'Content-Type': 'application/json',
-  };
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: new Headers(headers),
-  });
-  const text = await res.text();
-  dispatch(
-    parseByText(text, {
-      name: `${sheet.title} (${sheet.name})`,
-      sheetId: sheet.id,
-    })
-  );
-};
-
-export const sheetUpload = (
-  deck: Deck
-): ThunkAction<Promise<boolean>> => async (_dispatch, getState) => {
-  const selector = getSelector(getState());
-  if (!deck.sheetId) {
-    alert('CAN NOT UPLOAD');
-    return false;
-  }
-
-  const [spreadSheetId, title] = deck.sheetId.split('::', 2);
-  const cards = selector.card.deckId(deck.id);
-  const values = cards.map(cardToRow);
-  const range = encodeURIComponent(`${title}!A:E`);
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadSheetId}/values/${range}?valueInputOption=RAW`;
-  const headers = {
-    Authorization: `Bearer ${getState().config.googleAccessToken}`,
-    'Content-Type': 'application/json',
-  };
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: new Headers(headers),
-    body: JSON.stringify({ values }),
-  });
+  const res = await dispatch(tryFetch(url, { googleToken: true }));
   if (!res.ok) {
-    alert('status code is not ok');
+    throw `You can not download sheet ${id}`;
+  } else {
+    const text = await res.text();
+    await dispatch(
+      parseByText(text, {
+        name: `${sheet.title} (${sheet.name})`,
+        sheetId: sheet.id,
+      })
+    );
   }
-  return res.ok;
 };

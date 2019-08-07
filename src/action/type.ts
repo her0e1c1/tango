@@ -5,25 +5,21 @@ export const deckBulkInsert = (decks: Deck[]) => ({
 
 export const deckInsert = (deck: Deck) => deckBulkInsert([deck]);
 
-export const deckBulkUpdate = (decks: Partial<Deck> & Pick<Deck, 'id'>[]) => ({
+export const deckBulkUpdate = (decks: Edit<Deck>[]) => ({
   type: 'DECK_BULK_UPDATE',
   payload: { decks },
 });
 
-export const deckUpdate = (deck: Partial<Deck> & Pick<Deck, 'id'>) =>
-  deckBulkUpdate([deck]);
+export const deckUpdate = (deck: Edit<Deck>) => deckBulkUpdate([deck]);
 
-export const deckDelete = (deckId: string) => ({
-  type: 'DECK_DELETE',
-  payload: { deckId },
-});
-
-export const deckBulkDelete = (deckIds: string[]) => ({
+export const deckBulkDelete = (ids: string[]) => ({
   type: 'DECK_BULK_DELETE',
-  payload: { deckIds },
+  payload: { ids },
 });
 
-export const deckEdit = (deck: Partial<Deck>) => ({
+export const deckDelete = (deckId: string) => deckBulkDelete([deckId]);
+
+export const deckEdit = (deck: Edit<Deck>) => ({
   type: 'DECK_EDIT',
   payload: { deck },
 });
@@ -33,24 +29,25 @@ export const cardBulkInsert = (cards: Card[]) => ({
   payload: { cards },
 });
 
-export const cardDelete = (id: string) => ({
-  type: 'CARD_DELETE',
-  payload: { id },
+export const cardInsert = (card: Card) => cardBulkInsert([card]);
+
+export const cardBulkUpdate = (cards: Edit<Card>[]) => ({
+  type: 'CARD_BULK_UPDATE',
+  payload: { cards },
 });
 
-export const cardEdit = (card: Partial<Card>) => ({
+export const cardUpdate = (card: Edit<Card>) => cardBulkUpdate([card]);
+
+export const cardBulkDelete = (ids: string[]) => ({
+  type: 'CARD_BULK_DELETE',
+  payload: { ids },
+});
+
+export const cardDelete = (id: string) => cardBulkDelete([id]);
+
+export const cardEdit = (card: Edit<Card>) => ({
   type: 'CARD_EDIT',
   payload: { card },
-});
-
-export const cardEditInit = () => ({
-  type: 'CARD_EDIT_INIT',
-  payload: {},
-});
-
-export const card_shuffle = (config: ConfigState) => ({
-  type: 'CARD_SHUFFLE',
-  payload: { config },
 });
 
 export const sheetBulkInsert = (sheets: Sheet[]) => ({
@@ -66,4 +63,15 @@ export const clearAll = () => ({
 export const configUpdate = (config: Partial<ConfigState>) => ({
   type: 'CONFIG_UPDATE',
   payload: { config },
+});
+
+export const error = (code: ErrorCode, message?: string) => ({
+  type: 'ERROR',
+  payload: { code, message },
+  // error: { code },  // FIXME: ts error
+});
+
+export const errorReset = () => ({
+  type: 'ERROR_RESET',
+  payload: {},
 });

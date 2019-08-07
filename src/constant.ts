@@ -21,7 +21,7 @@ export const CATEGORY: Category[] = ['raw', 'markdown', 'math'].concat(
   LANGUAGES
 );
 
-export const CURRENT_VERSION = 9;
+export const CURRENT_VERSION = 10;
 
 export const GOOGLE_AUTH_SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
@@ -29,3 +29,5 @@ export const GOOGLE_AUTH_SCOPES = [
   'profile',
   'email',
 ];
+
+export const URL_GOOGLE_TOKEN = 'https://accounts.google.com/o/oauth2/token';

@@ -1,15 +1,30 @@
 {
   "expo": {
     "name": "tango",
-    "sdkVersion": "30.0.0",
-    "description": "The flush cards. You can memorize anything ! Source : https://github.com/her0e1c1/tango",
-    "version": "1.1.0",
     "slug": "tango",
-    "ios": {
-      "bundleIdentifier": "com.her0e1c1.tango"
+    "privacy": "public",
+    "sdkVersion": "33.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
-    "android": {
-      "package": "com.her0e1c1.tango"
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
     }
   }
 }

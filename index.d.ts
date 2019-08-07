@@ -1,0 +1,194 @@
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
+interface Action<P = any> {
+  type: string;
+  payload: P;
+  error?: { message: string };
+}
+
+type Edit<T> = Partial<T> & Pick<T, 'id'>;
+
+type Callback = () => void;
+type Callback1<T> = (arg: T) => void;
+
+type Category = string; // 'math' | 'python' | 'golang' | 'haskell' | 'raw' | 'markdown';
+
+interface Deck {
+  id: string;
+  name: string;
+  isPublic: boolean;
+  url?: string;
+  sheetId?: string;
+  updatedAt: Date;
+  createdAt: Date;
+  deletedAt?: Date; // soft delete flag
+  uid: string;
+
+  // the order which user defines.
+  // this should not be shuffled
+  // because cards in a deck should be reordered,
+  // card interface should not have a order column.
+  // it's hard to change the order.
+  // so it needs to define in deck
+  cardIds: string[];
+  // used for deck swiper
+  cardOrderIds: string[];
+
+  // when user selects a deck, show this index card
+  // this should not be stored in sqlite
+  currentIndex: number;
+  selectedTags: string[];
+  scoreMax: number | null;
+
+  category: Category;
+  convertToBr: boolean;
+  onlyBodyinWebview: boolean;
+}
+
+interface DeckModel extends Deck {
+  toJSON(deck: Partial<Deck>): Deck;
+}
+
+interface Sheet {
+  properties: {
+    sheetId: number; // GID
+    title: string;
+  };
+}
+
+interface Card {
+  id: string;
+  frontText: string;
+  backText: string;
+  hint: string;
+  mastered: boolean;
+  score: number;
+  deckId: string;
+  uid: string;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+
+  // fetch data from web
+  url?: string;
+  startLine?: number;
+  endLine?: number;
+}
+
+interface Sheet {
+  // for sheet
+  id: string; // spreadSheetId::index
+  index: string;
+  title: string;
+
+  // for spread sheet
+  spreadSheetId: string;
+  name: string;
+}
+
+type CardTextKey = 'frontText' | 'backText' | 'hint';
+
+type DeckState = {
+  byId: { [key: string]: Deck };
+  edit: Deck;
+  categories: string[];
+};
+
+type CardState = {
+  byId: { [key: string]: Card };
+  tags: string[];
+  edit: Card;
+};
+
+type SheetState = {
+  byId: { [key: string]: Sheet };
+};
+
+type NavState = {
+  routes?: NavState[];
+  index: number;
+  key: string;
+  routeName: string;
+  params?: any;
+};
+
+type themeType = 'default' | 'dark' | 'debug';
+
+interface Theme {
+  mainBackgroundColor: string;
+  mainColor: string;
+  titleColor: string;
+  masteredColor: string;
+  cardBackgroundColor: string;
+  cardBorderColor: string;
+  circleBackgroundColor: string;
+  bgTextInput: string;
+}
+
+type errorCode = 'INVALID_URL' | 'CAN_NOT_FETCH' | 'NO_CARDS';
+
+interface SwipeState {
+  cardSwipeUp: cardSwipe;
+  cardSwipeDown: cardSwipe;
+  cardSwipeLeft: cardSwipe;
+  cardSwipeRight: cardSwipe;
+}
+
+type SwipeDirection = keyof SwipeState;
+
+type cardSwipe =
+  | 'GoBack'
+  | 'GoToPrevCard'
+  | 'GoToNextCard'
+  | 'GoToNextCardMastered'
+  | 'GoToNextCardNotMastered'
+  | 'GoToNextCardToggleMastered';
+
+type ConfigState = SwipeState & {
+  showMastered: boolean;
+  showHeader: boolean;
+  shuffled: boolean;
+  showBackText: boolean;
+  showHint: boolean;
+  hideBodyWhenCardChanged: boolean;
+  keepBackTextViewed: boolean;
+  cardInterval: number;
+  isLoading: boolean;
+  isLoadingNoAction: boolean;
+  loadingCount: number;
+  errorCode?: errorCode;
+  googleAccessToken: string;
+  googleRefreshToken: string;
+  uid: string;
+  displayName: string | null;
+  selectedTags: string[];
+  // seems like redux changes a date object
+  lastUpdatedAt: number; // Date;
+};
+
+type ErrorCode = 'NEED_TO_LOGIN' | 'FAILED_TO_REFRESH_TOKEN' | 'UNKNOWN';
+type ErrorState = {
+  code: ErrorCode;
+  message?: string;
+};
+
+interface RootState {
+  deck: DeckState;
+  card: CardState;
+  nav: NavState;
+  config: ConfigState;
+  sheet: SheetState;
+  error: ErrorState | null;
+}
+
+// Because there is a conflict between @types/react-native and lib: ["dom"] in tsconfig.json,
+// react-native doesn't include alert so it must be defined manually
+interface ReactNativeAlert {
+  (string): void;
+}
+declare const alert: ReactNativeAlert;
+declare const __REDIRECT_URI__: string;
+
+declare module 'react-redux' {
+  function useSelector<T>(state: (a: RootState) => T): T;
+}

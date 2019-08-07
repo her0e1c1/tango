@@ -1,25 +1,15 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "module": "commonjs",
-    "target": "es5",
-    "lib": ["es2017", "es7", "dom"],
-    "types": ["react-native", "react"],
-    "strictNullChecks": true,
-    "noUnusedLocals": true,
-    "declaration": false,
-    "noResolve": false,
+    "noEmit": true,
+    "lib": ["dom", "esnext"],
+    "jsx": "react-native",
+    "moduleResolution": "node",
     "allowJs": false,
-    "jsx": "react",
-    "experimentalDecorators": true,
-    "sourceMap": false,
-    "noImplicitAny": false,
     "noImplicitReturns": true,
-    "noUnusedParameters": false,
     "noUnusedLocals": true,
-    "skipLibCheck": true,
-    "outDir": "./dist/"
-  },
-  "include": ["./src/**/*"],
-  "exclude": ["node_modules", "dist"]
+    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true
+  }
 }
