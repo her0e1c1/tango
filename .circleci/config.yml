@@ -16,7 +16,7 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run: cp ./src/secret.ts.example ./src/secret.ts
-      # - run: yarn build
+      - run: yarn test:all
   deploy-job:
     docker:
       - image: circleci/node:10

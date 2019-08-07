@@ -6,7 +6,8 @@ interface Action<P = any> {
   error?: { message: string };
 }
 
-type Edit<T> = Partial<T> & Pick<T, 'id'>;
+type Update<T> = Partial<T> & Pick<T, 'id'>;
+type Edit<T> = Partial<T>;
 
 type Callback = () => void;
 type Callback1<T> = (arg: T) => void;
@@ -188,7 +189,3 @@ interface ReactNativeAlert {
 }
 declare const alert: ReactNativeAlert;
 declare const __REDIRECT_URI__: string;
-
-declare module 'react-redux' {
-  function useSelector<T>(state: (a: RootState) => T): T;
-}

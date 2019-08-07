@@ -13,6 +13,10 @@ import { LoadingIcon } from './component';
 import store from './store';
 import { useInit } from './hooks/action';
 
+declare module 'react-redux' {
+  function useSelector<T>(state: (a: RootState) => T): T;
+}
+
 const Main = () => {
   const init = useInit();
   const isLoading = useConfigAttr('isLoading');

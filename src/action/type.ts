@@ -5,12 +5,12 @@ export const deckBulkInsert = (decks: Deck[]) => ({
 
 export const deckInsert = (deck: Deck) => deckBulkInsert([deck]);
 
-export const deckBulkUpdate = (decks: Edit<Deck>[]) => ({
+export const deckBulkUpdate = (decks: Update<Deck>[]) => ({
   type: 'DECK_BULK_UPDATE',
   payload: { decks },
 });
 
-export const deckUpdate = (deck: Edit<Deck>) => deckBulkUpdate([deck]);
+export const deckUpdate = (deck: Update<Deck>) => deckBulkUpdate([deck]);
 
 export const deckBulkDelete = (ids: string[]) => ({
   type: 'DECK_BULK_DELETE',
@@ -31,12 +31,12 @@ export const cardBulkInsert = (cards: Card[]) => ({
 
 export const cardInsert = (card: Card) => cardBulkInsert([card]);
 
-export const cardBulkUpdate = (cards: Edit<Card>[]) => ({
+export const cardBulkUpdate = (cards: Update<Card>[]) => ({
   type: 'CARD_BULK_UPDATE',
   payload: { cards },
 });
 
-export const cardUpdate = (card: Edit<Card>) => cardBulkUpdate([card]);
+export const cardUpdate = (card: Update<Card>) => cardBulkUpdate([card]);
 
 export const cardBulkDelete = (ids: string[]) => ({
   type: 'CARD_BULK_DELETE',

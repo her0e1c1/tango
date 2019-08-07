@@ -10,6 +10,7 @@
     "publish:story": "expo-cli publish --config storybook/app.json",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:all": "yarn tsc && yarn jest",
     "eject": "expo eject"
   },
   "jest": {
