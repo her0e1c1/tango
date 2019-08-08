@@ -37,7 +37,7 @@ const doLogout = logout =>
     { text: 'Cancel', onPress: () => {} },
   ]);
 
-const LoginItem = () => {
+const LoginItem = React.memo(() => {
   const loginWithGoogle = useLoginWithGoogle();
   const logout = useLogout();
   const uid = useConfigAttr('uid');
@@ -51,7 +51,7 @@ const LoginItem = () => {
       }
     />
   );
-};
+});
 
 const SWIPE_GESTURES = [
   ['cardSwipeUp', '↑'],
@@ -80,7 +80,7 @@ export const ShuffleCardsItem = React.memo(() => {
   );
 });
 
-export const ShowHeaderItem = () => {
+export const ShowHeaderItem = React.memo(() => {
   return (
     <SwithItem
       icon
@@ -89,9 +89,9 @@ export const ShowHeaderItem = () => {
       onValueChange={useThunkAction(action.configToggle('showHeader'))}
     />
   );
-};
+});
 
-export const SwipeGesturesItem = () => {
+export const SwipeGesturesItem = React.memo(() => {
   const dispatch = useDispatch();
   const config = {
     cardSwipeLeft: useConfigAttr('cardSwipeLeft'),
@@ -114,9 +114,9 @@ export const SwipeGesturesItem = () => {
       ))}
     </>
   );
-};
+});
 
-export const AccessTokenItem = () => {
+export const AccessTokenItem = React.memo(() => {
   const v = useConfigAttr('googleRefreshToken');
   return (
     <TextItem
@@ -126,30 +126,31 @@ export const AccessTokenItem = () => {
       onPress={useThunkAction(action.refreshToken())}
     />
   );
-};
+});
+
 export const UIDItem = React.memo(() => {
   const uid = useConfigAttr('uid');
   return <TextItem icon body="UID" right={uid.substring(0, 10)} />;
 });
 
-export const LastUpdatedItem = () => {
+export const LastUpdatedItem = React.memo(() => {
   const v = useConfigAttr('lastUpdatedAt');
   return (
     <TextItem icon body="Last Updated" right={new Date(v).toLocaleString()} />
   );
-};
+});
 
-export const AppCacheItem = () => {
+export const AppCacheItem = React.memo(() => {
   const clearAll = useClearAll(true);
   return (
     <ButtonItem icon danger body="App Cache" title="Clear" onPress={clearAll} />
   );
-};
+});
 
-const BasicSeparator = () => {
+const BasicSeparator = React.memo(() => {
   const v = useConfigAttr('displayName');
   return <Separator bordered text={`Basic: ${v}`} />;
-};
+});
 
 export const Config = React.memo(() => {
   return (
