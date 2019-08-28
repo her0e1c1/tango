@@ -20,7 +20,7 @@ declare module 'react-redux' {
 const Main = () => {
   const init = useInit();
   const isLoading = useConfigAttr('isLoading');
-  const isLoadingNoAction = useConfigAttr('isLoadingNoAction');
+  // const isLoadingNoAction = useConfigAttr('isLoadingNoAction');
   const error = useSelector(state => state.error);
   React.useEffect(() => {
     error && NB.Toast.show({ text: error.code });
@@ -35,7 +35,7 @@ const Main = () => {
   }, [error]);
   return (
     <NB.Root>
-      {isLoading && <LoadingIcon isLoadingNoAction={isLoadingNoAction} />}
+      {isLoading && <LoadingIcon /*isLoadingNoAction={isLoadingNoAction} */ />}
       <Navi />
     </NB.Root>
   );
