@@ -16,6 +16,7 @@ const getStackLength = navigation => {
 
 export const Header = (props: {
   bodyText?: string;
+  bodyOnPress?: Callback;
   rightIcon?: string;
   rightOnPress?: Callback;
   body?: { title: string };
@@ -32,7 +33,10 @@ export const Header = (props: {
   }
   return (
     <MyHeader
-      body={{ title: (props.body && props.body.title) || props.bodyText || '' }}
+      body={{
+        title: (props.body && props.body.title) || props.bodyText || '',
+        onPress: props.bodyOnPress,
+      }}
       left={length > 1 ? { onPress: goBack } : undefined}
       right={right}
     />

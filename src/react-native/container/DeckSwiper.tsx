@@ -11,6 +11,7 @@ import {
 } from 'src/react-native/component';
 import {
   useScreen,
+  useReplaceTo,
   useGoTo,
   useConfigUpdateInAdvance,
   useGoBack,
@@ -117,6 +118,7 @@ const BackText = () => {
 };
 
 const FrontText = () => {
+  const replaceTo = useReplaceTo();
   const goTo = useGoTo();
   const deck = useCurrentDeck();
   const showBackText = useConfigAttr('showBackText');
@@ -125,6 +127,10 @@ const FrontText = () => {
     <NB.View style={{ flex: 1, display: showBackText ? 'none' : undefined }}>
       <Header
         bodyText={deck.name}
+        bodyOnPress={React.useCallback(
+          () => replaceTo('CardList', { deckId: deck.id }),
+          [deck.id]
+        )}
         rightIcon="edit"
         rightOnPress={React.useCallback(() => goTo('CardEdit', { cardId }), [
           cardId,
