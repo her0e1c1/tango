@@ -32,7 +32,9 @@ jobs:
       - run: yarn add expo-cli 
       - run: yarn run expo-cli login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD" 2>&1 > /dev/null
       - run: yarn run expo-cli whoami
-      - run: yarn run expo-cli publish --non-interactive
+      - run:
+         command: yarn run expo-cli publish --non-interactive
+         no_output_timeout: 30m
       # - run: yarn web-build
       # - run: yarn firebase deploy --token "$FIREBASE_TOKEN" --only hosting
 
