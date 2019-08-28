@@ -41,10 +41,11 @@ const Row = ({ deck }: { deck: Deck }) => {
             options: [
               'Show Card List',
               'Edit This Deck',
+              'Restart Deck',
               // 'Upload To Google Spread Sheet',
               'Cancel',
             ],
-            cancelButtonIndex: 2,
+            cancelButtonIndex: 3,
           },
           async index => {
             if (index === 0) {
@@ -52,6 +53,11 @@ const Row = ({ deck }: { deck: Deck }) => {
             } else if (index === 1) {
               await goTo('DeckEdit', { deckId: deck.id });
             } else if (index === 2) {
+              await dispatch(
+                action.type.deckUpdate({ id: deck.id, currentIndex: 0 })
+              );
+              goTo('DeckStart', { deckId: deck.id });
+            } else if (index === 3) {
               // await dispatch(Action.loadingStart());
               // await dispatch(Action.sheetUpload(item));
               // await dispatch(Action.loadingEnd());

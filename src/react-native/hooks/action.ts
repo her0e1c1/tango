@@ -109,19 +109,6 @@ export const loginWithFacebook = () => {
   }
 };
 */
-/*
-export const useGoToCard = (cardId: string) => {
-  const deckUpdate = useDeckUpdate();
-  const card = useCard(cardId);
-  const deck = useDeck(card.deckId);
-  let currentIndex = deck.cardOrderIds.findIndex(id => id === cardId);
-  if (currentIndex === -1) currentIndex = 0;
-  React.useEffect(() => {
-    currentIndex !== deck.currentIndex &&
-      deckUpdate({ id: deck.id, currentIndex });
-  }, [currentIndex]);
-};
-*/
 
 export const useDimension = () => {
   const window = RN.Dimensions.get('window');

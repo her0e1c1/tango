@@ -95,7 +95,6 @@ export const DeckSwiper = (props: { deckId: string }) => {
       swipeDown={cardSwipeDown}
       onPress={useThunkAction(action.configToggle('showBackText'))} // better than to press inside <TextCard />
       renderCard={id => <CardView frontText cardId={id} />}
-      // renderCard={id => ( <NB.View style={{ flex: 1}} />)}
     />
   );
 };
@@ -142,7 +141,6 @@ const FrontText = () => {
         <Overlay top>
           <Badge text={String(useCardAttr(cardId, 'score'))} />
         </Overlay>
-        {/* <CardView frontText cardId={deck.cardOrderIds[deck.currentIndex]} /> */}
         <DeckSwiper deckId={deck.id} />
         <NB.Footer>
           <NB.Body>
