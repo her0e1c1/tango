@@ -64,10 +64,11 @@ export const Controller = (props: {
   deckCurrentIndex: number;
   cardsLength: number;
   pause?: boolean;
+  onPlay?: Callback;
   onSlidingComplete?: (n: number) => any;
 }) => (
   <NB.View style={{ flexDirection: 'row' }}>
-    <NB.Button transparent onPress={() => {}}>
+    <NB.Button transparent onPress={props.onPlay}>
       <NB.Icon
         name={props.pause ? 'md-pause' : 'md-play'}
         style={{ margin: 5 }}

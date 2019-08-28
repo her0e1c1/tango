@@ -36,12 +36,40 @@ export const Controller = (props: { deckId: string }) => {
   const dispatch = useDispatch();
   const deck = useDeck(props.deckId);
   const [currentIndex, setIndex] = React.useState(deck.currentIndex);
+
+  const callback = () => setIndex(currentIndex + 1);
+  const ref = React.useRef(callback);
+
   React.useEffect(() => {
     currentIndex !== deck.currentIndex &&
       dispatch(action.deckUpdate({ id: deck.id, currentIndex }));
+    currentIndex >= deck.cardOrderIds.length &&
+      dispatch(action.type.configUpdate({ autoPlay: false }));
   }, [currentIndex]);
+
+  React.useEffect(() => {
+    ref.current = callback;
+  }, [callback]);
+
+  const autoPlay = useConfigAttr('autoPlay');
+  const interval = useConfigAttr('cardInterval');
+
+  React.useEffect(() => {
+    const f = setInterval(() => {
+      if (autoPlay) {
+        ref.current();
+      }
+    }, interval * 1000);
+    return () => {
+      clearInterval(f);
+      if (autoPlay) dispatch(action.type.configUpdate({ autoPlay: false }));
+    };
+  }, [autoPlay]);
+
   return (
     <ControllerComponent
+      pause={useConfigAttr('autoPlay')}
+      onPlay={() => dispatch(action.configToggle('autoPlay'))}
       cardsLength={deck.cardOrderIds.length}
       deckCurrentIndex={deck.currentIndex}
       onSlidingComplete={setIndex}
@@ -122,6 +150,7 @@ const FrontText = () => {
   const deck = useCurrentDeck();
   const showBackText = useConfigAttr('showBackText');
   const cardId = deck.cardOrderIds[deck.currentIndex];
+  const interval = useConfigAttr('cardInterval');
   return (
     <NB.View style={{ flex: 1, display: showBackText ? 'none' : undefined }}>
       <Header
@@ -136,17 +165,19 @@ const FrontText = () => {
         ])}
       />
       <NB.View style={{ flex: 1 }}>
-        <Overlay left onPress={useCardSwipe('cardSwipeLeft')} />
+        {/* <Overlay left onPress={useCardSwipe('cardSwipeLeft')} color="pink" /> */}
         <Overlay right onPress={useCardSwipe('cardSwipeRight')} />
         <Overlay top>
           <Badge text={String(useCardAttr(cardId, 'score'))} />
         </Overlay>
         <DeckSwiper deckId={deck.id} />
-        <NB.Footer>
-          <NB.Body>
-            <Controller deckId={deck.id} />
-          </NB.Body>
-        </NB.Footer>
+        {interval > 0 && (
+          <NB.Footer>
+            <NB.Body>
+              <Controller deckId={deck.id} />
+            </NB.Body>
+          </NB.Footer>
+        )}
       </NB.View>
     </NB.View>
   );

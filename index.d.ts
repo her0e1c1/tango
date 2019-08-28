@@ -153,6 +153,7 @@ type ConfigState = SwipeState & {
   showHint: boolean;
   hideBodyWhenCardChanged: boolean;
   keepBackTextViewed: boolean;
+  autoPlay: boolean;
   cardInterval: number;
   isLoading: boolean;
   isLoadingNoAction: boolean;
