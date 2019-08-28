@@ -7,6 +7,7 @@ import {
   SwithItem,
   PickerItem,
   TextItem,
+  SliderItem,
 } from 'src/react-native/component';
 import {
   useLoginWithGoogle,
@@ -91,6 +92,27 @@ export const ShowHeaderItem = React.memo(() => {
   );
 });
 
+export const IntervalSliderSection = React.memo(() => {
+  const dispatch = useDispatch();
+  const v = useConfigAttr('cardInterval');
+  const [state, setState] = React.useState(v);
+  return (
+    <>
+      <Separator bordered text={`Interval: ${state}`} />
+      <SliderItem
+        icon
+        min={0}
+        max={60}
+        value={state}
+        onValueChange={setState}
+        onSlidingComplete={cardInterval =>
+          dispatch(action.type.configUpdate({ cardInterval }))
+        }
+      />
+    </>
+  );
+});
+
 export const SwipeGesturesItem = React.memo(() => {
   const dispatch = useDispatch();
   const config = {
@@ -159,7 +181,7 @@ export const Config = React.memo(() => {
       <LoginItem />
       <ShuffleCardsItem />
       <ShowHeaderItem />
-      <Separator bordered text="Interval: " />
+      <IntervalSliderSection />
       <Separator bordered text="Swipe Gestures" />
       <SwipeGesturesItem />
       <Separator bordered text="Developer" />
