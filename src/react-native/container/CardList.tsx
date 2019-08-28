@@ -3,7 +3,7 @@ import * as RN from 'react-native';
 import * as NB from 'native-base';
 import { Header, Card } from './Common';
 import { useDeck, useCurrentDeck } from 'src/hooks/state';
-import { IconItem } from 'src/react-native/component';
+import { CardItem } from 'src/react-native/component';
 import { useReplaceTo, useGoTo } from 'src/react-native/hooks/action';
 import * as action from 'src/react-native/action';
 import { useThunkAction } from 'src/hooks';
@@ -12,15 +12,19 @@ const Row = ({ card }: { card: Card }) => {
   const update = useThunkAction(action.goToCard(card.id));
   const replaceTo = useReplaceTo();
   const goTo = useGoTo();
+  const deck = useDeck(card.deckId);
+  const included = deck.cardOrderIds.includes(card.id);
   return (
-    <IconItem
-      awsomeFont
+    <CardItem
       name="edit"
-      body={`(${card.score}) ${card.frontText}`}
+      score={card.score}
+      gray={!included}
+      body={`${card.frontText}`}
       onPressItem={React.useCallback(async () => {
+        if (!included) return;
         await update();
         await replaceTo('DeckSwiper', { deckId: card.deckId });
-      }, [card.deckId])}
+      }, [included, card.deckId])}
       onPress={React.useCallback(() => goTo('CardEdit', { cardId: card.id }), [
         card.id,
       ])}
@@ -44,7 +48,7 @@ export const CardListPage = () => {
   const deck = useCurrentDeck();
   return (
     <NB.Container>
-      <Header body={{ title: deck.name }} />
+      <Header bodyText={deck.name} />
       <NB.Content>
         <CardList deckId={deck.id} />
       </NB.Content>

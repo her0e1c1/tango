@@ -124,6 +124,40 @@ export const IconItem = (props: {
   />
 );
 
+export const CardItem = (props: {
+  name: string;
+  score: number;
+  gray?: boolean;
+  left?: string;
+  body?: string;
+  size?: number;
+  onPress?: Callback;
+  onPressItem?: Callback;
+}) => (
+  <NB.View style={{ backgroundColor: props.gray ? '#bcbcbc' : undefined }}>
+    <NB.ListItem
+      onPress={props.onPressItem}
+      style={{ backgroundColor: props.gray ? '#bcbcbc' : undefined }}
+    >
+      <NB.Body style={{ flex: 1, flexDirection: 'row' }}>
+        <NB.Badge
+          primary={props.score == 0}
+          warning={props.score < 0}
+          success={props.score > 0}
+        >
+          <NB.Text>{props.score}</NB.Text>
+        </NB.Badge>
+        <NB.Text>{props.body}</NB.Text>
+      </NB.Body>
+      <NB.Right>
+        <NB.Button onPress={props.onPress} transparent>
+          <Icon name={props.name} size={props.size || 25} />
+        </NB.Button>
+      </NB.Right>
+    </NB.ListItem>
+  </NB.View>
+);
+
 export const SwithItem = (props: {
   left?: string;
   body?: string;
