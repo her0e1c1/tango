@@ -20,11 +20,10 @@ const Row = ({ card }: { card: Card }) => {
       onPressItem={React.useCallback(async () => {
         await update();
         await replaceTo('DeckSwiper', { deckId: card.deckId });
-      }, [])}
-      onPress={React.useCallback(
-        () => goTo('CardEdit', { cardId: card.id }),
-        []
-      )}
+      }, [card.deckId])}
+      onPress={React.useCallback(() => goTo('CardEdit', { cardId: card.id }), [
+        card.id,
+      ])}
     />
   );
 };

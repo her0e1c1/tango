@@ -126,7 +126,9 @@ const FrontText = () => {
       <Header
         bodyText={deck.name}
         rightIcon="edit"
-        rightOnPress={React.useCallback(() => goTo('CardEdit', { cardId }), [])}
+        rightOnPress={React.useCallback(() => goTo('CardEdit', { cardId }), [
+          cardId,
+        ])}
       />
       <NB.View style={{ flex: 1 }}>
         <Overlay left onPress={useCardSwipe('cardSwipeLeft')} />
