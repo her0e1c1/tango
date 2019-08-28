@@ -6,7 +6,6 @@ import { ThunkAction } from 'redux-thunk';
 import * as C from 'src/constant';
 import * as type from 'src/action/type';
 import { db } from 'src/firebase';
-// import console = require('console');
 
 type ThunkResult<R = void> = ThunkAction<R, RootState, undefined, Action>;
 
@@ -30,12 +29,6 @@ const papaComplete = async (results): Promise<Card[]> => {
   const cards = results.data
     .map(rowToCard)
     .filter(c => !!c.frontText) as Card[];
-  // for (let c of cards) {
-  //   if (c.tags.includes('url')) {
-  //     const s = c.backText.split(/#L(\d+)(-L(\d+))?/);
-  //     c.backText = await cardFetchFromUrl(s[0], Number(s[1]), Number(s[3]));
-  //   }
-  // }
   __DEV__ && console.log('DEBUG: CSV COMPLETE', results, cards);
   return cards;
 };
@@ -66,9 +59,10 @@ const tryFetch = (
     headers: new Headers(header),
     body: params.body,
   });
+  __DEV__ && console.log('RESULT FETCH', res.status, retry);
   if (res.status === 401 && retry) {
     await dispatch(refreshToken());
-    return await tryFetch(url, { ...params, retry: false });
+    return await dispatch(tryFetch(url, { ...params, retry: false }));
   }
   return res;
 };
@@ -298,6 +292,7 @@ export const refreshToken = (): ThunkResult => async (dispatch, getState) => {
       }).toString(),
     })
   );
+  __DEV__ && console.log('REFRESH', res.ok);
   if (res.ok) {
     const json = await res.json();
     await dispatch(type.configUpdate({ googleAccessToken: json.access_token }));
@@ -361,9 +356,7 @@ export const sheetImport = (id: string): ThunkResult => async (
   getState
 ) => {
   const sheet = getState().sheet.byId[id];
-  const url = `https://docs.google.com/spreadsheets/d/${
-    sheet.spreadSheetId
-  }/export?gid=${sheet.index}&exportFormat=csv`;
+  const url = `https://docs.google.com/spreadsheets/d/${sheet.spreadSheetId}/export?gid=${sheet.index}&exportFormat=csv`;
   const res = await dispatch(tryFetch(url, { googleToken: true }));
   if (!res.ok) {
     throw `You can not download sheet ${id}`;
