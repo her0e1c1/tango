@@ -200,7 +200,10 @@ export const DeckSwiperPage = () => {
   const valid = 0 <= index && index < deck.cardOrderIds.length;
   React.useEffect(() => {
     if (!valid) {
-      dispatch(action.type.deckUpdate({ id: deck.id, currentIndex: 0 }));
+      // you should not use action.type.deckUpdate here
+      // because firebase server returns currentIndex too
+      // so when deck attr changed, currentIndex will be changed too
+      dispatch(action.deckUpdate({ id: deck.id, currentIndex: 0 }));
       goBack();
     }
   }, [valid]);

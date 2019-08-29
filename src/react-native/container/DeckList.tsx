@@ -14,7 +14,7 @@ const Row = ({ deck }: { deck: Deck }) => {
   const deckDelete = useThunkAction(action.deckDelete(deck.id));
   const goToStartPage = React.useCallback(async () => {
     if (deck.currentIndex <= 0) {
-      await dispatch(action.type.deckUpdate({ id: deck.id, currentIndex: 0 }));
+      await dispatch(action.deckUpdate({ id: deck.id, currentIndex: 0 }));
       goTo('DeckStart', { deckId: deck.id });
     } else {
       await dispatch(action.type.configUpdate({ showBackText: false }));
@@ -54,7 +54,7 @@ const Row = ({ deck }: { deck: Deck }) => {
               await goTo('DeckEdit', { deckId: deck.id });
             } else if (index === 2) {
               await dispatch(
-                action.type.deckUpdate({ id: deck.id, currentIndex: 0 })
+                action.deckUpdate({ id: deck.id, currentIndex: 0 })
               );
               goTo('DeckStart', { deckId: deck.id });
             } else if (index === 3) {
