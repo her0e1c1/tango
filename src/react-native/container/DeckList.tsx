@@ -42,10 +42,10 @@ const Row = ({ deck }: { deck: Deck }) => {
               'Show Card List',
               'Edit This Deck',
               'Restart Deck',
-              // 'Upload To Google Spread Sheet',
+              'Upload To Google Spread Sheet',
               'Cancel',
             ],
-            cancelButtonIndex: 3,
+            cancelButtonIndex: 4,
           },
           async index => {
             if (index === 0) {
@@ -58,9 +58,9 @@ const Row = ({ deck }: { deck: Deck }) => {
               );
               goTo('DeckStart', { deckId: deck.id });
             } else if (index === 3) {
-              // await dispatch(Action.loadingStart());
-              // await dispatch(Action.sheetUpload(item));
-              // await dispatch(Action.loadingEnd());
+              await setLoading();
+              await dispatch(action.sheetUpload(deck));
+              await unsetLoading();
             }
           }
         );

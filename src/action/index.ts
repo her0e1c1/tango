@@ -343,6 +343,33 @@ export const spreadSheetFetch = (
   dispatch(type.sheetBulkInsert(sheets));
 };
 
+export const sheetUpload = (deck: Deck): ThunkResult => async (
+  _dispatch,
+  getState
+) => {
+  if (!deck.sheetId) {
+    alert('CAN NOT UPLOAD');
+  }
+  const state = getState();
+  const cards = deck.cardIds.map(id => state.card.byId[id]);
+  const values = cards.map(cardToRow);
+  const [spreadSheetId, title] = deck.sheetId!.split('::', 2);
+  const range = encodeURIComponent(`${title}!A:E`);
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadSheetId}/values/${range}?valueInputOption=RAW`;
+  const headers = {
+    Authorization: `Bearer ${getState().config.googleAccessToken}`,
+    'Content-Type': 'application/json',
+  };
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: new Headers(headers),
+    body: JSON.stringify({ values }),
+  });
+  if (!res.ok) {
+    alert('status code is not ok');
+  }
+};
+
 export const parseByText = (
   text: string,
   deck: Pick<Deck, 'name' | 'url' | 'sheetId'>
