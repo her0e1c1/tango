@@ -37,7 +37,7 @@ export const Controller = (props: { deckId: string }) => {
   const deck = useDeck(props.deckId);
   const [currentIndex, setIndex] = React.useState(deck.currentIndex);
 
-  const callback = () => setIndex(currentIndex + 1);
+  const callback = () => setIndex(deck.currentIndex + 1);
   const ref = React.useRef(callback);
 
   React.useEffect(() => {
@@ -58,13 +58,18 @@ export const Controller = (props: { deckId: string }) => {
   const interval = useConfigAttr('cardInterval');
 
   React.useEffect(() => {
-    const f = setInterval(() => {
+    const f = setTimeout(() => {
       if (autoPlay) {
         ref.current();
       }
     }, interval * 1000);
     return () => {
       clearInterval(f);
+    };
+  }, [autoPlay, deck.currentIndex]);
+
+  React.useEffect(() => {
+    return () => {
       if (autoPlay) dispatch(action.type.configUpdate({ autoPlay: false }));
     };
   }, [autoPlay]);
