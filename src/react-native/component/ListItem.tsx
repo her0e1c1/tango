@@ -8,7 +8,6 @@ const getListProps = (props: {
   noBorder?: boolean;
   icon?: boolean;
   onPressItem?: Callback;
-  // onPress?: () => void;
 }) => {
   const { noBorder, icon, onPressItem } = props;
   return { noBorder, icon, onPressItem };
