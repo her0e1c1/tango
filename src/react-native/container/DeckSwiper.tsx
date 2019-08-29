@@ -43,8 +43,11 @@ export const Controller = (props: { deckId: string }) => {
   React.useEffect(() => {
     currentIndex !== deck.currentIndex &&
       dispatch(action.deckUpdate({ id: deck.id, currentIndex }));
-    currentIndex >= deck.cardOrderIds.length &&
-      dispatch(action.type.configUpdate({ autoPlay: false }));
+    const c =
+      currentIndex >= deck.cardOrderIds.length
+        ? { autoPlay: false }
+        : { showBackText: false };
+    dispatch(action.type.configUpdate(c));
   }, [currentIndex]);
 
   React.useEffect(() => {
