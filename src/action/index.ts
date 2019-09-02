@@ -77,6 +77,10 @@ export const deckStart = (cards: Card[]): ThunkResult => async (
   if (config.shuffled) {
     cardOrderIds = shuffle(cardOrderIds);
   }
+  // HOTFIX: better to ignore local change and update directly because of latency
+  await dispatch(
+    type.deckUpdate({ id: deckId, currentIndex: 0, cardOrderIds })
+  );
   await dispatch(deckUpdate({ id: deckId, currentIndex: 0, cardOrderIds }));
   await dispatch(type.configUpdate({ showBackText: false, showHint: false }));
 };
