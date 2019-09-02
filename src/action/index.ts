@@ -29,7 +29,7 @@ const papaComplete = async (results): Promise<Card[]> => {
   const cards = results.data
     .map(rowToCard)
     .filter(c => !!c.frontText) as Card[];
-  __DEV__ && console.log('DEBUG: CSV COMPLETE', results, cards);
+  __DEV__ && console.log('DEBUG: CSV COMPLETE', cards.length);
   return cards;
 };
 
@@ -45,7 +45,7 @@ const tryFetch = (
     body?: string;
     retry?: boolean;
     googleToken?: boolean;
-  }
+  } = { method: 'GET' }
 ): ThunkResult<any> => async (dispatch, getState) => {
   const { retry = true } = params;
   __DEV__ && console.log('TRY FETCH: ', retry, url);
@@ -376,6 +376,24 @@ export const parseByText = (
 ): ThunkResult => async (dispatch, getState) => {
   const cards = await papaComplete(Papa.parse(text));
   await dispatch(deckCreate(deck, cards));
+};
+
+export const importByURL = (url: string): ThunkResult => async (
+  dispatch,
+  _getState
+) => {
+  if (!url) {
+    dispatch(type.error('INVALID_PARAM'));
+    return;
+  }
+  const res = await dispatch(tryFetch(url));
+  if (!res.ok) {
+    dispatch(type.error('HTTP_ERROR', res.status));
+    return;
+  }
+  const text = await res.text();
+  const name = url.split('/').pop() || 'sample';
+  await dispatch(parseByText(text, { name, url }));
 };
 
 export const sheetImport = (id: string): ThunkResult => async (

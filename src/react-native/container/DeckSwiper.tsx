@@ -97,7 +97,7 @@ export const CardView = (props: { frontText: boolean; cardId: string }) => {
     keepBackTextViewed: true,
   });
   const card = useCard(props.cardId);
-  const category = card.tags.length > 0 ? card.tags[0] : this.deck.category;
+  const category = card.tags.length > 0 ? card.tags[0] : deck.category;
   const text = props.frontText ? card.frontText : card.backText;
   React.useEffect(() => {
     category &&

@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 
 import { db, auth } from 'src/firebase';
 import * as type from 'src/action/type';
-import { useSelector } from './state';
+import { useSelector, useConfigAttr } from './state';
 
 // Is there a better way to unsubscribe?
 export const UNSUBSCRIBES = [] as any[];
@@ -116,12 +116,24 @@ export const useIsLoading = (
   } as Partial<ConfigState>
 ) => {
   const dispatch = useDispatch();
+  const isLoading = useConfigAttr('isLoading');
   return React.useMemo(
     () => ({
-      setLoading: () =>
-        dispatch(type.configUpdate({ isLoading: true, ...props })),
-      unsetLoading: () =>
-        dispatch(type.configUpdate({ isLoading: false, ...props })),
+      isLoading,
+      withLoading: async callback => {
+        await dispatch(type.configUpdate({ isLoading: true }));
+        try {
+          await dispatch(callback);
+        } catch (e) {
+          await dispatch(type.error('UNKNOWN', e));
+        } finally {
+          await dispatch(type.configUpdate({ isLoading: false }));
+        }
+      },
+      setLoading: async () =>
+        await dispatch(type.configUpdate({ isLoading: true })),
+      unsetLoading: async () =>
+        await dispatch(type.configUpdate({ isLoading: false })),
     }),
     []
   );

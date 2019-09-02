@@ -23,7 +23,11 @@ const Main = () => {
   // const isLoadingNoAction = useConfigAttr('isLoadingNoAction');
   const error = useSelector(state => state.error);
   React.useEffect(() => {
-    error && NB.Toast.show({ text: error.code });
+    error &&
+      NB.Toast.show({
+        text: `${error.code}: ${error.message}`,
+        duration: 10000,
+      });
     // if (RN.Platform.OS == 'android') {
     //   Expo.Font.loadAsync({
     //     Roboto: require('native-base/Fonts/Roboto.ttf'),

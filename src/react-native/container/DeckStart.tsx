@@ -34,9 +34,9 @@ const StartButton = React.memo((props: { length: number; deckId: string }) => {
     <Button
       full
       text={`Start to learn ${props.length}`}
-      onPress={() => {
-        dispatch(action.deckStart(cards));
-        replaceTo('DeckSwiper', { deckId: props.deckId });
+      onPress={async () => {
+        await dispatch(action.deckStart(cards));
+        await replaceTo('DeckSwiper', { deckId: props.deckId });
       }}
     />
   );

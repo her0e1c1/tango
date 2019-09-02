@@ -168,7 +168,13 @@ type ConfigState = SwipeState & {
   lastUpdatedAt: number; // Date;
 };
 
-type ErrorCode = 'NEED_TO_LOGIN' | 'FAILED_TO_REFRESH_TOKEN' | 'UNKNOWN';
+type ErrorCode =
+  | 'NEED_TO_LOGIN'
+  | 'FAILED_TO_REFRESH_TOKEN'
+  | 'UNKNOWN'
+  | 'INVALID_PARAM'
+  | 'HTTP_ERROR';
+
 type ErrorState = {
   code: ErrorCode;
   message?: string;
