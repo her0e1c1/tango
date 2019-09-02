@@ -98,7 +98,7 @@ export const IntervalSliderSection = React.memo(() => {
   const [state, setState] = React.useState(v);
   return (
     <>
-      <Separator bordered text={`Interval: ${state}`} />
+      <Separator bordered text={`Interval: ${state} sec`} />
       <SliderItem
         icon
         min={0}
@@ -108,6 +108,12 @@ export const IntervalSliderSection = React.memo(() => {
         onSlidingComplete={cardInterval =>
           dispatch(action.type.configUpdate({ cardInterval }))
         }
+      />
+      <SwithItem
+        icon
+        body="When starting a deck, auto play"
+        value={useConfigAttr('defaultAutoPlay')}
+        onValueChange={useThunkAction(action.configToggle('defaultAutoPlay'))}
       />
     </>
   );

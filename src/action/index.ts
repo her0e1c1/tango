@@ -82,7 +82,13 @@ export const deckStart = (cards: Card[]): ThunkResult => async (
     type.deckUpdate({ id: deckId, currentIndex: 0, cardOrderIds })
   );
   await dispatch(deckUpdate({ id: deckId, currentIndex: 0, cardOrderIds }));
-  await dispatch(type.configUpdate({ showBackText: false, showHint: false }));
+  await dispatch(
+    type.configUpdate({
+      showBackText: false,
+      showHint: false,
+      autoPlay: config.defaultAutoPlay,
+    })
+  );
 };
 
 export const goToCard = (cardId): ThunkResult => async (dispatch, getState) => {

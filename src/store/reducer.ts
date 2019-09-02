@@ -112,6 +112,7 @@ export const config = (
     hideBodyWhenCardChanged: true,
     shuffled: false,
     autoPlay: false,
+    defaultAutoPlay: false,
     cardInterval: 5,
     keepBackTextViewed: false,
     isLoading: false, // maybe not here
