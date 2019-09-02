@@ -69,6 +69,7 @@ interface Card {
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
+  lastSeenAt?: Date;
 
   // fetch data from web
   url?: string;
