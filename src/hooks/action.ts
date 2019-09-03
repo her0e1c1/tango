@@ -48,10 +48,13 @@ export const useSetEventListener = () => {
       .where('updatedAt', '>=', new Date(updatedAt))
       .orderBy('updatedAt', 'desc')
       .onSnapshot(async snapshot => {
-        __DEV__ && console.log('SNAPSHOT DECK: ');
+        __DEV__ && console.log('SNAPSHOT DECK: ', snapshot.size);
         // it seems docChanges().forEach is not async func
         const decks = [] as Deck[];
         snapshot.docChanges().forEach(change => {
+          // Ignore local change because of latency
+          // Call redux action directly
+          if (change.doc.metadata.hasPendingWrites) return;
           const id = change.doc.id;
           const deck = { ...change.doc.data(), id } as Deck;
           // when initialized, modified event is not triggered but added is after updating deletedAt
@@ -79,6 +82,7 @@ export const useSetEventListener = () => {
         __DEV__ && console.log('SNAPSHOT CARD: ');
         const cards = [] as Card[];
         snapshot.docChanges().forEach(change => {
+          if (change.doc.metadata.hasPendingWrites) return;
           const id = change.doc.id;
           const card = { ...change.doc.data(), id } as Card;
           if (change.type === 'added') {

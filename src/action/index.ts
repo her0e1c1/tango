@@ -77,10 +77,6 @@ export const deckStart = (cards: Card[]): ThunkResult => async (
   if (config.shuffled) {
     cardOrderIds = shuffle(cardOrderIds);
   }
-  // HOTFIX: better to ignore local change and update directly because of latency
-  await dispatch(
-    type.deckUpdate({ id: deckId, currentIndex: 0, cardOrderIds })
-  );
   await dispatch(deckUpdate({ id: deckId, currentIndex: 0, cardOrderIds }));
   await dispatch(
     type.configUpdate({
@@ -159,15 +155,12 @@ export const deckCreate = (
   cards: Omit<Card, 'id' | 'createdAt'>[]
 ): ThunkResult => async (dispatch, getState) => {
   const uid = getState().config.uid;
-  if (!uid) {
-    dispatch(type.error('NEED_TO_LOGIN', 'You need to login'));
-    return;
-  }
   const createdAt = firebase.firestore.FieldValue.serverTimestamp();
   const updatedAt = createdAt;
   const batch = db.batch();
   const docDeck = db.collection('deck').doc();
   const cardIds = [] as string[];
+  const insertedCards = [] as any[]; // TODO: fix any
   cards.forEach(c => {
     const doc = db.collection('card').doc();
     cardIds.push(doc.id);
@@ -180,6 +173,7 @@ export const deckCreate = (
       updatedAt,
     };
     batch.set(doc, card);
+    insertedCards.push(card);
   });
   const d = {
     ...deck,
@@ -193,14 +187,19 @@ export const deckCreate = (
     url: deck.url || null,
     isPublic: false,
     deletedAt: null,
-  };
+  } as any; // TODO: fix any
   batch.set(docDeck, d);
-  await batch.commit();
+  if (uid) await batch.commit(); // not login mode
+  await dispatch(type.deckInsert(d));
+  await dispatch(type.cardBulkInsert(insertedCards));
 };
 
-export const deckUpdate = (
-  deck: Partial<Deck> & { id: string }
-) => async () => {
+export const deckUpdate = (deck: Partial<Deck> & { id: string }) => async (
+  dispatch,
+  getState
+) => {
+  dispatch(type.deckUpdate(deck));
+  if (!getState().config.uid) return; // not login mode
   db.collection('deck')
     .doc(deck.id)
     .update({
@@ -230,13 +229,16 @@ export const deckDelete = (deckId: string) => async (dispatch, getState) => {
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
-  await batch.commit();
+  if (uid) await batch.commit(); // not login mode
+  dispatch(type.deckDelete(deckId));
 };
 
 export const cardUpdate = (card: Partial<Card> & { id: string }) => async (
   dispatch,
   getState
 ) => {
+  dispatch(type.cardUpdate(card));
+  if (!getState().config.uid) return; // not login mode
   await db
     .collection('card')
     .doc(card.id)
@@ -246,6 +248,7 @@ export const cardUpdate = (card: Partial<Card> & { id: string }) => async (
     });
 };
 
+// TODO: not login mode
 export const cardDelete = (id: string) => async (dispatch, getState) => {
   const card = getState().card.byId[id];
   __DEV__ && console.log('CARD DELETED', card.id, card.deckId);
