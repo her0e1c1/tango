@@ -34,7 +34,7 @@ jobs:
       - run: yarn run expo-cli whoami
       - run:
          command: yarn run expo-cli publish --non-interactive
-         no_output_timeout: 60m
+         no_output_timeout: 20m
       # - run: yarn web-build
       # - run: yarn firebase deploy --token "$FIREBASE_TOKEN" --only hosting
 
