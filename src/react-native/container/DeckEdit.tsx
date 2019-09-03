@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as NB from 'native-base';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import * as C from 'src/constant';
 import {
   TextItem,
@@ -126,13 +126,14 @@ export const DeckEdit = React.memo(() => (
 
 export const PageHeader = React.memo((props: { name: string }) => {
   const goTo = useGoTo();
+  const dispatch = useDispatch();
   return (
     <Header
       bodyText={props.name}
       right={{
         icon: 'save',
         onPress: React.useCallback(() => {
-          action.deckEditUpdate();
+          dispatch(action.deckEditUpdate());
           goTo('DeckList');
         }, []),
       }}
