@@ -152,26 +152,35 @@ const BackText = () => {
   );
 };
 
-const FrontText = () => {
+const FrontHeader = () => {
   const replaceTo = useReplaceTo();
   const goTo = useGoTo();
+  const deck = useCurrentDeck();
+  const cardId = deck.cardOrderIds[deck.currentIndex];
+  if (!useConfigAttr('showHeader')) return <NB.View />;
+  return (
+    <Header
+      bodyText={deck.name}
+      bodyOnPress={React.useCallback(
+        () => replaceTo('CardList', { deckId: deck.id }),
+        [deck.id]
+      )}
+      rightIcon="edit"
+      rightOnPress={React.useCallback(() => goTo('CardEdit', { cardId }), [
+        cardId,
+      ])}
+    />
+  );
+};
+
+const FrontText = () => {
   const deck = useCurrentDeck();
   const showBackText = useConfigAttr('showBackText');
   const cardId = deck.cardOrderIds[deck.currentIndex];
   const interval = useConfigAttr('cardInterval');
   return (
     <NB.View style={{ flex: 1, display: showBackText ? 'none' : undefined }}>
-      <Header
-        bodyText={deck.name}
-        bodyOnPress={React.useCallback(
-          () => replaceTo('CardList', { deckId: deck.id }),
-          [deck.id]
-        )}
-        rightIcon="edit"
-        rightOnPress={React.useCallback(() => goTo('CardEdit', { cardId }), [
-          cardId,
-        ])}
-      />
+      <FrontHeader />
       <NB.View style={{ flex: 1 }}>
         {/* <Overlay left onPress={useCardSwipe('cardSwipeLeft')} color="pink" /> */}
         <Overlay right onPress={useCardSwipe('cardSwipeRight')} />

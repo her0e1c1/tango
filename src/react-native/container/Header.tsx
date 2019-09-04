@@ -1,8 +1,6 @@
-import * as NB from 'native-base';
 import * as React from 'react';
 import { Header as MyHeader } from 'src/react-native/component';
 import { useNavigation } from 'react-navigation-hooks';
-import { useConfigState } from 'src/hooks/state';
 import { useGoBack } from 'src/react-native/hooks/action';
 
 const getStackLength = navigation => {
@@ -23,9 +21,7 @@ export const Header = (props: {
   right?: { onPress: Callback; icon: string };
 }) => {
   const navi = useNavigation();
-  const config = useConfigState();
   const goBack = useGoBack();
-  if (!config.showHeader) return <NB.View />;
   const length = getStackLength(navi);
   let right = props.right;
   if (props.rightIcon && props.rightOnPress) {
