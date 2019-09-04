@@ -9,7 +9,10 @@ const getListProps = (props: {
   icon?: boolean;
   onPressItem?: Callback;
 }) => {
-  const { noBorder, icon, onPressItem } = props;
+  let { noBorder, icon, onPressItem } = props;
+  if (RN.Platform.OS == 'android') {
+    icon = false; // HOTFIX: can not press swich ...
+  }
   return { noBorder, icon, onPressItem };
 };
 
