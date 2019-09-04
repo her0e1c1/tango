@@ -6,7 +6,6 @@ import {
   Badge,
   WebviewCard,
   Overlay,
-  DeckSwiper as DeckSwiperComponent,
   Controller as ControllerComponent,
 } from 'src/react-native/component';
 import {
@@ -26,6 +25,7 @@ import {
 import { Header } from './Common';
 import { useThunkAction, useDispatch } from 'src/hooks';
 import * as action from 'src/react-native/action';
+import GestureRecognizer from 'react-native-swipe-gestures';
 
 const useCardSwipe = (direction: SwipeDirection) => {
   const deck = useCurrentDeck();
@@ -117,23 +117,19 @@ export const CardView = (props: { frontText: boolean; cardId: string }) => {
 
 export const DeckSwiper = (props: { deckId: string }) => {
   const deck = useDeck(props.deckId);
-  const cardSwipeLeft = useCardSwipe('cardSwipeLeft');
-  const cardSwipeUp = useCardSwipe('cardSwipeUp');
-  const cardSwipeRight = useCardSwipe('cardSwipeRight');
-  const cardSwipeDown = useCardSwipe('cardSwipeDown');
   return (
-    <DeckSwiperComponent
-      ids={deck.cardOrderIds}
-      deckCurrentIndex={deck.currentIndex}
-      swipeLeft={cardSwipeLeft}
-      swipeTop={cardSwipeUp}
-      swipeRight={cardSwipeRight}
-      swipeDown={cardSwipeDown}
-      onPress={useThunkAction(action.configToggle('showBackText'))} // better than to press inside <TextCard />
-      renderCard={id => <CardView frontText cardId={id} />}
-    />
+    <GestureRecognizer
+      style={{ flex: 1 }}
+      onSwipeLeft={useCardSwipe('cardSwipeLeft')}
+      onSwipeUp={useCardSwipe('cardSwipeUp')}
+      onSwipeRight={useCardSwipe('cardSwipeRight')}
+      onSwipeDown={useCardSwipe('cardSwipeDown')}
+    >
+      <CardView frontText cardId={deck.cardOrderIds[deck.currentIndex]} />
+    </GestureRecognizer>
   );
 };
+
 const BackText = () => {
   const deck = useCurrentDeck();
   const showBackText = useConfigAttr('showBackText');

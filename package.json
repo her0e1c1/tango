@@ -31,6 +31,7 @@
     "react-dom": "^16.8.6",
     "react-native": "https://github.com/expo/react-native/archive/sdk-33.0.0.tar.gz",
     "react-native-deck-swiper": "^1.6.7",
+    "react-native-swipe-gestures": "^1.0.3",
     "react-native-vector-icons": "^6.6.0",
     "react-native-view-overflow": "^0.0.4",
     "react-native-web": "^0.11.4",
