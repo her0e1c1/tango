@@ -141,15 +141,3 @@ export const config = (
     return state;
   }
 };
-
-// not undefined to pass for init value
-export const error = (state = null, action) => {
-  if (action.error) {
-    return action.error;
-  } else if (equal(action, type.error)) {
-    return action.payload;
-  } else if (equal(action, type.errorReset)) {
-    return null;
-  }
-  return state;
-};

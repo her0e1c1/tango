@@ -310,7 +310,7 @@ export const refreshToken = (): ThunkResult => async (dispatch, getState) => {
     const json = await res.json();
     await dispatch(type.configUpdate({ googleAccessToken: json.access_token }));
   } else {
-    await dispatch(type.error('FAILED_TO_REFRESH_TOKEN'));
+    alert('Failed to refresh token');
   }
 };
 
@@ -321,7 +321,7 @@ export const sheetFetch = (): ThunkResult => async (dispatch, getState) => {
   const url = `https://www.googleapis.com/drive/v3/files?corpora=user&q=${q}&pageSize=1000`;
   const res = await dispatch(tryFetch(url, { googleToken: true }));
   if (!res.ok) {
-    dispatch(type.error('FAILED_TO_REFRESH_TOKEN'));
+    alert('Failed to refresh token');
   } else {
     const json = (await res.json()) as { files: any[] };
     const spreadSheets = json.files.filter(
@@ -361,7 +361,7 @@ export const sheetUpload = (deck: Deck): ThunkResult => async (
   getState
 ) => {
   if (!deck.sheetId) {
-    alert('CAN NOT UPLOAD');
+    alert('Can not upload');
   }
   const state = getState();
   const cards = deck.cardIds.map(id => state.card.byId[id]);
@@ -379,7 +379,7 @@ export const sheetUpload = (deck: Deck): ThunkResult => async (
     body: JSON.stringify({ values }),
   });
   if (!res.ok) {
-    alert('status code is not ok');
+    alert('Status code is not ok');
   }
 };
 
@@ -396,12 +396,12 @@ export const importByURL = (url: string): ThunkResult => async (
   _getState
 ) => {
   if (!url) {
-    dispatch(type.error('INVALID_PARAM'));
+    alert(`Invalid URL`);
     return;
   }
   const res = await dispatch(tryFetch(url));
   if (!res.ok) {
-    dispatch(type.error('HTTP_ERROR', res.status));
+    alert(`HTTP response ${res.status}`);
     return;
   }
   const text = await res.text();

@@ -170,25 +170,12 @@ type ConfigState = SwipeState & {
   lastUpdatedAt: number; // Date;
 };
 
-type ErrorCode =
-  | 'NEED_TO_LOGIN'
-  | 'FAILED_TO_REFRESH_TOKEN'
-  | 'UNKNOWN'
-  | 'INVALID_PARAM'
-  | 'HTTP_ERROR';
-
-type ErrorState = {
-  code: ErrorCode;
-  message?: string;
-};
-
 interface RootState {
   deck: DeckState;
   card: CardState;
   nav: NavState;
   config: ConfigState;
   sheet: SheetState;
-  error: ErrorState | null;
 }
 
 // Because there is a conflict between @types/react-native and lib: ["dom"] in tsconfig.json,

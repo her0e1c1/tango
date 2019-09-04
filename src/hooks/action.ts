@@ -129,7 +129,7 @@ export const useIsLoading = (
         try {
           await dispatch(callback);
         } catch (e) {
-          await dispatch(type.error('UNKNOWN', e));
+          alert(e);
         } finally {
           await dispatch(type.configUpdate({ isLoading: false }));
         }

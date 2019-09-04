@@ -28,6 +28,7 @@ describe('Test Action', () => {
     );
   });
 
+  /*
   it('failed to refresh token', async () => {
     const store = mockStore({
       config: { googleRefreshToken: 'REFRESH', googleAccessToken: 'OLD TOKEN' },
@@ -38,6 +39,7 @@ describe('Test Action', () => {
       type.error('FAILED_TO_REFRESH_TOKEN')
     );
   });
+  */
 
   it('fetch spread sheet by id', async () => {
     const store = mockStore({ config: {} });

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/lib/integration/react';
-import { useConfigAttr, useSelector } from 'src/hooks/state';
+import { useConfigAttr } from 'src/hooks/state';
 import * as NB from 'native-base';
 
 import { Navi } from './container';
@@ -21,13 +21,7 @@ const Main = () => {
   const init = useInit();
   const isLoading = useConfigAttr('isLoading');
   // const isLoadingNoAction = useConfigAttr('isLoadingNoAction');
-  const error = useSelector(state => state.error);
   React.useEffect(() => {
-    error &&
-      NB.Toast.show({
-        text: `${error.code}: ${error.message}`,
-        duration: 10000,
-      });
     // if (RN.Platform.OS == 'android') {
     //   Expo.Font.loadAsync({
     //     Roboto: require('native-base/Fonts/Roboto.ttf'),
@@ -36,7 +30,7 @@ const Main = () => {
     //   });
     // }
     init();
-  }, [error]);
+  }, []);
   return (
     <NB.Root>
       {isLoading && <LoadingIcon /*isLoadingNoAction={isLoadingNoAction} */ />}
