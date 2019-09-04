@@ -290,6 +290,7 @@ export const SwipeRow = (props: {
           </NB.Button>
         )
       }
+      /* NB.Title shows nothing in android */
       body={
         <RN.TouchableOpacity
           style={{ flex: 1 }}
@@ -302,7 +303,7 @@ export const SwipeRow = (props: {
               paddingLeft: 20 /* cuz of paddingRight already :(*/,
             }}
           >
-            <NB.Title>{props.title}</NB.Title>
+            <NB.H2>{props.title}</NB.H2>
           </NB.View>
         </RN.TouchableOpacity>
       }
