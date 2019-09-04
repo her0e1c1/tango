@@ -33,7 +33,7 @@ const CodeScanner = (props: { onEnd: Callback }) => {
   }, [text]);
 
   return (
-    <NB.View style={{ flex: 1, backgroundColor: 'pink' }}>
+    <NB.View style={{ flex: 1 }}>
       <BarCodeScanner
         // the callback invoke is too sensitive
         onBarCodeScanned={evt => setText(evt.data)}
