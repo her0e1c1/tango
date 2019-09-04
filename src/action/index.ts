@@ -82,7 +82,6 @@ export const deckStart = (cards: Card[]): ThunkResult => async (
   await dispatch(
     type.configUpdate({
       showBackText: false,
-      showHint: false,
       autoPlay: config.defaultAutoPlay,
     })
   );
@@ -119,7 +118,7 @@ export const deckSwipe = (
   const value = config[direction];
 
   if (config.hideBodyWhenCardChanged) {
-    await dispatch(type.configUpdate({ showBackText: false, showHint: false }));
+    await dispatch(type.configUpdate({ showBackText: false }));
   }
   if (value === 'GoBack') {
     await dispatch(deckUpdate({ id: deck.id, currentIndex: -1 }));

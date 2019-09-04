@@ -65,12 +65,6 @@ export const configUpdate = (config: Partial<ConfigState>) => ({
   payload: { config },
 });
 
-export const error = (code: ErrorCode, message?: string) => ({
-  type: 'ERROR',
-  payload: { code, message },
-  // error: { code },  // FIXME: ts error
-});
-
 export const errorReset = () => ({
   type: 'ERROR_RESET',
   payload: {},
