@@ -117,13 +117,16 @@ export const deckSwipe = (
   const config = getState().config;
   const value = config[direction];
 
-  if (config.hideBodyWhenCardChanged) {
-    await dispatch(type.configUpdate({ showBackText: false }));
-  }
   if (value === 'GoBack') {
     await dispatch(deckUpdate({ id: deck.id, currentIndex: -1 }));
     return;
   }
+  if (config.hideBodyWhenCardChanged) {
+    await dispatch(type.configUpdate({ showBackText: false }));
+  }
+
+  const numberOfSeen = card.numberOfSeen + 1;
+  const lastSeenAt = new Date();
 
   let score;
   if (value === 'GoToNextCardMastered') {
@@ -133,9 +136,10 @@ export const deckSwipe = (
   } else if (value === 'GoToNextCardToggleMastered') {
     score = getCardScore(card);
   }
-  if (score !== undefined) {
-    await dispatch(type.cardUpdate({ id: card.id, score }));
-  }
+
+  await dispatch(
+    type.cardUpdate({ id: card.id, score, numberOfSeen, lastSeenAt })
+  );
 
   let currentIndex = deck.currentIndex;
   if (value === 'GoToPrevCard') {
@@ -143,10 +147,10 @@ export const deckSwipe = (
   } else {
     currentIndex += 1;
   }
-  if (!(0 <= currentIndex && currentIndex < deck.cardOrderIds.length)) {
-    await dispatch(deckUpdate({ id: deck.id, currentIndex: -1 }));
-  } else {
+  if (0 <= currentIndex && currentIndex < deck.cardOrderIds.length) {
     await dispatch(deckUpdate({ id: deck.id, currentIndex }));
+  } else {
+    await dispatch(deckUpdate({ id: deck.id, currentIndex: -1 }));
   }
 };
 

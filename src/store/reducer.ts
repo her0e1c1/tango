@@ -62,7 +62,13 @@ export const card = (state = cardInitialState, action: Action) => {
     const cards = action.payload.cards;
     cards.forEach(c => {
       const current = state.byId[c.id] || {};
-      state.byId[c.id] = { score: 0, ...current, ...c };
+      state.byId[c.id] = {
+        score: 0,
+        numberOfSeen: 0,
+        nextSeeingAt: new Date(0),
+        ...current,
+        ...c,
+      };
     });
     cards.forEach(c => (c.tags || []).forEach(t => state.tags.push(t)));
     state.tags = uniq(state.tags);
