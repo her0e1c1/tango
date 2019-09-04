@@ -108,7 +108,6 @@ export const config = (
     showMastered: true,
     showHeader: true,
     showBackText: false,
-    showHint: false,
     maxNumberOfCardsToLearn: 0,
     hideBodyWhenCardChanged: true,
     shuffled: false,

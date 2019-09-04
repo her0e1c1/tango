@@ -62,13 +62,6 @@ const BackTextField = () => {
     />
   );
 };
-const HintField = () => {
-  const v = useEdit('backText');
-  const cardEdit = useCardEdit();
-  return (
-    <Field name="Hint" value={v} onChangeText={hint => cardEdit({ hint })} />
-  );
-};
 
 export const CardEdit = () => (
   <>
@@ -81,7 +74,6 @@ export const CardEdit = () => (
     <NB.Form>
       <FrontTextField />
       <BackTextField />
-      <HintField />
     </NB.Form>
     <DeleteCard />
   </>

@@ -61,7 +61,6 @@ interface Card {
   id: string;
   frontText: string;
   backText: string;
-  hint: string;
   mastered: boolean;
   score: number;
   deckId: string;
@@ -152,7 +151,6 @@ type ConfigState = SwipeState & {
   shuffled: boolean;
   showBackText: boolean;
   maxNumberOfCardsToLearn: number;
-  showHint: boolean;
   hideBodyWhenCardChanged: boolean;
   keepBackTextViewed: boolean;
   autoPlay: boolean;

@@ -12,15 +12,13 @@ type ThunkResult<R = void> = ThunkAction<R, RootState, undefined, Action>;
 export const rowToCard = (row: string[]): Partial<Card> => ({
   frontText: row[0] || '',
   backText: row[1] || '',
-  hint: row[2] || '',
-  tags: row[3] ? row[3].split(',') : [],
-  score: row[4] ? parseInt(row[4]) : 0,
+  tags: row[2] ? row[3].split(',') : [],
+  score: row[3] ? parseInt(row[3]) : 0,
 });
 
 export const cardToRow = (card: Card): string[] => [
   card.frontText,
   card.backText,
-  card.hint,
   card.tags.join(','),
   String(card.score),
 ];
