@@ -151,6 +151,7 @@ type ConfigState = SwipeState & {
   showHeader: boolean;
   shuffled: boolean;
   showBackText: boolean;
+  maxNumberOfCardsToLearn: number;
   showHint: boolean;
   hideBodyWhenCardChanged: boolean;
   keepBackTextViewed: boolean;

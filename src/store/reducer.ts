@@ -109,6 +109,7 @@ export const config = (
     showHeader: true,
     showBackText: false,
     showHint: false,
+    maxNumberOfCardsToLearn: 0,
     hideBodyWhenCardChanged: true,
     shuffled: false,
     autoPlay: false,

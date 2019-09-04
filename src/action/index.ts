@@ -77,6 +77,9 @@ export const deckStart = (cards: Card[]): ThunkResult => async (
   if (config.shuffled) {
     cardOrderIds = shuffle(cardOrderIds);
   }
+  if (config.maxNumberOfCardsToLearn > 0) {
+    cardOrderIds = cardOrderIds.slice(0, config.maxNumberOfCardsToLearn);
+  }
   await dispatch(deckUpdate({ id: deckId, currentIndex: 0, cardOrderIds }));
   await dispatch(
     type.configUpdate({

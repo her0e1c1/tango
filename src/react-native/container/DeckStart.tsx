@@ -8,7 +8,11 @@ import {
   RadioItem,
 } from 'src/react-native/component';
 import { useReplaceTo } from 'src/react-native/hooks/action';
-import { useCurrentDeck, useCardsByDeckId } from 'src/hooks/state';
+import {
+  useCurrentDeck,
+  useCardsByDeckId,
+  useConfigAttr,
+} from 'src/hooks/state';
 import { Header } from './Common';
 import { uniq } from 'lodash';
 import { useThunkAction, useDispatch } from 'src/hooks';
@@ -30,10 +34,14 @@ const StartButton = React.memo((props: { length: number; deckId: string }) => {
   const dispatch = useDispatch();
   const replaceTo = useReplaceTo();
   const cards = useCardsByDeckId(props.deckId, { isShown: true });
+  const number = Math.min(
+    props.length,
+    useConfigAttr('maxNumberOfCardsToLearn')
+  );
   return (
     <Button
       full
-      text={`Start to learn ${props.length}`}
+      text={`Start to learn ${number} out of ${props.length} card(s) `}
       onPress={async () => {
         await dispatch(action.deckStart(cards));
         await replaceTo('DeckSwiper', { deckId: props.deckId });

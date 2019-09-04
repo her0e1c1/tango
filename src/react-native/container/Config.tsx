@@ -92,6 +92,27 @@ export const ShowHeaderItem = React.memo(() => {
   );
 });
 
+export const MaxNumberOfCardsToLearnSliderSection = React.memo(() => {
+  const dispatch = useDispatch();
+  const v = useConfigAttr('maxNumberOfCardsToLearn');
+  const [state, setState] = React.useState(v);
+  return (
+    <>
+      <Separator bordered text={`Max number of cards to learn: ${v}`} />
+      <SliderItem
+        icon
+        min={0}
+        max={50}
+        value={state}
+        onValueChange={setState}
+        onSlidingComplete={maxNumberOfCardsToLearn =>
+          dispatch(action.type.configUpdate({ maxNumberOfCardsToLearn }))
+        }
+      />
+    </>
+  );
+});
+
 export const IntervalSliderSection = React.memo(() => {
   const dispatch = useDispatch();
   const v = useConfigAttr('cardInterval');
@@ -187,6 +208,7 @@ export const Config = React.memo(() => {
       <LoginItem />
       <ShuffleCardsItem />
       <ShowHeaderItem />
+      <MaxNumberOfCardsToLearnSliderSection />
       <IntervalSliderSection />
       <Separator bordered text="Swipe Gestures" />
       <SwipeGesturesItem />
