@@ -46,7 +46,7 @@ const CodeScanner = (props: { onEnd: Callback }) => {
 const InputButton = (props: {
   iconName: string;
   onPress?: Callback;
-  onEndEditing?: Callback;
+  onEndEditing?: Callback1<string>;
 }) => {
   const [text, setText] = React.useState('');
   return (
@@ -64,7 +64,7 @@ const InputButton = (props: {
           marginRight: 5,
         }}
         onChangeText={setText}
-        onEndEditing={props.onEndEditing}
+        onEndEditing={() => props.onEndEditing && props.onEndEditing(text)}
       />
       <NB.Button light onPress={props.onPress}>
         <NB.Icon name={props.iconName} />
@@ -75,6 +75,8 @@ const InputButton = (props: {
 
 export const QRCodePage = () => {
   const [showScanner, setShowScanner] = React.useState(false);
+  const dispatch = useDispatch();
+  const { withLoading } = useIsLoading();
   return (
     <NB.Container>
       <Header bodyText="QR code" />
@@ -83,6 +85,11 @@ export const QRCodePage = () => {
         onPress={React.useCallback(() => setShowScanner(!showScanner), [
           showScanner,
         ])}
+        onEndEditing={text =>
+          withLoading(async () => {
+            await dispatch(action.importByURL(text));
+          })
+        }
       />
 
       {showScanner && <CodeScanner onEnd={() => setShowScanner(false)} />}
