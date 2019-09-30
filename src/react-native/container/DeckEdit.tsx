@@ -101,7 +101,7 @@ const CategoryItem = React.memo(() => {
   return (
     <PickerItem
       empty
-      body="Category"
+      label="Category"
       value={v}
       options={C.CATEGORY}
       onValueChange={category => deckEdit({ category })}

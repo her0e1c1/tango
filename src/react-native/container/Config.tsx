@@ -155,7 +155,7 @@ export const SwipeGesturesItem = React.memo(() => {
           icon
           noBorder
           key={type}
-          body={label}
+          label={label}
           options={CARD_SWIPE_TYPES}
           value={config[type]}
           onValueChange={v => dispatch(action.type.configUpdate({ [type]: v }))}

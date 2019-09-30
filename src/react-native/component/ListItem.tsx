@@ -203,7 +203,7 @@ export const RadioItem = (props: {
 
 export const PickerItem = (props: {
   left?: string;
-  body?: string;
+  label?: string;
   value: string;
   empty?: boolean;
   options: string[];
@@ -216,24 +216,18 @@ export const PickerItem = (props: {
   return (
     <Item
       {...getListProps(props)}
-      left={props.left && <NB.Text>{props.left}</NB.Text>}
-      body={props.body && <NB.Text>{props.body}</NB.Text>}
-      right={
-        <NB.Right>
-          <NB.Picker
-            style={{
-              width: RN.Platform.OS === 'android' ? 120 : undefined,
-            }}
-            textStyle={{ color: 'cornflowerblue' }}
-            selectedValue={props.value || ''}
-            onValueChange={props.onValueChange}
-            iosIcon={<NB.Icon name="arrow-down" />} // "ios-arrow-down-outline"
-          >
-            {options.map(x => (
-              <NB.Picker.Item key={x} label={x} value={x} />
-            ))}
-          </NB.Picker>
-        </NB.Right>
+      left={props.label && <NB.Text>{props.label}</NB.Text>}
+      body={
+        <NB.Picker
+          textStyle={{ color: 'cornflowerblue' }}
+          selectedValue={props.value || ''}
+          onValueChange={props.onValueChange}
+          iosIcon={<NB.Icon name="arrow-down" />} // "ios-arrow-down-outline"
+        >
+          {options.map(x => (
+            <NB.Picker.Item key={x} label={x} value={x} />
+          ))}
+        </NB.Picker>
       }
     />
   );
