@@ -94,7 +94,7 @@ export const card = (state = cardInitialState, action: Action) => {
   }
 };
 
-export const sheet = (
+export const download = (
   state: DownloadState = {
     byId: {},
     publicDecks: [],
