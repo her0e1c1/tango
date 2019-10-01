@@ -181,7 +181,7 @@ const FrontText = () => {
         {/* <Overlay left onPress={useCardSwipe('cardSwipeLeft')} color="pink" /> */}
         <Overlay right onPress={useCardSwipe('cardSwipeRight')} />
         <Overlay top>
-          <Badge text={String(useCardAttr(cardId, 'score'))} />
+          <Badge text={String(useCardAttr(cardId, 'score') || 0)} />
         </Overlay>
         <DeckSwiper deckId={deck.id} />
         {interval > 0 && (

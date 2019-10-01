@@ -6,7 +6,6 @@ import { ThunkAction } from 'redux-thunk';
 import * as C from 'src/constant';
 import * as type from 'src/action/type';
 import { db } from 'src/firebase';
-import { deck } from 'src/store/reducer';
 
 type ThunkResult<R = void> = ThunkAction<R, RootState, undefined, Action>;
 
@@ -419,6 +418,7 @@ export const sheetUpload = (deck: Deck): ThunkResult => async (
 ) => {
   if (!deck.sheetId) {
     alert('Can not upload');
+    return;
   }
   const state = getState();
   const cards = deck.cardIds.map(id => state.card.byId[id]);
@@ -474,7 +474,7 @@ export const sheetImport = (id: string): ThunkResult => async (
   const url = `https://docs.google.com/spreadsheets/d/${sheet.spreadSheetId}/export?gid=${sheet.index}&exportFormat=csv`;
   const res = await dispatch(tryFetch(url, { googleToken: true }));
   if (!res.ok) {
-    throw `You can not download sheet ${id}`;
+    alert(`You can not download sheet ${id}`);
   } else {
     const text = await res.text();
     await dispatch(
