@@ -104,8 +104,10 @@ type CardState = {
   edit: Card;
 };
 
-type SheetState = {
+type DownloadState = {
   byId: { [key: string]: Sheet };
+  sheets: Sheet[]
+  publicDecks: Deck[]
 };
 
 type NavState = {
@@ -177,7 +179,7 @@ interface RootState {
   card: CardState;
   nav: NavState;
   config: ConfigState;
-  sheet: SheetState;
+  sheet: DownloadState;
 }
 
 // Because there is a conflict between @types/react-native and lib: ["dom"] in tsconfig.json,

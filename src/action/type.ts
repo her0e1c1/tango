@@ -55,6 +55,11 @@ export const sheetBulkInsert = (sheets: Sheet[]) => ({
   payload: { sheets },
 });
 
+export const deckPublicBulkInsert = (decks: Deck[]) => ({
+  type: 'PUBLIC_DECK_BULK_INSERT',
+  payload: { decks },
+});
+
 export const clearAll = () => ({
   type: 'CLEAR_ALL',
   payload: undefined,

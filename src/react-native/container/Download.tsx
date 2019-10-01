@@ -5,6 +5,20 @@ import { useGoTo } from 'src/react-native/hooks/action';
 import { Header } from './Common';
 import { SpreadSheetListPage } from './SpreadSheetList';
 import { QRCodePage } from './QRcode';
+import { DeckPublicListPage } from './DeckPublicList';
+
+const DeckPublicItem = React.memo(() => {
+  const goTo = useGoTo();
+  return (
+    <IconItem
+      awsomeFont
+      name="chevron-right"
+      body="Import From Public Deck List"
+      onPress={() => goTo('DeckPublicList')}
+      onPressItem={() => goTo('DeckPublicList')}
+    />
+  );
+});
 
 const SpreadSheetItem = React.memo(() => {
   const goTo = useGoTo();
@@ -38,6 +52,7 @@ export const Download = () => {
       <Header bodyText="Download" />
       <NB.Content>
         <NB.List>
+          <DeckPublicItem />
           <SpreadSheetItem />
           <QRCodeItem />
         </NB.List>
@@ -49,5 +64,6 @@ export const Download = () => {
 export const DownloadPage = createDownloadNavi({
   Download,
   SpreadSheetList: SpreadSheetListPage,
+  DeckPublicList: DeckPublicListPage,
   QRCode: QRCodePage,
 });

@@ -78,12 +78,14 @@ export const createStackNavi = (props: {
 export const createDownloadNavi = (props: {
   Download: any;
   SpreadSheetList: any;
+  DeckPublicList: any;
   QRCode: any;
 }) =>
   createStackNavigator(
     {
       Download: props.Download,
       SpreadSheetList: props.SpreadSheetList,
+      DeckPublicList: props.DeckPublicList,
       QRCode: props.QRCode,
     },
     { initialRouteName: 'Download', headerMode: 'none' }

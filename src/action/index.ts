@@ -237,6 +237,22 @@ export const deckDelete = (deckId: string) => async (dispatch, getState) => {
   dispatch(type.deckDelete(deckId));
 };
 
+export const deckPubicFetch = () => async (dispatch, getState) => {
+  const query = db
+    .collection('deck')
+    .where('deletedAt', '==', null)
+    .where('isPublic', '==', true);
+  // .orderBy('updatedAt', 'desc');
+  let querySnapshot: firebase.firestore.QuerySnapshot;
+  querySnapshot = await query.get();
+  const decks = [] as Deck[];
+  querySnapshot.forEach(doc => {
+    const d = doc.data() as Deck;
+    decks.push({ ...d, id: doc.id });
+  });
+  await dispatch(type.deckPublicBulkInsert(decks));
+};
+
 export const cardUpdate = (card: Partial<Card> & { id: string }) => async (
   dispatch,
   getState

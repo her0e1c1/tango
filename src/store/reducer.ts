@@ -95,8 +95,10 @@ export const card = (state = cardInitialState, action: Action) => {
 };
 
 export const sheet = (
-  state: SheetState = {
+  state: DownloadState = {
     byId: {},
+    publicDecks: [],
+    sheets: [],
   },
   action: Action
 ) => {
@@ -104,6 +106,9 @@ export const sheet = (
     const ss = action.payload.sheets;
     ss.forEach(s => (state.byId[s.id] = s));
     return { ...state };
+  } else if (equal(action, type.deckPublicBulkInsert)) {
+    const ds = action.payload.decks;
+    return { ...state, publicDecks: ds };
   } else {
     return state;
   }
