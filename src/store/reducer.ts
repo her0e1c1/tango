@@ -96,19 +96,16 @@ export const card = (state = cardInitialState, action: Action) => {
 
 export const download = (
   state: DownloadState = {
-    byId: {},
     publicDecks: [],
-    sheets: [],
+    sheetById: {},
   },
   action: Action
 ) => {
   if (equal(action, type.sheetBulkInsert)) {
-    const ss = action.payload.sheets;
-    ss.forEach(s => (state.byId[s.id] = s));
+    action.payload.sheets.forEach(s => (state.sheetById[s.id] = s));
     return { ...state };
   } else if (equal(action, type.deckPublicBulkInsert)) {
-    const ds = action.payload.decks;
-    return { ...state, publicDecks: ds };
+    return { ...state, publicDecks: action.payload.decks };
   } else {
     return state;
   }

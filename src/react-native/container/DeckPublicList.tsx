@@ -32,7 +32,7 @@ const Item = (props: { item: Deck }) => {
 
 export const DeckPublicList = () => {
   const fetch = useThunkAction(action.deckPubicFetch());
-  const decks = useSelector(state => state.sheet.publicDecks);
+  const decks = useSelector(state => state.download.publicDecks);
   const { setLoading, unsetLoading } = useIsLoading();
   React.useEffect(() => {
     (async () => {

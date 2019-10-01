@@ -200,7 +200,25 @@ export const LastUpdatedItem = React.memo(() => {
 export const AppCacheItem = React.memo(() => {
   const clearAll = useClearAll(true);
   return (
-    <ButtonItem icon danger body="App Cache" title="Clear" onPress={clearAll} />
+    <ButtonItem
+      icon
+      danger
+      body="App Cache"
+      title="Clear"
+      onPress={() => {
+        NB.ActionSheet.show(
+          {
+            title: 'Clear app cache',
+            options: ['Clear', 'Cancel'],
+            cancelButtonIndex: 1,
+            destructiveButtonIndex: 0,
+          },
+          async index => {
+            if (index === 0) await clearAll();
+          }
+        );
+      }}
+    />
   );
 });
 

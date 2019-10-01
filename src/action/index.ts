@@ -472,7 +472,7 @@ export const sheetImport = (id: string): ThunkResult => async (
   dispatch,
   getState
 ) => {
-  const sheet = getState().sheet.byId[id];
+  const sheet = getState().download.sheetById[id];
   const url = `https://docs.google.com/spreadsheets/d/${sheet.spreadSheetId}/export?gid=${sheet.index}&exportFormat=csv`;
   const res = await dispatch(tryFetch(url, { googleToken: true }));
   if (!res.ok) {
