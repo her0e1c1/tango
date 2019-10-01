@@ -23,7 +23,7 @@ interface Deck {
   updatedAt: Date;
   createdAt: Date;
   deletedAt?: Date; // soft delete flag
-  uid: string;
+  uid: string; // empty if imported publick deck
 
   // the order which user defines.
   // this should not be shuffled
@@ -106,8 +106,8 @@ type CardState = {
 
 type DownloadState = {
   byId: { [key: string]: Sheet };
-  sheets: Sheet[]
-  publicDecks: Deck[]
+  sheets: Sheet[];
+  publicDecks: Deck[];
 };
 
 type NavState = {

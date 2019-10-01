@@ -10,13 +10,13 @@ import { useThunkAction } from 'src/hooks';
 
 const Item = (props: { item: Deck }) => {
   const item = props.item;
-  // const sheetImport = useThunkAction(action.sheetImport(item.id));
+  const deckImport = useThunkAction(action.deckPublicImport(item.id));
   const isLoading = useConfigAttr('isLoading');
   const { setLoading, unsetLoading } = useIsLoading();
   const onPress = React.useCallback(async () => {
     if (isLoading) return;
     await setLoading();
-    // await sheetImport();
+    await deckImport();
     await unsetLoading();
   }, [isLoading]);
   return (

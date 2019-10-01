@@ -6,6 +6,7 @@ import { ThunkAction } from 'redux-thunk';
 import * as C from 'src/constant';
 import * as type from 'src/action/type';
 import { db } from 'src/firebase';
+import { deck } from 'src/store/reducer';
 
 type ThunkResult<R = void> = ThunkAction<R, RootState, undefined, Action>;
 
@@ -204,6 +205,7 @@ export const deckUpdate = (deck: Partial<Deck> & { id: string }) => async (
 ) => {
   dispatch(type.deckUpdate(deck));
   if (!getState().config.uid) return; // not login mode
+  if (!deck.uid) return; // imported public deck
   db.collection('deck')
     .doc(deck.id)
     .update({
@@ -220,6 +222,12 @@ export const deckEditUpdate = (): ThunkResult => async (dispatch, getState) => {
 // For deck, using soft delete flag with deletedAt
 // here update updatedAt, deletedAt and cardIds in deck.
 export const deckDelete = (deckId: string) => async (dispatch, getState) => {
+  const deck = getState().deck.byId[deckId];
+  if (!deck.uid) {
+    // not imported public deck
+    dispatch(type.deckDelete(deckId));
+    return;
+  }
   const uid = getState().config.uid;
   const batch = db.batch();
   const querySnapshot = await db
@@ -251,6 +259,35 @@ export const deckPubicFetch = () => async (dispatch, getState) => {
     decks.push({ ...d, id: doc.id });
   });
   await dispatch(type.deckPublicBulkInsert(decks));
+};
+
+export const deckPublicImport = (deckId: string) => async (
+  dispatch,
+  getState
+) => {
+  // no need to filter by public deck?
+  // where('deck.isPublic', '==', true)
+  const querySnapshot = await db
+    .collection('card')
+    .where('deckId', '==', deckId)
+    .get();
+  const cards = [] as Card[];
+  querySnapshot.forEach(doc => {
+    const d = doc.data() as Card;
+    cards.push({ ...d, id: doc.id });
+  });
+
+  const querySnapshot2 = await db
+    .collection('deck')
+    .where('id', '==', deckId)
+    .where('isPublic', '==', true)
+    .get();
+  querySnapshot2.forEach(doc => {
+    const d = doc.data() as Deck;
+    dispatch(type.deckInsert({ ...d, uid: '' }));
+  });
+
+  await dispatch(type.cardBulkInsert(cards));
 };
 
 export const cardUpdate = (card: Partial<Card> & { id: string }) => async (
