@@ -207,7 +207,7 @@ const SwipeButtonList = () => {
             }}
             onPress={swipe[key]}
           >
-            <NB.Text style={{ fontSize: 30 }}>{label[key]}</NB.Text>
+            <NB.Text style={{ fontSize: 50 }}>{label[key]}</NB.Text>
           </RN.TouchableOpacity>
         ))}
       </NB.View>
@@ -225,8 +225,6 @@ const FrontText = () => {
     <NB.View style={{ flex: 1, display: showBackText ? 'none' : undefined }}>
       <FrontHeader />
       <NB.View style={{ flex: 1 }}>
-        {/* <Overlay left onPress={useCardSwipe('cardSwipeLeft')} color="pink" /> */}
-        {/* <Overlay right onPress={useCardSwipe('cardSwipeRight')} /> */}
         <Overlay top>
           <Badge text={String(useCardAttr(cardId, 'score') || 0)} />
         </Overlay>
