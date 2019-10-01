@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';
 import { IconItem } from 'src/react-native/component';
-import { useIsLoading } from 'src/react-native/hooks/action';
+import { useIsLoading, useGoBack } from 'src/react-native/hooks/action';
 import { useSelector, useConfigAttr } from 'src/hooks/state';
 import { Header } from './Common';
 import * as action from 'src/react-native/action';
@@ -31,15 +31,22 @@ const Sheet = (props: { item: Sheet }) => {
 };
 
 export const SpreadSheetList = () => {
+  const uid = useConfigAttr('uid');
+  const goBack = useGoBack();
   const sheetFetch = useThunkAction(action.sheetFetch());
   const sheetState = useSelector((state: RootState) => state.sheet);
   const sheets = Object.values(sheetState.byId) as Sheet[];
   const { setLoading, unsetLoading } = useIsLoading();
   React.useEffect(() => {
     (async () => {
-      await setLoading();
-      await sheetFetch();
-      await unsetLoading();
+      if (uid) {
+        await setLoading();
+        await sheetFetch();
+        await unsetLoading();
+      } else {
+        alert('You need to login with Google account');
+        goBack();
+      }
     })();
   }, []);
   return (
