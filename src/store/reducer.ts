@@ -125,7 +125,7 @@ export const config = (
     shuffled: false,
     autoPlay: false,
     defaultAutoPlay: false,
-    cardInterval: 5,
+    cardInterval: 0,
     keepBackTextViewed: false,
     isLoading: false, // maybe not here
     isLoadingNoAction: false,
