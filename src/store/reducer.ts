@@ -116,6 +116,7 @@ export const sheet = (
 
 export const config = (
   state: ConfigState = {
+    showSwipeButtonList: true,
     showMastered: true,
     showHeader: true,
     showBackText: false,

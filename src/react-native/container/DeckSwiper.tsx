@@ -169,8 +169,55 @@ const FrontHeader = () => {
   );
 };
 
+const SwipeButtonList = () => {
+  const label = {
+    cardSwipeLeft: '←',
+    cardSwipeDown: '↓',
+    cardSwipeUp: '↑',
+    cardSwipeRight: '→',
+  };
+  const swipe = {
+    cardSwipeLeft: useCardSwipe('cardSwipeLeft'),
+    cardSwipeDown: useCardSwipe('cardSwipeDown'),
+    cardSwipeUp: useCardSwipe('cardSwipeUp'),
+    cardSwipeRight: useCardSwipe('cardSwipeRight'),
+  };
+  const reset = useConfigUpdateInAdvance({ lastSwipe: undefined });
+  const lastSwipe = useConfigAttr('lastSwipe');
+  React.useEffect(() => {
+    lastSwipe && setTimeout(() => reset(), 500);
+  }, [lastSwipe]);
+
+  return (
+    <NB.View>
+      <NB.View style={{ flexDirection: 'row' }}>
+        {[
+          'cardSwipeLeft',
+          'cardSwipeDown',
+          'cardSwipeUp',
+          'cardSwipeRight',
+        ].map(key => (
+          <RN.TouchableOpacity
+            key={key}
+            style={{
+              flex: 1,
+              alignContent: 'center',
+              alignItems: 'center',
+              backgroundColor: key === lastSwipe ? '#eee' : undefined,
+            }}
+            onPress={swipe[key]}
+          >
+            <NB.Text style={{ fontSize: 30 }}>{label[key]}</NB.Text>
+          </RN.TouchableOpacity>
+        ))}
+      </NB.View>
+    </NB.View>
+  );
+};
+
 const FrontText = () => {
   const deck = useCurrentDeck();
+  const showSwipeButtonList = useConfigAttr('showSwipeButtonList');
   const showBackText = useConfigAttr('showBackText');
   const cardId = deck.cardOrderIds[deck.currentIndex];
   const interval = useConfigAttr('cardInterval');
@@ -179,18 +226,15 @@ const FrontText = () => {
       <FrontHeader />
       <NB.View style={{ flex: 1 }}>
         {/* <Overlay left onPress={useCardSwipe('cardSwipeLeft')} color="pink" /> */}
-        <Overlay right onPress={useCardSwipe('cardSwipeRight')} />
+        {/* <Overlay right onPress={useCardSwipe('cardSwipeRight')} /> */}
         <Overlay top>
           <Badge text={String(useCardAttr(cardId, 'score') || 0)} />
         </Overlay>
         <DeckSwiper deckId={deck.id} />
-        {interval > 0 && (
-          <NB.Footer>
-            <NB.Body>
-              <Controller deckId={deck.id} />
-            </NB.Body>
-          </NB.Footer>
-        )}
+        <NB.View>
+          {showSwipeButtonList && <SwipeButtonList />}
+          {interval > 0 && <Controller deckId={deck.id} />}
+        </NB.View>
       </NB.View>
     </NB.View>
   );

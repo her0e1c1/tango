@@ -150,6 +150,14 @@ export const SwipeGesturesItem = React.memo(() => {
   };
   return (
     <>
+      <SwithItem
+        icon
+        body="Show Swipe Buttons"
+        value={useConfigAttr('showSwipeButtonList')}
+        onValueChange={useThunkAction(
+          action.configToggle('showSwipeButtonList')
+        )}
+      />
       {SWIPE_GESTURES.map(([type, label]) => (
         <PickerItem
           icon

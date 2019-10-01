@@ -117,6 +117,8 @@ export const deckSwipe = (
   const config = getState().config;
   const value = config[direction];
 
+  await dispatch(type.configUpdate({ lastSwipe: direction }));
+
   if (value === 'GoBack') {
     await dispatch(deckUpdate({ id: deck.id, currentIndex: -1 }));
     return;

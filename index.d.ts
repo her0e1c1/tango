@@ -131,8 +131,6 @@ interface Theme {
   bgTextInput: string;
 }
 
-type errorCode = 'INVALID_URL' | 'CAN_NOT_FETCH' | 'NO_CARDS';
-
 interface SwipeState {
   cardSwipeUp: cardSwipe;
   cardSwipeDown: cardSwipe;
@@ -151,6 +149,8 @@ type cardSwipe =
   | 'GoToNextCardToggleMastered';
 
 type ConfigState = SwipeState & {
+  lastSwipe?: SwipeDirection;
+  showSwipeButtonList: boolean;
   showMastered: boolean;
   showHeader: boolean;
   shuffled: boolean;
@@ -164,7 +164,6 @@ type ConfigState = SwipeState & {
   isLoading: boolean;
   isLoadingNoAction: boolean;
   loadingCount: number;
-  errorCode?: errorCode;
   googleAccessToken: string;
   googleRefreshToken: string;
   uid: string;
