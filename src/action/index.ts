@@ -137,7 +137,7 @@ export const deckSwipe = (
   const numberOfSeen = card.numberOfSeen + 1;
   const lastSeenAt = new Date();
 
-  let score;
+  let score = card.score;
   if (value === 'GoToNextCardMastered') {
     score = getCardScore(card, true);
   } else if (value === 'GoToNextCardNotMastered') {
