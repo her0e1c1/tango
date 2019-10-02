@@ -163,6 +163,10 @@ export const deckCreate = (
   deck: Pick<Deck, 'name' | 'sheetId' | 'url'>,
   cards: Omit<Card, 'id' | 'createdAt'>[]
 ): ThunkResult => async (dispatch, getState) => {
+  if (cards.length > 200) {
+    alert('You can not create a deck with more than 200 cards');
+    return;
+  }
   const uid = getState().config.uid;
   const createdAt = firebase.firestore.FieldValue.serverTimestamp();
   const updatedAt = createdAt;
