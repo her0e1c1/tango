@@ -34,10 +34,11 @@ const StartButton = React.memo((props: { length: number; deckId: string }) => {
   const dispatch = useDispatch();
   const replaceTo = useReplaceTo();
   const cards = useCardsByDeckId(props.deckId, { isShown: true });
-  const number = Math.min(
-    props.length,
-    useConfigAttr('maxNumberOfCardsToLearn')
-  );
+  const maxNumberOfCardsToLearn = useConfigAttr('maxNumberOfCardsToLearn');
+  let number = props.length;
+  if (maxNumberOfCardsToLearn > 0) {
+    number = Math.min(number, maxNumberOfCardsToLearn);
+  }
   return (
     <Button
       full
