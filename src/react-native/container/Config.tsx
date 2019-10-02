@@ -62,6 +62,7 @@ const SWIPE_GESTURES = [
 ];
 
 const CARD_SWIPE_TYPES: cardSwipe[] = [
+  'DoNothing',
   'GoBack',
   'GoToPrevCard',
   'GoToNextCard',

@@ -116,6 +116,9 @@ export const deckSwipe = (
   const card = getState().card.byId[cardId];
   const config = getState().config;
   const value = config[direction];
+  if (value === 'DoNothing') {
+    return;
+  }
 
   await dispatch(type.configUpdate({ lastSwipe: direction }));
 

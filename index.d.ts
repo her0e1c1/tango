@@ -140,6 +140,7 @@ interface SwipeState {
 type SwipeDirection = keyof SwipeState;
 
 type cardSwipe =
+  | 'DoNothing'
   | 'GoBack'
   | 'GoToPrevCard'
   | 'GoToNextCard'
