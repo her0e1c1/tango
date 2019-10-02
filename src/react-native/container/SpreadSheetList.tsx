@@ -35,7 +35,7 @@ export const SpreadSheetList = () => {
   const goBack = useGoBack();
   const sheetFetch = useThunkAction(action.sheetFetch());
   const byId = useSelector(state => state.download.sheetById);
-  const sheets = Object.values(byId);
+  const sheets = Object.values(byId) as Sheet[];
   const { setLoading, unsetLoading } = useIsLoading();
   React.useEffect(() => {
     (async () => {

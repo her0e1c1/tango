@@ -44,8 +44,12 @@ const StartButton = React.memo((props: { length: number; deckId: string }) => {
       full
       text={`Start to learn ${number} out of ${props.length} card(s) `}
       onPress={async () => {
-        await dispatch(action.deckStart(cards));
-        await replaceTo('DeckSwiper', { deckId: props.deckId });
+        if (number > 0) {
+          await dispatch(action.deckStart(cards));
+          await replaceTo('DeckSwiper', { deckId: props.deckId });
+        } else {
+          alert('No cards to learn');
+        }
       }}
     />
   );

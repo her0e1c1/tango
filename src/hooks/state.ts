@@ -75,7 +75,7 @@ export const useCardsByDeckId = (
           }
           return true;
         }),
-    [tags, ids, byId, isShown]
+    [tags, ids, byId, isShown, scoreMax]
   );
 };
 

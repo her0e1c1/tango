@@ -9,12 +9,15 @@ import { db } from 'src/firebase';
 
 type ThunkResult<R = void> = ThunkAction<R, RootState, undefined, Action>;
 
-export const rowToCard = (row: string[]): Partial<Card> => ({
-  frontText: row[0] || '',
-  backText: row[1] || '',
-  tags: row[2] ? row[3].split(',') : [],
-  score: row[3] ? parseInt(row[3]) : 0,
-});
+export const rowToCard = (row: string[]): Partial<Card> => {
+  const score = parseInt(row[3]) || 0;
+  return {
+    frontText: row[0] || '',
+    backText: row[1] || '',
+    tags: row[2] ? row[3].split(',') : [],
+    score,
+  };
+};
 
 export const cardToRow = (card: Card): string[] => [
   card.frontText,
@@ -116,6 +119,7 @@ export const deckSwipe = (
   const card = getState().card.byId[cardId];
   const config = getState().config;
   const value = config[direction];
+
   if (value === 'DoNothing') {
     return;
   }

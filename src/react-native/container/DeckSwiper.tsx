@@ -216,17 +216,36 @@ const SwipeButtonList = () => {
 };
 
 const FrontText = () => {
+  const dispatch = useDispatch();
   const deck = useCurrentDeck();
   const showSwipeButtonList = useConfigAttr('showSwipeButtonList');
   const showBackText = useConfigAttr('showBackText');
   const cardId = deck.cardOrderIds[deck.currentIndex];
   const interval = useConfigAttr('cardInterval');
+  const score = useCardAttr(cardId, 'score') || 0;
+  const [showSlider, setShowSlider] = React.useState(false);
   return (
     <NB.View style={{ flex: 1, display: showBackText ? 'none' : undefined }}>
       <FrontHeader />
       <NB.View style={{ flex: 1 }}>
         <Overlay top>
-          <Badge text={String(useCardAttr(cardId, 'score') || 0)} />
+          {!showSlider ? (
+            <NB.Button rounded onPress={() => setShowSlider(true)}>
+              <NB.Text>{String(score)}</NB.Text>
+            </NB.Button>
+          ) : (
+            <RN.Slider
+              style={{ marginHorizontal: 30 }}
+              minimumValue={-10}
+              maximumValue={10}
+              step={1}
+              value={score}
+              onSlidingComplete={score => {
+                dispatch(action.cardUpdate({ id: cardId, score }));
+                setShowSlider(false);
+              }}
+            />
+          )}
         </Overlay>
         <DeckSwiper deckId={deck.id} />
         <NB.View>

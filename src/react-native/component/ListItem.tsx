@@ -143,11 +143,11 @@ export const CardItem = (props: {
     >
       <NB.Body style={{ flex: 1, flexDirection: 'row' }}>
         <NB.Badge
-          primary={props.score == 0}
+          primary={!props.score} // including undefined or null
           warning={props.score < 0}
           success={props.score > 0}
         >
-          <NB.Text>{props.score}</NB.Text>
+          <NB.Text>{props.score || 0}</NB.Text>
         </NB.Badge>
         <NB.Text>{props.body}</NB.Text>
       </NB.Body>

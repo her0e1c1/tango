@@ -126,8 +126,8 @@ export const config = (
     keepBackTextViewed: false,
     isLoading: false, // maybe not here
     isLoadingNoAction: false,
-    cardSwipeUp: 'GoToNextCardMastered',
-    cardSwipeDown: 'GoToNextCardNotMastered',
+    cardSwipeUp: 'DoNothing',
+    cardSwipeDown: 'DoNothing',
     cardSwipeLeft: 'GoToPrevCard',
     cardSwipeRight: 'GoToNextCard',
     uid: '',
