@@ -56,6 +56,7 @@ export const useCardsByDeckId = (
 ): Card[] => {
   const isShown = opt && opt.isShown;
   const scoreMax = useDeckAttr(deckId, 'scoreMax');
+  const scoreMin = useDeckAttr(deckId, 'scoreMin');
   const tags = useDeckAttr(deckId, 'selectedTags');
   const ids = useDeckAttr(deckId, 'cardIds');
   const byId = useSelector(state => state.card.byId); // カードを更新しないならここは、そのまま
@@ -72,10 +73,13 @@ export const useCardsByDeckId = (
             if (scoreMax != undefined && c.score > scoreMax) {
               return false;
             }
+            if (scoreMin != undefined && c.score < scoreMin) {
+              return false;
+            }
           }
           return true;
         }),
-    [tags, ids, byId, isShown, scoreMax]
+    [tags, ids, byId, isShown, scoreMax, scoreMin]
   );
 };
 

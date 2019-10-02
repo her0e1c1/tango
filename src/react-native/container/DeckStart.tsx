@@ -124,6 +124,34 @@ const MaxScoreItems = React.memo(
   }
 );
 
+const MinScoreItems = React.memo(
+  (props: { scoreMin: number | null; deckId: string }) => {
+    const dispatch = useDispatch();
+    const [score, setScore] = React.useState(props.scoreMin || 0);
+    return (
+      <>
+        <Separator text={`min score ${props.scoreMin != null ? score : ''}`} />
+        <ButtonItem
+          title="disable"
+          onPress={useThunkAction(
+            action.deckUpdate({ id: props.deckId, scoreMin: null })
+          )}
+        />
+        <SliderItem
+          icon
+          max={10}
+          min={-10}
+          value={score}
+          onValueChange={setScore}
+          onSlidingComplete={score =>
+            dispatch(action.deckUpdate({ id: props.deckId, scoreMin: score }))
+          }
+        />
+      </>
+    );
+  }
+);
+
 export const DeckStartPage = React.memo(() => {
   const deck = useCurrentDeck();
   const cards = useCardsByDeckId(deck.id, { isShown: true });
@@ -134,6 +162,7 @@ export const DeckStartPage = React.memo(() => {
         <StartButton length={cards.length} deckId={deck.id} />
         <NB.List>
           <MaxScoreItems deckId={deck.id} scoreMax={deck.scoreMax} />
+          <MinScoreItems deckId={deck.id} scoreMin={deck.scoreMin} />
           <FilterByTagItems deckId={deck.id} selectedTags={deck.selectedTags} />
         </NB.List>
       </NB.Content>

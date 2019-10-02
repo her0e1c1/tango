@@ -200,6 +200,7 @@ export const deckCreate = (
     updatedAt,
     cardIds,
     scoreMax: null,
+    scoreMin: null,
     sheetId: deck.sheetId || null,
     url: deck.url || null,
     isPublic: false,

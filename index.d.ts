@@ -40,6 +40,7 @@ interface Deck {
   currentIndex: number;
   selectedTags: string[];
   scoreMax: number | null;
+  scoreMin: number | null;
 
   category: Category;
   convertToBr: boolean;
