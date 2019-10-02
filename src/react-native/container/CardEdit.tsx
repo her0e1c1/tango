@@ -7,7 +7,7 @@ import { useCurrentCard } from 'src/hooks/state';
 import { useCardEdit } from 'src/react-native/hooks/action';
 import { Header } from './Common';
 import * as action from 'src/react-native/action';
-import { useDispatch, useThunkAction } from 'src/hooks';
+import { useDispatch } from 'src/hooks';
 
 function useEdit<T extends keyof Card>(key: T) {
   return useSelector(state => state.card.edit[key]);
@@ -29,13 +29,14 @@ const TagsItem = () => {
 };
 
 const DeleteCard = () => {
-  const id = useEdit('id');
+  // const id = useEdit('id');
   return (
     <Button
       danger
       full
       text="DELETE"
-      onPress={useThunkAction(action.cardDelete(id))}
+      onPress={() => alert('sorry but not implemented yet')}
+      // onPress={useThunkAction(action.cardDelete(id))}
     />
   );
 };
