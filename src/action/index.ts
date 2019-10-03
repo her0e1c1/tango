@@ -11,10 +11,11 @@ type ThunkResult<R = void> = ThunkAction<R, RootState, undefined, Action>;
 
 export const rowToCard = (row: string[]): Partial<Card> => {
   const score = parseInt(row[3]) || 0;
+  const tags = typeof row[2] === 'string' ? row[2].split(',') : [];
   return {
     frontText: row[0] || '',
     backText: row[1] || '',
-    tags: row[2] ? row[3].split(',') : [],
+    tags,
     score,
   };
 };
