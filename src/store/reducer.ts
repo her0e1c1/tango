@@ -103,7 +103,7 @@ export const download = (
 ) => {
   if (equal(action, type.sheetBulkInsert)) {
     action.payload.sheets.forEach(s => (state.sheetById[s.id] = s));
-    return { ...state };
+    return { ...state, sheetById: {...state.sheetById} };
   } else if (equal(action, type.deckPublicBulkInsert)) {
     return { ...state, publicDecks: action.payload.decks };
   } else {
