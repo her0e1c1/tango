@@ -26,6 +26,7 @@ import { Header } from './Common';
 import { useThunkAction, useDispatch } from 'src/hooks';
 import * as action from 'src/react-native/action';
 import GestureRecognizer from 'react-native-swipe-gestures';
+import { useKeepAwake } from 'expo-keep-awake';
 
 const useCardSwipe = (direction: SwipeDirection) => {
   const deck = useCurrentDeck();
@@ -259,6 +260,7 @@ const FrontText = () => {
 
 export const DeckSwiperPage = () => {
   useScreen();
+  useKeepAwake();
   const dispatch = useDispatch();
   const goBack = useGoBack();
   const deck = useCurrentDeck();
