@@ -251,7 +251,9 @@ const FrontText = () => {
         <DeckSwiper deckId={deck.id} />
         <NB.View>
           {showSwipeButtonList && <SwipeButtonList />}
-          {interval > 0 && <Controller deckId={deck.id} />}
+          {interval > 0 && !showBackText /* android needs to hide this */ && (
+            <Controller deckId={deck.id} />
+          )}
         </NB.View>
       </NB.View>
     </NB.View>
