@@ -37,28 +37,21 @@ const html = `
 </html>
 `;
 
-export const WebviewCard = React.memo(
-  (props: { onPress?: Callback; onLongPress?: Callback; refWebView?: any }) => {
-    return (
-      <RN.TouchableWithoutFeedback
-        onPress={props.onPress}
-        onLongPress={props.onLongPress}
-      >
-        <NB.View style={{ flex: 1 }}>
-          <RN.WebView
-            ref={props.refWebView}
-            style={{ flex: 1 }}
-            automaticallyAdjustContentInsets={false}
-            bounces={false}
-            scrollEnabled={true}
-            source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
-            originWhitelist={['*']}
-          />
-        </NB.View>
-      </RN.TouchableWithoutFeedback>
-    );
-  }
-);
+export const WebviewCard = React.memo((props: { refWebView?: any }) => {
+  return (
+    <NB.View style={{ flex: 1 }}>
+      <RN.WebView
+        ref={props.refWebView}
+        style={{ flex: 1 }}
+        automaticallyAdjustContentInsets={false}
+        bounces={false}
+        scrollEnabled={true}
+        source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
+        originWhitelist={['*']}
+      />
+    </NB.View>
+  );
+});
 
 export const Controller = (props: {
   deckCurrentIndex: number;
