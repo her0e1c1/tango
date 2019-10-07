@@ -159,6 +159,7 @@ export const DeckStartPage = React.memo(() => {
     <NB.Container>
       <Header body={{ title: 'Deck Start' }} />
       <NB.Content>
+        <NB.View style={{ margin: 10 }} />
         <StartButton length={cards.length} deckId={deck.id} />
         <NB.List>
           <MaxScoreItems deckId={deck.id} scoreMax={deck.scoreMax} />
