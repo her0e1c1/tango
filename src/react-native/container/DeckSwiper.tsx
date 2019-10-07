@@ -3,13 +3,11 @@ import * as RN from 'react-native';
 import * as NB from 'native-base';
 import {
   TextCard,
-  Badge,
   WebviewCard,
   Overlay,
   Controller as ControllerComponent,
 } from 'src/react-native/component';
 import {
-  useScreen,
   useReplaceTo,
   useGoTo,
   useConfigUpdateInAdvance,
@@ -33,7 +31,7 @@ const useCardSwipe = (direction: SwipeDirection) => {
   return useThunkAction(action.deckSwipe(direction, deck.id));
 };
 
-export const Controller = (props: { deckId: string }) => {
+export const Controller = (props: { deckId: string; hide?: boolean }) => {
   const dispatch = useDispatch();
   const deck = useDeck(props.deckId);
   const [currentIndex, setIndex] = React.useState(deck.currentIndex);
@@ -75,10 +73,16 @@ export const Controller = (props: { deckId: string }) => {
     };
   }, [autoPlay]);
 
+  // HOTFIX: on android, slider is displayed even in backText page
+  const pause = useConfigAttr('autoPlay');
+  const onPlay = () => dispatch(action.configToggle('autoPlay'));
+  if (props.hide) {
+    return <NB.View />;
+  }
   return (
     <ControllerComponent
-      pause={useConfigAttr('autoPlay')}
-      onPlay={() => dispatch(action.configToggle('autoPlay'))}
+      pause={pause}
+      onPlay={onPlay}
       cardsLength={deck.cardOrderIds.length}
       deckCurrentIndex={deck.currentIndex}
       onSlidingComplete={setIndex}
@@ -140,7 +144,13 @@ const BackText = () => {
   });
   const cardId = deck.cardOrderIds[deck.currentIndex];
   return (
-    <NB.View style={{ flex: 1, display: showBackText ? undefined : 'none' }}>
+    <NB.View
+      style={{
+        flex: 1,
+        display: showBackText ? undefined : 'none',
+        backgroundColor: 'white',
+      }}
+    >
       <Overlay left onPress={useCardSwipe('cardSwipeLeft')} />
       <Overlay right onPress={useCardSwipe('cardSwipeRight')} />
       <Overlay bottom onPress={hideBackText} color="rgba(52, 52, 52, 0.1)'" />
@@ -226,7 +236,13 @@ const FrontText = () => {
   const score = useCardAttr(cardId, 'score') || 0;
   const [showSlider, setShowSlider] = React.useState(false);
   return (
-    <NB.View style={{ flex: 1, display: showBackText ? 'none' : undefined }}>
+    <NB.View
+      style={{
+        flex: 1,
+        display: showBackText ? 'none' : undefined,
+        backgroundColor: 'white',
+      }}
+    >
       <FrontHeader />
       <NB.View style={{ flex: 1 }}>
         <Overlay top>
@@ -251,9 +267,7 @@ const FrontText = () => {
         <DeckSwiper deckId={deck.id} />
         <NB.View>
           {showSwipeButtonList && <SwipeButtonList />}
-          {interval > 0 && !showBackText /* android needs to hide this */ && (
-            <Controller deckId={deck.id} />
-          )}
+          {interval > 0 && <Controller deckId={deck.id} hide={showBackText} />}
         </NB.View>
       </NB.View>
     </NB.View>
@@ -261,7 +275,6 @@ const FrontText = () => {
 };
 
 export const DeckSwiperPage = () => {
-  useScreen();
   useKeepAwake();
   const dispatch = useDispatch();
   const goBack = useGoBack();

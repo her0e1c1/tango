@@ -3,7 +3,11 @@ import * as NB from 'native-base';
 import * as RN from 'react-native';
 import { useSelector } from 'react-redux';
 import { SwipeRow } from 'src/react-native/component';
-import { useGoTo, useIsLoading } from 'src/react-native/hooks/action';
+import {
+  useGoTo,
+  useIsLoading,
+  useScreen,
+} from 'src/react-native/hooks/action';
 import { Header, Deck } from './Common';
 import * as action from 'src/react-native/action';
 import { useThunkAction, useDispatch } from 'src/hooks';
@@ -85,11 +89,14 @@ export const DeckList = () => {
   );
 };
 
-export const DeckListPage = () => (
-  <NB.Container>
-    <Header body={{ title: 'Deck List' }} />
-    <NB.Content>
-      <DeckList />
-    </NB.Content>
-  </NB.Container>
-);
+export const DeckListPage = () => {
+  useScreen(false);
+  return (
+    <NB.Container>
+      <Header body={{ title: 'Deck List' }} />
+      <NB.Content>
+        <DeckList />
+      </NB.Content>
+    </NB.Container>
+  );
+};

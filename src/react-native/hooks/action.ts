@@ -127,17 +127,18 @@ export const useDimension = () => {
   return dimension;
 };
 
-export const useScreen = () => {
+export const useScreen = (reset: boolean = true) => {
   React.useEffect(() => {
     RN.StatusBar.setHidden(true);
     Expo.ScreenOrientation.lockAsync(
       Expo.ScreenOrientation.OrientationLock.ALL
     );
     return () => {
+      if (!reset) return;
       RN.StatusBar.setHidden(false);
       Expo.ScreenOrientation.lockAsync(
         Expo.ScreenOrientation.OrientationLock.PORTRAIT
       );
     };
-  }, []);
+  }, [reset]);
 };

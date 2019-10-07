@@ -67,13 +67,14 @@ export const ButtonItem = (props: {
   onPress?: () => void;
   danger?: boolean;
 }) => (
+  // on android, "logout" text is broken if without fontSize
   <Item
     {...getListProps(props)}
     left={props.left && <NB.Text>{props.left}</NB.Text>}
     body={props.body && <NB.Text>{props.body}</NB.Text>}
     right={
       <NB.Button onPress={props.onPress} small danger={props.danger}>
-        <NB.Text>{props.title}</NB.Text>
+        <NB.Text style={{ fontSize: 12 }}>{props.title}</NB.Text>
       </NB.Button>
     }
   />
