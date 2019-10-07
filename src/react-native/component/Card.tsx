@@ -60,7 +60,8 @@ export const Controller = (props: {
   onPlay?: Callback;
   onSlidingComplete?: (n: number) => any;
 }) => (
-  <NB.View style={{ flexDirection: 'row' }}>
+  // not sure but on android, you need to set bg because backText is displayed
+  <NB.View style={{ flexDirection: 'row', backgroundColor: 'white' }}>
     <NB.Button transparent onPress={props.onPlay}>
       <NB.Icon
         name={props.pause ? 'md-pause' : 'md-play'}
