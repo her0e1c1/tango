@@ -72,7 +72,9 @@ export const useLoginWithGoogle = () => {
     // @ts-ignore
     const result = await Expo.Google.logInAsync({
       androidClientId: C.GOOGLE_ANDROID_CLIENT_ID,
+      androidStandaloneAppClientId: C.GOOGLE_ANDROID_CLIENT_ID,
       iosClientId: C.GOOGLE_IOS_CLIENT_ID,
+      iosStandaloneAppClientId: C.GOOGLE_IOS_CLIENT_ID,
       scopes: C.GOOGLE_AUTH_SCOPES,
     });
     const { type, idToken, accessToken, refreshToken } = result;
