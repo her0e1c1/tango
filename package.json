@@ -4,6 +4,7 @@
     "start": "cp AppReactNative.tsx App.tsx && expo start",
     "story": "cp AppStorybook.tsx App.tsx && expo start",
     "android": "expo start --android",
+    "build:android": "expo build:android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "publish": "expo-cli publish",
