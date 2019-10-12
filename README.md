@@ -2,6 +2,10 @@
 
 You can memorize anything with this awesome flash cards now!
 
+## Google Play
+
+https://play.google.com/store/apps/details?id=com.her0e1c1.tango
+
 ## Expo
 
 https://exp.host/@her0e1c1/tango
