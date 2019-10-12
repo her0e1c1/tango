@@ -9,7 +9,7 @@
       "android",
       "web"
     ],
-    "version": "1.0.0",
+    "version": "3.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -27,7 +27,17 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.her0e1c1.tango"
+      "versionCode": 4,
+      "package": "com.her0e1c1.tango",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon_android.png"
+      },
+      "config": {
+        "googleSignIn": {
+          "apiKey": "AIzaSyDmZldWNuXr8GLfb-p89_br22gX_Ahjow8",
+          "certificateHash": "FA0FC49CE1AB4BC49E7FF45C6330A2F43C050D15"
+        }
+      }
     }
   }
 }
