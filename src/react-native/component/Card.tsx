@@ -1,6 +1,8 @@
 import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';
+import * as AssetUtils from 'expo-asset-utils';
+import * as FileSystem from 'expo-file-system';
 
 export const TextCard = (props: {
   body: string;
@@ -24,6 +26,7 @@ export const TextCard = (props: {
   </RN.TouchableWithoutFeedback>
 );
 
+/*
 const html = `
 <!DOCTYPE html>
 <html>
@@ -36,8 +39,18 @@ const html = `
  <script src="https://tang04mem0.firebaseapp.com/static/js/main.00ed006a.js"></script>
 </html>
 `;
+*/
 
 export const WebviewCard = React.memo((props: { refWebView?: any }) => {
+  React.useEffect(() => {
+    AssetUtils.resolveAsync(require('../../../view/dist/index.html')).then(
+      async file => {
+        const fileContents = await FileSystem.readAsStringAsync(file.localUri);
+        setHtml(fileContents);
+      }
+    );
+  }, []);
+  const [html, setHtml] = React.useState('');
   return (
     <NB.View style={{ flex: 1 }}>
       <RN.WebView
@@ -46,8 +59,12 @@ export const WebviewCard = React.memo((props: { refWebView?: any }) => {
         automaticallyAdjustContentInsets={false}
         bounces={false}
         scrollEnabled={true}
-        source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
+        useWebKit
+        javaScriptEnabled
+        allowFileAccess
         originWhitelist={['*']}
+        source={{ html }}
+        // source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
       />
     </NB.View>
   );
