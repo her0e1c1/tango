@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as RN from 'react-native';
 import * as NB from 'native-base';
+import * as C from 'src/constant';
 import {
   TextCard,
   WebviewCard,
@@ -90,6 +91,14 @@ export const Controller = (props: { deckId: string; hide?: boolean }) => {
   );
 };
 
+const getCagegory = (category: string, tags: string[]) => {
+  tags = tags.filter(tag => C.CATEGORY.includes(tag));
+  if (tags.length > 0) {
+    return tags[0];
+  }
+  return category;
+};
+
 export const CardView = (props: { frontText: boolean; cardId: string }) => {
   const ref = React.useRef<RN.WebView>(null);
   const deck = useCurrentDeck();
@@ -102,7 +111,7 @@ export const CardView = (props: { frontText: boolean; cardId: string }) => {
     keepBackTextViewed: true,
   });
   const card = useCard(props.cardId);
-  const category = card.tags.length > 0 ? card.tags[0] : deck.category;
+  const category = getCagegory(deck.category, card.tags);
   const text = props.frontText ? card.frontText : card.backText;
   React.useEffect(() => {
     category &&
