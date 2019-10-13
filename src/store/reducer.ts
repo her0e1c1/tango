@@ -16,7 +16,7 @@ export const deckInitialState = {
 
 export const deck = (state = deckInitialState, action: Action) => {
   if (equal(action, type.deckBulkInsert)) {
-    // TODO: cardOrderIds also fixed when a card is deleted
+    // TODO: cardOrderIds needs to be updated when a card is deleted
     const decks = action.payload.decks;
     decks.forEach(d => {
       const deck = state.byId[d.id] || {};
@@ -103,7 +103,7 @@ export const download = (
 ) => {
   if (equal(action, type.sheetBulkInsert)) {
     action.payload.sheets.forEach(s => (state.sheetById[s.id] = s));
-    return { ...state, sheetById: {...state.sheetById} };
+    return { ...state, sheetById: { ...state.sheetById } };
   } else if (equal(action, type.deckPublicBulkInsert)) {
     return { ...state, publicDecks: action.payload.decks };
   } else {
@@ -126,8 +126,8 @@ export const config = (
     keepBackTextViewed: false,
     isLoading: false, // maybe not here
     isLoadingNoAction: false,
-    cardSwipeUp: 'DoNothing',
-    cardSwipeDown: 'DoNothing',
+    cardSwipeUp: 'GoToNextCardMastered',
+    cardSwipeDown: 'GoToNextCardNotMastered',
     cardSwipeLeft: 'GoToPrevCard',
     cardSwipeRight: 'GoToNextCard',
     uid: '',
