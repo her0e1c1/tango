@@ -162,9 +162,15 @@ const BackText = () => {
         backgroundColor: 'white',
       }}
     >
+      <Overlay top onPress={useCardSwipe('cardSwipeUp')} />
       <Overlay left onPress={useCardSwipe('cardSwipeLeft')} />
       <Overlay right onPress={useCardSwipe('cardSwipeRight')} />
-      <Overlay bottom onPress={hideBackText} color="rgba(52, 52, 52, 0.1)'" />
+      <Overlay
+        bottom
+        onPress={hideBackText}
+        color="rgba(52, 52, 52, 0.1)'"
+        onLongPress={useCardSwipe('cardSwipeDown')}
+      />
       <CardView frontText={false} cardId={cardId} />
     </NB.View>
   );
