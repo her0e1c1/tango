@@ -99,7 +99,7 @@ export const MaxNumberOfCardsToLearnSliderSection = React.memo(() => {
   const [state, setState] = React.useState(v);
   return (
     <>
-      <Separator bordered text={`Max number of cards to learn: ${v}`} />
+      <Separator bordered text={`Max number of cards to learn: ${state}`} />
       <SliderItem
         icon
         min={0}
