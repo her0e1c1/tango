@@ -92,7 +92,9 @@ export const Controller = (props: { deckId: string; hide?: boolean }) => {
 };
 
 const getCagegory = (category: string, tags: string[]) => {
-  tags = tags.filter(tag => C.CATEGORY.includes(tag));
+  tags = tags
+    .map(tag => (tag in C.MAPPING ? C.MAPPING[tag] : tag))
+    .filter(tag => C.CATEGORY.includes(tag));
   if (tags.length > 0) {
     return tags[0];
   }

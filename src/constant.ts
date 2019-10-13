@@ -5,7 +5,6 @@ export const LANGUAGES = [
   'cpp',
   'kotlin',
   'python',
-  'py',
   'golang',
   'java',
   'javascript',
@@ -16,6 +15,14 @@ export const LANGUAGES = [
   'sh',
   'swift',
 ];
+
+export const MAPPING = {
+  hs: 'haskell',
+  go: 'golang',
+  js: 'javascript',
+  py: 'python',
+  rb: 'ruby',
+};
 
 export const CATEGORY: Category[] = ['raw', 'markdown', 'math'].concat(
   LANGUAGES
