@@ -250,8 +250,9 @@ const FrontText = () => {
   const showBackText = useConfigAttr('showBackText');
   const cardId = deck.cardOrderIds[deck.currentIndex];
   const interval = useConfigAttr('cardInterval');
-  const score = useCardAttr(cardId, 'score') || 0;
+  const defaultScore = useCardAttr(cardId, 'score') || 0;
   const [showSlider, setShowSlider] = React.useState(false);
+  const [score, setScore] = React.useState(defaultScore);
   return (
     <NB.View
       style={{
@@ -262,18 +263,18 @@ const FrontText = () => {
     >
       <FrontHeader />
       <NB.View style={{ flex: 1 }}>
-        <Overlay top>
-          {!showSlider ? (
-            <NB.Button rounded onPress={() => setShowSlider(true)}>
-              <NB.Text>{String(score)}</NB.Text>
-            </NB.Button>
-          ) : (
+        <Overlay top style={{ flexDirection: 'row' }}>
+          <NB.Button rounded onPress={() => setShowSlider(true)}>
+            <NB.Text>{String(score)}</NB.Text>
+          </NB.Button>
+          {showSlider && (
             <RN.Slider
-              style={{ marginHorizontal: 30 }}
+              style={{ marginHorizontal: 5, flex: 1 }}
               minimumValue={-10}
               maximumValue={10}
               step={1}
               value={score}
+              onValueChange={setScore}
               onSlidingComplete={score => {
                 dispatch(action.cardUpdate({ id: cardId, score }));
                 setShowSlider(false);
