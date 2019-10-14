@@ -243,13 +243,28 @@ const SwipeButtonList = () => {
   );
 };
 
+const TimePicker = ({ cardId }: { cardId: string }) => {
+  const dispatch = useDispatch();
+  const interval = useCardAttr(cardId, 'interval');
+  return (
+    <NB.Picker
+      selectedValue={String(interval)}
+      onValueChange={interval => {
+        dispatch(action.cardUpdate({ id: cardId, interval: Number(interval) }));
+      }}
+    >
+      {Object.entries(C.NEXT_SEEING_MINUTES).map(([value, label]) => (
+        <NB.Picker.Item key={value} label={label} value={value} />
+      ))}
+    </NB.Picker>
+  );
+};
+
 const FrontText = () => {
   const dispatch = useDispatch();
   const deck = useCurrentDeck();
-  const showSwipeButtonList = useConfigAttr('showSwipeButtonList');
   const showBackText = useConfigAttr('showBackText');
   const cardId = deck.cardOrderIds[deck.currentIndex];
-  const interval = useConfigAttr('cardInterval');
   const defaultScore = useCardAttr(cardId, 'score') || 0;
   const [showSlider, setShowSlider] = React.useState(false);
   const [score, setScore] = React.useState(defaultScore);
@@ -263,7 +278,10 @@ const FrontText = () => {
     >
       <FrontHeader />
       <NB.View style={{ flex: 1 }}>
-        <Overlay top style={{ flexDirection: 'row' }}>
+        <Overlay
+          top
+          style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+        >
           <NB.Button rounded onPress={() => setShowSlider(true)}>
             <NB.Text>{String(score)}</NB.Text>
           </NB.Button>
@@ -281,11 +299,14 @@ const FrontText = () => {
               }}
             />
           )}
+          {!showSlider && <TimePicker cardId={cardId} />}
         </Overlay>
         <DeckSwiper deckId={deck.id} />
         <NB.View>
-          {showSwipeButtonList && <SwipeButtonList />}
-          {interval > 0 && <Controller deckId={deck.id} hide={showBackText} />}
+          {useConfigAttr('showSwipeButtonList') && <SwipeButtonList />}
+          {useConfigAttr('cardInterval') > 0 && (
+            <Controller deckId={deck.id} hide={showBackText} />
+          )}
         </NB.View>
       </NB.View>
     </NB.View>

@@ -93,6 +93,17 @@ export const ShowHeaderItem = React.memo(() => {
   );
 });
 
+export const UseCardIntervalItem = React.memo(() => {
+  return (
+    <SwithItem
+      icon
+      body="Use card interval"
+      value={useConfigAttr('useCardInterval')}
+      onValueChange={useThunkAction(action.configToggle('useCardInterval'))}
+    />
+  );
+});
+
 export const MaxNumberOfCardsToLearnSliderSection = React.memo(() => {
   const dispatch = useDispatch();
   const v = useConfigAttr('maxNumberOfCardsToLearn');
@@ -235,6 +246,7 @@ export const Config = React.memo(() => {
       <LoginItem />
       <ShuffleCardsItem />
       <ShowHeaderItem />
+      <UseCardIntervalItem />
       <MaxNumberOfCardsToLearnSliderSection />
       <IntervalSliderSection />
       <Separator bordered text="Swipe Gestures" />

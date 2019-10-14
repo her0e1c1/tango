@@ -66,6 +66,7 @@ export const card = (state = cardInitialState, action: Action) => {
         score: 0,
         numberOfSeen: 0,
         nextSeeingAt: new Date(0),
+        interval: 0,
         ...current,
         ...c,
       };
@@ -113,6 +114,7 @@ export const download = (
 
 export const config = (
   state: ConfigState = {
+    useCardInterval: false,
     showSwipeButtonList: true,
     showMastered: true,
     showHeader: true,

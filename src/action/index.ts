@@ -6,6 +6,8 @@ import { ThunkAction } from 'redux-thunk';
 import * as C from 'src/constant';
 import * as type from 'src/action/type';
 import { db } from 'src/firebase';
+import moment from 'moment';
+import { CardSwiper } from 'native-base';
 
 type ThunkResult<R = void> = ThunkAction<R, RootState, undefined, Action>;
 
@@ -147,8 +149,27 @@ export const deckSwipe = (
     score = getCardScore(card);
   }
 
+  let interval = card.interval;
+  const index = C.NEXT_SEEING_MINUTES_KEYS.findIndex(i => i >= interval);
+  if (card.score < score && index < C.NEXT_SEEING_MINUTES_KEYS.length - 1) {
+    interval = C.NEXT_SEEING_MINUTES_KEYS[index + 1];
+  } else if (card.score > score && index > 0) {
+    interval = C.NEXT_SEEING_MINUTES_KEYS[index - 1];
+  }
+
+  const nextSeeingAt = moment(lastSeenAt)
+    .add(interval, 'minute')
+    .toDate();
+
   await dispatch(
-    type.cardUpdate({ id: card.id, score, numberOfSeen, lastSeenAt })
+    type.cardUpdate({
+      id: card.id,
+      score,
+      numberOfSeen,
+      interval,
+      lastSeenAt,
+      nextSeeingAt,
+    })
   );
 
   let currentIndex = deck.currentIndex;

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigationParam } from 'react-navigation-hooks';
+import { card } from 'src/store/reducer';
 export { useSelector } from 'react-redux';
 
 export const useConfigState = (...deps: (keyof ConfigState)[]): ConfigState => {
@@ -55,6 +56,7 @@ export const useCardsByDeckId = (
   opt?: { isShown?: boolean }
 ): Card[] => {
   const isShown = opt && opt.isShown;
+  const useCardInterval = useConfigAttr('useCardInterval');
   const scoreMax = useDeckAttr(deckId, 'scoreMax');
   const scoreMin = useDeckAttr(deckId, 'scoreMin');
   const tags = useDeckAttr(deckId, 'selectedTags');
@@ -76,10 +78,13 @@ export const useCardsByDeckId = (
             if (scoreMin != undefined && c.score < scoreMin) {
               return false;
             }
+            if (useCardInterval && c.nextSeeingAt > new Date()) {
+              return false;
+            }
           }
           return true;
         }),
-    [tags, ids, byId, isShown, scoreMax, scoreMin]
+    [tags, ids, byId, isShown, scoreMax, scoreMin, useCardInterval]
   );
 };
 

@@ -28,6 +28,16 @@ const TagsItem = () => {
   return <TextItem noBorder body="Tags" right={v.join(', ')} />;
 };
 
+const NextSeeingAtItem = () => {
+  const v = useEdit('nextSeeingAt');
+  return <TextItem noBorder body="Next time" right={String(v)} />;
+};
+
+const LastSeenAtItem = () => {
+  const v = useEdit('lastSeenAt');
+  return <TextItem noBorder body="Last Seen" right={String(v)} />;
+};
+
 const DeleteCard = () => {
   // const id = useEdit('id');
   return (
@@ -71,6 +81,8 @@ export const CardEdit = () => (
       <IDItem />
       <ScoreItem />
       <TagsItem />
+      <NextSeeingAtItem />
+      <LastSeenAtItem />
     </NB.List>
     <NB.Form>
       <FrontTextField />

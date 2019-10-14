@@ -73,6 +73,7 @@ interface Card {
   numberOfSeen: number;
   lastSeenAt?: Date;
   nextSeeingAt: Date;
+  interval: number; // minute
 
   // fetch data from web
   url?: string;
@@ -151,6 +152,7 @@ type cardSwipe =
 
 type ConfigState = SwipeState & {
   lastSwipe?: SwipeDirection;
+  useCardInterval: boolean;
   showSwipeButtonList: boolean;
   showMastered: boolean;
   showHeader: boolean;
