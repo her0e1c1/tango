@@ -7,7 +7,6 @@ import * as C from 'src/constant';
 import * as type from 'src/action/type';
 import { db } from 'src/firebase';
 import moment from 'moment';
-import { CardSwiper } from 'native-base';
 
 type ThunkResult<R = void> = ThunkAction<R, RootState, undefined, Action>;
 

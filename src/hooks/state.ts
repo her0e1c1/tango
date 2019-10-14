@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigationParam } from 'react-navigation-hooks';
-import { card } from 'src/store/reducer';
 export { useSelector } from 'react-redux';
 
 export const useConfigState = (...deps: (keyof ConfigState)[]): ConfigState => {
