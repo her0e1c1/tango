@@ -40,3 +40,8 @@ cp src/secret.ts.example src/secret.ts
 
 # Firebase Hosting
 - https://tang04mem0.firebaseapp.com
+
+# Update
+```
+expo update X.Y.Z  # (ex) 40.0.0
+```
