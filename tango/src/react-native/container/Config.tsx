@@ -262,7 +262,7 @@ export const Config = React.memo(() => {
 
 export const ConfigPage = React.memo(() => (
   <NB.Container>
-    {/* <Header body={{ title: 'Settings' }} /> */}
+    <Header body={{ title: 'Settings' }} />
     <NB.Content>
       <Config />
     </NB.Content>

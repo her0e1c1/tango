@@ -15,6 +15,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+
 import { ConfigPage } from "src/react-native/container/Config"
 
 const Tab = createBottomTabNavigator();
@@ -37,11 +38,11 @@ class ErrorBoundary extends React.Component {
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <Provider store={store}>
-        <PersistGate loading={<View />} persistor={persistStore(store)}>
-          <NB.Root>
-            <NavigationContainer>
+    <Provider store={store}>
+      <PersistGate loading={<View />} persistor={persistStore(store)}>
+        <NB.Root>
+          <NavigationContainer>
+            <ErrorBoundary>
               <Tab.Navigator
                 screenOptions={({ route }) => ({
                   tabBarIcon: ({ focused, color, size }) => {
@@ -67,11 +68,11 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
         </Stack.Navigator> */}
               </Tab.Navigator>
-            </NavigationContainer>
-          </NB.Root>
-        </PersistGate>
-      </Provider>
-    </ErrorBoundary>
+            </ErrorBoundary>
+          </NavigationContainer>
+        </NB.Root>
+      </PersistGate>
+    </Provider>
   );
 }
 
