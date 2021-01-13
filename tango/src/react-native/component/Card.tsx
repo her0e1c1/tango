@@ -42,14 +42,14 @@ const html = `
 */
 
 export const WebviewCard = React.memo((props: { refWebView?: any }) => {
-  React.useEffect(() => {
-    AssetUtils.resolveAsync(require('../../../view/dist/index.html')).then(
-      async file => {
-        const fileContents = await FileSystem.readAsStringAsync(file.localUri);
-        setHtml(fileContents);
-      }
-    );
-  }, []);
+  // React.useEffect(() => {
+  //   AssetUtils.resolveAsync(require('../../../view/dist/index.html')).then(
+  //     async file => {
+  //       const fileContents = await FileSystem.readAsStringAsync(file.localUri);
+  //       setHtml(fileContents);
+  //     }
+  //   );
+  // }, []);
   const [html, setHtml] = React.useState('');
   return (
     <NB.View style={{ flex: 1 }}>
@@ -64,7 +64,7 @@ export const WebviewCard = React.memo((props: { refWebView?: any }) => {
         allowFileAccess
         originWhitelist={['*']}
         source={{ html }}
-        // source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
+      // source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
       />
     </NB.View>
   );

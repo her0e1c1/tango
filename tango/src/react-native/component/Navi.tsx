@@ -23,8 +23,8 @@ export const Header = (props: {
         </NB.Button>
       </NB.Left>
     ) : (
-      <NB.Left />
-    )}
+        <NB.Left />
+      )}
     {props.body ? (
       <NB.Body>
         <TouchableOpacity onPress={props.body.onPress}>
@@ -32,8 +32,8 @@ export const Header = (props: {
         </TouchableOpacity>
       </NB.Body>
     ) : (
-      <NB.Body />
-    )}
+        <NB.Body />
+      )}
     {props.right ? (
       <NB.Right>
         <NB.Button transparent onPress={props.right.onPress}>
@@ -41,8 +41,8 @@ export const Header = (props: {
         </NB.Button>
       </NB.Right>
     ) : (
-      <NB.Right />
-    )}
+        <NB.Right />
+      )}
   </NB.Header>
 );
 
@@ -134,30 +134,3 @@ export const createNavi = (props: {
       }
     )
   );
-
-// const A = createBottomTabNavigator(
-//   {},
-//   {
-//     defaultNavigationOptions: ({ navigation }) => ({
-//       // tabBarVisible: navigation.state.routeName === "",
-//       tabBarIcon: ({ focused, horizontal, tintColor }) => {
-//         const { routeName } = navigation.state;
-//         return (
-//           <AntIcon
-//             name={
-//               focused ? iconName[routeName] : iconName[routeName] // + '-outline'
-//             }
-//             size={25}
-//             style={{ color: tintColor }}
-//           />
-//         );
-//       },
-//       tabBarOptions: {
-//         showLabel: false,
-//         labelStyle: {
-//           fontSize: 12,
-//         },
-//       },
-//     }),
-//   }
-// );
