@@ -1,7 +1,8 @@
 import * as Redux from 'redux';
 import thunk from 'redux-thunk';
 import { persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 // import { createReactNavigationReduxMiddleware } from 'react-navigation-redux-helpers';
 import { root } from './reducer';
 
@@ -19,7 +20,7 @@ const logger = () => next => action => {
 
 const persistConfig = {
   key: 'root',
-  storage: storage,
+  storage: AsyncStorage,
   whitelist: ['nav', 'deck', 'card', 'config'],
 };
 
