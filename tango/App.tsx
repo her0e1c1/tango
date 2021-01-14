@@ -17,6 +17,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 
 import { ConfigPage } from "src/react-native/container/Config"
+import { HomePage } from "src/react-native/container/Home"
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -36,41 +38,42 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default function App() {
+const App: React.FC = props => {
+  return <Tab.Navigator
+    screenOptions={({ route }) => ({
+      tabBarIcon: ({ focused, color, size }) => {
+        let iconName;
+        if (route.name === 'Home') {
+          iconName = focused
+            ? 'ios-information-circle'
+            : 'ios-information-circle-outline';
+        } else if (route.name === 'Settings') {
+          iconName = focused ? 'ios-list-box' : 'ios-list';
+        }
+        return <Icon name={iconName} size={size} color={color} />;
+      },
+    })}
+    tabBarOptions={{
+      activeTintColor: 'tomato',
+      inactiveTintColor: 'gray',
+    }}
+  >
+    <Tab.Screen name="Home" component={HomePage} />
+    <Tab.Screen name="Config" component={ConfigPage} />
+  </Tab.Navigator>
+}
+
+export default function Root() {
   return (
     <Provider store={store}>
       <PersistGate loading={<View />} persistor={persistStore(store)}>
-        <NB.Root>
+        <ErrorBoundary>
           <NavigationContainer>
-            <ErrorBoundary>
-              <Tab.Navigator
-                screenOptions={({ route }) => ({
-                  tabBarIcon: ({ focused, color, size }) => {
-                    let iconName;
-                    if (route.name === 'Home') {
-                      iconName = focused
-                        ? 'ios-information-circle'
-                        : 'ios-information-circle-outline';
-                    } else if (route.name === 'Settings') {
-                      iconName = focused ? 'ios-list-box' : 'ios-list';
-                    }
-                    return <Icon name={iconName} size={size} color={color} />;
-                  },
-                })}
-                tabBarOptions={{
-                  activeTintColor: 'tomato',
-                  inactiveTintColor: 'gray',
-                }}
-              >
-                <Tab.Screen name="Home" component={HomeScreen} />
-                <Tab.Screen name="Config" component={ConfigPage} />
-                {/* <Stack.Navigator>
-          <Stack.Screen name="Home" component={HomeScreen} />
-        </Stack.Navigator> */}
-              </Tab.Navigator>
-            </ErrorBoundary>
+            <NB.Root>
+              <App />
+            </NB.Root>
           </NavigationContainer>
-        </NB.Root>
+        </ErrorBoundary>
       </PersistGate>
     </Provider>
   );

@@ -7,6 +7,8 @@ import * as firebase from 'firebase/app';
 import { auth } from 'src/firebase';
 import { useNavigation } from 'react-navigation-hooks';
 import { StackActions } from 'react-navigation';
+import * as ScreenOrientation from 'expo-screen-orientation'
+
 
 export * from 'src/hooks/action';
 import {
@@ -134,14 +136,14 @@ export const useDimension = () => {
 export const useScreen = (reset: boolean = true) => {
   React.useEffect(() => {
     RN.StatusBar.setHidden(true);
-    Expo.ScreenOrientation.lockAsync(
-      Expo.ScreenOrientation.OrientationLock.ALL
+    ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.ALL
     );
     return () => {
       if (!reset) return;
       RN.StatusBar.setHidden(false);
-      Expo.ScreenOrientation.lockAsync(
-        Expo.ScreenOrientation.OrientationLock.PORTRAIT
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT
       );
     };
   }, [reset]);
