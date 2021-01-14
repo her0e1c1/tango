@@ -12,22 +12,12 @@ import { PersistGate } from 'redux-persist/lib/integration/react';
 import { persistStore } from 'redux-persist';
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-
 
 import { ConfigPage } from "src/react-native/container/Config"
 import { HomePage } from "src/react-native/container/Home"
 
-
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
-
-export const HomeScreen = () => (
-  <View style={styles.container}>
-    <Text>Open up App.tsx to start working on your app</Text>
-  </View>
-);
 
 class ErrorBoundary extends React.Component {
   componentDidCatch(error) {
@@ -78,12 +68,3 @@ export default function Root() {
     </Provider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
