@@ -8,6 +8,8 @@ import { auth } from 'src/firebase';
 import { useNavigation } from 'react-navigation-hooks';
 import { StackActions } from 'react-navigation';
 import * as ScreenOrientation from 'expo-screen-orientation'
+import * as Google from 'expo-google-app-auth'
+
 
 
 export * from 'src/hooks/action';
@@ -63,7 +65,7 @@ export const useInit = () => {
 const useSignIn = () => {
   const init = useInit();
   return async (credential: firebase.auth.AuthCredential) => {
-    await firebase.auth().signInWithCredential(credential);
+    await auth().signInWithCredential(credential);
     await init();
   };
 };
@@ -72,8 +74,7 @@ export const useLoginWithGoogle = () => {
   const signIn = useSignIn();
   const configUpdate = useConfigUpdate();
   return async () => {
-    // @ts-ignore
-    const result = await Expo.Google.logInAsync({
+    const result = await Google.logInAsync({
       androidClientId: C.GOOGLE_ANDROID_CLIENT_ID,
       androidStandaloneAppClientId: C.GOOGLE_ANDROID_CLIENT_ID_STANDALONE,
       iosClientId: C.GOOGLE_IOS_CLIENT_ID,
@@ -81,13 +82,14 @@ export const useLoginWithGoogle = () => {
       scopes: C.GOOGLE_AUTH_SCOPES,
       redirectUrl: `${AppAuth.OAuthRedirect}:/oauth2redirect/google`,
     });
-    const { type, idToken, accessToken, refreshToken } = result;
+    // @ts-ignore
+    const { type, accessToken, refreshToken, idToken, user } = result;
     __DEV__ && console.log('DEBUG: RESULT', result);
     if (type !== 'success') {
       alert(`Can not login with Google account`);
       return;
     }
-    const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
+    const credential = auth.GoogleAuthProvider.credential(idToken);
     await signIn(credential);
     await configUpdate({
       googleAccessToken: accessToken,
@@ -95,26 +97,6 @@ export const useLoginWithGoogle = () => {
     });
   };
 };
-
-/*
-export const loginWithFacebook = () => {
-  try {
-    const result = await Expo.Facebook.logInWithReadPermissionsAsync(
-      C.FACEBOOK_APP_ID,
-      { permissions: ['public_profile'], behavior: 'web' }
-    );
-    const { type } = result;
-    const token = (result as any).token; // TODO: update @types
-    if (type === 'success') {
-      // Build Firebase credential with the Facebook access token.
-      const credential = firebase.auth.FacebookAuthProvider.credential(token);
-      dispatch(signIn(credential));
-    }
-  } catch (e) {
-    alert('Can not login');
-  }
-};
-*/
 
 export const useDimension = () => {
   const window = RN.Dimensions.get('window');
