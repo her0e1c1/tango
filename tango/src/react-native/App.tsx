@@ -4,9 +4,29 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ConfigPage } from "src/react-native/container/Config"
 import { HomePage } from "src/react-native/container/Home"
-import { DownloadPage } from "src/react-native/container/Download"
+// import { DownloadPage } from "src/react-native/container/Download"
+import { createStackNavigator } from '@react-navigation/stack';
+import { SpreadSheetListPage } from './container/SpreadSheetList';
+import { DeckPublicListPage } from './container/DeckPublicList';
+import { QRCodePage } from './container/QRcode';
+import { DownloadPage } from './container/Download';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+const Download = () => {
+    return (
+        <Stack.Navigator screenOptions={{
+            headerShown: false
+        }}
+        >
+            <Stack.Screen name="DownloadListMain" component={DownloadPage} />
+            <Stack.Screen name="SpreadSheetList" component={SpreadSheetListPage} />
+            <Stack.Screen name="DeckPublicList" component={DeckPublicListPage} />
+            <Stack.Screen name="QRCode" component={QRCodePage} />
+        </Stack.Navigator>
+    )
+}
 
 export const App: React.FC = props => {
     return (
@@ -30,7 +50,7 @@ export const App: React.FC = props => {
             }}
         >
             <Tab.Screen name="Home" component={HomePage} />
-            <Tab.Screen name="Download" component={DownloadPage} />
+            <Tab.Screen name="Download" component={Download} />
             <Tab.Screen name="Config" component={ConfigPage} />
         </Tab.Navigator>);
 }

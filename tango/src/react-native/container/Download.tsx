@@ -3,10 +3,6 @@ import * as NB from 'native-base';
 import { IconItem } from 'src/react-native/component';
 import { useGoTo } from 'src/react-native/hooks/action';
 import { Header } from './Common';
-import { SpreadSheetListPage } from './SpreadSheetList';
-import { QRCodePage } from './QRcode';
-import { DeckPublicListPage } from './DeckPublicList';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 
 const DeckPublicItem = React.memo(() => {
@@ -49,7 +45,7 @@ const QRCodeItem = React.memo(() => {
   );
 });
 
-export const Download = () => {
+export const DownloadPage = () => {
   return (
     <NB.Container>
       <Header bodyText="Download" />
@@ -63,19 +59,3 @@ export const Download = () => {
     </NB.Container>
   );
 };
-
-const Stack = createStackNavigator();
-
-export const DownloadPage = () => {
-  return (
-    <Stack.Navigator screenOptions={{
-      headerShown: false
-    }}
-    >
-      <Stack.Screen name="DownloadMain" component={Download} />
-      <Stack.Screen name="SpreadSheetList" component={SpreadSheetListPage} />
-      <Stack.Screen name="DeckPublicList" component={DeckPublicListPage} />
-      <Stack.Screen name="QRCode" component={QRCodePage} />
-    </Stack.Navigator>
-  )
-}
