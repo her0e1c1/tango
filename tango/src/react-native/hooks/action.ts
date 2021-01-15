@@ -1,26 +1,23 @@
-import * as Expo from 'expo';
 import * as React from 'react';
 import * as AppAuth from 'expo-app-auth';
 import * as RN from 'react-native';
 import * as C from 'src/constant';
 import * as firebase from 'firebase/app';
 import { auth } from 'src/firebase';
-import { useNavigation } from 'react-navigation-hooks';
 import { StackActions } from 'react-navigation';
 import * as ScreenOrientation from 'expo-screen-orientation'
 import * as Google from 'expo-google-app-auth'
-
-
-
 export * from 'src/hooks/action';
 import {
   useConfigUpdate,
   useSetEventListener,
   UNSUBSCRIBES,
 } from 'src/hooks/action';
+import { NavigationContext, useNavigation } from '@react-navigation/native';
 
 export const useGoTo = () => {
   const { navigate } = useNavigation();
+  // const navi = React.useContext(NavigationContext)!;
   return (page, params?: any) => {
     navigate(page, params);
   };

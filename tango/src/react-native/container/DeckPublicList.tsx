@@ -30,7 +30,7 @@ const Item = (props: { item: Deck }) => {
   );
 };
 
-export const DeckPublicList = () => {
+const DeckPublicList = () => {
   const fetch = useThunkAction(action.deckPubicFetch());
   const decks = useSelector(state => state.download.publicDecks);
   const { setLoading, unsetLoading } = useIsLoading();

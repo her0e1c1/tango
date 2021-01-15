@@ -16,6 +16,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { ConfigPage } from "src/react-native/container/Config"
 import { HomePage } from "src/react-native/container/Home"
+import { DownloadPage } from "src/react-native/container/Download"
 
 const Tab = createBottomTabNavigator();
 
@@ -49,6 +50,7 @@ const App: React.FC = props => {
     }}
   >
     <Tab.Screen name="Home" component={HomePage} />
+    <Tab.Screen name="Download" component={DownloadPage} />
     <Tab.Screen name="Config" component={ConfigPage} />
   </Tab.Navigator>
 }
