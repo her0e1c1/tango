@@ -12,7 +12,6 @@ import {
   useReplaceTo,
   useGoTo,
   useConfigUpdateInAdvance,
-  useGoBack,
 } from 'src/react-native/hooks/action';
 import {
   useDeck,
@@ -28,9 +27,8 @@ import GestureRecognizer from 'react-native-swipe-gestures';
 import { useKeepAwake } from 'expo-keep-awake';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 
-const useCardSwipe = (direction: SwipeDirection) => {
-  const deck = useCurrentDeck();
-  return useThunkAction(action.deckSwipe(direction, deck.id));
+const useCardSwipe = (direction: SwipeDirection, deckId: string) => {
+  return useThunkAction(action.deckSwipe(direction, deckId));
 };
 
 export const Controller = (props: { deckId: string; hide?: boolean }) => {
@@ -102,9 +100,9 @@ const getCagegory = (category: string, tags: string[]) => {
   return category;
 };
 
-export const CardView = (props: { frontText: boolean; cardId: string }) => {
+export const CardView = (props: { frontText: boolean; cardId: string, deckId: string }) => {
   const ref = React.useRef<RN.WebView>(null);
-  const deck = useCurrentDeck();
+  const deck = useCurrentDeck(props.deckId);
   const showBackText = useConfigUpdateInAdvance({
     showBackText: true,
     keepBackTextViewed: false,
@@ -137,18 +135,18 @@ export const DeckSwiper = (props: { deckId: string }) => {
   return (
     <GestureRecognizer
       style={{ flex: 1 }}
-      onSwipeLeft={useCardSwipe('cardSwipeLeft')}
-      onSwipeUp={useCardSwipe('cardSwipeUp')}
-      onSwipeRight={useCardSwipe('cardSwipeRight')}
-      onSwipeDown={useCardSwipe('cardSwipeDown')}
+      onSwipeLeft={useCardSwipe('cardSwipeLeft', props.deckId)}
+      onSwipeUp={useCardSwipe('cardSwipeUp', props.deckId)}
+      onSwipeRight={useCardSwipe('cardSwipeRight', props.deckId)}
+      onSwipeDown={useCardSwipe('cardSwipeDown', props.deckId)}
     >
-      <CardView frontText cardId={deck.cardOrderIds[deck.currentIndex]} />
+      <CardView frontText cardId={deck.cardOrderIds[deck.currentIndex]} deckId={props.deckId} />
     </GestureRecognizer>
   );
 };
 
-const BackText = () => {
-  const deck = useCurrentDeck();
+const BackText: React.FC<{ deckId: string }> = props => {
+  const deck = useCurrentDeck(props.deckId);
   const showBackText = useConfigAttr('showBackText');
   const hideBackText = useConfigUpdateInAdvance({
     showBackText: false,
@@ -163,24 +161,24 @@ const BackText = () => {
         backgroundColor: 'white',
       }}
     >
-      <Overlay top onPress={useCardSwipe('cardSwipeUp')} />
-      <Overlay left onPress={useCardSwipe('cardSwipeLeft')} />
-      <Overlay right onPress={useCardSwipe('cardSwipeRight')} />
+      <Overlay top onPress={useCardSwipe('cardSwipeUp', props.deckId)} />
+      <Overlay left onPress={useCardSwipe('cardSwipeLeft', props.deckId)} />
+      <Overlay right onPress={useCardSwipe('cardSwipeRight', props.deckId)} />
       <Overlay
         bottom
         onPress={hideBackText}
         color="rgba(52, 52, 52, 0.1)'"
-        onLongPress={useCardSwipe('cardSwipeDown')}
+        onLongPress={useCardSwipe('cardSwipeDown', props.deckId)}
       />
       <CardView frontText={false} cardId={cardId} />
     </NB.View>
   );
 };
 
-const FrontHeader = () => {
+const FrontHeader: React.FC<{ deckId: string }> = props => {
   const replaceTo = useReplaceTo();
   const goTo = useGoTo();
-  const deck = useCurrentDeck();
+  const deck = useCurrentDeck(props.deckId);
   const cardId = deck.cardOrderIds[deck.currentIndex];
   if (!useConfigAttr('showHeader')) return <NB.View />;
   return (
@@ -198,7 +196,7 @@ const FrontHeader = () => {
   );
 };
 
-const SwipeButtonList = () => {
+const SwipeButtonList: React.FC<{ deckId: string }> = props => {
   const label = {
     cardSwipeLeft: '←',
     cardSwipeDown: '↓',
@@ -206,10 +204,10 @@ const SwipeButtonList = () => {
     cardSwipeRight: '→',
   };
   const swipe = {
-    cardSwipeLeft: useCardSwipe('cardSwipeLeft'),
-    cardSwipeDown: useCardSwipe('cardSwipeDown'),
-    cardSwipeUp: useCardSwipe('cardSwipeUp'),
-    cardSwipeRight: useCardSwipe('cardSwipeRight'),
+    cardSwipeLeft: useCardSwipe('cardSwipeLeft', props.deckId),
+    cardSwipeDown: useCardSwipe('cardSwipeDown', props.deckId),
+    cardSwipeUp: useCardSwipe('cardSwipeUp', props.deckId),
+    cardSwipeRight: useCardSwipe('cardSwipeRight', props.deckId),
   };
   const reset = useConfigUpdateInAdvance({ lastSwipe: undefined });
   const lastSwipe = useConfigAttr('lastSwipe');
@@ -261,9 +259,9 @@ const TimePicker = ({ cardId }: { cardId: string }) => {
   );
 };
 
-const FrontText = () => {
+const FrontText: React.FC<{ deckId: string }> = (props) => {
   const dispatch = useDispatch();
-  const deck = useCurrentDeck();
+  const deck = useCurrentDeck(props.deckId);
   const showBackText = useConfigAttr('showBackText');
   const cardId = deck.cardOrderIds[deck.currentIndex];
   const defaultScore = useCardAttr(cardId, 'score') || 0;
@@ -277,7 +275,7 @@ const FrontText = () => {
         backgroundColor: 'white',
       }}
     >
-      <FrontHeader />
+      <FrontHeader deckId={props.deckId} />
       <NB.View style={{ flex: 1 }}>
         <Overlay
           top
@@ -304,7 +302,7 @@ const FrontText = () => {
         </Overlay>
         <DeckSwiper deckId={deck.id} />
         <NB.View>
-          {useConfigAttr('showSwipeButtonList') && <SwipeButtonList />}
+          {useConfigAttr('showSwipeButtonList') && <SwipeButtonList deckId={props.deckId} />}
           {useConfigAttr('cardInterval') > 0 && (
             <Controller deckId={deck.id} hide={showBackText} />
           )}
@@ -335,8 +333,8 @@ export const DeckSwiperPage = () => {
   if (!valid) return <NB.Container />;
   return (
     <NB.Container>
-      <BackText />
-      <FrontText />
+      {/* <BackText deckId={deckId} /> */}
+      <FrontText deckId={deckId} />
     </NB.Container>
   );
 };

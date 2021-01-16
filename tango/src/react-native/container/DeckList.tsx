@@ -38,6 +38,7 @@ const Row = ({ deck }: { deck: Deck }) => {
     <SwipeRow
       title={deck.name}
       onPress={goToStartPage}
+      onLongPress={() => alert(JSON.stringify(deck))}
       onRightPress={React.useCallback(async () => {
         await setLoading();
         await deckDelete();
