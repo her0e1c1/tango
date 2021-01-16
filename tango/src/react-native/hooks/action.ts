@@ -17,7 +17,6 @@ import { useNavigation } from '@react-navigation/native';
 
 export const useGoTo = () => {
   const { navigate } = useNavigation();
-  // const navi = React.useContext(NavigationContext)!;
   return (page, params?: any) => {
     navigate(page, params);
   };

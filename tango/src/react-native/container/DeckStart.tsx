@@ -7,7 +7,6 @@ import {
   SliderItem,
   RadioItem,
 } from 'src/react-native/component';
-import { useReplaceTo } from 'src/react-native/hooks/action';
 import {
   useCurrentDeck,
   useCardsByDeckId,
@@ -18,6 +17,8 @@ import { uniq } from 'lodash';
 import { useThunkAction, useDispatch } from 'src/hooks';
 import * as action from 'src/react-native/action';
 import { RouteProp, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { StackActions } from '@react-navigation/native';
 
 const getTags = (cards: Card[]) => {
   return uniq(cards.map(c => c.tags).reduce((a, acc) => [...a, ...acc], []));
@@ -33,7 +34,7 @@ const updateTags = (tags: string[], tag: string) => {
 
 const StartButton = React.memo((props: { length: number; deckId: string }) => {
   const dispatch = useDispatch();
-  const replaceTo = useReplaceTo();
+  const navi = useNavigation();
   const cards = useCardsByDeckId(props.deckId, { isShown: true });
   const maxNumberOfCardsToLearn = useConfigAttr('maxNumberOfCardsToLearn');
   let number = props.length;
@@ -47,7 +48,7 @@ const StartButton = React.memo((props: { length: number; deckId: string }) => {
       onPress={async () => {
         if (number > 0) {
           await dispatch(action.deckStart(cards));
-          await replaceTo('DeckSwiper', { deckId: props.deckId });
+          await navi.dispatch(StackActions.replace('DeckSwiper', { deckId: props.deckId }));
         } else {
           alert('No cards to learn');
         }
@@ -153,15 +154,8 @@ const MinScoreItems = React.memo(
   }
 );
 
-type ParamList = {
-  Detail: {
-    deckId: string;
-  };
-};
-
-
 export const DeckStartPage = React.memo(() => {
-  const route = useRoute<RouteProp<ParamList, 'Detail'>>();
+  const route = useRoute<RouteProp<RouteParamList, 'DeckStart'>>();
   const { deckId } = route.params;
   const deck = useCurrentDeck(deckId);
   const cards = useCardsByDeckId(deck.id, { isShown: true });

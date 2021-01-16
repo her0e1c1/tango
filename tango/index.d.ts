@@ -119,6 +119,12 @@ type NavState = {
   params?: any;
 };
 
+type RouteParamList = {
+  DeckStart: {
+    deckId: string;
+  };
+};
+
 type themeType = 'default' | 'dark' | 'debug';
 
 interface Theme {
