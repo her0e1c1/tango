@@ -2,17 +2,37 @@
 import React from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ConfigPage } from "src/react-native/container/Config"
-import { HomePage } from "src/react-native/container/Home"
-// import { DownloadPage } from "src/react-native/container/Download"
 import { createStackNavigator } from '@react-navigation/stack';
+import { ConfigPage } from "src/react-native/container/Config"
 import { SpreadSheetListPage } from './container/SpreadSheetList';
 import { DeckPublicListPage } from './container/DeckPublicList';
 import { QRCodePage } from './container/QRcode';
 import { DownloadPage } from './container/Download';
+import { DeckListPage } from './container/DeckList';
+import { DeckSwiperPage } from './container/DeckSwiper';
+import { DeckStartPage } from './container/DeckStart';
+import { DeckEditPage } from './container/DeckEdit';
+import { CardListPage } from './container/CardList';
+import { CardEditPage } from './container/CardEdit';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+const HomePage = () => {
+    return (
+        <Stack.Navigator screenOptions={{
+            headerShown: false
+        }}
+        >
+            <Stack.Screen name="DeckList" component={DeckListPage} />
+            <Stack.Screen name="DeckSwiper" component={DeckSwiperPage} />
+            <Stack.Screen name="DeckStart" component={DeckStartPage} />
+            <Stack.Screen name="DeckEdit" component={DeckEditPage} />
+            <Stack.Screen name="CardList" component={CardListPage} />
+            <Stack.Screen name="CardEdit" component={CardEditPage} />
+        </Stack.Navigator>
+    )
+}
 
 const Download = () => {
     return (
@@ -28,7 +48,7 @@ const Download = () => {
     )
 }
 
-export const App: React.FC = props => {
+export const App = () => {
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({

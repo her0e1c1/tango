@@ -13,7 +13,7 @@ import {
   useSetEventListener,
   UNSUBSCRIBES,
 } from 'src/hooks/action';
-import { NavigationContext, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 export const useGoTo = () => {
   const { navigate } = useNavigation();

@@ -17,6 +17,7 @@ import { Header } from './Common';
 import { uniq } from 'lodash';
 import { useThunkAction, useDispatch } from 'src/hooks';
 import * as action from 'src/react-native/action';
+import { RouteProp, useRoute } from '@react-navigation/native';
 
 const getTags = (cards: Card[]) => {
   return uniq(cards.map(c => c.tags).reduce((a, acc) => [...a, ...acc], []));
@@ -152,8 +153,17 @@ const MinScoreItems = React.memo(
   }
 );
 
+type ParamList = {
+  Detail: {
+    deckId: string;
+  };
+};
+
+
 export const DeckStartPage = React.memo(() => {
-  const deck = useCurrentDeck();
+  const route = useRoute<RouteProp<ParamList, 'Detail'>>();
+  const { deckId } = route.params;
+  const deck = useCurrentDeck(deckId);
   const cards = useCardsByDeckId(deck.id, { isShown: true });
   return (
     <NB.Container>

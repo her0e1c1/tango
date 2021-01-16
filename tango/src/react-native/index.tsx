@@ -9,7 +9,6 @@ import { PersistGate } from 'redux-persist/lib/integration/react';
 import { useConfigAttr } from 'src/hooks/state';
 import * as NB from 'native-base';
 
-import { Navi } from './container';
 import { LoadingIcon } from './component';
 import store from './store';
 import { useInit } from './hooks/action';
@@ -36,7 +35,7 @@ const Main = () => {
   return (
     <NB.Root>
       {isLoading && <LoadingIcon /*isLoadingNoAction={isLoadingNoAction} */ />}
-      <Navi />
+      {/* <Navi /> */}
     </NB.Root>
   );
 };
