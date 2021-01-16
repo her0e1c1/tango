@@ -14,7 +14,6 @@ export const useConfigState = (...deps: (keyof ConfigState)[]): ConfigState => {
 };
 
 export const useCurrentDeck = (deckId: string = ""): Deck => {
-  // const deckId = useNavigationParam('deckId');
   const deck = useSelector(state => state.deck.byId[deckId]);
   if (!deck) throw `NO DECK ${deckId}`;
   return deck;

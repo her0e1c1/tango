@@ -123,6 +123,9 @@ type RouteParamList = {
   DeckStart: {
     deckId: string;
   };
+  DeckSwiper: {
+    deckId: string;
+  };
 };
 
 type themeType = 'default' | 'dark' | 'debug';

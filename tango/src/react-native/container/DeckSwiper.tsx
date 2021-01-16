@@ -26,6 +26,7 @@ import { useThunkAction, useDispatch } from 'src/hooks';
 import * as action from 'src/react-native/action';
 import GestureRecognizer from 'react-native-swipe-gestures';
 import { useKeepAwake } from 'expo-keep-awake';
+import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 
 const useCardSwipe = (direction: SwipeDirection) => {
   const deck = useCurrentDeck();
@@ -127,8 +128,8 @@ export const CardView = (props: { frontText: boolean; cardId: string }) => {
       onLongPress={showBackTextLong}
     />
   ) : (
-    <WebviewCard refWebView={ref} />
-  );
+      <WebviewCard refWebView={ref} />
+    );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {
@@ -315,9 +316,11 @@ const FrontText = () => {
 
 export const DeckSwiperPage = () => {
   useKeepAwake();
+  const navi = useNavigation();
+  const route = useRoute<RouteProp<RouteParamList, 'DeckSwiper'>>();
+  const { deckId } = route.params;
   const dispatch = useDispatch();
-  const goBack = useGoBack();
-  const deck = useCurrentDeck();
+  const deck = useCurrentDeck(deckId);
   const index = deck.currentIndex;
   const valid = 0 <= index && index < deck.cardOrderIds.length;
   React.useEffect(() => {
@@ -326,7 +329,7 @@ export const DeckSwiperPage = () => {
       // because firebase server returns currentIndex too
       // so when deck attr changed, currentIndex will be changed too
       dispatch(action.deckUpdate({ id: deck.id, currentIndex: 0 }));
-      goBack();
+      navi.goBack();
     }
   }, [valid]);
   if (!valid) return <NB.Container />;
