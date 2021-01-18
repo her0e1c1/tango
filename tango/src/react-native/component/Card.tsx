@@ -1,8 +1,8 @@
-import * as React from 'react';
-import * as RN from 'react-native';
-import * as NB from 'native-base';
-import * as AssetUtils from 'expo-asset-utils';
-import * as FileSystem from 'expo-file-system';
+import * as React from "react";
+import * as RN from "react-native";
+import * as NB from "native-base";
+import * as AssetUtils from "expo-asset-utils";
+import * as FileSystem from "expo-file-system";
 
 export const TextCard = (props: {
   body: string;
@@ -16,9 +16,9 @@ export const TextCard = (props: {
     <RN.View
       style={{
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "white",
       }}
     >
       <NB.Text style={{ fontSize: 24 }}>{props.body}</NB.Text>
@@ -50,7 +50,7 @@ export const WebviewCard = React.memo((props: { refWebView?: any }) => {
   //     }
   //   );
   // }, []);
-  const [html, setHtml] = React.useState('');
+  const [html, setHtml] = React.useState("");
   return (
     <NB.View style={{ flex: 1 }}>
       <RN.WebView
@@ -62,9 +62,9 @@ export const WebviewCard = React.memo((props: { refWebView?: any }) => {
         useWebKit
         javaScriptEnabled
         allowFileAccess
-        originWhitelist={['*']}
+        originWhitelist={["*"]}
         source={{ html }}
-      // source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
+        // source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
       />
     </NB.View>
   );
@@ -78,10 +78,10 @@ export const Controller = (props: {
   onSlidingComplete?: (n: number) => any;
 }) => (
   // not sure but on android, you need to set bg because backText is displayed
-  <NB.View style={{ flexDirection: 'row', backgroundColor: 'white' }}>
+  <NB.View style={{ flexDirection: "row", backgroundColor: "white" }}>
     <NB.Button transparent onPress={props.onPlay}>
       <NB.Icon
-        name={props.pause ? 'md-pause' : 'md-play'}
+        name={props.pause ? "md-pause" : "md-play"}
         style={{ margin: 5 }}
       />
     </NB.Button>
@@ -95,7 +95,7 @@ export const Controller = (props: {
         onSlidingComplete={props.onSlidingComplete}
       />
     </NB.View>
-    <RN.View style={{ paddingRight: 10, justifyContent: 'center' }}>
+    <RN.View style={{ paddingRight: 10, justifyContent: "center" }}>
       <RN.Text>
         {props.deckCurrentIndex + 1} / {props.cardsLength}
       </RN.Text>

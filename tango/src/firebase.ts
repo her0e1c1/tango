@@ -1,8 +1,8 @@
-import * as C from 'src/constant';
-import * as firebase from 'firebase';
+import * as C from "src/constant";
+import * as firebase from "firebase";
 
-require('firebase/firestore');
-require('firebase/auth');
+require("firebase/firestore");
+require("firebase/auth");
 
 firebase.initializeApp(C.FIREBASE_CONFIG);
 

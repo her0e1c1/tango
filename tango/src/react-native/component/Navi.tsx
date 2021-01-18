@@ -1,14 +1,14 @@
-import * as React from 'react';
-import * as NB from 'native-base';
+import * as React from "react";
+import * as NB from "native-base";
 import {
   createBottomTabNavigator,
   createAppContainer,
   createStackNavigator,
-} from 'react-navigation';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import AntIcon from 'react-native-vector-icons/AntDesign';
+} from "react-navigation";
+import Icon from "react-native-vector-icons/FontAwesome";
+import AntIcon from "react-native-vector-icons/AntDesign";
 // import Ionicons from 'react-native-vector-icons/Ionicons';
-import { TouchableOpacity } from './Common';
+import { TouchableOpacity } from "./Common";
 
 export const Header = (props: {
   left?: { onPress?: Callback };
@@ -23,8 +23,8 @@ export const Header = (props: {
         </NB.Button>
       </NB.Left>
     ) : (
-        <NB.Left />
-      )}
+      <NB.Left />
+    )}
     {props.body ? (
       <NB.Body>
         <TouchableOpacity onPress={props.body.onPress}>
@@ -32,8 +32,8 @@ export const Header = (props: {
         </TouchableOpacity>
       </NB.Body>
     ) : (
-        <NB.Body />
-      )}
+      <NB.Body />
+    )}
     {props.right ? (
       <NB.Right>
         <NB.Button transparent onPress={props.right.onPress}>
@@ -41,15 +41,15 @@ export const Header = (props: {
         </NB.Button>
       </NB.Right>
     ) : (
-        <NB.Right />
-      )}
+      <NB.Right />
+    )}
   </NB.Header>
 );
 
 const iconName = {
-  Home: 'home',
-  Download: 'download',
-  Config: 'setting',
+  Home: "home",
+  Download: "download",
+  Config: "setting",
 };
 
 // swipeEnabled: false,
@@ -72,7 +72,7 @@ export const createStackNavi = (props: {
       DeckEdit: props.DeckEdit,
       CardEdit: props.CardEdit,
     },
-    { initialRouteName: 'DeckList', headerMode: 'none' }
+    { initialRouteName: "DeckList", headerMode: "none" }
   );
 
 export const createDownloadNavi = (props: {
@@ -88,7 +88,7 @@ export const createDownloadNavi = (props: {
       DeckPublicList: props.DeckPublicList,
       QRCode: props.QRCode,
     },
-    { initialRouteName: 'Download', headerMode: 'none' }
+    { initialRouteName: "Download", headerMode: "none" }
   );
 
 export const createNavi = (props: {
@@ -108,7 +108,7 @@ export const createNavi = (props: {
         defaultNavigationOptions: ({ navigation }) => {
           const tabBarVisible =
             navigation.state.index == 0 ||
-            navigation.state.routeName !== 'Home';
+            navigation.state.routeName !== "Home";
           return {
             tabBarVisible,
             tabBarIcon: ({ focused, tintColor }) => {

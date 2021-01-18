@@ -1,8 +1,8 @@
-import React from 'react';
-import * as NB from 'native-base';
-import * as RN from 'react-native';
-import { TouchableOpacity } from './Common';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import React from "react";
+import * as NB from "native-base";
+import * as RN from "react-native";
+import { TouchableOpacity } from "./Common";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const getListProps = (props: {
   noBorder?: boolean;
@@ -10,7 +10,7 @@ const getListProps = (props: {
   onPressItem?: Callback;
 }) => {
   let { noBorder, icon, onPressItem } = props;
-  if (RN.Platform.OS == 'android') {
+  if (RN.Platform.OS == "android") {
     icon = false; // HOTFIX: can not press swich ...
   }
   return { noBorder, icon, onPressItem };
@@ -22,7 +22,7 @@ export const Separator = (props: { text?: string; bordered?: boolean }) => (
   </NB.Separator>
 );
 
-const Item = props => {
+const Item = (props) => {
   return (
     <NB.ListItem
       icon={props.icon}
@@ -92,7 +92,7 @@ export const InputItem = (props: {
     left={props.left && <NB.Text>{props.left}</NB.Text>}
     body={
       <NB.Input
-        style={{ backgroundColor: 'white' }}
+        style={{ backgroundColor: "white" }}
         value={props.value}
         onChangeText={props.onChangeText}
       />
@@ -137,12 +137,12 @@ export const CardItem = (props: {
   onPress?: Callback;
   onPressItem?: Callback;
 }) => (
-  <NB.View style={{ backgroundColor: props.gray ? '#bcbcbc' : undefined }}>
+  <NB.View style={{ backgroundColor: props.gray ? "#bcbcbc" : undefined }}>
     <NB.ListItem
       onPress={props.onPressItem}
-      style={{ backgroundColor: props.gray ? '#bcbcbc' : undefined }}
+      style={{ backgroundColor: props.gray ? "#bcbcbc" : undefined }}
     >
-      <NB.Body style={{ flex: 1, flexDirection: 'row' }}>
+      <NB.Body style={{ flex: 1, flexDirection: "row" }}>
         <NB.Badge
           primary={!props.score} // including undefined or null
           warning={props.score < 0}
@@ -213,19 +213,19 @@ export const PickerItem = (props: {
   onValueChange?: (arg: string) => void;
 }) => {
   let options = props.options;
-  if (props.empty) options = [''].concat(props.options);
+  if (props.empty) options = [""].concat(props.options);
   return (
     <Item
       {...getListProps(props)}
       left={props.label && <NB.Text>{props.label}</NB.Text>}
       body={
         <NB.Picker
-          textStyle={{ color: 'cornflowerblue' }}
-          selectedValue={props.value || ''}
+          textStyle={{ color: "cornflowerblue" }}
+          selectedValue={props.value || ""}
           onValueChange={props.onValueChange}
           iosIcon={<NB.Icon name="arrow-down" />} // "ios-arrow-down-outline"
         >
-          {options.map(x => (
+          {options.map((x) => (
             <NB.Picker.Item key={x} label={x} value={x} />
           ))}
         </NB.Picker>
@@ -284,7 +284,7 @@ export const SwipeRow = (props: {
       right={
         props.onRightPress && (
           <NB.Button danger onPress={props.onRightPress}>
-            <NB.Icon name={props.rightIcon || 'list'} />
+            <NB.Icon name={props.rightIcon || "list"} />
           </NB.Button>
         )
       }

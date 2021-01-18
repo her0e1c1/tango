@@ -1,29 +1,32 @@
-import * as React from 'react';
-import * as NB from 'native-base';
-import * as RN from 'react-native';
-import { useSelector } from 'react-redux';
-import { SwipeRow } from 'src/react-native/component';
+import * as React from "react";
+import * as NB from "native-base";
+import * as RN from "react-native";
+import { useSelector } from "react-redux";
+import { SwipeRow } from "src/react-native/component";
 import {
   useGoTo,
   useIsLoading,
   useScreen,
-} from 'src/react-native/hooks/action';
-import { Header, Deck } from './Common';
-import * as action from 'src/react-native/action';
-import { useThunkAction, useDispatch } from 'src/hooks';
-import { useConfigAttr } from 'src/hooks/state';
-import { useNavigation } from '@react-navigation/native';
+} from "src/react-native/hooks/action";
+import { Header, Deck } from "./Common";
+import * as action from "src/react-native/action";
+import { useThunkAction, useDispatch } from "src/hooks";
+import { useConfigAttr } from "src/hooks/state";
+import { useNavigation } from "@react-navigation/native";
 
 const Row = ({ deck }: { deck: Deck }) => {
   const dispatch = useDispatch();
   const goTo = useGoTo();
   const deckDelete = useThunkAction(action.deckDelete(deck.id));
-  const autoPlay = useConfigAttr('defaultAutoPlay');
+  const autoPlay = useConfigAttr("defaultAutoPlay");
   const navi = useNavigation();
   const goToStartPage = React.useCallback(async () => {
     if (deck.currentIndex <= 0) {
       await dispatch(action.deckUpdate({ id: deck.id, currentIndex: 0 }));
-      navi.navigate("Home", { screen: "DeckStart", params: { deckId: deck.id } })
+      navi.navigate("Home", {
+        screen: "DeckStart",
+        params: { deckId: deck.id },
+      });
       // goTo('DeckStart', { deckId: deck.id });
     } else {
       const c = { showBackText: false, autoPlay };
@@ -48,26 +51,26 @@ const Row = ({ deck }: { deck: Deck }) => {
       onLeftPress={() => {
         NB.ActionSheet.show(
           {
-            title: 'Deck Action',
+            title: "Deck Action",
             options: [
-              'Show Card List',
-              'Edit This Deck',
-              'Restart Deck',
-              'Upload To Google Spread Sheet',
-              'Cancel',
+              "Show Card List",
+              "Edit This Deck",
+              "Restart Deck",
+              "Upload To Google Spread Sheet",
+              "Cancel",
             ],
             cancelButtonIndex: 4,
           },
-          async index => {
+          async (index) => {
             if (index === 0) {
-              await goTo('CardList', { deckId: deck.id });
+              await goTo("CardList", { deckId: deck.id });
             } else if (index === 1) {
-              await navi.navigate('DeckEdit', { deckId: deck.id });
+              await navi.navigate("DeckEdit", { deckId: deck.id });
             } else if (index === 2) {
               await dispatch(
                 action.deckUpdate({ id: deck.id, currentIndex: 0 })
               );
-              goTo('DeckStart', { deckId: deck.id });
+              goTo("DeckStart", { deckId: deck.id });
             } else if (index === 3) {
               await setLoading();
               await dispatch(action.sheetUpload(deck));
@@ -85,9 +88,9 @@ export const DeckList = () => {
   return (
     <RN.FlatList
       data={ids as string[]}
-      keyExtractor={id => id}
+      keyExtractor={(id) => id}
       renderItem={({ item }) => (
-        <Deck id={item}>{deck => <Row deck={deck} />}</Deck>
+        <Deck id={item}>{(deck) => <Row deck={deck} />}</Deck>
       )}
     />
   );
@@ -97,7 +100,7 @@ export const DeckListPage = () => {
   useScreen(false);
   return (
     <NB.Container>
-      <Header body={{ title: 'Deck List' }} />
+      <Header body={{ title: "Deck List" }} />
       <NB.Content>
         <DeckList />
       </NB.Content>

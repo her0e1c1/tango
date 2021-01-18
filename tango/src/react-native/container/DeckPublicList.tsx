@@ -1,17 +1,17 @@
-import * as React from 'react';
-import * as RN from 'react-native';
-import * as NB from 'native-base';
-import { IconItem } from 'src/react-native/component';
-import { useIsLoading } from 'src/react-native/hooks/action';
-import { useSelector, useConfigAttr } from 'src/hooks/state';
-import { Header } from './Common';
-import * as action from 'src/react-native/action';
-import { useThunkAction } from 'src/hooks';
+import * as React from "react";
+import * as RN from "react-native";
+import * as NB from "native-base";
+import { IconItem } from "src/react-native/component";
+import { useIsLoading } from "src/react-native/hooks/action";
+import { useSelector, useConfigAttr } from "src/hooks/state";
+import { Header } from "./Common";
+import * as action from "src/react-native/action";
+import { useThunkAction } from "src/hooks";
 
 const Item = (props: { item: Deck }) => {
   const item = props.item;
   const deckImport = useThunkAction(action.deckPublicImport(item.id));
-  const isLoading = useConfigAttr('isLoading');
+  const isLoading = useConfigAttr("isLoading");
   const { setLoading, unsetLoading } = useIsLoading();
   const onPress = React.useCallback(async () => {
     if (isLoading) return;
@@ -32,7 +32,7 @@ const Item = (props: { item: Deck }) => {
 
 const DeckPublicList = () => {
   const fetch = useThunkAction(action.deckPubicFetch());
-  const decks = useSelector(state => state.download.publicDecks);
+  const decks = useSelector((state) => state.download.publicDecks);
   const { setLoading, unsetLoading } = useIsLoading();
   React.useEffect(() => {
     (async () => {
@@ -44,7 +44,7 @@ const DeckPublicList = () => {
   return (
     <RN.FlatList
       data={decks}
-      keyExtractor={sheet => sheet.id}
+      keyExtractor={(sheet) => sheet.id}
       ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
       renderItem={({ item }: { item: Deck }) => <Item item={item} />}
     />

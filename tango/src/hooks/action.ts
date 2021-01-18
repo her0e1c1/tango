@@ -1,10 +1,10 @@
-import * as RN from 'react-native';
-import * as React from 'react';
-import { useDispatch } from 'react-redux';
+import * as RN from "react-native";
+import * as React from "react";
+import { useDispatch } from "react-redux";
 
-import { db, auth } from 'src/firebase';
-import * as type from 'src/action/type';
-import { useSelector, useConfigAttr } from './state';
+import { db, auth } from "src/firebase";
+import * as type from "src/action/type";
+import { useSelector, useConfigAttr } from "./state";
 
 // Is there a better way to unsubscribe?
 export const UNSUBSCRIBES = [] as any[];
@@ -41,17 +41,17 @@ export const useSetEventListener = () => {
   );
   return async (uid: string) => {
     // FIXME: maybe client timestamp is different from server's one
-    __DEV__ && console.log('LAST UPDATED AT: ', new Date(updatedAt));
+    __DEV__ && console.log("LAST UPDATED AT: ", new Date(updatedAt));
     const unsubscribeDeck = db
-      .collection('deck')
-      .where('uid', '==', uid)
-      .where('updatedAt', '>=', new Date(updatedAt))
-      .orderBy('updatedAt', 'desc')
-      .onSnapshot(async snapshot => {
-        __DEV__ && console.log('SNAPSHOT DECK: ', snapshot.size);
+      .collection("deck")
+      .where("uid", "==", uid)
+      .where("updatedAt", ">=", new Date(updatedAt))
+      .orderBy("updatedAt", "desc")
+      .onSnapshot(async (snapshot) => {
+        __DEV__ && console.log("SNAPSHOT DECK: ", snapshot.size);
         // it seems docChanges().forEach is not async func
         const decks = [] as Deck[];
-        snapshot.docChanges().forEach(change => {
+        snapshot.docChanges().forEach((change) => {
           // Ignore local change because of latency
           // Call redux action directly
           if (change.doc.metadata.hasPendingWrites) return;
@@ -60,11 +60,11 @@ export const useSetEventListener = () => {
           // when initialized, modified event is not triggered but added is after updating deletedAt
           if (deck.deletedAt != null) {
             dispatch(type.deckDelete(id));
-          } else if (change.type === 'added') {
+          } else if (change.type === "added") {
             decks.push(deck);
-          } else if (change.type === 'modified') {
+          } else if (change.type === "modified") {
             decks.push(deck);
-          } else if (change.type === 'removed') {
+          } else if (change.type === "removed") {
             // NOT REACHED
           }
         });
@@ -74,22 +74,22 @@ export const useSetEventListener = () => {
         await configUpdate({ lastUpdatedAt: new Date().getTime() });
       });
     const unsubscribeCard = db
-      .collection('card')
-      .where('uid', '==', uid)
-      .where('updatedAt', '>=', new Date(updatedAt))
-      .orderBy('updatedAt', 'desc')
-      .onSnapshot(async snapshot => {
-        __DEV__ && console.log('SNAPSHOT CARD: ');
+      .collection("card")
+      .where("uid", "==", uid)
+      .where("updatedAt", ">=", new Date(updatedAt))
+      .orderBy("updatedAt", "desc")
+      .onSnapshot(async (snapshot) => {
+        __DEV__ && console.log("SNAPSHOT CARD: ");
         const cards = [] as Card[];
-        snapshot.docChanges().forEach(change => {
+        snapshot.docChanges().forEach((change) => {
           if (change.doc.metadata.hasPendingWrites) return;
           const id = change.doc.id;
           const card = { ...change.doc.data(), id } as Card;
-          if (change.type === 'added') {
+          if (change.type === "added") {
             cards.push(card);
-          } else if (change.type === 'modified') {
+          } else if (change.type === "modified") {
             cards.push(card);
-          } else if (change.type === 'removed') {
+          } else if (change.type === "removed") {
             dispatch(type.cardDelete(id));
           }
         });
@@ -120,11 +120,11 @@ export const useIsLoading = (
   } as Partial<ConfigState>
 ) => {
   const dispatch = useDispatch();
-  const isLoading = useConfigAttr('isLoading');
+  const isLoading = useConfigAttr("isLoading");
   return React.useMemo(
     () => ({
       isLoading,
-      withLoading: async callback => {
+      withLoading: async (callback) => {
         await dispatch(type.configUpdate({ isLoading: true }));
         try {
           await dispatch(callback);

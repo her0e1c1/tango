@@ -1,21 +1,21 @@
-import * as React from 'react';
-import * as RN from 'react-native';
-import * as NB from 'native-base';
-import { BarCodeScanner } from 'expo-barcode-scanner';
-import * as Permissions from 'expo-permissions';
-import { useIsLoading } from 'src/react-native/hooks/action';
-import { Header } from './Common';
-import * as action from 'src/react-native/action';
-import { useDispatch } from 'react-redux';
+import * as React from "react";
+import * as RN from "react-native";
+import * as NB from "native-base";
+import { BarCodeScanner } from "expo-barcode-scanner";
+import * as Permissions from "expo-permissions";
+import { useIsLoading } from "src/react-native/hooks/action";
+import { Header } from "./Common";
+import * as action from "src/react-native/action";
+import { useDispatch } from "react-redux";
 
 const CodeScanner = (props: { onEnd: Callback }) => {
   const [hasPermission, setHasPermission] = React.useState(false);
   React.useEffect(() => {
-    Permissions.askAsync(Permissions.CAMERA).then(res => {
-      if (res.status === 'granted') {
+    Permissions.askAsync(Permissions.CAMERA).then((res) => {
+      if (res.status === "granted") {
         setHasPermission(true);
       } else {
-        alert('No access to camera');
+        alert("No access to camera");
         props.onEnd();
       }
     });
@@ -23,7 +23,7 @@ const CodeScanner = (props: { onEnd: Callback }) => {
 
   const dispatch = useDispatch();
   const { withLoading } = useIsLoading();
-  const [text, setText] = React.useState('');
+  const [text, setText] = React.useState("");
   React.useEffect(() => {
     if (!text) return;
     withLoading(async () => {
@@ -36,7 +36,7 @@ const CodeScanner = (props: { onEnd: Callback }) => {
     <NB.View style={{ flex: 1 }}>
       <BarCodeScanner
         // the callback invoke is too sensitive
-        onBarCodeScanned={evt => setText(evt.data)}
+        onBarCodeScanned={(evt) => setText(evt.data)}
         style={{ flex: 1 }}
       />
     </NB.View>
@@ -48,16 +48,16 @@ const InputButton = (props: {
   onPress?: Callback;
   onEndEditing?: Callback1<string>;
 }) => {
-  const [text, setText] = React.useState('');
+  const [text, setText] = React.useState("");
   return (
-    <RN.View style={{ flexDirection: 'row' }}>
+    <RN.View style={{ flexDirection: "row" }}>
       <RN.TextInput
         // autoFocus
         keyboardType="url"
         value={text}
         placeholder="Input your CSV url or scan by QR code"
         style={{
-          backgroundColor: 'white',
+          backgroundColor: "white",
           fontSize: 14,
           flex: 1,
           paddingLeft: 15,
@@ -81,11 +81,11 @@ export const QRCodePage = () => {
     <NB.Container>
       <Header bodyText="QR code" />
       <InputButton
-        iconName={showScanner ? 'qr-scanner' : 'md-qr-scanner'}
+        iconName={showScanner ? "qr-scanner" : "md-qr-scanner"}
         onPress={React.useCallback(() => setShowScanner(!showScanner), [
           showScanner,
         ])}
-        onEndEditing={text =>
+        onEndEditing={(text) =>
           withLoading(async () => {
             await dispatch(action.importByURL(text));
           })

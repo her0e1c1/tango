@@ -1,40 +1,40 @@
-import * as React from 'react';
-import * as NB from 'native-base';
-import { useSelector } from 'react-redux';
-import { TextItem, Button, Field, Separator } from 'src/react-native/component';
-import { useGoBack } from 'src/react-native/hooks/action';
-import { useCurrentCard } from 'src/hooks/state';
-import { useCardEdit } from 'src/react-native/hooks/action';
-import { Header } from './Common';
-import * as action from 'src/react-native/action';
-import { useDispatch } from 'src/hooks';
+import * as React from "react";
+import * as NB from "native-base";
+import { useSelector } from "react-redux";
+import { TextItem, Button, Field, Separator } from "src/react-native/component";
+import { useGoBack } from "src/react-native/hooks/action";
+import { useCurrentCard } from "src/hooks/state";
+import { useCardEdit } from "src/react-native/hooks/action";
+import { Header } from "./Common";
+import * as action from "src/react-native/action";
+import { useDispatch } from "src/hooks";
 
 function useEdit<T extends keyof Card>(key: T) {
-  return useSelector(state => state.card.edit[key]);
+  return useSelector((state) => state.card.edit[key]);
 }
 
 const IDItem = () => {
-  const v = useEdit('id');
+  const v = useEdit("id");
   return <TextItem noBorder body="ID" right={v} />;
 };
 
 const ScoreItem = () => {
-  const v = useEdit('score');
+  const v = useEdit("score");
   return <TextItem noBorder body="Score" right={String(v)} />;
 };
 
 const TagsItem = () => {
-  const v = useEdit('tags') || [];
-  return <TextItem noBorder body="Tags" right={v.join(', ')} />;
+  const v = useEdit("tags") || [];
+  return <TextItem noBorder body="Tags" right={v.join(", ")} />;
 };
 
 const NextSeeingAtItem = () => {
-  const v = useEdit('nextSeeingAt');
+  const v = useEdit("nextSeeingAt");
   return <TextItem noBorder body="Next time" right={String(v)} />;
 };
 
 const LastSeenAtItem = () => {
-  const v = useEdit('lastSeenAt');
+  const v = useEdit("lastSeenAt");
   return <TextItem noBorder body="Last Seen" right={String(v)} />;
 };
 
@@ -45,31 +45,31 @@ const DeleteCard = () => {
       danger
       full
       text="DELETE"
-      onPress={() => alert('sorry but not implemented yet')}
+      onPress={() => alert("sorry but not implemented yet")}
       // onPress={useThunkAction(action.cardDelete(id))}
     />
   );
 };
 
 const FrontTextField = () => {
-  const v = useEdit('frontText');
+  const v = useEdit("frontText");
   const cardEdit = useCardEdit();
   return (
     <Field
       name="Front Text"
       value={v}
-      onChangeText={frontText => cardEdit({ frontText })}
+      onChangeText={(frontText) => cardEdit({ frontText })}
     />
   );
 };
 const BackTextField = () => {
-  const v = useEdit('backText');
+  const v = useEdit("backText");
   const cardEdit = useCardEdit();
   return (
     <Field
       name="Back Text"
       value={v}
-      onChangeText={backText => cardEdit({ backText })}
+      onChangeText={(backText) => cardEdit({ backText })}
     />
   );
 };
@@ -103,9 +103,9 @@ export const CardEditPage = () => {
   return (
     <NB.Container>
       <Header
-        body={{ title: '' }}
+        body={{ title: "" }}
         right={{
-          icon: 'save',
+          icon: "save",
           onPress: React.useCallback(() => {
             dispatch(action.cardEditUpdate());
             goBack();

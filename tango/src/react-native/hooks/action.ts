@@ -1,19 +1,19 @@
-import * as React from 'react';
-import * as AppAuth from 'expo-app-auth';
-import * as RN from 'react-native';
-import * as C from 'src/constant';
-import * as firebase from 'firebase/app';
-import { auth } from 'src/firebase';
-import { StackActions } from 'react-navigation';
-import * as ScreenOrientation from 'expo-screen-orientation'
-import * as Google from 'expo-google-app-auth'
-export * from 'src/hooks/action';
+import * as React from "react";
+import * as AppAuth from "expo-app-auth";
+import * as RN from "react-native";
+import * as C from "src/constant";
+import * as firebase from "firebase/app";
+import { auth } from "src/firebase";
+import { StackActions } from "react-navigation";
+import * as ScreenOrientation from "expo-screen-orientation";
+import * as Google from "expo-google-app-auth";
+export * from "src/hooks/action";
 import {
   useConfigUpdate,
   useSetEventListener,
   UNSUBSCRIBES,
-} from 'src/hooks/action';
-import { useNavigation } from '@react-navigation/native';
+} from "src/hooks/action";
+import { useNavigation } from "@react-navigation/native";
 
 export const useGoTo = () => {
   const { navigate } = useNavigation();
@@ -45,8 +45,8 @@ export const useInit = () => {
   const configUpdate = useConfigUpdate();
   const setEventListener = useSetEventListener();
   return async () => {
-    const unsubscribe = auth.onAuthStateChanged(async user => {
-      __DEV__ && console.log('DEBUG: INIT', user && user.displayName);
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      __DEV__ && console.log("DEBUG: INIT", user && user.displayName);
       if (!user) return; // Also called after logout
       await configUpdate({
         uid: user.uid,
@@ -80,8 +80,8 @@ export const useLoginWithGoogle = () => {
     });
     // @ts-ignore
     const { type, accessToken, refreshToken, idToken, user } = result;
-    __DEV__ && console.log('DEBUG: RESULT', result);
-    if (type !== 'success') {
+    __DEV__ && console.log("DEBUG: RESULT", result);
+    if (type !== "success") {
       alert(`Can not login with Google account`);
       return;
     }
@@ -95,17 +95,17 @@ export const useLoginWithGoogle = () => {
 };
 
 export const useDimension = () => {
-  const window = RN.Dimensions.get('window');
+  const window = RN.Dimensions.get("window");
   const [dimension, setDimension] = React.useState({
     width: window.width,
     height: window.height,
   });
-  const setEvent = event =>
+  const setEvent = (event) =>
     setDimension({ height: event.window.height, width: event.window.width });
   React.useEffect(() => {
-    RN.Dimensions.addEventListener('change', setEvent);
+    RN.Dimensions.addEventListener("change", setEvent);
     return () => {
-      RN.Dimensions.removeEventListener('change', setEvent);
+      RN.Dimensions.removeEventListener("change", setEvent);
     };
   }, []);
   return dimension;
@@ -114,15 +114,11 @@ export const useDimension = () => {
 export const useScreen = (reset: boolean = true) => {
   React.useEffect(() => {
     RN.StatusBar.setHidden(true);
-    ScreenOrientation.lockAsync(
-      ScreenOrientation.OrientationLock.ALL
-    );
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.ALL);
     return () => {
       if (!reset) return;
       RN.StatusBar.setHidden(false);
-      ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.PORTRAIT
-      );
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
     };
   }, [reset]);
 };

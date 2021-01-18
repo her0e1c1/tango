@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { useDeck, useCard } from 'src/hooks/state';
+import * as React from "react";
+import { useDeck, useCard } from "src/hooks/state";
 
 export const Deck = (props: {
   id: string;

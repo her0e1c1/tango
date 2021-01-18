@@ -1,7 +1,7 @@
-import * as React from 'react';
-import * as RN from 'react-native';
-import DeckSwiperLib from 'react-native-deck-swiper';
-import { useDimension } from 'src/react-native/hooks/action';
+import * as React from "react";
+import * as RN from "react-native";
+import DeckSwiperLib from "react-native-deck-swiper";
+import { useDimension } from "src/react-native/hooks/action";
 
 export const DeckSwiper = (props: {
   ids: string[];
@@ -26,7 +26,7 @@ export const DeckSwiper = (props: {
   return (
     <RN.View
       style={{ flex: 1 }}
-      onLayout={e =>
+      onLayout={(e) =>
         setDimension({
           height: e.nativeEvent.layout.height,
           width: e.nativeEvent.layout.width,
@@ -42,7 +42,7 @@ export const DeckSwiper = (props: {
         cardVerticalMargin={0}
         marginBottom={0}
         zoomFriction={0}
-        backgroundColor={props.color || 'white'}
+        backgroundColor={props.color || "white"}
         disableBottomSwipe={false}
         showSecondCard={false}
         swipeAnimationDuration={100}
@@ -56,7 +56,9 @@ export const DeckSwiper = (props: {
         goBackToPreviousCardOnSwipeRight={props.goBackRight}
         goBackToPreviousCardOnSwipeDown={props.goBackDown}
         // even if shouldComponentUpdate in <DeckSwiperLib /> is true, _id is previous ID of card
-        renderCard={_id => props.renderCard(props.ids[props.deckCurrentIndex])}
+        renderCard={(_id) =>
+          props.renderCard(props.ids[props.deckCurrentIndex])
+        }
       />
     </RN.View>
   );

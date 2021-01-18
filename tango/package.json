@@ -5,6 +5,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "format:fix": "prettier --write './src/**/*.{ts,tsx}'",
     "eject": "expo eject"
   },
   "dependencies": {

@@ -1,7 +1,7 @@
-import * as React from 'react';
-import * as NB from 'native-base';
-import * as RN from 'react-native';
-import styled from 'styled-components/native';
+import * as React from "react";
+import * as NB from "native-base";
+import * as RN from "react-native";
+import styled from "styled-components/native";
 
 export const CenteredView = styled.View`
   flex: 1;
@@ -16,8 +16,8 @@ const Content = styled(NB.Content)`
   background-color: #f5fcff;
 `;
 
-export const Container = props => (
-  <NB.Container style={{ backgroundColor: '#f5fcff' }}>
+export const Container = (props) => (
+  <NB.Container style={{ backgroundColor: "#f5fcff" }}>
     <RN.ScrollView>
       <Content {...props} />
     </RN.ScrollView>
@@ -39,21 +39,21 @@ export const TouchableOpacity = (props: {
 export const LoadingIcon = React.memo(
   (props: { isLoadingNoAction?: boolean }) => {
     const style1 = {
-      position: 'absolute',
+      position: "absolute",
       zIndex: 1,
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
     };
     const style2 = {
-      position: 'absolute',
+      position: "absolute",
       zIndex: 1,
-      top: '45%',
-      left: '45%',
+      top: "45%",
+      left: "45%",
     };
     return (
       <RN.View style={props.isLoadingNoAction ? style1 : (style2 as any)}>
@@ -63,9 +63,9 @@ export const LoadingIcon = React.memo(
   }
 );
 
-export const Center = props => (
+export const Center = (props) => (
   <NB.View
-    style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+    style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
     {...props}
   />
 );
@@ -88,7 +88,7 @@ export const Overlay = (props: {
       onPress={props.onPress}
       onLongPress={props.onLongPress}
       style={{
-        position: 'absolute',
+        position: "absolute",
         width: props.left || props.right ? props.width || 50 : undefined,
         height: props.bottom || props.top ? props.width || 50 : undefined,
         backgroundColor: props.color,

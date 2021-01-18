@@ -1,14 +1,14 @@
-import * as React from 'react';
-import * as NB from 'native-base';
+import * as React from "react";
+import * as NB from "native-base";
 
 const types = [
-  'danger',
-  'warning',
-  'success',
-  'info',
-  'primary',
-  'light',
-  'dark',
+  "danger",
+  "warning",
+  "success",
+  "info",
+  "primary",
+  "light",
+  "dark",
 ] as const;
 
 type Unpacked<T> = T extends { [K in keyof T]: infer U } ? U : never;

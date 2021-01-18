@@ -1,17 +1,17 @@
-import * as React from 'react';
-import * as RN from 'react-native';
-import * as NB from 'native-base';
-import { IconItem } from 'src/react-native/component';
-import { useIsLoading, useGoBack } from 'src/react-native/hooks/action';
-import { useSelector, useConfigAttr } from 'src/hooks/state';
-import { Header } from './Common';
-import * as action from 'src/react-native/action';
-import { useThunkAction } from 'src/hooks';
+import * as React from "react";
+import * as RN from "react-native";
+import * as NB from "native-base";
+import { IconItem } from "src/react-native/component";
+import { useIsLoading, useGoBack } from "src/react-native/hooks/action";
+import { useSelector, useConfigAttr } from "src/hooks/state";
+import { Header } from "./Common";
+import * as action from "src/react-native/action";
+import { useThunkAction } from "src/hooks";
 
 const Sheet = (props: { item: Sheet }) => {
   const item = props.item;
   const sheetImport = useThunkAction(action.sheetImport(item.id));
-  const isLoading = useConfigAttr('isLoading');
+  const isLoading = useConfigAttr("isLoading");
   const { setLoading, unsetLoading } = useIsLoading();
   const onPress = React.useCallback(async () => {
     if (isLoading) return;
@@ -31,10 +31,10 @@ const Sheet = (props: { item: Sheet }) => {
 };
 
 export const SpreadSheetList = () => {
-  const uid = useConfigAttr('uid');
+  const uid = useConfigAttr("uid");
   const goBack = useGoBack();
   const sheetFetch = useThunkAction(action.sheetFetch());
-  const byId = useSelector(state => state.download.sheetById);
+  const byId = useSelector((state) => state.download.sheetById);
   const sheets = Object.values(byId) as Sheet[];
   const { setLoading, unsetLoading } = useIsLoading();
   React.useEffect(() => {
@@ -44,7 +44,7 @@ export const SpreadSheetList = () => {
         await sheetFetch();
         await unsetLoading();
       } else {
-        alert('You need to login with Google account');
+        alert("You need to login with Google account");
         goBack();
       }
     })();
@@ -52,7 +52,7 @@ export const SpreadSheetList = () => {
   return (
     <RN.FlatList
       data={sheets}
-      keyExtractor={sheet => sheet.id}
+      keyExtractor={(sheet) => sheet.id}
       ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
       renderItem={({ item }: { item: Sheet }) => <Sheet item={item} />}
     />

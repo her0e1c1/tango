@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { Header as MyHeader } from 'src/react-native/component';
-import { useGoBack } from 'src/react-native/hooks/action';
+import * as React from "react";
+import { Header as MyHeader } from "src/react-native/component";
+import { useGoBack } from "src/react-native/hooks/action";
 // import { useNavigation } from 'react-navigation-hooks';
-import { NavigationContext } from '@react-navigation/native';
+import { NavigationContext } from "@react-navigation/native";
 
-const getStackLength = navigation => {
+const getStackLength = (navigation) => {
   try {
     return navigation.dangerouslyGetParent().state.routes.length;
     // return navigation.state.index;
@@ -12,7 +12,6 @@ const getStackLength = navigation => {
     return 0;
   }
 };
-
 
 export const Header = (props: {
   bodyText?: string;
@@ -32,10 +31,10 @@ export const Header = (props: {
   return (
     <MyHeader
       body={{
-        title: (props.body && props.body.title) || props.bodyText || '',
+        title: (props.body && props.body.title) || props.bodyText || "",
         onPress: props.bodyOnPress,
       }}
-      left={length > 1 ? { onPress: () => { } } : undefined}
+      left={length > 1 ? { onPress: () => {} } : undefined}
       right={right}
     />
   );

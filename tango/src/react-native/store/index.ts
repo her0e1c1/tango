@@ -1,13 +1,13 @@
-import * as Redux from 'redux';
-import thunk from 'redux-thunk';
-import { persistReducer } from 'redux-persist';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Redux from "redux";
+import thunk from "redux-thunk";
+import { persistReducer } from "redux-persist";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // import { createReactNavigationReduxMiddleware } from 'react-navigation-redux-helpers';
-import { root } from './reducer';
+import { root } from "./reducer";
 
-const logger = () => next => action => {
-  __DEV__ && console.log('ACTION: ', action.type);
+const logger = () => (next) => (action) => {
+  __DEV__ && console.log("ACTION: ", action.type);
   const rv = next(action);
   return rv;
 };
@@ -19,9 +19,9 @@ const logger = () => next => action => {
 // }>('root', state => state.nav);
 
 const persistConfig = {
-  key: 'root',
+  key: "root",
   storage: AsyncStorage,
-  whitelist: ['nav', 'deck', 'card', 'config'],
+  whitelist: ["nav", "deck", "card", "config"],
 };
 
 const persistedReducer = persistReducer(
