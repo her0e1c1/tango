@@ -62,7 +62,7 @@ const Row = ({ deck }: { deck: Deck }) => {
             if (index === 0) {
               await goTo('CardList', { deckId: deck.id });
             } else if (index === 1) {
-              await goTo('DeckEdit', { deckId: deck.id });
+              await navi.navigate('DeckEdit', { deckId: deck.id });
             } else if (index === 2) {
               await dispatch(
                 action.deckUpdate({ id: deck.id, currentIndex: 0 })

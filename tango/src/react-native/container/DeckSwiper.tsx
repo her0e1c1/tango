@@ -170,7 +170,7 @@ const BackText: React.FC<{ deckId: string }> = props => {
         color="rgba(52, 52, 52, 0.1)'"
         onLongPress={useCardSwipe('cardSwipeDown', props.deckId)}
       />
-      <CardView frontText={false} cardId={cardId} />
+      <CardView frontText={false} cardId={cardId} deckId={props.deckId} />
     </NB.View>
   );
 };

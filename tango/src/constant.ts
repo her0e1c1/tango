@@ -14,7 +14,7 @@ export const NEXT_SEEING_MINUTES = {
   [60 * 24 * 30 * 2]: '2 months later',
   [60 * 24 * 30 * 6]: '6 months later',
   [60 * 24 * 365]: '1 year later',
-};
+} as const;
 
 export const NEXT_SEEING_MINUTES_KEYS = Object.keys(NEXT_SEEING_MINUTES)
   .map(k => Number(k))
@@ -34,7 +34,7 @@ export const LANGUAGES = [
   'shell',
   'sh',
   'swift',
-];
+] as const;
 
 export const MAPPING = {
   hs: 'haskell',
@@ -42,7 +42,7 @@ export const MAPPING = {
   js: 'javascript',
   py: 'python',
   rb: 'ruby',
-};
+} as const;
 
 export const CATEGORY: Category[] = ['raw', 'markdown', 'math'].concat(
   LANGUAGES
@@ -55,6 +55,6 @@ export const GOOGLE_AUTH_SCOPES = [
   'https://www.googleapis.com/auth/drive.readonly',
   'profile',
   'email',
-];
+] as const;
 
 export const URL_GOOGLE_TOKEN = 'https://accounts.google.com/o/oauth2/token';
