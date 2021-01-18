@@ -14,11 +14,19 @@ import { DeckStartPage } from './container/DeckStart';
 import { DeckEditPage } from './container/DeckEdit';
 import { CardListPage } from './container/CardList';
 import { CardEditPage } from './container/CardEdit';
+import { useNavigation, useNavigationState, useRoute } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const HomePage = () => {
+    const state = useNavigationState(s => s)
+    const route = useRoute();
+    const navi = useNavigation()
+    React.useLayoutEffect(() => {
+        navi.setOptions({ tabBarVisible: true })
+    }, [navi, state, route]);
+
     return (
         <Stack.Navigator screenOptions={{
             headerShown: false
@@ -36,10 +44,7 @@ const HomePage = () => {
 
 const Download = () => {
     return (
-        <Stack.Navigator screenOptions={{
-            headerShown: false
-        }}
-        >
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="DownloadListMain" component={DownloadPage} />
             <Stack.Screen name="SpreadSheetList" component={SpreadSheetListPage} />
             <Stack.Screen name="DeckPublicList" component={DeckPublicListPage} />
