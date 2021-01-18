@@ -2,7 +2,6 @@ import * as React from "react";
 import * as AppAuth from "expo-app-auth";
 import * as RN from "react-native";
 import * as C from "src/constant";
-import * as firebase from "firebase/app";
 import { auth } from "src/firebase";
 import { StackActions } from "react-navigation";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -14,6 +13,7 @@ import {
   UNSUBSCRIBES,
 } from "src/hooks/action";
 import { useNavigation } from "@react-navigation/native";
+const firebase = require("firebase")
 
 export const useGoTo = () => {
   const { navigate } = useNavigation();
@@ -67,7 +67,7 @@ const useSignIn = () => {
 };
 
 export const useLoginWithGoogle = () => {
-  const signIn = useSignIn();
+  const init = useInit();
   const configUpdate = useConfigUpdate();
   return async () => {
     const result = await Google.logInAsync({
@@ -85,12 +85,13 @@ export const useLoginWithGoogle = () => {
       alert(`Can not login with Google account`);
       return;
     }
-    const credential = auth.GoogleAuthProvider.credential(idToken);
-    await signIn(credential);
+    const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
+    await firebase.auth().signInWithCredential(credential);
     await configUpdate({
       googleAccessToken: accessToken,
       googleRefreshToken: refreshToken,
     });
+    await init();
   };
 };
 

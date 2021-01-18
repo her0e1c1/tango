@@ -55,6 +55,6 @@ export const GOOGLE_AUTH_SCOPES = [
   "https://www.googleapis.com/auth/drive.readonly",
   "profile",
   "email",
-] as const;
+];
 
 export const URL_GOOGLE_TOKEN = "https://accounts.google.com/o/oauth2/token";
