@@ -2,11 +2,12 @@ import * as React from "react";
 import * as RN from "react-native";
 import * as NB from "native-base";
 import { IconItem } from "src/react-native/component";
-import { useIsLoading, useGoBack } from "src/react-native/hooks/action";
+import { useIsLoading } from "src/react-native/hooks/action";
 import { useSelector, useConfigAttr } from "src/hooks/state";
 import { Header } from "./Common";
 import * as action from "src/react-native/action";
 import { useThunkAction } from "src/hooks";
+import { useNavigation } from "react-navigation-hooks";
 
 const Sheet = (props: { item: Sheet }) => {
   const item = props.item;
@@ -32,7 +33,7 @@ const Sheet = (props: { item: Sheet }) => {
 
 export const SpreadSheetList = () => {
   const uid = useConfigAttr("uid");
-  const goBack = useGoBack();
+  const navi = useNavigation();
   const sheetFetch = useThunkAction(action.sheetFetch());
   const byId = useSelector((state) => state.download.sheetById);
   const sheets = Object.values(byId) as Sheet[];
@@ -45,7 +46,7 @@ export const SpreadSheetList = () => {
         await unsetLoading();
       } else {
         alert("You need to login with Google account");
-        goBack();
+        navi.goBack();
       }
     })();
   }, []);

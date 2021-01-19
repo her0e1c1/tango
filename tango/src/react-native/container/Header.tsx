@@ -1,8 +1,6 @@
 import * as React from "react";
 import { Header as MyHeader } from "src/react-native/component";
-import { useGoBack } from "src/react-native/hooks/action";
-// import { useNavigation } from 'react-navigation-hooks';
-import { NavigationContext } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 const getStackLength = (navigation) => {
   try {
@@ -21,8 +19,7 @@ export const Header = (props: {
   body?: { title: string };
   right?: { onPress: Callback; icon: string };
 }) => {
-  const navi = React.useContext(NavigationContext);
-  // const goBack = useGoBack();
+  const navi = useNavigation();
   const length = getStackLength(navi);
   let right = props.right;
   if (props.rightIcon && props.rightOnPress) {
@@ -34,7 +31,7 @@ export const Header = (props: {
         title: (props.body && props.body.title) || props.bodyText || "",
         onPress: props.bodyOnPress,
       }}
-      left={length > 1 ? { onPress: () => {} } : undefined}
+      left={length > 1 ? { onPress: navi.goBack } : undefined}
       right={right}
     />
   );

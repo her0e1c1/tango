@@ -34,13 +34,6 @@ export const useReplaceTo = () => {
   };
 };
 
-export const useGoBack = () => {
-  const navi = useNavigation();
-  return React.useCallback(() => {
-    navi.goBack();
-  }, [navi]);
-};
-
 export const useInit = () => {
   const configUpdate = useConfigUpdate();
   const setEventListener = useSetEventListener();

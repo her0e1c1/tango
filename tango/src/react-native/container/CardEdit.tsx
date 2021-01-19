@@ -2,12 +2,12 @@ import * as React from "react";
 import * as NB from "native-base";
 import { useSelector } from "react-redux";
 import { TextItem, Button, Field, Separator } from "src/react-native/component";
-import { useGoBack } from "src/react-native/hooks/action";
 import { useCurrentCard } from "src/hooks/state";
 import { useCardEdit } from "src/react-native/hooks/action";
 import { Header } from "./Common";
 import * as action from "src/react-native/action";
 import { useDispatch } from "src/hooks";
+import { useNavigation } from "@react-navigation/native";
 
 function useEdit<T extends keyof Card>(key: T) {
   return useSelector((state) => state.card.edit[key]);
@@ -46,7 +46,7 @@ const DeleteCard = () => {
       full
       text="DELETE"
       onPress={() => alert("sorry but not implemented yet")}
-      // onPress={useThunkAction(action.cardDelete(id))}
+    // onPress={useThunkAction(action.cardDelete(id))}
     />
   );
 };
@@ -94,7 +94,7 @@ export const CardEdit = () => (
 
 export const CardEditPage = () => {
   const dispatch = useDispatch();
-  const goBack = useGoBack();
+  const navi = useNavigation();
   const card = useCurrentCard();
   const cardEdit = useCardEdit();
   React.useEffect(() => {
@@ -108,7 +108,7 @@ export const CardEditPage = () => {
           icon: "save",
           onPress: React.useCallback(() => {
             dispatch(action.cardEditUpdate());
-            goBack();
+            navi.goBack();
           }, []),
         }}
       />
