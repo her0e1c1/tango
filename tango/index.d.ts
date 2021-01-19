@@ -193,6 +193,8 @@ interface RootState {
   download: DownloadState;
 }
 
+type Select<T> = (state: RootState) => T
+
 // Because there is a conflict between @types/react-native and lib: ["dom"] in tsconfig.json,
 // react-native doesn't include alert so it must be defined manually
 interface ReactNativeAlert {

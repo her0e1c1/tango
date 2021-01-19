@@ -12,6 +12,7 @@ import * as action from "src/react-native/action";
 import { useThunkAction, useDispatch } from "src/hooks";
 import { useConfigAttr } from "src/hooks/state";
 import { useNavigation } from "@react-navigation/native";
+import * as selector from "src/selector"
 
 const Row = ({ deck }: { deck: Deck }) => {
   const dispatch = useDispatch();
@@ -78,7 +79,7 @@ const Row = ({ deck }: { deck: Deck }) => {
 };
 
 export const DeckList = () => {
-  const ids = useSelector((state: RootState) => Object.keys(state.deck.byId));
+  const ids = useSelector(selector.deck.allIds);
   return (
     <RN.FlatList
       data={ids as string[]}
