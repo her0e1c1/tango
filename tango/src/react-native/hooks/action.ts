@@ -13,7 +13,7 @@ import {
   UNSUBSCRIBES,
 } from "src/hooks/action";
 import { useNavigation } from "@react-navigation/native";
-const firebase = require("firebase")
+const firebase = require("firebase");
 
 export const useGoTo = () => {
   const { navigate } = useNavigation();

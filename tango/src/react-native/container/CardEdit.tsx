@@ -7,7 +7,7 @@ import { useCardEdit } from "src/react-native/hooks/action";
 import { Header } from "./Common";
 import * as action from "src/react-native/action";
 import { useDispatch } from "src/hooks";
-import { useNavigation } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
 function useEdit<T extends keyof Card>(key: T) {
   return useSelector((state) => state.card.edit[key]);
@@ -93,9 +93,11 @@ export const CardEdit = () => (
 );
 
 export const CardEditPage = () => {
+  const route = useRoute<RouteProp<RouteParamList, "Card">>();
+  const { cardId } = route.params;
   const dispatch = useDispatch();
   const navi = useNavigation();
-  const card = useCurrentCard();
+  const card = useCurrentCard(cardId);
   const cardEdit = useCardEdit();
   React.useEffect(() => {
     cardEdit(card);

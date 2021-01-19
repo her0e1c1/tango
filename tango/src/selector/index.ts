@@ -1,2 +1,2 @@
-import * as deck from "./deck"
-export { deck }
+import * as deck from "./deck";
+export { deck };

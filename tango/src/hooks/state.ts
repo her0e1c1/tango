@@ -19,8 +19,7 @@ export const useCurrentDeck = (deckId: string = ""): Deck => {
   return deck;
 };
 
-export const useCurrentCard = (): Card => {
-  const cardId = useNavigationParam("cardId");
+export const useCurrentCard = (cardId: string): Card => {
   const card = useSelector((state) => state.card.byId[cardId]);
   if (!card) throw `NO CURRENT CARD ${cardId}`;
   return card;

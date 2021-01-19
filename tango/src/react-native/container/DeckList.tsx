@@ -3,16 +3,13 @@ import * as NB from "native-base";
 import * as RN from "react-native";
 import { useSelector } from "react-redux";
 import { SwipeRow } from "src/react-native/component";
-import {
-  useIsLoading,
-  useScreen,
-} from "src/react-native/hooks/action";
+import { useIsLoading, useScreen } from "src/react-native/hooks/action";
 import { Header, Deck } from "./Common";
 import * as action from "src/react-native/action";
 import { useThunkAction, useDispatch } from "src/hooks";
 import { useConfigAttr } from "src/hooks/state";
 import { useNavigation } from "@react-navigation/native";
-import * as selector from "src/selector"
+import * as selector from "src/selector";
 
 const Row = ({ deck }: { deck: Deck }) => {
   const dispatch = useDispatch();
@@ -79,11 +76,11 @@ const Row = ({ deck }: { deck: Deck }) => {
 };
 
 export const DeckList = () => {
-  const ids = useSelector(selector.deck.allIds);
+  const ids = useSelector(selector.deck.allIds());
   return (
     <RN.FlatList
       data={ids as string[]}
-      keyExtractor={id => id}
+      keyExtractor={(id) => id}
       renderItem={({ item }) => (
         <Deck id={item}>{(deck) => <Row deck={deck} />}</Deck>
       )}

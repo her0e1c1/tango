@@ -1,5 +1,3 @@
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
 interface Action<P = any> {
   type: string;
   payload: P;
@@ -200,7 +198,11 @@ interface RootState {
   download: DownloadState;
 }
 
-type Select<T> = (state: RootState) => T
+type Select0<O> = () => (state: RootState) => O
+
+interface Select<I, O> {
+  (props: I): (state: RootState) => O
+}
 
 // Because there is a conflict between @types/react-native and lib: ["dom"] in tsconfig.json,
 // react-native doesn't include alert so it must be defined manually

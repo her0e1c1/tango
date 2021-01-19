@@ -13,7 +13,7 @@ import { useCurrentDeck } from "src/hooks/state";
 import { useGoTo } from "src/react-native/hooks/action";
 import { Header } from "./Common";
 import * as action from "src/react-native/action";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
 function useEdit<T extends keyof Deck>(key: T) {
   return useSelector((state: RootState) => state.deck.edit[key]);
@@ -126,18 +126,16 @@ export const DeckEdit = React.memo(() => (
 ));
 
 export const PageHeader = React.memo((props: { name: string }) => {
-  const goTo = useGoTo();
+  const navi = useNavigation();
   const dispatch = useDispatch();
+  const onPress = React.useCallback(() => {
+    dispatch(action.deckEditUpdate());
+    navi.navigate("DeckList");
+  }, [])
   return (
     <Header
       bodyText={props.name}
-      right={{
-        icon: "save",
-        onPress: React.useCallback(() => {
-          dispatch(action.deckEditUpdate());
-          goTo("DeckList");
-        }, []),
-      }}
+      right={{ icon: "save", onPress }}
     />
   );
 });
