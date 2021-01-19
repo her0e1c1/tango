@@ -4,7 +4,6 @@ import * as RN from "react-native";
 import { useSelector } from "react-redux";
 import { SwipeRow } from "src/react-native/component";
 import {
-  useGoTo,
   useIsLoading,
   useScreen,
 } from "src/react-native/hooks/action";
@@ -16,7 +15,6 @@ import { useNavigation } from "@react-navigation/native";
 
 const Row = ({ deck }: { deck: Deck }) => {
   const dispatch = useDispatch();
-  const goTo = useGoTo();
   const deckDelete = useThunkAction(action.deckDelete(deck.id));
   const autoPlay = useConfigAttr("defaultAutoPlay");
   const navi = useNavigation();
@@ -59,14 +57,14 @@ const Row = ({ deck }: { deck: Deck }) => {
           },
           async (index) => {
             if (index === 0) {
-              // await navi.navigate("CardList", { deckId: deck.id });
+              navi.navigate("CardList", { deckId: deck.id });
             } else if (index === 1) {
-              await navi.navigate("DeckEdit", { deckId: deck.id });
+              navi.navigate("DeckEdit", { deckId: deck.id });
             } else if (index === 2) {
               await dispatch(
                 action.deckUpdate({ id: deck.id, currentIndex: 0 })
               );
-              goTo("DeckStart", { deckId: deck.id });
+              navi.navigate("DeckStart", { deckId: deck.id });
             } else if (index === 3) {
               await setLoading();
               await dispatch(action.sheetUpload(deck));
