@@ -120,6 +120,13 @@ type NavState = {
 };
 
 type RouteParamList = {
+  Deck: {
+    deckId: string;
+  };
+  Card: {
+    deckId: string;
+    cardId: string;
+  }
   DeckStart: {
     deckId: string;
   };

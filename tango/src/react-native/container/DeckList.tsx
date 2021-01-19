@@ -93,11 +93,12 @@ export const DeckList = () => {
 
 export const DeckListPage = () => {
   useScreen(false);
-  // can not wrap <RN.FlatList /> within <NB.Content />, which uses <ScrollView /> inside
   return (
     <NB.Container>
       <Header body={{ title: "Deck List" }} />
-      <DeckList />
+      <NB.Content scrollEnabled={false}>
+        <DeckList />
+      </NB.Content>
     </NB.Container>
   );
 };

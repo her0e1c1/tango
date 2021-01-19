@@ -143,7 +143,7 @@ export const PageHeader = React.memo((props: { name: string }) => {
 });
 
 export const DeckEditPage = React.memo(() => {
-  const route = useRoute<RouteProp<RouteParamList, "DeckEdit">>();
+  const route = useRoute<RouteProp<RouteParamList, "Deck">>();
   const { deckId } = route.params;
   const deck = useCurrentDeck(deckId);
   const deckEdit = useDeckEdit();

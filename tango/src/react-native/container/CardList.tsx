@@ -7,6 +7,7 @@ import { CardItem } from "src/react-native/component";
 import { useReplaceTo, useGoTo } from "src/react-native/hooks/action";
 import * as action from "src/react-native/action";
 import { useThunkAction } from "src/hooks";
+import { RouteProp, useRoute } from "@react-navigation/native";
 
 const Row = ({ card }: { card: Card }) => {
   const update = useThunkAction(action.goToCard(card.id));
@@ -44,13 +45,16 @@ export const CardList = (props: { deckId: string }) => {
     />
   );
 };
+
 export const CardListPage = () => {
-  const deck = useCurrentDeck();
+  const route = useRoute<RouteProp<RouteParamList, "Deck">>();
+  const { deckId } = route.params;
+  const deck = useCurrentDeck(deckId);
   return (
     <NB.Container>
       <Header bodyText={deck.name} />
-      <NB.Content>
-        <CardList deckId={deck.id} />
+      <NB.Content scrollEnabled={false}>
+        <CardList deckId={deckId} />
       </NB.Content>
     </NB.Container>
   );
