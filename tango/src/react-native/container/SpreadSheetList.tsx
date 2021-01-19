@@ -7,7 +7,7 @@ import { useSelector, useConfigAttr } from "src/hooks/state";
 import { Header } from "./Common";
 import * as action from "src/react-native/action";
 import { useThunkAction } from "src/hooks";
-import { useNavigation } from "react-navigation-hooks";
+import { useNavigation } from "@react-navigation/native";
 
 const Sheet = (props: { item: Sheet }) => {
   const item = props.item;

@@ -1,6 +1,6 @@
 import { pull, shuffle } from "lodash";
 import * as RN from "react-native";
-import * as firebase from "firebase/app";
+import * as firebase from "firebase";
 import * as Papa from "papaparse";
 import { ThunkAction } from "redux-thunk";
 import * as C from "src/constant";
