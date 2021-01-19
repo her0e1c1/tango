@@ -23,15 +23,11 @@ const Row = ({ deck }: { deck: Deck }) => {
   const goToStartPage = React.useCallback(async () => {
     if (deck.currentIndex <= 0) {
       await dispatch(action.deckUpdate({ id: deck.id, currentIndex: 0 }));
-      navi.navigate("Home", {
-        screen: "DeckStart",
-        params: { deckId: deck.id },
-      });
-      // goTo('DeckStart', { deckId: deck.id });
+      navi.navigate("DeckStart", { deckId: deck.id });
     } else {
       const c = { showBackText: false, autoPlay };
       await dispatch(action.type.configUpdate(c));
-      // goTo('DeckSwiper', { deckId: deck.id });
+      navi.navigate("DeckSwiper", { deckId: deck.id });
     }
   }, [deck.currentIndex, autoPlay]);
   const { setLoading, unsetLoading } = useIsLoading({
@@ -63,7 +59,7 @@ const Row = ({ deck }: { deck: Deck }) => {
           },
           async (index) => {
             if (index === 0) {
-              await goTo("CardList", { deckId: deck.id });
+              // await navi.navigate("CardList", { deckId: deck.id });
             } else if (index === 1) {
               await navi.navigate("DeckEdit", { deckId: deck.id });
             } else if (index === 2) {
@@ -88,7 +84,7 @@ export const DeckList = () => {
   return (
     <RN.FlatList
       data={ids as string[]}
-      keyExtractor={(id) => id}
+      keyExtractor={id => id}
       renderItem={({ item }) => (
         <Deck id={item}>{(deck) => <Row deck={deck} />}</Deck>
       )}
@@ -98,12 +94,11 @@ export const DeckList = () => {
 
 export const DeckListPage = () => {
   useScreen(false);
+  // can not wrap <RN.FlatList /> within <NB.Content />, which uses <ScrollView /> inside
   return (
     <NB.Container>
       <Header body={{ title: "Deck List" }} />
-      <NB.Content>
-        <DeckList />
-      </NB.Content>
+      <DeckList />
     </NB.Container>
   );
 };
