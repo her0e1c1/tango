@@ -123,15 +123,15 @@ export const CardView = (props: {
       ref.current &&
       ref.current.postMessage(JSON.stringify({ text, category }));
   });
-  return !category || (props.frontText && deck.onlyBodyinWebview) ? (
+  return !category || (props.frontText && deck.onlyBodyinWebview) || true ? (
     <TextCard
       body={text}
       onPress={showBackText}
       onLongPress={showBackTextLong}
     />
   ) : (
-    <WebviewCard refWebView={ref} />
-  );
+      <WebviewCard refWebView={ref} />
+    );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {
@@ -343,7 +343,7 @@ export const DeckSwiperPage = () => {
   if (!valid) return <NB.Container />;
   return (
     <NB.Container>
-      {/* <BackText deckId={deckId} /> */}
+      <BackText deckId={deckId} />
       <FrontText deckId={deckId} />
     </NB.Container>
   );
