@@ -61,14 +61,14 @@ export const App = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ color, size }) => {
           let iconName;
           if (route.name === "Home") {
-            iconName = focused
-              ? "ios-information-circle"
-              : "ios-information-circle-outline";
-          } else if (route.name === "Settings") {
-            iconName = focused ? "ios-list-box" : "ios-list";
+            iconName = "home"
+          } else if (route.name === "Download") {
+            iconName = "cloud"
+          } else if (route.name === "Config") {
+            iconName = "cog"
           }
           return <Icon name={iconName} size={size} color={color} />;
         },
