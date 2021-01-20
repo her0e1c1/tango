@@ -130,8 +130,8 @@ export const CardView = (props: {
       onLongPress={showBackTextLong}
     />
   ) : (
-      <WebviewCard refWebView={ref} />
-    );
+    <WebviewCard refWebView={ref} />
+  );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {

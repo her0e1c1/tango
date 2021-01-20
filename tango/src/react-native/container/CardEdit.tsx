@@ -46,7 +46,7 @@ const DeleteCard = () => {
       full
       text="DELETE"
       onPress={() => alert("sorry but not implemented yet")}
-    // onPress={useThunkAction(action.cardDelete(id))}
+      // onPress={useThunkAction(action.cardDelete(id))}
     />
   );
 };

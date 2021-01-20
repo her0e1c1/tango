@@ -131,13 +131,8 @@ export const PageHeader = React.memo((props: { name: string }) => {
   const onPress = React.useCallback(() => {
     dispatch(action.deckEditUpdate());
     navi.navigate("DeckList");
-  }, [])
-  return (
-    <Header
-      bodyText={props.name}
-      right={{ icon: "save", onPress }}
-    />
-  );
+  }, []);
+  return <Header bodyText={props.name} right={{ icon: "save", onPress }} />;
 });
 
 export const DeckEditPage = React.memo(() => {

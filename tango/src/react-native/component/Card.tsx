@@ -43,8 +43,8 @@ const html = `
 
 export const WebviewCard = React.memo((props: { refWebView?: any }) => {
   React.useEffect(() => {
-    AssetUtils.resolveAsync(require('../../../assets/dist/index.html')).then(
-      async file => {
+    AssetUtils.resolveAsync(require("../../../assets/dist/index.html")).then(
+      async (file) => {
         const fileContents = await FileSystem.readAsStringAsync(file.localUri);
         setHtml(fileContents);
       }
@@ -64,7 +64,7 @@ export const WebviewCard = React.memo((props: { refWebView?: any }) => {
         allowFileAccess
         originWhitelist={["*"]}
         source={{ html }}
-      // source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
+        // source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
       />
     </NB.View>
   );
