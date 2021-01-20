@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { TextItem, Button, Field, Separator } from "src/react-native/component";
 import { useCurrentCard } from "src/hooks/state";
 import { useCardEdit } from "src/react-native/hooks/action";
-import { Header } from "./Common";
+import { Header } from "./Header";
 import * as action from "src/react-native/action";
 import { useDispatch } from "src/hooks";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
