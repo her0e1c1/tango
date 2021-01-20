@@ -123,15 +123,15 @@ export const CardView = (props: {
       ref.current &&
       ref.current.postMessage(JSON.stringify({ text, category }));
   });
-  return !category || (props.frontText && deck.onlyBodyinWebview) || true ? (
+  return !category || (props.frontText && deck.onlyBodyinWebview) ? (
     <TextCard
       body={text}
       onPress={showBackText}
       onLongPress={showBackTextLong}
     />
   ) : (
-    <WebviewCard refWebView={ref} />
-  );
+      <WebviewCard refWebView={ref} />
+    );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {

@@ -3,6 +3,7 @@ import * as RN from "react-native";
 import * as NB from "native-base";
 import * as AssetUtils from "expo-asset-utils";
 import * as FileSystem from "expo-file-system";
+import { WebView } from 'react-native-webview';
 
 export const TextCard = (props: {
   body: string;
@@ -53,7 +54,7 @@ export const WebviewCard = React.memo((props: { refWebView?: any }) => {
   const [html, setHtml] = React.useState("");
   return (
     <NB.View style={{ flex: 1 }}>
-      <RN.WebView
+      <WebView
         ref={props.refWebView}
         style={{ flex: 1 }}
         automaticallyAdjustContentInsets={false}
