@@ -9,6 +9,10 @@ import { persistStore } from 'redux-persist';
 import { NavigationContainer } from '@react-navigation/native';
 import { App } from "src/react-native/App"
 
+declare module "react-redux" {
+  function useSelector<T>(state: (a: RootState) => T): T;
+}
+
 class ErrorBoundary extends React.Component {
   componentDidCatch(error) {
     // alert('ERROR: ' + error.toString());

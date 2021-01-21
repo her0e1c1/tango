@@ -13,10 +13,6 @@ import { LoadingIcon } from "./component";
 import store from "./store";
 import { useInit } from "./hooks/action";
 
-declare module "react-redux" {
-  function useSelector<T>(state: (a: RootState) => T): T;
-}
-
 const Main = () => {
   const init = useInit();
   const isLoading = useConfigAttr("isLoading");
@@ -39,23 +35,3 @@ const Main = () => {
     </NB.Root>
   );
 };
-
-class ErrorBoundary extends React.Component {
-  componentDidCatch(error) {
-    alert("ERROR: " + error.toString());
-    // store.dispatch(Action.clearAll(true));
-  }
-  render() {
-    return this.props.children;
-  }
-}
-
-export default () => (
-  <ErrorBoundary>
-    <Provider store={store}>
-      <PersistGate loading={<LoadingIcon />} persistor={persistStore(store)}>
-        <Main />
-      </PersistGate>
-    </Provider>
-  </ErrorBoundary>
-);
