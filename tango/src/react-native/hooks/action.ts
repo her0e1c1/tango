@@ -51,14 +51,6 @@ export const useInit = () => {
   };
 };
 
-const useSignIn = () => {
-  const init = useInit();
-  return async (credential: firebase.auth.AuthCredential) => {
-    await auth().signInWithCredential(credential);
-    await init();
-  };
-};
-
 export const useLoginWithGoogle = () => {
   const init = useInit();
   const configUpdate = useConfigUpdate();
