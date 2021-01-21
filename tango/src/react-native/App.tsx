@@ -2,6 +2,7 @@ import React from "react";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
+import { getFocusedRouteNameFromRoute, useNavigation, useRoute } from "@react-navigation/native";
 import { ConfigPage } from "src/react-native/container/Config";
 import { SpreadSheetListPage } from "./container/SpreadSheetList";
 import { DeckPublicListPage } from "./container/DeckPublicList";
@@ -13,23 +14,18 @@ import { DeckStartPage } from "./container/DeckStart";
 import { DeckEditPage } from "./container/DeckEdit";
 import { CardListPage } from "./container/CardList";
 import { CardEditPage } from "./container/CardEdit";
-import {
-  useNavigation,
-  useNavigationState,
-  useRoute,
-} from "@react-navigation/native";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const HomePage = () => {
-  const state = useNavigationState((s) => s);
   const route = useRoute();
+  const name = getFocusedRouteNameFromRoute(route)
   const navi = useNavigation();
+  const tabBarVisible = name == null || name === "DeckList"
   React.useLayoutEffect(() => {
-    navi.setOptions({ tabBarVisible: true });
-  }, [navi, state, route]);
-
+    navi.setOptions({ tabBarVisible });
+  }, [navi, tabBarVisible]);
   return (
     <Stack.Navigator
       screenOptions={{
