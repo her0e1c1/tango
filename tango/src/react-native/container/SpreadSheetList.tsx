@@ -60,15 +60,12 @@ export const SpreadSheetList = () => {
   );
 };
 
+// Don't wrap <RN.FlatList> with <NB.Content />
 export const SpreadSheetListPage = () => {
   return (
     <NB.Container>
       <Header bodyText="Spread Sheets" />
-      <NB.Content>
-        <NB.List>
-          <SpreadSheetList />
-        </NB.List>
-      </NB.Content>
-    </NB.Container>
+      <SpreadSheetList />
+    </NB.Container >
   );
 };

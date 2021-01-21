@@ -51,15 +51,12 @@ const DeckPublicList = () => {
   );
 };
 
+// Don't wrap <RN.FlatList> with <NB.Content />
 export const DeckPublicListPage = () => {
   return (
     <NB.Container>
       <Header bodyText="Public Deck List" />
-      <NB.Content>
-        <NB.List>
-          <DeckPublicList />
-        </NB.List>
-      </NB.Content>
-    </NB.Container>
+      <DeckPublicList />
+    </NB.Container >
   );
 };

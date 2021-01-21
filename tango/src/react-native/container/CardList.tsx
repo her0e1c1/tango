@@ -46,6 +46,7 @@ export const CardList = (props: { deckId: string }) => {
   );
 };
 
+// Don't wrap <RN.FlatList> with <NB.Content />
 export const CardListPage = () => {
   const route = useRoute<RouteProp<RouteParamList, "Deck">>();
   const { deckId } = route.params;
@@ -53,9 +54,7 @@ export const CardListPage = () => {
   return (
     <NB.Container>
       <Header bodyText={deck.name} />
-      <NB.Content scrollEnabled={false}>
-        <CardList deckId={deckId} />
-      </NB.Content>
+      <CardList deckId={deckId} />
     </NB.Container>
   );
 };

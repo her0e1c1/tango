@@ -88,14 +88,13 @@ export const DeckList = () => {
   );
 };
 
+// Don't wrap <RN.FlatList> with <NB.Content />
 export const DeckListPage = () => {
   useScreen(false);
   return (
     <NB.Container>
       <Header body={{ title: "Deck List" }} />
-      <NB.Content scrollEnabled={false}>
-        <DeckList />
-      </NB.Content>
+      <DeckList />
     </NB.Container>
   );
 };
