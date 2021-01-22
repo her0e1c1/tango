@@ -3,14 +3,10 @@
 import * as Font from "expo-font";
 import * as React from "react";
 import * as RN from "react-native";
-import { Provider } from "react-redux";
-import { persistStore } from "redux-persist";
-import { PersistGate } from "redux-persist/lib/integration/react";
 import { useConfigAttr } from "src/hooks/state";
 import * as NB from "native-base";
 
 import { LoadingIcon } from "./component";
-import store from "./store";
 import { useInit } from "./hooks/action";
 
 const Main = () => {
