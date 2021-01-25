@@ -3,6 +3,7 @@ import * as NB from "native-base";
 import * as RN from "react-native";
 import { TouchableOpacity } from "./Common";
 import Icon from "react-native-vector-icons/FontAwesome";
+import Slider from '@react-native-community/slider';
 
 const getListProps = (props: {
   noBorder?: boolean;
@@ -247,7 +248,7 @@ export const SliderItem = (props: {
   onSlidingComplete?: Callback1<number>;
 }) => (
   <NB.ListItem {...getListProps(props)}>
-    <RN.Slider
+    <Slider
       disabled={props.disabled}
       step={1}
       value={props.value}
@@ -259,6 +260,7 @@ export const SliderItem = (props: {
     />
   </NB.ListItem>
 );
+
 
 export const SwipeRow = (props: {
   title: string;

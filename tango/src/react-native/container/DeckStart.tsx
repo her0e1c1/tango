@@ -6,6 +6,7 @@ import {
   ButtonItem,
   SliderItem,
   RadioItem,
+  SwithItem,
 } from "src/react-native/component";
 import {
   useCurrentDeck,
@@ -99,57 +100,79 @@ const FilterByTagItems = React.memo(
   }
 );
 
-const MaxScoreItems = React.memo(
-  (props: { scoreMax: number | null; deckId: string }) => {
-    const dispatch = useDispatch();
-    const [score, setScore] = React.useState(props.scoreMax || 0);
-    return (
-      <>
-        <Separator text={`max score ${props.scoreMax != null ? score : ""}`} />
-        <ButtonItem
-          title="disable"
-          onPress={useThunkAction(
-            action.deckUpdate({ id: props.deckId, scoreMax: null })
-          )}
-        />
-        <SliderItem
-          icon
-          // disabled={props.scoreMax != null}
-          max={10}
-          min={-10}
-          value={score}
-          onValueChange={setScore}
-          onSlidingComplete={(score) =>
-            dispatch(action.deckUpdate({ id: props.deckId, scoreMax: score }))
-          }
-        />
-      </>
-    );
+const scoreText = (max: number | null, min: number | null): string => {
+  if (max != null && min != null) {
+    return `${min}~${max}`
+  } else if (min != null) {
+    return `${min}~`
+  } else if (max != null) {
+    return `~${max}`
+  } else {
+    return "";
   }
-);
+}
 
-const MinScoreItems = React.memo(
-  (props: { scoreMin: number | null; deckId: string }) => {
+const ScoreItems = React.memo(
+  (props: { scoreMax: number | null, scoreMin: number | null; deckId: string }) => {
     const dispatch = useDispatch();
-    const [score, setScore] = React.useState(props.scoreMin || 0);
+    const [scoreMin, setMinScore] = React.useState(props.scoreMin || 0);
+    const [scoreMax, setMaxScore] = React.useState(props.scoreMax || 0);
+    const [maxScoreEnabled, makeMaxScoreEnabled] = React.useState(props.scoreMax != null);
+    const [minScoreEnabled, makeMinScoreEnabled] = React.useState(props.scoreMin != null);
+    const onMaxValueChange = async () => {
+      if (maxScoreEnabled) {
+        await dispatch(action.deckUpdate({ id: props.deckId, scoreMax: null }))
+        setMaxScore(0)
+        makeMaxScoreEnabled(false)
+      } else {
+        await dispatch(action.deckUpdate({ id: props.deckId, scoreMax: 0 }))
+        setMaxScore(0)
+        makeMaxScoreEnabled(true)
+      }
+    }
+    const onMinValueChange = async () => {
+      if (minScoreEnabled) {
+        await dispatch(action.deckUpdate({ id: props.deckId, scoreMin: null }))
+        setMinScore(0)
+        makeMinScoreEnabled(false)
+      } else {
+        await dispatch(action.deckUpdate({ id: props.deckId, scoreMin: 0 }))
+        setMinScore(0)
+        makeMinScoreEnabled(true)
+      }
+    }
     return (
       <>
-        <Separator text={`min score ${props.scoreMin != null ? score : ""}`} />
-        <ButtonItem
-          title="disable"
-          onPress={useThunkAction(
-            action.deckUpdate({ id: props.deckId, scoreMin: null })
-          )}
+        <Separator text={`score ${scoreText(props.scoreMax, props.scoreMin)}`} />
+        <SwithItem
+          icon
+          body="Filter by max"
+          value={maxScoreEnabled}
+          onValueChange={onMaxValueChange}
         />
         <SliderItem
           icon
           max={10}
           min={-10}
-          value={score}
-          onValueChange={setScore}
-          onSlidingComplete={(score) =>
-            dispatch(action.deckUpdate({ id: props.deckId, scoreMin: score }))
-          }
+          disabled={!maxScoreEnabled}
+          value={scoreMax}
+          onValueChange={setMaxScore}
+          onSlidingComplete={scoreMax => dispatch(action.deckUpdate({ id: props.deckId, scoreMax }))}
+        />
+        <SwithItem
+          icon
+          body="Filter by min"
+          value={minScoreEnabled}
+          onValueChange={onMinValueChange}
+        />
+        <SliderItem
+          icon
+          max={10}
+          min={-10}
+          disabled={!minScoreEnabled}
+          value={scoreMin}
+          onValueChange={setMinScore}
+          onSlidingComplete={scoreMin => dispatch(action.deckUpdate({ id: props.deckId, scoreMin }))}
         />
       </>
     );
@@ -168,8 +191,7 @@ export const DeckStartPage = React.memo(() => {
         <NB.View style={{ margin: 10 }} />
         <StartButton length={cards.length} deckId={deck.id} />
         <NB.List>
-          <MaxScoreItems deckId={deck.id} scoreMax={deck.scoreMax} />
-          <MinScoreItems deckId={deck.id} scoreMin={deck.scoreMin} />
+          <ScoreItems deckId={deck.id} scoreMax={deck.scoreMax} scoreMin={deck.scoreMin} />
           <FilterByTagItems deckId={deck.id} selectedTags={deck.selectedTags} />
         </NB.List>
       </NB.Content>
