@@ -27,21 +27,8 @@ export const TextCard = (props: {
   </RN.TouchableWithoutFeedback>
 );
 
-/*
-const html = `
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5.0, user-scalable=yes" />
-<link href="https://tang04mem0.firebaseapp.com/static/css/main.68baa116.css" rel="stylesheet">
-</head>
-<body>
-  <div id="root"></div>
- <script src="https://tang04mem0.firebaseapp.com/static/js/main.00ed006a.js"></script>
-</html>
-`;
-*/
-
+// Android crashes if view wraps webview
+// https://github.com/react-native-webview/react-native-webview/issues/811
 export const WebviewCard = React.memo((props: { refWebView?: any }) => {
   React.useEffect(() => {
     AssetUtils.resolveAsync(require("../../../assets/view/index.html")).then(
@@ -66,7 +53,6 @@ export const WebviewCard = React.memo((props: { refWebView?: any }) => {
         originWhitelist={["*"]}
         source={{ html }}
         androidHardwareAccelerationDisabled={true}
-        // source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
       />
     </NB.View>
   );
