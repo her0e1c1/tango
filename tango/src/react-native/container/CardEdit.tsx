@@ -15,27 +15,27 @@ function useEdit<T extends keyof Card>(key: T) {
 
 const IDItem = () => {
   const v = useEdit("id");
-  return <TextItem noBorder body="ID" right={v} />;
+  return <TextItem noBorder left="ID" body={v} />;
 };
 
 const ScoreItem = () => {
   const v = useEdit("score");
-  return <TextItem noBorder body="Score" right={String(v)} />;
+  return <TextItem noBorder left="Score" body={String(v)} />;
 };
 
 const TagsItem = () => {
   const v = useEdit("tags") || [];
-  return <TextItem noBorder body="Tags" right={v.join(", ")} />;
+  return <TextItem noBorder left="Tags" body={v.join(", ")} />;
 };
 
 const NextSeeingAtItem = () => {
   const v = useEdit("nextSeeingAt");
-  return <TextItem noBorder body="Next time" right={String(v)} />;
+  return <TextItem noBorder left="Next time" body={String(v)} />;
 };
 
 const LastSeenAtItem = () => {
   const v = useEdit("lastSeenAt");
-  return <TextItem noBorder body="Last Seen" right={String(v)} />;
+  return <TextItem noBorder left="Last Seen" body={String(v)} />;
 };
 
 const DeleteCard = () => {
@@ -46,7 +46,7 @@ const DeleteCard = () => {
       full
       text="DELETE"
       onPress={() => alert("sorry but not implemented yet")}
-      // onPress={useThunkAction(action.cardDelete(id))}
+    // onPress={useThunkAction(action.cardDelete(id))}
     />
   );
 };
@@ -77,7 +77,7 @@ const BackTextField = () => {
 export const CardEdit = () => (
   <>
     <NB.List>
-      <Separator />
+      <Separator text="Basic" />
       <IDItem />
       <ScoreItem />
       <TagsItem />
@@ -105,7 +105,7 @@ export const CardEditPage = () => {
   return (
     <NB.Container>
       <Header
-        body={{ title: "" }}
+        body={{ title: "Card Detail" }}
         right={{
           icon: "save",
           onPress: React.useCallback(() => {
