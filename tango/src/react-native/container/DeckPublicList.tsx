@@ -57,6 +57,6 @@ export const DeckPublicListPage = () => {
     <NB.Container>
       <Header bodyText="Public Deck List" />
       <DeckPublicList />
-    </NB.Container >
+    </NB.Container>
   );
 };

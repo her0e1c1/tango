@@ -55,4 +55,3 @@ export const DownloadPage = () => (
     </NB.Content>
   </NB.Container>
 );
-

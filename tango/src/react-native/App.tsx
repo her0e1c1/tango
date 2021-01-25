@@ -2,7 +2,11 @@ import React from "react";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-import { getFocusedRouteNameFromRoute, useNavigation, useRoute } from "@react-navigation/native";
+import {
+  getFocusedRouteNameFromRoute,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import { ConfigPage } from "src/react-native/container/Config";
 import { SpreadSheetListPage } from "./container/SpreadSheetList";
 import { DeckPublicListPage } from "./container/DeckPublicList";
@@ -20,9 +24,9 @@ const Stack = createStackNavigator();
 
 const HomePage = () => {
   const route = useRoute();
-  const name = getFocusedRouteNameFromRoute(route)
+  const name = getFocusedRouteNameFromRoute(route);
   const navi = useNavigation();
-  const tabBarVisible = name == null || name === "DeckList"
+  const tabBarVisible = name == null || name === "DeckList";
   React.useLayoutEffect(() => {
     navi.setOptions({ tabBarVisible });
   }, [navi, tabBarVisible]);
@@ -60,11 +64,11 @@ export const App = () => {
         tabBarIcon: ({ color, size }) => {
           let iconName;
           if (route.name === "Home") {
-            iconName = "home"
+            iconName = "home";
           } else if (route.name === "Download") {
-            iconName = "cloud"
+            iconName = "cloud";
           } else if (route.name === "Config") {
-            iconName = "cog"
+            iconName = "cog";
           }
           return <Icon name={iconName} size={size} color={color} />;
         },

@@ -66,6 +66,6 @@ export const SpreadSheetListPage = () => {
     <NB.Container>
       <Header bodyText="Spread Sheets" />
       <SpreadSheetList />
-    </NB.Container >
+    </NB.Container>
   );
 };
