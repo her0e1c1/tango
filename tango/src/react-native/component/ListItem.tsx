@@ -74,7 +74,7 @@ export const ButtonItem = (props: {
     body={props.body && <NB.Text>{props.body}</NB.Text>}
     right={
       <NB.Button onPress={props.onPress} small danger={props.danger}>
-        <NB.Text style={{ fontSize: 12 }}>{props.title}</NB.Text>
+        <NB.Text style={{ fontSize: 10 }}>{props.title}</NB.Text>
       </NB.Button>
     }
   />
