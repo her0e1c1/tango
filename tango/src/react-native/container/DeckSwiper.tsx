@@ -122,7 +122,7 @@ export const CardView = (props: {
     category &&
       ref.current &&
       ref.current.postMessage(JSON.stringify({ text, category }));
-  });
+  }, [category, text]);
   return !category || (props.frontText && deck.onlyBodyinWebview) ? (
     <TextCard
       body={text}

@@ -21,27 +21,27 @@ function useEdit<T extends keyof Deck>(key: T) {
 
 const IDItem = React.memo(() => {
   const v = useEdit("id");
-  return <TextItem noBorder body="ID" right={v} />;
+  return <TextItem noBorder left="ID" body={v} />;
 });
 
 const UIDItem = React.memo(() => {
   const v = useEdit("uid");
-  return <TextItem noBorder body="UID" right={v} />;
+  return <TextItem noBorder left="UID" body={v} />;
 });
 
 const URLItem = React.memo(() => {
-  const v = useEdit("url");
-  return <TextItem noBorder body="URL" right={v} />;
+  const v = useEdit("url") ?? "";
+  return <TextItem noBorder left="URL" body={v} />;
 });
 
 const SheetIDItem = React.memo(() => {
-  const v = useEdit("sheetId");
-  return <TextItem noBorder body="Sheet ID" right={v} />;
+  const v = useEdit("sheetId") ?? "";
+  return <TextItem noBorder left="Sheet ID" body={v} />;
 });
 
 const NumberOfCardsItem = React.memo(() => {
   const v = useEdit("cardIds") || [];
-  return <TextItem noBorder body="Number Of Cards" right={String(v.length)} />;
+  return <TextItem noBorder left="Number Of Cards" body={String(v.length)} />;
 });
 
 const NameItem = React.memo(() => {
@@ -63,7 +63,7 @@ const PublicItem = React.memo(() => {
   return (
     <SwithItem
       noBorder
-      body="Public"
+      left="Public"
       value={v}
       onValueChange={(isPublic) => deckEdit({ isPublic })}
     />
@@ -76,7 +76,7 @@ const ConvertToBrItem = React.memo(() => {
   return (
     <SwithItem
       noBorder
-      body={`Convert two \n to <br/> tag`}
+      left={`Convert two \n to <br/> tag`}
       value={v}
       onValueChange={(convertToBr) => deckEdit({ convertToBr })}
     />
@@ -89,7 +89,7 @@ const OnlyBodyConverted = React.memo(() => {
   return (
     <SwithItem
       noBorder
-      body="Only body converted"
+      left="Only body converted"
       value={v}
       onValueChange={(onlyBodyinWebview) => deckEdit({ onlyBodyinWebview })}
     />

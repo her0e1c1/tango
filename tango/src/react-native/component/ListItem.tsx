@@ -92,7 +92,7 @@ export const InputItem = (props: {
     left={props.left && <NB.Text>{props.left}</NB.Text>}
     body={
       <NB.Input
-        style={{ backgroundColor: "white" }}
+        style={{ borderColor: "black", borderWidth: 1 }}
         value={props.value}
         onChangeText={props.onChangeText}
       />
@@ -120,8 +120,8 @@ export const IconItem = (props: {
         {props.awsomeFont ? (
           <Icon name={props.name} size={props.size || 25} />
         ) : (
-          <NB.Icon name={props.name} />
-        )}
+            <NB.Icon name={props.name} />
+          )}
       </NB.Button>
     }
   />
