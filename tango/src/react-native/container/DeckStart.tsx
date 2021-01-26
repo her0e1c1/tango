@@ -44,6 +44,7 @@ const StartButton = React.memo((props: { length: number; deckId: string }) => {
   }
   return (
     <Button
+      info
       full
       text={`Start to learn ${number} out of ${props.length} card(s) `}
       onPress={async () => {
@@ -67,7 +68,7 @@ const FilterByTagItems = React.memo(
     const tags = getTags(allcards);
     return (
       <>
-        <Separator text="filter by tags" />
+        <Separator text="Tags" />
         <ButtonItem
           title="ALL"
           onPress={useThunkAction(
@@ -143,7 +144,7 @@ const ScoreItems = React.memo(
     }
     return (
       <>
-        <Separator text={`score ${scoreText(props.scoreMax, props.scoreMin)}`} />
+        <Separator text={`Score ${scoreText(props.scoreMax, props.scoreMin)}`} />
         <SwithItem
           icon
           body="Filter by max"
@@ -188,7 +189,7 @@ export const DeckStartPage = React.memo(() => {
     <NB.Container>
       <Header body={{ title: "Deck Start" }} />
       <NB.Content>
-        <NB.View style={{ margin: 10 }} />
+        <NB.View style={{ margin: 5 }} />
         <StartButton length={cards.length} deckId={deck.id} />
         <NB.List>
           <ScoreItems deckId={deck.id} scoreMax={deck.scoreMax} scoreMin={deck.scoreMin} />
