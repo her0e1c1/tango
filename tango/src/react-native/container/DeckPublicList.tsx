@@ -9,21 +9,20 @@ import * as action from "src/react-native/action";
 import { useThunkAction } from "src/hooks";
 
 const Item = (props: { item: Deck }) => {
+  const [loading, setLoading] = React.useState(false);
   const item = props.item;
   const deckImport = useThunkAction(action.deckPublicImport(item.id));
-  const isLoading = useConfigAttr("isLoading");
-  const { setLoading, unsetLoading } = useIsLoading();
   const onPress = React.useCallback(async () => {
-    if (isLoading) return;
-    await setLoading();
+    await setLoading(true);
     await deckImport();
-    await unsetLoading();
-  }, [isLoading]);
+    await setLoading(false);
+  }, []);
   return (
     <IconItem
       awsomeFont
-      name="download"
+      name="cloud-download"
       body={`${item.name}`}
+      loading={loading}
       onPressItem={onPress}
       onPress={onPress}
     />

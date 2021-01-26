@@ -140,18 +140,24 @@ export const IconItem = (props: {
   onPress?: Callback;
   onPressItem?: Callback;
   awsomeFont?: boolean;
+  loading?: boolean
 }) => (
   <Item
     {...getListProps(props)}
     left={props.left && <NB.Text>{props.left}</NB.Text>}
     body={props.body && <NB.Text>{props.body}</NB.Text>}
     right={
-      <NB.Button onPress={props.onPress} transparent>
-        {props.awsomeFont ? (
-          <Icon name={props.name} size={props.size || 25} />
-        ) : (
-          <NB.Icon name={props.name} />
-        )}
+      <NB.Button
+        disabled={props.loading}
+        onPress={props.onPress} transparent>
+        {
+          props.loading ? <RN.ActivityIndicator />
+            : (
+              props.awsomeFont ? (
+                <Icon name={props.name} size={props.size || 25} />
+              ) : (
+                  <NB.Icon name={props.name} />
+                ))}
       </NB.Button>
     }
   />

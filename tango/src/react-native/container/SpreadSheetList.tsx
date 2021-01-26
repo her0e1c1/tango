@@ -10,21 +10,20 @@ import { useThunkAction } from "src/hooks";
 import { useNavigation } from "@react-navigation/native";
 
 const Sheet = (props: { item: Sheet }) => {
+  const [loading, setLoading] = React.useState(false);
   const item = props.item;
   const sheetImport = useThunkAction(action.sheetImport(item.id));
-  const isLoading = useConfigAttr("isLoading");
-  const { setLoading, unsetLoading } = useIsLoading();
   const onPress = React.useCallback(async () => {
-    if (isLoading) return;
-    await setLoading();
+    await setLoading(true);
     await sheetImport();
-    await unsetLoading();
-  }, [isLoading]);
+    await setLoading(false);
+  }, []);
   return (
     <IconItem
       awsomeFont
-      name="download"
+      name="cloud-download"
       body={`${item.title} (${item.name})`}
+      loading={loading}
       onPressItem={onPress}
       onPress={onPress}
     />
