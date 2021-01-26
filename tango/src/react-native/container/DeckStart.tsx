@@ -172,7 +172,7 @@ const ScoreItems = React.memo(
           max={10}
           min={-10}
           disabled={!maxScoreEnabled}
-          value={scoreMax}
+          value={scoreMax ?? 0}
           onValueChange={setMaxScore}
           onSlidingComplete={(scoreMax) =>
             dispatch(action.deckUpdate({ id: props.deckId, scoreMax }))
@@ -189,7 +189,7 @@ const ScoreItems = React.memo(
           max={10}
           min={-10}
           disabled={!minScoreEnabled}
-          value={scoreMin}
+          value={scoreMin ?? 0}
           onValueChange={setMinScore}
           onSlidingComplete={(scoreMin) =>
             dispatch(action.deckUpdate({ id: props.deckId, scoreMin }))

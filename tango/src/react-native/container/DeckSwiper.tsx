@@ -105,7 +105,6 @@ export const CardView = (props: {
   cardId: string;
   deckId: string;
 }) => {
-  const ref = React.useRef<RN.WebView>(null);
   const deck = useCurrentDeck(props.deckId);
   const showBackText = useConfigUpdateInAdvance({
     showBackText: true,
@@ -118,11 +117,7 @@ export const CardView = (props: {
   const card = useCard(props.cardId);
   const category = getCagegory(deck.category, card.tags);
   const text = props.frontText ? card.frontText : card.backText;
-  React.useEffect(() => {
-    category &&
-      ref.current &&
-      ref.current.postMessage(JSON.stringify({ text, category }));
-  }, [category, text]);
+
   return !category || (props.frontText && deck.onlyBodyinWebview) ? (
     <TextCard
       body={text}
@@ -130,8 +125,8 @@ export const CardView = (props: {
       onLongPress={showBackTextLong}
     />
   ) : (
-    <WebviewCard refWebView={ref} />
-  );
+      <WebviewCard text={text} category={category} />
+    );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {
