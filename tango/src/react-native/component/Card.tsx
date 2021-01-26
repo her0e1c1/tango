@@ -28,6 +28,13 @@ export const TextCard = (props: {
   </RN.TouchableWithoutFeedback>
 );
 
+const generateMessage = (props: { text: string, category?: string }) => {
+  const msg = `window.postMessage(JSON.stringify(${JSON.stringify(props)}))`
+  // for debugging
+  // console.log("generateMessage: ", msg)
+  return msg
+}
+
 // Android crashes if view wraps webview
 // https://github.com/react-native-webview/react-native-webview/issues/811
 export const WebviewCard = React.memo(
@@ -49,11 +56,10 @@ export const WebviewCard = React.memo(
     }, []);
 
     React.useEffect(() => {
-      category &&
-        loaded &&
-        ref.current &&
+      if (ref.current) {
         ref.current.postMessage(JSON.stringify({ text, category }));
-    }, [category, text, loaded]);
+      }
+    }, [text, category, loaded]);
 
     const onLoad = React.useCallback(() => setLoaded(true), []);
 
@@ -61,16 +67,19 @@ export const WebviewCard = React.memo(
       <NB.View renderToHardwareTextureAndroid={true} style={{ flex: 1 }}>
         <WebView
           ref={ref}
-          onLoad={onLoad}
+          onError={console.log}
+          onLoadEnd={onLoad}
           style={{ flex: 1 }}
           automaticallyAdjustContentInsets={false}
+          // Android does not show the first message to post
+          injectedJavaScript={RN.Platform.OS === "android" ? generateMessage({ text, category }) : ""}
           bounces={false}
           scrollEnabled={true}
           javaScriptEnabled
           allowFileAccess
-          originWhitelist={["*"]}
           source={{ html }}
           androidHardwareAccelerationDisabled={true}
+
         />
       </NB.View>
     );
