@@ -10,8 +10,8 @@ export const TouchableOpacity = (props: {
       {props.children}
     </RN.TouchableOpacity>
   ) : (
-      props.children
-    );
+    props.children
+  );
 };
 export const LoadingIcon = React.memo(
   (props: { isLoadingNoAction?: boolean }) => {
