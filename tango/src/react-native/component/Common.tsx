@@ -76,6 +76,7 @@ export const Overlay = (props: {
   right?: boolean;
   top?: boolean;
   bottom?: boolean;
+  inside?: boolean;
   color?: string;
   onPress?: Callback;
   onLongPress?: Callback;
@@ -83,19 +84,20 @@ export const Overlay = (props: {
   style?: any;
   noFeedback?: boolean;
 }) => {
+  const width = props.width ?? 50;
   return (
     <RN.TouchableOpacity
       onPress={props.onPress}
       onLongPress={props.onLongPress}
       style={{
         position: "absolute",
-        width: props.left || props.right ? props.width || 50 : undefined,
-        height: props.bottom || props.top ? props.width || 50 : undefined,
-        backgroundColor: props.color,
-        left: props.right ? undefined : 0,
-        right: props.left ? undefined : 0,
-        top: props.bottom ? undefined : 0,
-        bottom: props.top ? undefined : 0,
+        width: props.left || props.right ? width : undefined,
+        height: props.bottom || props.top ? width : undefined,
+        backgroundColor: props.color ?? "transparent",
+        left: props.inside ? width : props.right ? undefined : 0,
+        right: props.inside ? width : props.left ? undefined : 0,
+        top: props.inside ? width : props.bottom ? undefined : 0,
+        bottom: props.inside ? width : props.top ? undefined : 0,
         zIndex: 1,
         ...props.style,
       }}

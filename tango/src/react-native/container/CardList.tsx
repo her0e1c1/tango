@@ -28,7 +28,10 @@ const Row = ({ card }: { card: Card }) => {
           StackActions.replace("DeckSwiper", { deckId: card.deckId })
         );
       }, [included, card.deckId])}
-      onPress={React.useCallback(() => navi.navigate("CardEdit", { cardId: card.id }), [card.id])}
+      onPress={React.useCallback(
+        () => navi.navigate("CardEdit", { cardId: card.id }),
+        [card.id]
+      )}
     />
   );
 };
@@ -38,7 +41,7 @@ export const CardList = (props: { deckId: string }) => {
   return (
     <RN.FlatList
       data={deck.cardIds}
-      keyExtractor={id => id}
+      keyExtractor={(id) => id}
       renderItem={({ item }) => (
         <Card id={item}>{(card) => <Row card={card} />}</Card>
       )}

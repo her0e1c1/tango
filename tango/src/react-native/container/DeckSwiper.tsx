@@ -125,8 +125,8 @@ export const CardView = (props: {
       onLongPress={showBackTextLong}
     />
   ) : (
-      <WebviewCard text={text} category={category} />
-    );
+    <WebviewCard text={text} category={category} />
+  );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {
@@ -161,10 +161,9 @@ const BackText: React.FC<{ deckId: string }> = (props) => {
       style={{
         flex: 1,
         display: showBackText ? undefined : "none",
-        backgroundColor: "white",
       }}
     >
-      <Overlay top onPress={useCardSwipe("cardSwipeUp", props.deckId)} />
+      <Overlay inside onPress={hideBackText} />
       <Overlay left onPress={useCardSwipe("cardSwipeLeft", props.deckId)} />
       <Overlay right onPress={useCardSwipe("cardSwipeRight", props.deckId)} />
       <Overlay

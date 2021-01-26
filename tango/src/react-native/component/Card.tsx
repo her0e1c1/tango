@@ -29,48 +29,52 @@ export const TextCard = (props: {
 
 // Android crashes if view wraps webview
 // https://github.com/react-native-webview/react-native-webview/issues/811
-export const WebviewCard = React.memo((props: { category?: string, text: string }) => {
-  const { category, text } = props
-  const ref = React.useRef<WebView>(null);
-  const [html, setHtml] = React.useState("");
-  const [loaded, setLoaded] = React.useState(false);
+export const WebviewCard = React.memo(
+  (props: { category?: string; text: string }) => {
+    const { category, text } = props;
+    const ref = React.useRef<WebView>(null);
+    const [html, setHtml] = React.useState("");
+    const [loaded, setLoaded] = React.useState(false);
 
-  React.useEffect(() => {
-    AssetUtils.resolveAsync(require("../../../assets/view/index.html")).then(
-      async (file: { localUri: string; }) => {
-        const fileContents = await FileSystem.readAsStringAsync(file.localUri);
-        setHtml(fileContents);
-      }
+    React.useEffect(() => {
+      AssetUtils.resolveAsync(require("../../../assets/view/index.html")).then(
+        async (file: { localUri: string }) => {
+          const fileContents = await FileSystem.readAsStringAsync(
+            file.localUri
+          );
+          setHtml(fileContents);
+        }
+      );
+    }, []);
+
+    React.useEffect(() => {
+      category &&
+        loaded &&
+        ref.current &&
+        ref.current.postMessage(JSON.stringify({ text, category }));
+    }, [category, text, loaded]);
+
+    const onLoad = React.useCallback(() => setLoaded(true), []);
+
+    return (
+      <NB.View renderToHardwareTextureAndroid={true} style={{ flex: 1 }}>
+        <WebView
+          ref={ref}
+          onLoad={onLoad}
+          style={{ flex: 1 }}
+          automaticallyAdjustContentInsets={false}
+          bounces={false}
+          scrollEnabled={true}
+          javaScriptEnabled
+          allowFileAccess
+          originWhitelist={["*"]}
+          source={{ html }}
+          androidHardwareAccelerationDisabled={true}
+        />
+      </NB.View>
     );
-  }, []);
-
-  React.useEffect(() => {
-    category &&
-      loaded &&
-      ref.current &&
-      ref.current.postMessage(JSON.stringify({ text, category }));
-  }, [category, text, loaded]);
-
-  const onLoad = React.useCallback(() => setLoaded(true), [])
-
-  return (
-    <NB.View renderToHardwareTextureAndroid={true} style={{ flex: 1 }}>
-      <WebView
-        ref={ref}
-        onLoad={onLoad}
-        style={{ flex: 1 }}
-        automaticallyAdjustContentInsets={false}
-        bounces={false}
-        scrollEnabled={true}
-        javaScriptEnabled
-        allowFileAccess
-        originWhitelist={["*"]}
-        source={{ html }}
-        androidHardwareAccelerationDisabled={true}
-      />
-    </NB.View>
-  );
-});
+  }
+);
 
 export const Controller = (props: {
   deckCurrentIndex: number;
