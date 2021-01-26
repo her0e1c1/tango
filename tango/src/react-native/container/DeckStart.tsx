@@ -7,6 +7,7 @@ import {
   SliderItem,
   RadioItem,
   SwithItem,
+  ButtonsItem,
 } from "src/react-native/component";
 import {
   useCurrentDeck,
@@ -66,20 +67,19 @@ const FilterByTagItems = React.memo(
     const dispatch = useDispatch();
     const allcards = useCardsByDeckId(props.deckId);
     const tags = getTags(allcards);
+    if (tags.length === 0) {
+      return <></>
+    }
     return (
       <>
         <Separator text="Tags" />
-        <ButtonItem
-          title="ALL"
-          onPress={useThunkAction(
-            action.deckUpdate({ id: props.deckId, selectedTags: tags })
-          )}
-        />
-        <ButtonItem
-          title="CLEAR"
-          onPress={useThunkAction(
-            action.deckUpdate({ id: props.deckId, selectedTags: [] })
-          )}
+        <ButtonsItem
+          alignRight
+          buttons={[
+            { title: "All", onPress: useThunkAction(action.deckUpdate({ id: props.deckId, selectedTags: tags })) },
+            { title: "Clear", onPress: useThunkAction(action.deckUpdate({ id: props.deckId, selectedTags: [] })) },
+
+          ]}
         />
         {tags.map((tag, key) => (
           <RadioItem
@@ -116,14 +116,14 @@ const scoreText = (max: number | null, min: number | null): string => {
 const ScoreItems = React.memo(
   (props: { scoreMax: number | null, scoreMin: number | null; deckId: string }) => {
     const dispatch = useDispatch();
-    const [scoreMin, setMinScore] = React.useState(props.scoreMin || 0);
-    const [scoreMax, setMaxScore] = React.useState(props.scoreMax || 0);
+    const [scoreMin, setMinScore] = React.useState(props.scoreMin);
+    const [scoreMax, setMaxScore] = React.useState(props.scoreMax);
     const [maxScoreEnabled, makeMaxScoreEnabled] = React.useState(props.scoreMax != null);
     const [minScoreEnabled, makeMinScoreEnabled] = React.useState(props.scoreMin != null);
     const onMaxValueChange = async () => {
       if (maxScoreEnabled) {
         await dispatch(action.deckUpdate({ id: props.deckId, scoreMax: null }))
-        setMaxScore(0)
+        setMaxScore(null)
         makeMaxScoreEnabled(false)
       } else {
         await dispatch(action.deckUpdate({ id: props.deckId, scoreMax: 0 }))
@@ -134,7 +134,7 @@ const ScoreItems = React.memo(
     const onMinValueChange = async () => {
       if (minScoreEnabled) {
         await dispatch(action.deckUpdate({ id: props.deckId, scoreMin: null }))
-        setMinScore(0)
+        setMinScore(null)
         makeMinScoreEnabled(false)
       } else {
         await dispatch(action.deckUpdate({ id: props.deckId, scoreMin: 0 }))
@@ -144,7 +144,7 @@ const ScoreItems = React.memo(
     }
     return (
       <>
-        <Separator text={`Score ${scoreText(props.scoreMax, props.scoreMin)}`} />
+        <Separator text={`Score ${scoreText(scoreMax, scoreMin)}`} />
         <SwithItem
           icon
           body="Filter by max"

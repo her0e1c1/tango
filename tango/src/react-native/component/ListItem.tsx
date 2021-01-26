@@ -81,6 +81,32 @@ export const ButtonItem = (props: {
   />
 );
 
+export const ButtonsItem = (props: {
+  alignRight?: boolean;
+  buttons: { title: string, onPress: Callback, danger?: boolean }[];
+}) => (
+  <Item
+    body={
+      <NB.View style={{
+        flex: 1,
+        flexDirection: "row",
+        justifyContent: props.alignRight ? "flex-end" : "flex-start"
+      }}>
+        {props.buttons.map((b, i) =>
+          <NB.Button
+            key={i}
+            onPress={b.onPress} small danger={b.danger}
+            style={{ marginHorizontal: 10 }}
+          >
+            <NB.Text style={{ fontSize: 10 }}>{b.title}</NB.Text>
+          </NB.Button>
+        )}
+      </NB.View>
+    }
+  />
+);
+
+
 export const InputItem = (props: {
   value: string;
   left?: string;
