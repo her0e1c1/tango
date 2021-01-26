@@ -3,7 +3,7 @@ import * as NB from "native-base";
 import * as RN from "react-native";
 import { TouchableOpacity } from "./Common";
 import Icon from "react-native-vector-icons/FontAwesome";
-import Slider from '@react-native-community/slider';
+import Slider from "@react-native-community/slider";
 
 const getListProps = (props: {
   noBorder?: boolean;
@@ -83,29 +83,32 @@ export const ButtonItem = (props: {
 
 export const ButtonsItem = (props: {
   alignRight?: boolean;
-  buttons: { title: string, onPress: Callback, danger?: boolean }[];
+  buttons: { title: string; onPress: Callback; danger?: boolean }[];
 }) => (
   <Item
     body={
-      <NB.View style={{
-        flex: 1,
-        flexDirection: "row",
-        justifyContent: props.alignRight ? "flex-end" : "flex-start"
-      }}>
-        {props.buttons.map((b, i) =>
+      <NB.View
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          justifyContent: props.alignRight ? "flex-end" : "flex-start",
+        }}
+      >
+        {props.buttons.map((b, i) => (
           <NB.Button
             key={i}
-            onPress={b.onPress} small danger={b.danger}
+            onPress={b.onPress}
+            small
+            danger={b.danger}
             style={{ marginHorizontal: 10 }}
           >
             <NB.Text style={{ fontSize: 10 }}>{b.title}</NB.Text>
           </NB.Button>
-        )}
+        ))}
       </NB.View>
     }
   />
 );
-
 
 export const InputItem = (props: {
   value: string;
@@ -147,8 +150,8 @@ export const IconItem = (props: {
         {props.awsomeFont ? (
           <Icon name={props.name} size={props.size || 25} />
         ) : (
-            <NB.Icon name={props.name} />
-          )}
+          <NB.Icon name={props.name} />
+        )}
       </NB.Button>
     }
   />
@@ -286,7 +289,6 @@ export const SliderItem = (props: {
     />
   </NB.ListItem>
 );
-
 
 export const SwipeRow = (props: {
   title: string;

@@ -68,7 +68,7 @@ const FilterByTagItems = React.memo(
     const allcards = useCardsByDeckId(props.deckId);
     const tags = getTags(allcards);
     if (tags.length === 0) {
-      return <></>
+      return <></>;
     }
     return (
       <>
@@ -76,9 +76,18 @@ const FilterByTagItems = React.memo(
         <ButtonsItem
           alignRight
           buttons={[
-            { title: "All", onPress: useThunkAction(action.deckUpdate({ id: props.deckId, selectedTags: tags })) },
-            { title: "Clear", onPress: useThunkAction(action.deckUpdate({ id: props.deckId, selectedTags: [] })) },
-
+            {
+              title: "All",
+              onPress: useThunkAction(
+                action.deckUpdate({ id: props.deckId, selectedTags: tags })
+              ),
+            },
+            {
+              title: "Clear",
+              onPress: useThunkAction(
+                action.deckUpdate({ id: props.deckId, selectedTags: [] })
+              ),
+            },
           ]}
         />
         {tags.map((tag, key) => (
@@ -103,45 +112,53 @@ const FilterByTagItems = React.memo(
 
 const scoreText = (max: number | null, min: number | null): string => {
   if (max != null && min != null) {
-    return `${min}~${max}`
+    return `${min}~${max}`;
   } else if (min != null) {
-    return `${min}~`
+    return `${min}~`;
   } else if (max != null) {
-    return `~${max}`
+    return `~${max}`;
   } else {
     return "";
   }
-}
+};
 
 const ScoreItems = React.memo(
-  (props: { scoreMax: number | null, scoreMin: number | null; deckId: string }) => {
+  (props: {
+    scoreMax: number | null;
+    scoreMin: number | null;
+    deckId: string;
+  }) => {
     const dispatch = useDispatch();
     const [scoreMin, setMinScore] = React.useState(props.scoreMin);
     const [scoreMax, setMaxScore] = React.useState(props.scoreMax);
-    const [maxScoreEnabled, makeMaxScoreEnabled] = React.useState(props.scoreMax != null);
-    const [minScoreEnabled, makeMinScoreEnabled] = React.useState(props.scoreMin != null);
+    const [maxScoreEnabled, makeMaxScoreEnabled] = React.useState(
+      props.scoreMax != null
+    );
+    const [minScoreEnabled, makeMinScoreEnabled] = React.useState(
+      props.scoreMin != null
+    );
     const onMaxValueChange = async () => {
       if (maxScoreEnabled) {
-        await dispatch(action.deckUpdate({ id: props.deckId, scoreMax: null }))
-        setMaxScore(null)
-        makeMaxScoreEnabled(false)
+        await dispatch(action.deckUpdate({ id: props.deckId, scoreMax: null }));
+        setMaxScore(null);
+        makeMaxScoreEnabled(false);
       } else {
-        await dispatch(action.deckUpdate({ id: props.deckId, scoreMax: 0 }))
-        setMaxScore(0)
-        makeMaxScoreEnabled(true)
+        await dispatch(action.deckUpdate({ id: props.deckId, scoreMax: 0 }));
+        setMaxScore(0);
+        makeMaxScoreEnabled(true);
       }
-    }
+    };
     const onMinValueChange = async () => {
       if (minScoreEnabled) {
-        await dispatch(action.deckUpdate({ id: props.deckId, scoreMin: null }))
-        setMinScore(null)
-        makeMinScoreEnabled(false)
+        await dispatch(action.deckUpdate({ id: props.deckId, scoreMin: null }));
+        setMinScore(null);
+        makeMinScoreEnabled(false);
       } else {
-        await dispatch(action.deckUpdate({ id: props.deckId, scoreMin: 0 }))
-        setMinScore(0)
-        makeMinScoreEnabled(true)
+        await dispatch(action.deckUpdate({ id: props.deckId, scoreMin: 0 }));
+        setMinScore(0);
+        makeMinScoreEnabled(true);
       }
-    }
+    };
     return (
       <>
         <Separator text={`Score ${scoreText(scoreMax, scoreMin)}`} />
@@ -158,7 +175,9 @@ const ScoreItems = React.memo(
           disabled={!maxScoreEnabled}
           value={scoreMax}
           onValueChange={setMaxScore}
-          onSlidingComplete={scoreMax => dispatch(action.deckUpdate({ id: props.deckId, scoreMax }))}
+          onSlidingComplete={(scoreMax) =>
+            dispatch(action.deckUpdate({ id: props.deckId, scoreMax }))
+          }
         />
         <SwithItem
           icon
@@ -173,7 +192,9 @@ const ScoreItems = React.memo(
           disabled={!minScoreEnabled}
           value={scoreMin}
           onValueChange={setMinScore}
-          onSlidingComplete={scoreMin => dispatch(action.deckUpdate({ id: props.deckId, scoreMin }))}
+          onSlidingComplete={(scoreMin) =>
+            dispatch(action.deckUpdate({ id: props.deckId, scoreMin }))
+          }
         />
       </>
     );
@@ -192,7 +213,11 @@ export const DeckStartPage = React.memo(() => {
         <NB.View style={{ margin: 5 }} />
         <StartButton length={cards.length} deckId={deck.id} />
         <NB.List>
-          <ScoreItems deckId={deck.id} scoreMax={deck.scoreMax} scoreMin={deck.scoreMin} />
+          <ScoreItems
+            deckId={deck.id}
+            scoreMax={deck.scoreMax}
+            scoreMin={deck.scoreMin}
+          />
           <FilterByTagItems deckId={deck.id} selectedTags={deck.selectedTags} />
         </NB.List>
       </NB.Content>
