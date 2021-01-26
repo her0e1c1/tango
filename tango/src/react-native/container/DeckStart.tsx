@@ -3,7 +3,6 @@ import * as NB from "native-base";
 import {
   Button,
   Separator,
-  ButtonItem,
   SliderItem,
   RadioItem,
   SwithItem,
