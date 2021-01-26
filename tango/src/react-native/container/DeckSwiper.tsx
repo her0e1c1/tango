@@ -284,7 +284,7 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
           top
           style={{ flexDirection: "row", justifyContent: "space-between" }}
         >
-          <NB.Button rounded onPress={() => setShowSlider(true)}>
+          <NB.Button rounded onPress={() => setShowSlider(!showSlider)}>
             <NB.Text>{String(score)}</NB.Text>
           </NB.Button>
           {showSlider && (
