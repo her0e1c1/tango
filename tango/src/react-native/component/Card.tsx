@@ -4,6 +4,7 @@ import * as NB from "native-base";
 import * as AssetUtils from "expo-asset-utils";
 import * as FileSystem from "expo-file-system";
 import { WebView } from "react-native-webview";
+import Slider from "@react-native-community/slider";
 
 export const TextCard = (props: {
   body: string;
@@ -92,7 +93,7 @@ export const Controller = (props: {
       />
     </NB.Button>
     <NB.View style={{ flex: 1, paddingRight: 10 }}>
-      <RN.Slider
+      <Slider
         style={{ flex: 1 }}
         value={props.deckCurrentIndex}
         step={1}

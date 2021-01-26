@@ -26,6 +26,7 @@ import * as action from "src/react-native/action";
 import GestureRecognizer from "react-native-swipe-gestures";
 import { useKeepAwake } from "expo-keep-awake";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import Slider from "@react-native-community/slider";
 
 const useCardSwipe = (direction: SwipeDirection, deckId: string) => {
   return useThunkAction(action.deckSwipe(direction, deckId));
@@ -125,8 +126,8 @@ export const CardView = (props: {
       onLongPress={showBackTextLong}
     />
   ) : (
-    <WebviewCard text={text} category={category} />
-  );
+      <WebviewCard text={text} category={category} />
+    );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {
@@ -287,7 +288,7 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
             <NB.Text>{String(score)}</NB.Text>
           </NB.Button>
           {showSlider && (
-            <RN.Slider
+            <Slider
               style={{ marginHorizontal: 5, flex: 1 }}
               minimumValue={-10}
               maximumValue={10}
