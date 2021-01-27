@@ -97,6 +97,9 @@ export const Controller = (props: {
   onSlidingComplete?: (n: number) => any;
 }) => {
   const [index, setIndex] = React.useState(props.deckCurrentIndex);
+  React.useEffect(() => {
+    setIndex(props.deckCurrentIndex)
+  }, [props.deckCurrentIndex])
   return (
     // not sure but on android, you need to set bg because backText is displayed
     <NB.View style={{ flexDirection: "row", backgroundColor: "white" }}>
