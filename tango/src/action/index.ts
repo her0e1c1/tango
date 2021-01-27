@@ -126,6 +126,10 @@ export const deckSwipe = (
     return;
   }
 
+  if (RN.Platform.OS === "android") {
+    RN.ToastAndroid.show(C.SWIPE_GESTURES[direction], 0.1)
+  }
+
   await dispatch(type.configUpdate({ lastSwipe: direction }));
 
   if (value === "GoBack") {
