@@ -59,7 +59,7 @@ const SWIPE_GESTURES = [
   ["cardSwipeDown", "↓"],
   ["cardSwipeLeft", "←"],
   ["cardSwipeRight", "→"],
-];
+] as const;
 
 const CARD_SWIPE_TYPES: cardSwipe[] = [
   "DoNothing",

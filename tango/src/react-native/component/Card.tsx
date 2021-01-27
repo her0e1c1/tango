@@ -28,12 +28,12 @@ export const TextCard = (props: {
   </RN.TouchableWithoutFeedback>
 );
 
-const generateMessage = (props: { text: string, category?: string }) => {
-  const msg = `window.postMessage(JSON.stringify(${JSON.stringify(props)}))`
+const generateMessage = (props: { text: string; category?: string }) => {
+  const msg = `window.postMessage(JSON.stringify(${JSON.stringify(props)}))`;
   // for debugging
   // console.log("generateMessage: ", msg)
-  return msg
-}
+  return msg;
+};
 
 // Android crashes if view wraps webview
 // https://github.com/react-native-webview/react-native-webview/issues/811
@@ -72,14 +72,17 @@ export const WebviewCard = React.memo(
           style={{ flex: 1 }}
           automaticallyAdjustContentInsets={false}
           // Android does not show the first message to post
-          injectedJavaScript={RN.Platform.OS === "android" ? generateMessage({ text, category }) : ""}
+          injectedJavaScript={
+            RN.Platform.OS === "android"
+              ? generateMessage({ text, category })
+              : ""
+          }
           bounces={false}
           scrollEnabled={true}
           javaScriptEnabled
           allowFileAccess
           source={{ html }}
           androidHardwareAccelerationDisabled={true}
-
         />
       </NB.View>
     );

@@ -150,12 +150,26 @@ export const DeckSwiper = (props: { deckId: string }) => {
 };
 
 const BackText: React.FC<{ deckId: string }> = (props) => {
+  const dispatch = useDispatch();
   const deck = useCurrentDeck(props.deckId);
   const showBackText = useConfigAttr("showBackText");
+  const keepBackTextViewed = useConfigAttr("keepBackTextViewed");
   const hideBackText = useConfigUpdateInAdvance({
     showBackText: false,
-    keepBackTextViewed: false,
   });
+  const onPress = React.useCallback(() => {
+    if (keepBackTextViewed) {
+      dispatch(
+        action.type.configUpdate({
+          keepBackTextViewed: false,
+          showBackText: false,
+        })
+      );
+    } else {
+      dispatch(action.type.configUpdate({ keepBackTextViewed: true }));
+    }
+  }, [keepBackTextViewed]);
+
   const cardId = deck.cardOrderIds[deck.currentIndex];
   return (
     <NB.View
@@ -164,14 +178,17 @@ const BackText: React.FC<{ deckId: string }> = (props) => {
         display: showBackText ? undefined : "none",
       }}
     >
-      <Overlay inside onPress={hideBackText} />
+      {!keepBackTextViewed && <Overlay inside onPress={hideBackText} />}
       <Overlay left onPress={useCardSwipe("cardSwipeLeft", props.deckId)} />
       <Overlay right onPress={useCardSwipe("cardSwipeRight", props.deckId)} />
       <Overlay
         bottom
-        onPress={hideBackText}
-        color="rgba(52, 52, 52, 0.1)'"
-        onLongPress={useCardSwipe("cardSwipeDown", props.deckId)}
+        color={
+          keepBackTextViewed
+            ? "rgba(52, 52, 52, 0.1)'"
+            : "rgba(52, 52, 52, 0.5)'"
+        }
+        onPress={onPress}
       />
       <CardView frontText={false} cardId={cardId} deckId={props.deckId} />
     </NB.View>
