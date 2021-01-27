@@ -304,7 +304,7 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
           <NB.Button rounded onPress={() => setShowSlider(!showSlider)}>
             <NB.Text>{String(score)}</NB.Text>
           </NB.Button>
-          {showSlider && (
+          {showSlider ? (
             <Slider
               style={{ marginHorizontal: 5, flex: 1 }}
               minimumValue={-10}
@@ -317,8 +317,9 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
                 setShowSlider(false);
               }}
             />
+          ) : (
+            <TimePicker cardId={cardId} />
           )}
-          {!showSlider && <TimePicker cardId={cardId} />}
         </Overlay>
         <DeckSwiper deckId={deck.id} />
         <NB.View>

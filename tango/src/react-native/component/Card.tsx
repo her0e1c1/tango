@@ -95,29 +95,33 @@ export const Controller = (props: {
   pause?: boolean;
   onPlay?: Callback;
   onSlidingComplete?: (n: number) => any;
-}) => (
-  // not sure but on android, you need to set bg because backText is displayed
-  <NB.View style={{ flexDirection: "row", backgroundColor: "white" }}>
-    <NB.Button transparent onPress={props.onPlay}>
-      <NB.Icon
-        name={props.pause ? "md-pause" : "md-play"}
-        style={{ margin: 5 }}
-      />
-    </NB.Button>
-    <NB.View style={{ flex: 1, paddingRight: 10 }}>
-      <Slider
-        style={{ flex: 1 }}
-        value={props.deckCurrentIndex}
-        step={1}
-        minimumValue={0}
-        maximumValue={props.cardsLength - 1}
-        onSlidingComplete={props.onSlidingComplete}
-      />
+}) => {
+  const [index, setIndex] = React.useState(props.deckCurrentIndex);
+  return (
+    // not sure but on android, you need to set bg because backText is displayed
+    <NB.View style={{ flexDirection: "row", backgroundColor: "white" }}>
+      <NB.Button transparent onPress={props.onPlay}>
+        <NB.Icon
+          name={props.pause ? "md-pause" : "md-play"}
+          style={{ margin: 5 }}
+        />
+      </NB.Button>
+      <NB.View style={{ flex: 1, paddingRight: 10 }}>
+        <Slider
+          style={{ flex: 1 }}
+          value={index}
+          step={1}
+          minimumValue={0}
+          maximumValue={props.cardsLength - 1}
+          onValueChange={setIndex}
+          onSlidingComplete={props.onSlidingComplete}
+        />
+      </NB.View>
+      <RN.View style={{ paddingRight: 10, justifyContent: "center" }}>
+        <RN.Text>
+          {index + 1} / {props.cardsLength}
+        </RN.Text>
+      </RN.View>
     </NB.View>
-    <RN.View style={{ paddingRight: 10, justifyContent: "center" }}>
-      <RN.Text>
-        {props.deckCurrentIndex + 1} / {props.cardsLength}
-      </RN.Text>
-    </RN.View>
-  </NB.View>
-);
+  );
+};
