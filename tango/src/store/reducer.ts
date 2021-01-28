@@ -21,16 +21,16 @@ export const deck = (state = deckInitialState, action: Action) => {
     decks.forEach((d) => {
       const deck = state.byId[d.id] || {};
       state.byId[d.id] = {
-        cardIds: [],
-        cardOrderIds: [],
-        selectedTags: [],
-        currentIndex: 0,
-        category: "",
-        convertToBr: false,
-        onlyBodyinWebview: true,
-        scoreMax: null,
         ...deck,
         ...d,
+        cardIds: d.cardIds ?? [],
+        cardOrderIds: d.cardOrderIds ?? [],
+        selectedTags: d.selectedTags ?? [],
+        currentIndex: d.currentIndex ?? 0,
+        category: d.category ?? "",
+        convertToBr: d.convertToBr ?? false,
+        onlyBodyinWebview: d.onlyBodyinWebview ?? true,
+        scoreMax: d.scoreMax ?? null,
       };
     });
     return {
@@ -63,12 +63,12 @@ export const card = (state = cardInitialState, action: Action) => {
     cards.forEach((c) => {
       const current = state.byId[c.id] || {};
       state.byId[c.id] = {
-        score: 0,
-        numberOfSeen: 0,
-        nextSeeingAt: new Date(0),
-        interval: 0,
         ...current,
         ...c,
+        score: c.score ?? 0,
+        numberOfSeen: c.numberOfSeen ?? 0,
+        nextSeeingAt: c.nextSeeingAt ?? new Date(0),
+        interval: c.interval ?? 0,
       };
     });
     cards.forEach((c) => (c.tags || []).forEach((t) => state.tags.push(t)));
