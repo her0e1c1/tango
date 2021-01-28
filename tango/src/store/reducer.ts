@@ -116,6 +116,7 @@ export const config = (
   state: ConfigState = {
     useCardInterval: false,
     showSwipeButtonList: true,
+    showScore: false,
     showMastered: true,
     showHeader: true,
     showBackText: false,

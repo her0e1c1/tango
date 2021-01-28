@@ -109,28 +109,13 @@ type DownloadState = {
   publicDecks: Deck[];
 };
 
-type NavState = {
-  routes?: NavState[];
-  index: number;
-  key: string;
-  routeName: string;
-  params?: any;
-};
-
 type RouteParamList = {
   Deck: {
     deckId: string;
   };
   Card: {
-    deckId: string;
     cardId: string;
   }
-  DeckStart: {
-    deckId: string;
-  };
-  DeckSwiper: {
-    deckId: string;
-  };
 };
 
 type themeType = 'default' | 'dark' | 'debug';
@@ -168,6 +153,7 @@ type ConfigState = SwipeState & {
   lastSwipe?: SwipeDirection;
   useCardInterval: boolean;
   showSwipeButtonList: boolean;
+  showScore: boolean;
   showMastered: boolean;
   showHeader: boolean;
   shuffled: boolean;
