@@ -1,11 +1,11 @@
 export * from "src/secret";
 
 export const SWIPE_GESTURES = {
-  "cardSwipeUp": "↑",
-  "cardSwipeDown": "↓",
-  "cardSwipeLeft": "←",
-  "cardSwipeRight": "→",
-} as const
+  cardSwipeUp: "↑",
+  cardSwipeDown: "↓",
+  cardSwipeLeft: "←",
+  cardSwipeRight: "→",
+} as const;
 
 export const NEXT_SEEING_MINUTES = {
   0: "soon",

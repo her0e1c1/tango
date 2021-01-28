@@ -179,6 +179,7 @@ const BackText: React.FC<{ deckId: string }> = (props) => {
       }}
     >
       {!keepBackTextViewed && <Overlay inside onPress={hideBackText} />}
+      <Overlay top onPress={useCardSwipe("cardSwipeUp", props.deckId)} />
       <Overlay left onPress={useCardSwipe("cardSwipeLeft", props.deckId)} />
       <Overlay right onPress={useCardSwipe("cardSwipeRight", props.deckId)} />
       <Overlay
@@ -189,6 +190,7 @@ const BackText: React.FC<{ deckId: string }> = (props) => {
             : "rgba(52, 52, 52, 0.5)'"
         }
         onPress={onPress}
+        onLongPress={useCardSwipe("cardSwipeDown", props.deckId)}
       />
       <CardView frontText={false} cardId={cardId} deckId={props.deckId} />
     </NB.View>
