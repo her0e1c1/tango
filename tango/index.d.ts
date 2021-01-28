@@ -153,7 +153,7 @@ type ConfigState = SwipeState & {
   lastSwipe?: SwipeDirection;
   useCardInterval: boolean;
   showSwipeButtonList: boolean;
-  showScore: boolean;
+  showScoreSlider: boolean;
   showMastered: boolean;
   showHeader: boolean;
   shuffled: boolean;

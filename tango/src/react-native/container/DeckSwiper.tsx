@@ -119,6 +119,8 @@ export const CardView = (props: {
   const category = getCagegory(deck.category, card.tags);
   const text = props.frontText ? card.frontText : card.backText;
 
+
+
   return !category || (props.frontText && deck.onlyBodyinWebview) ? (
     <TextCard
       body={text}
@@ -126,8 +128,8 @@ export const CardView = (props: {
       onLongPress={showBackTextLong}
     />
   ) : (
-    <WebviewCard text={text} category={category} />
-  );
+      <WebviewCard text={text} category={category} />
+    );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {
@@ -285,6 +287,8 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
   const dispatch = useDispatch();
   const deck = useCurrentDeck(props.deckId);
   const showBackText = useConfigAttr("showBackText");
+  const useCardInterval = useConfigAttr("useCardInterval");
+  const showScoreSlider = useConfigAttr("showScoreSlider");
   const cardId = deck.cardOrderIds[deck.currentIndex];
   const defaultScore = useCardAttr(cardId, "score") || 0;
   const [showSlider, setShowSlider] = React.useState(false);
@@ -303,10 +307,12 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
           top
           style={{ flexDirection: "row", justifyContent: "space-between" }}
         >
-          <NB.Button rounded onPress={() => setShowSlider(!showSlider)}>
-            <NB.Text>{String(score)}</NB.Text>
-          </NB.Button>
-          {showSlider ? (
+          {showScoreSlider && (
+            <NB.Button rounded onPress={() => setShowSlider(!showSlider)}>
+              <NB.Text>{String(score)}</NB.Text>
+            </NB.Button>
+          )}
+          {showScoreSlider && showSlider && (
             <Slider
               style={{ marginHorizontal: 5, flex: 1 }}
               minimumValue={-10}
@@ -319,9 +325,9 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
                 setShowSlider(false);
               }}
             />
-          ) : (
-            <TimePicker cardId={cardId} />
           )}
+          {useCardInterval && !showSlider && (<TimePicker cardId={cardId} />)}
+
         </Overlay>
         <DeckSwiper deckId={deck.id} />
         <NB.View>

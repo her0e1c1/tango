@@ -26,7 +26,7 @@ const doLogin = (loginWithGoogle) =>
       text: "Google",
       onPress: loginWithGoogle,
     },
-    { text: "Cancel", onPress: () => {} },
+    { text: "Cancel", onPress: () => { } },
   ]);
 
 const doLogout = (logout) =>
@@ -35,7 +35,7 @@ const doLogout = (logout) =>
       text: "Logout",
       onPress: logout,
     },
-    { text: "Cancel", onPress: () => {} },
+    { text: "Cancel", onPress: () => { } },
   ]);
 
 const LoginItem = React.memo(() => {
@@ -100,6 +100,17 @@ export const UseCardIntervalItem = React.memo(() => {
       body="Use card interval"
       value={useConfigAttr("useCardInterval")}
       onValueChange={useThunkAction(action.configToggle("useCardInterval"))}
+    />
+  );
+});
+
+export const UseShowScoreSlider = React.memo(() => {
+  return (
+    <SwithItem
+      icon
+      body="Show score slider"
+      value={useConfigAttr("showScoreSlider")}
+      onValueChange={useThunkAction(action.configToggle("showScoreSlider"))}
     />
   );
 });
@@ -248,6 +259,7 @@ export const Config = React.memo(() => {
       <LoginItem />
       <ShuffleCardsItem />
       <ShowHeaderItem />
+      <UseShowScoreSlider />
       <UseCardIntervalItem />
       <MaxNumberOfCardsToLearnSliderSection />
       <IntervalSliderSection />
