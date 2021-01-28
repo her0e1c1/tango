@@ -119,17 +119,19 @@ export const CardView = (props: {
   const category = getCagegory(deck.category, card.tags);
   const text = props.frontText ? card.frontText : card.backText;
 
-
-
   return !category || (props.frontText && deck.onlyBodyinWebview) ? (
     <TextCard
       body={text}
       onPress={showBackText}
       onLongPress={showBackTextLong}
     />
-  ) : (
+  ) : props.frontText ? (
+    <Overlay inside width={0} style={{ padding: 25 }} onPress={showBackText}>
       <WebviewCard text={text} category={category} />
-    );
+    </Overlay>
+  ) : (
+    <WebviewCard text={text} category={category} />
+  );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {
@@ -303,12 +305,19 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
     >
       <FrontHeader deckId={props.deckId} />
       <NB.View style={{ flex: 1 }}>
-        <Overlay
-          top
+        <NB.View
           style={{ flexDirection: "row", justifyContent: "space-between" }}
         >
           {showScoreSlider && (
-            <NB.Button rounded onPress={() => setShowSlider(!showSlider)}>
+            <NB.Button
+              rounded
+              onPress={() => setShowSlider(!showSlider)}
+              onLongPress={() => {
+                dispatch(action.cardUpdate({ id: cardId, score: 0 }));
+                setScore(0);
+                setShowSlider(false);
+              }}
+            >
               <NB.Text>{String(score)}</NB.Text>
             </NB.Button>
           )}
@@ -326,9 +335,8 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
               }}
             />
           )}
-          {useCardInterval && !showSlider && (<TimePicker cardId={cardId} />)}
-
-        </Overlay>
+          {useCardInterval && !showSlider && <TimePicker cardId={cardId} />}
+        </NB.View>
         <DeckSwiper deckId={deck.id} />
         <NB.View>
           {useConfigAttr("showSwipeButtonList") && (

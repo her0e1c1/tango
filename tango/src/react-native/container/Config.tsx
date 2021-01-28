@@ -26,7 +26,7 @@ const doLogin = (loginWithGoogle) =>
       text: "Google",
       onPress: loginWithGoogle,
     },
-    { text: "Cancel", onPress: () => { } },
+    { text: "Cancel", onPress: () => {} },
   ]);
 
 const doLogout = (logout) =>
@@ -35,7 +35,7 @@ const doLogout = (logout) =>
       text: "Logout",
       onPress: logout,
     },
-    { text: "Cancel", onPress: () => { } },
+    { text: "Cancel", onPress: () => {} },
   ]);
 
 const LoginItem = React.memo(() => {
