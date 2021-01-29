@@ -36,7 +36,7 @@ const LoginItem = React.memo(() => {
               text: "Logout",
               onPress: logout,
             },
-            { text: "Cancel", onPress: () => { } },
+            { text: "Cancel", onPress: () => {} },
           ]);
         } else {
           RN.Alert.alert("Choose account", "", [
@@ -44,11 +44,10 @@ const LoginItem = React.memo(() => {
               text: "Google",
               onPress: loginWithGoogle,
             },
-            { text: "Cancel", onPress: () => { } },
+            { text: "Cancel", onPress: () => {} },
           ]);
         }
-      }
-      }
+      }}
     />
   );
 });
