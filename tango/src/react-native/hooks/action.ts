@@ -3,7 +3,6 @@ import * as AppAuth from "expo-app-auth";
 import * as RN from "react-native";
 import * as C from "src/constant";
 import { auth } from "src/firebase";
-import { StackActions } from "react-navigation";
 import * as ScreenOrientation from "expo-screen-orientation";
 import * as Google from "expo-google-app-auth";
 export * from "src/hooks/action";
@@ -12,15 +11,7 @@ import {
   useSetEventListener,
   UNSUBSCRIBES,
 } from "src/hooks/action";
-import { useNavigation } from "@react-navigation/native";
 const firebase = require("firebase");
-
-export const useGoTo = () => {
-  const { navigate } = useNavigation();
-  return (page, params?: any) => {
-    navigate(page, params);
-  };
-};
 
 export const useInit = () => {
   const configUpdate = useConfigUpdate();
