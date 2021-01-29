@@ -1,4 +1,3 @@
-/// <reference path="../../../" />
 import 'react-native-gesture-handler';
 import * as RN from "react-native";
 import * as Font from "expo-font";
