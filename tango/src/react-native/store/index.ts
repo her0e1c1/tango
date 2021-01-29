@@ -16,10 +16,7 @@ const persistConfig = {
   whitelist: ["nav", "deck", "card", "config"],
 };
 
-const persistedReducer = persistReducer(
-  persistConfig,
-  root
-);
+const persistedReducer = persistReducer(persistConfig, root);
 
 const store = Redux.createStore(
   persistedReducer, // Alos need <PersistGate />
