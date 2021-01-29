@@ -130,8 +130,8 @@ export const CardView = (props: {
       <WebviewCard text={text} category={category} />
     </Overlay>
   ) : (
-    <WebviewCard text={text} category={category} />
-  );
+        <WebviewCard text={text} category={category} />
+      );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {
@@ -354,7 +354,7 @@ const FrontText: React.FC<{ deckId: string }> = (props) => {
 export const DeckSwiperPage = () => {
   useKeepAwake();
   const navi = useNavigation();
-  const route = useRoute<RouteProp<RouteParamList, "DeckSwiper">>();
+  const route = useRoute<RouteProp<RouteParamList, "Deck">>();
   const { deckId } = route.params;
   const dispatch = useDispatch();
   const deck = useCurrentDeck(deckId);

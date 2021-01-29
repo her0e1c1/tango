@@ -201,7 +201,7 @@ const ScoreItems = React.memo(
 );
 
 export const DeckStartPage = React.memo(() => {
-  const route = useRoute<RouteProp<RouteParamList, "DeckStart">>();
+  const route = useRoute<RouteProp<RouteParamList, "Deck">>();
   const { deckId } = route.params;
   const deck = useCurrentDeck(deckId);
   const cards = useCardsByDeckId(deck.id, { isShown: true });

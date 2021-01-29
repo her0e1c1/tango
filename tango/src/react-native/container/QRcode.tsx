@@ -91,7 +91,6 @@ export const QRCodePage = () => {
           })
         }
       />
-
       {showScanner && <CodeScanner onEnd={() => setShowScanner(false)} />}
     </NB.Container>
   );
