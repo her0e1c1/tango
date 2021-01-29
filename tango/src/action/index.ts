@@ -28,14 +28,6 @@ export const cardToRow = (card: Card): string[] => [
   String(card.score),
 ];
 
-const papaComplete = async (results): Promise<Card[]> => {
-  const cards = results.data
-    .map(rowToCard)
-    .filter((c) => !!c.frontText) as Card[];
-  __DEV__ && console.log("DEBUG: CSV COMPLETE", cards.length);
-  return cards;
-};
-
 const defaultHeader = {
   "Content-Type": "application/json",
 };
@@ -92,7 +84,7 @@ export const deckStart = (cards: Card[]): ThunkResult => async (
   );
 };
 
-export const goToCard = (cardId): ThunkResult => async (dispatch, getState) => {
+export const goToCard = (cardId: string): ThunkResult => async (dispatch, getState) => {
   const card = getState().card.byId[cardId];
   const deck = getState().deck.byId[card.deckId];
   let currentIndex = deck.cardOrderIds.findIndex((id) => id === cardId);
@@ -481,7 +473,11 @@ export const parseByText = (
   text: string,
   deck: Pick<Deck, "name" | "url" | "sheetId">
 ): ThunkResult => async (dispatch, getState) => {
-  const cards = await papaComplete(Papa.parse(text));
+  const results = Papa.parse<string[]>(text)
+  const cards = results.data
+    .map(rowToCard)
+    .filter((c) => !!c.frontText) as Card[];
+  __DEV__ && console.log("DEBUG: CSV COMPLETE", cards.length);
   await dispatch(deckCreate(deck, cards));
 };
 

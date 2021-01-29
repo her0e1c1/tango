@@ -62,7 +62,7 @@ export const App = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
-          let iconName;
+          let iconName = "";
           if (route.name === "Home") {
             iconName = "home";
           } else if (route.name === "Download") {
