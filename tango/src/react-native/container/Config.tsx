@@ -20,24 +20,6 @@ import { Header } from "./Common";
 import * as action from "src/react-native/action";
 import { useDispatch } from "react-redux";
 
-const doLogin = (loginWithGoogle) =>
-  RN.Alert.alert("Choose account", "", [
-    {
-      text: "Google",
-      onPress: loginWithGoogle,
-    },
-    { text: "Cancel", onPress: () => {} },
-  ]);
-
-const doLogout = (logout) =>
-  RN.Alert.alert("Do you want to logout?", "", [
-    {
-      text: "Logout",
-      onPress: logout,
-    },
-    { text: "Cancel", onPress: () => {} },
-  ]);
-
 const LoginItem = React.memo(() => {
   const loginWithGoogle = useLoginWithGoogle();
   const logout = useLogout();
@@ -47,8 +29,25 @@ const LoginItem = React.memo(() => {
       icon
       body="Login"
       title={Boolean(uid) ? "Logout" : "Login"}
-      onPress={() =>
-        Boolean(uid) ? doLogout(logout) : doLogin(loginWithGoogle)
+      onPress={() => {
+        if (Boolean(uid)) {
+          RN.Alert.alert("Do you want to logout?", "", [
+            {
+              text: "Logout",
+              onPress: logout,
+            },
+            { text: "Cancel", onPress: () => { } },
+          ]);
+        } else {
+          RN.Alert.alert("Choose account", "", [
+            {
+              text: "Google",
+              onPress: loginWithGoogle,
+            },
+            { text: "Cancel", onPress: () => { } },
+          ]);
+        }
+      }
       }
     />
   );
