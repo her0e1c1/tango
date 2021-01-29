@@ -59,23 +59,6 @@ export const useLoginWithGoogle = () => {
   };
 };
 
-export const useDimension = () => {
-  const window = RN.Dimensions.get("window");
-  const [dimension, setDimension] = React.useState({
-    width: window.width,
-    height: window.height,
-  });
-  const setEvent = (event) =>
-    setDimension({ height: event.window.height, width: event.window.width });
-  React.useEffect(() => {
-    RN.Dimensions.addEventListener("change", setEvent);
-    return () => {
-      RN.Dimensions.removeEventListener("change", setEvent);
-    };
-  }, []);
-  return dimension;
-};
-
 export const useScreen = (reset: boolean = true) => {
   React.useEffect(() => {
     RN.StatusBar.setHidden(true);
