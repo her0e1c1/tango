@@ -22,18 +22,6 @@ export const useGoTo = () => {
   };
 };
 
-export const useReplaceTo = () => {
-  const navi = useNavigation();
-  return (page, params?: any) => {
-    navi.dispatch(
-      StackActions.replace({
-        routeName: page,
-        params,
-      })
-    );
-  };
-};
-
 export const useInit = () => {
   const configUpdate = useConfigUpdate();
   const setEventListener = useSetEventListener();

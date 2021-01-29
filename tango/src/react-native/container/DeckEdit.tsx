@@ -10,7 +10,6 @@ import {
 } from "src/react-native/component";
 import { useDeckEdit } from "src/react-native/hooks/action";
 import { useCurrentDeck } from "src/hooks/state";
-import { useGoTo } from "src/react-native/hooks/action";
 import { Header } from "./Common";
 import * as action from "src/react-native/action";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
