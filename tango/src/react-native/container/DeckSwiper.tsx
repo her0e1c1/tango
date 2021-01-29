@@ -8,11 +8,7 @@ import {
   Overlay,
   Controller as ControllerComponent,
 } from "src/react-native/component";
-import {
-  useReplaceTo,
-  useGoTo,
-  useConfigUpdateInAdvance,
-} from "src/react-native/hooks/action";
+import { useConfigUpdateInAdvance } from "src/react-native/hooks/action";
 import {
   useDeck,
   useCard,
@@ -20,7 +16,8 @@ import {
   useCurrentDeck,
   useCardAttr,
 } from "src/hooks/state";
-import { Header } from "./Common";
+import { StackActions } from "@react-navigation/native";
+import { Header } from "./Header";
 import { useThunkAction, useDispatch } from "src/hooks";
 import * as action from "src/react-native/action";
 import GestureRecognizer from "react-native-swipe-gestures";
@@ -130,8 +127,8 @@ export const CardView = (props: {
       <WebviewCard text={text} category={category} />
     </Overlay>
   ) : (
-        <WebviewCard text={text} category={category} />
-      );
+    <WebviewCard text={text} category={category} />
+  );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {
@@ -202,8 +199,7 @@ const BackText: React.FC<{ deckId: string }> = (props) => {
 };
 
 const FrontHeader: React.FC<{ deckId: string }> = (props) => {
-  const replaceTo = useReplaceTo();
-  const goTo = useGoTo();
+  const navi = useNavigation();
   const deck = useCurrentDeck(props.deckId);
   const cardId = deck.cardOrderIds[deck.currentIndex];
   if (!useConfigAttr("showHeader")) return <NB.View />;
@@ -211,13 +207,15 @@ const FrontHeader: React.FC<{ deckId: string }> = (props) => {
     <Header
       bodyText={deck.name}
       bodyOnPress={React.useCallback(
-        () => replaceTo("CardList", { deckId: deck.id }),
+        () =>
+          navi.dispatch(StackActions.replace("CardList", { deckId: deck.id })),
         [deck.id]
       )}
       rightIcon="edit"
-      rightOnPress={React.useCallback(() => goTo("CardEdit", { cardId }), [
-        cardId,
-      ])}
+      rightOnPress={React.useCallback(
+        () => navi.navigate("CardEdit", { cardId }),
+        [cardId]
+      )}
     />
   );
 };
