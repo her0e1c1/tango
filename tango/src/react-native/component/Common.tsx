@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as RN from "react-native";
+import * as NB from "native-base"
 
 export const TouchableOpacity = (props: {
   onPress?: () => void;
@@ -10,8 +11,8 @@ export const TouchableOpacity = (props: {
       {props.children}
     </RN.TouchableOpacity>
   ) : (
-    props.children
-  );
+      props.children
+    );
 };
 export const LoadingIcon = React.memo(
   (props: { isLoadingNoAction?: boolean }) => {
@@ -34,7 +35,7 @@ export const LoadingIcon = React.memo(
     };
     return (
       <RN.View style={props.isLoadingNoAction ? style1 : (style2 as any)}>
-        <RN.ActivityIndicator size="large" animating={true} />
+        <NB.Spinner color="silver" />
       </RN.View>
     );
   }

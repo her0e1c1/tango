@@ -5,6 +5,7 @@ import { ThunkAction } from "redux-thunk";
 
 export { useDispatch };
 
+// TODO: remove duplicated ThunkResult
 export type ThunkResult<R = void> = ThunkAction<
   R,
   RootState,

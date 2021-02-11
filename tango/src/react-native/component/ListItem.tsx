@@ -153,8 +153,8 @@ export const IconItem = (props: {
         ) : props.awsomeFont ? (
           <Icon name={props.name} size={props.size || 25} />
         ) : (
-          <NB.Icon name={props.name} />
-        )}
+              <NB.Icon name={props.name} />
+            )}
       </NB.Button>
     }
   />

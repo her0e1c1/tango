@@ -114,35 +114,6 @@ export const useConfigUpdateInAdvance = (config: Partial<ConfigState>) => {
   return () => dispatch(type.configUpdate(config));
 };
 
-export const useIsLoading = (
-  props: { isLoadingNoAction?: boolean } = {
-    isLoadingNoAction: false,
-  } as Partial<ConfigState>
-) => {
-  const dispatch = useDispatch();
-  const isLoading = useConfigAttr("isLoading");
-  return React.useMemo(
-    () => ({
-      isLoading,
-      withLoading: async (callback) => {
-        await dispatch(type.configUpdate({ isLoading: true }));
-        try {
-          await dispatch(callback);
-        } catch (e) {
-          alert(e);
-        } finally {
-          await dispatch(type.configUpdate({ isLoading: false }));
-        }
-      },
-      setLoading: async () =>
-        await dispatch(type.configUpdate({ isLoading: true })),
-      unsetLoading: async () =>
-        await dispatch(type.configUpdate({ isLoading: false })),
-    }),
-    []
-  );
-};
-
 export const useCardEdit = () => {
   const dispatch = useDispatch();
   return async (edit: Edit<Card>) => {

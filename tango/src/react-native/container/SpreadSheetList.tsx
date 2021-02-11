@@ -1,8 +1,7 @@
 import * as React from "react";
 import * as RN from "react-native";
 import * as NB from "native-base";
-import { IconItem } from "src/react-native/component";
-import { useIsLoading } from "src/react-native/hooks/action";
+import { IconItem, LoadingIcon } from "src/react-native/component";
 import { useSelector, useConfigAttr } from "src/hooks/state";
 import { Header } from "./Common";
 import * as action from "src/react-native/action";
@@ -36,13 +35,13 @@ export const SpreadSheetList = () => {
   const sheetFetch = useThunkAction(action.sheetFetch());
   const byId = useSelector((state) => state.download.sheetById);
   const sheets = Object.values(byId) as Sheet[];
-  const { setLoading, unsetLoading } = useIsLoading();
+  const [loading, setLoading] = React.useState(false);
   React.useEffect(() => {
     (async () => {
       if (uid) {
-        await setLoading();
+        setLoading(true);
         await sheetFetch();
-        await unsetLoading();
+        setLoading(false);
       } else {
         alert("You need to login with Google account");
         navi.goBack();
@@ -50,12 +49,15 @@ export const SpreadSheetList = () => {
     })();
   }, []);
   return (
-    <RN.FlatList
-      data={sheets}
-      keyExtractor={(sheet) => sheet.id}
-      ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
-      renderItem={({ item }: { item: Sheet }) => <Sheet item={item} />}
-    />
+    <>
+      {loading && <LoadingIcon isLoadingNoAction={false} />}
+      <RN.FlatList
+        data={sheets}
+        keyExtractor={(sheet) => sheet.id}
+        ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
+        renderItem={({ item }: { item: Sheet }) => <Sheet item={item} />}
+      />
+    </>
   );
 };
 

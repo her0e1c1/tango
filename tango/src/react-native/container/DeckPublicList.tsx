@@ -2,8 +2,7 @@ import * as React from "react";
 import * as RN from "react-native";
 import * as NB from "native-base";
 import { IconItem } from "src/react-native/component";
-import { useIsLoading } from "src/react-native/hooks/action";
-import { useSelector, useConfigAttr } from "src/hooks/state";
+import { useSelector } from "src/hooks/state";
 import { Header } from "./Common";
 import * as action from "src/react-native/action";
 import { useThunkAction } from "src/hooks";
@@ -32,22 +31,23 @@ const Item = (props: { item: Deck }) => {
 const DeckPublicList = () => {
   const fetch = useThunkAction(action.deckPubicFetch());
   const decks = useSelector((state) => state.download.publicDecks);
-  const { setLoading, unsetLoading } = useIsLoading();
+  const [loading, setLoading] = React.useState(false);
   React.useEffect(() => {
     (async () => {
-      await setLoading();
+      setLoading(true);
       await fetch();
-      await unsetLoading();
+      setLoading(false);
     })();
   }, []);
-  return (
-    <RN.FlatList
-      data={decks}
-      keyExtractor={(sheet) => sheet.id}
-      ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
-      renderItem={({ item }: { item: Deck }) => <Item item={item} />}
-    />
-  );
+  return loading ? <NB.Spinner color="silver" /> :
+    (
+      <RN.FlatList
+        data={decks}
+        keyExtractor={(sheet) => sheet.id}
+        ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
+        renderItem={({ item }: { item: Deck }) => <Item item={item} />}
+      />
+    );
 };
 
 // Don't wrap <RN.FlatList> with <NB.Content />

@@ -3,7 +3,6 @@ import * as RN from "react-native";
 import * as NB from "native-base";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import * as Permissions from "expo-permissions";
-import { useIsLoading } from "src/react-native/hooks/action";
 import { Header } from "./Common";
 import * as action from "src/react-native/action";
 import { useDispatch } from "react-redux";
@@ -22,14 +21,16 @@ const CodeScanner = (props: { onEnd: Callback }) => {
   }, [hasPermission]);
 
   const dispatch = useDispatch();
-  const { withLoading } = useIsLoading();
+  const [loading, setLoading] = React.useState(false); // TODO
   const [text, setText] = React.useState("");
   React.useEffect(() => {
     if (!text) return;
-    withLoading(async () => {
+    (async () => {
+      setLoading(true);
       await dispatch(action.importByURL(text));
+      setLoading(false);
       props.onEnd();
-    });
+    })();
   }, [text]);
 
   return (
@@ -66,7 +67,7 @@ const InputButton = (props: {
         onChangeText={setText}
         onEndEditing={() => props.onEndEditing && props.onEndEditing(text)}
       />
-      <NB.Button light onPress={props.onPress}>
+      <NB.Button light onPress={props.onPress} >
         <NB.Icon name={props.iconName} />
       </NB.Button>
     </RN.View>
@@ -76,7 +77,7 @@ const InputButton = (props: {
 export const QRCodePage = () => {
   const [showScanner, setShowScanner] = React.useState(false);
   const dispatch = useDispatch();
-  const { withLoading } = useIsLoading();
+  const [loading, setLoading] = React.useState(false); // TODO
   return (
     <NB.Container>
       <Header bodyText="QR code" />
@@ -85,10 +86,12 @@ export const QRCodePage = () => {
         onPress={React.useCallback(() => setShowScanner(!showScanner), [
           showScanner,
         ])}
-        onEndEditing={(text) =>
-          withLoading(async () => {
-            await dispatch(action.importByURL(text));
-          })
+        onEndEditing={async (text) => {
+          setLoading(true)
+          await dispatch(action.importByURL(text));
+          setLoading(false)
+        }
+
         }
       />
       {showScanner && <CodeScanner onEnd={() => setShowScanner(false)} />}
