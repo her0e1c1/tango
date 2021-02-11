@@ -43,7 +43,7 @@ export const useLoginWithGoogle = () => {
       redirectUrl: `${AppAuth.OAuthRedirect}:/oauth2redirect/google`,
     });
     // @ts-ignore
-    const { type, accessToken, refreshToken, idToken, user } = result;
+    const { type, accessToken, refreshToken, idToken } = result;
     __DEV__ && console.log("DEBUG: RESULT", result);
     if (type !== "success") {
       alert(`Can not login with Google account`);

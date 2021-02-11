@@ -1,12 +1,7 @@
 import { ThunkResult } from "./index";
-import { pull, shuffle } from "lodash";
-import * as RN from "react-native";
-import * as Papa from "papaparse";
-import { ThunkAction } from "redux-thunk";
-import * as C from "src/constant";
+import { shuffle } from "lodash";
 import * as type from "src/action/type";
 import { db } from "src/firebase";
-import moment from "moment";
 import * as firebase from "firebase";
 
 export const create = (

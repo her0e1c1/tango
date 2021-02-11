@@ -1,14 +1,13 @@
-import { pull, shuffle } from "lodash";
 import * as RN from "react-native";
-import * as firebase from "firebase";
 import * as Papa from "papaparse";
 import { ThunkAction } from "redux-thunk";
 import * as C from "src/constant";
 import * as type from "src/action/type";
-import { db } from "src/firebase";
 import moment from "moment";
 import * as deck from "./deck";
-export { deck }
+import * as card from "./card";
+import * as config from "./config";
+export { deck, card, config }
 
 export type ThunkResult<R = void> = ThunkAction<
   R,
@@ -69,7 +68,6 @@ const tryFetch = (
   return res;
 };
 
-export const deckStart = deck.start;
 
 export const goToCard = (cardId: string): ThunkResult => async (
   dispatch,
@@ -174,53 +172,13 @@ export const deckEditUpdate = deck.edit;
 export const deckDelete = deck.remove;
 export const deckPubicFetch = deck.pubicFetch;
 export const deckPublicImport = deck.publicImport;
+export const deckStart = deck.start;
 
-export const cardUpdate = (card: Partial<Card> & { id: string }) => async (
-  dispatch,
-  getState
-) => {
-  dispatch(type.cardUpdate(card));
-  if (!getState().config.uid) return; // not login mode
-  await db
-    .collection("card")
-    .doc(card.id)
-    .update({
-      ...card,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-};
+export const cardUpdate = card.update;
+export const cardDelete = card.remove;
+export const cardEditUpdate = card.edit;
 
-// TODO: not login mode
-export const cardDelete = (id: string) => async (dispatch, getState) => {
-  const card = getState().card.byId[id];
-  __DEV__ && console.log("CARD DELETED", card.id, card.deckId);
-  const deckRef = db.collection("deck").doc(card.deckId);
-  const cardRef = db.collection("card").doc(id);
-  // NOTE: once a deck notified, need to delete the card which belongs to it
-  await db.runTransaction(async (t) => {
-    const deckDoc = await t.get(deckRef);
-    const deck = deckDoc.data() as Deck;
-    const cardIds = pull(deck.cardIds, id);
-    await t.update(deckRef, {
-      cardIds,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    await t.delete(cardRef);
-  });
-};
-
-export const cardEditUpdate = (): ThunkResult => async (dispatch, getState) => {
-  const edit = getState().card.edit;
-  await dispatch(cardUpdate(edit));
-};
-
-export const configToggle = (key: keyof ConfigState) => async (
-  dispatch,
-  getState
-) => {
-  const value = getState().config[key];
-  dispatch(type.configUpdate({ [key]: !value }));
-};
+export const configToggle = config.toggle;
 
 // FIXME: I don't know but there is no refresh token for web.
 export const refreshToken = (): ThunkResult => async (dispatch, getState) => {
