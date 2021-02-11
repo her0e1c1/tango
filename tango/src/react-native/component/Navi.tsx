@@ -12,12 +12,12 @@ export const Header = (props: {
     {props.left ? (
       <NB.Left>
         <NB.Button transparent onPress={props.left.onPress}>
-          <NB.Icon name="arrow-back" />
+          <Icon name="chevron-left" />
         </NB.Button>
       </NB.Left>
     ) : (
-      <NB.Left />
-    )}
+        <NB.Left />
+      )}
     {props.body ? (
       <NB.Body>
         <TouchableOpacity onPress={props.body.onPress}>
@@ -25,8 +25,8 @@ export const Header = (props: {
         </TouchableOpacity>
       </NB.Body>
     ) : (
-      <NB.Body />
-    )}
+        <NB.Body />
+      )}
     {props.right ? (
       <NB.Right>
         <NB.Button transparent onPress={props.right.onPress}>
@@ -34,7 +34,7 @@ export const Header = (props: {
         </NB.Button>
       </NB.Right>
     ) : (
-      <NB.Right />
-    )}
+        <NB.Right />
+      )}
   </NB.Header>
 );

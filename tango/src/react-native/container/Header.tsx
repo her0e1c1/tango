@@ -2,15 +2,6 @@ import * as React from "react";
 import { Header as MyHeader } from "src/react-native/component";
 import { useNavigation } from "@react-navigation/native";
 
-const getStackLength = (navigation) => {
-  try {
-    return navigation.dangerouslyGetParent().state.routes.length;
-    // return navigation.state.index;
-  } catch (e) {
-    return 0;
-  }
-};
-
 export const Header = (props: {
   bodyText?: string;
   bodyOnPress?: Callback;
@@ -20,7 +11,7 @@ export const Header = (props: {
   right?: { onPress: Callback; icon: string };
 }) => {
   const navi = useNavigation();
-  const length = getStackLength(navi);
+  const length = navi.dangerouslyGetState().routes.length
   let right = props.right;
   if (props.rightIcon && props.rightOnPress) {
     right = { onPress: props.rightOnPress, icon: props.rightIcon };
