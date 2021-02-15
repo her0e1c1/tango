@@ -4,10 +4,9 @@ import { persistReducer } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { root } from "./reducer";
 
-const logger: Redux.Middleware = () => (next) => (action) => {
+const logger: Redux.Middleware = () => next => action => {
   __DEV__ && console.log("ACTION: ", action.type);
-  const rv = next(action);
-  return rv;
+  return next(action);
 };
 
 const persistConfig = {

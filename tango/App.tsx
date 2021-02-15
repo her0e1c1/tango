@@ -51,7 +51,7 @@ const Init = () => {
 export default function Root() {
   return (
     <Provider store={store}>
-      <PersistGate loading={<NB.View />} persistor={persistStore(store)}>
+      <PersistGate loading={<NB.View />} persistor={persistStore(store as any)}>
         <ErrorBoundary>
           <NavigationContainer>
             <Init />
