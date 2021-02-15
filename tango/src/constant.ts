@@ -7,6 +7,12 @@ export const SWIPE_GESTURES = {
   cardSwipeRight: "→",
 } as const;
 
+export const SWIPE_DIRECTIONS = [
+  "cardSwipeLeft",
+  "cardSwipeDown",
+  "cardSwipeUp",
+  "cardSwipeRight",
+] as SwipeDirection[]
 
 export const NEXT_SEEING_MINUTES = {
   0: "soon",
