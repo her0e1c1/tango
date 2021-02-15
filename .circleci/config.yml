@@ -28,8 +28,7 @@ jobs:
           - v1-dependencies-{{ checksum "package.json" }}
           - v1-dependencies-
       - run: printf "cat <<EOS\n`cat ./src/secret.ts.example`\nEOS\n" | sh > ./src/secret.ts
-      - run: NODE_ENV=production yarn build
-      - run: yarn add expo-cli
+      - run: yarn install
       - run: yarn run expo-cli login -u "$EXPO_USERNAME" -p "$EXPO_PASSWORD" 2>&1 > /dev/null
       - run: yarn run expo-cli whoami
       - run:
