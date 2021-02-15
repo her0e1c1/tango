@@ -12,5 +12,10 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "strict": true
-  }
+  },
+ "exclude": [
+   "node_modules",
+   "__tests__",
+   "view"
+ ]
 }
