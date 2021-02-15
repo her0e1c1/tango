@@ -18,7 +18,7 @@ declare module "react-redux" {
 }
 
 class ErrorBoundary extends React.Component {
-  componentDidCatch(error) {
+  componentDidCatch(error?: Error) {
     // alert('ERROR: ' + error.toString());
   }
   render() {
