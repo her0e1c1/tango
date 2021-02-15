@@ -7,7 +7,7 @@
     "web": "expo start --web",
     "publish": "expo-cli publish",
     "format:fix": "prettier --write './src/**/*.{ts,tsx}'",
-    "test:all": "yarn tsc && yarn jest",
+    "test:all": "yarn tsc",
     "eject": "expo eject"
   },
   "dependencies": {
