@@ -1,4 +1,4 @@
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+declare module 'expo-asset-utils'
 
 interface Action<P = any> {
   type: string;
@@ -111,12 +111,13 @@ type DownloadState = {
   publicDecks: Deck[];
 };
 
-type NavState = {
-  routes?: NavState[];
-  index: number;
-  key: string;
-  routeName: string;
-  params?: any;
+type RouteParamList = {
+  Deck: {
+    deckId: string;
+  };
+  Card: {
+    cardId: string;
+  }
 };
 
 type themeType = 'default' | 'dark' | 'debug';
@@ -154,6 +155,7 @@ type ConfigState = SwipeState & {
   lastSwipe?: SwipeDirection;
   useCardInterval: boolean;
   showSwipeButtonList: boolean;
+  showScoreSlider: boolean;
   showMastered: boolean;
   showHeader: boolean;
   shuffled: boolean;
@@ -179,9 +181,14 @@ type ConfigState = SwipeState & {
 interface RootState {
   deck: DeckState;
   card: CardState;
-  nav: NavState;
   config: ConfigState;
   download: DownloadState;
+}
+
+type Select0<O> = () => (state: RootState) => O
+
+interface Select<I, O> {
+  (props: I): (state: RootState) => O
 }
 
 // Because there is a conflict between @types/react-native and lib: ["dom"] in tsconfig.json,

@@ -1,29 +1,28 @@
-import * as React from 'react';
-import * as RN from 'react-native';
-import * as NB from 'native-base';
-import { IconItem } from 'src/react-native/component';
-import { useIsLoading, useGoBack } from 'src/react-native/hooks/action';
-import { useSelector, useConfigAttr } from 'src/hooks/state';
-import { Header } from './Common';
-import * as action from 'src/react-native/action';
-import { useThunkAction } from 'src/hooks';
+import * as React from "react";
+import * as RN from "react-native";
+import * as NB from "native-base";
+import { IconItem, LoadingIcon } from "src/react-native/component";
+import { useSelector, useConfigAttr } from "src/hooks/state";
+import { Header } from "./Common";
+import * as action from "src/react-native/action";
+import { useThunkAction } from "src/hooks";
+import { useNavigation } from "@react-navigation/native";
 
 const Sheet = (props: { item: Sheet }) => {
+  const [loading, setLoading] = React.useState(false);
   const item = props.item;
   const sheetImport = useThunkAction(action.sheetImport(item.id));
-  const isLoading = useConfigAttr('isLoading');
-  const { setLoading, unsetLoading } = useIsLoading();
   const onPress = React.useCallback(async () => {
-    if (isLoading) return;
-    await setLoading();
+    await setLoading(true);
     await sheetImport();
-    await unsetLoading();
-  }, [isLoading]);
+    await setLoading(false);
+  }, []);
   return (
     <IconItem
       awsomeFont
-      name="download"
+      name="cloud-download"
       body={`${item.title} (${item.name})`}
+      loading={loading}
       onPressItem={onPress}
       onPress={onPress}
     />
@@ -31,43 +30,43 @@ const Sheet = (props: { item: Sheet }) => {
 };
 
 export const SpreadSheetList = () => {
-  const uid = useConfigAttr('uid');
-  const goBack = useGoBack();
+  const uid = useConfigAttr("uid");
+  const navi = useNavigation();
   const sheetFetch = useThunkAction(action.sheetFetch());
-  const byId = useSelector(state => state.download.sheetById);
+  const byId = useSelector((state) => state.download.sheetById);
   const sheets = Object.values(byId) as Sheet[];
-  const { setLoading, unsetLoading } = useIsLoading();
+  const [loading, setLoading] = React.useState(false);
   React.useEffect(() => {
     (async () => {
       if (uid) {
-        await setLoading();
+        setLoading(true);
         await sheetFetch();
-        await unsetLoading();
+        setLoading(false);
       } else {
-        alert('You need to login with Google account');
-        goBack();
+        alert("You need to login with Google account");
+        navi.goBack();
       }
     })();
   }, []);
   return (
-    <RN.FlatList
-      data={sheets}
-      keyExtractor={sheet => sheet.id}
-      ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
-      renderItem={({ item }: { item: Sheet }) => <Sheet item={item} />}
-    />
+    <>
+      {loading && <LoadingIcon isLoadingNoAction={false} />}
+      <RN.FlatList
+        data={sheets}
+        keyExtractor={(sheet) => sheet.id}
+        ListFooterComponent={() => <RN.View style={{ marginVertical: 50 }} />}
+        renderItem={({ item }: { item: Sheet }) => <Sheet item={item} />}
+      />
+    </>
   );
 };
 
+// Don't wrap <RN.FlatList> with <NB.Content />
 export const SpreadSheetListPage = () => {
   return (
     <NB.Container>
       <Header bodyText="Spread Sheets" />
-      <NB.Content>
-        <NB.List>
-          <SpreadSheetList />
-        </NB.List>
-      </NB.Content>
+      <SpreadSheetList />
     </NB.Container>
   );
 };

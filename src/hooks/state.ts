@@ -1,10 +1,9 @@
-import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigationParam } from 'react-navigation-hooks';
-export { useSelector } from 'react-redux';
+import * as React from "react";
+import { useSelector } from "react-redux";
+export { useSelector } from "react-redux";
 
 export const useConfigState = (...deps: (keyof ConfigState)[]): ConfigState => {
-  const config = useSelector(s => s.config);
+  const config = useSelector((s) => s.config);
   return React.useMemo(
     () => {
       return config;
@@ -13,16 +12,14 @@ export const useConfigState = (...deps: (keyof ConfigState)[]): ConfigState => {
   );
 };
 
-export const useCurrentDeck = (): Deck => {
-  const deckId = useNavigationParam('deckId');
-  const deck = useSelector(state => state.deck.byId[deckId]);
+export const useCurrentDeck = (deckId: string = ""): Deck => {
+  const deck = useSelector((state) => state.deck.byId[deckId]);
   if (!deck) throw `NO DECK ${deckId}`;
   return deck;
 };
 
-export const useCurrentCard = (): Card => {
-  const cardId = useNavigationParam('cardId');
-  const card = useSelector(state => state.card.byId[cardId]);
+export const useCurrentCard = (cardId: string): Card => {
+  const card = useSelector((state) => state.card.byId[cardId]);
   if (!card) throw `NO CURRENT CARD ${cardId}`;
   return card;
 };
@@ -46,7 +43,7 @@ export function useCardAttr<T extends keyof Card>(cardId: string, key: T) {
 }
 
 export function useConfigAttr<T extends keyof ConfigState>(key: T) {
-  return useSelector(s => s.config[key]);
+  return useSelector((s) => s.config[key]);
 }
 
 // ここが再計算は仕方がない?
@@ -55,20 +52,20 @@ export const useCardsByDeckId = (
   opt?: { isShown?: boolean }
 ): Card[] => {
   const isShown = opt && opt.isShown;
-  const useCardInterval = useConfigAttr('useCardInterval');
-  const scoreMax = useDeckAttr(deckId, 'scoreMax');
-  const scoreMin = useDeckAttr(deckId, 'scoreMin');
-  const tags = useDeckAttr(deckId, 'selectedTags');
-  const ids = useDeckAttr(deckId, 'cardIds');
-  const byId = useSelector(state => state.card.byId); // カードを更新しないならここは、そのまま
+  const useCardInterval = useConfigAttr("useCardInterval");
+  const scoreMax = useDeckAttr(deckId, "scoreMax");
+  const scoreMin = useDeckAttr(deckId, "scoreMin");
+  const tags = useDeckAttr(deckId, "selectedTags");
+  const ids = useDeckAttr(deckId, "cardIds");
+  const byId = useSelector((state) => state.card.byId); // カードを更新しないならここは、そのまま
   return React.useMemo(
     () =>
       ids
-        .map(id => byId[id])
-        .filter(c => !!c)
-        .filter(c => {
+        .map((id) => byId[id])
+        .filter((c) => !!c)
+        .filter((c) => {
           if (isShown) {
-            if (tags.length > 0 && !tags.some(t => c.tags.includes(t))) {
+            if (tags.length > 0 && !tags.some((t) => c.tags.includes(t))) {
               return false;
             }
             if (scoreMax != undefined && c.score > scoreMax) {

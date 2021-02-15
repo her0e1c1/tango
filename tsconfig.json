@@ -1,15 +1,21 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "noEmit": true,
-    "lib": ["dom", "esnext"],
-    "jsx": "react-native",
-    "moduleResolution": "node",
-    "allowJs": false,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
     "allowSyntheticDefaultImports": true,
-    "strictNullChecks": true,
-    "skipLibCheck": true
-  }
+    "jsx": "react-native",
+    "lib": [
+      "dom",
+      "esnext"
+    ],
+    "moduleResolution": "node",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "strict": true
+  },
+ "exclude": [
+   "node_modules",
+   "__tests__",
+   "view"
+ ]
 }

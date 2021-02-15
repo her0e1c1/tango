@@ -1,8 +1,10 @@
-import * as React from 'react';
-import * as RN from 'react-native';
-import * as NB from 'native-base';
-import * as AssetUtils from 'expo-asset-utils';
-import * as FileSystem from 'expo-file-system';
+import * as React from "react";
+import * as RN from "react-native";
+import * as NB from "native-base";
+import * as AssetUtils from "expo-asset-utils";
+import * as FileSystem from "expo-file-system";
+import { WebView } from "react-native-webview";
+import Slider from "@react-native-community/slider";
 
 export const TextCard = (props: {
   body: string;
@@ -16,9 +18,9 @@ export const TextCard = (props: {
     <RN.View
       style={{
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "white",
       }}
     >
       <NB.Text style={{ fontSize: 24 }}>{props.body}</NB.Text>
@@ -26,49 +28,66 @@ export const TextCard = (props: {
   </RN.TouchableWithoutFeedback>
 );
 
-/*
-const html = `
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5.0, user-scalable=yes" />
-<link href="https://tang04mem0.firebaseapp.com/static/css/main.68baa116.css" rel="stylesheet">
-</head>
-<body>
-  <div id="root"></div>
- <script src="https://tang04mem0.firebaseapp.com/static/js/main.00ed006a.js"></script>
-</html>
-`;
-*/
+const generateMessage = (props: { text: string; category?: string }) => {
+  const msg = `window.postMessage(JSON.stringify(${JSON.stringify(props)}))`;
+  // for debugging
+  // console.log("generateMessage: ", msg)
+  return msg;
+};
 
-export const WebviewCard = React.memo((props: { refWebView?: any }) => {
-  React.useEffect(() => {
-    AssetUtils.resolveAsync(require('../../../view/dist/index.html')).then(
-      async file => {
-        const fileContents = await FileSystem.readAsStringAsync(file.localUri);
-        setHtml(fileContents);
+// Android crashes if view wraps webview
+// https://github.com/react-native-webview/react-native-webview/issues/811
+export const WebviewCard = React.memo(
+  (props: { category?: string; text: string }) => {
+    const { category, text } = props;
+    const ref = React.useRef<WebView>(null);
+    const [html, setHtml] = React.useState("");
+    const [loaded, setLoaded] = React.useState(false);
+
+    React.useEffect(() => {
+      AssetUtils.resolveAsync(require("../../../assets/view/index.html")).then(
+        async (file: { localUri: string }) => {
+          const fileContents = await FileSystem.readAsStringAsync(
+            file.localUri
+          );
+          setHtml(fileContents);
+        }
+      );
+    }, []);
+
+    React.useEffect(() => {
+      if (ref.current) {
+        ref.current.postMessage(JSON.stringify({ text, category }));
       }
+    }, [text, category, loaded]);
+
+    const onLoad = React.useCallback(() => setLoaded(true), []);
+
+    return (
+      <NB.View renderToHardwareTextureAndroid={true} style={{ flex: 1 }}>
+        <WebView
+          ref={ref}
+          onError={console.log}
+          onLoadEnd={onLoad}
+          style={{ flex: 1 }}
+          automaticallyAdjustContentInsets={false}
+          // Android does not show the first message to post
+          injectedJavaScript={
+            RN.Platform.OS === "android"
+              ? generateMessage({ text, category })
+              : ""
+          }
+          bounces={false}
+          scrollEnabled={true}
+          javaScriptEnabled
+          allowFileAccess
+          source={{ html }}
+          androidHardwareAccelerationDisabled={true}
+        />
+      </NB.View>
     );
-  }, []);
-  const [html, setHtml] = React.useState('');
-  return (
-    <NB.View style={{ flex: 1 }}>
-      <RN.WebView
-        ref={props.refWebView}
-        style={{ flex: 1 }}
-        automaticallyAdjustContentInsets={false}
-        bounces={false}
-        scrollEnabled={true}
-        useWebKit
-        javaScriptEnabled
-        allowFileAccess
-        originWhitelist={['*']}
-        source={{ html }}
-        // source={{ html: html, baseUrl: '' }} // https://github.com/facebook/react-native/issues/18802
-      />
-    </NB.View>
-  );
-});
+  }
+);
 
 export const Controller = (props: {
   deckCurrentIndex: number;
@@ -76,29 +95,36 @@ export const Controller = (props: {
   pause?: boolean;
   onPlay?: Callback;
   onSlidingComplete?: (n: number) => any;
-}) => (
-  // not sure but on android, you need to set bg because backText is displayed
-  <NB.View style={{ flexDirection: 'row', backgroundColor: 'white' }}>
-    <NB.Button transparent onPress={props.onPlay}>
-      <NB.Icon
-        name={props.pause ? 'md-pause' : 'md-play'}
-        style={{ margin: 5 }}
-      />
-    </NB.Button>
-    <NB.View style={{ flex: 1, paddingRight: 10 }}>
-      <RN.Slider
-        style={{ flex: 1 }}
-        value={props.deckCurrentIndex}
-        step={1}
-        minimumValue={0}
-        maximumValue={props.cardsLength - 1}
-        onSlidingComplete={props.onSlidingComplete}
-      />
+}) => {
+  const [index, setIndex] = React.useState(props.deckCurrentIndex);
+  React.useEffect(() => {
+    setIndex(props.deckCurrentIndex);
+  }, [props.deckCurrentIndex]);
+  return (
+    // not sure but on android, you need to set bg because backText is displayed
+    <NB.View style={{ flexDirection: "row", backgroundColor: "white" }}>
+      <NB.Button transparent onPress={props.onPlay}>
+        <NB.Icon
+          name={props.pause ? "md-pause" : "md-play"}
+          style={{ margin: 5 }}
+        />
+      </NB.Button>
+      <NB.View style={{ flex: 1, paddingRight: 10 }}>
+        <Slider
+          style={{ flex: 1 }}
+          value={index}
+          step={1}
+          minimumValue={0}
+          maximumValue={props.cardsLength - 1}
+          onValueChange={setIndex}
+          onSlidingComplete={props.onSlidingComplete}
+        />
+      </NB.View>
+      <RN.View style={{ paddingRight: 10, justifyContent: "center" }}>
+        <RN.Text>
+          {index + 1} / {props.cardsLength}
+        </RN.Text>
+      </RN.View>
     </NB.View>
-    <RN.View style={{ paddingRight: 10, justifyContent: 'center' }}>
-      <RN.Text>
-        {props.deckCurrentIndex + 1} / {props.cardsLength}
-      </RN.Text>
-    </RN.View>
-  </NB.View>
-);
+  );
+};

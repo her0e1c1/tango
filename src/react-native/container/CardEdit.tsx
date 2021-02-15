@@ -1,41 +1,41 @@
-import * as React from 'react';
-import * as NB from 'native-base';
-import { useSelector } from 'react-redux';
-import { TextItem, Button, Field, Separator } from 'src/react-native/component';
-import { useGoBack } from 'src/react-native/hooks/action';
-import { useCurrentCard } from 'src/hooks/state';
-import { useCardEdit } from 'src/react-native/hooks/action';
-import { Header } from './Common';
-import * as action from 'src/react-native/action';
-import { useDispatch } from 'src/hooks';
+import * as React from "react";
+import * as NB from "native-base";
+import { useSelector } from "react-redux";
+import { TextItem, Button, Field, Separator } from "src/react-native/component";
+import { useCurrentCard } from "src/hooks/state";
+import { useCardEdit } from "src/react-native/hooks/action";
+import { Header } from "./Header";
+import * as action from "src/react-native/action";
+import { useDispatch } from "src/hooks";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 
 function useEdit<T extends keyof Card>(key: T) {
-  return useSelector(state => state.card.edit[key]);
+  return useSelector((state) => state.card.edit[key]);
 }
 
 const IDItem = () => {
-  const v = useEdit('id');
-  return <TextItem noBorder body="ID" right={v} />;
+  const v = useEdit("id");
+  return <TextItem noBorder left="ID" body={v} />;
 };
 
 const ScoreItem = () => {
-  const v = useEdit('score');
-  return <TextItem noBorder body="Score" right={String(v)} />;
+  const v = useEdit("score");
+  return <TextItem noBorder left="Score" body={String(v)} />;
 };
 
 const TagsItem = () => {
-  const v = useEdit('tags') || [];
-  return <TextItem noBorder body="Tags" right={v.join(', ')} />;
+  const v = useEdit("tags") || [];
+  return <TextItem noBorder left="Tags" body={v.join(", ")} />;
 };
 
 const NextSeeingAtItem = () => {
-  const v = useEdit('nextSeeingAt');
-  return <TextItem noBorder body="Next time" right={String(v)} />;
+  const v = useEdit("nextSeeingAt");
+  return <TextItem noBorder left="Next time" body={String(v)} />;
 };
 
 const LastSeenAtItem = () => {
-  const v = useEdit('lastSeenAt');
-  return <TextItem noBorder body="Last Seen" right={String(v)} />;
+  const v = useEdit("lastSeenAt");
+  return <TextItem noBorder left="Last Seen" body={String(v)} />;
 };
 
 const DeleteCard = () => {
@@ -45,31 +45,31 @@ const DeleteCard = () => {
       danger
       full
       text="DELETE"
-      onPress={() => alert('sorry but not implemented yet')}
+      onPress={() => alert("sorry but not implemented yet")}
       // onPress={useThunkAction(action.cardDelete(id))}
     />
   );
 };
 
 const FrontTextField = () => {
-  const v = useEdit('frontText');
+  const v = useEdit("frontText");
   const cardEdit = useCardEdit();
   return (
     <Field
       name="Front Text"
       value={v}
-      onChangeText={frontText => cardEdit({ frontText })}
+      onChangeText={(frontText) => cardEdit({ frontText })}
     />
   );
 };
 const BackTextField = () => {
-  const v = useEdit('backText');
+  const v = useEdit("backText");
   const cardEdit = useCardEdit();
   return (
     <Field
       name="Back Text"
       value={v}
-      onChangeText={backText => cardEdit({ backText })}
+      onChangeText={(backText) => cardEdit({ backText })}
     />
   );
 };
@@ -77,7 +77,7 @@ const BackTextField = () => {
 export const CardEdit = () => (
   <>
     <NB.List>
-      <Separator />
+      <Separator text="Basic" />
       <IDItem />
       <ScoreItem />
       <TagsItem />
@@ -93,9 +93,11 @@ export const CardEdit = () => (
 );
 
 export const CardEditPage = () => {
+  const route = useRoute<RouteProp<RouteParamList, "Card">>();
+  const { cardId } = route.params;
   const dispatch = useDispatch();
-  const goBack = useGoBack();
-  const card = useCurrentCard();
+  const navi = useNavigation();
+  const card = useCurrentCard(cardId);
   const cardEdit = useCardEdit();
   React.useEffect(() => {
     cardEdit(card);
@@ -103,12 +105,12 @@ export const CardEditPage = () => {
   return (
     <NB.Container>
       <Header
-        body={{ title: '' }}
+        body={{ title: "Card Detail" }}
         right={{
-          icon: 'save',
+          icon: "save",
           onPress: React.useCallback(() => {
             dispatch(action.cardEditUpdate());
-            goBack();
+            navi.goBack();
           }, []),
         }}
       />
