@@ -7,6 +7,7 @@ export const SWIPE_GESTURES = {
   cardSwipeRight: "→",
 } as const;
 
+
 export const NEXT_SEEING_MINUTES = {
   0: "soon",
   60: "1 hour later",

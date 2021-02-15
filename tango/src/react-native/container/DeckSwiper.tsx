@@ -242,12 +242,12 @@ const SwipeButtonList: React.FC<{ deckId: string }> = (props) => {
   return (
     <NB.View>
       <NB.View style={{ flexDirection: "row" }}>
-        {[
+        {([
           "cardSwipeLeft",
           "cardSwipeDown",
           "cardSwipeUp",
           "cardSwipeRight",
-        ].map((key) => (
+        ] as SwipeDirection[]).map(key => (
           <RN.TouchableOpacity
             key={key}
             style={{
