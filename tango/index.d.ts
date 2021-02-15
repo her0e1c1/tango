@@ -1,3 +1,5 @@
+declare module 'expo-asset-utils'
+
 interface Action<P = any> {
   type: string;
   payload: P;
@@ -179,7 +181,6 @@ type ConfigState = SwipeState & {
 interface RootState {
   deck: DeckState;
   card: CardState;
-  nav: NavState;
   config: ConfigState;
   download: DownloadState;
 }

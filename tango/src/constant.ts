@@ -51,6 +51,12 @@ export const MAPPING = {
   rb: "ruby",
 } as const;
 
+type MAPPINGKEY = keyof typeof MAPPING
+
+export const CanMapping = (x: string): x is MAPPINGKEY => {
+  return x in MAPPING;
+}
+
 export const CATEGORY: Category[] = ["raw", "markdown", "math"].concat(
   LANGUAGES
 );

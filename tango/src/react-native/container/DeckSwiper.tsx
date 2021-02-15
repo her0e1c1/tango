@@ -90,7 +90,7 @@ export const Controller = (props: { deckId: string; hide?: boolean }) => {
 
 const getCagegory = (category: string, tags: string[]) => {
   tags = tags
-    .map((tag) => (tag in C.MAPPING ? C.MAPPING[tag] : tag))
+    .map(tag => (C.CanMapping(tag) ? C.MAPPING[tag] : tag))
     .filter((tag) => C.CATEGORY.includes(tag));
   if (tags.length > 0) {
     return tags[0];
@@ -127,8 +127,8 @@ export const CardView = (props: {
       <WebviewCard text={text} category={category} />
     </Overlay>
   ) : (
-    <WebviewCard text={text} category={category} />
-  );
+        <WebviewCard text={text} category={category} />
+      );
 };
 
 export const DeckSwiper = (props: { deckId: string }) => {

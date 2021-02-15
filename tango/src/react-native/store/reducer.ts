@@ -9,7 +9,7 @@ const reducers = {
   config,
 };
 
-export const root = (state, action) => {
+export const root = (state: RootState | undefined, action: Action) => {
   if (equal(action, type.clearAll)) {
     state = undefined;
   }

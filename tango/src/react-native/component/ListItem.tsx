@@ -23,7 +23,14 @@ export const Separator = (props: { text?: string; bordered?: boolean }) => (
   </NB.Separator>
 );
 
-const Item = (props) => {
+const Item: React.FC<{
+  icon?: boolean;
+  body?: React.ReactNode;
+  left?: React.ReactNode;
+  right?: React.ReactNode;
+  noBorder?: boolean;
+  onPressItem?: () => void;
+}> = (props) => {
   return (
     <NB.ListItem
       icon={props.icon}

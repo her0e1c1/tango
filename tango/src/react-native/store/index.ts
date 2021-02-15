@@ -13,7 +13,7 @@ const logger: Redux.Middleware = () => (next) => (action) => {
 const persistConfig = {
   key: "root",
   storage: AsyncStorage,
-  whitelist: ["nav", "deck", "card", "config"],
+  whitelist: ["deck", "card", "config"],
 };
 
 const persistedReducer = persistReducer(persistConfig, root);
