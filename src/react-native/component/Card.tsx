@@ -37,23 +37,13 @@ const generateMessage = (props: { text: string; category?: string }) => {
 
 // Android crashes if view wraps webview
 // https://github.com/react-native-webview/react-native-webview/issues/811
+// Also, loading local files still has a problem
+// https://github.com/react-native-webview/react-native-webview/blob/master/docs/Guide.md#loading-local-html-files
 export const WebviewCard = React.memo(
   (props: { category?: string; text: string }) => {
     const { category, text } = props;
     const ref = React.useRef<WebView>(null);
-    const [html, setHtml] = React.useState("");
     const [loaded, setLoaded] = React.useState(false);
-
-    React.useEffect(() => {
-      AssetUtils.resolveAsync(require("../../../assets/view/index.html")).then(
-        async (file: { localUri: string }) => {
-          const fileContents = await FileSystem.readAsStringAsync(
-            file.localUri
-          );
-          setHtml(fileContents);
-        }
-      );
-    }, []);
 
     React.useEffect(() => {
       if (ref.current) {
@@ -67,7 +57,6 @@ export const WebviewCard = React.memo(
       <NB.View renderToHardwareTextureAndroid={true} style={{ flex: 1 }}>
         <WebView
           ref={ref}
-          onError={console.log}
           onLoadEnd={onLoad}
           style={{ flex: 1 }}
           automaticallyAdjustContentInsets={false}
@@ -78,10 +67,11 @@ export const WebviewCard = React.memo(
               : ""
           }
           bounces={false}
-          scrollEnabled={true}
+          cacheEnabled
+          scrollEnabled
           javaScriptEnabled
           allowFileAccess
-          source={{ html }}
+          source={{ uri: "https://tang04mem0.web.app/" }}
           androidHardwareAccelerationDisabled={true}
         />
       </NB.View>
