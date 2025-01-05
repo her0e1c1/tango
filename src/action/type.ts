@@ -5,7 +5,7 @@ export const deckBulkInsert = (decks: Deck[]) => ({
 
 export const deckInsert = (deck: Deck) => deckBulkInsert([deck]);
 
-export const deckBulkUpdate = (decks: Update<Deck>[]) => ({
+export const deckBulkUpdate = (decks: Array<Update<Deck>>) => ({
   type: "DECK_BULK_UPDATE",
   payload: { decks },
 });
@@ -19,11 +19,6 @@ export const deckBulkDelete = (ids: string[]) => ({
 
 export const deckDelete = (deckId: string) => deckBulkDelete([deckId]);
 
-export const deckEdit = (deck: Edit<Deck>) => ({
-  type: "DECK_EDIT",
-  payload: { deck },
-});
-
 export const cardBulkInsert = (cards: Card[]) => ({
   type: "CARD_BULK_INSERT",
   payload: { cards },
@@ -31,7 +26,7 @@ export const cardBulkInsert = (cards: Card[]) => ({
 
 export const cardInsert = (card: Card) => cardBulkInsert([card]);
 
-export const cardBulkUpdate = (cards: Update<Card>[]) => ({
+export const cardBulkUpdate = (cards: Array<Update<Card>>) => ({
   type: "CARD_BULK_UPDATE",
   payload: { cards },
 });
@@ -44,16 +39,6 @@ export const cardBulkDelete = (ids: string[]) => ({
 });
 
 export const cardDelete = (id: string) => cardBulkDelete([id]);
-
-export const cardEdit = (card: Edit<Card>) => ({
-  type: "CARD_EDIT",
-  payload: { card },
-});
-
-export const sheetBulkInsert = (sheets: Sheet[]) => ({
-  type: "SHEET_BULK_INSERT",
-  payload: { sheets },
-});
 
 export const deckPublicBulkInsert = (decks: Deck[]) => ({
   type: "PUBLIC_DECK_BULK_INSERT",
@@ -68,9 +53,4 @@ export const clearAll = () => ({
 export const configUpdate = (config: Partial<ConfigState>) => ({
   type: "CONFIG_UPDATE",
   payload: { config },
-});
-
-export const errorReset = () => ({
-  type: "ERROR_RESET",
-  payload: {},
 });

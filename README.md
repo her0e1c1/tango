@@ -1,47 +1,51 @@
 # Tango
 
-You can memorize anything with this awesome flash cards now!
+## Setup for development
 
-## Google Play
-
-https://play.google.com/store/apps/details?id=com.her0e1c1.tango
-
-## Expo
-
-https://exp.host/@her0e1c1/tango
-
-## Development
-
-Install dependencies
-```
-yarn
+```bash
+cp .env.example .env
 ```
 
-Compile typescript files
-```
-yarn build
+## Install Packages
+
+```bash
+npm install
 ```
 
-Start expo
-```
-yarn start
-```
+## Start Server
 
-# Config
-
-You need to setup the configuration file.
-
-```
-cp src/secret.ts.example src/secret.ts
+```bash
+npm run db  # setup for firestore in local
+npm start
 ```
 
-# CI
-- https://circleci.com/gh/her0e1c1/tango
+You can go to web UI and see data in firestore: http://localhost:4000/
 
-# Firebase Hosting
-- https://tang04mem0.firebaseapp.com
+## Test
 
-# Update
+Some test cases need firestore as backend, so easy to test in docker container.
+
+```bash
+docker compose run test
+# You can also pass a specified file
+docker compose run test ./src/action/xxx.spec.ts
 ```
-expo update X.Y.Z  # (ex) 40.0.0
+
+If you use local emulator, run these commands
+
+```bash
+npm run test  # without firestore
+npm run test:db
+npm run test:rule  # test for firestore rules
 ```
+
+## Get Firebase Token
+
+get a new token if old one expired
+
+```bash
+npx firebase login:ci
+```
+
+paste the new token here
+https://github.com/her0e1c1/tango-web/settings/secrets/actions

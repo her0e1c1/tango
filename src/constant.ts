@@ -1,5 +1,3 @@
-export * from "src/secret";
-
 export const SWIPE_GESTURES = {
   cardSwipeUp: "↑",
   cardSwipeDown: "↓",
@@ -7,12 +5,7 @@ export const SWIPE_GESTURES = {
   cardSwipeRight: "→",
 } as const;
 
-export const SWIPE_DIRECTIONS = [
-  "cardSwipeLeft",
-  "cardSwipeDown",
-  "cardSwipeUp",
-  "cardSwipeRight",
-] as SwipeDirection[]
+export const SWIPE_DIRECTIONS = ["cardSwipeLeft", "cardSwipeDown", "cardSwipeUp", "cardSwipeRight"] as SwipeDirection[];
 
 export const NEXT_SEEING_MINUTES = {
   0: "soon",
@@ -58,15 +51,13 @@ export const MAPPING = {
   rb: "ruby",
 } as const;
 
-type MAPPINGKEY = keyof typeof MAPPING
+type MAPPINGKEY = keyof typeof MAPPING;
 
 export const CanMapping = (x: string): x is MAPPINGKEY => {
   return x in MAPPING;
-}
+};
 
-export const CATEGORY: Category[] = ["raw", "markdown", "math"].concat(
-  LANGUAGES
-);
+export const CATEGORY: Category[] = ["raw", "markdown", "math"].concat(LANGUAGES);
 
 export const CURRENT_VERSION = 10;
 
@@ -78,3 +69,10 @@ export const GOOGLE_AUTH_SCOPES = [
 ];
 
 export const URL_GOOGLE_TOKEN = "https://accounts.google.com/o/oauth2/token";
+
+export const MAX_NUMBER_OF_CARDS = 400;
+
+export const CSV_SAMPLE_TEXT = `\
+"Write a question in front text","Write the answer for it in back text"
+"hello word in python","print('hello world')","python"
+"What is the area of a circle with a radius of r?","$\\pi r^2$","math"`;

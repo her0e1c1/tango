@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  app:
+    image: ghcr.io/her0e1c1/tango
+    command: sleep infinity
+    environment:
+      - VITE_DB_HOST=8000
+      - VITE_DB_PORT=db
+    volumes:
+      - /workspace/node_modules
+      - ..:/workspace
+    networks:
+      - app-network
+  db:
+    image: google/cloud-sdk
+    restart: unless-stopped
+    networks:
+      - app-network
+    command: gcloud beta emulators firestore start --host-port "0.0.0.0:8000"
+
+networks:
+  app-network:
+    driver: bridge

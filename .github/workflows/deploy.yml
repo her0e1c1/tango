@@ -1,0 +1,36 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test
+    uses: ./.github/workflows/test.yml
+
+  docker:
+    needs: [test]
+    name: Update Docker Image
+    uses: ./.github/workflows/docker.yml
+
+  deploy:
+    needs: [test]
+    name: Deploy To Firebase
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - run: echo VITE_PROJECT_ID="${{ secrets.VITE_PROJECT_ID }}" >> .env
+      - run: echo VITE_WEB_API_KEY="${{ secrets.VITE_WEB_API_KEY }}" >> .env
+
+      - run: npm install
+
+      - run: npm run build
+
+      - run: npx firebase deploy --token "${{ secrets.FIREBASE_TOKEN }}" --only hosting,firestore:rules

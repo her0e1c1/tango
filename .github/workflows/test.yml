@@ -1,0 +1,55 @@
+name: Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        required: true
+        type: boolean
+        default: false
+  workflow_call:
+  pull_request:
+    branches:
+      - '**'
+
+env:
+  VITE_DB_PORT: 8000
+  VITE_DB_HOST: localhost
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log into registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: check chanegd files
+        id: changed
+        uses: tj-actions/changed-files@v37
+        with:
+          files: |
+            Dockerfile
+            package.json
+            package-lock.json
+
+      - run: docker compose build image
+        if: ${{ steps.changed.outputs.any_changed == 'true' || inputs.force }}
+
+      - name: run build
+        run: docker compose run npm run build
+
+      - name: run format
+        run: docker compose run npm run fmt
+
+      - name: run lint
+        run: docker compose run npm run lint
+
+      - name: run test
+        run: docker compose run test

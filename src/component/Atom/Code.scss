@@ -1,0 +1,8 @@
+@use "sass:meta";
+
+code[data-theme="light"] {
+  @include meta.load-css("highlight.js/styles/github");
+}
+code[data-theme="dark"] {
+  @include meta.load-css("highlight.js/styles/atom-one-dark-reasonable");
+}

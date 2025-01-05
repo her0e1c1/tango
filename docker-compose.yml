@@ -1,0 +1,49 @@
+x-tty: &tty
+  stdin_open: true
+  tty: true
+
+x-base: &base
+  image: &image ghcr.io/her0e1c1/tango
+  environment:
+    - VITE_DB_HOST=db
+    - VITE_DB_PORT=$VITE_DB_PORT
+  working_dir: /workspace
+  volumes:
+    - .:/workspace:delegated
+    - /workspace/node_modules  # empty
+  profiles:
+    - base
+
+x-depends: &depends
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  image:
+    image: *image
+    build: .
+
+  npm:
+    <<: [*base]
+    entrypoint: npm
+
+  sh:
+    <<: [*base, *tty]
+    entrypoint: bash
+
+  test:
+    <<: [*base, *depends]
+    entrypoint: npx vitest run --no-file-parallelism
+
+  db:
+    image: google/cloud-sdk
+    platform: linux/amd64
+    entrypoint: gcloud
+    command: emulators firestore start --host-port "0.0.0.0:$VITE_DB_PORT"
+    healthcheck:
+      test: ["CMD", "curl", "localhost:$VITE_DB_PORT"]
+      interval: 3s
+      retries: 10
+    ports:
+      - "$VITE_DB_PORT:$VITE_DB_PORT"

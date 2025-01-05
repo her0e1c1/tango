@@ -1,166 +1,294 @@
-import { ThunkResult } from "./index";
+import moment from "moment";
 import { shuffle } from "lodash";
-import * as type from "src/action/type";
-import { db } from "src/firebase";
-import * as firebase from "firebase";
+import { saveAs } from "file-saver";
+import * as Papa from "papaparse";
 
-export const create = (
-    deck: Pick<Deck, "name" | "sheetId" | "url">,
-    cards: Omit<Card, "id" | "createdAt">[]
-): ThunkResult => async (dispatch, getState) => {
-    if (cards.length > 200) {
-        alert("You can not create a deck with more than 200 cards");
-        return;
-    }
+import * as type from "./type";
+import * as C from "../constant";
+import { type ThunkResult } from "./index";
+import * as action from ".";
+import * as selector from "../selector";
+import * as firestore from "./firestore";
+
+export const prepare = (deck: Partial<Deck>, uid: string): DeckDB => {
+  return {
+    ...deck,
+    uid,
+    currentIndex: null,
+    scoreMax: null,
+    scoreMin: null,
+    sheetId: null,
+    url: null,
+    isPublic: false,
+    deletedAt: null,
+  } as any;
+};
+
+export const generateName = (deckName: string, state: DeckState): string => {
+  const names = new Set(Object.values(state.byId).map((d) => d?.name));
+  if (!names.has(deckName)) return deckName;
+  let i = 1;
+  for (;;) {
+    const name = `${deckName}_${i}`;
+    if (!names.has(name)) return name;
+    i++;
+  }
+};
+
+export const create =
+  (deckName: string, cards: CardNew[]): ThunkResult =>
+  async (_dispatch, getState) => {
     const uid = getState().config.uid;
-    const createdAt = firebase.firestore.FieldValue.serverTimestamp();
-    const updatedAt = createdAt;
-    const batch = db.batch();
-    const docDeck = db.collection("deck").doc();
-    const cardIds = [] as string[];
-    const insertedCards = [] as any[]; // TODO: fix any
-    cards.forEach((c) => {
-        const doc = db.collection("card").doc();
-        cardIds.push(doc.id);
-        const card = {
-            ...c,
-            id: doc.id,
-            deckId: docDeck.id,
-            uid,
-            createdAt,
-            updatedAt,
-        };
-        batch.set(doc, card);
-        insertedCards.push(card);
-    });
-    const d = {
-        ...deck,
-        id: docDeck.id,
-        uid,
-        createdAt,
-        updatedAt,
-        cardIds,
-        scoreMax: null,
-        scoreMin: null,
-        sheetId: deck.sheetId || null,
-        url: deck.url || null,
-        isPublic: false,
-        deletedAt: null,
-    } as any; // TODO: fix any
-    batch.set(docDeck, d);
-    if (uid) await batch.commit(); // not login mode
-    await dispatch(type.deckInsert(d));
-    await dispatch(type.cardBulkInsert(insertedCards));
-};
+    const name = generateName(deckName, getState().deck);
+    const deck = prepare({ name } as DeckDB, uid);
+    void firestore.deck.create(deck, cards);
+  };
 
-export const update = (
-    deck: Partial<Deck> & { id: string }
-): ThunkResult => async (dispatch, getState) => {
-    dispatch(type.deckUpdate(deck));
-    if (!getState().config.uid) return; // not login mode
-    if (!deck.uid) return; // imported public deck
-    db.collection("deck")
-        .doc(deck.id)
-        .update({
-            ...deck,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
-};
+export const upsert =
+  (deck: Deck, cards: Array<Omit<Card, "id">>): ThunkResult =>
+  async () => {
+    void firestore.card.bulkCreate(cards, deck);
+  };
 
-export const edit = (): ThunkResult => async (dispatch, getState) => {
-    const edit = getState().deck.edit;
-    await dispatch(update(edit));
-};
-
-// For deck, using soft delete flag with deletedAt
-// here update updatedAt, deletedAt and cardIds in deck.
-export const remove = (deckId: string): ThunkResult => async (dispatch, getState) => {
-    const deck = getState().deck.byId[deckId];
-    if (!deck.uid) {
-        // not imported public deck
-        dispatch(type.deckDelete(deckId));
-        return;
+export const update =
+  (deck: Partial<Deck> & { id: string }, opt?: { noDelay: boolean }): ThunkResult =>
+  async (dispatch) => {
+    const { noDelay } = { ...opt };
+    void firestore.deck.update(deck); // fire&forget
+    if (noDelay) {
+      await dispatch(type.deckUpdate(deck));
     }
-    const uid = getState().config.uid;
-    const batch = db.batch();
-    const querySnapshot = await db
-        .collection("card")
-        .where("uid", "==", uid)
-        .where("deckId", "==", deckId)
-        .get();
-    querySnapshot.forEach((doc) => batch.delete(doc.ref));
-    const doc = db.collection("deck").doc(deckId);
-    batch.update(doc, {
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    if (uid) await batch.commit(); // not login mode
-    dispatch(type.deckDelete(deckId));
-};
+  };
 
-export const start = (cards: Card[]): ThunkResult => async (
-    dispatch,
-    getState
-) => {
-    const deckId = cards[0].deckId; // caller cares!
+export const remove =
+  (deckId: string): ThunkResult =>
+  async (_dispatch, getState) => {
+    const uid = getState().config.uid;
+    void firestore.deck.remove(deckId, uid); // fire&forget
+  };
+
+export const start =
+  (deckId: DeckId): ThunkResult =>
+  async (dispatch, getState) => {
+    const cards = selector.card.getFilteredByDeckId(deckId)(getState());
     const config = getState().config;
+    cards.sort((c1, c2) => c1.numberOfSeen - c2.numberOfSeen);
     let cardOrderIds = cards.map((c) => c.id);
     if (config.shuffled) {
-        cardOrderIds = shuffle(cardOrderIds);
+      cardOrderIds = shuffle(cardOrderIds);
     }
     if (config.maxNumberOfCardsToLearn > 0) {
-        cardOrderIds = cardOrderIds.slice(0, config.maxNumberOfCardsToLearn);
+      cardOrderIds = cardOrderIds.slice(0, config.maxNumberOfCardsToLearn);
     }
-    await dispatch(update({ id: deckId, currentIndex: 0, cardOrderIds }));
+    // before going to DeckSwiperPage, need to set cardOrderIds without delay (otherwise, it would go back to the previous page)
+    await dispatch(action.deck.update({ id: deckId, currentIndex: 0, cardOrderIds }, { noDelay: true }));
     await dispatch(
-        type.configUpdate({
-            showBackText: false,
-            autoPlay: config.defaultAutoPlay,
-        })
+      type.configUpdate({
+        showBackText: false,
+        autoPlay: config.defaultAutoPlay,
+      })
     );
+  };
+
+const getCardScore = (card: Card, mastered?: boolean) => {
+  let score;
+  if (mastered) {
+    score = card.score >= 0 ? card.score + 1 : 0;
+  } else if (!mastered) {
+    score = card.score <= 0 ? card.score - 1 : 0;
+  } else {
+    score = 0;
+  }
+  return score;
 };
 
-export const pubicFetch = (): ThunkResult => async (dispatch, getState) => {
-    const query = db
-        .collection("deck")
-        .where("deletedAt", "==", null)
-        .where("isPublic", "==", true);
-    // .orderBy('updatedAt', 'desc');
-    let querySnapshot: firebase.firestore.QuerySnapshot;
-    querySnapshot = await query.get();
-    const decks = [] as Deck[];
-    querySnapshot.forEach((doc) => {
-        const d = doc.data() as Deck;
-        decks.push({ ...d, id: doc.id });
-    });
-    await dispatch(type.deckPublicBulkInsert(decks));
+export const swipe =
+  (direction: SwipeDirection, deckId: string): ThunkResult =>
+  async (dispatch, getState) => {
+    const deck = getState().deck.byId[deckId];
+    if (deck == null) throw Error("invalid deck id");
+    const cardId = deck.cardOrderIds[deck.currentIndex ?? 0];
+    const card = getState().card.byId[cardId];
+    if (card == null) throw Error("invalid card id");
+    const config = getState().config;
+    const value = config[direction];
+
+    if (value === "DoNothing") {
+      return;
+    }
+
+    dispatch(type.configUpdate({ lastSwipe: direction }));
+
+    if (value === "GoBack") {
+      await dispatch(update({ id: deck.id, currentIndex: -1 }));
+      return;
+    }
+    if (config.hideBodyWhenCardChanged) {
+      dispatch(type.configUpdate({ showBackText: false }));
+    }
+
+    const numberOfSeen = card.numberOfSeen + 1;
+    const lastSeenAt = new Date().getTime();
+
+    let score = card.score;
+    if (value === "GoToNextCardMastered") {
+      score = getCardScore(card, true);
+    } else if (value === "GoToNextCardNotMastered") {
+      score = getCardScore(card, false);
+    } else if (value === "GoToNextCardToggleMastered") {
+      score = getCardScore(card);
+    }
+
+    let interval = card.interval;
+    const index = C.NEXT_SEEING_MINUTES_KEYS.findIndex((i) => i >= interval);
+    if (card.score < score && index < C.NEXT_SEEING_MINUTES_KEYS.length - 1) {
+      interval = C.NEXT_SEEING_MINUTES_KEYS[index + 1];
+    } else if (card.score > score && index > 0) {
+      interval = C.NEXT_SEEING_MINUTES_KEYS[index - 1];
+    }
+
+    const nextSeeingAt = moment(lastSeenAt).add(interval, "minute").toDate();
+
+    await dispatch(
+      action.card.update({
+        id: card.id,
+        score,
+        numberOfSeen,
+        interval,
+        lastSeenAt,
+        nextSeeingAt,
+      })
+    );
+
+    let currentIndex: number = deck.currentIndex ?? 0;
+    if (value === "GoToPrevCard") {
+      currentIndex -= 1;
+    } else {
+      currentIndex += 1;
+    }
+    if (currentIndex >= 0 && currentIndex < deck.cardOrderIds.length) {
+      await dispatch(action.deck.update({ id: deck.id, currentIndex }));
+    } else {
+      await dispatch(action.deck.update({ id: deck.id, currentIndex: -1 }));
+    }
+  };
+
+export const download =
+  (id: string): ThunkResult =>
+  async (dispatch, getState) => {
+    const deck = getState().deck.byId[id];
+    const card = getState().card;
+    if (deck == null) {
+      return;
+    }
+    const cards = Object.values(card.byId).filter((c) => c?.deckId === id) as Card[];
+    const data = cards.map(action.card.toRow);
+    const csv = Papa.unparse(data);
+    const blob = new Blob([csv], { type: "text/plain;charset=utf-8" });
+    let name = deck.name;
+    if (!name.endsWith(".csv")) {
+      name += ".csv";
+    }
+    saveAs(blob, name);
+  };
+
+export const downloadCsvSampleText = (): ThunkResult => async () => {
+  const blob = new Blob([C.CSV_SAMPLE_TEXT], { type: "text/plain;charset=utf-8" });
+  saveAs(blob, "sample.csv");
 };
 
-export const publicImport = (deckId: string): ThunkResult => async (
-    dispatch,
-    getState
-) => {
-    // no need to filter by public deck?
-    // where('deck.isPublic', '==', true)
-    const querySnapshot = await db
-        .collection("card")
-        .where("deckId", "==", deckId)
-        .get();
-    const cards = [] as Card[];
-    querySnapshot.forEach((doc) => {
-        const d = doc.data() as Card;
-        cards.push({ ...d, id: doc.id });
-    });
+export const findIdByName = (deckName: string, state: DeckState): Deck | null => {
+  const ids = Object.keys(state.byId);
+  for (let i = 0; i < ids.length; i++) {
+    const d = state.byId[ids[i]];
+    if (d?.name === deckName) {
+      return d;
+    }
+  }
+  return null;
+};
 
-    const querySnapshot2 = await db
-        .collection("deck")
-        .where("id", "==", deckId)
-        .where("isPublic", "==", true)
-        .get();
-    querySnapshot2.forEach((doc) => {
-        const d = doc.data() as Deck;
-        dispatch(type.deckInsert({ ...d, uid: "" }));
-    });
+export const spliteCreate =
+  (deckName: string, cards: Card[]): ThunkResult =>
+  async (dispatch, getState) => {
+    const [newCards, oldCards] = splitByUniqueKey(cards, getState().card);
+    await dispatch(action.card.bulkUpdate(oldCards));
+    const deck = findIdByName(deckName, getState().deck);
+    if (deck == null) {
+      await dispatch(action.deck.create(deckName, newCards));
+    } else {
+      await dispatch(action.deck.upsert(deck, newCards));
+    }
+    process.env.NODE_ENV !== "production" &&
+      console.log(
+        (deck == null ? "CREATE" : "UPATE") +
+          ` ${deckName} DECK WITH NEW ${newCards.length} AND OLD ${oldCards.length} CARDS`
+      );
+  };
 
-    await dispatch(type.cardBulkInsert(cards));
+export const reimport =
+  (id: string): ThunkResult =>
+  async (dispatch, getState) => {
+    const deck = getState().deck.byId[id];
+    if (deck == null) throw Error("invalid deck id");
+    if (deck.url == null) throw Error("no deck url");
+    await dispatch(parseUrl(deck.url, deck.name));
+  };
+
+export const parseUrl =
+  (url: string, deckName?: string): ThunkResult =>
+  async (dispatch, getState) => {
+    if (deckName == null) deckName = url.split("/").pop() ?? "no name";
+    const token = getState().config.githubAccessToken;
+    let headers = {} as Record<string, string>;
+    if (token !== "") {
+      headers = {
+        Accept: "application/vnd.github.raw",
+        Authorization: `Bearer ${token}`,
+      };
+    }
+    const res = await fetch(url, { headers });
+    const text = await res.text();
+    const cards = await parseCsv(text);
+    await dispatch(action.deck.spliteCreate(deckName, cards));
+  };
+
+export const parseFile =
+  (file: File): ThunkResult =>
+  async (dispatch) => {
+    const cards = await parseCsv(file);
+    const deckName = file.name;
+    await dispatch(action.deck.spliteCreate(deckName, cards));
+  };
+
+export const parseCsv = async (content: any): Promise<Card[]> => {
+  return await new Promise((resolve) =>
+    Papa.parse(content, {
+      complete: async (results: { data: string[][] }) => {
+        const cards = results.data.map(action.card.fromRow).filter((c) => !action.card.isEmpty(c)) as Card[];
+        resolve(cards);
+      },
+    })
+  );
+};
+
+export const splitByUniqueKey = (cards: Card[], state: CardState): [Card[], Card[]] => {
+  const newCards = [] as Card[];
+  const oldCards = [] as Card[];
+  const byUniqueKey = {} as Record<string, string>;
+  Object.keys(state.byId).forEach((id) => {
+    const key = (state.byId[id] as Card).uniqueKey;
+    if (key.length > 0) {
+      byUniqueKey[key] = id;
+    }
+  });
+  cards.forEach((c) => {
+    const id = byUniqueKey[c.uniqueKey];
+    if (id) {
+      oldCards.push(c);
+    } else {
+      newCards.push(c);
+    }
+  });
+  return [newCards, oldCards];
 };
