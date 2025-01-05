@@ -1,0 +1,9 @@
+{
+  "name": "default",
+  "remoteUser": "root",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [3000],
+  "features": { "docker-from-docker": { "version": "latest" } }
+}

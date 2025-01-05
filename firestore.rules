@@ -1,0 +1,38 @@
+service cloud.firestore {
+  function isOwner() {
+    return request.auth.uid == resource.data.uid;
+  }
+  function isValidOwner() {
+    return request.auth.uid == resource.data.uid &&
+           request.auth.uid == request.resource.data.uid;
+  }
+  function isValid() {
+    return request.auth.uid == request.resource.data.uid;
+  }
+  match /databases/{database}/documents {
+    match /deck/{deckId} {
+      function isPublic() {
+        return resource.data.isPublic == true;
+      }
+      allow read: if isOwner() || isPublic();
+      allow create: if isValid();
+      allow update: if isValidOwner();
+      allow delete: if isOwner();
+    }
+    match /card/{cardId} {
+      function getDeck(deckId) {
+        return get(/databases/$(database)/documents/deck/$(deckId));
+      }
+      function isPublic() {
+        return getDeck(resource.data.deckId).data.isPublic == true;
+      }
+      function belongsToDeck() {
+        return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
+      }
+      allow read: if isOwner() || isPublic();
+      allow create: if isValid(); // && belongsToDeck(); // in one batch, card can not refer to its deck
+      allow update: if isValidOwner() && belongsToDeck();
+      allow delete: if isOwner();
+    }
+  }
+}
