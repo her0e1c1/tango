@@ -24,7 +24,7 @@ npm install
 
 ```bash
 npm run db  # setup for firestore in local
-npm start
+npm start  # start react web app
 ```
 
 You can go to web UI and see data in firestore: http://localhost:4000/
