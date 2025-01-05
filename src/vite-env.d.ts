@@ -275,6 +275,7 @@ type ConfigState = SwipeState & {
   // seems like redux changes a date object
   lastUpdatedAt: number; // Date;
   githubAccessToken: string;
+  loadSample: bool
 };
 
 interface RootState {
