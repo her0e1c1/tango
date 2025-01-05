@@ -11,6 +11,8 @@ x-base: &base
   volumes:
     - .:/workspace:delegated
     - /workspace/node_modules  # empty
+  profiles:
+    - base
 
 x-depends: &depends
   depends_on:
@@ -43,3 +45,5 @@ services:
       test: ["CMD", "curl", "localhost:$VITE_DB_PORT"]
       interval: 3s
       retries: 10
+    ports:
+      - "$VITE_DB_PORT:$VITE_DB_PORT"
