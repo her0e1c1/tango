@@ -36,7 +36,7 @@ def parse_file(filepath: str) -> Card | None:
         frontText=strip_front(front),
         backText=back.strip(),
         uniqueKey=str(filepath),
-        tags=create_tags(str(filepath))
+        tags=["py"] + create_tags(str(filepath))
     )
 
 

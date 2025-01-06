@@ -275,7 +275,7 @@ type ConfigState = SwipeState & {
   // seems like redux changes a date object
   lastUpdatedAt: number; // Date;
   githubAccessToken: string;
-  loadSample: bool
+  loadSample: bool;
 };
 
 interface RootState {
@@ -292,6 +292,7 @@ interface DeckEvent {
   added: Deck[];
   modified: Deck[];
   removed: string[];
+  lastUpdatedAt?: number;
   metadata: { size: number; fromLocal: boolean }; // in terms of firestore test, `fromCache` is unstable
 }
 
@@ -299,5 +300,6 @@ interface CardEvent {
   added: Card[];
   modified: Card[];
   removed: string[];
+  lastUpdatedAt?: number;
   metadata: { size: number; fromLocal: boolean };
 }

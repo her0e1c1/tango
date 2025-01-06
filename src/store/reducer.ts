@@ -116,7 +116,7 @@ export const config = (
     selectedTags: [],
     lastUpdatedAt: 0,
     githubAccessToken: "",
-    loadSample: true
+    loadSample: true,
   },
   action: Action
 ): ConfigState => {

@@ -26,28 +26,27 @@ describe("event action", () => {
   describe("deckOnChange", () => {
     it("should subscribe deck", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ config: { lastUpdatedAt: timestamp } });
-
+      const lastUpdatedAt = timestamp.getTime();
       const deck = { id: "id" } as Deck;
-      const e = { added: [deck] as Deck[] } as DeckEvent;
+      const e = { added: [deck] as Deck[], lastUpdatedAt } as DeckEvent;
       const f = action.event.deckOnChange(e);
       await f(dispatch, getState, undefined);
       expect(dispatch).toHaveBeenCalledWith(type.deckBulkInsert([deck]));
-      expect(dispatch).toHaveBeenCalledWith(type.configUpdate({ lastUpdatedAt: mockedDate.getTime() }));
+      expect(dispatch).toHaveBeenCalledWith(type.configUpdate({ lastUpdatedAt }));
     });
   });
 
   describe("subscribe card", () => {
     it("should subscribe card", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ config: { lastUpdatedAt: timestamp } });
 
+      const lastUpdatedAt = timestamp.getTime();
       const card = { id: "id" } as Card;
-      const e = { added: [card] as Card[] } as CardEvent;
+      const e = { added: [card] as Card[], lastUpdatedAt } as CardEvent;
       const f = action.event.cardOnChange(e);
       await f(dispatch, getState, undefined);
       expect(dispatch).toHaveBeenCalledWith(type.cardBulkInsert([card]));
-      expect(dispatch).toHaveBeenCalledWith(type.configUpdate({ lastUpdatedAt: mockedDate.getTime() }));
+      expect(dispatch).toHaveBeenCalledWith(type.configUpdate({ lastUpdatedAt }));
     });
   });
 

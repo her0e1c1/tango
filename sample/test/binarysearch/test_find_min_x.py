@@ -1,7 +1,5 @@
 """
 Find the smallest x such that x^2 >= n
-
-Please don't use bisect
 """
 
 ### __FRONT_TEXT_END__

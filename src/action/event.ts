@@ -48,7 +48,7 @@ export const init = (): ThunkResult => async (dispatch, getState) => {
       })
     );
     void dispatch(action.event.subscribe(user.uid));
-    void dispatch(action.event.removeFromLocal());
+    void dispatch(action.deck.loadSample());
   });
 };
 
@@ -81,7 +81,9 @@ export const deckOnChange =
     if (isNonEmpty(event.removed)) {
       dispatch(type.deckBulkDelete(event.removed));
     }
-    dispatch(type.configUpdate({ lastUpdatedAt: new Date().getTime() }));
+    if (event.lastUpdatedAt) {
+      dispatch(type.configUpdate({ lastUpdatedAt: event.lastUpdatedAt }));
+    }
   };
 
 export const cardOnChange =
@@ -96,7 +98,9 @@ export const cardOnChange =
     if (isNonEmpty(event.removed)) {
       dispatch(type.cardBulkDelete(event.removed));
     }
-    dispatch(type.configUpdate({ lastUpdatedAt: new Date().getTime() }));
+    if (event.lastUpdatedAt) {
+      dispatch(type.configUpdate({ lastUpdatedAt: event.lastUpdatedAt }));
+    }
   };
 
 export const subscribe =

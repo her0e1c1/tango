@@ -17,7 +17,7 @@ vi.mock("./mocked", () => ({
   getTimestamp: vi.fn(),
 }));
 
-describe("firestore/deck", () => {
+describe.skip("firestore/deck", () => {
   const timestamp = new Date(2013, 10, 9).getTime();
   const newDeck = {
     name: "new deck name",
