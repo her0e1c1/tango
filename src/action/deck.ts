@@ -9,6 +9,7 @@ import { type ThunkResult } from "./index";
 import * as action from ".";
 import * as selector from "../selector";
 import * as firestore from "./firestore";
+import sampleCards from "../../sample/build/output.json";
 
 export const prepare = (deck: Partial<Deck>, uid: string): DeckDB => {
   return {
@@ -252,6 +253,14 @@ export const parseUrl =
     const cards = await parseCsv(text);
     await dispatch(action.deck.spliteCreate(deckName, cards));
   };
+
+export const loadSample = (): ThunkResult => async (dispatch, getState) => {
+  if (getState().config.loadSample) {
+    const deckName = "Sample Deck";
+    await dispatch(action.deck.spliteCreate(deckName, sampleCards as Card[]));
+    await dispatch(type.configUpdate({ loadSample: false }));
+  }
+};
 
 export const parseFile =
   (file: File): ThunkResult =>

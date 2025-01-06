@@ -1,22 +1,30 @@
 # Tango
 
-## Setup for development
+## Demo
+
+You can access to the demo page here: https://tango-ts.web.app
+
+Please note that any data uploaded to database are to be **deleted** without noticing.
+
+## Development
+
+### Setup for development
 
 ```bash
 cp .env.example .env
 ```
 
-## Install Packages
+### Install Packages
 
 ```bash
 npm install
 ```
 
-## Start Server
+### Start Server
 
 ```bash
 npm run db  # setup for firestore in local
-npm start
+npm start  # start react web app
 ```
 
 You can go to web UI and see data in firestore: http://localhost:4000/
@@ -48,4 +56,4 @@ npx firebase login:ci
 ```
 
 paste the new token here
-https://github.com/her0e1c1/tango-web/settings/secrets/actions
+https://github.com/her0e1c1/tango/settings/secrets/actions

@@ -31,6 +31,11 @@ export const subscribeDeck = (props: DeckProps): Callback => {
       } else if (change.type === "removed") {
         e.removed.push(id);
       }
+      if (e.lastUpdatedAt == null) {
+        e.lastUpdatedAt = deck.updatedAt;
+      } else {
+        e.lastUpdatedAt = Math.max(e.lastUpdatedAt, deck.updatedAt);
+      }
     });
     if (e.added.length > 0 || e.modified.length > 0 || e.removed.length > 0) {
       props.onCange?.(e);
@@ -67,6 +72,11 @@ export const subscribeCard = (props: CardProps): Callback => {
         e.modified.push(card);
       } else if (change.type === "removed") {
         e.removed.push(id);
+      }
+      if (e.lastUpdatedAt == null) {
+        e.lastUpdatedAt = card.updatedAt;
+      } else {
+        e.lastUpdatedAt = Math.max(e.lastUpdatedAt, card.updatedAt);
       }
     });
     if (e.added.length > 0 || e.modified.length > 0 || e.removed.length > 0) {
