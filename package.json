@@ -1,6 +1,6 @@
 {
   "name": "tango-web",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "private": true,
   "scripts": {
     "deploy": "firebase deploy --only hosting",
