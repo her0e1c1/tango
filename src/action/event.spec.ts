@@ -54,15 +54,21 @@ describe("event action", () => {
     it("delete deck", async () => {
       vi.spyOn(firestore.deck, "exists").mockImplementation(async () => false);
       const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ deck: { byId: { deckId: {} } }, card: { byId: { cardId: { deckId: "deckId" } } } });
+      getState.mockReturnValue({
+        deck: { byId: { deckId: { localMode: false } } },
+        card: { byId: { cardId: { deckId: "deckId" } } },
+      });
       const f = action.event.removeFromLocal();
       await f(dispatch, getState, undefined);
       expect(dispatch).toHaveBeenCalledWith(type.deckDelete("deckId"));
     });
     it("delete card", async () => {
-      vi.spyOn(firestore.deck, "exists").mockImplementation(async () => true);
+      vi.spyOn(firestore.deck, "exists").mockImplementation(async () => false);
       const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ deck: { byId: { deckId: {} } }, card: { byId: { cardId: { deckId: "invalid" } } } });
+      getState.mockReturnValue({
+        deck: { byId: { deckId: { localMode: false } } },
+        card: { byId: { cardId: { deckId: "deckId" } } },
+      });
       const f = action.event.removeFromLocal();
       await f(dispatch, getState, undefined);
       expect(dispatch).toHaveBeenCalledWith(type.cardDelete("cardId"));

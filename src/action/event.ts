@@ -55,14 +55,14 @@ export const init = (): ThunkResult => async (dispatch, getState) => {
 
 export const removeFromLocal = (): ThunkResult => async (dispatch, getState) => {
   const ids = [] as string[];
-  for (const deck of Object.values(getState().deck.byId)) {
+  for (const [id, deck] of Object.entries(getState().deck.byId)) {
     if (!deck || deck.localMode) {
       continue;
     }
-    const ok = await firestore.deck.exists(deck.id);
+    const ok = await firestore.deck.exists(id);
     if (!ok) {
-      dispatch(type.deckDelete(deck.id));
-      ids.push(deck.id);
+      dispatch(type.deckDelete(id));
+      ids.push(id);
     }
   }
   for (const [id, card] of Object.entries(getState().card.byId)) {
