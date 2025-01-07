@@ -24,7 +24,7 @@ export const deck = {
     cardOrderIds: ["3", "2", "1"],
     createdAt: new Date(),
     updatedAt: new Date(),
-  } as Deck,
+  } as unknown as Deck,
   tooLongName: {
     name: "too long name".repeat(10),
     isPublic: true,
@@ -34,7 +34,7 @@ export const deck = {
     cardOrderIds: [] as string[],
     createdAt: new Date(),
     updatedAt: new Date(),
-  } as Deck,
+  } as unknown as Deck,
 } as const satisfies Record<string, Deck>;
 
 export const decks = {
