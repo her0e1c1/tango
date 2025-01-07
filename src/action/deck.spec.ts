@@ -1,6 +1,6 @@
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
-import moment from "moment";
+// import moment from "moment";
 import * as fileSaver from "file-saver";
 
 import * as firestore from "./firestore";
@@ -14,7 +14,6 @@ vi.mock("file-saver", () => ({
 vi.mock("firebase/firestore");
 
 describe("deck action", () => {
-  const card = { frontText: "front", backText: "back" } as Card;
   const mockedDate = new Date(1999, 10, 1);
 
   beforeEach(() => {
@@ -26,18 +25,11 @@ describe("deck action", () => {
 
   describe("prepareDeck", () => {
     it("should prepare deck", async () => {
-      const deck = {
+      expect(action.deck.prepare({ name: "name" }, { uid: "uid", localMode: true })).toMatchObject({
         name: "name",
         uid: "uid",
-        currentIndex: null,
-        scoreMax: null,
-        scoreMin: null,
-        sheetId: null,
-        url: null,
-        isPublic: false,
-        deletedAt: null,
-      } as unknown as Deck;
-      expect(action.deck.prepare({ name: "name" }, "uid")).toEqual(deck);
+        localMode: true,
+      });
     });
   });
 
@@ -64,18 +56,20 @@ describe("deck action", () => {
   describe("create", () => {
     it("should create", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ config: { uid: "uid" }, deck: { byId: {} } });
+      const config = { uid: "uid", localMode: false };
+      getState.mockReturnValue({ config, deck: { byId: {} } });
 
-      const f = action.deck.create("name", [card]);
+      const f = action.deck.create("name");
       await f(dispatch, getState, undefined);
-      const deck = action.deck.prepare({ name: "name" } as Deck, "uid");
-      expect(firestore.deck.create).lastCalledWith(deck, [{ ...card }]);
+      const deck = action.deck.prepare({ name: "name" }, config);
+      expect(firestore.deck.create).lastCalledWith(deck);
     });
   });
 
   describe("update", () => {
     it("should update", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
+      getState.mockReturnValue({ config: { uid: "uid" } });
 
       const d = { name: "deck" } as Deck;
       const f = action.deck.update(d);
@@ -87,7 +81,7 @@ describe("deck action", () => {
   describe("remove", () => {
     it("should remove", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ config: { uid: "uid" } });
+      getState.mockReturnValue({ deck: { byId: { deckId: { uid: "uid" } } } });
 
       const f = action.deck.remove("deckId");
       await f(dispatch, getState, undefined);
@@ -107,7 +101,7 @@ describe("deck action", () => {
       const update = vi.spyOn(action.deck, "update");
       const f = action.deck.start("deckId");
       await f(dispatch, getState, undefined);
-      expect(update).lastCalledWith({ id: "deckId", currentIndex: 0, cardOrderIds: [] }, { noDelay: true });
+      expect(update).lastCalledWith({ id: "deckId", currentIndex: 0, cardOrderIds: [] });
       expect(dispatch).lastCalledWith(
         type.configUpdate({
           showBackText: false,
@@ -138,32 +132,32 @@ describe("deck action", () => {
         id: "a",
         score: 0,
         numberOfSeen: 1,
-        interval: 60 * 24,
         lastSeenAt: mockedDate.getTime(),
-        nextSeeingAt: moment(mockedDate).add(1, "day").toDate(),
+        // interval: 60 * 24,
+        // nextSeeingAt: moment(mockedDate).add(1, "day").toDate(),
       });
     });
   });
 
   describe("spliteCreate", () => {
-    const deck = { name: "name" } as Deck;
-    const deckState = { byId: { 1: deck }, categories: [] } as DeckState;
+    const deck = { name: "name", id: "1" } as Deck;
+    const deckState = { byId: { "1": deck }, categories: [] } as DeckState;
     const cardState = { byId: { 1: { uniqueKey: "a" } as Card }, tags: [] } as CardState;
-
+    // TODO: add test case for not existing name
     it("should splite & create", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
       getState.mockReturnValue({ deck: deckState, card: cardState });
 
       const bulkUpdate = vi.spyOn(action.card, "bulkUpdate");
-      const upsert = vi.spyOn(action.deck, "upsert");
+      const bulkCreate = vi.spyOn(action.card, "bulkCreate");
       const create = vi.spyOn(action.deck, "create");
 
       const cards = [{ uniqueKey: "a" }] as Card[];
-      const f = action.deck.spliteCreate("invalid", cards);
+      const f = action.deck.spliteCreate("name", cards);
       await f(dispatch, getState, undefined);
       expect(bulkUpdate).lastCalledWith(cards);
-      expect(upsert).toBeCalledTimes(0);
-      expect(create).toBeCalledTimes(1);
+      expect(bulkCreate).toBeCalledTimes(1);
+      expect(create).toBeCalledTimes(0);
       expect(dispatch).toBeCalledTimes(2);
     });
   });

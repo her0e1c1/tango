@@ -6,7 +6,7 @@ Find the smallest x such that x^2 >= n
 import pytest
 
 
-def find_min_x(n):
+def find_min_x(n):  # O(log(N))
     lo, hi = 0, 2**32
     while lo < hi:
         mi = (lo + hi) // 2
@@ -17,6 +17,13 @@ def find_min_x(n):
     return hi
 
 
+def find_min_x_naive(n):  # O(sqrt(N))
+    x = 0
+    while x * x < n:
+        x += 1
+    return x
+
+
 @pytest.mark.parametrize(
     "args,expected",
     [
@@ -25,10 +32,11 @@ def find_min_x(n):
         [[8], 3],
         [[9], 3],
         [[10], 4],
-        [[(n := 123456789) * n - 1], n],
+        [[(n := 12345) * n - 1], n],
         [[n * n], n],
         [[n * n + 1], n + 1],
     ],
 )
 def test(args, expected):
     assert find_min_x(*args) == expected
+    assert find_min_x_naive(*args) == expected

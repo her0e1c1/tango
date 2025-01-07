@@ -25,7 +25,10 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
         <Input {...renameKey(register("url"))} />
       </FormItem>
       <FormItem label="Public">
-        <Switch {...renameKey(register("isPublic"))} />
+        <Switch disabled {...renameKey(register("isPublic"))} />
+      </FormItem>
+      <FormItem label="Local Mode">
+        <Switch disabled {...renameKey(register("localMode"))} />
       </FormItem>
       <FormItem col label="Category">
         <Select empty options={props.categoryOptions} {...renameKey(register("category"))} />
@@ -33,8 +36,12 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
       <FormItem col label="id">
         {props.deck.id}
       </FormItem>
-      <FormItem label="Created At">{new Date(props.deck.createdAt).toLocaleDateString()}</FormItem>
-      <FormItem label="Updated At">{new Date(props.deck.updatedAt).toLocaleDateString()}</FormItem>
+      {Boolean(props.deck.createdAt) && (
+        <FormItem label="Created At">{new Date(props.deck.createdAt).toLocaleDateString()}</FormItem>
+      )}
+      {Boolean(props.deck.updatedAt) && (
+        <FormItem label="Updated At">{new Date(props.deck.updatedAt).toLocaleDateString()}</FormItem>
+      )}
       <Button primary type="submit" disabled={formState.isSubmitting}>
         Save
       </Button>

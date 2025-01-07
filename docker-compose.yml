@@ -40,8 +40,11 @@ services:
     image: google/cloud-sdk
     platform: linux/amd64
     entrypoint: gcloud
-    command: emulators firestore start --host-port "0.0.0.0:$VITE_DB_PORT"
+    command: emulators firestore start --host-port "0.0.0.0:$VITE_DB_PORT" --rules=/firestore.rules
+    volumes:
+      - ./firestore.rules:/firestore.rules
     healthcheck:
       test: ["CMD", "curl", "localhost:$VITE_DB_PORT"]
-      interval: 3s
-      retries: 10
+      start_period: 5s
+      interval: 60s
+      retries: 3

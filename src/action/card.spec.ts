@@ -16,7 +16,7 @@ describe("card action", () => {
     vi.resetModules();
   });
 
-  describe("fromRow", () => {
+  describe.concurrent("fromRow", () => {
     it("should be fromRow", async () => {
       const c = { frontText: "front", backText: "back", tags: ["a", "b", "c"], uniqueKey: "123" } as Card;
       expect(card.fromRow(["front", "back", "a,b,c", "123"])).toEqual(c);
@@ -27,7 +27,7 @@ describe("card action", () => {
     });
   });
 
-  describe("toRow", () => {
+  describe.concurrent("toRow", () => {
     it("should be toRow", async () => {
       const c = { frontText: "front", backText: "back", tags: ["a", "b", "c"], uniqueKey: "123" } as Card;
       expect(card.toRow(c)).toEqual(["front", "back", "a,b,c", "123"]);
@@ -62,8 +62,9 @@ describe("card action", () => {
   describe("update", () => {
     it("should update", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
+      getState.mockReturnValue({ deck: { byId: { deckId: {} } } });
 
-      const c = { id: "id" } as Card;
+      const c = { id: "id", deckId: "deckId" } as Card;
       const f = card.update(c);
       await f(dispatch, getState, undefined);
       expect(firestore.card.update).lastCalledWith(c);
@@ -75,7 +76,7 @@ describe("card action", () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
       const [id, deckId] = ["id", "deckId"];
       const c = { id, deckId } as Card;
-      getState.mockReturnValue({ card: { byId: { id: c } } });
+      getState.mockReturnValue({ card: { byId: { id: c } }, deck: { byId: { deckId: {} } } });
 
       const f = card.remove(id);
       await f(dispatch, getState, undefined);
@@ -83,7 +84,7 @@ describe("card action", () => {
     });
   });
 
-  describe("filterCardsForUpdate", () => {
+  describe.concurrent("filterCardsForUpdate", () => {
     const state = {
       byId: {
         1: { uniqueKey: "a", frontText: "front", backText: "back" } as Card,

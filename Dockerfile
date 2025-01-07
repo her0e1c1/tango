@@ -2,6 +2,8 @@ FROM node:23
 
 WORKDIR /workspace
 
+ENV PATH /node_modules/.bin:$PATH
+
 # Stop mounting /workspace/node_modules
 # It makes docker compose too slow
 RUN \

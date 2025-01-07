@@ -19,7 +19,7 @@ describe("DeckEdit", () => {
     category: "",
     createdAt: "",
     updatedAt: "",
-  } as Deck;
+  } as unknown as Deck;
 
   // it('should validate', async () => {
   //     await expect(schema.validate(deck)).resolves.toEqual(deck)

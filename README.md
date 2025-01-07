@@ -2,9 +2,9 @@
 
 ## Demo
 
-You can access to the demo page here: https://tango-ts.web.app
+You can access to the page for **demo** here: https://tango-ts.web.app
 
-Please note that any data uploaded to database are to be **deleted** without noticing.
+Please keep using `localMode`. (note that any data uploaded to database are to be **deleted** without noticing)
 
 ## Development
 

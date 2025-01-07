@@ -9,13 +9,6 @@ interface ImportMetaEnv {
   readonly VITE_DB_PORT: string;
 }
 
-declare namespace NodeJS {
-  interface ProcessEnv {
-    readonly VITE_DB_HOST: string;
-    readonly VITE_DB_PORT: string;
-  }
-}
-
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
@@ -149,24 +142,30 @@ interface Action<P = any> {
   error?: { message: string };
 }
 
-type Update<T> = Partial<T> & Pick<T, "id">;
-type Edit<T> = Partial<T>;
+type New<T> = Omit<T, "id">;
+type Edit<T> = Partial<T> & Pick<T, "id">;
 
 type Callback = () => void;
 type Callback1<T> = (arg: T) => void;
 
 type Category = string; // 'math' | 'python' | 'golang' | 'haskell' | 'raw' | 'markdown';
 
-interface DeckDB {
-  id: string;
+interface Deck {
+  // user input
   name: string;
-  isPublic: boolean;
   url?: string;
-  sheetId?: string;
-  updatedAt: FieldValue;
-  createdAt: FieldValue;
-  deletedAt?: number; // soft delete flag
+  isPublic: boolean;
+
+  // metadata
+  id: string;
   uid: string; // empty if imported publick deck
+  createdAt: number;
+  updatedAt: number;
+  deletedAt: number | null; // soft delete flag
+
+  // if true, not stored in firestore
+  // but in redux state only
+  localMode: boolean;
 
   // when user selects a deck, show this index card
   // this should not be stored in sqlite
@@ -174,11 +173,7 @@ interface DeckDB {
 
   scoreMax: number | null;
   scoreMin: number | null;
-}
 
-type DeckNew = Omit<DeckDB, "id">;
-
-type Deck = DeckDB & {
   // used for deck swiper
   cardOrderIds: string[];
   // better to store firebase
@@ -188,29 +183,36 @@ type Deck = DeckDB & {
 
   category: Category;
   convertToBr: boolean;
-  onlyBodyinWebview: boolean;
-};
+}
+
+type DeckConfig = Pick<ConfigState, "uid" | "localMode">;
+type DeckRaw = Pick<Deck, "name">;
+type DeckNew = New<Deck>;
+type DeckEdit = Edit<Deck>;
 
 interface Card {
-  id: string;
+  // user input
   frontText: string;
   backText: string;
-  mastered: boolean;
-  score: number;
-  deckId: string;
-  uid: string;
   tags: string[];
-  createdAt: number;
-  updatedAt: number;
-  deletedAt: number | null;
 
   // key which user manage by himself
   uniqueKey: string;
 
+  // meta
+  id: string;
+  deckId: string;
+  uid: string;
+  createdAt: number;
+  updatedAt: number;
+  deletedAt: number | null;
+
+  // for learning
+  score: number;
   numberOfSeen: number;
   lastSeenAt?: number;
-  nextSeeingAt: Date;
-  interval: number; // minute
+  nextSeeingAt?: Date;
+  interval?: number; // minute
 
   // fetch data from web
   url?: string;
@@ -218,7 +220,10 @@ interface Card {
   endLine?: number;
 }
 
-type CardNew = Omit<Card, "id">;
+type CardDeck = Pick<Deck, "id" | "uid" | "localMode">;
+type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
+type CardNew = New<Card>;
+type CardEdit = Edit<Card> & { deckId: string };
 
 type CardTextKey = "frontText" | "backText" | "hint";
 
@@ -275,7 +280,8 @@ type ConfigState = SwipeState & {
   // seems like redux changes a date object
   lastUpdatedAt: number; // Date;
   githubAccessToken: string;
-  loadSample: bool;
+  loadSample: boolean;
+  localMode: boolean;
 };
 
 interface RootState {

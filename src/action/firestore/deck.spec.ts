@@ -1,23 +1,17 @@
 import "./init";
-
 import { expect, it, describe, vi, beforeEach, Mock } from "vitest";
-
-import { getApps, deleteApp } from "firebase/app";
-import { getFirestore, connectFirestoreEmulator, doc, getDoc } from "firebase/firestore";
-
+import { doc, getDoc, getFirestore } from "firebase/firestore";
 import * as firestore from ".";
-import { generateDeckId, generateCardId, getTimestamp } from "./mocked";
+import { getTimestamp } from "./mocked";
+import { v4 as uuid } from "uuid";
 
-const db = getFirestore();
-connectFirestoreEmulator(db, process.env.VITE_DB_HOST, parseInt(process.env.VITE_DB_PORT));
-
-vi.mock("./mocked", () => ({
-  generateDeckId: vi.fn(),
-  generateCardId: vi.fn(),
+vi.mock("./mocked", async (importOriginal) => ({
+  ...((await importOriginal()) as any),
   getTimestamp: vi.fn(),
 }));
 
-describe.skip("firestore/deck", () => {
+describe.concurrent("firestore/deck", { retry: 3 }, () => {
+  const db = getFirestore();
   const timestamp = new Date(2013, 10, 9).getTime();
   const newDeck = {
     name: "new deck name",
@@ -25,61 +19,34 @@ describe.skip("firestore/deck", () => {
     createdAt: timestamp,
     updatedAt: timestamp,
   } as unknown as Deck;
-  const newCard = {
-    frontText: "front",
-    backText: "back",
-    uid: "uid",
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    deletedAt: null,
-  } as Card;
 
   beforeEach(async () => {
-    vi.resetAllMocks();
-    (generateDeckId as Mock).mockReturnValue("deckId");
-    (generateCardId as Mock).mockReturnValue("cardId");
+    // must return the same value (no need to reset mock in parallel)
     (getTimestamp as Mock).mockReturnValue(timestamp);
-    await firestore.deck.removeAll();
   });
 
-  afterAll(async () => {
-    await Promise.all(
-      getApps().map(async (app) => {
-        await deleteApp(app);
-      })
-    );
-  });
-
-  it("should create a deck", async () => {
-    await firestore.deck.create(newDeck, [newCard]);
-    const d = { ...newDeck, id: "deckId" } as Deck;
-    const c = { ...newCard, id: "cardId", deckId: "deckId" } as Card;
+  it("should create a deck and check if exists", async () => {
+    const d = { ...newDeck, id: uuid() };
+    await firestore.deck.create(d);
     expect((await getDoc(doc(db, "deck", d.id))).data()).toEqual(d);
-    expect((await getDoc(doc(db, "card", "cardId"))).data()).toEqual(c);
+    expect(await firestore.deck.exists(d.id)).toBeTruthy();
   });
 
   it("should update a deck", async () => {
-    await firestore.deck.create(newDeck, []);
-    const d = { ...newDeck, id: "deckId", name: "updated" };
-    await firestore.deck.update(d);
-    expect((await getDoc(doc(db, "deck", d.id))).data()).toEqual(d);
+    const d = { ...newDeck, id: uuid() };
+    await firestore.deck.create(d);
+    const n = { ...d, name: "updated" };
+    await firestore.deck.update(n);
+    expect((await getDoc(doc(db, "deck", d.id))).data()).toEqual(n);
   });
 
   it("should delete a deck", async () => {
-    expect((await getDoc(doc(db, "deck", "deckId"))).exists()).toBeFalsy();
-    expect((await getDoc(doc(db, "card", "cardId"))).exists()).toBeFalsy();
-    await firestore.deck.create(newDeck, [newCard]);
-    expect((await getDoc(doc(db, "deck", "deckId"))).exists()).toBeTruthy();
-    expect((await getDoc(doc(db, "card", "cardId"))).exists()).toBeTruthy();
-    await firestore.deck.remove("deckId", "uid");
-    expect((await getDoc(doc(db, "deck", "deckId"))).exists()).toBeFalsy();
-    expect((await getDoc(doc(db, "card", "cardId"))).exists()).toBeFalsy();
-  });
-
-  it("should exists a deck", async () => {
-    expect(await firestore.deck.exists("deckId")).toBeFalsy();
-    await firestore.deck.create(newDeck, []);
-    expect(await firestore.deck.exists("deckId")).toBeTruthy();
+    const d = { ...newDeck, id: uuid() };
+    await firestore.deck.create(d);
+    expect((await getDoc(doc(db, "deck", d.id))).exists()).toBeTruthy();
+    await firestore.deck.remove(d.id, "uid");
+    // getDoc can not be called here because of permission error
+    expect(await firestore.deck.exists(d.id)).toBeFalsy();
   });
 
   describe("splitCards", () => {
