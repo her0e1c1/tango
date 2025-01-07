@@ -51,8 +51,11 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
       <FormItem label="Show Swipe Feedback">
         <Switch {...renameKey(register("showSwipeFeedback"))} />
       </FormItem>
-      <FormItem label="Dark Mord">
+      <FormItem label="Dark Mode">
         <Switch {...renameKey(register("darkMode"))} />
+      </FormItem>
+      <FormItem label="Local Mode">
+        <Switch {...renameKey(register("localMode"))} />
       </FormItem>
       <Section title="Card" />
       <FormItem label="Shuffle Cards">

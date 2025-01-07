@@ -7,8 +7,9 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { setDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { v4 as uuid } from "uuid";
 
-describe("firestore/rule", () => {
+describe.concurrent("firestore/rule", () => {
   let testEnv: RulesTestEnvironment;
 
   const createData = async (path: string, id: string, data: object) => {
@@ -23,8 +24,8 @@ describe("firestore/rule", () => {
       projectId: "test-rule",
       firestore: {
         rules: fs.readFileSync("./firestore.rules", "utf8"),
-        host: process.env.VITE_DB_HOST,
-        port: parseInt(process.env.VITE_DB_PORT),
+        host: import.meta.env.VITE_DB_HOST,
+        port: parseInt(import.meta.env.VITE_DB_PORT),
       },
     });
   });
@@ -46,44 +47,53 @@ describe("firestore/rule", () => {
 
     describe("deck", () => {
       it("should read a deck", async () => {
-        await createData("deck", "deckId", { uid: "uid", isPublic: false });
-        await assertSucceeds(getDoc(doc(db, "deck", "deckId")));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid", isPublic: false });
+        await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
 
       it("should create a deck", async () => {
-        await assertSucceeds(setDoc(doc(db, "deck", "deckId"), { uid: "uid" }));
+        const id = uuid();
+        await assertSucceeds(setDoc(doc(db, "deck", id), { uid: "uid" }));
       });
 
       it("should update a deck", async () => {
-        await createData("deck", "deckId", { uid: "uid" });
-        await assertSucceeds(updateDoc(doc(db, "deck", "deckId"), { uid: "uid", name: "update" }));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        await assertSucceeds(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
       });
 
       it("should delete a deck", async () => {
-        await createData("deck", "deckId", { uid: "uid" });
-        await assertSucceeds(deleteDoc(doc(db, "deck", "deckId")));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        await assertSucceeds(deleteDoc(doc(db, "deck", id)));
       });
     });
 
     describe("card", () => {
       it("should read a card", async () => {
-        await createData("card", "cardId", { uid: "uid" });
-        await assertSucceeds(getDoc(doc(db, "card", "cardId")));
+        const id = uuid();
+        await createData("card", id, { uid: "uid" });
+        await assertSucceeds(getDoc(doc(db, "card", id)));
       });
 
       it("should create a card", async () => {
-        await assertSucceeds(setDoc(doc(db, "card", "cardId"), { uid: "uid" }));
+        const [deckId, id] = [uuid(), uuid()];
+        await createData("deck", deckId, { uid: "uid" });
+        await assertSucceeds(setDoc(doc(db, "card", id), { uid: "uid", deckId }));
       });
 
       it("should update a card", async () => {
-        await createData("deck", "deckId", { uid: "uid" });
-        await createData("card", "cardId", { uid: "uid" }); // TODO: add deckId when created
-        await assertSucceeds(updateDoc(doc(db, "card", "cardId"), { uid: "uid", deckId: "deckId" }));
+        const [deckId, id] = [uuid(), uuid()];
+        await createData("deck", deckId, { uid: "uid" });
+        await createData("card", id, { uid: "uid" });
+        await assertSucceeds(updateDoc(doc(db, "card", id), { uid: "uid", deckId }));
       });
 
       it("should delete a card", async () => {
-        await createData("card", "cardId", { uid: "uid" });
-        await assertSucceeds(deleteDoc(doc(db, "card", "cardId")));
+        const id = uuid();
+        await createData("card", id, { uid: "uid" });
+        await assertSucceeds(deleteDoc(doc(db, "card", id)));
       });
     });
   });
@@ -97,54 +107,64 @@ describe("firestore/rule", () => {
 
     describe("deck", () => {
       it("should not read a deck", async () => {
-        await createData("deck", "deckId", { uid: "uid" });
-        await assertFails(getDoc(doc(db, "deck", "deckId")));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        await assertFails(getDoc(doc(db, "deck", id)));
       });
 
       it("should read a publick deck", async () => {
-        await createData("deck", "deckId", { uid: "uid", isPublic: true });
-        await assertSucceeds(getDoc(doc(db, "deck", "deckId")));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid", isPublic: true });
+        await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
 
       it("should not create a deck", async () => {
-        await assertFails(setDoc(doc(db, "deck", "deckId"), { uid: "uid" }));
+        const id = uuid();
+        await assertFails(setDoc(doc(db, "deck", id), { uid: "uid" }));
       });
 
       it("should not update a deck", async () => {
-        await createData("deck", "deckId", { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "deck", "deckId"), { uid: "uid", name: "update" }));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        await assertFails(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
       });
 
       it("should not delete a deck", async () => {
-        await createData("deck", "deckId", { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "deck", "deckId")));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        await assertFails(deleteDoc(doc(db, "deck", id)));
       });
     });
 
     describe("card", () => {
       it("should not read a card", async () => {
-        await createData("card", "cardId", { uid: "uid" });
-        await assertFails(getDoc(doc(db, "card", "cardId")));
+        const id = uuid();
+        await createData("card", id, { uid: "uid" });
+        await assertFails(getDoc(doc(db, "card", id)));
       });
 
       it("should read a public card", async () => {
-        await createData("deck", "deckId", { uid: "uid", isPublic: true });
-        await createData("card", "cardId", { uid: "uid", deckId: "deckId" });
-        await assertSucceeds(getDoc(doc(db, "card", "cardId")));
+        const [deckId, id] = [uuid(), uuid()];
+        await createData("deck", deckId, { uid: "uid", isPublic: true });
+        await createData("card", id, { uid: "uid", deckId });
+        await assertSucceeds(getDoc(doc(db, "card", id)));
       });
 
       it("should not create a card", async () => {
-        await assertFails(setDoc(doc(db, "card", "cardId"), { uid: "uid" }));
+        const id = uuid();
+        await assertFails(setDoc(doc(db, "card", id), { uid: "uid" }));
       });
 
       it("should not update a card", async () => {
-        await createData("card", "cardId", { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "card", "cardId"), { uid: "uid", name: "update" }));
+        const id = uuid();
+        await createData("card", id, { uid: "uid" });
+        await assertFails(updateDoc(doc(db, "card", id), { uid: "uid", name: "update" }));
       });
 
       it("should not delete a card", async () => {
-        await createData("card", "cardId", { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "card", "cardId")));
+        const id = uuid();
+        await createData("card", id, { uid: "uid" });
+        await assertFails(deleteDoc(doc(db, "card", id)));
       });
     });
   });
@@ -158,54 +178,64 @@ describe("firestore/rule", () => {
 
     describe("deck", () => {
       it("should not read a deck", async () => {
-        await createData("deck", "deckId", { uid: "uid" });
-        await assertFails(getDoc(doc(db, "deck", "deckId")));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        await assertFails(getDoc(doc(db, "deck", id)));
       });
 
       it("should read a publick deck", async () => {
-        await createData("deck", "deckId", { uid: "uid", isPublic: true });
-        await assertSucceeds(getDoc(doc(db, "deck", "deckId")));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid", isPublic: true });
+        await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
 
       it("should not create a deck", async () => {
-        await assertFails(setDoc(doc(db, "deck", "deckId"), { uid: "uid" }));
+        const id = uuid();
+        await assertFails(setDoc(doc(db, "deck", id), { uid: "uid" }));
       });
 
       it("should not update a deck", async () => {
-        await createData("deck", "deckId", { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "deck", "deckId"), { uid: "uid", name: "update" }));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        await assertFails(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
       });
 
       it("should not delete a deck", async () => {
-        await createData("deck", "deckId", { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "deck", "deckId")));
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        await assertFails(deleteDoc(doc(db, "deck", id)));
       });
     });
 
     describe("card", () => {
       it("should not read a card", async () => {
-        await createData("card", "cardId", { uid: "uid" });
-        await assertFails(getDoc(doc(db, "card", "cardId")));
+        const id = uuid();
+        await createData("card", id, { uid: "uid" });
+        await assertFails(getDoc(doc(db, "card", id)));
       });
 
       it("should read a public card", async () => {
-        await createData("deck", "deckId", { uid: "uid", isPublic: true });
-        await createData("card", "cardId", { uid: "uid", deckId: "deckId" });
-        await assertSucceeds(getDoc(doc(db, "card", "cardId")));
+        const [deckId, id] = [uuid(), uuid()];
+        await createData("deck", deckId, { uid: "uid", isPublic: true });
+        await createData("card", id, { uid: "uid", deckId });
+        await assertSucceeds(getDoc(doc(db, "card", id)));
       });
 
       it("should not create a card", async () => {
-        await assertFails(setDoc(doc(db, "card", "cardId"), { uid: "uid" }));
+        const id = uuid();
+        await assertFails(setDoc(doc(db, "card", id), { uid: "uid" }));
       });
 
       it("should not update a card", async () => {
-        await createData("card", "cardId", { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "card", "cardId"), { uid: "uid", name: "update" }));
+        const id = uuid();
+        await createData("card", id, { uid: "uid" });
+        await assertFails(updateDoc(doc(db, "card", id), { uid: "uid", name: "update" }));
       });
 
       it("should not delete a card", async () => {
-        await createData("card", "cardId", { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "card", "cardId")));
+        const id = uuid();
+        await createData("card", id, { uid: "uid" });
+        await assertFails(deleteDoc(doc(db, "card", id)));
       });
     });
   });

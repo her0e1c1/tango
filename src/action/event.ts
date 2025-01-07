@@ -48,22 +48,25 @@ export const init = (): ThunkResult => async (dispatch, getState) => {
       })
     );
     void dispatch(action.event.subscribe(user.uid));
-    void dispatch(action.deck.loadSample());
+    void dispatch(removeFromLocal());
+    // void dispatch(action.deck.loadSample());
   });
 };
 
 export const removeFromLocal = (): ThunkResult => async (dispatch, getState) => {
   const ids = [] as string[];
-  for (const id of Object.keys(getState().deck.byId)) {
+  for (const [id, deck] of Object.entries(getState().deck.byId)) {
+    if (!deck || deck.localMode) {
+      continue;
+    }
     const ok = await firestore.deck.exists(id);
     if (!ok) {
       dispatch(type.deckDelete(id));
-    } else {
       ids.push(id);
     }
   }
   for (const [id, card] of Object.entries(getState().card.byId)) {
-    if (card == null || !ids.includes(card.deckId)) {
+    if (card == null || ids.includes(card.deckId)) {
       dispatch(type.cardDelete(id));
     }
   }

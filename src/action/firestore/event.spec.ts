@@ -1,15 +1,9 @@
 import "./init";
-
 import { expect, it, describe, vi, beforeEach, Mock } from "vitest";
-
 import { getApps, deleteApp } from "firebase/app";
-import { getFirestore, connectFirestoreEmulator, getDoc, doc } from "firebase/firestore";
-
+import { getDoc, doc, getFirestore } from "firebase/firestore";
 import * as firestore from ".";
 import { generateDeckId, generateCardId, getTimestamp } from "./mocked";
-
-const db = getFirestore();
-connectFirestoreEmulator(db, process.env.VITE_DB_HOST, parseInt(process.env.VITE_DB_PORT));
 
 vi.mock("./mocked", () => ({
   generateDeckId: vi.fn(),
@@ -18,6 +12,7 @@ vi.mock("./mocked", () => ({
 }));
 
 describe.skip("firestore/event", () => {
+  const db = getFirestore();
   const timestamp = new Date(2013, 10, 9).getTime();
 
   const newDeck = {
@@ -62,7 +57,7 @@ describe.skip("firestore/event", () => {
         updatedAt: timestamp - 1,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, [newCard]);
+      await firestore.deck.create(newDeck);
       expect(fn).toBeCalledTimes(1);
       const d = { ...newDeck, id: "deckId" } as Deck;
       expect(fn).lastCalledWith({ ...deckEvent, added: [d] });
@@ -76,7 +71,7 @@ describe.skip("firestore/event", () => {
         updatedAt: timestamp + 1,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, [newCard]);
+      await firestore.deck.create(newDeck);
       expect(fn).toBeCalledTimes(0);
     });
 
@@ -88,7 +83,7 @@ describe.skip("firestore/event", () => {
         updatedAt: 0,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, []);
+      await firestore.deck.create(newDeck);
       const deckCreated = { ...newDeck, uid: "uid", id: "deckId", createdAt: 100, updatedAt: 100 };
       expect((await getDoc(doc(db, "deck", "deckId"))).data()).toEqual(deckCreated);
       await firestore.deck.update({ ...deckCreated, name: "updated" });
@@ -113,7 +108,7 @@ describe.skip("firestore/event", () => {
         updatedAt: timestamp + 1,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, []);
+      await firestore.deck.create(newDeck);
       const d = { ...newDeck, id: "deckId", name: "updated" } as Deck;
       await firestore.deck.update(d);
       expect(fn).toBeCalledTimes(0);
@@ -127,7 +122,7 @@ describe.skip("firestore/event", () => {
         updatedAt: 0,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, []);
+      await firestore.deck.create(newDeck);
       const deckCreated = { ...newDeck, uid: "uid", id: "deckId", createdAt: 100, updatedAt: 100 };
       expect((await getDoc(doc(db, "deck", "deckId"))).data()).toEqual(deckCreated);
       expect(fn).toBeCalledTimes(1);
@@ -145,7 +140,7 @@ describe.skip("firestore/event", () => {
         updatedAt: timestamp + 1,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, []);
+      await firestore.deck.create(newDeck);
       await firestore.deck.remove("deckId", "uid");
       expect(fn).toBeCalledTimes(0);
     });
@@ -162,7 +157,7 @@ describe.skip("firestore/event", () => {
         updatedAt: timestamp - 1,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, [newCard]);
+      await firestore.deck.create(newDeck);
       expect(fn).toBeCalledTimes(1);
       const c = { ...newCard, id: "cardId", deckId: "deckId" } as Card;
       expect(fn).lastCalledWith({ ...cardEvent, added: [c] });
@@ -176,7 +171,7 @@ describe.skip("firestore/event", () => {
         updatedAt: timestamp + 1,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, [newCard]);
+      await firestore.deck.create(newDeck);
       expect(fn).toBeCalledTimes(0);
     });
 
@@ -188,7 +183,7 @@ describe.skip("firestore/event", () => {
         updatedAt: 0,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, [newCard]);
+      await firestore.deck.create(newDeck);
       const cardCreated = { ...newCard, uid: "uid", id: "cardId", deckId: "deckId", createdAt: 100, updatedAt: 100 };
       expect((await getDoc(doc(db, "card", "cardId"))).data()).toEqual(cardCreated);
       await firestore.card.update({ ...cardCreated, frontText: "updated" });
@@ -235,7 +230,7 @@ describe.skip("firestore/event", () => {
         updatedAt: timestamp + 1,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, [newCard]);
+      await firestore.deck.create(newDeck);
       await firestore.card.update({ ...newCard, id: "cardId", frontText: "updated" });
       expect(fn).toBeCalledTimes(0);
     });
@@ -248,7 +243,7 @@ describe.skip("firestore/event", () => {
         updatedAt: 0,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, [newCard]);
+      await firestore.deck.create(newDeck);
       const cardCreated = { ...newCard, id: "cardId", deckId: "deckId", createdAt: 100, updatedAt: 100 };
       expect((await getDoc(doc(db, "card", "cardId"))).data()).toEqual(cardCreated);
       expect(fn).toBeCalledTimes(1);
@@ -266,7 +261,7 @@ describe.skip("firestore/event", () => {
         updatedAt: timestamp + 1,
         onCange: fn,
       });
-      await firestore.deck.create(newDeck, [newCard]);
+      await firestore.deck.create(newDeck);
       const deckCreated = {
         ...newDeck,
         uid: "uid",

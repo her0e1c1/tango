@@ -10,20 +10,15 @@ import {
   getDoc,
   setDoc,
 } from "firebase/firestore";
-
-import * as action from ".";
-import { generateDeckId, getTimestamp } from "./mocked";
+import { getTimestamp } from "./mocked";
 
 const db = getFirestore();
 
-export const create = async (deck: DeckDB, newCards?: CardNew[]) => {
-  const deckId = generateDeckId();
+export const create = async (deck: Deck): Promise<string> => {
   const createdAt = getTimestamp();
-  const ref = doc(db, "deck", deckId);
-  await setDoc(ref, { ...deck, id: deckId, createdAt, updatedAt: createdAt });
-  if (newCards != null) {
-    await action.card.bulkCreate(newCards, { ...deck, id: deckId }, createdAt);
-  }
+  const ref = doc(db, "deck", deck.id);
+  await setDoc(ref, { ...deck, id: deck.id, createdAt, updatedAt: createdAt });
+  return deck.id;
 };
 
 export const splitCards = <T>(cards: T[], max: number): T[][] => {
@@ -43,7 +38,7 @@ export const splitCards = <T>(cards: T[], max: number): T[][] => {
   return css;
 };
 
-export const update = async (deck: Partial<Deck> & { id: string }) => {
+export const update = async (deck: DeckEdit) => {
   const ref = doc(db, "deck", deck.id);
   const updatedAt = getTimestamp();
   await updateDoc(ref, { ...deck, updatedAt });
@@ -69,9 +64,9 @@ export const exists = async (id: string): Promise<boolean> => {
     if (snapshot.exists()) {
       return true;
     }
-  } catch (e) {
-    console.error(e);
-  } // also, permission error
+  } catch (_) {
+    // ignore permission error if not exist
+  }
   return false;
 };
 

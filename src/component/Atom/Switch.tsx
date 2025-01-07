@@ -6,6 +6,7 @@ export const Switch: React.FC<{
   small?: boolean;
   large?: boolean;
   checked?: boolean;
+  disabled?: boolean;
   name?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -23,6 +24,7 @@ export const Switch: React.FC<{
         onBlur={props.onBlur}
         type="checkbox"
         className="hidden peer"
+        disabled={props.disabled}
       />
       <span
         className={cx(

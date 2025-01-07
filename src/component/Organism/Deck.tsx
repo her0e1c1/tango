@@ -65,7 +65,7 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
             <AiOutlineCloudDownload className="mr-4" onClick={onClickDownload} />
             <AiOutlineEdit className="mr-4" onClick={onClickEdit} />
             <AiOutlineDelete className="mr-4" onClick={onClickDelete} />
-            {deck.url != null && <AiOutlineReload className="mr-4" onClick={onClickReimport} />}
+            {Boolean(deck.url) && <AiOutlineReload className="mr-4" onClick={onClickReimport} />}
           </div>
         </div>
       </Card>

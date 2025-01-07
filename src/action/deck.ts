@@ -1,4 +1,4 @@
-import moment from "moment";
+// import moment from "moment";
 import { shuffle } from "lodash";
 import { saveAs } from "file-saver";
 import * as Papa from "papaparse";
@@ -11,18 +11,26 @@ import * as selector from "../selector";
 import * as firestore from "./firestore";
 import sampleCards from "../../sample/build/output.json";
 
-export const prepare = (deck: Partial<Deck>, uid: string): DeckDB => {
+export const prepare = (deck: DeckRaw, config: DeckConfig): Deck => {
+  const { uid, localMode } = config;
   return {
     ...deck,
     uid,
+    localMode,
+    id: firestore.mocked.generateDeckId(),
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
     currentIndex: null,
     scoreMax: null,
     scoreMin: null,
-    sheetId: null,
-    url: null,
     isPublic: false,
-    deletedAt: null,
-  } as any;
+    cardOrderIds: [],
+    selectedTags: [],
+    tagAndFilter: false,
+    convertToBr: false,
+    category: "",
+  };
 };
 
 export const generateName = (deckName: string, state: DeckState): string => {
@@ -37,35 +45,37 @@ export const generateName = (deckName: string, state: DeckState): string => {
 };
 
 export const create =
-  (deckName: string, cards: CardNew[]): ThunkResult =>
-  async (_dispatch, getState) => {
-    const uid = getState().config.uid;
+  (deckName: string): ThunkResult<Promise<string>> =>
+  async (dispatch, getState) => {
+    const config = getState().config;
     const name = generateName(deckName, getState().deck);
-    const deck = prepare({ name } as DeckDB, uid);
-    void firestore.deck.create(deck, cards);
-  };
-
-export const upsert =
-  (deck: Deck, cards: Array<Omit<Card, "id">>): ThunkResult =>
-  async () => {
-    void firestore.card.bulkCreate(cards, deck);
+    const deck = prepare({ name } as Deck, config);
+    if (!deck.localMode) {
+      await firestore.deck.create(deck);
+    }
+    await dispatch(type.deckInsert(deck));
+    return deck.id;
   };
 
 export const update =
-  (deck: Partial<Deck> & { id: string }, opt?: { noDelay: boolean }): ThunkResult =>
+  (deck: DeckEdit): ThunkResult =>
   async (dispatch) => {
-    const { noDelay } = { ...opt };
-    void firestore.deck.update(deck); // fire&forget
-    if (noDelay) {
-      await dispatch(type.deckUpdate(deck));
+    // must be no deplay when going to deck swiper page
+    if (!deck.localMode) {
+      void firestore.deck.update(deck); // fire&forget
     }
+    await dispatch(type.deckUpdate(deck));
   };
 
 export const remove =
   (deckId: string): ThunkResult =>
-  async (_dispatch, getState) => {
-    const uid = getState().config.uid;
-    void firestore.deck.remove(deckId, uid); // fire&forget
+  async (dispatch, getState) => {
+    const deck = getState().deck.byId[deckId];
+    if (deck == null) throw Error("invalid deck id");
+    if (!deck.localMode) {
+      void firestore.deck.remove(deckId, deck.uid); // fire&forget
+    }
+    await dispatch(type.deckDelete(deckId));
   };
 
 export const start =
@@ -82,7 +92,7 @@ export const start =
       cardOrderIds = cardOrderIds.slice(0, config.maxNumberOfCardsToLearn);
     }
     // before going to DeckSwiperPage, need to set cardOrderIds without delay (otherwise, it would go back to the previous page)
-    await dispatch(action.deck.update({ id: deckId, currentIndex: 0, cardOrderIds }, { noDelay: true }));
+    await dispatch(action.deck.update({ id: deckId, currentIndex: 0, cardOrderIds }));
     await dispatch(
       type.configUpdate({
         showBackText: false,
@@ -140,24 +150,24 @@ export const swipe =
       score = getCardScore(card);
     }
 
-    let interval = card.interval;
-    const index = C.NEXT_SEEING_MINUTES_KEYS.findIndex((i) => i >= interval);
-    if (card.score < score && index < C.NEXT_SEEING_MINUTES_KEYS.length - 1) {
-      interval = C.NEXT_SEEING_MINUTES_KEYS[index + 1];
-    } else if (card.score > score && index > 0) {
-      interval = C.NEXT_SEEING_MINUTES_KEYS[index - 1];
-    }
-
-    const nextSeeingAt = moment(lastSeenAt).add(interval, "minute").toDate();
+    // let interval = card.interval;
+    // const index = C.NEXT_SEEING_MINUTES_KEYS.findIndex((i) => i >= interval);
+    // if (card.score < score && index < C.NEXT_SEEING_MINUTES_KEYS.length - 1) {
+    //   interval = C.NEXT_SEEING_MINUTES_KEYS[index + 1];
+    // } else if (card.score > score && index > 0) {
+    //   interval = C.NEXT_SEEING_MINUTES_KEYS[index - 1];
+    // }
+    // const nextSeeingAt = moment(lastSeenAt).add(interval, "minute").toDate();
 
     await dispatch(
       action.card.update({
         id: card.id,
+        deckId: card.deckId,
         score,
         numberOfSeen,
-        interval,
         lastSeenAt,
-        nextSeeingAt,
+        // interval,
+        // nextSeeingAt,
       })
     );
 
@@ -214,12 +224,13 @@ export const spliteCreate =
   async (dispatch, getState) => {
     const [newCards, oldCards] = splitByUniqueKey(cards, getState().card);
     await dispatch(action.card.bulkUpdate(oldCards));
-    const deck = findIdByName(deckName, getState().deck);
+    let deck = findIdByName(deckName, getState().deck);
     if (deck == null) {
-      await dispatch(action.deck.create(deckName, newCards));
-    } else {
-      await dispatch(action.deck.upsert(deck, newCards));
+      const deckId = await dispatch(action.deck.create(deckName));
+      deck = getState().deck.byId[deckId] ?? null;
+      if (deck == null) throw Error("invalid deck id");
     }
+    await dispatch(action.card.bulkCreate(newCards, deck));
     process.env.NODE_ENV !== "production" &&
       console.log(
         (deck == null ? "CREATE" : "UPATE") +
@@ -232,7 +243,7 @@ export const reimport =
   async (dispatch, getState) => {
     const deck = getState().deck.byId[id];
     if (deck == null) throw Error("invalid deck id");
-    if (deck.url == null) throw Error("no deck url");
+    if (deck.url == null || deck.url == "") throw Error("no deck url");
     await dispatch(parseUrl(deck.url, deck.name));
   };
 
@@ -281,7 +292,7 @@ export const parseCsv = async (content: any): Promise<Card[]> => {
   );
 };
 
-export const splitByUniqueKey = (cards: Card[], state: CardState): [Card[], Card[]] => {
+export const splitByUniqueKey = (cards: Card[], state: CardState): [CardRaw[], Card[]] => {
   const newCards = [] as Card[];
   const oldCards = [] as Card[];
   const byUniqueKey = {} as Record<string, string>;

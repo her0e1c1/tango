@@ -50,7 +50,7 @@ export const getFilteredByDeckId =
       if (deck.scoreMin != null && c.score < deck.scoreMin) {
         return false;
       }
-      if (config.useCardInterval && c.nextSeeingAt > new Date()) {
+      if (config.useCardInterval && c.nextSeeingAt && c.nextSeeingAt > new Date()) {
         return false;
       }
       return true;

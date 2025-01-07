@@ -30,7 +30,7 @@ service cloud.firestore {
         return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid(); // && belongsToDeck(); // in one batch, card can not refer to its deck
+      allow create: if isValid() && belongsToDeck();
       allow update: if isValidOwner() && belongsToDeck();
       allow delete: if isOwner();
     }

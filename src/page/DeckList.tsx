@@ -29,7 +29,7 @@ export const DeckListPage: React.FC = () => {
         onClickStudy: actions.goToStart,
         onClickDownload: actions.deckDownload,
         onClickDelete: actions.deckRemove,
-        onClickReimport: actions.deckReimport,
+        // onClickReimport: actions.deckReimport,
       }}
     />
   );

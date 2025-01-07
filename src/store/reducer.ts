@@ -1,15 +1,30 @@
 import { uniq } from "lodash";
 import * as util from "src/util";
 import * as type from "src/action/type";
+import * as action from "src/action";
+import sampleCards from "../../sample/build/output.json";
 
 export const equal = <T>(action: Action<any>, typ: (...args: any[]) => Action<T>): action is Action<T> => {
   return action.type === typ().type;
 };
 
-export const deckInitialState = {
-  byId: {},
+// TODO: load only once
+const sampleDeck = action.deck.prepare({ name: "Sample Deck" }, { uid: "", localMode: true });
+const byId = {} as Record<string, Card>;
+sampleCards.forEach((card) => {
+  const c = { ...action.card.prepare(card, sampleDeck) };
+  byId[c.id] = c;
+});
+
+const deckInitialState = {
+  byId: { [sampleDeck.id]: sampleDeck },
   categories: [],
 } as DeckState;
+
+const cardInitialState = {
+  byId,
+  tags: [],
+} as CardState;
 
 export const deck = (state = deckInitialState, action: Action) => {
   if (equal(action, type.deckBulkInsert)) {
@@ -25,7 +40,6 @@ export const deck = (state = deckInitialState, action: Action) => {
         currentIndex: d.currentIndex ?? null,
         category: d.category ?? "",
         convertToBr: d.convertToBr ?? false,
-        onlyBodyinWebview: d.onlyBodyinWebview ?? true,
         scoreMax: d.scoreMax ?? null,
         scoreMin: d.scoreMin ?? null,
         tagAndFilter: d.tagAndFilter ?? true,
@@ -47,10 +61,6 @@ export const deck = (state = deckInitialState, action: Action) => {
   }
 };
 
-export const cardInitialState = {
-  byId: {},
-  tags: [],
-} as CardState;
 export const card = (state = cardInitialState, action: Action) => {
   if (equal(action, type.cardBulkInsert)) {
     const cards = action.payload.cards;
@@ -117,6 +127,7 @@ export const config = (
     lastUpdatedAt: 0,
     githubAccessToken: "",
     loadSample: true,
+    localMode: true,
   },
   action: Action
 ): ConfigState => {
