@@ -53,3 +53,7 @@ jobs:
 
       - name: run test
         run: docker compose run test
+
+      - name: run sample test
+        run: docker compose run test
+        working-directory: sample
