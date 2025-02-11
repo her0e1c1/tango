@@ -21,6 +21,7 @@ services:
     environment:
       - VITE_DB_HOST=db
       - VITE_DB_PORT=$VITE_DB_PORT
+      - NODE_OPTIONS="--max_old_space_size=4096"
     working_dir: /workspace
     volumes:
       - .:/workspace
