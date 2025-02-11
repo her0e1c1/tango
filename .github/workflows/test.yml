@@ -39,7 +39,7 @@ jobs:
             package.json
             package-lock.json
 
-      - run: docker compose build image
+      - run: docker compose build base
         if: ${{ steps.changed.outputs.any_changed == 'true' || inputs.force }}
 
       - run: make build
