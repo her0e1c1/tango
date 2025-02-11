@@ -1,34 +1,21 @@
 
-x-tty: &tty
-  stdin_open: true
-  tty: true
-
 x-image: &image
   image: ghcr.io/her0e1c1/tango-sample:${BRANCH:-latest}
   build: .
 
 x-base: &base
   <<: *image
+  stdin_open: true
+  tty: true
   working_dir: /workspace
   volumes:
     - ./build:/workspace/build
     - ./test:/workspace/test
     - ./generate.py:/workspace/generate.py
+  entrypoint: bash
 
 services:
-  image: *image
-
-  bash:
-    <<: [*base, *tty]
-    entrypoint: bash
-
-  test:
-    <<: [*base, *tty]
-    entrypoint: py.test
-
-  gen:
-    <<: [*base, *tty]
-    entrypoint: python generate.py ./test -o build/output.json
+  base: *base
 
   lock:
     image: python:3.13

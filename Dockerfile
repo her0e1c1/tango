@@ -4,6 +4,8 @@ WORKDIR /workspace
 
 ENV PATH /node_modules/.bin:$PATH
 
+RUN npm install -g npm@11.1.0
+
 # Stop mounting /workspace/node_modules
 # It makes docker compose too slow
 RUN \
