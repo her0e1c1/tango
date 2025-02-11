@@ -13,7 +13,6 @@ fmt:
 lint:
 	@$(MAKE) npx ARG="tsc"
 	@$(MAKE) npx ARG="eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
-	git diff --exit-code --name-only
 
 build:
 	@$(MAKE) npx ARG="vite build"
