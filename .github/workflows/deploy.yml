@@ -31,6 +31,6 @@ jobs:
 
       - run: npm install
 
-      - run: npm run build
+      - run: make build
 
       - run: npx firebase deploy --token "${{ secrets.FIREBASE_TOKEN }}" --only hosting,firestore:rules

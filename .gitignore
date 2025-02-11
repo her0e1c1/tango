@@ -21,3 +21,5 @@ node_modules
 
 # firebase
 .firebase/
+
+storybook-static/

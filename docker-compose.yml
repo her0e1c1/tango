@@ -1,41 +1,5 @@
-x-tty: &tty
-  stdin_open: true
-  tty: true
-
-x-base: &base
-  image: &image ghcr.io/her0e1c1/tango
-  environment:
-    - VITE_DB_HOST=db
-    - VITE_DB_PORT=$VITE_DB_PORT
-  working_dir: /workspace
-  volumes:
-    - .:/workspace:delegated
-    - /workspace/node_modules  # empty
-  profiles:
-    - base
-
-x-depends: &depends
-  depends_on:
-    db:
-      condition: service_healthy
 
 services:
-  image:
-    image: *image
-    build: .
-
-  npm:
-    <<: [*base]
-    entrypoint: npm
-
-  sh:
-    <<: [*base, *tty]
-    entrypoint: bash
-
-  test:
-    <<: [*base, *depends]
-    entrypoint: npx vitest run --no-file-parallelism
-
   db:
     image: google/cloud-sdk
     platform: linux/amd64
@@ -48,3 +12,26 @@ services:
       start_period: 5s
       interval: 60s
       retries: 3
+
+  base: &base
+    image: ghcr.io/her0e1c1/tango
+    build: .
+    stdin_open: true
+    tty: true
+    environment:
+      - VITE_DB_HOST=db
+      - VITE_DB_PORT=$VITE_DB_PORT
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules  # empty
+    profiles:
+      - base
+    entrypoint: bash
+
+  test:
+    <<: *base
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: vitest

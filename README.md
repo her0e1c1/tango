@@ -1,3 +1,4 @@
+
 # Tango
 
 ## Demo
@@ -42,9 +43,8 @@ docker compose run test ./src/action/xxx.spec.ts
 If you use local emulator, run these commands
 
 ```bash
-npm run test  # without firestore
-npm run test:db
-npm run test:rule  # test for firestore rules
+npm run test  # need to start firestore before running
+make test     # test in docker
 ```
 
 ## Get Firebase Token
