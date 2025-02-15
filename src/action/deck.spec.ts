@@ -6,6 +6,7 @@ import * as fileSaver from "file-saver";
 import * as firestore from "./firestore";
 import * as type from "./type";
 import * as action from ".";
+import * as C from "../constant";
 
 vi.mock("./firestore");
 vi.mock("file-saver", () => ({
@@ -209,35 +210,17 @@ describe("deck action", () => {
     });
   });
 
-  describe("splitByUniqueKey", () => {
-    const state = {
-      byId: {
-        1: { uniqueKey: "a" } as Card,
-        2: { uniqueKey: "b" } as Card,
-        3: { uniqueKey: "c" } as Card,
-      },
-      tags: [],
-    } as CardState;
+  describe("downloadCsvSampleText", () => {
+    it("should download", async () => {
+      const [dispatch, getState] = [vi.fn(), vi.fn()];
+      const blob = new Blob();
+      const m = vi.spyOn(global, "Blob");
+      m.mockImplementation(() => blob);
 
-    it("should split into new cards", async () => {
-      const cards = [{ uniqueKey: "A" }, { uniqueKey: "B" }, { uniqueKey: "C" }] as Card[];
-      const [newCards, oldCards] = action.deck.splitByUniqueKey(cards, state);
-      expect(newCards).toEqual(cards);
-      expect(oldCards).toEqual([]);
-    });
-
-    it("should split into old cards", async () => {
-      const cards = [{ uniqueKey: "a" }, { uniqueKey: "b" }, { uniqueKey: "c" }] as Card[];
-      const [newCards, oldCards] = action.deck.splitByUniqueKey(cards, state);
-      expect(newCards).toEqual([]);
-      expect(oldCards).toEqual(cards);
-    });
-
-    it("should split into new and old cards", async () => {
-      const cards = [{ uniqueKey: "A" }, { uniqueKey: "b" }, { uniqueKey: "c" }] as Card[];
-      const [newCards, oldCards] = action.deck.splitByUniqueKey(cards, state);
-      expect(newCards).toEqual(cards.slice(0, 1));
-      expect(oldCards).toEqual(cards.slice(1, 3));
+      const f = action.deck.downloadCsvSampleText();
+      await f(dispatch, getState, undefined);
+      expect(m).toBeCalledWith([C.CSV_SAMPLE_TEXT], { type: "text/plain;charset=utf-8" });
+      expect(fileSaver.saveAs).toBeCalledWith(expect.anything(), "sample.csv");
     });
   });
 });

@@ -13,8 +13,6 @@ export const subscribeDeck = (props: DeckProps): Callback => {
     where("uid", "==", props.uid),
     where("updatedAt", ">=", props.updatedAt),
     orderBy("updatedAt", "desc")
-    // if physical- deleted, no callback is triggered
-    // where("deletedAt", "==", null),
   );
   return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
     const metadata = { size: snapshot.docChanges().length, fromLocal: snapshot.metadata.hasPendingWrites };
@@ -51,13 +49,7 @@ interface CardProps {
 
 export const subscribeCard = (props: CardProps): Callback => {
   const db = getFirestore();
-  const q = query(
-    collection(db, "card"),
-    where("uid", "==", props.uid),
-    where("updatedAt", ">=", props.updatedAt)
-    // offline device can not recieve deleted card events
-    // where("deletedAt", "==", null)
-  );
+  const q = query(collection(db, "card"), where("uid", "==", props.uid), where("updatedAt", ">=", props.updatedAt));
   return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
     const metadata = { size: snapshot.docChanges().length, fromLocal: snapshot.metadata.hasPendingWrites };
     const e = { added: [], modified: [], removed: [], metadata } as CardEvent;

@@ -49,7 +49,6 @@ export const init = (): ThunkResult => async (dispatch, getState) => {
     );
     void dispatch(action.event.subscribe(user.uid));
     void dispatch(removeFromLocal());
-    // void dispatch(action.deck.loadSample());
   });
 };
 

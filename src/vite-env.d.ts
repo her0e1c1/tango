@@ -148,7 +148,7 @@ type Edit<T> = Partial<T> & Pick<T, "id">;
 type Callback = () => void;
 type Callback1<T> = (arg: T) => void;
 
-type Category = string; // 'math' | 'python' | 'golang' | 'haskell' | 'raw' | 'markdown';
+type Category = string;
 
 interface Deck {
   // user input

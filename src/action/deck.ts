@@ -47,9 +47,8 @@ export const generateName = (deckName: string, state: DeckState): string => {
 export const create =
   (deckName: string): ThunkResult<Promise<string>> =>
   async (dispatch, getState) => {
-    const config = getState().config;
     const name = generateName(deckName, getState().deck);
-    const deck = prepare({ name } as Deck, config);
+    const deck = prepare({ name } as Deck, getState().config);
     if (!deck.localMode) {
       await firestore.deck.create(deck);
     }
@@ -70,8 +69,7 @@ export const update =
 export const remove =
   (deckId: string): ThunkResult =>
   async (dispatch, getState) => {
-    const deck = getState().deck.byId[deckId];
-    if (deck == null) throw Error("invalid deck id");
+    const deck = selector.deck.getById(deckId)(getState());
     if (!deck.localMode) {
       void firestore.deck.remove(deckId, deck.uid); // fire&forget
     }
@@ -83,7 +81,6 @@ export const start =
   async (dispatch, getState) => {
     const cards = selector.card.getFilteredByDeckId(deckId)(getState());
     const config = getState().config;
-    cards.sort((c1, c2) => c1.numberOfSeen - c2.numberOfSeen);
     let cardOrderIds = cards.map((c) => c.id);
     if (config.shuffled) {
       cardOrderIds = shuffle(cardOrderIds);
@@ -116,11 +113,8 @@ const getCardScore = (card: Card, mastered?: boolean) => {
 export const swipe =
   (direction: SwipeDirection, deckId: string): ThunkResult =>
   async (dispatch, getState) => {
-    const deck = getState().deck.byId[deckId];
-    if (deck == null) throw Error("invalid deck id");
-    const cardId = deck.cardOrderIds[deck.currentIndex ?? 0];
-    const card = getState().card.byId[cardId];
-    if (card == null) throw Error("invalid card id");
+    const deck = selector.deck.getById(deckId)(getState());
+    const card = selector.card.getCurrentByDeckId(deckId)(getState());
     const config = getState().config;
     const value = config[direction];
 
@@ -187,53 +181,37 @@ export const swipe =
 export const download =
   (id: string): ThunkResult =>
   async (dispatch, getState) => {
-    const deck = getState().deck.byId[id];
-    const card = getState().card;
-    if (deck == null) {
-      return;
-    }
-    const cards = Object.values(card.byId).filter((c) => c?.deckId === id) as Card[];
-    const data = cards.map(action.card.toRow);
-    const csv = Papa.unparse(data);
-    const blob = new Blob([csv], { type: "text/plain;charset=utf-8" });
-    let name = deck.name;
-    if (!name.endsWith(".csv")) {
-      name += ".csv";
-    }
-    saveAs(blob, name);
+    const cards = selector.card.getAllByDeckId(id)(getState());
+    const csv = Papa.unparse(cards.map(action.card.toRow));
+    const deck = selector.deck.getById(id)(getState());
+    _saveAs(csv, deck.name);
   };
 
-export const downloadCsvSampleText = (): ThunkResult => async () => {
-  const blob = new Blob([C.CSV_SAMPLE_TEXT], { type: "text/plain;charset=utf-8" });
-  saveAs(blob, "sample.csv");
+export const _saveAs = (content: string, name: string) => {
+  if (!name.endsWith(".csv")) {
+    name += ".csv";
+  }
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  saveAs(blob, name);
 };
 
-export const findIdByName = (deckName: string, state: DeckState): Deck | null => {
-  const ids = Object.keys(state.byId);
-  for (let i = 0; i < ids.length; i++) {
-    const d = state.byId[ids[i]];
-    if (d?.name === deckName) {
-      return d;
-    }
-  }
-  return null;
+export const downloadCsvSampleText = (): ThunkResult => async () => {
+  _saveAs(C.CSV_SAMPLE_TEXT, "sample.csv");
 };
 
 export const spliteCreate =
   (deckName: string, cards: Card[]): ThunkResult =>
   async (dispatch, getState) => {
-    const [newCards, oldCards] = splitByUniqueKey(cards, getState().card);
+    const [newCards, oldCards] = selector.card.splitByUniqueKey(cards)(getState());
     await dispatch(action.card.bulkUpdate(oldCards));
-    let deck = findIdByName(deckName, getState().deck);
-    if (deck == null) {
-      const deckId = await dispatch(action.deck.create(deckName));
-      deck = getState().deck.byId[deckId] ?? null;
-      if (deck == null) throw Error("invalid deck id");
+    let deckId = selector.deck.findByName(deckName)(getState());
+    if (deckId == null) {
+      deckId = await dispatch(action.deck.create(deckName));
     }
-    await dispatch(action.card.bulkCreate(newCards, deck));
+    await dispatch(action.card.bulkCreate(newCards, deckId));
     process.env.NODE_ENV !== "production" &&
       console.log(
-        (deck == null ? "CREATE" : "UPATE") +
+        (deckId == null ? "CREATE" : "UPATE") +
           ` ${deckName} DECK WITH NEW ${newCards.length} AND OLD ${oldCards.length} CARDS`
       );
   };
@@ -277,8 +255,7 @@ export const parseFile =
   (file: File): ThunkResult =>
   async (dispatch) => {
     const cards = await parseCsv(file);
-    const deckName = file.name;
-    await dispatch(action.deck.spliteCreate(deckName, cards));
+    await dispatch(action.deck.spliteCreate(file.name, cards));
   };
 
 export const parseCsv = async (content: any): Promise<Card[]> => {
@@ -290,25 +267,4 @@ export const parseCsv = async (content: any): Promise<Card[]> => {
       },
     })
   );
-};
-
-export const splitByUniqueKey = (cards: Card[], state: CardState): [CardRaw[], Card[]] => {
-  const newCards = [] as Card[];
-  const oldCards = [] as Card[];
-  const byUniqueKey = {} as Record<string, string>;
-  Object.keys(state.byId).forEach((id) => {
-    const key = (state.byId[id] as Card).uniqueKey;
-    if (key.length > 0) {
-      byUniqueKey[key] = id;
-    }
-  });
-  cards.forEach((c) => {
-    const id = byUniqueKey[c.uniqueKey];
-    if (id) {
-      oldCards.push(c);
-    } else {
-      newCards.push(c);
-    }
-  });
-  return [newCards, oldCards];
 };

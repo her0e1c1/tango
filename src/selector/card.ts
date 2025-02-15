@@ -18,11 +18,11 @@ export const getById: Select<string, Card> = (id) => (state) => {
   return card;
 };
 
-export const getCurrentByDeckId: Select<string, Card | undefined> = (id) => (state) => {
+export const getCurrentByDeckId: Select<string, Card> = (id) => (state) => {
   const deck = state.deck.byId[id];
-  if (deck == null) return undefined;
-  const cardId = deck.cardOrderIds[deck.currentIndex ?? 0]; // FIXME: remove ?? 0
-  if (cardId == null) return undefined;
+  if (deck == null) throw new Error(`NO CURRENT CRAD IN DECK ${id}`);
+  const cardId = deck.cardOrderIds[deck.currentIndex ?? 0];
+  if (cardId == null) throw new Error(`NO CURRENT CRAD IN DECK ${id}`);
   const card = state.card.byId[cardId];
   if (card == null) throw new Error(`NO CURRENT CRAD IN DECK ${id}`);
   return card;
@@ -34,7 +34,7 @@ export const getFilteredByDeckId =
     const deck = state.deck.byId[deckId];
     if (deck == null) return [];
     const config = state.config;
-    return getAllByDeckId(deckId)(state).filter((c) => {
+    const cards = getAllByDeckId(deckId)(state).filter((c) => {
       const tags = deck.selectedTags;
       if (tags.length > 0) {
         if (deck.tagAndFilter && !tags.every((t) => c.tags.includes(t))) {
@@ -55,4 +55,27 @@ export const getFilteredByDeckId =
       }
       return true;
     });
+    cards.sort((c1, c2) => c1.numberOfSeen - c2.numberOfSeen);
+    return cards;
   };
+
+export const splitByUniqueKey: Select<Card[], [CardRaw[], Card[]]> = (cards) => (state) => {
+  const newCards = [] as Card[];
+  const oldCards = [] as Card[];
+  const byUniqueKey = {} as Record<string, string>;
+  Object.keys(state.card.byId).forEach((id) => {
+    const key = (state.card.byId[id] as Card).uniqueKey;
+    if (key.length > 0) {
+      byUniqueKey[key] = id;
+    }
+  });
+  cards.forEach((c) => {
+    const id = byUniqueKey[c.uniqueKey];
+    if (id) {
+      oldCards.push(c);
+    } else {
+      newCards.push(c);
+    }
+  });
+  return [newCards, oldCards];
+};
