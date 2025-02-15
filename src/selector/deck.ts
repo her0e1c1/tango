@@ -10,3 +10,14 @@ export const getById: Select<string, Deck> = (deckId) => (state) => {
   if (deck == null) throw new Error(`NO DECK ${deckId}`);
   return deck;
 };
+
+export const findByName: Select<string, Deck | null> = (deckName) => (state) => {
+  const ids = Object.keys(state.deck.byId);
+  for (let i = 0; i < ids.length; i++) {
+    const d = state.deck.byId[ids[i]];
+    if (d?.name === deckName) {
+      return d;
+    }
+  }
+  return null;
+};

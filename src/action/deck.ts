@@ -208,23 +208,12 @@ export const downloadCsvSampleText = (): ThunkResult => async () => {
   saveAs(blob, "sample.csv");
 };
 
-export const findIdByName = (deckName: string, state: DeckState): Deck | null => {
-  const ids = Object.keys(state.byId);
-  for (let i = 0; i < ids.length; i++) {
-    const d = state.byId[ids[i]];
-    if (d?.name === deckName) {
-      return d;
-    }
-  }
-  return null;
-};
-
 export const spliteCreate =
   (deckName: string, cards: Card[]): ThunkResult =>
   async (dispatch, getState) => {
     const [newCards, oldCards] = splitByUniqueKey(cards, getState().card);
     await dispatch(action.card.bulkUpdate(oldCards));
-    let deck = findIdByName(deckName, getState().deck);
+    let deck = selector.deck.findByName(deckName)(getState());
     if (deck == null) {
       const deckId = await dispatch(action.deck.create(deckName));
       deck = getState().deck.byId[deckId] ?? null;
