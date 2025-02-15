@@ -195,17 +195,19 @@ export const download =
     const cards = Object.values(card.byId).filter((c) => c?.deckId === id) as Card[];
     const data = cards.map(action.card.toRow);
     const csv = Papa.unparse(data);
-    const blob = new Blob([csv], { type: "text/plain;charset=utf-8" });
-    let name = deck.name;
-    if (!name.endsWith(".csv")) {
-      name += ".csv";
-    }
-    saveAs(blob, name);
+    _saveAs(csv, deck.name);
   };
 
+export const _saveAs = (content: string, name: string) => {
+  if (!name.endsWith(".csv")) {
+    name += ".csv";
+  }
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  saveAs(blob, name);
+};
+
 export const downloadCsvSampleText = (): ThunkResult => async () => {
-  const blob = new Blob([C.CSV_SAMPLE_TEXT], { type: "text/plain;charset=utf-8" });
-  saveAs(blob, "sample.csv");
+  _saveAs(C.CSV_SAMPLE_TEXT, "sample.csv");
 };
 
 export const spliteCreate =

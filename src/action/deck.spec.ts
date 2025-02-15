@@ -6,6 +6,7 @@ import * as fileSaver from "file-saver";
 import * as firestore from "./firestore";
 import * as type from "./type";
 import * as action from ".";
+import * as C from "../constant";
 
 vi.mock("./firestore");
 vi.mock("file-saver", () => ({
@@ -206,6 +207,20 @@ describe("deck action", () => {
       await f(dispatch, getState, undefined);
       expect(m).toBeCalledWith([""], { type: "text/plain;charset=utf-8" });
       expect(fileSaver.saveAs).toBeCalledWith(expect.anything(), "name.csv");
+    });
+  });
+
+  describe("downloadCsvSampleText", () => {
+    it("should download", async () => {
+      const [dispatch, getState] = [vi.fn(), vi.fn()];
+      const blob = new Blob();
+      const m = vi.spyOn(global, "Blob");
+      m.mockImplementation(() => blob);
+
+      const f = action.deck.downloadCsvSampleText();
+      await f(dispatch, getState, undefined);
+      expect(m).toBeCalledWith([C.CSV_SAMPLE_TEXT], { type: "text/plain;charset=utf-8" });
+      expect(fileSaver.saveAs).toBeCalledWith(expect.anything(), "sample.csv");
     });
   });
 
