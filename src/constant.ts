@@ -59,19 +59,6 @@ export const CanMapping = (x: string): x is MAPPINGKEY => {
 
 export const CATEGORY: Category[] = ["raw", "markdown", "math"].concat(LANGUAGES);
 
-export const CURRENT_VERSION = 10;
-
-export const GOOGLE_AUTH_SCOPES = [
-  "https://www.googleapis.com/auth/spreadsheets",
-  "https://www.googleapis.com/auth/drive.readonly",
-  "profile",
-  "email",
-];
-
-export const URL_GOOGLE_TOKEN = "https://accounts.google.com/o/oauth2/token";
-
-export const MAX_NUMBER_OF_CARDS = 400;
-
 export const CSV_SAMPLE_TEXT = `\
 "Write a question in front text","Write the answer for it in back text"
 "hello word in python","print('hello world')","python"

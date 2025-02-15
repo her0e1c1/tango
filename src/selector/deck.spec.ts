@@ -3,10 +3,9 @@ import { findByName } from "./deck";
 
 describe("deck selector", () => {
   describe("findByName", () => {
-    const deck = { name: "deckName" } as unknown as Deck;
-    const state = { deck: { byId: { 0: { name: "deckName" } } } } as unknown as RootState;
+    const state = { deck: { byId: { id: { name: "deckName" } } } } as unknown as RootState;
     it("sholud find by name", () => {
-      expect(findByName("deckName")(state)).toEqual(deck);
+      expect(findByName("deckName")(state)).toEqual("id");
     });
     it("sholud not find by name", () => {
       expect(findByName("invalid")(state)).toBeNull();

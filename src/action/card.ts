@@ -1,6 +1,7 @@
 import { type ThunkResult } from ".";
 import * as action from ".";
 import * as firestore from "./firestore";
+import * as selector from "../selector";
 
 export const isEmpty = (c: CardRaw): boolean => {
   return c.frontText === "" && c.backText === "";
@@ -20,15 +21,12 @@ export const toRow = (card: Card): string[] => [card.frontText, card.backText, c
 
 export const goTo =
   (cardId: string): ThunkResult =>
-  async (dispatch, getState) => {
-    const card = getState().card.byId[cardId];
-    if (card == null) throw Error("invalid card id");
-    const deck = getState().deck.byId[card.deckId];
-    if (deck == null) throw Error("invalid deck id");
-    let currentIndex = deck.cardOrderIds.findIndex((id) => id === cardId);
-    if (currentIndex === -1) currentIndex = 0;
-    await dispatch(action.deck.update({ id: deck.id, currentIndex }));
-  };
+    async (dispatch, getState) => {
+      const deck = selector.deck.getByCardId(cardId)(getState())
+      let currentIndex = deck.cardOrderIds.findIndex((id) => id === cardId);
+      if (currentIndex === -1) currentIndex = 0;
+      await dispatch(action.deck.update({ id: deck.id, currentIndex }));
+    };
 
 export const prepare = (card: CardRaw, deck: CardDeck): Card => {
   const { uid, id: deckId } = deck;
@@ -45,79 +43,62 @@ export const prepare = (card: CardRaw, deck: CardDeck): Card => {
   };
 };
 
-export const create =
-  (card: CardNew): ThunkResult =>
-  async (dispatch, getState) => {
-    const deck = getState().deck.byId[card.deckId];
-    if (deck == null) throw Error("invalid deck id");
-    const c = prepare(card, deck);
-    if (!deck.localMode) {
-      void firestore.card.create(c /* deck.createdAt */);
-    }
-    await dispatch(action.type.cardInsert(c));
-  };
-
 export const bulkCreate =
-  (cards: CardRaw[], deck: CardDeck): ThunkResult =>
-  async (dispatch) => {
-    await Promise.all(
-      cards.map(async (card) => {
-        const c = prepare(card, deck);
-        if (!deck.localMode) {
-          void firestore.card.create(c);
-        }
-        await dispatch(action.type.cardInsert(c));
-      })
-    );
-  };
+  (cards: CardRaw[], deckId: DeckId): ThunkResult =>
+    async (dispatch, getState) => {
+      const deck = selector.deck.getById(deckId)(getState());
+      await Promise.all(
+        cards.map(async (card) => {
+          const c = prepare(card, deck);
+          if (!deck.localMode) {
+            void firestore.card.create(c);
+          }
+          await dispatch(action.type.cardInsert(c));
+        })
+      );
+    };
 
 export const update =
   (card: CardEdit): ThunkResult =>
-  async (dispatch, getState) => {
-    const deck = getState().deck.byId[card.deckId];
-    if (deck == null) throw Error("invalid deck id");
-    if (!deck.localMode) {
-      void firestore.card.update(card);
-    }
-    await dispatch(action.type.cardUpdate(card));
-  };
+    async (dispatch, getState) => {
+      const deck = selector.deck.getById(card.deckId)(getState())
+      if (!deck.localMode) {
+        void firestore.card.update(card);
+      }
+      await dispatch(action.type.cardUpdate(card));
+    };
 
 export const updateBy =
   (cardId: CardId, callback: (c: Card) => Partial<Card>): ThunkResult =>
-  async (dispatch, getState) => {
-    const prev = getState().card.byId[cardId];
-    if (prev == null) throw Error("invalid card id");
-    const card = { ...prev, ...callback(prev) };
-    await dispatch(update(card));
-  };
+    async (dispatch, getState) => {
+      const prev = selector.card.getById(cardId)(getState())
+      const card = { ...prev, ...callback(prev) };
+      await dispatch(update(card));
+    };
 
 export const bulkUpdate =
   (cards: CardEdit[]): ThunkResult =>
-  async (dispatch, getState) => {
-    await Promise.all(
-      action.card.filterCardsForUpdate(cards, getState().card).map(async (c) => {
-        await dispatch(action.type.cardUpdate(c));
-        const deck = getState().deck.byId[c.deckId];
-        if (deck == null) throw Error("invalid deck id");
-        if (!deck.localMode) {
-          void firestore.card.update(c);
-        }
-      })
-    );
-  };
+    async (dispatch, getState) => {
+      await Promise.all(
+        action.card.filterCardsForUpdate(cards, getState().card).map(async (c) => {
+          await dispatch(action.type.cardUpdate(c));
+          const deck = selector.deck.getById(c.deckId)(getState())
+          if (!deck.localMode) {
+            void firestore.card.update(c);
+          }
+        })
+      );
+    };
 
 export const remove =
   (id: string): ThunkResult =>
-  async (dispatch, getState) => {
-    const card = getState().card.byId[id];
-    if (card == null) throw Error("invalid card id");
-    const deck = getState().deck.byId[card.deckId];
-    if (deck == null) throw Error("invalid deck id");
-    if (!deck.localMode) {
-      void firestore.card.logicalRemove(id);
-    }
-    await dispatch(action.type.cardDelete(id));
-  };
+    async (dispatch, getState) => {
+      const deck = selector.deck.getByCardId(id)(getState())
+      if (!deck.localMode) {
+        void firestore.card.logicalRemove(id);
+      }
+      await dispatch(action.type.cardDelete(id));
+    };
 
 export const filterCardsForUpdate = (cards: CardEdit[], state: CardState): Card[] => {
   const byKey = {} as Record<string, Card>;

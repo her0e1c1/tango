@@ -11,13 +11,19 @@ export const getById: Select<string, Deck> = (deckId) => (state) => {
   return deck;
 };
 
-export const findByName: Select<string, Deck | null> = (deckName) => (state) => {
-  const ids = Object.keys(state.deck.byId);
-  for (let i = 0; i < ids.length; i++) {
-    const d = state.deck.byId[ids[i]];
-    if (d?.name === deckName) {
-      return d;
+export const findByName: Select<string, DeckId | null> = (deckName) => (state) => {
+  for (const [id, deck] of Object.entries(state.deck.byId)) {
+    if (deck?.name === deckName) {
+      return id;
     }
   }
   return null;
+};
+
+export const getByCardId: Select<CardId, Deck> = (cardId) => (state) => {
+  const card = state.card.byId[cardId];
+  if (card == null) throw Error("invalid card id");
+  const deck = state.deck.byId[card.deckId];
+  if (deck == null) throw Error("invalid deck id");
+  return deck;
 };

@@ -49,7 +49,6 @@ export const init = (): ThunkResult => async (dispatch, getState) => {
     );
     void dispatch(action.event.subscribe(user.uid));
     void dispatch(removeFromLocal());
-    // void dispatch(action.deck.loadSample());
   });
 };
 
@@ -74,62 +73,62 @@ export const removeFromLocal = (): ThunkResult => async (dispatch, getState) => 
 
 export const deckOnChange =
   (event: Partial<DeckEvent>): ThunkResult =>
-  async (dispatch) => {
-    if (isNonEmpty(event.added)) {
-      dispatch(type.deckBulkInsert(event.added));
-    }
-    if (isNonEmpty(event.modified)) {
-      dispatch(type.deckBulkInsert(event.modified));
-    }
-    if (isNonEmpty(event.removed)) {
-      dispatch(type.deckBulkDelete(event.removed));
-    }
-    if (event.lastUpdatedAt) {
-      dispatch(type.configUpdate({ lastUpdatedAt: event.lastUpdatedAt }));
-    }
-  };
+    async (dispatch) => {
+      if (isNonEmpty(event.added)) {
+        dispatch(type.deckBulkInsert(event.added));
+      }
+      if (isNonEmpty(event.modified)) {
+        dispatch(type.deckBulkInsert(event.modified));
+      }
+      if (isNonEmpty(event.removed)) {
+        dispatch(type.deckBulkDelete(event.removed));
+      }
+      if (event.lastUpdatedAt) {
+        dispatch(type.configUpdate({ lastUpdatedAt: event.lastUpdatedAt }));
+      }
+    };
 
 export const cardOnChange =
   (event: Partial<CardEvent>): ThunkResult =>
-  async (dispatch) => {
-    if (isNonEmpty(event.added)) {
-      dispatch(type.cardBulkInsert(event.added));
-    }
-    if (isNonEmpty(event.modified)) {
-      dispatch(type.cardBulkInsert(event.modified));
-    }
-    if (isNonEmpty(event.removed)) {
-      dispatch(type.cardBulkDelete(event.removed));
-    }
-    if (event.lastUpdatedAt) {
-      dispatch(type.configUpdate({ lastUpdatedAt: event.lastUpdatedAt }));
-    }
-  };
+    async (dispatch) => {
+      if (isNonEmpty(event.added)) {
+        dispatch(type.cardBulkInsert(event.added));
+      }
+      if (isNonEmpty(event.modified)) {
+        dispatch(type.cardBulkInsert(event.modified));
+      }
+      if (isNonEmpty(event.removed)) {
+        dispatch(type.cardBulkDelete(event.removed));
+      }
+      if (event.lastUpdatedAt) {
+        dispatch(type.configUpdate({ lastUpdatedAt: event.lastUpdatedAt }));
+      }
+    };
 
 export const subscribe =
   (uid: string): ThunkResult =>
-  async (dispatch, getState) => {
-    unsubscribe();
-    const updatedAt = getState().config.lastUpdatedAt;
-    const unSubscribeDeck = firestore.event.subscribeDeck({
-      uid,
-      updatedAt,
-      onCange: (event) => {
-        process.env.NODE_ENV !== "production" && console.log("SNAPSHOT DECK: ", event.metadata);
-        void dispatch(deckOnChange(event));
-      },
-    });
-    const unSubscribeCard = firestore.event.subscribeCard({
-      uid,
-      updatedAt,
-      onCange: (event) => {
-        process.env.NODE_ENV !== "production" && console.log("SNAPSHOT CARD: ", event.metadata);
-        void dispatch(cardOnChange(event));
-      },
-    });
-    subscriptions.push(unSubscribeDeck);
-    subscriptions.push(unSubscribeCard);
-  };
+    async (dispatch, getState) => {
+      unsubscribe();
+      const updatedAt = getState().config.lastUpdatedAt;
+      const unSubscribeDeck = firestore.event.subscribeDeck({
+        uid,
+        updatedAt,
+        onCange: (event) => {
+          process.env.NODE_ENV !== "production" && console.log("SNAPSHOT DECK: ", event.metadata);
+          void dispatch(deckOnChange(event));
+        },
+      });
+      const unSubscribeCard = firestore.event.subscribeCard({
+        uid,
+        updatedAt,
+        onCange: (event) => {
+          process.env.NODE_ENV !== "production" && console.log("SNAPSHOT CARD: ", event.metadata);
+          void dispatch(cardOnChange(event));
+        },
+      });
+      subscriptions.push(unSubscribeDeck);
+      subscriptions.push(unSubscribeCard);
+    };
 
 export const loginGoogle = (): ThunkResult => async (dispatch) => {
   const auth = getAuth();

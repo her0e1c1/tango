@@ -13,8 +13,6 @@ export const subscribeDeck = (props: DeckProps): Callback => {
     where("uid", "==", props.uid),
     where("updatedAt", ">=", props.updatedAt),
     orderBy("updatedAt", "desc")
-    // if physical- deleted, no callback is triggered
-    // where("deletedAt", "==", null),
   );
   return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
     const metadata = { size: snapshot.docChanges().length, fromLocal: snapshot.metadata.hasPendingWrites };
@@ -55,8 +53,6 @@ export const subscribeCard = (props: CardProps): Callback => {
     collection(db, "card"),
     where("uid", "==", props.uid),
     where("updatedAt", ">=", props.updatedAt)
-    // offline device can not recieve deleted card events
-    // where("deletedAt", "==", null)
   );
   return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
     const metadata = { size: snapshot.docChanges().length, fromLocal: snapshot.metadata.hasPendingWrites };
