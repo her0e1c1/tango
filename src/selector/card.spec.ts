@@ -11,7 +11,7 @@ describe("card selector", () => {
           3: { uniqueKey: "c" } as Card,
         },
         tags: [],
-      } as CardState
+      } as CardState,
     } as RootState;
 
     it("should split into new cards", async () => {

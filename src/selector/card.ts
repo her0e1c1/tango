@@ -30,34 +30,34 @@ export const getCurrentByDeckId: Select<string, Card> = (id) => (state) => {
 
 export const getFilteredByDeckId =
   (deckId: string) =>
-    (state: RootState): Card[] => {
-      const deck = state.deck.byId[deckId];
-      if (deck == null) return [];
-      const config = state.config;
-      const cards = getAllByDeckId(deckId)(state).filter((c) => {
-        const tags = deck.selectedTags;
-        if (tags.length > 0) {
-          if (deck.tagAndFilter && !tags.every((t) => c.tags.includes(t))) {
-            return false;
-          }
-          if (!deck.tagAndFilter && !tags.some((t) => c.tags.includes(t))) {
-            return false;
-          }
-        }
-        if (deck.scoreMax != null && c.score > deck.scoreMax) {
+  (state: RootState): Card[] => {
+    const deck = state.deck.byId[deckId];
+    if (deck == null) return [];
+    const config = state.config;
+    const cards = getAllByDeckId(deckId)(state).filter((c) => {
+      const tags = deck.selectedTags;
+      if (tags.length > 0) {
+        if (deck.tagAndFilter && !tags.every((t) => c.tags.includes(t))) {
           return false;
         }
-        if (deck.scoreMin != null && c.score < deck.scoreMin) {
+        if (!deck.tagAndFilter && !tags.some((t) => c.tags.includes(t))) {
           return false;
         }
-        if (config.useCardInterval && c.nextSeeingAt && c.nextSeeingAt > new Date()) {
-          return false;
-        }
-        return true;
-      });
-      cards.sort((c1, c2) => c1.numberOfSeen - c2.numberOfSeen);
-      return cards
-    };
+      }
+      if (deck.scoreMax != null && c.score > deck.scoreMax) {
+        return false;
+      }
+      if (deck.scoreMin != null && c.score < deck.scoreMin) {
+        return false;
+      }
+      if (config.useCardInterval && c.nextSeeingAt && c.nextSeeingAt > new Date()) {
+        return false;
+      }
+      return true;
+    });
+    cards.sort((c1, c2) => c1.numberOfSeen - c2.numberOfSeen);
+    return cards;
+  };
 
 export const splitByUniqueKey: Select<Card[], [CardRaw[], Card[]]> = (cards) => (state) => {
   const newCards = [] as Card[];

@@ -49,11 +49,7 @@ interface CardProps {
 
 export const subscribeCard = (props: CardProps): Callback => {
   const db = getFirestore();
-  const q = query(
-    collection(db, "card"),
-    where("uid", "==", props.uid),
-    where("updatedAt", ">=", props.updatedAt)
-  );
+  const q = query(collection(db, "card"), where("uid", "==", props.uid), where("updatedAt", ">=", props.updatedAt));
   return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
     const metadata = { size: snapshot.docChanges().length, fromLocal: snapshot.metadata.hasPendingWrites };
     const e = { added: [], modified: [], removed: [], metadata } as CardEvent;
