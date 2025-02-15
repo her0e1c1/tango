@@ -15,9 +15,9 @@ lint:
 	@$(MAKE) npx ARG="eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
 
 build:
+	@$(MAKE) -C sample build
 	@$(MAKE) npx ARG="vite build"
 	@$(MAKE) npx ARG="storybook build"
-	@$(MAKE) -C sample build
 
 log:
 	$(LOG) -f db
