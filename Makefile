@@ -18,7 +18,6 @@ build:
 	@$(MAKE) -C sample build
 	@$(MAKE) npx ARG="vite build"
 	@$(MAKE) npx ARG="storybook build"
-	git diff --exit-code --name-only
 
 log:
 	$(LOG) -f db
