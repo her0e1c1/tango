@@ -18,9 +18,10 @@ export const getById: Select<string, Card> = (id) => (state) => {
   return card;
 };
 
-export const getCurrentByDeckId: Select<string, Card> = (id) => (state) => {
+export const getCurrentByDeckId: Select<string, Card | undefined> = (id) => (state) => {
   const deck = state.deck.byId[id];
-  if (deck == null) throw new Error(`NO CURRENT CRAD IN DECK ${id}`);
+  if (deck == null) throw new Error(`INVALID DECK ID ${id}`);
+  if (deck.currentIndex == -1) return undefined;
   const cardId = deck.cardOrderIds[deck.currentIndex ?? 0];
   if (cardId == null) throw new Error(`NO CURRENT CRAD IN DECK ${id}`);
   const card = state.card.byId[cardId];
