@@ -114,9 +114,12 @@ export const swipe =
   (direction: SwipeDirection, deckId: string): ThunkResult =>
   async (dispatch, getState) => {
     const deck = selector.deck.getById(deckId)(getState());
-    const card = selector.card.getCurrentByDeckId(deckId)(getState());
     const config = getState().config;
     const value = config[direction];
+    const card = selector.card.getCurrentByDeckId(deckId)(getState());
+    if (card == null) {
+      return;
+    }
 
     if (value === "DoNothing") {
       return;
