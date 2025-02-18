@@ -37,6 +37,12 @@ export const Python: Story = {
   },
 };
 
+export const Golang: Story = {
+  args: {
+    text: fixture.code.default,
+    category: "golang",
+  },
+};
 export const LongText: Story = {
   args: {
     text: fixture.code.longtext,
