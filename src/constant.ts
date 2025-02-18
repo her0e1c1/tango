@@ -41,7 +41,7 @@ export const LANGUAGES = [
   "shell",
   "sh",
   "swift",
-] as const;
+];
 
 export const MAPPING = {
   hs: "haskell",
