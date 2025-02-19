@@ -35,6 +35,7 @@ export const Tag: React.FC<{
         className={cx(
           props.className,
           "select-none",
+          "whitespace-nowrap",
           "font-medium",
           "align-middle",
           props.round ? "rounded-full" : "rounded",

@@ -22,3 +22,9 @@ export const LongText: Story = {
     card: fixture.card.long,
   },
 };
+
+export const LongTags: Story = {
+  args: {
+    card: fixture.card.longTags,
+  },
+};
