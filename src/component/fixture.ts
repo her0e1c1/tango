@@ -80,6 +80,14 @@ export const card = {
     tags: ["tag1", "tag2"],
     lastSeenAt: new Date().getTime(),
   } as Card,
+  longTags: {
+    frontText: "front text",
+    backText: "back test",
+    score: 3,
+    numberOfSeen: 5,
+    tags: tags.toolong,
+    lastSeenAt: new Date().getTime(),
+  } as Card,
 } as const satisfies Record<string, Card>;
 
 export const cards = {
