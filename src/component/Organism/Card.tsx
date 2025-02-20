@@ -38,7 +38,7 @@ export const Card: React.FC<
       <IconContext.Provider value={{ className: "dark:text-gray-200 text-2xl" }}>
         <Outline full border disabled={props.filtered} className="px-4 py-2">
           <div className="flex items-center whitespace-nowrap gap-1">
-            <Score className="mr-1" score={props.card.score} />
+            <Score className="mr-1 shrink-0" score={props.card.score} />
             <Description>studied {props.card.numberOfSeen ?? 0} time(s)</Description>
             <div className="flex ml-auto gap-2">
               {props.card.tags.map((tag) => (
