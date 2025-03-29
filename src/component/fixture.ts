@@ -121,10 +121,28 @@ export const config = {
 export const math = {
   inline: "$E = mc^2$",
   block: `
-  ゆえに
-  $$E = mc^2$$
-  が成立する
-  `,
+# Mass–energy equivalence
+
+$$E = mc^2$$
+
+The equation developed by Albert Einstein
+
+`,
+  markdown: `
+A paragraph with *emphasis* and **strong importance**.
+
+> A block quote with ~strikethrough~ and a URL: https://reactjs.org.
+
+* Lists
+* [ ] todo
+* [x] done
+
+A table:
+
+| a | b |
+| - | - |
+
+`,
 } as const;
 
 export const code = {
