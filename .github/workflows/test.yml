@@ -32,7 +32,7 @@ jobs:
 
       - name: check chanegd files
         id: changed
-        uses: tj-actions/changed-files@v37
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             Dockerfile
