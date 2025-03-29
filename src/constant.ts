@@ -35,6 +35,7 @@ export const LANGUAGES = [
   "golang",
   "java",
   "javascript",
+  "typescript",
   "haskell",
   "php",
   "ruby",
@@ -47,6 +48,9 @@ export const MAPPING = {
   hs: "haskell",
   go: "golang",
   js: "javascript",
+  jsx: "javascript",
+  ts: "typescript",
+  tsx: "typescript",
   py: "python",
   rb: "ruby",
 } as const;

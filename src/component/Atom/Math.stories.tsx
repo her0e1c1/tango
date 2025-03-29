@@ -24,3 +24,9 @@ export const Block: Story = {
     text: fixture.math.block,
   },
 };
+
+export const Markdown: Story = {
+  args: {
+    text: fixture.math.markdown,
+  },
+};
