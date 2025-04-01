@@ -19,6 +19,9 @@ build:
 	@$(MAKE) npx ARG="vite build"
 	@$(MAKE) npx ARG="storybook build"
 
+image:
+	$(COMPOSE) build base
+
 log:
 	$(LOG) -f db
 
