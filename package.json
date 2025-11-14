@@ -51,7 +51,7 @@
     "@storybook/react": "^8.0.2",
     "@storybook/react-vite": "^8.0.2",
     "@storybook/test": "^8.0.2",
-    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "*",
     "@testing-library/user-event": "*",
     "@types/react": "^18.2.64",
