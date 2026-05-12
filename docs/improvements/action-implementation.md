@@ -11,7 +11,7 @@
 ### 課題の具体例（現行コード）
 - `src/action/type.ts` に文字列ベースのAction typeとpayload定義が多数あり、同様パターンの追記が繰り返されている
 - `src/store/reducer.ts` で `equal(action, type.xxx)` を連続判定しており、Action追加時に分岐追加と整合確認が必要になる
-- `src/action/deck.ts` / `src/action/card.ts` / `src/action/event.ts` では `void firestore.xxx(...)` の fire-and-forget 呼び出しが複数あり、失敗時ハンドリング方針が関数ごとにばらつきやすい
+- `src/action/deck.ts` / `src/action/card.ts` / `src/action/event.ts` では `void firestore.xxx(...)` の非同期呼び出し（fire-and-forget）が複数あり、失敗時ハンドリング方針が関数ごとにばらつきやすい
 - `src/action/deck.ts` の `parseFile` / `parseUrl`（内部で `parseCsv` を利用）と `src/action/card.ts` の `fromRow` は入力を変換しているが、スキーマ検証の責務が明示されていない
 
 ## 改善方針
@@ -34,6 +34,7 @@
 - 日付演算が再び拡張される場合に導入を検討
 - 標準化された日付操作で実装の可読性を高める
 - 現時点で `src/action/deck.ts`（`swipe` 付近）に interval/nextSeeingAt 関連のコメントアウト実装が残っており、再有効化時の選択肢として位置づける
+- この箇所は「スコア更新に応じた次回表示タイミング計算」を停止した状態のため、再導入する場合は背景と要件をIssue化してから実施する
 
 ## 段階的な進め方
 1. 代表的な1機能を `createSlice` + `createAsyncThunk` に移行
