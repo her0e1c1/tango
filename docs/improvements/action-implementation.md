@@ -12,7 +12,7 @@
 - `src/action/type.ts` に文字列ベースのAction typeとpayload定義が多数あり、同様パターンの追記が繰り返されている
 - `src/store/reducer.ts` で `equal(action, type.xxx)` を連続判定しており、Action追加時に分岐追加と整合確認が必要になる
 - `src/action/deck.ts` / `src/action/card.ts` / `src/action/event.ts` では `void firestore.xxx(...)` の fire-and-forget 呼び出しが複数あり、失敗時ハンドリング方針が関数ごとにばらつきやすい
-- `src/action/deck.ts` の `parseCsv` と `src/action/card.ts` の `fromRow` は入力を変換しているが、スキーマ検証の責務が明示されていない
+- `src/action/deck.ts` の `parseFile` / `parseUrl`（内部で `parseCsv` を利用）と `src/action/card.ts` の `fromRow` は入力を変換しているが、スキーマ検証の責務が明示されていない
 
 ## 改善方針
 - Action定義と状態更新ロジックを同一箇所で管理し、重複実装を減らす
