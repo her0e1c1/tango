@@ -4,7 +4,7 @@
 `src/action` と `src/store` では、Action作成・状態更新・非同期処理の責務が分散しており、同種の実装が繰り返されやすい。
 
 ## 現状の課題
-- Action type/payload定義が手作業中心で、変更時の追従漏れが起きやすい
+- Action type/payload定義が手作業中心で、変更時の追従漏れ（例: type定義とreducer分岐の不一致）が起きやすい
 - reducer/event 相当のロジックが分散し、仕様変更時の影響範囲が読みづらい
 - 非同期処理のローディング/失敗時の扱いが統一されていない
 
@@ -33,7 +33,7 @@
 ### 3. （必要時）`date-fns`
 - 日付演算が再び拡張される場合に導入を検討
 - 標準化された日付操作で実装の可読性を高める
-- `src/action/deck.ts` に interval/nextSeeingAt 関連のコメントアウト実装が残っており、再有効化時の選択肢として位置づける
+- 現時点で `src/action/deck.ts`（`swipe` 付近）に interval/nextSeeingAt 関連のコメントアウト実装が残っており、再有効化時の選択肢として位置づける
 
 ## 段階的な進め方
 1. 代表的な1機能を `createSlice` + `createAsyncThunk` に移行
