@@ -1,0 +1,48 @@
+# Action実装の改善案
+
+## 背景
+`src/action` と `src/store` では、Action作成・状態更新・非同期処理の責務が分散しており、同種の実装が繰り返されやすい。
+
+## 現状の課題
+- Action type/payload定義が手作業中心で、変更時の追従漏れ（例: type定義とreducer分岐の不一致）が起きやすい
+- reducer/event 相当のロジックが分散し、仕様変更時の影響範囲が読みづらい
+- 非同期処理のローディング/失敗時の扱いが統一されていない
+
+### 課題の具体例（現行コード）
+- `src/action/type.ts` に文字列ベースのAction typeとpayload定義が多数あり、同様パターンの追記が繰り返されている
+- `src/store/reducer.ts` で `equal(action, type.xxx)` を連続判定しており、Action追加時に分岐追加と整合確認が必要になる
+- `src/action/deck.ts` / `src/action/card.ts` / `src/action/event.ts` では `void firestore.xxx(...)` の非同期呼び出し（fire-and-forget）が複数あり、失敗時ハンドリング方針が関数ごとにばらつきやすい
+- `src/action/deck.ts` の `parseFile` / `parseUrl`（内部で `parseCsv` を利用）と `src/action/card.ts` の `fromRow` は入力を変換しているが、スキーマ検証の責務が明示されていない
+
+## 改善方針
+- Action定義と状態更新ロジックを同一箇所で管理し、重複実装を減らす
+- 非同期処理の成功/失敗/進行中を標準化する
+- 外部入力（CSV等）を境界で検証して不正データ流入を防ぐ
+
+## 導入候補ライブラリ
+
+### 1. `@reduxjs/toolkit`
+- `createSlice` で action/reducer を集約
+- `createAsyncThunk` で非同期フローを標準化
+- 定型コードを削減し、Action追加時の変更点を明確化
+
+### 2. `zod`
+- CSV/外部入力のスキーマ検証を実施
+- store投入前に型・制約を検証し、実行時エラーを減らす
+
+### 3. （必要時）`date-fns`
+- 日付演算が再び拡張される場合に導入を検討
+- 標準化された日付操作で実装の可読性を高める
+- 現時点で `src/action/deck.ts`（`swipe` 付近）に interval/nextSeeingAt 関連のコメントアウト実装が残っており、再有効化時の選択肢として位置づける
+- この箇所は「スコア更新に応じた次回表示タイミング計算」を停止した状態のため、再導入する場合は背景と要件をIssue化してから実施する
+
+## 段階的な進め方
+1. 代表的な1機能を `createSlice` + `createAsyncThunk` に移行
+2. 既存テストを維持しつつ、非同期の失敗系ケースを追加
+3. 問題がなければ他Actionへ横展開
+4. 入力境界に `zod` 検証を導入
+
+## 完了条件
+- Action追加時に必要な変更ファイル数が減っている
+- 非同期処理の失敗時ハンドリングが統一されている
+- 外部入力由来の不正データが state に入らない
