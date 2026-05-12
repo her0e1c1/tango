@@ -8,6 +8,12 @@
 - reducer/event 相当のロジックが分散し、仕様変更時の影響範囲が読みづらい
 - 非同期処理のローディング/失敗時の扱いが統一されていない
 
+### 課題の具体例（現行コード）
+- `src/action/type.ts` に文字列ベースのAction typeとpayload定義が多数あり、同様パターンの追記が繰り返されている
+- `src/store/reducer.ts` で `equal(action, type.xxx)` を連続判定しており、Action追加時に分岐追加と整合確認が必要になる
+- `src/action/deck.ts` / `src/action/card.ts` / `src/action/event.ts` では `void firestore.xxx(...)` の fire-and-forget 呼び出しが複数あり、失敗時ハンドリング方針が関数ごとにばらつきやすい
+- `src/action/deck.ts` の `parseCsv` と `src/action/card.ts` の `fromRow` は入力を変換しているが、スキーマ検証の責務が明示されていない
+
 ## 改善方針
 - Action定義と状態更新ロジックを同一箇所で管理し、重複実装を減らす
 - 非同期処理の成功/失敗/進行中を標準化する
@@ -25,7 +31,7 @@
 - store投入前に型・制約を検証し、実行時エラーを減らす
 
 ### 3. （必要時）`date-fns`
-- 日付演算が再拡張される場合に導入を検討
+- 日付演算が再び拡張される場合に導入を検討
 - 標準化された日付操作で実装の可読性を高める
 
 ## 段階的な進め方
