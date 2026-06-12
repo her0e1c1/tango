@@ -37,8 +37,8 @@ Actor: 利用者
 2. `deck.parseFile()` が `Papa.parse` で rows を読みます。
 3. row は `card.fromRow()` で `frontText/backText/tags/uniqueKey` に変換されます。
 4. `spliteCreate()` が `uniqueKey` で新規 card と更新対象 card を分けます。
-5. 同名 deck がない場合は `deck.create()` で deck を作ります。
-6. 新規 card を bulk create、既存 card を bulk update します。
+5. 既存 card を先に bulk update します。
+6. 同名 deck がない場合は `deck.create()` で deck を作り、新規 card を bulk create します。
 
 ```mermaid
 sequenceDiagram
@@ -54,8 +54,8 @@ sequenceDiagram
     Deck->>Deck: parseCsv(file)
     Deck->>Card: fromRow(row)
     Deck->>Store: splitByUniqueKey(cards)
-    Deck->>Deck: create(deckName) if missing
     Deck->>Card: bulkUpdate(oldCards)
+    Deck->>Deck: create(deckName) if missing
     Deck->>Card: bulkCreate(newCards, deckId)
     Card-->>FS: create/update when localMode=false
     Card-->>Store: card insert/update
