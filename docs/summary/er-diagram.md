@@ -14,7 +14,7 @@ erDiagram
         boolean isPublic
         number createdAt
         number updatedAt
-        number deletedAt
+        number deletedAt "nullable (number | null)"
         boolean localMode
         number currentIndex
         number scoreMax
@@ -36,7 +36,7 @@ erDiagram
         string uniqueKey
         number createdAt
         number updatedAt
-        number deletedAt
+        number deletedAt "nullable (number | null)"
         number score
         number numberOfSeen
         number lastSeenAt
