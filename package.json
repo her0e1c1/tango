@@ -71,7 +71,7 @@
     "eslint-plugin-storybook": "^0.8.0",
     "firebase-tools": "^13.6.0",
     "jsdom": "^20.0.3",
-    "postcss": "^8.4.38",
+    "postcss": "^8.5.16",
     "prettier": "*",
     "storybook": "^8.0.2",
     "storybook-dark-mode": "^4.0.1",
