@@ -46,7 +46,7 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "sass": "^1.64.2",
-    "uuid": "^9.0.1"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^1.2.23",
