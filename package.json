@@ -2,6 +2,10 @@
   "name": "tango-web",
   "version": "2.1.0",
   "private": true,
+  "packageManager": "npm@11.6.0",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "start": "vite dev",
     "build": "vite build",
