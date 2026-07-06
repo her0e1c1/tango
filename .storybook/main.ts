@@ -5,10 +5,9 @@ const config: StorybookConfig = {
   addons: [
     "storybook-dark-mode",
     "@storybook/addon-links",
-    "@storybook/addon-essentials",
+    "@storybook/addon-docs",
     "@chromatic-com/storybook",
-    "@storybook/addon-interactions",
-    "@storybook/addon-themes"
+    "@storybook/addon-themes",
   ],
   framework: {
     name: "@storybook/react-vite",

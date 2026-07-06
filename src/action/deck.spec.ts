@@ -200,7 +200,9 @@ describe("deck action", () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
       const blob = new Blob();
       const m = vi.spyOn(global, "Blob"); // FIXME: affect Blob after this test
-      m.mockImplementation(() => blob);
+      m.mockImplementation(function () {
+        return blob;
+      } as unknown as typeof Blob);
       getState.mockReturnValue({ deck: { byId: { id: { name: "name", cardIds: [] } } }, card: { byId: {} } });
 
       const f = action.deck.download("id");
@@ -215,7 +217,9 @@ describe("deck action", () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
       const blob = new Blob();
       const m = vi.spyOn(global, "Blob");
-      m.mockImplementation(() => blob);
+      m.mockImplementation(function () {
+        return blob;
+      } as unknown as typeof Blob);
 
       const f = action.deck.downloadCsvSampleText();
       await f(dispatch, getState, undefined);
