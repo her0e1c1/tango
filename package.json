@@ -38,7 +38,7 @@
     "react-redux": "^7.2.6",
     "react-router-dom": "^6.2.1",
     "react-swipeable": "^7.0.2",
-    "react-use": "^17.3.2",
+    "react-use": "^17.6.1",
     "redux": "^4.1.2",
     "redux-persist": "^6.0.0",
     "redux-thunk": "^2.4.1",
