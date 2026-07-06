@@ -12,13 +12,14 @@ Please keep using `localMode`. (note that any data uploaded to database are to b
 ### Setup for development
 
 ```bash
+mise install
 cp .env.example .env
 ```
 
 ### Install Packages
 
 ```bash
-npm install
+npm ci
 ```
 
 ### Start Server

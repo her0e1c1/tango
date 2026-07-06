@@ -1,10 +1,10 @@
-FROM node:23
+FROM node:22
 
 WORKDIR /workspace
 
 ENV PATH /node_modules/.bin:$PATH
 
-RUN npm install -g npm@11.1.0
+RUN npm install -g npm@11.6.0
 
 # Stop mounting /workspace/node_modules
 # It makes docker compose too slow
@@ -12,4 +12,4 @@ RUN \
   --mount=type=cache,target=/root/.npm \
   --mount=type=bind,source=package.json,target=package.json \
   --mount=type=bind,source=package-lock.json,target=package-lock.json \
-  npm ci && mv node_modules /
+  npm ci --include=dev && mv node_modules /
