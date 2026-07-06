@@ -1,4 +1,4 @@
-import { it, describe, beforeEach } from "vitest";
+import { it, describe, beforeEach, beforeAll, afterAll } from "vitest";
 import * as fs from "fs";
 import {
   assertFails,
@@ -9,7 +9,7 @@ import {
 import { setDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { v4 as uuid } from "uuid";
 
-describe.concurrent("firestore/rule", () => {
+describe("firestore/rule", () => {
   let testEnv: RulesTestEnvironment;
 
   const createData = async (path: string, id: string, data: object) => {

@@ -1,7 +1,7 @@
 
 services:
   db:
-    image: google/cloud-sdk
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
     platform: linux/amd64
     entrypoint: gcloud
     command: emulators firestore start --host-port "0.0.0.0:$VITE_DB_PORT" --rules=/firestore.rules
