@@ -28,11 +28,9 @@
 ### Step 1: 依存パッケージの更新
 
 ```bash
-npm install tailwindcss@next @tailwindcss/postcss@next
+npm install tailwindcss@^4.3.2 @tailwindcss/postcss@^4.3.2
 npm uninstall autoprefixer  # v4 では autoprefixer が不要になる
 ```
-
-> **注意**: v4 安定版リリース後は `@next` を外して正式バージョンを指定する。
 
 ### Step 2: PostCSS 設定の更新
 
