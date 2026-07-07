@@ -28,7 +28,7 @@ export const Switch: React.FC<{
       />
       <span
         className={cx(
-          "flex items-center flex-shrink-0 p-1 rounded-full",
+          "flex items-center shrink-0 p-1 rounded-full",
           "duration-300",
           "ease-in-out",
           "bg-gray-300",
