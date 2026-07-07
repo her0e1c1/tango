@@ -3,6 +3,7 @@
     "rules": "firestore.rules"
   },
   "hosting": {
+    "site": "tango-ts",
     "public": "build",
     "ignore": [
       "firebase.json",
