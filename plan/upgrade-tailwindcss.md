@@ -87,7 +87,24 @@ import '../src/index.css'
 
 v4 では JS 設定ファイルは不要になる。`darkMode: 'class'` は Step 3 で CSS 内の `@custom-variant dark` として移行済みのため、`tailwind.config.js` を削除する。
 
-### Step 5: 動作確認
+### Step 5: 既存ユーティリティクラスの互換性確認
+
+TailwindCSS v4 では一部のユーティリティクラスが削除・リネーム・値変更されているため、既存コードを棚卸しして必要な置換を行う。
+
+このプロジェクトで特に確認が必要なクラス例:
+
+- `bg-opacity-*`: `bg-gray-600/50` のような opacity modifier へ置換する
+- `flex-shrink-*`: `shrink-*` へ置換する
+- `focus:outline-none`: フォーカス可視性を維持できる `focus:outline-hidden` または明示的な outline/ring 指定へ置換する
+- `shadow` / `rounded` 系: v4 でデフォルト値が変更されているため、表示差分を確認し、必要に応じて `shadow-sm` / `rounded-sm` などへ調整する
+
+確認用コマンド例:
+
+```bash
+rg -n "bg-opacity-|flex-shrink-|outline-none|\bshadow\b|\brounded\b" src .storybook
+```
+
+### Step 6: 動作確認
 
 - `npm start` でローカル開発サーバーを起動し、ダークモード含む UI を目視確認する
 - `npm run storybook` で Storybook を起動し、コンポーネントの表示崩れがないか確認する
@@ -98,4 +115,5 @@ v4 では JS 設定ファイルは不要になる。`darkMode: 'class'` は Step
 - `tailwindcss@4.x` が依存関係に入っている
 - `tailwind.config.js` と `postcss.config.js` の `autoprefixer` 設定が削除されている
 - `npm start` / `npm run build` / `npm run storybook` がすべて成功する
+- v4 で削除・リネーム・値変更された既存ユーティリティクラスの棚卸しと置換が完了している
 - ダークモード切り替えが正常に動作する
