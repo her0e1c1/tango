@@ -32,8 +32,9 @@ export const Input: React.FC<{
          dark:bg-black
          dark:text-gray-100
          leading-tight
-         focus:outline-none
-         focus:shadow-outline`,
+         focus:outline-hidden
+         focus:ring-2
+         focus:ring-blue-500`,
         props.className
       )}
     />
