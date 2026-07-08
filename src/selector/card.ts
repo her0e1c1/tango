@@ -1,5 +1,6 @@
 import { uniq } from "lodash";
 import { isDefined } from "src/util";
+import { filterCardsForDeck } from "src/lib/study";
 
 export const getAllTags: Select<string, string[]> = (deckId) => (state) => {
   const cards = getAllByDeckId(deckId)(state);
@@ -34,30 +35,8 @@ export const getFilteredByDeckId =
   (state: RootState): Card[] => {
     const deck = state.deck.byId[deckId];
     if (deck == null) return [];
-    const config = state.config;
-    const cards = getAllByDeckId(deckId)(state).filter((c) => {
-      const tags = deck.selectedTags;
-      if (tags.length > 0) {
-        if (deck.tagAndFilter && !tags.every((t) => c.tags.includes(t))) {
-          return false;
-        }
-        if (!deck.tagAndFilter && !tags.some((t) => c.tags.includes(t))) {
-          return false;
-        }
-      }
-      if (deck.scoreMax != null && c.score > deck.scoreMax) {
-        return false;
-      }
-      if (deck.scoreMin != null && c.score < deck.scoreMin) {
-        return false;
-      }
-      if (config.useCardInterval && c.nextSeeingAt && c.nextSeeingAt > new Date()) {
-        return false;
-      }
-      return true;
-    });
-    cards.sort((c1, c2) => c1.numberOfSeen - c2.numberOfSeen);
-    return cards;
+    const cards = getAllByDeckId(deckId)(state);
+    return filterCardsForDeck(cards, deck, state.config);
   };
 
 export const splitByUniqueKey: Select<Card[], [CardRaw[], Card[]]> = (cards) => (state) => {

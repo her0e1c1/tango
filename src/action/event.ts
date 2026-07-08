@@ -7,6 +7,7 @@ import * as type from "./type";
 import * as action from ".";
 import * as firestore from "./firestore";
 import { type ThunkResult } from "./index";
+import { applyRealtimeChange, getRealtimeLastUpdatedAt } from "../lib/realtimeChange";
 
 const subscriptions = [] as Callback[];
 
@@ -83,8 +84,9 @@ export const deckOnChange =
     if (isNonEmpty(event.removed)) {
       dispatch(type.deckBulkDelete(event.removed));
     }
-    if (event.lastUpdatedAt) {
-      dispatch(type.configUpdate({ lastUpdatedAt: event.lastUpdatedAt }));
+    const lastUpdatedAt = getRealtimeLastUpdatedAt(event);
+    if (lastUpdatedAt) {
+      dispatch(type.configUpdate({ lastUpdatedAt }));
     }
   };
 
@@ -100,8 +102,9 @@ export const cardOnChange =
     if (isNonEmpty(event.removed)) {
       dispatch(type.cardBulkDelete(event.removed));
     }
-    if (event.lastUpdatedAt) {
-      dispatch(type.configUpdate({ lastUpdatedAt: event.lastUpdatedAt }));
+    const lastUpdatedAt = getRealtimeLastUpdatedAt(event);
+    if (lastUpdatedAt) {
+      dispatch(type.configUpdate({ lastUpdatedAt }));
     }
   };
 
