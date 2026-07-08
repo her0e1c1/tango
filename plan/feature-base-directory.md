@@ -103,7 +103,7 @@ src/
         DeckSwiperPage.tsx        # src/page/DeckSwiperPage.tsx を移動
       index.ts
     config/
-      actions.ts          # src/action/config.ts を移動 (存在すれば)
+      actions.ts          # src/action/config.ts を移動
       actions.spec.ts
       selectors.ts        # src/selector/config.ts を移動
       components/
@@ -132,12 +132,13 @@ src/
       Decorator.tsx       # src/component/Decorator.tsx を移動
       fixture.ts          # src/component/fixture.ts を移動
       storybookViewports.ts
+      # 各 *.stories.tsx は対象コンポーネントと同じディレクトリへ移動
     firestore/
       card.ts             # src/action/firestore/card.ts を移動
       card.spec.ts
       deck.ts             # src/action/firestore/deck.ts を移動
       deck.spec.ts
-      index.ts
+      index.ts            # event export は auth 側へ移す
       init.ts
       mocked.ts
       rule/
@@ -164,8 +165,11 @@ src/
 3. `src/util.ts` → `src/shared/util.ts` に移動してインポートパスを更新
 4. `src/firebase.ts` → `src/shared/firebase.ts` に移動してインポートパスを更新
 5. `src/action/type.ts` → `src/shared/actions/types.ts` に移動してインポートパスを更新
-6. `src/action/firestore/` → `src/shared/firestore/` に移動してインポートパスを更新
+6. `src/action/firestore/` のうち `card.*`、`deck.*`、`index.ts`、`init.ts`、`mocked.ts`、`rule/` → `src/shared/firestore/` に移動してインポートパスを更新
+   - `event.*` は Phase 5 で `src/features/auth/firestore/` に移動するため、このフェーズでは移動しない
+   - `src/shared/firestore/index.ts` から `event` export を削除し、auth 側の public API へ移す
 7. `src/store/` → `src/shared/store/` に移動してインポートパスを更新
+   - `src/store/reducer.ts` 内の `sample/build/output.json` への相対 import は移動後の階層に合わせて更新する
 8. `src/component/Atom/` → `src/shared/components/Atom/` に移動
 9. `src/component/Molecule/` → `src/shared/components/Molecule/` に移動
 10. `src/component/Organism/Header.tsx` と `Layout.tsx` → `src/shared/components/` に移動
@@ -189,6 +193,7 @@ src/
 1. `src/features/deck/` ディレクトリを作成
 2. `src/action/deck.ts` → `src/features/deck/actions.ts` に移動
 3. `src/action/deck.spec.ts` → `src/features/deck/actions.spec.ts` に移動
+   - `src/action/deck.ts` 内の `sample/build/output.json` への相対 import は移動後の階層に合わせて更新する
 4. `src/selector/deck.ts` → `src/features/deck/selectors.ts` に移動
 5. `src/selector/deck.spec.ts` → `src/features/deck/selectors.spec.ts` に移動
 6. Deck 関連の Organism コンポーネントを `src/features/deck/components/` に移動
@@ -200,12 +205,14 @@ src/
 ### フェーズ 4: config feature の作成
 
 1. `src/features/config/` ディレクトリを作成
-2. `src/selector/config.ts` → `src/features/config/selectors.ts` に移動
-3. ConfigForm 関連の Organism コンポーネントを `src/features/config/components/` に移動
-4. ConfigForm Template を `src/features/config/templates/` に移動
-5. `src/page/ConfigPage.tsx` → `src/features/config/pages/ConfigPage.tsx` に移動
-6. `src/features/config/index.ts` を作成
-7. インポートパスを全ファイルで更新
+2. `src/action/config.ts` → `src/features/config/actions.ts` に移動
+3. `src/action/config.spec.ts` → `src/features/config/actions.spec.ts` に移動
+4. `src/selector/config.ts` → `src/features/config/selectors.ts` に移動
+5. ConfigForm 関連の Organism コンポーネントを `src/features/config/components/` に移動
+6. ConfigForm Template を `src/features/config/templates/` に移動
+7. `src/page/ConfigPage.tsx` → `src/features/config/pages/ConfigPage.tsx` に移動
+8. `src/features/config/index.ts` を作成
+9. インポートパスを全ファイルで更新
 
 ### フェーズ 5: auth feature の作成
 
@@ -223,7 +230,9 @@ src/
 
 ### フェーズ 7: Storybook 設定の更新
 
-1. `.storybook/` の設定ファイルを確認し、ストーリーファイルの検索パターンを更新
+1. 移動対象コンポーネントの `*.stories.tsx` を、対象コンポーネントと同じ移動先ディレクトリへ移動
+2. Storybook ファイル内の `fixture`、`storybookViewports`、barrel import（`./`、`../Atom`、`../Organism` など）を新しい配置に合わせて更新
+3. `.storybook/` の設定ファイルを確認し、必要であればストーリーファイルの検索パターンを更新
 
 ### フェーズ 8: 旧ディレクトリの削除
 
@@ -257,3 +266,4 @@ src/
 - `tsconfig.json` の `paths` エイリアスを活用して移行期間中の互換性を保つことを検討する
 - 移行後にビルド（`npm run build`）とテスト（`npm run test`）を実行して動作確認する
 - `sample/generate.py` の実行が `src/store/reducer.ts` と `src/action/deck.ts`（移動後はそれぞれ `src/shared/store/reducer.ts` と `src/features/deck/actions.ts`）のビルドに必要なため、移行後も実行順序を維持する
+- 上記 2 ファイルは `sample/build/output.json` を相対 import しているため、移動時に import パスも更新する。可能であれば `sample` 生成物への alias 化も検討する
