@@ -50,22 +50,8 @@ jobs:
 
       - run: make test
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install Node dependencies
-        run: |
-          sudo rm -rf build node_modules
-          npm install -g npm@11.6.0
-          npm ci --include=dev
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
       - name: Run Playwright E2E tests
-        run: npm run e2e
+        run: make e2e
 
       - name: Upload Playwright report
         if: ${{ always() }}

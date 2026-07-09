@@ -1,4 +1,3 @@
-
 services:
   db:
     image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
@@ -24,7 +23,7 @@ services:
     working_dir: /workspace
     volumes:
       - .:/workspace
-      - /workspace/node_modules  # empty
+      - /workspace/node_modules # empty
     profiles:
       - base
     entrypoint: bash
@@ -35,3 +34,18 @@ services:
       db:
         condition: service_healthy
     entrypoint: vitest
+
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.61.1-noble
+    working_dir: /workspace
+    environment:
+      - CI=true
+      - VITE_DB_HOST=db
+      - VITE_DB_PORT=$VITE_DB_PORT
+    volumes:
+      - .:/workspace
+      - e2e_node_modules:/workspace/node_modules
+    command: bash -lc "npm install -g npm@11.6.0 && npm ci --include=dev && npm run e2e"
+
+volumes:
+  e2e_node_modules:
