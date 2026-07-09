@@ -58,7 +58,7 @@ jobs:
       - name: Install Node dependencies
         run: |
           sudo rm -rf node_modules
-          npm ci
+          npm ci --include=dev
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
