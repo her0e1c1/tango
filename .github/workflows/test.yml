@@ -50,6 +50,9 @@ jobs:
 
       - run: make test
 
+      - name: Install Node dependencies
+        run: npm ci
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
