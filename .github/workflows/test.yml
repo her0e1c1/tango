@@ -50,8 +50,15 @@ jobs:
 
       - run: make test
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
       - name: Install Node dependencies
-        run: npm ci
+        run: |
+          sudo rm -rf node_modules
+          npm ci
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
