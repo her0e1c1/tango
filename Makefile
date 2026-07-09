@@ -8,7 +8,8 @@ test:
 	@$(MAKE) -C sample test
 
 e2e:
-	$(COMPOSE) run --rm --remove-orphans e2e
+	$(COMPOSE) up -d e2e
+	$(COMPOSE) run --rm --remove-orphans --use-aliases -e PW_TEST_CONNECT_WS_ENDPOINT=ws://e2e:3000/ -e PLAYWRIGHT_BASE_URL=http://base:4173 base -lc "npm run e2e"
 
 fmt:
 	@$(MAKE) npx ARG="prettier './src/**/*.{ts,tsx,js,jsx}' --write"

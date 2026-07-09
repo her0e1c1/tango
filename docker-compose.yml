@@ -37,15 +37,9 @@ services:
 
   e2e:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
-    working_dir: /workspace
-    environment:
-      - CI=true
-      - VITE_DB_HOST=db
-      - VITE_DB_PORT=$VITE_DB_PORT
-    volumes:
-      - .:/workspace
-      - e2e_node_modules:/workspace/node_modules
-    command: bash -lc "npm install -g npm@11.6.0 && npm ci --include=dev && npm run e2e"
-
-volumes:
-  e2e_node_modules:
+    init: true
+    user: pwuser
+    working_dir: /home/pwuser
+    ports:
+      - "3000:3000"
+    command: /bin/sh -c "npx -y playwright@1.61.1 run-server --port 3000 --host 0.0.0.0"

@@ -9,7 +9,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4173",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -21,7 +21,7 @@ export default defineConfig({
   ],
   webServer: {
     command:
-      "VITE_PROJECT_ID=tango-e2e VITE_WEB_API_KEY=e2e-api-key npm run build && npx vite preview --host 127.0.0.1 --port 4173",
+      "VITE_PROJECT_ID=tango-e2e VITE_WEB_API_KEY=e2e-api-key npm run build && npx vite preview --host 0.0.0.0 --port 4173",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

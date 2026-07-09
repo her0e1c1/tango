@@ -49,8 +49,8 @@ make test     # test in docker
 
 ### E2E Test
 
-Playwright is used for browser-level smoke tests. `make e2e` runs the tests in the official Playwright Docker
-image.
+Playwright is used for browser-level smoke tests. `make e2e` starts the official Playwright Docker image as a
+remote browser server and runs the tests from the project base image.
 
 ```bash
 make e2e
