@@ -44,11 +44,15 @@ services:
       - "3000:3000"
     command: /bin/sh -c "npx -y playwright@1.61.1 run-server --port 3000 --host 0.0.0.0"
 
-  server:
+  app:
     <<: *base
     env_file:
       - .env.e2e
     command: -lc "npx vite dev --host 0.0.0.0 --port 4173"
+    networks:
+      default:
+        aliases:
+          - app.test
     healthcheck:
       test:
         [

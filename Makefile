@@ -8,7 +8,7 @@ test:
 	@$(MAKE) -C sample test
 
 e2e:
-	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser server
+	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
 	$(COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e base -lc "npm run e2e"
 
 fmt:
