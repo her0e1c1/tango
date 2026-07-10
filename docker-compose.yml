@@ -14,7 +14,9 @@ services:
 
   base: &base
     image: ghcr.io/her0e1c1/tango
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     stdin_open: true
     tty: true
     environment:
