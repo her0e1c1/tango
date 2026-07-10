@@ -1,9 +1,15 @@
 include common.mk
 
+.PHONY: e2e
+
 test:
 	@$(MAKE) npx ARG="vitest run --exclude '**/firestore/**/*.spec.ts'"
 	@$(MAKE) npx ARG="vitest run src/action/firestore" SERVICE=test
 	@$(MAKE) -C sample test
+
+e2e:
+	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
+	$(COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e base -lc "npm run e2e"
 
 fmt:
 	@$(MAKE) npx ARG="prettier './src/**/*.{ts,tsx,js,jsx}' --write"

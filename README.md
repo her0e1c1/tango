@@ -1,4 +1,3 @@
-
 # Tango
 
 ## Demo
@@ -47,6 +46,25 @@ If you use local emulator, run these commands
 npm run test  # need to start firestore before running
 make test     # test in docker
 ```
+
+### E2E Test
+
+Playwright is used for browser-level smoke tests. `make e2e` starts the official Playwright Docker image as a
+remote browser server, starts a healthy Vite dev server service from the project base image, and runs the tests
+against it.
+
+```bash
+make e2e
+```
+
+For interactive debugging, run:
+
+```bash
+npx playwright install chromium
+npm run e2e:ui
+```
+
+The initial E2E suite seeds local browser storage and does not require a real Firebase project or emulator.
 
 ## Get Firebase Token
 
