@@ -11,6 +11,7 @@
 | `npm run storybook` | `package.json`, `.storybook/main.ts` | Storybook dev server を起動します。 |
 
 開発時は `src/firebase.ts` が `import.meta.env.DEV` を見て Firestore emulator に接続します。接続先は `VITE_DB_HOST` と `VITE_DB_PORT` です。
+ホスト実行では `.env`、Docker Compose 実行では `.env.compose` から接続先を渡します。
 
 ## Docker Compose
 
@@ -23,6 +24,7 @@
 | `test` | `base` 継承 | `db` healthcheck 後に `vitest` を entrypoint として実行します。 |
 
 `Dockerfile` は `node:24-bookworm` を使い、BuildKit cache 付きの `npm ci` で dependencies を `/workspace/node_modules` にインストールします。`compose.yaml` では workspace の `node_modules` を named volume にして、ホスト側の `node_modules` mount を避けています。
+Compose container の Firestore emulator 接続先は `.env.compose`、e2e 固有の Firebase/Playwright 設定は `.env.e2e` から読みます。
 
 ## Build
 

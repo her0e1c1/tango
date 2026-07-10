@@ -4,9 +4,8 @@ x-base: &base
     context: .
   stdin_open: true
   tty: true
-  environment:
-    VITE_DB_HOST: db
-    VITE_DB_PORT: ${VITE_DB_PORT:-8080}
+  env_file:
+    - .env.compose
   working_dir: /workspace
   volumes:
     - .:/workspace
@@ -62,6 +61,7 @@ services:
   app:
     <<: *base
     env_file:
+      - .env.compose
       - .env.e2e
     command: -lc "npx vite dev --host 0.0.0.0 --port 4173"
     networks:
