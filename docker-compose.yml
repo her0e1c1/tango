@@ -43,3 +43,20 @@ services:
     ports:
       - "3000:3000"
     command: /bin/sh -c "npx -y playwright@1.61.1 run-server --port 3000 --host 0.0.0.0"
+
+  e2e-app:
+    <<: *base
+    env_file:
+      - .env.e2e
+    command: -lc "npx vite dev --host 0.0.0.0 --port 4173"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:4173', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      start_period: 5s
+      interval: 1s
+      retries: 60

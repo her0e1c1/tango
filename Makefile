@@ -8,8 +8,8 @@ test:
 	@$(MAKE) -C sample test
 
 e2e:
-	$(COMPOSE) up -d e2e
-	$(COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e base ./scripts/e2e.sh
+	$(COMPOSE) up --wait --wait-timeout 120 e2e e2e-app
+	$(COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e base -lc "npm run e2e"
 
 fmt:
 	@$(MAKE) npx ARG="prettier './src/**/*.{ts,tsx,js,jsx}' --write"

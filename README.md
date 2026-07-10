@@ -50,7 +50,8 @@ make test     # test in docker
 ### E2E Test
 
 Playwright is used for browser-level smoke tests. `make e2e` starts the official Playwright Docker image as a
-remote browser server, starts Vite dev server from the project base image, and runs the tests against it.
+remote browser server, starts a healthy Vite dev server service from the project base image, and runs the tests
+against it.
 
 ```bash
 make e2e
