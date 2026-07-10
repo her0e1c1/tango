@@ -23,7 +23,7 @@ Tango は、デッキとカードを管理し、スワイプ UI で学習する 
 ## 実行形態
 
 - ローカル開発は `npm run db` で Firestore emulator、`npm start` で Vite dev server を起動する形です。
-- Docker Compose では `db` service が Firestore emulator、`base` / `test` service が Node/Vitest 実行環境を提供します。
+- Docker Compose では `db` service が Firestore emulator、`dev` service が Node/Vitest 実行環境を提供します。
 - 本番配信は `vite build` の出力先 `build` を Firebase Hosting に deploy する構成です。
 - `firebase.json` は SPA fallback として全パスを `/index.html` に rewrite します。
 

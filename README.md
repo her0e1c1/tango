@@ -35,9 +35,9 @@ You can go to web UI and see data in firestore: http://localhost:4000/
 Some test cases need firestore as backend, so easy to test in docker container.
 
 ```bash
-docker compose run test
+make test
 # You can also pass a specified file
-docker compose run test ./src/action/xxx.spec.ts
+docker compose run --rm --entrypoint npm dev run test -- ./src/action/xxx.spec.ts
 ```
 
 If you use local emulator, run these commands
@@ -50,7 +50,7 @@ make test     # test in docker
 ### E2E Test
 
 Playwright is used for browser-level smoke tests. `make e2e` starts the official Playwright Docker image as a
-remote browser server, starts a healthy Vite dev server service from the project base image, and runs the tests
+remote browser server, starts a healthy Vite dev server service from the project image, and runs the tests
 against it.
 
 ```bash

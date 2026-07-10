@@ -20,8 +20,7 @@
 | Service | Image / Build | Purpose |
 | --- | --- | --- |
 | `db` | `google/cloud-sdk` | `gcloud emulators firestore start` で Firestore emulator を起動します。 |
-| `base` | `ghcr.io/her0e1c1/tango`, build `Dockerfile` | Node/Vitest/開発コマンドの実行環境です。 |
-| `test` | `base` 継承 | `db` healthcheck 後に `vitest` を entrypoint として実行します。 |
+| `dev` | `ghcr.io/her0e1c1/tango`, build `Dockerfile` | Node/Vitest/開発コマンドの実行環境です。 |
 
 `Dockerfile` は `node:24-bookworm` を使い、BuildKit cache 付きの `npm ci` で dependencies を `/workspace/node_modules` にインストールします。`compose.yaml` では workspace の `node_modules` を named volume にして、ホスト側の `node_modules` mount を避けています。
 Compose container の Firestore emulator 接続先は `compose.yaml` と `compose.e2e.yaml` に明示し、e2e 固有の Firebase/Playwright 設定は `.env.e2e` から読みます。

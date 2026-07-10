@@ -424,10 +424,10 @@
 
 ```bash
 # Docker コンテナ内でテスト実行（推奨）
-docker compose run test
+docker compose run --rm --entrypoint npm dev run test:firestore
 
 # 特定ファイルのみ実行
-docker compose run test ./src/action/deck.spec.ts
+docker compose run --rm --entrypoint npm dev run test -- ./src/action/deck.spec.ts
 
 # ローカルで実行（Firestore エミュレータ起動が必要）
 npm run test

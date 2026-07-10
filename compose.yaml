@@ -1,4 +1,4 @@
-x-base: &base
+x-dev: &dev
   image: ghcr.io/her0e1c1/tango
   build:
     context: .
@@ -27,17 +27,10 @@ services:
       interval: 60s
       retries: 3
 
-  base:
-    <<: *base
+  dev:
+    <<: *dev
     profiles:
-      - base
-
-  test:
-    <<: *base
-    depends_on:
-      db:
-        condition: service_healthy
-    entrypoint: vitest
+      - dev
 
 volumes:
   node_modules:
