@@ -1,10 +1,11 @@
 COMPOSE = docker compose
+E2E_COMPOSE = $(COMPOSE) -f compose.yaml -f compose.e2e.yaml
 RUN = $(COMPOSE) run --rm --remove-orphans
 LOG = $(COMPOSE) logs
 SERVICE = base
 NPM = $(RUN) --entrypoint npm $(SERVICE)
 TEST_NPM = $(RUN) --entrypoint npm test
-E2E_NPM = $(RUN) --use-aliases --env-from-file .env.e2e --entrypoint npm base
+E2E_NPM = $(E2E_COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e --entrypoint npm base
 SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := sh
 
@@ -20,7 +21,7 @@ test:
 
 .PHONY: e2e
 e2e:
-	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
+	$(E2E_COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
 	$(E2E_NPM) run e2e
 
 .PHONY: fmt
