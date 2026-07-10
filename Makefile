@@ -38,6 +38,19 @@ build:
 	$(NPM) run build
 	$(NPM) run build:storybook
 
+.PHONY: clean
+clean: clean-branches
+
+.PHONY: clean-branches
+clean-branches:
+	@git fetch --prune
+	@git branch --format='%(refname:short)|%(worktreepath)|%(upstream:track)' | while IFS='|' read -r branch worktree_path upstream_track; do \
+		[ "$$branch" != "main" ] || continue; \
+		[ "$$upstream_track" = "[gone]" ] || continue; \
+		if [ -n "$$worktree_path" ]; then git worktree remove "$$worktree_path"; fi; \
+		git branch -D "$$branch"; \
+	done
+
 .PHONY: image
 image:
 	$(COMPOSE) build base
