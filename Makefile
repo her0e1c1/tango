@@ -9,10 +9,7 @@ test:
 
 e2e:
 	$(COMPOSE) up -d e2e
-	$(COMPOSE) run --rm --remove-orphans --use-aliases \
-		-e PW_TEST_CONNECT_WS_ENDPOINT=ws://e2e:3000/ \
-		-e PLAYWRIGHT_BASE_URL=http://base:4173 \
-		base ./scripts/e2e.sh
+	$(COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e base ./scripts/e2e.sh
 
 fmt:
 	@$(MAKE) npx ARG="prettier './src/**/*.{ts,tsx,js,jsx}' --write"

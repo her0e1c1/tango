@@ -1,9 +1,5 @@
 set -euo pipefail
 
-set -a
-. ./.env.e2e
-set +a
-
 npm run build
 
 npx vite preview --host 0.0.0.0 --port 4173 &
