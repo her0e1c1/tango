@@ -12,6 +12,6 @@ export default defineConfig({
     outDir: "build",
   },
   server: {
-    allowedHosts: ["e2e-app"],
+    allowedHosts: ["server"],
   },
 });

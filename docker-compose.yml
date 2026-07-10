@@ -35,7 +35,7 @@ services:
         condition: service_healthy
     entrypoint: vitest
 
-  e2e:
+  browser:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
     init: true
     user: pwuser
@@ -44,7 +44,7 @@ services:
       - "3000:3000"
     command: /bin/sh -c "npx -y playwright@1.61.1 run-server --port 3000 --host 0.0.0.0"
 
-  e2e-app:
+  server:
     <<: *base
     env_file:
       - .env.e2e
