@@ -16,7 +16,7 @@ services:
     image: ghcr.io/her0e1c1/tango
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      target: compose
     stdin_open: true
     tty: true
     environment:
