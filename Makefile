@@ -8,16 +8,9 @@ E2E_NPM = $(RUN) --use-aliases --env-from-file .env.e2e --entrypoint npm base
 SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := sh
 
-.PHONY: run
-run:
-	$(RUN) $(OPT) $(SERVICE) $(ARG)
-
 .PHONY: sh
-sh: run
-
-.PHONY: npx
-npx: OPT=--entrypoint npx
-npx: run
+sh:
+	$(RUN) $(SERVICE)
 
 .PHONY: test
 test:
