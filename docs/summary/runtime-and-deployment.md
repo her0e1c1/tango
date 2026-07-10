@@ -14,7 +14,7 @@
 
 ## Docker Compose
 
-`docker-compose.yml` は 3 つの service を定義しています。
+`compose.yaml` は 3 つの service を定義しています。
 
 | Service | Image / Build | Purpose |
 | --- | --- | --- |
@@ -22,7 +22,7 @@
 | `base` | `ghcr.io/her0e1c1/tango`, build `Dockerfile` | Node/Vitest/開発コマンドの実行環境です。 |
 | `test` | `base` 継承 | `db` healthcheck 後に `vitest` を entrypoint として実行します。 |
 
-`Dockerfile` は `node:23` を使い、`npm ci` で dependencies を `/node_modules` に移動します。`docker-compose.yml` では workspace の `node_modules` を空 volume にして、ホスト側の `node_modules` mount を避けています。
+`Dockerfile` は `node:24-bookworm` を使い、BuildKit cache 付きの `npm ci` で dependencies を `/workspace/node_modules` にインストールします。`compose.yaml` では workspace の `node_modules` を named volume にして、ホスト側の `node_modules` mount を避けています。
 
 ## Build
 

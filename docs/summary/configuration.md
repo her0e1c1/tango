@@ -8,8 +8,8 @@
 | --- | --- | --- | --- |
 | `VITE_PROJECT_ID` | empty | `src/firebase.ts` | Firebase project id。production Firebase へ接続する場合は必要です。 |
 | `VITE_WEB_API_KEY` | empty | `src/firebase.ts` | Firebase web API key。production Firebase へ接続する場合は必要です。 |
-| `VITE_DB_HOST` | `localhost` | `src/firebase.ts`, `docker-compose.yml`, tests | Firestore emulator host。開発・テストで使います。 |
-| `VITE_DB_PORT` | `8080` | `src/firebase.ts`, `docker-compose.yml`, tests | Firestore emulator port。開発・テストで使います。 |
+| `VITE_DB_HOST` | `localhost` | `src/firebase.ts`, `compose.yaml`, tests | Firestore emulator host。開発・テストで使います。 |
+| `VITE_DB_PORT` | `8080` | `src/firebase.ts`, `compose.yaml`, tests | Firestore emulator port。開発・テストで使います。 |
 
 ## Build-Time Constants
 
