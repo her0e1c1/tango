@@ -16,7 +16,6 @@ services:
     image: ghcr.io/her0e1c1/tango
     build:
       context: .
-      target: compose
     stdin_open: true
     tty: true
     environment:
@@ -25,7 +24,7 @@ services:
     working_dir: /workspace
     volumes:
       - .:/workspace
-      - /workspace/node_modules # empty
+      - node_modules:/workspace/node_modules
     profiles:
       - base
     entrypoint: bash
@@ -66,3 +65,6 @@ services:
       start_period: 5s
       interval: 1s
       retries: 60
+
+volumes:
+  node_modules:

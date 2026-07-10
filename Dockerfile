@@ -2,9 +2,9 @@
 
 FROM node:24-bookworm AS base
 
-WORKDIR /app
+WORKDIR /workspace
 
-ENV PATH=/app/node_modules/.bin:$PATH
+ENV PATH=/workspace/node_modules/.bin:$PATH
 
 RUN npm install -g npm@11.6.0
 
@@ -15,24 +15,9 @@ COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
 
-FROM node:24-bookworm AS compose
-
-WORKDIR /
-
-ENV PATH=/node_modules/.bin:$PATH
-
-RUN npm install -g npm@11.6.0
-
-COPY package.json package-lock.json ./
-
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci
-
-WORKDIR /workspace
-
 FROM base AS app
 
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /workspace/node_modules ./node_modules
 COPY . .
 
 EXPOSE 5173
