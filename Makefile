@@ -2,6 +2,10 @@ COMPOSE = docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 LOG = $(COMPOSE) logs
 SERVICE = base
+NPM = $(RUN) --entrypoint npm $(SERVICE)
+TEST_NPM = $(RUN) --entrypoint npm test
+E2E_NPM = $(RUN) --use-aliases --env-from-file .env.e2e --entrypoint npm base
+SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := sh
 
 .PHONY: run
@@ -17,31 +21,29 @@ npx: run
 
 .PHONY: test
 test:
-	@$(MAKE) npx ARG="vitest run --exclude '**/firestore/**/*.spec.ts'"
-	@$(MAKE) npx ARG="vitest run src/action/firestore" SERVICE=test
-	@$(MAKE) -C sample test
+	$(NPM) run test:unit
+	$(TEST_NPM) run test:firestore
+	@$(SAMPLE_MAKE) test
 
 .PHONY: e2e
 e2e:
 	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
-	$(COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e base -lc "npm run e2e"
+	$(E2E_NPM) run e2e
 
 .PHONY: fmt
 fmt:
-	@$(MAKE) npx ARG="prettier './src/**/*.{ts,tsx,js,jsx}' --write"
-	@$(MAKE) npx ARG="eslint . --ext ts,tsx --report-unused-disable-directives --fix"
-	@$(MAKE) -C sample fmt
+	$(NPM) run fmt
+	@$(SAMPLE_MAKE) fmt
 
 .PHONY: lint
 lint:
-	@$(MAKE) npx ARG="tsc"
-	@$(MAKE) npx ARG="eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+	$(NPM) run lint
 
 .PHONY: build
 build:
-	@$(MAKE) -C sample build
-	@$(MAKE) npx ARG="vite build"
-	@$(MAKE) npx ARG="storybook build"
+	@$(SAMPLE_MAKE) build
+	$(NPM) run build
+	$(NPM) run build:storybook
 
 .PHONY: image
 image:
@@ -53,7 +55,4 @@ log:
 
 .PHONY: start
 start:
-	npx firebase emulators:start & \
-	npx storybook dev & \
-	npx vite dev --open & \
-	wait
+	$(NPM) run start:all
