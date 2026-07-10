@@ -16,7 +16,7 @@
     "e2e:ui": "playwright test --ui",
     "test": "vitest run --no-file-parallelism",
     "test:unit": "vitest run --exclude '**/firestore/**/*.spec.ts'",
-    "test:firestore": "vitest run src/action/firestore",
+    "test:firestore": "vitest run src/action/firestore --no-file-parallelism",
     "fmt": "npm run fmt:prettier && npm run fmt:eslint",
     "fmt:prettier": "prettier './src/**/*.{ts,tsx,js,jsx}' --write",
     "fmt:eslint": "eslint . --ext ts,tsx --report-unused-disable-directives --fix",
