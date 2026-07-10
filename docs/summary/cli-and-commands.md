@@ -23,8 +23,6 @@
 | `make log` | `Makefile` | `docker compose logs -f db` を実行します。 |
 | `make start` | `Makefile` | Firebase emulator、Storybook、Vite dev server を並行起動します。 |
 
-`common.mk` は `docker compose run --rm --remove-orphans` を共通化し、`make npx ARG="..."` のような実行形式を提供します。
-
 ## Docker Compose Commands
 
 | Command | Purpose |

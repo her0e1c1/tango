@@ -1,6 +1,18 @@
-include common.mk
+COMPOSE = docker compose
+RUN = $(COMPOSE) run --rm --remove-orphans
+LOG = $(COMPOSE) logs
+SERVICE = base
+.DEFAULT_GOAL := sh
 
-.PHONY: e2e
+.PHONY: all test build start e2e fmt lint image log run sh npx
+
+run:
+	$(RUN) $(OPT) $(SERVICE) $(ARG)
+
+sh: run
+
+npx: OPT=--entrypoint npx
+npx: run
 
 test:
 	@$(MAKE) npx ARG="vitest run --exclude '**/firestore/**/*.spec.ts'"
