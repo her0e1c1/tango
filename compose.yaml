@@ -32,5 +32,9 @@ services:
     profiles:
       - dev
 
+  app:
+    <<: *dev
+    command: -lc "npx vite dev --host 0.0.0.0"
+
 volumes:
   node_modules:
