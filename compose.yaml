@@ -1,33 +1,36 @@
+x-base: &base
+  image: ghcr.io/her0e1c1/tango
+  build:
+    context: .
+  stdin_open: true
+  tty: true
+  environment:
+    VITE_DB_HOST: db
+    VITE_DB_PORT: ${VITE_DB_PORT:-8080}
+  working_dir: /workspace
+  volumes:
+    - .:/workspace
+    - node_modules:/workspace/node_modules
+  entrypoint: bash
+
 services:
   db:
     image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
     platform: linux/amd64
     entrypoint: gcloud
-    command: emulators firestore start --host-port "0.0.0.0:$VITE_DB_PORT" --rules=/firestore.rules
+    command: emulators firestore start --host-port "0.0.0.0:${VITE_DB_PORT:-8080}" --rules=/firestore.rules
     volumes:
       - ./firestore.rules:/firestore.rules
     healthcheck:
-      test: ["CMD", "curl", "localhost:$VITE_DB_PORT"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:${VITE_DB_PORT:-8080}"]
       start_period: 5s
       interval: 60s
       retries: 3
 
-  base: &base
-    image: ghcr.io/her0e1c1/tango
-    build:
-      context: .
-    stdin_open: true
-    tty: true
-    environment:
-      - VITE_DB_HOST=db
-      - VITE_DB_PORT=$VITE_DB_PORT
-    working_dir: /workspace
-    volumes:
-      - .:/workspace
-      - node_modules:/workspace/node_modules
+  base:
+    <<: *base
     profiles:
       - base
-    entrypoint: bash
 
   test:
     <<: *base
@@ -44,6 +47,17 @@ services:
     ports:
       - "3000:3000"
     command: /bin/sh -c "npx -y playwright@1.61.1 run-server --port 3000 --host 0.0.0.0"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      start_period: 5s
+      interval: 1s
+      retries: 60
 
   app:
     <<: *base
