@@ -15,6 +15,7 @@ node_modules
 
 # misc
 .DS_Store
+.worktrees/
 .env
 .env.*
 !.env.example

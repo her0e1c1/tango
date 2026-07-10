@@ -1,3 +1,3 @@
 # Repository Instructions
 
-- When creating a PR, create a new branch from the latest `main` branch.
+- When creating a PR, create a new branch from the latest `main` branch and work in `.worktrees/$BRANCH`.
