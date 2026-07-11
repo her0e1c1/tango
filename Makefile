@@ -11,6 +11,20 @@ SAMPLE_MAKE = $(MAKE) -C sample
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-24s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
+.PHONY: init
+init: .env image npm-install ## Initialize local development environment
+
+.env: .env.example
+	cp -n .env.example .env
+
+.PHONY: npm-install
+npm-install: ## Install npm packages in the dev container
+	$(NPM) ci
+
+.PHONY: up
+up: init ## Start development containers
+	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans -d
+
 .PHONY: sh
 sh: ## Open a shell in the dev container
 	$(RUN) --entrypoint bash $(SERVICE)
