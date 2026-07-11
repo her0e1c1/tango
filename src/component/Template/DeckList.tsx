@@ -9,7 +9,11 @@ export const DeckList: React.FC<{
 }> = (props) => {
   return (
     <Organism.Layout showHeader {...props.layout}>
-      <List>{props.decks?.map((deck, i) => <Organism.DeckCard key={i} deck={deck} {...props.deckCard} />)}</List>
+      <List>
+        {props.decks?.map((deck, i) => (
+          <Organism.DeckCard key={i} deck={deck} {...props.deckCard} />
+        ))}
+      </List>
     </Organism.Layout>
   );
 };
