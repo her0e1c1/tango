@@ -50,7 +50,7 @@ ci: build fmt lint test e2e ## Run the same checks as the pull request CI
 .PHONY: e2e
 e2e: export COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
 e2e: ## Run end-to-end tests
-	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
+	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans
 	$(NPM) run e2e
 
 .PHONY: fmt

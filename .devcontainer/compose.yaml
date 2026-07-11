@@ -30,6 +30,8 @@ services:
 
   dev:
     <<: *dev
+    profiles:
+      - dev
     entrypoint: []
     command: sleep infinity
 
