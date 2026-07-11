@@ -1,9 +1,9 @@
 COMPOSE = docker compose -f .devcontainer/compose.yaml
-E2E_COMPOSE = $(COMPOSE) -f .devcontainer/compose.e2e.yaml
+E2E_COMPOSE = APP_ENV_FILE=.env.e2e $(COMPOSE)
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
-E2E_NPM = $(E2E_COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e --entrypoint npm $(SERVICE)
+E2E_NPM = $(COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e --entrypoint npm $(SERVICE)
 SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := help
 
