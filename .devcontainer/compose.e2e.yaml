@@ -1,0 +1,8 @@
+# Keep this override even though E2E_NPM also loads .env.e2e.
+# E2E_NPM only passes the file to the Playwright test runner in the dev
+# service. The Vite app runs in the separate app service, so it also needs
+# the E2E VITE_* values to avoid Firebase client initialization errors.
+services:
+  app:
+    env_file:
+      - ../.env.e2e
