@@ -1,8 +1,12 @@
 # CI copies .env.ci to .env before running this compose stack.
-# E2E_NPM passes .env to the Playwright runner in the dev service; this
-# override also passes the client-side VITE_* values to the Vite app service.
+# Compose reads .env for variable expansion; this override maps the CI values
+# needed by each service into container environment variables.
 services:
   app:
     environment:
       VITE_PROJECT_ID: ${VITE_PROJECT_ID}
       VITE_WEB_API_KEY: ${VITE_WEB_API_KEY}
+  dev:
+    environment:
+      PLAYWRIGHT_BASE_URL: ${PLAYWRIGHT_BASE_URL}
+      PW_TEST_CONNECT_WS_ENDPOINT: ${PW_TEST_CONNECT_WS_ENDPOINT}

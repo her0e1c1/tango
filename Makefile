@@ -2,7 +2,7 @@ COMPOSE = docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
-E2E_NPM = $(COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env --entrypoint npm $(SERVICE)
+E2E_NPM = $(COMPOSE) run --rm --remove-orphans --use-aliases --entrypoint npm $(SERVICE)
 SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := help
 
