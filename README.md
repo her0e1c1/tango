@@ -11,13 +11,24 @@ Please keep using `localMode`. (note that any data uploaded to database are to b
 ### Setup for development
 
 ```bash
-mise install
-cp .env.example .env
+make init
 ```
 
-### Install Packages
+This runs the `.env`, `image`, and `npm-install` Makefile targets. It creates `.env` from `.env.example` if it does
+not already exist, builds the development container image, and installs npm packages into the container volume used by
+the Makefile targets.
+
+To start the development containers configured by Compose:
 
 ```bash
+make up
+```
+
+If you want to run the app directly on your host machine instead of through Docker, install the local toolchain and
+packages:
+
+```bash
+mise install
 npm ci
 ```
 

@@ -9,7 +9,7 @@ x-dev: &dev
     VITE_DB_PORT: ${VITE_DB_PORT:-8080}
   working_dir: /workspace
   volumes:
-    - ..:/workspace
+    - ..:/workspace:cached
     - node_modules:/workspace/node_modules
   entrypoint: bash
 
@@ -17,6 +17,7 @@ services:
   db:
     image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
     platform: linux/amd64
+    init: true
     entrypoint: gcloud
     command: emulators firestore start --host-port "0.0.0.0:${VITE_DB_PORT:-8080}" --rules=/firestore.rules
     volumes:
@@ -34,6 +35,7 @@ services:
 
   app:
     <<: *dev
+    init: true
     command: -lc "npx vite dev --host 0.0.0.0 --port 4173"
     networks:
       default:
