@@ -53,25 +53,5 @@ services:
       interval: 1s
       retries: 60
 
-  browser:
-    image: mcr.microsoft.com/playwright:v1.61.1-noble
-    init: true
-    user: pwuser
-    command: npx -y playwright@1.61.1 run-server --port 3000 --host 0.0.0.0
-    depends_on:
-      app:
-        condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "require('http').get('http://localhost:3000', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))",
-        ]
-      start_period: 5s
-      interval: 1s
-      retries: 60
-
 volumes:
   node_modules:
