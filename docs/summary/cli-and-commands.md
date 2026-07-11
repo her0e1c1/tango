@@ -19,8 +19,8 @@
 | `make fmt` | `Makefile` | Prettier、ESLint fix、sample ruff format を実行します。 |
 | `make lint` | `Makefile` | TypeScript compile check と ESLint を実行します。 |
 | `make build` | `Makefile` | sample build、Vite build、Storybook build を実行します。 |
-| `make image` | `Makefile` | `docker compose build dev` を実行します。 |
-| `make log` | `Makefile` | `docker compose logs -f db` を実行します。 |
+| `make image` | `Makefile` | `docker compose -f .devcontainer/compose.yaml build dev` を実行します。 |
+| `make log` | `Makefile` | `docker compose -f .devcontainer/compose.yaml logs -f db` を実行します。 |
 | `make start` | `Makefile` | Firebase emulator、Storybook、Vite dev server を並行起動します。 |
 
 ## Docker Compose Commands
@@ -28,8 +28,8 @@
 | Command | Purpose |
 | --- | --- |
 | `make test` | Firestore emulator healthcheck 後に Vitest を実行します。 |
-| `docker compose build dev` | Node 実行 image を build します。 |
-| `docker compose logs -f db` | Firestore emulator logs を追跡します。 |
+| `docker compose -f .devcontainer/compose.yaml build dev` | Node 実行 image を build します。 |
+| `docker compose -f .devcontainer/compose.yaml logs -f db` | Firestore emulator logs を追跡します。 |
 
 ## Firebase Commands
 

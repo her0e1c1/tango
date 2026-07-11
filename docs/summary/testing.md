@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | `npm run test` | `package.json` | `vitest run --no-file-parallelism` |
 | `make test` | `Makefile` | 通常 Vitest、Firestore specs、sample pytest |
-| `make test` | `README.md`, `Makefile`, `compose.yaml` | Firestore emulator 付きの Vitest |
+| `make test` | `README.md`, `Makefile`, `.devcontainer/compose.yaml` | Firestore emulator 付きの Vitest |
 | `make lint` | `Makefile` | `tsc` と ESLint |
 | `make build` | `Makefile` | sample build、Vite build、Storybook build |
 
