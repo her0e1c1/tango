@@ -1,9 +1,8 @@
-COMPOSE = docker compose -f .devcontainer/compose.yaml
-E2E_COMPOSE = $(COMPOSE) -f .devcontainer/compose.e2e.yaml
+COMPOSE_FILE ?= .devcontainer/compose.yaml
+COMPOSE = COMPOSE_FILE=$(COMPOSE_FILE) docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
-E2E_NPM = $(E2E_COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e --entrypoint npm $(SERVICE)
 SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := help
 
@@ -49,9 +48,10 @@ test-sample: ## Run sample tests
 ci: build fmt lint test e2e ## Run the same checks as the pull request CI
 
 .PHONY: e2e
+e2e: COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
 e2e: ## Run end-to-end tests
-	$(E2E_COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
-	$(E2E_NPM) run e2e
+	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans
+	$(NPM) run e2e
 
 .PHONY: fmt
 fmt: ## Format source files
