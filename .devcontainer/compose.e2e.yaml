@@ -1,4 +1,4 @@
 services:
   app:
     env_file:
-      - .env.e2e
+      - ../.env.e2e

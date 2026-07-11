@@ -1,5 +1,5 @@
-COMPOSE = docker compose
-E2E_COMPOSE = COMPOSE_FILE=compose.yaml:compose.e2e.yaml $(COMPOSE)
+COMPOSE = docker compose -f .devcontainer/compose.yaml
+E2E_COMPOSE = $(COMPOSE) -f .devcontainer/compose.e2e.yaml
 RUN = $(COMPOSE) run --rm --remove-orphans
 LOG = $(COMPOSE) logs
 SERVICE = dev
@@ -10,7 +10,7 @@ SAMPLE_MAKE = $(MAKE) -C sample
 
 .PHONY: sh
 sh:
-	$(RUN) $(SERVICE)
+	$(RUN) --entrypoint bash $(SERVICE)
 
 .PHONY: test
 test:
