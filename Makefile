@@ -1,5 +1,5 @@
 COMPOSE = docker compose
-E2E_COMPOSE = $(COMPOSE) -f compose.yaml -f compose.e2e.yaml
+E2E_COMPOSE = COMPOSE_FILE=compose.yaml:compose.e2e.yaml $(COMPOSE)
 RUN = $(COMPOSE) run --rm --remove-orphans
 LOG = $(COMPOSE) logs
 SERVICE = dev
