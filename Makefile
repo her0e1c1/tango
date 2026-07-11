@@ -58,9 +58,18 @@ fmt: ## Format source files
 	$(NPM) run fmt
 	@$(SAMPLE_MAKE) fmt
 
+.PHONY: fmt-check
+fmt-check: ## Check source formatting without writing changes
+	$(NPM) run fmt:check
+	@$(SAMPLE_MAKE) fmt-check
+
 .PHONY: lint
 lint: ## Run lint checks
 	$(NPM) run lint
+
+.PHONY: lint-check
+lint-check: ## Run lint checks without writing changes
+	$(NPM) run lint:check
 
 .PHONY: build
 build: ## Build app, Storybook, and sample output
