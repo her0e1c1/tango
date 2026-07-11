@@ -35,6 +35,3 @@ services:
           "-e",
           "require('http').get('http://localhost:4173', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))",
         ]
-      start_period: 5s
-      interval: 1s
-      retries: 60
