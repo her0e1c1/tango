@@ -31,6 +31,9 @@ test-firestore: ## Run Firestore tests
 test-sample: ## Run sample tests
 	@$(SAMPLE_MAKE) test
 
+.PHONY: ci
+ci: build fmt lint test e2e ## Run the same checks as the pull request CI
+
 .PHONY: e2e
 e2e: ## Run end-to-end tests
 	$(E2E_COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app

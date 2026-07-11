@@ -42,16 +42,7 @@ jobs:
       - run: docker compose build dev
         if: ${{ steps.changed.outputs.any_changed == 'true' || inputs.force }}
 
-      - run: make build
-
-      - run: make fmt
-
-      - run: make lint
-
-      - run: make test
-
-      - name: Run Playwright E2E tests
-        run: make e2e
+      - run: make ci
 
       - name: Upload Playwright report
         if: ${{ always() }}
