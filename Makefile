@@ -1,9 +1,8 @@
-COMPOSE = COMPOSE_FILE=.devcontainer/compose.yaml docker compose
-E2E_COMPOSE = COMPOSE_FILE=.devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml docker compose
+COMPOSE = docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
-E2E_NPM = $(E2E_COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e --entrypoint npm $(SERVICE)
+E2E_NPM = $(COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env --entrypoint npm $(SERVICE)
 SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := help
 
@@ -16,6 +15,10 @@ init: .env image npm-install ## Initialize local development environment
 
 .env: .env.example
 	cp -n .env.example .env
+
+.PHONY: init-ci
+init-ci: ## Initialize CI environment
+	cp .env.e2e .env
 
 .PHONY: npm-install
 npm-install: ## Install npm packages in the dev container
@@ -46,11 +49,11 @@ test-sample: ## Run sample tests
 	@$(SAMPLE_MAKE) test
 
 .PHONY: ci
-ci: build fmt lint test e2e ## Run the same checks as the pull request CI
+ci: init-ci build fmt lint test e2e ## Run the same checks as the pull request CI
 
 .PHONY: e2e
 e2e: ## Run end-to-end tests
-	$(E2E_COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
+	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
 	$(E2E_NPM) run e2e
 
 .PHONY: fmt
