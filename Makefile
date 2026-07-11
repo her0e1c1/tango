@@ -45,7 +45,7 @@ test-sample: ## Run sample tests
 	@$(SAMPLE_MAKE) test
 
 .PHONY: ci
-ci: build fmt lint test e2e ## Run the same checks as the pull request CI
+ci: build fmt-check lint-check test e2e ## Run the same checks as the pull request CI
 
 .PHONY: e2e
 e2e: COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
@@ -58,9 +58,18 @@ fmt: ## Format source files
 	$(NPM) run fmt
 	@$(SAMPLE_MAKE) fmt
 
+.PHONY: fmt-check
+fmt-check: ## Check source formatting without writing changes
+	$(NPM) run fmt:check
+	@$(SAMPLE_MAKE) fmt-check
+
 .PHONY: lint
 lint: ## Run lint checks
 	$(NPM) run lint
+
+.PHONY: lint-check
+lint-check: ## Run lint checks without writing changes
+	$(NPM) run lint:check
 
 .PHONY: build
 build: ## Build app, Storybook, and sample output
@@ -70,15 +79,6 @@ build: ## Build app, Storybook, and sample output
 
 .PHONY: clean
 clean: clean-branches ## Remove local branches whose upstream was deleted
-
-.PHONY: clean-branches-dry-run
-clean-branches-dry-run: ## List local branches whose upstream was deleted
-	@git fetch --prune
-	@git branch --format='%(refname:short)|%(worktreepath)|%(upstream:track)' | while IFS='|' read -r branch worktree_path upstream_track; do \
-		[ "$$branch" != "main" ] || continue; \
-		[ "$$upstream_track" = "[gone]" ] || continue; \
-		if [ -n "$$worktree_path" ]; then echo "$$branch $$worktree_path"; else echo "$$branch"; fi; \
-	done
 
 .PHONY: clean-branches
 clean-branches: ## Remove local branches whose upstream was deleted; requires CONFIRM=1

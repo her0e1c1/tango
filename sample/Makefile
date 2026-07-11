@@ -21,3 +21,7 @@ test: OPT=--entrypoint 'py.test'
 .PHONY: fmt
 fmt: run
 fmt: OPT=--entrypoint 'ruff format'
+
+.PHONY: fmt-check
+fmt-check: run
+fmt-check: OPT=--entrypoint 'ruff format --check'
