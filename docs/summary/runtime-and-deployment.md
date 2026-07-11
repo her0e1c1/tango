@@ -11,18 +11,21 @@
 | `npm run storybook` | `package.json`, `.storybook/main.ts` | Storybook dev server を起動します。 |
 
 開発時は `src/firebase.ts` が `import.meta.env.DEV` を見て Firestore emulator に接続します。接続先は `VITE_DB_HOST` と `VITE_DB_PORT` です。
+ホスト実行では `.env`、Docker Compose 実行では `compose.yaml` の environment から接続先を渡します。
 
 ## Docker Compose
 
-`docker-compose.yml` は 3 つの service を定義しています。
+`compose.yaml` は通常の開発・テスト・e2e 用 service を定義し、`compose.e2e.yaml` は `app` service に e2e 用 env file だけを追加します。
 
 | Service | Image / Build | Purpose |
 | --- | --- | --- |
 | `db` | `google/cloud-sdk` | `gcloud emulators firestore start` で Firestore emulator を起動します。 |
-| `base` | `ghcr.io/her0e1c1/tango`, build `Dockerfile` | Node/Vitest/開発コマンドの実行環境です。 |
-| `test` | `base` 継承 | `db` healthcheck 後に `vitest` を entrypoint として実行します。 |
+| `dev` | `ghcr.io/her0e1c1/tango`, build `Dockerfile` | Node/Vitest/開発コマンドの実行環境です。 |
+| `app` | `ghcr.io/her0e1c1/tango`, build `Dockerfile` | Vite dev server を起動します。 |
+| `browser` | `mcr.microsoft.com/playwright` | e2e 用の Playwright browser server です。 |
 
-`Dockerfile` は `node:23` を使い、`npm ci` で dependencies を `/node_modules` に移動します。`docker-compose.yml` では workspace の `node_modules` を空 volume にして、ホスト側の `node_modules` mount を避けています。
+`Dockerfile` は `node:24-bookworm` を使い、BuildKit cache 付きの `npm ci` で dependencies を `/workspace/node_modules` にインストールします。`compose.yaml` では workspace の `node_modules` を named volume にして、ホスト側の `node_modules` mount を避けています。
+Compose container の Firestore emulator 接続先は `compose.yaml` に明示し、e2e 固有の Firebase/Playwright 設定は `compose.e2e.yaml` 経由で `.env.e2e` から読みます。
 
 ## Build
 

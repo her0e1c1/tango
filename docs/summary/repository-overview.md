@@ -16,14 +16,14 @@ Tango は、デッキとカードを管理し、スワイプ UI で学習する 
 | 状態管理 | `src/store/*`, `src/selector/*` | Redux reducer、永続化設定、deck/card/config の参照ロジック |
 | 操作ロジック | `src/action/*` | deck/card/config/event の thunk、CSV import/export、学習スワイプ処理 |
 | Firestore 境界 | `src/action/firestore/*`, `firestore.rules` | Firestore CRUD、snapshot 購読、セキュリティルール、テスト用初期化 |
-| Firebase 初期化 | `src/firebase.ts`, `.env.example` | Firebase app 初期化、開発時 Firestore emulator 接続 |
+| Firebase 初期化 | `src/firebase.ts`, `.env.example`, `.env.e2e`, `compose.yaml`, `compose.e2e.yaml` | Firebase app 初期化、開発時 Firestore emulator 接続、e2e 用設定 |
 | sample 生成 | `sample/*` | Python テストファイルから初期カード JSON を生成し、`sample/build/output.json` をアプリ初期データに使う |
-| 実行・CI | `package.json`, `Makefile`, `docker-compose.yml`, `.github/workflows/*` | dev server、build、lint、test、Firebase Hosting deploy、Docker image 更新 |
+| 実行・CI | `package.json`, `Makefile`, `compose.yaml`, `.github/workflows/*` | dev server、build、lint、test、Firebase Hosting deploy、Docker image 更新 |
 
 ## 実行形態
 
 - ローカル開発は `npm run db` で Firestore emulator、`npm start` で Vite dev server を起動する形です。
-- Docker Compose では `db` service が Firestore emulator、`base` / `test` service が Node/Vitest 実行環境を提供します。
+- Docker Compose では `db` service が Firestore emulator、`dev` service が Node/Vitest 実行環境を提供します。
 - 本番配信は `vite build` の出力先 `build` を Firebase Hosting に deploy する構成です。
 - `firebase.json` は SPA fallback として全パスを `/index.html` に rewrite します。
 

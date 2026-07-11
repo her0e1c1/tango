@@ -1,10 +1,10 @@
 COMPOSE = docker compose
+E2E_COMPOSE = COMPOSE_FILE=compose.yaml:compose.e2e.yaml $(COMPOSE)
 RUN = $(COMPOSE) run --rm --remove-orphans
 LOG = $(COMPOSE) logs
-SERVICE = base
+SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
-TEST_NPM = $(RUN) --entrypoint npm test
-E2E_NPM = $(RUN) --use-aliases --env-from-file .env.e2e --entrypoint npm base
+E2E_NPM = $(E2E_COMPOSE) run --rm --remove-orphans --use-aliases --env-from-file .env.e2e --entrypoint npm $(SERVICE)
 SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := sh
 
@@ -15,12 +15,13 @@ sh:
 .PHONY: test
 test:
 	$(NPM) run test:unit
-	$(TEST_NPM) run test:firestore
+	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans -d db
+	$(NPM) run test:firestore
 	@$(SAMPLE_MAKE) test
 
 .PHONY: e2e
 e2e:
-	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
+	$(E2E_COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
 	$(E2E_NPM) run e2e
 
 .PHONY: fmt
@@ -53,7 +54,7 @@ clean-branches:
 
 .PHONY: image
 image:
-	$(COMPOSE) build base
+	$(COMPOSE) build $(SERVICE)
 
 .PHONY: log
 log:
