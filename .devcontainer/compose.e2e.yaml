@@ -5,6 +5,9 @@ services:
   app:
     env_file:
       - ../.env.e2e
+    depends_on:
+      db:
+        condition: service_healthy
 
   browser:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
