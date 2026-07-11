@@ -1,5 +1,5 @@
-COMPOSE = docker compose -f .devcontainer/compose.yaml
-E2E_COMPOSE = $(COMPOSE) -f .devcontainer/compose.e2e.yaml
+COMPOSE = COMPOSE_FILE=.devcontainer/compose.yaml docker compose
+E2E_COMPOSE = COMPOSE_FILE=.devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
