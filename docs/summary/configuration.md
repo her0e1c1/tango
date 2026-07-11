@@ -8,8 +8,8 @@
 | --- | --- | --- | --- |
 | `VITE_PROJECT_ID` | `.env.example`, `.env.e2e`, GitHub secrets | `src/firebase.ts` | Firebase project id。production Firebase へ接続する場合は必要です。 |
 | `VITE_WEB_API_KEY` | `.env.example`, `.env.e2e`, GitHub secrets | `src/firebase.ts` | Firebase web API key。production Firebase へ接続する場合は必要です。 |
-| `VITE_DB_HOST` | `.env.example`, `compose.yaml`, `compose.e2e.yaml` | `src/firebase.ts`, compose services, tests | Firestore emulator host。ホスト実行では `localhost`、compose 内では `db` を使います。 |
-| `VITE_DB_PORT` | `.env.example`, `compose.yaml`, `compose.e2e.yaml` | `src/firebase.ts`, compose services, tests | Firestore emulator port。既定値は `8080` です。 |
+| `VITE_DB_HOST` | `.env.example`, `compose.yaml` | `src/firebase.ts`, compose services, tests | Firestore emulator host。ホスト実行では `localhost`、compose 内では `db` を使います。 |
+| `VITE_DB_PORT` | `.env.example`, `compose.yaml` | `src/firebase.ts`, compose services, tests | Firestore emulator port。既定値は `8080` です。 |
 | `PLAYWRIGHT_BASE_URL` | `.env.e2e` | `playwright.config.ts` | compose e2e で app service を参照する URL です。 |
 | `PW_TEST_CONNECT_WS_ENDPOINT` | `.env.e2e` | Playwright | compose e2e で browser service の Playwright server に接続する URL です。 |
 
