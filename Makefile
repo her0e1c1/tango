@@ -18,7 +18,7 @@ init: .env image npm-install ## Initialize local development environment
 
 .PHONY: init-ci
 init-ci: ## Initialize CI environment
-	cp .env.e2e .env
+	cp .env.ci .env
 
 .PHONY: npm-install
 npm-install: ## Install npm packages in the dev container

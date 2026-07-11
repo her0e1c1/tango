@@ -1,4 +1,4 @@
-# CI copies .env.e2e to .env before running this compose stack.
+# CI copies .env.ci to .env before running this compose stack.
 # E2E_NPM passes .env to the Playwright runner in the dev service; this
 # override also passes the client-side VITE_* values to the Vite app service.
 services:
