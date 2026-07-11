@@ -39,7 +39,7 @@ jobs:
             package.json
             package-lock.json
 
-      - run: docker compose build dev
+      - run: docker compose -f .devcontainer/compose.yaml build dev
         if: ${{ steps.changed.outputs.any_changed == 'true' || inputs.force }}
 
       - run: make ci
