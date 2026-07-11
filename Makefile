@@ -2,7 +2,6 @@ COMPOSE = docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
-E2E_NPM = $(COMPOSE) run --rm --remove-orphans --use-aliases --entrypoint npm $(SERVICE)
 SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := help
 
@@ -54,7 +53,7 @@ ci: init-ci build fmt lint test e2e ## Run the same checks as the pull request C
 .PHONY: e2e
 e2e: ## Run end-to-end tests
 	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans browser app
-	$(E2E_NPM) run e2e
+	$(NPM) run e2e
 
 .PHONY: fmt
 fmt: ## Format source files
