@@ -1,5 +1,5 @@
-export COMPOSE_FILE ?= .devcontainer/compose.yaml
-COMPOSE = docker compose
+COMPOSE_FILE ?= .devcontainer/compose.yaml
+COMPOSE = COMPOSE_FILE=$(COMPOSE_FILE) docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
@@ -48,7 +48,7 @@ test-sample: ## Run sample tests
 ci: build fmt lint test e2e ## Run the same checks as the pull request CI
 
 .PHONY: e2e
-e2e: export COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
+e2e: COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
 e2e: ## Run end-to-end tests
 	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans
 	$(NPM) run e2e
