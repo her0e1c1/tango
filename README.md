@@ -37,7 +37,7 @@ Some test cases need firestore as backend, so easy to test in docker container.
 ```bash
 make test
 # You can also pass a specified file
-docker compose -f .devcontainer/compose.yaml run --rm --entrypoint npm dev run test -- ./src/action/xxx.spec.ts
+docker compose run --rm --entrypoint npm dev run test -- ./src/action/xxx.spec.ts
 ```
 
 If you use local emulator, run these commands
