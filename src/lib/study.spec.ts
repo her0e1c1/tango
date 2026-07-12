@@ -169,10 +169,7 @@ describe("filterCardsForDeck", () => {
   });
 
   it("filters by tag (AND mode)", () => {
-    const cards = [
-      makeCard({ id: "a", tags: ["x", "y"] }),
-      makeCard({ id: "b", tags: ["x"] }),
-    ];
+    const cards = [makeCard({ id: "a", tags: ["x", "y"] }), makeCard({ id: "b", tags: ["x"] })];
     const deck = { ...baseDeck, selectedTags: ["x", "y"], tagAndFilter: true };
     expect(filterCardsForDeck(cards, deck, baseConfig).map((c) => c.id)).toEqual(["a"]);
   });

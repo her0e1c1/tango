@@ -3,10 +3,7 @@ import { shuffle } from "lodash";
 /**
  * Resolves the swipe action value from config for a given direction.
  */
-export const resolveSwipeAction = (
-  config: Pick<ConfigState, SwipeDirection>,
-  direction: SwipeDirection
-): cardSwipe => {
+export const resolveSwipeAction = (config: Pick<ConfigState, SwipeDirection>, direction: SwipeDirection): cardSwipe => {
   return config[direction];
 };
 
