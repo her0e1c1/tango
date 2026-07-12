@@ -40,6 +40,8 @@ App -> Page -> Container -> Template -> Component
 
 `Page`、`Template`、`Component` から Redux、router、project hooks、form state hooks を直接参照しない。feature 間の調整が必要な場合は container が行い、feature の component/template から別 feature を直接 import しない。`shared` はどの feature にも依存しない。
 
+再利用する hook の定義は `shared/hooks` または feature の `containers` 配下に置けるが、それらは container 専用の support module とする。hook を呼び出して state や副作用へ接続するのは container だけであり、Page、Template、Component からの import は architecture test で禁止する。
+
 ## Stateless と Stateful の境界
 
 ここでの stateless は、domain data や変更可能な UI state を component 自身が所有せず、値と更新 callback を props で受け取ることを意味する。DOM 表示だけに閉じた integration hook は許容するが、次の責務は container に置く。
@@ -88,7 +90,8 @@ src/
       containers/
         DeckListContainer.tsx
         DeckFormContainer.tsx
-        DeckFilterContainer.tsx
+        useDeckActions.ts
+        useDeckFilterState.ts
     card/
       components/
         Card.tsx
@@ -150,7 +153,7 @@ src/
 - `Header` と `Layout` は全 route で使うため shared component とする。
 - `Decorator`、fixture、viewport は production component から分離して `src/shared/storybook` に置く。
 - 複数 feature の form container から使う `renameKey` は `src/shared/forms` に置く。
-- 現在の `src/page/hooks.ts` は Page から切り離す。汎用 action/navigation hook は `src/shared/hooks`、deck 固有 hook は deck container 側に置く。
+- 現在の `src/page/hooks.ts` は Page から切り離す。汎用 action/navigation hook は container 専用 module として `src/shared/hooks`、deck 固有 hook は deck の `containers` 配下に置く。これらを呼び出せるのは container だけとする。
 
 ### Features
 
@@ -160,7 +163,7 @@ src/
 - `import`: CSV import 画面
 - `settings`: application settings 画面
 
-CardList と Study が deck filter や card display を利用する場合、component/template 同士を直接結合しない。呼び出し側 container が必要な props または render slot を組み立てる。これにより component 層の feature 間循環を防ぐ。
+CardList と Study が deck filter や card display を利用する場合、component/template 同士を直接結合しない。`CardListContainer` と `DeckStartContainer` は deck の container 専用 `useDeckFilterState` hook を呼び、返された値と callback を stateless な `DeckStartForm` に渡す。stateful Container component 同士は nest せず、呼び出し側の route container が必要な component と template slot を組み立てる。Container から別 feature の component または container 専用 hook への依存は許可し、component/template 層の feature 間循環を防ぐ。
 
 ## Page と Container
 
@@ -212,6 +215,10 @@ export const DeckListPage: React.FC = () => <DeckListContainer />;
 - `docs/summary/module-map.md`
 - component path を直接記載しているその他の repository documentation
 
+## Delivery
+
+設計書、implementation plan、source、tests、stories、documentation の変更は、`origin/main` から作成した現在の branch に積み、分割せず 1 件の pull request として公開する。
+
 ## 完了条件
 
 - `App -> Page -> Container -> Template -> Component` の依存方向になっている。
@@ -221,4 +228,5 @@ export const DeckListPage: React.FC = () => <DeckListContainer />;
 - 旧 Atomic Design component directories と互換 facade が残っていない。
 - UI、route、Redux/Firestore の外部挙動が変わっていない。
 - stories/specs が移動先と同じ feature/shared 配下で discovery される。
+- 設計から実装までの変更が 1 件の pull request にまとまっている。
 - architecture test と `make ci` が成功する。
