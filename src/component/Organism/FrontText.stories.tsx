@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { FrontText as Template } from "./";
-import * as fixture from "../fixture";
+import { FrontText as Template } from "@src/component/Organism";
+import * as fixture from "@src/component/fixture";
 
 const meta = {
   title: "Organism/FrontText",

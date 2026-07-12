@@ -2,12 +2,12 @@ import { signOut, linkWithPopup, signInWithCredential, GoogleAuthProvider, UserC
 import { FirebaseError } from "firebase/app";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
-import { isNonEmpty } from "../util";
-import * as type from "./type";
-import * as action from ".";
-import * as firestore from "./firestore";
-import { type ThunkResult } from "./index";
-import { getRealtimeLastUpdatedAt } from "../lib/realtimeChange";
+import { isNonEmpty } from "@src/util";
+import * as type from "@src/action/type";
+import * as action from "@src/action";
+import * as firestore from "@src/action/firestore";
+import { type ThunkResult } from "@src/action/index";
+import { getRealtimeLastUpdatedAt } from "@src/lib/realtimeChange";
 
 const subscriptions = [] as Callback[];
 

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Overlay as Template } from "./Overlay";
+import { Overlay as Template } from "@src/component/Molecule/Overlay";
 
 const meta = {
   title: "Molecule/Overlay",

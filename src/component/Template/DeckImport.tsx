@@ -1,8 +1,8 @@
 import * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
-import * as Organism from "../Organism";
-import { Upload, Description, Code, Title } from "../Atom";
-import * as C from "src/constant";
+import * as Organism from "@src/component/Organism";
+import { Upload, Description, Code, Title } from "@src/component/Atom";
+import * as C from "@src/constant";
 
 export const DeckImport: React.FC<{
   onChange?: (file: File) => void;

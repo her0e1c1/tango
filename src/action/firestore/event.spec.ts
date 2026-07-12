@@ -2,8 +2,8 @@ import "./init";
 import { expect, it, describe, vi, beforeEach, afterAll, Mock } from "vitest";
 import { getApps, deleteApp } from "firebase/app";
 import { getDoc, doc, getFirestore } from "firebase/firestore";
-import * as firestore from ".";
-import { generateDeckId, generateCardId, getTimestamp } from "./mocked";
+import * as firestore from "@src/action/firestore";
+import { generateDeckId, generateCardId, getTimestamp } from "@src/action/firestore/mocked";
 
 vi.mock("./mocked", () => ({
   generateDeckId: vi.fn(),

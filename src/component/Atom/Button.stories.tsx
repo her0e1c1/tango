@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Button as Template } from "./Button";
+import { Button as Template } from "@src/component/Atom/Button";
 
 const meta = {
   title: "Atom/Button",

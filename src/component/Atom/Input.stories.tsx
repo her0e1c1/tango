@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Input as Template } from "./Input";
+import { Input as Template } from "@src/component/Atom/Input";
 
 const meta = {
   title: "Atom/Input",

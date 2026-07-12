@@ -1,6 +1,6 @@
 import cx from "classnames";
 import * as React from "react";
-import { Style } from ".";
+import { Style } from "@src/component/Atom";
 import hljs from "highlight.js";
 import "./Code.scss";
 

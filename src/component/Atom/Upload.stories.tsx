@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Upload as Template } from "./Upload";
+import { Upload as Template } from "@src/component/Atom/Upload";
 
 const meta = {
   title: "Atom/Upload",

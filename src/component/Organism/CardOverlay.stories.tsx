@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { CardOverlay as Template } from "./";
-import * as fixture from "../fixture";
+import { CardOverlay as Template } from "@src/component/Organism";
+import * as fixture from "@src/component/fixture";
 
 const meta = {
   title: "Organism/CardOverlay",

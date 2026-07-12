@@ -1,7 +1,7 @@
 import { uniq } from "lodash";
-import * as util from "src/util";
-import * as type from "src/action/type";
-import * as action from "src/action";
+import * as util from "@src/util";
+import * as type from "@src/action/type";
+import * as action from "@src/action";
 import sampleCards from "../../sample/build/output.json";
 
 export const equal = <T>(action: Action<any>, typ: (...args: any[]) => Action<T>): action is Action<T> => {

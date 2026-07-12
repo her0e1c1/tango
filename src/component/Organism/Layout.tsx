@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Outer, Main, FullScreen } from "../Molecule";
-import { Header } from ".";
+import { Outer, Main, FullScreen } from "@src/component/Molecule";
+import { Header } from "@src/component/Organism";
 
 const Footer = () => <div className="pb-10" />;
 

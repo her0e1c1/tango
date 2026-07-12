@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Select as Template } from "./Select";
-import * as fixture from "../fixture";
+import { Select as Template } from "@src/component/Atom/Select";
+import * as fixture from "@src/component/fixture";
 
 const meta = {
   title: "Atom/Select",

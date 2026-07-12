@@ -1,7 +1,7 @@
 import cx from "classnames";
 import * as React from "react";
-import * as Molecule from "../Molecule";
-import * as Organism from "../Organism";
+import * as Molecule from "@src/component/Molecule";
+import * as Organism from "@src/component/Organism";
 
 export const DeckSwiper: React.FC<{
   showHeader?: boolean;

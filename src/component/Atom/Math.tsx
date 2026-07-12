@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Style } from ".";
+import { Style } from "@src/component/Atom";
 import Markdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";

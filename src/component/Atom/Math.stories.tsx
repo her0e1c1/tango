@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Math as Template } from "./Math";
-import * as fixture from "../fixture";
+import { Math as Template } from "@src/component/Atom/Math";
+import * as fixture from "@src/component/fixture";
 
 const meta = {
   title: "Atom/Math",

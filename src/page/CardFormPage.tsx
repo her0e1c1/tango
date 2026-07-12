@@ -1,10 +1,10 @@
 import React from "react";
-import * as C from "src/constant";
+import * as C from "@src/constant";
 import { useSelector } from "react-redux";
-import * as selector from "src/selector";
+import * as selector from "@src/selector";
 import { useParams } from "react-router-dom";
-import { CardForm } from "src/component/Template";
-import { useActions } from "./hooks";
+import { CardForm } from "@src/component/Template";
+import { useActions } from "@src/page/hooks";
 
 export const CardFormPage: React.FC = () => {
   const params = useParams();

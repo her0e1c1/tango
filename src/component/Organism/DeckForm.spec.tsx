@@ -5,7 +5,7 @@ import { render, cleanup } from "@testing-library/react";
 import { expect, it, describe, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckForm as DeckEdit } from "./DeckForm";
+import { DeckForm as DeckEdit } from "@src/component/Organism/DeckForm";
 
 describe("DeckEdit", () => {
   afterEach(() => {

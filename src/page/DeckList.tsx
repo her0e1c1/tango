@@ -1,9 +1,9 @@
 import React from "react";
 import { useKey } from "react-use";
 import { useSelector } from "react-redux";
-import * as selector from "src/selector";
-import { DeckList } from "src/component/Template";
-import { useActions } from "./hooks";
+import * as selector from "@src/selector";
+import { DeckList } from "@src/component/Template";
+import { useActions } from "@src/page/hooks";
 
 export const DeckListPage: React.FC = () => {
   const actions = useActions();

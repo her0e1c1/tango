@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Switch as Template } from "./Switch";
+import { Switch as Template } from "@src/component/Atom/Switch";
 
 const meta = {
   title: "Atom/Switch",

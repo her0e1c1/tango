@@ -5,7 +5,7 @@ import { render, cleanup } from "@testing-library/react";
 import { expect, it, describe, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { CardForm as CardEdit } from "./CardForm";
+import { CardForm as CardEdit } from "@src/component/Organism/CardForm";
 
 describe("CardEdit", () => {
   afterEach(() => {

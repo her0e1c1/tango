@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { SwipeButtonList as Template } from "./";
+import { SwipeButtonList as Template } from "@src/component/Organism";
 
 const meta = {
   title: "Organism/SwipeButtonList",

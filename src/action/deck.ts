@@ -2,13 +2,13 @@
 import { saveAs } from "file-saver";
 import * as Papa from "papaparse";
 
-import * as type from "./type";
-import * as C from "../constant";
-import { type ThunkResult } from "./index";
-import * as action from ".";
-import * as selector from "../selector";
-import * as firestore from "./firestore";
-import { buildStudySession, resolveSwipeAction, buildStudyPatch, calculateNextIndex } from "../lib/study";
+import * as type from "@src/action/type";
+import * as C from "@src/constant";
+import { type ThunkResult } from "@src/action/index";
+import * as action from "@src/action";
+import * as selector from "@src/selector";
+import * as firestore from "@src/action/firestore";
+import { buildStudySession, resolveSwipeAction, buildStudyPatch, calculateNextIndex } from "@src/lib/study";
 import sampleCards from "../../sample/build/output.json";
 
 export const prepare = (deck: DeckRaw, config: DeckConfig): Deck => {

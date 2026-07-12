@@ -4,7 +4,7 @@ import { render, cleanup } from "@testing-library/react";
 import { expect, it, describe, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom";
 
-import { FrontText } from "./FrontText";
+import { FrontText } from "@src/component/Organism/FrontText";
 
 describe("FrontText", () => {
   afterEach(() => {

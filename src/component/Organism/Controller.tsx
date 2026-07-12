@@ -1,7 +1,7 @@
 import * as React from "react";
 import { IconContext } from "react-icons";
 import { AiOutlinePause, AiOutlineCaretRight } from "react-icons/ai";
-import { Slider, Title } from "../Atom";
+import { Slider, Title } from "@src/component/Atom";
 
 export const Controller: React.FC<ControllerProps> = (props) => {
   const cardInterval = props.cardInterval ?? 10;

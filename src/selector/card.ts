@@ -1,6 +1,6 @@
 import { uniq } from "lodash";
-import { isDefined } from "src/util";
-import { filterCardsForDeck } from "src/lib/study";
+import { isDefined } from "@src/util";
+import { filterCardsForDeck } from "@src/lib/study";
 
 export const getAllTags: Select<string, string[]> = (deckId) => (state) => {
   const cards = getAllByDeckId(deckId)(state);

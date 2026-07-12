@@ -1,8 +1,8 @@
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
-import * as card from "./card";
-import * as action from ".";
-import * as firestore from "./firestore";
+import * as card from "@src/action/card";
+import * as action from "@src/action";
+import * as firestore from "@src/action/firestore";
 
 vi.mock("./firestore");
 vi.mock("firebase/firestore", () => ({

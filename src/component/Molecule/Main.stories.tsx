@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Main as Template } from "./";
+import { Main as Template } from "@src/component/Molecule";
 
 const meta = {
   title: "Molecule/Main",

@@ -2,7 +2,7 @@ import React from "react";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Form as Template, FormItem } from "./";
+import { Form as Template, FormItem } from "@src/component/Molecule";
 
 const meta = {
   title: "Molecule/Form",

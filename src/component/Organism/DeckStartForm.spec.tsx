@@ -5,7 +5,7 @@ import { render, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { expect, it, describe, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartForm } from "./DeckStartForm";
+import { DeckStartForm } from "@src/component/Organism/DeckStartForm";
 
 describe.skip("DeckStartForm", () => {
   afterEach(() => {

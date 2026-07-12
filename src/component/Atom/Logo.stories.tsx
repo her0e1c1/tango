@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Logo as Template } from "./Logo";
+import { Logo as Template } from "@src/component/Atom/Logo";
 
 const meta = {
   title: "Atom/Logo",

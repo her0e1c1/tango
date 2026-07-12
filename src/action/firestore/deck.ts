@@ -10,7 +10,7 @@ import {
   getDoc,
   setDoc,
 } from "firebase/firestore";
-import { getTimestamp } from "./mocked";
+import { getTimestamp } from "@src/action/firestore/mocked";
 
 const db = getFirestore();
 

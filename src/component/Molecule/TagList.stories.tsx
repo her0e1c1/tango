@@ -2,9 +2,9 @@ import React from "react";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { TagList as Template } from "./TagList";
-import { Tag } from "../Atom";
-import * as fixture from "../fixture";
+import { TagList as Template } from "@src/component/Molecule/TagList";
+import { Tag } from "@src/component/Atom";
+import * as fixture from "@src/component/fixture";
 
 const meta = {
   title: "Molecule/TagList",
