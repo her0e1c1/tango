@@ -1,6 +1,6 @@
 import cx from "classnames";
 import * as React from "react";
-import { Title, Math } from "@src/component/Atom";
+import { Title, Math } from "@src/shared/components";
 import { useSwipeable } from "react-swipeable";
 
 export const FrontText: React.FC<FrontTextProps> = (props) => {

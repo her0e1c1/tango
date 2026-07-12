@@ -1,9 +1,8 @@
 import React from "react";
-import { Section, Switch, Slider } from "@src/component/Atom";
-import { Form, FormItem } from "@src/component/Molecule";
+import { Form, FormItem, Section, Slider, Switch } from "@src/shared/components";
 import { ControlTagFilter } from "@src/component/Organism";
 import { type Control, useForm, useWatch } from "react-hook-form";
-import { renameKey } from "@src/component/Organism/form";
+import { renameKey } from "@src/shared/forms/renameKey";
 
 const scoreText = (max: number | null, min: number | null): string => {
   if (max != null && min != null) {

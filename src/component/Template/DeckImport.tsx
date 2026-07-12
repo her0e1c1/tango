@@ -1,8 +1,8 @@
 import * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
-import * as Organism from "@src/component/Organism";
-import { Upload, Description, Code, Title } from "@src/component/Atom";
+import { Upload, Description, Code, Title } from "@src/shared/components";
 import * as C from "@src/constant";
+import { Layout } from "@src/shared/components/Layout";
 
 export const DeckImport: React.FC<{
   onChange?: (file: File) => void;
@@ -10,7 +10,7 @@ export const DeckImport: React.FC<{
   layout?: LayoutProps;
 }> = (props) => {
   return (
-    <Organism.Layout showHeader {...props.layout}>
+    <Layout showHeader {...props.layout}>
       <Title>Deck Upload</Title>
       <Upload className="my-2" onChange={props.onChange} />
       <Title>CSV File Format</Title>
@@ -25,6 +25,6 @@ export const DeckImport: React.FC<{
       <div className="overflow-scroll p-1 mt-2 shadow dark:shadow-gray-100">
         <Code text={C.CSV_SAMPLE_TEXT} category="csv" />
       </div>
-    </Organism.Layout>
+    </Layout>
   );
 };

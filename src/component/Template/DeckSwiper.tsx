@@ -1,7 +1,8 @@
 import cx from "classnames";
 import * as React from "react";
-import * as Molecule from "@src/component/Molecule";
+import * as Shared from "@src/shared/components";
 import * as Organism from "@src/component/Organism";
+import { Layout } from "@src/shared/components/Layout";
 
 export const DeckSwiper: React.FC<{
   showHeader?: boolean;
@@ -16,7 +17,7 @@ export const DeckSwiper: React.FC<{
   swipeButtonList?: SwipeButtonListProps;
 }> = (props) => {
   return (
-    <Organism.Layout
+    <Layout
       fullscreen
       showHeader={props.showHeader && !props.showBackText}
       scroll={props.showBackText}
@@ -24,10 +25,10 @@ export const DeckSwiper: React.FC<{
     >
       {props.showBackText && props.backText != null ? (
         <>
-          <Molecule.Overlay position="left" onClick={props.frontText?.onSwipeLeft} />
-          <Molecule.Overlay position="right" onClick={props.frontText?.onSwipeRight} />
-          <Molecule.Overlay position="top" onClick={props.frontText?.onSwipeUp} />
-          <Molecule.Overlay position="bottom" onClick={props.frontText?.onSwipeDown} />
+          <Shared.Overlay position="left" onClick={props.frontText?.onSwipeLeft} />
+          <Shared.Overlay position="right" onClick={props.frontText?.onSwipeRight} />
+          <Shared.Overlay position="top" onClick={props.frontText?.onSwipeUp} />
+          <Shared.Overlay position="bottom" onClick={props.frontText?.onSwipeDown} />
           <div className="h-full flex pb-8">
             <Organism.BackText {...props.backText} />
           </div>
@@ -44,6 +45,6 @@ export const DeckSwiper: React.FC<{
           {props.showController && <Organism.Controller {...props.controller} />}
         </div>
       )}
-    </Organism.Layout>
+    </Layout>
   );
 };

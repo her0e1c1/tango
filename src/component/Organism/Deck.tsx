@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, Description, Title, Tag } from "@src/component/Atom";
+import { Button, Card, Description, Tag, Title } from "@src/shared/components";
 import { IconContext } from "react-icons";
 import {
   AiOutlineCloud,
@@ -8,7 +8,6 @@ import {
   AiOutlineDelete,
   AiOutlineReload,
 } from "react-icons/ai";
-import { Card } from "@src/component/Molecule";
 
 export const DeckCard: React.FC<DeckCardProps> = (props) => {
   const deck = props.deck;

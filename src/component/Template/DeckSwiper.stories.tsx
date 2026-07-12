@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { DeckSwiper as Template } from "@src/component/Template";
-import * as fixture from "@src/component/fixture";
+import * as fixture from "@src/shared/storybook/fixture";
 
 const meta = {
   title: "Template/DeckSwiper",

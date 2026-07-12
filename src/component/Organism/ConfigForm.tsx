@@ -1,9 +1,8 @@
 import * as React from "react";
 
-import { Switch, Button, Slider, Section, Input } from "@src/component/Atom";
-import { Form, FormItem } from "@src/component/Molecule";
+import { Button, Form, FormItem, Input, Section, Slider, Switch } from "@src/shared/components";
 import { useForm } from "react-hook-form";
-import { renameKey } from "@src/component/Organism/form";
+import { renameKey } from "@src/shared/forms/renameKey";
 
 export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
   const { watch, register, handleSubmit, setValue } = useForm<ConfigState>({

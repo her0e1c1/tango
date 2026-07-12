@@ -1,9 +1,8 @@
 import * as React from "react";
 
-import { Button, Tag, Textarea } from "@src/component/Atom";
-import { Form, FormItem, TagList } from "@src/component/Molecule";
+import { Button, Form, FormItem, Tag, TagList, Textarea } from "@src/shared/components";
 import { useForm } from "react-hook-form";
-import { renameKey } from "@src/component/Organism/form";
+import { renameKey } from "@src/shared/forms/renameKey";
 
 export const CardForm: React.FC<CardFormProps> = (props) => {
   const { handleSubmit, register, formState } = useForm<Card>({

@@ -1,6 +1,7 @@
 import React from "react";
 import * as Organism from "@src/component/Organism";
-import { Button, Section } from "@src/component/Atom";
+import { Button, Section } from "@src/shared/components";
+import { Layout } from "@src/shared/components/Layout";
 
 export const DeckStart: React.FC<{
   layout?: LayoutProps;
@@ -10,7 +11,7 @@ export const DeckStart: React.FC<{
   onClickStart?: () => void;
 }> = (props) => {
   return (
-    <Organism.Layout showHeader {...props.layout}>
+    <Layout showHeader {...props.layout}>
       <Section page title="Filter Cards" />
       <div className="flex justify-center">
         <Button
@@ -23,6 +24,6 @@ export const DeckStart: React.FC<{
         />
       </div>
       {props.deckStartForm != null && <Organism.DeckStartForm {...props.deckStartForm} />}
-    </Organism.Layout>
+    </Layout>
   );
 };

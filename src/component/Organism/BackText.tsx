@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Math, Code, Style } from "@src/component/Atom";
+import { Math, Code, Style } from "@src/shared/components";
 import * as C from "@src/constant";
 
 export const BackText: React.FC<BackTextProps> = (props) => {

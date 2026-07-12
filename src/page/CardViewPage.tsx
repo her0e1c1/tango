@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import * as selector from "@src/selector";
 import { CardView } from "@src/component/Template";
 import { useParams } from "react-router-dom";
-import { useActions } from "@src/page/hooks";
+import { useActions } from "@src/shared/hooks/useActions";
 import * as util from "@src/util";
 
 export const CardViewPage: React.FC = () => {

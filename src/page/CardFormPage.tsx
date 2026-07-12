@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import * as selector from "@src/selector";
 import { useParams } from "react-router-dom";
 import { CardForm } from "@src/component/Template";
-import { useActions } from "@src/page/hooks";
+import { useActions } from "@src/shared/hooks/useActions";
 
 export const CardFormPage: React.FC = () => {
   const params = useParams();

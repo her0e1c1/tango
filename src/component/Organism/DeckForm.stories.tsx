@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { DeckForm as Template } from "@src/component/Organism";
-import * as fixture from "@src/component/fixture";
+import * as fixture from "@src/shared/storybook/fixture";
 
 const meta = {
   title: "Organism/DeckForm",

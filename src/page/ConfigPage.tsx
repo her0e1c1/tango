@@ -3,7 +3,7 @@ import { useKey } from "react-use";
 import { useSelector } from "react-redux";
 import * as selector from "@src/selector";
 import { ConfigForm } from "@src/component/Template";
-import { useActions } from "@src/page/hooks";
+import { useActions } from "@src/shared/hooks/useActions";
 
 export const ConfigPage: React.FC = () => {
   const config = useSelector(selector.config.get());

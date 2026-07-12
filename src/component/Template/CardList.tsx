@@ -1,6 +1,7 @@
 import * as React from "react";
-import { List, Overlay } from "@src/component/Molecule";
+import { List, Overlay } from "@src/shared/components";
 import * as Organism from "@src/component/Organism";
+import { Layout } from "@src/shared/components/Layout";
 import * as util from "@src/util";
 
 export const CardList: React.FC<{
@@ -14,7 +15,7 @@ export const CardList: React.FC<{
 }> = (props) => {
   const [showCard, setShowCard] = React.useState(props.showCard);
   return (
-    <Organism.Layout showHeader {...props.layout}>
+    <Layout showHeader {...props.layout}>
       {showCard != null && (
         <Overlay position="center" className="overflow-scroll bg-inherit" onClick={() => setShowCard(undefined)}>
           <Organism.BackText text={showCard.backText} category={util.getCategory(props.deck.category, showCard.tags)} />
@@ -37,6 +38,6 @@ export const CardList: React.FC<{
           />
         ))}
       </List>
-    </Organism.Layout>
+    </Layout>
   );
 };

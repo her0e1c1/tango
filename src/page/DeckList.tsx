@@ -3,7 +3,7 @@ import { useKey } from "react-use";
 import { useSelector } from "react-redux";
 import * as selector from "@src/selector";
 import { DeckList } from "@src/component/Template";
-import { useActions } from "@src/page/hooks";
+import { useActions } from "@src/shared/hooks/useActions";
 
 export const DeckListPage: React.FC = () => {
   const actions = useActions();

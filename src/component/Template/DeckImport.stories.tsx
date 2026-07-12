@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@src/component/storybookViewports";
+import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
 import { DeckImport as Template } from "@src/component/Template";
 
 const meta = {
