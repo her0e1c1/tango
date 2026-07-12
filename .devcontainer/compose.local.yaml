@@ -1,4 +1,4 @@
 services:
   db:
     ports:
-      - "${VITE_DB_PORT:-8080}:${VITE_DB_PORT:-8080}"
+      - "${VITE_DB_PORT}:${VITE_DB_PORT}"
