@@ -21,8 +21,13 @@ run = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
 
 [tasks.dev]
 alias = "d"
-depends = ["up"]
+depends = ["build-sample", "up"]
 run = "npm start -- --open"
+
+[tasks.storybook]
+alias = "s"
+depends = ["build-sample"]
+run = "npm run storybook"
 
 [tasks.test]
 alias = "t"
