@@ -1,3 +1,104 @@
 [tools]
 node = "24"
 npm = "11.6.0"
+watchexec = "2.5.1"
+
+[env]
+_.file = ".env"
+COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.local.yaml"
+
+[hooks]
+enter = "echo 'Run `mise run dev` to start local dependencies and the app.'"
+
+[tasks.default]
+depends = ["dev"]
+
+[tasks.init]
+alias = "i"
+depends = ["init-env", "init-deps"]
+
+[tasks.init-env]
+# .env may contain local secrets such as API keys, so never overwrite it if it already exists.
+sources = [".env.example"]
+outputs = [".env"]
+run = "test -f .env || cp .env.example .env"
+
+[tasks.init-deps]
+sources = [
+  "package.json",
+  "package-lock.json",
+]
+outputs = ["node_modules/.package-lock.json"]
+run = "npm ci"
+
+[tasks.up]
+alias = "u"
+run = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
+
+[tasks.dev]
+alias = "d"
+depends = ["build-sample", "up"]
+run = "npm start -- --open"
+
+[tasks.storybook]
+alias = "s"
+depends = ["build-sample"]
+run = "npm run storybook -- --no-open"
+
+[tasks.test]
+alias = "t"
+depends = ["build-sample", "up"]
+sources = [
+  "src/**/*.{ts,tsx,js,jsx}",
+  "sample/generate.py",
+  "sample/test/**/*",
+  "package.json",
+  "package-lock.json",
+  "vitest.config.ts",
+]
+run = "npm test"
+
+[tasks.fmt]
+alias = "f"
+run = "npm run fmt"
+
+[tasks.fmt-check]
+run = "npm run fmt:check"
+
+[tasks.lint]
+alias = "l"
+depends = ["build-sample"]
+run = "npm run lint:check"
+
+[tasks.build-sample]
+sources = [
+  "sample/generate.py",
+  "sample/test/**/*",
+]
+outputs = ["sample/build/output.json"]
+run = "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base"
+
+[tasks.build]
+alias = "b"
+depends = ["build-sample"]
+run = [
+  "npm run build",
+  "npm run build:storybook",
+]
+
+[tasks.ci]
+alias = "c"
+depends = ["fmt-check", "lint", "test", "build"]
+
+[tasks.down]
+run = "docker compose down --remove-orphans"
+
+[tasks.ps]
+run = "docker compose ps"
+
+[tasks.clean]
+confirm = "削除してよいですか？"
+run = [
+  "docker compose down --volumes --remove-orphans",
+  "rm -rf node_modules build storybook-static test-results playwright-report coverage .firebase sample/build",
+]
