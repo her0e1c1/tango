@@ -1,6 +1,7 @@
 [tools]
 node = "24"
 npm = "11.6.0"
+watchexec = "2.5.1"
 
 [env]
 _.file = ".env"
@@ -14,10 +15,21 @@ depends = ["dev"]
 
 [tasks.init]
 alias = "i"
-run = [
-  "test -f .env || cp .env.example .env",
-  "npm ci",
+depends = ["init-env", "init-deps"]
+
+[tasks.init-env]
+# .env may contain local secrets such as API keys, so never overwrite it if it already exists.
+sources = [".env.example"]
+outputs = [".env"]
+run = "test -f .env || cp .env.example .env"
+
+[tasks.init-deps]
+sources = [
+  "package.json",
+  "package-lock.json",
 ]
+outputs = ["node_modules/.package-lock.json"]
+run = "npm ci"
 
 [tasks.up]
 alias = "u"
@@ -36,6 +48,14 @@ run = "npm run storybook -- --no-open"
 [tasks.test]
 alias = "t"
 depends = ["build-sample", "up"]
+sources = [
+  "src/**/*.{ts,tsx,js,jsx}",
+  "sample/generate.py",
+  "sample/test/**/*",
+  "package.json",
+  "package-lock.json",
+  "vitest.config.ts",
+]
 run = "npm test"
 
 [tasks.fmt]
@@ -51,6 +71,11 @@ depends = ["build-sample"]
 run = "npm run lint:check"
 
 [tasks.build-sample]
+sources = [
+  "sample/generate.py",
+  "sample/test/**/*",
+]
+outputs = ["sample/build/output.json"]
 run = "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base"
 
 [tasks.build]
@@ -72,14 +97,8 @@ run = "docker compose down --remove-orphans"
 run = "docker compose ps"
 
 [tasks.clean]
-run = '''
-printf 'Clean all local generated files, node_modules, and Docker volumes? [y/N] '
-read -r answer
-if [ "$answer" != "y" ]; then
-  echo 'Aborted.'
-  exit 0
-fi
-
-docker compose down --volumes --remove-orphans
-rm -rf node_modules build storybook-static test-results playwright-report coverage .firebase sample/build
-'''
+confirm = "削除してよいですか？"
+run = [
+  "docker compose down --volumes --remove-orphans",
+  "rm -rf node_modules build storybook-static test-results playwright-report coverage .firebase sample/build",
+]
