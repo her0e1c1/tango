@@ -22,7 +22,7 @@ services:
     working_dir: /buildspace
     volumes:
       - ./Pipfile:/buildspace/Pipfile
-      - ./:/workspace
+      - .:/workspace:cached
     command:
       - bash
       - -c

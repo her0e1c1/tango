@@ -7,15 +7,19 @@ node_modules
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # production
 /build
 
 # misc
 .DS_Store
+.worktrees/
 .env
 .env.*
 !.env.example
+!.env.e2e
 
 *.log
 

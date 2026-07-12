@@ -1,4 +1,3 @@
-
 # Tango
 
 ## Demo
@@ -12,13 +11,24 @@ Please keep using `localMode`. (note that any data uploaded to database are to b
 ### Setup for development
 
 ```bash
-mise install
-cp .env.example .env
+make init
 ```
 
-### Install Packages
+This runs the `.env`, `image`, and `npm-install` Makefile targets. It creates `.env` from `.env.example` if it does
+not already exist, builds the development container image, and installs npm packages into the container volume used by
+the Makefile targets.
+
+To start the development containers configured by Compose:
 
 ```bash
+make up
+```
+
+If you want to run the app directly on your host machine instead of through Docker, install the local toolchain and
+packages:
+
+```bash
+mise install
 npm ci
 ```
 
@@ -36,9 +46,9 @@ You can go to web UI and see data in firestore: http://localhost:4000/
 Some test cases need firestore as backend, so easy to test in docker container.
 
 ```bash
-docker compose run test
+make test
 # You can also pass a specified file
-docker compose run test ./src/action/xxx.spec.ts
+docker compose run --rm --entrypoint npm dev run test -- ./src/action/xxx.spec.ts
 ```
 
 If you use local emulator, run these commands
@@ -47,6 +57,25 @@ If you use local emulator, run these commands
 npm run test  # need to start firestore before running
 make test     # test in docker
 ```
+
+### E2E Test
+
+Playwright is used for browser-level smoke tests. `make e2e` starts the official Playwright Docker image as a
+remote browser server, starts a healthy Vite dev server service from the project image, and runs the tests
+against it.
+
+```bash
+make e2e
+```
+
+For interactive debugging, run:
+
+```bash
+npx playwright install chromium
+npm run e2e:ui
+```
+
+The initial E2E suite seeds local browser storage and does not require a real Firebase project or emulator.
 
 ## Get Firebase Token
 

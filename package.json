@@ -2,17 +2,33 @@
   "name": "tango-web",
   "version": "2.1.0",
   "private": true,
-  "packageManager": "npm@11.6.0",
+  "packageManager": "npm@12.0.1",
   "engines": {
-    "node": "24.x"
+    "node": ">=24.15.0 <25"
   },
   "scripts": {
     "start": "vite dev",
+    "start:all": "firebase emulators:start & storybook dev & vite dev --open & wait",
     "build": "vite build",
+    "build:storybook": "storybook build",
     "db": "firebase emulators:start",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
     "test": "vitest run --no-file-parallelism",
+    "test:unit": "vitest run --exclude '**/firestore/**/*.spec.ts'",
+    "test:firestore": "vitest run src/action/firestore --no-file-parallelism",
+    "fmt": "npm run fmt:prettier && npm run fmt:eslint",
+    "fmt:check": "npm run fmt:prettier:check && npm run fmt:eslint:check",
+    "fmt:prettier": "prettier './src/**/*.{ts,tsx,js,jsx}' --write",
+    "fmt:prettier:check": "prettier './src/**/*.{ts,tsx,js,jsx}' --check",
+    "fmt:eslint": "eslint . --ext ts,tsx --report-unused-disable-directives --fix",
+    "fmt:eslint:check": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "npm run lint:tsc && npm run lint:eslint",
+    "lint:check": "npm run lint",
+    "lint:tsc": "tsc",
+    "lint:eslint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "storybook": "storybook dev",
-    "build-storybook": "storybook build"
+    "build-storybook": "npm run build:storybook"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.2",
@@ -49,8 +65,8 @@
     "uuid": "^14.0.1"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^1.9.0",
     "@firebase/rules-unit-testing": "^3.0.4",
+    "@playwright/test": "^1.61.1",
     "@storybook/addon-docs": "^10.4.6",
     "@storybook/addon-links": "^10.4.6",
     "@storybook/addon-themes": "^10.4.6",
@@ -74,7 +90,6 @@
     "postcss": "^8.5.16",
     "prettier": "^3.9.4",
     "storybook": "^10.4.6",
-    "storybook-dark-mode": "^4.0.1",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.9.3",
     "vite": "^8.1.3",
