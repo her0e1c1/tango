@@ -27,7 +27,7 @@ run = "npm start -- --open"
 [tasks.storybook]
 alias = "s"
 depends = ["build-sample"]
-run = "npm run storybook"
+run = "npm run storybook -- --no-open"
 
 [tasks.test]
 alias = "t"
