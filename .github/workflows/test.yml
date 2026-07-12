@@ -44,8 +44,6 @@ jobs:
 
       - uses: jdx/mise-action@v4
 
-      - run: mise run init-deps
-
       - run: mise run ci
 
       - run: env -u COMPOSE_FILE make ci
