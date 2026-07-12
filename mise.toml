@@ -9,6 +9,9 @@ COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.local.yaml"
 [hooks]
 enter = "echo 'Run `mise run dev` to start local dependencies and the app.'"
 
+[tasks.default]
+depends = ["dev"]
+
 [tasks.init]
 alias = "i"
 run = [
