@@ -2,6 +2,7 @@ import { type ThunkResult } from ".";
 import * as action from ".";
 import * as firestore from "./firestore";
 import * as selector from "../selector";
+import { calculateGoToIndex } from "../lib/study";
 
 export const isEmpty = (c: CardRaw): boolean => {
   return c.frontText === "" && c.backText === "";
@@ -23,8 +24,7 @@ export const goTo =
   (cardId: string): ThunkResult =>
   async (dispatch, getState) => {
     const deck = selector.deck.getByCardId(cardId)(getState());
-    let currentIndex = deck.cardOrderIds.findIndex((id) => id === cardId);
-    if (currentIndex === -1) currentIndex = 0;
+    const currentIndex = calculateGoToIndex(cardId, deck);
     await dispatch(action.deck.update({ id: deck.id, currentIndex }));
   };
 

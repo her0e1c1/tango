@@ -1,5 +1,4 @@
 // import moment from "moment";
-import { shuffle } from "lodash";
 import { saveAs } from "file-saver";
 import * as Papa from "papaparse";
 
@@ -9,6 +8,7 @@ import { type ThunkResult } from "./index";
 import * as action from ".";
 import * as selector from "../selector";
 import * as firestore from "./firestore";
+import { buildStudySession, resolveSwipeAction, buildStudyPatch, calculateNextIndex } from "../lib/study";
 import sampleCards from "../../sample/build/output.json";
 
 export const prepare = (deck: DeckRaw, config: DeckConfig): Deck => {
@@ -81,13 +81,7 @@ export const start =
   async (dispatch, getState) => {
     const cards = selector.card.getFilteredByDeckId(deckId)(getState());
     const config = getState().config;
-    let cardOrderIds = cards.map((c) => c.id);
-    if (config.shuffled) {
-      cardOrderIds = shuffle(cardOrderIds);
-    }
-    if (config.maxNumberOfCardsToLearn > 0) {
-      cardOrderIds = cardOrderIds.slice(0, config.maxNumberOfCardsToLearn);
-    }
+    const cardOrderIds = buildStudySession(cards, config);
     // before going to DeckSwiperPage, need to set cardOrderIds without delay (otherwise, it would go back to the previous page)
     await dispatch(action.deck.update({ id: deckId, currentIndex: 0, cardOrderIds }));
     await dispatch(
@@ -98,53 +92,29 @@ export const start =
     );
   };
 
-const getCardScore = (card: Card, mastered?: boolean) => {
-  let score;
-  if (mastered) {
-    score = card.score >= 0 ? card.score + 1 : 0;
-  } else if (!mastered) {
-    score = card.score <= 0 ? card.score - 1 : 0;
-  } else {
-    score = 0;
-  }
-  return score;
-};
-
 export const swipe =
   (direction: SwipeDirection, deckId: string): ThunkResult =>
   async (dispatch, getState) => {
     const deck = selector.deck.getById(deckId)(getState());
     const config = getState().config;
-    const value = config[direction];
+    const swipeAction = resolveSwipeAction(config, direction);
     const card = selector.card.getCurrentByDeckId(deckId)(getState());
     if (card == null) {
       return;
     }
 
-    if (value === "DoNothing") {
+    if (swipeAction === "DoNothing") {
       return;
     }
 
     dispatch(type.configUpdate({ lastSwipe: direction }));
 
-    if (value === "GoBack") {
+    if (swipeAction === "GoBack") {
       await dispatch(update({ id: deck.id, currentIndex: -1 }));
       return;
     }
     if (config.hideBodyWhenCardChanged) {
       dispatch(type.configUpdate({ showBackText: false }));
-    }
-
-    const numberOfSeen = card.numberOfSeen + 1;
-    const lastSeenAt = new Date().getTime();
-
-    let score = card.score;
-    if (value === "GoToNextCardMastered") {
-      score = getCardScore(card, true);
-    } else if (value === "GoToNextCardNotMastered") {
-      score = getCardScore(card, false);
-    } else if (value === "GoToNextCardToggleMastered") {
-      score = getCardScore(card);
     }
 
     // let interval = card.interval;
@@ -156,29 +126,11 @@ export const swipe =
     // }
     // const nextSeeingAt = moment(lastSeenAt).add(interval, "minute").toDate();
 
-    await dispatch(
-      action.card.update({
-        id: card.id,
-        deckId: card.deckId,
-        score,
-        numberOfSeen,
-        lastSeenAt,
-        // interval,
-        // nextSeeingAt,
-      })
-    );
+    const patch = buildStudyPatch(card, swipeAction, new Date().getTime());
+    await dispatch(action.card.update(patch));
 
-    let currentIndex: number = deck.currentIndex ?? 0;
-    if (value === "GoToPrevCard") {
-      currentIndex -= 1;
-    } else {
-      currentIndex += 1;
-    }
-    if (currentIndex >= 0 && currentIndex < deck.cardOrderIds.length) {
-      await dispatch(action.deck.update({ id: deck.id, currentIndex }));
-    } else {
-      await dispatch(action.deck.update({ id: deck.id, currentIndex: -1 }));
-    }
+    const currentIndex = calculateNextIndex(deck.currentIndex ?? 0, deck.cardOrderIds.length, swipeAction);
+    await dispatch(action.deck.update({ id: deck.id, currentIndex }));
   };
 
 export const download =
