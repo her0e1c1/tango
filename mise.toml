@@ -1,6 +1,6 @@
 [tools]
-node = "24"
-npm = "11.6.0"
+node = "24.15.0"
+npm = "12.0.1"
 watchexec = "2.5.1"
 
 [env]
