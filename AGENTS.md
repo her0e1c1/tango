@@ -1,3 +1,5 @@
 # Repository Instructions
 
-- Before editing files, use `git worktree` to create `.worktrees/$BRANCH` from the latest `main` branch, and do not work directly on the `main` branch.
+- Before editing files, run `git fetch origin main`, then create a `git worktree` at `.worktrees/$BRANCH` from `origin/main`.
+- Do not work directly on `main`.
+- Before finishing changes, run `make ci`.
