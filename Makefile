@@ -47,6 +47,9 @@ test-sample: ## Run sample tests
 .PHONY: ci
 ci: build fmt-check lint-check test e2e ## Run the same checks as the pull request CI
 
+.PHONY: check
+check: sample-build fmt-check lint-check test-unit ## Run lightweight checks
+
 .PHONY: e2e
 e2e: COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
 e2e: ## Run end-to-end tests
@@ -72,10 +75,13 @@ lint-check: ## Run lint checks without writing changes
 	$(NPM) run lint:check
 
 .PHONY: build
-build: ## Build app, Storybook, and sample output
-	@$(SAMPLE_MAKE) build
+build: sample-build ## Build app, Storybook, and sample output
 	$(NPM) run build
 	$(NPM) run build:storybook
+
+.PHONY: sample-build
+sample-build: ## Build sample output
+	@$(SAMPLE_MAKE) build
 
 .PHONY: clean
 clean: clean-branches ## Remove local branches whose upstream was deleted
