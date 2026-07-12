@@ -42,9 +42,11 @@ jobs:
       - run: docker compose -f .devcontainer/compose.yaml build dev
         if: ${{ steps.changed.outputs.any_changed == 'true' || inputs.force }}
 
+      - run: make ci
+
       - uses: jdx/mise-action@v4
 
-      - run: make ci
+      - run: mise run ci
 
       - name: Upload Playwright report
         if: ${{ always() }}
