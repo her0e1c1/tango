@@ -7,7 +7,7 @@ import * as type from "./type";
 import * as action from ".";
 import * as firestore from "./firestore";
 import { type ThunkResult } from "./index";
-import { applyRealtimeChange, getRealtimeLastUpdatedAt } from "../lib/realtimeChange";
+import { getRealtimeLastUpdatedAt } from "../lib/realtimeChange";
 
 const subscriptions = [] as Callback[];
 
