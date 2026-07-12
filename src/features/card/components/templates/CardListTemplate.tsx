@@ -1,40 +1,45 @@
 import * as React from "react";
 import { List, Overlay } from "@src/shared/components";
-import * as Organism from "@src/component/Organism";
 import { Layout } from "@src/shared/components/Layout";
-import * as util from "@src/util";
-import { DeckStartForm, type DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
+import { BackText } from "@src/features/card/components/BackText";
+import { Card } from "@src/features/card/components/Card";
 
-export const CardList: React.FC<{
-  deck: Deck;
+export interface CardListOverlayProps {
+  backText: BackTextProps;
+  onClose?: () => void;
+}
+
+export interface CardListTemplateProps {
   cards: Card[];
   layout?: LayoutProps;
-  deckStartForm?: DeckStartFormProps;
+  filterSlot?: React.ReactNode;
   card?: CardProps;
-  showCard?: Card;
-}> = (props) => {
-  const [showCard, setShowCard] = React.useState(props.showCard);
+  overlay?: CardListOverlayProps;
+  onShowCard?: (card: Card) => void;
+}
+
+export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
-      {showCard != null && (
-        <Overlay position="center" className="overflow-scroll bg-inherit" onClick={() => setShowCard(undefined)}>
-          <Organism.BackText text={showCard.backText} category={util.getCategory(props.deck.category, showCard.tags)} />
+      {props.overlay != null && (
+        <Overlay position="center" className="overflow-scroll bg-inherit" onClick={props.overlay.onClose}>
+          <BackText {...props.overlay.backText} />
         </Overlay>
       )}
       <details className="sticky top-0 bg-inherit py-2 max-h-screen">
         <summary className="cursor-pointer border-b border-gray-300 dark:border-gray-600 pb-1 mb-1">filter</summary>
-        {props.deckStartForm != null && <DeckStartForm {...props.deckStartForm} />}
+        {props.filterSlot}
       </details>
       <List col1>
         {props.cards?.map((c, i) => (
-          <Organism.Card
+          <Card
             key={i}
             card={c}
             onSwipedLeft={props.card?.onSwipedLeft}
             onSwipedRight={props.card?.onSwipedRight}
             onDelete={props.card?.onDelete}
             goToEdit={props.card?.goToEdit}
-            goToView={() => setShowCard(c)}
+            goToView={() => props.onShowCard?.(c)}
           />
         ))}
       </List>

@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Card as Template } from "@src/component/Organism";
+import { Card as Template } from "@src/features/card/components/Card";
 import * as fixture from "@src/shared/storybook/fixture";
 
 const meta = {
-  title: "Organism/Card",
+  title: "Card/Card",
   component: Template,
   tags: ["autodocs"],
   args: {

@@ -55,6 +55,7 @@ interface FrontTextProps {
 interface BackTextProps {
   text: string;
   category?: string;
+  code?: boolean;
   onClick?: () => void;
 }
 
@@ -85,13 +86,6 @@ interface CardActionsProps {
 }
 
 type CardListProps = { cards: Card[] } & CardActionsProps;
-
-interface CardFormProps {
-  card?: Card;
-  categoryOptions?: Option[];
-  onSubmit?: (card: Card) => void;
-  schema?: any;
-}
 
 interface ConfigFormProps {
   isLoggedIn?: boolean;

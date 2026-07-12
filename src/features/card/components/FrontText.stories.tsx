@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { FrontText as Template } from "@src/component/Organism";
+import { FrontText as Template } from "@src/features/card/components/FrontText";
 import * as fixture from "@src/shared/storybook/fixture";
 
 const meta = {
-  title: "Organism/FrontText",
+  title: "Card/FrontText",
   component: Template,
   tags: ["autodocs"],
   argTypes: {

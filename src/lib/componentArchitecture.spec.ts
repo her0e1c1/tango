@@ -38,6 +38,15 @@ const deckPresentationAllowedModules = [
   "@src/shared/components",
   "@src/features/deck/components",
 ];
+const cardPageAllowedModules = new Set(["react", "@src/features/card/containers"]);
+const cardPresentationAllowedModules = [
+  "react",
+  "react-icons",
+  "classnames",
+  "react-swipeable",
+  "@src/shared/components",
+  "@src/features/card/components",
+];
 
 function isAllowedDeckPageModule(specifier: string): boolean {
   return deckPageAllowedModules.has(specifier);
@@ -45,6 +54,14 @@ function isAllowedDeckPageModule(specifier: string): boolean {
 
 function isAllowedDeckPresentationModule(specifier: string): boolean {
   return deckPresentationAllowedModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName));
+}
+
+function isAllowedCardPageModule(specifier: string): boolean {
+  return cardPageAllowedModules.has(specifier);
+}
+
+function isAllowedCardPresentationModule(specifier: string): boolean {
+  return cardPresentationAllowedModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName));
 }
 
 function importViolation(relativePath: string, specifier: string): string {
@@ -116,5 +133,92 @@ describe("component architecture", () => {
     }
 
     expect(importViolations).toEqual([]);
+  });
+
+  it("places card presentation and application behavior under the card feature", () => {
+    const componentPaths = [
+      "features/card/components/Card.tsx",
+      "features/card/components/CardForm.tsx",
+      "features/card/components/CardOverlay.tsx",
+      "features/card/components/FrontText.tsx",
+      "features/card/components/BackText.tsx",
+      "features/card/components/templates/CardListTemplate.tsx",
+      "features/card/components/templates/CardFormTemplate.tsx",
+      "features/card/components/templates/CardViewTemplate.tsx",
+    ];
+    const colocatedPaths = [
+      "features/card/components/Card.stories.tsx",
+      "features/card/components/CardForm.stories.tsx",
+      "features/card/components/CardForm.spec.tsx",
+      "features/card/components/CardOverlay.stories.tsx",
+      "features/card/components/FrontText.stories.tsx",
+      "features/card/components/FrontText.spec.tsx",
+      "features/card/components/BackText.stories.tsx",
+      "features/card/components/templates/CardListTemplate.stories.tsx",
+      "features/card/components/templates/CardListTemplate.spec.tsx",
+      "features/card/components/templates/CardFormTemplate.stories.tsx",
+    ];
+    const containerPaths = [
+      "features/card/containers/CardListContainer.tsx",
+      "features/card/containers/CardFormContainer.tsx",
+      "features/card/containers/CardViewContainer.tsx",
+      "features/card/containers/useCardFormState.ts",
+      "features/card/containers/index.ts",
+    ];
+    const pageContainers = [
+      ["page/CardList.tsx", "CardListContainer"],
+      ["page/CardFormPage.tsx", "CardFormContainer"],
+      ["page/CardViewPage.tsx", "CardViewContainer"],
+    ] as const;
+    const importViolations: string[] = [];
+
+    expectSourcePathsToExist([...componentPaths, ...colocatedPaths, ...containerPaths]);
+    expectSourcePathsNotToExist([
+      "component/Organism/Card.tsx",
+      "component/Organism/Card.stories.tsx",
+      "component/Organism/CardForm.tsx",
+      "component/Organism/CardForm.stories.tsx",
+      "component/Organism/CardForm.spec.tsx",
+      "component/Organism/CardOverlay.tsx",
+      "component/Organism/CardOverlay.stories.tsx",
+      "component/Organism/FrontText.tsx",
+      "component/Organism/FrontText.stories.tsx",
+      "component/Organism/FrontText.spec.tsx",
+      "component/Organism/BackText.tsx",
+      "component/Organism/BackText.stories.tsx",
+      "component/Template/CardList.tsx",
+      "component/Template/CardList.stories.tsx",
+      "component/Template/CardForm.tsx",
+      "component/Template/CardForm.stories.tsx",
+      "component/Template/CardView.tsx",
+    ]);
+
+    for (const [pagePath, containerName] of pageContainers) {
+      const pageSource = readSource(pagePath);
+      const pageModules = staticModuleSpecifiers(pageSource);
+      expect(pageModules).toContain("@src/features/card/containers");
+      expect(pageSource).toContain(containerName);
+      expect(pageSource).not.toMatch(
+        /\b(?:useState|useReducer|useMemo|useEffect|useSelector|useParams|useActions|useKey|useForm)\s*\(/
+      );
+      importViolations.push(
+        ...pageModules
+          .filter((specifier) => !isAllowedCardPageModule(specifier))
+          .map((specifier) => importViolation(pagePath, specifier))
+      );
+    }
+
+    for (const componentPath of componentPaths) {
+      const componentSource = readSource(componentPath);
+      expect(componentSource).not.toMatch(/\b(?:useState|useReducer|useForm|useController|useWatch)\s*\(/);
+      expect(componentSource).not.toMatch(/\bReact\.(?:useState|useReducer)\s*\(/);
+      importViolations.push(
+        ...staticModuleSpecifiers(componentSource)
+          .filter((specifier) => !isAllowedCardPresentationModule(specifier))
+          .map((specifier) => importViolation(componentPath, specifier))
+      );
+    }
+
+    expect(importViolations, importViolations.join("\n")).toEqual([]);
   });
 });

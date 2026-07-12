@@ -7,6 +7,7 @@ import * as selector from "@src/selector";
 import { useSelector, useDispatch } from "react-redux";
 import { useKey } from "react-use";
 import * as action from "@src/action";
+import * as C from "@src/constant";
 import * as util from "@src/util";
 
 export const DeckSwiperPage: React.FC = () => {
@@ -80,6 +81,7 @@ export const DeckSwiperPage: React.FC = () => {
       }}
       backText={{
         category,
+        code: C.LANGUAGES.includes(category),
         text: card.backText,
         onClick: actions.toggleShowBackText,
       }}

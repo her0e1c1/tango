@@ -1,7 +1,8 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import { CardList as Template } from "@src/component/Template";
-import type { DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
+import { CardListTemplate as Template } from "@src/features/card/components/templates/CardListTemplate";
+import { DeckStartForm, type DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
 import * as fixture from "@src/shared/storybook/fixture";
 
 const deckStartForm: DeckStartFormProps = {
@@ -28,7 +29,7 @@ const longDeckStartForm: DeckStartFormProps = {
 };
 
 const meta = {
-  title: "Template/CardList",
+  title: "Card/CardListTemplate",
   component: Template,
   tags: ["autodocs"],
   parameters: {
@@ -39,9 +40,8 @@ const meta = {
     },
   },
   args: {
-    deck: fixture.deck.default,
     cards: fixture.cards.default,
-    deckStartForm,
+    filterSlot: <DeckStartForm {...deckStartForm} />,
   },
 } satisfies Meta<typeof Template>;
 
@@ -52,14 +52,20 @@ export const Default: Story = {};
 
 export const Long: Story = {
   args: {
-    deckStartForm: longDeckStartForm,
+    filterSlot: <DeckStartForm {...longDeckStartForm} />,
     cards: fixture.cards.long,
   },
 };
 
 export const CardView: Story = {
   args: {
-    showCard: fixture.card.default,
+    overlay: {
+      backText: {
+        text: fixture.card.default.backText,
+        category: fixture.deck.default.category,
+      },
+      onClose: () => undefined,
+    },
   },
 };
 
@@ -78,7 +84,7 @@ export const IphoneXLong: Story = {
     },
   },
   args: {
-    deckStartForm: longDeckStartForm,
+    filterSlot: <DeckStartForm {...longDeckStartForm} />,
     cards: fixture.cards.long,
   },
 };

@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { BackText as Template } from "@src/component/Organism";
+import { BackText as Template } from "@src/features/card/components/BackText";
 import * as fixture from "@src/shared/storybook/fixture";
 
 const meta = {
-  title: "Organism/BackText",
+  title: "Card/BackText",
   component: Template,
   tags: ["autodocs"],
   parameters: {
@@ -34,6 +34,7 @@ export const Python: Story = {
   args: {
     text: fixture.code.default,
     category: "python",
+    code: true,
   },
 };
 
@@ -41,6 +42,7 @@ export const Golang: Story = {
   args: {
     text: fixture.code.default,
     category: "golang",
+    code: true,
   },
 };
 export const LongText: Story = {

@@ -3,6 +3,9 @@ import * as React from "react";
 import * as Shared from "@src/shared/components";
 import * as Organism from "@src/component/Organism";
 import { Layout } from "@src/shared/components/Layout";
+import { BackText } from "@src/features/card/components/BackText";
+import { CardOverlay } from "@src/features/card/components/CardOverlay";
+import { FrontText } from "@src/features/card/components/FrontText";
 
 export const DeckSwiper: React.FC<{
   showHeader?: boolean;
@@ -30,13 +33,13 @@ export const DeckSwiper: React.FC<{
           <Shared.Overlay position="top" onClick={props.frontText?.onSwipeUp} />
           <Shared.Overlay position="bottom" onClick={props.frontText?.onSwipeDown} />
           <div className="h-full flex pb-8">
-            <Organism.BackText {...props.backText} />
+            <BackText {...props.backText} />
           </div>
         </>
       ) : props.frontText != null ? (
         <div className="h-full flex flex-col relative">
-          <Organism.CardOverlay card={props.card} />
-          <Organism.FrontText {...props.frontText} />
+          <CardOverlay card={props.card} />
+          <FrontText {...props.frontText} />
         </div>
       ) : null}
       {(props.showSwipeButtonList || props.showController) && (

@@ -1,11 +1,22 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import { CardForm as Template } from "@src/component/Template";
+import type { CardFormFields } from "@src/features/card/components/CardForm";
+import { CardFormTemplate as Template } from "@src/features/card/components/templates/CardFormTemplate";
 import * as fixture from "@src/shared/storybook/fixture";
 
+const fields: CardFormFields = {
+  frontText: { value: fixture.card.default.frontText, onChange: () => undefined },
+  backText: { value: fixture.card.default.backText, onChange: () => undefined },
+  tags: fixture.form.options.default.map(({ label, value }) => ({
+    label,
+    value,
+    input: { name: "tags", value, checked: false, onChange: () => undefined },
+  })),
+};
+
 const meta = {
-  title: "Template/CardForm",
+  title: "Card/CardFormTemplate",
   component: Template,
   tags: ["autodocs"],
   parameters: {
@@ -18,7 +29,7 @@ const meta = {
   args: {
     cardForm: {
       card: fixture.card.default,
-      categoryOptions: fixture.form.options.default,
+      fields,
     },
   },
 } satisfies Meta<typeof Template>;

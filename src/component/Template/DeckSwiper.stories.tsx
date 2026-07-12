@@ -56,6 +56,6 @@ export const BackTextTooLong: Story = {
 export const BackTextCode: Story = {
   args: {
     showBackText: true,
-    backText: { text: fixture.code.longtext, category: "python" },
+    backText: { text: fixture.code.longtext, category: "python", code: true },
   },
 };
