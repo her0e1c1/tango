@@ -65,7 +65,6 @@
     "uuid": "^14.0.1"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^1.9.0",
     "@firebase/rules-unit-testing": "^3.0.4",
     "@playwright/test": "^1.61.1",
     "@storybook/addon-docs": "^10.4.6",
