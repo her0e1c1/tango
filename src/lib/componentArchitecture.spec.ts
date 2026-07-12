@@ -76,7 +76,7 @@ describe("component architecture", () => {
       expect(componentSource).not.toMatch(
         /from ["'](?:react-redux|react-router-dom|react-hook-form|@src\/(?:action|selector|shared\/hooks))["']/
       );
-      expect(componentSource).not.toMatch(/from ["']@src\/features\/(?!deck\/)[^"']+\/containers(?:\/[^"']*)?["']/);
+      expect(componentSource).not.toMatch(/from ["']@src\/features\/[^/"']+\/containers(?:\/[^"']*)?["']/);
     }
   });
 });
