@@ -1,18 +1,20 @@
 import * as React from "react";
-import * as Organism from "@src/component/Organism";
 import { List } from "@src/shared/components";
 import { Layout } from "@src/shared/components/Layout";
+import { DeckCard, type DeckCardProps } from "@src/features/deck/components/DeckCard";
 
-export const DeckList: React.FC<{
+export interface DeckListTemplateProps {
   decks: Deck[];
-  layout?: LayoutProps;
+  layout?: React.ComponentProps<typeof Layout>;
   deckCard?: DeckCardProps;
-}> = (props) => {
+}
+
+export const DeckListTemplate: React.FC<DeckListTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       <List>
         {props.decks?.map((deck, i) => (
-          <Organism.DeckCard key={i} deck={deck} {...props.deckCard} />
+          <DeckCard key={i} deck={deck} {...props.deckCard} />
         ))}
       </List>
     </Layout>

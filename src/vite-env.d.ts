@@ -73,16 +73,6 @@ interface ControllerProps {
   onChange?: (index: number) => void;
 }
 
-interface DeckActionsProps {
-  onClickName?: (id: string) => void;
-  onClickStudy?: (id: string) => void;
-  onClickRestart?: (id: string) => void;
-  onClickDownload?: (id: string) => void;
-  onClickEdit?: (id: string) => void;
-  onClickDelete?: (id: string) => void;
-  onClickReimport?: (id: string) => void;
-}
-
 type CardProps = CardActionsProps;
 
 interface CardActionsProps {
@@ -95,24 +85,6 @@ interface CardActionsProps {
 }
 
 type CardListProps = { cards: Card[] } & CardActionsProps;
-
-type DeckCardProps = { deck?: Deck } & DeckActionsProps;
-
-type DeckListProps = { decks: Deck[] } & DeckActionsProps;
-
-interface DeckFormProps {
-  deck: Deck;
-  categoryOptions?: Option[];
-  onSubmit?: (deck: Deck) => void;
-  schema?: any;
-}
-
-interface DeckStartFormProps {
-  deck: Deck;
-  tags: string[];
-  schema?: any;
-  onSubmit?: (values: Deck) => void;
-}
 
 interface CardFormProps {
   card?: Card;

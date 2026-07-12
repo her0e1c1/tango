@@ -3,14 +3,14 @@ import { List, Overlay } from "@src/shared/components";
 import * as Organism from "@src/component/Organism";
 import { Layout } from "@src/shared/components/Layout";
 import * as util from "@src/util";
+import { DeckStartForm, type DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
 
 export const CardList: React.FC<{
   deck: Deck;
   cards: Card[];
   layout?: LayoutProps;
-  tags?: string[];
+  deckStartForm?: DeckStartFormProps;
   card?: CardProps;
-  onSubmit?: (data: Deck) => void;
   showCard?: Card;
 }> = (props) => {
   const [showCard, setShowCard] = React.useState(props.showCard);
@@ -23,7 +23,7 @@ export const CardList: React.FC<{
       )}
       <details className="sticky top-0 bg-inherit py-2 max-h-screen">
         <summary className="cursor-pointer border-b border-gray-300 dark:border-gray-600 pb-1 mb-1">filter</summary>
-        <Organism.DeckStartForm deck={props.deck} tags={props.tags ?? []} onSubmit={props.onSubmit} />
+        {props.deckStartForm != null && <DeckStartForm {...props.deckStartForm} />}
       </details>
       <List col1>
         {props.cards?.map((c, i) => (

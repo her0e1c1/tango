@@ -1,7 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-export * from "@src/component/Template/DeckList";
 export * from "@src/component/Template/CardList";
-export * from "@src/component/Template/DeckForm";
 export * from "@src/component/Template/DeckStart";
 export * from "@src/component/Template/DeckSwiper";
 export * from "@src/component/Template/CardForm";

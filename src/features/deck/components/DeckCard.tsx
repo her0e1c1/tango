@@ -9,6 +9,20 @@ import {
   AiOutlineReload,
 } from "react-icons/ai";
 
+export interface DeckCardActions {
+  onClickName?: (id: string) => void;
+  onClickStudy?: (id: string) => void;
+  onClickRestart?: (id: string) => void;
+  onClickDownload?: (id: string) => void;
+  onClickEdit?: (id: string) => void;
+  onClickDelete?: (id: string) => void;
+  onClickReimport?: (id: string) => void;
+}
+
+export interface DeckCardProps extends DeckCardActions {
+  deck?: Deck;
+}
+
 export const DeckCard: React.FC<DeckCardProps> = (props) => {
   const deck = props.deck;
   if (deck == null) throw Error("invalid deck");

@@ -4,7 +4,8 @@ import { useSelector } from "react-redux";
 import * as selector from "@src/selector";
 import { useParams } from "react-router-dom";
 import { DeckStart } from "@src/component/Template";
-import { useDeckActions, useActions } from "@src/shared/hooks/useActions";
+import { useActions } from "@src/shared/hooks/useActions";
+import { useDeckActions, useDeckFilterState } from "@src/features/deck/containers";
 
 export const DeckStartPage: React.FC = () => {
   const params = useParams();
@@ -16,6 +17,7 @@ export const DeckStartPage: React.FC = () => {
   const tags = useSelector(selector.card.getAllTags(deckId));
   const deckActions = useDeckActions(deckId);
   const actions = useActions();
+  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
   useKey("Enter", deckActions.start);
   return (
     <DeckStart
@@ -30,11 +32,7 @@ export const DeckStartPage: React.FC = () => {
       config={config}
       cardsLength={cards.length}
       onClickStart={deckActions.start}
-      deckStartForm={{
-        deck,
-        tags,
-        onSubmit: deckActions.update,
-      }}
+      deckStartForm={deckStartForm}
     />
   );
 };

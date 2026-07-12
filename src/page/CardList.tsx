@@ -3,7 +3,8 @@ import { useKey } from "react-use";
 import { useSelector } from "react-redux";
 import * as selector from "@src/selector";
 import { CardList } from "@src/component/Template";
-import { useActions, useDeckActions } from "@src/shared/hooks/useActions";
+import { useActions } from "@src/shared/hooks/useActions";
+import { useDeckActions, useDeckFilterState } from "@src/features/deck/containers";
 import { useParams } from "react-router-dom";
 
 export const CardListPage: React.FC = () => {
@@ -16,13 +17,14 @@ export const CardListPage: React.FC = () => {
   const cards = useSelector(selector.card.getFilteredByDeckId(deckId));
   const tags = useSelector(selector.card.getAllTags(deckId));
   const config = useSelector(selector.config.get());
+  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
   useKey("t", actions.goToTop);
   useKey("s", actions.goToSettings);
   return (
     <CardList
       deck={deck}
       cards={cards}
-      tags={tags}
+      deckStartForm={deckStartForm}
       layout={{
         headerProps: {
           dark: config.darkMode,
@@ -37,7 +39,6 @@ export const CardListPage: React.FC = () => {
         goToEdit: actions.goToCardEdit,
         onDelete: actions.cardRemove,
       }}
-      onSubmit={deckActions.update}
     />
   );
 };

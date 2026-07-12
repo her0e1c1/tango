@@ -1,7 +1,7 @@
 import React from "react";
-import * as Organism from "@src/component/Organism";
 import { Button, Section } from "@src/shared/components";
 import { Layout } from "@src/shared/components/Layout";
+import { DeckStartForm, type DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
 
 export const DeckStart: React.FC<{
   layout?: LayoutProps;
@@ -23,7 +23,7 @@ export const DeckStart: React.FC<{
           }`}
         />
       </div>
-      {props.deckStartForm != null && <Organism.DeckStartForm {...props.deckStartForm} />}
+      {props.deckStartForm != null && <DeckStartForm {...props.deckStartForm} />}
     </Layout>
   );
 };

@@ -1,36 +1,43 @@
 import * as React from "react";
 
 import { Button, Form, FormItem, Input, Select, Switch } from "@src/shared/components";
-import { useForm } from "react-hook-form";
-import { renameKey } from "@src/shared/forms/renameKey";
+
+export interface DeckFormFields {
+  name: React.ComponentProps<typeof Input>;
+  convertToBr: React.ComponentProps<typeof Switch>;
+  url: React.ComponentProps<typeof Input>;
+  isPublic: React.ComponentProps<typeof Switch>;
+  localMode: React.ComponentProps<typeof Switch>;
+  category: React.ComponentProps<typeof Select>;
+}
+
+export interface DeckFormProps {
+  deck: Deck;
+  fields: DeckFormFields;
+  isSubmitting?: boolean;
+  onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
+}
 
 export const DeckForm: React.FC<DeckFormProps> = (props) => {
-  const { handleSubmit, register, formState } = useForm<Deck>({
-    defaultValues: props.deck,
-  });
   return (
-    <Form
-      onSubmit={handleSubmit((data) => {
-        props.onSubmit?.(data);
-      })}
-    >
+    <Form onSubmit={props.onSubmit}>
       <FormItem col label="Name">
-        <Input {...renameKey(register("name"))} />
+        <Input {...props.fields.name} />
       </FormItem>
       <FormItem label="Convert" extra="Convert two line breaks to one <br />">
-        <Switch {...renameKey(register("convertToBr"))} />
+        <Switch {...props.fields.convertToBr} />
       </FormItem>
       <FormItem col label="URL">
-        <Input {...renameKey(register("url"))} />
+        <Input {...props.fields.url} />
       </FormItem>
       <FormItem label="Public">
-        <Switch disabled {...renameKey(register("isPublic"))} />
+        <Switch disabled {...props.fields.isPublic} />
       </FormItem>
       <FormItem label="Local Mode">
-        <Switch disabled {...renameKey(register("localMode"))} />
+        <Switch disabled {...props.fields.localMode} />
       </FormItem>
       <FormItem col label="Category">
-        <Select empty options={props.categoryOptions} {...renameKey(register("category"))} />
+        <Select empty {...props.fields.category} />
       </FormItem>
       <FormItem col label="id">
         {props.deck.id}
@@ -41,7 +48,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
       {Boolean(props.deck.updatedAt) && (
         <FormItem label="Updated At">{new Date(props.deck.updatedAt).toLocaleDateString()}</FormItem>
       )}
-      <Button primary type="submit" disabled={formState.isSubmitting}>
+      <Button primary type="submit" disabled={props.isSubmitting}>
         Save
       </Button>
     </Form>

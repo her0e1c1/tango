@@ -1,7 +1,8 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DeckSwiper } from "@src/component/Template";
-import { useDeckActions, useActions } from "@src/shared/hooks/useActions";
+import { useActions } from "@src/shared/hooks/useActions";
+import { useDeckActions } from "@src/features/deck/containers";
 import * as selector from "@src/selector";
 import { useSelector, useDispatch } from "react-redux";
 import { useKey } from "react-use";

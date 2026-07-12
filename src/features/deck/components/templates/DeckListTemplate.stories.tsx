@@ -1,21 +1,22 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import { DeckCard as Template } from "@src/component/Organism";
+import { DeckListTemplate as Template } from "@src/features/deck/components/templates/DeckListTemplate";
 import * as fixture from "@src/shared/storybook/fixture";
 
 const meta = {
-  title: "Organism/DeckCard",
+  title: "Deck/DeckListTemplate",
   component: Template,
   tags: ["autodocs"],
   parameters: {
+    layout: "fullscreen",
     viewport: {
       viewports: INITIAL_VIEWPORTS,
       defaultViewport: "desktop",
     },
   },
   args: {
-    deck: fixture.deck.default,
+    decks: fixture.decks.default,
   },
 } satisfies Meta<typeof Template>;
 
@@ -24,9 +25,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const TooLongName: Story = {
+export const Empty: Story = {
   args: {
-    deck: fixture.deck.tooLongName,
+    decks: [],
+  },
+};
+
+export const Long: Story = {
+  args: {
+    decks: fixture.decks.long,
   },
 };
 
@@ -35,5 +42,16 @@ export const IphoneX: Story = {
     viewport: {
       defaultViewport: "iphonex",
     },
+  },
+};
+
+export const IphoneXLong: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: "iphonex",
+    },
+  },
+  args: {
+    decks: fixture.decks.long,
   },
 };

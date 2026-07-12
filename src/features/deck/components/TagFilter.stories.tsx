@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { TagFilter as Template } from "@src/component/Organism";
+import { TagFilter as Template } from "@src/features/deck/components/TagFilter";
 
 const meta = {
-  title: "Organism/TagFilter",
+  title: "Deck/TagFilter",
   component: Template,
   tags: ["autodocs"],
   args: {
