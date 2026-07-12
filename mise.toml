@@ -1,3 +1,76 @@
 [tools]
 node = "24"
 npm = "11.6.0"
+
+[env]
+COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.local.yaml"
+
+[hooks]
+enter = "echo 'Run `mise run dev` to start local dependencies and the app.'"
+
+[tasks.init]
+alias = "i"
+run = [
+  "test -f .env || cp .env.example .env",
+  "npm ci",
+]
+
+[tasks.up]
+alias = "u"
+run = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
+
+[tasks.dev]
+alias = "d"
+depends = ["up"]
+run = "npm start -- --open"
+
+[tasks.test]
+alias = "t"
+depends = ["build-sample", "up"]
+run = "npm test"
+
+[tasks.fmt]
+alias = "f"
+run = "npm run fmt"
+
+[tasks.fmt-check]
+run = "npm run fmt:check"
+
+[tasks.lint]
+alias = "l"
+depends = ["build-sample"]
+run = "npm run lint:check"
+
+[tasks.build-sample]
+run = "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base"
+
+[tasks.build]
+alias = "b"
+depends = ["build-sample"]
+run = [
+  "npm run build",
+  "npm run build:storybook",
+]
+
+[tasks.ci]
+alias = "c"
+depends = ["fmt-check", "lint", "test", "build"]
+
+[tasks.down]
+run = "docker compose down --remove-orphans"
+
+[tasks.ps]
+run = "docker compose ps"
+
+[tasks.clean]
+run = '''
+printf 'Clean all local generated files, node_modules, and Docker volumes? [y/N] '
+read -r answer
+if [ "$answer" != "y" ]; then
+  echo 'Aborted.'
+  exit 0
+fi
+
+docker compose down --volumes --remove-orphans
+rm -rf node_modules build storybook-static test-results playwright-report coverage .firebase sample/build
+'''
