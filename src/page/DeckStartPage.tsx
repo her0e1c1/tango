@@ -1,9 +1,9 @@
 import { useKey } from "react-use";
 import React from "react";
 import { useSelector } from "react-redux";
-import * as selector from "src/selector";
+import * as selector from "@src/selector";
 import { useParams } from "react-router-dom";
-import { DeckStart } from "src/component/Template";
+import { DeckStart } from "@src/component/Template";
 import { useDeckActions, useActions } from "./hooks";
 
 export const DeckStartPage: React.FC = () => {

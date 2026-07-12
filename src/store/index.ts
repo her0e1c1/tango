@@ -2,8 +2,8 @@ import * as Redux from "redux";
 import thunk from "redux-thunk";
 import storage from "redux-persist/lib/storage";
 import { persistReducer } from "redux-persist";
-import * as type from "src/action/type";
-import { deck, card, config, equal } from "src/store/reducer";
+import * as type from "@src/action/type";
+import { deck, card, config, equal } from "@src/store/reducer";
 
 const reducers = {
   deck,

@@ -1,9 +1,9 @@
 import React from "react";
-import * as C from "src/constant";
+import * as C from "@src/constant";
 import { useSelector } from "react-redux";
-import * as selector from "src/selector";
+import * as selector from "@src/selector";
 import { useParams } from "react-router-dom";
-import { DeckForm } from "src/component/Template";
+import { DeckForm } from "@src/component/Template";
 import { useDeckActions, useActions } from "./hooks";
 
 export const DeckFormPage: React.FC = () => {

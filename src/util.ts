@@ -1,4 +1,4 @@
-import * as C from "src/constant";
+import * as C from "@src/constant";
 
 export function isDefined<T>(value: T | undefined): value is T {
   return value !== undefined;

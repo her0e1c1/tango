@@ -1,8 +1,8 @@
 import React from "react";
 import { useKey } from "react-use";
 import { useSelector } from "react-redux";
-import * as selector from "src/selector";
-import { CardList } from "src/component/Template";
+import * as selector from "@src/selector";
+import { CardList } from "@src/component/Template";
 import { useActions, useDeckActions } from "./hooks";
 import { useParams } from "react-router-dom";
 

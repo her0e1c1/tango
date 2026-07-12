@@ -1,10 +1,10 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import * as selector from "src/selector";
-import { CardView } from "src/component/Template";
+import * as selector from "@src/selector";
+import { CardView } from "@src/component/Template";
 import { useParams } from "react-router-dom";
 import { useActions } from "./hooks";
-import * as util from "src/util";
+import * as util from "@src/util";
 
 export const CardViewPage: React.FC = () => {
   const params = useParams();

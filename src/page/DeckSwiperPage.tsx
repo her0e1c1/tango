@@ -1,12 +1,12 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { DeckSwiper } from "src/component/Template";
+import { DeckSwiper } from "@src/component/Template";
 import { useDeckActions, useActions } from "./hooks";
-import * as selector from "src/selector";
+import * as selector from "@src/selector";
 import { useSelector, useDispatch } from "react-redux";
 import { useKey } from "react-use";
-import * as action from "src/action";
-import * as util from "src/util";
+import * as action from "@src/action";
+import * as util from "@src/util";
 
 export const DeckSwiperPage: React.FC = () => {
   const params = useParams();
