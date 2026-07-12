@@ -20,6 +20,37 @@ function readSource(relativePath: string): string {
   return readFileSync(sourcePath(relativePath), "utf8");
 }
 
+function staticModuleSpecifiers(source: string): string[] {
+  const matches = source.matchAll(
+    /(?:^|\n)\s*(?:import\s+(?:type\s+)?(?:[^;]*?\s+from\s+)?|export\s+(?:type\s+)?[^;]*?\s+from\s+)["']([^"']+)["']/g
+  );
+  return Array.from(matches, (match) => match[1]);
+}
+
+function isModuleOrSubpath(specifier: string, moduleName: string): boolean {
+  return specifier === moduleName || specifier.startsWith(`${moduleName}/`);
+}
+
+const deckPageAllowedModules = new Set(["react", "@src/features/deck/containers"]);
+const deckPresentationAllowedModules = [
+  "react",
+  "react-icons",
+  "@src/shared/components",
+  "@src/features/deck/components",
+];
+
+function isAllowedDeckPageModule(specifier: string): boolean {
+  return deckPageAllowedModules.has(specifier);
+}
+
+function isAllowedDeckPresentationModule(specifier: string): boolean {
+  return deckPresentationAllowedModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName));
+}
+
+function importViolation(relativePath: string, specifier: string): string {
+  return `${relativePath}: ${specifier}`;
+}
+
 describe("component architecture", () => {
   it("places reusable presentation under shared", () => {
     expectSourcePathsToExist([
@@ -50,6 +81,7 @@ describe("component architecture", () => {
       "features/deck/containers/useDeckFilterState.ts",
       "features/deck/containers/index.ts",
     ];
+    const importViolations: string[] = [];
 
     expectSourcePathsToExist([...componentPaths, ...containerPaths]);
     expectSourcePathsNotToExist([
@@ -63,9 +95,12 @@ describe("component architecture", () => {
 
     for (const pagePath of ["page/DeckList.tsx", "page/DeckFormPage.tsx"]) {
       const pageSource = readSource(pagePath);
-      expect(pageSource).toContain('from "@src/features/deck/containers"');
-      expect(pageSource).not.toMatch(
-        /from ["'](?:react-redux|react-router-dom|react-hook-form|@src\/(?:action|selector|shared\/hooks|component))["']/
+      const pageModules = staticModuleSpecifiers(pageSource);
+      expect(pageModules).toContain("@src/features/deck/containers");
+      importViolations.push(
+        ...pageModules
+          .filter((specifier) => !isAllowedDeckPageModule(specifier))
+          .map((specifier) => importViolation(pagePath, specifier))
       );
     }
 
@@ -73,10 +108,13 @@ describe("component architecture", () => {
       const componentSource = readSource(componentPath);
       expect(componentSource).not.toMatch(/\b(?:useState|useReducer|useForm|useController|useWatch)\s*\(/);
       expect(componentSource).not.toMatch(/\bReact\.(?:useState|useReducer)\s*\(/);
-      expect(componentSource).not.toMatch(
-        /from ["'](?:react-redux|react-router-dom|react-hook-form|@src\/(?:action|selector|shared\/hooks))["']/
+      importViolations.push(
+        ...staticModuleSpecifiers(componentSource)
+          .filter((specifier) => !isAllowedDeckPresentationModule(specifier))
+          .map((specifier) => importViolation(componentPath, specifier))
       );
-      expect(componentSource).not.toMatch(/from ["']@src\/features\/[^/"']+\/containers(?:\/[^"']*)?["']/);
     }
+
+    expect(importViolations).toEqual([]);
   });
 });
