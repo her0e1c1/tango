@@ -45,7 +45,7 @@ test-sample: ## Run sample tests
 	@$(SAMPLE_MAKE) test
 
 .PHONY: ci
-ci: mise-ci build fmt-check lint-check test e2e ## Run the same checks as the pull request CI
+ci: build fmt-check lint-check test e2e mise-ci ## Run the same checks as the pull request CI
 
 .PHONY: mise-ci
 mise-ci: ## Run CI checks through mise

@@ -44,9 +44,7 @@ jobs:
 
       - uses: jdx/mise-action@v4
 
-      - run: mise run init-deps
-
-      - run: env -u COMPOSE_FILE make ci
+      - run: make ci
 
       - name: Upload Playwright report
         if: ${{ always() }}
