@@ -46,6 +46,7 @@ jobs:
 
       - run: mise run ci
 
+      # mise sets COMPOSE_FILE for local development; make ci needs the Makefile defaults.
       - run: env -u COMPOSE_FILE make ci
 
       - name: Upload Playwright report

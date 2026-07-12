@@ -90,7 +90,8 @@ run = [
 alias = "c"
 depends = ["init"]
 run = [
-  { tasks = ["fmt-check", "lint", "test", "build"] },
+  "mise run build",
+  { tasks = ["fmt-check", "lint", "test"] },
 ]
 
 [tasks.down]
