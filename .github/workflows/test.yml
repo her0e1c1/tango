@@ -42,7 +42,12 @@ jobs:
       - run: docker compose -f .devcontainer/compose.yaml build dev
         if: ${{ steps.changed.outputs.any_changed == 'true' || inputs.force }}
 
-      - run: make ci
+      - uses: jdx/mise-action@v4
+
+      - run: mise run ci
+
+      # mise sets COMPOSE_FILE for local development; make ci needs the Makefile defaults.
+      - run: env -u COMPOSE_FILE make ci
 
       - name: Upload Playwright report
         if: ${{ always() }}
