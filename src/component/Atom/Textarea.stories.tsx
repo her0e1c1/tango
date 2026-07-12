@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Textarea as Template } from "./Textarea";
+import { Textarea as Template } from "@src/component/Atom/Textarea";
 
 const meta = {
   title: "Atom/Textarea",

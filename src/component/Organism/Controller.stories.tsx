@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Controller as Template } from "./";
+import { Controller as Template } from "@src/component/Organism";
 
 const meta = {
   title: "Organism/Controller",

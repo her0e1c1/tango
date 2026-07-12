@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Score, Description } from "../Atom";
-import { Overlay } from "../Molecule";
+import { Score, Description } from "@src/component/Atom";
+import { Overlay } from "@src/component/Molecule";
 
 export const CardOverlay: React.FC<{ card?: Card }> = (props) => {
   const card = props.card;

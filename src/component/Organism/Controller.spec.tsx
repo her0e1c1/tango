@@ -6,7 +6,7 @@ import { expect, it, describe, vi, afterEach, beforeEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { act } from "react-dom/test-utils";
-import { Controller } from "./Controller";
+import { Controller } from "@src/component/Organism/Controller";
 
 describe.skip("Controller", () => {
   afterEach(() => {

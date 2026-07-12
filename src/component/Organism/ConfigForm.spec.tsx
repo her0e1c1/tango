@@ -5,7 +5,7 @@ import { render, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { expect, it, describe, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { ConfigForm } from "./ConfigForm";
+import { ConfigForm } from "@src/component/Organism/ConfigForm";
 
 describe("ConfigFrom", () => {
   afterEach(() => {

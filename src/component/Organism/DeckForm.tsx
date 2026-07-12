@@ -1,9 +1,9 @@
 import * as React from "react";
 
-import { Switch, Button, Select, Input } from "../Atom";
-import { Form, FormItem } from "../Molecule";
+import { Switch, Button, Select, Input } from "@src/component/Atom";
+import { Form, FormItem } from "@src/component/Molecule";
 import { useForm } from "react-hook-form";
-import { renameKey } from "./form";
+import { renameKey } from "@src/component/Organism/form";
 
 export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const { handleSubmit, register, formState } = useForm<Deck>({

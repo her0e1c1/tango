@@ -1,7 +1,7 @@
 import * as React from "react";
 import { type Control, useController } from "react-hook-form";
-import { Button, Switch, Tag, Description } from "../Atom";
-import { TagList } from "../Molecule";
+import { Button, Switch, Tag, Description } from "@src/component/Atom";
+import { TagList } from "@src/component/Molecule";
 
 const updateTags = (tags: string[], tag: string) => {
   if (tags.includes(tag)) {

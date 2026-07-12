@@ -7,7 +7,7 @@ import {
   buildStudySession,
   calculateGoToIndex,
   filterCardsForDeck,
-} from "./study";
+} from "@src/lib/study";
 
 describe("resolveSwipeAction", () => {
   it("returns the swipe action for the given direction", () => {

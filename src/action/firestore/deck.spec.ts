@@ -1,8 +1,8 @@
 import "./init";
 import { expect, it, describe, vi, beforeEach, Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
-import * as firestore from ".";
-import { getTimestamp } from "./mocked";
+import * as firestore from "@src/action/firestore";
+import { getTimestamp } from "@src/action/firestore/mocked";
 import { v4 as uuid } from "uuid";
 
 vi.mock("./mocked", async (importOriginal) => ({

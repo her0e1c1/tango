@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Code as Template } from "./Code";
-import * as fixture from "../fixture";
+import { Code as Template } from "@src/component/Atom/Code";
+import * as fixture from "@src/component/fixture";
 
 const meta = {
   title: "Atom/Code",

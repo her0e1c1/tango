@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Slider as Template } from "./Slider";
+import { Slider as Template } from "@src/component/Atom/Slider";
 
 const meta = {
   title: "Atom/Slider",

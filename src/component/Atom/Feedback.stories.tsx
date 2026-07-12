@@ -2,7 +2,7 @@ import React from "react";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Feedback as Template } from "./Feedback";
+import { Feedback as Template } from "@src/component/Atom/Feedback";
 import { AiOutlineArrowUp } from "react-icons/ai";
 
 const meta = {

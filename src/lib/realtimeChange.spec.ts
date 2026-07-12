@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { applyRealtimeChange, getRealtimeLastUpdatedAt } from "./realtimeChange";
+import { applyRealtimeChange, getRealtimeLastUpdatedAt } from "@src/lib/realtimeChange";
 
 describe("applyRealtimeChange", () => {
   type Item = { id: string; name: string };

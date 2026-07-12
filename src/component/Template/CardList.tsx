@@ -1,6 +1,6 @@
 import * as React from "react";
-import { List, Overlay } from "../Molecule";
-import * as Organism from "../Organism";
+import { List, Overlay } from "@src/component/Molecule";
+import * as Organism from "@src/component/Organism";
 import * as util from "@src/util";
 
 export const CardList: React.FC<{

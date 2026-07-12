@@ -2,7 +2,7 @@ import cx from "classnames";
 import * as React from "react";
 import { IconContext } from "react-icons";
 import { AiFillSetting, AiOutlineUpload, AiOutlineSun, AiFillMoon } from "react-icons/ai";
-import { Logo } from "../Atom";
+import { Logo } from "@src/component/Atom";
 
 export const Header: React.FC<{
   fixed?: boolean;

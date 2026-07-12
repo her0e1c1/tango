@@ -2,8 +2,8 @@ import React from "react";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { FormItem as Template } from "./FormItem";
-import { Switch, Button, Slider, Select, Input } from "../Atom";
+import { FormItem as Template } from "@src/component/Molecule/FormItem";
+import { Switch, Button, Slider, Select, Input } from "@src/component/Atom";
 
 const meta = {
   title: "Molecule/FormItem",

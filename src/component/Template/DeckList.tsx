@@ -1,6 +1,6 @@
 import * as React from "react";
-import * as Organism from "../Organism";
-import { List } from "../Molecule";
+import * as Organism from "@src/component/Organism";
+import { List } from "@src/component/Molecule";
 
 export const DeckList: React.FC<{
   decks: Deck[];

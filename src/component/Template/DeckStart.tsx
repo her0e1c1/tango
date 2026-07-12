@@ -1,6 +1,6 @@
 import React from "react";
-import * as Organism from "../Organism";
-import { Button, Section } from "../Atom";
+import * as Organism from "@src/component/Organism";
+import { Button, Section } from "@src/component/Atom";
 
 export const DeckStart: React.FC<{
   layout?: LayoutProps;

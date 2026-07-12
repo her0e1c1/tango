@@ -1,8 +1,8 @@
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 
-import * as type from "./type";
-import * as action from ".";
-import * as firestore from "./firestore";
+import * as type from "@src/action/type";
+import * as action from "@src/action";
+import * as firestore from "@src/action/firestore";
 import { getAuth, signOut, linkWithPopup } from "firebase/auth";
 
 vi.mock("firebase/auth");

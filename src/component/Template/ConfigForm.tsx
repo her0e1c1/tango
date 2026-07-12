@@ -1,5 +1,5 @@
 import * as React from "react";
-import * as Organism from "../Organism";
+import * as Organism from "@src/component/Organism";
 
 export const ConfigForm: React.FC<{
   layout?: LayoutProps;

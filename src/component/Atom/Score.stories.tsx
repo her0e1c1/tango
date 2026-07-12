@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Score as Template } from "./Score";
+import { Score as Template } from "@src/component/Atom/Score";
 
 const meta = {
   title: "Atom/Score",

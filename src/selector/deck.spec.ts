@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { findByName } from "./deck";
+import { findByName } from "@src/selector/deck";
 
 describe("deck selector", () => {
   describe("findByName", () => {

@@ -2,8 +2,8 @@ import React from "react";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { FullScreen as Template } from ".";
-import { Container } from "../Decorator";
+import { FullScreen as Template } from "@src/component/Molecule";
+import { Container } from "@src/component/Decorator";
 
 const meta = {
   title: "Molecule/FullScreen",

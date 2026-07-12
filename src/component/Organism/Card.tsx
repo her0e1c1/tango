@@ -1,8 +1,8 @@
 import * as React from "react";
 import { IconContext } from "react-icons";
 import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
-import { Score, Tag, Title, Description } from "../Atom";
-import { Card as Outline } from "../Molecule";
+import { Score, Tag, Title, Description } from "@src/component/Atom";
+import { Card as Outline } from "@src/component/Molecule";
 import { useSwipeable } from "react-swipeable";
 
 export const Card: React.FC<

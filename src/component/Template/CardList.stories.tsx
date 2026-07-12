@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { INITIAL_VIEWPORTS } from "../storybookViewports";
-import { CardList as Template } from "./";
-import * as fixture from "../fixture";
+import { INITIAL_VIEWPORTS } from "@src/component/storybookViewports";
+import { CardList as Template } from "@src/component/Template";
+import * as fixture from "@src/component/fixture";
 
 const meta = {
   title: "Template/CardList",

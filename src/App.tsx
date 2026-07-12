@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import * as selector from "@src/selector";
 import * as action from "@src/action";
-import * as Page from "./page";
+import * as Page from "@src/page";
 
 const App = () => {
   const darkMode = useSelector(selector.config.getByKey("darkMode"));

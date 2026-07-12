@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Tag as Template } from "./Tag";
+import { Tag as Template } from "@src/component/Atom/Tag";
 
 const meta = {
   title: "Atom/Tag",

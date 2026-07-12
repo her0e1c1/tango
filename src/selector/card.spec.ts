@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { splitByUniqueKey } from "./card";
+import { splitByUniqueKey } from "@src/selector/card";
 
 describe("card selector", () => {
   describe("splitByUniqueKey", () => {
