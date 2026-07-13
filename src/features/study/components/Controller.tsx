@@ -3,6 +3,15 @@ import { IconContext } from "react-icons";
 import { AiOutlinePause, AiOutlineCaretRight } from "react-icons/ai";
 import { Slider, Title } from "@src/shared/components";
 
+export interface ControllerProps {
+  autoPlay?: boolean;
+  index?: number;
+  cardInterval?: number;
+  numberOfCards?: number;
+  onToggleAutoPlay?: () => void;
+  onChange?: (index: number) => void;
+}
+
 export const Controller: React.FC<ControllerProps> = (props) => {
   const numberOfCards = props.numberOfCards ?? 0;
   const index = props.index ?? 0;

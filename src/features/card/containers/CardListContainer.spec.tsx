@@ -118,4 +118,21 @@ describe("CardListContainer", () => {
     await userEvent.click(view.getByText(card.backText));
     expect(view.queryByText(card.backText)).not.toBeInTheDocument();
   });
+
+  it("renders a language card as code and closes it through the overlay callback", async () => {
+    const languageCard = { ...card, tags: ["typescript"], backText: "const answer = 42;" };
+    mocks.state = {
+      ...mocks.state,
+      card: { byId: { [languageCard.id]: languageCard }, tags: ["typescript"] },
+    };
+    const view = render(<CardListContainer />);
+
+    await userEvent.click(view.getByText(languageCard.frontText));
+
+    const code = view.container.querySelector("pre.typescript") as HTMLElement;
+    expect(code).toHaveTextContent(languageCard.backText);
+
+    await userEvent.click(code);
+    expect(view.queryByText(languageCard.backText)).not.toBeInTheDocument();
+  });
 });

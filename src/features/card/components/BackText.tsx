@@ -1,6 +1,13 @@
 import * as React from "react";
 import { Math, Code, Style } from "@src/shared/components";
 
+export interface BackTextProps {
+  text: string;
+  category?: string;
+  code?: boolean;
+  onClick?: () => void;
+}
+
 export const BackText: React.FC<BackTextProps> = (props) => {
   return (
     <Style div className="h-full w-full p-5" onClick={props.onClick}>

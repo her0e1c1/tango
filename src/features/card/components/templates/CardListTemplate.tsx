@@ -1,8 +1,8 @@
 import * as React from "react";
 import { List, Overlay } from "@src/shared/components";
-import { Layout } from "@src/shared/components/Layout";
-import { BackText } from "@src/features/card/components/BackText";
-import { Card } from "@src/features/card/components/Card";
+import { Layout, type LayoutProps } from "@src/shared/components/Layout";
+import { BackText, type BackTextProps } from "@src/features/card/components/BackText";
+import { Card, type CardProps } from "@src/features/card/components/Card";
 
 export interface CardListOverlayProps {
   backText: BackTextProps;

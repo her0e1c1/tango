@@ -7,7 +7,7 @@
 - Restart は `deck.currentIndex` がある場合だけ有効です。
 - Header から dark mode 切替、CSV import、settings へ移動できます。
 
-Key files: `src/page/DeckList.tsx`, `src/component/Organism/Deck.tsx`, `src/page/hooks.ts`
+Key files: `src/page/DeckList.tsx`, `src/features/deck/containers/DeckListContainer.tsx`, `src/features/deck/components/templates/DeckListTemplate.tsx`
 
 ## CSV Import / Export
 
@@ -17,7 +17,7 @@ Key files: `src/page/DeckList.tsx`, `src/component/Organism/Deck.tsx`, `src/page
 - deck download は card rows を `Papa.unparse` し、`file-saver` で CSV 保存します。
 - sample CSV download も提供されています。
 
-Key files: `src/page/DeckImportPage.tsx`, `src/action/deck.ts`, `src/action/card.ts`, `src/constant.ts`
+Key files: `src/page/DeckImportPage.tsx`, `src/features/import/containers/DeckImportContainer.tsx`, `src/features/import/components/templates/DeckImportTemplate.tsx`, `src/action/deck.ts`, `src/action/card.ts`, `src/constant.ts`
 
 ## Card 一覧と filter
 
@@ -26,7 +26,7 @@ Key files: `src/page/DeckImportPage.tsx`, `src/action/deck.ts`, `src/action/card
 - details 内の filter で tags、AND/OR、score min/max を調整できます。
 - selector は selected tags、score range、`useCardInterval` と `nextSeeingAt` に基づいてカードを絞り込み、`numberOfSeen` 昇順に並べます。
 
-Key files: `src/page/CardList.tsx`, `src/component/Template/CardList.tsx`, `src/component/Organism/DeckStartForm.tsx`, `src/selector/card.ts`
+Key files: `src/page/CardList.tsx`, `src/features/card/containers/CardListContainer.tsx`, `src/features/card/components/templates/CardListTemplate.tsx`, `src/features/deck/components/DeckStartForm.tsx`, `src/selector/card.ts`
 
 ## Card 編集と表示
 
@@ -34,7 +34,7 @@ Key files: `src/page/CardList.tsx`, `src/component/Template/CardList.tsx`, `src/
 - `/card/:id` と card list overlay は back text を表示します。
 - category は deck category を基本に、card tags の language mapping がある場合は tag 側を優先します。
 
-Key files: `src/page/CardFormPage.tsx`, `src/page/CardViewPage.tsx`, `src/component/Organism/CardForm.tsx`, `src/util.ts`
+Key files: `src/page/CardFormPage.tsx`, `src/page/CardViewPage.tsx`, `src/features/card/containers/CardFormContainer.tsx`, `src/features/card/containers/CardViewContainer.tsx`, `src/features/card/components`, `src/util.ts`
 
 ## Deck 編集
 
@@ -42,7 +42,7 @@ Key files: `src/page/CardFormPage.tsx`, `src/page/CardViewPage.tsx`, `src/compon
 - Public と Local Mode は form 上では disabled です。
 - url がある deck は deck card に reload icon が表示され、reimport action を呼べます。ただし `DeckListPage` では `onClickReimport` がコメントアウトされています。
 
-Key files: `src/page/DeckFormPage.tsx`, `src/component/Organism/DeckForm.tsx`, `src/action/deck.ts`
+Key files: `src/page/DeckFormPage.tsx`, `src/features/deck/containers/DeckFormContainer.tsx`, `src/features/deck/components/DeckForm.tsx`, `src/action/deck.ts`
 
 ## 学習セッション
 
@@ -52,7 +52,7 @@ Key files: `src/page/DeckFormPage.tsx`, `src/component/Organism/DeckForm.tsx`, `
 - swipe mapping は config の `cardSwipeUp/Down/Left/Right` に従い、score、学習回数、last seen、current index を更新します。
 - controller は card interval 秒で自動送りできます。
 
-Key files: `src/page/DeckStartPage.tsx`, `src/page/DeckSwiperPage.tsx`, `src/action/deck.ts`, `src/component/Organism/Controller.tsx`
+Key files: `src/page/DeckStartPage.tsx`, `src/page/DeckSwiperPage.tsx`, `src/features/study/containers`, `src/features/study/components`, `src/action/deck.ts`
 
 ## Auth と Firestore Sync
 
@@ -69,7 +69,7 @@ Key files: `src/action/event.ts`, `src/firebase.ts`, `src/action/firestore/*`
 - form は `react-hook-form` の `watch()` で変更ごとに `configUpdate` を dispatch します。
 - version は `__APP_VERSION__` から表示されます。
 
-Key files: `src/page/ConfigPage.tsx`, `src/component/Organism/ConfigForm.tsx`, `src/store/reducer.ts`
+Key files: `src/page/ConfigPage.tsx`, `src/features/settings/containers/ConfigContainer.tsx`, `src/features/settings/components/ConfigForm.tsx`, `src/store/reducer.ts`
 
 ## Sample Deck
 

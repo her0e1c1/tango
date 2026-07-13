@@ -8,6 +8,14 @@ const icons = {
   cardSwipeLeft: AiOutlineArrowLeft,
   cardSwipeRight: AiOutlineArrowRight,
 };
+
+export interface SwipeButtonListProps {
+  onClickUp?: () => void;
+  onClickDown?: () => void;
+  onClickLeft?: () => void;
+  onClickRight?: () => void;
+}
+
 export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => {
   return (
     <div className="flex">

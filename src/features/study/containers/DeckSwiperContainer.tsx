@@ -12,6 +12,7 @@ import { CardOverlay } from "@src/features/card/components/CardOverlay";
 import { FrontText } from "@src/features/card/components/FrontText";
 import { useDeckActions } from "@src/features/deck/containers/useDeckActions";
 import { DeckSwiperTemplate } from "@src/features/study/components/templates/DeckSwiperTemplate";
+import type { SwipeButtonListProps } from "@src/features/study/components/SwipeButtonList";
 import { useStudyControllerState } from "@src/features/study/containers/useStudyControllerState";
 import { useActions } from "@src/shared/hooks/useActions";
 

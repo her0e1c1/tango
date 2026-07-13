@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 
 import { renameKey } from "@src/shared/forms/renameKey";
+import type { Option } from "@src/shared/components/Select";
 import type { CardFormProps } from "@src/features/card/components/CardForm";
 
 export interface UseCardFormStateOptions {

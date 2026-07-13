@@ -1,6 +1,7 @@
 import * as React from "react";
+import type { ControllerProps } from "@src/features/study/components/Controller";
 
-export interface UseStudyControllerStateOptions extends ControllerProps {
+export interface UseStudyControllerStateOptions extends Omit<ControllerProps, "onToggleAutoPlay"> {
   enabled?: boolean;
 }
 

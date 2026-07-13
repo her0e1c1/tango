@@ -4,6 +4,17 @@ import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
 import { Card as Outline, Description, Score, Tag, Title } from "@src/shared/components";
 import { useSwipeable } from "react-swipeable";
 
+export interface CardActionsProps {
+  onSwipedLeft?: (id: string) => void;
+  onSwipedRight?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  goToEdit?: (id: string) => void;
+  goToView?: (id: string) => void;
+}
+
+export type CardProps = CardActionsProps;
+
 export const Card: React.FC<
   {
     className?: string;

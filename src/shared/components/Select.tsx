@@ -1,6 +1,11 @@
 import cx from "classnames";
 import * as React from "react";
 
+export interface Option {
+  label: string;
+  value: string;
+}
+
 export const Select: React.FC<{
   options?: Option[];
   empty?: boolean;

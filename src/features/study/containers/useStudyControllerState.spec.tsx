@@ -4,8 +4,11 @@ import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Controller } from "@src/features/study/components/Controller";
-import { useStudyControllerState } from "@src/features/study/containers/useStudyControllerState";
+import { Controller, type ControllerProps } from "@src/features/study/components/Controller";
+import {
+  useStudyControllerState,
+  type UseStudyControllerStateOptions,
+} from "@src/features/study/containers/useStudyControllerState";
 
 const ControllerHarness: React.FC<ControllerProps> = (props) => {
   const controller = useStudyControllerState(props);
@@ -33,6 +36,14 @@ describe("Controller with useStudyControllerState", () => {
 
     fireEvent.click(c.getByTestId("pause"));
     expect(c.getByTestId("play")).toBeInTheDocument();
+  });
+
+  it("owns the auto-play toggle callback", () => {
+    const onToggleAutoPlay = () => undefined;
+    // @ts-expect-error The hook owns onToggleAutoPlay rather than accepting it from callers.
+    const options: UseStudyControllerStateOptions = { onToggleAutoPlay };
+
+    expect(options).toBeDefined();
   });
 
   it("advances the index after the configured interval while playing", () => {

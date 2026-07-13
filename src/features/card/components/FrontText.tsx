@@ -3,6 +3,16 @@ import * as React from "react";
 import { Title, Math } from "@src/shared/components";
 import { useSwipeable } from "react-swipeable";
 
+export interface FrontTextProps {
+  text: string;
+  category?: string;
+  onSwipeLeft?: () => void;
+  onSwipeUp?: () => void;
+  onSwipeRight?: () => void;
+  onSwipeDown?: () => void;
+  onClick?: () => void;
+}
+
 export const FrontText: React.FC<FrontTextProps> = (props) => {
   const handlers = useSwipeable({
     onSwipedLeft: props.onSwipeLeft,

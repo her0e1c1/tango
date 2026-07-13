@@ -1,9 +1,9 @@
 import cx from "classnames";
 import * as React from "react";
 import * as Shared from "@src/shared/components";
-import { Layout } from "@src/shared/components/Layout";
-import { Controller } from "@src/features/study/components/Controller";
-import { SwipeButtonList } from "@src/features/study/components/SwipeButtonList";
+import { Layout, type LayoutProps } from "@src/shared/components/Layout";
+import { Controller, type ControllerProps } from "@src/features/study/components/Controller";
+import { SwipeButtonList, type SwipeButtonListProps } from "@src/features/study/components/SwipeButtonList";
 
 export interface DeckSwiperTemplateProps {
   showHeader?: boolean;

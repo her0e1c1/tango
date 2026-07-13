@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Layout } from "@src/shared/components/Layout";
-import { BackText } from "@src/features/card/components/BackText";
+import { Layout, type LayoutProps } from "@src/shared/components/Layout";
+import { BackText, type BackTextProps } from "@src/features/card/components/BackText";
 
 export interface CardViewTemplateProps {
   layout?: LayoutProps;

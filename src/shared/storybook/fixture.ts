@@ -1,3 +1,5 @@
+import type { Option } from "@src/shared/components/Select";
+
 export const form = {
   options: {
     default: [

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { CardForm as Template, type CardFormFields } from "@src/features/card/components/CardForm";
+import type { Option } from "@src/shared/components/Select";
 import * as fixture from "@src/shared/storybook/fixture";
 
 const fieldsFor = (card: Card, options: Option[]): CardFormFields => ({
