@@ -56,12 +56,20 @@ interface ModuleReference {
   resolvedSpecifier: string;
 }
 
+function resolveModuleSpecifier(relativePath: string, specifier: string): string {
+  if (specifier.startsWith(".")) {
+    return `@src/${path.posix.normalize(path.posix.join(path.posix.dirname(relativePath), specifier))}`;
+  }
+  if (isModuleOrSubpath(specifier, "src")) {
+    return `@${specifier}`;
+  }
+  return specifier;
+}
+
 function moduleReferences(relativePath: string): ModuleReference[] {
   return moduleSpecifiers(readSource(relativePath)).map((specifier) => ({
     specifier,
-    resolvedSpecifier: specifier.startsWith(".")
-      ? `@src/${path.posix.normalize(path.posix.join(path.posix.dirname(relativePath), specifier))}`
-      : specifier,
+    resolvedSpecifier: resolveModuleSpecifier(relativePath, specifier),
   }));
 }
 
@@ -99,6 +107,16 @@ function isContainerOnlyHook(specifier: string): boolean {
   );
 }
 
+function forbiddenContainerDependency(specifier: string): boolean {
+  if (isContainerOnlyHook(specifier)) return false;
+
+  return (
+    isModuleOrSubpath(specifier, "@src/App") ||
+    isModuleOrSubpath(specifier, "@src/page") ||
+    /^@src\/features\/[^/]+\/containers(?:\/?$|\/index(?:\.ts)?$|\/[^/]*Container(?:\.tsx?)?$)/.test(specifier)
+  );
+}
+
 function expectSharedComponentGroup(
   group: "layout" | "forms" | "content" | "feedback",
   componentNames: string[],
@@ -117,6 +135,20 @@ function expectSharedComponentGroup(
 }
 
 describe("component architecture", () => {
+  it("normalizes baseUrl source imports before checking boundaries", () => {
+    expect(resolveModuleSpecifier("shared/components/content/Card.tsx", "src/action")).toBe("@src/action");
+  });
+
+  it("allows container hooks and components while rejecting route-level dependencies", () => {
+    expect(forbiddenContainerDependency("@src/features/deck/containers/useDeckContainer")).toBe(false);
+    expect(forbiddenContainerDependency("@src/features/deck/components/DeckStartForm")).toBe(false);
+    expect(forbiddenContainerDependency("@src/App")).toBe(true);
+    expect(forbiddenContainerDependency("@src/page/DeckListPage")).toBe(true);
+    expect(forbiddenContainerDependency("@src/features/deck/containers")).toBe(true);
+    expect(forbiddenContainerDependency("@src/features/deck/containers/index.ts")).toBe(true);
+    expect(forbiddenContainerDependency("@src/features/deck/containers/DeckListContainer")).toBe(true);
+  });
+
   it("removes the legacy Atomic Design component root", () => {
     expect(existsSync(sourcePath("component"))).toBe(false);
   });
@@ -228,6 +260,20 @@ describe("component architecture", () => {
       }
     }
 
+    expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("keeps route containers from nesting route-level components", () => {
+    const containerPaths = productionFilesUnder("features").filter((relativePath) =>
+      /^features\/[^/]+\/containers\/[^/]*Container\.tsx$/.test(relativePath)
+    );
+    const violations = containerPaths.flatMap((containerPath) =>
+      moduleReferences(containerPath)
+        .filter((reference) => forbiddenContainerDependency(reference.resolvedSpecifier))
+        .map((reference) => importViolation(containerPath, reference))
+    );
+
+    expect(containerPaths.length).toBeGreaterThan(0);
     expect(violations, violations.join("\n")).toEqual([]);
   });
 
