@@ -7,14 +7,17 @@ flowchart TD
     User[利用者 / Browser] --> SPA[Vite + React SPA]
     SPA --> Router[React Router / src/App.tsx]
     Router --> Pages[src/page]
-    Pages --> Hooks[src/page/hooks.ts]
-    Pages --> Templates[src/component/Template]
-    Templates --> UI[src/component/Organism / Molecule / Atom]
+    Pages --> Containers[src/features/*/containers]
+    Containers --> Templates[src/features/*/components/templates]
+    Containers --> FeatureUI[src/features/*/components]
+    Templates --> FeatureUI
+    Templates --> SharedUI[src/shared/components]
+    FeatureUI --> SharedUI
 
-    Hooks --> Actions[src/action thunk]
+    Containers --> Actions[src/action thunk]
     Actions --> Store[Redux store / src/store]
     Store --> Selectors[src/selector]
-    Selectors --> Pages
+    Selectors --> Containers
     Store <--> Persist[redux-persist / LocalStorage]
 
     Actions --> FirebaseAuth[Firebase Auth]
@@ -74,7 +77,10 @@ flowchart LR
 
 ## Notable Design Choices
 
-- `src/page` は route container として薄く、UI は Template/Organism 以下に分かれています。
+- UI は `App -> Page -> Container -> Template -> Component` の順に依存します。`src/page` は対応する feature container を 1 つ render するだけの route entry です。
+- Redux、router、form、keyboard、timer、変更可能な UI state は `src/features/*/containers` が所有します。`components/templates` と `components` は props-driven な表示層です。
+- `src/shared/components` は feature に依存せず、feature の presentation は同じ feature または shared の presentation だけを参照します。依存境界は `src/lib/componentArchitecture.spec.ts` が検証します。
+- UI stories/specs は対象 component、template、container と同じ feature/shared 配下に置き、`src/**/*.stories.tsx` と `src/**/*.spec.{ts,tsx}` から discovery されます。
 - domain 操作は `src/action` の thunk に集約されています。
 - reducer は action type 文字列と `equal()` helper で分岐します。
 - Firestore 書き込みの一部は UI 遷移遅延を避けるため `void firestore.xxx(...)` の fire-and-forget になっています。

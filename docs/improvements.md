@@ -6,7 +6,7 @@
 - よく使う操作にキーボードショートカットを導入する。
 
 ## フロントエンド
-- コンポーネントの責務を整理し、再利用可能なUIパーツを `src/components` に集約する。
+- 新規 UI でも `src/features/*` と `src/shared/components` の依存境界を維持し、architecture test を更新する。
 - ローディング/エラー状態の表示を共通化してUIの一貫性を高める。
 - 画面単位でのコード分割（lazy loading）を進め、初期表示を高速化する。
 

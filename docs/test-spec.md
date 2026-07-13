@@ -21,12 +21,16 @@
 | Firestore / Rule | `src/action/firestore/rule/rule.spec.ts` | セキュリティルールテスト |
 | Selector / Deck | `src/selector/deck.spec.ts` | ユニットテスト |
 | Selector / Card | `src/selector/card.spec.ts` | ユニットテスト |
-| Component / CardForm | `src/component/Organism/CardForm.spec.tsx` | コンポーネントテスト |
-| Component / DeckForm | `src/component/Organism/DeckForm.spec.tsx` | コンポーネントテスト |
-| Component / ConfigForm | `src/component/Organism/ConfigForm.spec.tsx` | コンポーネントテスト |
-| Component / FrontText | `src/component/Organism/FrontText.spec.tsx` | コンポーネントテスト |
-| Component / DeckStartForm | `src/component/Organism/DeckStartForm.spec.tsx` | コンポーネントテスト（スキップ） |
-| Component / Controller | `src/component/Organism/Controller.spec.tsx` | コンポーネントテスト（スキップ） |
+| Container / CardForm | `src/features/card/containers/CardFormContainer.spec.tsx` | container テスト |
+| Container / CardList | `src/features/card/containers/CardListContainer.spec.tsx` | container/template 統合テスト |
+| Container / DeckForm | `src/features/deck/containers/DeckFormContainer.spec.tsx` | container テスト |
+| Container / DeckFilter | `src/features/deck/containers/useDeckFilterState.spec.tsx` | hook/component 統合テスト |
+| Container / ConfigForm | `src/features/settings/containers/useConfigFormState.spec.tsx` | hook/component 統合テスト |
+| Component / FrontText | `src/features/card/components/FrontText.spec.tsx` | component テスト |
+| Container / StudyController | `src/features/study/containers/useStudyControllerState.spec.tsx` | hook/component 統合テスト |
+| Container / DeckSwiper | `src/features/study/containers/DeckSwiperContainer.spec.tsx` | container/template 統合テスト |
+| Container / DeckImport | `src/features/import/containers/DeckImportContainer.spec.tsx` | container/template 統合テスト |
+| Architecture | `src/lib/componentArchitecture.spec.ts` | UI 依存境界テスト |
 
 ---
 
@@ -346,51 +350,48 @@
 
 ---
 
-## 4. コンポーネントテスト
+## 4. Feature UI テスト
 
-### 4-1. CardForm (`src/component/Organism/CardForm.spec.tsx`)
+### 4-1. CardFormContainer (`src/features/card/containers/CardFormContainer.spec.tsx`)
 
 > 初期カード: `frontText: "FRONT TEXT"`, `backText: "BACK TEXT"`, `tags: []`, `lastSeenAt: 1`
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
-| 1 | should submit | Save ボタンをクリック | `onSubmit` が初期カードで呼ばれる |
-| 2 | should update frontText | `frontText` テキストエリアをクリアして "UPDATED" を入力後 Save | `onSubmit({ ...card, frontText: "UPDATED" })` が呼ばれる |
-| 3 | should update backText | `backText` テキストエリアをクリアして "UPDATED" を入力後 Save | `onSubmit({ ...card, backText: "UPDATED" })` が呼ばれる |
-| 4 | should update tags | タグオプション "tag 1" をクリック後 Save | `onSubmit({ ...card, tags: ["tag 1"] })` が呼ばれる |
+| 1 | submits current card | Save ボタンをクリック | `cardUpdateAndBack(card)` が呼ばれる |
+| 2 | submits edited text | front/back text を編集後 Save | 編集済み card で `cardUpdateAndBack` が呼ばれる |
+| 3 | submits edited tags | language tag を選択後 Save | 編集済み tags で `cardUpdateAndBack` が呼ばれる |
+| 4 | preserves invalid route error | route id なしで container を評価 | `invalid card id` error |
 
 ---
 
-### 4-2. DeckForm (`src/component/Organism/DeckForm.spec.tsx`)
+### 4-2. DeckFormContainer (`src/features/deck/containers/DeckFormContainer.spec.tsx`)
 
 > 初期 Deck: `name: "NAME"`, `isPublic: false`, `convertToBr: false`, `url: ""`, `category: ""`, `localMode: true`
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
-| 1 | should submit | Save ボタンをクリック | `onSubmit` が初期 Deck で呼ばれる |
-| 2 | should update name | `name` 入力をクリアして "UPDATED" と入力後 Save | `onSubmit({ ...deck, name: "UPDATED" })` が呼ばれる |
-| 3 | should update url | `url` 入力をクリアして "UPDATED" と入力後 Save | `onSubmit({ ...deck, url: "UPDATED" })` が呼ばれる |
-| 4 | should update isPublic *(スキップ)* | `isPublic` チェックボックスをクリック後 Save | `onSubmit({ ...deck, isPublic: true })` が呼ばれる |
-| 5 | should update convertToBr | `convertToBr` チェックボックスをクリック後 Save | `onSubmit({ ...deck, convertToBr: true })` が呼ばれる |
-| 6 | should update category | セレクトで "LABEL" を選択後 Save | `onSubmit({ ...deck, category: "VALUE" })` が呼ばれる |
+| 1 | submits current deck | Save ボタンをクリック | `updateAndBack(deck)` が呼ばれる |
+| 2 | submits edited name | `name` を編集後 Save | 編集済み name で `updateAndBack` が呼ばれる |
+| 3 | submits edited URL | `url` を編集後 Save | 編集済み url で `updateAndBack` が呼ばれる |
+| 4 | submits convert setting | `convertToBr` を変更後 Save | `convertToBr: true` で `updateAndBack` が呼ばれる |
+| 5 | submits edited category | category を変更後 Save | 編集済み category で `updateAndBack` が呼ばれる |
+| 6 | preserves invalid route error | route id なしで container を評価 | `invalid deck id` error |
 
 ---
 
-### 4-3. ConfigForm (`src/component/Organism/ConfigForm.spec.tsx`)
+### 4-3. ConfigForm (`src/features/settings/containers/useConfigFormState.spec.tsx`)
 
 > 初期 Config: 全フラグ `false`、数値フィールド `0`、文字列フィールド `""`
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
-| 1 | should update showHeader | `showHeader` チェックボックスをクリック | `onSubmit({ ...config, showHeader: true })` が呼ばれる |
-| 2 | should update showSwipeButtonList | `showSwipeButtonList` チェックボックスをクリック | `onSubmit({ ...config, showSwipeButtonList: true })` が呼ばれる |
-| 3 | should update showSwipeFeedback | `showSwipeFeedback` チェックボックスをクリック | `onSubmit({ ...config, showSwipeFeedback: true })` が呼ばれる |
-| 4 | should update maxNumberOfCardsToLearn | `maxNumberOfCardsToLearn` 入力を `10` に変更 | `onSubmit({ ...config, maxNumberOfCardsToLearn: 10 })` が呼ばれる |
-| 5 | should update cardInterval *(スキップ)* | `cardInterval` 入力を `10` に変更 | `onSubmit({ ...config, cardInterval: 10 })` が呼ばれる |
+| 1 | auto-submits field changes | boolean/numeric field を変更 | 変更ごとに `onSubmit` が最新 config で呼ばれる |
+| 2 | synchronizes dark mode | `config.darkMode` prop を変更 | form 表示と auto-submit の値が同期する |
 
 ---
 
-### 4-4. FrontText (`src/component/Organism/FrontText.spec.tsx`)
+### 4-4. FrontText (`src/features/card/components/FrontText.spec.tsx`)
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
@@ -398,25 +399,25 @@
 
 ---
 
-### 4-5. DeckStartForm (`src/component/Organism/DeckStartForm.spec.tsx`) ※スキップ
-
-> 現在 `describe.skip` によりスキップ中。
+### 4-5. Deck filter (`src/features/deck/containers/useDeckFilterState.spec.tsx`)
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
-| 1 | should submit | `scoreMax:2`, `scoreMin:-2`, タグフィルタ ON、全タグ選択後 Submit | `onSubmit({ scoreMax:2, scoreMin:-2, tagAndFilter:true, selectedTags: tags })` が呼ばれる |
-| 2 | should update score | scoreMax/scoreMin スイッチの ON/OFF とスライダー操作 | スイッチ ON で `0`、OFF で `null`、スライダーの値が反映される |
+| 1 | auto-submits score/filter | score と AND/OR と全タグを変更 | 最新 deck filter で `onSubmit` が呼ばれる |
+| 2 | auto-submits score controls | score switch と slider を変更 | ON は `0`、OFF は `null`、slider 値が反映される |
+| 3 | auto-submits tag controls | 個別 tag、all、clear を操作 | selectedTags が各操作に合わせて送信される |
 
 ---
 
-### 4-6. Controller (`src/component/Organism/Controller.spec.tsx`) ※スキップ
-
-> 現在 `describe.skip` によりスキップ中。
+### 4-6. Study controller (`src/features/study/containers/useStudyControllerState.spec.tsx`)
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
-| 1 | should update index once a second | Play ボタンをクリック後、1秒進める | `onChange(1)` が呼ばれる |
-| 2 | should update index manually | スライダーを `3` に変更 | `onChange(3)` が呼ばれる |
+| 1 | toggles play/pause | controller icon をクリック | container hook の autoPlay が切り替わる |
+| 2 | advances after interval | Play 後、設定時間まで timer を進める | interval 到達時だけ `onChange(index + 1)` が呼ばれる |
+| 3 | keeps initial autoPlay semantics | mount 後に prop を変更 | hook 内 state は prop 変更で再初期化されない |
+| 4 | updates index manually | slider を変更 | `onChange` が選択 index で呼ばれる |
+| 5 | stops at terminal index | terminal index で timer を進める | `onChange` は呼ばれない |
 
 ---
 

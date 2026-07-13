@@ -1,0 +1,30 @@
+import type { Meta, StoryObj } from "@storybook/react";
+
+import { Card as Template } from "@src/features/card/components/Card";
+import * as fixture from "@src/shared/storybook/fixture";
+
+const meta = {
+  title: "Card/Card",
+  component: Template,
+  tags: ["autodocs"],
+  args: {
+    card: fixture.card.default,
+  },
+} satisfies Meta<typeof Template>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+
+export const LongText: Story = {
+  args: {
+    card: fixture.card.long,
+  },
+};
+
+export const LongTags: Story = {
+  args: {
+    card: fixture.card.longTags,
+  },
+};
