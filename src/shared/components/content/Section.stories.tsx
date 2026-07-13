@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Section as Template } from "@src/shared/components/Section";
+import { Section as Template } from "@src/shared/components/content/Section";
 
 const meta = {
   title: "Shared/Section",

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Logo as Template } from "@src/shared/components/Logo";
+import { Logo as Template } from "@src/shared/components/content/Logo";
 
 const meta = {
   title: "Shared/Logo",

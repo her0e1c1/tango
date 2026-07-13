@@ -1,6 +1,6 @@
 import cx from "classnames";
 import React from "react";
-import { Description } from "@src/shared/components/Description";
+import { Description } from "@src/shared/components/content/Description";
 
 export const FormItem: React.FC<{
   label: string;

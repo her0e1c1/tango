@@ -140,6 +140,15 @@ describe("component architecture", () => {
     ]);
   });
 
+  it("groups shared content components", () => {
+    expectSharedComponentGroup(
+      "content",
+      ["Card", "Code", "Description", "Logo", "Math", "Score", "Section", "Style", "TagList", "Title"],
+      ["Card", "Code", "Description", "Logo", "Math", "Score", "Section", "TagList", "Title"],
+      ["Code.scss"]
+    );
+  });
+
   it("keeps every page as one feature container route entry", () => {
     const pagePaths = productionFilesUnder("page").filter((relativePath) => relativePath.endsWith(".tsx"));
     expect(pagePaths.length).toBeGreaterThan(0);

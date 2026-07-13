@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Card as Template } from "@src/shared/components/Card";
+import { Card as Template } from "@src/shared/components/content/Card";
 
 const meta = {
   title: "Shared/Card",

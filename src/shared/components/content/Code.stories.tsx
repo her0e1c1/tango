@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Code as Template } from "@src/shared/components/Code";
+import { Code as Template } from "@src/shared/components/content/Code";
 import * as fixture from "@src/shared/storybook/fixture";
 
 const meta = {
