@@ -55,6 +55,13 @@ const studyPresentationAllowedModules = [
   "@src/shared/components",
   "@src/features/study/components",
 ];
+const importPageAllowedModules = new Set(["react", "@src/features/import/containers"]);
+const importPresentationAllowedModules = [
+  "react",
+  "react-icons",
+  "@src/shared/components",
+  "@src/features/import/components",
+];
 
 function isAllowedDeckPageModule(specifier: string): boolean {
   return deckPageAllowedModules.has(specifier);
@@ -78,6 +85,14 @@ function isAllowedStudyPageModule(specifier: string): boolean {
 
 function isAllowedStudyPresentationModule(specifier: string): boolean {
   return studyPresentationAllowedModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName));
+}
+
+function isAllowedImportPageModule(specifier: string): boolean {
+  return importPageAllowedModules.has(specifier);
+}
+
+function isAllowedImportPresentationModule(specifier: string): boolean {
+  return importPresentationAllowedModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName));
 }
 
 function importViolation(relativePath: string, specifier: string): string {
@@ -300,6 +315,47 @@ describe("component architecture", () => {
       importViolations.push(
         ...staticModuleSpecifiers(componentSource)
           .filter((specifier) => !isAllowedStudyPresentationModule(specifier))
+          .map((specifier) => importViolation(componentPath, specifier))
+      );
+    }
+
+    expect(importViolations, importViolations.join("\n")).toEqual([]);
+  });
+
+  it("places import presentation and application behavior under the import feature", () => {
+    const componentPaths = ["features/import/components/templates/DeckImportTemplate.tsx"];
+    const colocatedPaths = ["features/import/components/templates/DeckImportTemplate.stories.tsx"];
+    const containerPaths = [
+      "features/import/containers/DeckImportContainer.tsx",
+      "features/import/containers/index.ts",
+    ];
+    const importViolations: string[] = [];
+
+    expectSourcePathsToExist([...componentPaths, ...colocatedPaths, ...containerPaths]);
+    expectSourcePathsNotToExist(["component/Template/DeckImport.tsx", "component/Template/DeckImport.stories.tsx"]);
+
+    const pagePath = "page/DeckImportPage.tsx";
+    const pageSource = readSource(pagePath);
+    const pageModules = staticModuleSpecifiers(pageSource);
+    expect(pageModules).toEqual(["react", "@src/features/import/containers"]);
+    expect(pageSource).toContain("export const DeckImportPage: React.FC = () => <DeckImportContainer />;");
+    expect(pageSource).not.toMatch(
+      /\b(?:useState|useReducer|useMemo|useEffect|useSelector|useDispatch|useParams|useNavigate|useActions|useKey|useForm)\s*\(/
+    );
+    importViolations.push(
+      ...pageModules
+        .filter((specifier) => !isAllowedImportPageModule(specifier))
+        .map((specifier) => importViolation(pagePath, specifier))
+    );
+
+    for (const componentPath of componentPaths) {
+      const componentSource = readSource(componentPath);
+      expect(componentSource).not.toMatch(
+        /\b(?:React\.)?use(?:State|Reducer|Effect)\s*\(|\b(?:useForm|useController|useWatch|useSelector|useDispatch|useParams|useNavigate|useActions|useKey)\s*\(/
+      );
+      importViolations.push(
+        ...staticModuleSpecifiers(componentSource)
+          .filter((specifier) => !isAllowedImportPresentationModule(specifier))
           .map((specifier) => importViolation(componentPath, specifier))
       );
     }

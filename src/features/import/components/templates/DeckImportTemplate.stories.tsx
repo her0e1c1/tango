@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
+import * as C from "@src/constant";
+import { DeckImportTemplate as Template } from "@src/features/import/components/templates/DeckImportTemplate";
 import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import { DeckImport as Template } from "@src/component/Template";
 
 const meta = {
-  title: "Template/DeckImport",
+  title: "Import/DeckImportTemplate",
   component: Template,
   tags: ["autodocs"],
   parameters: {
@@ -14,7 +15,9 @@ const meta = {
       defaultViewport: "desktop",
     },
   },
-  args: {},
+  args: {
+    sampleText: C.CSV_SAMPLE_TEXT,
+  },
 } satisfies Meta<typeof Template>;
 
 export default meta;
@@ -23,7 +26,9 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Empty: Story = {
-  args: {},
+  args: {
+    sampleText: "",
+  },
 };
 
 export const IphoneX: Story = {
