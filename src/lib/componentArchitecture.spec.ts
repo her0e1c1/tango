@@ -153,6 +153,12 @@ describe("component architecture", () => {
     expectSharedComponentGroup("feedback", ["Feedback", "Overlay"]);
   });
 
+  it("keeps the exact shared component groups", () => {
+    expect(readdirSync(sourcePath("shared/components")).sort()).toEqual(
+      ["content", "feedback", "forms", "index.ts", "layout"].sort()
+    );
+  });
+
   it("keeps every page as one feature container route entry", () => {
     const pagePaths = productionFilesUnder("page").filter((relativePath) => relativePath.endsWith(".tsx"));
     expect(pagePaths.length).toBeGreaterThan(0);

@@ -36,8 +36,19 @@ UI の依存方向は `App -> Page -> Container -> Template -> Component` です
 
 - `containers` は Redux、router、keyboard shortcut、form state、timer、overlay などの application state と副作用を所有します。
 - `components/templates` は画面単位の stateless な合成を、`components` は props-driven な表示を担当します。domain/UI state を所有しない表示統合として、`Code` の DOM highlighting や `useSwipeable` などの render-only hook は利用できます。
-- `src/shared/components` は feature に依存しない共通表示です。feature 間の調整は container が行います。
+- `src/shared/components` は feature に依存しない stateless な共通表示です。feature 間の調整は container が行います。
 - container 専用 hook は `src/shared/hooks` または feature の `containers` 配下に置き、Page・Template・Component からは呼びません。
+
+## Shared component の責務別 group
+
+`src/shared/components` は component の大きさではなく責務で分類し、Atomic Design の atom/molecule taxonomy は使いません。
+
+- `layout`: `FullScreen`、`Header`、`Layout`、`List`、`Main`、`Outer`
+- `forms`: `Button`、`Form`、`FormItem`、`Input`、`Select`、`Slider`、`Switch`、`Tag`、`Textarea`、`Upload`
+- `content`: `Card`、`Code`、`Description`、`Logo`、`Math`、`Score`、`Section`、`Style`、`TagList`、`Title`
+- `feedback`: `Feedback`、`Overlay`
+
+公開 API は root barrel の `@src/shared/components` です。stories と component 固有の style は対象 component と同じ group に置き、各 group は feature 非依存かつ stateless に保ちます。
 
 ## Feature map
 

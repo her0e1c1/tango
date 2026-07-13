@@ -10,7 +10,7 @@
 | `src/features/*/containers` | Redux/router/form/UI state と副作用の接続 | `react-redux`, `react-router-dom`, `react-hook-form`, actions, selectors |
 | `src/features/*/components/templates` | stateless な画面単位の UI 合成 | 同じ feature の components, `src/shared/components` |
 | `src/features/*/components` | deck/card/config/study/import 固有の props-driven UI | `src/shared/components`, render 用 libraries |
-| `src/shared/components` | button/input/layout/code/math など feature 非依存の共通 UI | Tailwind CSS, KaTeX, highlight.js, react-markdown |
+| `src/shared/components` | `layout`・`forms`・`content`・`feedback` の feature 非依存な共通 UI。root barrel が公開 API | Tailwind CSS, KaTeX, highlight.js, react-markdown |
 | `src/shared/hooks` | 複数 feature の container で使う application hook | Redux, router, actions |
 | `src/action` | thunk による domain 操作、CSV import/export、学習 swipe | `firebase`, `papaparse`, `file-saver`, selectors |
 | `src/action/firestore` | Firestore CRUD と snapshot subscription | Firebase Firestore SDK |
