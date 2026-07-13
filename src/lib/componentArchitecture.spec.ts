@@ -43,19 +43,35 @@ function productionFilesUnder(relativeDirectory: string): string[] {
   return sourceFilesUnder(relativeDirectory).filter((relativePath) => !testOrStory.test(relativePath));
 }
 
-function staticModuleSpecifiers(source: string): string[] {
-  const matches = source.matchAll(
+function moduleSpecifiers(source: string): string[] {
+  const staticMatches = source.matchAll(
     /(?:^|\n)\s*(?:import\s+(?:type\s+)?(?:[^;]*?\s+from\s+)?|export\s+(?:type\s+)?[^;]*?\s+from\s+)["']([^"']+)["']/g
   );
-  return Array.from(matches, (match) => match[1]);
+  const dynamicMatches = source.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g);
+  return [...Array.from(staticMatches, (match) => match[1]), ...Array.from(dynamicMatches, (match) => match[1])];
+}
+
+interface ModuleReference {
+  specifier: string;
+  resolvedSpecifier: string;
+}
+
+function moduleReferences(relativePath: string): ModuleReference[] {
+  return moduleSpecifiers(readSource(relativePath)).map((specifier) => ({
+    specifier,
+    resolvedSpecifier: specifier.startsWith(".")
+      ? `@src/${path.posix.normalize(path.posix.join(path.posix.dirname(relativePath), specifier))}`
+      : specifier,
+  }));
 }
 
 function isModuleOrSubpath(specifier: string, moduleName: string): boolean {
   return specifier === moduleName || specifier.startsWith(`${moduleName}/`);
 }
 
-function importViolation(relativePath: string, specifier: string): string {
-  return `${relativePath}: ${specifier}`;
+function importViolation(relativePath: string, reference: ModuleReference): string {
+  const resolution = reference.resolvedSpecifier === reference.specifier ? "" : ` -> ${reference.resolvedSpecifier}`;
+  return `${relativePath}: ${reference.specifier}${resolution}`;
 }
 
 function forbiddenConnector(specifier: string): boolean {
@@ -69,9 +85,9 @@ function expectStatelessPresentation(relativePath: string): void {
   const source = readSource(relativePath);
   expect(source, relativePath).not.toMatch(mutablePresentationHook);
   expect(
-    staticModuleSpecifiers(source)
-      .filter(forbiddenConnector)
-      .map((specifier) => importViolation(relativePath, specifier)),
+    moduleReferences(relativePath)
+      .filter((reference) => forbiddenConnector(reference.resolvedSpecifier))
+      .map((reference) => importViolation(relativePath, reference)),
     relativePath
   ).toEqual([]);
 }
@@ -94,7 +110,7 @@ describe("component architecture", () => {
 
     for (const pagePath of pagePaths) {
       const source = readSource(pagePath);
-      const modules = staticModuleSpecifiers(source);
+      const modules = moduleSpecifiers(source);
       const featureContainerModules = modules.filter((specifier) =>
         /^@src\/features\/[^/]+\/containers$/.test(specifier)
       );
@@ -123,9 +139,9 @@ describe("component architecture", () => {
     for (const sharedPath of productionFilesUnder("shared/components")) {
       expectStatelessPresentation(sharedPath);
       violations.push(
-        ...staticModuleSpecifiers(readSource(sharedPath))
-          .filter((specifier) => specifier.startsWith("@src/features"))
-          .map((specifier) => importViolation(sharedPath, specifier))
+        ...moduleReferences(sharedPath)
+          .filter((reference) => reference.resolvedSpecifier.startsWith("@src/features"))
+          .map((reference) => importViolation(sharedPath, reference))
       );
     }
 
@@ -143,14 +159,14 @@ describe("component architecture", () => {
       for (const componentPath of productionFilesUnder(`features/${featureName}/components`)) {
         expectStatelessPresentation(componentPath);
         violations.push(
-          ...staticModuleSpecifiers(readSource(componentPath))
+          ...moduleReferences(componentPath)
             .filter(
-              (specifier) =>
-                specifier.startsWith("@src/") &&
-                !isModuleOrSubpath(specifier, "@src/shared/components") &&
-                !isModuleOrSubpath(specifier, `@src/features/${featureName}/components`)
+              (reference) =>
+                reference.resolvedSpecifier.startsWith("@src/") &&
+                !isModuleOrSubpath(reference.resolvedSpecifier, "@src/shared/components") &&
+                !isModuleOrSubpath(reference.resolvedSpecifier, `@src/features/${featureName}/components`)
             )
-            .map((specifier) => importViolation(componentPath, specifier))
+            .map((reference) => importViolation(componentPath, reference))
         );
       }
     }
@@ -165,9 +181,9 @@ describe("component architecture", () => {
       /^features\/[^/]+\/containers\/index\.ts$/.test(relativePath)
     )) {
       violations.push(
-        ...staticModuleSpecifiers(readSource(indexPath))
-          .filter(isContainerOnlyHook)
-          .map((specifier) => `${indexPath} publicly re-exports ${specifier}`)
+        ...moduleReferences(indexPath)
+          .filter((reference) => isContainerOnlyHook(reference.resolvedSpecifier))
+          .map((reference) => `${indexPath} publicly re-exports ${reference.specifier}`)
       );
     }
 
@@ -175,9 +191,9 @@ describe("component architecture", () => {
       if (/^features\/[^/]+\/containers\//.test(relativePath)) continue;
 
       violations.push(
-        ...staticModuleSpecifiers(readSource(relativePath))
-          .filter(isContainerOnlyHook)
-          .map((specifier) => importViolation(relativePath, specifier))
+        ...moduleReferences(relativePath)
+          .filter((reference) => isContainerOnlyHook(reference.resolvedSpecifier))
+          .map((reference) => importViolation(relativePath, reference))
       );
     }
 
