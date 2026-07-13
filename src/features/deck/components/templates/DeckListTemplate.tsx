@@ -1,6 +1,6 @@
 import * as React from "react";
 import { List } from "@src/shared/components";
-import { Layout } from "@src/shared/components/Layout";
+import { Layout } from "@src/shared/components/layout/Layout";
 import { DeckCard, type DeckCardProps } from "@src/features/deck/components/DeckCard";
 
 export interface DeckListTemplateProps {

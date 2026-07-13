@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Layout } from "@src/shared/components/Layout";
+import { Layout } from "@src/shared/components/layout/Layout";
 import { DeckForm, type DeckFormProps } from "@src/features/deck/components/DeckForm";
 
 export interface DeckFormTemplateProps {

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { List, Overlay } from "@src/shared/components";
-import { Layout, type LayoutProps } from "@src/shared/components/Layout";
+import { Layout, type LayoutProps } from "@src/shared/components/layout/Layout";
 import { BackText, type BackTextProps } from "@src/features/card/components/BackText";
 import { Card, type CardProps } from "@src/features/card/components/Card";
 

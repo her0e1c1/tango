@@ -1,18 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Outer as Template } from "@src/shared/components/Outer";
+import { Header as Template } from "@src/shared/components/layout/Header";
 
 const meta = {
-  title: "Shared/Outer",
+  title: "Shared/Header",
   component: Template,
   tags: ["autodocs"],
+  argTypes: {},
+  args: {},
 } satisfies Meta<typeof Template>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  args: {
-    className: "",
-  },
-};
+export const Default: Story = {};

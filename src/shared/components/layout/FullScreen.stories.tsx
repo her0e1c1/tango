@@ -2,7 +2,7 @@ import React from "react";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { FullScreen as Template } from "@src/shared/components/FullScreen";
+import { FullScreen as Template } from "@src/shared/components/layout/FullScreen";
 import { Container } from "@src/shared/storybook/Decorator";
 
 const meta = {

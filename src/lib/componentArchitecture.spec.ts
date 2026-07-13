@@ -99,9 +99,30 @@ function isContainerOnlyHook(specifier: string): boolean {
   );
 }
 
+function expectSharedComponentGroup(
+  group: "layout" | "forms" | "content" | "feedback",
+  componentNames: string[],
+  storyNames: string[] = componentNames,
+  extraFiles: string[] = []
+): void {
+  const groupedPaths = [
+    ...componentNames.map((name) => `shared/components/${group}/${name}.tsx`),
+    ...storyNames.map((name) => `shared/components/${group}/${name}.stories.tsx`),
+    ...extraFiles.map((name) => `shared/components/${group}/${name}`),
+  ];
+  const legacyPaths = groupedPaths.map((groupedPath) => `shared/components/${path.posix.basename(groupedPath)}`);
+
+  expect(groupedPaths.filter((relativePath) => !existsSync(sourcePath(relativePath)))).toEqual([]);
+  expect(legacyPaths.filter((relativePath) => existsSync(sourcePath(relativePath)))).toEqual([]);
+}
+
 describe("component architecture", () => {
   it("removes the legacy Atomic Design component root", () => {
     expect(existsSync(sourcePath("component"))).toBe(false);
+  });
+
+  it("groups shared layout components", () => {
+    expectSharedComponentGroup("layout", ["FullScreen", "Header", "Layout", "List", "Main", "Outer"]);
   });
 
   it("keeps every page as one feature container route entry", () => {
