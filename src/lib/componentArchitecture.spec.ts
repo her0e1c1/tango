@@ -154,9 +154,11 @@ describe("component architecture", () => {
   });
 
   it("keeps the exact shared component groups", () => {
-    expect(readdirSync(sourcePath("shared/components")).sort()).toEqual(
-      ["content", "feedback", "forms", "index.ts", "layout"].sort()
-    );
+    expect(
+      readdirSync(sourcePath("shared/components"))
+        .filter((entry) => entry !== ".DS_Store")
+        .sort()
+    ).toEqual(["content", "feedback", "forms", "index.ts", "layout"].sort());
   });
 
   it("keeps every page as one feature container route entry", () => {
