@@ -149,6 +149,10 @@ describe("component architecture", () => {
     );
   });
 
+  it("groups shared feedback components", () => {
+    expectSharedComponentGroup("feedback", ["Feedback", "Overlay"]);
+  });
+
   it("keeps every page as one feature container route entry", () => {
     const pagePaths = productionFilesUnder("page").filter((relativePath) => relativePath.endsWith(".tsx"));
     expect(pagePaths.length).toBeGreaterThan(0);
