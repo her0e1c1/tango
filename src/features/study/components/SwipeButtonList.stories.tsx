@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { SwipeButtonList as Template } from "@src/component/Organism";
+import { SwipeButtonList as Template } from "@src/features/study/components/SwipeButtonList";
 
 const meta = {
-  title: "Organism/SwipeButtonList",
+  title: "Study/SwipeButtonList",
   component: Template,
   tags: ["autodocs"],
 } satisfies Meta<typeof Template>;

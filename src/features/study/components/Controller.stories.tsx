@@ -1,13 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Controller as Template } from "@src/component/Organism";
+import { Controller as Template } from "@src/features/study/components/Controller";
 
 const meta = {
-  title: "Organism/Controller",
+  title: "Study/Controller",
   component: Template,
   tags: ["autodocs"],
   argTypes: {
     onChange: { action: "onChange" },
+    onToggleAutoPlay: { action: "onToggleAutoPlay" },
   },
 } satisfies Meta<typeof Template>;
 

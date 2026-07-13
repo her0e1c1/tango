@@ -1,8 +1,9 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import { DeckStart as Template } from "@src/component/Template";
-import type { DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
+import { DeckStartForm, type DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
+import { DeckStartTemplate as Template } from "@src/features/study/components/templates/DeckStartTemplate";
 import * as fixture from "@src/shared/storybook/fixture";
 
 const deckStartForm: DeckStartFormProps = {
@@ -29,7 +30,7 @@ const longDeckStartForm: DeckStartFormProps = {
 };
 
 const meta = {
-  title: "Template/DeckStart",
+  title: "Study/DeckStartTemplate",
   component: Template,
   tags: ["autodocs"],
   parameters: {
@@ -42,7 +43,7 @@ const meta = {
   args: {
     config: fixture.config.default,
     cardsLength: 123,
-    deckStartForm,
+    filterSlot: <DeckStartForm {...deckStartForm} />,
   },
 } satisfies Meta<typeof Template>;
 
@@ -53,7 +54,7 @@ export const Default: Story = {};
 
 export const Long: Story = {
   args: {
-    deckStartForm: longDeckStartForm,
+    filterSlot: <DeckStartForm {...longDeckStartForm} />,
   },
 };
 
@@ -72,6 +73,6 @@ export const IphoneXLong: Story = {
     },
   },
   args: {
-    deckStartForm: longDeckStartForm,
+    filterSlot: <DeckStartForm {...longDeckStartForm} />,
   },
 };

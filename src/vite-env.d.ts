@@ -71,6 +71,7 @@ interface ControllerProps {
   index?: number;
   cardInterval?: number;
   numberOfCards?: number;
+  onToggleAutoPlay?: () => void;
   onChange?: (index: number) => void;
 }
 

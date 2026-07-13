@@ -1,10 +1,14 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { DeckSwiper as Template } from "@src/component/Template";
+import { BackText as BackTextComponent } from "@src/features/card/components/BackText";
+import { CardOverlay } from "@src/features/card/components/CardOverlay";
+import { FrontText as FrontTextComponent } from "@src/features/card/components/FrontText";
+import { DeckSwiperTemplate as Template } from "@src/features/study/components/templates/DeckSwiperTemplate";
 import * as fixture from "@src/shared/storybook/fixture";
 
 const meta = {
-  title: "Template/DeckSwiper",
+  title: "Study/DeckSwiperTemplate",
   component: Template,
   tags: ["autodocs"],
   parameters: {
@@ -13,8 +17,8 @@ const meta = {
   args: {
     showHeader: true,
     showSwipeButtonList: true,
-    frontText: { text: "front text" },
-    card: fixture.card.default,
+    frontTextSlot: <FrontTextComponent text="front text" />,
+    cardOverlaySlot: <CardOverlay card={fixture.card.default} />,
   },
 } satisfies Meta<typeof Template>;
 
@@ -42,20 +46,20 @@ export const FrontTextAll: Story = {
 export const BackText: Story = {
   args: {
     showBackText: true,
-    backText: { text: "this is a back text" },
+    backTextSlot: <BackTextComponent text="this is a back text" />,
   },
 };
 
 export const BackTextTooLong: Story = {
   args: {
     showBackText: true,
-    backText: { text: fixture.code.longtext },
+    backTextSlot: <BackTextComponent text={fixture.code.longtext} />,
   },
 };
 
 export const BackTextCode: Story = {
   args: {
     showBackText: true,
-    backText: { text: fixture.code.longtext, category: "python", code: true },
+    backTextSlot: <BackTextComponent text={fixture.code.longtext} category="python" code />,
   },
 };

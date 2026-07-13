@@ -1,15 +1,16 @@
 import React from "react";
 import { Button, Section } from "@src/shared/components";
 import { Layout } from "@src/shared/components/Layout";
-import { DeckStartForm, type DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
 
-export const DeckStart: React.FC<{
+export interface DeckStartTemplateProps {
   layout?: LayoutProps;
-  deckStartForm?: DeckStartFormProps;
   config: ConfigState;
   cardsLength: number;
+  filterSlot?: React.ReactNode;
   onClickStart?: () => void;
-}> = (props) => {
+}
+
+export const DeckStartTemplate: React.FC<DeckStartTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       <Section page title="Filter Cards" />
@@ -23,7 +24,7 @@ export const DeckStart: React.FC<{
           }`}
         />
       </div>
-      {props.deckStartForm != null && <DeckStartForm {...props.deckStartForm} />}
+      {props.filterSlot}
     </Layout>
   );
 };

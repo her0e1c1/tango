@@ -47,6 +47,14 @@ const cardPresentationAllowedModules = [
   "@src/shared/components",
   "@src/features/card/components",
 ];
+const studyPageAllowedModules = new Set(["react", "@src/features/study/containers"]);
+const studyPresentationAllowedModules = [
+  "react",
+  "react-icons",
+  "classnames",
+  "@src/shared/components",
+  "@src/features/study/components",
+];
 
 function isAllowedDeckPageModule(specifier: string): boolean {
   return deckPageAllowedModules.has(specifier);
@@ -62,6 +70,14 @@ function isAllowedCardPageModule(specifier: string): boolean {
 
 function isAllowedCardPresentationModule(specifier: string): boolean {
   return cardPresentationAllowedModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName));
+}
+
+function isAllowedStudyPageModule(specifier: string): boolean {
+  return studyPageAllowedModules.has(specifier);
+}
+
+function isAllowedStudyPresentationModule(specifier: string): boolean {
+  return studyPresentationAllowedModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName));
 }
 
 function importViolation(relativePath: string, specifier: string): string {
@@ -215,6 +231,75 @@ describe("component architecture", () => {
       importViolations.push(
         ...staticModuleSpecifiers(componentSource)
           .filter((specifier) => !isAllowedCardPresentationModule(specifier))
+          .map((specifier) => importViolation(componentPath, specifier))
+      );
+    }
+
+    expect(importViolations, importViolations.join("\n")).toEqual([]);
+  });
+
+  it("places study presentation and application behavior under the study feature", () => {
+    const componentPaths = [
+      "features/study/components/Controller.tsx",
+      "features/study/components/SwipeButtonList.tsx",
+      "features/study/components/templates/DeckStartTemplate.tsx",
+      "features/study/components/templates/DeckSwiperTemplate.tsx",
+    ];
+    const colocatedPaths = [
+      "features/study/components/Controller.spec.tsx",
+      "features/study/components/Controller.stories.tsx",
+      "features/study/components/SwipeButtonList.stories.tsx",
+      "features/study/components/templates/DeckStartTemplate.stories.tsx",
+      "features/study/components/templates/DeckSwiperTemplate.stories.tsx",
+    ];
+    const containerPaths = [
+      "features/study/containers/DeckStartContainer.tsx",
+      "features/study/containers/DeckSwiperContainer.tsx",
+      "features/study/containers/useStudyControllerState.ts",
+      "features/study/containers/index.ts",
+    ];
+    const pageContainers = [
+      ["page/DeckStartPage.tsx", "DeckStartPage", "DeckStartContainer"],
+      ["page/DeckSwiperPage.tsx", "DeckSwiperPage", "DeckSwiperContainer"],
+    ] as const;
+    const importViolations: string[] = [];
+
+    expectSourcePathsToExist([...componentPaths, ...colocatedPaths, ...containerPaths]);
+    expectSourcePathsNotToExist([
+      "component/Organism/Controller.tsx",
+      "component/Organism/Controller.spec.tsx",
+      "component/Organism/Controller.stories.tsx",
+      "component/Organism/SwipeButtonList.tsx",
+      "component/Organism/SwipeButtonList.stories.tsx",
+      "component/Template/DeckStart.tsx",
+      "component/Template/DeckStart.stories.tsx",
+      "component/Template/DeckSwiper.tsx",
+      "component/Template/DeckSwiper.stories.tsx",
+    ]);
+
+    for (const [pagePath, pageName, containerName] of pageContainers) {
+      const pageSource = readSource(pagePath);
+      const pageModules = staticModuleSpecifiers(pageSource);
+      expect(pageModules).toEqual(["react", "@src/features/study/containers"]);
+      expect(pageSource).toContain(`export const ${pageName}: React.FC = () => <${containerName} />;`);
+      expect(pageSource).not.toMatch(
+        /\b(?:useState|useReducer|useMemo|useEffect|useSelector|useDispatch|useParams|useNavigate|useActions|useKey|useForm)\s*\(/
+      );
+      importViolations.push(
+        ...pageModules
+          .filter((specifier) => !isAllowedStudyPageModule(specifier))
+          .map((specifier) => importViolation(pagePath, specifier))
+      );
+    }
+
+    for (const componentPath of componentPaths) {
+      const componentSource = readSource(componentPath);
+      expect(componentSource).not.toMatch(
+        /\b(?:React\.)?use(?:State|Reducer|Effect)\s*\(|\b(?:useForm|useController|useWatch|useSelector|useDispatch|useParams|useNavigate|useActions|useKey)\s*\(/
+      );
+      importViolations.push(
+        ...staticModuleSpecifiers(componentSource)
+          .filter((specifier) => !isAllowedStudyPresentationModule(specifier))
           .map((specifier) => importViolation(componentPath, specifier))
       );
     }
