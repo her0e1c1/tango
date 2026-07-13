@@ -88,16 +88,6 @@ interface CardActionsProps {
 
 type CardListProps = { cards: Card[] } & CardActionsProps;
 
-interface ConfigFormProps {
-  isLoggedIn?: boolean;
-  config: ConfigState;
-  onSubmit?: (config: ConfigState) => void;
-  onLogin?: () => void;
-  onLogout?: () => void;
-  schema?: any;
-  version?: string;
-}
-
 interface Option {
   label: string;
   value: string;

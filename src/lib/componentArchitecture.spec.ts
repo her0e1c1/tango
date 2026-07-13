@@ -62,6 +62,8 @@ const importPresentationAllowedModules = [
   "@src/shared/components",
   "@src/features/import/components",
 ];
+const settingsPageAllowedModules = new Set(["react", "@src/features/settings/containers"]);
+const settingsPresentationAllowedModules = ["react", "@src/shared/components", "@src/features/settings/components"];
 
 function isAllowedDeckPageModule(specifier: string): boolean {
   return deckPageAllowedModules.has(specifier);
@@ -93,6 +95,14 @@ function isAllowedImportPageModule(specifier: string): boolean {
 
 function isAllowedImportPresentationModule(specifier: string): boolean {
   return importPresentationAllowedModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName));
+}
+
+function isAllowedSettingsPageModule(specifier: string): boolean {
+  return settingsPageAllowedModules.has(specifier);
+}
+
+function isAllowedSettingsPresentationModule(specifier: string): boolean {
+  return settingsPresentationAllowedModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName));
 }
 
 function importViolation(relativePath: string, specifier: string): string {
@@ -360,6 +370,65 @@ describe("component architecture", () => {
       );
     }
 
+    expect(importViolations, importViolations.join("\n")).toEqual([]);
+  });
+
+  it("places settings presentation and form state under the settings feature", () => {
+    const componentPaths = [
+      "features/settings/components/ConfigForm.tsx",
+      "features/settings/components/templates/ConfigFormTemplate.tsx",
+    ];
+    const colocatedPaths = [
+      "features/settings/components/ConfigForm.spec.tsx",
+      "features/settings/components/ConfigForm.stories.tsx",
+      "features/settings/components/templates/ConfigFormTemplate.stories.tsx",
+    ];
+    const containerPaths = [
+      "features/settings/containers/ConfigContainer.tsx",
+      "features/settings/containers/useConfigFormState.ts",
+      "features/settings/containers/index.ts",
+    ];
+    const importViolations: string[] = [];
+
+    expectSourcePathsToExist([...componentPaths, ...colocatedPaths, ...containerPaths]);
+    expectSourcePathsNotToExist([
+      "component/Organism/ConfigForm.tsx",
+      "component/Organism/ConfigForm.spec.tsx",
+      "component/Organism/ConfigForm.stories.tsx",
+      "component/Template/ConfigForm.tsx",
+      "component/Template/ConfigForm.stories.tsx",
+    ]);
+
+    const pagePath = "page/ConfigPage.tsx";
+    const pageSource = readSource(pagePath);
+    const pageModules = staticModuleSpecifiers(pageSource);
+    expect(pageModules).toEqual(["react", "@src/features/settings/containers"]);
+    expect(pageSource).toContain("export const ConfigPage: React.FC = () => <ConfigContainer />;");
+    expect(pageSource).not.toMatch(
+      /\b(?:useState|useReducer|useMemo|useEffect|useSelector|useDispatch|useParams|useNavigate|useActions|useKey|useForm|useWatch)\s*\(/
+    );
+    importViolations.push(
+      ...pageModules
+        .filter((specifier) => !isAllowedSettingsPageModule(specifier))
+        .map((specifier) => importViolation(pagePath, specifier))
+    );
+
+    for (const componentPath of componentPaths) {
+      const componentSource = readSource(componentPath);
+      expect(componentSource).not.toMatch(
+        /\b(?:React\.)?use(?:State|Reducer|Effect)\s*\(|\b(?:useForm|useController|useWatch|useSelector|useDispatch|useParams|useNavigate|useActions|useKey)\s*\(/
+      );
+      importViolations.push(
+        ...staticModuleSpecifiers(componentSource)
+          .filter((specifier) => !isAllowedSettingsPresentationModule(specifier))
+          .map((specifier) => importViolation(componentPath, specifier))
+      );
+    }
+
+    const configContainerSource = readSource("features/settings/containers/ConfigContainer.tsx");
+    expect(staticModuleSpecifiers(configContainerSource)).toContain(
+      "@src/features/settings/containers/useConfigFormState"
+    );
     expect(importViolations, importViolations.join("\n")).toEqual([]);
   });
 });
