@@ -14,9 +14,9 @@ flowchart TD
 
     C --> H[Container Hooks<br/>src/shared/hooks / src/features/*/containers]
     C --> A[Redux Actions / Thunks<br/>src/action]
-    C --> X[Selectors<br/>src/selector]
     A --> S[Redux Store<br/>src/store]
-    X --> S
+    S --> X[Selectors<br/>src/selector]
+    X --> C
 
     S <--> L[redux-persist<br/>LocalStorage]
     S --> I[Sample Deck Data<br/>sample/build/output.json]

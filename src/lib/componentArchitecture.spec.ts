@@ -11,6 +11,7 @@ const connectorModules = [
   "react-redux",
   "react-router",
   "react-router-dom",
+  "react-use",
   "@src/action",
   "@src/selector",
   "@src/store",

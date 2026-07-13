@@ -15,7 +15,6 @@ flowchart TD
     FeatureUI --> SharedUI
 
     Containers --> Actions[src/action thunk]
-    Containers --> Selectors[src/selector]
     Actions --> Store[Redux store / src/store]
     Store --> Selectors[src/selector]
     Selectors --> Containers
