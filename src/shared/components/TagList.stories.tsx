@@ -2,7 +2,7 @@ import React from "react";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Tag } from "@src/shared/components/Tag";
+import { Tag } from "@src/shared/components/forms/Tag";
 import { TagList as Template } from "@src/shared/components/TagList";
 import * as fixture from "@src/shared/storybook/fixture";
 

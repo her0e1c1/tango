@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Textarea as Template } from "@src/shared/components/Textarea";
+import { Slider as Template } from "@src/shared/components/forms/Slider";
 
 const meta = {
-  title: "Shared/Textarea",
+  title: "Shared/Slider",
   component: Template,
   tags: ["autodocs"],
   args: {},

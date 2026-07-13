@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Slider as Template } from "@src/shared/components/Slider";
+import { Input as Template } from "@src/shared/components/forms/Input";
 
 const meta = {
-  title: "Shared/Slider",
+  title: "Shared/Input",
   component: Template,
   tags: ["autodocs"],
-  args: {},
+  args: {
+    defaultValue: "this is a value",
+  },
 } satisfies Meta<typeof Template>;
 
 export default meta;

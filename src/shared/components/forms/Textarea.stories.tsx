@@ -1,14 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Input as Template } from "@src/shared/components/Input";
+import { Textarea as Template } from "@src/shared/components/forms/Textarea";
 
 const meta = {
-  title: "Shared/Input",
+  title: "Shared/Textarea",
   component: Template,
   tags: ["autodocs"],
-  args: {
-    defaultValue: "this is a value",
-  },
+  args: {},
 } satisfies Meta<typeof Template>;
 
 export default meta;

@@ -1,4 +1,4 @@
-import type { Option } from "@src/shared/components/Select";
+import type { Option } from "@src/shared/components/forms/Select";
 
 export const form = {
   options: {

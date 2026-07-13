@@ -125,6 +125,21 @@ describe("component architecture", () => {
     expectSharedComponentGroup("layout", ["FullScreen", "Header", "Layout", "List", "Main", "Outer"]);
   });
 
+  it("groups shared form components", () => {
+    expectSharedComponentGroup("forms", [
+      "Button",
+      "Form",
+      "FormItem",
+      "Input",
+      "Select",
+      "Slider",
+      "Switch",
+      "Tag",
+      "Textarea",
+      "Upload",
+    ]);
+  });
+
   it("keeps every page as one feature container route entry", () => {
     const pagePaths = productionFilesUnder("page").filter((relativePath) => relativePath.endsWith(".tsx"));
     expect(pagePaths.length).toBeGreaterThan(0);
