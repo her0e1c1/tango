@@ -1,8 +1,11 @@
 import React from "react";
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import * as type from "@src/action/type";
+import { studyStore } from "@src/features/study/state/studyStore";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
@@ -10,11 +13,15 @@ const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
   navigate: vi.fn(),
   toggleShowBackText: vi.fn(),
+  toggleAutoPlay: vi.fn(),
   swipeUp: vi.fn(),
   swipeDown: vi.fn(),
   swipeLeft: vi.fn(),
   swipeRight: vi.fn(),
   updateIndex: vi.fn(),
+  resetStudy: vi.fn(),
+  toggleShowHeader: vi.fn(),
+  toggleShowSwipeButtonList: vi.fn(),
   useKey: vi.fn(),
 }));
 
@@ -32,26 +39,23 @@ vi.mock("react-use", () => ({
   useKey: mocks.useKey,
 }));
 
-vi.mock("@src/action", () => ({
-  deck: { update: vi.fn() },
-}));
-
-vi.mock("@src/features/deck/containers/useDeckActions", () => ({
-  useDeckActions: () => ({
+vi.mock("@src/features/study/containers/useStudyActions", () => ({
+  useStudyActions: () => ({
     swipeUp: mocks.swipeUp,
     swipeDown: mocks.swipeDown,
     swipeLeft: mocks.swipeLeft,
     swipeRight: mocks.swipeRight,
     updateIndex: mocks.updateIndex,
+    toggleShowBackText: mocks.toggleShowBackText,
+    toggleAutoPlay: mocks.toggleAutoPlay,
+    resetStudy: mocks.resetStudy,
   }),
 }));
 
 vi.mock("@src/shared/hooks/useActions", () => ({
   useActions: () => ({
-    toggleShowBackText: mocks.toggleShowBackText,
-    toggleShowHeader: vi.fn(),
-    toggleShowSwipeButtonList: vi.fn(),
-    toggleAutoPlay: vi.fn(),
+    toggleShowHeader: mocks.toggleShowHeader,
+    toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
     setDarkMode: vi.fn(),
     goToTop: vi.fn(),
     goByMenu: vi.fn(),
@@ -73,7 +77,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     currentIndex: 0,
     category: "raw",
     convertToBr: false,
-    cardOrderIds: ["card-id", "next-card-id"],
+    cardOrderIds: ["legacy-card-id"],
     selectedTags: [],
     tagAndFilter: false,
     scoreMax: null,
@@ -94,32 +98,54 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     deletedAt: null,
     lastSeenAt: 1,
   };
+  const legacyCard: Card = {
+    ...card,
+    id: "legacy-card-id",
+    frontText: "LEGACY FRONT",
+    uniqueKey: "legacy-key",
+  };
+
+  const createState = (currentDeck: Deck = deck): RootState => ({
+    deck: { byId: { [currentDeck.id]: currentDeck }, categories: [] },
+    card: {
+      byId: { [card.id]: card, [legacyCard.id]: legacyCard },
+      tags: card.tags,
+    },
+    config: {
+      autoPlay: false,
+      cardInterval: 1,
+      darkMode: false,
+      showBackText: false,
+      showHeader: true,
+      showSwipeButtonList: true,
+    } as ConfigState,
+  });
 
   beforeEach(() => {
+    localStorage.clear();
     vi.clearAllMocks();
     mocks.params.id = deck.id;
-    mocks.state = {
-      deck: { byId: { [deck.id]: deck }, categories: [] },
-      card: { byId: { [card.id]: card }, tags: card.tags },
-      config: {
-        autoPlay: false,
-        cardInterval: 1,
-        darkMode: false,
-        showBackText: false,
-        showHeader: true,
-        showSwipeButtonList: true,
-      } as ConfigState,
-    };
+    mocks.state = createState();
+    studyStore.setState({
+      session: null,
+      legacyMigratedDeckIds: {},
+      showBackText: false,
+      autoPlay: false,
+      lastSwipe: undefined,
+    });
+    studyStore.getState().startStudy(deck.id, [card.id, legacyCard.id]);
+    mocks.resetStudy.mockImplementation(() => studyStore.getState().resetStudy());
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  it("composes front and card-overlay slots and forwards front and controller callbacks", () => {
+  it("renders the active session card and forwards study callbacks", () => {
     const view = render(<DeckSwiperContainer />);
 
     expect(view.getByText(card.frontText)).toBeVisible();
+    expect(view.queryByText(legacyCard.frontText)).not.toBeInTheDocument();
     expect(view.getByText(/3 times/)).toBeVisible();
     fireEvent.click(view.getByText(card.frontText));
     fireEvent.change(view.getByRole("slider"), { target: { value: 1 } });
@@ -128,23 +154,95 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(mocks.updateIndex).toHaveBeenCalledWith(1);
     expect(mocks.useKey).toHaveBeenCalledWith("ArrowLeft", mocks.swipeLeft);
     expect(mocks.useKey).toHaveBeenCalledWith("ArrowRight", mocks.swipeRight);
+    expect(mocks.useKey).toHaveBeenCalledWith("Enter", mocks.toggleShowBackText);
+    expect(mocks.useKey).toHaveBeenCalledWith(" ", mocks.toggleAutoPlay);
   });
 
-  it("composes the language back slot and forwards swipe and back callbacks", () => {
-    mocks.state = {
-      ...mocks.state,
-      config: { ...mocks.state.config, showBackText: true },
-    };
+  it("renders Zustand back text and controlled auto-play", () => {
+    studyStore.setState({ showBackText: true, autoPlay: true });
     const view = render(<DeckSwiperContainer />);
 
     const code = view.container.querySelector("pre.typescript") as HTMLElement;
     expect(code).toHaveTextContent(card.backText);
+    expect(view.getByTestId("pause")).toBeInTheDocument();
     fireEvent.click(code);
+    fireEvent.click(view.getByTestId("pause"));
     fireEvent.click(view.container.querySelector(".left-0.w-20") as Element);
     fireEvent.click(view.container.querySelector(".right-0.w-20") as Element);
 
     expect(mocks.toggleShowBackText).toHaveBeenCalledOnce();
+    expect(mocks.toggleAutoPlay).toHaveBeenCalledOnce();
     expect(mocks.swipeLeft).toHaveBeenCalledOnce();
     expect(mocks.swipeRight).toHaveBeenCalledOnce();
+  });
+
+  it("waits for and imports an eligible legacy session", async () => {
+    const legacyDeck = {
+      ...deck,
+      currentIndex: 0,
+      cardOrderIds: [card.id],
+    };
+    mocks.state = createState(legacyDeck);
+    studyStore.getState().resetStudy();
+
+    const view = render(<DeckSwiperContainer />);
+
+    await waitFor(() => {
+      expect(view.getByText(card.frontText)).toBeVisible();
+    });
+    expect(mocks.dispatch).toHaveBeenCalledTimes(1);
+    expect(mocks.dispatch).toHaveBeenCalledWith(type.deckClearLegacyStudy(deck.id));
+    expect(studyStore.getState().session).toEqual({
+      deckId: deck.id,
+      cardOrderIds: [card.id],
+      currentIndex: 0,
+    });
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it("resets and exits when the active session belongs to another deck", async () => {
+    studyStore.getState().startStudy("other-deck", [card.id]);
+
+    render(<DeckSwiperContainer />);
+
+    await waitFor(() => {
+      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
+    });
+    expect(mocks.resetStudy).toHaveBeenCalledOnce();
+    expect(studyStore.getState().session).toBeNull();
+  });
+
+  it("resets and exits when no session or legacy candidate exists", async () => {
+    mocks.state = createState({ ...deck, currentIndex: null, cardOrderIds: [] });
+    studyStore.getState().resetStudy();
+
+    render(<DeckSwiperContainer />);
+
+    await waitFor(() => {
+      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
+    });
+    expect(mocks.resetStudy).toHaveBeenCalledOnce();
+  });
+
+  it("resets and exits at a terminal session index", async () => {
+    studyStore.getState().setCurrentIndex(-1);
+
+    render(<DeckSwiperContainer />);
+
+    await waitFor(() => {
+      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
+    });
+    expect(mocks.resetStudy).toHaveBeenCalledOnce();
+  });
+
+  it("resets and exits when the session card is missing", async () => {
+    studyStore.getState().startStudy(deck.id, ["missing-card"]);
+
+    render(<DeckSwiperContainer />);
+
+    await waitFor(() => {
+      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
+    });
+    expect(mocks.resetStudy).toHaveBeenCalledOnce();
   });
 });

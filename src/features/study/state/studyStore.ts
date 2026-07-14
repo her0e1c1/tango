@@ -116,14 +116,13 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
           session,
           legacyMigratedDeckIds,
         }),
-      },
-    ),
+      }
+    )
   );
 
 export const studyStore = createStudyStore();
 
-export const useStudyStore = <T>(selector: (state: StudyState) => T): T =>
-  useStore(studyStore, selector);
+export const useStudyStore = <T>(selector: (state: StudyState) => T): T => useStore(studyStore, selector);
 
 export const selectStudySessionForRoute = (deckId: DeckId) => (state: StudyState) =>
   state.session?.deckId === deckId ? state.session : null;

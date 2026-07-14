@@ -53,7 +53,7 @@ describe("useLegacyStudySession", () => {
     render(
       <React.StrictMode>
         <Harness routeDeckId="deck-1" candidate={legacyDeck()} />
-      </React.StrictMode>,
+      </React.StrictMode>
     );
 
     await waitFor(() => {

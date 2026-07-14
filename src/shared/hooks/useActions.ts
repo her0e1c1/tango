@@ -67,10 +67,8 @@ export const useActions = () => {
       logout: () => dispatch(action.config.logout()),
       configUpdate: (config: ConfigState) => dispatch(action.config.updateAll(config)),
       setDarkMode: (darkMode: boolean) => dispatch(action.config.update("darkMode", darkMode)),
-      toggleShowBackText: () => dispatch(action.config.toggle("showBackText")),
       toggleShowHeader: () => dispatch(action.config.toggle("showHeader")),
       toggleShowSwipeButtonList: () => dispatch(action.config.toggle("showSwipeButtonList")),
-      toggleAutoPlay: () => dispatch(action.config.toggle("autoPlay")),
     }),
     [dispatch, navigate]
   );

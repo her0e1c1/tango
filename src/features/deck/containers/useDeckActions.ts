@@ -9,18 +9,6 @@ export const useDeckActions = (id: DeckId) => {
   const navigate = useNavigate();
   return React.useMemo(
     () => ({
-      swipeUp: () => {
-        dispatch(action.deck.swipe("cardSwipeUp", id));
-      },
-      swipeDown: () => {
-        dispatch(action.deck.swipe("cardSwipeDown", id));
-      },
-      swipeLeft: () => {
-        dispatch(action.deck.swipe("cardSwipeLeft", id));
-      },
-      swipeRight: () => {
-        dispatch(action.deck.swipe("cardSwipeRight", id));
-      },
       update: (deck: Deck) => {
         dispatch(action.deck.update(deck));
       },
@@ -29,14 +17,6 @@ export const useDeckActions = (id: DeckId) => {
         navigate(-1);
       },
       remove: () => dispatch(action.deck.remove(id)),
-      start: async () => {
-        await dispatch(action.deck.start(id));
-        await navigate(`/deck/${id}/study`, { replace: true });
-      },
-      updateIndex: (currentIndex: number) => {
-        dispatch(action.config.update("showBackText", false));
-        dispatch(action.deck.update({ id, currentIndex }));
-      },
     }),
     [dispatch, navigate, id]
   );

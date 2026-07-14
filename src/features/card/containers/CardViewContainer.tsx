@@ -25,7 +25,6 @@ export const CardViewContainer: React.FC = () => {
         category,
         code: C.LANGUAGES.includes(category),
         text: card.backText,
-        onClick: actions.toggleShowBackText,
       }}
       layout={{
         headerProps: {

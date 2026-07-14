@@ -5,10 +5,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Controller, type ControllerProps } from "@src/features/study/components/Controller";
-import {
-  useStudyControllerState,
-  type UseStudyControllerStateOptions,
-} from "@src/features/study/containers/useStudyControllerState";
+import { useStudyControllerState } from "@src/features/study/containers/useStudyControllerState";
 
 const ControllerHarness: React.FC<ControllerProps> = (props) => {
   const controller = useStudyControllerState(props);
@@ -28,32 +25,21 @@ describe("Controller with useStudyControllerState", () => {
     vi.useRealTimers();
   });
 
-  it("toggles play and pause through the hook state", () => {
-    const c = render(<ControllerHarness autoPlay={false} />);
+  it("delegates the auto-play toggle to the controlled callback", () => {
+    const onToggleAutoPlay = vi.fn();
+    const c = render(<ControllerHarness autoPlay={false} onToggleAutoPlay={onToggleAutoPlay} />);
 
     fireEvent.click(c.getByTestId("play"));
-    expect(c.getByTestId("pause")).toBeInTheDocument();
 
-    fireEvent.click(c.getByTestId("pause"));
+    expect(onToggleAutoPlay).toHaveBeenCalledOnce();
     expect(c.getByTestId("play")).toBeInTheDocument();
-  });
-
-  it("owns the auto-play toggle callback", () => {
-    const onToggleAutoPlay = () => undefined;
-    // @ts-expect-error The hook owns onToggleAutoPlay rather than accepting it from callers.
-    const options: UseStudyControllerStateOptions = { onToggleAutoPlay };
-
-    expect(options).toBeDefined();
   });
 
   it("advances the index after the configured interval while playing", () => {
     const onChange = vi.fn();
-    const c = render(
-      <ControllerHarness onChange={onChange} autoPlay={false} index={0} numberOfCards={5} cardInterval={1} />
-    );
+    const c = render(<ControllerHarness onChange={onChange} autoPlay index={0} numberOfCards={5} cardInterval={1} />);
     expect(c.getByRole("slider")).toHaveValue("0");
 
-    fireEvent.click(c.getByTestId("play"));
     act(() => {
       vi.advanceTimersByTime(999);
     });
@@ -65,13 +51,10 @@ describe("Controller with useStudyControllerState", () => {
     expect(onChange).toHaveBeenLastCalledWith(1);
   });
 
-  it("uses autoPlay only as the initial hook state", () => {
+  it("reflects a rerendered controlled autoPlay value immediately", () => {
     const c = render(<ControllerHarness autoPlay={false} />);
 
     c.rerender(<ControllerHarness autoPlay />);
-    expect(c.getByTestId("play")).toBeInTheDocument();
-
-    fireEvent.click(c.getByTestId("play"));
     expect(c.getByTestId("pause")).toBeInTheDocument();
   });
 
