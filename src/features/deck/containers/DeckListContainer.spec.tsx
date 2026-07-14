@@ -64,6 +64,7 @@ describe("DeckListContainer", () => {
         cardOrderIds: ["card-1", "card-2", "card-3"],
         currentIndex: 1,
       },
+      legacyMigratedDeckIds: {},
     });
   });
 
@@ -78,6 +79,48 @@ describe("DeckListContainer", () => {
     expect(view.getByText("studying 2 card(s) from 3")).toBeInTheDocument();
     const restartButtons = view.getAllByRole("button", { name: "Restart" });
     expect(restartButtons[0]).toBeEnabled();
+    expect(restartButtons[1]).toBeDisabled();
+  });
+
+  it("enables restart for an eligible legacy study session", () => {
+    const legacyDeck = {
+      ...activeDeck,
+      currentIndex: 1,
+      cardOrderIds: ["card-1", "card-2"],
+    } as unknown as Deck;
+    mocks.state = {
+      ...mocks.state,
+      deck: { byId: { [legacyDeck.id]: legacyDeck, [otherDeck.id]: otherDeck }, categories: [] },
+    };
+    studyStore.getState().resetStudy();
+
+    const view = render(<DeckListContainer />);
+
+    const restartButtons = view.getAllByRole("button", { name: "Restart" });
+    expect(restartButtons[0]).toBeEnabled();
+    expect(restartButtons[1]).toBeDisabled();
+    expect(view.queryByText(/studying/)).not.toBeInTheDocument();
+  });
+
+  it("keeps restart disabled for a legacy session already marked as migrated", () => {
+    const legacyDeck = {
+      ...activeDeck,
+      currentIndex: 1,
+      cardOrderIds: ["card-1", "card-2"],
+    } as unknown as Deck;
+    mocks.state = {
+      ...mocks.state,
+      deck: { byId: { [legacyDeck.id]: legacyDeck, [otherDeck.id]: otherDeck }, categories: [] },
+    };
+    studyStore.setState({
+      session: null,
+      legacyMigratedDeckIds: { [legacyDeck.id]: true },
+    });
+
+    const view = render(<DeckListContainer />);
+
+    const restartButtons = view.getAllByRole("button", { name: "Restart" });
+    expect(restartButtons[0]).toBeDisabled();
     expect(restartButtons[1]).toBeDisabled();
   });
 });

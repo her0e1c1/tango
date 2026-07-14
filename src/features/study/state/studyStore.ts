@@ -129,6 +129,17 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
 
 export const studyStore = createStudyStore();
 
+export const clearStudyStore = async (): Promise<void> => {
+  studyStore.setState({
+    session: null,
+    legacyMigratedDeckIds: {},
+    showBackText: false,
+    autoPlay: false,
+    lastSwipe: undefined,
+  });
+  await studyStore.persist.clearStorage();
+};
+
 export const useStudyStore = <T>(selector: (state: StudyState) => T): T => useStore(studyStore, selector);
 
 export const selectStudySessionForRoute = (deckId: DeckId) => (state: StudyState) =>

@@ -27,12 +27,14 @@ export interface StudyProgress {
 export interface DeckCardProps extends DeckCardActions {
   deck?: Deck;
   studyProgress?: StudyProgress;
+  restartEnabled?: boolean;
 }
 
 export const DeckCard: React.FC<DeckCardProps> = (props) => {
   const deck = props.deck;
   if (deck == null) throw Error("invalid deck");
   const id = deck.id;
+  const restartEnabled = props.restartEnabled ?? props.studyProgress != null;
   const onClickName = React.useCallback(() => {
     props.onClickName?.(id);
   }, [id, props]);
@@ -75,7 +77,7 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
             <Button primary className="mr-5" onClick={onClickStudy}>
               Study
             </Button>
-            <Button default disabled={props.studyProgress == null} onClick={onClickRestart}>
+            <Button default disabled={!restartEnabled} onClick={onClickRestart}>
               Restart
             </Button>
           </div>

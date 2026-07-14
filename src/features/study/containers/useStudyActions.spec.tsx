@@ -1,6 +1,7 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import * as type from "@src/action/type";
 import { useStudyActions } from "@src/features/study/containers/useStudyActions";
 import { studyStore } from "@src/features/study/state/studyStore";
 
@@ -129,6 +130,33 @@ describe("useStudyActions", () => {
     expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(mocks.deckUpdate).not.toHaveBeenCalled();
     expect(mocks.configUpdate).not.toHaveBeenCalled();
+  });
+
+  it("discards eligible legacy progress before starting a new session", () => {
+    const legacyDeck = {
+      ...deck,
+      currentIndex: 1,
+      cardOrderIds: [card2.id],
+    } as unknown as Deck;
+    mocks.state = {
+      ...createRootState(),
+      deck: { byId: { [legacyDeck.id]: legacyDeck }, categories: [] },
+    };
+    const { result } = renderHook(() => useStudyActions(deck.id));
+
+    act(() => {
+      result.current.start();
+    });
+
+    expect(mocks.dispatch).toHaveBeenCalledWith(type.deckClearLegacyStudy(deck.id));
+    expect(studyStore.getState()).toMatchObject({
+      session: {
+        deckId: deck.id,
+        cardOrderIds: [card1.id],
+        currentIndex: 0,
+      },
+      legacyMigratedDeckIds: { [deck.id]: true },
+    });
   });
 
   it("rejects a route and session mismatch before writing a card", async () => {

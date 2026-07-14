@@ -4,6 +4,7 @@ import * as type from "@src/action/type";
 import * as action from "@src/action";
 import * as firestore from "@src/action/firestore";
 import { getAuth, signOut, linkWithPopup } from "firebase/auth";
+import { STUDY_STORAGE_KEY, studyStore } from "@src/features/study/state/studyStore";
 
 vi.mock("firebase/auth");
 vi.mock("./firestore");
@@ -21,6 +22,14 @@ describe("event action", () => {
     vi.useFakeTimers();
     vi.setSystemTime(mockedDate);
     vi.resetAllMocks();
+    localStorage.clear();
+    studyStore.setState({
+      session: null,
+      legacyMigratedDeckIds: {},
+      showBackText: false,
+      autoPlay: false,
+      lastSwipe: undefined,
+    });
   });
 
   describe("deckOnChange", () => {
@@ -76,6 +85,14 @@ describe("event action", () => {
   });
 
   it("should logout", async () => {
+    studyStore.getState().startStudy("deck-id", ["card-id"]);
+    studyStore.getState().markLegacyMigrated("deck-id");
+    studyStore.setState({
+      showBackText: true,
+      autoPlay: true,
+      lastSwipe: "cardSwipeRight",
+    });
+    expect(localStorage.getItem(STUDY_STORAGE_KEY)).not.toBeNull();
     const dispatch = vi.fn();
     const getState = vi.fn();
     const f = action.event.logout();
@@ -83,6 +100,14 @@ describe("event action", () => {
     expect(getAuth).toHaveBeenCalledTimes(1);
     expect(signOut).toHaveBeenCalledTimes(1);
     expect(dispatch).toHaveBeenCalledWith(type.clearAll());
+    expect(studyStore.getState()).toMatchObject({
+      session: null,
+      legacyMigratedDeckIds: {},
+      showBackText: false,
+      autoPlay: false,
+      lastSwipe: undefined,
+    });
+    expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
   });
 
   it("should login", async () => {

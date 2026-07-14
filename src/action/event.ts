@@ -7,6 +7,7 @@ import * as type from "@src/action/type";
 import * as action from "@src/action";
 import * as firestore from "@src/action/firestore";
 import { type ThunkResult } from "@src/action/index";
+import { clearStudyStore } from "@src/features/study/state/studyStore";
 import { getRealtimeLastUpdatedAt } from "@src/lib/realtimeChange";
 
 const subscriptions = [] as Callback[];
@@ -21,6 +22,7 @@ const unsubscribe = () => {
 export const logout = (): ThunkResult => async (dispatch) => {
   unsubscribe();
   await signOut(getAuth());
+  await clearStudyStore();
   await dispatch(type.clearAll());
   await dispatch(init());
 };
