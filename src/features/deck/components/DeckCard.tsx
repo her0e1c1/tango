@@ -19,8 +19,14 @@ export interface DeckCardActions {
   onClickReimport?: (id: string) => void;
 }
 
+export interface StudyProgress {
+  currentIndex: number;
+  cardCount: number;
+}
+
 export interface DeckCardProps extends DeckCardActions {
   deck?: Deck;
+  studyProgress?: StudyProgress;
 }
 
 export const DeckCard: React.FC<DeckCardProps> = (props) => {
@@ -57,9 +63,9 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
             <Tag className="mr-2 mb-2" round label={deck.category} hidden={!deck.category} />
             {deck.isPublic && <AiOutlineCloud className="self-baseline mt-1" size={24} />}
           </div>
-          {deck.cardOrderIds.length > 0 && (
+          {props.studyProgress != null && (
             <Description>
-              studying {(deck.currentIndex ?? -1) + 1} card(s) from {deck.cardOrderIds?.length}
+              studying {props.studyProgress.currentIndex + 1} card(s) from {props.studyProgress.cardCount}
             </Description>
           )}
         </div>
@@ -69,7 +75,7 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
             <Button primary className="mr-5" onClick={onClickStudy}>
               Study
             </Button>
-            <Button default disabled={deck.currentIndex == null} onClick={onClickRestart}>
+            <Button default disabled={props.studyProgress == null} onClick={onClickRestart}>
               Restart
             </Button>
           </div>

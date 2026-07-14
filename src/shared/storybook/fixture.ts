@@ -18,29 +18,27 @@ export const tags = {
 
 export const deck = {
   default: {
+    id: "deck-default",
     name: "Deck Default Name",
     isPublic: true,
-    currentIndex: 0,
     category: "math",
     url: "http://example.com",
-    cardOrderIds: ["3", "2", "1"],
     createdAt: new Date(),
     updatedAt: new Date(),
   } as unknown as Deck,
   tooLongName: {
+    id: "deck-too-long-name",
     name: "too long name".repeat(10),
     isPublic: true,
-    currentIndex: 0,
     category: "math",
     url: "http://example.com",
-    cardOrderIds: [] as string[],
     createdAt: new Date(),
     updatedAt: new Date(),
   } as unknown as Deck,
 } as const satisfies Record<string, Deck>;
 
 export const decks = {
-  default: [1, 2, 3, 4, 5, 6, 7].map(() => deck.default),
+  default: [1, 2, 3, 4, 5, 6, 7].map((id) => ({ ...deck.default, id: `deck-${id}` })),
   long: [
     deck.default,
     deck.tooLongName,
@@ -54,7 +52,7 @@ export const decks = {
     deck.default,
     deck.default,
     deck.tooLongName,
-  ],
+  ].map((item, index) => ({ ...item, id: `long-deck-${index + 1}` })),
 } as const satisfies Record<string, Deck[]>;
 
 export const card = {

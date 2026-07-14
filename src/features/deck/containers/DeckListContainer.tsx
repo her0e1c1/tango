@@ -5,17 +5,28 @@ import { useKey } from "react-use";
 import * as selector from "@src/selector";
 import { useActions } from "@src/shared/hooks/useActions";
 import { DeckListTemplate } from "@src/features/deck/components/templates/DeckListTemplate";
+import { useStudyStore } from "@src/features/study/state/studyStore";
 
 export const DeckListContainer: React.FC = () => {
   const actions = useActions();
   const config = useSelector(selector.config.get());
   const decks = useSelector(selector.deck.getAll());
+  const studySession = useStudyStore((state) => state.session);
   useKey("s", actions.goToSettings);
   useKey("i", actions.goToImport);
 
   return (
     <DeckListTemplate
       decks={decks}
+      studyProgress={
+        studySession == null
+          ? undefined
+          : {
+              deckId: studySession.deckId,
+              currentIndex: studySession.currentIndex,
+              cardCount: studySession.cardOrderIds.length,
+            }
+      }
       layout={{
         headerProps: {
           dark: config.darkMode,
