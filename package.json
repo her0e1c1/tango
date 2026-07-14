@@ -62,7 +62,8 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "sass": "^1.101.0",
-    "uuid": "^14.0.1"
+    "uuid": "^14.0.1",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^3.0.4",
