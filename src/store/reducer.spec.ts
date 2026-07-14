@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import * as type from "@src/action/type";
+import type { LegacyStudyFields } from "@src/features/study/state/studyStore";
 import { deck } from "@src/store/reducer";
 
 vi.mock("@src/action", () => ({
@@ -19,13 +20,13 @@ describe("deck reducer", () => {
       name: "Legacy deck",
       currentIndex: 1,
       cardOrderIds: ["card-1", "card-2"],
-    } as Deck;
+    } as unknown as Deck & LegacyStudyFields;
     const otherDeck = {
       id: "deck-2",
       name: "Other deck",
       currentIndex: 0,
       cardOrderIds: ["card-3"],
-    } as Deck;
+    } as unknown as Deck & LegacyStudyFields;
     const state: DeckState = {
       byId: {
         [legacyDeck.id]: legacyDeck,

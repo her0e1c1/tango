@@ -10,7 +10,14 @@ export interface StudySession {
   currentIndex: number;
 }
 
-export type LegacyStudyCandidate = Pick<Deck, "id" | "cardOrderIds" | "currentIndex">;
+export interface LegacyStudyFields {
+  cardOrderIds: CardId[];
+  currentIndex: number | null;
+}
+
+export interface LegacyStudyCandidate extends LegacyStudyFields {
+  id: DeckId;
+}
 
 interface PersistedStudyState {
   session: StudySession | null;

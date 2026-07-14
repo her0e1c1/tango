@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as type from "@src/action/type";
 import { useLegacyStudySession } from "@src/features/study/containers/useLegacyStudySession";
-import { studyStore } from "@src/features/study/state/studyStore";
+import { type LegacyStudyCandidate, studyStore } from "@src/features/study/state/studyStore";
 
 const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
@@ -14,8 +14,6 @@ const mocks = vi.hoisted(() => ({
 vi.mock("react-redux", () => ({
   useDispatch: () => mocks.dispatch,
 }));
-
-type LegacyStudyCandidate = Pick<Deck, "id" | "cardOrderIds" | "currentIndex">;
 
 const legacyDeck = (overrides: Partial<LegacyStudyCandidate> = {}): LegacyStudyCandidate => ({
   id: "deck-1",

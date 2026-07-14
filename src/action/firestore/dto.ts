@@ -1,0 +1,122 @@
+export interface DeckDocument {
+  id: DeckId;
+  name: string;
+  url?: string;
+  isPublic: boolean;
+  uid: string;
+  createdAt: number;
+  updatedAt: number;
+  deletedAt: number | null;
+  scoreMax: number | null;
+  scoreMin: number | null;
+  selectedTags: string[];
+  tagAndFilter: boolean;
+  category: Category;
+  convertToBr: boolean;
+}
+
+export type DeckUpdateDto = Partial<Omit<DeckDocument, "id" | "updatedAt">> & Pick<DeckDocument, "updatedAt">;
+
+export interface CardDocument {
+  id: CardId;
+  frontText: string;
+  backText: string;
+  tags: string[];
+  uniqueKey: string;
+  deckId: DeckId;
+  uid: string;
+  createdAt: number;
+  updatedAt: number;
+  deletedAt: number | null;
+  score: number;
+  numberOfSeen: number;
+  lastSeenAt?: number;
+  nextSeeingAt?: Date;
+  interval?: number;
+  url?: string;
+  startLine?: number;
+  endLine?: number;
+}
+
+export type CardUpdateDto = Partial<Omit<CardDocument, "id" | "updatedAt">> & Pick<CardDocument, "updatedAt">;
+
+const omitUndefined = <T extends Record<string, unknown>>(value: T): T =>
+  Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as T;
+
+export const buildDeckCreateDto = (deck: Deck, createdAt: number): DeckDocument =>
+  omitUndefined({
+    id: deck.id,
+    name: deck.name,
+    url: deck.url,
+    isPublic: deck.isPublic,
+    uid: deck.uid,
+    createdAt,
+    updatedAt: createdAt,
+    deletedAt: deck.deletedAt,
+    scoreMax: deck.scoreMax,
+    scoreMin: deck.scoreMin,
+    selectedTags: deck.selectedTags,
+    tagAndFilter: deck.tagAndFilter,
+    category: deck.category,
+    convertToBr: deck.convertToBr,
+  });
+
+export const buildDeckUpdateDto = (deck: DeckEdit, updatedAt: number): DeckUpdateDto =>
+  omitUndefined({
+    name: deck.name,
+    url: deck.url,
+    isPublic: deck.isPublic,
+    uid: deck.uid,
+    createdAt: deck.createdAt,
+    updatedAt,
+    deletedAt: deck.deletedAt,
+    scoreMax: deck.scoreMax,
+    scoreMin: deck.scoreMin,
+    selectedTags: deck.selectedTags,
+    tagAndFilter: deck.tagAndFilter,
+    category: deck.category,
+    convertToBr: deck.convertToBr,
+  });
+
+export const buildCardCreateDto = (card: Card, createdAt: number): CardDocument =>
+  omitUndefined({
+    id: card.id,
+    frontText: card.frontText,
+    backText: card.backText,
+    tags: card.tags,
+    uniqueKey: card.uniqueKey,
+    deckId: card.deckId,
+    uid: card.uid,
+    createdAt,
+    updatedAt: createdAt,
+    deletedAt: null,
+    score: card.score,
+    numberOfSeen: card.numberOfSeen,
+    lastSeenAt: card.lastSeenAt,
+    nextSeeingAt: card.nextSeeingAt,
+    interval: card.interval,
+    url: card.url,
+    startLine: card.startLine,
+    endLine: card.endLine,
+  });
+
+export const buildCardUpdateDto = (card: CardEdit, updatedAt: number): CardUpdateDto =>
+  omitUndefined({
+    frontText: card.frontText,
+    backText: card.backText,
+    tags: card.tags,
+    uniqueKey: card.uniqueKey,
+    deckId: card.deckId,
+    uid: card.uid,
+    createdAt: card.createdAt,
+    updatedAt,
+    deletedAt: card.deletedAt,
+    score: card.score,
+    numberOfSeen: card.numberOfSeen,
+    lastSeenAt: card.lastSeenAt,
+    nextSeeingAt: card.nextSeeingAt,
+    interval: card.interval,
+    url: card.url,
+    startLine: card.startLine,
+    endLine: card.endLine,
+  });

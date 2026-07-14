@@ -72,15 +72,6 @@ export const buildStudySession = (
 };
 
 /**
- * Calculates the current index for a card within a deck's cardOrderIds.
- * Returns 0 when the card is not found in the order list.
- */
-export const calculateGoToIndex = (cardId: string, deck: Pick<Deck, "cardOrderIds">): number => {
-  const index = deck.cardOrderIds.findIndex((id) => id === cardId);
-  return index === -1 ? 0 : index;
-};
-
-/**
  * Filters and sorts cards for a study session based on deck settings and config.
  */
 export const filterCardsForDeck = (

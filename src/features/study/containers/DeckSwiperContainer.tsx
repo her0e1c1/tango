@@ -11,7 +11,7 @@ import { CardOverlay } from "@src/features/card/components/CardOverlay";
 import { FrontText } from "@src/features/card/components/FrontText";
 import { DeckSwiperTemplate } from "@src/features/study/components/templates/DeckSwiperTemplate";
 import type { SwipeButtonListProps } from "@src/features/study/components/SwipeButtonList";
-import { useLegacyStudySession } from "@src/features/study/containers/useLegacyStudySession";
+import { getLegacyStudyCandidate, useLegacyStudySession } from "@src/features/study/containers/useLegacyStudySession";
 import { useStudyActions } from "@src/features/study/containers/useStudyActions";
 import { useStudyControllerState } from "@src/features/study/containers/useStudyControllerState";
 import { studyStore, useStudyStore } from "@src/features/study/state/studyStore";
@@ -41,7 +41,8 @@ export const DeckSwiperContainer: React.FC = () => {
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
   const hydrated = useStudyHydrated();
-  useLegacyStudySession(deckId, deck);
+  const legacyCandidate = React.useMemo(() => getLegacyStudyCandidate(deck), [deck]);
+  useLegacyStudySession(deckId, legacyCandidate);
 
   const session = activeSession?.deckId === deckId ? activeSession : null;
   const index = session?.currentIndex ?? -1;
@@ -62,11 +63,7 @@ export const DeckSwiperContainer: React.FC = () => {
   const navigate = useNavigate();
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
   const legacyMigrationPending =
-    activeSession == null &&
-    !legacyMigrated &&
-    deck.id === deckId &&
-    deck.cardOrderIds.length > 0 &&
-    typeof deck.currentIndex === "number";
+    activeSession == null && !legacyMigrated && deck.id === deckId && legacyCandidate != null;
   const controller = useStudyControllerState({
     autoPlay,
     cardInterval: config.cardInterval,

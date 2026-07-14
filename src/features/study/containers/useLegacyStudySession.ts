@@ -3,7 +3,24 @@ import React from "react";
 import { useDispatch } from "react-redux";
 
 import * as type from "@src/action/type";
-import { type LegacyStudyCandidate, useStudyStore } from "@src/features/study/state/studyStore";
+import { type LegacyStudyCandidate, type LegacyStudyFields, useStudyStore } from "@src/features/study/state/studyStore";
+
+export const getLegacyStudyCandidate = (deck: Deck): LegacyStudyCandidate | undefined => {
+  const legacyDeck = deck as Deck & Partial<LegacyStudyFields>;
+  if (
+    !Array.isArray(legacyDeck.cardOrderIds) ||
+    legacyDeck.cardOrderIds.length === 0 ||
+    !legacyDeck.cardOrderIds.every((cardId) => typeof cardId === "string") ||
+    typeof legacyDeck.currentIndex !== "number"
+  ) {
+    return undefined;
+  }
+  return {
+    id: deck.id,
+    cardOrderIds: legacyDeck.cardOrderIds,
+    currentIndex: legacyDeck.currentIndex,
+  };
+};
 
 export const useLegacyStudySession = (routeDeckId: DeckId, candidate?: LegacyStudyCandidate): void => {
   const dispatch = useDispatch();

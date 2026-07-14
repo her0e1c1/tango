@@ -1,5 +1,6 @@
 import { getFirestore, doc, updateDoc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
 import { getTimestamp } from "@src/action/firestore/mocked";
+import { buildCardCreateDto, buildCardUpdateDto } from "@src/action/firestore/dto";
 
 const db = getFirestore();
 
@@ -8,13 +9,13 @@ export const create = async (card: Card, createdAt?: number): Promise<string> =>
     createdAt = getTimestamp();
   }
   const ref = doc(db, "card", card.id);
-  await setDoc(ref, { ...card, createdAt, updatedAt: createdAt, deletedAt: null }); // must specify deletedAt
+  await setDoc(ref, buildCardCreateDto(card, createdAt));
   return card.id;
 };
 
 export const update = async (card: CardEdit) => {
   const ref = doc(db, "card", card.id);
-  await updateDoc(ref, { ...card, updatedAt: getTimestamp() });
+  await updateDoc(ref, buildCardUpdateDto(card, getTimestamp()));
 };
 
 export const bulkUpdate = async (cards: Card[]) => {

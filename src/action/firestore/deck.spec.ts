@@ -26,18 +26,38 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
   });
 
   it("should create a deck and check if exists", async () => {
-    const d = { ...newDeck, id: uuid() };
+    const d = {
+      ...newDeck,
+      id: uuid(),
+      localMode: false,
+      currentIndex: 1,
+      cardOrderIds: ["card-1"],
+    } as Deck;
     await firestore.deck.create(d);
-    expect((await getDoc(doc(db, "deck", d.id))).data()).toEqual(d);
+    const data = (await getDoc(doc(db, "deck", d.id))).data();
+    expect(data).toEqual({ ...newDeck, id: d.id });
+    expect(data).not.toHaveProperty("localMode");
+    expect(data).not.toHaveProperty("currentIndex");
+    expect(data).not.toHaveProperty("cardOrderIds");
     expect(await firestore.deck.exists(d.id)).toBeTruthy();
   });
 
   it("should update a deck", async () => {
     const d = { ...newDeck, id: uuid() };
     await firestore.deck.create(d);
-    const n = { ...d, name: "updated" };
+    const n = {
+      ...d,
+      name: "updated",
+      localMode: false,
+      currentIndex: 1,
+      cardOrderIds: ["card-1"],
+    } as Deck;
     await firestore.deck.update(n);
-    expect((await getDoc(doc(db, "deck", d.id))).data()).toEqual(n);
+    const data = (await getDoc(doc(db, "deck", d.id))).data();
+    expect(data).toEqual({ ...d, name: "updated" });
+    expect(data).not.toHaveProperty("localMode");
+    expect(data).not.toHaveProperty("currentIndex");
+    expect(data).not.toHaveProperty("cardOrderIds");
   });
 
   it("should delete a deck", async () => {

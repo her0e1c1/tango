@@ -5,7 +5,6 @@ import {
   buildStudyPatch,
   calculateNextIndex,
   buildStudySession,
-  calculateGoToIndex,
   filterCardsForDeck,
 } from "@src/lib/study";
 
@@ -121,19 +120,6 @@ describe("buildStudySession", () => {
     const config = { shuffled: true, maxNumberOfCardsToLearn: 2 } as ConfigState;
     const result = buildStudySession(cards, config);
     expect(result).toHaveLength(2);
-  });
-});
-
-describe("calculateGoToIndex", () => {
-  const deck = { cardOrderIds: ["a", "b", "c"] } as Deck;
-
-  it("returns the correct index for a known cardId", () => {
-    expect(calculateGoToIndex("b", deck)).toBe(1);
-    expect(calculateGoToIndex("c", deck)).toBe(2);
-  });
-
-  it("returns 0 when cardId is not found", () => {
-    expect(calculateGoToIndex("z", deck)).toBe(0);
   });
 });
 

@@ -38,27 +38,6 @@ describe("card action", () => {
     });
   });
 
-  describe("goTo", () => {
-    it("should goTo index", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-
-      const id = "id";
-      const c = { id, deckId: id } as Card;
-      const d = { id, cardOrderIds: ["a", id, "b"] } as Deck;
-      getState.mockReturnValue({
-        card: { byId: { [id]: c } },
-        deck: { byId: { [id]: d } },
-      });
-
-      const m = vi.spyOn(action.deck, "update");
-
-      const f = card.goTo(id);
-      await f(dispatch, getState, undefined);
-      expect(m).lastCalledWith({ id, currentIndex: 1 });
-      expect(dispatch).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe("update", () => {
     it("should update", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];

@@ -2,6 +2,7 @@ import { uniq } from "lodash";
 import * as util from "@src/util";
 import * as type from "@src/action/type";
 import * as action from "@src/action";
+import type { LegacyStudyFields } from "@src/features/study/state/studyStore";
 import sampleCards from "../../sample/build/output.json";
 
 export const equal = <T>(action: Action<any>, typ: (...args: any[]) => Action<T>): action is Action<T> => {
@@ -28,16 +29,13 @@ const cardInitialState = {
 
 export const deck = (state = deckInitialState, action: Action) => {
   if (equal(action, type.deckBulkInsert)) {
-    // TODO: cardOrderIds needs to be updated when a card is deleted
     const decks = action.payload.decks;
     decks.forEach((d) => {
       const deck = state.byId[d.id] != null || {};
       state.byId[d.id] = {
         ...deck,
         ...d,
-        cardOrderIds: d.cardOrderIds ?? [],
         selectedTags: d.selectedTags ?? [],
-        currentIndex: d.currentIndex ?? null,
         category: d.category ?? "",
         convertToBr: d.convertToBr ?? false,
         scoreMax: d.scoreMax ?? null,
@@ -57,15 +55,16 @@ export const deck = (state = deckInitialState, action: Action) => {
     const deckId = action.payload.deckId;
     const legacyDeck = state.byId[deckId];
     if (legacyDeck == null) return state;
+    const clearedLegacyDeck = {
+      ...legacyDeck,
+      currentIndex: null,
+      cardOrderIds: [],
+    } as Deck & LegacyStudyFields;
     return {
       ...state,
       byId: {
         ...state.byId,
-        [deckId]: {
-          ...legacyDeck,
-          currentIndex: null,
-          cardOrderIds: [],
-        },
+        [deckId]: clearedLegacyDeck,
       },
     };
   } else if (equal(action, type.deckBulkDelete)) {
@@ -119,13 +118,11 @@ export const config = (
     showSwipeButtonList: true,
     showScoreSlider: false,
     showHeader: true,
-    showBackText: false,
     fullscreen: false,
     maxNumberOfCardsToLearn: 10,
     hideBodyWhenCardChanged: true,
     sizeBackText: 0,
     shuffled: false,
-    autoPlay: false,
     defaultAutoPlay: false,
     cardInterval: 60,
     keepBackTextViewed: false,

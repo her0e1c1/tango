@@ -74,10 +74,8 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     updatedAt: 0,
     deletedAt: null,
     localMode: true,
-    currentIndex: 0,
     category: "raw",
     convertToBr: false,
-    cardOrderIds: ["legacy-card-id"],
     selectedTags: [],
     tagAndFilter: false,
     scoreMax: null,
@@ -112,13 +110,11 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
       tags: card.tags,
     },
     config: {
-      autoPlay: false,
       cardInterval: 1,
       darkMode: false,
-      showBackText: false,
       showHeader: true,
       showSwipeButtonList: true,
-    } as ConfigState,
+    } as unknown as ConfigState,
   });
 
   beforeEach(() => {
@@ -213,7 +209,6 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   });
 
   it("resets and exits when no session or legacy candidate exists", async () => {
-    mocks.state = createState({ ...deck, currentIndex: null, cardOrderIds: [] });
     studyStore.getState().resetStudy();
 
     render(<DeckSwiperContainer />);
