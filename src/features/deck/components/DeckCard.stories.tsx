@@ -24,6 +24,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const WithStudyProgress: Story = {
+  args: {
+    studyProgress: {
+      currentIndex: 0,
+      cardCount: 3,
+    },
+  },
+};
+
 export const TooLongName: Story = {
   args: {
     deck: fixture.deck.tooLongName,

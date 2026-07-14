@@ -35,18 +35,39 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
 
   it("should create a card", async () => {
     const deckId = await initDeck();
-    const c = { ...newCard, deckId, id: uuid() } as Card;
+    const c = {
+      ...newCard,
+      deckId,
+      id: uuid(),
+      localMode: false,
+      currentIndex: 1,
+      cardOrderIds: ["card-1"],
+    } as unknown as Card;
     await firestore.card.create(c);
-    expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(c);
+    const data = (await getDoc(doc(db, "card", c.id))).data();
+    expect(data).toEqual({ ...newCard, deckId, id: c.id });
+    expect(data).not.toHaveProperty("localMode");
+    expect(data).not.toHaveProperty("currentIndex");
+    expect(data).not.toHaveProperty("cardOrderIds");
   });
 
   it("should update a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await firestore.card.create(c);
-    const n = { ...c, frontText: "updated" };
+    const n = {
+      ...c,
+      frontText: "updated",
+      localMode: false,
+      currentIndex: 1,
+      cardOrderIds: ["card-1"],
+    } as unknown as Card;
     await firestore.card.update(n);
-    expect((await getDoc(doc(db, "card", n.id))).data()).toEqual(n);
+    const data = (await getDoc(doc(db, "card", n.id))).data();
+    expect(data).toEqual({ ...c, frontText: "updated" });
+    expect(data).not.toHaveProperty("localMode");
+    expect(data).not.toHaveProperty("currentIndex");
+    expect(data).not.toHaveProperty("cardOrderIds");
   });
 
   it("should bulk-update a card", async () => {

@@ -11,13 +11,14 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { getTimestamp } from "@src/action/firestore/mocked";
+import { buildDeckCreateDto, buildDeckUpdateDto } from "@src/action/firestore/dto";
 
 const db = getFirestore();
 
 export const create = async (deck: Deck): Promise<string> => {
   const createdAt = getTimestamp();
   const ref = doc(db, "deck", deck.id);
-  await setDoc(ref, { ...deck, id: deck.id, createdAt, updatedAt: createdAt });
+  await setDoc(ref, buildDeckCreateDto(deck, createdAt));
   return deck.id;
 };
 
@@ -41,7 +42,7 @@ export const splitCards = <T>(cards: T[], max: number): T[][] => {
 export const update = async (deck: DeckEdit) => {
   const ref = doc(db, "deck", deck.id);
   const updatedAt = getTimestamp();
-  await updateDoc(ref, { ...deck, updatedAt });
+  await updateDoc(ref, buildDeckUpdateDto(deck, updatedAt));
 };
 
 export const remove = async (deckId: string, uid: string) => {

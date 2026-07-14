@@ -15,8 +15,8 @@ describe("config action", () => {
   it("should update", async () => {
     const dispatch = vi.fn();
     const getState = vi.fn();
-    const f = update("autoPlay", true); // TODO: test other fields
+    const f = update("darkMode", true); // TODO: test other fields
     await f(dispatch, getState, undefined);
-    expect(dispatch).lastCalledWith(type.configUpdate({ autoPlay: true }));
+    expect(dispatch).lastCalledWith(type.configUpdate({ darkMode: true }));
   });
 });

@@ -25,6 +25,16 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const WithStudyProgress: Story = {
+  args: {
+    studyProgress: {
+      deckId: "deck-1",
+      currentIndex: 0,
+      cardCount: 3,
+    },
+  },
+};
+
 export const Empty: Story = {
   args: {
     decks: [],

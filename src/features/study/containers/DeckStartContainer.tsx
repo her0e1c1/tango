@@ -8,6 +8,7 @@ import { DeckStartForm } from "@src/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@src/features/deck/containers/useDeckActions";
 import { useDeckFilterState } from "@src/features/deck/containers/useDeckFilterState";
 import { DeckStartTemplate } from "@src/features/study/components/templates/DeckStartTemplate";
+import { useStudyActions } from "@src/features/study/containers/useStudyActions";
 import { useActions } from "@src/shared/hooks/useActions";
 
 export const DeckStartContainer: React.FC = () => {
@@ -20,9 +21,10 @@ export const DeckStartContainer: React.FC = () => {
   const config = useSelector(selector.config.get());
   const tags = useSelector(selector.card.getAllTags(deckId));
   const deckActions = useDeckActions(deckId);
+  const studyActions = useStudyActions(deckId);
   const actions = useActions();
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
-  useKey("Enter", deckActions.start);
+  useKey("Enter", studyActions.start);
 
   return (
     <DeckStartTemplate
@@ -36,7 +38,7 @@ export const DeckStartContainer: React.FC = () => {
       }}
       config={config}
       cardsLength={cards.length}
-      onClickStart={deckActions.start}
+      onClickStart={studyActions.start}
       filterSlot={<DeckStartForm {...deckStartForm} />}
     />
   );

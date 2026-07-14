@@ -5,17 +5,40 @@ import { useKey } from "react-use";
 import * as selector from "@src/selector";
 import { useActions } from "@src/shared/hooks/useActions";
 import { DeckListTemplate } from "@src/features/deck/components/templates/DeckListTemplate";
+import { getLegacyStudyCandidate } from "@src/features/study/containers/useLegacyStudySession";
+import { useStudyStore } from "@src/features/study/state/studyStore";
 
 export const DeckListContainer: React.FC = () => {
   const actions = useActions();
   const config = useSelector(selector.config.get());
   const decks = useSelector(selector.deck.getAll());
+  const studySession = useStudyStore((state) => state.session);
+  const legacyMigratedDeckIds = useStudyStore((state) => state.legacyMigratedDeckIds);
+  const legacyRestartableDeckIds = React.useMemo(
+    () =>
+      studySession == null
+        ? decks
+            .filter((deck) => !legacyMigratedDeckIds[deck.id] && getLegacyStudyCandidate(deck) != null)
+            .map((deck) => deck.id)
+        : [],
+    [decks, legacyMigratedDeckIds, studySession]
+  );
   useKey("s", actions.goToSettings);
   useKey("i", actions.goToImport);
 
   return (
     <DeckListTemplate
       decks={decks}
+      restartableDeckIds={legacyRestartableDeckIds}
+      studyProgress={
+        studySession == null
+          ? undefined
+          : {
+              deckId: studySession.deckId,
+              currentIndex: studySession.currentIndex,
+              cardCount: studySession.cardOrderIds.length,
+            }
+      }
       layout={{
         headerProps: {
           dark: config.darkMode,

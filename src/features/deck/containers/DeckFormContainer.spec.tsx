@@ -46,10 +46,8 @@ describe("DeckFormContainer", () => {
     updatedAt: 0,
     deletedAt: null,
     localMode: true,
-    currentIndex: null,
     scoreMax: null,
     scoreMin: null,
-    cardOrderIds: [],
     selectedTags: [],
     tagAndFilter: false,
   };

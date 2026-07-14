@@ -8,7 +8,6 @@ import { type ThunkResult } from "@src/action/index";
 import * as action from "@src/action";
 import * as selector from "@src/selector";
 import * as firestore from "@src/action/firestore";
-import { buildStudySession, resolveSwipeAction, buildStudyPatch, calculateNextIndex } from "@src/lib/study";
 import sampleCards from "../../sample/build/output.json";
 
 export const prepare = (deck: DeckRaw, config: DeckConfig): Deck => {
@@ -21,11 +20,9 @@ export const prepare = (deck: DeckRaw, config: DeckConfig): Deck => {
     createdAt: 0,
     updatedAt: 0,
     deletedAt: null,
-    currentIndex: null,
     scoreMax: null,
     scoreMin: null,
     isPublic: false,
-    cardOrderIds: [],
     selectedTags: [],
     tagAndFilter: false,
     convertToBr: false,
@@ -74,63 +71,6 @@ export const remove =
       void firestore.deck.remove(deckId, deck.uid); // fire&forget
     }
     await dispatch(type.deckDelete(deckId));
-  };
-
-export const start =
-  (deckId: DeckId): ThunkResult =>
-  async (dispatch, getState) => {
-    const cards = selector.card.getFilteredByDeckId(deckId)(getState());
-    const config = getState().config;
-    const cardOrderIds = buildStudySession(cards, config);
-    // before going to DeckSwiperPage, need to set cardOrderIds without delay (otherwise, it would go back to the previous page)
-    await dispatch(action.deck.update({ id: deckId, currentIndex: 0, cardOrderIds }));
-    await dispatch(
-      type.configUpdate({
-        showBackText: false,
-        autoPlay: config.defaultAutoPlay,
-      })
-    );
-  };
-
-export const swipe =
-  (direction: SwipeDirection, deckId: string): ThunkResult =>
-  async (dispatch, getState) => {
-    const deck = selector.deck.getById(deckId)(getState());
-    const config = getState().config;
-    const swipeAction = resolveSwipeAction(config, direction);
-    const card = selector.card.getCurrentByDeckId(deckId)(getState());
-    if (card == null) {
-      return;
-    }
-
-    if (swipeAction === "DoNothing") {
-      return;
-    }
-
-    dispatch(type.configUpdate({ lastSwipe: direction }));
-
-    if (swipeAction === "GoBack") {
-      await dispatch(update({ id: deck.id, currentIndex: -1 }));
-      return;
-    }
-    if (config.hideBodyWhenCardChanged) {
-      dispatch(type.configUpdate({ showBackText: false }));
-    }
-
-    // let interval = card.interval;
-    // const index = C.NEXT_SEEING_MINUTES_KEYS.findIndex((i) => i >= interval);
-    // if (card.score < score && index < C.NEXT_SEEING_MINUTES_KEYS.length - 1) {
-    //   interval = C.NEXT_SEEING_MINUTES_KEYS[index + 1];
-    // } else if (card.score > score && index > 0) {
-    //   interval = C.NEXT_SEEING_MINUTES_KEYS[index - 1];
-    // }
-    // const nextSeeingAt = moment(lastSeenAt).add(interval, "minute").toDate();
-
-    const patch = buildStudyPatch(card, swipeAction, new Date().getTime());
-    await dispatch(action.card.update(patch));
-
-    const currentIndex = calculateNextIndex(deck.currentIndex ?? 0, deck.cardOrderIds.length, swipeAction);
-    await dispatch(action.deck.update({ id: deck.id, currentIndex }));
   };
 
 export const download =

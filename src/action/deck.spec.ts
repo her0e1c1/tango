@@ -4,7 +4,6 @@ import { expect, it, describe, vi, beforeEach } from "vitest";
 import * as fileSaver from "file-saver";
 
 import * as firestore from "@src/action/firestore";
-import * as type from "@src/action/type";
 import * as action from "@src/action";
 import * as C from "@src/constant";
 
@@ -15,11 +14,7 @@ vi.mock("file-saver", () => ({
 vi.mock("firebase/firestore");
 
 describe("deck action", () => {
-  const mockedDate = new Date(1999, 10, 1);
-
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(mockedDate);
     vi.clearAllMocks();
     vi.resetModules();
   });
@@ -87,56 +82,6 @@ describe("deck action", () => {
       const f = action.deck.remove("deckId");
       await f(dispatch, getState, undefined);
       expect(firestore.deck.remove).toHaveBeenCalledWith("deckId", "uid");
-    });
-  });
-
-  describe("start", () => {
-    it("should start", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({
-        config: { uid: "uid", defaultAutoPlay: true },
-        deck: { byId: { deckId: { cardIds: [] } } },
-        card: { byId: {} },
-      });
-
-      const update = vi.spyOn(action.deck, "update");
-      const f = action.deck.start("deckId");
-      await f(dispatch, getState, undefined);
-      expect(update).lastCalledWith({ id: "deckId", currentIndex: 0, cardOrderIds: [] });
-      expect(dispatch).lastCalledWith(
-        type.configUpdate({
-          showBackText: false,
-          autoPlay: true,
-        })
-      );
-    });
-  });
-
-  describe("swip", () => {
-    it("should swip", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({
-        config: { uid: "uid" },
-        deck: { byId: { deckId: { id: "deckId", currentIndex: 0, cardOrderIds: ["a", "b", "c"] } } },
-        card: { byId: { a: { id: "a", interval: 60 * 24, numberOfSeen: 0, score: 0 } } },
-      });
-
-      const deckUpdate = vi.spyOn(action.deck, "update");
-      const cardUpdate = vi.spyOn(action.card, "update");
-      const f = action.deck.swipe("cardSwipeRight", "deckId");
-      await f(dispatch, getState, undefined);
-
-      expect(dispatch).toBeCalledTimes(3);
-      expect(dispatch).toHaveBeenCalledWith(type.configUpdate({ lastSwipe: "cardSwipeRight" }));
-      expect(deckUpdate).toHaveBeenCalledWith({ id: "deckId", currentIndex: 1 });
-      expect(cardUpdate).toHaveBeenCalledWith({
-        id: "a",
-        score: 0,
-        numberOfSeen: 1,
-        lastSeenAt: mockedDate.getTime(),
-        // interval: 60 * 24,
-        // nextSeeingAt: moment(mockedDate).add(1, "day").toDate(),
-      });
     });
   });
 

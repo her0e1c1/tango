@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage";
 import { persistReducer } from "redux-persist";
 import * as type from "@src/action/type";
 import { deck, card, config, equal } from "@src/store/reducer";
+import { migratePersistedState } from "@src/store/migrations";
 
 const reducers = {
   deck,
@@ -26,6 +27,8 @@ const logger: Redux.Middleware = () => (next) => (action) => {
 const persistConfig = {
   key: "root",
   storage,
+  version: 1,
+  migrate: migratePersistedState,
   whitelist: ["deck", "card", "config"],
 };
 

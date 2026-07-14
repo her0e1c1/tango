@@ -1,20 +1,33 @@
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as action from "@src/action";
 import * as C from "@src/constant";
 import * as selector from "@src/selector";
 import * as util from "@src/util";
 import { BackText } from "@src/features/card/components/BackText";
 import { CardOverlay } from "@src/features/card/components/CardOverlay";
 import { FrontText } from "@src/features/card/components/FrontText";
-import { useDeckActions } from "@src/features/deck/containers/useDeckActions";
 import { DeckSwiperTemplate } from "@src/features/study/components/templates/DeckSwiperTemplate";
 import type { SwipeButtonListProps } from "@src/features/study/components/SwipeButtonList";
+import { getLegacyStudyCandidate, useLegacyStudySession } from "@src/features/study/containers/useLegacyStudySession";
+import { useStudyActions } from "@src/features/study/containers/useStudyActions";
 import { useStudyControllerState } from "@src/features/study/containers/useStudyControllerState";
+import { studyStore, useStudyStore } from "@src/features/study/state/studyStore";
 import { useActions } from "@src/shared/hooks/useActions";
+
+const useStudyHydrated = (): boolean => {
+  const [hydrated, setHydrated] = React.useState(() => studyStore.persist.hasHydrated());
+
+  React.useEffect(() => {
+    const unsubscribe = studyStore.persist.onFinishHydration(() => setHydrated(true));
+    setHydrated(studyStore.persist.hasHydrated());
+    return unsubscribe;
+  }, []);
+
+  return hydrated;
+};
 
 export const DeckSwiperContainer: React.FC = () => {
   const params = useParams();
@@ -22,39 +35,57 @@ export const DeckSwiperContainer: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
 
   const deck = useSelector(selector.deck.getById(deckId));
-  const card = useSelector(selector.card.getCurrentByDeckId(deckId));
   const config = useSelector(selector.config.get());
-  const deckActions = useDeckActions(deckId);
+  const activeSession = useStudyStore((state) => state.session);
+  const legacyMigrated = useStudyStore((state) => state.legacyMigratedDeckIds[deckId] === true);
+  const showBackText = useStudyStore((state) => state.showBackText);
+  const autoPlay = useStudyStore((state) => state.autoPlay);
+  const hydrated = useStudyHydrated();
+  const legacyCandidate = React.useMemo(() => getLegacyStudyCandidate(deck), [deck]);
+  useLegacyStudySession(deckId, legacyCandidate);
+
+  const session = activeSession?.deckId === deckId ? activeSession : null;
+  const index = session?.currentIndex ?? -1;
+  const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
+  const card = useSelector((state: RootState) => (cardId == null ? undefined : state.card.byId[cardId]));
+  const studyActions = useStudyActions(deckId);
   const actions = useActions();
 
-  useKey("ArrowUp", deckActions.swipeUp);
-  useKey("ArrowDown", deckActions.swipeDown);
-  useKey("ArrowLeft", deckActions.swipeLeft);
-  useKey("ArrowRight", deckActions.swipeRight);
-  useKey("Enter", actions.toggleShowBackText);
+  useKey("ArrowUp", studyActions.swipeUp);
+  useKey("ArrowDown", studyActions.swipeDown);
+  useKey("ArrowLeft", studyActions.swipeLeft);
+  useKey("ArrowRight", studyActions.swipeRight);
+  useKey("Enter", studyActions.toggleShowBackText);
   useKey("h", actions.toggleShowHeader);
   useKey("b", actions.toggleShowSwipeButtonList);
-  useKey(" ", actions.toggleAutoPlay);
+  useKey(" ", studyActions.toggleAutoPlay);
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const index = deck.currentIndex ?? 0;
-  const valid = (index >= 0 && index < deck.cardOrderIds.length) || Boolean(card);
+  const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
+  const legacyMigrationPending =
+    activeSession == null && !legacyMigrated && deck.id === deckId && legacyCandidate != null;
   const controller = useStudyControllerState({
-    autoPlay: config.autoPlay,
+    autoPlay,
     cardInterval: config.cardInterval,
     enabled: card != null && config.cardInterval > 0,
     index,
-    numberOfCards: deck.cardOrderIds.length,
-    onChange: deckActions.updateIndex,
+    numberOfCards: session?.cardOrderIds.length ?? 0,
+    onChange: studyActions.updateIndex,
+    onToggleAutoPlay: studyActions.toggleAutoPlay,
   });
 
+  const exitingDeck = React.useRef<DeckId>();
   React.useEffect(() => {
-    if (!valid) {
-      dispatch(action.deck.update({ id: deckId, currentIndex: null }));
-      navigate("/", { replace: true });
+    if (valid) {
+      exitingDeck.current = undefined;
+      return;
     }
-  }, [valid, deckId, navigate, dispatch]);
+    if (!hydrated || legacyMigrationPending || exitingDeck.current === deckId) return;
+
+    exitingDeck.current = deckId;
+    studyActions.resetStudy();
+    navigate("/", { replace: true });
+  }, [deckId, hydrated, legacyMigrationPending, navigate, studyActions, valid]);
 
   // disable browser back
   React.useEffect(() => {
@@ -74,16 +105,16 @@ export const DeckSwiperContainer: React.FC = () => {
 
   const category = util.getCategory(deck.category, card.tags);
   const swipeActions: SwipeButtonListProps = {
-    onClickUp: deckActions.swipeUp,
-    onClickDown: deckActions.swipeDown,
-    onClickLeft: deckActions.swipeLeft,
-    onClickRight: deckActions.swipeRight,
+    onClickUp: studyActions.swipeUp,
+    onClickDown: studyActions.swipeDown,
+    onClickLeft: studyActions.swipeLeft,
+    onClickRight: studyActions.swipeRight,
   };
 
   return (
     <DeckSwiperTemplate
       showController={config.cardInterval > 0}
-      showBackText={config.showBackText}
+      showBackText={showBackText}
       showHeader={config.showHeader}
       showSwipeButtonList={config.showSwipeButtonList}
       layout={{
@@ -98,11 +129,11 @@ export const DeckSwiperContainer: React.FC = () => {
         <FrontText
           category={category}
           text={card.frontText}
-          onSwipeUp={deckActions.swipeUp}
-          onSwipeDown={deckActions.swipeDown}
-          onSwipeLeft={deckActions.swipeLeft}
-          onSwipeRight={deckActions.swipeRight}
-          onClick={actions.toggleShowBackText}
+          onSwipeUp={studyActions.swipeUp}
+          onSwipeDown={studyActions.swipeDown}
+          onSwipeLeft={studyActions.swipeLeft}
+          onSwipeRight={studyActions.swipeRight}
+          onClick={studyActions.toggleShowBackText}
         />
       }
       cardOverlaySlot={<CardOverlay card={card} />}
@@ -111,7 +142,7 @@ export const DeckSwiperContainer: React.FC = () => {
           category={category}
           code={C.LANGUAGES.includes(category)}
           text={card.backText}
-          onClick={actions.toggleShowBackText}
+          onClick={studyActions.toggleShowBackText}
         />
       }
       controller={controller}

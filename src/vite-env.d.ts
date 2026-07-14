@@ -56,15 +56,9 @@ interface Deck {
   // but in redux state only
   localMode: boolean;
 
-  // when user selects a deck, show this index card
-  // this should not be stored in sqlite
-  currentIndex: number | null;
-
   scoreMax: number | null;
   scoreMin: number | null;
 
-  // used for deck swiper
-  cardOrderIds: string[];
   // better to store firebase
   // because you want to keep the same condition after studying
   selectedTags: string[];
@@ -145,20 +139,17 @@ type cardSwipe =
   | "GoToNextCardToggleMastered";
 
 type ConfigState = SwipeState & {
-  lastSwipe?: SwipeDirection;
   useCardInterval: boolean;
   showSwipeButtonList: boolean;
   showScoreSlider: boolean;
   showHeader: boolean;
   fullscreen: boolean;
   shuffled: boolean;
-  showBackText: boolean;
   sizeBackText: number;
   maxNumberOfCardsToLearn: number;
   hideBodyWhenCardChanged: boolean;
   showSwipeFeedback: boolean;
   keepBackTextViewed: boolean;
-  autoPlay: boolean;
   defaultAutoPlay: boolean;
   cardInterval: number;
   darkMode: boolean;
