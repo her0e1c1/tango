@@ -30,17 +30,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: check chanegd files
-        id: changed
-        uses: tj-actions/changed-files@v37
-        with:
-          files: |
-            Dockerfile
-            package.json
-            package-lock.json
-
       - run: docker compose -f .devcontainer/compose.yaml build dev
-        if: ${{ steps.changed.outputs.any_changed == 'true' || inputs.force }}
 
       - uses: jdx/mise-action@v4
 
