@@ -10,6 +10,8 @@ export interface StudySession {
   currentIndex: number;
 }
 
+export type LegacyStudyCandidate = Pick<Deck, "id" | "cardOrderIds" | "currentIndex">;
+
 interface PersistedStudyState {
   session: StudySession | null;
   legacyMigratedDeckIds: Record<DeckId, true>;
@@ -23,6 +25,7 @@ export interface StudyState extends PersistedStudyState {
   setCurrentIndex: (currentIndex: number) => void;
   resetStudy: () => void;
   markLegacyMigrated: (deckId: DeckId) => void;
+  importLegacyStudy: (routeDeckId: DeckId, candidate?: LegacyStudyCandidate) => boolean;
   initializeStudyUi: (defaultAutoPlay: boolean) => void;
   toggleShowBackText: () => void;
   toggleAutoPlay: () => void;
@@ -64,6 +67,35 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
               [deckId]: true,
             },
           })),
+        importLegacyStudy: (routeDeckId, candidate) => {
+          let imported = false;
+          set((state) => {
+            if (
+              state.session != null ||
+              candidate == null ||
+              candidate.id !== routeDeckId ||
+              candidate.cardOrderIds.length === 0 ||
+              typeof candidate.currentIndex !== "number" ||
+              state.legacyMigratedDeckIds[routeDeckId]
+            ) {
+              return state;
+            }
+
+            imported = true;
+            return {
+              session: {
+                deckId: routeDeckId,
+                cardOrderIds: [...candidate.cardOrderIds],
+                currentIndex: candidate.currentIndex,
+              },
+              legacyMigratedDeckIds: {
+                ...state.legacyMigratedDeckIds,
+                [routeDeckId]: true,
+              },
+            };
+          });
+          return imported;
+        },
         initializeStudyUi: (defaultAutoPlay) =>
           set({
             showBackText: false,

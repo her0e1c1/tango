@@ -53,6 +53,21 @@ export const deck = (state = deckInitialState, action: Action) => {
     const decks = action.payload.decks;
     decks.forEach((d) => (state.byId[d.id] = { ...(state.byId[d.id] as Deck), ...d }));
     return { ...state };
+  } else if (equal(action, type.deckClearLegacyStudy)) {
+    const deckId = action.payload.deckId;
+    const legacyDeck = state.byId[deckId];
+    if (legacyDeck == null) return state;
+    return {
+      ...state,
+      byId: {
+        ...state.byId,
+        [deckId]: {
+          ...legacyDeck,
+          currentIndex: null,
+          cardOrderIds: [],
+        },
+      },
+    };
   } else if (equal(action, type.deckBulkDelete)) {
     action.payload.ids.forEach((id) => delete state.byId[id]);
     return { ...state };
