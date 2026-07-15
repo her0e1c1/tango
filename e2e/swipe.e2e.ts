@@ -81,15 +81,15 @@ const persistedConfig = {
   localMode: true,
 };
 
+const session = {
+  deckId: "e2e-deck-1",
+  cardOrderIds: ["e2e-card-1", "e2e-card-2"],
+  currentIndex: 0,
+};
+
 const persistedStudy = {
-  state: {
-    session: {
-      deckId: "e2e-deck-1",
-      cardOrderIds: ["e2e-card-1", "e2e-card-2"],
-      currentIndex: 0,
-    },
-  },
-  version: 1,
+  state: { session },
+  version: 2,
 };
 
 const seedSwipeSession = async (page: Page) => {
@@ -118,7 +118,7 @@ const seedSwipeSession = async (page: Page) => {
             byId: Object.fromEntries(cards.map((card) => [card.id, card])),
             tags: [],
           }),
-          _persist: JSON.stringify({ version: 1, rehydrated: true }),
+          _persist: JSON.stringify({ version: 2, rehydrated: true }),
         })
       );
       window.localStorage.setItem("tango-study", JSON.stringify(study));
@@ -134,10 +134,9 @@ const persistedCard = async (page: Page, cardId: string) => {
   }, cardId);
 };
 
-const persistedStudySession = async (page: Page) => {
+const persistedStudyEnvelope = async (page: Page) => {
   return page.evaluate(() => {
-    const persisted = JSON.parse(window.localStorage.getItem("tango-study") ?? "{}");
-    return persisted.state?.session;
+    return JSON.parse(window.localStorage.getItem("tango-study") ?? "{}");
   });
 };
 
@@ -191,10 +190,15 @@ test("updates study progress with a mastered deck swipe", async ({ page }) => {
 
   await expect(page.getByText("banana")).toBeVisible();
   await expect.poll(async () => persistedCard(page, "e2e-card-1")).toMatchObject({ score: 1, numberOfSeen: 1 });
-  await expect.poll(async () => persistedStudySession(page)).toMatchObject({
-    deckId: "e2e-deck-1",
-    cardOrderIds: ["e2e-card-1", "e2e-card-2"],
-    currentIndex: 1,
+  await expect.poll(async () => persistedStudyEnvelope(page)).toEqual({
+    state: {
+      session: {
+        deckId: "e2e-deck-1",
+        cardOrderIds: ["e2e-card-1", "e2e-card-2"],
+        currentIndex: 1,
+      },
+    },
+    version: 2,
   });
   await expect.poll(async () => persistedReduxStudyFields(page)).toEqual({
     deckCurrentIndex: false,

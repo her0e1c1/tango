@@ -49,7 +49,7 @@ const seedLocalModeSession = async (page: Page) => {
       "persist:root",
       JSON.stringify({
         config: JSON.stringify(config),
-        _persist: JSON.stringify({ version: 1, rehydrated: true }),
+        _persist: JSON.stringify({ version: 2, rehydrated: true }),
       })
     );
   }, persistedConfig);

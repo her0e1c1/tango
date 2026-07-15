@@ -86,7 +86,7 @@ const seedCardSession = async (page: Page) => {
           config: JSON.stringify(config),
           deck: JSON.stringify({ byId: { [deck.id]: deck }, categories: [deck.category] }),
           card: JSON.stringify({ byId: { [card.id]: card }, tags: [] }),
-          _persist: JSON.stringify({ version: 1, rehydrated: true }),
+          _persist: JSON.stringify({ version: 2, rehydrated: true }),
         })
       );
     },
