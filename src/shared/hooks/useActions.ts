@@ -64,7 +64,7 @@ export const useActions = () => {
       },
       cardRemove: (id: CardId) => window.confirm("Are you sure?") && dispatch(action.card.remove(id)),
       login: () => dispatch(action.config.loginGoogle()),
-      logout: () => dispatch(action.config.logout()),
+      logout: (confirmedUid: string) => dispatch(action.config.logout(confirmedUid)),
       configUpdate: (config: ConfigState) => dispatch(action.config.updateAll(config)),
       setDarkMode: (darkMode: boolean) => dispatch(action.config.update("darkMode", darkMode)),
       toggleShowHeader: () => dispatch(action.config.toggle("showHeader")),

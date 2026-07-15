@@ -1,10 +1,15 @@
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
 import * as type from "@/action/type";
-import { update } from "@/action/config";
+import { createConfig } from "@/test/factories";
+
+const mocks = vi.hoisted(() => ({ eventLogout: vi.fn(() => ({ type: "LOGOUT" })) }));
 
 vi.mock("firebase/auth");
 vi.mock("firebase/firestore");
+vi.mock("@/action", () => ({ event: { logout: mocks.eventLogout } }));
+
+import { logout, update, updateAll } from "@/action/config";
 
 describe("config action", () => {
   beforeEach(() => {
@@ -18,5 +23,36 @@ describe("config action", () => {
     const f = update("darkMode", true); // TODO: test other fields
     await f(dispatch, getState, undefined);
     expect(dispatch).lastCalledWith(type.configUpdate({ darkMode: true }));
+  });
+
+  it("does not let form submissions overwrite runtime auth identity", async () => {
+    const dispatch = vi.fn();
+    const getState = vi.fn();
+    const config = createConfig({
+      uid: "stale-uid",
+      isAnonymous: false,
+      displayName: "Stale User",
+      lastUpdatedAt: 123,
+      darkMode: true,
+    });
+
+    await updateAll(config)(dispatch, getState, undefined);
+
+    const updateAction = dispatch.mock.calls[0]?.[0] as ReturnType<typeof type.configUpdate>;
+    expect(updateAction.payload.config).toMatchObject({ darkMode: true });
+    expect(updateAction.payload.config).not.toHaveProperty("uid");
+    expect(updateAction.payload.config).not.toHaveProperty("isAnonymous");
+    expect(updateAction.payload.config).not.toHaveProperty("displayName");
+    expect(updateAction.payload.config).not.toHaveProperty("lastUpdatedAt");
+  });
+
+  it("forwards the confirmed AuthContext UID to logout", async () => {
+    const dispatch = vi.fn();
+    const getState = vi.fn();
+
+    await logout("confirmed-uid")(dispatch, getState, undefined);
+
+    expect(mocks.eventLogout).toHaveBeenCalledWith("confirmed-uid");
+    expect(dispatch).toHaveBeenCalledWith({ type: "LOGOUT" });
   });
 });

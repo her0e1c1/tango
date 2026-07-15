@@ -1,0 +1,5 @@
+export const firestoreKeys = {
+  uid: (uid: string) => Object.freeze(["firestore", uid] as const),
+  decks: (uid: string) => Object.freeze(["firestore", uid, "decks"] as const),
+  cards: (uid: string) => Object.freeze(["firestore", uid, "cards"] as const),
+};

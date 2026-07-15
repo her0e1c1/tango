@@ -1,21 +1,14 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import * as selector from "@/selector";
-import * as action from "@/action";
 import * as Page from "@/page";
 
 const App = () => {
   const darkMode = useSelector(selector.config.getByKey("darkMode"));
-  const dispatch = useDispatch();
   React.useEffect(() => {
-    dispatch(action.event.init());
-    if (darkMode) {
-      document.querySelector("html")?.classList.add("dark");
-    } else {
-      document.querySelector("html")?.classList.remove("dark");
-    }
-  }, [dispatch, darkMode]);
+    document.documentElement.classList.toggle("dark", darkMode);
+  }, [darkMode]);
   return (
     <BrowserRouter>
       <Routes>
