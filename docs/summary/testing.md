@@ -10,6 +10,26 @@
 | `make lint` | `Makefile` | `tsc` と Biome |
 | `make build` | `Makefile` | sample build、Vite build、Storybook build |
 
+実際の設定は `biome.json`、`tsconfig.base.json` と各 project の `tsconfig`、`package.json` と lockfile を source of truth とします。この文書は policy と理由を説明するもので、これらの設定を変更するときは同時に更新します。
+
+## TypeScript Coverage And Policy
+
+`npm run lint:tsc` は最初に `scripts/check-tsconfig-coverage.mjs` を実行し、Git で追跡しているすべての `.ts` / `.tsx` が `tsconfig.json` または `tsconfig.node.json` のどちらかに含まれることを検証します。`tsconfig.json` は `src`、`tsconfig.node.json` は root の config、`.storybook`、`e2e` を担当します。将来 TypeScript file を追加したときも、どちらの config にも含まれない file があれば lint は失敗します。
+
+共通の `tsconfig.base.json` は `strict` に加え、`exactOptionalPropertyTypes`、`noImplicitOverride`、`noImplicitReturns`、`noUncheckedIndexedAccess`、`noUncheckedSideEffectImports`、`noUnusedLocals`、`noUnusedParameters`、`verbatimModuleSyntax` の 8 flags を有効にしています。`skipLibCheck` は有効のままにし、application code の厳格さを維持しつつ外部 declaration file の互換性問題で CI を不安定にしない方針です。内部 import alias は `@/*` で、`src/*` を指します。
+
+## Biome Policy
+
+Biome は pin した version と stable な `recommended` preset を基準にし、`project`、`react`、`test` domains も `recommended` で有効にしています。加えて、project の契約として stable rules を明示設定しています。今回強化したものは `noUndeclaredDependencies`、`noUnusedFunctionParameters`、`noUnusedImports`、`noNonNullAssertion`、`useExportType`、`useImportType`、`noDeprecatedImports`、`noExplicitAny`、`noImportCycles` です。`noUndeclaredDependencies` は runtime dependency と development-only file の dependency 境界を検証し、spec、story、E2E、Storybook、config file では devDependencies を許可します。
+
+Type-aware lint は `noFloatingPromises`、`noMisusedPromises`、`useAwaitThenable`、`useExhaustiveSwitchCases`、`noUnnecessaryConditions` の 5 rules だけを選択して error にします。`nursery: all` は使いません。Biome upgrade 時は version を意図的に更新し、schema、stable preset、include glob、各 rule の stable / nursery / deprecated status を再監査してから、必要な migration と code change を同じ upgrade として扱います。
+
+Suppression は原則 0 件です。検証済みの false positive だけに、対象を最小化した suppression、理由、tracking issue を付けて認めます。file 全体を抑制する `biome-ignore-all` と unsafe な bulk fix は使いません。`biome.json` で互換性や重複を理由に rule を意図的に `off` にすることは、code 上の suppression とは区別します。
+
+## Router Navigation Invariant
+
+現在は宣言的な `BrowserRouter` を使っているため、`void navigate(...)` の各 call site は同期的な navigation mode に依存しています。`RouterProvider` / Data Router へ移行する場合は `navigate` が Promise を返し得るため、すべての `void navigate(...)` call site を監査し、error handling と待機の要否を見直す必要があります。
+
 ## Vitest Configuration
 
 `vitest.config.ts` は `globals: true`、`environment: "jsdom"`、`vite-tsconfig-paths` plugin を設定しています。Firestore integration tests は `src/action/firestore/init.ts` で emulator に接続し、mock user token を使います。
