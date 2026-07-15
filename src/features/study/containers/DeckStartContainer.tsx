@@ -5,10 +5,10 @@ import { useKey } from "react-use";
 
 import * as selector from "@src/selector";
 import { DeckStartForm } from "@src/features/deck/components/DeckStartForm";
-import { useDeckActions } from "@src/features/deck/containers/useDeckActions";
-import { useDeckFilterState } from "@src/features/deck/containers/useDeckFilterState";
+import { useDeckActions } from "@src/features/deck/hooks/useDeckActions";
+import { useDeckFilterState } from "@src/features/deck/hooks/useDeckFilterState";
 import { DeckStartTemplate } from "@src/features/study/components/templates/DeckStartTemplate";
-import { useStudyActions } from "@src/features/study/containers/useStudyActions";
+import { useStudyActions } from "@src/features/study/hooks/useStudyActions";
 import { useActions } from "@src/shared/hooks/useActions";
 
 export const DeckStartContainer: React.FC = () => {

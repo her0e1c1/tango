@@ -6,7 +6,7 @@ import { expect, it, describe, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { ConfigForm } from "@src/features/settings/components/ConfigForm";
-import { useConfigFormState } from "@src/features/settings/containers/useConfigFormState";
+import { useConfigFormState } from "@src/features/settings/hooks/useConfigFormState";
 
 const ConfigFormHarness: React.FC<{
   config: ConfigState;

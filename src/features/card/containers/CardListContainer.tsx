@@ -9,8 +9,8 @@ import * as util from "@src/util";
 import { useActions } from "@src/shared/hooks/useActions";
 import { CardListTemplate } from "@src/features/card/components/templates/CardListTemplate";
 import { DeckStartForm } from "@src/features/deck/components/DeckStartForm";
-import { useDeckActions } from "@src/features/deck/containers/useDeckActions";
-import { useDeckFilterState } from "@src/features/deck/containers/useDeckFilterState";
+import { useDeckActions } from "@src/features/deck/hooks/useDeckActions";
+import { useDeckFilterState } from "@src/features/deck/hooks/useDeckFilterState";
 
 export const CardListContainer: React.FC = () => {
   const params = useParams();

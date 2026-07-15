@@ -27,7 +27,7 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-vi.mock("@src/features/deck/containers/useDeckActions", () => ({
+vi.mock("@src/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ updateAndBack: mocks.updateAndBack }),
 }));
 

@@ -5,7 +5,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Controller, type ControllerProps } from "@src/features/study/components/Controller";
-import { useStudyControllerState } from "@src/features/study/containers/useStudyControllerState";
+import { useStudyControllerState } from "@src/features/study/hooks/useStudyControllerState";
 
 const ControllerHarness: React.FC<ControllerProps> = (props) => {
   const controller = useStudyControllerState(props);

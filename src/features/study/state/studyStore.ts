@@ -1,4 +1,3 @@
-import { useStore } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 
@@ -139,8 +138,6 @@ export const clearStudyStore = async (): Promise<void> => {
   });
   await studyStore.persist.clearStorage();
 };
-
-export const useStudyStore = <T>(selector: (state: StudyState) => T): T => useStore(studyStore, selector);
 
 export const selectStudySessionForRoute = (deckId: DeckId) => (state: StudyState) =>
   state.session?.deckId === deckId ? state.session : null;

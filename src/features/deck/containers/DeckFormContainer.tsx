@@ -8,7 +8,7 @@ import * as selector from "@src/selector";
 import { renameKey } from "@src/shared/forms/renameKey";
 import { useActions } from "@src/shared/hooks/useActions";
 import { DeckFormTemplate } from "@src/features/deck/components/templates/DeckFormTemplate";
-import { useDeckActions } from "@src/features/deck/containers/useDeckActions";
+import { useDeckActions } from "@src/features/deck/hooks/useDeckActions";
 
 export const DeckFormContainer: React.FC = () => {
   const params = useParams();

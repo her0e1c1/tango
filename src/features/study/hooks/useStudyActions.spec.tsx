@@ -2,7 +2,7 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as type from "@src/action/type";
-import { useStudyActions } from "@src/features/study/containers/useStudyActions";
+import { useStudyActions } from "@src/features/study/hooks/useStudyActions";
 import { studyStore } from "@src/features/study/state/studyStore";
 
 const mocks = vi.hoisted(() => ({

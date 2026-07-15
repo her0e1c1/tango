@@ -34,11 +34,11 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-vi.mock("@src/features/deck/containers/useDeckActions", () => ({
+vi.mock("@src/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ update: vi.fn() }),
 }));
 
-vi.mock("@src/features/deck/containers/useDeckFilterState", () => ({
+vi.mock("@src/features/deck/hooks/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
     scoreMax: null,
     scoreMin: null,

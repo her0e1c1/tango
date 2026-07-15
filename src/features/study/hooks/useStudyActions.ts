@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import * as action from "@src/action";
 import * as type from "@src/action/type";
 import * as selector from "@src/selector";
-import { getLegacyStudyCandidate } from "@src/features/study/containers/useLegacyStudySession";
+import { getLegacyStudyCandidate } from "@src/features/study/hooks/useLegacyStudySession";
 import { studyStore } from "@src/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@src/lib/study";
 

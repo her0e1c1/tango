@@ -39,7 +39,7 @@ vi.mock("react-use", () => ({
   useKey: mocks.useKey,
 }));
 
-vi.mock("@src/features/study/containers/useStudyActions", () => ({
+vi.mock("@src/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({
     swipeUp: mocks.swipeUp,
     swipeDown: mocks.swipeDown,
