@@ -1,7 +1,6 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as type from "@/action/type";
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { studyStore } from "@/features/study/state/studyStore";
 
@@ -135,7 +134,7 @@ describe("useStudyActions", () => {
     expect(mocks.configUpdate).not.toHaveBeenCalled();
   });
 
-  it("discards eligible legacy progress before starting a new session", () => {
+  it("starts fresh from an old-shaped deck without dispatching legacy cleanup", () => {
     const legacyDeck = {
       ...deck,
       currentIndex: 1,
@@ -145,20 +144,37 @@ describe("useStudyActions", () => {
       ...createRootState(),
       deck: { byId: { [legacyDeck.id]: legacyDeck }, categories: [] },
     };
+    studyStore.setState({ showBackText: true, autoPlay: false, lastSwipe: "cardSwipeLeft" });
+    mocks.navigate.mockImplementationOnce(() => {
+      expect(studyStore.getState()).toMatchObject({
+        session: {
+          deckId: deck.id,
+          cardOrderIds: [card1.id],
+          currentIndex: 0,
+        },
+        showBackText: false,
+        autoPlay: true,
+        lastSwipe: undefined,
+      });
+    });
     const { result } = renderHook(() => useStudyActions(deck.id));
 
     act(() => {
       result.current.start();
     });
 
-    expect(mocks.dispatch).toHaveBeenCalledWith(type.deckClearLegacyStudy(deck.id));
+    expect(mocks.navigate).toHaveBeenCalledWith(`/deck/${deck.id}/study`, { replace: true });
+    expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(studyStore.getState()).toMatchObject({
       session: {
         deckId: deck.id,
         cardOrderIds: [card1.id],
         currentIndex: 0,
       },
-      legacyMigratedDeckIds: { [deck.id]: true },
+      legacyMigratedDeckIds: {},
+      showBackText: false,
+      autoPlay: true,
+      lastSwipe: undefined,
     });
   });
 

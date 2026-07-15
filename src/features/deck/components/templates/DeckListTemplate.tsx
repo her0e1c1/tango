@@ -12,7 +12,6 @@ export interface DeckListTemplateProps {
   layout?: React.ComponentProps<typeof Layout>;
   deckCard?: DeckCardActions;
   studyProgress?: ActiveStudyProgress;
-  restartableDeckIds?: DeckId[];
 }
 
 export const DeckListTemplate: React.FC<DeckListTemplateProps> = (props) => {
@@ -21,13 +20,11 @@ export const DeckListTemplate: React.FC<DeckListTemplateProps> = (props) => {
       <List>
         {props.decks?.map((deck) => {
           const studyProgress = props.studyProgress?.deckId === deck.id ? props.studyProgress : undefined;
-          const restartEnabled = studyProgress != null || props.restartableDeckIds?.includes(deck.id);
           return (
             <DeckCard
               key={deck.id}
               deck={deck}
               {...(studyProgress !== undefined ? { studyProgress } : {})}
-              {...(restartEnabled !== undefined ? { restartEnabled } : {})}
               {...props.deckCard}
             />
           );

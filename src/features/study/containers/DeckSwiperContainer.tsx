@@ -11,7 +11,6 @@ import { CardOverlay } from "@/features/card/components/CardOverlay";
 import { FrontText } from "@/features/card/components/FrontText";
 import { DeckSwiperTemplate } from "@/features/study/components/templates/DeckSwiperTemplate";
 import type { SwipeButtonListProps } from "@/features/study/components/SwipeButtonList";
-import { getLegacyStudyCandidate, useLegacyStudySession } from "@/features/study/hooks/useLegacyStudySession";
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { useStudyControllerState } from "@/features/study/hooks/useStudyControllerState";
 import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
@@ -26,12 +25,9 @@ export const DeckSwiperContainer: React.FC = () => {
   const deck = useSelector(selector.deck.getById(deckId));
   const config = useSelector(selector.config.get());
   const activeSession = useStudyStore((state) => state.session);
-  const legacyMigrated = useStudyStore((state) => state.legacyMigratedDeckIds[deckId] === true);
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
   const hydrated = useStudyHydrated();
-  const legacyCandidate = React.useMemo(() => getLegacyStudyCandidate(deck), [deck]);
-  useLegacyStudySession(deckId, legacyCandidate);
 
   const session = activeSession?.deckId === deckId ? activeSession : null;
   const index = session?.currentIndex ?? -1;
@@ -51,8 +47,6 @@ export const DeckSwiperContainer: React.FC = () => {
 
   const navigate = useNavigate();
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
-  const legacyMigrationPending =
-    activeSession == null && !legacyMigrated && deck.id === deckId && legacyCandidate != null;
   const controller = useStudyControllerState({
     autoPlay,
     cardInterval: config.cardInterval,
@@ -69,12 +63,12 @@ export const DeckSwiperContainer: React.FC = () => {
       exitingDeck.current = undefined;
       return;
     }
-    if (!hydrated || legacyMigrationPending || exitingDeck.current === deckId) return;
+    if (!hydrated || exitingDeck.current === deckId) return;
 
     exitingDeck.current = deckId;
     studyActions.resetStudy();
     void navigate("/", { replace: true });
-  }, [deckId, hydrated, legacyMigrationPending, navigate, studyActions, valid]);
+  }, [deckId, hydrated, navigate, studyActions, valid]);
 
   // disable browser back
   React.useEffect(() => {
