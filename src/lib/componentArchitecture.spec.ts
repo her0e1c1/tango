@@ -8,12 +8,14 @@ const testOrStory = /\.(?:spec|stories)\.tsx?$/;
 const mutablePresentationHook = /\b(?:React\.)?(?:useState|useReducer|useForm|useController|useWatch)\s*\(/;
 const customHookDefinition = /\b(?:const|function)\s+(use[A-Z][A-Za-z0-9]*)\b/g;
 const connectorModules = [
+  "@tanstack/react-query",
   "react-hook-form",
   "react-redux",
   "react-router",
   "react-router-dom",
   "react-use",
   "@/action",
+  "@/query",
   "@/selector",
   "@/store",
   "@/shared/hooks",
@@ -142,6 +144,21 @@ function expectSharedComponentGroup(
 describe("component architecture", () => {
   it("normalizes baseUrl source imports before checking boundaries", () => {
     expect(resolveModuleSpecifier("shared/components/content/Card.tsx", "src/action")).toBe("@/action");
+  });
+
+  it("treats Query APIs as presentation connectors across import styles", () => {
+    const presentationPath = "features/deck/components/templates/DeckListTemplate.tsx";
+    const queryImports = [
+      "@tanstack/react-query",
+      "@/query",
+      "@/query/client",
+      "src/query/client",
+      "../../../../query/client",
+    ];
+
+    for (const specifier of queryImports) {
+      expect(forbiddenConnector(resolveModuleSpecifier(presentationPath, specifier)), specifier).toBe(true);
+    }
   });
 
   it("recognizes container-support hook paths and consumers", () => {
