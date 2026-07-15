@@ -5,7 +5,7 @@ import { useKey } from "react-use";
 import * as selector from "@src/selector";
 import { useActions } from "@src/shared/hooks/useActions";
 import { DeckListTemplate } from "@src/features/deck/components/templates/DeckListTemplate";
-import { getLegacyStudyCandidate } from "@src/features/study/containers/useLegacyStudySession";
+import { getLegacyStudyCandidate } from "@src/features/study/hooks/useLegacyStudySession";
 import { useStudyStore } from "@src/features/study/state/studyStore";
 
 export const DeckListContainer: React.FC = () => {

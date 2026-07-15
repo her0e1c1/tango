@@ -277,6 +277,20 @@ describe("component architecture", () => {
     expect(violations, violations.join("\n")).toEqual([]);
   });
 
+  it("places dedicated feature hook modules under hooks directories", () => {
+    const misplacedHookModules = productionFilesUnder("features").filter(
+      (relativePath) =>
+        /(?:^|\/)use[A-Z][^/]*\.tsx?$/.test(relativePath) &&
+        !/^features\/[^/]+\/hooks\/use[A-Z][^/]*\.tsx?$/.test(relativePath)
+    );
+    const hookBarrels = sourceFilesUnder("features").filter((relativePath) =>
+      /^features\/[^/]+\/hooks\/index\.ts$/.test(relativePath)
+    );
+
+    expect(misplacedHookModules).toEqual([]);
+    expect(hookBarrels).toEqual([]);
+  });
+
   it("limits container-only hooks to production container modules", () => {
     const violations: string[] = [];
 

@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { DeckStartForm } from "@src/features/deck/components/DeckStartForm";
-import { useDeckFilterState } from "@src/features/deck/containers/useDeckFilterState";
+import { useDeckFilterState } from "@src/features/deck/hooks/useDeckFilterState";
 
 const DeckFilterHarness: React.FC<{
   deck: Deck;
