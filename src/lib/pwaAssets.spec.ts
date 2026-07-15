@@ -15,6 +15,13 @@ const stockAssetHashes = new Set([
   "c386396ec70db3608075b5fbfaac4ab1ccaa86ba05a68ab393ec551eb66c3e00",
   "9ea4f4da7050c0cc408926f6a39c253624e9babb1d43c7977cd821445a60b461",
 ]);
+const expectedAssetHashes: Record<string, string> = {
+  "public/favicon.ico": "6be21ee002b1722c176c87f8e1279a723bfc428105a952c6d7e76de30b9c6049",
+  "public/logo192.png": "5e4927b22f2a8fa5d3245d71446caeebbd5d3f9f3ae4018ba004ea7482d10da2",
+  "public/logo512.png": "1427fb898a5860df1b3c3bf69e4f06571a5df218a13746b4ec15f444a5063e28",
+};
+const rawPaletteUtility =
+  /\b(?:bg|border|fill|stroke|text)-(?:black|white|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:-\d{2,3})?\b/g;
 
 interface ManifestIcon {
   src: string;
@@ -68,29 +75,123 @@ function sha256(bytes: Buffer): string {
 }
 
 function inspectPng(bytes: Buffer): PngInfo | undefined {
-  if (bytes.length < 24) return undefined;
+  if (bytes.length < 33 || !bytes.subarray(0, pngSignature.length).equals(pngSignature)) return undefined;
+
+  let offset = pngSignature.length;
+  let ihdrCount = 0;
+  let hasImageData = false;
+  let hasTerminalEnd = false;
+
+  while (offset < bytes.length) {
+    if (offset + 12 > bytes.length) return undefined;
+
+    const chunkLength = bytes.readUInt32BE(offset);
+    const chunkType = bytes.toString("ascii", offset + 4, offset + 8);
+    const chunkEnd = offset + 12 + chunkLength;
+    if (chunkEnd > bytes.length) return undefined;
+
+    if (chunkType === "IHDR") {
+      ihdrCount += 1;
+      if (ihdrCount !== 1 || offset !== pngSignature.length || chunkLength !== 13) return undefined;
+    } else if (ihdrCount === 0) {
+      return undefined;
+    }
+
+    if (chunkType === "IDAT" && chunkLength > 0) hasImageData = true;
+    if (chunkType === "IEND") {
+      if (chunkLength !== 0 || chunkEnd !== bytes.length) return undefined;
+      hasTerminalEnd = true;
+    }
+
+    offset = chunkEnd;
+    if (hasTerminalEnd) break;
+  }
+
+  if (ihdrCount !== 1 || !hasImageData || !hasTerminalEnd || offset !== bytes.length) return undefined;
 
   return {
-    signature: bytes.subarray(0, pngSignature.length).equals(pngSignature),
+    signature: true,
     chunkType: bytes.toString("ascii", 12, 16),
     width: bytes.readUInt32BE(16),
     height: bytes.readUInt32BE(20),
   };
 }
 
+function hasValidIcoPayload(
+  bytes: Buffer,
+  dataOffset: number,
+  dataSize: number,
+  width: number,
+  height: number
+): boolean {
+  const payload = bytes.subarray(dataOffset, dataOffset + dataSize);
+  if (payload.subarray(0, pngSignature.length).equals(pngSignature)) {
+    const png = inspectPng(payload);
+    return png?.width === width && png.height === height;
+  }
+
+  if (payload.length < 40) return false;
+
+  const headerSize = payload.readUInt32LE(0);
+  const dibWidth = Math.abs(payload.readInt32LE(4));
+  const doubledDibHeight = Math.abs(payload.readInt32LE(8));
+  const planes = payload.readUInt16LE(12);
+  const bitDepth = payload.readUInt16LE(14);
+  const compression = payload.readUInt32LE(16);
+  const imageSize = payload.readUInt32LE(20);
+  const bitmapStride = Math.ceil((width * bitDepth) / 32) * 4;
+  const maskStride = Math.ceil(width / 32) * 4;
+
+  return (
+    headerSize >= 40 &&
+    headerSize <= payload.length &&
+    dibWidth === width &&
+    doubledDibHeight === height * 2 &&
+    planes === 1 &&
+    bitDepth > 0 &&
+    compression === 0 &&
+    imageSize === bitmapStride * height &&
+    headerSize + imageSize + maskStride * height <= payload.length
+  );
+}
+
 function inspectIco(bytes: Buffer): IcoInfo | undefined {
-  if (bytes.length < 22) return undefined;
+  if (bytes.length < 6) return undefined;
+
+  const reserved = bytes.readUInt16LE(0);
+  const type = bytes.readUInt16LE(2);
+  const count = bytes.readUInt16LE(4);
+  if (reserved !== 0 || type !== 1 || count !== 1) return undefined;
+
+  const directoryEnd = 6 + count * 16;
+  if (bytes.length < directoryEnd) return undefined;
 
   const widthByte = bytes[6];
   const heightByte = bytes[7];
   if (widthByte === undefined || heightByte === undefined) return undefined;
 
+  const width = widthByte === 0 ? 256 : widthByte;
+  const height = heightByte === 0 ? 256 : heightByte;
+  const dataSize = bytes.readUInt32LE(14);
+  const dataOffset = bytes.readUInt32LE(18);
+  if (
+    bytes[9] !== 0 ||
+    bytes.readUInt16LE(10) !== 1 ||
+    bytes.readUInt16LE(12) === 0 ||
+    dataSize === 0 ||
+    dataOffset < directoryEnd ||
+    dataOffset + dataSize !== bytes.length ||
+    !hasValidIcoPayload(bytes, dataOffset, dataSize, width, height)
+  ) {
+    return undefined;
+  }
+
   return {
-    reserved: bytes.readUInt16LE(0),
-    type: bytes.readUInt16LE(2),
-    count: bytes.readUInt16LE(4),
-    width: widthByte === 0 ? 256 : widthByte,
-    height: heightByte === 0 ? 256 : heightByte,
+    reserved,
+    type,
+    count,
+    width,
+    height,
   };
 }
 
@@ -98,6 +199,14 @@ function hasLink(document: Document, attributes: Record<string, string>): boolea
   return Array.from(document.querySelectorAll("link")).some((link) =>
     Object.entries(attributes).every(([name, value]) => link.getAttribute(name) === value)
   );
+}
+
+function storyBlock(source: string, storyName: string): string {
+  const start = source.indexOf(`export const ${storyName}:`);
+  if (start === -1) return "";
+
+  const nextStory = source.indexOf("\nexport const ", start + 1);
+  return source.slice(start, nextStory === -1 ? undefined : nextStory);
 }
 
 describe("Tango PWA identity", () => {
@@ -126,9 +235,23 @@ describe("Tango PWA identity", () => {
       })
     );
 
-    expect(faviconLinks.map((link) => link.getAttribute("href"))).toEqual(["/tango-mark.svg", "/favicon.ico"]);
-    expect(hasLink(document, { rel: "icon", type: "image/svg+xml", href: "/tango-mark.svg" })).toBe(true);
-    expect(hasLink(document, { rel: "alternate icon", href: "/favicon.ico" })).toBe(true);
+    expect(faviconLinks.map((link) => link.getAttribute("href"))).toEqual(["/favicon.ico", "/tango-mark.svg"]);
+    expect(
+      hasLink(document, {
+        rel: "icon",
+        href: "/favicon.ico",
+        sizes: "64x64",
+        type: "image/x-icon",
+      })
+    ).toBe(true);
+    expect(
+      hasLink(document, {
+        rel: "icon",
+        href: "/tango-mark.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+      })
+    ).toBe(true);
     expect(hasLink(document, { rel: "apple-touch-icon", href: "/logo192.png" })).toBe(true);
     expect(hasLink(document, { rel: "manifest", href: "/manifest.json" })).toBe(true);
     expect(themeColors).toEqual([
@@ -179,6 +302,7 @@ describe("Tango PWA identity", () => {
       height: expectedSize,
     });
     expect(stockAssetHashes.has(sha256(bytes))).toBe(false);
+    expect(sha256(bytes)).toBe(expectedAssetHashes[relativePath]);
   });
 
   it("provides a valid, non-stock 64px fallback icon", () => {
@@ -192,6 +316,32 @@ describe("Tango PWA identity", () => {
       height: 64,
     });
     expect(stockAssetHashes.has(sha256(bytes))).toBe(false);
+    expect(sha256(bytes)).toBe(expectedAssetHashes["public/favicon.ico"]);
+  });
+
+  it("rejects a truncated PNG with plausible dimensions", () => {
+    const truncatedPng = Buffer.alloc(24);
+    pngSignature.copy(truncatedPng);
+    truncatedPng.writeUInt32BE(13, 8);
+    truncatedPng.write("IHDR", 12, "ascii");
+    truncatedPng.writeUInt32BE(192, 16);
+    truncatedPng.writeUInt32BE(192, 20);
+
+    expect(inspectPng(truncatedPng)).toBeUndefined();
+  });
+
+  it("rejects a truncated ICO with a plausible directory entry", () => {
+    const truncatedIco = Buffer.alloc(22);
+    truncatedIco.writeUInt16LE(1, 2);
+    truncatedIco.writeUInt16LE(1, 4);
+    truncatedIco[6] = 64;
+    truncatedIco[7] = 64;
+    truncatedIco.writeUInt16LE(1, 10);
+    truncatedIco.writeUInt16LE(32, 12);
+    truncatedIco.writeUInt32LE(1, 14);
+    truncatedIco.writeUInt32LE(22, 18);
+
+    expect(inspectIco(truncatedIco)).toBeUndefined();
   });
 
   it("renders the shared mark beside a visible accessible wordmark without changing interaction props", () => {
@@ -217,10 +367,14 @@ describe("Tango PWA identity", () => {
 
   it("offers explicit Wordmark, MarkOnly, Light, and Dark Storybook review states", () => {
     const stories = readText("src/shared/components/content/Logo.stories.tsx");
+    const markOnly = storyBlock(stories, "MarkOnly");
+    const light = storyBlock(stories, "Light");
+    const dark = storyBlock(stories, "Dark");
 
-    expect(stories).toMatch(/export const Wordmark:/);
-    expect(stories).toMatch(/export const MarkOnly:[\s\S]*markOnly:\s*true/);
-    expect(stories).toMatch(/export const Light:[\s\S]*theme:\s*["']light["']/);
-    expect(stories).toMatch(/export const Dark:[\s\S]*theme:\s*["']dark["']/);
+    expect(storyBlock(stories, "Wordmark")).not.toBe("");
+    expect(markOnly).toMatch(/args:\s*\{[\s\S]*markOnly:\s*true/);
+    expect(light).toMatch(/globals:\s*\{[\s\S]*theme:\s*["']light["']/);
+    expect(dark).toMatch(/globals:\s*\{[\s\S]*theme:\s*["']dark["']/);
+    expect(stories.match(rawPaletteUtility) ?? []).toEqual([]);
   });
 });
