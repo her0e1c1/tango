@@ -6,10 +6,13 @@ export const Outer: React.FC<{ children?: React.ReactNode; className?: string }>
     <div
       className={cx(
         "bg-canvas",
+        "text-ink",
         "cursor-default",
         "select-none",
-        "overflow-y-scroll",
-        "h-screen",
+        "h-dvh",
+        "min-h-dvh",
+        "w-full",
+        "overflow-y-auto",
         "flex",
         "flex-col",
         props.className

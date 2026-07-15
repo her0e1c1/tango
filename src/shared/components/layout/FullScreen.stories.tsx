@@ -11,7 +11,7 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
-    className: "bg-gray-300",
+    className: "bg-surface-muted text-ink",
   },
 } satisfies Meta<typeof Template>;
 
@@ -19,7 +19,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: { children: "text" },
+  args: { children: <div className="p-shell-gutter">Exact dynamic viewport surface</div> },
+  globals: {
+    theme: "light",
+  },
 };
 
 export const Center: Story = {
@@ -38,4 +41,25 @@ export const InContainer: Story = {
       </Container>
     ),
   ],
+};
+
+export const ScrollableMobileDark: Story = {
+  args: {
+    flex: true,
+    scroll: true,
+    children: (
+      <div className="space-y-section-gap p-shell-gutter">
+        {[1, 2, 3, 4, 5, 6, 7].map((section) => (
+          <section key={section} className="rounded-surface bg-surface p-shell-gutter shadow-surface">
+            <h2 className="font-semibold">Fullscreen section {section}</h2>
+            <p className="mt-2 text-ink-muted">Only the vertical axis scrolls when content exceeds the viewport.</p>
+          </section>
+        ))}
+      </div>
+    ),
+  },
+  globals: {
+    theme: "dark",
+    viewport: { value: "iphonex", isRotated: false },
+  },
 };

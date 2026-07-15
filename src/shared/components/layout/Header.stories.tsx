@@ -6,11 +6,27 @@ const meta = {
   title: "Shared/Header",
   component: Template,
   tags: ["autodocs"],
-  argTypes: {},
-  args: {},
+  parameters: {
+    layout: "fullscreen",
+  },
 } satisfies Meta<typeof Template>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  globals: {
+    theme: "light",
+  },
+};
+
+export const MobileDarkFixed: Story = {
+  args: {
+    dark: true,
+    fixed: true,
+  },
+  globals: {
+    theme: "dark",
+    viewport: { value: "iphonex", isRotated: false },
+  },
+};

@@ -4,7 +4,7 @@ import { Header, type HeaderProps } from "@/shared/components/layout/Header";
 import { Main } from "@/shared/components/layout/Main";
 import { Outer } from "@/shared/components/layout/Outer";
 
-const Footer = () => <div className="pb-10" />;
+const Footer = () => <div className="shrink-0 pb-[calc(var(--spacing-section-gap)+env(safe-area-inset-bottom))]" />;
 
 export interface LayoutProps {
   showHeader?: boolean;

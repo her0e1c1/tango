@@ -16,10 +16,13 @@ export const FullScreen: React.FC<{
       {...clickInteraction}
       className={cx([
         "bg-canvas",
-        "w-screen",
-        "h-screen",
+        "text-ink",
+        "h-dvh",
+        "min-h-dvh",
+        "w-full",
+        "max-w-full",
         props.flex && ["flex", "flex-col"],
-        props.scroll ? "overflow-scroll" : "overflow-hidden",
+        props.scroll ? "overflow-y-auto" : "overflow-hidden",
         props.center && ["flex", "justify-center", "items-center"],
         props.className,
       ])}
