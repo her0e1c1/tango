@@ -5,8 +5,29 @@ on:
   workflow_call:
 
 jobs:
+  changes:
+    name: Check Docker Image Changes
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.changed.outputs.any_changed }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check changed files
+        id: changed
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          files: |
+            Dockerfile
+            package.json
+            package-lock.json
+
   push:
     name: Update Docker Image
+    needs: changes
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.image == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
