@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCardCreateDto, buildCardUpdateDto, buildDeckCreateDto, buildDeckUpdateDto } from "@/action/firestore/dto";
+import {
+  buildCardCreateDto,
+  buildCardUpdateDto,
+  buildDeckCreateDto,
+  buildDeckUpdateDto,
+  mapDeckDocument,
+} from "@/action/firestore/dto";
 import { createCard, createDeck } from "@/test/factories";
 
 describe("Firestore DTO builders", () => {
@@ -45,6 +51,66 @@ describe("Firestore DTO builders", () => {
     currentIndex: 1,
     cardOrderIds: ["card-1"],
   } satisfies Card & Record<"currentIndex" | "cardOrderIds", unknown>;
+
+  it("maps only remote deck fields using the snapshot id", () => {
+    const document = {
+      id: "payload-id",
+      name: "Remote Deck",
+      url: "https://example.com/deck",
+      isPublic: true,
+      uid: "user-2",
+      createdAt: 10,
+      updatedAt: 20,
+      deletedAt: null,
+      scoreMax: 5,
+      scoreMin: -3,
+      selectedTags: ["science"],
+      tagAndFilter: true,
+      category: "remote",
+      convertToBr: true,
+      localMode: true,
+      currentIndex: 2,
+      cardOrderIds: ["card-2"],
+    };
+
+    expect(mapDeckDocument("snapshot-id", document)).toEqual({
+      id: "snapshot-id",
+      name: "Remote Deck",
+      url: "https://example.com/deck",
+      isPublic: true,
+      uid: "user-2",
+      createdAt: 10,
+      updatedAt: 20,
+      deletedAt: null,
+      localMode: false,
+      scoreMax: 5,
+      scoreMin: -3,
+      selectedTags: ["science"],
+      tagAndFilter: true,
+      category: "remote",
+      convertToBr: true,
+    });
+  });
+
+  it("omits an absent optional url when mapping a remote deck", () => {
+    const document = {
+      id: "payload-id",
+      name: "Remote Deck",
+      isPublic: false,
+      uid: "user-2",
+      createdAt: 10,
+      updatedAt: 20,
+      deletedAt: null,
+      scoreMax: null,
+      scoreMin: null,
+      selectedTags: [],
+      tagAndFilter: false,
+      category: "",
+      convertToBr: false,
+    };
+
+    expect(mapDeckDocument("snapshot-id", document)).not.toHaveProperty("url");
+  });
 
   it("allows only server deck fields when creating", () => {
     expect(buildDeckCreateDto(deck, 100)).toEqual({

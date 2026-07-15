@@ -1,5 +1,7 @@
 import { getFirestore, onSnapshot, where, collection, query, orderBy } from "firebase/firestore";
 
+import { mapDeckDocument, type DeckDocument } from "@/action/firestore/dto";
+
 interface DeckProps {
   uid: string;
   updatedAt: number;
@@ -19,7 +21,7 @@ export const subscribeDeck = (props: DeckProps): Callback => {
     const e = { added: [], modified: [], removed: [], metadata } as DeckEvent;
     snapshot.docChanges().forEach((change) => {
       const id = change.doc.id;
-      const deck = { ...change.doc.data(), id } as Deck;
+      const deck = mapDeckDocument(id, change.doc.data() as DeckDocument);
       if (deck.deletedAt != null) {
         e.removed.push(id);
       } else if (change.type === "added") {
