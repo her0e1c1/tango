@@ -14,20 +14,9 @@ import type { SwipeButtonListProps } from "@src/features/study/components/SwipeB
 import { getLegacyStudyCandidate, useLegacyStudySession } from "@src/features/study/hooks/useLegacyStudySession";
 import { useStudyActions } from "@src/features/study/hooks/useStudyActions";
 import { useStudyControllerState } from "@src/features/study/hooks/useStudyControllerState";
-import { studyStore, useStudyStore } from "@src/features/study/state/studyStore";
+import { useStudyHydrated } from "@src/features/study/hooks/useStudyHydrated";
+import { useStudyStore } from "@src/features/study/hooks/useStudyStore";
 import { useActions } from "@src/shared/hooks/useActions";
-
-const useStudyHydrated = (): boolean => {
-  const [hydrated, setHydrated] = React.useState(() => studyStore.persist.hasHydrated());
-
-  React.useEffect(() => {
-    const unsubscribe = studyStore.persist.onFinishHydration(() => setHydrated(true));
-    setHydrated(studyStore.persist.hasHydrated());
-    return unsubscribe;
-  }, []);
-
-  return hydrated;
-};
 
 export const DeckSwiperContainer: React.FC = () => {
   const params = useParams();

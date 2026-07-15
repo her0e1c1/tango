@@ -6,6 +6,7 @@ const sourceRoot = path.resolve(process.cwd(), "src");
 const sourceExtension = /\.tsx?$/;
 const testOrStory = /\.(?:spec|stories)\.tsx?$/;
 const mutablePresentationHook = /\b(?:React\.)?(?:useState|useReducer|useForm|useController|useWatch)\s*\(/;
+const customHookDefinition = /\b(?:const|function)\s+(use[A-Z][A-Za-z0-9]*)\b/g;
 const connectorModules = [
   "react-hook-form",
   "react-redux",
@@ -289,6 +290,19 @@ describe("component architecture", () => {
 
     expect(misplacedHookModules).toEqual([]);
     expect(hookBarrels).toEqual([]);
+  });
+
+  it("keeps feature custom hook definitions under hooks directories", () => {
+    const violations = productionFilesUnder("features").flatMap((relativePath) => {
+      if (/^features\/[^/]+\/hooks\//.test(relativePath)) return [];
+
+      return Array.from(
+        readSource(relativePath).matchAll(customHookDefinition),
+        (match) => `${relativePath}: ${match[1]}`
+      );
+    });
+
+    expect(violations, violations.join("\n")).toEqual([]);
   });
 
   it("limits container-only hooks to production container modules", () => {
