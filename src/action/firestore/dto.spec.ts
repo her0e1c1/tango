@@ -1,50 +1,106 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCardCreateDto, buildCardUpdateDto, buildDeckCreateDto, buildDeckUpdateDto } from "@/action/firestore/dto";
+import {
+  buildCardCreateDto,
+  buildCardUpdateDto,
+  buildDeckCreateDto,
+  buildDeckUpdateDto,
+  mapDeckDocument,
+} from "@/action/firestore/dto";
 import { createCard, createDeck } from "@/test/factories";
 
 describe("Firestore DTO builders", () => {
-  const deck = {
-    ...createDeck({
-      id: "deck-1",
-      name: "Deck",
-      isPublic: true,
-      uid: "user-1",
-      createdAt: 1,
-      updatedAt: 2,
-      scoreMax: 3,
-      scoreMin: -2,
-      selectedTags: ["math"],
-      tagAndFilter: true,
-      category: "category",
-      convertToBr: true,
-    }),
-    currentIndex: 1,
-    cardOrderIds: ["card-1"],
-    showBackText: true,
-    autoPlay: true,
-    lastSwipe: "cardSwipeRight",
-  } satisfies Deck & Record<"currentIndex" | "cardOrderIds" | "showBackText" | "autoPlay" | "lastSwipe", unknown>;
+  const deck = createDeck({
+    id: "deck-1",
+    name: "Deck",
+    isPublic: true,
+    uid: "user-1",
+    createdAt: 1,
+    updatedAt: 2,
+    localMode: true,
+    scoreMax: 3,
+    scoreMin: -2,
+    selectedTags: ["math"],
+    tagAndFilter: true,
+    category: "category",
+    convertToBr: true,
+  });
 
-  const card = {
-    ...createCard({
-      id: "card-1",
-      deckId: deck.id,
-      uid: deck.uid,
-      tags: ["math"],
-      createdAt: 1,
-      updatedAt: 2,
-      score: 3,
-      numberOfSeen: 4,
-      lastSeenAt: 5,
-      nextSeeingAt: new Date(6),
-      interval: 7,
-      startLine: 8,
-      endLine: 9,
-    }),
-    currentIndex: 1,
-    cardOrderIds: ["card-1"],
-  } satisfies Card & Record<"currentIndex" | "cardOrderIds", unknown>;
+  const card = createCard({
+    id: "card-1",
+    deckId: deck.id,
+    uid: deck.uid,
+    tags: ["math"],
+    createdAt: 1,
+    updatedAt: 2,
+    score: 3,
+    numberOfSeen: 4,
+    lastSeenAt: 5,
+    nextSeeingAt: new Date(6),
+    interval: 7,
+    startLine: 8,
+    endLine: 9,
+  });
+
+  it("maps only remote deck fields using the snapshot id", () => {
+    const document = {
+      id: "payload-id",
+      name: "Remote Deck",
+      url: "https://example.com/deck",
+      isPublic: true,
+      uid: "user-2",
+      createdAt: 10,
+      updatedAt: 20,
+      deletedAt: null,
+      scoreMax: 5,
+      scoreMin: -3,
+      selectedTags: ["science"],
+      tagAndFilter: true,
+      category: "remote",
+      convertToBr: true,
+      localMode: true,
+      currentIndex: 2,
+      cardOrderIds: ["card-2"],
+    };
+
+    expect(mapDeckDocument("snapshot-id", document)).toEqual({
+      id: "snapshot-id",
+      name: "Remote Deck",
+      url: "https://example.com/deck",
+      isPublic: true,
+      uid: "user-2",
+      createdAt: 10,
+      updatedAt: 20,
+      deletedAt: null,
+      localMode: false,
+      scoreMax: 5,
+      scoreMin: -3,
+      selectedTags: ["science"],
+      tagAndFilter: true,
+      category: "remote",
+      convertToBr: true,
+    });
+  });
+
+  it("omits an absent optional url when mapping a remote deck", () => {
+    const document = {
+      id: "payload-id",
+      name: "Remote Deck",
+      isPublic: false,
+      uid: "user-2",
+      createdAt: 10,
+      updatedAt: 20,
+      deletedAt: null,
+      scoreMax: null,
+      scoreMin: null,
+      selectedTags: [],
+      tagAndFilter: false,
+      category: "",
+      convertToBr: false,
+    };
+
+    expect(mapDeckDocument("snapshot-id", document)).not.toHaveProperty("url");
+  });
 
   it("allows only server deck fields when creating", () => {
     expect(buildDeckCreateDto(deck, 100)).toEqual({

@@ -9,18 +9,8 @@ export interface StudySession {
   currentIndex: number;
 }
 
-export interface LegacyStudyFields {
-  cardOrderIds: CardId[];
-  currentIndex: number | null;
-}
-
-export interface LegacyStudyCandidate extends LegacyStudyFields {
-  id: DeckId;
-}
-
 interface PersistedStudyState {
   session: StudySession | null;
-  legacyMigratedDeckIds: Record<DeckId, true>;
 }
 
 export interface StudyState extends PersistedStudyState {
@@ -30,8 +20,6 @@ export interface StudyState extends PersistedStudyState {
   startStudy: (deckId: DeckId, cardOrderIds: CardId[]) => void;
   setCurrentIndex: (currentIndex: number) => void;
   resetStudy: () => void;
-  markLegacyMigrated: (deckId: DeckId) => void;
-  importLegacyStudy: (routeDeckId: DeckId, candidate?: LegacyStudyCandidate) => boolean;
   initializeStudyUi: (defaultAutoPlay: boolean) => void;
   toggleShowBackText: () => void;
   toggleAutoPlay: () => void;
@@ -44,13 +32,43 @@ interface CreateStudyStoreOptions {
   skipHydration?: boolean;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value != null && !Array.isArray(value);
+
+const sanitizePersistedStudyState = (persistedState: unknown): PersistedStudyState => {
+  if (!isRecord(persistedState) || !isRecord(persistedState.session)) {
+    return { session: null };
+  }
+
+  const { deckId, cardOrderIds, currentIndex } = persistedState.session;
+  if (
+    typeof deckId !== "string" ||
+    !Array.isArray(cardOrderIds) ||
+    !cardOrderIds.every((cardId) => typeof cardId === "string") ||
+    typeof currentIndex !== "number" ||
+    !Number.isFinite(currentIndex)
+  ) {
+    return { session: null };
+  }
+
+  return {
+    session: {
+      deckId,
+      cardOrderIds: [...cardOrderIds],
+      currentIndex,
+    },
+  };
+};
+
+const migratePersistedStudyState = (persistedState: unknown, version: number): PersistedStudyState =>
+  version === 1 ? sanitizePersistedStudyState(persistedState) : { session: null };
+
 export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedStudyState>(() => storage ?? localStorage);
   return createStore<StudyState>()(
     persist<StudyState, [], [], PersistedStudyState>(
       (set) => ({
         session: null,
-        legacyMigratedDeckIds: {},
         showBackText: false,
         autoPlay: false,
         lastSwipe: undefined,
@@ -67,42 +85,6 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
             session: state.session ? { ...state.session, currentIndex } : null,
           })),
         resetStudy: () => set({ session: null }),
-        markLegacyMigrated: (deckId) =>
-          set((state) => ({
-            legacyMigratedDeckIds: {
-              ...state.legacyMigratedDeckIds,
-              [deckId]: true,
-            },
-          })),
-        importLegacyStudy: (routeDeckId, candidate) => {
-          let imported = false;
-          set((state) => {
-            if (
-              state.session != null ||
-              candidate == null ||
-              candidate.id !== routeDeckId ||
-              candidate.cardOrderIds.length === 0 ||
-              typeof candidate.currentIndex !== "number" ||
-              state.legacyMigratedDeckIds[routeDeckId]
-            ) {
-              return state;
-            }
-
-            imported = true;
-            return {
-              session: {
-                deckId: routeDeckId,
-                cardOrderIds: [...candidate.cardOrderIds],
-                currentIndex: candidate.currentIndex,
-              },
-              legacyMigratedDeckIds: {
-                ...state.legacyMigratedDeckIds,
-                [routeDeckId]: true,
-              },
-            };
-          });
-          return imported;
-        },
         initializeStudyUi: (defaultAutoPlay) =>
           set({
             showBackText: false,
@@ -116,13 +98,15 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
       }),
       {
         name: STUDY_STORAGE_KEY,
-        version: 1,
+        version: 2,
         ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
         ...(skipHydration !== undefined ? { skipHydration } : {}),
-        partialize: ({ session, legacyMigratedDeckIds }) => ({
-          session,
-          legacyMigratedDeckIds,
+        migrate: migratePersistedStudyState,
+        merge: (persistedState, currentState) => ({
+          ...currentState,
+          ...sanitizePersistedStudyState(persistedState),
         }),
+        partialize: ({ session }) => ({ session }),
       }
     )
   );
@@ -133,7 +117,6 @@ export const studyStore = createStudyStore();
 export const clearStudyStore = async (): Promise<void> => {
   studyStore.setState({
     session: null,
-    legacyMigratedDeckIds: {},
     showBackText: false,
     autoPlay: false,
     lastSwipe: undefined,

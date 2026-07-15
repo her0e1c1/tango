@@ -2,7 +2,6 @@ import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as type from "@/action/type";
 import { studyStore } from "@/features/study/state/studyStore";
 import { createConfig } from "@/test/factories";
 
@@ -19,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   swipeRight: vi.fn(),
   updateIndex: vi.fn(),
   resetStudy: vi.fn(),
+  hydrated: true,
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
   useKey: vi.fn(),
@@ -52,6 +52,10 @@ vi.mock("@/features/study/hooks/useStudyActions", () => ({
     toggleAutoPlay: mocks.toggleAutoPlay,
     resetStudy: mocks.resetStudy,
   }),
+}));
+
+vi.mock("@/features/study/hooks/useStudyHydrated", () => ({
+  useStudyHydrated: () => mocks.hydrated,
 }));
 
 vi.mock("@/shared/hooks/useActions", () => ({
@@ -124,9 +128,9 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     vi.clearAllMocks();
     mocks.params.id = deck.id;
     mocks.state = createState();
+    mocks.hydrated = true;
     studyStore.setState({
       session: null,
-      legacyMigratedDeckIds: {},
       showBackText: false,
       autoPlay: false,
       lastSwipe: undefined,
@@ -174,7 +178,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(mocks.swipeRight).toHaveBeenCalledOnce();
   });
 
-  it("waits for and imports an eligible legacy session", async () => {
+  it("waits for hydration, then rejects an old-shaped deck without a current session", async () => {
     const legacyDeck = {
       ...deck,
       currentIndex: 0,
@@ -182,20 +186,24 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     };
     mocks.state = createState(legacyDeck);
     studyStore.getState().resetStudy();
+    mocks.hydrated = false;
 
     const view = render(<DeckSwiperContainer />);
 
-    await waitFor(() => {
-      expect(view.getByText(card.frontText)).toBeVisible();
-    });
-    expect(mocks.dispatch).toHaveBeenCalledTimes(1);
-    expect(mocks.dispatch).toHaveBeenCalledWith(type.deckClearLegacyStudy(deck.id));
-    expect(studyStore.getState().session).toEqual({
-      deckId: deck.id,
-      cardOrderIds: [card.id],
-      currentIndex: 0,
-    });
+    expect(view.container).toBeEmptyDOMElement();
+    expect(mocks.resetStudy).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(studyStore.getState().session).toBeNull();
+
+    mocks.hydrated = true;
+    view.rerender(<DeckSwiperContainer />);
+
+    await waitFor(() => {
+      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
+    });
+    expect(mocks.resetStudy).toHaveBeenCalledOnce();
+    expect(mocks.dispatch).not.toHaveBeenCalled();
+    expect(studyStore.getState().session).toBeNull();
   });
 
   it("resets and exits when the active session belongs to another deck", async () => {

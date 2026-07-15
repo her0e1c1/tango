@@ -1,11 +1,10 @@
-import * as React from "react";
+import type * as React from "react";
 import { useSelector } from "react-redux";
 import { useKey } from "react-use";
 
 import * as selector from "@/selector";
 import { useActions } from "@/shared/hooks/useActions";
 import { DeckListTemplate } from "@/features/deck/components/templates/DeckListTemplate";
-import { getLegacyStudyCandidate } from "@/features/study/hooks/useLegacyStudySession";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 
 export const DeckListContainer: React.FC = () => {
@@ -13,23 +12,12 @@ export const DeckListContainer: React.FC = () => {
   const config = useSelector(selector.config.get());
   const decks = useSelector(selector.deck.getAll());
   const studySession = useStudyStore((state) => state.session);
-  const legacyMigratedDeckIds = useStudyStore((state) => state.legacyMigratedDeckIds);
-  const legacyRestartableDeckIds = React.useMemo(
-    () =>
-      studySession == null
-        ? decks
-            .filter((deck) => !legacyMigratedDeckIds[deck.id] && getLegacyStudyCandidate(deck) != null)
-            .map((deck) => deck.id)
-        : [],
-    [decks, legacyMigratedDeckIds, studySession]
-  );
   useKey("s", actions.goToSettings);
   useKey("i", actions.goToImport);
 
   return (
     <DeckListTemplate
       decks={decks}
-      restartableDeckIds={legacyRestartableDeckIds}
       {...(studySession != null
         ? {
             studyProgress: {

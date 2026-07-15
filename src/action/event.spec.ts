@@ -25,7 +25,6 @@ describe("event action", () => {
     localStorage.clear();
     studyStore.setState({
       session: null,
-      legacyMigratedDeckIds: {},
       showBackText: false,
       autoPlay: false,
       lastSwipe: undefined,
@@ -86,7 +85,6 @@ describe("event action", () => {
 
   it("should logout", async () => {
     studyStore.getState().startStudy("deck-id", ["card-id"]);
-    studyStore.getState().markLegacyMigrated("deck-id");
     studyStore.setState({
       showBackText: true,
       autoPlay: true,
@@ -102,7 +100,6 @@ describe("event action", () => {
     expect(dispatch).toHaveBeenCalledWith(type.clearAll());
     expect(studyStore.getState()).toMatchObject({
       session: null,
-      legacyMigratedDeckIds: {},
       showBackText: false,
       autoPlay: false,
       lastSwipe: undefined,

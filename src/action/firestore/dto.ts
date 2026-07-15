@@ -17,6 +17,27 @@ export interface DeckDocument {
 
 export type DeckUpdateDto = Partial<Omit<DeckDocument, "id" | "updatedAt">> & Pick<DeckDocument, "updatedAt">;
 
+export const mapDeckDocument = (id: DeckId, document: DeckDocument): Deck => {
+  const deck: Deck = {
+    id,
+    name: document.name,
+    isPublic: document.isPublic,
+    uid: document.uid,
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+    deletedAt: document.deletedAt,
+    localMode: false,
+    scoreMax: document.scoreMax,
+    scoreMin: document.scoreMin,
+    selectedTags: document.selectedTags,
+    tagAndFilter: document.tagAndFilter,
+    category: document.category,
+    convertToBr: document.convertToBr,
+  };
+  if (document.url !== undefined) deck.url = document.url;
+  return deck;
+};
+
 export interface CardDocument {
   id: CardId;
   frontText: string;
