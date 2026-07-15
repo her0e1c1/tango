@@ -2,9 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { migratePersistedState } from "@src/store/migrations";
 
-const migrate = async <T extends { _persist: { version: number; rehydrated: boolean } }>(state: T) =>
-  (await migratePersistedState(state, 1)) as unknown as T;
-
 describe("persisted Redux state migrations", () => {
   it("removes transient study UI while preserving legacy deck progress", async () => {
     const persisted = {
@@ -29,12 +26,14 @@ describe("persisted Redux state migrations", () => {
       _persist: { version: 0, rehydrated: true },
     };
 
-    const result = await migrate(persisted);
+    const result = await migratePersistedState(persisted, 1);
 
-    expect(result.deck).toEqual(persisted.deck);
-    expect(result.config).toEqual({
-      darkMode: true,
-      uid: "legacy-user",
+    expect(result).toEqual({
+      ...persisted,
+      config: {
+        darkMode: true,
+        uid: "legacy-user",
+      },
     });
   });
 
@@ -44,7 +43,7 @@ describe("persisted Redux state migrations", () => {
       _persist: { version: 0, rehydrated: false },
     };
 
-    await expect(migrate(persisted)).resolves.toEqual(persisted);
+    await expect(migratePersistedState(persisted, 1)).resolves.toEqual(persisted);
   });
 
   it("tolerates an old malformed config value", async () => {
@@ -53,6 +52,6 @@ describe("persisted Redux state migrations", () => {
       _persist: { version: 0, rehydrated: false },
     };
 
-    await expect(migrate(persisted)).resolves.toEqual(persisted);
+    await expect(migratePersistedState(persisted, 1)).resolves.toEqual(persisted);
   });
 });

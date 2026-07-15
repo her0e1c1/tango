@@ -7,6 +7,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { DeckStartForm } from "@src/features/deck/components/DeckStartForm";
 import { useDeckFilterState } from "@src/features/deck/hooks/useDeckFilterState";
+import { createDeck } from "@src/test/factories";
 
 const DeckFilterHarness: React.FC<{
   deck: Deck;
@@ -18,12 +19,12 @@ const DeckFilterHarness: React.FC<{
 };
 
 describe("DeckStartForm with useDeckFilterState", () => {
-  const deck = {
+  const deck = createDeck({
     scoreMax: 1,
     scoreMin: -1,
     tagAndFilter: false,
     selectedTags: [],
-  } as unknown as Deck;
+  });
   const tags = ["tag1", "tag2", "tag3"];
 
   afterEach(() => {

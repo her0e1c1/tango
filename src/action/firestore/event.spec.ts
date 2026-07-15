@@ -4,6 +4,7 @@ import { getApps, deleteApp } from "firebase/app";
 import { getDoc, doc, getFirestore } from "firebase/firestore";
 import * as firestore from "@src/action/firestore";
 import { generateDeckId, generateCardId, getTimestamp } from "@src/action/firestore/mocked";
+import { createDeck } from "@src/test/factories";
 
 vi.mock("./mocked", () => ({
   generateDeckId: vi.fn(),
@@ -15,12 +16,12 @@ describe.skip("firestore/event", () => {
   const db = getFirestore();
   const timestamp = new Date(2013, 10, 9).getTime();
 
-  const newDeck = {
+  const newDeck = createDeck({
     name: "new deck name",
     uid: "uid",
     createdAt: timestamp,
     updatedAt: timestamp,
-  } as unknown as Deck;
+  });
 
   const newCard = {
     frontText: "front text",

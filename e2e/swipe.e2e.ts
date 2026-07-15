@@ -181,7 +181,7 @@ test("shows the front and back text in the deck study screen", async ({ page }) 
   await page.keyboard.press("Enter");
 
   await expect(page.getByText("りんご")).toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("updates study progress with a mastered deck swipe", async ({ page }) => {
@@ -204,5 +204,5 @@ test("updates study progress with a mastered deck swipe", async ({ page }) => {
     configAutoPlay: false,
     configLastSwipe: false,
   });
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });

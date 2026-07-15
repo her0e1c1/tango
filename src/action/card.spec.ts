@@ -3,6 +3,7 @@ import { expect, it, describe, vi, beforeEach } from "vitest";
 import * as card from "@src/action/card";
 import * as action from "@src/action";
 import * as firestore from "@src/action/firestore";
+import { createCard } from "@src/test/factories";
 
 vi.mock("./firestore");
 vi.mock("firebase/firestore", () => ({
@@ -22,7 +23,7 @@ describe("card action", () => {
       expect(card.fromRow(["front", "back", "a,b,c", "123"])).toEqual(c);
     });
     it("should be empty", async () => {
-      const c = { frontText: "", backText: "", tags: [], uniqueKey: "" } as unknown as Card;
+      const c = { frontText: "", backText: "", tags: [], uniqueKey: "" } satisfies CardRaw;
       expect(card.fromRow([])).toEqual(c);
     });
   });
@@ -33,7 +34,7 @@ describe("card action", () => {
       expect(card.toRow(c)).toEqual(["front", "back", "a,b,c", "123"]);
     });
     it("should be empty", async () => {
-      const c = { frontText: "", backText: "", tags: [], uniqueKey: "" } as unknown as Card;
+      const c = createCard({ frontText: "", backText: "", tags: [], uniqueKey: "" });
       expect(card.toRow(c)).toEqual(["", "", "", ""]);
     });
   });

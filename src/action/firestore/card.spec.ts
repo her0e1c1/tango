@@ -4,23 +4,24 @@ import { getFirestore, doc, getDoc } from "firebase/firestore";
 import * as firestore from "@src/action/firestore";
 import { getTimestamp } from "@src/action/firestore/mocked";
 import { v4 as uuid } from "uuid";
+import { createCard, createDeck } from "@src/test/factories";
 
 vi.mock("./mocked", async (importOriginal) => ({
-  ...((await importOriginal()) as any),
+  ...(await importOriginal<typeof import("./mocked")>()),
   getTimestamp: vi.fn(),
 }));
 
 describe.concurrent("firestore/card", { retry: 3 }, () => {
   const db = getFirestore();
   const timestamp = new Date(2013, 10, 9).getTime();
-  const newCard = {
+  const newCard = createCard({
     frontText: "front text",
     backText: "back text",
     uid: "uid",
     createdAt: timestamp,
     updatedAt: timestamp,
     deletedAt: null,
-  } as Card;
+  });
 
   beforeEach(async () => {
     (getTimestamp as Mock).mockReturnValue(timestamp);
@@ -29,7 +30,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   // card needs to belong to its deck
   const initDeck = async () => {
     const id = uuid();
-    await firestore.deck.create({ uid: "uid", id } as Deck);
+    await firestore.deck.create(createDeck({ uid: "uid", id }));
     return id;
   };
 
@@ -42,7 +43,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
       localMode: false,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } as unknown as Card;
+    } satisfies Card & { localMode: boolean; currentIndex: number; cardOrderIds: string[] };
     await firestore.card.create(c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...newCard, deckId, id: c.id });
@@ -61,7 +62,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
       localMode: false,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } as unknown as Card;
+    } satisfies Card & { localMode: boolean; currentIndex: number; cardOrderIds: string[] };
     await firestore.card.update(n);
     const data = (await getDoc(doc(db, "card", n.id))).data();
     expect(data).toEqual({ ...c, frontText: "updated" });

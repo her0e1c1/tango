@@ -121,7 +121,7 @@ test("navigates from the deck list to the card list", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/deck\/e2e-deck-1$/);
   await expect(page.getByText("apple")).toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("saves deck edits and returns to the deck list", async ({ page }) => {
@@ -135,7 +135,7 @@ test("saves deck edits and returns to the deck list", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByText("Updated E2E Deck")).toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("deletes a deck from the deck list", async ({ page }) => {
@@ -145,5 +145,5 @@ test("deletes a deck from the deck list", async ({ page }) => {
   await deckCard(page, "E2E Deck").locator("svg").nth(2).click();
 
   await expect(page.getByText("E2E Deck")).not.toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });

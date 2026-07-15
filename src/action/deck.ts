@@ -95,7 +95,7 @@ export const downloadCsvSampleText = (): ThunkResult => async () => {
 };
 
 export const spliteCreate =
-  (deckName: string, cards: Card[]): ThunkResult =>
+  (deckName: string, cards: CardRaw[]): ThunkResult =>
   async (dispatch, getState) => {
     const [newCards, oldCards] = selector.card.splitByUniqueKey(cards)(getState());
     await dispatch(action.card.bulkUpdate(oldCards));
@@ -141,7 +141,7 @@ export const parseUrl =
 export const loadSample = (): ThunkResult => async (dispatch, getState) => {
   if (getState().config.loadSample) {
     const deckName = "Sample Deck";
-    await dispatch(action.deck.spliteCreate(deckName, sampleCards as Card[]));
+    await dispatch(action.deck.spliteCreate(deckName, sampleCards));
     await dispatch(type.configUpdate({ loadSample: false }));
   }
 };
@@ -153,11 +153,14 @@ export const parseFile =
     await dispatch(action.deck.spliteCreate(file.name, cards));
   };
 
-export const parseCsv = async (content: any): Promise<Card[]> => {
+export const parseCsv = async (content: unknown): Promise<CardRaw[]> => {
+  if (typeof content !== "string" && !(typeof File !== "undefined" && content instanceof File)) {
+    throw new TypeError("CSV content must be a string or File");
+  }
   return await new Promise((resolve) =>
     Papa.parse(content, {
       complete: async (results: { data: string[][] }) => {
-        const cards = results.data.map(action.card.fromRow).filter((c) => !action.card.isEmpty(c)) as Card[];
+        const cards = results.data.map(action.card.fromRow).filter((c) => !action.card.isEmpty(c));
         resolve(cards);
       },
     })

@@ -25,7 +25,7 @@ type PageKey = keyof Page;
 type DeckId = string;
 type CardId = string;
 
-interface Action<P = any> {
+interface Action<P = unknown> {
   type: string;
   payload: P;
   error?: { message: string };

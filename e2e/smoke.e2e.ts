@@ -76,7 +76,7 @@ test("shows the deck list smoke screen", async ({ page }) => {
 
   await expect(page.getByText("tango")).toBeVisible();
   await expect(page.getByText("Sample Deck")).toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("shows settings and allows changing a local setting", async ({ page }) => {
@@ -89,7 +89,7 @@ test("shows settings and allows changing a local setting", async ({ page }) => {
   await expect(localMode).toBeChecked();
   await page.locator('input[name="localMode"] + span').click();
   await expect(localMode).not.toBeChecked();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("shows the import screen", async ({ page }) => {
@@ -98,5 +98,5 @@ test("shows the import screen", async ({ page }) => {
   await expect(page.getByText("Deck Upload")).toBeVisible();
   await expect(page.getByText("CSV File Format")).toBeVisible();
   await expect(page.getByText("CSV Sample")).toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });

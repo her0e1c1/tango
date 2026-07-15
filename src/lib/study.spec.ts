@@ -7,6 +7,7 @@ import {
   buildStudySession,
   filterCardsForDeck,
 } from "@src/lib/study";
+import { createDeck } from "@src/test/factories";
 
 describe("resolveSwipeAction", () => {
   it("returns the swipe action for the given direction", () => {
@@ -134,12 +135,12 @@ describe("filterCardsForDeck", () => {
       ...overrides,
     }) as Card;
 
-  const baseDeck = {
+  const baseDeck = createDeck({
     selectedTags: [],
     tagAndFilter: false,
     scoreMax: null,
     scoreMin: null,
-  } as unknown as Deck;
+  });
 
   const baseConfig = { useCardInterval: false } as ConfigState;
 

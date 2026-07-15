@@ -1,9 +1,11 @@
 import { expect, it, describe } from "vitest";
 import { findByName } from "@src/selector/deck";
+import { createDeck, createRootState } from "@src/test/factories";
 
 describe("deck selector", () => {
   describe("findByName", () => {
-    const state = { deck: { byId: { id: { name: "deckName" } } } } as unknown as RootState;
+    const deck = createDeck({ id: "id", name: "deckName" });
+    const state = createRootState({ deck: { byId: { [deck.id]: deck }, categories: [] } });
     it("sholud find by name", () => {
       expect(findByName("deckName")(state)).toEqual("id");
     });

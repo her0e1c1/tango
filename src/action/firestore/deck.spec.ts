@@ -4,21 +4,24 @@ import { doc, getDoc, getFirestore } from "firebase/firestore";
 import * as firestore from "@src/action/firestore";
 import { getTimestamp } from "@src/action/firestore/mocked";
 import { v4 as uuid } from "uuid";
+import { createCard, createDeck } from "@src/test/factories";
 
 vi.mock("./mocked", async (importOriginal) => ({
-  ...((await importOriginal()) as any),
+  ...(await importOriginal<typeof import("./mocked")>()),
   getTimestamp: vi.fn(),
 }));
+
+const withoutLocalMode = ({ localMode: _localMode, ...deck }: Deck) => deck;
 
 describe.concurrent("firestore/deck", { retry: 3 }, () => {
   const db = getFirestore();
   const timestamp = new Date(2013, 10, 9).getTime();
-  const newDeck = {
+  const newDeck = createDeck({
     name: "new deck name",
     uid: "uid",
     createdAt: timestamp,
     updatedAt: timestamp,
-  } as unknown as Deck;
+  });
 
   beforeEach(async () => {
     // must return the same value (no need to reset mock in parallel)
@@ -32,10 +35,10 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       localMode: false,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } as Deck;
+    } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
     await firestore.deck.create(d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
-    expect(data).toEqual({ ...newDeck, id: d.id });
+    expect(data).toEqual(withoutLocalMode({ ...newDeck, id: d.id }));
     expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
@@ -51,10 +54,10 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       localMode: false,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } as Deck;
+    } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
     await firestore.deck.update(n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
-    expect(data).toEqual({ ...d, name: "updated" });
+    expect(data).toEqual(withoutLocalMode({ ...d, name: "updated" }));
     expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
@@ -70,7 +73,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
   });
 
   describe("splitCards", () => {
-    const cards = [...Array(5)].map((_, i) => ({ id: String(i) })) as Card[];
+    const cards = [...Array(5)].map((_, i) => createCard({ id: String(i) }));
 
     it("should split cards (max) = (5)", async () => {
       const css = firestore.deck.splitCards(cards, 5);

@@ -5,7 +5,10 @@ import * as action from "@src/action";
 import type { LegacyStudyFields } from "@src/features/study/state/studyStore";
 import sampleCards from "../../sample/build/output.json";
 
-export const equal = <T>(action: Action<any>, typ: (...args: any[]) => Action<T>): action is Action<T> => {
+export const equal = <Creator extends (...args: never[]) => Action>(
+  action: Action,
+  typ: Creator
+): action is ReturnType<Creator> => {
   return action.type === typ().type;
 };
 

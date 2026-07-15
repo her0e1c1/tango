@@ -5,11 +5,14 @@ import "@testing-library/jest-dom/vitest";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  state: undefined as unknown as RootState,
+  state: null as RootState | null,
 }));
 
 vi.mock("react-redux", () => ({
-  useSelector: (select: (state: RootState) => unknown) => select(mocks.state),
+  useSelector: (select: (state: RootState) => unknown) => {
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    return select(mocks.state);
+  },
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -117,6 +120,7 @@ describe("CardListContainer", () => {
 
   it("renders a language card as code and closes it through the overlay callback", async () => {
     const languageCard = { ...card, tags: ["typescript"], backText: "const answer = 42;" };
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
     mocks.state = {
       ...mocks.state,
       card: { byId: { [languageCard.id]: languageCard }, tags: ["typescript"] },
