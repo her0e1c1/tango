@@ -26,9 +26,11 @@ export const updateAll =
     dispatch(type.configUpdate(editableConfig));
   };
 
-export const logout = (confirmedUid: string): ThunkResult => async (dispatch) => {
-  await dispatch(action.event.logout(confirmedUid));
-};
+export const logout =
+  (confirmedUid: string): ThunkResult =>
+  async (dispatch) => {
+    await dispatch(action.event.logout(confirmedUid));
+  };
 
 export const loginGoogle = (): ThunkResult => async (dispatch) => {
   await dispatch(action.event.loginGoogle());

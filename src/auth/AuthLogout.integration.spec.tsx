@@ -19,9 +19,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/firebase", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth", () => ({
-  GoogleAuthProvider: class GoogleAuthProvider {
-    static credentialFromError = vi.fn();
-  },
+  GoogleAuthProvider: Object.assign(vi.fn(), { credentialFromError: vi.fn() }),
   linkWithPopup: vi.fn(),
   onAuthStateChanged: mocks.onAuthStateChanged,
   signInAnonymously: mocks.signInAnonymously,
@@ -46,7 +44,7 @@ vi.mock("@/lib/realtimeSubscriptions", () => ({
   stopSubscriptions: vi.fn(),
 }));
 
-import * as type from "@/action/type";
+import type * as type from "@/action/type";
 import { logout } from "@/action/event";
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
 import { AuthProvider } from "@/auth/AuthContext";

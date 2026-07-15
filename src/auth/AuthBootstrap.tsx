@@ -154,13 +154,7 @@ export const AuthBootstrap = () => {
     const transition = async () => {
       const succeeded = await controllerRef.current?.transition(authState);
       const retry = retryRef.current;
-      if (
-        !cancelled &&
-        succeeded === false &&
-        retry &&
-        !retry.attempted &&
-        isSameRequest(retry.request, request)
-      ) {
+      if (!cancelled && succeeded === false && retry && !retry.attempted && isSameRequest(retry.request, request)) {
         retry.attempted = true;
         await controllerRef.current?.transition(authState);
       }

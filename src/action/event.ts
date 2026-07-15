@@ -15,29 +15,31 @@ import { registerSubscription, stopSubscriptions } from "@/lib/realtimeSubscript
 
 export { stopSubscriptions } from "@/lib/realtimeSubscriptions";
 
-export const logout = (confirmedUid: string): ThunkResult => async (dispatch) => {
-  const resumeAnonymousBootstrap = suspendAnonymousBootstrap();
-  try {
-    await signOut(auth);
-    const errors: unknown[] = [];
-    const run = async (step: () => unknown | Promise<unknown>) => {
-      try {
-        await step();
-      } catch (error) {
-        errors.push(error);
-      }
-    };
+export const logout =
+  (confirmedUid: string): ThunkResult =>
+  async (dispatch) => {
+    const resumeAnonymousBootstrap = suspendAnonymousBootstrap();
+    try {
+      await signOut(auth);
+      const errors: unknown[] = [];
+      const run = async (step: () => unknown | Promise<unknown>) => {
+        try {
+          await step();
+        } catch (error) {
+          errors.push(error);
+        }
+      };
 
-    await run(() => cleanupFirestoreUid(confirmedUid));
-    await run(clearStudyStore);
-    await run(() => dispatch(type.clearAll()));
-    if (errors.length > 0) {
-      throw errors[0];
+      await run(() => cleanupFirestoreUid(confirmedUid));
+      await run(clearStudyStore);
+      await run(() => dispatch(type.clearAll()));
+      if (errors.length > 0) {
+        throw errors[0];
+      }
+    } finally {
+      resumeAnonymousBootstrap();
     }
-  } finally {
-    resumeAnonymousBootstrap();
-  }
-};
+  };
 
 export const removeFromLocal = (): ThunkResult => async (dispatch, getState) => {
   const ids = [] as string[];

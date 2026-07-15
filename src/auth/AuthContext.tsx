@@ -36,12 +36,7 @@ export const createAuthStore = (dependencies: AuthStoreDependencies) => {
   };
 
   const startAnonymousBootstrap = () => {
-    if (
-      disposed ||
-      anonymousBootstrapSuspensions > 0 ||
-      state.status !== "signedOut" ||
-      anonymousAttempted
-    ) {
+    if (disposed || anonymousBootstrapSuspensions > 0 || state.status !== "signedOut" || anonymousAttempted) {
       return;
     }
     anonymousAttempted = true;
