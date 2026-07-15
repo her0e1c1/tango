@@ -7,9 +7,10 @@ on:
 jobs:
   changes:
     name: Check Docker Image Changes
+    if: ${{ github.event_name != 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
-      image: ${{ steps.changed.outputs.any_changed }}
+      image: ${{ steps.changed.outputs.any_modified }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -27,7 +28,7 @@ jobs:
   push:
     name: Update Docker Image
     needs: changes
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.image == 'true' }}
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.image == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
