@@ -12,4 +12,29 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Wordmark: Story = {
+  globals: {
+    theme: "light",
+  },
+};
+
+export const MarkOnly: Story = {
+  args: {
+    markOnly: true,
+  },
+  globals: {
+    theme: "light",
+  },
+};
+
+export const Light: Story = {
+  globals: {
+    theme: "light",
+  },
+};
+
+export const Dark: Story = {
+  globals: {
+    theme: "dark",
+  },
+};

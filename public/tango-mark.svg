@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img">
+  <title>Tango</title>
+  <rect x="4" y="4" width="56" height="56" rx="15" fill="#4f63b8" />
+  <rect x="18" y="15" width="34" height="27" rx="5" fill="#2f7f78" />
+  <rect x="12" y="22" width="36" height="27" rx="5" fill="#f8fafc" />
+  <path d="M21 28h18v4h-7v12h-4V32h-7z" fill="#4f63b8" />
+  <circle cx="41" cy="42" r="2.5" fill="#2f7f78" />
+</svg>
