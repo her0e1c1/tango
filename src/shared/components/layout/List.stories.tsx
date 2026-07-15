@@ -31,6 +31,9 @@ export const ResponsiveThreeColumn: Story = {
       </Card>
     )),
   },
+  globals: {
+    theme: "light",
+  },
 };
 
 export const ResponsiveThreeColumnWithLongText: Story = {
@@ -40,5 +43,19 @@ export const ResponsiveThreeColumnWithLongText: Story = {
         {"this is a long text".repeat(10)}
       </Card>
     )),
+  },
+};
+
+export const MobileDarkLongText: Story = {
+  args: {
+    children: [1, 2, 3, 4, 5].map((i) => (
+      <Card key={i} full>
+        A longer card demonstrates the single-column mobile layout with semantic surfaces and readable spacing.
+      </Card>
+    )),
+  },
+  globals: {
+    theme: "dark",
+    viewport: { value: "iphonex", isRotated: false },
   },
 };

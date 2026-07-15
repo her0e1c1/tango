@@ -5,16 +5,20 @@ export const Main: React.FC<{ children?: React.ReactNode }> = (props) => {
   return (
     <div
       className={cx(
-        "flex-1",
-        "flex",
-        "flex-col",
-        "container",
         "mx-auto",
-        "bg-white",
-        "dark:bg-black",
-        "dark:text-gray-100",
-        "px-4",
-        "mt-2"
+        "mt-section-gap",
+        "flex",
+        "w-full",
+        "max-w-content",
+        "flex-1",
+        "flex-col",
+        "gap-section-gap",
+        "rounded-surface",
+        "bg-surface",
+        "px-shell-gutter",
+        "py-section-gap",
+        "text-ink",
+        "shadow-surface"
       )}
     >
       {props.children}
