@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Math, Code, Style } from "@src/shared/components";
+import type * as React from "react";
+import { Math, Code, Style } from "@/shared/components";
 
 export interface BackTextProps {
   text: string;
@@ -10,7 +10,7 @@ export interface BackTextProps {
 
 export const BackText: React.FC<BackTextProps> = (props) => {
   return (
-    <Style div className="h-full w-full p-5" onClick={props.onClick}>
+    <Style div className="h-full w-full p-5" {...(props.onClick !== undefined ? { onClick: props.onClick } : {})}>
       {props.category === "math" ? (
         <Math text={props.text} />
       ) : props.code ? (

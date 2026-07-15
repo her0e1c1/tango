@@ -3,14 +3,14 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as C from "@src/constant";
-import * as selector from "@src/selector";
-import * as util from "@src/util";
-import { useActions } from "@src/shared/hooks/useActions";
-import { CardListTemplate } from "@src/features/card/components/templates/CardListTemplate";
-import { DeckStartForm } from "@src/features/deck/components/DeckStartForm";
-import { useDeckActions } from "@src/features/deck/hooks/useDeckActions";
-import { useDeckFilterState } from "@src/features/deck/hooks/useDeckFilterState";
+import * as C from "@/constant";
+import * as selector from "@/selector";
+import * as util from "@/util";
+import { useActions } from "@/shared/hooks/useActions";
+import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
+import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
+import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
+import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 
 export const CardListContainer: React.FC = () => {
   const params = useParams();
@@ -49,18 +49,18 @@ export const CardListContainer: React.FC = () => {
         goToEdit: actions.goToCardEdit,
         onDelete: actions.cardRemove,
       }}
-      overlay={
-        showCard == null || category == null
-          ? undefined
-          : {
+      {...(showCard != null && category != null
+        ? {
+            overlay: {
               backText: {
                 text: showCard.backText,
                 category,
                 code: C.LANGUAGES.includes(category),
               },
               onClose: closeCard,
-            }
-      }
+            },
+          }
+        : {})}
       onShowCard={setShowCard}
     />
   );

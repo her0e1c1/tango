@@ -40,8 +40,14 @@ export interface CardDocument {
 
 export type CardUpdateDto = Partial<Omit<CardDocument, "id" | "updatedAt">> & Pick<CardDocument, "updatedAt">;
 
-const omitUndefined = <T extends Record<string, unknown>>(value: T): T =>
-  Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as T;
+type OmitUndefined<T extends Record<string, unknown>> = {
+  [K in keyof T as undefined extends T[K] ? never : K]: T[K];
+} & {
+  [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>;
+};
+
+const omitUndefined = <T extends Record<string, unknown>>(value: T): OmitUndefined<T> =>
+  Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as OmitUndefined<T>;
 
 export const buildDeckCreateDto = (deck: Deck, createdAt: number): DeckDocument =>
   omitUndefined({

@@ -123,7 +123,7 @@ test("shows cards for the deck", async ({ page }) => {
   await expect(page.getByText("apple")).toBeVisible();
   await expect(cardItem(page, "apple").getByText("studied 0 time(s)")).toBeVisible();
   await expectScore(page, "apple", 0);
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("opens and closes the card back text overlay", async ({ page }) => {
@@ -134,7 +134,7 @@ test("opens and closes the card back text overlay", async ({ page }) => {
 
   await page.getByText("りんご").click();
   await expect(page.getByText("りんご")).not.toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("saves card edits and returns to the card list", async ({ page }) => {
@@ -154,7 +154,7 @@ test("saves card edits and returns to the card list", async ({ page }) => {
 
   await page.getByText("updated apple").click();
   await expect(page.getByText("updated りんご")).toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("deletes a card from the card list", async ({ page }) => {
@@ -164,7 +164,7 @@ test("deletes a card from the card list", async ({ page }) => {
   await cardItem(page, "apple").locator("svg").nth(1).click();
 
   await expect(page.getByText("apple")).not.toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("updates the card score with swipe gestures", async ({ page }) => {
@@ -172,19 +172,19 @@ test("updates the card score with swipe gestures", async ({ page }) => {
 
   const card = cardItem(page, "apple");
   const box = await card.boundingBox();
-  expect(box).not.toBeNull();
+  if (box == null) throw new Error("Card bounding box is unavailable");
 
-  const y = box!.y + box!.height / 2;
-  await page.mouse.move(box!.x + 20, y);
+  const y = box.y + box.height / 2;
+  await page.mouse.move(box.x + 20, y);
   await page.mouse.down();
-  await page.mouse.move(box!.x + box!.width - 20, y);
+  await page.mouse.move(box.x + box.width - 20, y);
   await page.mouse.up();
   await expectScore(page, "apple", 1);
 
-  await page.mouse.move(box!.x + box!.width - 20, y);
+  await page.mouse.move(box.x + box.width - 20, y);
   await page.mouse.down();
-  await page.mouse.move(box!.x + 20, y);
+  await page.mouse.move(box.x + 20, y);
   await page.mouse.up();
   await expectScore(page, "apple", 0);
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });

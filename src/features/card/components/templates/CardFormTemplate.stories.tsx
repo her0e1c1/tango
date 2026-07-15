@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import type { CardFormFields } from "@src/features/card/components/CardForm";
-import { CardFormTemplate as Template } from "@src/features/card/components/templates/CardFormTemplate";
-import * as fixture from "@src/shared/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+import type { CardFormFields } from "@/features/card/components/CardForm";
+import { CardFormTemplate as Template } from "@/features/card/components/templates/CardFormTemplate";
+import * as fixture from "@/shared/storybook/fixture";
 
 const fields: CardFormFields = {
   frontText: { value: fixture.card.default.frontText, onChange: () => undefined },

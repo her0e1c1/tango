@@ -1,5 +1,6 @@
 import cx from "classnames";
-import * as React from "react";
+import type * as React from "react";
+import { useButtonInteraction } from "@/shared/components/feedback/buttonInteraction";
 
 export const FullScreen: React.FC<{
   className?: string;
@@ -9,9 +10,10 @@ export const FullScreen: React.FC<{
   onClick?: () => void;
   children?: React.ReactNode;
 }> = (props) => {
+  const clickInteraction = useButtonInteraction<HTMLDivElement>(props.onClick);
   return (
     <div
-      onClick={props.onClick}
+      {...clickInteraction}
       className={cx([
         "dark:bg-black",
         "w-screen",

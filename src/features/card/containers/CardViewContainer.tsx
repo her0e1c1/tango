@@ -1,12 +1,12 @@
-import * as React from "react";
+import type * as React from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import * as C from "@src/constant";
-import * as selector from "@src/selector";
-import * as util from "@src/util";
-import { useActions } from "@src/shared/hooks/useActions";
-import { CardViewTemplate } from "@src/features/card/components/templates/CardViewTemplate";
+import * as C from "@/constant";
+import * as selector from "@/selector";
+import * as util from "@/util";
+import { useActions } from "@/shared/hooks/useActions";
+import { CardViewTemplate } from "@/features/card/components/templates/CardViewTemplate";
 
 export const CardViewContainer: React.FC = () => {
   const params = useParams();
@@ -22,8 +22,8 @@ export const CardViewContainer: React.FC = () => {
   return (
     <CardViewTemplate
       backText={{
-        category,
-        code: C.LANGUAGES.includes(category),
+        ...(category !== undefined ? { category } : {}),
+        code: category !== undefined && C.LANGUAGES.includes(category),
         text: card.backText,
       }}
       layout={{

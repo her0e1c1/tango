@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { isDefined } from "@src/util";
+import { isDefined } from "@/util";
 
 describe("tsconfig path aliases", () => {
-  it("resolves @src imports", () => {
+  it("resolves @ imports", () => {
     expect(isDefined("value")).toBe(true);
   });
 });

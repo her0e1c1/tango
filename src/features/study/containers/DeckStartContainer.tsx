@@ -1,15 +1,15 @@
-import * as React from "react";
+import type * as React from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as selector from "@src/selector";
-import { DeckStartForm } from "@src/features/deck/components/DeckStartForm";
-import { useDeckActions } from "@src/features/deck/hooks/useDeckActions";
-import { useDeckFilterState } from "@src/features/deck/hooks/useDeckFilterState";
-import { DeckStartTemplate } from "@src/features/study/components/templates/DeckStartTemplate";
-import { useStudyActions } from "@src/features/study/hooks/useStudyActions";
-import { useActions } from "@src/shared/hooks/useActions";
+import * as selector from "@/selector";
+import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
+import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
+import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
+import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
+import { useStudyActions } from "@/features/study/hooks/useStudyActions";
+import { useActions } from "@/shared/hooks/useActions";
 
 export const DeckStartContainer: React.FC = () => {
   const params = useParams();

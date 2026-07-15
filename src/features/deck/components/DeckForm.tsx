@@ -1,6 +1,6 @@
-import * as React from "react";
+import type * as React from "react";
 
-import { Button, Form, FormItem, Input, Select, Switch } from "@src/shared/components";
+import { Button, Form, FormItem, Input, Select, Switch } from "@/shared/components";
 
 export interface DeckFormFields {
   name: React.ComponentProps<typeof Input>;
@@ -20,7 +20,7 @@ export interface DeckFormProps {
 
 export const DeckForm: React.FC<DeckFormProps> = (props) => {
   return (
-    <Form onSubmit={props.onSubmit}>
+    <Form {...(props.onSubmit !== undefined ? { onSubmit: props.onSubmit } : {})}>
       <FormItem col label="Name">
         <Input {...props.fields.name} />
       </FormItem>
@@ -48,7 +48,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
       {Boolean(props.deck.updatedAt) && (
         <FormItem label="Updated At">{new Date(props.deck.updatedAt).toLocaleDateString()}</FormItem>
       )}
-      <Button primary type="submit" disabled={props.isSubmitting}>
+      <Button primary type="submit" {...(props.isSubmitting !== undefined ? { disabled: props.isSubmitting } : {})}>
         Save
       </Button>
     </Form>

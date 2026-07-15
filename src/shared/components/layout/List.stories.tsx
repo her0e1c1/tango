@@ -1,9 +1,7 @@
-import React from "react";
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Card } from "@src/shared/components/content/Card";
-import { List as Template } from "@src/shared/components/layout/List";
+import { Card } from "@/shared/components/content/Card";
+import { List as Template } from "@/shared/components/layout/List";
 
 const meta = {
   title: "Shared/List",

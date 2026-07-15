@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import * as C from "@src/constant";
-import { DeckImportTemplate as Template } from "@src/features/import/components/templates/DeckImportTemplate";
-import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
+import * as C from "@/constant";
+import { DeckImportTemplate as Template } from "@/features/import/components/templates/DeckImportTemplate";
+import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
 
 const meta = {
   title: "Import/DeckImportTemplate",

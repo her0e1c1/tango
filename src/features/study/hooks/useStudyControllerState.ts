@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ControllerProps } from "@src/features/study/components/Controller";
+import type { ControllerProps } from "@/features/study/components/Controller";
 
 export interface UseStudyControllerStateOptions extends ControllerProps {
   enabled?: boolean;
@@ -33,5 +33,12 @@ export const useStudyControllerState = (props: UseStudyControllerStateOptions): 
 
   const onToggleAutoPlay = props.onToggleAutoPlay ?? (() => undefined);
 
-  return { autoPlay, cardInterval, index, numberOfCards, onChange, onToggleAutoPlay };
+  return {
+    autoPlay,
+    cardInterval,
+    index,
+    numberOfCards,
+    ...(onChange !== undefined ? { onChange } : {}),
+    onToggleAutoPlay,
+  };
 };

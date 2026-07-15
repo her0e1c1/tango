@@ -1,9 +1,8 @@
-import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import { CardListTemplate as Template } from "@src/features/card/components/templates/CardListTemplate";
-import { DeckStartForm, type DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
-import * as fixture from "@src/shared/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+import { CardListTemplate as Template } from "@/features/card/components/templates/CardListTemplate";
+import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
+import * as fixture from "@/shared/storybook/fixture";
 
 const deckStartForm: DeckStartFormProps = {
   scoreMax: 1,

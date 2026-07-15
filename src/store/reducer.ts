@@ -1,11 +1,14 @@
 import { uniq } from "lodash";
-import * as util from "@src/util";
-import * as type from "@src/action/type";
-import * as action from "@src/action";
-import type { LegacyStudyFields } from "@src/features/study/state/studyStore";
+import * as util from "@/util";
+import * as type from "@/action/type";
+import * as action from "@/action";
+import type { LegacyStudyFields } from "@/features/study/state/studyStore";
 import sampleCards from "../../sample/build/output.json";
 
-export const equal = <T>(action: Action<any>, typ: (...args: any[]) => Action<T>): action is Action<T> => {
+export const equal = <Creator extends (...args: never[]) => Action>(
+  action: Action,
+  typ: Creator
+): action is ReturnType<Creator> => {
   return action.type === typ().type;
 };
 
@@ -49,7 +52,9 @@ export const deck = (state = deckInitialState, action: Action) => {
     };
   } else if (equal(action, type.deckBulkUpdate)) {
     const decks = action.payload.decks;
-    decks.forEach((d) => (state.byId[d.id] = { ...(state.byId[d.id] as Deck), ...d }));
+    decks.forEach((d) => {
+      state.byId[d.id] = { ...(state.byId[d.id] as Deck), ...d };
+    });
     return { ...state };
   } else if (equal(action, type.deckClearLegacyStudy)) {
     const deckId = action.payload.deckId;
@@ -68,7 +73,9 @@ export const deck = (state = deckInitialState, action: Action) => {
       },
     };
   } else if (equal(action, type.deckBulkDelete)) {
-    action.payload.ids.forEach((id) => delete state.byId[id]);
+    action.payload.ids.forEach((id) => {
+      delete state.byId[id];
+    });
     return { ...state };
   } else {
     return state;
@@ -90,22 +97,30 @@ export const card = (state = cardInitialState, action: Action) => {
       };
     });
     cards.forEach((c) => {
-      (c.tags ?? []).forEach((t) => state.tags.push(t));
+      (c.tags ?? []).forEach((t) => {
+        state.tags.push(t);
+      });
     });
     state.tags = uniq(state.tags);
     return { ...state };
   } else if (equal(action, type.cardBulkUpdate)) {
     const cards = action.payload.cards;
-    cards.forEach((c) => (state.byId[c.id] = { ...(state.byId[c.id] as Card), ...c }));
+    cards.forEach((c) => {
+      state.byId[c.id] = { ...(state.byId[c.id] as Card), ...c };
+    });
     return { ...state };
   } else if (equal(action, type.cardBulkDelete)) {
-    action.payload.ids.forEach((id) => delete state.byId[id]);
+    action.payload.ids.forEach((id) => {
+      delete state.byId[id];
+    });
     return { ...state };
   } else if (equal(action, type.deckBulkDelete)) {
     const ids = action.payload.ids;
     Object.values(state.byId)
       .filter(util.isDefined)
-      .forEach((c) => ids.includes(c.deckId) && delete state.byId[c.id]);
+      .forEach((c) => {
+        if (ids.includes(c.deckId)) delete state.byId[c.id];
+      });
     return { ...state };
   } else {
     return state;

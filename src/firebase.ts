@@ -18,5 +18,5 @@ if (import.meta.env.DEV) {
   const db = getFirestore(app);
   const host = import.meta.env.VITE_DB_HOST;
   const port = import.meta.env.VITE_DB_PORT;
-  connectFirestoreEmulator(db, host, parseInt(port));
+  connectFirestoreEmulator(db, host, parseInt(port, 10));
 }

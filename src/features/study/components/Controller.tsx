@@ -1,7 +1,7 @@
-import * as React from "react";
+import type * as React from "react";
 import { IconContext } from "react-icons";
 import { AiOutlinePause, AiOutlineCaretRight } from "react-icons/ai";
-import { Slider, Title } from "@src/shared/components";
+import { Slider, Title } from "@/shared/components";
 
 export interface ControllerProps {
   autoPlay?: boolean;
@@ -32,7 +32,7 @@ export const Controller: React.FC<ControllerProps> = (props) => {
             disabled={index === numberOfCards}
             value={String(index)}
             onChange={(e) => {
-              props.onChange?.(parseInt(e.target.value));
+              props.onChange?.(parseInt(e.target.value, 10));
             }}
           />
         </div>

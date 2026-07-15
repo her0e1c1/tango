@@ -1,6 +1,6 @@
-import * as React from "react";
-import { Layout } from "@src/shared/components/layout/Layout";
-import { ConfigForm, type ConfigFormProps } from "@src/features/settings/components/ConfigForm";
+import type * as React from "react";
+import { Layout } from "@/shared/components/layout/Layout";
+import { ConfigForm, type ConfigFormProps } from "@/features/settings/components/ConfigForm";
 
 export interface ConfigFormTemplateProps {
   layout?: React.ComponentProps<typeof Layout>;

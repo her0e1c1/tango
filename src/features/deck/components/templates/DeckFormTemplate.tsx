@@ -1,6 +1,6 @@
-import * as React from "react";
-import { Layout } from "@src/shared/components/layout/Layout";
-import { DeckForm, type DeckFormProps } from "@src/features/deck/components/DeckForm";
+import type * as React from "react";
+import { Layout } from "@/shared/components/layout/Layout";
+import { DeckForm, type DeckFormProps } from "@/features/deck/components/DeckForm";
 
 export interface DeckFormTemplateProps {
   layout?: React.ComponentProps<typeof Layout>;

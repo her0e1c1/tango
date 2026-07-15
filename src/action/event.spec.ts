@@ -1,16 +1,16 @@
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 
-import * as type from "@src/action/type";
-import * as action from "@src/action";
-import * as firestore from "@src/action/firestore";
+import * as type from "@/action/type";
+import * as action from "@/action";
+import * as firestore from "@/action/firestore";
 import { getAuth, signOut, linkWithPopup } from "firebase/auth";
-import { STUDY_STORAGE_KEY, studyStore } from "@src/features/study/state/studyStore";
+import { STUDY_STORAGE_KEY, studyStore } from "@/features/study/state/studyStore";
 
 vi.mock("firebase/auth");
 vi.mock("./firestore");
 
 vi.mock("firebase/firestore", () => ({
-  ...Object.keys(vi.importActual("firebase/firestore")).reduce((acc, key) => ({ ...acc, [key]: vi.fn() }), {}),
+  ...Object.fromEntries(Object.keys(vi.importActual("firebase/firestore")).map((key) => [key, vi.fn()])),
   getFirestore: vi.fn(() => "db"),
 }));
 
@@ -127,5 +127,22 @@ describe("event action", () => {
       type.configUpdate({ uid: "uid", displayName: "name", isAnonymous: false, lastUpdatedAt: 0 })
     );
     // TODO: subscribe
+  });
+
+  it("clears the display name when the provider has no profile", async () => {
+    const m = linkWithPopup as Mock;
+    m.mockReturnValue({ user: { uid: "uid", isAnonymous: false, providerData: [] } });
+
+    const ga = getAuth as Mock;
+    ga.mockReturnValue({ currentUser: {} });
+
+    const dispatch = vi.fn();
+    const getState = vi.fn();
+    const f = action.event.loginGoogle();
+    await f(dispatch, getState, undefined);
+
+    expect(dispatch).toHaveBeenCalledWith(
+      type.configUpdate({ uid: "uid", displayName: null, isAnonymous: false, lastUpdatedAt: 0 })
+    );
   });
 });

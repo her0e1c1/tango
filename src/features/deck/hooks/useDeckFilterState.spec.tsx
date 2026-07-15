@@ -1,12 +1,13 @@
-import React from "react";
+import type React from "react";
 
 import userEvent from "@testing-library/user-event";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartForm } from "@src/features/deck/components/DeckStartForm";
-import { useDeckFilterState } from "@src/features/deck/hooks/useDeckFilterState";
+import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
+import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
+import { createDeck } from "@/test/factories";
 
 const DeckFilterHarness: React.FC<{
   deck: Deck;
@@ -18,12 +19,12 @@ const DeckFilterHarness: React.FC<{
 };
 
 describe("DeckStartForm with useDeckFilterState", () => {
-  const deck = {
+  const deck = createDeck({
     scoreMax: 1,
     scoreMin: -1,
     tagAndFilter: false,
     selectedTags: [],
-  } as unknown as Deck;
+  });
   const tags = ["tag1", "tag2", "tag3"];
 
   afterEach(() => {

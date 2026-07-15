@@ -1,5 +1,5 @@
 import cx from "classnames";
-import * as React from "react";
+import type * as React from "react";
 
 export const Style: React.FC<{
   div?: boolean;

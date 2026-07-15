@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { DeckForm as Template, type DeckFormFields } from "@src/features/deck/components/DeckForm";
-import * as fixture from "@src/shared/storybook/fixture";
+import { DeckForm as Template, type DeckFormFields } from "@/features/deck/components/DeckForm";
+import * as fixture from "@/shared/storybook/fixture";
 
 const fields: DeckFormFields = {
   name: { defaultValue: fixture.deck.default.name },
   convertToBr: { checked: Boolean(fixture.deck.default.convertToBr), onChange: () => undefined },
-  url: { defaultValue: fixture.deck.default.url },
+  url: { ...(fixture.deck.default.url !== undefined ? { defaultValue: fixture.deck.default.url } : {}) },
   isPublic: { checked: fixture.deck.default.isPublic, onChange: () => undefined },
   localMode: { checked: Boolean(fixture.deck.default.localMode), onChange: () => undefined },
   category: {

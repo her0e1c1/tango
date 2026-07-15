@@ -2,9 +2,9 @@ import * as Redux from "redux";
 import thunk from "redux-thunk";
 import storage from "redux-persist/lib/storage";
 import { persistReducer } from "redux-persist";
-import * as type from "@src/action/type";
-import { deck, card, config, equal } from "@src/store/reducer";
-import { migratePersistedState } from "@src/store/migrations";
+import * as type from "@/action/type";
+import { deck, card, config, equal } from "@/store/reducer";
+import { migratePersistedState } from "@/store/migrations";
 
 const reducers = {
   deck,

@@ -1,12 +1,12 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as type from "@src/action/type";
-import { useStudyActions } from "@src/features/study/hooks/useStudyActions";
-import { studyStore } from "@src/features/study/state/studyStore";
+import * as type from "@/action/type";
+import { useStudyActions } from "@/features/study/hooks/useStudyActions";
+import { studyStore } from "@/features/study/state/studyStore";
 
 const mocks = vi.hoisted(() => ({
-  state: undefined as unknown as RootState,
+  state: null as RootState | null,
   dispatch: vi.fn(),
   navigate: vi.fn(),
   cardUpdate: vi.fn(),
@@ -16,14 +16,17 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-redux", () => ({
   useDispatch: () => mocks.dispatch,
-  useSelector: (select: (state: RootState) => unknown) => select(mocks.state),
+  useSelector: (select: (state: RootState) => unknown) => {
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    return select(mocks.state);
+  },
 }));
 
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
 }));
 
-vi.mock("@src/action", () => ({
+vi.mock("@/action", () => ({
   card: { update: mocks.cardUpdate },
   deck: { update: mocks.deckUpdate },
   type: { configUpdate: mocks.configUpdate },
@@ -137,7 +140,7 @@ describe("useStudyActions", () => {
       ...deck,
       currentIndex: 1,
       cardOrderIds: [card2.id],
-    } as unknown as Deck;
+    } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
     mocks.state = {
       ...createRootState(),
       deck: { byId: { [legacyDeck.id]: legacyDeck }, categories: [] },

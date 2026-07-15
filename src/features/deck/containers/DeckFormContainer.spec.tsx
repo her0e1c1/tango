@@ -1,5 +1,3 @@
-import React from "react";
-
 import userEvent from "@testing-library/user-event";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,19 +5,22 @@ import "@testing-library/jest-dom/vitest";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  state: undefined as unknown as RootState,
+  state: null as RootState | null,
   updateAndBack: vi.fn(),
 }));
 
 vi.mock("react-redux", () => ({
-  useSelector: (select: (state: RootState) => unknown) => select(mocks.state),
+  useSelector: (select: (state: RootState) => unknown) => {
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    return select(mocks.state);
+  },
 }));
 
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
 
-vi.mock("@src/shared/hooks/useActions", () => ({
+vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goByMenu: vi.fn(),
@@ -27,11 +28,11 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-vi.mock("@src/features/deck/hooks/useDeckActions", () => ({
+vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ updateAndBack: mocks.updateAndBack }),
 }));
 
-import { DeckFormContainer } from "@src/features/deck/containers/DeckFormContainer";
+import { DeckFormContainer } from "@/features/deck/containers/DeckFormContainer";
 
 describe("DeckFormContainer", () => {
   const deck: Deck = {

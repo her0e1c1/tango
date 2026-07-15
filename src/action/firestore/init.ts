@@ -6,6 +6,6 @@ initializeApp({
 });
 
 const db = getFirestore();
-connectFirestoreEmulator(db, import.meta.env.VITE_DB_HOST, parseInt(import.meta.env.VITE_DB_PORT), {
+connectFirestoreEmulator(db, import.meta.env.VITE_DB_HOST, parseInt(import.meta.env.VITE_DB_PORT, 10), {
   mockUserToken: { user_id: "uid" },
 });

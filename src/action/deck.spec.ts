@@ -1,11 +1,12 @@
-import { expect, it, describe, vi, beforeEach } from "vitest";
+import { expect, expectTypeOf, it, describe, vi, beforeEach, afterEach } from "vitest";
 
 // import moment from "moment";
 import * as fileSaver from "file-saver";
 
-import * as firestore from "@src/action/firestore";
-import * as action from "@src/action";
-import * as C from "@src/constant";
+import * as firestore from "@/action/firestore";
+import * as action from "@/action";
+import * as C from "@/constant";
+import { createBlobConstructor, createCard } from "@/test/factories";
 
 vi.mock("./firestore");
 vi.mock("file-saver", () => ({
@@ -13,10 +14,16 @@ vi.mock("file-saver", () => ({
 }));
 vi.mock("firebase/firestore");
 
+const NativeBlob = global.Blob;
+
 describe("deck action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe("prepareDeck", () => {
@@ -88,7 +95,7 @@ describe("deck action", () => {
   describe("spliteCreate", () => {
     const deck = { name: "name", id: "1" } as Deck;
     const deckState = { byId: { "1": deck }, categories: [] } as DeckState;
-    const cardState = { byId: { 1: { uniqueKey: "a" } as Card }, tags: [] } as CardState;
+    const cardState = { byId: { 1: createCard({ id: "1", deckId: "1", uniqueKey: "a" }) }, tags: [] };
     // TODO: add test case for not existing name
     it("should splite & create", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
@@ -98,10 +105,10 @@ describe("deck action", () => {
       const bulkCreate = vi.spyOn(action.card, "bulkCreate");
       const create = vi.spyOn(action.deck, "create");
 
-      const cards = [{ uniqueKey: "a" }] as Card[];
+      const cards = [{ frontText: "front", backText: "back", tags: [], uniqueKey: "a" }] satisfies CardRaw[];
       const f = action.deck.spliteCreate("name", cards);
       await f(dispatch, getState, undefined);
-      expect(bulkUpdate).lastCalledWith(cards);
+      expect(bulkUpdate).lastCalledWith([{ ...cards[0], id: "1", deckId: "1" }]);
       expect(bulkCreate).toBeCalledTimes(1);
       expect(create).toBeCalledTimes(0);
       expect(dispatch).toBeCalledTimes(2);
@@ -120,13 +127,13 @@ describe("deck action", () => {
       await f(dispatch, getState, undefined);
       expect(spliteCreate).toHaveBeenCalledWith("deck-name.csv", [
         { frontText: "front", backText: "back", uniqueKey: "", tags: [] as string[] },
-      ] as Card[]);
+      ] satisfies CardRaw[]);
       expect(dispatch).toBeCalledTimes(1);
     });
   });
 
   describe("parseFile", () => {
-    it.skip("should parse file", async () => {
+    it("should parse file", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
       const spliteCreate = vi.spyOn(action.deck, "spliteCreate");
 
@@ -135,8 +142,23 @@ describe("deck action", () => {
       await f(dispatch, getState, undefined);
       expect(spliteCreate).toHaveBeenCalledWith("deck-name.csv", [
         { frontText: "front", backText: "back", uniqueKey: "", tags: [] as string[] },
-      ] as Card[]);
+      ] satisfies CardRaw[]);
       expect(dispatch).toBeCalledTimes(1);
+    });
+  });
+
+  describe("parseCsv", () => {
+    it("parses string content as raw cards", async () => {
+      const cards = await action.deck.parseCsv("front,back");
+
+      expectTypeOf(cards).toEqualTypeOf<CardRaw[]>();
+      expect(cards).toEqual([{ frontText: "front", backText: "back", uniqueKey: "", tags: [] }]);
+    });
+
+    it("rejects unsupported input at the parser boundary", async () => {
+      await expect(action.deck.parseCsv({ content: "front,back" })).rejects.toThrow(
+        "CSV content must be a string or File"
+      );
     });
   });
 
@@ -145,9 +167,7 @@ describe("deck action", () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
       const blob = new Blob();
       const m = vi.spyOn(global, "Blob"); // FIXME: affect Blob after this test
-      m.mockImplementation(function () {
-        return blob;
-      } as unknown as typeof Blob);
+      m.mockImplementation(createBlobConstructor(blob));
       getState.mockReturnValue({ deck: { byId: { id: { name: "name", cardIds: [] } } }, card: { byId: {} } });
 
       const f = action.deck.download("id");
@@ -162,14 +182,16 @@ describe("deck action", () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
       const blob = new Blob();
       const m = vi.spyOn(global, "Blob");
-      m.mockImplementation(function () {
-        return blob;
-      } as unknown as typeof Blob);
+      m.mockImplementation(createBlobConstructor(blob));
 
       const f = action.deck.downloadCsvSampleText();
       await f(dispatch, getState, undefined);
       expect(m).toBeCalledWith([C.CSV_SAMPLE_TEXT], { type: "text/plain;charset=utf-8" });
       expect(fileSaver.saveAs).toBeCalledWith(expect.anything(), "sample.csv");
     });
+  });
+
+  it("restores the Blob constructor after download tests", () => {
+    expect(global.Blob).toBe(NativeBlob);
   });
 });

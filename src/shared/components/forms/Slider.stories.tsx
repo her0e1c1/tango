@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Slider as Template } from "@src/shared/components/forms/Slider";
+import { Slider as Template } from "@/shared/components/forms/Slider";
 
 const meta = {
   title: "Shared/Slider",

@@ -1,5 +1,3 @@
-import React from "react";
-
 import userEvent from "@testing-library/user-event";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,11 +5,14 @@ import "@testing-library/jest-dom/vitest";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  state: undefined as unknown as RootState,
+  state: null as RootState | null,
 }));
 
 vi.mock("react-redux", () => ({
-  useSelector: (select: (state: RootState) => unknown) => select(mocks.state),
+  useSelector: (select: (state: RootState) => unknown) => {
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    return select(mocks.state);
+  },
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -22,7 +23,7 @@ vi.mock("react-use", () => ({
   useKey: vi.fn(),
 }));
 
-vi.mock("@src/shared/hooks/useActions", () => ({
+vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goToSettings: vi.fn(),
@@ -34,11 +35,11 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-vi.mock("@src/features/deck/hooks/useDeckActions", () => ({
+vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ update: vi.fn() }),
 }));
 
-vi.mock("@src/features/deck/hooks/useDeckFilterState", () => ({
+vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
     scoreMax: null,
     scoreMin: null,
@@ -58,7 +59,7 @@ vi.mock("@src/features/deck/hooks/useDeckFilterState", () => ({
   }),
 }));
 
-import { CardListContainer } from "@src/features/card/containers/CardListContainer";
+import { CardListContainer } from "@/features/card/containers/CardListContainer";
 
 describe("CardListContainer", () => {
   const deck: Deck = {
@@ -119,6 +120,7 @@ describe("CardListContainer", () => {
 
   it("renders a language card as code and closes it through the overlay callback", async () => {
     const languageCard = { ...card, tags: ["typescript"], backText: "const answer = 42;" };
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
     mocks.state = {
       ...mocks.state,
       card: { byId: { [languageCard.id]: languageCard }, tags: ["typescript"] },

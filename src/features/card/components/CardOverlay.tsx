@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Description, Overlay, Score } from "@src/shared/components";
+import type * as React from "react";
+import { Description, Overlay, Score } from "@/shared/components";
 
 export const CardOverlay: React.FC<{ card?: Card }> = (props) => {
   const card = props.card;
@@ -9,7 +9,7 @@ export const CardOverlay: React.FC<{ card?: Card }> = (props) => {
         <Score score={card?.score ?? 0} />
         <Description className="ml-2">
           {card?.numberOfSeen != null && `${card.numberOfSeen} times`}
-          {card?.lastSeenAt != null && ` since ${new Date(card.lastSeenAt)?.toLocaleDateString()}`}
+          {card?.lastSeenAt != null && ` since ${new Date(card.lastSeenAt).toLocaleDateString()}`}
         </Description>
       </div>
     </Overlay>

@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import * as type from "@src/action/type";
-import type { LegacyStudyFields } from "@src/features/study/state/studyStore";
-import { deck } from "@src/store/reducer";
+import * as type from "@/action/type";
+import type { LegacyStudyFields } from "@/features/study/state/studyStore";
+import { deck } from "@/store/reducer";
+import { createDeck } from "@/test/factories";
 
-vi.mock("@src/action", () => ({
+vi.mock("@/action", () => ({
   deck: {
     prepare: () => ({ id: "sample-deck", category: "" }),
   },
@@ -16,17 +17,15 @@ vi.mock("@src/action", () => ({
 describe("deck reducer", () => {
   it("clears legacy study fields without changing the original state", () => {
     const legacyDeck = {
-      id: "deck-1",
-      name: "Legacy deck",
+      ...createDeck({ id: "deck-1", name: "Legacy deck" }),
       currentIndex: 1,
       cardOrderIds: ["card-1", "card-2"],
-    } as unknown as Deck & LegacyStudyFields;
+    } satisfies Deck & LegacyStudyFields;
     const otherDeck = {
-      id: "deck-2",
-      name: "Other deck",
+      ...createDeck({ id: "deck-2", name: "Other deck" }),
       currentIndex: 0,
       cardOrderIds: ["card-3"],
-    } as unknown as Deck & LegacyStudyFields;
+    } satisfies Deck & LegacyStudyFields;
     const state: DeckState = {
       byId: {
         [legacyDeck.id]: legacyDeck,

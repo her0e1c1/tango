@@ -1,8 +1,8 @@
-import * as React from "react";
-import { FullScreen } from "@src/shared/components/layout/FullScreen";
-import { Header, type HeaderProps } from "@src/shared/components/layout/Header";
-import { Main } from "@src/shared/components/layout/Main";
-import { Outer } from "@src/shared/components/layout/Outer";
+import type * as React from "react";
+import { FullScreen } from "@/shared/components/layout/FullScreen";
+import { Header, type HeaderProps } from "@/shared/components/layout/Header";
+import { Main } from "@/shared/components/layout/Main";
+import { Outer } from "@/shared/components/layout/Outer";
 
 const Footer = () => <div className="pb-10" />;
 
@@ -19,15 +19,22 @@ export interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = (props) => {
   if (props.fullscreen) {
     return (
-      <FullScreen scroll={props.scroll} onClick={props.onClick}>
-        {props.showHeader && <Header fixed={props.fixedHeader} {...props.headerProps} />}
+      <FullScreen
+        {...(props.scroll !== undefined ? { scroll: props.scroll } : {})}
+        {...(props.onClick !== undefined ? { onClick: props.onClick } : {})}
+      >
+        {props.showHeader && (
+          <Header {...(props.fixedHeader !== undefined ? { fixed: props.fixedHeader } : {})} {...props.headerProps} />
+        )}
         {props.children}
       </FullScreen>
     );
   }
   return (
     <Outer>
-      {props.showHeader && <Header fixed={props.fixedHeader} {...props.headerProps} />}
+      {props.showHeader && (
+        <Header {...(props.fixedHeader !== undefined ? { fixed: props.fixedHeader } : {})} {...props.headerProps} />
+      )}
       <Main>{props.children}</Main>
       <Footer />
     </Outer>

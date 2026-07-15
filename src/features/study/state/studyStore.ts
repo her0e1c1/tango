@@ -26,7 +26,7 @@ interface PersistedStudyState {
 export interface StudyState extends PersistedStudyState {
   showBackText: boolean;
   autoPlay: boolean;
-  lastSwipe?: SwipeDirection;
+  lastSwipe?: SwipeDirection | undefined;
   startStudy: (deckId: DeckId, cardOrderIds: CardId[]) => void;
   setCurrentIndex: (currentIndex: number) => void;
   resetStudy: () => void;
@@ -44,8 +44,9 @@ interface CreateStudyStoreOptions {
   skipHydration?: boolean;
 }
 
-export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOptions = {}) =>
-  createStore<StudyState>()(
+export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOptions = {}) => {
+  const persistStorage = createJSONStorage<PersistedStudyState>(() => storage ?? localStorage);
+  return createStore<StudyState>()(
     persist<StudyState, [], [], PersistedStudyState>(
       (set) => ({
         session: null,
@@ -116,8 +117,8 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
       {
         name: STUDY_STORAGE_KEY,
         version: 1,
-        storage: createJSONStorage<PersistedStudyState>(() => storage ?? localStorage),
-        skipHydration,
+        ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
+        ...(skipHydration !== undefined ? { skipHydration } : {}),
         partialize: ({ session, legacyMigratedDeckIds }) => ({
           session,
           legacyMigratedDeckIds,
@@ -125,6 +126,7 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
       }
     )
   );
+};
 
 export const studyStore = createStudyStore();
 

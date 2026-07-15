@@ -2,9 +2,9 @@ import React from "react";
 
 import { useDispatch } from "react-redux";
 
-import * as type from "@src/action/type";
-import { useStudyStore } from "@src/features/study/hooks/useStudyStore";
-import { type LegacyStudyCandidate, type LegacyStudyFields } from "@src/features/study/state/studyStore";
+import * as type from "@/action/type";
+import { useStudyStore } from "@/features/study/hooks/useStudyStore";
+import type { LegacyStudyCandidate, LegacyStudyFields } from "@/features/study/state/studyStore";
 
 export const getLegacyStudyCandidate = (deck: Deck): LegacyStudyCandidate | undefined => {
   const legacyDeck = deck as Deck & Partial<LegacyStudyFields>;

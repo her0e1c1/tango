@@ -1,11 +1,9 @@
-import React from "react";
-
 import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { DeckCard } from "@src/features/deck/components/DeckCard";
-import { DeckListTemplate } from "@src/features/deck/components/templates/DeckListTemplate";
+import { DeckCard } from "@/features/deck/components/DeckCard";
+import { DeckListTemplate } from "@/features/deck/components/templates/DeckListTemplate";
 
 const deck = {
   id: "deck-id",

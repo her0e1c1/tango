@@ -1,11 +1,10 @@
-import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { BackText as BackTextComponent } from "@src/features/card/components/BackText";
-import { CardOverlay } from "@src/features/card/components/CardOverlay";
-import { FrontText as FrontTextComponent } from "@src/features/card/components/FrontText";
-import { DeckSwiperTemplate as Template } from "@src/features/study/components/templates/DeckSwiperTemplate";
-import * as fixture from "@src/shared/storybook/fixture";
+import { BackText as BackTextComponent } from "@/features/card/components/BackText";
+import { CardOverlay } from "@/features/card/components/CardOverlay";
+import { FrontText as FrontTextComponent } from "@/features/card/components/FrontText";
+import { DeckSwiperTemplate as Template } from "@/features/study/components/templates/DeckSwiperTemplate";
+import * as fixture from "@/shared/storybook/fixture";
 
 const meta = {
   title: "Study/DeckSwiperTemplate",

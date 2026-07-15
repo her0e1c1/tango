@@ -1,7 +1,7 @@
-import * as React from "react";
+import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
-import { Upload, Description, Code, Title } from "@src/shared/components";
-import { Layout, type LayoutProps } from "@src/shared/components/layout/Layout";
+import { Upload, Description, Code, Title } from "@/shared/components";
+import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
 
 export const DeckImportTemplate: React.FC<{
   onChange?: (file: File) => void;
@@ -12,15 +12,20 @@ export const DeckImportTemplate: React.FC<{
   return (
     <Layout showHeader {...props.layout}>
       <Title>Deck Upload</Title>
-      <Upload className="my-2" onChange={props.onChange} />
+      <Upload className="my-2" {...(props.onChange !== undefined ? { onChange: props.onChange } : {})} />
       <Title>CSV File Format</Title>
       <Description className="my-2">{`There are 3 columns without header: front text, back text, and tags (optional).`}</Description>
       <div className="flex justify-start items-center">
         <Title>CSV Sample</Title>
-        <div className="flex items-center cursor-pointer" onClick={props.onDownloadSample}>
+        <button
+          type="button"
+          aria-label="Download CSV sample"
+          className="flex items-center cursor-pointer"
+          onClick={props.onDownloadSample}
+        >
           <AiOutlineCloudDownload className="text-xl" size={24} />
           <Description className="m-1 underline">{`download`}</Description>
-        </div>
+        </button>
       </div>
       <div className="overflow-scroll p-1 mt-2 shadow dark:shadow-gray-100">
         <Code text={props.sampleText} category="csv" />

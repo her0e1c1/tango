@@ -1,11 +1,11 @@
-import React from "react";
+import type React from "react";
 
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Controller, type ControllerProps } from "@src/features/study/components/Controller";
-import { useStudyControllerState } from "@src/features/study/hooks/useStudyControllerState";
+import { Controller, type ControllerProps } from "@/features/study/components/Controller";
+import { useStudyControllerState } from "@/features/study/hooks/useStudyControllerState";
 
 const ControllerHarness: React.FC<ControllerProps> = (props) => {
   const controller = useStudyControllerState(props);
@@ -15,14 +15,12 @@ const ControllerHarness: React.FC<ControllerProps> = (props) => {
 describe("Controller with useStudyControllerState", () => {
   afterEach(() => {
     cleanup();
-  });
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-  afterEach(() => {
     vi.clearAllTimers();
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
+  });
+  beforeEach(() => {
+    vi.useFakeTimers();
   });
 
   it("delegates the auto-play toggle to the controlled callback", () => {

@@ -1,11 +1,17 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "composite": true,
-    "skipLibCheck": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "strict": true
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx"
   },
-  "include": ["vite.config.ts"]
+  "include": [
+    "*.ts",
+    "*.tsx",
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
+    "e2e/**/*.ts",
+    "e2e/**/*.tsx"
+  ],
+  "exclude": ["src", "node_modules", ".worktrees", "build", "dist", "storybook-static"]
 }

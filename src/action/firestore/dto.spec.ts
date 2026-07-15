@@ -1,59 +1,50 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildCardCreateDto,
-  buildCardUpdateDto,
-  buildDeckCreateDto,
-  buildDeckUpdateDto,
-} from "@src/action/firestore/dto";
+import { buildCardCreateDto, buildCardUpdateDto, buildDeckCreateDto, buildDeckUpdateDto } from "@/action/firestore/dto";
+import { createCard, createDeck } from "@/test/factories";
 
 describe("Firestore DTO builders", () => {
   const deck = {
-    id: "deck-1",
-    name: "Deck",
-    url: undefined,
-    isPublic: true,
-    uid: "user-1",
-    createdAt: 1,
-    updatedAt: 2,
-    deletedAt: null,
-    localMode: false,
+    ...createDeck({
+      id: "deck-1",
+      name: "Deck",
+      isPublic: true,
+      uid: "user-1",
+      createdAt: 1,
+      updatedAt: 2,
+      scoreMax: 3,
+      scoreMin: -2,
+      selectedTags: ["math"],
+      tagAndFilter: true,
+      category: "category",
+      convertToBr: true,
+    }),
     currentIndex: 1,
-    scoreMax: 3,
-    scoreMin: -2,
     cardOrderIds: ["card-1"],
-    selectedTags: ["math"],
-    tagAndFilter: true,
-    category: "category",
-    convertToBr: true,
     showBackText: true,
     autoPlay: true,
     lastSwipe: "cardSwipeRight",
-  } as unknown as Deck;
+  } satisfies Deck & Record<"currentIndex" | "cardOrderIds" | "showBackText" | "autoPlay" | "lastSwipe", unknown>;
 
   const card = {
-    id: "card-1",
-    deckId: deck.id,
-    uid: deck.uid,
-    frontText: "front",
-    backText: "back",
-    tags: ["math"],
-    uniqueKey: "unique-key",
-    createdAt: 1,
-    updatedAt: 2,
-    deletedAt: null,
-    score: 3,
-    numberOfSeen: 4,
-    lastSeenAt: 5,
-    nextSeeingAt: new Date(6),
-    interval: 7,
-    url: undefined,
-    startLine: 8,
-    endLine: 9,
-    localMode: false,
+    ...createCard({
+      id: "card-1",
+      deckId: deck.id,
+      uid: deck.uid,
+      tags: ["math"],
+      createdAt: 1,
+      updatedAt: 2,
+      score: 3,
+      numberOfSeen: 4,
+      lastSeenAt: 5,
+      nextSeeingAt: new Date(6),
+      interval: 7,
+      startLine: 8,
+      endLine: 9,
+    }),
     currentIndex: 1,
     cardOrderIds: ["card-1"],
-  } as unknown as Card;
+  } satisfies Card & Record<"currentIndex" | "cardOrderIds", unknown>;
 
   it("allows only server deck fields when creating", () => {
     expect(buildDeckCreateDto(deck, 100)).toEqual({

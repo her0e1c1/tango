@@ -1,15 +1,14 @@
-import React from "react";
-
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as type from "@src/action/type";
-import { studyStore } from "@src/features/study/state/studyStore";
+import * as type from "@/action/type";
+import { studyStore } from "@/features/study/state/studyStore";
+import { createConfig } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  state: undefined as unknown as RootState,
+  state: null as RootState | null,
   dispatch: vi.fn(),
   navigate: vi.fn(),
   toggleShowBackText: vi.fn(),
@@ -27,7 +26,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-redux", () => ({
   useDispatch: () => mocks.dispatch,
-  useSelector: (select: (state: RootState) => unknown) => select(mocks.state),
+  useSelector: (select: (state: RootState) => unknown) => {
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    return select(mocks.state);
+  },
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -39,7 +41,7 @@ vi.mock("react-use", () => ({
   useKey: mocks.useKey,
 }));
 
-vi.mock("@src/features/study/hooks/useStudyActions", () => ({
+vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({
     swipeUp: mocks.swipeUp,
     swipeDown: mocks.swipeDown,
@@ -52,7 +54,7 @@ vi.mock("@src/features/study/hooks/useStudyActions", () => ({
   }),
 }));
 
-vi.mock("@src/shared/hooks/useActions", () => ({
+vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
     toggleShowHeader: mocks.toggleShowHeader,
     toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
@@ -62,7 +64,7 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-import { DeckSwiperContainer } from "@src/features/study/containers/DeckSwiperContainer";
+import { DeckSwiperContainer } from "@/features/study/containers/DeckSwiperContainer";
 
 describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   const deck: Deck = {
@@ -109,12 +111,12 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
       byId: { [card.id]: card, [legacyCard.id]: legacyCard },
       tags: card.tags,
     },
-    config: {
+    config: createConfig({
       cardInterval: 1,
       darkMode: false,
       showHeader: true,
       showSwipeButtonList: true,
-    } as unknown as ConfigState,
+    }),
   });
 
   beforeEach(() => {

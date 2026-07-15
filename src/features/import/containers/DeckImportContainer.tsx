@@ -1,10 +1,10 @@
-import React from "react";
+import type React from "react";
 import { useSelector } from "react-redux";
 import { useKey } from "react-use";
-import * as C from "@src/constant";
-import { DeckImportTemplate } from "@src/features/import/components/templates/DeckImportTemplate";
-import * as selector from "@src/selector";
-import { useActions } from "@src/shared/hooks/useActions";
+import * as C from "@/constant";
+import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
+import * as selector from "@/selector";
+import { useActions } from "@/shared/hooks/useActions";
 
 export const DeckImportContainer: React.FC = () => {
   const actions = useActions();

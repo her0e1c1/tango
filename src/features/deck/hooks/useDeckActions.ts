@@ -2,7 +2,7 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import * as action from "@src/action";
+import * as action from "@/action";
 
 export const useDeckActions = (id: DeckId) => {
   const dispatch = useDispatch();
@@ -14,7 +14,7 @@ export const useDeckActions = (id: DeckId) => {
       },
       updateAndBack: (deck: Deck) => {
         dispatch(action.deck.update(deck));
-        navigate(-1);
+        void navigate(-1);
       },
       remove: () => dispatch(action.deck.remove(id)),
     }),

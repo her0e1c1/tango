@@ -1,6 +1,6 @@
 import cx from "classnames";
-import * as React from "react";
-import { Title, Math } from "@src/shared/components";
+import type * as React from "react";
+import { Math, Title, useButtonInteraction } from "@/shared/components";
 import { useSwipeable } from "react-swipeable";
 
 export interface FrontTextProps {
@@ -15,16 +15,17 @@ export interface FrontTextProps {
 
 export const FrontText: React.FC<FrontTextProps> = (props) => {
   const handlers = useSwipeable({
-    onSwipedLeft: props.onSwipeLeft,
-    onSwipedUp: props.onSwipeUp,
-    onSwipedRight: props.onSwipeRight,
-    onSwipedDown: props.onSwipeDown,
+    ...(props.onSwipeLeft !== undefined ? { onSwipedLeft: props.onSwipeLeft } : {}),
+    ...(props.onSwipeUp !== undefined ? { onSwipedUp: props.onSwipeUp } : {}),
+    ...(props.onSwipeRight !== undefined ? { onSwipedRight: props.onSwipeRight } : {}),
+    ...(props.onSwipeDown !== undefined ? { onSwipedDown: props.onSwipeDown } : {}),
   });
+  const clickInteraction = useButtonInteraction<HTMLDivElement>(props.onClick);
   return (
     <div
       id="frontText"
-      onClick={props.onClick}
       className={cx("flex", "justify-center", "items-center", "h-full")}
+      {...clickInteraction}
       {...handlers}
     >
       {props.category === "math" ? <Math text={props.text} /> : <Title>{props.text}</Title>}

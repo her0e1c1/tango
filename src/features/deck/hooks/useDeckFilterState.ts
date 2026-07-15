@@ -1,8 +1,8 @@
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import { renameKey } from "@src/shared/forms/renameKey";
-import type { DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
+import { renameKey } from "@/shared/forms/renameKey";
+import type { DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
 
 export interface UseDeckFilterStateOptions {
   deck: Deck;

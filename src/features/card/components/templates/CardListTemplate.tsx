@@ -1,8 +1,8 @@
-import * as React from "react";
-import { List, Overlay } from "@src/shared/components";
-import { Layout, type LayoutProps } from "@src/shared/components/layout/Layout";
-import { BackText, type BackTextProps } from "@src/features/card/components/BackText";
-import { Card, type CardProps } from "@src/features/card/components/Card";
+import type * as React from "react";
+import { List, Overlay } from "@/shared/components";
+import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
+import { BackText, type BackTextProps } from "@/features/card/components/BackText";
+import { Card, type CardProps } from "@/features/card/components/Card";
 
 export interface CardListOverlayProps {
   backText: BackTextProps;
@@ -22,7 +22,12 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       {props.overlay != null && (
-        <Overlay position="center" className="overflow-scroll bg-inherit" onClick={props.overlay.onClose}>
+        <Overlay
+          position="center"
+          ariaLabel="Close card"
+          className="overflow-scroll bg-inherit"
+          {...(props.overlay.onClose !== undefined ? { onClick: props.overlay.onClose } : {})}
+        >
           <BackText {...props.overlay.backText} />
         </Overlay>
       )}
@@ -31,14 +36,14 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
         {props.filterSlot}
       </details>
       <List col1>
-        {props.cards?.map((c, i) => (
+        {props.cards?.map((c) => (
           <Card
-            key={i}
+            key={c.id}
             card={c}
-            onSwipedLeft={props.card?.onSwipedLeft}
-            onSwipedRight={props.card?.onSwipedRight}
-            onDelete={props.card?.onDelete}
-            goToEdit={props.card?.goToEdit}
+            {...(props.card?.onSwipedLeft !== undefined ? { onSwipedLeft: props.card.onSwipedLeft } : {})}
+            {...(props.card?.onSwipedRight !== undefined ? { onSwipedRight: props.card.onSwipedRight } : {})}
+            {...(props.card?.onDelete !== undefined ? { onDelete: props.card.onDelete } : {})}
+            {...(props.card?.goToEdit !== undefined ? { goToEdit: props.card.goToEdit } : {})}
             goToView={() => props.onShowCard?.(c)}
           />
         ))}

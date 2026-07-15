@@ -36,7 +36,7 @@ export const subscribeDeck = (props: DeckProps): Callback => {
       }
     });
     if (e.added.length > 0 || e.modified.length > 0 || e.removed.length > 0) {
-      props.onCange?.(e);
+      props.onCange(e);
     }
   });
 };
@@ -72,7 +72,7 @@ export const subscribeCard = (props: CardProps): Callback => {
       }
     });
     if (e.added.length > 0 || e.modified.length > 0 || e.removed.length > 0) {
-      props.onCange?.(e);
+      props.onCange(e);
     }
   });
 };

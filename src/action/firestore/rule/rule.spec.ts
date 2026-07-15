@@ -1,5 +1,5 @@
 import { it, describe, beforeEach, beforeAll, afterAll } from "vitest";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import {
   assertFails,
   assertSucceeds,
@@ -25,7 +25,7 @@ describe("firestore/rule", () => {
       firestore: {
         rules: fs.readFileSync("./firestore.rules", "utf8"),
         host: import.meta.env.VITE_DB_HOST,
-        port: parseInt(import.meta.env.VITE_DB_PORT),
+        port: parseInt(import.meta.env.VITE_DB_PORT, 10),
       },
     });
   });

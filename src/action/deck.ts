@@ -2,12 +2,12 @@
 import { saveAs } from "file-saver";
 import * as Papa from "papaparse";
 
-import * as type from "@src/action/type";
-import * as C from "@src/constant";
-import { type ThunkResult } from "@src/action/index";
-import * as action from "@src/action";
-import * as selector from "@src/selector";
-import * as firestore from "@src/action/firestore";
+import * as type from "@/action/type";
+import * as C from "@/constant";
+import type { ThunkResult } from "@/action/index";
+import * as action from "@/action";
+import * as selector from "@/selector";
+import * as firestore from "@/action/firestore";
 import sampleCards from "../../sample/build/output.json";
 
 export const prepare = (deck: DeckRaw, config: DeckConfig): Deck => {
@@ -75,7 +75,7 @@ export const remove =
 
 export const download =
   (id: string): ThunkResult =>
-  async (dispatch, getState) => {
+  async (_dispatch, getState) => {
     const cards = selector.card.getAllByDeckId(id)(getState());
     const csv = Papa.unparse(cards.map(action.card.toRow));
     const deck = selector.deck.getById(id)(getState());
@@ -95,7 +95,7 @@ export const downloadCsvSampleText = (): ThunkResult => async () => {
 };
 
 export const spliteCreate =
-  (deckName: string, cards: Card[]): ThunkResult =>
+  (deckName: string, cards: CardRaw[]): ThunkResult =>
   async (dispatch, getState) => {
     const [newCards, oldCards] = selector.card.splitByUniqueKey(cards)(getState());
     await dispatch(action.card.bulkUpdate(oldCards));
@@ -116,7 +116,7 @@ export const reimport =
   async (dispatch, getState) => {
     const deck = getState().deck.byId[id];
     if (deck == null) throw Error("invalid deck id");
-    if (deck.url == null || deck.url == "") throw Error("no deck url");
+    if (deck.url == null || deck.url === "") throw Error("no deck url");
     await dispatch(parseUrl(deck.url, deck.name));
   };
 
@@ -141,7 +141,7 @@ export const parseUrl =
 export const loadSample = (): ThunkResult => async (dispatch, getState) => {
   if (getState().config.loadSample) {
     const deckName = "Sample Deck";
-    await dispatch(action.deck.spliteCreate(deckName, sampleCards as Card[]));
+    await dispatch(action.deck.spliteCreate(deckName, sampleCards));
     await dispatch(type.configUpdate({ loadSample: false }));
   }
 };
@@ -153,11 +153,14 @@ export const parseFile =
     await dispatch(action.deck.spliteCreate(file.name, cards));
   };
 
-export const parseCsv = async (content: any): Promise<Card[]> => {
+export const parseCsv = async (content: unknown): Promise<CardRaw[]> => {
+  if (typeof content !== "string" && !(typeof File !== "undefined" && content instanceof File)) {
+    throw new TypeError("CSV content must be a string or File");
+  }
   return await new Promise((resolve) =>
     Papa.parse(content, {
       complete: async (results: { data: string[][] }) => {
-        const cards = results.data.map(action.card.fromRow).filter((c) => !action.card.isEmpty(c)) as Card[];
+        const cards = results.data.map(action.card.fromRow).filter((c) => !action.card.isEmpty(c));
         resolve(cards);
       },
     })

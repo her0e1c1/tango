@@ -21,11 +21,11 @@ function resolvesInsideSource(filePath: string, importPath: string): boolean {
 }
 
 describe("import paths", () => {
-  it("uses @src for source-local imports", () => {
+  it("uses @ for source-local imports", () => {
     const relativeImports = listSourceFiles(sourceRoot).flatMap((filePath) => {
       const content = readFileSync(filePath, "utf8");
       return Array.from(content.matchAll(relativeSourceImportPattern))
-        .map((match) => match[1])
+        .flatMap((match) => (match[1] === undefined ? [] : [match[1]]))
         .filter((importPath) => resolvesInsideSource(filePath, importPath))
         .map((importPath) => `${path.relative(process.cwd(), filePath)} imports ${importPath}`);
     });

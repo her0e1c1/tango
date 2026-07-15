@@ -147,12 +147,13 @@ const persistedReduxStudyFields = async (page: Page) => {
     const root = JSON.parse(window.localStorage.getItem("persist:root") ?? "{}");
     const deck = JSON.parse(root.deck).byId["e2e-deck-1"];
     const config = JSON.parse(root.config);
+    const hasOwn = (value: object, key: PropertyKey) => Object.getOwnPropertyDescriptor(value, key) !== undefined;
     return {
-      deckCurrentIndex: Object.hasOwn(deck, "currentIndex"),
-      deckCardOrderIds: Object.hasOwn(deck, "cardOrderIds"),
-      configShowBackText: Object.hasOwn(config, "showBackText"),
-      configAutoPlay: Object.hasOwn(config, "autoPlay"),
-      configLastSwipe: Object.hasOwn(config, "lastSwipe"),
+      deckCurrentIndex: hasOwn(deck, "currentIndex"),
+      deckCardOrderIds: hasOwn(deck, "cardOrderIds"),
+      configShowBackText: hasOwn(config, "showBackText"),
+      configAutoPlay: hasOwn(config, "autoPlay"),
+      configLastSwipe: hasOwn(config, "lastSwipe"),
     };
   });
 };
@@ -180,7 +181,7 @@ test("shows the front and back text in the deck study screen", async ({ page }) 
   await page.keyboard.press("Enter");
 
   await expect(page.getByText("りんご")).toBeVisible();
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
 test("updates study progress with a mastered deck swipe", async ({ page }) => {
@@ -203,5 +204,5 @@ test("updates study progress with a mastered deck swipe", async ({ page }) => {
     configAutoPlay: false,
     configLastSwipe: false,
   });
-  await page.evaluate(() => (window as any).assertNoBrowserErrors());
+  await page.evaluate(() => window.assertNoBrowserErrors());
 });

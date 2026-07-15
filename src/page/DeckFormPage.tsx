@@ -1,5 +1,3 @@
-import React from "react";
-
-import { DeckFormContainer } from "@src/features/deck/containers";
+import { DeckFormContainer } from "@/features/deck/containers";
 
 export const DeckFormPage = () => <DeckFormContainer />;

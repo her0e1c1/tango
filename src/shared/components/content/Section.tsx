@@ -1,4 +1,4 @@
-import * as React from "react";
+import type * as React from "react";
 
 export const Section: React.FC<{ title: string; page?: boolean }> = (props) =>
   props.page ? (

@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import * as action from "@src/action";
+import * as action from "@/action";
 
 export const useActions = () => {
   const dispatch = useDispatch();
@@ -9,39 +9,39 @@ export const useActions = () => {
   return React.useMemo(
     () => ({
       goToView: (id: DeckId) => {
-        navigate(`/deck/${id}`);
+        void navigate(`/deck/${id}`);
       },
       goToStart: (id: DeckId) => {
-        navigate(`/deck/${id}/start`);
+        void navigate(`/deck/${id}/start`);
       },
       goToEdit: (id: DeckId) => {
-        navigate(`/deck/${id}/edit`);
+        void navigate(`/deck/${id}/edit`);
       },
       goToStudy: (id: DeckId) => {
-        navigate(`/deck/${id}/study`);
+        void navigate(`/deck/${id}/study`);
       },
       goToCardView: (id: CardId) => {
-        navigate(`/card/${id}`);
+        void navigate(`/card/${id}`);
       },
       goToCardEdit: (id: CardId) => {
-        navigate(`/card/${id}/edit`);
+        void navigate(`/card/${id}/edit`);
       },
       goToTop: () => {
-        navigate("/");
+        void navigate("/");
       },
       goToSettings: () => {
-        navigate("/settings");
+        void navigate("/settings");
       },
       goToImport: () => {
-        navigate("/import");
+        void navigate("/import");
       },
       goByMenu: (key: PageKey) => {
         if (key === "config") {
-          navigate("/settings");
+          void navigate("/settings");
         } else if (key === "upload") {
-          navigate("/import");
+          void navigate("/import");
         } else {
-          navigate("/");
+          void navigate("/");
         }
       },
       deckDownload: (id: DeckId) => dispatch(action.deck.download(id)),
@@ -51,7 +51,7 @@ export const useActions = () => {
         window.confirm("Are you sure of reloading this deck?") && dispatch(action.deck.reimport(id)),
       deckUploadAndBack: (file: File) => {
         dispatch(action.deck.parseFile(file));
-        navigate(-1);
+        void navigate(-1);
       },
       deckDownloadCsvSampleText: () => {
         dispatch(action.deck.downloadCsvSampleText());
@@ -60,7 +60,7 @@ export const useActions = () => {
       cardUpdateBy: (f: (c: Card) => Partial<Card>) => (id: CardId) => dispatch(action.card.updateBy(id, f)),
       cardUpdateAndBack: (card: Card) => {
         dispatch(action.card.update(card));
-        navigate(-1);
+        void navigate(-1);
       },
       cardRemove: (id: CardId) => window.confirm("Are you sure?") && dispatch(action.card.remove(id)),
       login: () => dispatch(action.config.loginGoogle()),

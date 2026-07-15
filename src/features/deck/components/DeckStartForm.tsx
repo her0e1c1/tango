@@ -1,6 +1,6 @@
-import * as React from "react";
-import { Form, FormItem, Section, Slider, Switch } from "@src/shared/components";
-import { TagFilter, type TagFilterProps } from "@src/features/deck/components/TagFilter";
+import type * as React from "react";
+import { Form, FormItem, Section, Slider, Switch } from "@/shared/components";
+import { TagFilter, type TagFilterProps } from "@/features/deck/components/TagFilter";
 
 export interface DeckStartFormProps {
   scoreMax: number | null;

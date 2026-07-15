@@ -1,12 +1,12 @@
-import React from "react";
+import type React from "react";
 
 import userEvent from "@testing-library/user-event";
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { expect, it, describe, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { ConfigForm } from "@src/features/settings/components/ConfigForm";
-import { useConfigFormState } from "@src/features/settings/hooks/useConfigFormState";
+import { ConfigForm } from "@/features/settings/components/ConfigForm";
+import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
 
 const ConfigFormHarness: React.FC<{
   config: ConfigState;

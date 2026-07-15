@@ -1,12 +1,13 @@
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
-import * as card from "@src/action/card";
-import * as action from "@src/action";
-import * as firestore from "@src/action/firestore";
+import * as card from "@/action/card";
+import * as action from "@/action";
+import * as firestore from "@/action/firestore";
+import { createCard } from "@/test/factories";
 
 vi.mock("./firestore");
 vi.mock("firebase/firestore", () => ({
-  ...Object.keys(vi.importActual("firebase/firestore")).reduce((acc, key) => ({ ...acc, [key]: vi.fn() }), {}),
+  ...Object.fromEntries(Object.keys(vi.importActual("firebase/firestore")).map((key) => [key, vi.fn()])),
   getFirestore: vi.fn(() => "db"),
 }));
 
@@ -22,7 +23,7 @@ describe("card action", () => {
       expect(card.fromRow(["front", "back", "a,b,c", "123"])).toEqual(c);
     });
     it("should be empty", async () => {
-      const c = { frontText: "", backText: "", tags: [], uniqueKey: "" } as unknown as Card;
+      const c = { frontText: "", backText: "", tags: [], uniqueKey: "" } satisfies CardRaw;
       expect(card.fromRow([])).toEqual(c);
     });
   });
@@ -33,7 +34,7 @@ describe("card action", () => {
       expect(card.toRow(c)).toEqual(["front", "back", "a,b,c", "123"]);
     });
     it("should be empty", async () => {
-      const c = { frontText: "", backText: "", tags: [], uniqueKey: "" } as unknown as Card;
+      const c = createCard({ frontText: "", backText: "", tags: [], uniqueKey: "" });
       expect(card.toRow(c)).toEqual(["", "", "", ""]);
     });
   });

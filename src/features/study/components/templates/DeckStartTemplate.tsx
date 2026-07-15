@@ -1,6 +1,6 @@
-import React from "react";
-import { Button, Section } from "@src/shared/components";
-import { Layout, type LayoutProps } from "@src/shared/components/layout/Layout";
+import type React from "react";
+import { Button, Section } from "@/shared/components";
+import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
 
 export interface DeckStartTemplateProps {
   layout?: LayoutProps;
@@ -18,7 +18,7 @@ export const DeckStartTemplate: React.FC<DeckStartTemplateProps> = (props) => {
         <Button
           primary
           disabled={props.cardsLength === 0}
-          onClick={props.onClickStart}
+          {...(props.onClickStart !== undefined ? { onClick: props.onClickStart } : {})}
           label={`Start to study ${Math.min(props.cardsLength, props.config.maxNumberOfCardsToLearn)} card(s) from ${
             props.cardsLength
           }`}

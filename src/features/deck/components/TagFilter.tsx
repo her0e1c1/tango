@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Button, Description, Switch, Tag, TagList } from "@src/shared/components";
+import type * as React from "react";
+import { Button, Description, Switch, Tag, TagList } from "@/shared/components";
 
 const updateTags = (tags: string[], tag: string) => {
   if (tags.includes(tag)) {
@@ -28,11 +28,21 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
         <div className="flex justify-end mb-3 gap-3 items-center">
           <Switch
             name="tag-filter-click-filter"
-            checked={props.tagAndFilter}
+            {...(props.tagAndFilter !== undefined ? { checked: props.tagAndFilter } : {})}
             onChange={(event) => props.onClickFilter?.(event.target.checked)}
           />
-          <Button small primary label="All" onClick={props.onClickAll} />
-          <Button small default label="Clear" onClick={props.onClickClear} />
+          <Button
+            small
+            primary
+            label="All"
+            {...(props.onClickAll !== undefined ? { onClick: props.onClickAll } : {})}
+          />
+          <Button
+            small
+            default
+            label="Clear"
+            {...(props.onClickClear !== undefined ? { onClick: props.onClickClear } : {})}
+          />
         </div>
       </div>
       <TagList hasManyItems={(props.tags?.length ?? 0) > 30}>
@@ -43,7 +53,7 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
             small
             key={tag}
             label={tag}
-            checked={props.selectedTags?.includes(tag)}
+            {...(props.selectedTags !== undefined ? { checked: props.selectedTags.includes(tag) } : {})}
             onChange={() => {
               props.onClickTag?.(updateTags(props.selectedTags ?? [], tag));
             }}

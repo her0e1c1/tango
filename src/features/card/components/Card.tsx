@@ -1,7 +1,7 @@
 import * as React from "react";
 import { IconContext } from "react-icons";
 import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
-import { Card as Outline, Description, Score, Tag, Title } from "@src/shared/components";
+import { Card as Outline, Description, Score, Tag, Title } from "@/shared/components";
 import { useSwipeable } from "react-swipeable";
 
 export interface CardActionsProps {
@@ -46,7 +46,12 @@ export const Card: React.FC<
   return (
     <div {...handlers}>
       <IconContext.Provider value={{ className: "dark:text-gray-200 text-2xl" }}>
-        <Outline full border disabled={props.filtered} className="px-4 py-2">
+        <Outline
+          full
+          border
+          className="px-4 py-2"
+          {...(props.filtered !== undefined ? { disabled: props.filtered } : {})}
+        >
           <div className="flex items-center whitespace-nowrap gap-1">
             <Score className="mr-1 shrink-0" score={props.card.score} />
             <Description>studied {props.card.numberOfSeen ?? 0} time(s)</Description>

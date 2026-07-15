@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { TagFilter as Template } from "@src/features/deck/components/TagFilter";
+import { TagFilter as Template } from "@/features/deck/components/TagFilter";
 
 const meta = {
   title: "Deck/TagFilter",

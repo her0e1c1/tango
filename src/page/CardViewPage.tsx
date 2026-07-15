@@ -1,5 +1,5 @@
-import React from "react";
+import type React from "react";
 
-import { CardViewContainer } from "@src/features/card/containers";
+import { CardViewContainer } from "@/features/card/containers";
 
 export const CardViewPage: React.FC = () => <CardViewContainer />;

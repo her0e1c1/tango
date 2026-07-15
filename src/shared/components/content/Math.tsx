@@ -1,11 +1,11 @@
-import * as React from "react";
-import { Style } from "@src/shared/components/content/Style";
+import type * as React from "react";
+import { Style } from "@/shared/components/content/Style";
 import Markdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import "katex/dist/katex.min.css";
-import "github-markdown-css";
+import "github-markdown-css/github-markdown.css";
 
 export const Math: React.FC<{ text: string }> = (props) => (
   <Style className="markdown-body">

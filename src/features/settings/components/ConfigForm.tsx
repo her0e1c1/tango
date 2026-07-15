@@ -1,6 +1,6 @@
-import * as React from "react";
+import type * as React from "react";
 
-import { Button, Form, FormItem, Input, Section, Slider, Switch } from "@src/shared/components";
+import { Button, Form, FormItem, Input, Section, Slider, Switch } from "@/shared/components";
 
 export interface ConfigFormFields {
   showHeader: React.ComponentProps<typeof Switch>;
@@ -33,11 +33,11 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
       <Section title="Settings" />
       <FormItem label={props.isLoggedIn ? `Logged In As ${props.config.displayName ?? "no name"}` : "Google Login"}>
         {props.isLoggedIn ? (
-          <Button small onClick={props.onLogout}>
+          <Button small {...(props.onLogout !== undefined ? { onClick: props.onLogout } : {})}>
             Logout
           </Button>
         ) : (
-          <Button primary small onClick={props.onLogin}>
+          <Button primary small {...(props.onLogin !== undefined ? { onClick: props.onLogin } : {})}>
             Login
           </Button>
         )}
