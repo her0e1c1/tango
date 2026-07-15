@@ -17,4 +17,29 @@ export const migratePersistedState = createMigrate({
 
     return { ...root, config };
   },
+  2: (state) => {
+    if (state == null) return state;
+
+    const root = state as typeof state & { deck?: unknown };
+    if (!isRecord(root.deck) || !isRecord(root.deck.byId)) return state;
+
+    const byId = Object.fromEntries(
+      Object.entries(root.deck.byId).map(([id, entry]) => {
+        if (!isRecord(entry)) return [id, entry];
+
+        const migratedEntry = { ...entry };
+        delete migratedEntry.currentIndex;
+        delete migratedEntry.cardOrderIds;
+        return [id, migratedEntry];
+      })
+    );
+
+    return {
+      ...root,
+      deck: {
+        ...root.deck,
+        byId,
+      },
+    };
+  },
 });

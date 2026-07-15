@@ -96,7 +96,6 @@ describe("useStudyActions", () => {
     mocks.state = createRootState();
     studyStore.setState({
       session: null,
-      legacyMigratedDeckIds: {},
       showBackText: false,
       autoPlay: false,
       lastSwipe: undefined,
@@ -171,7 +170,6 @@ describe("useStudyActions", () => {
         cardOrderIds: [card1.id],
         currentIndex: 0,
       },
-      legacyMigratedDeckIds: {},
       showBackText: false,
       autoPlay: true,
       lastSwipe: undefined,

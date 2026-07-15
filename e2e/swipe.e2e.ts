@@ -88,7 +88,6 @@ const persistedStudy = {
       cardOrderIds: ["e2e-card-1", "e2e-card-2"],
       currentIndex: 0,
     },
-    legacyMigratedDeckIds: {},
   },
   version: 1,
 };

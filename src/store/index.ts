@@ -27,7 +27,7 @@ const logger: Redux.Middleware = () => (next) => (action) => {
 const persistConfig = {
   key: "root",
   storage,
-  version: 1,
+  version: 2,
   migrate: migratePersistedState,
   whitelist: ["deck", "card", "config"],
 };

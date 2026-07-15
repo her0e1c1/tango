@@ -131,7 +131,6 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     mocks.hydrated = true;
     studyStore.setState({
       session: null,
-      legacyMigratedDeckIds: {},
       showBackText: false,
       autoPlay: false,
       lastSwipe: undefined,

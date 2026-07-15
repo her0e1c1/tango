@@ -12,11 +12,6 @@ export const deckBulkUpdate = (decks: Array<Edit<Deck>>) => ({
 
 export const deckUpdate = (deck: Edit<Deck>) => deckBulkUpdate([deck]);
 
-export const deckClearLegacyStudy = (deckId: DeckId) => ({
-  type: "DECK_CLEAR_LEGACY_STUDY",
-  payload: { deckId },
-});
-
 export const deckBulkDelete = (ids: string[]) => ({
   type: "DECK_BULK_DELETE",
   payload: { ids },

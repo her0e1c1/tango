@@ -2,7 +2,6 @@ import { uniq } from "lodash";
 import * as util from "@/util";
 import * as type from "@/action/type";
 import * as action from "@/action";
-import type { LegacyStudyFields } from "@/features/study/state/studyStore";
 import sampleCards from "../../sample/build/output.json";
 
 export const equal = <Creator extends (...args: never[]) => Action>(
@@ -56,22 +55,6 @@ export const deck = (state = deckInitialState, action: Action) => {
       state.byId[d.id] = { ...(state.byId[d.id] as Deck), ...d };
     });
     return { ...state };
-  } else if (equal(action, type.deckClearLegacyStudy)) {
-    const deckId = action.payload.deckId;
-    const legacyDeck = state.byId[deckId];
-    if (legacyDeck == null) return state;
-    const clearedLegacyDeck = {
-      ...legacyDeck,
-      currentIndex: null,
-      cardOrderIds: [],
-    } as Deck & LegacyStudyFields;
-    return {
-      ...state,
-      byId: {
-        ...state.byId,
-        [deckId]: clearedLegacyDeck,
-      },
-    };
   } else if (equal(action, type.deckBulkDelete)) {
     action.payload.ids.forEach((id) => {
       delete state.byId[id];

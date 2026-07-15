@@ -66,7 +66,6 @@ describe("DeckListContainer", () => {
         cardOrderIds: ["card-1", "card-2", "card-3"],
         currentIndex: 1,
       },
-      legacyMigratedDeckIds: {},
     });
   });
 
