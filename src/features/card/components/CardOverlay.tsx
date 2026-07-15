@@ -9,7 +9,7 @@ export const CardOverlay: React.FC<{ card?: Card }> = (props) => {
         <Score score={card?.score ?? 0} />
         <Description className="ml-2">
           {card?.numberOfSeen != null && `${card.numberOfSeen} times`}
-          {card?.lastSeenAt != null && ` since ${new Date(card.lastSeenAt)?.toLocaleDateString()}`}
+          {card?.lastSeenAt != null && ` since ${new Date(card.lastSeenAt).toLocaleDateString()}`}
         </Description>
       </div>
     </Overlay>

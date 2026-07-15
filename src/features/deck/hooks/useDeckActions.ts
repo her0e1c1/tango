@@ -14,7 +14,7 @@ export const useDeckActions = (id: DeckId) => {
       },
       updateAndBack: (deck: Deck) => {
         dispatch(action.deck.update(deck));
-        navigate(-1);
+        void navigate(-1);
       },
       remove: () => dispatch(action.deck.remove(id)),
     }),

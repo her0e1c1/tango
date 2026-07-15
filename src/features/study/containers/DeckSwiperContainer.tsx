@@ -73,14 +73,14 @@ export const DeckSwiperContainer: React.FC = () => {
 
     exitingDeck.current = deckId;
     studyActions.resetStudy();
-    navigate("/", { replace: true });
+    void navigate("/", { replace: true });
   }, [deckId, hydrated, legacyMigrationPending, navigate, studyActions, valid]);
 
   // disable browser back
   React.useEffect(() => {
     window.history.pushState(null, document.title, document.location.href);
     const f = () => {
-      navigate(1);
+      void navigate(1);
     };
     window.addEventListener("popstate", f);
     return () => {

@@ -39,7 +39,7 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
     }
     state.startStudy(deckId, cardOrderIds);
     state.initializeStudyUi(config.defaultAutoPlay);
-    navigate(`/deck/${deckId}/study`, { replace: true });
+    void navigate(`/deck/${deckId}/study`, { replace: true });
   }, [cards, config, deck, deckId, dispatch, navigate]);
 
   const swipe = React.useCallback(

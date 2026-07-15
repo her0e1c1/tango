@@ -88,6 +88,12 @@
 				"useValidTypeof": "error",
 				"useYield": "error"
 			},
+			"nursery": {
+				"noFloatingPromises": "error",
+				"noMisusedPromises": "error",
+				"useAwaitThenable": "error",
+				"useExhaustiveSwitchCases": "error"
+			},
 			"security": {
 				"noBlankTarget": "error",
 				"noDangerouslySetInnerHtmlWithChildren": "error"
@@ -143,6 +149,7 @@
 				"noSparseArray": "error",
 				"noTsIgnore": "error",
 				"noUnknownAttribute": "error",
+				"noUnnecessaryConditions": "error",
 				"noUnsafeDeclarationMerging": "error",
 				"noUnsafeNegation": "error",
 				"noUselessRegexBackrefs": "error",
