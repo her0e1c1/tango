@@ -9,7 +9,7 @@ import { Outer } from "@/shared/components/layout/Outer";
 
 afterEach(cleanup);
 
-const fixedHeaderSpacerClass = "h-[calc(var(--spacing-touch)+1rem+env(safe-area-inset-top))]";
+const fixedHeaderOffsetClass = "pt-[calc(var(--spacing-touch)+1rem+env(safe-area-inset-top))]";
 
 describe("shared app shell", () => {
   it("keeps Outer as the standard dynamic-viewport scroll owner", () => {
@@ -50,7 +50,7 @@ describe("shared app shell", () => {
     expect(outer?.children).toHaveLength(3);
     expect(outer?.children[0]).toHaveTextContent("tango");
     expect(outer?.children[1]).toContainElement(content);
-    expect(outer?.children[1]).not.toHaveClass(fixedHeaderSpacerClass);
+    expect(outer).not.toHaveClass(fixedHeaderOffsetClass);
     expect(outer?.children[2]).toHaveClass("pb-[calc(var(--spacing-section-gap)+env(safe-area-inset-bottom))]");
 
     fireEvent.click(content);
@@ -71,7 +71,7 @@ describe("shared app shell", () => {
     expect(fullScreen?.children).toHaveLength(2);
     expect(fullScreen?.children[0]).toHaveTextContent("tango");
     expect(content.parentElement).toBe(fullScreen);
-    expect(content).not.toHaveClass(fixedHeaderSpacerClass);
+    expect(fullScreen).not.toHaveClass(fixedHeaderOffsetClass);
     expect(fullScreen).toHaveClass("overflow-y-auto");
     expect(fullScreen?.querySelector(".max-w-content")).not.toBeInTheDocument();
 
@@ -79,7 +79,7 @@ describe("shared app shell", () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 
-  it("reserves the fixed Header height before Main in the standard branch", () => {
+  it("reserves the fixed Header height on Outer without adding a standard-branch sibling", () => {
     const view = render(
       <Layout showHeader fixedHeader>
         <span>Standard fixed content</span>
@@ -89,27 +89,30 @@ describe("shared app shell", () => {
     const header = view.getByText("tango").parentElement;
     const content = view.getByText("Standard fixed content");
 
-    expect(outer?.children).toHaveLength(4);
+    expect(outer).toHaveClass(fixedHeaderOffsetClass);
+    expect(outer?.children).toHaveLength(3);
     expect(outer?.children[0]).toBe(header);
-    expect(outer?.children[1]).toHaveClass("shrink-0", fixedHeaderSpacerClass);
-    expect(outer?.children[2]).toContainElement(content);
-    expect(outer?.children[3]).toHaveClass("pb-[calc(var(--spacing-section-gap)+env(safe-area-inset-bottom))]");
+    expect(outer?.children[1]).toContainElement(content);
+    expect(header?.nextElementSibling).toBe(outer?.children[1]);
+    expect(outer?.children[2]).toHaveClass("pb-[calc(var(--spacing-section-gap)+env(safe-area-inset-bottom))]");
   });
 
-  it("reserves the fixed Header height before children in the fullscreen branch", () => {
+  it("bounds an h-full child below the fixed Header without adding a fullscreen sibling", () => {
     const view = render(
       <Layout fullscreen showHeader fixedHeader>
-        <span>Fullscreen fixed content</span>
+        <div className="h-full">Fullscreen fixed content</div>
       </Layout>
     );
     const fullScreen = view.container.firstElementChild;
     const header = view.getByText("tango").parentElement;
     const content = view.getByText("Fullscreen fixed content");
 
-    expect(fullScreen?.children).toHaveLength(3);
+    expect(fullScreen).toHaveClass("h-dvh", "overflow-hidden", fixedHeaderOffsetClass);
+    expect(fullScreen?.children).toHaveLength(2);
     expect(fullScreen?.children[0]).toBe(header);
-    expect(fullScreen?.children[1]).toHaveClass("shrink-0", fixedHeaderSpacerClass);
-    expect(fullScreen?.children[2]).toBe(content);
+    expect(fullScreen?.children[1]).toBe(content);
+    expect(header?.nextElementSibling).toBe(content);
+    expect(content).toHaveClass("h-full");
   });
 
   it("lets headerProps.fixed override fixedHeader", () => {
@@ -120,12 +123,12 @@ describe("shared app shell", () => {
     expect(header).not.toBeNull();
     expect(header).not.toHaveClass("fixed");
     expect(outer?.children).toHaveLength(3);
-    expect(outer?.children[1]).not.toHaveClass(fixedHeaderSpacerClass);
+    expect(outer).not.toHaveClass(fixedHeaderOffsetClass);
 
     view.rerender(<Layout showHeader fixedHeader={false} headerProps={{ fixed: true }} />);
     expect(view.getByText("tango").parentElement).toHaveClass("fixed");
-    expect(view.container.firstElementChild?.children).toHaveLength(4);
-    expect(view.container.firstElementChild?.children[1]).toHaveClass("shrink-0", fixedHeaderSpacerClass);
+    expect(view.container.firstElementChild).toHaveClass(fixedHeaderOffsetClass);
+    expect(view.container.firstElementChild?.children).toHaveLength(3);
   });
 
   it("keeps flex precedence and the one/two/three-column List modes", () => {
