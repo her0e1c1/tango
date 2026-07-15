@@ -12,6 +12,7 @@ export const Outer: React.FC<{ children?: React.ReactNode; className?: string }>
         "h-dvh",
         "min-h-dvh",
         "w-full",
+        "overflow-x-hidden",
         "overflow-y-auto",
         "flex",
         "flex-col",

@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const sourceRoot = path.resolve(process.cwd(), "src");
 const calmFocusStylesheet = "shared/styles/calm-focus.css";
 const storybookPreview = readFileSync(path.resolve(process.cwd(), ".storybook/preview.ts"), "utf8");
+const layoutStories = readFileSync(path.join(sourceRoot, "shared/components/layout/Layout.stories.tsx"), "utf8");
 const ownedPresentationFiles = [
   "shared/components/layout/Outer.tsx",
   "shared/components/layout/Main.tsx",
@@ -49,8 +50,8 @@ const foundationThemeTokens = [
   "--shadow-elevated",
   "--focus-ring-width",
   "--focus-ring-offset",
-  "--duration-fast",
-  "--duration-normal",
+  "--transition-duration-fast",
+  "--transition-duration-normal",
   "--ease-calm",
 ];
 const rawPaletteUtility =
@@ -110,6 +111,7 @@ describe("Calm Focus visual contract", () => {
       /decorators:\s*\[\s*withThemeByClassName\(\s*\{[\s\S]*themes:\s*\{\s*light:\s*["']light["'],\s*dark:\s*["']dark["'],?\s*\}[\s\S]*defaultTheme:\s*["']light["'][\s\S]*\}\s*\),?\s*\]/
     );
     expect(storybookPreview).toMatch(/viewport:\s*\{\s*options:\s*INITIAL_VIEWPORTS,?\s*\}/);
+    expect(layoutStories).toMatch(/parameters:\s*\{\s*layout:\s*["']fullscreen["'],?\s*\}/);
   });
 
   it("recognizes raw palette utilities, including directional borders", () => {
@@ -151,6 +153,13 @@ describe("Calm Focus visual contract", () => {
     for (const token of foundationThemeTokens) {
       expect(themeProperties.get(token), token).toBeDefined();
     }
+  });
+
+  it("maps motion durations to Tailwind transition utilities", () => {
+    const themeProperties = customProperties(cssBlock(stylesheet, "@theme inline"));
+
+    expect(themeProperties.get("--transition-duration-fast")).toBe("var(--calm-duration-fast)");
+    expect(themeProperties.get("--transition-duration-normal")).toBe("var(--calm-duration-normal)");
   });
 
   it("sets global canvas, text, and typography defaults", () => {

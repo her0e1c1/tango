@@ -22,7 +22,7 @@ export const FullScreen: React.FC<{
         "w-full",
         "max-w-full",
         props.flex && ["flex", "flex-col"],
-        props.scroll ? "overflow-y-auto" : "overflow-hidden",
+        props.scroll ? ["overflow-x-hidden", "overflow-y-auto"] : "overflow-hidden",
         props.center && ["flex", "justify-center", "items-center"],
         props.className,
       ])}

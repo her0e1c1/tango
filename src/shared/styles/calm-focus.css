@@ -97,8 +97,8 @@
   --shadow-elevated: var(--calm-shadow-elevated);
   --focus-ring-width: var(--calm-focus-ring-width);
   --focus-ring-offset: var(--calm-focus-ring-offset);
-  --duration-fast: var(--calm-duration-fast);
-  --duration-normal: var(--calm-duration-normal);
+  --transition-duration-fast: var(--calm-duration-fast);
+  --transition-duration-normal: var(--calm-duration-normal);
   --ease-calm: var(--calm-ease);
 }
 

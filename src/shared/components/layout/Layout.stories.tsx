@@ -6,6 +6,9 @@ const meta = {
   title: "Shared/Layout",
   component: Template,
   tags: ["autodocs"],
+  parameters: {
+    layout: "fullscreen",
+  },
   args: {
     showHeader: true,
   },

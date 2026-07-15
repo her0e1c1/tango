@@ -16,7 +16,14 @@ describe("shared app shell", () => {
     const view = render(<Outer className="custom-shell">Outer content</Outer>);
     const outer = view.getByText("Outer content");
 
-    expect(outer).toHaveClass("h-dvh", "min-h-dvh", "overflow-y-auto", "bg-canvas", "custom-shell");
+    expect(outer).toHaveClass(
+      "h-dvh",
+      "min-h-dvh",
+      "overflow-x-hidden",
+      "overflow-y-auto",
+      "bg-canvas",
+      "custom-shell"
+    );
     expect(outer).not.toHaveClass("h-screen", "w-screen");
   });
 
@@ -72,7 +79,7 @@ describe("shared app shell", () => {
     expect(fullScreen?.children[0]).toHaveTextContent("tango");
     expect(content.parentElement).toBe(fullScreen);
     expect(fullScreen).not.toHaveClass(fixedHeaderOffsetClass);
-    expect(fullScreen).toHaveClass("overflow-y-auto");
+    expect(fullScreen).toHaveClass("overflow-x-hidden", "overflow-y-auto");
     expect(fullScreen?.querySelector(".max-w-content")).not.toBeInTheDocument();
 
     fireEvent.click(content);

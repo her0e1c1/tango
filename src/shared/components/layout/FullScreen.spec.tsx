@@ -19,7 +19,7 @@ describe("FullScreen", () => {
     const view = render(<FullScreen scroll>Scrollable content</FullScreen>);
     const fullScreen = view.getByText("Scrollable content");
 
-    expect(fullScreen).toHaveClass("overflow-y-auto");
+    expect(fullScreen).toHaveClass("overflow-x-hidden", "overflow-y-auto");
     expect(fullScreen).not.toHaveClass("overflow-scroll", "overflow-hidden");
   });
 
