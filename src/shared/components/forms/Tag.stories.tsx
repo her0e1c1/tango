@@ -53,11 +53,20 @@ export const Checked: Story = {
 };
 
 export const Clickable: Story = {
-  args: { onChange: () => {} },
+  args: {
+    onChange: () => {
+      /* intentional no-op */
+    },
+  },
 };
 
 export const ClickableChecked: Story = {
-  args: { onChange: () => {}, checked: true },
+  args: {
+    onChange: () => {
+      /* intentional no-op */
+    },
+    checked: true,
+  },
 };
 
 export const PrimaryChecked: Story = {
@@ -65,9 +74,20 @@ export const PrimaryChecked: Story = {
 };
 
 export const PrimaryClickable: Story = {
-  args: { primary: true, onChange: () => {} },
+  args: {
+    primary: true,
+    onChange: () => {
+      /* intentional no-op */
+    },
+  },
 };
 
 export const PrimaryClickableChecked: Story = {
-  args: { primary: true, onChange: () => {}, checked: true },
+  args: {
+    primary: true,
+    onChange: () => {
+      /* intentional no-op */
+    },
+    checked: true,
+  },
 };

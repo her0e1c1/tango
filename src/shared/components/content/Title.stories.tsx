@@ -17,7 +17,11 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Clickable: Story = {
-  args: { onClick: () => {} },
+  args: {
+    onClick: () => {
+      /* intentional no-op */
+    },
+  },
 };
 
 export const Short: Story = {
