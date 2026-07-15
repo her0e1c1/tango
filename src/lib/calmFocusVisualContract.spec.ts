@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const sourceRoot = path.resolve(process.cwd(), "src");
 const calmFocusStylesheet = "shared/styles/calm-focus.css";
+const storybookPreview = readFileSync(path.resolve(process.cwd(), ".storybook/preview.ts"), "utf8");
 const ownedPresentationFiles = [
   "shared/components/layout/Outer.tsx",
   "shared/components/layout/Main.tsx",
@@ -97,6 +98,19 @@ function rawPaletteUtilities(source: string): string[] {
 
 describe("Calm Focus visual contract", () => {
   const stylesheet = readSource(calmFocusStylesheet);
+
+  it("configures the global Storybook review surface", () => {
+    expect(storybookPreview).toMatch(
+      /import\s+\{\s*withThemeByClassName\s*\}\s+from\s+["']@storybook\/addon-themes["'];/
+    );
+    expect(storybookPreview).toMatch(
+      /import\s+\{\s*INITIAL_VIEWPORTS\s*\}\s+from\s+["']\.\.\/src\/shared\/storybook\/storybookViewports(?:\.ts)?["'];/
+    );
+    expect(storybookPreview).toMatch(
+      /decorators:\s*\[\s*withThemeByClassName\(\s*\{[\s\S]*themes:\s*\{\s*light:\s*["']light["'],\s*dark:\s*["']dark["'],?\s*\}[\s\S]*defaultTheme:\s*["']light["'][\s\S]*\}\s*\),?\s*\]/
+    );
+    expect(storybookPreview).toMatch(/viewport:\s*\{\s*options:\s*INITIAL_VIEWPORTS,?\s*\}/);
+  });
 
   it("recognizes raw palette utilities, including directional borders", () => {
     const directionalBorders = ["x", "y", "s", "e", "t", "r", "b", "l"].map((direction) =>
