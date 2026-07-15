@@ -40,10 +40,10 @@ export const useConfigFormState = ({
 
   return {
     config,
-    isLoggedIn,
-    onLogin,
-    onLogout,
-    version,
+    ...(isLoggedIn !== undefined ? { isLoggedIn } : {}),
+    ...(onLogin !== undefined ? { onLogin } : {}),
+    ...(onLogout !== undefined ? { onLogout } : {}),
+    ...(version !== undefined ? { version } : {}),
     maxNumberOfCardsToLearn,
     cardInterval,
     fields: {

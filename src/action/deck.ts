@@ -75,7 +75,7 @@ export const remove =
 
 export const download =
   (id: string): ThunkResult =>
-  async (dispatch, getState) => {
+  async (_dispatch, getState) => {
     const cards = selector.card.getAllByDeckId(id)(getState());
     const csv = Papa.unparse(cards.map(action.card.toRow));
     const deck = selector.deck.getById(id)(getState());

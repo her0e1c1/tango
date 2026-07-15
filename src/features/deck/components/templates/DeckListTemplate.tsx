@@ -26,8 +26,8 @@ export const DeckListTemplate: React.FC<DeckListTemplateProps> = (props) => {
             <DeckCard
               key={i}
               deck={deck}
-              studyProgress={studyProgress}
-              restartEnabled={restartEnabled}
+              {...(studyProgress !== undefined ? { studyProgress } : {})}
+              {...(restartEnabled !== undefined ? { restartEnabled } : {})}
               {...props.deckCard}
             />
           );

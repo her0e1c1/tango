@@ -1,5 +1,5 @@
 import "./init";
-import { expect, it, describe, vi, beforeEach, Mock } from "vitest";
+import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import * as firestore from "@src/action/firestore";
 import { getTimestamp } from "@src/action/firestore/mocked";

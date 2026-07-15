@@ -97,17 +97,11 @@ export const filterCardsForUpdate = (cards: CardEdit[], state: CardState): Card[
     const c = card as Card;
     byKey[c.uniqueKey] = { ...c, id };
   });
-  return cards
-    .filter((a) => {
-      const b = byKey[a.uniqueKey ?? ""];
-      if (b == null) return false;
-      if (a.frontText === b.frontText && a.backText === b.backText) {
-        return false;
-      }
-      return true;
-    })
-    .map((a) => {
-      const b = byKey[a.uniqueKey ?? ""]; // b is not null here
-      return { ...b, ...a };
-    });
+  return cards.flatMap((a) => {
+    const b = byKey[a.uniqueKey ?? ""];
+    if (b == null || (a.frontText === b.frontText && a.backText === b.backText)) {
+      return [];
+    }
+    return [{ ...b, ...a }];
+  });
 };

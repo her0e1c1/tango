@@ -19,15 +19,22 @@ export interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = (props) => {
   if (props.fullscreen) {
     return (
-      <FullScreen scroll={props.scroll} onClick={props.onClick}>
-        {props.showHeader && <Header fixed={props.fixedHeader} {...props.headerProps} />}
+      <FullScreen
+        {...(props.scroll !== undefined ? { scroll: props.scroll } : {})}
+        {...(props.onClick !== undefined ? { onClick: props.onClick } : {})}
+      >
+        {props.showHeader && (
+          <Header {...(props.fixedHeader !== undefined ? { fixed: props.fixedHeader } : {})} {...props.headerProps} />
+        )}
         {props.children}
       </FullScreen>
     );
   }
   return (
     <Outer>
-      {props.showHeader && <Header fixed={props.fixedHeader} {...props.headerProps} />}
+      {props.showHeader && (
+        <Header {...(props.fixedHeader !== undefined ? { fixed: props.fixedHeader } : {})} {...props.headerProps} />
+      )}
       <Main>{props.children}</Main>
       <Footer />
     </Outer>

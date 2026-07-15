@@ -49,18 +49,18 @@ export const CardListContainer: React.FC = () => {
         goToEdit: actions.goToCardEdit,
         onDelete: actions.cardRemove,
       }}
-      overlay={
-        showCard == null || category == null
-          ? undefined
-          : {
+      {...(showCard != null && category != null
+        ? {
+            overlay: {
               backText: {
                 text: showCard.backText,
                 category,
                 code: C.LANGUAGES.includes(category),
               },
               onClose: closeCard,
-            }
-      }
+            },
+          }
+        : {})}
       onShowCard={setShowCard}
     />
   );

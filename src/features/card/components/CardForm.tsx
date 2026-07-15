@@ -22,7 +22,7 @@ export interface CardFormProps {
 
 export const CardForm: React.FC<CardFormProps> = (props) => {
   return (
-    <Form onSubmit={props.onSubmit}>
+    <Form {...(props.onSubmit !== undefined ? { onSubmit: props.onSubmit } : {})}>
       <FormItem col label="Front Text">
         <Textarea rows={8} {...props.fields.frontText} />
       </FormItem>
@@ -46,7 +46,7 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
       <FormItem label="Last Seen At">
         {props.card.lastSeenAt && new Date(props.card.lastSeenAt).toLocaleDateString()}
       </FormItem>
-      <Button primary type="submit" disabled={props.isSubmitting}>
+      <Button primary type="submit" {...(props.isSubmitting !== undefined ? { disabled: props.isSubmitting } : {})}>
         Save
       </Button>
     </Form>

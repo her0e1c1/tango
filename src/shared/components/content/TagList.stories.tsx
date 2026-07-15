@@ -1,5 +1,3 @@
-import React from "react";
-
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { Tag } from "@src/shared/components/forms/Tag";

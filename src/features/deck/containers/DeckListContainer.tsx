@@ -30,15 +30,15 @@ export const DeckListContainer: React.FC = () => {
     <DeckListTemplate
       decks={decks}
       restartableDeckIds={legacyRestartableDeckIds}
-      studyProgress={
-        studySession == null
-          ? undefined
-          : {
+      {...(studySession != null
+        ? {
+            studyProgress: {
               deckId: studySession.deckId,
               currentIndex: studySession.currentIndex,
               cardCount: studySession.cardOrderIds.length,
-            }
-      }
+            },
+          }
+        : {})}
       layout={{
         headerProps: {
           dark: config.darkMode,

@@ -23,16 +23,28 @@ export const DeckSwiperTemplate: React.FC<DeckSwiperTemplateProps> = (props) => 
   return (
     <Layout
       fullscreen
-      showHeader={props.showHeader && !props.showBackText}
-      scroll={props.showBackText}
+      {...(props.showHeader !== undefined ? { showHeader: props.showHeader && !props.showBackText } : {})}
+      {...(props.showBackText !== undefined ? { scroll: props.showBackText } : {})}
       {...props.layout}
     >
       {props.showBackText && props.backTextSlot != null ? (
         <>
-          <Shared.Overlay position="left" onClick={props.swipeOverlay?.onClickLeft} />
-          <Shared.Overlay position="right" onClick={props.swipeOverlay?.onClickRight} />
-          <Shared.Overlay position="top" onClick={props.swipeOverlay?.onClickUp} />
-          <Shared.Overlay position="bottom" onClick={props.swipeOverlay?.onClickDown} />
+          <Shared.Overlay
+            position="left"
+            {...(props.swipeOverlay?.onClickLeft !== undefined ? { onClick: props.swipeOverlay.onClickLeft } : {})}
+          />
+          <Shared.Overlay
+            position="right"
+            {...(props.swipeOverlay?.onClickRight !== undefined ? { onClick: props.swipeOverlay.onClickRight } : {})}
+          />
+          <Shared.Overlay
+            position="top"
+            {...(props.swipeOverlay?.onClickUp !== undefined ? { onClick: props.swipeOverlay.onClickUp } : {})}
+          />
+          <Shared.Overlay
+            position="bottom"
+            {...(props.swipeOverlay?.onClickDown !== undefined ? { onClick: props.swipeOverlay.onClickDown } : {})}
+          />
           <div className="h-full flex pb-8">{props.backTextSlot}</div>
         </>
       ) : props.frontTextSlot != null ? (

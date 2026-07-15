@@ -23,18 +23,18 @@ export const create = async (deck: Deck): Promise<string> => {
 };
 
 export const splitCards = <T>(cards: T[], max: number): T[][] => {
+  if (!(max > 0)) return [];
+
+  const chunkSize = Math.ceil(max);
   const css = [] as T[][];
   let i = 0;
-  for (;;) {
-    const cs = [] as T[];
-    while (cs.length < max && i < cards.length) {
-      cs.push(cards[i]);
-      i++;
-    }
+  while (i < cards.length) {
+    const cs = cards.slice(i, i + chunkSize);
     if (cs.length === 0) {
       break;
     }
     css.push(cs);
+    i += cs.length;
   }
   return css;
 };

@@ -22,7 +22,11 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       {props.overlay != null && (
-        <Overlay position="center" className="overflow-scroll bg-inherit" onClick={props.overlay.onClose}>
+        <Overlay
+          position="center"
+          className="overflow-scroll bg-inherit"
+          {...(props.overlay.onClose !== undefined ? { onClick: props.overlay.onClose } : {})}
+        >
           <BackText {...props.overlay.backText} />
         </Overlay>
       )}
@@ -35,10 +39,10 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
           <Card
             key={i}
             card={c}
-            onSwipedLeft={props.card?.onSwipedLeft}
-            onSwipedRight={props.card?.onSwipedRight}
-            onDelete={props.card?.onDelete}
-            goToEdit={props.card?.goToEdit}
+            {...(props.card?.onSwipedLeft !== undefined ? { onSwipedLeft: props.card.onSwipedLeft } : {})}
+            {...(props.card?.onSwipedRight !== undefined ? { onSwipedRight: props.card.onSwipedRight } : {})}
+            {...(props.card?.onDelete !== undefined ? { onDelete: props.card.onDelete } : {})}
+            {...(props.card?.goToEdit !== undefined ? { goToEdit: props.card.goToEdit } : {})}
             goToView={() => props.onShowCard?.(c)}
           />
         ))}

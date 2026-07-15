@@ -1,4 +1,5 @@
-import { signOut, linkWithPopup, signInWithCredential, GoogleAuthProvider, UserCredential, User } from "firebase/auth";
+import { signOut, linkWithPopup, signInWithCredential, GoogleAuthProvider } from "firebase/auth";
+import type { User, UserCredential } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
@@ -28,9 +29,11 @@ export const logout = (): ThunkResult => async (dispatch) => {
 };
 
 const getDisplayName = (user: User) => {
-  if (user.providerData.length > 0) {
-    return user.providerData[0].displayName;
+  const provider = user.providerData[0];
+  if (provider) {
+    return provider.displayName;
   }
+  return null;
 };
 
 export const init = (): ThunkResult => async (dispatch, getState) => {
@@ -43,11 +46,12 @@ export const init = (): ThunkResult => async (dispatch, getState) => {
     process.env.NODE_ENV !== "production" &&
       console.log("INIT", user?.isAnonymous, new Date(getState().config.lastUpdatedAt));
     if (user == null) return; // Also called after logout
+    const displayName = getDisplayName(user);
     dispatch(
       type.configUpdate({
         uid: user.uid,
         isAnonymous: user.isAnonymous,
-        displayName: getDisplayName(user),
+        displayName,
       })
     );
     void dispatch(action.event.subscribe(user.uid));
@@ -158,11 +162,12 @@ export const loginGoogle = (): ThunkResult => async (dispatch) => {
   }
   process.env.NODE_ENV !== "production" && console.log("LOGIN GOOGLE", result);
   const { user } = result;
+  const displayName = getDisplayName(user);
   await dispatch(
     type.configUpdate({
       uid: user.uid,
       isAnonymous: user.isAnonymous,
-      displayName: getDisplayName(user),
+      displayName,
       lastUpdatedAt: 0, // reset for anonymous user
     })
   );

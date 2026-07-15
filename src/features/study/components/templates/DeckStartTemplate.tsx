@@ -18,7 +18,7 @@ export const DeckStartTemplate: React.FC<DeckStartTemplateProps> = (props) => {
         <Button
           primary
           disabled={props.cardsLength === 0}
-          onClick={props.onClickStart}
+          {...(props.onClickStart !== undefined ? { onClick: props.onClickStart } : {})}
           label={`Start to study ${Math.min(props.cardsLength, props.config.maxNumberOfCardsToLearn)} card(s) from ${
             props.cardsLength
           }`}

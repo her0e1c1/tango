@@ -1,5 +1,5 @@
 import "./init";
-import { expect, it, describe, vi, beforeEach, Mock } from "vitest";
+import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import * as firestore from "@src/action/firestore";
 import { getTimestamp } from "@src/action/firestore/mocked";
@@ -90,6 +90,14 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     it("should be empty cards", async () => {
       expect(firestore.deck.splitCards(cards, 0)).toEqual([]);
       expect(firestore.deck.splitCards([], 5)).toEqual([]);
+    });
+
+    it("returns no chunks for a negative maximum", () => {
+      expect(firestore.deck.splitCards(cards, -1)).toEqual([]);
+    });
+
+    it("rounds a positive fractional maximum up", () => {
+      expect(firestore.deck.splitCards(cards, 2.5)).toEqual([cards.slice(0, 3), cards.slice(3, 5)]);
     });
   });
 });

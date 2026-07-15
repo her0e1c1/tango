@@ -15,10 +15,10 @@ export interface FrontTextProps {
 
 export const FrontText: React.FC<FrontTextProps> = (props) => {
   const handlers = useSwipeable({
-    onSwipedLeft: props.onSwipeLeft,
-    onSwipedUp: props.onSwipeUp,
-    onSwipedRight: props.onSwipeRight,
-    onSwipedDown: props.onSwipeDown,
+    ...(props.onSwipeLeft !== undefined ? { onSwipedLeft: props.onSwipeLeft } : {}),
+    ...(props.onSwipeUp !== undefined ? { onSwipedUp: props.onSwipeUp } : {}),
+    ...(props.onSwipeRight !== undefined ? { onSwipedRight: props.onSwipeRight } : {}),
+    ...(props.onSwipeDown !== undefined ? { onSwipedDown: props.onSwipeDown } : {}),
   });
   return (
     <div

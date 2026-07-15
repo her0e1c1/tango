@@ -33,5 +33,12 @@ export const useStudyControllerState = (props: UseStudyControllerStateOptions): 
 
   const onToggleAutoPlay = props.onToggleAutoPlay ?? (() => undefined);
 
-  return { autoPlay, cardInterval, index, numberOfCards, onChange, onToggleAutoPlay };
+  return {
+    autoPlay,
+    cardInterval,
+    index,
+    numberOfCards,
+    ...(onChange !== undefined ? { onChange } : {}),
+    onToggleAutoPlay,
+  };
 };

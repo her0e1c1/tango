@@ -128,4 +128,21 @@ describe("event action", () => {
     );
     // TODO: subscribe
   });
+
+  it("clears the display name when the provider has no profile", async () => {
+    const m = linkWithPopup as Mock;
+    m.mockReturnValue({ user: { uid: "uid", isAnonymous: false, providerData: [] } });
+
+    const ga = getAuth as Mock;
+    ga.mockReturnValue({ currentUser: {} });
+
+    const dispatch = vi.fn();
+    const getState = vi.fn();
+    const f = action.event.loginGoogle();
+    await f(dispatch, getState, undefined);
+
+    expect(dispatch).toHaveBeenCalledWith(
+      type.configUpdate({ uid: "uid", displayName: null, isAnonymous: false, lastUpdatedAt: 0 })
+    );
+  });
 });

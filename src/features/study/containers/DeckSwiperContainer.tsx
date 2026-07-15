@@ -116,7 +116,7 @@ export const DeckSwiperContainer: React.FC = () => {
       }}
       frontTextSlot={
         <FrontText
-          category={category}
+          {...(category !== undefined ? { category } : {})}
           text={card.frontText}
           onSwipeUp={studyActions.swipeUp}
           onSwipeDown={studyActions.swipeDown}
@@ -128,8 +128,8 @@ export const DeckSwiperContainer: React.FC = () => {
       cardOverlaySlot={<CardOverlay card={card} />}
       backTextSlot={
         <BackText
-          category={category}
-          code={C.LANGUAGES.includes(category)}
+          {...(category !== undefined ? { category } : {})}
+          code={category !== undefined && C.LANGUAGES.includes(category)}
           text={card.backText}
           onClick={studyActions.toggleShowBackText}
         />

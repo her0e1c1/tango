@@ -12,7 +12,7 @@ export const DeckImportTemplate: React.FC<{
   return (
     <Layout showHeader {...props.layout}>
       <Title>Deck Upload</Title>
-      <Upload className="my-2" onChange={props.onChange} />
+      <Upload className="my-2" {...(props.onChange !== undefined ? { onChange: props.onChange } : {})} />
       <Title>CSV File Format</Title>
       <Description className="my-2">{`There are 3 columns without header: front text, back text, and tags (optional).`}</Description>
       <div className="flex justify-start items-center">

@@ -22,8 +22,8 @@ export const CardViewContainer: React.FC = () => {
   return (
     <CardViewTemplate
       backText={{
-        category,
-        code: C.LANGUAGES.includes(category),
+        ...(category !== undefined ? { category } : {}),
+        code: category !== undefined && C.LANGUAGES.includes(category),
         text: card.backText,
       }}
       layout={{

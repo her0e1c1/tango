@@ -8,7 +8,7 @@ import * as fixture from "@src/shared/storybook/fixture";
 const fields: DeckFormFields = {
   name: { defaultValue: fixture.deck.default.name },
   convertToBr: { checked: Boolean(fixture.deck.default.convertToBr), onChange: () => undefined },
-  url: { defaultValue: fixture.deck.default.url },
+  url: { ...(fixture.deck.default.url !== undefined ? { defaultValue: fixture.deck.default.url } : {}) },
   isPublic: { checked: fixture.deck.default.isPublic, onChange: () => undefined },
   localMode: { checked: Boolean(fixture.deck.default.localMode), onChange: () => undefined },
   category: {

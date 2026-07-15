@@ -49,7 +49,10 @@ function moduleSpecifiers(source: string): string[] {
     /(?:^|\n)\s*(?:import\s+(?:type\s+)?(?:[^;]*?\s+from\s+)?|export\s+(?:type\s+)?[^;]*?\s+from\s+)["']([^"']+)["']/g
   );
   const dynamicMatches = source.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g);
-  return [...Array.from(staticMatches, (match) => match[1]), ...Array.from(dynamicMatches, (match) => match[1])];
+  return [...staticMatches, ...dynamicMatches].flatMap((match) => {
+    const specifier = match[1];
+    return specifier === undefined ? [] : [specifier];
+  });
 }
 
 interface ModuleReference {
@@ -224,7 +227,9 @@ describe("component architecture", () => {
       );
 
       expect(featureContainerModules, pagePath).toHaveLength(1);
-      expect(modules, pagePath).toEqual(["react", featureContainerModules[0]]);
+      expect(modules, pagePath).toEqual(
+        modules.includes("react") ? ["react", featureContainerModules[0]] : [featureContainerModules[0]]
+      );
       expect(renderedContainers, pagePath).toHaveLength(1);
       expect(source, pagePath).toMatch(
         new RegExp(

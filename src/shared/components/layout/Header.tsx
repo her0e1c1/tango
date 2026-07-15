@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = (props) => {
   return (
     <IconContext.Provider value={{ className: "dark:text-gray-200 text-3xl" }}>
       <div className={cx("flex items-center gap-3 px-3 pt-1", props.fixed && ["fixed"])}>
-        <Logo className="flex-1" onClick={props.onClickLogo} />
+        <Logo className="flex-1" {...(props.onClickLogo !== undefined ? { onClick: props.onClickLogo } : {})} />
         {props.dark ? (
           <AiOutlineSun onClick={() => props.onClickDarkMode?.(false)} />
         ) : (
