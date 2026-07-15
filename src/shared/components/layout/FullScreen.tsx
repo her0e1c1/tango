@@ -15,7 +15,7 @@ export const FullScreen: React.FC<{
     <div
       {...clickInteraction}
       className={cx([
-        "dark:bg-black",
+        "bg-canvas",
         "w-screen",
         "h-screen",
         props.flex && ["flex", "flex-col"],

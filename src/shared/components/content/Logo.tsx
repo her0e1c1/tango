@@ -5,10 +5,7 @@ import { useButtonInteraction } from "@/shared/components/feedback/buttonInterac
 export const Logo: React.FC<{ onClick?: () => void; className?: string }> = (props) => {
   const clickInteraction = useButtonInteraction<HTMLDivElement>(props.onClick);
   return (
-    <div
-      {...clickInteraction}
-      className={cx("text-2xl font-semibold italic text-indigo-500 dark:text-indigo-700", props.className)}
-    >
+    <div {...clickInteraction} className={cx("text-2xl font-semibold italic text-accent-primary", props.className)}>
       tango
     </div>
   );

@@ -5,10 +5,9 @@ export const Outer: React.FC<{ children?: React.ReactNode; className?: string }>
   return (
     <div
       className={cx(
-        "bg-white",
+        "bg-canvas",
         "cursor-default",
         "select-none",
-        "dark:bg-black",
         "overflow-y-scroll",
         "h-screen",
         "flex",
