@@ -7,7 +7,8 @@
 | `src/main.tsx` | React root、Redux Provider、PersistGate の組み立て | `react-dom`, `react-redux`, `redux-persist`, `src/store` |
 | `src/App.tsx` | dark mode class 管理、event init、route 定義 | `react-router-dom`, `src/page`, `src/action/event` |
 | `src/page` | 対応する feature container を render する薄い route entry | `src/features/*/containers` |
-| `src/features/*/containers` | Redux/router/form/UI state と副作用の接続 | `react-redux`, `react-router-dom`, `react-hook-form`, actions, selectors |
+| `src/features/*/containers` | route/store data と UI rendering の orchestration、feature hook/template への配線 | `react-redux`, `react-router-dom`, feature hooks, actions, selectors |
+| `src/features/*/hooks` | feature 固有の form/UI state、Redux/router/Zustand 接続を container から分離する private hook | React hooks, `react-hook-form`, Redux/router, feature state |
 | `src/features/*/components/templates` | stateless な画面単位の UI 合成 | 同じ feature の components, `src/shared/components` |
 | `src/features/*/components` | deck/card/config/study/import 固有の props-driven UI | `src/shared/components`, render 用 libraries |
 | `src/shared/components` | `layout`・`forms`・`content`・`feedback` の feature 非依存な共通 UI。root barrel が公開 API | Tailwind CSS, KaTeX, highlight.js, react-markdown |
@@ -29,6 +30,7 @@ flowchart TD
     App --> EventAction[src/action/event]
 
     Pages --> Containers[src/features/*/containers]
+    Containers --> FeatureHooks[src/features/*/hooks]
     Containers --> Templates[src/features/*/components/templates]
     Containers --> FeatureUI[src/features/*/components]
     Templates --> FeatureUI
@@ -37,6 +39,8 @@ flowchart TD
 
     Containers --> Selectors[src/selector]
     Containers --> Actions[src/action]
+    FeatureHooks --> Selectors
+    FeatureHooks --> Actions
     Actions --> Selectors
     Actions --> Firestore[src/action/firestore]
     Actions --> StoreTypes[src/action/type]

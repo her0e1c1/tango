@@ -24,10 +24,10 @@
 | Container / CardForm | `src/features/card/containers/CardFormContainer.spec.tsx` | container テスト |
 | Container / CardList | `src/features/card/containers/CardListContainer.spec.tsx` | container/template 統合テスト |
 | Container / DeckForm | `src/features/deck/containers/DeckFormContainer.spec.tsx` | container テスト |
-| Container / DeckFilter | `src/features/deck/containers/useDeckFilterState.spec.tsx` | hook/component 統合テスト |
-| Container / ConfigForm | `src/features/settings/containers/useConfigFormState.spec.tsx` | hook/component 統合テスト |
+| Hook / DeckFilter | `src/features/deck/hooks/useDeckFilterState.spec.tsx` | hook/component 統合テスト |
+| Hook / ConfigForm | `src/features/settings/hooks/useConfigFormState.spec.tsx` | hook/component 統合テスト |
 | Component / FrontText | `src/features/card/components/FrontText.spec.tsx` | component テスト |
-| Container / StudyController | `src/features/study/containers/useStudyControllerState.spec.tsx` | hook/component 統合テスト |
+| Hook / StudyController | `src/features/study/hooks/useStudyControllerState.spec.tsx` | hook/component 統合テスト |
 | Container / DeckSwiper | `src/features/study/containers/DeckSwiperContainer.spec.tsx` | container/template 統合テスト |
 | Container / DeckImport | `src/features/import/containers/DeckImportContainer.spec.tsx` | container/template 統合テスト |
 | Architecture | `src/lib/componentArchitecture.spec.ts` | UI 依存境界テスト |
@@ -380,7 +380,7 @@
 
 ---
 
-### 4-3. ConfigForm (`src/features/settings/containers/useConfigFormState.spec.tsx`)
+### 4-3. ConfigForm (`src/features/settings/hooks/useConfigFormState.spec.tsx`)
 
 > 初期 Config: 全フラグ `false`、数値フィールド `0`、文字列フィールド `""`
 
@@ -399,7 +399,7 @@
 
 ---
 
-### 4-5. Deck filter (`src/features/deck/containers/useDeckFilterState.spec.tsx`)
+### 4-5. Deck filter (`src/features/deck/hooks/useDeckFilterState.spec.tsx`)
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
@@ -409,7 +409,7 @@
 
 ---
 
-### 4-6. Study controller (`src/features/study/containers/useStudyControllerState.spec.tsx`)
+### 4-6. Study controller (`src/features/study/hooks/useStudyControllerState.spec.tsx`)
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|

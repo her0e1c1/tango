@@ -12,11 +12,13 @@ flowchart TD
     T --> SC[Shared Components<br/>src/shared/components]
     FC --> SC
 
-    C --> H[Container Hooks<br/>src/shared/hooks / src/features/*/containers]
+    C --> H[Container Hooks<br/>src/shared/hooks / src/features/*/hooks]
     C --> A[Redux Actions / Thunks<br/>src/action]
+    H --> A
     A --> S[Redux Store<br/>src/store]
     S --> X[Selectors<br/>src/selector]
     X --> C
+    X --> H
 
     S <--> L[redux-persist<br/>LocalStorage]
     S --> I[Sample Deck Data<br/>sample/build/output.json]
@@ -34,10 +36,11 @@ flowchart TD
 
 UI の依存方向は `App -> Page -> Container -> Template -> Component` です。`src/page` の各 route entry は対応する feature の container を 1 つ render します。
 
-- `containers` は Redux、router、keyboard shortcut、form state、timer、overlay などの application state と副作用を所有します。
+- `containers` は route と store のデータを取得し、画面の rendering を調整します。
+- feature hook は再利用する feature 固有の form/UI state と、Redux・router・Zustand などの接続や副作用をカプセル化します。
 - `components/templates` は画面単位の stateless な合成を、`components` は props-driven な表示を担当します。domain/UI state を所有しない表示統合として、`Code` の DOM highlighting や `useSwipeable` などの render-only hook は利用できます。
 - `src/shared/components` は feature に依存しない stateless な共通表示です。feature 間の調整は container が行います。
-- container 専用 hook は `src/shared/hooks` または feature の `containers` 配下に置き、Page・Template・Component からは呼びません。
+- feature 固有の container-support hook は `src/features/<feature>/hooks`、feature 間で共有する container hook は `src/shared/hooks` に置き、Page・Template・Component からは呼びません。
 
 ## Shared component の責務別 group
 

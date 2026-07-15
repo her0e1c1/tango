@@ -21,7 +21,8 @@
 | Action unit tests | `src/action/*.spec.ts` | deck/card/event/config actions。Firestore や file-saver などは mock される箇所があります。 |
 | Firestore integration | `src/action/firestore/*.spec.ts` | Firestore emulator を使う deck/card tests と rule tests。 |
 | Selectors | `src/selector/*.spec.ts` | deck/card selector の derived state を確認します。 |
-| Feature container tests | `src/features/*/containers/*.spec.tsx` | state/form hook、Redux/router 接続、template への props/slot 配線を react-testing-library で検証します。 |
+| Feature container tests | `src/features/*/containers/*.spec.tsx` | route/store data の接続と template への props/slot 配線を `@testing-library/react` で検証します。 |
+| Feature hook tests | `src/features/*/hooks/*.spec.tsx` | form/UI state、Redux/router/Zustand 接続などの hook behavior を `@testing-library/react` で検証します。 |
 | Presentation tests | `src/features/*/components/**/*.spec.tsx` | stateless component の rendering と callback を検証します。 |
 | Architecture tests | `src/lib/componentArchitecture.spec.ts` | Page/Container/Template/Component と feature/shared の依存境界を検証します。 |
 | Storybook | `src/{features,shared}/**/*.stories.tsx`, `.storybook/*` | component/template catalog と static build の対象です。 |
