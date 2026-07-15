@@ -21,7 +21,8 @@
     "fmt:check": "biome format ./src && biome lint --error-on-warnings .",
     "lint": "npm run lint:tsc && biome lint --error-on-warnings .",
     "lint:check": "npm run lint",
-    "lint:tsc": "tsc",
+    "lint:tsc:coverage": "node scripts/check-tsconfig-coverage.mjs",
+    "lint:tsc": "npm run lint:tsc:coverage && tsc -p tsconfig.json --pretty false --noEmit && tsc -p tsconfig.node.json --pretty false --noEmit",
     "storybook": "storybook dev",
     "build-storybook": "npm run build:storybook"
   },

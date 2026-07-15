@@ -147,12 +147,13 @@ const persistedReduxStudyFields = async (page: Page) => {
     const root = JSON.parse(window.localStorage.getItem("persist:root") ?? "{}");
     const deck = JSON.parse(root.deck).byId["e2e-deck-1"];
     const config = JSON.parse(root.config);
+    const hasOwn = (value: object, key: PropertyKey) => Object.getOwnPropertyDescriptor(value, key) !== undefined;
     return {
-      deckCurrentIndex: Object.hasOwn(deck, "currentIndex"),
-      deckCardOrderIds: Object.hasOwn(deck, "cardOrderIds"),
-      configShowBackText: Object.hasOwn(config, "showBackText"),
-      configAutoPlay: Object.hasOwn(config, "autoPlay"),
-      configLastSwipe: Object.hasOwn(config, "lastSwipe"),
+      deckCurrentIndex: hasOwn(deck, "currentIndex"),
+      deckCardOrderIds: hasOwn(deck, "cardOrderIds"),
+      configShowBackText: hasOwn(config, "showBackText"),
+      configAutoPlay: hasOwn(config, "autoPlay"),
+      configLastSwipe: hasOwn(config, "lastSwipe"),
     };
   });
 };
