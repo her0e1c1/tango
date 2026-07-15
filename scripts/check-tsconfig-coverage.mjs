@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
+const repositoryRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const configNames = ["tsconfig.json", "tsconfig.node.json"];
 
 const formatDiagnostic = (diagnostic) =>
@@ -48,7 +48,17 @@ for (const configName of configNames) {
 
 const trackedFiles = execFileSync(
   "git",
-  ["-C", repositoryRoot, "ls-files", "-z", "--", ":(glob)**/*.ts", ":(glob)**/*.tsx"],
+  [
+    "-c",
+    `safe.directory=${repositoryRoot}`,
+    "-C",
+    repositoryRoot,
+    "ls-files",
+    "-z",
+    "--",
+    ":(glob)**/*.ts",
+    ":(glob)**/*.tsx",
+  ],
   { encoding: "utf8" }
 )
   .split("\0")
