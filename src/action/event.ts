@@ -13,15 +13,23 @@ import { getRealtimeLastUpdatedAt } from "@/lib/realtimeChange";
 
 const subscriptions = [] as Callback[];
 
-const unsubscribe = () => {
+export const stopSubscriptions = () => {
+  const errors: unknown[] = [];
   while (subscriptions.length > 0) {
     const f = subscriptions.pop();
-    f?.();
+    try {
+      f?.();
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+  if (errors.length > 0) {
+    throw errors[0];
   }
 };
 
 export const logout = (): ThunkResult => async (dispatch) => {
-  unsubscribe();
+  stopSubscriptions();
   await signOut(getAuth());
   await clearStudyStore();
   await dispatch(type.clearAll());
@@ -117,26 +125,31 @@ export const cardOnChange =
 export const subscribe =
   (uid: string): ThunkResult =>
   async (dispatch, getState) => {
-    unsubscribe();
+    stopSubscriptions();
     const updatedAt = getState().config.lastUpdatedAt;
-    const unSubscribeDeck = firestore.event.subscribeDeck({
-      uid,
-      updatedAt,
-      onCange: (event) => {
-        process.env.NODE_ENV !== "production" && console.log("SNAPSHOT DECK: ", event.metadata);
-        void dispatch(deckOnChange(event));
-      },
-    });
-    const unSubscribeCard = firestore.event.subscribeCard({
-      uid,
-      updatedAt,
-      onCange: (event) => {
-        process.env.NODE_ENV !== "production" && console.log("SNAPSHOT CARD: ", event.metadata);
-        void dispatch(cardOnChange(event));
-      },
-    });
-    subscriptions.push(unSubscribeDeck);
-    subscriptions.push(unSubscribeCard);
+    try {
+      const unSubscribeDeck = firestore.event.subscribeDeck({
+        uid,
+        updatedAt,
+        onCange: (event) => {
+          process.env.NODE_ENV !== "production" && console.log("SNAPSHOT DECK: ", event.metadata);
+          void dispatch(deckOnChange(event));
+        },
+      });
+      subscriptions.push(unSubscribeDeck);
+      const unSubscribeCard = firestore.event.subscribeCard({
+        uid,
+        updatedAt,
+        onCange: (event) => {
+          process.env.NODE_ENV !== "production" && console.log("SNAPSHOT CARD: ", event.metadata);
+          void dispatch(cardOnChange(event));
+        },
+      });
+      subscriptions.push(unSubscribeCard);
+    } catch (error) {
+      stopSubscriptions();
+      throw error;
+    }
   };
 
 export const loginGoogle = (): ThunkResult => async (dispatch) => {

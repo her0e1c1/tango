@@ -1,10 +1,11 @@
-import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
+import { expect, it, describe, vi, beforeEach, afterEach, type Mock } from "vitest";
 
 import * as type from "@/action/type";
 import * as action from "@/action";
 import * as firestore from "@/action/firestore";
 import { getAuth, signOut, linkWithPopup } from "firebase/auth";
 import { STUDY_STORAGE_KEY, studyStore } from "@/features/study/state/studyStore";
+import { createRootState } from "@/test/factories";
 
 vi.mock("firebase/auth");
 vi.mock("./firestore");
@@ -31,6 +32,14 @@ describe("event action", () => {
     });
   });
 
+  afterEach(() => {
+    try {
+      action.event.stopSubscriptions();
+    } catch {
+      // Individual tests assert listener errors; always isolate the next test.
+    }
+  });
+
   describe("deckOnChange", () => {
     it("should subscribe deck", async () => {
       const [dispatch, getState] = [vi.fn(), vi.fn()];
@@ -55,6 +64,88 @@ describe("event action", () => {
       await f(dispatch, getState, undefined);
       expect(dispatch).toHaveBeenCalledWith(type.cardBulkInsert([card]));
       expect(dispatch).toHaveBeenCalledWith(type.configUpdate({ lastUpdatedAt }));
+    });
+  });
+
+  describe("realtime subscriptions", () => {
+    it("stops every active listener through the common API", async () => {
+      const stopDeck = vi.fn();
+      const stopCard = vi.fn();
+      vi.mocked(firestore.event.subscribeDeck).mockReturnValue(stopDeck);
+      vi.mocked(firestore.event.subscribeCard).mockReturnValue(stopCard);
+      const dispatch = vi.fn();
+      const getState = vi.fn(() => createRootState());
+
+      await action.event.subscribe("uid-a")(dispatch, getState, undefined);
+      action.event.stopSubscriptions();
+      action.event.stopSubscriptions();
+
+      expect(stopDeck).toHaveBeenCalledTimes(1);
+      expect(stopCard).toHaveBeenCalledTimes(1);
+    });
+
+    it("stops old listeners before registering replacements", async () => {
+      const operations: string[] = [];
+      vi.mocked(firestore.event.subscribeDeck).mockImplementation(({ uid }) => {
+        operations.push(`subscribe-deck-${uid}`);
+        return () => operations.push(`stop-deck-${uid}`);
+      });
+      vi.mocked(firestore.event.subscribeCard).mockImplementation(({ uid }) => {
+        operations.push(`subscribe-card-${uid}`);
+        return () => operations.push(`stop-card-${uid}`);
+      });
+      const dispatch = vi.fn();
+      const getState = vi.fn(() => createRootState());
+
+      await action.event.subscribe("uid-a")(dispatch, getState, undefined);
+      await action.event.subscribe("uid-b")(dispatch, getState, undefined);
+
+      expect(operations).toEqual([
+        "subscribe-deck-uid-a",
+        "subscribe-card-uid-a",
+        "stop-card-uid-a",
+        "stop-deck-uid-a",
+        "subscribe-deck-uid-b",
+        "subscribe-card-uid-b",
+      ]);
+
+      action.event.stopSubscriptions();
+    });
+
+    it("cleans a partial registration when later listener setup fails", async () => {
+      const setupError = new Error("card setup failed");
+      const stopDeck = vi.fn();
+      vi.mocked(firestore.event.subscribeDeck).mockReturnValue(stopDeck);
+      vi.mocked(firestore.event.subscribeCard).mockImplementation(() => {
+        throw setupError;
+      });
+      const dispatch = vi.fn();
+      const getState = vi.fn(() => createRootState());
+
+      await expect(action.event.subscribe("uid-a")(dispatch, getState, undefined)).rejects.toBe(setupError);
+
+      expect(stopDeck).toHaveBeenCalledTimes(1);
+      action.event.stopSubscriptions();
+      expect(stopDeck).toHaveBeenCalledTimes(1);
+    });
+
+    it("drains every listener before surfacing a stop error", async () => {
+      const stopError = new Error("card stop failed");
+      const stopDeck = vi.fn();
+      const stopCard = vi.fn(() => {
+        throw stopError;
+      });
+      vi.mocked(firestore.event.subscribeDeck).mockReturnValue(stopDeck);
+      vi.mocked(firestore.event.subscribeCard).mockReturnValue(stopCard);
+      const dispatch = vi.fn();
+      const getState = vi.fn(() => createRootState());
+      await action.event.subscribe("uid-a")(dispatch, getState, undefined);
+
+      expect(() => action.event.stopSubscriptions()).toThrow(stopError);
+
+      expect(stopCard).toHaveBeenCalledTimes(1);
+      expect(stopDeck).toHaveBeenCalledTimes(1);
+      expect(() => action.event.stopSubscriptions()).not.toThrow();
     });
   });
 
