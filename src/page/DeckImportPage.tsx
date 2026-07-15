@@ -1,4 +1,4 @@
-import React from "react";
-import { DeckImportContainer } from "@src/features/import/containers";
+import type React from "react";
+import { DeckImportContainer } from "@/features/import/containers";
 
 export const DeckImportPage: React.FC = () => <DeckImportContainer />;

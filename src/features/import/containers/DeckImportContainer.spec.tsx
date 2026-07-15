@@ -24,7 +24,7 @@ vi.mock("react-use", () => ({
   useKey: mocks.useKey,
 }));
 
-vi.mock("@src/shared/hooks/useActions", () => ({
+vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
     deckUploadAndBack: mocks.deckUploadAndBack,
     deckDownloadCsvSampleText: mocks.deckDownloadCsvSampleText,
@@ -35,7 +35,7 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-import { DeckImportContainer } from "@src/features/import/containers/DeckImportContainer";
+import { DeckImportContainer } from "@/features/import/containers/DeckImportContainer";
 
 describe("DeckImportContainer", () => {
   beforeEach(() => {

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Card as Template } from "@src/features/card/components/Card";
-import * as fixture from "@src/shared/storybook/fixture";
+import { Card as Template } from "@/features/card/components/Card";
+import * as fixture from "@/shared/storybook/fixture";
 
 const meta = {
   title: "Card/Card",

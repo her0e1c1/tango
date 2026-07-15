@@ -1,5 +1,5 @@
 import cx from "classnames";
-import * as React from "react";
+import type * as React from "react";
 
 export const Score: React.FC<{ score?: number; large?: boolean; className?: string }> = (props) => {
   const score = props.score ?? 0;

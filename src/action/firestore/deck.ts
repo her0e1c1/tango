@@ -10,8 +10,8 @@ import {
   getDoc,
   setDoc,
 } from "firebase/firestore";
-import { getTimestamp } from "@src/action/firestore/mocked";
-import { buildDeckCreateDto, buildDeckUpdateDto } from "@src/action/firestore/dto";
+import { getTimestamp } from "@/action/firestore/mocked";
+import { buildDeckCreateDto, buildDeckUpdateDto } from "@/action/firestore/dto";
 
 const db = getFirestore();
 

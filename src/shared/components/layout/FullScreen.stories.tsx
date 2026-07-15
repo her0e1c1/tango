@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { FullScreen as Template } from "@src/shared/components/layout/FullScreen";
-import { Container } from "@src/shared/storybook/Decorator";
+import { FullScreen as Template } from "@/shared/components/layout/FullScreen";
+import { Container } from "@/shared/storybook/Decorator";
 
 const meta = {
   title: "Shared/FullScreen",

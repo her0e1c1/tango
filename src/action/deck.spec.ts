@@ -3,10 +3,10 @@ import { expect, expectTypeOf, it, describe, vi, beforeEach, afterEach } from "v
 // import moment from "moment";
 import * as fileSaver from "file-saver";
 
-import * as firestore from "@src/action/firestore";
-import * as action from "@src/action";
-import * as C from "@src/constant";
-import { createBlobConstructor, createCard } from "@src/test/factories";
+import * as firestore from "@/action/firestore";
+import * as action from "@/action";
+import * as C from "@/constant";
+import { createBlobConstructor, createCard } from "@/test/factories";
 
 vi.mock("./firestore");
 vi.mock("file-saver", () => ({

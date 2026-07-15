@@ -6,8 +6,8 @@ import {
   calculateNextIndex,
   buildStudySession,
   filterCardsForDeck,
-} from "@src/lib/study";
-import { createDeck } from "@src/test/factories";
+} from "@/lib/study";
+import { createDeck } from "@/test/factories";
 
 describe("resolveSwipeAction", () => {
   it("returns the swipe action for the given direction", () => {

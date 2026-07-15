@@ -1,7 +1,7 @@
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
-import * as type from "@src/action/type";
-import { update } from "@src/action/config";
+import * as type from "@/action/type";
+import { update } from "@/action/config";
 
 vi.mock("firebase/auth");
 vi.mock("firebase/firestore");

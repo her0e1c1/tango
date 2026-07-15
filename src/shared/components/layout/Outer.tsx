@@ -1,5 +1,5 @@
 import cx from "classnames";
-import * as React from "react";
+import type * as React from "react";
 
 export const Outer: React.FC<{ children?: React.ReactNode; className?: string }> = (props) => {
   return (

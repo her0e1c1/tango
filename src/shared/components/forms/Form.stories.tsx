@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Form as Template } from "@src/shared/components/forms/Form";
-import { FormItem } from "@src/shared/components/forms/FormItem";
+import { Form as Template } from "@/shared/components/forms/Form";
+import { FormItem } from "@/shared/components/forms/FormItem";
 
 const meta = {
   title: "Shared/Form",

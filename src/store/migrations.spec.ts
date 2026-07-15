@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { migratePersistedState } from "@src/store/migrations";
+import { migratePersistedState } from "@/store/migrations";
 
 describe("persisted Redux state migrations", () => {
   it("removes transient study UI while preserving legacy deck progress", async () => {

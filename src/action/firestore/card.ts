@@ -1,6 +1,6 @@
 import { getFirestore, doc, updateDoc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
-import { getTimestamp } from "@src/action/firestore/mocked";
-import { buildCardCreateDto, buildCardUpdateDto } from "@src/action/firestore/dto";
+import { getTimestamp } from "@/action/firestore/mocked";
+import { buildCardCreateDto, buildCardUpdateDto } from "@/action/firestore/dto";
 
 const db = getFirestore();
 

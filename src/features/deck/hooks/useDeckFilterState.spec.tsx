@@ -1,13 +1,13 @@
-import React from "react";
+import type React from "react";
 
 import userEvent from "@testing-library/user-event";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartForm } from "@src/features/deck/components/DeckStartForm";
-import { useDeckFilterState } from "@src/features/deck/hooks/useDeckFilterState";
-import { createDeck } from "@src/test/factories";
+import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
+import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
+import { createDeck } from "@/test/factories";
 
 const DeckFilterHarness: React.FC<{
   deck: Deck;

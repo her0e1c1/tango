@@ -26,8 +26,13 @@
 	"linter": {
 		"enabled": true,
 		"includes": ["**/*.ts", "**/*.tsx"],
+		"domains": {
+			"project": "recommended",
+			"react": "recommended",
+			"test": "recommended"
+		},
 		"rules": {
-			"preset": "none",
+			"preset": "recommended",
 			"complexity": {
 				"noAdjacentSpacesInRegex": "error",
 				"noBannedTypes": "error",
@@ -52,11 +57,27 @@
 				"noSelfAssign": "error",
 				"noSetterReturn": "error",
 				"noSwitchDeclarations": "error",
+				"noUndeclaredDependencies": {
+					"level": "error",
+					"options": {
+						"devDependencies": [
+							"**/*.spec.ts",
+							"**/*.spec.tsx",
+							"**/*.stories.ts",
+							"**/*.stories.tsx",
+							"**/e2e/**/*.ts",
+							".storybook/**/*.ts",
+							"**/*.config.ts"
+						]
+					}
+				},
 				"noUndeclaredVariables": "error",
 				"noUnreachable": "error",
 				"noUnreachableSuper": "error",
 				"noUnsafeFinally": "error",
 				"noUnsafeOptionalChaining": "error",
+				"noUnusedFunctionParameters": "error",
+				"noUnusedImports": "error",
 				"noUnusedLabels": "error",
 				"noUnusedVariables": "error",
 				"useExhaustiveDependencies": "warn",
@@ -74,12 +95,15 @@
 			"style": {
 				"noCommonJs": "error",
 				"noNamespace": "error",
+				"noNonNullAssertion": "error",
 				"useArrayLiterals": "error",
 				"useAsConstAssertion": "error",
 				"useComponentExportOnlyModules": {
 					"level": "warn",
 					"options": { "allowConstantExport": true }
-				}
+				},
+				"useExportType": "error",
+				"useImportType": "error"
 			},
 			"suspicious": {
 				"noAssignInExpressions": "error",
@@ -90,6 +114,7 @@
 				"noCompareNegZero": "error",
 				"noControlCharactersInRegex": "error",
 				"noDebugger": "error",
+				"noDeprecatedImports": "error",
 				"noDuplicateCase": "error",
 				"noDuplicateClassMembers": "error",
 				"noDuplicateElseIf": "error",
@@ -98,12 +123,16 @@
 				"noDuplicateObjectKeys": "error",
 				"noDuplicateParameters": "error",
 				"noEmptyBlockStatements": "error",
-				"noExplicitAny": "off",
+				"noExplicitAny": "error",
 				"noExtraNonNullAssertion": "error",
 				"noFallthroughSwitchClause": "error",
 				"noFunctionAssign": "error",
 				"noGlobalAssign": "error",
 				"noImportAssign": "error",
+				"noImportCycles": {
+					"level": "error",
+					"options": { "ignoreTypes": true }
+				},
 				"noIrregularWhitespace": "error",
 				"noMisleadingCharacterClass": "error",
 				"noMisleadingInstantiator": "error",

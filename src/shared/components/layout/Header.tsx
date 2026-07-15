@@ -1,8 +1,8 @@
 import cx from "classnames";
-import * as React from "react";
+import type * as React from "react";
 import { IconContext } from "react-icons";
 import { AiFillSetting, AiOutlineUpload, AiOutlineSun, AiFillMoon } from "react-icons/ai";
-import { Logo } from "@src/shared/components/content/Logo";
+import { Logo } from "@/shared/components/content/Logo";
 
 export interface HeaderProps {
   fixed?: boolean;

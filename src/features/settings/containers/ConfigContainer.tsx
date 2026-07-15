@@ -1,11 +1,11 @@
-import * as React from "react";
+import type * as React from "react";
 import { useSelector } from "react-redux";
 import { useKey } from "react-use";
 
-import { ConfigFormTemplate } from "@src/features/settings/components/templates/ConfigFormTemplate";
-import { useConfigFormState } from "@src/features/settings/hooks/useConfigFormState";
-import * as selector from "@src/selector";
-import { useActions } from "@src/shared/hooks/useActions";
+import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
+import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
+import * as selector from "@/selector";
+import { useActions } from "@/shared/hooks/useActions";
 
 export const ConfigContainer: React.FC = () => {
   const config = useSelector(selector.config.get());

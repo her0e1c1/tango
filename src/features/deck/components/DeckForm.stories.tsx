@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { DeckForm as Template, type DeckFormFields } from "@src/features/deck/components/DeckForm";
-import * as fixture from "@src/shared/storybook/fixture";
+import { DeckForm as Template, type DeckFormFields } from "@/features/deck/components/DeckForm";
+import * as fixture from "@/shared/storybook/fixture";
 
 const fields: DeckFormFields = {
   name: { defaultValue: fixture.deck.default.name },

@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest";
-import { splitByUniqueKey } from "@src/selector/card";
-import { createCard, createRootState } from "@src/test/factories";
+import { splitByUniqueKey } from "@/selector/card";
+import { createCard, createRootState } from "@/test/factories";
 
 describe("card selector", () => {
   describe("splitByUniqueKey", () => {

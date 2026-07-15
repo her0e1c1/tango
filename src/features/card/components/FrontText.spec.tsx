@@ -2,7 +2,7 @@ import { render, cleanup } from "@testing-library/react";
 import { expect, it, describe, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom";
 
-import { FrontText } from "@src/features/card/components/FrontText";
+import { FrontText } from "@/features/card/components/FrontText";
 
 describe("FrontText", () => {
   afterEach(() => {

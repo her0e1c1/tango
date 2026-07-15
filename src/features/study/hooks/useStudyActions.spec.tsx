@@ -1,9 +1,9 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as type from "@src/action/type";
-import { useStudyActions } from "@src/features/study/hooks/useStudyActions";
-import { studyStore } from "@src/features/study/state/studyStore";
+import * as type from "@/action/type";
+import { useStudyActions } from "@/features/study/hooks/useStudyActions";
+import { studyStore } from "@/features/study/state/studyStore";
 
 const mocks = vi.hoisted(() => ({
   state: null as RootState | null,
@@ -26,7 +26,7 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
 }));
 
-vi.mock("@src/action", () => ({
+vi.mock("@/action", () => ({
   card: { update: mocks.cardUpdate },
   deck: { update: mocks.deckUpdate },
   type: { configUpdate: mocks.configUpdate },

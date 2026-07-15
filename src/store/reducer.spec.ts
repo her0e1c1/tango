@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import * as type from "@src/action/type";
-import type { LegacyStudyFields } from "@src/features/study/state/studyStore";
-import { deck } from "@src/store/reducer";
-import { createDeck } from "@src/test/factories";
+import * as type from "@/action/type";
+import type { LegacyStudyFields } from "@/features/study/state/studyStore";
+import { deck } from "@/store/reducer";
+import { createDeck } from "@/test/factories";
 
-vi.mock("@src/action", () => ({
+vi.mock("@/action", () => ({
   deck: {
     prepare: () => ({ id: "sample-deck", category: "" }),
   },

@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest";
-import { findByName } from "@src/selector/deck";
-import { createDeck, createRootState } from "@src/test/factories";
+import { findByName } from "@/selector/deck";
+import { createDeck, createRootState } from "@/test/factories";
 
 describe("deck selector", () => {
   describe("findByName", () => {

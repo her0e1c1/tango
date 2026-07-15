@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { studyStore } from "@src/features/study/state/studyStore";
+import { studyStore } from "@/features/study/state/studyStore";
 
 export const useStudyHydrated = (): boolean => {
   const [hydrated, setHydrated] = React.useState(() => studyStore.persist.hasHydrated());

@@ -51,7 +51,7 @@ UI の依存方向は `App -> Page -> Container -> Template -> Component` です
 - `content`: `Card`、`Code`、`Description`、`Logo`、`Math`、`Score`、`Section`、`Style`、`TagList`、`Title`
 - `feedback`: `Feedback`、`Overlay`
 
-公開 API は root barrel の `@src/shared/components` です。stories と component 固有の style は対象 component と同じ group に置き、各 group は feature 非依存かつ stateless に保ちます。
+公開 API は root barrel の `@/shared/components` です。stories と component 固有の style は対象 component と同じ group に置き、各 group は feature 非依存かつ stateless に保ちます。
 
 ## Feature map
 

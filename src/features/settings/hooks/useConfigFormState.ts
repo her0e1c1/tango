@@ -1,8 +1,8 @@
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import type { ConfigFormProps } from "@src/features/settings/components/ConfigForm";
-import { renameKey } from "@src/shared/forms/renameKey";
+import type { ConfigFormProps } from "@/features/settings/components/ConfigForm";
+import { renameKey } from "@/shared/forms/renameKey";
 
 export interface UseConfigFormStateOptions {
   config: ConfigState;

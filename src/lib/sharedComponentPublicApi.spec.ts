@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import * as Shared from "@src/shared/components";
-import type { HeaderProps, LayoutProps, Option } from "@src/shared/components";
+import * as Shared from "@/shared/components";
+import type { HeaderProps, LayoutProps, Option } from "@/shared/components";
 
 const components = {
   Button: Shared.Button,

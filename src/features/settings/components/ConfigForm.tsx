@@ -1,6 +1,6 @@
-import * as React from "react";
+import type * as React from "react";
 
-import { Button, Form, FormItem, Input, Section, Slider, Switch } from "@src/shared/components";
+import { Button, Form, FormItem, Input, Section, Slider, Switch } from "@/shared/components";
 
 export interface ConfigFormFields {
   showHeader: React.ComponentProps<typeof Switch>;

@@ -1,1 +1,1 @@
-export { DeckImportContainer } from "@src/features/import/containers/DeckImportContainer";
+export { DeckImportContainer } from "@/features/import/containers/DeckImportContainer";

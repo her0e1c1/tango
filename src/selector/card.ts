@@ -1,10 +1,10 @@
 import { uniq } from "lodash";
-import { isDefined } from "@src/util";
-import { filterCardsForDeck } from "@src/lib/study";
+import { isDefined } from "@/util";
+import { filterCardsForDeck } from "@/lib/study";
 
 export const getAllTags: Select<string, string[]> = (deckId) => (state) => {
   const cards = getAllByDeckId(deckId)(state);
-  return uniq(cards.map((c) => c.tags).reduce((a, acc) => [...a, ...acc], [])).sort();
+  return uniq(cards.flatMap((c) => c.tags)).sort();
 };
 
 export const getAllByDeckId: Select<string, Card[]> = (deckId) => (state) => {

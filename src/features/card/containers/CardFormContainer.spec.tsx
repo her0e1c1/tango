@@ -20,7 +20,7 @@ vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
 
-vi.mock("@src/shared/hooks/useActions", () => ({
+vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
     cardUpdateAndBack: mocks.cardUpdateAndBack,
     goToTop: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-import { CardFormContainer } from "@src/features/card/containers/CardFormContainer";
+import { CardFormContainer } from "@/features/card/containers/CardFormContainer";
 
 describe("CardFormContainer", () => {
   const card: Card = {

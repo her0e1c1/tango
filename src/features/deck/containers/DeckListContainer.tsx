@@ -2,11 +2,11 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 import { useKey } from "react-use";
 
-import * as selector from "@src/selector";
-import { useActions } from "@src/shared/hooks/useActions";
-import { DeckListTemplate } from "@src/features/deck/components/templates/DeckListTemplate";
-import { getLegacyStudyCandidate } from "@src/features/study/hooks/useLegacyStudySession";
-import { useStudyStore } from "@src/features/study/hooks/useStudyStore";
+import * as selector from "@/selector";
+import { useActions } from "@/shared/hooks/useActions";
+import { DeckListTemplate } from "@/features/deck/components/templates/DeckListTemplate";
+import { getLegacyStudyCandidate } from "@/features/study/hooks/useLegacyStudySession";
+import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 
 export const DeckListContainer: React.FC = () => {
   const actions = useActions();

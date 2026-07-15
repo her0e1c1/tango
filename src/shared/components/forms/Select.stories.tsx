@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Select as Template } from "@src/shared/components/forms/Select";
-import * as fixture from "@src/shared/storybook/fixture";
+import { Select as Template } from "@/shared/components/forms/Select";
+import * as fixture from "@/shared/storybook/fixture";
 
 const meta = {
   title: "Shared/Select",

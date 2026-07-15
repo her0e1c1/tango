@@ -23,7 +23,7 @@ vi.mock("react-use", () => ({
   useKey: vi.fn(),
 }));
 
-vi.mock("@src/shared/hooks/useActions", () => ({
+vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goToSettings: vi.fn(),
@@ -35,11 +35,11 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-vi.mock("@src/features/deck/hooks/useDeckActions", () => ({
+vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ update: vi.fn() }),
 }));
 
-vi.mock("@src/features/deck/hooks/useDeckFilterState", () => ({
+vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
     scoreMax: null,
     scoreMin: null,
@@ -59,7 +59,7 @@ vi.mock("@src/features/deck/hooks/useDeckFilterState", () => ({
   }),
 }));
 
-import { CardListContainer } from "@src/features/card/containers/CardListContainer";
+import { CardListContainer } from "@/features/card/containers/CardListContainer";
 
 describe("CardListContainer", () => {
   const deck: Deck = {

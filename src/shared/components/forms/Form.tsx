@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 export const Form: React.FC<{ div?: boolean; onSubmit?: () => void; children?: React.ReactNode }> = (props) => {
   const { div, ...rest } = props;

@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import * as action from "@src/action";
+import * as action from "@/action";
 
 export const useActions = () => {
   const dispatch = useDispatch();

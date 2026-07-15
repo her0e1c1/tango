@@ -1,4 +1,4 @@
-import * as React from "react";
+import type * as React from "react";
 import { AiOutlineArrowUp, AiOutlineArrowDown, AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
 
 const directions: SwipeDirection[] = ["cardSwipeLeft", "cardSwipeUp", "cardSwipeDown", "cardSwipeRight"];
@@ -7,6 +7,12 @@ const icons = {
   cardSwipeDown: AiOutlineArrowDown,
   cardSwipeLeft: AiOutlineArrowLeft,
   cardSwipeRight: AiOutlineArrowRight,
+};
+const labels = {
+  cardSwipeUp: "Swipe up",
+  cardSwipeDown: "Swipe down",
+  cardSwipeLeft: "Swipe left",
+  cardSwipeRight: "Swipe right",
 };
 
 export interface SwipeButtonListProps {
@@ -20,7 +26,9 @@ export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => {
   return (
     <div className="flex">
       {directions.map((d) => (
-        <div
+        <button
+          type="button"
+          aria-label={labels[d]}
           key={d}
           className="flex-1 items-center content-center hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
           onClick={() => {
@@ -41,7 +49,7 @@ export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => {
               return <Icon />;
             })()}
           </span>
-        </div>
+        </button>
       ))}
     </div>
   );

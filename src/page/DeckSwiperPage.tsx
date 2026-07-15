@@ -1,5 +1,5 @@
-import React from "react";
+import type React from "react";
 
-import { DeckSwiperContainer } from "@src/features/study/containers";
+import { DeckSwiperContainer } from "@/features/study/containers";
 
 export const DeckSwiperPage: React.FC = () => <DeckSwiperContainer />;

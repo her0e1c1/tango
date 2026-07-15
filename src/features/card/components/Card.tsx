@@ -1,7 +1,7 @@
 import * as React from "react";
 import { IconContext } from "react-icons";
 import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
-import { Card as Outline, Description, Score, Tag, Title } from "@src/shared/components";
+import { Card as Outline, Description, Score, Tag, Title } from "@/shared/components";
 import { useSwipeable } from "react-swipeable";
 
 export interface CardActionsProps {

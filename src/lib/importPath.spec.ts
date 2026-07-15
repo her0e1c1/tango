@@ -21,7 +21,7 @@ function resolvesInsideSource(filePath: string, importPath: string): boolean {
 }
 
 describe("import paths", () => {
-  it("uses @src for source-local imports", () => {
+  it("uses @ for source-local imports", () => {
     const relativeImports = listSourceFiles(sourceRoot).flatMap((filePath) => {
       const content = readFileSync(filePath, "utf8");
       return Array.from(content.matchAll(relativeSourceImportPattern))

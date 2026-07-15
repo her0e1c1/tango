@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { STUDY_STORAGE_KEY, createStudyStore, selectStudySessionForRoute } from "@src/features/study/state/studyStore";
+import { STUDY_STORAGE_KEY, createStudyStore, selectStudySessionForRoute } from "@/features/study/state/studyStore";
 
 const createMemoryStorage = () => {
   const values = new Map<string, string>();

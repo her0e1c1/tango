@@ -2,11 +2,11 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import * as C from "@src/constant";
-import * as selector from "@src/selector";
-import { useActions } from "@src/shared/hooks/useActions";
-import { CardFormTemplate } from "@src/features/card/components/templates/CardFormTemplate";
-import { useCardFormState } from "@src/features/card/hooks/useCardFormState";
+import * as C from "@/constant";
+import * as selector from "@/selector";
+import { useActions } from "@/shared/hooks/useActions";
+import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";
+import { useCardFormState } from "@/features/card/hooks/useCardFormState";
 
 export const CardFormContainer: React.FC = () => {
   const params = useParams();

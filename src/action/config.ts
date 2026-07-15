@@ -1,6 +1,6 @@
-import { type ThunkResult } from "@src/action/index";
-import * as type from "@src/action/type";
-import * as action from "@src/action";
+import type { ThunkResult } from "@/action/index";
+import * as type from "@/action/type";
+import * as action from "@/action";
 
 export const toggle =
   (key: keyof ConfigState): ThunkResult =>

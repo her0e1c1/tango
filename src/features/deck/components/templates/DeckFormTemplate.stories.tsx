@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import { DeckFormTemplate as Template } from "@src/features/deck/components/templates/DeckFormTemplate";
-import type { DeckFormFields } from "@src/features/deck/components/DeckForm";
-import * as fixture from "@src/shared/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+import { DeckFormTemplate as Template } from "@/features/deck/components/templates/DeckFormTemplate";
+import type { DeckFormFields } from "@/features/deck/components/DeckForm";
+import * as fixture from "@/shared/storybook/fixture";
 
 const fields: DeckFormFields = {
   name: { defaultValue: fixture.deck.default.name },

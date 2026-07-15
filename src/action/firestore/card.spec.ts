@@ -1,10 +1,10 @@
 import "./init";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-import * as firestore from "@src/action/firestore";
-import { getTimestamp } from "@src/action/firestore/mocked";
+import * as firestore from "@/action/firestore";
+import { getTimestamp } from "@/action/firestore/mocked";
 import { v4 as uuid } from "uuid";
-import { createCard, createDeck } from "@src/test/factories";
+import { createCard, createDeck } from "@/test/factories";
 
 vi.mock("./mocked", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./mocked")>()),

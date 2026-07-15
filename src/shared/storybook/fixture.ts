@@ -1,5 +1,5 @@
-import type { Option } from "@src/shared/components/forms/Select";
-import { createCard, createConfig, createDeck } from "@src/test/factories";
+import type { Option } from "@/shared/components/forms/Select";
+import { createCard, createConfig, createDeck } from "@/test/factories";
 
 export const form = {
   options: {
@@ -63,7 +63,7 @@ export const card = {
     score: 3,
     numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: new Date().getTime(),
+    lastSeenAt: Date.now(),
   }),
   long: createCard({
     frontText: "too long front text ".repeat(20),
@@ -71,7 +71,7 @@ export const card = {
     score: 3,
     numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: new Date().getTime(),
+    lastSeenAt: Date.now(),
   }),
   toolong: createCard({
     frontText: "too long front text ".repeat(20),
@@ -79,7 +79,7 @@ export const card = {
     score: 3,
     numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: new Date().getTime(),
+    lastSeenAt: Date.now(),
   }),
   longTags: createCard({
     frontText: "front text",
@@ -87,12 +87,12 @@ export const card = {
     score: 3,
     numberOfSeen: 5,
     tags: tags.toolong,
-    lastSeenAt: new Date().getTime(),
+    lastSeenAt: Date.now(),
   }),
 } as const satisfies Record<string, Card>;
 
 export const cards = {
-  default: [1, 2, 3, 4, 5, 6, 7].map(() => card.default),
+  default: [1, 2, 3, 4, 5, 6, 7].map((id) => ({ ...card.default, id: `default-card-${id}` })),
   long: [
     card.default,
     card.toolong,
@@ -106,7 +106,7 @@ export const cards = {
     card.default,
     card.default,
     card.toolong,
-  ],
+  ].map((item, index) => ({ ...item, id: `long-card-${index + 1}` })),
 } as const satisfies Record<string, Card[]>;
 
 export const config = {

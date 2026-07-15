@@ -72,9 +72,6 @@ export const createRootState = (overrides: Partial<RootState> = {}): RootState =
 const NativeBlob = Blob;
 
 export const createBlobConstructor = (blob: Blob): typeof Blob =>
-  class extends NativeBlob {
-    constructor(_blobParts?: BlobPart[], _options?: BlobPropertyBag) {
-      super();
-      return blob;
-    }
-  };
+  new Proxy(NativeBlob, {
+    construct: () => blob,
+  });

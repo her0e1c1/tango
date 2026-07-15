@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Button } from "@src/shared/components/forms/Button";
-import { FormItem as Template } from "@src/shared/components/forms/FormItem";
-import { Input } from "@src/shared/components/forms/Input";
-import { Select } from "@src/shared/components/forms/Select";
-import { Slider } from "@src/shared/components/forms/Slider";
-import { Switch } from "@src/shared/components/forms/Switch";
+import { Button } from "@/shared/components/forms/Button";
+import { FormItem as Template } from "@/shared/components/forms/FormItem";
+import { Input } from "@/shared/components/forms/Input";
+import { Select } from "@/shared/components/forms/Select";
+import { Slider } from "@/shared/components/forms/Slider";
+import { Switch } from "@/shared/components/forms/Switch";
 
 const meta = {
   title: "Shared/FormItem",

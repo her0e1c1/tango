@@ -2,9 +2,9 @@ import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as type from "@src/action/type";
-import { studyStore } from "@src/features/study/state/studyStore";
-import { createConfig } from "@src/test/factories";
+import * as type from "@/action/type";
+import { studyStore } from "@/features/study/state/studyStore";
+import { createConfig } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
@@ -41,7 +41,7 @@ vi.mock("react-use", () => ({
   useKey: mocks.useKey,
 }));
 
-vi.mock("@src/features/study/hooks/useStudyActions", () => ({
+vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({
     swipeUp: mocks.swipeUp,
     swipeDown: mocks.swipeDown,
@@ -54,7 +54,7 @@ vi.mock("@src/features/study/hooks/useStudyActions", () => ({
   }),
 }));
 
-vi.mock("@src/shared/hooks/useActions", () => ({
+vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
     toggleShowHeader: mocks.toggleShowHeader,
     toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
@@ -64,7 +64,7 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-import { DeckSwiperContainer } from "@src/features/study/containers/DeckSwiperContainer";
+import { DeckSwiperContainer } from "@/features/study/containers/DeckSwiperContainer";
 
 describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   const deck: Deck = {

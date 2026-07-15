@@ -3,20 +3,20 @@ import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as C from "@src/constant";
-import * as selector from "@src/selector";
-import * as util from "@src/util";
-import { BackText } from "@src/features/card/components/BackText";
-import { CardOverlay } from "@src/features/card/components/CardOverlay";
-import { FrontText } from "@src/features/card/components/FrontText";
-import { DeckSwiperTemplate } from "@src/features/study/components/templates/DeckSwiperTemplate";
-import type { SwipeButtonListProps } from "@src/features/study/components/SwipeButtonList";
-import { getLegacyStudyCandidate, useLegacyStudySession } from "@src/features/study/hooks/useLegacyStudySession";
-import { useStudyActions } from "@src/features/study/hooks/useStudyActions";
-import { useStudyControllerState } from "@src/features/study/hooks/useStudyControllerState";
-import { useStudyHydrated } from "@src/features/study/hooks/useStudyHydrated";
-import { useStudyStore } from "@src/features/study/hooks/useStudyStore";
-import { useActions } from "@src/shared/hooks/useActions";
+import * as C from "@/constant";
+import * as selector from "@/selector";
+import * as util from "@/util";
+import { BackText } from "@/features/card/components/BackText";
+import { CardOverlay } from "@/features/card/components/CardOverlay";
+import { FrontText } from "@/features/card/components/FrontText";
+import { DeckSwiperTemplate } from "@/features/study/components/templates/DeckSwiperTemplate";
+import type { SwipeButtonListProps } from "@/features/study/components/SwipeButtonList";
+import { getLegacyStudyCandidate, useLegacyStudySession } from "@/features/study/hooks/useLegacyStudySession";
+import { useStudyActions } from "@/features/study/hooks/useStudyActions";
+import { useStudyControllerState } from "@/features/study/hooks/useStudyControllerState";
+import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
+import { useStudyStore } from "@/features/study/hooks/useStudyStore";
+import { useActions } from "@/shared/hooks/useActions";
 
 export const DeckSwiperContainer: React.FC = () => {
   const params = useParams();
@@ -89,7 +89,7 @@ export const DeckSwiperContainer: React.FC = () => {
   }, [navigate]);
 
   if (card == null) {
-    return <></>;
+    return null;
   }
 
   const category = util.getCategory(deck.category, card.tags);

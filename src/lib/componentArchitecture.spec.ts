@@ -13,10 +13,10 @@ const connectorModules = [
   "react-router",
   "react-router-dom",
   "react-use",
-  "@src/action",
-  "@src/selector",
-  "@src/store",
-  "@src/shared/hooks",
+  "@/action",
+  "@/selector",
+  "@/store",
+  "@/shared/hooks",
 ];
 
 function sourcePath(relativePath: string): string {
@@ -62,10 +62,10 @@ interface ModuleReference {
 
 function resolveModuleSpecifier(relativePath: string, specifier: string): string {
   if (specifier.startsWith(".")) {
-    return `@src/${path.posix.normalize(path.posix.join(path.posix.dirname(relativePath), specifier))}`;
+    return `@/${path.posix.normalize(path.posix.join(path.posix.dirname(relativePath), specifier))}`;
   }
   if (isModuleOrSubpath(specifier, "src")) {
-    return `@${specifier}`;
+    return specifier === "src" ? "@/" : `@/${specifier.slice("src/".length)}`;
   }
   return specifier;
 }
@@ -89,7 +89,7 @@ function importViolation(relativePath: string, reference: ModuleReference): stri
 function forbiddenConnector(specifier: string): boolean {
   return (
     connectorModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName)) ||
-    /^@src\/features\/[^/]+\/(?:containers|hooks)(?:\/|$)/.test(specifier)
+    /^@\/features\/[^/]+\/(?:containers|hooks)(?:\/|$)/.test(specifier)
   );
 }
 
@@ -105,9 +105,7 @@ function expectStatelessPresentation(relativePath: string): void {
 }
 
 function isContainerSupportHook(specifier: string): boolean {
-  return (
-    isModuleOrSubpath(specifier, "@src/shared/hooks") || /^@src\/features\/[^/]+\/hooks\/use[A-Z][^/]*$/.test(specifier)
-  );
+  return isModuleOrSubpath(specifier, "@/shared/hooks") || /^@\/features\/[^/]+\/hooks\/use[A-Z][^/]*$/.test(specifier);
 }
 
 function canImportContainerSupportHook(relativePath: string): boolean {
@@ -118,9 +116,9 @@ function forbiddenContainerDependency(specifier: string): boolean {
   if (isContainerSupportHook(specifier)) return false;
 
   return (
-    isModuleOrSubpath(specifier, "@src/App") ||
-    isModuleOrSubpath(specifier, "@src/page") ||
-    /^@src\/features\/[^/]+\/containers(?:\/?$|\/index(?:\.ts)?$|\/[^/]*Container(?:\.tsx?)?$)/.test(specifier)
+    isModuleOrSubpath(specifier, "@/App") ||
+    isModuleOrSubpath(specifier, "@/page") ||
+    /^@\/features\/[^/]+\/containers(?:\/?$|\/index(?:\.ts)?$|\/[^/]*Container(?:\.tsx?)?$)/.test(specifier)
   );
 }
 
@@ -143,13 +141,13 @@ function expectSharedComponentGroup(
 
 describe("component architecture", () => {
   it("normalizes baseUrl source imports before checking boundaries", () => {
-    expect(resolveModuleSpecifier("shared/components/content/Card.tsx", "src/action")).toBe("@src/action");
+    expect(resolveModuleSpecifier("shared/components/content/Card.tsx", "src/action")).toBe("@/action");
   });
 
   it("recognizes container-support hook paths and consumers", () => {
-    expect(isContainerSupportHook("@src/shared/hooks/useActions")).toBe(true);
-    expect(isContainerSupportHook("@src/features/deck/hooks/useDeckActions")).toBe(true);
-    expect(isContainerSupportHook("@src/features/deck/containers/useDeckActions")).toBe(false);
+    expect(isContainerSupportHook("@/shared/hooks/useActions")).toBe(true);
+    expect(isContainerSupportHook("@/features/deck/hooks/useDeckActions")).toBe(true);
+    expect(isContainerSupportHook("@/features/deck/containers/useDeckActions")).toBe(false);
     expect(canImportContainerSupportHook("features/deck/containers/DeckListContainer.tsx")).toBe(true);
     expect(canImportContainerSupportHook("features/study/hooks/useStudyActions.ts")).toBe(true);
     expect(canImportContainerSupportHook("features/study/state/studyStore.ts")).toBe(false);
@@ -157,14 +155,14 @@ describe("component architecture", () => {
   });
 
   it("allows feature hooks and components while rejecting route-level dependencies", () => {
-    expect(forbiddenContainerDependency("@src/features/deck/hooks/useDeckActions")).toBe(false);
-    expect(forbiddenContainerDependency("@src/features/deck/components/DeckStartForm")).toBe(false);
-    expect(forbiddenContainerDependency("@src/App")).toBe(true);
-    expect(forbiddenContainerDependency("@src/page/DeckListPage")).toBe(true);
-    expect(forbiddenContainerDependency("@src/features/deck/containers")).toBe(true);
-    expect(forbiddenContainerDependency("@src/features/deck/containers/index.ts")).toBe(true);
-    expect(forbiddenContainerDependency("@src/features/deck/containers/DeckListContainer")).toBe(true);
-    expect(forbiddenContainerDependency("@src/features/deck/containers/useDeckContainer")).toBe(true);
+    expect(forbiddenContainerDependency("@/features/deck/hooks/useDeckActions")).toBe(false);
+    expect(forbiddenContainerDependency("@/features/deck/components/DeckStartForm")).toBe(false);
+    expect(forbiddenContainerDependency("@/App")).toBe(true);
+    expect(forbiddenContainerDependency("@/page/DeckListPage")).toBe(true);
+    expect(forbiddenContainerDependency("@/features/deck/containers")).toBe(true);
+    expect(forbiddenContainerDependency("@/features/deck/containers/index.ts")).toBe(true);
+    expect(forbiddenContainerDependency("@/features/deck/containers/DeckListContainer")).toBe(true);
+    expect(forbiddenContainerDependency("@/features/deck/containers/useDeckContainer")).toBe(true);
   });
 
   it("removes the legacy Atomic Design component root", () => {
@@ -218,9 +216,7 @@ describe("component architecture", () => {
     for (const pagePath of pagePaths) {
       const source = readSource(pagePath);
       const modules = moduleSpecifiers(source);
-      const featureContainerModules = modules.filter((specifier) =>
-        /^@src\/features\/[^/]+\/containers$/.test(specifier)
-      );
+      const featureContainerModules = modules.filter((specifier) => /^@\/features\/[^/]+\/containers$/.test(specifier));
       const renderedContainers = Array.from(
         source.matchAll(/<([A-Z][A-Za-z0-9]*Container)\s*\/>/g),
         (match) => match[1]
@@ -249,7 +245,7 @@ describe("component architecture", () => {
       expectStatelessPresentation(sharedPath);
       violations.push(
         ...moduleReferences(sharedPath)
-          .filter((reference) => reference.resolvedSpecifier.startsWith("@src/features"))
+          .filter((reference) => reference.resolvedSpecifier.startsWith("@/features"))
           .map((reference) => importViolation(sharedPath, reference))
       );
     }
@@ -271,9 +267,9 @@ describe("component architecture", () => {
           ...moduleReferences(componentPath)
             .filter(
               (reference) =>
-                reference.resolvedSpecifier.startsWith("@src/") &&
-                !isModuleOrSubpath(reference.resolvedSpecifier, "@src/shared/components") &&
-                !isModuleOrSubpath(reference.resolvedSpecifier, `@src/features/${featureName}/components`)
+                reference.resolvedSpecifier.startsWith("@/") &&
+                !isModuleOrSubpath(reference.resolvedSpecifier, "@/shared/components") &&
+                !isModuleOrSubpath(reference.resolvedSpecifier, `@/features/${featureName}/components`)
             )
             .map((reference) => importViolation(componentPath, reference))
         );

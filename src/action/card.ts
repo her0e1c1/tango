@@ -1,7 +1,7 @@
-import { type ThunkResult } from "@src/action";
-import * as action from "@src/action";
-import * as firestore from "@src/action/firestore";
-import * as selector from "@src/selector";
+import type { ThunkResult } from "@/action";
+import * as action from "@/action";
+import * as firestore from "@/action/firestore";
+import * as selector from "@/selector";
 
 export const isEmpty = (c: CardRaw): boolean => {
   return c.frontText === "" && c.backText === "";

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Input as Template } from "@src/shared/components/forms/Input";
+import { Input as Template } from "@/shared/components/forms/Input";
 
 const meta = {
   title: "Shared/Input",

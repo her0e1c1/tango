@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import { DeckStartForm, type DeckStartFormProps } from "@src/features/deck/components/DeckStartForm";
-import { DeckStartTemplate as Template } from "@src/features/study/components/templates/DeckStartTemplate";
-import * as fixture from "@src/shared/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
+import { DeckStartTemplate as Template } from "@/features/study/components/templates/DeckStartTemplate";
+import * as fixture from "@/shared/storybook/fixture";
 
 const deckStartForm: DeckStartFormProps = {
   scoreMax: 1,

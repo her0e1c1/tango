@@ -3,12 +3,12 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
-import * as C from "@src/constant";
-import * as selector from "@src/selector";
-import { renameKey } from "@src/shared/forms/renameKey";
-import { useActions } from "@src/shared/hooks/useActions";
-import { DeckFormTemplate } from "@src/features/deck/components/templates/DeckFormTemplate";
-import { useDeckActions } from "@src/features/deck/hooks/useDeckActions";
+import * as C from "@/constant";
+import * as selector from "@/selector";
+import { renameKey } from "@/shared/forms/renameKey";
+import { useActions } from "@/shared/hooks/useActions";
+import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
+import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 
 export const DeckFormContainer: React.FC = () => {
   const params = useParams();

@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@src/shared/storybook/storybookViewports";
-import { DeckListTemplate as Template } from "@src/features/deck/components/templates/DeckListTemplate";
-import * as fixture from "@src/shared/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+import { DeckListTemplate as Template } from "@/features/deck/components/templates/DeckListTemplate";
+import * as fixture from "@/shared/storybook/fixture";
 
 const meta = {
   title: "Deck/DeckListTemplate",

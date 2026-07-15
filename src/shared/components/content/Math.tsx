@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Style } from "@src/shared/components/content/Style";
+import type * as React from "react";
+import { Style } from "@/shared/components/content/Style";
 import Markdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";

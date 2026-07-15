@@ -1,8 +1,8 @@
-import * as React from "react";
-import { FullScreen } from "@src/shared/components/layout/FullScreen";
-import { Header, type HeaderProps } from "@src/shared/components/layout/Header";
-import { Main } from "@src/shared/components/layout/Main";
-import { Outer } from "@src/shared/components/layout/Outer";
+import type * as React from "react";
+import { FullScreen } from "@/shared/components/layout/FullScreen";
+import { Header, type HeaderProps } from "@/shared/components/layout/Header";
+import { Main } from "@/shared/components/layout/Main";
+import { Outer } from "@/shared/components/layout/Outer";
 
 const Footer = () => <div className="pb-10" />;
 

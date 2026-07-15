@@ -1,2 +1,2 @@
-export * from "@src/features/study/containers/DeckStartContainer";
-export * from "@src/features/study/containers/DeckSwiperContainer";
+export * from "@/features/study/containers/DeckStartContainer";
+export * from "@/features/study/containers/DeckSwiperContainer";

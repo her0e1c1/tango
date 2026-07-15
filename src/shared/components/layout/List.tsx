@@ -1,5 +1,5 @@
 import cx from "classnames";
-import * as React from "react";
+import type * as React from "react";
 
 export const List: React.FC<{ flex?: boolean; col1?: boolean; children?: React.ReactNode }> = (props) => {
   return (

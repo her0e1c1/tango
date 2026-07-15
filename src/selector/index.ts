@@ -1,3 +1,3 @@
-export * as deck from "@src/selector/deck";
-export * as card from "@src/selector/card";
-export * as config from "@src/selector/config";
+export * as deck from "@/selector/deck";
+export * as card from "@/selector/card";
+export * as config from "@/selector/config";

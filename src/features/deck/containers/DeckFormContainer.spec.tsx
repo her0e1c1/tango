@@ -20,7 +20,7 @@ vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
 
-vi.mock("@src/shared/hooks/useActions", () => ({
+vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goByMenu: vi.fn(),
@@ -28,11 +28,11 @@ vi.mock("@src/shared/hooks/useActions", () => ({
   }),
 }));
 
-vi.mock("@src/features/deck/hooks/useDeckActions", () => ({
+vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ updateAndBack: mocks.updateAndBack }),
 }));
 
-import { DeckFormContainer } from "@src/features/deck/containers/DeckFormContainer";
+import { DeckFormContainer } from "@/features/deck/containers/DeckFormContainer";
 
 describe("DeckFormContainer", () => {
   const deck: Deck = {

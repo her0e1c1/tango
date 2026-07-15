@@ -1,5 +1,5 @@
 import cx from "classnames";
-import * as React from "react";
+import type * as React from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 
 export const Upload: React.FC<{ className?: string; onChange?: (file: File) => void }> = (props) => (

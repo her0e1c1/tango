@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { applyRealtimeChange, getRealtimeLastUpdatedAt } from "@src/lib/realtimeChange";
+import { applyRealtimeChange, getRealtimeLastUpdatedAt } from "@/lib/realtimeChange";
 
 describe("applyRealtimeChange", () => {
   type Item = { id: string; name: string };
@@ -12,23 +12,23 @@ describe("applyRealtimeChange", () => {
   it("inserts added items", () => {
     const event = { added: [{ id: "c", name: "gamma" }] };
     const result = applyRealtimeChange(initial, event);
-    expect(result["c"]).toEqual({ id: "c", name: "gamma" });
-    expect(result["a"]).toEqual(initial["a"]);
-    expect(result["b"]).toEqual(initial["b"]);
+    expect(result.c).toEqual({ id: "c", name: "gamma" });
+    expect(result.a).toEqual(initial.a);
+    expect(result.b).toEqual(initial.b);
   });
 
   it("updates modified items", () => {
     const event = { modified: [{ id: "a", name: "updated" }] };
     const result = applyRealtimeChange(initial, event);
-    expect(result["a"]).toEqual({ id: "a", name: "updated" });
-    expect(result["b"]).toEqual(initial["b"]);
+    expect(result.a).toEqual({ id: "a", name: "updated" });
+    expect(result.b).toEqual(initial.b);
   });
 
   it("deletes removed items", () => {
     const event = { removed: ["b"] };
     const result = applyRealtimeChange(initial, event);
     expect("b" in result).toBe(false);
-    expect(result["a"]).toEqual(initial["a"]);
+    expect(result.a).toEqual(initial.a);
   });
 
   it("handles all three change types in one event", () => {
@@ -38,9 +38,9 @@ describe("applyRealtimeChange", () => {
       removed: ["b"],
     };
     const result = applyRealtimeChange(initial, event);
-    expect(result["a"]).toEqual({ id: "a", name: "updated" });
+    expect(result.a).toEqual({ id: "a", name: "updated" });
     expect("b" in result).toBe(false);
-    expect(result["c"]).toEqual({ id: "c", name: "gamma" });
+    expect(result.c).toEqual({ id: "c", name: "gamma" });
   });
 
   it("does not mutate the original byId map", () => {
@@ -57,7 +57,7 @@ describe("applyRealtimeChange", () => {
 
   it("handles empty initial state with added items", () => {
     const result = applyRealtimeChange({}, { added: [{ id: "x", name: "x" }] });
-    expect(result["x"]).toEqual({ id: "x", name: "x" });
+    expect(result.x).toEqual({ id: "x", name: "x" });
   });
 });
 

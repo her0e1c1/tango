@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Button, Description, Switch, Tag, TagList } from "@src/shared/components";
+import type * as React from "react";
+import { Button, Description, Switch, Tag, TagList } from "@/shared/components";
 
 const updateTags = (tags: string[], tag: string) => {
   if (tags.includes(tag)) {

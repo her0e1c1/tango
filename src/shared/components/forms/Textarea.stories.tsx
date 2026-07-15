@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Textarea as Template } from "@src/shared/components/forms/Textarea";
+import { Textarea as Template } from "@/shared/components/forms/Textarea";
 
 const meta = {
   title: "Shared/Textarea",

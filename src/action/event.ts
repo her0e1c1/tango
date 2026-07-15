@@ -3,20 +3,20 @@ import type { User, UserCredential } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
-import { isNonEmpty } from "@src/util";
-import * as type from "@src/action/type";
-import * as action from "@src/action";
-import * as firestore from "@src/action/firestore";
-import { type ThunkResult } from "@src/action/index";
-import { clearStudyStore } from "@src/features/study/state/studyStore";
-import { getRealtimeLastUpdatedAt } from "@src/lib/realtimeChange";
+import { isNonEmpty } from "@/util";
+import * as type from "@/action/type";
+import * as action from "@/action";
+import * as firestore from "@/action/firestore";
+import type { ThunkResult } from "@/action/index";
+import { clearStudyStore } from "@/features/study/state/studyStore";
+import { getRealtimeLastUpdatedAt } from "@/lib/realtimeChange";
 
 const subscriptions = [] as Callback[];
 
 const unsubscribe = () => {
   while (subscriptions.length > 0) {
     const f = subscriptions.pop();
-    f && f();
+    f?.();
   }
 };
 

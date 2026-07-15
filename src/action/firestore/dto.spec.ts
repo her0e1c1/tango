@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildCardCreateDto,
-  buildCardUpdateDto,
-  buildDeckCreateDto,
-  buildDeckUpdateDto,
-} from "@src/action/firestore/dto";
-import { createCard, createDeck } from "@src/test/factories";
+import { buildCardCreateDto, buildCardUpdateDto, buildDeckCreateDto, buildDeckUpdateDto } from "@/action/firestore/dto";
+import { createCard, createDeck } from "@/test/factories";
 
 describe("Firestore DTO builders", () => {
   const deck = {

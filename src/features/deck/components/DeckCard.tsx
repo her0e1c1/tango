@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, Card, Description, Tag, Title } from "@src/shared/components";
+import { Button, Card, Description, Tag, Title } from "@/shared/components";
 import { IconContext } from "react-icons";
 import {
   AiOutlineCloud,

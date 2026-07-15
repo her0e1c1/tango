@@ -1,9 +1,9 @@
 import cx from "classnames";
-import * as React from "react";
-import * as Shared from "@src/shared/components";
-import { Layout, type LayoutProps } from "@src/shared/components/layout/Layout";
-import { Controller, type ControllerProps } from "@src/features/study/components/Controller";
-import { SwipeButtonList, type SwipeButtonListProps } from "@src/features/study/components/SwipeButtonList";
+import type * as React from "react";
+import * as Shared from "@/shared/components";
+import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
+import { Controller, type ControllerProps } from "@/features/study/components/Controller";
+import { SwipeButtonList, type SwipeButtonListProps } from "@/features/study/components/SwipeButtonList";
 
 export interface DeckSwiperTemplateProps {
   showHeader?: boolean;
@@ -31,18 +31,22 @@ export const DeckSwiperTemplate: React.FC<DeckSwiperTemplateProps> = (props) => 
         <>
           <Shared.Overlay
             position="left"
+            ariaLabel="Swipe left"
             {...(props.swipeOverlay?.onClickLeft !== undefined ? { onClick: props.swipeOverlay.onClickLeft } : {})}
           />
           <Shared.Overlay
             position="right"
+            ariaLabel="Swipe right"
             {...(props.swipeOverlay?.onClickRight !== undefined ? { onClick: props.swipeOverlay.onClickRight } : {})}
           />
           <Shared.Overlay
             position="top"
+            ariaLabel="Swipe up"
             {...(props.swipeOverlay?.onClickUp !== undefined ? { onClick: props.swipeOverlay.onClickUp } : {})}
           />
           <Shared.Overlay
             position="bottom"
+            ariaLabel="Swipe down"
             {...(props.swipeOverlay?.onClickDown !== undefined ? { onClick: props.swipeOverlay.onClickDown } : {})}
           />
           <div className="h-full flex pb-8">{props.backTextSlot}</div>

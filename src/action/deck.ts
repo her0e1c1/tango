@@ -2,12 +2,12 @@
 import { saveAs } from "file-saver";
 import * as Papa from "papaparse";
 
-import * as type from "@src/action/type";
-import * as C from "@src/constant";
-import { type ThunkResult } from "@src/action/index";
-import * as action from "@src/action";
-import * as selector from "@src/selector";
-import * as firestore from "@src/action/firestore";
+import * as type from "@/action/type";
+import * as C from "@/constant";
+import type { ThunkResult } from "@/action/index";
+import * as action from "@/action";
+import * as selector from "@/selector";
+import * as firestore from "@/action/firestore";
 import sampleCards from "../../sample/build/output.json";
 
 export const prepare = (deck: DeckRaw, config: DeckConfig): Deck => {
@@ -116,7 +116,7 @@ export const reimport =
   async (dispatch, getState) => {
     const deck = getState().deck.byId[id];
     if (deck == null) throw Error("invalid deck id");
-    if (deck.url == null || deck.url == "") throw Error("no deck url");
+    if (deck.url == null || deck.url === "") throw Error("no deck url");
     await dispatch(parseUrl(deck.url, deck.name));
   };
 

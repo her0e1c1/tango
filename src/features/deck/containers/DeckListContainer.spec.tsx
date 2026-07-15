@@ -2,8 +2,8 @@ import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { studyStore } from "@src/features/study/state/studyStore";
-import { createConfig, createDeck } from "@src/test/factories";
+import { studyStore } from "@/features/study/state/studyStore";
+import { createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   state: null as RootState | null,
@@ -33,11 +33,11 @@ vi.mock("react-use", () => ({
   useKey: vi.fn(),
 }));
 
-vi.mock("@src/shared/hooks/useActions", () => ({
+vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => mocks.actions,
 }));
 
-import { DeckListContainer } from "@src/features/deck/containers/DeckListContainer";
+import { DeckListContainer } from "@/features/deck/containers/DeckListContainer";
 
 describe("DeckListContainer", () => {
   const activeDeck = createDeck({

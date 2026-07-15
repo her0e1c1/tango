@@ -3,9 +3,9 @@ import React from "react";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as type from "@src/action/type";
-import { useLegacyStudySession } from "@src/features/study/hooks/useLegacyStudySession";
-import { type LegacyStudyCandidate, studyStore } from "@src/features/study/state/studyStore";
+import * as type from "@/action/type";
+import { useLegacyStudySession } from "@/features/study/hooks/useLegacyStudySession";
+import { type LegacyStudyCandidate, studyStore } from "@/features/study/state/studyStore";
 
 const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
