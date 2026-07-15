@@ -86,7 +86,7 @@ function importViolation(relativePath: string, reference: ModuleReference): stri
 function forbiddenConnector(specifier: string): boolean {
   return (
     connectorModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName)) ||
-    /^@src\/features\/[^/]+\/containers(?:\/|$)/.test(specifier)
+    /^@src\/features\/[^/]+\/(?:containers|hooks)(?:\/|$)/.test(specifier)
   );
 }
 
@@ -101,15 +101,19 @@ function expectStatelessPresentation(relativePath: string): void {
   ).toEqual([]);
 }
 
-function isContainerOnlyHook(specifier: string): boolean {
+function isContainerSupportHook(specifier: string): boolean {
   return (
     isModuleOrSubpath(specifier, "@src/shared/hooks") ||
-    /^@src\/features\/[^/]+\/containers\/use[A-Z][^/]*$/.test(specifier)
+    /^@src\/features\/[^/]+\/hooks\/use[A-Z][^/]*$/.test(specifier)
   );
 }
 
+function canImportContainerSupportHook(relativePath: string): boolean {
+  return /^features\/[^/]+\/(?:containers|hooks)\//.test(relativePath);
+}
+
 function forbiddenContainerDependency(specifier: string): boolean {
-  if (isContainerOnlyHook(specifier)) return false;
+  if (isContainerSupportHook(specifier)) return false;
 
   return (
     isModuleOrSubpath(specifier, "@src/App") ||
@@ -140,14 +144,25 @@ describe("component architecture", () => {
     expect(resolveModuleSpecifier("shared/components/content/Card.tsx", "src/action")).toBe("@src/action");
   });
 
-  it("allows container hooks and components while rejecting route-level dependencies", () => {
-    expect(forbiddenContainerDependency("@src/features/deck/containers/useDeckContainer")).toBe(false);
+  it("recognizes container-support hook paths and consumers", () => {
+    expect(isContainerSupportHook("@src/shared/hooks/useActions")).toBe(true);
+    expect(isContainerSupportHook("@src/features/deck/hooks/useDeckActions")).toBe(true);
+    expect(isContainerSupportHook("@src/features/deck/containers/useDeckActions")).toBe(false);
+    expect(canImportContainerSupportHook("features/deck/containers/DeckListContainer.tsx")).toBe(true);
+    expect(canImportContainerSupportHook("features/study/hooks/useStudyActions.ts")).toBe(true);
+    expect(canImportContainerSupportHook("features/study/state/studyStore.ts")).toBe(false);
+    expect(canImportContainerSupportHook("features/deck/components/DeckCard.tsx")).toBe(false);
+  });
+
+  it("allows feature hooks and components while rejecting route-level dependencies", () => {
+    expect(forbiddenContainerDependency("@src/features/deck/hooks/useDeckActions")).toBe(false);
     expect(forbiddenContainerDependency("@src/features/deck/components/DeckStartForm")).toBe(false);
     expect(forbiddenContainerDependency("@src/App")).toBe(true);
     expect(forbiddenContainerDependency("@src/page/DeckListPage")).toBe(true);
     expect(forbiddenContainerDependency("@src/features/deck/containers")).toBe(true);
     expect(forbiddenContainerDependency("@src/features/deck/containers/index.ts")).toBe(true);
     expect(forbiddenContainerDependency("@src/features/deck/containers/DeckListContainer")).toBe(true);
+    expect(forbiddenContainerDependency("@src/features/deck/containers/useDeckContainer")).toBe(true);
   });
 
   it("removes the legacy Atomic Design component root", () => {
@@ -305,7 +320,7 @@ describe("component architecture", () => {
     expect(violations, violations.join("\n")).toEqual([]);
   });
 
-  it("limits container-only hooks to production container modules", () => {
+  it("limits container-support hooks to container support modules", () => {
     const violations: string[] = [];
 
     for (const indexPath of sourceFilesUnder("features").filter((relativePath) =>
@@ -313,17 +328,17 @@ describe("component architecture", () => {
     )) {
       violations.push(
         ...moduleReferences(indexPath)
-          .filter((reference) => isContainerOnlyHook(reference.resolvedSpecifier))
+          .filter((reference) => isContainerSupportHook(reference.resolvedSpecifier))
           .map((reference) => `${indexPath} publicly re-exports ${reference.specifier}`)
       );
     }
 
     for (const relativePath of productionFilesUnder(".")) {
-      if (/^features\/[^/]+\/containers\//.test(relativePath)) continue;
+      if (canImportContainerSupportHook(relativePath)) continue;
 
       violations.push(
         ...moduleReferences(relativePath)
-          .filter((reference) => isContainerOnlyHook(reference.resolvedSpecifier))
+          .filter((reference) => isContainerSupportHook(reference.resolvedSpecifier))
           .map((reference) => importViolation(relativePath, reference))
       );
     }
