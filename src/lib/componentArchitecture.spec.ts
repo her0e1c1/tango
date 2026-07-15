@@ -103,8 +103,7 @@ function expectStatelessPresentation(relativePath: string): void {
 
 function isContainerSupportHook(specifier: string): boolean {
   return (
-    isModuleOrSubpath(specifier, "@src/shared/hooks") ||
-    /^@src\/features\/[^/]+\/hooks\/use[A-Z][^/]*$/.test(specifier)
+    isModuleOrSubpath(specifier, "@src/shared/hooks") || /^@src\/features\/[^/]+\/hooks\/use[A-Z][^/]*$/.test(specifier)
   );
 }
 
