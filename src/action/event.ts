@@ -1,70 +1,42 @@
 import { signOut, linkWithPopup, signInWithCredential, GoogleAuthProvider } from "firebase/auth";
-import type { User, UserCredential } from "firebase/auth";
+import type { UserCredential } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
-import { getAuth, signInAnonymously } from "firebase/auth";
 
 import { isNonEmpty } from "@/util";
 import * as type from "@/action/type";
-import * as action from "@/action";
 import * as firestore from "@/action/firestore";
 import type { ThunkResult } from "@/action/index";
 import { clearStudyStore } from "@/features/study/state/studyStore";
 import { getRealtimeLastUpdatedAt } from "@/lib/realtimeChange";
+import { publishAuthenticatedUser, suspendAnonymousBootstrap } from "@/auth/AuthContext";
+import { auth } from "@/firebase";
+import { cleanupFirestoreUid } from "@/query/cleanup";
+import { registerSubscription, stopSubscriptions } from "@/lib/realtimeSubscriptions";
 
-const subscriptions = [] as Callback[];
+export { stopSubscriptions } from "@/lib/realtimeSubscriptions";
 
-export const stopSubscriptions = () => {
-  const errors: unknown[] = [];
-  while (subscriptions.length > 0) {
-    const f = subscriptions.pop();
-    try {
-      f?.();
-    } catch (error) {
-      errors.push(error);
+export const logout = (confirmedUid: string): ThunkResult => async (dispatch) => {
+  const resumeAnonymousBootstrap = suspendAnonymousBootstrap();
+  try {
+    await signOut(auth);
+    const errors: unknown[] = [];
+    const run = async (step: () => unknown | Promise<unknown>) => {
+      try {
+        await step();
+      } catch (error) {
+        errors.push(error);
+      }
+    };
+
+    await run(() => cleanupFirestoreUid(confirmedUid));
+    await run(clearStudyStore);
+    await run(() => dispatch(type.clearAll()));
+    if (errors.length > 0) {
+      throw errors[0];
     }
+  } finally {
+    resumeAnonymousBootstrap();
   }
-  if (errors.length > 0) {
-    throw errors[0];
-  }
-};
-
-export const logout = (): ThunkResult => async (dispatch) => {
-  stopSubscriptions();
-  await signOut(getAuth());
-  await clearStudyStore();
-  await dispatch(type.clearAll());
-  await dispatch(init());
-};
-
-const getDisplayName = (user: User) => {
-  const provider = user.providerData[0];
-  if (provider) {
-    return provider.displayName;
-  }
-  return null;
-};
-
-export const init = (): ThunkResult => async (dispatch, getState) => {
-  const auth = getAuth();
-  const isAnonymous = getState().config.isAnonymous;
-  if (isAnonymous) {
-    await signInAnonymously(auth);
-  }
-  auth.onAuthStateChanged((user) => {
-    process.env.NODE_ENV !== "production" &&
-      console.log("INIT", user?.isAnonymous, new Date(getState().config.lastUpdatedAt));
-    if (user == null) return; // Also called after logout
-    const displayName = getDisplayName(user);
-    dispatch(
-      type.configUpdate({
-        uid: user.uid,
-        isAnonymous: user.isAnonymous,
-        displayName,
-      })
-    );
-    void dispatch(action.event.subscribe(user.uid));
-    void dispatch(removeFromLocal());
-  });
 };
 
 export const removeFromLocal = (): ThunkResult => async (dispatch, getState) => {
@@ -136,7 +108,7 @@ export const subscribe =
           void dispatch(deckOnChange(event));
         },
       });
-      subscriptions.push(unSubscribeDeck);
+      registerSubscription(unSubscribeDeck);
       const unSubscribeCard = firestore.event.subscribeCard({
         uid,
         updatedAt,
@@ -145,15 +117,14 @@ export const subscribe =
           void dispatch(cardOnChange(event));
         },
       });
-      subscriptions.push(unSubscribeCard);
+      registerSubscription(unSubscribeCard);
     } catch (error) {
       stopSubscriptions();
       throw error;
     }
   };
 
-export const loginGoogle = (): ThunkResult => async (dispatch) => {
-  const auth = getAuth();
+export const loginGoogle = (): ThunkResult => async () => {
   const currentUser = auth.currentUser;
   if (!currentUser) {
     console.error("must sign in anonymously in advance");
@@ -174,15 +145,5 @@ export const loginGoogle = (): ThunkResult => async (dispatch) => {
     throw Error("failed to login");
   }
   process.env.NODE_ENV !== "production" && console.log("LOGIN GOOGLE", result);
-  const { user } = result;
-  const displayName = getDisplayName(user);
-  await dispatch(
-    type.configUpdate({
-      uid: user.uid,
-      isAnonymous: user.isAnonymous,
-      displayName,
-      lastUpdatedAt: 0, // reset for anonymous user
-    })
-  );
-  await dispatch(subscribe(user.uid));
+  publishAuthenticatedUser(result.user);
 };

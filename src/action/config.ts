@@ -18,11 +18,16 @@ export const update =
 export const updateAll =
   (c: ConfigState): ThunkResult =>
   async (dispatch) => {
-    dispatch(type.configUpdate(c));
+    const editableConfig: Partial<ConfigState> = { ...c };
+    delete editableConfig.uid;
+    delete editableConfig.isAnonymous;
+    delete editableConfig.displayName;
+    delete editableConfig.lastUpdatedAt;
+    dispatch(type.configUpdate(editableConfig));
   };
 
-export const logout = (): ThunkResult => async (dispatch) => {
-  await dispatch(action.event.logout());
+export const logout = (confirmedUid: string): ThunkResult => async (dispatch) => {
+  await dispatch(action.event.logout(confirmedUid));
 };
 
 export const loginGoogle = (): ThunkResult => async (dispatch) => {

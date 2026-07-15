@@ -3,12 +3,26 @@ import { expect, it, describe, vi, beforeEach, afterEach, type Mock } from "vite
 import * as type from "@/action/type";
 import * as action from "@/action";
 import * as firestore from "@/action/firestore";
-import { getAuth, signOut, linkWithPopup } from "firebase/auth";
+import { signOut, linkWithPopup } from "firebase/auth";
 import { STUDY_STORAGE_KEY, studyStore } from "@/features/study/state/studyStore";
 import { createRootState } from "@/test/factories";
 
+const authMocks = vi.hoisted(() => ({
+  auth: { currentUser: null as object | null },
+  publishAuthenticatedUser: vi.fn(),
+  suspendAnonymousBootstrap: vi.fn(),
+  resumeAnonymousBootstrap: vi.fn(),
+  cleanupFirestoreUid: vi.fn(),
+}));
+
 vi.mock("firebase/auth");
 vi.mock("./firestore");
+vi.mock("@/firebase", () => ({ auth: authMocks.auth }));
+vi.mock("@/auth/AuthContext", () => ({
+  publishAuthenticatedUser: authMocks.publishAuthenticatedUser,
+  suspendAnonymousBootstrap: authMocks.suspendAnonymousBootstrap,
+}));
+vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: authMocks.cleanupFirestoreUid }));
 
 vi.mock("firebase/firestore", () => ({
   ...Object.fromEntries(Object.keys(vi.importActual("firebase/firestore")).map((key) => [key, vi.fn()])),
@@ -23,6 +37,8 @@ describe("event action", () => {
     vi.useFakeTimers();
     vi.setSystemTime(mockedDate);
     vi.resetAllMocks();
+    authMocks.suspendAnonymousBootstrap.mockReturnValue(authMocks.resumeAnonymousBootstrap);
+    authMocks.auth.currentUser = null;
     localStorage.clear();
     studyStore.setState({
       session: null,
@@ -174,7 +190,12 @@ describe("event action", () => {
     });
   });
 
-  it("should logout", async () => {
+  it("signs out before cleaning the confirmed UID and local state", async () => {
+    const operations: string[] = [];
+    authMocks.suspendAnonymousBootstrap.mockImplementation(() => {
+      operations.push("suspend-anonymous");
+      return () => operations.push("resume-anonymous");
+    });
     studyStore.getState().startStudy("deck-id", ["card-id"]);
     studyStore.setState({
       showBackText: true,
@@ -182,13 +203,36 @@ describe("event action", () => {
       lastSwipe: "cardSwipeRight",
     });
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).not.toBeNull();
-    const dispatch = vi.fn();
+    const dispatch = vi.fn((dispatchedAction) => {
+      operations.push("clear-redux");
+      expect(dispatchedAction).toEqual(type.clearAll());
+      expect(studyStore.getState().session).toBeNull();
+    });
     const getState = vi.fn();
-    const f = action.event.logout();
+    vi.mocked(signOut).mockImplementation(async (receivedAuth) => {
+      operations.push("sign-out");
+      expect(receivedAuth).toBe(authMocks.auth);
+      expect(dispatch).not.toHaveBeenCalled();
+      expect(studyStore.getState().session).not.toBeNull();
+    });
+    authMocks.cleanupFirestoreUid.mockImplementation(async (uid) => {
+      operations.push(`cleanup:${uid}`);
+      expect(dispatch).not.toHaveBeenCalled();
+      expect(studyStore.getState().session).not.toBeNull();
+    });
+    const f = action.event.logout("confirmed-uid");
     await f(dispatch, getState, undefined);
-    expect(getAuth).toHaveBeenCalledTimes(1);
+
+    expect(operations).toEqual([
+      "suspend-anonymous",
+      "sign-out",
+      "cleanup:confirmed-uid",
+      "clear-redux",
+      "resume-anonymous",
+    ]);
     expect(signOut).toHaveBeenCalledTimes(1);
-    expect(dispatch).toHaveBeenCalledWith(type.clearAll());
+    expect(authMocks.cleanupFirestoreUid).toHaveBeenCalledWith("confirmed-uid");
+    expect(dispatch).toHaveBeenCalledTimes(1);
     expect(studyStore.getState()).toMatchObject({
       session: null,
       showBackText: false,
@@ -198,39 +242,77 @@ describe("event action", () => {
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
   });
 
+  it("preserves listeners, cache, study, and Redux when sign-out fails", async () => {
+    const signOutError = new Error("sign-out failed");
+    const stopDeck = vi.fn();
+    const stopCard = vi.fn();
+    vi.mocked(firestore.event.subscribeDeck).mockReturnValue(stopDeck);
+    vi.mocked(firestore.event.subscribeCard).mockReturnValue(stopCard);
+    const dispatch = vi.fn();
+    const getState = vi.fn(() => createRootState());
+    await action.event.subscribe("confirmed-uid")(dispatch, getState, undefined);
+    dispatch.mockClear();
+    studyStore.getState().startStudy("deck-id", ["card-id"]);
+    vi.mocked(signOut).mockRejectedValue(signOutError);
+
+    await expect(action.event.logout("confirmed-uid")(dispatch, getState, undefined)).rejects.toBe(signOutError);
+
+    expect(stopDeck).not.toHaveBeenCalled();
+    expect(stopCard).not.toHaveBeenCalled();
+    expect(authMocks.cleanupFirestoreUid).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(studyStore.getState().session).not.toBeNull();
+    expect(localStorage.getItem(STUDY_STORAGE_KEY)).not.toBeNull();
+    expect(authMocks.suspendAnonymousBootstrap).toHaveBeenCalledTimes(1);
+    expect(authMocks.resumeAnonymousBootstrap).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears local state after cleanup attempts even when cleanup fails", async () => {
+    const cleanupError = new Error("cleanup failed");
+    const dispatch = vi.fn();
+    const getState = vi.fn();
+    studyStore.getState().startStudy("deck-id", ["card-id"]);
+    vi.mocked(signOut).mockResolvedValue();
+    authMocks.cleanupFirestoreUid.mockRejectedValue(cleanupError);
+
+    await expect(action.event.logout("confirmed-uid")(dispatch, getState, undefined)).rejects.toBe(cleanupError);
+
+    expect(authMocks.cleanupFirestoreUid).toHaveBeenCalledWith("confirmed-uid");
+    expect(studyStore.getState().session).toBeNull();
+    expect(dispatch).toHaveBeenCalledWith(type.clearAll());
+    expect(authMocks.suspendAnonymousBootstrap).toHaveBeenCalledTimes(1);
+    expect(authMocks.resumeAnonymousBootstrap).toHaveBeenCalledTimes(1);
+  });
+
   it("should login", async () => {
     const m = linkWithPopup as Mock;
-    m.mockReturnValue({ user: { uid: "uid", isAnonymous: false, providerData: [{ displayName: "name" }] } });
-
-    const ga = getAuth as Mock;
-    ga.mockReturnValue({ currentUser: {} });
+    const user = { uid: "uid", isAnonymous: false, providerData: [{ displayName: "name" }] };
+    m.mockReturnValue({ user });
+    authMocks.auth.currentUser = {};
 
     const dispatch = vi.fn();
     const getState = vi.fn();
     const f = action.event.loginGoogle();
     await f(dispatch, getState, undefined);
     expect(linkWithPopup).toHaveBeenCalledTimes(1);
-    expect(dispatch).toHaveBeenCalledTimes(2);
-    expect(dispatch).toHaveBeenCalledWith(
-      type.configUpdate({ uid: "uid", displayName: "name", isAnonymous: false, lastUpdatedAt: 0 })
-    );
-    // TODO: subscribe
+    expect(authMocks.publishAuthenticatedUser).toHaveBeenCalledWith(user);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(firestore.event.subscribeDeck).not.toHaveBeenCalled();
+    expect(firestore.event.subscribeCard).not.toHaveBeenCalled();
   });
 
-  it("clears the display name when the provider has no profile", async () => {
+  it("publishes linked users without directly updating config", async () => {
     const m = linkWithPopup as Mock;
-    m.mockReturnValue({ user: { uid: "uid", isAnonymous: false, providerData: [] } });
-
-    const ga = getAuth as Mock;
-    ga.mockReturnValue({ currentUser: {} });
+    const user = { uid: "uid", isAnonymous: false, providerData: [] };
+    m.mockReturnValue({ user });
+    authMocks.auth.currentUser = {};
 
     const dispatch = vi.fn();
     const getState = vi.fn();
     const f = action.event.loginGoogle();
     await f(dispatch, getState, undefined);
 
-    expect(dispatch).toHaveBeenCalledWith(
-      type.configUpdate({ uid: "uid", displayName: null, isAnonymous: false, lastUpdatedAt: 0 })
-    );
+    expect(authMocks.publishAuthenticatedUser).toHaveBeenCalledWith(user);
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });

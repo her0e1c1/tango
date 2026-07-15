@@ -178,6 +178,99 @@ describe("Auth store", () => {
     expect(signInAnonymously).toHaveBeenCalledTimes(1);
   });
 
+  it("defers anonymous sign-in while bootstrap is suspended", () => {
+    let publishUser: (user: User | null) => void = uninitializedCallback;
+    const signInAnonymously = vi.fn(() => new Promise<never>(() => undefined));
+    const store = createAuthStore({
+      auth: {} as Auth,
+      onAuthStateChanged: vi.fn((_auth, onUser) => {
+        publishUser = onUser;
+        return vi.fn();
+      }),
+      signInAnonymously,
+    });
+    store.subscribe(vi.fn());
+    const resumeAnonymousBootstrap = store.suspendAnonymousBootstrap();
+
+    publishUser(null);
+
+    expect(store.getSnapshot()).toEqual({ status: "signedOut" });
+    expect(signInAnonymously).not.toHaveBeenCalled();
+
+    resumeAnonymousBootstrap();
+
+    expect(signInAnonymously).toHaveBeenCalledTimes(1);
+  });
+
+  it("resumes anonymous sign-in only after the last unique release", () => {
+    let publishUser: (user: User | null) => void = uninitializedCallback;
+    const signInAnonymously = vi.fn(() => new Promise<never>(() => undefined));
+    const store = createAuthStore({
+      auth: {} as Auth,
+      onAuthStateChanged: vi.fn((_auth, onUser) => {
+        publishUser = onUser;
+        return vi.fn();
+      }),
+      signInAnonymously,
+    });
+    store.subscribe(vi.fn());
+    const resumeFirst = store.suspendAnonymousBootstrap();
+    const resumeSecond = store.suspendAnonymousBootstrap();
+    publishUser(null);
+
+    resumeFirst();
+    resumeFirst();
+    expect(signInAnonymously).not.toHaveBeenCalled();
+
+    resumeSecond();
+    resumeSecond();
+    expect(signInAnonymously).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not start anonymous sign-in when authentication is restored before release", () => {
+    let publishUser: (user: User | null) => void = uninitializedCallback;
+    const signInAnonymously = vi.fn(() => new Promise<never>(() => undefined));
+    const store = createAuthStore({
+      auth: {} as Auth,
+      onAuthStateChanged: vi.fn((_auth, onUser) => {
+        publishUser = onUser;
+        return vi.fn();
+      }),
+      signInAnonymously,
+    });
+    store.subscribe(vi.fn());
+    const resumeAnonymousBootstrap = store.suspendAnonymousBootstrap();
+    const user = { uid: "uid-a" } as User;
+
+    publishUser(null);
+    publishUser(user);
+    resumeAnonymousBootstrap();
+
+    expect(store.getSnapshot()).toEqual({ status: "authenticated", user, uid: "uid-a" });
+    expect(signInAnonymously).not.toHaveBeenCalled();
+  });
+
+  it("does not resume anonymous sign-in after disposal", () => {
+    let publishUser: (user: User | null) => void = uninitializedCallback;
+    const signInAnonymously = vi.fn(() => new Promise<never>(() => undefined));
+    const store = createAuthStore({
+      auth: {} as Auth,
+      onAuthStateChanged: vi.fn((_auth, onUser) => {
+        publishUser = onUser;
+        return vi.fn();
+      }),
+      signInAnonymously,
+    });
+    store.subscribe(vi.fn());
+    const resumeAnonymousBootstrap = store.suspendAnonymousBootstrap();
+    publishUser(null);
+
+    store.dispose();
+    resumeAnonymousBootstrap();
+
+    expect(signInAnonymously).not.toHaveBeenCalled();
+  });
+
   it("starts a new anonymous episode after an authenticated user signs out", () => {
     let publishUser: (user: User | null) => void = uninitializedCallback;
     const signInAnonymously = vi.fn(() => new Promise<never>(() => undefined));

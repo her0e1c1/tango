@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import { stopSubscriptions } from "@/action/event";
+import { stopSubscriptions } from "@/lib/realtimeSubscriptions";
 import { queryClient } from "@/query/client";
 import { firestoreKeys } from "@/query/firestoreKeys";
 

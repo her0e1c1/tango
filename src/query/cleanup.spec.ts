@@ -5,7 +5,7 @@ const { stopSubscriptions } = vi.hoisted(() => ({
   stopSubscriptions: vi.fn(),
 }));
 
-vi.mock("@/action/event", () => ({ stopSubscriptions }));
+vi.mock("@/lib/realtimeSubscriptions", () => ({ stopSubscriptions }));
 
 import { cleanupFirestoreUid } from "@/query/cleanup";
 import { queryClient } from "@/query/client";

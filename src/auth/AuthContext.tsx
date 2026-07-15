@@ -26,12 +26,37 @@ export const createAuthStore = (dependencies: AuthStoreDependencies) => {
   let stopObserver: (() => void) | undefined;
   let anonymousAttempted = false;
   let anonymousInFlight: Promise<UserCredential> | undefined;
+  let anonymousBootstrapSuspensions = 0;
   let disposed = false;
 
   const setState = (nextState: AuthState) => {
     if (disposed) return;
     state = nextState;
     for (const listener of listeners) listener();
+  };
+
+  const startAnonymousBootstrap = () => {
+    if (
+      disposed ||
+      anonymousBootstrapSuspensions > 0 ||
+      state.status !== "signedOut" ||
+      anonymousAttempted
+    ) {
+      return;
+    }
+    anonymousAttempted = true;
+    try {
+      const attempt = dependencies.signInAnonymously(dependencies.auth);
+      anonymousInFlight = attempt;
+      void attempt.catch((error) => {
+        if (anonymousInFlight === attempt) {
+          anonymousInFlight = undefined;
+          setState({ status: "error", error });
+        }
+      });
+    } catch (error) {
+      setState({ status: "error", error });
+    }
   };
 
   const startObserver = () => {
@@ -49,20 +74,7 @@ export const createAuthStore = (dependencies: AuthStoreDependencies) => {
             return;
           }
           setState({ status: "signedOut" });
-          if (anonymousAttempted) return;
-          anonymousAttempted = true;
-          try {
-            const attempt = dependencies.signInAnonymously(dependencies.auth);
-            anonymousInFlight = attempt;
-            void attempt.catch((error) => {
-              if (anonymousInFlight === attempt) {
-                anonymousInFlight = undefined;
-                setState({ status: "error", error });
-              }
-            });
-          } catch (error) {
-            setState({ status: "error", error });
-          }
+          startAnonymousBootstrap();
         },
         (error) => setState({ status: "error", error })
       );
@@ -84,6 +96,17 @@ export const createAuthStore = (dependencies: AuthStoreDependencies) => {
         setState({ status: "authenticated", user, uid: user.uid });
       }
     },
+    suspendAnonymousBootstrap: () => {
+      if (disposed) return () => undefined;
+      anonymousBootstrapSuspensions += 1;
+      let released = false;
+      return () => {
+        if (released || disposed) return;
+        released = true;
+        anonymousBootstrapSuspensions -= 1;
+        if (anonymousBootstrapSuspensions === 0) startAnonymousBootstrap();
+      };
+    },
     dispose: () => {
       if (disposed) return;
       disposed = true;
@@ -102,6 +125,9 @@ const authStore = createAuthStore({ auth, onAuthStateChanged, signInAnonymously 
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Auth actions share the provider's singleton store.
 export const publishAuthenticatedUser = (user: User) => authStore.publishAuthenticatedUser(user);
+
+// biome-ignore lint/style/useComponentExportOnlyModules: Auth actions share the provider's singleton store.
+export const suspendAnonymousBootstrap = () => authStore.suspendAnonymousBootstrap();
 
 const AuthContext = createContext<AuthStore | null>(null);
 
