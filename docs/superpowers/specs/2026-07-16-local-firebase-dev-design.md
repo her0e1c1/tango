@@ -6,11 +6,13 @@ Make `mise dev` start Tango against local Firebase services without requiring a 
 
 ## Design
 
-- Add `.env.dev` with a demo project ID, a non-secret local API key, and localhost ports for Firestore and Auth.
+- Add a committed `.env.dev` with project ID `demo-tango`, a non-secret local API key, Firestore at `localhost:8080`, and Auth at `localhost:9099`. Add a `.gitignore` exception for this shared file.
 - Run Vite in `dev` mode so it loads `.env.dev` after the existing base `.env` file.
-- Keep the existing Google Cloud SDK Firestore container and add a separate Firebase Auth Emulator container.
+- Keep the existing Google Cloud SDK Firestore container. Add an Auth service based on the existing Tango image, which already contains `firebase-tools`, and run `firebase emulators:start --only auth --project demo-tango --config firebase.json` bound to `0.0.0.0:9099`.
+- Configure the Auth emulator host and port in `firebase.json`, and give the service an HTTP healthcheck.
 - Publish both emulator ports to the host for the host-run Vite process.
-- Connect Firebase Auth to the emulator only when Vite runs in `dev` mode. Keep production and test behavior unchanged.
+- Make `mise up` pass `--env-file .env.dev` to Compose so container interpolation uses the same ports as Vite.
+- Connect Firebase Auth to the emulator only when `import.meta.env.MODE === "dev"`. Keep production and test behavior unchanged.
 - Start both emulator services from the `mise up` dependency used by `mise dev`.
 
 ## Data Flow
@@ -22,7 +24,8 @@ Make `mise dev` start Tango against local Firebase services without requiring a 
 
 ## Verification
 
-- Unit-test that development initialization connects the exported Auth instance to the configured emulator.
+- Unit-test that `dev` mode connects the exported Auth instance to the configured emulator URL.
+- Unit-test that non-`dev` modes do not connect Auth to an emulator.
 - Validate the Compose configuration.
 - Run `mise dev` and confirm both emulator services become healthy and Vite starts without `auth/invalid-api-key`.
 - Run `make check` before completion.
