@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Button, Description, Switch, Tag, TagList } from "@/shared/components";
+import { Button, Description, Section, Switch, Tag, TagList } from "@/shared/components";
 
 const updateTags = (tags: string[], tag: string) => {
   if (tags.includes(tag)) {
@@ -22,11 +22,11 @@ export interface TagFilterProps {
 
 export const TagFilter: React.FC<TagFilterProps> = (props) => {
   return (
-    <fieldset
+    <div
       data-testid="tag-filter"
       className="min-w-0 rounded-surface border border-border bg-surface p-4 shadow-surface"
     >
-      <legend className="px-2 text-body font-semibold text-ink">tags</legend>
+      <Section title="tags" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Description>{props.tagAndFilter ? "AND" : "OR"} Filter</Description>
         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -63,6 +63,6 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
           />
         ))}
       </TagList>
-    </fieldset>
+    </div>
   );
 };

@@ -11,8 +11,10 @@ describe("TagFilter", () => {
   it("groups tag controls and exposes the active mode and selected tags", () => {
     const view = render(<TagFilter tags={["one", "two"]} selectedTags={["two"]} tagAndFilter />);
 
-    expect(view.getByTestId("tag-filter")).toBeInTheDocument();
-    expect(view.getByRole("group", { name: "tags" })).toBeInTheDocument();
+    expect(view.getByTestId("tag-filter")).toHaveClass("bg-surface");
+    expect(view.getByTestId("tag-filter").tagName).toBe("DIV");
+    expect(view.container.querySelector("fieldset, legend")).not.toBeInTheDocument();
+    expect(view.getByText("tags")).toBeInTheDocument();
     expect(view.getByText("AND Filter")).toBeInTheDocument();
     expect(view.container.querySelector("input[name='tag-filter-click-filter']")).toBeChecked();
     expect(view.getByRole("checkbox", { name: "one" })).not.toBeChecked();

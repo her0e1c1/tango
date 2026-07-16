@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Form, FormItem, Slider, Switch } from "@/shared/components";
+import { Form, FormItem, Section, Slider, Switch } from "@/shared/components";
 import { TagFilter, type TagFilterProps } from "@/features/deck/components/TagFilter";
 
 export interface DeckStartFormProps {
@@ -29,8 +29,8 @@ export const DeckStartForm: React.FC<DeckStartFormProps> = (props) => {
 
   return (
     <Form div>
-      <fieldset className="space-y-3 rounded-surface border border-border bg-surface p-4 shadow-surface">
-        <legend className="px-2 text-body font-semibold text-ink">score range{range ? ` ${range}` : ""}</legend>
+      <div className="space-y-3 rounded-surface border border-border bg-surface p-4 shadow-surface">
+        <Section title={`score range${range ? ` ${range}` : ""}`} />
         <FormItem label="max">
           <Switch {...props.scoreMaxSwitchProps} />
         </FormItem>
@@ -39,7 +39,7 @@ export const DeckStartForm: React.FC<DeckStartFormProps> = (props) => {
           <Switch {...props.scoreMinSwitchProps} />
         </FormItem>
         <Slider {...props.scoreMinSliderProps} />
-      </fieldset>
+      </div>
       <TagFilter {...props.tagFilterProps} />
     </Form>
   );

@@ -22,7 +22,8 @@ describe("DeckStartForm", () => {
     const props = createProps();
     const view = render(<DeckStartForm {...props} />);
 
-    expect(view.getByRole("group", { name: "score range -2~4" })).toBeInTheDocument();
+    expect(view.container.querySelector("fieldset, legend")).not.toBeInTheDocument();
+    expect(view.getByText("score range -2~4").parentElement).toHaveClass("bg-surface");
     const maxSwitch = view.container.querySelector("input[name='maximum-enabled']") as HTMLInputElement;
     const minSwitch = view.container.querySelector("input[name='minimum-enabled']") as HTMLInputElement;
     const maxSlider = view.container.querySelector("input[name='maximum']") as HTMLInputElement;
@@ -52,6 +53,7 @@ describe("DeckStartForm", () => {
     [null, null, "score range"],
   ])("renders the score range text for max %s and min %s", (scoreMax, scoreMin, label) => {
     render(<DeckStartForm {...createProps()} scoreMax={scoreMax} scoreMin={scoreMin} />);
-    expect(document.querySelector("legend")).toHaveTextContent(label);
+    expect(document.querySelector("fieldset, legend")).not.toBeInTheDocument();
+    expect(document.body).toHaveTextContent(label);
   });
 });
