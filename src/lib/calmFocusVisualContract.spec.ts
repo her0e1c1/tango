@@ -14,6 +14,7 @@ const ownedPresentationFiles = [
   "shared/components/layout/List.tsx",
   "shared/components/layout/FullScreen.tsx",
   "shared/components/content/Logo.tsx",
+  "shared/components/forms/Button.tsx",
 ];
 const semanticColorRoles = [
   "canvas",

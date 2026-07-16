@@ -8,39 +8,49 @@ const meta = {
   tags: ["autodocs"],
   argTypes: { onClick: { action: "onClick" } },
   args: {
-    label: "button",
+    label: "Continue",
   },
 } satisfies Meta<typeof Template>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
-
-export const Small: Story = {
-  args: { small: true },
-};
-
-export const Large: Story = {
-  args: { large: true },
+export const VariantAndSize: Story = {
+  render: () => (
+    <div className="grid gap-4">
+      {(["primary", "secondary", "quiet", "destructive"] as const).map((variant) => (
+        <div key={variant} className="flex flex-wrap items-center gap-3">
+          {(["sm", "md", "lg"] as const).map((size) => (
+            <Template key={size} variant={variant} size={size} label={`${variant} ${size}`} />
+          ))}
+        </div>
+      ))}
+    </div>
+  ),
 };
 
 export const Disabled: Story = {
-  args: { disabled: true },
+  args: { variant: "primary", disabled: true },
 };
 
-export const Primary: Story = {
-  args: { primary: true },
+export const Loading: Story = {
+  args: { variant: "primary", loading: true },
 };
 
-export const PrimarySmall: Story = {
-  args: { primary: true, small: true },
+export const LightAndDark: Story = {
+  render: () => (
+    <div className="grid gap-4">
+      <div className="bg-canvas p-4 text-ink">
+        <Template variant="quiet">Light surface</Template>
+      </div>
+      <div className="dark bg-canvas p-4 text-ink">
+        <Template variant="quiet">Dark surface</Template>
+      </div>
+    </div>
+  ),
 };
 
-export const PrimaryLarge: Story = {
-  args: { primary: true, large: true },
-};
-
-export const PrimaryDisabled: Story = {
-  args: { primary: true, disabled: true },
+export const NarrowViewport: Story = {
+  args: { variant: "primary", className: "w-full" },
+  parameters: { viewport: { defaultViewport: "iphone5" } },
 };
