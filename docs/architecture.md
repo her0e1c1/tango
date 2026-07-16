@@ -16,9 +16,8 @@ flowchart TD
     C --> A[Local Actions / Thunks<br/>src/action]
     H --> A
     A --> S[Local Redux State<br/>src/store]
-    S --> X[Selectors<br/>src/selector]
-    X --> C
-    X --> H
+    S --> C
+    S --> H
 
     S <--> L[redux-persist v3<br/>Local Deck / Card + Settings]
     S --> I[Sample Deck Data<br/>sample/build/output.json]
@@ -61,7 +60,7 @@ UI の依存方向は `App -> Page -> Container -> Template -> Component` です
 
 - `src/main.tsx` で Redux、TanStack Query、Auth Context を初期化します。
 - `src/App.tsx` は route と application bootstrap を担当します。
-- `src/store` と `src/selector` は local-mode entity と長期設定だけを保持します。persist v3 migration は remote entity と旧認証情報を除去します。
+- `src/store` は local-mode entity と長期設定だけを保持し、container と hook は Redux state を直接参照します。persist v3 migration は remote entity と旧認証情報を除去します。
 - TanStack Query が Firestore由来の Deck / Card の唯一の cache です。UID変更・logout時は listener停止、query cancellation、UID cache削除を同期順序で行います。
 - Firebase Auth の runtime identity は Auth Context だけから参照し、Redux / LocalStorage には保存しません。
 - `src/action/firestore` が Firestore との入出力を、`src/auth/AuthBootstrap.tsx` が認証に連動した購読 lifecycle を担当します。

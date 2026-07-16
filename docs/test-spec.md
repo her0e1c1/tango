@@ -19,8 +19,6 @@
 | Firestore / Card | `src/action/firestore/card.spec.ts` | 統合テスト |
 | Firestore / Event | `src/action/firestore/event.spec.ts` | Query購読統合テスト |
 | Firestore / Rule | `src/action/firestore/rule/rule.spec.ts` | セキュリティルールテスト |
-| Selector / Deck | `src/selector/deck.spec.ts` | ユニットテスト |
-| Selector / Card | `src/selector/card.spec.ts` | ユニットテスト |
 | Container / CardForm | `src/features/card/containers/CardFormContainer.spec.tsx` | container テスト |
 | Container / CardList | `src/features/card/containers/CardListContainer.spec.tsx` | container/template 統合テスト |
 | Container / DeckForm | `src/features/deck/containers/DeckFormContainer.spec.tsx` | container テスト |
@@ -285,34 +283,9 @@
 
 ---
 
-## 3. Selector テスト（ユニットテスト）
+## 3. Feature UI テスト
 
-### 3-1. Deck Selector (`src/selector/deck.spec.ts`)
-
-#### findByName
-
-| # | テスト名 | 前提条件 | 操作 | 期待結果 |
-|---|---------|---------|------|---------|
-| 1 | should find by name | State に `name: "deckName"` の Deck が存在 | `findByName("deckName")(state)` | `"id"` を返す |
-| 2 | should not find by name | State に `name: "deckName"` の Deck が存在 | `findByName("invalid")(state)` | `null` を返す |
-
----
-
-### 3-2. Card Selector (`src/selector/card.spec.ts`)
-
-#### splitByUniqueKey
-
-| # | テスト名 | 前提条件 | 操作 | 期待結果 |
-|---|---------|---------|------|---------|
-| 1 | should split into new cards | State に `uniqueKey: "a","b","c"` が存在 | `uniqueKey: "A","B","C"` のカードで分割 | 全カードが `newCards` に分類、`oldCards` は空 |
-| 2 | should split into old cards | State に `uniqueKey: "a","b","c"` が存在 | `uniqueKey: "a","b","c"` のカードで分割 | 全カードが `oldCards` に分類、`newCards` は空 |
-| 3 | should split into new and old cards | State に `uniqueKey: "a","b","c"` が存在 | `uniqueKey: "A","b","c"` のカードで分割 | `newCards: ["A"]`、`oldCards: ["b","c"]` |
-
----
-
-## 4. Feature UI テスト
-
-### 4-1. CardFormContainer (`src/features/card/containers/CardFormContainer.spec.tsx`)
+### 3-1. CardFormContainer (`src/features/card/containers/CardFormContainer.spec.tsx`)
 
 > 初期カード: `frontText: "FRONT TEXT"`, `backText: "BACK TEXT"`, `tags: []`, `lastSeenAt: 1`
 
@@ -325,7 +298,7 @@
 
 ---
 
-### 4-2. DeckFormContainer (`src/features/deck/containers/DeckFormContainer.spec.tsx`)
+### 3-2. DeckFormContainer (`src/features/deck/containers/DeckFormContainer.spec.tsx`)
 
 > 初期 Deck: `name: "NAME"`, `isPublic: false`, `convertToBr: false`, `url: ""`, `category: ""`, `localMode: true`
 
@@ -340,7 +313,7 @@
 
 ---
 
-### 4-3. ConfigForm (`src/features/settings/hooks/useConfigFormState.spec.tsx`)
+### 3-3. ConfigForm (`src/features/settings/hooks/useConfigFormState.spec.tsx`)
 
 > 初期 Config: 全フラグ `false`、数値フィールド `0`、文字列フィールド `""`
 
@@ -351,7 +324,7 @@
 
 ---
 
-### 4-4. FrontText (`src/features/card/components/FrontText.spec.tsx`)
+### 3-4. FrontText (`src/features/card/components/FrontText.spec.tsx`)
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
@@ -359,7 +332,7 @@
 
 ---
 
-### 4-5. Deck filter (`src/features/deck/hooks/useDeckFilterState.spec.tsx`)
+### 3-5. Deck filter (`src/features/deck/hooks/useDeckFilterState.spec.tsx`)
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
@@ -369,7 +342,7 @@
 
 ---
 
-### 4-6. Study controller (`src/features/study/hooks/useStudyControllerState.spec.tsx`)
+### 3-6. Study controller (`src/features/study/hooks/useStudyControllerState.spec.tsx`)
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|

@@ -33,31 +33,30 @@ sequenceDiagram
 Actor: 利用者
 
 1. 利用者が `/import` で CSV file を選択します。
-2. `deck.parseFile()` が `Papa.parse` で rows を読みます。
+2. `useDeckImport` が `Papa.parse` で rows を読みます。
 3. row は `card.fromRow()` で `frontText/backText/tags/uniqueKey` に変換されます。
-4. `spliteCreate()` が `uniqueKey` で新規 card と更新対象 card を分けます。
-5. 既存 card を先に bulk update します。
-6. 同名 deck がない場合は `deck.create()` で deck を作り、新規 card を bulk create します。
+4. `useRemoteCollections` から同名 deck と既存 card を取得します。
+5. 同名 deck がない場合は deck mutation で作成します。
+6. `uniqueKey` で新規・更新・変更なしを判定し、card mutation で一括反映します。
 
 ```mermaid
 sequenceDiagram
     actor User as 利用者
     participant Page as DeckImportPage
-    participant Deck as action.deck
-    participant Card as action.card
-    participant Store as Redux
+    participant Import as useDeckImport
+    participant Collections as useRemoteCollections
+    participant DeckMutation as useDeckMutations
+    participant CardMutation as useCardMutations
     participant FS as Firestore
 
     User->>Page: upload CSV
-    Page->>Deck: parseFile(file)
-    Deck->>Deck: parseCsv(file)
-    Deck->>Card: fromRow(row)
-    Deck->>Store: splitByUniqueKey(cards)
-    Deck->>Card: bulkUpdate(oldCards)
-    Deck->>Deck: create(deckName) if missing
-    Deck->>Card: bulkCreate(newCards, deckId)
-    Card-->>FS: create/update when localMode=false
-    Card-->>Store: card insert/update
+    Page->>Import: importFile(file)
+    Import->>Import: parseCsv(file) / fromRow(row)
+    Import->>Collections: read decks and cards
+    Import->>DeckMutation: create deck if missing
+    DeckMutation-->>FS: create when localMode=false
+    Import->>CardMutation: bulkUpsert(changed cards)
+    CardMutation-->>FS: create/update when localMode=false
 ```
 
 ## 3. 学習を開始して swipe する
@@ -66,31 +65,31 @@ Actor: 利用者
 
 1. 利用者が deck の Study を押して `/deck/:id/start` に移動します。
 2. tag/score filter を調整します。
-3. Start を押すと `deck.start()` が filter 後の cards を取得します。
-4. shuffle と max number を適用して `cardOrderIds` と `currentIndex` を保存します。
+3. `useRemoteCollections` が filter 後の cards を返します。
+4. Start を押すと `useStudyActions` が shuffle と max number を適用し、Zustand study store に `cardOrderIds` と `currentIndex` を保存します。
 5. `/deck/:id/study` で front text を表示します。
-6. swipe または arrow key で `deck.swipe()` を呼び、score と current index を更新します。
+6. swipe または arrow key で card mutation と current index を更新します。
 
 ```mermaid
 sequenceDiagram
     actor User as 利用者
     participant Start as DeckStartPage
-    participant Selector as selector.card
-    participant Deck as action.deck
-    participant Card as action.card
+    participant Collections as useRemoteCollections
+    participant Actions as useStudyActions
     participant Study as DeckSwiperPage
-    participant Store as Redux
+    participant StudyStore as Zustand study store
+    participant CardMutation as useCardMutations
 
     User->>Start: choose filters
+    Start->>Collections: filteredCardsByDeckId(deckId, config)
     User->>Start: click Start
-    Start->>Deck: start(deckId)
-    Deck->>Selector: getFilteredByDeckId(deckId)
-    Deck->>Store: deck.update(currentIndex, cardOrderIds)
+    Start->>Actions: start()
+    Actions->>StudyStore: startStudy(deckId, cardOrderIds)
     Start->>Study: navigate /study
     User->>Study: swipe
-    Study->>Deck: swipe(direction, deckId)
-    Deck->>Card: update(score, numberOfSeen, lastSeenAt)
-    Deck->>Store: deck.update(currentIndex)
+    Study->>Actions: swipe(direction)
+    Actions->>CardMutation: update(card patch)
+    Actions->>StudyStore: setCurrentIndex(nextIndex)
 ```
 
 ## 4. Google login して Firestore 同期する

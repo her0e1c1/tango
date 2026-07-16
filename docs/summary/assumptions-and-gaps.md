@@ -11,7 +11,7 @@
 - Deck を空の状態から新規作成する明確な UI route は見当たりません。deck creation は CSV import、sample load、code 内 action として確認できます。
 - `DeckCard` には reimport icon の表示ロジックがありますが、`DeckListPage` では `onClickReimport` がコメントアウトされています。
 - `isPublic` は type、form、Firestore rules にありますが、Deck form 上では disabled です。public deck の作成・公開フローは見当たりません。
-- `useCardInterval` と `nextSeeingAt` の filter は selector にありますが、`deck.swipe()` 内の interval 更新ロジックはコメントアウトされています。
+- `useCardInterval` と `nextSeeingAt` の filter は `filterCardsForDeck` にありますが、学習時の interval 更新ロジックは実装されていません。
 
 ## Technical Gaps
 
