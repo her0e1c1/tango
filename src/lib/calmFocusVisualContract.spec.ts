@@ -20,6 +20,7 @@ const completedUtilityRoutePresentationFiles = [
   "features/deck/components/templates/DeckFormTemplate.tsx",
   "features/card/components/CardForm.tsx",
   "features/card/components/templates/CardFormTemplate.tsx",
+  "features/import/components/templates/DeckImportTemplate.tsx",
 ] as const satisfies readonly (typeof utilityRoutePresentationFiles)[number][];
 const completedUtilityRoutePresentationFileSet = new Set<string>(completedUtilityRoutePresentationFiles);
 const pendingUtilityRoutePresentationFiles = utilityRoutePresentationFiles.filter(
@@ -260,6 +261,14 @@ describe("Calm Focus visual contract", () => {
     expect(readOwnedSource("features/card/components/templates/CardFormTemplate.tsx")).toMatch(/bg-surface/);
   });
 
+  it("gives the import route a bounded semantic Calm Focus surface", () => {
+    const importTemplate = readOwnedSource("features/import/components/templates/DeckImportTemplate.tsx");
+
+    expect(importTemplate).toMatch(/max-w-reading/);
+    expect(importTemplate).toMatch(/border-border/);
+    expect(importTemplate).toMatch(/bg-surface/);
+  });
+
   it("registers utility routes and enforces semantic surfaces for completed templates", () => {
     expect(utilityRoutePresentationFiles).toEqual([
       "features/deck/components/DeckForm.tsx",
@@ -271,7 +280,7 @@ describe("Calm Focus visual contract", () => {
       "features/settings/components/templates/ConfigFormTemplate.tsx",
     ]);
     expect(ownedPresentationFiles).toEqual(expect.arrayContaining([...utilityRoutePresentationFiles]));
-    expect(pendingUtilityRoutePresentationFiles).toEqual(utilityRoutePresentationFiles.slice(4));
+    expect(pendingUtilityRoutePresentationFiles).toEqual(utilityRoutePresentationFiles.slice(5));
     expect(enforcedOwnedPresentationFiles).toEqual(expect.arrayContaining([...completedUtilityRoutePresentationFiles]));
     for (const relativePath of pendingUtilityRoutePresentationFiles) {
       expect(enforcedOwnedPresentationFiles).not.toContain(relativePath);

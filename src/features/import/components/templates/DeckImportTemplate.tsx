@@ -1,6 +1,6 @@
 import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
-import { Upload, Description, Code, Title } from "@/shared/components";
+import { Button, Code, Description, Upload } from "@/shared/components";
 import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
 
 export const DeckImportTemplate: React.FC<{
@@ -13,30 +13,45 @@ export const DeckImportTemplate: React.FC<{
 }> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
-      {props.feedbackSlot}
-      <Title>Deck Upload</Title>
-      <Upload
-        className="my-2"
-        {...(props.pending !== undefined ? { disabled: props.pending } : {})}
-        {...(props.onChange !== undefined ? { onChange: props.onChange } : {})}
-      />
-      <Title>CSV File Format</Title>
-      <Description className="my-2">{`There are 3 columns without header: front text, back text, and tags (optional).`}</Description>
-      <div className="flex justify-start items-center">
-        <Title>CSV Sample</Title>
-        <button
-          type="button"
-          aria-label="Download CSV sample"
-          className="flex items-center cursor-pointer"
-          onClick={props.onDownloadSample}
-        >
-          <AiOutlineCloudDownload className="text-xl" size={24} />
-          <Description className="m-1 underline">{`download`}</Description>
-        </button>
-      </div>
-      <div className="overflow-scroll p-1 mt-2 shadow dark:shadow-gray-100">
-        <Code text={props.sampleText} category="csv" />
-      </div>
+      <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
+        <h1 className="mb-section-gap break-words text-display font-bold text-ink">Import decks</h1>
+        {props.feedbackSlot}
+        <div className="space-y-section-gap">
+          <section>
+            <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>
+            <Upload
+              {...(props.pending !== undefined ? { disabled: props.pending } : {})}
+              {...(props.onChange !== undefined ? { onChange: props.onChange } : {})}
+            />
+          </section>
+          <section>
+            <h2 className="mb-2 break-words text-title font-bold text-ink">CSV format</h2>
+            <Description>{`There are 3 columns without header: front text, back text, and tags (optional).`}</Description>
+          </section>
+          <section>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="break-words text-title font-bold text-ink">Sample</h2>
+              <Button
+                variant="quiet"
+                size="sm"
+                {...(props.onDownloadSample !== undefined ? { onClick: props.onDownloadSample } : {})}
+              >
+                <AiOutlineCloudDownload aria-hidden="true" className="text-xl" size={24} />
+                <span aria-hidden="true" className="text-caption text-ink-muted underline">
+                  download
+                </span>
+                <span className="sr-only">Download CSV sample</span>
+              </Button>
+            </div>
+            <div
+              data-import-sample
+              className="overflow-x-auto rounded-surface border border-border bg-surface-muted p-2"
+            >
+              <Code text={props.sampleText} category="csv" />
+            </div>
+          </section>
+        </div>
+      </section>
     </Layout>
   );
 };
