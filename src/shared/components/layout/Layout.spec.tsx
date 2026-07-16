@@ -93,9 +93,11 @@ describe("shared app shell", () => {
       </Layout>
     );
     const outer = view.container.firstElementChild;
-    const header = view.getByText("tango").parentElement;
+    const logo = view.getByText("tango").closest("div");
+    const header = logo?.parentElement;
     const content = view.getByText("Standard fixed content");
 
+    expect(logo).not.toBeNull();
     expect(outer).toHaveClass(fixedHeaderOffsetClass);
     expect(outer?.children).toHaveLength(3);
     expect(outer?.children[0]).toBe(header);
@@ -111,9 +113,11 @@ describe("shared app shell", () => {
       </Layout>
     );
     const fullScreen = view.container.firstElementChild;
-    const header = view.getByText("tango").parentElement;
+    const logo = view.getByText("tango").closest("div");
+    const header = logo?.parentElement;
     const content = view.getByText("Fullscreen fixed content");
 
+    expect(logo).not.toBeNull();
     expect(fullScreen).toHaveClass("h-dvh", "overflow-hidden", fixedHeaderOffsetClass);
     expect(fullScreen?.children).toHaveLength(2);
     expect(fullScreen?.children[0]).toBe(header);
@@ -124,16 +128,18 @@ describe("shared app shell", () => {
 
   it("lets headerProps.fixed override fixedHeader", () => {
     const view = render(<Layout showHeader fixedHeader headerProps={{ fixed: false }} />);
-    const header = view.getByText("tango").parentElement;
+    const logo = view.getByText("tango").closest("div");
+    const header = logo?.parentElement;
     const outer = view.container.firstElementChild;
 
+    expect(logo).not.toBeNull();
     expect(header).not.toBeNull();
     expect(header).not.toHaveClass("fixed");
     expect(outer?.children).toHaveLength(3);
     expect(outer).not.toHaveClass(fixedHeaderOffsetClass);
 
     view.rerender(<Layout showHeader fixedHeader={false} headerProps={{ fixed: true }} />);
-    expect(view.getByText("tango").parentElement).toHaveClass("fixed");
+    expect(view.getByText("tango").closest("div")?.parentElement).toHaveClass("fixed");
     expect(view.container.firstElementChild).toHaveClass(fixedHeaderOffsetClass);
     expect(view.container.firstElementChild?.children).toHaveLength(3);
   });

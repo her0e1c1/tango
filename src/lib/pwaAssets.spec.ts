@@ -280,6 +280,15 @@ describe("Tango PWA identity", () => {
     expect(darkMark).toMatch(/#f8fafc/i);
   });
 
+  it("displays the light and dark Card trail logo as the README heading", () => {
+    const readme = readText("README.md");
+
+    expect(readme).toContain("<h1>");
+    expect(readme).toContain('<source media="(prefers-color-scheme: dark)" srcset="./public/tango-logo-dark.svg">');
+    expect(readme).toContain('<img src="./public/tango-logo.svg" alt="Tango" width="216" height="64">');
+    expect(readme).not.toMatch(/^# Tango$/m);
+  });
+
   it("advertises SVG, fallback, touch, manifest, and light/dark browser colors", () => {
     const indexHtml = readText("index.html");
     const document = new DOMParser().parseFromString(indexHtml, "text/html");
@@ -400,24 +409,32 @@ describe("Tango PWA identity", () => {
     expect(inspectIco(truncatedIco)).toBeUndefined();
   });
 
-  it("renders the shared mark beside a visible accessible wordmark without changing interaction props", () => {
+  it("renders the shared mark wordmark assets with accessible text without changing interaction props", () => {
     const onClick = vi.fn();
     const view = render(createElement(Logo, { className: "contract-class", onClick }));
     const logo = view.getByRole("button", { name: "tango" });
-    const mark = logo.querySelector('img[src="/tango-mark.svg"]');
+    const lightLogo = logo.querySelector('img[src="/tango-logo.svg"]');
+    const darkLogo = logo.querySelector('img[src="/tango-logo-dark.svg"]');
 
-    expect(logo).toHaveClass("contract-class", "text-accent-primary");
-    expect(mark).toHaveAttribute("alt", "");
-    expect(mark).toHaveAttribute("aria-hidden", "true");
-    expect(view.getByText("tango")).toBeVisible();
+    expect(logo).toHaveClass("contract-class");
+    for (const image of [lightLogo, darkLogo]) {
+      expect(image).toHaveAttribute("alt", "");
+      expect(image).toHaveAttribute("aria-hidden", "true");
+      expect(image).toHaveAttribute("width", "108");
+      expect(image).toHaveAttribute("height", "32");
+    }
+    expect(view.getByText("tango")).toHaveClass("sr-only");
     fireEvent.click(logo);
     expect(onClick).toHaveBeenCalledOnce();
   });
 
   it("keeps the mark-only Logo accessible through the component API", () => {
     const view = render(createElement(Logo, { markOnly: true, onClick: vi.fn() }));
+    const logo = view.getByRole("button", { name: "tango" });
 
-    expect(view.getByRole("button", { name: "tango" })).toBeInTheDocument();
+    expect(logo.querySelector('img[src="/tango-mark.svg"]')).toBeInTheDocument();
+    expect(logo.querySelector('img[src="/tango-logo.svg"]')).not.toBeInTheDocument();
+    expect(logo.querySelector('img[src="/tango-logo-dark.svg"]')).not.toBeInTheDocument();
     expect(view.getByText("tango")).toHaveClass("sr-only");
   });
 
