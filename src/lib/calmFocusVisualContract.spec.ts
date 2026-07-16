@@ -263,9 +263,9 @@ describe("Calm Focus visual contract", () => {
       "features/settings/components/ConfigForm.tsx",
       "features/settings/components/templates/ConfigFormTemplate.tsx",
     ]);
-    expect(ownedPresentationFiles).toEqual(expect.arrayContaining(utilityRoutePresentationFiles));
+    expect(ownedPresentationFiles).toEqual(expect.arrayContaining([...utilityRoutePresentationFiles]));
     expect(pendingUtilityRoutePresentationFiles).toEqual(utilityRoutePresentationFiles.slice(2));
-    expect(enforcedOwnedPresentationFiles).toEqual(expect.arrayContaining(completedUtilityRoutePresentationFiles));
+    expect(enforcedOwnedPresentationFiles).toEqual(expect.arrayContaining([...completedUtilityRoutePresentationFiles]));
     for (const relativePath of pendingUtilityRoutePresentationFiles) {
       expect(enforcedOwnedPresentationFiles).not.toContain(relativePath);
     }

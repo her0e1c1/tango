@@ -80,6 +80,25 @@ describe("DeckForm", () => {
     expect(view.getAllByText(/not available yet/i)).toHaveLength(2);
   });
 
+  it("uses unique section heading relationships for each form instance", () => {
+    const view = render(
+      <>
+        <DeckForm {...createProps()} />
+        <DeckForm {...createProps()} />
+      </>
+    );
+    const sections = view.container.querySelectorAll("section[aria-labelledby]");
+    const labelledByIds = Array.from(sections, (section) => section.getAttribute("aria-labelledby"));
+
+    expect(sections).toHaveLength(6);
+    expect(new Set(labelledByIds).size).toBe(6);
+    for (const section of sections) {
+      const headingId = section.getAttribute("aria-labelledby");
+      expect(headingId).not.toBeNull();
+      expect(section.querySelector(`h2[id='${headingId}']`)).toBeInTheDocument();
+    }
+  });
+
   it("submits when idle and has no cancel action", async () => {
     const onSubmit = vi.fn((event?: React.FormEvent) => event?.preventDefault());
     const view = render(<DeckForm {...createProps({ isSubmitting: false, onSubmit })} />);
