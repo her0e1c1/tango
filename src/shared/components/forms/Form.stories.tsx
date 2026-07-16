@@ -11,7 +11,7 @@ const reviewForm = () => (
       <Input defaultValue="Japanese verbs" />
     </FormItem>
     <FormItem label="Shuffle cards" extra="The existing extra copy uses the same supporting hierarchy.">
-      <Switch checked />
+      <Switch checked onChange={() => undefined} />
     </FormItem>
     <FormItem col label="Daily review target" help="Choose a value between 1 and 100." error="Enter a whole number.">
       <Input defaultValue="One hundred and twenty" />
