@@ -7,6 +7,9 @@ export const Input: React.FC<{
   type?: string;
   value?: string;
   defaultValue?: string;
+  disabled?: boolean;
+  readOnly?: boolean;
+  placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   inputRef?: React.Ref<HTMLInputElement>;
@@ -18,23 +21,13 @@ export const Input: React.FC<{
       name={props.name}
       defaultValue={props.defaultValue}
       value={props.value}
+      disabled={props.disabled}
+      readOnly={props.readOnly}
+      placeholder={props.placeholder}
       onChange={props.onChange}
       onBlur={props.onBlur}
       className={cx(
-        `shadow
-         appearance-none
-         border
-         rounded
-         w-full
-         py-2
-         px-3
-         text-gray-700
-         dark:bg-black
-         dark:text-gray-100
-         leading-tight
-         focus:outline-hidden
-         focus:ring-2
-         focus:ring-blue-500`,
+        "w-full appearance-none rounded-control border border-border bg-surface px-3 py-2 leading-tight text-ink shadow-surface transition-colors duration-fast ease-calm placeholder:text-ink-muted hover:border-ink-muted focus-visible:border-focus invalid:border-danger disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-muted read-only:bg-surface-muted",
         props.className
       )}
     />
