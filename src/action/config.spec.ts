@@ -25,25 +25,15 @@ describe("config action", () => {
     expect(dispatch).lastCalledWith(type.configUpdate({ darkMode: true }));
   });
 
-  it("does not let form submissions overwrite runtime auth identity", async () => {
+  it("updates persisted settings without an auth identity payload", async () => {
     const dispatch = vi.fn();
     const getState = vi.fn();
-    const config = createConfig({
-      uid: "stale-uid",
-      isAnonymous: false,
-      displayName: "Stale User",
-      lastUpdatedAt: 123,
-      darkMode: true,
-    });
+    const config = createConfig({ darkMode: true });
 
     await updateAll(config)(dispatch, getState, undefined);
 
     const updateAction = dispatch.mock.calls[0]?.[0] as ReturnType<typeof type.configUpdate>;
-    expect(updateAction.payload.config).toMatchObject({ darkMode: true });
-    expect(updateAction.payload.config).not.toHaveProperty("uid");
-    expect(updateAction.payload.config).not.toHaveProperty("isAnonymous");
-    expect(updateAction.payload.config).not.toHaveProperty("displayName");
-    expect(updateAction.payload.config).not.toHaveProperty("lastUpdatedAt");
+    expect(updateAction.payload.config).toEqual(config);
   });
 
   it("forwards the confirmed AuthContext UID to logout", async () => {

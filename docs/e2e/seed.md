@@ -6,10 +6,10 @@
 
 | 項目 | 値 |
 |---|---|
-| `uid` | `e2e-user` |
-| `displayName` | `E2E User` |
 | `localMode` | `true` |
 | `loadSample` | `false` |
+
+Firebase UID / displayName はpersistせず、remote-mode testではAuth route mockから供給する。
 
 ## Deck
 

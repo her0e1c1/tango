@@ -3,6 +3,32 @@ import { describe, expect, it } from "vitest";
 import { migratePersistedState } from "@/store/migrations";
 
 describe("persisted Redux state migrations", () => {
+  it("keeps only local entities and long-lived settings in v3", async () => {
+    const localDeck = { id: "local-deck", localMode: true, category: "Local" };
+    const remoteDeck = { id: "remote-deck", localMode: false, category: "Remote" };
+    const localCard = { id: "local-card", deckId: localDeck.id, tags: ["kept"] };
+    const remoteCard = { id: "remote-card", deckId: remoteDeck.id, tags: ["removed"] };
+    const persisted = {
+      deck: { byId: { [localDeck.id]: localDeck, [remoteDeck.id]: remoteDeck }, categories: ["stale"] },
+      card: { byId: { [localCard.id]: localCard, [remoteCard.id]: remoteCard }, tags: ["stale"] },
+      config: {
+        darkMode: true,
+        uid: "persisted-uid",
+        isAnonymous: false,
+        displayName: "Persisted User",
+        lastUpdatedAt: 123,
+      },
+      _persist: { version: 2, rehydrated: true },
+    };
+
+    await expect(migratePersistedState(persisted, 3)).resolves.toEqual({
+      deck: { byId: { [localDeck.id]: localDeck }, categories: ["Local"] },
+      card: { byId: { [localCard.id]: localCard }, tags: ["kept"] },
+      config: { darkMode: true },
+      _persist: { version: 2, rehydrated: true },
+    });
+  });
+
   it("runs both v0 migrations without mutating or dropping persisted state", async () => {
     const arrayEntry = ["keep", "this"];
     const legacyDeck = {

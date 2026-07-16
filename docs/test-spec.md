@@ -17,7 +17,7 @@
 | Action / Config | `src/action/config.spec.ts` | ユニットテスト |
 | Firestore / Deck | `src/action/firestore/deck.spec.ts` | 統合テスト |
 | Firestore / Card | `src/action/firestore/card.spec.ts` | 統合テスト |
-| Firestore / Event | `src/action/firestore/event.spec.ts` | 統合テスト（スキップ） |
+| Firestore / Event | `src/action/firestore/event.spec.ts` | Query購読統合テスト |
 | Firestore / Rule | `src/action/firestore/rule/rule.spec.ts` | セキュリティルールテスト |
 | Selector / Deck | `src/selector/deck.spec.ts` | ユニットテスト |
 | Selector / Card | `src/selector/card.spec.ts` | ユニットテスト |
@@ -165,38 +165,19 @@
 
 ### 1-3. Event Action (`src/action/event.spec.ts`)
 
-> `firebase/auth`, `firestore` はモック化して実行。タイマーは `vi.useFakeTimers()` で固定。
-
-#### deckOnChange
-
-| # | テスト名 | 前提条件 | 操作 | 期待結果 |
-|---|---------|---------|------|---------|
-| 1 | should subscribe deck | `added: [deck]`, `lastUpdatedAt` | `action.event.deckOnChange(e)` を dispatch | `deckBulkInsert([deck])` と `configUpdate({ lastUpdatedAt })` が dispatch される |
-
-#### cardOnChange
-
-| # | テスト名 | 前提条件 | 操作 | 期待結果 |
-|---|---------|---------|------|---------|
-| 1 | should subscribe card | `added: [card]`, `lastUpdatedAt` | `action.event.cardOnChange(e)` を dispatch | `cardBulkInsert([card])` と `configUpdate({ lastUpdatedAt })` が dispatch される |
-
-#### removeFromLocal
-
-| # | テスト名 | 前提条件 | 操作 | 期待結果 |
-|---|---------|---------|------|---------|
-| 1 | delete deck | `firestore.deck.exists` が `false` を返す | `action.event.removeFromLocal()` を dispatch | `deckDelete("deckId")` が dispatch される |
-| 2 | delete card | `firestore.deck.exists` が `false` を返す | `action.event.removeFromLocal()` を dispatch | `cardDelete("cardId")` が dispatch される |
+> Firebase Auth と Query cleanup をモック化して実行。旧 realtime action lifecycle と cursor は存在しない。
 
 #### logout
 
 | # | テスト名 | 前提条件 | 操作 | 期待結果 |
 |---|---------|---------|------|---------|
-| 1 | should logout | なし | `action.event.logout()` を dispatch | `getAuth` 1回、`signOut` 1回呼ばれ、`clearAll()` が dispatch される |
+| 1 | should logout | confirmed UID | `action.event.logout(uid)` を dispatch | sign-out後にUID Query cacheとstudy stateが除去され、local Reduxは保持される |
 
 #### loginGoogle
 
 | # | テスト名 | 前提条件 | 操作 | 期待結果 |
 |---|---------|---------|------|---------|
-| 1 | should login | `linkWithPopup` が `{ user: { uid, isAnonymous, providerData } }` を返す | `action.event.loginGoogle()` を dispatch | `linkWithPopup` 1回呼ばれ、`configUpdate({ uid, displayName, isAnonymous, lastUpdatedAt: 0 })` が dispatch される |
+| 1 | should login | `linkWithPopup` が Firebase User を返す | `action.event.loginGoogle()` を dispatch | UserがAuth Contextへpublishされ、Reduxには認証情報をdispatchしない |
 
 ---
 
@@ -247,32 +228,11 @@
 
 ---
 
-### 2-3. Firestore / Event (`src/action/firestore/event.spec.ts`) ※スキップ
-
-> 現在 `describe.skip` によりスキップ中。
-
-#### deck イベント
+### 2-3. Firestore / Event (`src/action/firestore/event.spec.ts`)
 
 | # | テスト名 | 期待結果 |
 |---|---------|---------|
-| 1 | should create a insert event | `updatedAt` 以降の作成で `added` イベントが発火する |
-| 2 | should not create a insert event | `updatedAt` 以前の作成では発火しない |
-| 3 | should create a update event | 更新操作で `modified` イベントが発火する |
-| 4 | should not create a update event | `updatedAt` 以前の更新では発火しない |
-| 5 | should create a delete event | 削除操作で `removed` イベントが発火する |
-| 6 | should not create a delete event | `updatedAt` 以前の削除では発火しない |
-
-#### card イベント
-
-| # | テスト名 | 期待結果 |
-|---|---------|---------|
-| 1 | should create a insert event | カード追加で `added` イベントが発火する |
-| 2 | should not create a insert event | `updatedAt` 以前の追加では発火しない |
-| 3 | should create a update event | 更新で `modified` イベントが発火する |
-| 4 | should create a update event for logical remove | 論理削除で `removed` イベントが発火する |
-| 5 | should not create a update event | `updatedAt` 以前の更新では発火しない |
-| 6 | should create a delete event | 物理削除で `removed` イベントが発火する |
-| 7 | should not create a delete event | `updatedAt` 以前の削除では発火しない |
+| 1 | Query realtime subscriptions | cursorなしのUID購読がDeck/Cardの初期replace、更新delta、削除deltaを順に通知する |
 
 ---
 

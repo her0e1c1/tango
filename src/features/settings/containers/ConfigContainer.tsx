@@ -13,13 +13,13 @@ export const ConfigContainer: React.FC = () => {
   const authState = useAuth();
   const actions = useActions();
   const authenticated = authState.status === "authenticated" ? authState : undefined;
-  const authConfig = {
+  const identity = {
     uid: authenticated?.uid ?? "",
-    isAnonymous: authenticated?.user.isAnonymous ?? true,
     displayName: authenticated?.user.providerData[0]?.displayName ?? null,
   };
   const configForm = useConfigFormState({
-    config: { ...config, ...authConfig },
+    config,
+    identity,
     version: __APP_VERSION__,
     isLoggedIn: authenticated != null && !authenticated.user.isAnonymous,
     onLogin: actions.login,

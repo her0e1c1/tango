@@ -18,6 +18,7 @@ export interface ConfigFormFields {
 
 export interface ConfigFormProps {
   isLoggedIn?: boolean;
+  identity?: { uid: string; displayName: string | null };
   config: ConfigState;
   fields: ConfigFormFields;
   maxNumberOfCardsToLearn: number;
@@ -31,7 +32,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
   return (
     <Form div>
       <Section title="Settings" />
-      <FormItem label={props.isLoggedIn ? `Logged In As ${props.config.displayName ?? "no name"}` : "Google Login"}>
+      <FormItem label={props.isLoggedIn ? `Logged In As ${props.identity?.displayName ?? "no name"}` : "Google Login"}>
         {props.isLoggedIn ? (
           <Button small {...(props.onLogout !== undefined ? { onClick: props.onLogout } : {})}>
             Logout
@@ -80,10 +81,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
       <FormItem col label="Github Access Token">
         <Input {...props.fields.githubAccessToken} />
       </FormItem>
-      <FormItem label="User Id">{props.config.uid}</FormItem>
-      <FormItem label="Last Updated">
-        {props.config.lastUpdatedAt ? new Date(props.config.lastUpdatedAt).toLocaleString() : ""}
-      </FormItem>
+      <FormItem label="User Id">{props.identity?.uid ?? ""}</FormItem>
     </Form>
   );
 };

@@ -60,6 +60,7 @@ export const LongUserName: Story = {
   args: {
     configForm: {
       isLoggedIn: true,
+      identity: { uid: "story-user", displayName: "this is a too long user name" },
       config: fixture.config.longUserName,
       fields,
       maxNumberOfCardsToLearn: fixture.config.longUserName.maxNumberOfCardsToLearn,

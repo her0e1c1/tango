@@ -1,12 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  dependencies: undefined as
-    | {
-        mirrorDecks: (decks: Deck[]) => void;
-        mirrorCards: (cards: Card[]) => void;
-      }
-    | undefined,
   start: vi.fn(async () => undefined),
   stop: vi.fn(),
   retry: vi.fn(async () => undefined),
@@ -26,8 +20,7 @@ vi.mock("@/action/firestore", () => ({
 vi.mock("@/query/client", () => ({ queryClient: {} }));
 vi.mock("@/lib/realtimeChange", () => ({ applyRealtimeChange: vi.fn() }));
 vi.mock("@/query/remoteReadController", () => ({
-  createRemoteReadController: vi.fn((dependencies) => {
-    mocks.dependencies = dependencies;
+  createRemoteReadController: vi.fn(() => {
     return {
       start: mocks.start,
       stop: mocks.stop,
@@ -39,24 +32,14 @@ vi.mock("@/query/remoteReadController", () => ({
 }));
 
 import { startRemoteReads, stopRemoteReads } from "@/query/remoteReadSession";
-import { createCard, createDeck } from "@/test/factories";
 
 describe("remote read session", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("connects production gateways and forwards controller snapshots to the active mirrors", async () => {
-    const mirrorDecks = vi.fn();
-    const mirrorCards = vi.fn();
-    const deck = createDeck();
-    const card = createCard();
-
-    await startRemoteReads("uid-a", { mirrorDecks, mirrorCards });
-    mocks.dependencies?.mirrorDecks([deck]);
-    mocks.dependencies?.mirrorCards([card]);
+  it("connects production gateways to the Query controller", async () => {
+    await startRemoteReads("uid-a");
 
     expect(mocks.start).toHaveBeenCalledWith("uid-a");
-    expect(mirrorDecks).toHaveBeenCalledWith([deck]);
-    expect(mirrorCards).toHaveBeenCalledWith([card]);
     stopRemoteReads("uid-a");
     expect(mocks.stop).toHaveBeenCalledWith("uid-a");
   });

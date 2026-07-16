@@ -34,7 +34,7 @@ import { ConfigContainer } from "@/features/settings/containers/ConfigContainer"
 describe("ConfigContainer auth identity", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.config = createConfig({ uid: "persisted-uid", isAnonymous: false, displayName: "Persisted User" });
+    mocks.config = createConfig();
     mocks.authState = { status: "initializing" };
   });
 
@@ -49,13 +49,12 @@ describe("ConfigContainer auth identity", () => {
     render(<ConfigContainer />);
 
     const options = mocks.useConfigFormState.mock.calls[0]?.[0] as {
-      config: ConfigState;
+      identity: { uid: string; displayName: string | null };
       isLoggedIn: boolean;
       onLogout: () => unknown;
     };
-    expect(options.config).toMatchObject({
+    expect(options.identity).toEqual({
       uid: "confirmed-uid",
-      isAnonymous: false,
       displayName: "Confirmed User",
     });
     expect(options.isLoggedIn).toBe(true);
@@ -67,11 +66,11 @@ describe("ConfigContainer auth identity", () => {
     render(<ConfigContainer />);
 
     const options = mocks.useConfigFormState.mock.calls[0]?.[0] as {
-      config: ConfigState;
+      identity: { uid: string; displayName: string | null };
       isLoggedIn: boolean;
       onLogout?: () => unknown;
     };
-    expect(options.config).toMatchObject({ uid: "", isAnonymous: true, displayName: null });
+    expect(options.identity).toEqual({ uid: "", displayName: null });
     expect(options.isLoggedIn).toBe(false);
     expect(options.onLogout).toBeUndefined();
   });

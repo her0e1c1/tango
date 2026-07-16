@@ -58,7 +58,8 @@ Key files: `src/page/DeckStartPage.tsx`, `src/page/DeckSwiperPage.tsx`, `src/fea
 
 - 初期化時、匿名状態なら Firebase anonymous sign-in を実行します。
 - Google login は anonymous user を Google credential に link し、失敗時は credential sign-in を試します。
-- auth state change 後、uid と `lastUpdatedAt` を使って deck/card snapshot を購読します。
+- auth state change 後、Auth Context の uid を使って deck/card snapshot を購読し、Query cache を更新します。
+- Redux persistence は local-mode deck/card と長期設定だけを保持します。
 - `localMode` false の deck/card は Firestore に create/update/delete されます。
 
 Key files: `src/action/event.ts`, `src/firebase.ts`, `src/action/firestore/*`

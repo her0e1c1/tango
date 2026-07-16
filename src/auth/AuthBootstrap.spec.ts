@@ -22,7 +22,6 @@ const createUser = (
 const authenticated = (user: User): AuthState => ({ status: "authenticated", user, uid: user.uid });
 
 const createDependencies = () => ({
-  syncAuthenticatedUser: vi.fn(),
   cleanupUid: vi.fn(),
   subscribeUid: vi.fn(),
   reportError: vi.fn(),
@@ -37,22 +36,16 @@ describe("Auth transition controller", () => {
     await controller.transition({ status: "initializing" });
 
     expect(persistedConfig.uid).toBe("stale-uid");
-    expect(dependencies.syncAuthenticatedUser).not.toHaveBeenCalled();
     expect(dependencies.subscribeUid).not.toHaveBeenCalled();
   });
 
-  it("syncs confirmed metadata, then starts remote reads", async () => {
-    const operations: string[] = [];
+  it("starts remote reads from the confirmed Firebase UID", async () => {
     const dependencies = createDependencies();
     const user = createUser("uid-a");
-    dependencies.syncAuthenticatedUser.mockImplementation(() => operations.push("sync"));
-    dependencies.subscribeUid.mockImplementation(() => operations.push("subscribe"));
     const controller = createAuthTransitionController(dependencies);
 
     await controller.transition(authenticated(user));
 
-    expect(operations).toEqual(["sync", "subscribe"]);
-    expect(dependencies.syncAuthenticatedUser).toHaveBeenCalledWith(user, true);
     expect(dependencies.subscribeUid).toHaveBeenCalledWith("uid-a");
   });
 
@@ -65,7 +58,6 @@ describe("Auth transition controller", () => {
     const replay = controller.transition(state);
     await Promise.all([first, replay]);
 
-    expect(dependencies.syncAuthenticatedUser).toHaveBeenCalledTimes(1);
     expect(dependencies.subscribeUid).toHaveBeenCalledTimes(1);
   });
 
@@ -73,7 +65,6 @@ describe("Auth transition controller", () => {
     const operations: string[] = [];
     const dependencies = createDependencies();
     dependencies.cleanupUid.mockImplementation((uid) => operations.push(`cleanup:${uid}`));
-    dependencies.syncAuthenticatedUser.mockImplementation((user) => operations.push(`sync:${user.uid}`));
     dependencies.subscribeUid.mockImplementation((uid) => operations.push(`subscribe:${uid}`));
     const controller = createAuthTransitionController(dependencies);
     await controller.transition(authenticated(createUser("uid-a")));
@@ -81,7 +72,7 @@ describe("Auth transition controller", () => {
 
     await controller.transition(authenticated(createUser("uid-b")));
 
-    expect(operations).toEqual(["cleanup:uid-a", "sync:uid-b", "subscribe:uid-b"]);
+    expect(operations).toEqual(["cleanup:uid-a", "subscribe:uid-b"]);
     expect(dependencies.cleanupUid).toHaveBeenCalledWith("uid-a");
   });
 
@@ -130,18 +121,16 @@ describe("Auth transition controller", () => {
     expect(dependencies.subscribeUid).toHaveBeenCalledWith("uid-c");
   });
 
-  it("updates same-UID metadata without cleanup or resubscription", async () => {
+  it("keeps same-UID metadata in Auth Context without cleanup or resubscription", async () => {
     const dependencies = createDependencies();
     const controller = createAuthTransitionController(dependencies);
     await controller.transition(authenticated(createUser("uid-a")));
-    dependencies.syncAuthenticatedUser.mockClear();
     dependencies.cleanupUid.mockClear();
     dependencies.subscribeUid.mockClear();
     const linkedUser = createUser("uid-a", { isAnonymous: false, displayName: "Ada" });
 
     await controller.transition(authenticated(linkedUser));
 
-    expect(dependencies.syncAuthenticatedUser).toHaveBeenCalledWith(linkedUser, false);
     expect(dependencies.cleanupUid).not.toHaveBeenCalled();
     expect(dependencies.subscribeUid).not.toHaveBeenCalled();
   });
@@ -155,7 +144,6 @@ describe("Auth transition controller", () => {
       providerData: Array<{ displayName: string | null }>;
     };
     await controller.transition(authenticated(user));
-    dependencies.syncAuthenticatedUser.mockClear();
     dependencies.cleanupUid.mockClear();
     dependencies.subscribeUid.mockClear();
 
@@ -163,7 +151,6 @@ describe("Auth transition controller", () => {
     mutableUser.providerData = [{ displayName: "Ada" }];
     await controller.transition(authenticated(user));
 
-    expect(dependencies.syncAuthenticatedUser).toHaveBeenCalledWith(user, false);
     expect(dependencies.cleanupUid).not.toHaveBeenCalled();
     expect(dependencies.subscribeUid).not.toHaveBeenCalled();
   });
@@ -186,22 +173,6 @@ describe("Auth transition controller", () => {
     expect(dependencies.cleanupUid).toHaveBeenNthCalledWith(2, "uid-a");
     expect(dependencies.subscribeUid).toHaveBeenCalledTimes(1);
     expect(dependencies.subscribeUid).toHaveBeenCalledWith("uid-b");
-  });
-
-  it("retries the same confirmed state after metadata sync fails", async () => {
-    const syncError = new Error("sync failed");
-    const dependencies = createDependencies();
-    dependencies.syncAuthenticatedUser.mockRejectedValueOnce(syncError).mockResolvedValueOnce(undefined);
-    const controller = createAuthTransitionController(dependencies);
-    const state = authenticated(createUser("uid-a"));
-
-    const first = await controller.transition(state);
-    const retry = await controller.transition(state);
-
-    expect(first).toBe(false);
-    expect(retry).toBe(true);
-    expect(dependencies.syncAuthenticatedUser).toHaveBeenCalledTimes(2);
-    expect(dependencies.subscribeUid).toHaveBeenCalledTimes(1);
   });
 
   it("retries a failed subscription once without duplicating the active listener", async () => {

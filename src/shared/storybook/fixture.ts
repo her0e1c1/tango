@@ -114,9 +114,7 @@ export const config = {
     showHeader: true,
     maxNumberOfCardsToLearn: 10,
   }),
-  longUserName: createConfig({
-    displayName: "this is a too long user name",
-  }),
+  longUserName: createConfig(),
 } as const satisfies Record<string, ConfigState>;
 
 export const math = {

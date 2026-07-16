@@ -134,7 +134,6 @@ describe("Firestore remote-read subscriptions", () => {
         added: [expect.objectContaining({ id: "deck-added" })],
         modified: [expect.objectContaining({ id: "deck-modified" })],
         removed: ["deck-deleted", "deck-removed"],
-        lastUpdatedAt: 6,
       },
       metadata: { size: 4, fromLocal: true },
     });
@@ -158,7 +157,6 @@ describe("Firestore remote-read subscriptions", () => {
         added: [],
         modified: [expect.objectContaining({ id: "card-a", frontText: "Updated" })],
         removed: [],
-        lastUpdatedAt: 2,
       },
       metadata: { size: 1, fromLocal: false },
     });

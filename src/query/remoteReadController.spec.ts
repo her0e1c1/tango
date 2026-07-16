@@ -44,8 +44,6 @@ const createHarness = () => {
       cardUnsubscribes.push(unsubscribe);
       return unsubscribe;
     }),
-    mirrorDecks: vi.fn(),
-    mirrorCards: vi.fn(),
     applyChange: applyRealtimeChange,
   };
   return {
@@ -79,17 +77,14 @@ describe("remote read controller", () => {
     expect(harness.dependencies.subscribeCards).toHaveBeenCalledTimes(1);
     expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual(byId([deck]));
     expect(harness.client.getQueryData(firestoreKeys.cards("uid-a"))).toEqual(byId([card]));
-    expect(harness.dependencies.mirrorDecks).toHaveBeenLastCalledWith([deck]);
-    expect(harness.dependencies.mirrorCards).toHaveBeenLastCalledWith([card]);
     expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "ready" });
   });
 
-  it("applies replacement and delta snapshots to Query and the Redux mirror together", async () => {
+  it("applies replacement and delta snapshots to Query", async () => {
     const harness = createHarness();
     const deck = createDeck({ id: "deck-a", localMode: false });
     vi.mocked(harness.dependencies.readDecks).mockResolvedValue([deck]);
     await harness.controller.start("uid-a");
-    vi.mocked(harness.dependencies.mirrorDecks).mockClear();
 
     harness.deckSubscriptions[0]?.onSnapshot({
       type: "replace",
@@ -98,7 +93,6 @@ describe("remote read controller", () => {
     });
 
     expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual({});
-    expect(harness.dependencies.mirrorDecks).toHaveBeenLastCalledWith([]);
 
     const added = createDeck({ id: "deck-added", localMode: false });
     harness.deckSubscriptions[0]?.onSnapshot({
@@ -108,7 +102,6 @@ describe("remote read controller", () => {
     });
 
     expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual(byId([added]));
-    expect(harness.dependencies.mirrorDecks).toHaveBeenLastCalledWith([added]);
   });
 
   it("forces one refetch and reconnect, then retains data on a terminal listener error", async () => {
@@ -149,7 +142,7 @@ describe("remote read controller", () => {
     await vi.waitFor(() => expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(4));
   });
 
-  it("prevents delayed work for an old UID from mutating Query, mirrors, or listeners", async () => {
+  it("prevents delayed work for an old UID from mutating Query or listeners", async () => {
     const harness = createHarness();
     const decksA = deferred<Deck[]>();
     const cardsA = deferred<Card[]>();
@@ -172,9 +165,5 @@ describe("remote read controller", () => {
     expect(harness.client.getQueryData(firestoreKeys.cards("uid-a"))).toBeUndefined();
     expect(harness.dependencies.subscribeDecks).not.toHaveBeenCalledWith(expect.objectContaining({ uid: "uid-a" }));
     expect(harness.dependencies.subscribeCards).not.toHaveBeenCalledWith(expect.objectContaining({ uid: "uid-a" }));
-    expect(harness.dependencies.mirrorDecks).toHaveBeenCalledTimes(1);
-    expect(harness.dependencies.mirrorDecks).toHaveBeenLastCalledWith([deckB]);
-    expect(harness.dependencies.mirrorCards).toHaveBeenCalledTimes(1);
-    expect(harness.dependencies.mirrorCards).toHaveBeenLastCalledWith([cardB]);
   });
 });

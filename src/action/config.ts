@@ -19,10 +19,6 @@ export const updateAll =
   (c: ConfigState): ThunkResult =>
   async (dispatch) => {
     const editableConfig: Partial<ConfigState> = { ...c };
-    delete editableConfig.uid;
-    delete editableConfig.isAnonymous;
-    delete editableConfig.displayName;
-    delete editableConfig.lastUpdatedAt;
     dispatch(type.configUpdate(editableConfig));
   };
 

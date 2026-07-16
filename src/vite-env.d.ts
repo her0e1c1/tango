@@ -68,7 +68,7 @@ interface Deck {
   convertToBr: boolean;
 }
 
-type DeckConfig = Pick<ConfigState, "uid" | "localMode">;
+type DeckConfig = { uid: string; localMode: boolean };
 type DeckRaw = Pick<Deck, "name">;
 type DeckNew = New<Deck>;
 type DeckEdit = Edit<Deck>;
@@ -153,12 +153,7 @@ type ConfigState = SwipeState & {
   defaultAutoPlay: boolean;
   cardInterval: number;
   darkMode: boolean;
-  uid: string;
-  isAnonymous: boolean;
-  displayName: string | null;
   selectedTags: string[];
-  // seems like redux changes a date object
-  lastUpdatedAt: number; // Date;
   githubAccessToken: string;
   loadSample: boolean;
   localMode: boolean;
@@ -173,19 +168,3 @@ interface RootState {
 type Select0<O> = () => (state: RootState) => O;
 
 type Select<I, O> = (props: I) => (state: RootState) => O;
-
-interface DeckEvent {
-  added: Deck[];
-  modified: Deck[];
-  removed: string[];
-  lastUpdatedAt?: number;
-  metadata: { size: number; fromLocal: boolean }; // in terms of firestore test, `fromCache` is unstable
-}
-
-interface CardEvent {
-  added: Card[];
-  modified: Card[];
-  removed: string[];
-  lastUpdatedAt?: number;
-  metadata: { size: number; fromLocal: boolean };
-}

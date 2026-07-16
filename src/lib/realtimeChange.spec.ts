@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { applyRealtimeChange, getRealtimeLastUpdatedAt } from "@/lib/realtimeChange";
+import { applyRealtimeChange } from "@/lib/realtimeChange";
 
 describe("applyRealtimeChange", () => {
   type Item = { id: string; name: string };
@@ -58,15 +58,5 @@ describe("applyRealtimeChange", () => {
   it("handles empty initial state with added items", () => {
     const result = applyRealtimeChange({}, { added: [{ id: "x", name: "x" }] });
     expect(result.x).toEqual({ id: "x", name: "x" });
-  });
-});
-
-describe("getRealtimeLastUpdatedAt", () => {
-  it("returns lastUpdatedAt when present", () => {
-    expect(getRealtimeLastUpdatedAt({ lastUpdatedAt: 12345 })).toBe(12345);
-  });
-
-  it("returns undefined when not present", () => {
-    expect(getRealtimeLastUpdatedAt({})).toBeUndefined();
   });
 });

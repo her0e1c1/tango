@@ -1,6 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import { stopSubscriptions } from "@/lib/realtimeSubscriptions";
 import { queryClient } from "@/query/client";
 import { firestoreKeys } from "@/query/firestoreKeys";
 import { stopRemoteReads } from "@/query/remoteReadSession";
@@ -10,11 +9,6 @@ export const cleanupFirestoreUid = async (uid: string, client: QueryClient = que
   const errors: unknown[] = [];
   try {
     stopRemoteReads(uid);
-  } catch (error) {
-    errors.push(error);
-  }
-  try {
-    stopSubscriptions();
   } catch (error) {
     errors.push(error);
   }

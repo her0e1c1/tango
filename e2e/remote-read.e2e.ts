@@ -47,6 +47,12 @@ const getDocument = async (collection: "deck" | "card", id: string) => {
   return (await response.json()) as { fields: Record<string, { stringValue?: string }> };
 };
 
+const deckCard = (page: Page, name: string) =>
+  page.getByText(name, { exact: true }).locator("xpath=ancestor::div[contains(@class, 'rounded')][1]");
+
+const cardItem = (page: Page, frontText: string) =>
+  page.getByText(frontText, { exact: true }).locator("xpath=ancestor::div[contains(@class, 'rounded')][1]");
+
 const deckFields = (uid: string, name: string) => ({
   uid: field.string(uid),
   name: field.string(name),
@@ -105,7 +111,9 @@ const persistedConfig = (uid: string) => ({
   localMode: false,
 });
 
-const seedAuth = async (page: Page, uid: string, staleDeck?: object) => {
+const seedAuth = async (page: Page, uid: string, staleDeck?: object, nextUid?: string) => {
+  let activeUid = uid;
+  let signInCount = 0;
   await page.route("https://identitytoolkit.googleapis.com/**", async (route) => {
     if (route.request().url().includes("accounts:lookup")) {
       await route.fulfill({
@@ -115,7 +123,7 @@ const seedAuth = async (page: Page, uid: string, staleDeck?: object) => {
           kind: "identitytoolkit#GetAccountInfoResponse",
           users: [
             {
-              localId: uid,
+              localId: activeUid,
               lastLoginAt: "1",
               createdAt: "1",
               lastRefreshAt: new Date().toISOString(),
@@ -125,15 +133,17 @@ const seedAuth = async (page: Page, uid: string, staleDeck?: object) => {
       });
       return;
     }
+    activeUid = signInCount === 0 ? uid : (nextUid ?? uid);
+    signInCount += 1;
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
         kind: "identitytoolkit#SignupNewUserResponse",
-        idToken: emulatorToken(uid),
+        idToken: emulatorToken(activeUid),
         refreshToken: "e2e-refresh-token",
         expiresIn: "3600",
-        localId: uid,
+        localId: activeUid,
       }),
     });
   });
@@ -185,9 +195,27 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
   await page.reload();
 
   await expect(page.getByText("Updated Remote Query Card")).toBeVisible();
+
+  page.on("dialog", (dialog) => dialog.accept());
+  await cardItem(page, "Updated Remote Query Card").locator("svg").nth(1).click();
+  await expect(page.getByText("Updated Remote Query Card")).not.toBeVisible();
+
+  await page.goto("/");
+  await deckCard(page, "Updated Remote Query Deck").locator("svg").nth(2).click();
+  await expect(page.getByText("Updated Remote Query Deck")).not.toBeVisible();
+
+  const persistedRemoteIds = await page.evaluate(() => {
+    const root = JSON.parse(window.localStorage.getItem("persist:root") ?? "{}") as Partial<Record<string, string>>;
+    const deck = JSON.parse(root.deck ?? '{"byId":{}}') as { byId: Record<string, unknown> };
+    const card = JSON.parse(root.card ?? '{"byId":{}}') as { byId: Record<string, unknown> };
+    return { deck: Object.keys(deck.byId), card: Object.keys(card.byId) };
+  });
+  expect(persistedRemoteIds.deck).not.toContain("remote-read-deck");
+  expect(persistedRemoteIds.deck).not.toContain("foreign-deck");
+  expect(persistedRemoteIds.card).not.toContain("remote-read-card");
 });
 
-test("an empty initial snapshot removes a stale Redux remote mirror", async ({ page }) => {
+test("migration removes a stale Redux remote mirror and persisted identity", async ({ page }) => {
   const uid = "empty-remote-read-user";
   const staleDeck = {
     id: "stale",
@@ -211,4 +239,59 @@ test("an empty initial snapshot removes a stale Redux remote mirror", async ({ p
 
   await expect(page.getByText("Stale Remote Deck")).not.toBeVisible();
   await expect(page.getByRole("status")).toHaveText("No decks yet.");
+  const persisted = await page.evaluate(() => {
+    const root = JSON.parse(window.localStorage.getItem("persist:root") ?? "{}") as Partial<Record<string, string>>;
+    return {
+      config: JSON.parse(root.config ?? "{}") as Record<string, unknown>,
+      deck: JSON.parse(root.deck ?? '{"byId":{}}') as { byId: Record<string, unknown> },
+    };
+  });
+  expect(persisted.deck.byId).toEqual({});
+  expect(persisted.config).not.toHaveProperty("uid");
+  expect(persisted.config).not.toHaveProperty("isAnonymous");
+  expect(persisted.config).not.toHaveProperty("displayName");
+  expect(persisted.config).not.toHaveProperty("lastUpdatedAt");
+});
+
+test("logout replaces the UID-scoped Query cache and preserves local Redux data", async ({ page }) => {
+  const uidA = "logout-user-a";
+  const uidB = "logout-user-b";
+  const localDeck = {
+    id: "logout-local-deck",
+    uid: uidA,
+    name: "Preserved Local Deck",
+    isPublic: false,
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+    localMode: true,
+    scoreMax: null,
+    scoreMin: null,
+    selectedTags: [],
+    tagAndFilter: false,
+    category: "",
+    convertToBr: false,
+  };
+  await setDocument("deck", "logout-deck-a", deckFields(uidA, "Logout Deck A"));
+  await setDocument("deck", "logout-deck-b", deckFields(uidB, "Logout Deck B"));
+  await seedAuth(page, uidA, localDeck, uidB);
+
+  await page.goto("/");
+  await expect(page.getByText("Logout Deck A")).toBeVisible();
+  await expect(page.getByText("Logout Deck B")).not.toBeVisible();
+  await expect(page.getByText("Preserved Local Deck")).toBeVisible();
+
+  await page.evaluate(async (uid) => {
+    // @ts-expect-error Vite serves source modules to the browser during E2E tests.
+    const actions = (await import("/src/action/event.ts")) as {
+      logout: (
+        confirmedUid: string
+      ) => (dispatch: (value: unknown) => unknown, getState: () => unknown, extra: undefined) => Promise<void>;
+    };
+    await actions.logout(uid)(() => undefined, () => undefined, undefined);
+  }, uidA);
+
+  await expect(page.getByText("Logout Deck B")).toBeVisible();
+  await expect(page.getByText("Logout Deck A")).not.toBeVisible();
+  await expect(page.getByText("Preserved Local Deck")).toBeVisible();
 });

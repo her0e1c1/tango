@@ -18,7 +18,7 @@
 - HTTP API routes は見当たらないため、`openapi.yaml` は生成していません。
 - Message broker、webhook、明示的な event topic は見当たらないため、`asyncapi.yaml` は生成していません。
 - Firestore 以外の persistent database schema や migration は見当たりません。
-- Firestore の index 定義 file は見当たりません。`subscribeDeck()` は `uid`、`updatedAt`、`orderBy(updatedAt)` を組み合わせるため、production Firestore で composite index が必要になる可能性がありますが、local evidence だけでは確定できません。
+- Firestore の index 定義 file は見当たりません。現在の realtime read は uid 条件の Query subscription を使います。
 - real Firebase project id、API key、deploy token は secrets/env に依存し、repository には含まれていません。
 
 ## Testing Gaps

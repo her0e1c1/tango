@@ -5,28 +5,27 @@
 Actor: 利用者
 
 1. 利用者が SPA を開きます。
-2. `App` が `action.event.init()` を dispatch します。
-3. config が anonymous の場合、Firebase anonymous sign-in を実行します。
-4. auth state change で uid/displayName を config に保存します。
-5. Firestore deck/card snapshot を購読し、差分を Redux state に反映します。
+2. `AuthBootstrap` が Firebase Auth の状態を監視します。
+3. user がいない場合、Firebase anonymous sign-in を実行します。
+4. auth state change で user 情報を Auth Context に公開します。
+5. Firestore deck/card snapshot を購読し、Query cache に反映します。
 
 ```mermaid
 sequenceDiagram
     actor User as 利用者
     participant App as App
-    participant Event as action.event
+    participant Bootstrap as AuthBootstrap
     participant Auth as Firebase Auth
     participant FS as Firestore
-    participant Store as Redux
+    participant Query as Query cache
 
     User->>App: open SPA
-    App->>Event: init()
-    Event->>Auth: signInAnonymously()
-    Auth-->>Event: onAuthStateChanged(user)
-    Event->>Store: configUpdate(uid, displayName)
-    Event->>FS: subscribeDeck/subscribeCard(uid, lastUpdatedAt)
-    FS-->>Event: snapshot event
-    Event->>Store: deck/card bulk update
+    App->>Bootstrap: mount
+    Bootstrap->>Auth: signInAnonymously()
+    Auth-->>Bootstrap: onAuthStateChanged(user)
+    Bootstrap->>FS: subscribeDeckReads/subscribeCardReads(uid)
+    FS-->>Bootstrap: snapshot event
+    Bootstrap->>Query: replace or update cached deck/card data
 ```
 
 ## 2. CSV を import して deck/card を作る
@@ -100,7 +99,7 @@ Actor: 利用者
 
 1. 利用者が Settings で Login を押します。
 2. 現在の anonymous user に Google provider を link します。
-3. user 情報を config に保存し、`lastUpdatedAt` を reset します。
+3. auth state change 後の user 情報を Auth Context に公開します。
 4. uid を使って deck/card snapshot を購読します。
 
 ```mermaid
@@ -110,14 +109,14 @@ sequenceDiagram
     participant Event as action.event
     participant Auth as Firebase Auth
     participant FS as Firestore
-    participant Store as Redux
+    participant Context as Auth Context
 
     User->>Settings: click Login
     Settings->>Event: loginGoogle()
     Event->>Auth: linkWithPopup(currentUser, GoogleAuthProvider)
     Auth-->>Event: UserCredential
-    Event->>Store: configUpdate(uid, displayName, lastUpdatedAt=0)
-    Event->>FS: subscribeDeck/subscribeCard(uid, 0)
+    Auth-->>Context: publish authenticated user
+    Context->>FS: subscribeDeckReads/subscribeCardReads(uid)
 ```
 
 ## 5. Deck を CSV として download する

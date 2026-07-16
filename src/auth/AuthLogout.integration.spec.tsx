@@ -28,27 +28,18 @@ vi.mock("firebase/auth", () => ({
 vi.mock("firebase/app", () => ({
   FirebaseError: class FirebaseError extends Error {},
 }));
-vi.mock("react-redux", () => ({
-  useDispatch: () => mocks.dispatch,
-  useStore: () => ({ getState: () => ({ deck: { byId: {} } }) }),
-}));
 vi.mock("@/action/firestore", () => ({}));
 vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupUid }));
 vi.mock("@/query/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
 vi.mock("@/features/study/state/studyStore", () => ({ clearStudyStore: mocks.clearStudyStore }));
-vi.mock("@/lib/realtimeSubscriptions", () => ({
-  registerSubscription: vi.fn(),
-  stopSubscriptions: vi.fn(),
-}));
 
-import type * as type from "@/action/type";
 import { logout } from "@/action/event";
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
 import { AuthProvider } from "@/auth/AuthContext";
 
 afterEach(() => cleanup());
 
-it("waits for logout cleanup and local clear before bootstrapping the next anonymous UID", async () => {
+it("waits for logout cleanup while preserving Redux before bootstrapping the next anonymous UID", async () => {
   let resolveCleanup: () => void = () => undefined;
   const delayedCleanup = new Promise<void>((resolve) => {
     resolveCleanup = resolve;
@@ -70,17 +61,6 @@ it("waits for logout cleanup and local clear before bootstrapping the next anony
   mocks.clearStudyStore.mockImplementation(async () => {
     mocks.operations.push("clear-study");
   });
-  mocks.dispatch.mockImplementation((value: unknown) => {
-    if (typeof value === "object" && value != null && "type" in value) {
-      if (value.type === "CONFIG_UPDATE") {
-        const action = value as ReturnType<typeof type.configUpdate>;
-        mocks.operations.push(`sync:${action.payload.config.uid}`);
-      } else if (value.type === "CLEAR_ALL") {
-        mocks.operations.push("clear-redux");
-      }
-    }
-    return value;
-  });
   mocks.signOut.mockImplementation(async () => {
     mocks.operations.push("sign-out");
     mocks.publishUser?.(null);
@@ -101,7 +81,7 @@ it("waits for logout cleanup and local clear before bootstrapping the next anony
     </StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
-  await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledWith("uid-a", expect.any(Object)));
+  await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledWith("uid-a"));
   mocks.operations.length = 0;
 
   let pendingLogout!: Promise<void>;
@@ -112,25 +92,20 @@ it("waits for logout cleanup and local clear before bootstrapping the next anony
 
   expect(mocks.operations).toContain("sign-out");
   expect(mocks.signInAnonymously).not.toHaveBeenCalled();
-  expect(mocks.startRemoteReads).not.toHaveBeenCalledWith("uid-b", expect.any(Object));
-  expect(mocks.operations).not.toContain("sync:uid-b");
+  expect(mocks.startRemoteReads).not.toHaveBeenCalledWith("uid-b");
   expect(mocks.clearStudyStore).not.toHaveBeenCalled();
-  expect(mocks.operations).not.toContain("clear-redux");
+  expect(mocks.dispatch).not.toHaveBeenCalled();
 
   await act(async () => {
     resolveCleanup();
     await pendingLogout;
   });
-  await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledWith("uid-b", expect.any(Object)));
+  await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledWith("uid-b"));
 
   const clearStudyIndex = mocks.operations.indexOf("clear-study");
-  const clearReduxIndex = mocks.operations.indexOf("clear-redux");
   const anonymousStartIndex = mocks.operations.indexOf("anonymous-start");
-  const syncBIndex = mocks.operations.indexOf("sync:uid-b");
   const subscribeBIndex = mocks.operations.indexOf("subscribe:uid-b");
   expect(clearStudyIndex).toBeGreaterThanOrEqual(0);
-  expect(clearReduxIndex).toBeGreaterThan(clearStudyIndex);
-  expect(anonymousStartIndex).toBeGreaterThan(clearReduxIndex);
-  expect(syncBIndex).toBeGreaterThan(anonymousStartIndex);
-  expect(subscribeBIndex).toBeGreaterThan(syncBIndex);
+  expect(anonymousStartIndex).toBeGreaterThan(clearStudyIndex);
+  expect(subscribeBIndex).toBeGreaterThan(anonymousStartIndex);
 });

@@ -7,7 +7,6 @@ const mocks = vi.hoisted(() => ({
   auth: { currentUser: null },
   onAuthStateChanged: vi.fn(() => vi.fn()),
   signInAnonymously: vi.fn(),
-  dispatch: vi.fn((value: unknown) => value),
   startRemoteReads: vi.fn(),
   cleanupUid: vi.fn(),
 }));
@@ -16,10 +15,6 @@ vi.mock("@/firebase", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth", () => ({
   onAuthStateChanged: mocks.onAuthStateChanged,
   signInAnonymously: mocks.signInAnonymously,
-}));
-vi.mock("react-redux", () => ({
-  useDispatch: () => mocks.dispatch,
-  useStore: () => ({ getState: () => ({ deck: { byId: {} } }) }),
 }));
 vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupUid }));
 vi.mock("@/query/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
@@ -50,7 +45,6 @@ const createHarness = () => {
 describe("AuthBootstrap integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.dispatch.mockImplementation((value: unknown) => value);
     mocks.startRemoteReads.mockResolvedValue(undefined);
     mocks.cleanupUid.mockResolvedValue(undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -67,10 +61,7 @@ describe("AuthBootstrap integration", () => {
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
     await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledTimes(1));
-    expect(mocks.startRemoteReads).toHaveBeenCalledWith(
-      "uid-a",
-      expect.objectContaining({ mirrorDecks: expect.any(Function), mirrorCards: expect.any(Function) })
-    );
+    expect(mocks.startRemoteReads).toHaveBeenCalledWith("uid-a");
     store.dispose();
   });
 
