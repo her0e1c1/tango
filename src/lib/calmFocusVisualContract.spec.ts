@@ -35,6 +35,8 @@ const ownedPresentationFiles = [
   "shared/components/forms/Switch.tsx",
   "shared/components/forms/Tag.tsx",
   "shared/components/forms/Upload.tsx",
+  "features/deck/components/DeckCard.tsx",
+  "features/deck/components/templates/DeckListTemplate.tsx",
 ];
 const semanticColorRoles = [
   "canvas",

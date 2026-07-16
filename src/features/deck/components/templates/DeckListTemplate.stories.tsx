@@ -25,6 +25,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const Inactive: Story = {};
+
 export const WithStudyProgress: Story = {
   args: {
     studyProgress: {
@@ -35,11 +37,15 @@ export const WithStudyProgress: Story = {
   },
 };
 
+export const Active: Story = WithStudyProgress;
+
 export const Empty: Story = {
   args: {
     decks: [],
   },
 };
+
+export const EmptyComposition: Story = Empty;
 
 export const Long: Story = {
   args: {
@@ -52,6 +58,14 @@ export const IphoneX: Story = {
     viewport: {
       defaultViewport: "iphonex",
     },
+  },
+};
+
+export const MobileLight: Story = IphoneX;
+
+export const Dark: Story = {
+  globals: {
+    theme: "dark",
   },
 };
 
