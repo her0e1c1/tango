@@ -56,13 +56,6 @@ export const useActions = () => {
       deckDownloadCsvSampleText: () => {
         dispatch(action.deck.downloadCsvSampleText());
       },
-      cardUpdate: (card: Card) => dispatch(action.card.update(card)),
-      cardUpdateBy: (f: (c: Card) => Partial<Card>) => (id: CardId) => dispatch(action.card.updateBy(id, f)),
-      cardUpdateAndBack: (card: Card) => {
-        dispatch(action.card.update(card));
-        void navigate(-1);
-      },
-      cardRemove: (id: CardId) => window.confirm("Are you sure?") && dispatch(action.card.remove(id)),
       login: () => dispatch(action.config.loginGoogle()),
       logout: (confirmedUid: string) => dispatch(action.config.logout(confirmedUid)),
       configUpdate: (config: ConfigState) => dispatch(action.config.updateAll(config)),

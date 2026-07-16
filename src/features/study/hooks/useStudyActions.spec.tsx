@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   cardUpdate: vi.fn(),
   deckUpdate: vi.fn(),
   configUpdate: vi.fn(),
+  pendingIds: new Set<CardId>(),
 }));
 
 vi.mock("react-redux", () => ({
@@ -34,6 +35,16 @@ vi.mock("@/query/useRemoteCollections", () => ({
 
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
+}));
+
+vi.mock("@/features/card/hooks/useCardMutations", () => ({
+  useCardMutations: () => ({
+    update: mocks.cardUpdate,
+    isPending: (id: CardId) => mocks.pendingIds.has(id),
+    pending: false,
+    error: null,
+    retry: vi.fn(),
+  }),
 }));
 
 vi.mock("@/action", () => ({
@@ -103,7 +114,8 @@ describe("useStudyActions", () => {
     vi.clearAllMocks();
     vi.spyOn(Date, "now").mockReturnValue(946684800000);
     mocks.dispatch.mockResolvedValue(undefined);
-    mocks.cardUpdate.mockImplementation((patch) => ({ type: "CARD_UPDATE", payload: patch }));
+    mocks.cardUpdate.mockResolvedValue(undefined);
+    mocks.pendingIds.clear();
     mocks.state = createRootState();
     studyStore.setState({
       session: null,
@@ -218,7 +230,7 @@ describe("useStudyActions", () => {
       lastSeenAt: 946684800000,
     };
     expect(mocks.cardUpdate).toHaveBeenCalledWith(patch);
-    expect(mocks.dispatch).toHaveBeenCalledWith({ type: "CARD_UPDATE", payload: patch });
+    expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(studyStore.getState()).toMatchObject({
       session: {
         deckId: deck.id,
@@ -230,6 +242,36 @@ describe("useStudyActions", () => {
     });
     expect(mocks.deckUpdate).not.toHaveBeenCalled();
     expect(mocks.configUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rolls the optimistic study index back when the Card write fails", async () => {
+    studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
+    studyStore.setState({ showBackText: true });
+    mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
+    const { result } = renderHook(() => useStudyActions(deck.id));
+
+    await act(async () => {
+      await result.current.swipeRight();
+    });
+
+    expect(studyStore.getState()).toMatchObject({
+      session: { currentIndex: 0 },
+      showBackText: true,
+      lastSwipe: undefined,
+    });
+  });
+
+  it("blocks another swipe while the target Card is pending", async () => {
+    studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
+    mocks.pendingIds.add(card1.id);
+    const { result } = renderHook(() => useStudyActions(deck.id));
+
+    await act(async () => {
+      await result.current.swipeRight();
+    });
+
+    expect(mocks.cardUpdate).not.toHaveBeenCalled();
+    expect(studyStore.getState().session?.currentIndex).toBe(0);
   });
 
   it("keeps back text visible when the long-lived config allows it", async () => {

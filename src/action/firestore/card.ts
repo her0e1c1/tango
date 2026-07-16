@@ -32,6 +32,14 @@ export const create = async (card: Card, createdAt?: number): Promise<string> =>
   return card.id;
 };
 
+export const upsert = async (card: Card): Promise<string> => {
+  const timestamp = getTimestamp();
+  const createdAt = card.createdAt > 0 ? card.createdAt : timestamp;
+  const ref = doc(db, "card", card.id);
+  await setDoc(ref, { ...buildCardCreateDto(card, createdAt), updatedAt: timestamp });
+  return card.id;
+};
+
 export const update = async (card: CardEdit) => {
   const ref = doc(db, "card", card.id);
   await updateDoc(ref, buildCardUpdateDto(card, getTimestamp()));

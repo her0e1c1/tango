@@ -6,7 +6,8 @@ import "@testing-library/jest-dom/vitest";
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
   state: null as RootState | null,
-  cardUpdateAndBack: vi.fn(),
+  cardUpdate: vi.fn(),
+  navigate: vi.fn(),
 }));
 
 vi.mock("react-redux", () => ({
@@ -26,11 +27,20 @@ vi.mock("@/query/useRemoteCollections", () => ({
 
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
+  useNavigate: () => mocks.navigate,
+}));
+
+vi.mock("@/features/card/hooks/useCardMutations", () => ({
+  useCardMutations: () => ({
+    update: mocks.cardUpdate,
+    pending: false,
+    error: null,
+    retry: vi.fn(),
+  }),
 }));
 
 vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
-    cardUpdateAndBack: mocks.cardUpdateAndBack,
     goToTop: vi.fn(),
     goByMenu: vi.fn(),
     setDarkMode: vi.fn(),
@@ -63,7 +73,9 @@ describe("CardFormContainer", () => {
       config: { darkMode: false } as ConfigState,
       card: { byId: { [card.id]: card }, tags: [] },
     };
-    mocks.cardUpdateAndBack.mockReset();
+    mocks.cardUpdate.mockReset();
+    mocks.cardUpdate.mockResolvedValue(undefined);
+    mocks.navigate.mockReset();
   });
 
   afterEach(() => {
@@ -75,7 +87,8 @@ describe("CardFormContainer", () => {
 
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.cardUpdateAndBack).toHaveBeenCalledWith(card);
+    expect(mocks.cardUpdate).toHaveBeenCalledWith(card);
+    expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
 
   it("submits edited front and back text", async () => {
@@ -89,7 +102,7 @@ describe("CardFormContainer", () => {
     await userEvent.type(backText, "UPDATED BACK");
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.cardUpdateAndBack).toHaveBeenCalledWith({
+    expect(mocks.cardUpdate).toHaveBeenCalledWith({
       ...card,
       frontText: "UPDATED FRONT",
       backText: "UPDATED BACK",
@@ -102,7 +115,17 @@ describe("CardFormContainer", () => {
     await userEvent.click(view.container.querySelector("input[name='tags'][value='math']") as Element);
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.cardUpdateAndBack).toHaveBeenCalledWith({ ...card, tags: ["math"] });
+    expect(mocks.cardUpdate).toHaveBeenCalledWith({ ...card, tags: ["math"] });
+  });
+
+  it("does not navigate when the Card write fails", async () => {
+    mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
+    const view = render(<CardFormContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: /save/i }));
+
+    expect(mocks.cardUpdate).toHaveBeenCalledWith(card);
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
   it("preserves the invalid route error", () => {

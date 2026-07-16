@@ -7,18 +7,20 @@ import * as C from "@/constant";
 import * as selector from "@/selector";
 import * as util from "@/util";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteReadBoundary } from "@/shared/components";
+import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
 import { useActions } from "@/shared/hooks/useActions";
 import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
+import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 
 const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; config: ConfigState }) => {
   const { deck, cards, tags, config } = props;
   const deckId = deck.id;
   const [showCard, setShowCard] = React.useState<Card>();
   const actions = useActions();
+  const mutations = useCardMutations();
   const deckActions = useDeckActions(deckId);
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
   const closeCard = React.useCallback(() => setShowCard(undefined), []);
@@ -40,11 +42,18 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
         },
       }}
       card={{
-        onSwipedLeft: actions.cardUpdateBy((card) => ({ score: card.score - 1 })),
-        onSwipedRight: actions.cardUpdateBy((card) => ({ score: card.score + 1 })),
+        onSwipedLeft: (id) => void mutations.updateBy(id, (card) => ({ score: card.score - 1 })).catch(() => undefined),
+        onSwipedRight: (id) =>
+          void mutations.updateBy(id, (card) => ({ score: card.score + 1 })).catch(() => undefined),
         goToEdit: actions.goToCardEdit,
-        onDelete: actions.cardRemove,
+        onDelete: (id) => {
+          if (window.confirm("Are you sure?")) void mutations.remove(id).catch(() => undefined);
+        },
       }}
+      feedbackSlot={
+        <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
+      }
+      isCardPending={mutations.isPending}
       {...(showCard != null && category != null
         ? {
             overlay: {

@@ -16,11 +16,14 @@ export interface CardListTemplateProps {
   card?: CardProps;
   overlay?: CardListOverlayProps;
   onShowCard?: (card: Card) => void;
+  feedbackSlot?: React.ReactNode;
+  isCardPending?: (id: CardId) => boolean;
 }
 
 export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
+      {props.feedbackSlot}
       {props.overlay != null && (
         <Overlay
           position="center"
@@ -40,6 +43,7 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
           <Card
             key={c.id}
             card={c}
+            disabled={props.isCardPending?.(c.id) ?? false}
             {...(props.card?.onSwipedLeft !== undefined ? { onSwipedLeft: props.card.onSwipedLeft } : {})}
             {...(props.card?.onSwipedRight !== undefined ? { onSwipedRight: props.card.onSwipedRight } : {})}
             {...(props.card?.onDelete !== undefined ? { onDelete: props.card.onDelete } : {})}

@@ -1,13 +1,13 @@
 import React from "react";
 
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import * as action from "@/action";
 import * as selector from "@/selector";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { studyStore } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
+import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 
 export interface StudyActions {
   start: () => void;
@@ -19,15 +19,18 @@ export interface StudyActions {
   toggleShowBackText: () => void;
   toggleAutoPlay: () => void;
   resetStudy: () => void;
+  pending: boolean;
+  error: unknown;
+  retry: () => void;
 }
 
 export const useStudyActions = (deckId: DeckId): StudyActions => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const config = useSelector(selector.config.get());
   const remote = useRemoteCollections();
   const cards = remote.filteredCardsByDeckId(deckId, config);
   const cardsById = remote.cardsById;
+  const cardMutations = useCardMutations();
 
   const start = React.useCallback(() => {
     const cardOrderIds = buildStudySession(cards, config);
@@ -54,7 +57,13 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
 
       const cardId = session.cardOrderIds[session.currentIndex];
       const card = cardId == null ? undefined : cardsById[cardId];
-      if (card == null) return;
+      if (card == null || cardMutations.isPending(card.id)) return;
+
+      const previous = {
+        session: { ...session },
+        showBackText: state.showBackText,
+        lastSwipe: state.lastSwipe,
+      };
 
       state.setLastSwipe(direction);
       if (config.hideBodyWhenCardChanged) {
@@ -62,14 +71,18 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
       }
 
       const patch = buildStudyPatch(card, swipeAction, Date.now());
-      await dispatch(action.card.update(patch));
-
-      const current = studyStore.getState();
-      if (current.session?.deckId === deckId) {
-        current.setCurrentIndex(calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction));
+      const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
+      state.setCurrentIndex(nextIndex);
+      try {
+        await cardMutations.update(patch);
+      } catch {
+        const current = studyStore.getState();
+        if (current.session?.deckId === deckId && current.session.currentIndex === nextIndex) {
+          studyStore.setState(previous);
+        }
       }
     },
-    [cardsById, config, deckId, dispatch]
+    [cardMutations, cardsById, config, deckId]
   );
 
   return React.useMemo(
@@ -88,7 +101,10 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
       toggleShowBackText: () => studyStore.getState().toggleShowBackText(),
       toggleAutoPlay: () => studyStore.getState().toggleAutoPlay(),
       resetStudy: () => studyStore.getState().resetStudy(),
+      pending: cardMutations.pending,
+      error: cardMutations.error,
+      retry: cardMutations.retry,
     }),
-    [deckId, start, swipe]
+    [cardMutations.error, cardMutations.pending, cardMutations.retry, deckId, start, swipe]
   );
 };

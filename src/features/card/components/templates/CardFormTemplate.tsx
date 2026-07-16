@@ -5,11 +5,13 @@ import { CardForm, type CardFormProps } from "@/features/card/components/CardFor
 export interface CardFormTemplateProps {
   layout?: LayoutProps;
   cardForm?: CardFormProps;
+  feedbackSlot?: React.ReactNode;
 }
 
 export const CardFormTemplate: React.FC<CardFormTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
+      {props.feedbackSlot}
       {props.cardForm != null && <CardForm {...props.cardForm} />}
     </Layout>
   );

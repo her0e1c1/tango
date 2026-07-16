@@ -7,7 +7,7 @@ import type { CardFormProps } from "@/features/card/components/CardForm";
 export interface UseCardFormStateOptions {
   card: Card;
   categoryOptions: Option[];
-  onSubmit?: (card: Card) => void;
+  onSubmit?: (card: Card) => void | Promise<void>;
 }
 
 export const useCardFormState = ({ card, categoryOptions, onSubmit }: UseCardFormStateOptions): CardFormProps => {
