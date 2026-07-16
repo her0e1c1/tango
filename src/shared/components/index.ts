@@ -4,6 +4,7 @@ export * from "@/shared/components/content/Code";
 export * from "@/shared/components/content/Description";
 export * from "@/shared/components/feedback/Feedback";
 export * from "@/shared/components/feedback/RemoteReadBoundary";
+export * from "@/shared/components/feedback/RemoteMutationNotice";
 export * from "@/shared/components/feedback/buttonInteraction";
 export * from "@/shared/components/forms/Form";
 export * from "@/shared/components/forms/FormItem";

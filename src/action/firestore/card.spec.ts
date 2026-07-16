@@ -80,6 +80,15 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(n);
   });
 
+  it("should upsert a complete card", async () => {
+    const deckId = await initDeck();
+    const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
+
+    await firestore.card.upsert(c);
+
+    expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(c);
+  });
+
   it("should logical-remove a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };

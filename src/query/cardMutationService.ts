@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { isEqual } from "lodash";
 
 import { firestoreKeys } from "@/query/firestoreKeys";
 import type { RemoteById } from "@/query/remoteReadController";
@@ -17,8 +18,7 @@ const toById = (cards: Card[]): RemoteById<Card> => Object.fromEntries(cards.map
 export const createCardMutationService = (dependencies: CardMutationServiceDependencies) => {
   const tails = new Map<CardId, Promise<void>>();
 
-  const cards = (uid: string) =>
-    dependencies.client.getQueryData<RemoteById<Card>>(firestoreKeys.cards(uid)) ?? {};
+  const cards = (uid: string) => dependencies.client.getQueryData<RemoteById<Card>>(firestoreKeys.cards(uid)) ?? {};
 
   const replaceCards = (uid: string, next: RemoteById<Card>) => {
     dependencies.client.setQueryData(firestoreKeys.cards(uid), next);
@@ -32,7 +32,9 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
       () => undefined,
       () => undefined
     );
-    uniqueIds.forEach((id) => tails.set(id, settled));
+    uniqueIds.forEach((id) => {
+      tails.set(id, settled);
+    });
     try {
       return await operation;
     } finally {
@@ -50,19 +52,32 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
   ): Promise<T> =>
     enqueue(ids, async () => {
       const previous = cards(uid);
-      replaceCards(uid, next(previous));
+      const optimisticCards = next(previous);
+      replaceCards(uid, optimisticCards);
       try {
         return await write();
       } catch (error) {
-        replaceCards(uid, previous);
+        const current = cards(uid);
+        const rollback = { ...current };
+        ids.forEach((id) => {
+          const optimisticCard = optimisticCards[id];
+          if (!isEqual(current[id], optimisticCard)) return;
+          const previousCard = previous[id];
+          if (previousCard == null) delete rollback[id];
+          else rollback[id] = previousCard;
+        });
+        replaceCards(uid, rollback);
         throw error;
       }
     });
 
   return {
     create: (uid: string, card: Card) =>
-      optimistic(uid, [card.id], (previous) => ({ ...previous, [card.id]: card }), () =>
-        dependencies.createCard(card)
+      optimistic(
+        uid,
+        [card.id],
+        (previous) => ({ ...previous, [card.id]: card }),
+        () => dependencies.createCard(card)
       ),
     update: (uid: string, patch: CardEdit) =>
       optimistic(
@@ -98,9 +113,7 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
 
           const authoritative = await dependencies.readCards(uid);
           replaceCards(uid, toById(authoritative));
-          throw new Error(`${failures.length} of ${upserts.length} Card writes failed`, {
-            cause: failures.map((failure) => failure.reason),
-          });
+          throw new Error(`${failures.length} of ${upserts.length} Card writes failed`);
         }
       ),
   };

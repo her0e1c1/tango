@@ -5,6 +5,7 @@ import { Card as Outline, Description, Score, Tag, Title } from "@/shared/compon
 import { useSwipeable } from "react-swipeable";
 
 export interface CardActionsProps {
+  disabled?: boolean;
   onSwipedLeft?: (id: string) => void;
   onSwipedRight?: (id: string) => void;
   onDelete?: (id: string) => void;
@@ -24,19 +25,19 @@ export const Card: React.FC<
 > = (props) => {
   const id = props.card.id;
   const goToView = React.useCallback(() => {
-    props.goToView?.(id);
+    if (!props.disabled) props.goToView?.(id);
   }, [id, props]);
   const goToEdit = React.useCallback(() => {
-    props.goToEdit?.(id);
+    if (!props.disabled) props.goToEdit?.(id);
   }, [id, props]);
   const onDelete = React.useCallback(() => {
-    props.onDelete?.(id);
+    if (!props.disabled) props.onDelete?.(id);
   }, [id, props]);
   const onSwipedLeft = React.useCallback(() => {
-    props.onSwipedLeft?.(id);
+    if (!props.disabled) props.onSwipedLeft?.(id);
   }, [id, props]);
   const onSwipedRight = React.useCallback(() => {
-    props.onSwipedRight?.(id);
+    if (!props.disabled) props.onSwipedRight?.(id);
   }, [id, props]);
   const handlers = useSwipeable({
     onSwipedLeft,
@@ -46,12 +47,7 @@ export const Card: React.FC<
   return (
     <div {...handlers}>
       <IconContext.Provider value={{ className: "dark:text-gray-200 text-2xl" }}>
-        <Outline
-          full
-          border
-          className="px-4 py-2"
-          {...(props.filtered !== undefined ? { disabled: props.filtered } : {})}
-        >
+        <Outline full border className="px-4 py-2" disabled={Boolean(props.filtered || props.disabled)}>
           <div className="flex items-center whitespace-nowrap gap-1">
             <Score className="mr-1 shrink-0" score={props.card.score} />
             <Description>studied {props.card.numberOfSeen ?? 0} time(s)</Description>

@@ -6,6 +6,19 @@ import "@testing-library/jest-dom/vitest";
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
   state: null as RootState | null,
+  cardUpdateBy: vi.fn(),
+  cardRemove: vi.fn(),
+}));
+
+vi.mock("@/features/card/hooks/useCardMutations", () => ({
+  useCardMutations: () => ({
+    updateBy: mocks.cardUpdateBy,
+    remove: mocks.cardRemove,
+    isPending: () => false,
+    pending: false,
+    error: null,
+    retry: vi.fn(),
+  }),
 }));
 
 vi.mock("react-redux", () => ({

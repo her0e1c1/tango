@@ -39,6 +39,14 @@ const setDocument = async (collection: "deck" | "card", id: string, fields: obje
   if (!response.ok) throw new Error(`Firestore seed failed: ${response.status} ${await response.text()}`);
 };
 
+const getDocument = async (collection: "deck" | "card", id: string) => {
+  const response = await fetch(`${firestoreBase}/${collection}/${id}`, {
+    headers: { Authorization: "Bearer owner" },
+  });
+  if (!response.ok) throw new Error(`Firestore read failed: ${response.status} ${await response.text()}`);
+  return (await response.json()) as { fields: Record<string, { stringValue?: string }> };
+};
+
 const deckFields = (uid: string, name: string) => ({
   uid: field.string(uid),
   name: field.string(name),
@@ -157,9 +165,18 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
   await page.getByText("Remote Query Deck").click();
   await expect(page.getByText("Remote Query Card")).toBeVisible();
 
+  await page.goto("/card/remote-read-card/edit");
+  const frontText = page.locator("textarea[name='frontText']");
+  await frontText.fill("Updated Remote Query Card");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Updated Remote Query Card")).toBeVisible();
+  await expect
+    .poll(async () => (await getDocument("card", "remote-read-card")).fields.frontText?.stringValue)
+    .toBe("Updated Remote Query Card");
+
   await page.reload();
 
-  await expect(page.getByText("Remote Query Card")).toBeVisible();
+  await expect(page.getByText("Updated Remote Query Card")).toBeVisible();
 });
 
 test("an empty initial snapshot removes a stale Redux remote mirror", async ({ page }) => {

@@ -7,7 +7,7 @@ import * as C from "@/constant";
 import * as selector from "@/selector";
 import * as util from "@/util";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteReadBoundary } from "@/shared/components";
+import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
 import { BackText } from "@/features/card/components/BackText";
 import { CardOverlay } from "@/features/card/components/CardOverlay";
 import { FrontText } from "@/features/card/components/FrontText";
@@ -100,10 +100,15 @@ export const DeckSwiperContainer: React.FC = () => {
 
   const category = util.getCategory(deck.category, card.tags);
   const swipeActions: SwipeButtonListProps = {
-    onClickUp: studyActions.swipeUp,
-    onClickDown: studyActions.swipeDown,
-    onClickLeft: studyActions.swipeLeft,
-    onClickRight: studyActions.swipeRight,
+    disabled: studyActions.pending,
+    ...(studyActions.pending
+      ? {}
+      : {
+          onClickUp: studyActions.swipeUp,
+          onClickDown: studyActions.swipeDown,
+          onClickLeft: studyActions.swipeLeft,
+          onClickRight: studyActions.swipeRight,
+        }),
   };
 
   return (
@@ -120,14 +125,21 @@ export const DeckSwiperContainer: React.FC = () => {
           onClickMenuItem: actions.goByMenu,
         },
       }}
+      feedbackSlot={
+        <RemoteMutationNotice pending={studyActions.pending} error={studyActions.error} onRetry={studyActions.retry} />
+      }
       frontTextSlot={
         <FrontText
           {...(category !== undefined ? { category } : {})}
           text={card.frontText}
-          onSwipeUp={studyActions.swipeUp}
-          onSwipeDown={studyActions.swipeDown}
-          onSwipeLeft={studyActions.swipeLeft}
-          onSwipeRight={studyActions.swipeRight}
+          {...(!studyActions.pending
+            ? {
+                onSwipeUp: studyActions.swipeUp,
+                onSwipeDown: studyActions.swipeDown,
+                onSwipeLeft: studyActions.swipeLeft,
+                onSwipeRight: studyActions.swipeRight,
+              }
+            : {})}
           onClick={studyActions.toggleShowBackText}
         />
       }

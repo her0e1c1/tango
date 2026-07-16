@@ -17,6 +17,7 @@ export interface DeckSwiperTemplateProps {
   swipeOverlay?: SwipeButtonListProps;
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
+  feedbackSlot?: React.ReactNode;
 }
 
 export const DeckSwiperTemplate: React.FC<DeckSwiperTemplateProps> = (props) => {
@@ -27,6 +28,7 @@ export const DeckSwiperTemplate: React.FC<DeckSwiperTemplateProps> = (props) => 
       {...(props.showBackText !== undefined ? { scroll: props.showBackText } : {})}
       {...props.layout}
     >
+      {props.feedbackSlot}
       {props.showBackText && props.backTextSlot != null ? (
         <>
           <Shared.Overlay

@@ -58,11 +58,26 @@ describe("createCardMutationService", () => {
     dependencies.updateCard.mockRejectedValueOnce(new Error("write failed"));
     const service = createCardMutationService({ client, ...dependencies });
 
-    await expect(service.update(uid, { id: card.id, deckId: card.deckId, score: 2 })).rejects.toThrow(
-      "write failed"
-    );
+    await expect(service.update(uid, { id: card.id, deckId: card.deckId, score: 2 })).rejects.toThrow("write failed");
 
     expect(client.getQueryData(firestoreKeys.cards(uid))).toEqual({ card, other });
+  });
+
+  it("does not let an old rollback overwrite a newer listener snapshot", async () => {
+    const card = createCard({ id: "card", score: 1 });
+    const write = deferred<void>();
+    dependencies.updateCard.mockReturnValueOnce(write.promise);
+    client.setQueryData(firestoreKeys.cards(uid), { card });
+    const service = createCardMutationService({ client, ...dependencies });
+
+    const update = service.update(uid, { id: card.id, deckId: card.deckId, score: 2 });
+    await vi.waitFor(() => expect(dependencies.updateCard).toHaveBeenCalled());
+    const listenerCard = { ...card, score: 3 };
+    client.setQueryData(firestoreKeys.cards(uid), { card: listenerCard });
+    write.reject(new Error("old write failed"));
+
+    await expect(update).rejects.toThrow("old write failed");
+    expect(client.getQueryData(firestoreKeys.cards(uid))).toEqual({ card: listenerCard });
   });
 
   it("serializes the same Card while allowing different Cards to update concurrently", async () => {

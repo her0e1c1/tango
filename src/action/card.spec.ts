@@ -2,7 +2,6 @@ import { expect, it, describe, vi, beforeEach } from "vitest";
 
 import * as card from "@/action/card";
 import * as action from "@/action";
-import * as firestore from "@/action/firestore";
 import { createCard } from "@/test/factories";
 
 vi.mock("./firestore");
@@ -38,31 +37,6 @@ describe("card action", () => {
     it("should be empty", async () => {
       const c = createCard({ frontText: "", backText: "", tags: [], uniqueKey: "" });
       expect(card.toRow(c)).toEqual(["", "", "", ""]);
-    });
-  });
-
-  describe("update", () => {
-    it("should update", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ deck: { byId: { deckId: {} } } });
-
-      const c = { id: "id", deckId: "deckId" } as Card;
-      const f = card.update(c);
-      await f(dispatch, getState, undefined);
-      expect(firestore.card.update).lastCalledWith(c);
-    });
-  });
-
-  describe("remove", () => {
-    it("should remove", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      const [id, deckId] = ["id", "deckId"];
-      const c = { id, deckId } as Card;
-      getState.mockReturnValue({ card: { byId: { id: c } }, deck: { byId: { deckId: {} } } });
-
-      const f = card.remove(id);
-      await f(dispatch, getState, undefined);
-      expect(firestore.card.logicalRemove).lastCalledWith(id);
     });
   });
 

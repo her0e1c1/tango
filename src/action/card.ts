@@ -42,29 +42,11 @@ export const bulkCreate =
       cards.map(async (card) => {
         const c = prepare(card, deck);
         if (!deck.localMode) {
-          void firestore.card.create(c);
+          await firestore.card.create(c);
         }
         await dispatch(action.type.cardInsert(c));
       })
     );
-  };
-
-export const update =
-  (card: CardEdit): ThunkResult =>
-  async (dispatch, getState) => {
-    const deck = selector.deck.getById(card.deckId)(getState());
-    if (!deck.localMode) {
-      void firestore.card.update(card);
-    }
-    await dispatch(action.type.cardUpdate(card));
-  };
-
-export const updateBy =
-  (cardId: CardId, callback: (c: Card) => Partial<Card>): ThunkResult =>
-  async (dispatch, getState) => {
-    const prev = selector.card.getById(cardId)(getState());
-    const card = { ...prev, ...callback(prev) };
-    await dispatch(update(card));
   };
 
 export const bulkUpdate =
@@ -75,20 +57,10 @@ export const bulkUpdate =
         await dispatch(action.type.cardUpdate(c));
         const deck = selector.deck.getById(c.deckId)(getState());
         if (!deck.localMode) {
-          void firestore.card.update(c);
+          await firestore.card.update(c);
         }
       })
     );
-  };
-
-export const remove =
-  (id: string): ThunkResult =>
-  async (dispatch, getState) => {
-    const deck = selector.deck.getByCardId(id)(getState());
-    if (!deck.localMode) {
-      void firestore.card.logicalRemove(id);
-    }
-    await dispatch(action.type.cardDelete(id));
   };
 
 export const filterCardsForUpdate = (cards: CardEdit[], state: CardState): Card[] => {
