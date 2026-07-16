@@ -210,6 +210,19 @@ function storyBlock(source: string, storyName: string): string {
 }
 
 describe("Tango PWA identity", () => {
+  const canonicalMarkShapes = [
+    '<rect x="3" y="3" width="58" height="58" rx="17" fill="#4f63b8" />',
+    '<rect x="18" y="14" width="34" height="27" rx="6" fill="#2f7f78" />',
+    '<rect x="12" y="21" width="36" height="28" rx="6" fill="#f8fafc" />',
+    '<path d="M20 28h20v4.5h-7.5V44h-5V32.5H20z" fill="#4f63b8" />',
+  ];
+  const canonicalLetterPaths = [
+    "M97 25v19 M97 34c0-6-4-10-9-10s-10 4-10 10 4 10 10 10 9-4 9-10",
+    "M112 44V25m0 8c2-6 6-9 11-9 6 0 9 4 9 10v10",
+    "M165 25v17c0 8-4 12-11 12-5 0-9-2-11-5 M165 34c0-6-4-10-10-10s-10 4-10 10 4 10 10 10 10-4 10-10",
+    "M189 24c-7 0-11 4-11 10s4 10 11 10 11-4 11-10-4-10-11-10z",
+  ];
+
   it("provides a code-native Tango SVG mark without the stock React identity", () => {
     const relativePath = "public/tango-mark.svg";
     const mark = readText(relativePath);
@@ -223,6 +236,7 @@ describe("Tango PWA identity", () => {
     expect(mark).toMatch(/#f8fafc/i);
     expect(mark).not.toMatch(/react|atom/i);
     expect(mark).not.toContain("<circle");
+    expect(mark.match(/<(?:rect|path)\b[^>]*\/>/g)).toEqual(canonicalMarkShapes);
   });
 
   it("provides geometry-identical light and dark Card trail logos with outlined lettering", () => {
@@ -237,18 +251,30 @@ describe("Tango PWA identity", () => {
       expect(logo.trimStart()).toMatch(/^<svg\b/);
       expect(logo).toContain("<title>Tango</title>");
       expect(logo).toMatch(/viewBox=["']0 0 216 64["']/);
-      expect(logo).toContain('<rect x="36" y="14" width="176" height="42" rx="8"');
-      expect(logo).toContain('<rect x="32" y="8" width="180" height="44" rx="8"');
       expect(logo).toContain('stroke-width="4.5"');
       expect(logo).toContain('stroke-linecap="round"');
       expect(logo).toContain('stroke-linejoin="round"');
       expect(logo).not.toContain("<text");
+
+      const letterGroup = logo.match(/<g fill="none"[^>]*>([\s\S]*?)<\/g>/)?.[1] ?? "";
+      const letterPaths = Array.from(letterGroup.matchAll(/<path d="([^"]+)" \/>/g), ([, pathData]) => pathData);
+      expect(letterPaths).toEqual(canonicalLetterPaths);
+
+      const markGroup = logo.match(/<g data-logo-part="mark">([\s\S]*?)<\/g>/)?.[1] ?? "";
+      expect(markGroup.match(/<(?:rect|path)\b[^>]*\/>/g)).toEqual(canonicalMarkShapes);
     }
 
-    expect(lightLogo).toMatch(/#f8fafc/i);
-    expect(lightLogo).toMatch(/#202936/i);
-    expect(darkLogo).toMatch(/#182231/i);
-    expect(darkLogo).toMatch(/#edf2f7/i);
+    const rearTrailCard = '<rect x="36" y="14" width="176" height="42" rx="8" fill="#2f7f78" />';
+    expect(lightLogo).toContain(rearTrailCard);
+    expect(darkLogo).toContain(rearTrailCard);
+    expect(lightLogo).toContain('<rect x="32" y="8" width="180" height="44" rx="8" fill="#f8fafc" />');
+    expect(lightLogo).toContain(
+      '<g fill="none" stroke="#202936" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">'
+    );
+    expect(darkLogo).toContain('<rect x="32" y="8" width="180" height="44" rx="8" fill="#182231" />');
+    expect(darkLogo).toContain(
+      '<g fill="none" stroke="#edf2f7" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">'
+    );
 
     const darkMark = darkLogo.match(/<g data-logo-part="mark">([\s\S]*?)<\/g>/)?.[0];
     expect(darkMark).toMatch(/#f8fafc/i);
