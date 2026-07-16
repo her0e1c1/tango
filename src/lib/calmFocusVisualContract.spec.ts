@@ -6,6 +6,19 @@ const sourceRoot = path.resolve(process.cwd(), "src");
 const calmFocusStylesheet = "shared/styles/calm-focus.css";
 const storybookPreview = readFileSync(path.resolve(process.cwd(), ".storybook/preview.ts"), "utf8");
 const layoutStories = readFileSync(path.join(sourceRoot, "shared/components/layout/Layout.stories.tsx"), "utf8");
+const utilityRoutePresentationFiles = [
+  "features/deck/components/DeckForm.tsx",
+  "features/deck/components/templates/DeckFormTemplate.tsx",
+  "features/card/components/CardForm.tsx",
+  "features/card/components/templates/CardFormTemplate.tsx",
+  "features/import/components/templates/DeckImportTemplate.tsx",
+  "features/settings/components/ConfigForm.tsx",
+  "features/settings/components/templates/ConfigFormTemplate.tsx",
+] as const;
+const modernizedUtilityRoutePresentationFiles = [
+  "features/deck/components/DeckForm.tsx",
+  "features/deck/components/templates/DeckFormTemplate.tsx",
+] as const satisfies readonly (typeof utilityRoutePresentationFiles)[number][];
 const ownedPresentationFiles = [
   "shared/components/layout/Outer.tsx",
   "shared/components/layout/Main.tsx",
@@ -45,6 +58,7 @@ const ownedPresentationFiles = [
   "features/card/components/CardOverlay.tsx",
   "features/card/components/templates/CardListTemplate.tsx",
   "features/card/components/templates/CardViewTemplate.tsx",
+  ...modernizedUtilityRoutePresentationFiles,
 ];
 const semanticColorRoles = [
   "canvas",
@@ -229,5 +243,21 @@ describe("Calm Focus visual contract", () => {
   it("gives the deck filter surfaces semantic Calm Focus treatment", () => {
     expect(readOwnedSource("features/deck/components/DeckStartForm.tsx")).toMatch(/bg-surface/);
     expect(readOwnedSource("features/deck/components/TagFilter.tsx")).toMatch(/bg-surface/);
+  });
+
+  it("registers utility routes and enforces semantic surfaces for modernized templates", () => {
+    expect(utilityRoutePresentationFiles).toEqual([
+      "features/deck/components/DeckForm.tsx",
+      "features/deck/components/templates/DeckFormTemplate.tsx",
+      "features/card/components/CardForm.tsx",
+      "features/card/components/templates/CardFormTemplate.tsx",
+      "features/import/components/templates/DeckImportTemplate.tsx",
+      "features/settings/components/ConfigForm.tsx",
+      "features/settings/components/templates/ConfigFormTemplate.tsx",
+    ]);
+
+    for (const relativePath of modernizedUtilityRoutePresentationFiles.filter((file) => file.includes("Template"))) {
+      expect(readOwnedSource(relativePath), relativePath).toMatch(/bg-surface(?:-elevated)?/);
+    }
   });
 });

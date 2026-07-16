@@ -5,17 +5,23 @@ import { DeckFormTemplate as Template } from "@/features/deck/components/templat
 import type { DeckFormFields } from "@/features/deck/components/DeckForm";
 import * as fixture from "@/shared/storybook/fixture";
 
-const fields: DeckFormFields = {
-  name: { defaultValue: fixture.deck.default.name },
-  convertToBr: { checked: Boolean(fixture.deck.default.convertToBr), onChange: () => undefined },
-  url: { ...(fixture.deck.default.url !== undefined ? { defaultValue: fixture.deck.default.url } : {}) },
-  isPublic: { checked: fixture.deck.default.isPublic, onChange: () => undefined },
-  localMode: { checked: Boolean(fixture.deck.default.localMode), onChange: () => undefined },
+const fieldsFor = (deck: Deck): DeckFormFields => ({
+  name: { value: deck.name, onChange: () => undefined },
+  convertToBr: { checked: Boolean(deck.convertToBr), onChange: () => undefined },
+  url: { value: deck.url ?? "", onChange: () => undefined },
+  isPublic: { checked: deck.isPublic, onChange: () => undefined },
+  localMode: { checked: Boolean(deck.localMode), onChange: () => undefined },
   category: {
-    value: fixture.deck.default.category,
+    value: deck.category,
     options: fixture.form.options.default,
     onChange: () => undefined,
   },
+});
+
+const longDeck: Deck = {
+  ...fixture.deck.tooLongName,
+  url: `https://example.com/${"deeply-nested/".repeat(12)}deck.csv`,
+  category: "value 3",
 };
 
 const meta = {
@@ -32,7 +38,7 @@ const meta = {
   args: {
     deckForm: {
       deck: fixture.deck.default,
-      fields,
+      fields: fieldsFor(fixture.deck.default),
     },
   },
 } satisfies Meta<typeof Template>;
@@ -42,7 +48,23 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const LongValues: Story = {
+  args: { deckForm: { deck: longDeck, fields: fieldsFor(longDeck) } },
+};
+
+export const Submitting: Story = {
+  args: {
+    deckForm: { deck: fixture.deck.default, fields: fieldsFor(fixture.deck.default), isSubmitting: true },
+  },
+};
+
+export const DarkReview: Story = {
+  ...LongValues,
+  globals: { theme: "dark" },
+};
+
 export const IphoneX: Story = {
+  ...LongValues,
   parameters: {
     viewport: {
       defaultViewport: "iphonex",
