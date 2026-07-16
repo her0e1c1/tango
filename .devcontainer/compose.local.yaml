@@ -2,3 +2,6 @@ services:
   db:
     ports:
       - "${VITE_DB_PORT}:${VITE_DB_PORT}"
+  auth:
+    ports:
+      - "${VITE_AUTH_PORT:-9099}:9099"
