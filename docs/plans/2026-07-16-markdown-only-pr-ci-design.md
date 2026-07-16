@@ -42,8 +42,8 @@ requests, manual runs, and reusable workflow calls. Docker setup, application
 CI, E2E tests, and Playwright artifact upload all share that condition.
 
 The Markdown check runs when detection succeeded and `markdown_changed` is
-true. Its condition uses `always()` so a mixed pull request still runs the
-Markdown check even if full CI fails first.
+true. Its condition uses `!cancelled()` so a mixed pull request still runs the
+Markdown check if full CI fails first, but a cancelled job does not continue.
 
 ## Markdownlint
 
@@ -64,8 +64,9 @@ consistent repository baseline.
 ## Failure Handling
 
 Change detection uses `continue-on-error` so a detection failure cannot skip
-full CI. After full CI and any eligible Markdown check finish, an `always()`
-guarded step fails the existing `Test` job if detection failed.
+full CI. After full CI and any eligible Markdown check finish, a `!cancelled()`
+guarded step fails the existing `Test` job if detection failed, but does not run
+after cancellation.
 
 A Markdownlint failure fails `Test` directly. A full CI failure remains a job
 failure even when the later Markdown check succeeds. Artifact upload continues
