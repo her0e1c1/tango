@@ -29,6 +29,21 @@ vi.mock("react-redux", () => ({
   },
 }));
 
+vi.mock("@/action", () => ({ deck: { downloadData: vi.fn() } }));
+vi.mock("@/query/useRemoteCollections", () => ({
+  useRemoteCollections: () => {
+    const decksById = mocks.state?.deck.byId ?? {};
+    return {
+      status: "ready" as const,
+      retry: vi.fn(),
+      decks: Object.values(decksById).filter((deck): deck is Deck => deck != null),
+      deckById: (id: string) => decksById[id],
+      cardsByDeckId: (id: string) =>
+        Object.values(mocks.state?.card.byId ?? {}).filter((card): card is Card => card?.deckId === id),
+    };
+  },
+}));
+
 vi.mock("react-use", () => ({
   useKey: vi.fn(),
 }));

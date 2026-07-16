@@ -5,17 +5,13 @@ import { useParams } from "react-router-dom";
 import * as C from "@/constant";
 import * as selector from "@/selector";
 import * as util from "@/util";
+import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { RemoteReadBoundary } from "@/shared/components";
 import { useActions } from "@/shared/hooks/useActions";
 import { CardViewTemplate } from "@/features/card/components/templates/CardViewTemplate";
 
-export const CardViewContainer: React.FC = () => {
-  const params = useParams();
-  const cardId = params.id;
-  if (cardId == null) throw Error("invalid card id");
-
-  const card = useSelector(selector.card.getById(cardId));
+const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
   const actions = useActions();
-  const deck = useSelector(selector.deck.getById(card.deckId));
   const config = useSelector(selector.config.get());
   const category = util.getCategory(deck.category, card.tags);
 
@@ -35,5 +31,21 @@ export const CardViewContainer: React.FC = () => {
         },
       }}
     />
+  );
+};
+
+export const CardViewContainer: React.FC = () => {
+  const params = useParams();
+  const cardId = params.id;
+  if (cardId == null) throw Error("invalid card id");
+  const remote = useRemoteCollections();
+  const card = remote.cardById(cardId);
+  const deck = card == null ? undefined : remote.deckById(card.deckId);
+  const available = card != null && deck != null;
+
+  return (
+    <RemoteReadBoundary status={remote.status} hasData={available} emptyLabel="Card not found." onRetry={remote.retry}>
+      {available ? <CardViewContent card={card} deck={deck} /> : null}
+    </RemoteReadBoundary>
   );
 };

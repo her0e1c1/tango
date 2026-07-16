@@ -4,16 +4,13 @@ import { useParams } from "react-router-dom";
 
 import * as C from "@/constant";
 import * as selector from "@/selector";
+import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { RemoteReadBoundary } from "@/shared/components";
 import { useActions } from "@/shared/hooks/useActions";
 import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";
 import { useCardFormState } from "@/features/card/hooks/useCardFormState";
 
-export const CardFormContainer: React.FC = () => {
-  const params = useParams();
-  const cardId = params.id;
-  if (cardId == null) throw Error("invalid card id");
-
-  const card = useSelector(selector.card.getById(cardId));
+const CardFormContent = ({ card }: { card: Card }) => {
   const config = useSelector(selector.config.get());
   const actions = useActions();
   const categoryOptions = React.useMemo(() => C.CATEGORY.map((category) => ({ label: category, value: category })), []);
@@ -31,5 +28,24 @@ export const CardFormContainer: React.FC = () => {
       }}
       cardForm={cardForm}
     />
+  );
+};
+
+export const CardFormContainer: React.FC = () => {
+  const params = useParams();
+  const cardId = params.id;
+  if (cardId == null) throw Error("invalid card id");
+  const remote = useRemoteCollections();
+  const card = remote.cardById(cardId);
+
+  return (
+    <RemoteReadBoundary
+      status={remote.status}
+      hasData={card != null}
+      emptyLabel="Card not found."
+      onRetry={remote.retry}
+    >
+      {card != null ? <CardFormContent card={card} /> : null}
+    </RemoteReadBoundary>
   );
 };

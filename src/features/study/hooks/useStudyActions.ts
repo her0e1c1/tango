@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import * as action from "@/action";
 import * as selector from "@/selector";
+import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { studyStore } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
 
@@ -23,9 +24,10 @@ export interface StudyActions {
 export const useStudyActions = (deckId: DeckId): StudyActions => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const cards = useSelector(selector.card.getFilteredByDeckId(deckId));
-  const cardsById = useSelector((state: RootState) => state.card.byId);
   const config = useSelector(selector.config.get());
+  const remote = useRemoteCollections();
+  const cards = remote.filteredCardsByDeckId(deckId, config);
+  const cardsById = remote.cardsById;
 
   const start = React.useCallback(() => {
     const cardOrderIds = buildStudySession(cards, config);

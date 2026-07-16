@@ -32,6 +32,15 @@ vi.mock("react-redux", () => ({
   },
 }));
 
+vi.mock("@/query/useRemoteCollections", () => ({
+  useRemoteCollections: () => ({
+    status: "ready" as const,
+    retry: vi.fn(),
+    deckById: (id: string) => mocks.state?.deck.byId[id],
+    cardById: (id: string) => mocks.state?.card.byId[id],
+  }),
+}));
+
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,
@@ -190,7 +199,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
 
     const view = render(<DeckSwiperContainer />);
 
-    expect(view.container).toBeEmptyDOMElement();
+    expect(view.getByRole("status")).toHaveTextContent("Study session unavailable.");
     expect(mocks.resetStudy).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
     expect(studyStore.getState().session).toBeNull();

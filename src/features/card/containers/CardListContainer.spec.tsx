@@ -15,6 +15,22 @@ vi.mock("react-redux", () => ({
   },
 }));
 
+vi.mock("@/query/useRemoteCollections", () => ({
+  useRemoteCollections: () => {
+    const decks = mocks.state?.deck.byId ?? {};
+    const cards = Object.values(mocks.state?.card.byId ?? {}).filter((card): card is Card => card != null);
+    return {
+      status: "ready" as const,
+      retry: vi.fn(),
+      deckById: (id: string) => decks[id],
+      filteredCardsByDeckId: (id: string) => cards.filter((card) => card.deckId === id),
+      tagsByDeckId: (id: string) => [
+        ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
+      ],
+    };
+  },
+}));
+
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
