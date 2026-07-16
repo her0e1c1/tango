@@ -102,10 +102,16 @@ describe("shared selection controls", () => {
     expect(screen.queryByText("biology.csv")).not.toBeInTheDocument();
   });
 
-  it("gives the slider native input a shared mobile touch target", () => {
+  it("separates the slider mobile touch target from its visual rail", () => {
     const view = render(<Slider />);
+    const input = view.container.querySelector("input[type=range]");
+    const rail = view.container.querySelector<HTMLElement>('[aria-hidden="true"]');
 
-    expect(view.container.querySelector("input[type=range]")).toHaveClass("min-h-touch");
+    expect(input).toHaveClass("min-h-touch", "bg-transparent");
+    expect(input).not.toHaveClass("h-2", "bg-surface-muted", "rounded-pill");
+    expect(rail).not.toBe(input);
+    expect(input?.parentElement).toContainElement(rail);
+    expect(rail).toHaveClass("pointer-events-none", "h-2", "w-full", "rounded-pill", "bg-surface-muted");
   });
 
   it("gives the switch clickable wrapper a shared mobile touch target", () => {

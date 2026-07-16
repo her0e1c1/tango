@@ -12,18 +12,24 @@ export const Slider: React.FC<{
   inputRef?: React.Ref<HTMLInputElement>;
 }> = (props) => {
   return (
-    <input
-      type="range"
-      min={props.min}
-      max={props.max}
-      step={props.step ?? 1}
-      disabled={props.disabled}
-      ref={props.inputRef}
-      name={props.name}
-      value={props.value}
-      onChange={props.onChange}
-      onBlur={props.onBlur}
-      className="h-2 min-h-touch w-full appearance-none rounded-pill bg-surface-muted accent-accent-primary transition-opacity duration-fast ease-calm disabled:cursor-not-allowed disabled:opacity-50"
-    />
+    <div className="relative min-h-touch w-full">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 h-2 w-full -translate-y-1/2 rounded-pill bg-surface-muted"
+      />
+      <input
+        type="range"
+        min={props.min}
+        max={props.max}
+        step={props.step ?? 1}
+        disabled={props.disabled}
+        ref={props.inputRef}
+        name={props.name}
+        value={props.value}
+        onChange={props.onChange}
+        onBlur={props.onBlur}
+        className="absolute inset-0 min-h-touch w-full appearance-none bg-transparent accent-accent-primary transition-opacity duration-fast ease-calm disabled:cursor-not-allowed disabled:opacity-50"
+      />
+    </div>
   );
 };
