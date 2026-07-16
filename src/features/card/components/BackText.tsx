@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Math, Code, Style } from "@/shared/components";
+import { MathContent, Code, Style } from "@/shared/components";
 
 export interface BackTextProps {
   text: string;
@@ -16,7 +16,7 @@ export const BackText: React.FC<BackTextProps> = (props) => {
       {...(props.onClick !== undefined ? { onClick: props.onClick } : {})}
     >
       {props.category === "math" ? (
-        <Math text={props.text} />
+        <MathContent text={props.text} />
       ) : props.code ? (
         <Code text={props.text} category={props.category ?? ""} />
       ) : (

@@ -1,6 +1,5 @@
 /// <reference types="vite/client" />
 
-// biome-ignore lint/correctness/noUndeclaredDependencies: Storybook preview is dev-only configuration (#214).
 import { withThemeByClassName } from "@storybook/addon-themes";
 import type { Preview } from "@storybook/react";
 import { INITIAL_VIEWPORTS } from "../src/shared/storybook/storybookViewports";

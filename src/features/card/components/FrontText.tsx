@@ -1,6 +1,6 @@
 import cx from "classnames";
 import type * as React from "react";
-import { Math, Title, useButtonInteraction } from "@/shared/components";
+import { MathContent, Title, useButtonInteraction } from "@/shared/components";
 import { useSwipeable } from "react-swipeable";
 
 export interface FrontTextProps {
@@ -30,7 +30,7 @@ export const FrontText: React.FC<FrontTextProps> = (props) => {
       {...clickInteraction}
       {...handlers}
     >
-      {props.category === "math" ? <Math text={props.text} /> : <Title>{props.text}</Title>}
+      {props.category === "math" ? <MathContent text={props.text} /> : <Title>{props.text}</Title>}
     </div>
   );
 };

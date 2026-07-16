@@ -21,7 +21,7 @@ export const ArrowUp: Story = {
 
 export const Success: Story = { args: { children: "Changes saved", tone: "success" } };
 export const Warning: Story = { args: { children: "Connection is unstable", tone: "warning" } };
-export const Error: Story = { args: { children: "Could not save changes", tone: "error" } };
+export const ErrorState: Story = { args: { children: "Could not save changes", tone: "error" } };
 export const Dark: Story = {
   args: { children: "Dark-mode feedback", tone: "neutral" },
   globals: { theme: "dark" },

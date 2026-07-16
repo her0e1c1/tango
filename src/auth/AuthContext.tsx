@@ -18,7 +18,6 @@ type AuthStoreDependencies = {
   signInAnonymously: (auth: Auth) => Promise<UserCredential>;
 };
 
-// biome-ignore lint/style/useComponentExportOnlyModules: The provider exposes its external store for tests.
 export const createAuthStore = (dependencies: AuthStoreDependencies) => {
   let state: AuthState = { status: "initializing" };
   const listeners = new Set<() => void>();
@@ -118,10 +117,8 @@ export type AuthStore = ReturnType<typeof createAuthStore>;
 
 const authStore = createAuthStore({ auth, onAuthStateChanged, signInAnonymously });
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Auth actions share the provider's singleton store.
 export const publishAuthenticatedUser = (user: User) => authStore.publishAuthenticatedUser(user);
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Auth actions share the provider's singleton store.
 export const suspendAnonymousBootstrap = () => authStore.suspendAnonymousBootstrap();
 
 const AuthContext = createContext<AuthStore | null>(null);
@@ -132,7 +129,6 @@ export const AuthProvider = ({ children, store = authStore }: AuthProviderProps)
   <AuthContext.Provider value={store}>{children}</AuthContext.Provider>
 );
 
-// biome-ignore lint/style/useComponentExportOnlyModules: The hook and provider form one public context API.
 export const useAuth = () => {
   const store = useContext(AuthContext);
   if (!store) throw new Error("useAuth must be used within AuthProvider");
