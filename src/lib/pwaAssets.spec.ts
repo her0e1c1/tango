@@ -222,6 +222,36 @@ describe("Tango PWA identity", () => {
     expect(mark).toMatch(/#2f7f78/i);
     expect(mark).toMatch(/#f8fafc/i);
     expect(mark).not.toMatch(/react|atom/i);
+    expect(mark).not.toContain("<circle");
+  });
+
+  it("provides geometry-identical light and dark Card trail logos with outlined lettering", () => {
+    const lightLogo = readText("public/tango-logo.svg");
+    const darkLogo = readText("public/tango-logo-dark.svg");
+    const normalizeThemeColors = (source: string) =>
+      source.replace(/#f8fafc|#182231/gi, "SURFACE").replace(/#202936|#edf2f7/gi, "INK");
+
+    expect(normalizeThemeColors(lightLogo)).toBe(normalizeThemeColors(darkLogo));
+
+    for (const logo of [lightLogo, darkLogo]) {
+      expect(logo.trimStart()).toMatch(/^<svg\b/);
+      expect(logo).toContain("<title>Tango</title>");
+      expect(logo).toMatch(/viewBox=["']0 0 216 64["']/);
+      expect(logo).toContain('<rect x="36" y="14" width="176" height="42" rx="8"');
+      expect(logo).toContain('<rect x="32" y="8" width="180" height="44" rx="8"');
+      expect(logo).toContain('stroke-width="4.5"');
+      expect(logo).toContain('stroke-linecap="round"');
+      expect(logo).toContain('stroke-linejoin="round"');
+      expect(logo).not.toContain("<text");
+    }
+
+    expect(lightLogo).toMatch(/#f8fafc/i);
+    expect(lightLogo).toMatch(/#202936/i);
+    expect(darkLogo).toMatch(/#182231/i);
+    expect(darkLogo).toMatch(/#edf2f7/i);
+
+    const darkMark = darkLogo.match(/<g data-logo-part="mark">([\s\S]*?)<\/g>/)?.[0];
+    expect(darkMark).toMatch(/#f8fafc/i);
   });
 
   it("advertises SVG, fallback, touch, manifest, and light/dark browser colors", () => {
