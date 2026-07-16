@@ -9,9 +9,7 @@ const meta = {
   parameters: {
     layout: "fullscreen",
   },
-  args: {
-    className: "bg-gray-300",
-  },
+  args: { children: "Overlay content" },
 } satisfies Meta<typeof Template>;
 
 export default meta;
@@ -45,4 +43,17 @@ export const Bottom: Story = {
   args: {
     position: "bottom",
   },
+};
+
+export const LongMobile: Story = {
+  args: {
+    position: "center",
+    children: "Long overlay content remains readable and scrollable. ".repeat(80),
+  },
+  parameters: { viewport: { defaultViewport: "iphone5" } },
+};
+
+export const Dark: Story = {
+  args: { position: "center", children: "Dark-mode overlay surface" },
+  globals: { theme: "dark" },
 };

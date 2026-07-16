@@ -9,7 +9,7 @@ export const Style: React.FC<{
 }> = (props) => {
   const Tag = props.div ? "div" : "span";
   return (
-    <Tag onClick={props.onClick} className={cx("text-black", "dark:text-gray-300", "dark:bg-black", props.className)}>
+    <Tag onClick={props.onClick} className={cx("min-w-0 break-words text-ink", props.className)}>
       {props.children}
     </Tag>
   );

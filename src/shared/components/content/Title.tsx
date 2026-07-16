@@ -8,9 +8,8 @@ export const Title: React.FC<{ className?: string; onClick?: () => void; childre
     <div
       {...clickInteraction}
       className={cx(
-        "inline-block font-bold text-xl mr-2",
-        "text-black dark:text-gray-300",
-        { "cursor-pointer hover:opacity-50": props.onClick },
+        "mr-2 inline-block min-w-0 break-words text-title font-bold text-ink",
+        { "cursor-pointer transition-opacity duration-fast ease-calm hover:opacity-70": props.onClick },
         props.className
       )}
     >

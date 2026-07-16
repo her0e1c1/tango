@@ -20,5 +20,8 @@ export const Short: Story = {
 };
 
 export const Long: Story = {
-  args: { children: "this text is too long".repeat(30) },
+  args: { children: "this text is too long ".repeat(30) },
+  parameters: { viewport: { defaultViewport: "iphone5" } },
 };
+
+export const Dark: Story = { args: { children: "Muted dark-mode description" }, globals: { theme: "dark" } };

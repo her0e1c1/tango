@@ -27,6 +27,8 @@ export const TooLong: Story = {
 
 export const TooLongWithScroll: Story = {
   args: {
+    hasManyItems: true,
     children: fixture.tags.toolong.map((t) => <Tag key={t} label={t} />),
   },
+  parameters: { viewport: { defaultViewport: "iphone5" } },
 };

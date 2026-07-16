@@ -20,6 +20,10 @@ export const Negative: Story = {
   args: { score: -1 },
 };
 
+export const Neutral: Story = {
+  args: { score: 0 },
+};
+
 export const Positive10: Story = {
   args: { score: 10 },
 };
@@ -30,4 +34,9 @@ export const Negative10: Story = {
 
 export const Large: Story = {
   args: { score: 1, large: true },
+};
+
+export const Dark: Story = {
+  args: { score: 10, large: true },
+  globals: { theme: "dark" },
 };

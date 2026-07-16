@@ -30,3 +30,13 @@ export const Markdown: Story = {
     text: fixture.math.markdown,
   },
 };
+
+export const WideMobile: Story = {
+  args: { text: "$$\\sum_{i=1}^{n} \\frac{x_i^2 + y_i^2}{\\sqrt{a_i^2 + b_i^2}} = \\prod_{j=1}^{m}(1 + z_j)$$" },
+  parameters: { viewport: { defaultViewport: "iphone5" } },
+};
+
+export const Dark: Story = {
+  args: { text: fixture.math.markdown },
+  globals: { theme: "dark" },
+};
