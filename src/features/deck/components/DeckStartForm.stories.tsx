@@ -32,3 +32,27 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const ManyTagsSelected: Story = {
+  args: {
+    tagFilterProps: {
+      ...args.tagFilterProps,
+      tags: Array.from({ length: 40 }, (_, index) => `study-tag-${index + 1}`),
+      selectedTags: ["study-tag-2", "study-tag-17", "study-tag-31"],
+      tagAndFilter: true,
+    },
+  },
+};
+
+export const NoMatchCompatible: Story = {
+  args: {
+    tagFilterProps: { ...args.tagFilterProps, selectedTags: ["advanced", "review"], tagAndFilter: true },
+  },
+};
+
+export const Mobile: Story = {
+  ...ManyTagsSelected,
+  parameters: { viewport: { defaultViewport: "iphone5" } },
+};
+
+export const Dark: Story = { ...ManyTagsSelected, globals: { theme: "dark" } };

@@ -10,7 +10,11 @@ export interface CardViewTemplateProps {
 export const CardViewTemplate: React.FC<CardViewTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
-      {props.backText != null && <BackText {...props.backText} />}
+      {props.backText != null && (
+        <section className="mx-auto w-full max-w-reading rounded-surface bg-surface-elevated text-ink shadow-surface">
+          <BackText {...props.backText} />
+        </section>
+      )}
     </Layout>
   );
 };

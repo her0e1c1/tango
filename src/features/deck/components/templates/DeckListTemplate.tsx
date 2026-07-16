@@ -19,6 +19,7 @@ export const DeckListTemplate: React.FC<DeckListTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       {props.feedbackSlot}
+      <h1 className="break-words text-title font-bold text-ink">Decks</h1>
       <List>
         {props.decks?.map((deck) => {
           const studyProgress = props.studyProgress?.deckId === deck.id ? props.studyProgress : undefined;

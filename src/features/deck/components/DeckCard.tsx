@@ -55,13 +55,13 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
     props.onClickReimport?.(id);
   }, [id, props]);
   return (
-    <IconContext.Provider value={{ className: "dark:text-gray-200 text-2xl" }}>
-      <Card full className="px-4 pt-4 pb-2">
-        <div className="">
-          <div className="flex">
+    <IconContext.Provider value={{ className: "text-2xl" }}>
+      <Card full className="px-4 pb-3 pt-4">
+        <div>
+          <div className="flex min-w-0 flex-wrap items-start gap-1">
             <Title onClick={onClickName}>{deck.name}</Title>
             <Tag className="mr-2 mb-2" round label={deck.category} hidden={!deck.category} />
-            {deck.isPublic && <AiOutlineCloud className="self-baseline mt-1" size={24} />}
+            {deck.isPublic && <AiOutlineCloud className="mt-1 shrink-0 text-ink-muted" size={24} />}
           </div>
           {props.studyProgress != null && (
             <Description>
@@ -70,21 +70,39 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
           )}
         </div>
 
-        <div>
-          <div className="mt-2 flex justify-between">
-            <Button primary className="mr-5" onClick={onClickStudy}>
-              Study
+        <div className="mt-4">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="primary"
+              className="flex-1"
+              onClick={props.studyProgress == null ? onClickStudy : onClickRestart}
+            >
+              {props.studyProgress == null ? "Study" : "Continue"}
             </Button>
-            <Button default disabled={props.studyProgress == null} onClick={onClickRestart}>
+            <Button variant="quiet" className="flex-1" disabled={props.studyProgress == null} onClick={onClickStudy}>
               Restart
             </Button>
           </div>
 
-          <div className="flex justify-center border-t mt-4 pt-2 border-gray-300 dark:border-gray-900">
-            <AiOutlineCloudDownload className="mr-4" onClick={onClickDownload} />
-            <AiOutlineEdit className="mr-4" onClick={onClickEdit} />
-            <AiOutlineDelete className="mr-4" onClick={onClickDelete} />
-            {Boolean(deck.url) && <AiOutlineReload className="mr-4" onClick={onClickReimport} />}
+          <div className="mt-4 flex justify-center gap-1 border-t border-border pt-2">
+            <AiOutlineCloudDownload
+              className="size-touch rounded-control p-2 text-ink-muted hover:bg-surface-muted"
+              onClick={onClickDownload}
+            />
+            <AiOutlineEdit
+              className="size-touch rounded-control p-2 text-ink-muted hover:bg-surface-muted"
+              onClick={onClickEdit}
+            />
+            <AiOutlineDelete
+              className="size-touch rounded-control p-2 text-danger hover:bg-surface-muted"
+              onClick={onClickDelete}
+            />
+            {Boolean(deck.url) && (
+              <AiOutlineReload
+                className="size-touch rounded-control p-2 text-ink-muted hover:bg-surface-muted"
+                onClick={onClickReimport}
+              />
+            )}
           </div>
         </div>
       </Card>

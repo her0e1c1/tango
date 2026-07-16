@@ -25,18 +25,21 @@ const scoreText = (max: number | null, min: number | null): string => {
 };
 
 export const DeckStartForm: React.FC<DeckStartFormProps> = (props) => {
+  const range = scoreText(props.scoreMax, props.scoreMin);
+
   return (
     <Form div>
-      <Section title={`score range ${scoreText(props.scoreMax, props.scoreMin)}`} />
-      <FormItem label="max">
-        <Switch {...props.scoreMaxSwitchProps} />
-      </FormItem>
-      <Slider {...props.scoreMaxSliderProps} />
-      <FormItem label="min">
-        <Switch {...props.scoreMinSwitchProps} />
-      </FormItem>
-      <Slider {...props.scoreMinSliderProps} />
-      <Section title="tags" />
+      <div className="space-y-3 rounded-surface border border-border bg-surface p-4 shadow-surface">
+        <Section title={`score range${range ? ` ${range}` : ""}`} />
+        <FormItem label="max">
+          <Switch {...props.scoreMaxSwitchProps} />
+        </FormItem>
+        <Slider {...props.scoreMaxSliderProps} />
+        <FormItem label="min">
+          <Switch {...props.scoreMinSwitchProps} />
+        </FormItem>
+        <Slider {...props.scoreMinSliderProps} />
+      </div>
       <TagFilter {...props.tagFilterProps} />
     </Form>
   );

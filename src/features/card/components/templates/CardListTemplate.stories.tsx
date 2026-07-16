@@ -68,6 +68,8 @@ export const CardView: Story = {
   },
 };
 
+export const DarkCardView: Story = { ...CardView, globals: { theme: "dark" } };
+
 export const IphoneX: Story = {
   parameters: {
     viewport: {

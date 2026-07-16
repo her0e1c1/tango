@@ -26,3 +26,7 @@ export const Default: Story = {
 export const TooLong: Story = {
   args: { text: fixture.card.toolong.frontText },
 };
+
+export const LongMath: Story = { args: { text: `${fixture.math.block}\n${fixture.math.block}`, category: "math" } };
+export const Mobile: Story = { ...TooLong, parameters: { viewport: { defaultViewport: "iphonex" } } };
+export const Dark: Story = { ...TooLong, globals: { theme: "dark" } };

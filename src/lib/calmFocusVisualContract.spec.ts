@@ -35,6 +35,16 @@ const ownedPresentationFiles = [
   "shared/components/forms/Switch.tsx",
   "shared/components/forms/Tag.tsx",
   "shared/components/forms/Upload.tsx",
+  "features/deck/components/DeckCard.tsx",
+  "features/deck/components/DeckStartForm.tsx",
+  "features/deck/components/TagFilter.tsx",
+  "features/deck/components/templates/DeckListTemplate.tsx",
+  "features/card/components/Card.tsx",
+  "features/card/components/FrontText.tsx",
+  "features/card/components/BackText.tsx",
+  "features/card/components/CardOverlay.tsx",
+  "features/card/components/templates/CardListTemplate.tsx",
+  "features/card/components/templates/CardViewTemplate.tsx",
 ];
 const semanticColorRoles = [
   "canvas",
@@ -214,5 +224,10 @@ describe("Calm Focus visual contract", () => {
     );
 
     expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("gives the deck filter surfaces semantic Calm Focus treatment", () => {
+    expect(readOwnedSource("features/deck/components/DeckStartForm.tsx")).toMatch(/bg-surface/);
+    expect(readOwnedSource("features/deck/components/TagFilter.tsx")).toMatch(/bg-surface/);
   });
 });
