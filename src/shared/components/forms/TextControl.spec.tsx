@@ -166,7 +166,7 @@ describe("shared text controls", () => {
   });
 
   it.each([
-    ["input", () => render(<Input type="email" defaultValue="not-an-email" />)],
+    ["input", () => render(<Input required defaultValue="" />)],
     [
       "select",
       () => render(<Select empty required defaultValue="" options={[{ label: "Primary", value: "primary" }]} />),

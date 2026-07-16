@@ -9,6 +9,7 @@ export const Input: React.FC<{
   defaultValue?: string;
   disabled?: boolean;
   readOnly?: boolean;
+  required?: boolean;
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
@@ -23,6 +24,7 @@ export const Input: React.FC<{
       value={props.value}
       disabled={props.disabled}
       readOnly={props.readOnly}
+      required={props.required}
       placeholder={props.placeholder}
       onChange={props.onChange}
       onBlur={props.onBlur}

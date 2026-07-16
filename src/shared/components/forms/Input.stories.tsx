@@ -27,7 +27,7 @@ export const States: Story = {
 };
 
 export const Invalid: Story = {
-  args: { type: "email", defaultValue: "invalid-email" },
+  args: { required: true, defaultValue: "" },
 };
 
 export const LongValue: Story = {
