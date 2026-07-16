@@ -7,7 +7,13 @@ import { useAuth } from "@/auth/AuthContext";
 import { filterCardsForDeck } from "@/lib/study";
 import { firestoreKeys } from "@/query/firestoreKeys";
 import type { RemoteById, RemoteReadState } from "@/query/remoteReadController";
-import { getRemoteReadState, retryRemoteReads, subscribeRemoteReadState } from "@/query/remoteReadSession";
+import {
+  getRemoteReadBlocker,
+  getRemoteReadState,
+  retryRemoteReads,
+  subscribeRemoteReadBlocker,
+  subscribeRemoteReadState,
+} from "@/query/remoteReadSession";
 
 const definedEntries = <T>(items: Record<string, T | undefined>) =>
   Object.entries(items).filter((entry): entry is [string, T] => entry[1] != null);
@@ -18,6 +24,8 @@ export const useRemoteCollections = () => {
   const reduxDeckState = useSelector((state: RootState) => state.deck);
   const reduxCardState = useSelector((state: RootState) => state.card);
   const remoteState = useSyncExternalStore(subscribeRemoteReadState, getRemoteReadState, getRemoteReadState);
+  const blocker = useSyncExternalStore(subscribeRemoteReadBlocker, getRemoteReadBlocker, getRemoteReadBlocker);
+  const hasActiveUid = uid !== "" && remoteState.uid === uid;
   const remoteDeckQuery = useQuery<RemoteById<Deck>>({
     queryKey: firestoreKeys.decks(uid),
     queryFn: async () => ({}),
@@ -36,25 +44,32 @@ export const useRemoteCollections = () => {
     const localDeckIds = new Set(localDeckEntries.map(([id]) => id));
     const localCardEntries = definedEntries(reduxCards).filter(([, card]) => localDeckIds.has(card.deckId));
     const decksById = {
-      ...(remoteDeckQuery.data ?? {}),
+      ...(hasActiveUid ? (remoteDeckQuery.data ?? {}) : {}),
       ...Object.fromEntries(localDeckEntries),
     };
     const cardsById = {
-      ...(remoteCardQuery.data ?? {}),
+      ...(hasActiveUid ? (remoteCardQuery.data ?? {}) : {}),
       ...Object.fromEntries(localCardEntries),
     };
     const decks = definedEntries(decksById).map(([, deck]) => deck);
     const cards = definedEntries(cardsById).map(([, card]) => card);
     return { decksById, cardsById, decks, cards };
-  }, [reduxDeckState, reduxCardState, remoteDeckQuery.data, remoteCardQuery.data]);
+  }, [reduxDeckState, reduxCardState, remoteDeckQuery.data, remoteCardQuery.data, hasActiveUid]);
 
-  const status: RemoteReadState["status"] =
-    uid === "" ? "idle" : remoteState.uid === uid ? remoteState.status : "loading";
-  const error = remoteState.uid === uid && remoteState.status === "error" ? remoteState.error : undefined;
+  const status: RemoteReadState["status"] | "blocked" = blocker
+    ? "blocked"
+    : uid === ""
+      ? "idle"
+      : hasActiveUid
+        ? remoteState.status
+        : "loading";
+  const error = blocker ?? (hasActiveUid && remoteState.status === "error" ? remoteState.error : undefined);
+  const syncStatus = hasActiveUid && remoteState.status === "ready" ? remoteState.syncStatus : undefined;
 
   return {
     ...collections,
     status,
+    syncStatus,
     error,
     retry: retryRemoteReads,
     deckById: (id: string) => collections.decksById[id],

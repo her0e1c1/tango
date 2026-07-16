@@ -28,6 +28,18 @@ describe("RemoteReadBoundary", () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it("blocks data access when another tab owns persistent offline storage", () => {
+    render(
+      <RemoteReadBoundary status="blocked" hasData onRetry={vi.fn()}>
+        cached content
+      </RemoteReadBoundary>
+    );
+
+    expect(screen.getByRole("alert").textContent).toContain("Close other tabs or use a supported browser");
+    expect(screen.queryByText("cached content")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+  });
+
   it("keeps cached content visible beside a terminal sync error", () => {
     render(
       <RemoteReadBoundary status="error" hasData onRetry={vi.fn()}>

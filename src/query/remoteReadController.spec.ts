@@ -10,16 +10,6 @@ import {
 } from "@/query/remoteReadController";
 import { createCard, createDeck } from "@/test/factories";
 
-const deferred = <T>() => {
-  let resolve: (value: T) => void = () => undefined;
-  let reject: (error: unknown) => void = () => undefined;
-  const promise = new Promise<T>((onResolve, onReject) => {
-    resolve = onResolve;
-    reject = onReject;
-  });
-  return { promise, resolve, reject };
-};
-
 const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map((item) => [item.id, item]));
 
 const createHarness = () => {
@@ -30,8 +20,6 @@ const createHarness = () => {
   const cardUnsubscribes: ReturnType<typeof vi.fn>[] = [];
   const dependencies: RemoteReadDependencies = {
     client,
-    readDecks: vi.fn(async () => []),
-    readCards: vi.fn(async () => []),
     subscribeDecks: vi.fn((props) => {
       deckSubscriptions.push(props);
       const unsubscribe = vi.fn();
@@ -60,59 +48,89 @@ const createHarness = () => {
 describe("remote read controller", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("loads both collections before attaching exactly one listener for each", async () => {
+  it("attaches one listener per collection and becomes ready from cached initial snapshots", async () => {
     const harness = createHarness();
     const deck = createDeck({ id: "deck-a", localMode: false });
     const card = createCard({ id: "card-a", deckId: deck.id });
-    vi.mocked(harness.dependencies.readDecks).mockResolvedValue([deck]);
-    vi.mocked(harness.dependencies.readCards).mockResolvedValue([card]);
 
     const first = harness.controller.start("uid-a");
     const strictModeReplay = harness.controller.start("uid-a");
     await Promise.all([first, strictModeReplay]);
 
-    expect(harness.dependencies.readDecks).toHaveBeenCalledTimes(1);
-    expect(harness.dependencies.readCards).toHaveBeenCalledTimes(1);
     expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(1);
     expect(harness.dependencies.subscribeCards).toHaveBeenCalledTimes(1);
+    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "loading" });
+
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [deck],
+      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
+    });
+    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "loading" });
+    harness.cardSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [card],
+      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
+    });
+
     expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual(byId([deck]));
     expect(harness.client.getQueryData(firestoreKeys.cards("uid-a"))).toEqual(byId([card]));
-    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "ready" });
+    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "ready", syncStatus: "cached" });
   });
 
-  it("applies replacement and delta snapshots to Query", async () => {
+  it("applies delta snapshots and publishes pending then server-synced metadata", async () => {
     const harness = createHarness();
-    const deck = createDeck({ id: "deck-a", localMode: false });
-    vi.mocked(harness.dependencies.readDecks).mockResolvedValue([deck]);
     await harness.controller.start("uid-a");
 
     harness.deckSubscriptions[0]?.onSnapshot({
       type: "replace",
       items: [],
-      metadata: { size: 0, fromLocal: false },
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+    harness.cardSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [],
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
     });
 
     expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual({});
+    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "ready", syncStatus: "synced" });
 
     const added = createDeck({ id: "deck-added", localMode: false });
     harness.deckSubscriptions[0]?.onSnapshot({
       type: "change",
       event: { added: [added], modified: [], removed: [] },
-      metadata: { size: 1, fromLocal: false },
+      metadata: { size: 1, fromCache: true, hasPendingWrites: true },
     });
 
     expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual(byId([added]));
+    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "ready", syncStatus: "pending" });
+
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "change",
+      event: { added: [], modified: [], removed: [] },
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "ready", syncStatus: "synced" });
   });
 
   it("forces one refetch and reconnect, then retains data on a terminal listener error", async () => {
     const harness = createHarness();
     const deck = createDeck({ id: "deck-a", localMode: false });
-    vi.mocked(harness.dependencies.readDecks).mockResolvedValue([deck]);
     await harness.controller.start("uid-a");
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [deck],
+      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
+    });
+    harness.cardSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [],
+      metadata: { size: 0, fromCache: true, hasPendingWrites: false },
+    });
 
     harness.deckSubscriptions[0]?.onError(new Error("first listener failure"));
     await vi.waitFor(() => expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(2));
-    expect(harness.dependencies.readDecks).toHaveBeenCalledTimes(2);
     expect(harness.deckUnsubscribes[0]).toHaveBeenCalledTimes(1);
     expect(harness.cardUnsubscribes[0]).toHaveBeenCalledTimes(1);
 
@@ -122,7 +140,6 @@ describe("remote read controller", () => {
       expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "error", error: terminalError })
     );
 
-    expect(harness.dependencies.readDecks).toHaveBeenCalledTimes(2);
     expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual(byId([deck]));
   });
 
@@ -136,34 +153,40 @@ describe("remote read controller", () => {
 
     await harness.controller.retry();
 
-    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "ready" });
+    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "loading" });
     expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(3);
     harness.deckSubscriptions[2]?.onError(new Error("new automatic recovery"));
     await vi.waitFor(() => expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(4));
   });
 
-  it("prevents delayed work for an old UID from mutating Query or listeners", async () => {
+  it("prevents snapshots from an old UID generation from mutating Query or sync state", async () => {
     const harness = createHarness();
-    const decksA = deferred<Deck[]>();
-    const cardsA = deferred<Card[]>();
     const deckB = createDeck({ id: "deck-b", uid: "uid-b", localMode: false });
     const cardB = createCard({ id: "card-b", uid: "uid-b", deckId: deckB.id });
-    vi.mocked(harness.dependencies.readDecks).mockImplementation((uid) =>
-      uid === "uid-a" ? decksA.promise : Promise.resolve([deckB])
-    );
-    vi.mocked(harness.dependencies.readCards).mockImplementation((uid) =>
-      uid === "uid-a" ? cardsA.promise : Promise.resolve([cardB])
-    );
 
-    const startA = harness.controller.start("uid-a");
+    await harness.controller.start("uid-a");
     await harness.controller.start("uid-b");
-    decksA.resolve([createDeck({ id: "deck-a", uid: "uid-a", localMode: false })]);
-    cardsA.resolve([createCard({ id: "card-a", uid: "uid-a" })]);
-    await startA;
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [createDeck({ id: "deck-a", uid: "uid-a", localMode: false })],
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    harness.cardSubscriptions[0]?.onError(new Error("stale listener"));
+    harness.deckSubscriptions[1]?.onSnapshot({
+      type: "replace",
+      items: [deckB],
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    harness.cardSubscriptions[1]?.onSnapshot({
+      type: "replace",
+      items: [cardB],
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
 
     expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toBeUndefined();
     expect(harness.client.getQueryData(firestoreKeys.cards("uid-a"))).toBeUndefined();
-    expect(harness.dependencies.subscribeDecks).not.toHaveBeenCalledWith(expect.objectContaining({ uid: "uid-a" }));
-    expect(harness.dependencies.subscribeCards).not.toHaveBeenCalledWith(expect.objectContaining({ uid: "uid-a" }));
+    expect(harness.client.getQueryData(firestoreKeys.decks("uid-b"))).toEqual(byId([deckB]));
+    expect(harness.client.getQueryData(firestoreKeys.cards("uid-b"))).toEqual(byId([cardB]));
+    expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-b", status: "ready", syncStatus: "synced" });
   });
 });

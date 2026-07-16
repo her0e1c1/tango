@@ -1,5 +1,4 @@
 import {
-  getFirestore,
   doc,
   updateDoc,
   setDoc,
@@ -13,10 +12,9 @@ import {
 } from "firebase/firestore";
 import { getTimestamp } from "@/action/firestore/mocked";
 import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument, type CardDocument } from "@/action/firestore/dto";
+import { getDb } from "@/firestoreRuntime";
 
-const db = getFirestore();
-
-export const readAll = async (uid: string, firestore: Firestore = db): Promise<Card[]> => {
+export const readAll = async (uid: string, firestore: Firestore = getDb()): Promise<Card[]> => {
   const snapshot = await getDocs(query(collection(firestore, "card"), where("uid", "==", uid)));
   return snapshot.docs
     .map((document) => mapCardDocument(document.id, document.data() as CardDocument))
@@ -24,6 +22,7 @@ export const readAll = async (uid: string, firestore: Firestore = db): Promise<C
 };
 
 export const create = async (card: Card, createdAt?: number): Promise<string> => {
+  const db = getDb();
   if (createdAt == null) {
     createdAt = getTimestamp();
   }
@@ -33,6 +32,7 @@ export const create = async (card: Card, createdAt?: number): Promise<string> =>
 };
 
 export const upsert = async (card: Card): Promise<string> => {
+  const db = getDb();
   const timestamp = getTimestamp();
   const createdAt = card.createdAt > 0 ? card.createdAt : timestamp;
   const ref = doc(db, "card", card.id);
@@ -41,6 +41,7 @@ export const upsert = async (card: Card): Promise<string> => {
 };
 
 export const update = async (card: CardEdit) => {
+  const db = getDb();
   const ref = doc(db, "card", card.id);
   await updateDoc(ref, buildCardUpdateDto(card, getTimestamp()));
 };
@@ -56,6 +57,7 @@ export const bulkUpdate = async (cards: Card[]) => {
 };
 
 export const logicalRemove = async (id: string) => {
+  const db = getDb();
   const updatedAt = getTimestamp();
   const ref = doc(db, "card", id);
   await updateDoc(ref, { updatedAt, deletedAt: updatedAt });
@@ -63,11 +65,13 @@ export const logicalRemove = async (id: string) => {
 
 // used only for test
 export const remove = async (id: string) => {
+  const db = getDb();
   const ref = doc(db, "card", id);
   await deleteDoc(ref);
 };
 
 export const exists = async (id: string): Promise<boolean> => {
+  const db = getDb();
   const ref = doc(db, "card", id);
   try {
     const snapshot = await getDoc(ref);
