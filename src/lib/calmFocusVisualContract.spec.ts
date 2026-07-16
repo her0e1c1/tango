@@ -15,10 +15,15 @@ const utilityRoutePresentationFiles = [
   "features/settings/components/ConfigForm.tsx",
   "features/settings/components/templates/ConfigFormTemplate.tsx",
 ] as const;
-const modernizedUtilityRoutePresentationFiles = [
+const completedUtilityRoutePresentationFiles = [
   "features/deck/components/DeckForm.tsx",
   "features/deck/components/templates/DeckFormTemplate.tsx",
 ] as const satisfies readonly (typeof utilityRoutePresentationFiles)[number][];
+const completedUtilityRoutePresentationFileSet = new Set<string>(completedUtilityRoutePresentationFiles);
+const pendingUtilityRoutePresentationFiles = utilityRoutePresentationFiles.filter(
+  (relativePath) => !completedUtilityRoutePresentationFileSet.has(relativePath)
+);
+const pendingUtilityRoutePresentationFileSet = new Set<string>(pendingUtilityRoutePresentationFiles);
 const ownedPresentationFiles = [
   "shared/components/layout/Outer.tsx",
   "shared/components/layout/Main.tsx",
@@ -58,8 +63,11 @@ const ownedPresentationFiles = [
   "features/card/components/CardOverlay.tsx",
   "features/card/components/templates/CardListTemplate.tsx",
   "features/card/components/templates/CardViewTemplate.tsx",
-  ...modernizedUtilityRoutePresentationFiles,
+  ...utilityRoutePresentationFiles,
 ];
+const enforcedOwnedPresentationFiles = ownedPresentationFiles.filter(
+  (relativePath) => !pendingUtilityRoutePresentationFileSet.has(relativePath)
+);
 const semanticColorRoles = [
   "canvas",
   "surface",
@@ -232,8 +240,8 @@ describe("Calm Focus visual contract", () => {
     expect(reducedMotion).toContain("scroll-behavior:");
   });
 
-  it("keeps the owned presentation files free of raw Tailwind palette utilities", () => {
-    const violations = ownedPresentationFiles.flatMap((relativePath) =>
+  it("keeps completed owned presentation files free of raw Tailwind palette utilities", () => {
+    const violations = enforcedOwnedPresentationFiles.flatMap((relativePath) =>
       rawPaletteUtilities(readOwnedSource(relativePath)).map((utility) => `${relativePath}: ${utility}`)
     );
 
@@ -245,7 +253,7 @@ describe("Calm Focus visual contract", () => {
     expect(readOwnedSource("features/deck/components/TagFilter.tsx")).toMatch(/bg-surface/);
   });
 
-  it("registers utility routes and enforces semantic surfaces for modernized templates", () => {
+  it("registers utility routes and enforces semantic surfaces for completed templates", () => {
     expect(utilityRoutePresentationFiles).toEqual([
       "features/deck/components/DeckForm.tsx",
       "features/deck/components/templates/DeckFormTemplate.tsx",
@@ -255,8 +263,14 @@ describe("Calm Focus visual contract", () => {
       "features/settings/components/ConfigForm.tsx",
       "features/settings/components/templates/ConfigFormTemplate.tsx",
     ]);
+    expect(ownedPresentationFiles).toEqual(expect.arrayContaining(utilityRoutePresentationFiles));
+    expect(pendingUtilityRoutePresentationFiles).toEqual(utilityRoutePresentationFiles.slice(2));
+    expect(enforcedOwnedPresentationFiles).toEqual(expect.arrayContaining(completedUtilityRoutePresentationFiles));
+    for (const relativePath of pendingUtilityRoutePresentationFiles) {
+      expect(enforcedOwnedPresentationFiles).not.toContain(relativePath);
+    }
 
-    for (const relativePath of modernizedUtilityRoutePresentationFiles.filter((file) => file.includes("Template"))) {
+    for (const relativePath of completedUtilityRoutePresentationFiles.filter((file) => file.includes("Template"))) {
       expect(readOwnedSource(relativePath), relativePath).toMatch(/bg-surface(?:-elevated)?/);
     }
   });
