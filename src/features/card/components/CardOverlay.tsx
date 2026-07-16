@@ -5,9 +5,9 @@ export const CardOverlay: React.FC<{ card?: Card }> = (props) => {
   const card = props.card;
   return (
     <Overlay position="top">
-      <div className="flex flex-row p-2">
+      <div className="mx-auto flex max-w-reading flex-row items-center gap-2 bg-surface-elevated p-2 text-ink">
         <Score score={card?.score ?? 0} />
-        <Description className="ml-2">
+        <Description>
           {card?.numberOfSeen != null && `${card.numberOfSeen} times`}
           {card?.lastSeenAt != null && ` since ${new Date(card.lastSeenAt).toLocaleDateString()}`}
         </Description>

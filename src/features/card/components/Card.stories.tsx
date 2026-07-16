@@ -28,3 +28,6 @@ export const LongTags: Story = {
     card: fixture.card.longTags,
   },
 };
+
+export const Mobile: Story = { parameters: { viewport: { defaultViewport: "iphonex" } } };
+export const Dark: Story = { globals: { theme: "dark" } };

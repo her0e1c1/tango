@@ -1,7 +1,7 @@
 import * as React from "react";
 import { IconContext } from "react-icons";
 import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
-import { Card as Outline, Description, Score, Tag, Title } from "@/shared/components";
+import { Button, Card as Surface, Description, Score, Tag, TagList, Title } from "@/shared/components";
 import { useSwipeable } from "react-swipeable";
 
 export interface CardActionsProps {
@@ -45,28 +45,34 @@ export const Card: React.FC<
     trackMouse: true,
   });
   return (
-    <div {...handlers}>
-      <IconContext.Provider value={{ className: "dark:text-gray-200 text-2xl" }}>
-        <Outline full border className="px-4 py-2" disabled={Boolean(props.filtered || props.disabled)}>
-          <div className="flex items-center whitespace-nowrap gap-1">
+    <div className={props.className} {...handlers}>
+      <IconContext.Provider value={{ className: "text-2xl" }}>
+        <Surface full border className="gap-3 p-4" disabled={Boolean(props.filtered || props.disabled)}>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Score className="mr-1 shrink-0" score={props.card.score} />
             <Description>studied {props.card.numberOfSeen ?? 0} time(s)</Description>
-            <div className="flex ml-auto gap-2">
+            <TagList>
               {props.card.tags.map((tag) => (
                 <Tag key={tag} small primary label={tag} />
               ))}
-            </div>
+            </TagList>
           </div>
-          <div className="flex">
-            <Title className="flex-1" onClick={goToView}>
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end">
+            <Title className="max-w-reading flex-1 break-words" onClick={goToView}>
               {props.card.frontText}
             </Title>
-            <div className="flex gap-2 items-end">
-              <AiOutlineEdit size={24} onClick={goToEdit} />
-              <AiOutlineDelete size={24} onClick={onDelete} />
+            <div className="flex shrink-0 gap-2 self-end">
+              <Button size="sm" variant="quiet" disabled={Boolean(props.disabled)} onClick={goToEdit}>
+                <span className="sr-only">Edit card</span>
+                <AiOutlineEdit size={24} />
+              </Button>
+              <Button size="sm" variant="destructive" disabled={Boolean(props.disabled)} onClick={onDelete}>
+                <span className="sr-only">Delete card</span>
+                <AiOutlineDelete size={24} />
+              </Button>
             </div>
           </div>
-        </Outline>
+        </Surface>
       </IconContext.Provider>
     </div>
   );

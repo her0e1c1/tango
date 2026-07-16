@@ -24,7 +24,9 @@ export const FrontText: React.FC<FrontTextProps> = (props) => {
   return (
     <div
       id="frontText"
-      className={cx("flex", "justify-center", "items-center", "h-full")}
+      className={cx(
+        "mx-auto flex h-full w-full max-w-reading min-w-0 items-center justify-center break-words p-section-gap text-ink"
+      )}
       {...clickInteraction}
       {...handlers}
     >

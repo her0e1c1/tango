@@ -50,3 +50,8 @@ export const LongText: Story = {
     text: fixture.code.longtext,
   },
 };
+
+export const LongCode: Story = { args: { text: fixture.code.default.repeat(40), category: "python", code: true } };
+export const LongMath: Story = { args: { text: `${fixture.math.block}\n${fixture.math.block}`, category: "math" } };
+export const Mobile: Story = { ...LongText, parameters: { viewport: { defaultViewport: "iphonex" } } };
+export const Dark: Story = { ...LongCode, globals: { theme: "dark" } };

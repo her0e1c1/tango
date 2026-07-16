@@ -28,14 +28,14 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
         <Overlay
           position="center"
           ariaLabel="Close card"
-          className="overflow-scroll bg-inherit"
+          className="overflow-y-auto bg-surface-elevated"
           {...(props.overlay.onClose !== undefined ? { onClick: props.overlay.onClose } : {})}
         >
           <BackText {...props.overlay.backText} />
         </Overlay>
       )}
-      <details className="sticky top-0 bg-inherit py-2 max-h-screen">
-        <summary className="cursor-pointer border-b border-gray-300 dark:border-gray-600 pb-1 mb-1">filter</summary>
+      <details className="max-h-screen rounded-surface border border-border bg-surface-muted p-3">
+        <summary className="mb-1 cursor-pointer border-b border-border pb-1 font-semibold text-ink">filter</summary>
         {props.filterSlot}
       </details>
       <List col1>
