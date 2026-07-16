@@ -17,9 +17,9 @@ const stockAssetHashes = new Set([
   "9ea4f4da7050c0cc408926f6a39c253624e9babb1d43c7977cd821445a60b461",
 ]);
 const expectedAssetHashes: Record<string, string> = {
-  "public/favicon.ico": "40bc22791ba2f33ab82867389960dda6bcafc9b433fc7d03328871f49f30d0bd",
-  "public/logo192.png": "26c7a9c060f01bef5f93030a5f95a3b48402af3d402b7a84ebadb931dfd7a709",
-  "public/logo512.png": "d39f7e0ed71d283fa79a8bac71634a055b69787abdcde0da34bb332b5214e5a5",
+  "public/favicon.ico": "20aa3dc1c0d77a68b69b43c5f707585a20df5940dfe126abd5868e4e6ef3e03e",
+  "public/logo192.png": "56f25aadf5cea00c3e777f24776d3c5ced2c65afb86b1df6fea2c883478b9b4f",
+  "public/logo512.png": "fecd457bd9fe9f60c27a62911db7d047f14a591f85032a9a5a66136397dfe9a4",
 };
 const rawPaletteUtility =
   /\b(?:bg|border|fill|stroke|text)-(?:black|white|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:-\d{2,3})?\b/g;
@@ -247,6 +247,26 @@ function expectArtworkFillsCanvas(bytes: Buffer, expectedSize: number): void {
   expect(png.height).toBe(expectedSize);
   expect(bounds?.width).toBeGreaterThanOrEqual(expectedSize * 0.85);
   expect(bounds?.height).toBeGreaterThanOrEqual(expectedSize * 0.85);
+}
+
+function expectTransparentCanvas(bytes: Buffer): void {
+  const png = decodeRgbaPng(bytes);
+  expect(png).toBeDefined();
+  if (png === undefined) return;
+
+  const cornerAlphaOffsets = [3, (png.width - 1) * 4 + 3, (png.height - 1) * png.width * 4 + 3, png.pixels.length - 1];
+  expect(cornerAlphaOffsets.map((offset) => png.pixels.readUInt8(offset))).toEqual([0, 0, 0, 0]);
+
+  let nonOpaquePixels = 0;
+  let partiallyTransparentPixels = 0;
+  for (let offset = 3; offset < png.pixels.length; offset += 4) {
+    const alpha = png.pixels.readUInt8(offset);
+    if (alpha < 255) nonOpaquePixels += 1;
+    if (alpha > 0 && alpha < 255) partiallyTransparentPixels += 1;
+  }
+
+  expect(nonOpaquePixels).toBeGreaterThan(0);
+  expect(partiallyTransparentPixels).toBeGreaterThan(0);
 }
 
 function hasValidIcoPayload(
@@ -528,6 +548,17 @@ describe("Tango PWA identity", () => {
 
     expect(payload).toBeDefined();
     if (payload !== undefined) expectArtworkFillsCanvas(payload, 64);
+  });
+
+  it.each(["public/logo192.png", "public/logo512.png"])("preserves transparent canvas pixels in %s", (relativePath) => {
+    expectTransparentCanvas(readBytes(relativePath));
+  });
+
+  it("preserves transparent canvas pixels in the favicon", () => {
+    const payload = icoPngPayload(readBytes("public/favicon.ico"));
+
+    expect(payload).toBeDefined();
+    if (payload !== undefined) expectTransparentCanvas(payload);
   });
 
   it("rejects a truncated PNG with plausible dimensions", () => {

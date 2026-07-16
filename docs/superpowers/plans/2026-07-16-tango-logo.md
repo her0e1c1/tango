@@ -261,41 +261,31 @@ git commit -m "Use the Tango logo in the app and README"
 ### Task 3: Regenerate and lock down the PWA exports
 
 **Files:**
+- Add: `scripts/generate-pwa-icons.mjs`
 - Modify: `public/logo192.png`
 - Modify: `public/logo512.png`
 - Modify: `public/favicon.ico`
 - Modify: `src/lib/pwaAssets.spec.ts:18-22`
 
-- [ ] **Step 1: Create a 512px-intrinsic temporary SVG and render it**
+- [ ] **Step 1: Generate the transparent PNG and ICO exports**
 
-Run outside the sandbox because Quick Look needs macOS service access:
-
-```bash
-sed 's/width="64" height="64"/width="512" height="512"/' public/tango-mark.svg > /private/tmp/tango-mark-512.svg
-qlmanage -t -s 512 -o /private/tmp /private/tmp/tango-mark-512.svg
-```
-
-Expected: the temporary SVG differs only in its intrinsic dimensions, and `/private/tmp/tango-mark-512.svg.png` is a 512 by 512 RGBA PNG with centered artwork spanning 464 by 464 pixels.
-
-- [ ] **Step 2: Write the 512px and 192px PNG exports**
+Run:
 
 ```bash
-cp /private/tmp/tango-mark-512.svg.png public/logo512.png
-sips -z 192 192 /private/tmp/tango-mark-512.svg.png --out public/logo192.png
-sips -g pixelWidth -g pixelHeight public/logo512.png public/logo192.png
+node scripts/generate-pwa-icons.mjs
 ```
 
-Expected: `logo512.png` reports 512 by 512 and `logo192.png` reports 192 by 192.
+Expected: the generator reads `public/tango-mark.svg`, renders centered 512px, 192px, and 64px PNGs with Playwright and a transparent background, writes the two standalone PNGs, and wraps the 64px PNG in one standards-valid ICO entry. It connects through `PW_TEST_CONNECT_WS_ENDPOINT` when set and otherwise launches local Chromium.
 
-- [ ] **Step 3: Write the 64px single-image ICO export**
+- [ ] **Step 2: Verify the generated asset structure**
 
 ```bash
-/Users/studio2022/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 -c 'from pathlib import Path; from struct import pack_into; from PIL import Image; path=Path("public/favicon.ico"); image=Image.open("/private/tmp/tango-mark-512.svg.png").convert("RGBA").resize((64,64), Image.Resampling.LANCZOS); image.save(path, format="ICO", sizes=[(64,64)]); data=bytearray(path.read_bytes()); pack_into("<H", data, 10, 1); path.write_bytes(data)'
+file public/favicon.ico public/logo192.png public/logo512.png
 ```
 
-Expected: `file public/favicon.ico` reports one 64 by 64 icon with PNG image data.
+Expected: `favicon.ico` reports one 64 by 64 icon with PNG image data, `logo192.png` reports 192 by 192 RGBA, and `logo512.png` reports 512 by 512 RGBA.
 
-- [ ] **Step 4: Run the PWA identity test and verify the regenerated files fail the old hashes**
+- [ ] **Step 3: Run the PWA identity test and verify the regenerated files fail the old hashes**
 
 Run:
 
@@ -303,9 +293,9 @@ Run:
 npx vitest run src/lib/pwaAssets.spec.ts
 ```
 
-Expected: FAIL only on the three `expectedAssetHashes` comparisons because the regenerated files no longer match the old committed hashes. Dimension, structure, decoded artwork coverage, manifest, SVG, README, and component assertions should already pass.
+Expected: FAIL only on the three `expectedAssetHashes` comparisons because the regenerated files no longer match the old committed hashes. Dimension, structure, transparent corners and antialiased alpha, decoded artwork coverage, manifest, SVG, README, and component assertions should already pass.
 
-- [ ] **Step 5: Update the three expected hashes from the generated files**
+- [ ] **Step 4: Update the three expected hashes from the generated files**
 
 Run:
 
@@ -315,7 +305,7 @@ shasum -a 256 public/favicon.ico public/logo192.png public/logo512.png
 
 Replace only the three matching values in `expectedAssetHashes` at the top of `src/lib/pwaAssets.spec.ts`.
 
-- [ ] **Step 6: Run the PWA identity test and verify it passes**
+- [ ] **Step 5: Run the PWA identity test and verify it passes**
 
 Run:
 
@@ -325,11 +315,11 @@ npx vitest run src/lib/pwaAssets.spec.ts
 
 Expected: all Tango PWA identity tests PASS.
 
-- [ ] **Step 7: Commit the derived assets and hashes**
+- [ ] **Step 6: Commit the generator, derived assets, tests, and hashes**
 
 ```bash
-git add public/favicon.ico public/logo192.png public/logo512.png src/lib/pwaAssets.spec.ts
-git commit -m "Regenerate Tango PWA icons"
+git add scripts/generate-pwa-icons.mjs docs/superpowers/plans/2026-07-16-tango-logo.md public/favicon.ico public/logo192.png public/logo512.png src/lib/pwaAssets.spec.ts
+git commit -m "Preserve Tango PWA icon transparency"
 ```
 
 ### Task 4: Verify the final visual and repository contracts
