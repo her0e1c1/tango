@@ -4,12 +4,11 @@ import { useKey } from "react-use";
 
 import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
 import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
-import * as selector from "@/selector";
 import { useActions } from "@/shared/hooks/useActions";
 import { useAuth } from "@/auth/AuthContext";
 
 export const ConfigContainer: React.FC = () => {
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const authState = useAuth();
   const actions = useActions();
   const authenticated = authState.status === "authenticated" ? authState : undefined;

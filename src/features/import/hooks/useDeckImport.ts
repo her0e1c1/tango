@@ -8,7 +8,6 @@ import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { CardBulkMutationError } from "@/query/cardMutationService";
-import * as selector from "@/selector";
 
 export interface DeckImportResult {
   created: number;
@@ -22,7 +21,7 @@ type ImportRequest = { name: string; content: string | File };
 
 export const useDeckImport = () => {
   const auth = useAuth();
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const remote = useRemoteCollections();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();

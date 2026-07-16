@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import * as C from "@/constant";
-import * as selector from "@/selector";
 import * as util from "@/util";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteReadBoundary } from "@/shared/components";
@@ -12,7 +11,7 @@ import { CardViewTemplate } from "@/features/card/components/templates/CardViewT
 
 const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
   const actions = useActions();
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const category = util.getCategory(deck.category, card.tags);
 
   return (

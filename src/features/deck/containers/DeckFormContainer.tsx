@@ -4,7 +4,6 @@ import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import * as C from "@/constant";
-import * as selector from "@/selector";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
 import { renameKey } from "@/shared/forms/renameKey";
@@ -13,7 +12,7 @@ import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormT
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const actions = useActions();
   const deckActions = useDeckActions(deck.id);
   const categoryOptions = React.useMemo(() => C.CATEGORY.map((category) => ({ label: category, value: category })), []);
