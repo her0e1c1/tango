@@ -1,11 +1,11 @@
-# 標準ツールを優先する
+# Prefer Standard Tooling
 
 Status: Accepted
 
 ## Context
 
-独自スクリプトの保守は手間がかかり、`Be simple.` に反する。
+Maintaining custom scripts is costly and violates `Be simple.`
 
 ## Decision
 
-明示的な指示がない限り、TypeScript、Vite、Biome などの標準設定を優先する。`scripts/check-tsconfig-coverage.mjs` と専用テストを削除し、`tsc` と Biome の標準コマンドを使う。
+Unless explicitly directed otherwise, prefer the standard settings provided by TypeScript, Vite, Biome, and similar tools. Delete `scripts/check-tsconfig-coverage.mjs` and its dedicated test, and use the standard `tsc` and Biome commands.
