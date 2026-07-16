@@ -1,11 +1,11 @@
 import type { User } from "firebase/auth";
 import { useEffect, useRef } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useStore } from "react-redux";
 
-import * as action from "@/action";
 import * as type from "@/action/type";
 import { useAuth, type AuthState } from "@/auth/AuthContext";
 import { cleanupFirestoreUid } from "@/query/cleanup";
+import { startRemoteReads } from "@/query/remoteReadSession";
 
 type AuthenticatedIdentity = {
   uid: string;
@@ -21,7 +21,6 @@ export type AuthTransitionDependencies = {
   syncAuthenticatedUser: (user: User, resetLastUpdatedAt: boolean) => unknown | Promise<unknown>;
   cleanupUid: (uid: string) => unknown | Promise<unknown>;
   subscribeUid: (uid: string) => unknown | Promise<unknown>;
-  removeFromLocal: () => unknown | Promise<unknown>;
   reportError: (error: unknown) => void;
 };
 
@@ -97,13 +96,6 @@ export const createAuthTransitionController = (dependencies: AuthTransitionDepen
 
           await dependencies.subscribeUid(nextIdentity.uid);
           activeIdentity = nextIdentity;
-          if (currentGeneration !== generation) return true;
-
-          try {
-            await dependencies.removeFromLocal();
-          } catch (error) {
-            reportError(error);
-          }
           return true;
         })
         .catch((error) => {
@@ -122,6 +114,7 @@ export const createAuthTransitionController = (dependencies: AuthTransitionDepen
 export const AuthBootstrap = () => {
   const authState = useAuth();
   const dispatch = useDispatch();
+  const store = useStore<RootState>();
   const controllerRef = useRef<ReturnType<typeof createAuthTransitionController>>();
   const retryRef = useRef<{ request: AuthRequest; attempted: boolean }>();
   const nextRequest = getRequest(authState);
@@ -143,8 +136,18 @@ export const AuthBootstrap = () => {
         );
       },
       cleanupUid: cleanupFirestoreUid,
-      subscribeUid: (uid) => dispatch(action.event.subscribe(uid)),
-      removeFromLocal: () => dispatch(action.event.removeFromLocal()),
+      subscribeUid: (uid) =>
+        startRemoteReads(uid, {
+          mirrorDecks: (decks) => {
+            dispatch(type.remoteDeckReplace(decks));
+          },
+          mirrorCards: (cards) => {
+            const localDeckIds = Object.values(store.getState().deck.byId)
+              .filter((deck): deck is Deck => Boolean(deck?.localMode))
+              .map((deck) => deck.id);
+            dispatch(type.remoteCardReplace(cards, localDeckIds));
+          },
+        }),
       reportError: (error) => console.error("Auth transition failed", error),
     });
   }

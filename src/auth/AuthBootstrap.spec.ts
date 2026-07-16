@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AuthState } from "@/auth/AuthContext";
 
-vi.mock("@/action", () => ({ event: { subscribe: vi.fn(), removeFromLocal: vi.fn() } }));
 vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: vi.fn() }));
+vi.mock("@/query/remoteReadSession", () => ({ startRemoteReads: vi.fn() }));
 vi.mock("@/auth/AuthContext", () => ({ useAuth: vi.fn() }));
 
 import { createAuthTransitionController } from "@/auth/AuthBootstrap";
@@ -25,7 +25,6 @@ const createDependencies = () => ({
   syncAuthenticatedUser: vi.fn(),
   cleanupUid: vi.fn(),
   subscribeUid: vi.fn(),
-  removeFromLocal: vi.fn(),
   reportError: vi.fn(),
 });
 
@@ -42,18 +41,17 @@ describe("Auth transition controller", () => {
     expect(dependencies.subscribeUid).not.toHaveBeenCalled();
   });
 
-  it("syncs confirmed metadata, subscribes, then removes stale local records", async () => {
+  it("syncs confirmed metadata, then starts remote reads", async () => {
     const operations: string[] = [];
     const dependencies = createDependencies();
     const user = createUser("uid-a");
     dependencies.syncAuthenticatedUser.mockImplementation(() => operations.push("sync"));
     dependencies.subscribeUid.mockImplementation(() => operations.push("subscribe"));
-    dependencies.removeFromLocal.mockImplementation(() => operations.push("remove-local"));
     const controller = createAuthTransitionController(dependencies);
 
     await controller.transition(authenticated(user));
 
-    expect(operations).toEqual(["sync", "subscribe", "remove-local"]);
+    expect(operations).toEqual(["sync", "subscribe"]);
     expect(dependencies.syncAuthenticatedUser).toHaveBeenCalledWith(user, true);
     expect(dependencies.subscribeUid).toHaveBeenCalledWith("uid-a");
   });
@@ -69,7 +67,6 @@ describe("Auth transition controller", () => {
 
     expect(dependencies.syncAuthenticatedUser).toHaveBeenCalledTimes(1);
     expect(dependencies.subscribeUid).toHaveBeenCalledTimes(1);
-    expect(dependencies.removeFromLocal).toHaveBeenCalledTimes(1);
   });
 
   it("cleans the previous UID before syncing and subscribing the replacement", async () => {
@@ -78,7 +75,6 @@ describe("Auth transition controller", () => {
     dependencies.cleanupUid.mockImplementation((uid) => operations.push(`cleanup:${uid}`));
     dependencies.syncAuthenticatedUser.mockImplementation((user) => operations.push(`sync:${user.uid}`));
     dependencies.subscribeUid.mockImplementation((uid) => operations.push(`subscribe:${uid}`));
-    dependencies.removeFromLocal.mockImplementation(() => undefined);
     const controller = createAuthTransitionController(dependencies);
     await controller.transition(authenticated(createUser("uid-a")));
     operations.length = 0;
@@ -141,7 +137,6 @@ describe("Auth transition controller", () => {
     dependencies.syncAuthenticatedUser.mockClear();
     dependencies.cleanupUid.mockClear();
     dependencies.subscribeUid.mockClear();
-    dependencies.removeFromLocal.mockClear();
     const linkedUser = createUser("uid-a", { isAnonymous: false, displayName: "Ada" });
 
     await controller.transition(authenticated(linkedUser));
@@ -149,7 +144,6 @@ describe("Auth transition controller", () => {
     expect(dependencies.syncAuthenticatedUser).toHaveBeenCalledWith(linkedUser, false);
     expect(dependencies.cleanupUid).not.toHaveBeenCalled();
     expect(dependencies.subscribeUid).not.toHaveBeenCalled();
-    expect(dependencies.removeFromLocal).not.toHaveBeenCalled();
   });
 
   it("detects metadata changed in place on the Firebase User object", async () => {
@@ -225,7 +219,6 @@ describe("Auth transition controller", () => {
     expect(retry).toBe(true);
     expect(replay).toBe(true);
     expect(dependencies.subscribeUid).toHaveBeenCalledTimes(2);
-    expect(dependencies.removeFromLocal).toHaveBeenCalledTimes(1);
   });
 
   it("reports cleanup failures and still prevents a stale generation from subscribing", async () => {

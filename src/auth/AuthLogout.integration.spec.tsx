@@ -10,8 +10,7 @@ const mocks = vi.hoisted(() => ({
   signOut: vi.fn(),
   publishUser: undefined as ((user: User | null) => void) | undefined,
   dispatch: vi.fn(),
-  subscribe: vi.fn(),
-  removeFromLocal: vi.fn(),
+  startRemoteReads: vi.fn(),
   cleanupUid: vi.fn(),
   clearStudyStore: vi.fn(),
   operations: [] as string[],
@@ -29,15 +28,13 @@ vi.mock("firebase/auth", () => ({
 vi.mock("firebase/app", () => ({
   FirebaseError: class FirebaseError extends Error {},
 }));
-vi.mock("react-redux", () => ({ useDispatch: () => mocks.dispatch }));
-vi.mock("@/action", () => ({
-  event: {
-    subscribe: mocks.subscribe,
-    removeFromLocal: mocks.removeFromLocal,
-  },
+vi.mock("react-redux", () => ({
+  useDispatch: () => mocks.dispatch,
+  useStore: () => ({ getState: () => ({ deck: { byId: {} } }) }),
 }));
 vi.mock("@/action/firestore", () => ({}));
 vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupUid }));
+vi.mock("@/query/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
 vi.mock("@/features/study/state/studyStore", () => ({ clearStudyStore: mocks.clearStudyStore }));
 vi.mock("@/lib/realtimeSubscriptions", () => ({
   registerSubscription: vi.fn(),
@@ -67,10 +64,9 @@ it("waits for logout cleanup and local clear before bootstrapping the next anony
     mocks.operations.push(`cleanup:${uid}`);
     await delayedCleanup;
   });
-  mocks.subscribe.mockImplementation(async (uid: string) => {
+  mocks.startRemoteReads.mockImplementation(async (uid: string) => {
     mocks.operations.push(`subscribe:${uid}`);
   });
-  mocks.removeFromLocal.mockResolvedValue(undefined);
   mocks.clearStudyStore.mockImplementation(async () => {
     mocks.operations.push("clear-study");
   });
@@ -105,8 +101,7 @@ it("waits for logout cleanup and local clear before bootstrapping the next anony
     </StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
-  await waitFor(() => expect(mocks.subscribe).toHaveBeenCalledWith("uid-a"));
-  await waitFor(() => expect(mocks.removeFromLocal).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledWith("uid-a", expect.any(Object)));
   mocks.operations.length = 0;
 
   let pendingLogout!: Promise<void>;
@@ -117,7 +112,7 @@ it("waits for logout cleanup and local clear before bootstrapping the next anony
 
   expect(mocks.operations).toContain("sign-out");
   expect(mocks.signInAnonymously).not.toHaveBeenCalled();
-  expect(mocks.subscribe).not.toHaveBeenCalledWith("uid-b");
+  expect(mocks.startRemoteReads).not.toHaveBeenCalledWith("uid-b", expect.any(Object));
   expect(mocks.operations).not.toContain("sync:uid-b");
   expect(mocks.clearStudyStore).not.toHaveBeenCalled();
   expect(mocks.operations).not.toContain("clear-redux");
@@ -126,7 +121,7 @@ it("waits for logout cleanup and local clear before bootstrapping the next anony
     resolveCleanup();
     await pendingLogout;
   });
-  await waitFor(() => expect(mocks.subscribe).toHaveBeenCalledWith("uid-b"));
+  await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledWith("uid-b", expect.any(Object)));
 
   const clearStudyIndex = mocks.operations.indexOf("clear-study");
   const clearReduxIndex = mocks.operations.indexOf("clear-redux");
