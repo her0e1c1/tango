@@ -52,7 +52,7 @@ export interface CardDocument {
   score: number;
   numberOfSeen: number;
   lastSeenAt?: number;
-  nextSeeingAt?: Date;
+  nextSeeingAt?: Date | { toDate: () => Date };
   interval?: number;
   url?: string;
   startLine?: number;
@@ -60,6 +60,32 @@ export interface CardDocument {
 }
 
 export type CardUpdateDto = Partial<Omit<CardDocument, "id" | "updatedAt">> & Pick<CardDocument, "updatedAt">;
+
+export const mapCardDocument = (id: CardId, document: CardDocument): Card => {
+  const card: Card = {
+    id,
+    frontText: document.frontText,
+    backText: document.backText,
+    tags: document.tags,
+    uniqueKey: document.uniqueKey,
+    deckId: document.deckId,
+    uid: document.uid,
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+    deletedAt: document.deletedAt,
+    score: document.score,
+    numberOfSeen: document.numberOfSeen,
+  };
+  if (document.lastSeenAt !== undefined) card.lastSeenAt = document.lastSeenAt;
+  if (document.nextSeeingAt !== undefined) {
+    card.nextSeeingAt = document.nextSeeingAt instanceof Date ? document.nextSeeingAt : document.nextSeeingAt.toDate();
+  }
+  if (document.interval !== undefined) card.interval = document.interval;
+  if (document.url !== undefined) card.url = document.url;
+  if (document.startLine !== undefined) card.startLine = document.startLine;
+  if (document.endLine !== undefined) card.endLine = document.endLine;
+  return card;
+};
 
 type OmitUndefined<T extends Record<string, unknown>> = {
   [K in keyof T as undefined extends T[K] ? never : K]: T[K];

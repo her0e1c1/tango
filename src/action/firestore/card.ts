@@ -1,8 +1,27 @@
-import { getFirestore, doc, updateDoc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  updateDoc,
+  setDoc,
+  getDoc,
+  deleteDoc,
+  getDocs,
+  query,
+  collection,
+  where,
+  type Firestore,
+} from "firebase/firestore";
 import { getTimestamp } from "@/action/firestore/mocked";
-import { buildCardCreateDto, buildCardUpdateDto } from "@/action/firestore/dto";
+import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument, type CardDocument } from "@/action/firestore/dto";
 
 const db = getFirestore();
+
+export const readAll = async (uid: string, firestore: Firestore = db): Promise<Card[]> => {
+  const snapshot = await getDocs(query(collection(firestore, "card"), where("uid", "==", uid)));
+  return snapshot.docs
+    .map((document) => mapCardDocument(document.id, document.data() as CardDocument))
+    .filter((card) => card.deletedAt === null);
+};
 
 export const create = async (card: Card, createdAt?: number): Promise<string> => {
   if (createdAt == null) {

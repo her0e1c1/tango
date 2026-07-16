@@ -177,6 +177,21 @@ describe("deck action", () => {
       expect(m).toBeCalledWith([""], { type: "text/plain;charset=utf-8" });
       expect(fileSaver.saveAs).toBeCalledWith(expect.anything(), "name.csv");
     });
+
+    it("downloads the supplied composed Query data without reading Redux", () => {
+      const blob = new Blob();
+      const blobConstructor = vi.spyOn(global, "Blob");
+      blobConstructor.mockImplementation(createBlobConstructor(blob));
+      const deck = action.deck.prepare({ name: "Remote deck" }, { uid: "uid", localMode: false });
+      const card = createCard({ frontText: "remote front", backText: "remote back", uniqueKey: "remote-key" });
+
+      action.deck.downloadData(deck, [card]);
+
+      expect(blobConstructor).toHaveBeenCalledWith(["remote front,remote back,,remote-key"], {
+        type: "text/plain;charset=utf-8",
+      });
+      expect(fileSaver.saveAs).toHaveBeenCalledWith(blob, "Remote deck.csv");
+    });
   });
 
   describe("downloadCsvSampleText", () => {

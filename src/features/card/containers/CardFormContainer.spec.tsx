@@ -16,6 +16,14 @@ vi.mock("react-redux", () => ({
   },
 }));
 
+vi.mock("@/query/useRemoteCollections", () => ({
+  useRemoteCollections: () => ({
+    status: "ready" as const,
+    retry: vi.fn(),
+    cardById: (id: string) => mocks.state?.card.byId[id],
+  }),
+}));
+
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));

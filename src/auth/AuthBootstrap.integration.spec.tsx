@@ -8,8 +8,7 @@ const mocks = vi.hoisted(() => ({
   onAuthStateChanged: vi.fn(() => vi.fn()),
   signInAnonymously: vi.fn(),
   dispatch: vi.fn((value: unknown) => value),
-  subscribe: vi.fn(),
-  removeFromLocal: vi.fn(),
+  startRemoteReads: vi.fn(),
   cleanupUid: vi.fn(),
 }));
 
@@ -18,14 +17,12 @@ vi.mock("firebase/auth", () => ({
   onAuthStateChanged: mocks.onAuthStateChanged,
   signInAnonymously: mocks.signInAnonymously,
 }));
-vi.mock("react-redux", () => ({ useDispatch: () => mocks.dispatch }));
-vi.mock("@/action", () => ({
-  event: {
-    subscribe: mocks.subscribe,
-    removeFromLocal: mocks.removeFromLocal,
-  },
+vi.mock("react-redux", () => ({
+  useDispatch: () => mocks.dispatch,
+  useStore: () => ({ getState: () => ({ deck: { byId: {} } }) }),
 }));
 vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupUid }));
+vi.mock("@/query/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
 
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
 import { AuthProvider, createAuthStore } from "@/auth/AuthContext";
@@ -54,8 +51,7 @@ describe("AuthBootstrap integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.dispatch.mockImplementation((value: unknown) => value);
-    mocks.subscribe.mockResolvedValue(undefined);
-    mocks.removeFromLocal.mockResolvedValue(undefined);
+    mocks.startRemoteReads.mockResolvedValue(undefined);
     mocks.cleanupUid.mockResolvedValue(undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
   });
@@ -65,26 +61,29 @@ describe("AuthBootstrap integration", () => {
     vi.restoreAllMocks();
   });
 
-  it("subscribes once for one confirmed state under StrictMode and AuthProvider", async () => {
+  it("starts remote reads once for one confirmed state under StrictMode and AuthProvider", async () => {
     const { publishUser, store } = createHarness();
 
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
-    await waitFor(() => expect(mocks.subscribe).toHaveBeenCalledTimes(1));
-    expect(mocks.subscribe).toHaveBeenCalledWith("uid-a");
+    await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledTimes(1));
+    expect(mocks.startRemoteReads).toHaveBeenCalledWith(
+      "uid-a",
+      expect.objectContaining({ mirrorDecks: expect.any(Function), mirrorCards: expect.any(Function) })
+    );
     store.dispose();
   });
 
   it("automatically retries a failed unchanged auth request only once", async () => {
     const subscribeError = new Error("subscribe failed");
-    mocks.subscribe.mockRejectedValue(subscribeError);
+    mocks.startRemoteReads.mockRejectedValue(subscribeError);
     const { publishUser, store } = createHarness();
 
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
-    await waitFor(() => expect(mocks.subscribe).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledTimes(2));
     await Promise.resolve();
-    expect(mocks.subscribe).toHaveBeenCalledTimes(2);
+    expect(mocks.startRemoteReads).toHaveBeenCalledTimes(2);
     expect(console.error).toHaveBeenCalledWith("Auth transition failed", subscribeError);
     store.dispose();
   });

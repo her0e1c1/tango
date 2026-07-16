@@ -9,11 +9,19 @@ import {
   deleteDoc,
   getDoc,
   setDoc,
+  type Firestore,
 } from "firebase/firestore";
 import { getTimestamp } from "@/action/firestore/mocked";
-import { buildDeckCreateDto, buildDeckUpdateDto } from "@/action/firestore/dto";
+import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument, type DeckDocument } from "@/action/firestore/dto";
 
 const db = getFirestore();
+
+export const readAll = async (uid: string, firestore: Firestore = db): Promise<Deck[]> => {
+  const snapshot = await getDocs(query(collection(firestore, "deck"), where("uid", "==", uid)));
+  return snapshot.docs
+    .map((document) => mapDeckDocument(document.id, document.data() as DeckDocument))
+    .filter((deck) => deck.deletedAt === null);
+};
 
 export const create = async (deck: Deck): Promise<string> => {
   const createdAt = getTimestamp();

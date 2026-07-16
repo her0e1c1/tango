@@ -1,11 +1,13 @@
 import { QueryClient } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { stopSubscriptions } = vi.hoisted(() => ({
+const { stopSubscriptions, stopRemoteReads } = vi.hoisted(() => ({
   stopSubscriptions: vi.fn(),
+  stopRemoteReads: vi.fn(),
 }));
 
 vi.mock("@/lib/realtimeSubscriptions", () => ({ stopSubscriptions }));
+vi.mock("@/query/remoteReadSession", () => ({ stopRemoteReads }));
 
 import { cleanupFirestoreUid } from "@/query/cleanup";
 import { queryClient } from "@/query/client";
@@ -21,6 +23,7 @@ describe("cleanupFirestoreUid", () => {
 
   beforeEach(() => {
     stopSubscriptions.mockReset();
+    stopRemoteReads.mockReset();
     temporaryClients.length = 0;
   });
 
@@ -35,7 +38,8 @@ describe("cleanupFirestoreUid", () => {
   it("stops subscriptions, awaits cancellation, then removes the UID cache", async () => {
     const operations: string[] = [];
     let finishCancellation: () => void = () => undefined;
-    stopSubscriptions.mockImplementation(() => operations.push("stop"));
+    stopRemoteReads.mockImplementation(() => operations.push("stop-remote"));
+    stopSubscriptions.mockImplementation(() => operations.push("stop-legacy"));
     const cancelQueries = vi.spyOn(queryClient, "cancelQueries").mockImplementation(
       () =>
         new Promise<void>((resolve) => {
@@ -49,14 +53,15 @@ describe("cleanupFirestoreUid", () => {
 
     const cleanup = cleanupFirestoreUid("uid-a");
 
-    expect(operations).toEqual(["stop", "cancel"]);
+    expect(operations).toEqual(["stop-remote", "stop-legacy", "cancel"]);
     expect(removeQueries).not.toHaveBeenCalled();
 
     finishCancellation();
     await cleanup;
 
     const filter = { queryKey: firestoreKeys.uid("uid-a") };
-    expect(operations).toEqual(["stop", "cancel", "remove"]);
+    expect(operations).toEqual(["stop-remote", "stop-legacy", "cancel", "remove"]);
+    expect(stopRemoteReads).toHaveBeenCalledWith("uid-a");
     expect(cancelQueries).toHaveBeenCalledWith(filter);
     expect(removeQueries).toHaveBeenCalledWith(filter);
   });
@@ -75,6 +80,7 @@ describe("cleanupFirestoreUid", () => {
     expect(client.getQueryData(firestoreKeys.decks("uid-b"))).toEqual(["deck-b"]);
     expect(client.getQueryData(firestoreKeys.cards("uid-b"))).toEqual(["card-b"]);
     expect(stopSubscriptions).toHaveBeenCalledTimes(1);
+    expect(stopRemoteReads).toHaveBeenCalledWith("uid-a");
   });
 
   it("finishes cache cleanup before surfacing a subscription stop error", async () => {

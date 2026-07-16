@@ -4,6 +4,8 @@ import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import * as selector from "@/selector";
+import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { RemoteReadBoundary } from "@/shared/components";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
@@ -11,15 +13,9 @@ import { DeckStartTemplate } from "@/features/study/components/templates/DeckSta
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { useActions } from "@/shared/hooks/useActions";
 
-export const DeckStartContainer: React.FC = () => {
-  const params = useParams();
-  const deckId = params.id;
-  if (deckId == null) throw Error("invalid deckId");
-
-  const deck = useSelector(selector.deck.getById(deckId));
-  const cards = useSelector(selector.card.getFilteredByDeckId(deckId));
-  const config = useSelector(selector.config.get());
-  const tags = useSelector(selector.card.getAllTags(deckId));
+const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
+  const { deck, cards, config, tags } = props;
+  const deckId = deck.id;
   const deckActions = useDeckActions(deckId);
   const studyActions = useStudyActions(deckId);
   const actions = useActions();
@@ -41,5 +37,27 @@ export const DeckStartContainer: React.FC = () => {
       onClickStart={studyActions.start}
       filterSlot={<DeckStartForm {...deckStartForm} />}
     />
+  );
+};
+
+export const DeckStartContainer: React.FC = () => {
+  const params = useParams();
+  const deckId = params.id;
+  if (deckId == null) throw Error("invalid deckId");
+  const config = useSelector(selector.config.get());
+  const remote = useRemoteCollections();
+  const deck = remote.deckById(deckId);
+  const cards = remote.filteredCardsByDeckId(deckId, config);
+  const tags = remote.tagsByDeckId(deckId);
+
+  return (
+    <RemoteReadBoundary
+      status={remote.status}
+      hasData={deck != null}
+      emptyLabel="Deck not found."
+      onRetry={remote.retry}
+    >
+      {deck != null ? <DeckStartContent deck={deck} cards={cards} config={config} tags={tags} /> : null}
+    </RemoteReadBoundary>
   );
 };

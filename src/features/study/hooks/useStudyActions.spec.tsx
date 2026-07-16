@@ -21,6 +21,17 @@ vi.mock("react-redux", () => ({
   },
 }));
 
+vi.mock("@/query/useRemoteCollections", () => ({
+  useRemoteCollections: () => {
+    const cardsById = mocks.state?.card.byId ?? {};
+    return {
+      cardsById,
+      filteredCardsByDeckId: (deckId: string) =>
+        Object.values(cardsById).filter((card): card is Card => card?.deckId === deckId),
+    };
+  },
+}));
+
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
 }));

@@ -19,6 +19,11 @@ export const deckBulkDelete = (ids: string[]) => ({
 
 export const deckDelete = (deckId: string) => deckBulkDelete([deckId]);
 
+export const remoteDeckReplace = (decks: Deck[]) => ({
+  type: "REMOTE_DECK_REPLACE",
+  payload: { decks },
+});
+
 export const cardBulkInsert = (cards: Card[]) => ({
   type: "CARD_BULK_INSERT",
   payload: { cards },
@@ -39,6 +44,11 @@ export const cardBulkDelete = (ids: string[]) => ({
 });
 
 export const cardDelete = (id: string) => cardBulkDelete([id]);
+
+export const remoteCardReplace = (cards: Card[], localDeckIds: string[]) => ({
+  type: "REMOTE_CARD_REPLACE",
+  payload: { cards, localDeckIds },
+});
 
 export const deckPublicBulkInsert = (decks: Deck[]) => ({
   type: "PUBLIC_DECK_BULK_INSERT",

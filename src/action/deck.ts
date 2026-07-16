@@ -82,6 +82,11 @@ export const download =
     _saveAs(csv, deck.name);
   };
 
+export const downloadData = (deck: Deck, cards: Card[]) => {
+  const csv = Papa.unparse(cards.map(action.card.toRow));
+  _saveAs(csv, deck.name);
+};
+
 export const _saveAs = (content: string, name: string) => {
   if (!name.endsWith(".csv")) {
     name += ".csv";

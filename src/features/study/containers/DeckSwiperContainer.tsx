@@ -6,6 +6,8 @@ import { useKey } from "react-use";
 import * as C from "@/constant";
 import * as selector from "@/selector";
 import * as util from "@/util";
+import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { RemoteReadBoundary } from "@/shared/components";
 import { BackText } from "@/features/card/components/BackText";
 import { CardOverlay } from "@/features/card/components/CardOverlay";
 import { FrontText } from "@/features/card/components/FrontText";
@@ -22,8 +24,9 @@ export const DeckSwiperContainer: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
 
-  const deck = useSelector(selector.deck.getById(deckId));
   const config = useSelector(selector.config.get());
+  const remote = useRemoteCollections();
+  const deck = remote.deckById(deckId);
   const activeSession = useStudyStore((state) => state.session);
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
@@ -32,7 +35,7 @@ export const DeckSwiperContainer: React.FC = () => {
   const session = activeSession?.deckId === deckId ? activeSession : null;
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
-  const card = useSelector((state: RootState) => (cardId == null ? undefined : state.card.byId[cardId]));
+  const card = cardId == null ? undefined : remote.cardById(cardId);
   const studyActions = useStudyActions(deckId);
   const actions = useActions();
 
@@ -63,12 +66,12 @@ export const DeckSwiperContainer: React.FC = () => {
       exitingDeck.current = undefined;
       return;
     }
-    if (!hydrated || exitingDeck.current === deckId) return;
+    if (!hydrated || remote.status !== "ready" || exitingDeck.current === deckId) return;
 
     exitingDeck.current = deckId;
     studyActions.resetStudy();
     void navigate("/", { replace: true });
-  }, [deckId, hydrated, navigate, studyActions, valid]);
+  }, [deckId, hydrated, navigate, remote.status, studyActions, valid]);
 
   // disable browser back
   React.useEffect(() => {
@@ -82,8 +85,17 @@ export const DeckSwiperContainer: React.FC = () => {
     };
   }, [navigate]);
 
-  if (card == null) {
-    return null;
+  if (card == null || deck == null) {
+    return (
+      <RemoteReadBoundary
+        status={remote.status}
+        hasData={false}
+        emptyLabel="Study session unavailable."
+        onRetry={remote.retry}
+      >
+        {null}
+      </RemoteReadBoundary>
+    );
   }
 
   const category = util.getCategory(deck.category, card.tags);
