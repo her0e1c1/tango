@@ -27,6 +27,14 @@ const fields: ConfigFormFields = {
   githubAccessToken: { value: fixture.config.default.githubAccessToken, onChange: () => undefined },
 };
 
+const longFields: ConfigFormFields = {
+  ...fields,
+  githubAccessToken: {
+    value: "github_pat_story_token_with_an_intentionally_long_value_for_responsive_review_1234567890",
+    onChange: () => undefined,
+  },
+};
+
 const meta = {
   title: "Settings/ConfigForm",
   component: Template,
@@ -46,8 +54,34 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const LoggedOut: Story = {};
 
-export const Logout: Story = {
-  args: { isLoggedIn: true },
+export const LoggedIn: Story = {
+  args: {
+    isLoggedIn: true,
+    identity: { uid: "settings-user", displayName: "Settings User" },
+    version: "1.2.3",
+  },
+};
+
+export const LongContent: Story = {
+  args: {
+    isLoggedIn: true,
+    identity: {
+      uid: "settings-user-with-an-intentionally-long-identifier-for-responsive-review-1234567890",
+      displayName: "A settings user with an intentionally long display name for responsive review",
+    },
+    fields: longFields,
+    version: "2026.07.16-calm-focus-settings-presentation-long-metadata",
+  },
+};
+
+export const Dark: Story = {
+  ...LoggedIn,
+  globals: { theme: "dark" },
+};
+
+export const Mobile: Story = {
+  ...LongContent,
+  parameters: { viewport: { defaultViewport: "iphonex" } },
 };

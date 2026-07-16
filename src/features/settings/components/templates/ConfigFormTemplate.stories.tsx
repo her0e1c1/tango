@@ -29,6 +29,14 @@ const fields: ConfigFormFields = {
   githubAccessToken: { value: fixture.config.default.githubAccessToken, onChange: () => undefined },
 };
 
+const longFields: ConfigFormFields = {
+  ...fields,
+  githubAccessToken: {
+    value: "github_pat_story_token_with_an_intentionally_long_value_for_responsive_review_1234567890",
+    onChange: () => undefined,
+  },
+};
+
 const meta = {
   title: "Settings/ConfigFormTemplate",
   component: Template,
@@ -54,22 +62,46 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const LoggedOut: Story = {};
 
-export const LongUserName: Story = {
+export const LoggedIn: Story = {
   args: {
     configForm: {
       isLoggedIn: true,
-      identity: { uid: "story-user", displayName: "this is a too long user name" },
-      config: fixture.config.longUserName,
+      identity: { uid: "settings-user", displayName: "Settings User" },
+      config: fixture.config.default,
       fields,
-      maxNumberOfCardsToLearn: fixture.config.longUserName.maxNumberOfCardsToLearn,
-      cardInterval: fixture.config.longUserName.cardInterval,
+      maxNumberOfCardsToLearn: fixture.config.default.maxNumberOfCardsToLearn,
+      cardInterval: fixture.config.default.cardInterval,
+      version: "1.2.3",
     },
   },
 };
 
-export const IphoneX: Story = {
+export const LongContent: Story = {
+  args: {
+    configForm: {
+      isLoggedIn: true,
+      identity: {
+        uid: "settings-user-with-an-intentionally-long-identifier-for-responsive-review-1234567890",
+        displayName: "A settings user with an intentionally long display name for responsive review",
+      },
+      config: fixture.config.longUserName,
+      fields: longFields,
+      maxNumberOfCardsToLearn: fixture.config.longUserName.maxNumberOfCardsToLearn,
+      cardInterval: fixture.config.longUserName.cardInterval,
+      version: "2026.07.16-calm-focus-settings-presentation-long-metadata",
+    },
+  },
+};
+
+export const Dark: Story = {
+  ...LoggedIn,
+  globals: { theme: "dark" },
+};
+
+export const Mobile: Story = {
+  ...LongContent,
   parameters: {
     viewport: {
       defaultViewport: "iphonex",

@@ -21,6 +21,8 @@ const completedUtilityRoutePresentationFiles = [
   "features/card/components/CardForm.tsx",
   "features/card/components/templates/CardFormTemplate.tsx",
   "features/import/components/templates/DeckImportTemplate.tsx",
+  "features/settings/components/ConfigForm.tsx",
+  "features/settings/components/templates/ConfigFormTemplate.tsx",
 ] as const satisfies readonly (typeof utilityRoutePresentationFiles)[number][];
 const completedUtilityRoutePresentationFileSet = new Set<string>(completedUtilityRoutePresentationFiles);
 const pendingUtilityRoutePresentationFiles = utilityRoutePresentationFiles.filter(
@@ -269,6 +271,17 @@ describe("Calm Focus visual contract", () => {
     expect(importTemplate).toMatch(/bg-surface/);
   });
 
+  it("gives Settings semantic sections within a bounded Calm Focus surface", () => {
+    const configForm = readOwnedSource("features/settings/components/ConfigForm.tsx");
+    const configTemplate = readOwnedSource("features/settings/components/templates/ConfigFormTemplate.tsx");
+
+    expect(configForm).toMatch(/<section/);
+    expect(configForm).toMatch(/bg-surface-muted/);
+    expect(configTemplate).toMatch(/max-w-reading/);
+    expect(configTemplate).toMatch(/border-border/);
+    expect(configTemplate).toMatch(/bg-surface/);
+  });
+
   it("registers utility routes and enforces semantic surfaces for completed templates", () => {
     expect(utilityRoutePresentationFiles).toEqual([
       "features/deck/components/DeckForm.tsx",
@@ -280,7 +293,7 @@ describe("Calm Focus visual contract", () => {
       "features/settings/components/templates/ConfigFormTemplate.tsx",
     ]);
     expect(ownedPresentationFiles).toEqual(expect.arrayContaining([...utilityRoutePresentationFiles]));
-    expect(pendingUtilityRoutePresentationFiles).toEqual(utilityRoutePresentationFiles.slice(5));
+    expect(pendingUtilityRoutePresentationFiles).toEqual([]);
     expect(enforcedOwnedPresentationFiles).toEqual(expect.arrayContaining([...completedUtilityRoutePresentationFiles]));
     for (const relativePath of pendingUtilityRoutePresentationFiles) {
       expect(enforcedOwnedPresentationFiles).not.toContain(relativePath);
