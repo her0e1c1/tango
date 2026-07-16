@@ -109,7 +109,7 @@ changed_files=$(mktemp "${RUNNER_TEMP:-/tmp}/changed-files.XXXXXX")
 trap 'rm -f "${changed_files}"' EXIT
 
 # Disable rename detection so both sides of a rename are classified.
-git diff --no-renames --name-only -z "$1...$2" > "${changed_files}"
+git diff --no-renames --name-only -z --end-of-options "$1...$2" > "${changed_files}"
 
 markdown_changed=false
 non_markdown_changed=false
@@ -131,7 +131,7 @@ printf 'markdown_only=%s\n' "${markdown_only}"
 
 Run `chmod +x .github/scripts/classify-markdown-diff.sh`.
 
-The temporary diff file guarantees that Git failure occurs before outputs are emitted. `--no-renames` classifies both old and new paths, so a non-Markdown-to-Markdown rename cannot incorrectly select Markdown-only CI.
+The temporary diff file guarantees that Git failure occurs before outputs are emitted. `--no-renames` classifies both old and new paths, so a non-Markdown-to-Markdown rename cannot incorrectly select Markdown-only CI. `--end-of-options` prevents option-like revision arguments from being interpreted as Git options.
 
 - [ ] **Step 3: Execute the classification matrix**
 
@@ -186,9 +186,18 @@ if (cd "${repo}" && RUNNER_TEMP="${repo}" "${script}" invalid "${rename}"); then
   echo "expected invalid base to fail" >&2
   exit 1
 fi
+
+option_base="--output=${repo}/injected"
+option_output="${repo}/injected...${rename}"
+if (cd "${repo}" && RUNNER_TEMP="${repo}" "${script}" "${option_base}" "${rename}") > "${repo}/option.stdout" 2> "${repo}/option.stderr"; then
+  echo "expected option-like base to fail" >&2
+  exit 1
+fi
+test ! -s "${repo}/option.stdout"
+test ! -e "${option_output}"
 ```
 
-Expected: exit code `0`. The cases cover Markdown-only, code-only, mixed, empty, non-Markdown-to-Markdown rename, and diff failure.
+Expected: exit code `0`. The cases cover Markdown-only, code-only, mixed, empty, non-Markdown-to-Markdown rename, diff failure, and an option-like revision that must fail without stdout or file creation.
 
 - [ ] **Step 4: Check and commit the classifier**
 
