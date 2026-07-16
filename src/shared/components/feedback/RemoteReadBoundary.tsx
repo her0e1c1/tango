@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/shared/components/forms/Button";
 
 type RemoteReadBoundaryProps = {
-  status: "idle" | "loading" | "ready" | "error";
+  status: "idle" | "loading" | "ready" | "error" | "blocked";
   hasData: boolean;
   emptyLabel?: string;
   onRetry: () => void;
@@ -29,6 +29,16 @@ const ErrorNotice = ({ hasData, onRetry }: Pick<RemoteReadBoundaryProps, "hasDat
 );
 
 export const RemoteReadBoundary = (props: RemoteReadBoundaryProps) => {
+  if (props.status === "blocked") {
+    return (
+      <div
+        role="alert"
+        className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
+      >
+        Offline storage is unavailable. Close other tabs or use a supported browser, then reload this page.
+      </div>
+    );
+  }
   if (props.status === "loading" && !props.hasData) return <Status>Loading…</Status>;
   if (props.status === "error" && !props.hasData) {
     return <ErrorNotice hasData={false} onRetry={props.onRetry} />;

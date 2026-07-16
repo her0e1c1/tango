@@ -1,10 +1,12 @@
-import { getFirestore, onSnapshot, where, collection, query } from "firebase/firestore";
+import { onSnapshot, where, collection, query } from "firebase/firestore";
 
 import { mapCardDocument, mapDeckDocument, type CardDocument, type DeckDocument } from "@/action/firestore/dto";
+import { getDb } from "@/firestoreRuntime";
 
 export interface RemoteSnapshotMetadata {
   size: number;
-  fromLocal: boolean;
+  fromCache: boolean;
+  hasPendingWrites: boolean;
 }
 
 export interface RemoteChange<T> {
@@ -30,7 +32,7 @@ const subscribeReads = <T extends RemoteEntity>(
   props: RemoteReadProps<T>,
   mapDocument: (id: string, data: Record<string, unknown>) => T
 ): Callback => {
-  const q = query(collection(getFirestore(), collectionName), where("uid", "==", props.uid));
+  const q = query(collection(getDb(), collectionName), where("uid", "==", props.uid));
   let initial = true;
   return onSnapshot(
     q,
@@ -39,7 +41,8 @@ const subscribeReads = <T extends RemoteEntity>(
       const changes = snapshot.docChanges();
       const metadata = {
         size: initial ? snapshot.docs.length : changes.length,
-        fromLocal: snapshot.metadata.hasPendingWrites,
+        fromCache: snapshot.metadata.fromCache,
+        hasPendingWrites: snapshot.metadata.hasPendingWrites,
       };
       if (initial) {
         initial = false;
@@ -61,9 +64,7 @@ const subscribeReads = <T extends RemoteEntity>(
           event.modified.push(item);
         }
       }
-      if (event.added.length > 0 || event.modified.length > 0 || event.removed.length > 0) {
-        props.onSnapshot({ type: "change", event, metadata });
-      }
+      props.onSnapshot({ type: "change", event, metadata });
     },
     props.onError
   );

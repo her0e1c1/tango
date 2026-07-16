@@ -5,7 +5,7 @@ type TestChange = { type: "added" | "modified" | "removed"; doc: TestDocument };
 type TestSnapshot = {
   docs: TestDocument[];
   docChanges: () => TestChange[];
-  metadata: { hasPendingWrites: boolean };
+  metadata: { fromCache: boolean; hasPendingWrites: boolean };
 };
 
 const mocks = vi.hoisted(() => ({
@@ -16,7 +16,6 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("firebase/firestore", () => ({
-  getFirestore: vi.fn(() => "db"),
   collection: vi.fn((...parts: unknown[]) => parts),
   where: mocks.where,
   orderBy: vi.fn((...parts: unknown[]) => parts),
@@ -29,14 +28,19 @@ vi.mock("firebase/firestore", () => ({
     }
   ),
 }));
+vi.mock("@/firestoreRuntime", () => ({ getDb: () => "db" }));
 
 import { subscribeCardReads, subscribeDeckReads } from "@/action/firestore/event";
 
 const document = (id: string, data: Record<string, unknown>): TestDocument => ({ id, data: () => data });
-const snapshot = (docs: TestDocument[], changes: TestChange[] = [], hasPendingWrites = false): TestSnapshot => ({
+const snapshot = (
+  docs: TestDocument[],
+  changes: TestChange[] = [],
+  metadata: TestSnapshot["metadata"] = { fromCache: false, hasPendingWrites: false }
+): TestSnapshot => ({
   docs,
   docChanges: () => changes,
-  metadata: { hasPendingWrites },
+  metadata,
 });
 
 const deckDocument = (overrides: Record<string, unknown> = {}) => ({
@@ -90,7 +94,7 @@ describe("Firestore remote-read subscriptions", () => {
     expect(onSnapshot).toHaveBeenCalledWith({
       type: "replace",
       items: [],
-      metadata: { size: 0, fromLocal: false },
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
     });
   });
 
@@ -105,7 +109,7 @@ describe("Firestore remote-read subscriptions", () => {
     expect(onSnapshot).toHaveBeenCalledWith({
       type: "replace",
       items: [expect.objectContaining({ id: "deck-a", name: "Remote Deck", localMode: false })],
-      metadata: { size: 2, fromLocal: false },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
     });
   });
 
@@ -124,7 +128,7 @@ describe("Firestore remote-read subscriptions", () => {
           { type: "modified", doc: document("deck-deleted", deckDocument({ updatedAt: 5, deletedAt: 5 })) },
           { type: "removed", doc: document("deck-removed", deckDocument({ updatedAt: 6 })) },
         ],
-        true
+        { fromCache: true, hasPendingWrites: true }
       )
     );
 
@@ -135,7 +139,7 @@ describe("Firestore remote-read subscriptions", () => {
         modified: [expect.objectContaining({ id: "deck-modified" })],
         removed: ["deck-deleted", "deck-removed"],
       },
-      metadata: { size: 4, fromLocal: true },
+      metadata: { size: 4, fromCache: true, hasPendingWrites: true },
     });
   });
 
@@ -147,7 +151,7 @@ describe("Firestore remote-read subscriptions", () => {
     expect(onSnapshot).toHaveBeenLastCalledWith({
       type: "replace",
       items: [expect.objectContaining({ id: "card-a", nextSeeingAt: new Date(50) })],
-      metadata: { size: 1, fromLocal: false },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
     });
 
     mocks.next?.(snapshot([], [{ type: "modified", doc: document("card-a", cardDocument({ frontText: "Updated" })) }]));
@@ -158,7 +162,22 @@ describe("Firestore remote-read subscriptions", () => {
         modified: [expect.objectContaining({ id: "card-a", frontText: "Updated" })],
         removed: [],
       },
-      metadata: { size: 1, fromLocal: false },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+  });
+
+  it("emits metadata-only snapshots so pending writes can become synced", () => {
+    const onSnapshot = vi.fn();
+    subscribeDeckReads({ uid: "uid-a", onSnapshot, onError: vi.fn() });
+    mocks.next?.(snapshot([], [], { fromCache: true, hasPendingWrites: true }));
+    onSnapshot.mockClear();
+
+    mocks.next?.(snapshot([], [], { fromCache: false, hasPendingWrites: false }));
+
+    expect(onSnapshot).toHaveBeenCalledWith({
+      type: "change",
+      event: { added: [], modified: [], removed: [] },
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
     });
   });
 

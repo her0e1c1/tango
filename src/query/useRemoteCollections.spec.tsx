@@ -8,9 +8,11 @@ import { createCard, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
-  state: { uid: "uid-a", status: "ready" } as
-    | { uid: string; status: "ready" | "loading" }
+  state: { uid: "uid-a", status: "ready", syncStatus: "synced" } as
+    | { uid: string; status: "ready"; syncStatus: "cached" | "pending" | "synced" }
+    | { uid: string; status: "loading" }
     | { uid: string; status: "error"; error: Error },
+  blocker: undefined as Error | undefined,
   rootState: undefined as unknown as RootState,
   retry: vi.fn(),
 }));
@@ -23,8 +25,10 @@ vi.mock("react-redux", () => ({
 }));
 vi.mock("@/query/remoteReadSession", () => ({
   subscribeRemoteReadState: () => () => undefined,
+  subscribeRemoteReadBlocker: () => () => undefined,
   getRemoteReadState: () => mocks.state,
   retryRemoteReads: mocks.retry,
+  getRemoteReadBlocker: () => mocks.blocker,
 }));
 
 import { useRemoteCollections } from "@/query/useRemoteCollections";
@@ -32,7 +36,8 @@ import { useRemoteCollections } from "@/query/useRemoteCollections";
 describe("useRemoteCollections", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.state = { uid: "uid-a", status: "ready" };
+    mocks.state = { uid: "uid-a", status: "ready", syncStatus: "synced" };
+    mocks.blocker = undefined;
   });
 
   it("merges Query remote data with Redux local-only data and lets local IDs win", () => {
@@ -64,6 +69,7 @@ describe("useRemoteCollections", () => {
     expect(result.current.cardsById).toEqual({ "local-card": localCard, "fresh-card": freshRemoteCard });
     expect(result.current.cardsByDeckId(freshRemote.id)).toEqual([freshRemoteCard]);
     expect(result.current.status).toBe("ready");
+    expect(result.current.syncStatus).toBe("synced");
   });
 
   it("exposes terminal state and Retry without dropping cached data", () => {
@@ -86,5 +92,40 @@ describe("useRemoteCollections", () => {
     expect(result.current.status).toBe("error");
     expect(result.current.error).toBe(error);
     expect(mocks.retry).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not expose Query data until authenticated and active UIDs match", () => {
+    const remoteDeck = createDeck({ id: "remote", localMode: false });
+    mocks.state = { uid: "uid-b", status: "ready", syncStatus: "synced" };
+    mocks.rootState = {
+      deck: { byId: {}, categories: [] },
+      card: { byId: {}, tags: [] },
+      config: {} as ConfigState,
+    };
+    const client = createTestQueryClient();
+    client.setQueryData(firestoreKeys.decks("uid-a"), { remote: remoteDeck });
+    const QueryWrapper = createQueryWrapper(client);
+
+    const { result } = renderHook(useRemoteCollections, { wrapper: QueryWrapper });
+
+    expect(result.current.decks).toEqual([]);
+    expect(result.current.status).toBe("loading");
+  });
+
+  it("exposes persistent cache initialization failures as blocking state", () => {
+    const blocker = new Error("another tab owns the cache");
+    mocks.blocker = blocker;
+    mocks.rootState = {
+      deck: { byId: {}, categories: [] },
+      card: { byId: {}, tags: [] },
+      config: {} as ConfigState,
+    };
+    const client = createTestQueryClient();
+    const QueryWrapper = createQueryWrapper(client);
+
+    const { result } = renderHook(useRemoteCollections, { wrapper: QueryWrapper });
+
+    expect(result.current.status).toBe("blocked");
+    expect(result.current.error).toBe(blocker);
   });
 });

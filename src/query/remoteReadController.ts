@@ -2,6 +2,7 @@ import type { QueryClient, QueryKey } from "@tanstack/react-query";
 
 import type { RemoteSnapshot } from "@/action/firestore/event";
 import { firestoreKeys } from "@/query/firestoreKeys";
+import { createFirestoreSyncController, type FirestoreSyncState } from "@/query/firestoreSyncController";
 
 export type RemoteById<T> = Record<string, T | undefined>;
 
@@ -11,15 +12,10 @@ export interface RemoteSubscriptionProps<T> {
   onError: (error: Error) => void;
 }
 
-export type RemoteReadState =
-  | { uid: null; status: "idle" }
-  | { uid: string; status: "loading" | "ready" }
-  | { uid: string; status: "error"; error: Error };
+export type RemoteReadState = FirestoreSyncState;
 
 export interface RemoteReadDependencies {
   client: QueryClient;
-  readDecks: (uid: string) => Promise<Deck[]>;
-  readCards: (uid: string) => Promise<Card[]>;
   subscribeDecks: (props: RemoteSubscriptionProps<Deck>) => Callback;
   subscribeCards: (props: RemoteSubscriptionProps<Card>) => Callback;
   applyChange: <T extends { id: string }>(
@@ -32,24 +28,12 @@ const toById = <T extends { id: string }>(items: T[]): RemoteById<T> =>
   Object.fromEntries(items.map((item) => [item.id, item]));
 
 export const createRemoteReadController = (dependencies: RemoteReadDependencies) => {
+  const syncController = createFirestoreSyncController(["deck", "card"] as const);
   let activeUid: string | undefined;
-  let generation = 0;
   let automaticRecoveries = 0;
-  let recovering = false;
   let unsubscribeDeck: Callback | undefined;
   let unsubscribeCard: Callback | undefined;
   let currentStart: Promise<void> | undefined;
-  let state: RemoteReadState = { uid: null, status: "idle" };
-  const listeners = new Set<Callback>();
-
-  const setState = (next: RemoteReadState) => {
-    state = next;
-    listeners.forEach((listener) => {
-      listener();
-    });
-  };
-
-  const isCurrent = (uid: string, currentGeneration: number) => activeUid === uid && generation === currentGeneration;
 
   const stopListeners = () => {
     const subscriptions = [unsubscribeDeck, unsubscribeCard];
@@ -64,59 +48,29 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
     });
   };
 
-  const setCollection = <T extends { id: string }>(queryKey: QueryKey, items: T[]) => {
-    dependencies.client.setQueryData<RemoteById<T>>(queryKey, toById(items));
-  };
-
   const applySnapshot = <T extends { id: string }>(
     uid: string,
-    currentGeneration: number,
+    generation: number,
+    collection: "deck" | "card",
     queryKey: QueryKey,
     snapshot: RemoteSnapshot<T>
   ) => {
-    if (!isCurrent(uid, currentGeneration)) return;
+    if (!syncController.isCurrent(uid, generation)) return;
     const previous = dependencies.client.getQueryData<RemoteById<T>>(queryKey) ?? {};
     const next =
       snapshot.type === "replace" ? toById(snapshot.items) : dependencies.applyChange(previous, snapshot.event);
     dependencies.client.setQueryData(queryKey, next);
+    syncController.observe(uid, generation, collection, snapshot.metadata);
   };
 
-  const handleListenerError = async (uid: string, currentGeneration: number, error: Error) => {
-    if (!isCurrent(uid, currentGeneration) || recovering) return;
-    stopListeners();
-    if (automaticRecoveries >= 1) {
-      setState({ uid, status: "error", error });
-      return;
-    }
-
-    automaticRecoveries += 1;
-    recovering = true;
-    setState({ uid, status: "loading" });
-    try {
-      await loadAndSubscribe(uid, currentGeneration);
-    } catch (recoveryError) {
-      if (isCurrent(uid, currentGeneration)) {
-        setState({
-          uid,
-          status: "error",
-          error: recoveryError instanceof Error ? recoveryError : new Error(String(recoveryError)),
-        });
-      }
-    } finally {
-      recovering = false;
-    }
-  };
-
-  const attachListeners = (uid: string, currentGeneration: number) => {
-    const onError = (error: Error) => {
-      void handleListenerError(uid, currentGeneration, error);
-    };
+  const attachListeners = (uid: string, generation: number) => {
+    const onError = (error: Error) => handleListenerError(uid, generation, error);
     const nextDeckSubscription = dependencies.subscribeDecks({
       uid,
-      onSnapshot: (snapshot) => applySnapshot(uid, currentGeneration, firestoreKeys.decks(uid), snapshot),
+      onSnapshot: (snapshot) => applySnapshot(uid, generation, "deck", firestoreKeys.decks(uid), snapshot),
       onError,
     });
-    if (!isCurrent(uid, currentGeneration)) {
+    if (!syncController.isCurrent(uid, generation)) {
       nextDeckSubscription();
       return;
     }
@@ -124,10 +78,10 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
 
     const nextCardSubscription = dependencies.subscribeCards({
       uid,
-      onSnapshot: (snapshot) => applySnapshot(uid, currentGeneration, firestoreKeys.cards(uid), snapshot),
+      onSnapshot: (snapshot) => applySnapshot(uid, generation, "card", firestoreKeys.cards(uid), snapshot),
       onError,
     });
-    if (!isCurrent(uid, currentGeneration)) {
+    if (!syncController.isCurrent(uid, generation)) {
       nextCardSubscription();
       stopListeners();
       return;
@@ -135,36 +89,39 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
     unsubscribeCard = nextCardSubscription;
   };
 
-  async function loadAndSubscribe(uid: string, currentGeneration: number) {
-    const [decks, cards] = await Promise.all([dependencies.readDecks(uid), dependencies.readCards(uid)]);
-    if (!isCurrent(uid, currentGeneration)) return;
-
-    setCollection(firestoreKeys.decks(uid), decks);
-    setCollection(firestoreKeys.cards(uid), cards);
-    attachListeners(uid, currentGeneration);
-    if (isCurrent(uid, currentGeneration)) setState({ uid, status: "ready" });
-  }
-
   const begin = (uid: string, resetAutomaticRecoveries: boolean) => {
     stopListeners();
     activeUid = uid;
-    const currentGeneration = ++generation;
-    recovering = false;
     if (resetAutomaticRecoveries) automaticRecoveries = 0;
-    setState({ uid, status: "loading" });
+    const generation = syncController.start(uid);
 
-    const operation = loadAndSubscribe(uid, currentGeneration).catch((error) => {
-      if (isCurrent(uid, currentGeneration)) {
-        setState({ uid, status: "error", error: error instanceof Error ? error : new Error(String(error)) });
-      }
-      throw error;
-    });
-    currentStart = operation;
-    return operation;
+    try {
+      attachListeners(uid, generation);
+      currentStart = Promise.resolve();
+    } catch (error) {
+      const initializationError = error instanceof Error ? error : new Error(String(error));
+      stopListeners();
+      syncController.fail(uid, generation, initializationError);
+      currentStart = Promise.reject(initializationError);
+    }
+    return currentStart;
+  };
+
+  const handleListenerError = (uid: string, generation: number, error: Error) => {
+    if (!syncController.isCurrent(uid, generation)) return;
+    stopListeners();
+    if (automaticRecoveries >= 1) {
+      syncController.fail(uid, generation, error);
+      return;
+    }
+
+    automaticRecoveries += 1;
+    void begin(uid, false);
   };
 
   return {
     start: (uid: string) => {
+      const state = syncController.getSnapshot();
       if (activeUid === uid && (state.status === "loading" || state.status === "ready")) {
         return currentStart ?? Promise.resolve();
       }
@@ -175,17 +132,10 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
       if (uid && uid !== activeUid) return;
       stopListeners();
       activeUid = undefined;
-      generation += 1;
-      recovering = false;
       currentStart = undefined;
-      setState({ uid: null, status: "idle" });
+      syncController.stop(uid);
     },
-    subscribe: (listener: Callback) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    getSnapshot: () => state,
+    subscribe: syncController.subscribe,
+    getSnapshot: syncController.getSnapshot,
   };
 };

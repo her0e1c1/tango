@@ -1,6 +1,5 @@
 import {
   where,
-  getFirestore,
   doc,
   updateDoc,
   query,
@@ -13,10 +12,9 @@ import {
 } from "firebase/firestore";
 import { getTimestamp } from "@/action/firestore/mocked";
 import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument, type DeckDocument } from "@/action/firestore/dto";
+import { getDb } from "@/firestoreRuntime";
 
-const db = getFirestore();
-
-export const readAll = async (uid: string, firestore: Firestore = db): Promise<Deck[]> => {
+export const readAll = async (uid: string, firestore: Firestore = getDb()): Promise<Deck[]> => {
   const snapshot = await getDocs(query(collection(firestore, "deck"), where("uid", "==", uid)));
   return snapshot.docs
     .map((document) => mapDeckDocument(document.id, document.data() as DeckDocument))
@@ -25,6 +23,7 @@ export const readAll = async (uid: string, firestore: Firestore = db): Promise<D
 
 export const create = async (deck: Deck): Promise<string> => {
   const createdAt = getTimestamp();
+  const db = getDb();
   const ref = doc(db, "deck", deck.id);
   await setDoc(ref, buildDeckCreateDto(deck, createdAt));
   return deck.id;
@@ -48,12 +47,14 @@ export const splitCards = <T>(cards: T[], max: number): T[][] => {
 };
 
 export const update = async (deck: DeckEdit) => {
+  const db = getDb();
   const ref = doc(db, "deck", deck.id);
   const updatedAt = getTimestamp();
   await updateDoc(ref, buildDeckUpdateDto(deck, updatedAt));
 };
 
 export const remove = async (deckId: string, uid: string) => {
+  const db = getDb();
   const q = query(collection(db, "card"), where("uid", "==", uid), where("deckId", "==", deckId));
   const snapshot = await getDocs(q);
   await Promise.all(
@@ -66,7 +67,7 @@ export const remove = async (deckId: string, uid: string) => {
 };
 
 export const exists = async (id: string): Promise<boolean> => {
-  const db = getFirestore();
+  const db = getDb();
   const ref = doc(db, "deck", id);
   try {
     const snapshot = await getDoc(ref);
@@ -81,7 +82,7 @@ export const exists = async (id: string): Promise<boolean> => {
 
 // for test
 export const removeAll = async () => {
-  const db = getFirestore();
+  const db = getDb();
   const q = query(collection(db, "deck"));
   const snapshot = await getDocs(q);
   for (const doc of snapshot.docs) await deleteDoc(doc.ref);
