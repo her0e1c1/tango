@@ -1,278 +1,87 @@
 import "./init";
-import { expect, it, describe, vi, beforeEach, afterAll, type Mock } from "vitest";
-import { getApps, deleteApp } from "firebase/app";
-import { getDoc, doc, getFirestore } from "firebase/firestore";
+import { afterAll, describe, expect, it, vi } from "vitest";
+import { deleteApp, getApps } from "firebase/app";
+
 import * as firestore from "@/action/firestore";
-import { generateDeckId, generateCardId, getTimestamp } from "@/action/firestore/mocked";
-import { createDeck } from "@/test/factories";
+import type { RemoteSnapshot } from "@/action/firestore/event";
+import { createCard, createDeck } from "@/test/factories";
 
 vi.mock("./mocked", () => ({
-  generateDeckId: vi.fn(),
-  generateCardId: vi.fn(),
-  getTimestamp: vi.fn(),
+  generateDeckId: vi.fn(() => "unused-deck-id"),
+  generateCardId: vi.fn(() => "unused-card-id"),
+  getTimestamp: vi.fn(() => 100),
 }));
 
-describe.skip("firestore/event", () => {
-  const db = getFirestore();
-  const timestamp = new Date(2013, 10, 9).getTime();
-
-  const newDeck = createDeck({
-    name: "new deck name",
-    uid: "uid",
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  });
-
-  const newCard = {
-    frontText: "front text",
-    backText: "back text",
-    uid: "uid",
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    deletedAt: null,
-  } as Card;
-
-  beforeEach(async () => {
-    vi.resetAllMocks();
-    (generateDeckId as Mock).mockReturnValue("deckId");
-    (generateCardId as Mock).mockReturnValue("cardId");
-    await firestore.deck.removeAll();
-  });
-
+describe("Query realtime subscriptions", () => {
   afterAll(async () => {
-    await Promise.all(
-      getApps().map(async (app) => {
-        await deleteApp(app);
-      })
-    );
+    await Promise.all(getApps().map(deleteApp));
   });
 
-  describe("deck", () => {
-    const deckEvent = { added: [], modified: [], removed: [], metadata: { size: 1, fromLocal: true } };
-
-    it("should create a insert event", async () => {
-      (getTimestamp as Mock).mockReturnValue(timestamp);
-      const fn = vi.fn();
-      firestore.event.subscribeDeck({
-        uid: "uid",
-        updatedAt: timestamp - 1,
-        onCange: fn,
-      });
-      await firestore.deck.create(newDeck);
-      expect(fn).toBeCalledTimes(1);
-      const d = { ...newDeck, id: "deckId" } as Deck;
-      expect(fn).lastCalledWith({ ...deckEvent, added: [d] });
+  it("delivers initial, update, and delete snapshots without a cursor", async () => {
+    const deckSnapshots: RemoteSnapshot<Deck>[] = [];
+    const cardSnapshots: RemoteSnapshot<Card>[] = [];
+    const errors: Error[] = [];
+    const stopDecks = firestore.event.subscribeDeckReads({
+      uid: "uid",
+      onSnapshot: (snapshot) => deckSnapshots.push(snapshot),
+      onError: (error) => errors.push(error),
+    });
+    const stopCards = firestore.event.subscribeCardReads({
+      uid: "uid",
+      onSnapshot: (snapshot) => cardSnapshots.push(snapshot),
+      onError: (error) => errors.push(error),
     });
 
-    it("should not create a insert event", async () => {
-      (getTimestamp as Mock).mockReturnValue(timestamp);
-      const fn = vi.fn();
-      firestore.event.subscribeDeck({
-        uid: "uid",
-        updatedAt: timestamp + 1,
-        onCange: fn,
+    try {
+      await vi.waitFor(() => {
+        expect(deckSnapshots[0]).toMatchObject({ type: "replace" });
+        expect(cardSnapshots[0]).toMatchObject({ type: "replace" });
       });
-      await firestore.deck.create(newDeck);
-      expect(fn).toBeCalledTimes(0);
-    });
 
-    it("should create a update event", async () => {
-      (getTimestamp as Mock).mockReturnValueOnce(100).mockReturnValueOnce(200);
-      const fn = vi.fn();
-      firestore.event.subscribeDeck({
-        uid: "uid",
-        updatedAt: 0,
-        onCange: fn,
+      const deck = createDeck({ id: "deck-id", uid: "uid", localMode: false });
+      const card = createCard({ id: "card-id", deckId: deck.id, uid: "uid" });
+      await firestore.deck.create(deck);
+      await firestore.card.create(card);
+      await vi.waitFor(() => {
+        expect(
+          deckSnapshots.some(
+            (snapshot) => snapshot.type === "change" && snapshot.event.added.some((item) => item.id === deck.id)
+          )
+        ).toBe(true);
+        expect(
+          cardSnapshots.some(
+            (snapshot) => snapshot.type === "change" && snapshot.event.added.some((item) => item.id === card.id)
+          )
+        ).toBe(true);
       });
-      await firestore.deck.create(newDeck);
-      const deckCreated = { ...newDeck, uid: "uid", id: "deckId", createdAt: 100, updatedAt: 100 };
-      expect((await getDoc(doc(db, "deck", "deckId"))).data()).toEqual(deckCreated);
-      await firestore.deck.update({ ...deckCreated, name: "updated" });
-      const deckUpdated = {
-        ...newDeck,
-        id: "deckId",
-        name: "updated",
-        createdAt: 100,
-        updatedAt: 200,
-      };
-      expect((await getDoc(doc(db, "deck", "deckId"))).data()).toEqual(deckUpdated);
-      expect(getTimestamp).toBeCalledTimes(2);
-      expect(fn).toBeCalledTimes(2);
-      expect(fn).lastCalledWith({ ...deckEvent, modified: [deckUpdated] });
-    });
 
-    it("should not create a update event", async () => {
-      (getTimestamp as Mock).mockReturnValue(timestamp);
-      const fn = vi.fn();
-      firestore.event.subscribeDeck({
-        uid: "uid",
-        updatedAt: timestamp + 1,
-        onCange: fn,
+      await firestore.deck.update({ ...deck, name: "Updated" });
+      await firestore.card.update({ ...card, frontText: "Updated" });
+      await vi.waitFor(() => {
+        expect(
+          deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.modified[0]?.name === "Updated")
+        ).toBe(true);
+        expect(
+          cardSnapshots.some(
+            (snapshot) => snapshot.type === "change" && snapshot.event.modified[0]?.frontText === "Updated"
+          )
+        ).toBe(true);
       });
-      await firestore.deck.create(newDeck);
-      const d = { ...newDeck, id: "deckId", name: "updated" } as Deck;
-      await firestore.deck.update(d);
-      expect(fn).toBeCalledTimes(0);
-    });
 
-    it("should create a delete event", async () => {
-      (getTimestamp as Mock).mockReturnValueOnce(100).mockReturnValueOnce(200);
-      const fn = vi.fn();
-      firestore.event.subscribeDeck({
-        uid: "uid",
-        updatedAt: 0,
-        onCange: fn,
+      await firestore.card.remove(card.id);
+      await firestore.deck.remove(deck.id, deck.uid);
+      await vi.waitFor(() => {
+        expect(
+          deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.removed.includes(deck.id))
+        ).toBe(true);
+        expect(
+          cardSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.removed.includes(card.id))
+        ).toBe(true);
       });
-      await firestore.deck.create(newDeck);
-      const deckCreated = { ...newDeck, uid: "uid", id: "deckId", createdAt: 100, updatedAt: 100 };
-      expect((await getDoc(doc(db, "deck", "deckId"))).data()).toEqual(deckCreated);
-      expect(fn).toBeCalledTimes(1);
-      await firestore.deck.remove("deckId", "uid");
-      expect(await firestore.deck.exists("deckId")).toBeFalsy();
-      expect(fn).toBeCalledTimes(2);
-      expect(fn).lastCalledWith({ ...deckEvent, removed: ["deckId"], metadata: { size: 1, fromLocal: false } });
-    });
-
-    it("should not create a delete event", async () => {
-      (getTimestamp as Mock).mockReturnValue(timestamp);
-      const fn = vi.fn();
-      firestore.event.subscribeDeck({
-        uid: "uid",
-        updatedAt: timestamp + 1,
-        onCange: fn,
-      });
-      await firestore.deck.create(newDeck);
-      await firestore.deck.remove("deckId", "uid");
-      expect(fn).toBeCalledTimes(0);
-    });
-  });
-
-  describe("card", () => {
-    const cardEvent = { added: [], modified: [], removed: [], metadata: { size: 1, fromLocal: true } };
-
-    it("should create a insert event", async () => {
-      (getTimestamp as Mock).mockReturnValue(timestamp);
-      const fn = vi.fn();
-      firestore.event.subscribeCard({
-        uid: "uid",
-        updatedAt: timestamp - 1,
-        onCange: fn,
-      });
-      await firestore.deck.create(newDeck);
-      expect(fn).toBeCalledTimes(1);
-      const c = { ...newCard, id: "cardId", deckId: "deckId" } as Card;
-      expect(fn).lastCalledWith({ ...cardEvent, added: [c] });
-    });
-
-    it("should not create a insert event", async () => {
-      (getTimestamp as Mock).mockReturnValue(timestamp);
-      const fn = vi.fn();
-      firestore.event.subscribeCard({
-        uid: "uid",
-        updatedAt: timestamp + 1,
-        onCange: fn,
-      });
-      await firestore.deck.create(newDeck);
-      expect(fn).toBeCalledTimes(0);
-    });
-
-    it("should create a update event", async () => {
-      (getTimestamp as Mock).mockReturnValueOnce(100).mockReturnValueOnce(200);
-      const fn = vi.fn();
-      firestore.event.subscribeCard({
-        uid: "uid",
-        updatedAt: 0,
-        onCange: fn,
-      });
-      await firestore.deck.create(newDeck);
-      const cardCreated = { ...newCard, uid: "uid", id: "cardId", deckId: "deckId", createdAt: 100, updatedAt: 100 };
-      expect((await getDoc(doc(db, "card", "cardId"))).data()).toEqual(cardCreated);
-      await firestore.card.update({ ...cardCreated, frontText: "updated" });
-      const cardUpdated = {
-        ...newCard,
-        id: "cardId",
-        deckId: "deckId",
-        frontText: "updated",
-        createdAt: 100,
-        updatedAt: 200,
-      };
-      expect((await getDoc(doc(db, "card", "cardId"))).data()).toEqual(cardUpdated);
-      expect(getTimestamp).toBeCalledTimes(2);
-      expect(fn).toBeCalledTimes(2);
-      expect(fn).lastCalledWith({ ...cardEvent, modified: [cardUpdated] });
-    });
-
-    it("should create a update event for logical remove", async () => {
-      (getTimestamp as Mock).mockReturnValue(timestamp);
-      const fn = vi.fn();
-      firestore.event.subscribeCard({
-        uid: "uid",
-        updatedAt: 0,
-        onCange: fn,
-      });
-      await firestore.card.create(newCard);
-      expect((await getDoc(doc(db, "card", "cardId"))).data()).toEqual({ ...newCard, id: "cardId" });
-      await firestore.card.logicalRemove("cardId");
-      expect((await getDoc(doc(db, "card", "cardId"))).data()).toEqual({
-        ...newCard,
-        id: "cardId",
-        deletedAt: timestamp,
-      });
-      expect(getTimestamp).toBeCalledTimes(2);
-      expect(fn).toBeCalledTimes(2);
-      expect(fn).lastCalledWith({ ...cardEvent, removed: ["cardId"], metadata: { size: 1, fromLocal: true } });
-    });
-
-    it("should not create a update event", async () => {
-      (getTimestamp as Mock).mockReturnValue(timestamp);
-      const fn = vi.fn();
-      firestore.event.subscribeCard({
-        uid: "uid",
-        updatedAt: timestamp + 1,
-        onCange: fn,
-      });
-      await firestore.deck.create(newDeck);
-      await firestore.card.update({ ...newCard, id: "cardId", frontText: "updated" });
-      expect(fn).toBeCalledTimes(0);
-    });
-
-    it("should create a delete event", async () => {
-      (getTimestamp as Mock).mockReturnValueOnce(100).mockReturnValueOnce(200);
-      const fn = vi.fn();
-      firestore.event.subscribeCard({
-        uid: "uid",
-        updatedAt: 0,
-        onCange: fn,
-      });
-      await firestore.deck.create(newDeck);
-      const cardCreated = { ...newCard, id: "cardId", deckId: "deckId", createdAt: 100, updatedAt: 100 };
-      expect((await getDoc(doc(db, "card", "cardId"))).data()).toEqual(cardCreated);
-      expect(fn).toBeCalledTimes(1);
-      await firestore.card.remove("cardId");
-      expect(await firestore.card.exists("cardId")).toBeFalsy();
-      expect(fn).toBeCalledTimes(2);
-      expect(fn).lastCalledWith({ ...cardEvent, removed: ["cardId"], metadata: { size: 1, fromLocal: false } });
-    });
-
-    it("should not create a delete event", async () => {
-      (getTimestamp as Mock).mockReturnValue(timestamp);
-      const fn = vi.fn();
-      firestore.event.subscribeCard({
-        uid: "uid",
-        updatedAt: timestamp + 1,
-        onCange: fn,
-      });
-      await firestore.deck.create(newDeck);
-      const deckCreated = {
-        ...newDeck,
-        uid: "uid",
-        id: "deckId",
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      };
-      expect((await getDoc(doc(db, "deck", "deckId"))).data()).toEqual(deckCreated);
-      await firestore.card.remove("cardId");
-      expect(fn).toBeCalledTimes(0);
-    });
+      expect(errors).toEqual([]);
+    } finally {
+      stopCards();
+      stopDecks();
+    }
   });
 });

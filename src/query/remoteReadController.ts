@@ -22,8 +22,6 @@ export interface RemoteReadDependencies {
   readCards: (uid: string) => Promise<Card[]>;
   subscribeDecks: (props: RemoteSubscriptionProps<Deck>) => Callback;
   subscribeCards: (props: RemoteSubscriptionProps<Card>) => Callback;
-  mirrorDecks: (decks: Deck[]) => void;
-  mirrorCards: (cards: Card[]) => void;
   applyChange: <T extends { id: string }>(
     previous: RemoteById<T>,
     event: { added?: T[]; modified?: T[]; removed?: string[] }
@@ -32,8 +30,6 @@ export interface RemoteReadDependencies {
 
 const toById = <T extends { id: string }>(items: T[]): RemoteById<T> =>
   Object.fromEntries(items.map((item) => [item.id, item]));
-
-const toItems = <T>(items: RemoteById<T>): T[] => Object.values(items).filter((item): item is T => item != null);
 
 export const createRemoteReadController = (dependencies: RemoteReadDependencies) => {
   let activeUid: string | undefined;
@@ -68,24 +64,21 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
     });
   };
 
-  const setCollection = <T extends { id: string }>(queryKey: QueryKey, items: T[], mirror: (items: T[]) => void) => {
+  const setCollection = <T extends { id: string }>(queryKey: QueryKey, items: T[]) => {
     dependencies.client.setQueryData<RemoteById<T>>(queryKey, toById(items));
-    mirror(items);
   };
 
   const applySnapshot = <T extends { id: string }>(
     uid: string,
     currentGeneration: number,
     queryKey: QueryKey,
-    snapshot: RemoteSnapshot<T>,
-    mirror: (items: T[]) => void
+    snapshot: RemoteSnapshot<T>
   ) => {
     if (!isCurrent(uid, currentGeneration)) return;
     const previous = dependencies.client.getQueryData<RemoteById<T>>(queryKey) ?? {};
     const next =
       snapshot.type === "replace" ? toById(snapshot.items) : dependencies.applyChange(previous, snapshot.event);
     dependencies.client.setQueryData(queryKey, next);
-    mirror(toItems(next));
   };
 
   const handleListenerError = async (uid: string, currentGeneration: number, error: Error) => {
@@ -120,8 +113,7 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
     };
     const nextDeckSubscription = dependencies.subscribeDecks({
       uid,
-      onSnapshot: (snapshot) =>
-        applySnapshot(uid, currentGeneration, firestoreKeys.decks(uid), snapshot, dependencies.mirrorDecks),
+      onSnapshot: (snapshot) => applySnapshot(uid, currentGeneration, firestoreKeys.decks(uid), snapshot),
       onError,
     });
     if (!isCurrent(uid, currentGeneration)) {
@@ -132,8 +124,7 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
 
     const nextCardSubscription = dependencies.subscribeCards({
       uid,
-      onSnapshot: (snapshot) =>
-        applySnapshot(uid, currentGeneration, firestoreKeys.cards(uid), snapshot, dependencies.mirrorCards),
+      onSnapshot: (snapshot) => applySnapshot(uid, currentGeneration, firestoreKeys.cards(uid), snapshot),
       onError,
     });
     if (!isCurrent(uid, currentGeneration)) {
@@ -148,8 +139,8 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
     const [decks, cards] = await Promise.all([dependencies.readDecks(uid), dependencies.readCards(uid)]);
     if (!isCurrent(uid, currentGeneration)) return;
 
-    setCollection(firestoreKeys.decks(uid), decks, dependencies.mirrorDecks);
-    setCollection(firestoreKeys.cards(uid), cards, dependencies.mirrorCards);
+    setCollection(firestoreKeys.decks(uid), decks);
+    setCollection(firestoreKeys.cards(uid), cards);
     attachListeners(uid, currentGeneration);
     if (isCurrent(uid, currentGeneration)) setState({ uid, status: "ready" });
   }

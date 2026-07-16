@@ -1,12 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { stopSubscriptions, stopRemoteReads } = vi.hoisted(() => ({
-  stopSubscriptions: vi.fn(),
-  stopRemoteReads: vi.fn(),
-}));
+const { stopRemoteReads } = vi.hoisted(() => ({ stopRemoteReads: vi.fn() }));
 
-vi.mock("@/lib/realtimeSubscriptions", () => ({ stopSubscriptions }));
 vi.mock("@/query/remoteReadSession", () => ({ stopRemoteReads }));
 
 import { cleanupFirestoreUid } from "@/query/cleanup";
@@ -22,7 +18,6 @@ describe("cleanupFirestoreUid", () => {
   };
 
   beforeEach(() => {
-    stopSubscriptions.mockReset();
     stopRemoteReads.mockReset();
     temporaryClients.length = 0;
   });
@@ -39,7 +34,6 @@ describe("cleanupFirestoreUid", () => {
     const operations: string[] = [];
     let finishCancellation: () => void = () => undefined;
     stopRemoteReads.mockImplementation(() => operations.push("stop-remote"));
-    stopSubscriptions.mockImplementation(() => operations.push("stop-legacy"));
     const cancelQueries = vi.spyOn(queryClient, "cancelQueries").mockImplementation(
       () =>
         new Promise<void>((resolve) => {
@@ -53,14 +47,14 @@ describe("cleanupFirestoreUid", () => {
 
     const cleanup = cleanupFirestoreUid("uid-a");
 
-    expect(operations).toEqual(["stop-remote", "stop-legacy", "cancel"]);
+    expect(operations).toEqual(["stop-remote", "cancel"]);
     expect(removeQueries).not.toHaveBeenCalled();
 
     finishCancellation();
     await cleanup;
 
     const filter = { queryKey: firestoreKeys.uid("uid-a") };
-    expect(operations).toEqual(["stop-remote", "stop-legacy", "cancel", "remove"]);
+    expect(operations).toEqual(["stop-remote", "cancel", "remove"]);
     expect(stopRemoteReads).toHaveBeenCalledWith("uid-a");
     expect(cancelQueries).toHaveBeenCalledWith(filter);
     expect(removeQueries).toHaveBeenCalledWith(filter);
@@ -79,15 +73,14 @@ describe("cleanupFirestoreUid", () => {
     expect(client.getQueryData(firestoreKeys.cards("uid-a"))).toBeUndefined();
     expect(client.getQueryData(firestoreKeys.decks("uid-b"))).toEqual(["deck-b"]);
     expect(client.getQueryData(firestoreKeys.cards("uid-b"))).toEqual(["card-b"]);
-    expect(stopSubscriptions).toHaveBeenCalledTimes(1);
     expect(stopRemoteReads).toHaveBeenCalledWith("uid-a");
   });
 
-  it("finishes cache cleanup before surfacing a subscription stop error", async () => {
+  it("finishes cache cleanup before surfacing a listener stop error", async () => {
     const stopError = new Error("listener stop failed");
     const operations: string[] = [];
     const client = createClient();
-    stopSubscriptions.mockImplementation(() => {
+    stopRemoteReads.mockImplementation(() => {
       operations.push("stop");
       throw stopError;
     });
@@ -107,7 +100,7 @@ describe("cleanupFirestoreUid", () => {
     const cancellationError = new Error("query cancellation failed");
     const operations: string[] = [];
     const client = createClient();
-    stopSubscriptions.mockImplementation(() => operations.push("stop"));
+    stopRemoteReads.mockImplementation(() => operations.push("stop"));
     vi.spyOn(client, "cancelQueries").mockImplementation(async () => {
       operations.push("cancel");
       throw cancellationError;

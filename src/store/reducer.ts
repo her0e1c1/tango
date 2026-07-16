@@ -60,24 +60,6 @@ export const deck = (state = deckInitialState, action: Action) => {
       delete state.byId[id];
     });
     return { ...state };
-  } else if (equal(action, type.remoteDeckReplace)) {
-    const byId = {} as DeckState["byId"];
-    Object.values(state.byId)
-      .filter(util.isDefined)
-      .filter((item) => item.localMode)
-      .forEach((item) => {
-        byId[item.id] = item;
-      });
-    action.payload.decks.forEach((item) => {
-      if (byId[item.id] == null) byId[item.id] = item;
-    });
-    const categories = uniq(
-      Object.values(byId)
-        .filter(util.isDefined)
-        .map((item) => item.category)
-        .filter((category) => !!category)
-    );
-    return { byId, categories };
   } else {
     return state;
   }
@@ -123,24 +105,6 @@ export const card = (state = cardInitialState, action: Action) => {
         if (ids.includes(c.deckId)) delete state.byId[c.id];
       });
     return { ...state };
-  } else if (equal(action, type.remoteCardReplace)) {
-    const localDeckIds = new Set(action.payload.localDeckIds);
-    const byId = {} as CardState["byId"];
-    Object.values(state.byId)
-      .filter(util.isDefined)
-      .filter((item) => localDeckIds.has(item.deckId))
-      .forEach((item) => {
-        byId[item.id] = item;
-      });
-    action.payload.cards.forEach((item) => {
-      if (byId[item.id] == null) byId[item.id] = item;
-    });
-    const tags = uniq(
-      Object.values(byId)
-        .filter(util.isDefined)
-        .flatMap((item) => item.tags)
-    );
-    return { byId, tags };
   } else {
     return state;
   }
@@ -166,11 +130,7 @@ export const config = (
     cardSwipeLeft: "GoToPrevCard",
     cardSwipeRight: "GoToNextCard",
     darkMode: false,
-    uid: "",
-    isAnonymous: true,
-    displayName: "",
     selectedTags: [],
-    lastUpdatedAt: 0,
     githubAccessToken: "",
     loadSample: true,
     localMode: true,

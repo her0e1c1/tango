@@ -34,9 +34,10 @@ flowchart TD
 ## Runtime Boundaries
 
 - Browser 内で動く React SPA が中心です。server-side application code は見当たりません。
-- Redux state は `deck`、`card`、`config` に分かれ、`redux-persist` で LocalStorage に保存されます。
+- Redux state は local-mode の `deck`、`card` と長期 `config` に分かれ、`redux-persist` で LocalStorage に保存されます。
 - Firebase Auth は匿名ログインと Google ログインを扱います。
-- Firestore には `deck` と `card` の collection があり、`src/action/firestore/event.ts` が `updatedAt` を使って snapshot を購読します。
+- Firestore には `deck` と `card` の collection があり、`src/action/firestore/event.ts` が uid 条件で snapshot を購読します。
+- remote deck/card は TanStack Query cache、runtime identity は Auth Context だけで保持します。
 - `localMode` が true の deck/card は Firestore に保存せず、Redux state のみで扱います。
 
 ## State And Data Flow
@@ -44,21 +45,18 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     participant Browser
-    participant App as App/useEffect
-    participant Event as action.event
+    participant App as AuthBootstrap
     participant Auth as Firebase Auth
-    participant Store as Redux Store
+    participant Query as Query Cache
     participant FS as Firestore
 
     Browser->>App: load SPA
-    App->>Event: init()
-    Event->>Auth: signInAnonymously when config.isAnonymous
-    Auth-->>Event: onAuthStateChanged(user)
-    Event->>Store: configUpdate(uid, isAnonymous, displayName)
-    Event->>FS: subscribe deck/card where uid and updatedAt
-    FS-->>Event: snapshot changes
-    Event->>Store: deck/card bulk insert/update/delete
-    Store-->>Browser: selectors update page props
+    App->>Auth: signInAnonymously when signed out
+    Auth-->>App: onAuthStateChanged(user)
+    App->>FS: subscribe deck/card where uid
+    FS-->>App: initial snapshot and changes
+    App->>Query: replace or update remote deck/card cache
+    Query-->>Browser: query hooks update page props
 ```
 
 ## Build And Deployment View

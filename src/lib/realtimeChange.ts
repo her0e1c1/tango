@@ -21,10 +21,3 @@ export const applyRealtimeChange = <T extends { id: string }>(
   });
   return next;
 };
-
-/**
- * Returns the `lastUpdatedAt` timestamp from a realtime event, if present.
- */
-export const getRealtimeLastUpdatedAt = (event: { lastUpdatedAt?: number }): number | undefined => {
-  return event.lastUpdatedAt;
-};

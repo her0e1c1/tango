@@ -8,6 +8,7 @@ export interface UseConfigFormStateOptions {
   config: ConfigState;
   onSubmit?: (config: ConfigState) => void;
   isLoggedIn?: boolean;
+  identity?: ConfigFormProps["identity"];
   onLogin?: () => void;
   onLogout?: () => void;
   version?: string;
@@ -17,6 +18,7 @@ export const useConfigFormState = ({
   config,
   onSubmit,
   isLoggedIn,
+  identity,
   onLogin,
   onLogout,
   version,
@@ -41,6 +43,7 @@ export const useConfigFormState = ({
   return {
     config,
     ...(isLoggedIn !== undefined ? { isLoggedIn } : {}),
+    ...(identity !== undefined ? { identity } : {}),
     ...(onLogin !== undefined ? { onLogin } : {}),
     ...(onLogout !== undefined ? { onLogout } : {}),
     ...(version !== undefined ? { version } : {}),

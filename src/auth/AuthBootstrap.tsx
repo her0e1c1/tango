@@ -1,8 +1,6 @@
 import type { User } from "firebase/auth";
 import { useEffect, useRef } from "react";
-import { useDispatch, useStore } from "react-redux";
 
-import * as type from "@/action/type";
 import { useAuth, type AuthState } from "@/auth/AuthContext";
 import { cleanupFirestoreUid } from "@/query/cleanup";
 import { startRemoteReads } from "@/query/remoteReadSession";
@@ -18,7 +16,6 @@ type AuthRequest =
   | { status: "authenticated"; identity: AuthenticatedIdentity };
 
 export type AuthTransitionDependencies = {
-  syncAuthenticatedUser: (user: User, resetLastUpdatedAt: boolean) => unknown | Promise<unknown>;
   cleanupUid: (uid: string) => unknown | Promise<unknown>;
   subscribeUid: (uid: string) => unknown | Promise<unknown>;
   reportError: (error: unknown) => void;
@@ -82,16 +79,11 @@ export const createAuthTransitionController = (dependencies: AuthTransitionDepen
 
           const nextIdentity = getIdentity(state.user);
           if (activeIdentity?.uid === nextIdentity.uid) {
-            if (currentGeneration !== generation || isSameIdentity(activeIdentity, nextIdentity)) return true;
-            await dependencies.syncAuthenticatedUser(state.user, false);
             if (currentGeneration === generation) activeIdentity = nextIdentity;
             return true;
           }
 
           await cleanupActiveUid();
-          if (currentGeneration !== generation) return true;
-
-          await dependencies.syncAuthenticatedUser(state.user, true);
           if (currentGeneration !== generation) return true;
 
           await dependencies.subscribeUid(nextIdentity.uid);
@@ -113,8 +105,6 @@ export const createAuthTransitionController = (dependencies: AuthTransitionDepen
 
 export const AuthBootstrap = () => {
   const authState = useAuth();
-  const dispatch = useDispatch();
-  const store = useStore<RootState>();
   const controllerRef = useRef<ReturnType<typeof createAuthTransitionController>>();
   const retryRef = useRef<{ request: AuthRequest; attempted: boolean }>();
   const nextRequest = getRequest(authState);
@@ -126,28 +116,8 @@ export const AuthBootstrap = () => {
 
   if (!controllerRef.current) {
     controllerRef.current = createAuthTransitionController({
-      syncAuthenticatedUser: (user, resetLastUpdatedAt) => {
-        const identity = getIdentity(user);
-        dispatch(
-          type.configUpdate({
-            ...identity,
-            ...(resetLastUpdatedAt ? { lastUpdatedAt: 0 } : {}),
-          })
-        );
-      },
       cleanupUid: cleanupFirestoreUid,
-      subscribeUid: (uid) =>
-        startRemoteReads(uid, {
-          mirrorDecks: (decks) => {
-            dispatch(type.remoteDeckReplace(decks));
-          },
-          mirrorCards: (cards) => {
-            const localDeckIds = Object.values(store.getState().deck.byId)
-              .filter((deck): deck is Deck => Boolean(deck?.localMode))
-              .map((deck) => deck.id);
-            dispatch(type.remoteCardReplace(cards, localDeckIds));
-          },
-        }),
+      subscribeUid: startRemoteReads,
       reportError: (error) => console.error("Auth transition failed", error),
     });
   }

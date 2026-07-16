@@ -28,19 +28,7 @@
 
 ---
 
-## 2. Event Action の不足テスト
-
-### 2-1. subscribe 系（TODOコメントあり）
-
-| # | テスト名 | 前提条件 | 操作 | 期待結果 |
-|---|---|---|---|---|
-| 1 | should subscribe deck listener on login/init | `firestore.deck.onChange` をモック。 | 対象の subscribe トリガ関数を dispatch | `firestore.deck.onChange` が uid/handler 付きで1回呼ばれる。 |
-| 2 | should subscribe card listener on login/init | `firestore.card.onChange` をモック。 | 対象の subscribe トリガ関数を dispatch | `firestore.card.onChange` が uid/handler 付きで1回呼ばれる。 |
-| 3 | should unsubscribe listeners on logout | `onChange` の返却値として `unsubscribe` をモック。 | logout フローを dispatch | `unsubscribe` が呼ばれる。 |
-
----
-
-## 3. Config Action の不足テスト
+## 2. Config Action の不足テスト
 
 ### 3-1. `update` の他フィールド網羅（TODOコメントあり）
 
@@ -48,12 +36,10 @@
 |---|---|---|---|---|
 | 1 | should update showBackText | なし | `update("showBackText", true)` を dispatch | `configUpdate({ showBackText: true })` が dispatch される。 |
 | 2 | should update defaultAutoPlay | なし | `update("defaultAutoPlay", false)` を dispatch | `configUpdate({ defaultAutoPlay: false })` が dispatch される。 |
-| 3 | should update lastUpdatedAt | なし | `update("lastUpdatedAt", 123)` を dispatch | `configUpdate({ lastUpdatedAt: 123 })` が dispatch される。 |
 
 ---
 
-## 4. 優先順位
+## 3. 優先順位
 1. `parseFile` の skip 解消（実運用でCSV取込品質に直結）
 2. `spliteCreate` の分岐網羅（Deck重複/新規作成の回帰防止）
-3. Event subscribe/unsubscribe（メモリリーク・二重購読防止）
-4. Config update の網羅（軽微だが回帰防止効果あり）
+3. Config update の網羅（軽微だが回帰防止効果あり）
