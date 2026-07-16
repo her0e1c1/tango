@@ -95,8 +95,9 @@ test("shows settings and allows changing a local setting", async ({ page }) => {
 test("shows the import screen", async ({ page }) => {
   await page.goto("/import");
 
-  await expect(page.getByText("Deck Upload")).toBeVisible();
-  await expect(page.getByText("CSV File Format")).toBeVisible();
-  await expect(page.getByText("CSV Sample")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Import decks", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Choose a CSV file", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "CSV format", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Sample", exact: true })).toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });

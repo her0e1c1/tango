@@ -11,8 +11,11 @@ export interface CardFormTemplateProps {
 export const CardFormTemplate: React.FC<CardFormTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
-      {props.feedbackSlot}
-      {props.cardForm != null && <CardForm {...props.cardForm} />}
+      <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
+        <h1 className="mb-section-gap break-words text-display font-bold text-ink">Edit card</h1>
+        {props.feedbackSlot}
+        {props.cardForm != null && <CardForm {...props.cardForm} />}
+      </section>
     </Layout>
   );
 };

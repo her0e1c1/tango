@@ -25,13 +25,28 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const Empty: Story = {
+export const Pending: Story = {
   args: {
-    sampleText: "",
+    pending: true,
   },
 };
 
-export const IphoneX: Story = {
+export const LongSample: Story = {
+  args: {
+    sampleText: Array.from(
+      { length: 12 },
+      (_, index) => `A long front ${index + 1},A long back ${index + 1},tag-${index + 1}`
+    ).join("\n"),
+  },
+};
+
+export const DarkReview: Story = {
+  ...LongSample,
+  globals: { theme: "dark" },
+};
+
+export const IphoneReview: Story = {
+  ...LongSample,
   parameters: {
     viewport: {
       defaultViewport: "iphonex",

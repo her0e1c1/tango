@@ -6,6 +6,29 @@ const sourceRoot = path.resolve(process.cwd(), "src");
 const calmFocusStylesheet = "shared/styles/calm-focus.css";
 const storybookPreview = readFileSync(path.resolve(process.cwd(), ".storybook/preview.ts"), "utf8");
 const layoutStories = readFileSync(path.join(sourceRoot, "shared/components/layout/Layout.stories.tsx"), "utf8");
+const utilityRoutePresentationFiles = [
+  "features/deck/components/DeckForm.tsx",
+  "features/deck/components/templates/DeckFormTemplate.tsx",
+  "features/card/components/CardForm.tsx",
+  "features/card/components/templates/CardFormTemplate.tsx",
+  "features/import/components/templates/DeckImportTemplate.tsx",
+  "features/settings/components/ConfigForm.tsx",
+  "features/settings/components/templates/ConfigFormTemplate.tsx",
+] as const;
+const completedUtilityRoutePresentationFiles = [
+  "features/deck/components/DeckForm.tsx",
+  "features/deck/components/templates/DeckFormTemplate.tsx",
+  "features/card/components/CardForm.tsx",
+  "features/card/components/templates/CardFormTemplate.tsx",
+  "features/import/components/templates/DeckImportTemplate.tsx",
+  "features/settings/components/ConfigForm.tsx",
+  "features/settings/components/templates/ConfigFormTemplate.tsx",
+] as const satisfies readonly (typeof utilityRoutePresentationFiles)[number][];
+const completedUtilityRoutePresentationFileSet = new Set<string>(completedUtilityRoutePresentationFiles);
+const pendingUtilityRoutePresentationFiles = utilityRoutePresentationFiles.filter(
+  (relativePath) => !completedUtilityRoutePresentationFileSet.has(relativePath)
+);
+const pendingUtilityRoutePresentationFileSet = new Set<string>(pendingUtilityRoutePresentationFiles);
 const ownedPresentationFiles = [
   "shared/components/layout/Outer.tsx",
   "shared/components/layout/Main.tsx",
@@ -45,7 +68,11 @@ const ownedPresentationFiles = [
   "features/card/components/CardOverlay.tsx",
   "features/card/components/templates/CardListTemplate.tsx",
   "features/card/components/templates/CardViewTemplate.tsx",
+  ...utilityRoutePresentationFiles,
 ];
+const enforcedOwnedPresentationFiles = ownedPresentationFiles.filter(
+  (relativePath) => !pendingUtilityRoutePresentationFileSet.has(relativePath)
+);
 const semanticColorRoles = [
   "canvas",
   "surface",
@@ -218,8 +245,8 @@ describe("Calm Focus visual contract", () => {
     expect(reducedMotion).toContain("scroll-behavior:");
   });
 
-  it("keeps the owned presentation files free of raw Tailwind palette utilities", () => {
-    const violations = ownedPresentationFiles.flatMap((relativePath) =>
+  it("keeps completed owned presentation files free of raw Tailwind palette utilities", () => {
+    const violations = enforcedOwnedPresentationFiles.flatMap((relativePath) =>
       rawPaletteUtilities(readOwnedSource(relativePath)).map((utility) => `${relativePath}: ${utility}`)
     );
 
@@ -229,5 +256,51 @@ describe("Calm Focus visual contract", () => {
   it("gives the deck filter surfaces semantic Calm Focus treatment", () => {
     expect(readOwnedSource("features/deck/components/DeckStartForm.tsx")).toMatch(/bg-surface/);
     expect(readOwnedSource("features/deck/components/TagFilter.tsx")).toMatch(/bg-surface/);
+  });
+
+  it("gives the card editing surfaces semantic Calm Focus treatment", () => {
+    expect(readOwnedSource("features/card/components/CardForm.tsx")).toMatch(/bg-surface-muted/);
+    expect(readOwnedSource("features/card/components/templates/CardFormTemplate.tsx")).toMatch(/bg-surface/);
+  });
+
+  it("gives the import route a bounded semantic Calm Focus surface", () => {
+    const importTemplate = readOwnedSource("features/import/components/templates/DeckImportTemplate.tsx");
+
+    expect(importTemplate).toMatch(/max-w-reading/);
+    expect(importTemplate).toMatch(/border-border/);
+    expect(importTemplate).toMatch(/bg-surface/);
+  });
+
+  it("gives Settings semantic sections within a bounded Calm Focus surface", () => {
+    const configForm = readOwnedSource("features/settings/components/ConfigForm.tsx");
+    const configTemplate = readOwnedSource("features/settings/components/templates/ConfigFormTemplate.tsx");
+
+    expect(configForm).toMatch(/<section/);
+    expect(configForm).toMatch(/bg-surface-muted/);
+    expect(configTemplate).toMatch(/max-w-reading/);
+    expect(configTemplate).toMatch(/border-border/);
+    expect(configTemplate).toMatch(/bg-surface/);
+  });
+
+  it("registers utility routes and enforces semantic surfaces for completed templates", () => {
+    expect(utilityRoutePresentationFiles).toEqual([
+      "features/deck/components/DeckForm.tsx",
+      "features/deck/components/templates/DeckFormTemplate.tsx",
+      "features/card/components/CardForm.tsx",
+      "features/card/components/templates/CardFormTemplate.tsx",
+      "features/import/components/templates/DeckImportTemplate.tsx",
+      "features/settings/components/ConfigForm.tsx",
+      "features/settings/components/templates/ConfigFormTemplate.tsx",
+    ]);
+    expect(ownedPresentationFiles).toEqual(expect.arrayContaining([...utilityRoutePresentationFiles]));
+    expect(pendingUtilityRoutePresentationFiles).toEqual([]);
+    expect(enforcedOwnedPresentationFiles).toEqual(expect.arrayContaining([...completedUtilityRoutePresentationFiles]));
+    for (const relativePath of pendingUtilityRoutePresentationFiles) {
+      expect(enforcedOwnedPresentationFiles).not.toContain(relativePath);
+    }
+
+    for (const relativePath of completedUtilityRoutePresentationFiles.filter((file) => file.includes("Template"))) {
+      expect(readOwnedSource(relativePath), relativePath).toMatch(/bg-surface(?:-elevated)?/);
+    }
   });
 });
