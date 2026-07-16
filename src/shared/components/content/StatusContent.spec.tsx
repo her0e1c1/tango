@@ -16,7 +16,7 @@ describe("shared status content", () => {
     render(<Score score={score} />);
     const status = screen.getByLabelText(`Score ${score}, ${cue}`);
     expect(status).toHaveClass(colorClass, "text-ink-inverse", "rounded-pill");
-    expect(status).toHaveTextContent(score > 0 ? `+${score}` : `${score}`);
+    expect(status.querySelector("span")?.textContent).toBe(`${score}`);
   });
 
   it.each([

@@ -20,7 +20,7 @@ export const Score: React.FC<{ score?: number; large?: boolean; className?: stri
         props.className
       )}
     >
-      <span className="self-center">{score > 0 ? `+${score}` : score}</span>
+      <span className="self-center">{score}</span>
     </div>
   );
 };
