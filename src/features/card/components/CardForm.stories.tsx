@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { CardForm as Template, type CardFormFields } from "@/features/card/components/CardForm";
 import type { Option } from "@/shared/components/forms/Select";
 import * as fixture from "@/shared/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
 
 const fieldsFor = (card: Card, options: Option[]): CardFormFields => ({
   frontText: { value: card.frontText, onChange: () => undefined },
@@ -14,10 +15,22 @@ const fieldsFor = (card: Card, options: Option[]): CardFormFields => ({
   })),
 });
 
+const longCard: Card = {
+  ...fixture.card.long,
+  tags: [...fixture.tags.toolong],
+};
+const longTagOptions = fixture.tags.toolong.map((tag) => ({ label: tag, value: tag }));
+
 const meta = {
   title: "Card/CardForm",
   component: Template,
   tags: ["autodocs"],
+  parameters: {
+    viewport: {
+      viewports: INITIAL_VIEWPORTS,
+      defaultViewport: "desktop",
+    },
+  },
   argTypes: {
     onSubmit: { action: "onSubmit" },
   },
@@ -37,4 +50,25 @@ export const TooManyOptions: Story = {
     card: fixture.card.default,
     fields: fieldsFor(fixture.card.default, fixture.form.options.toomany),
   },
+};
+
+export const LongValues: Story = {
+  args: {
+    card: longCard,
+    fields: fieldsFor(longCard, longTagOptions),
+  },
+};
+
+export const Submitting: Story = {
+  args: { isSubmitting: true },
+};
+
+export const DarkReview: Story = {
+  ...LongValues,
+  globals: { theme: "dark" },
+};
+
+export const IphoneReview: Story = {
+  ...LongValues,
+  parameters: { viewport: { defaultViewport: "iphonex" } },
 };
