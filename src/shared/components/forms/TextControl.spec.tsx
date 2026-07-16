@@ -164,4 +164,19 @@ describe("shared text controls", () => {
       expect(control).toHaveClass("focus-visible:border-focus");
     }
   });
+
+  it.each([
+    ["input", () => render(<Input type="email" defaultValue="not-an-email" />)],
+    [
+      "select",
+      () => render(<Select empty required defaultValue="" options={[{ label: "Primary", value: "primary" }]} />),
+    ],
+    ["textarea", () => render(<Textarea required />)],
+  ])("makes invalid styling reachable on the native %s", (_name, renderControl) => {
+    const view = renderControl();
+    const element = view.container.firstElementChild;
+
+    expect(element).toBeInvalid();
+    expect(element).toHaveClass("invalid:border-danger");
+  });
 });

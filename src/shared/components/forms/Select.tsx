@@ -14,6 +14,7 @@ export const Select: React.FC<{
   value?: string;
   defaultValue?: string;
   disabled?: boolean;
+  required?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLSelectElement>) => void;
   inputRef?: React.Ref<HTMLSelectElement>;
@@ -29,6 +30,7 @@ export const Select: React.FC<{
       value={props.value}
       defaultValue={props.defaultValue}
       disabled={props.disabled}
+      required={props.required}
       onChange={props.onChange}
       onBlur={props.onBlur}
       className={cx(

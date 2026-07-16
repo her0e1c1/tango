@@ -22,9 +22,12 @@ export const States: Story = {
       <Template placeholder="Placeholder value" />
       <Template defaultValue="Read-only value" readOnly />
       <Template defaultValue="Disabled value" disabled />
-      <Template type="email" defaultValue="invalid-email" />
     </div>
   ),
+};
+
+export const Invalid: Story = {
+  args: { type: "email", defaultValue: "invalid-email" },
 };
 
 export const LongValue: Story = {

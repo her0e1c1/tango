@@ -14,6 +14,10 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const Invalid: Story = {
+  args: { required: true, defaultValue: "" },
+};
+
 export const States: Story = {
   render: () => (
     <div className="grid gap-4">

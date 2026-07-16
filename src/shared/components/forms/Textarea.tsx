@@ -9,6 +9,7 @@ export const Textarea: React.FC<{
   defaultValue?: string;
   disabled?: boolean;
   readOnly?: boolean;
+  required?: boolean;
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
@@ -22,6 +23,7 @@ export const Textarea: React.FC<{
       defaultValue={props.defaultValue}
       disabled={props.disabled}
       readOnly={props.readOnly}
+      required={props.required}
       placeholder={props.placeholder}
       onChange={props.onChange}
       onBlur={props.onBlur}

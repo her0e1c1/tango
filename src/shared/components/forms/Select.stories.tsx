@@ -21,6 +21,10 @@ export const Empty: Story = {
   args: { empty: true },
 };
 
+export const Invalid: Story = {
+  args: { empty: true, required: true, defaultValue: "" },
+};
+
 export const States: Story = {
   render: () => (
     <div className="grid gap-4">
