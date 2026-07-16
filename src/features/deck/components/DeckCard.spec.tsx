@@ -63,16 +63,19 @@ describe("DeckCard", () => {
     expect(actions.onClickStudy).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(actions.onClickRestart).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(view.getByRole("button", { name: "Download" }));
+    const managementIcons = view.container.querySelectorAll("svg");
+    expect(managementIcons).toHaveLength(4);
+
+    fireEvent.click(managementIcons[0] as SVGElement);
     expect(actions.onClickDownload).toHaveBeenCalledExactlyOnceWith(deck.id);
 
-    fireEvent.click(view.getByRole("button", { name: "Edit" }));
+    fireEvent.click(managementIcons[1] as SVGElement);
     expect(actions.onClickEdit).toHaveBeenCalledExactlyOnceWith(deck.id);
 
-    fireEvent.click(view.getByRole("button", { name: "Delete" }));
+    fireEvent.click(managementIcons[2] as SVGElement);
     expect(actions.onClickDelete).toHaveBeenCalledExactlyOnceWith(deck.id);
 
-    fireEvent.click(view.getByRole("button", { name: "Reimport" }));
+    fireEvent.click(managementIcons[3] as SVGElement);
     expect(actions.onClickReimport).toHaveBeenCalledExactlyOnceWith(deck.id);
   });
 
@@ -90,13 +93,15 @@ describe("DeckCard", () => {
     expect(onClickStudy).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps the delete glyph visibly destructive", () => {
+  it("preserves the unwrapped management icon hooks and danger styling", () => {
     const view = render(<DeckCard deck={deck} />);
-    const deleteButton = view.getByRole("button", { name: "Delete" });
-    const deleteGlyph = deleteButton.querySelector("svg");
+    const managementIcons = view.container.querySelectorAll("svg");
+    const deleteGlyph = managementIcons[2];
 
-    expect(deleteButton).toHaveClass("text-danger");
-    expect(deleteGlyph).not.toHaveClass("text-ink-muted");
+    expect(managementIcons).toHaveLength(3);
+    for (const icon of managementIcons) expect(icon.parentElement?.tagName).toBe("DIV");
+    expect(deleteGlyph).toHaveClass("text-danger");
+    expect(deleteGlyph).not.toHaveAttribute("aria-label");
   });
 
   it("enables restart only for the deck that owns the active progress", () => {

@@ -61,9 +61,7 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
           <div className="flex min-w-0 flex-wrap items-start gap-1">
             <Title onClick={onClickName}>{deck.name}</Title>
             <Tag className="mr-2 mb-2" round label={deck.category} hidden={!deck.category} />
-            {deck.isPublic && (
-              <AiOutlineCloud aria-label="Public deck" className="mt-1 shrink-0 text-ink-muted" size={24} />
-            )}
+            {deck.isPublic && <AiOutlineCloud className="mt-1 shrink-0 text-ink-muted" size={24} />}
           </div>
           {props.studyProgress != null && (
             <Description>
@@ -87,39 +85,23 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
           </div>
 
           <div className="mt-4 flex justify-center gap-1 border-t border-border pt-2">
-            <button
-              type="button"
-              aria-label="Download"
-              className="flex size-touch items-center justify-center rounded-control text-ink-muted hover:bg-surface-muted"
+            <AiOutlineCloudDownload
+              className="size-touch rounded-control p-2 text-ink-muted hover:bg-surface-muted"
               onClick={onClickDownload}
-            >
-              <AiOutlineCloudDownload />
-            </button>
-            <button
-              type="button"
-              aria-label="Edit"
-              className="flex size-touch items-center justify-center rounded-control text-ink-muted hover:bg-surface-muted"
+            />
+            <AiOutlineEdit
+              className="size-touch rounded-control p-2 text-ink-muted hover:bg-surface-muted"
               onClick={onClickEdit}
-            >
-              <AiOutlineEdit />
-            </button>
-            <button
-              type="button"
-              aria-label="Delete"
-              className="flex size-touch items-center justify-center rounded-control text-danger hover:bg-surface-muted"
+            />
+            <AiOutlineDelete
+              className="size-touch rounded-control p-2 text-danger hover:bg-surface-muted"
               onClick={onClickDelete}
-            >
-              <AiOutlineDelete />
-            </button>
+            />
             {Boolean(deck.url) && (
-              <button
-                type="button"
-                aria-label="Reimport"
-                className="flex size-touch items-center justify-center rounded-control text-ink-muted hover:bg-surface-muted"
+              <AiOutlineReload
+                className="size-touch rounded-control p-2 text-ink-muted hover:bg-surface-muted"
                 onClick={onClickReimport}
-              >
-                <AiOutlineReload />
-              </button>
+              />
             )}
           </div>
         </div>
