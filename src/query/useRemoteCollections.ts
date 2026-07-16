@@ -15,8 +15,8 @@ const definedEntries = <T>(items: Record<string, T | undefined>) =>
 export const useRemoteCollections = () => {
   const authState = useAuth();
   const uid = authState.status === "authenticated" ? authState.uid : "";
-  const reduxDecks = useSelector((state: RootState) => state.deck.byId);
-  const reduxCards = useSelector((state: RootState) => state.card.byId);
+  const reduxDeckState = useSelector((state: RootState) => state.deck);
+  const reduxCardState = useSelector((state: RootState) => state.card);
   const remoteState = useSyncExternalStore(subscribeRemoteReadState, getRemoteReadState, getRemoteReadState);
   const remoteDeckQuery = useQuery<RemoteById<Deck>>({
     queryKey: firestoreKeys.decks(uid),
@@ -30,6 +30,8 @@ export const useRemoteCollections = () => {
   });
 
   const collections = useMemo(() => {
+    const reduxDecks = reduxDeckState.byId;
+    const reduxCards = reduxCardState.byId;
     const localDeckEntries = definedEntries(reduxDecks).filter(([, deck]) => deck.localMode);
     const localDeckIds = new Set(localDeckEntries.map(([id]) => id));
     const localCardEntries = definedEntries(reduxCards).filter(([, card]) => localDeckIds.has(card.deckId));
@@ -44,7 +46,7 @@ export const useRemoteCollections = () => {
     const decks = definedEntries(decksById).map(([, deck]) => deck);
     const cards = definedEntries(cardsById).map(([, card]) => card);
     return { decksById, cardsById, decks, cards };
-  }, [reduxDecks, reduxCards, remoteDeckQuery.data, remoteCardQuery.data]);
+  }, [reduxDeckState, reduxCardState, remoteDeckQuery.data, remoteCardQuery.data]);
 
   const status: RemoteReadState["status"] =
     uid === "" ? "idle" : remoteState.uid === uid ? remoteState.status : "loading";
