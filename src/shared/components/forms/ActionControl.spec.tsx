@@ -78,6 +78,17 @@ describe("Button action control", () => {
     expect(onSubmit).toHaveBeenCalledOnce();
   });
 
+  it("does not announce loading for a hidden control", () => {
+    render(
+      <Button hidden loading>
+        Continue
+      </Button>
+    );
+
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
   it.each([
     [{ primary: true }, "bg-accent-primary"],
     [{ small: true }, "px-3"],

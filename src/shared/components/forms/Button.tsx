@@ -50,6 +50,7 @@ export const Button: React.FC<ButtonProps> = (props) => {
     <>
       <button
         type={props.type ?? "button"}
+        hidden={props.hidden}
         className={cx(
           "inline-flex items-center justify-center gap-2 rounded-control transition-opacity duration-fast ease-calm disabled:cursor-not-allowed disabled:opacity-50",
           { hidden: props.hidden },
@@ -69,7 +70,7 @@ export const Button: React.FC<ButtonProps> = (props) => {
         ) : null}
         {content}
       </button>
-      {props.loading ? (
+      {props.loading && !props.hidden ? (
         <span role="status" aria-live="polite" className="sr-only">
           {loadingAnnouncement}
         </span>
