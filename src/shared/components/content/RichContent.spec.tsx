@@ -3,7 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { Code } from "@/shared/components/content/Code";
-import { Math } from "@/shared/components/content/Math";
+import { MathContent } from "@/shared/components/content/Math";
 
 afterEach(cleanup);
 
@@ -21,7 +21,7 @@ describe("shared rich content", () => {
   });
 
   it("keeps GFM and KaTeX rendering readable inside narrow surfaces", () => {
-    const view = render(<Math text={"| A | B |\n| - | - |\n| 1 | 2 |\n\n$$x^2$$"} />);
+    const view = render(<MathContent text={"| A | B |\n| - | - |\n| 1 | 2 |\n\n$$x^2$$"} />);
     const wrapper = view.container.firstElementChild;
 
     expect(wrapper).toHaveClass("markdown-body", "max-w-full", "overflow-x-auto", "bg-surface");

@@ -41,7 +41,6 @@ const isSameRequest = (left: AuthRequest | undefined, right: AuthRequest) => {
   return isSameIdentity(left.identity, right.identity);
 };
 
-// biome-ignore lint/style/useComponentExportOnlyModules: The pure controller keeps auth transitions deterministic.
 export const createAuthTransitionController = (dependencies: AuthTransitionDependencies) => {
   let generation = 0;
   let requestedState: AuthRequest | undefined;

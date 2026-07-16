@@ -23,7 +23,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const Math: Story = {
+export const MathContent: Story = {
   args: {
     text: fixture.math.block,
     category: "math",

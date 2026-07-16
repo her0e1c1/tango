@@ -17,7 +17,7 @@ const components = {
   List: Shared.List,
   Logo: Shared.Logo,
   Main: Shared.Main,
-  Math: Shared.Math,
+  MathContent: Shared.MathContent,
   Outer: Shared.Outer,
   Overlay: Shared.Overlay,
   Score: Shared.Score,
