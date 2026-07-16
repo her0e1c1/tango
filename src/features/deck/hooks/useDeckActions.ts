@@ -1,23 +1,32 @@
 import * as React from "react";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import * as action from "@/action";
+import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
+import { useRemoteCollections } from "@/query/useRemoteCollections";
 
 export const useDeckActions = (id: DeckId) => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const remote = useRemoteCollections();
+  const mutations = useDeckMutations();
   return React.useMemo(
     () => ({
-      update: (deck: Deck) => {
-        dispatch(action.deck.update(deck));
+      update: mutations.update,
+      updateAndBack: async (deck: Deck) => {
+        try {
+          await mutations.update(deck);
+          void navigate(-1);
+        } catch {
+          // The mutation notice owns error feedback and retry.
+        }
       },
-      updateAndBack: (deck: Deck) => {
-        dispatch(action.deck.update(deck));
-        void navigate(-1);
+      remove: () => {
+        const deck = remote.deckById(id);
+        return deck == null ? Promise.reject(new Error(`Deck ${id} is not available`)) : mutations.remove(deck);
       },
-      remove: () => dispatch(action.deck.remove(id)),
+      pending: mutations.pending,
+      error: mutations.error,
+      retry: mutations.retry,
     }),
-    [dispatch, navigate, id]
+    [id, mutations, navigate, remote]
   );
 };

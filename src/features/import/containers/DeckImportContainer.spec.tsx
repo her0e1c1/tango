@@ -1,14 +1,25 @@
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  deckUploadAndBack: vi.fn(),
+  importFile: vi.fn(),
+  navigate: vi.fn(),
   deckDownloadCsvSampleText: vi.fn(),
   goToTop: vi.fn(),
   goToSettings: vi.fn(),
   useKey: vi.fn(),
+}));
+
+vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
+vi.mock("@/features/import/hooks/useDeckImport", () => ({
+  useDeckImport: () => ({
+    importFile: mocks.importFile,
+    pending: false,
+    error: null,
+    retry: vi.fn(),
+  }),
 }));
 
 vi.mock("react-redux", () => ({
@@ -26,7 +37,6 @@ vi.mock("react-use", () => ({
 
 vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => ({
-    deckUploadAndBack: mocks.deckUploadAndBack,
     deckDownloadCsvSampleText: mocks.deckDownloadCsvSampleText,
     goToTop: mocks.goToTop,
     goToSettings: mocks.goToSettings,
@@ -40,6 +50,7 @@ import { DeckImportContainer } from "@/features/import/containers/DeckImportCont
 describe("DeckImportContainer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.importFile.mockResolvedValue({});
   });
 
   afterEach(() => {
@@ -55,7 +66,8 @@ describe("DeckImportContainer", () => {
     });
     await userEvent.click(view.getByText("download"));
 
-    expect(mocks.deckUploadAndBack).toHaveBeenCalledWith(file);
+    expect(mocks.importFile).toHaveBeenCalledWith(file);
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith(-1));
     expect(mocks.deckDownloadCsvSampleText).toHaveBeenCalledOnce();
     expect(mocks.useKey).toHaveBeenCalledWith("t", mocks.goToTop);
     expect(mocks.useKey).toHaveBeenCalledWith("s", mocks.goToSettings);

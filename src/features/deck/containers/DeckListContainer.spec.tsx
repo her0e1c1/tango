@@ -52,6 +52,10 @@ vi.mock("@/shared/hooks/useActions", () => ({
   useActions: () => mocks.actions,
 }));
 
+vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
+  useDeckMutations: () => ({ remove: vi.fn(), pending: false, error: null, retry: vi.fn() }),
+}));
+
 import { DeckListContainer } from "@/features/deck/containers/DeckListContainer";
 
 describe("DeckListContainer", () => {

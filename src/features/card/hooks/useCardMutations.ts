@@ -116,11 +116,11 @@ export const useCardMutations = () => {
       if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
       return run({ kind: "remove", id, local: isLocal(card.deckId) });
     },
-    bulkUpsert: (cards: Card[]) =>
+    bulkUpsert: (cards: Card[], localMode?: boolean) =>
       run({
         kind: "bulkUpsert",
         cards,
-        localIds: cards.filter((card) => isLocal(card.deckId)).map((card) => card.id),
+        localIds: cards.filter((card) => localMode ?? isLocal(card.deckId)).map((card) => card.id),
       }),
     isPending: (id: CardId) => pendingCounts.current.has(id),
     pending: pendingCounts.current.size > 0,

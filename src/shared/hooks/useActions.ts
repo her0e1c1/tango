@@ -44,17 +44,8 @@ export const useActions = () => {
           void navigate("/");
         }
       },
-      deckDownload: (id: DeckId) => dispatch(action.deck.download(id)),
-      deckRemove: (id: DeckId) =>
-        window.confirm("Are you sure of removing this deck?") && dispatch(action.deck.remove(id)),
-      deckReimport: (id: DeckId) =>
-        window.confirm("Are you sure of reloading this deck?") && dispatch(action.deck.reimport(id)),
-      deckUploadAndBack: (file: File) => {
-        dispatch(action.deck.parseFile(file));
-        void navigate(-1);
-      },
       deckDownloadCsvSampleText: () => {
-        dispatch(action.deck.downloadCsvSampleText());
+        action.deck.downloadCsvSampleText();
       },
       login: () => dispatch(action.config.loginGoogle()),
       logout: (confirmedUid: string) => dispatch(action.config.logout(confirmedUid)),
