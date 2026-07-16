@@ -35,10 +35,13 @@ run = "npm ci"
 alias = "u"
 run = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
 
+[tasks.dev-up]
+run = "env -u VITE_PROJECT_ID -u VITE_WEB_API_KEY -u VITE_DB_HOST -u VITE_DB_PORT -u VITE_AUTH_HOST -u VITE_AUTH_PORT docker compose --env-file .env.dev up --wait --wait-timeout 120 --remove-orphans -d db auth"
+
 [tasks.dev]
 alias = "d"
-depends = ["build-sample", "up"]
-run = "npm start -- --open"
+depends = ["build-sample", "dev-up"]
+run = "env -u VITE_PROJECT_ID -u VITE_WEB_API_KEY -u VITE_DB_HOST -u VITE_DB_PORT -u VITE_AUTH_HOST -u VITE_AUTH_PORT npm start -- --open --mode dev"
 
 [tasks.storybook]
 alias = "s"

@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { connectAuthEmulator, getAuth } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
@@ -13,6 +13,12 @@ export const app = initializeApp({
   storageBucket: `${projectId}.appspot.com`,
 });
 export const auth = getAuth(app);
+
+if (import.meta.env.MODE === "dev") {
+  const host = import.meta.env.VITE_AUTH_HOST;
+  const port = import.meta.env.VITE_AUTH_PORT;
+  connectAuthEmulator(auth, `http://${host}:${port}`);
+}
 
 if (import.meta.env.DEV) {
   const db = getFirestore(app);
