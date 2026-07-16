@@ -52,6 +52,10 @@ export const Checked: Story = {
   args: { checked: true },
 };
 
+export const Disabled: Story = {
+  args: { checked: true, disabled: true, label: "disabled tag" },
+};
+
 export const Clickable: Story = {
   args: {
     onChange: () => {
@@ -90,4 +94,24 @@ export const PrimaryClickableChecked: Story = {
     },
     checked: true,
   },
+};
+
+export const LightAndDark: Story = {
+  render: () => (
+    <div className="grid gap-4">
+      <div className="flex gap-3 bg-canvas p-4 text-ink">
+        <Template label="Light" />
+        <Template checked primary label="Selected" />
+      </div>
+      <div className="dark flex gap-3 bg-canvas p-4 text-ink">
+        <Template label="Dark" />
+        <Template checked primary label="Selected" />
+      </div>
+    </div>
+  ),
+};
+
+export const NarrowViewport: Story = {
+  args: { checked: true, label: "Selected on mobile", round: true },
+  parameters: { viewport: { defaultViewport: "iphone5" } },
 };

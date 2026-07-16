@@ -2,20 +2,29 @@ import cx from "classnames";
 import type * as React from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 
-export const Upload: React.FC<{ className?: string; disabled?: boolean; onChange?: (file: File) => void }> = (
-  props
-) => (
+export const Upload: React.FC<{
+  className?: string;
+  disabled?: boolean;
+  fileName?: string;
+  onChange?: (file: File) => void;
+}> = (props) => (
   <label
-    className={cx(props.className, "flex", "max-w-sm", "h-48", "rounded-lg", "border", "cursor-pointer", "shadow-lg")}
+    className={cx(
+      "flex h-48 max-w-sm rounded-surface border-2 border-border bg-surface text-ink shadow-surface transition-shadow duration-normal ease-calm",
+      props.fileName ? "border-solid shadow-elevated" : "border-dashed",
+      props.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+      props.className
+    )}
   >
-    <div className={cx("relative", "flex-1", "cursor-pointer")}>
-      <div className={cx("absolute", "justify-center", "items-center", "w-full", "h-full", "flex", "flex-col")}>
-        <AiOutlineCloudUpload size={24} className="text-xl" />
-        <span className="text-base tracking-wide">Upload a csv file</span>
+    <div className="relative flex-1">
+      <div className="absolute flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center">
+        <AiOutlineCloudUpload size={24} className="text-xl text-accent-primary" />
+        <span className="text-base tracking-wide text-ink-muted">Upload a csv file</span>
+        {props.fileName ? <span className="max-w-full truncate font-semibold text-ink">{props.fileName}</span> : null}
       </div>
       <input
         type="file"
-        className="h-full w-full opacity-0 bg-pink-800"
+        className="h-full w-full cursor-inherit opacity-0"
         accept=".csv"
         disabled={props.disabled}
         onChange={(e) => {

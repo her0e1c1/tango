@@ -9,8 +9,12 @@ export interface Option {
 export const Select: React.FC<{
   options?: Option[];
   empty?: boolean;
+  className?: string;
   name?: string;
   value?: string;
+  defaultValue?: string;
+  disabled?: boolean;
+  required?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLSelectElement>) => void;
   inputRef?: React.Ref<HTMLSelectElement>;
@@ -24,12 +28,14 @@ export const Select: React.FC<{
       ref={props.inputRef}
       name={props.name}
       value={props.value}
+      defaultValue={props.defaultValue}
+      disabled={props.disabled}
+      required={props.required}
       onChange={props.onChange}
       onBlur={props.onBlur}
       className={cx(
-        `block appearance-none w-full bg-white border border-gray-400
-        hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight
-        focus:outline-hidden focus:ring-2 focus:ring-blue-500`
+        "block min-h-touch w-full appearance-none rounded-control border border-border bg-surface px-4 py-2 pr-8 leading-tight text-ink shadow-surface transition-colors duration-fast ease-calm hover:border-ink-muted focus-visible:border-focus invalid:border-danger disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-muted",
+        props.className
       )}
     >
       {options?.map((o) => (

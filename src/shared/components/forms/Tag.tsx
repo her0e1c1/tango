@@ -8,6 +8,7 @@ export const Tag: React.FC<{
   large?: boolean;
   label?: string;
   checked?: boolean;
+  disabled?: boolean;
   default?: boolean;
   primary?: boolean;
   hidden?: boolean;
@@ -25,6 +26,7 @@ export const Tag: React.FC<{
         type="checkbox"
         className="hidden peer"
         checked={props.checked}
+        disabled={props.disabled}
         ref={props.inputRef}
         name={props.name}
         value={props.value}
@@ -34,30 +36,21 @@ export const Tag: React.FC<{
       <div
         className={cx(
           props.className,
-          "select-none",
+          "inline-flex min-h-touch min-w-touch select-none items-center justify-center",
           "whitespace-nowrap",
           "font-medium",
           "align-middle",
-          props.round ? "rounded-full" : "rounded",
+          "border border-border transition-colors duration-fast ease-calm peer-checked:ring-2 peer-checked:ring-current",
+          "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+          props.round ? "rounded-pill" : "rounded-control",
           props.large ? ["py-3 px-4 text-lg"] : props.small ? ["py-1 px-1 text-xs"] : ["py-2 px-3 text-sm"],
           props.primary
-            ? [
-                "bg-blue-200",
-                "text-blue-500",
-                "peer-checked:bg-blue-300",
-                "dark:bg-blue-700",
-                "dark:text-blue-400",
-                "dark:peer-checked:bg-blue-900",
-              ]
+            ? ["bg-accent-primary text-ink-inverse", "peer-checked:border-accent-primary"]
             : [
-                "bg-gray-200",
-                "text-gray-500",
-                "peer-checked:bg-gray-300",
-                "dark:bg-gray-700",
-                "dark:text-gray-400",
-                "dark:peer-checked:bg-gray-900",
+                "bg-surface-muted text-ink",
+                "peer-checked:border-accent-secondary peer-checked:bg-accent-secondary peer-checked:text-ink-inverse",
               ],
-          props.onChange != null && "cursor-pointer"
+          props.onChange != null && !props.disabled && "cursor-pointer"
         )}
       >
         {props.label ?? props.children}
