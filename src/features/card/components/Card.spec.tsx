@@ -24,9 +24,13 @@ describe("Card", () => {
     expect(view.getByLabelText("Score 3, positive")).toBeInTheDocument();
     expect(view.getByText("studied 7 time(s)")).toBeInTheDocument();
     expect(view.getByText("one")).toBeInTheDocument();
+    const actionGlyphs = view.container.querySelectorAll("svg");
+    expect(view.container.querySelectorAll("button")).toHaveLength(0);
+    expect(actionGlyphs).toHaveLength(2);
+    expect(actionGlyphs[1]).toHaveClass("text-danger");
     fireEvent.click(view.getByText("A long front"));
-    fireEvent.click(view.getByRole("button", { name: "Edit card" }));
-    fireEvent.click(view.getByRole("button", { name: "Delete card" }));
+    fireEvent.click(actionGlyphs[0] as Element);
+    fireEvent.click(actionGlyphs[1] as Element);
     expect(goToView).toHaveBeenCalledExactlyOnceWith(card.id);
     expect(goToEdit).toHaveBeenCalledExactlyOnceWith(card.id);
     expect(onDelete).toHaveBeenCalledExactlyOnceWith(card.id);
@@ -35,9 +39,10 @@ describe("Card", () => {
   it("suppresses actions while disabled and leaves onEdit unwired", () => {
     const actions = { goToView: vi.fn(), goToEdit: vi.fn(), onDelete: vi.fn(), onEdit: vi.fn() };
     const view = render(<Card card={card} disabled {...actions} />);
+    const actionGlyphs = view.container.querySelectorAll("svg");
     fireEvent.click(view.getByText("A long front"));
-    fireEvent.click(view.getByRole("button", { name: "Edit card" }));
-    fireEvent.click(view.getByRole("button", { name: "Delete card" }));
+    fireEvent.click(actionGlyphs[0] as Element);
+    fireEvent.click(actionGlyphs[1] as Element);
     expect(Object.values(actions).every((action) => action.mock.calls.length === 0)).toBe(true);
   });
 });

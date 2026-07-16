@@ -1,7 +1,7 @@
 import * as React from "react";
 import { IconContext } from "react-icons";
 import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
-import { Button, Card as Surface, Description, Score, Tag, TagList, Title } from "@/shared/components";
+import { Card as Surface, Description, Score, Tag, TagList, Title } from "@/shared/components";
 import { useSwipeable } from "react-swipeable";
 
 export interface CardActionsProps {
@@ -62,14 +62,8 @@ export const Card: React.FC<
               {props.card.frontText}
             </Title>
             <div className="flex shrink-0 gap-2 self-end">
-              <Button size="sm" variant="quiet" disabled={Boolean(props.disabled)} onClick={goToEdit}>
-                <span className="sr-only">Edit card</span>
-                <AiOutlineEdit size={24} />
-              </Button>
-              <Button size="sm" variant="destructive" disabled={Boolean(props.disabled)} onClick={onDelete}>
-                <span className="sr-only">Delete card</span>
-                <AiOutlineDelete size={24} />
-              </Button>
+              <AiOutlineEdit className="text-ink" size={24} onClick={goToEdit} />
+              <AiOutlineDelete className="text-danger" size={24} onClick={onDelete} />
             </div>
           </div>
         </Surface>
