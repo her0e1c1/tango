@@ -11,7 +11,7 @@ changed_files=$(mktemp "${RUNNER_TEMP:-/tmp}/changed-files.XXXXXX")
 trap 'rm -f "${changed_files}"' EXIT
 
 # Disable rename detection so both sides of a rename are classified.
-git diff --no-renames --name-only -z "$1...$2" > "${changed_files}"
+git diff --no-renames --name-only -z --end-of-options "$1...$2" > "${changed_files}"
 
 markdown_changed=false
 non_markdown_changed=false
