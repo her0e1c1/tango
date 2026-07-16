@@ -14,7 +14,7 @@
 
 ## TypeScript Coverage And Policy
 
-`npm run lint:tsc` は最初に `scripts/check-tsconfig-coverage.mjs` を実行し、Git で追跡しているすべての `.ts` / `.tsx` が `tsconfig.json` または `tsconfig.node.json` のどちらかに含まれることを検証します。`tsconfig.json` は `src`、`tsconfig.node.json` は root の config、`.storybook`、`e2e` を担当します。将来 TypeScript file を追加したときも、どちらの config にも含まれない file があれば lint は失敗します。
+`npm run lint:tsc` は `tsconfig.json` と `tsconfig.node.json` のそれぞれに対して `tsc --noEmit` を実行します。`tsconfig.json` は `src`、`tsconfig.node.json` は root の config、`.storybook`、`e2e` を担当します。TypeScript file の対象範囲は各 config の標準的な `include`、`exclude`、project references などで管理します。
 
 共通の `tsconfig.base.json` は `strict` に加え、`exactOptionalPropertyTypes`、`noImplicitOverride`、`noImplicitReturns`、`noUncheckedIndexedAccess`、`noUncheckedSideEffectImports`、`noUnusedLocals`、`noUnusedParameters`、`verbatimModuleSyntax` の 8 flags を有効にしています。`skipLibCheck` は有効のままにし、application code の厳格さを維持しつつ外部 declaration file の互換性問題で CI を不安定にしない方針です。内部 import alias は `@/*` で、`src/*` を指します。
 
