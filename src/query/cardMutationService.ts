@@ -3,6 +3,7 @@ import { isEqual } from "lodash";
 
 import { firestoreKeys } from "@/query/firestoreKeys";
 import type { RemoteById } from "@/query/remoteReadController";
+import { cardMutationLock, withMutationLocks } from "@/query/mutationLocks";
 
 export interface CardMutationServiceDependencies {
   client: QueryClient;
@@ -13,35 +14,22 @@ export interface CardMutationServiceDependencies {
   readCards: (uid: string) => Promise<Card[]>;
 }
 
+export class CardBulkMutationError extends Error {
+  constructor(
+    public readonly failedIds: CardId[],
+    total: number
+  ) {
+    super(`${failedIds.length} of ${total} Card writes failed`);
+  }
+}
+
 const toById = (cards: Card[]): RemoteById<Card> => Object.fromEntries(cards.map((card) => [card.id, card]));
 
 export const createCardMutationService = (dependencies: CardMutationServiceDependencies) => {
-  const tails = new Map<CardId, Promise<void>>();
-
   const cards = (uid: string) => dependencies.client.getQueryData<RemoteById<Card>>(firestoreKeys.cards(uid)) ?? {};
 
   const replaceCards = (uid: string, next: RemoteById<Card>) => {
     dependencies.client.setQueryData(firestoreKeys.cards(uid), next);
-  };
-
-  const enqueue = async <T>(ids: CardId[], task: () => Promise<T>): Promise<T> => {
-    const uniqueIds = [...new Set(ids)];
-    const previous = uniqueIds.map((id) => tails.get(id)).filter((tail): tail is Promise<void> => tail != null);
-    const operation = Promise.all(previous).then(task);
-    const settled = operation.then(
-      () => undefined,
-      () => undefined
-    );
-    uniqueIds.forEach((id) => {
-      tails.set(id, settled);
-    });
-    try {
-      return await operation;
-    } finally {
-      uniqueIds.forEach((id) => {
-        if (tails.get(id) === settled) tails.delete(id);
-      });
-    }
   };
 
   const optimistic = async <T>(
@@ -50,7 +38,7 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
     next: (previous: RemoteById<Card>) => RemoteById<Card>,
     write: () => Promise<T>
   ): Promise<T> =>
-    enqueue(ids, async () => {
+    withMutationLocks(ids.map(cardMutationLock), async () => {
       const previous = cards(uid);
       const optimisticCards = next(previous);
       replaceCards(uid, optimisticCards);
@@ -102,18 +90,21 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
         () => dependencies.removeCard(id)
       ),
     bulkUpsert: (uid: string, upserts: Card[]) =>
-      enqueue(
-        upserts.map((card) => card.id),
+      withMutationLocks(
+        upserts.map((card) => cardMutationLock(card.id)),
         async () => {
           const previous = cards(uid);
           replaceCards(uid, { ...previous, ...toById(upserts) });
           const results = await Promise.allSettled(upserts.map(dependencies.upsertCard));
-          const failures = results.filter((result) => result.status === "rejected");
-          if (failures.length === 0) return;
+          const failedIds = results.flatMap((result, index) => {
+            const card = upserts[index];
+            return result.status === "rejected" && card != null ? [card.id] : [];
+          });
+          if (failedIds.length === 0) return;
 
           const authoritative = await dependencies.readCards(uid);
           replaceCards(uid, toById(authoritative));
-          throw new Error(`${failures.length} of ${upserts.length} Card writes failed`);
+          throw new CardBulkMutationError(failedIds, upserts.length);
         }
       ),
   };

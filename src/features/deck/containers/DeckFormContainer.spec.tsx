@@ -37,7 +37,12 @@ vi.mock("@/shared/hooks/useActions", () => ({
 }));
 
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({
-  useDeckActions: () => ({ updateAndBack: mocks.updateAndBack }),
+  useDeckActions: () => ({
+    updateAndBack: mocks.updateAndBack,
+    pending: false,
+    error: null,
+    retry: vi.fn(),
+  }),
 }));
 
 import { DeckFormContainer } from "@/features/deck/containers/DeckFormContainer";

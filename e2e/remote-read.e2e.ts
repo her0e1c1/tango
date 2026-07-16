@@ -162,7 +162,15 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
   await page.goto("/");
   await expect(page.getByText("Remote Query Deck")).toBeVisible();
   await expect(page.getByText("Foreign Deck")).not.toBeVisible();
-  await page.getByText("Remote Query Deck").click();
+  await page.goto("/deck/remote-read-deck/edit");
+  await page.locator("input[name='name']").fill("Updated Remote Query Deck");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Updated Remote Query Deck")).toBeVisible();
+  await expect
+    .poll(async () => (await getDocument("deck", "remote-read-deck")).fields.name?.stringValue)
+    .toBe("Updated Remote Query Deck");
+
+  await page.getByText("Updated Remote Query Deck").click();
   await expect(page.getByText("Remote Query Card")).toBeVisible();
 
   await page.goto("/card/remote-read-card/edit");

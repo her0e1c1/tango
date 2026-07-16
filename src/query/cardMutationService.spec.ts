@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCardMutationService } from "@/query/cardMutationService";
+import { type CardBulkMutationError, createCardMutationService } from "@/query/cardMutationService";
 import { firestoreKeys } from "@/query/firestoreKeys";
 import { createCard } from "@/test/factories";
 
@@ -120,7 +120,9 @@ describe("createCardMutationService", () => {
     dependencies.readCards.mockResolvedValue([authoritative]);
     const service = createCardMutationService({ client, ...dependencies });
 
-    await expect(service.bulkUpsert(uid, [first, second])).rejects.toThrow("1 of 2 Card writes failed");
+    const error = await service.bulkUpsert(uid, [first, second]).catch((cause: unknown) => cause);
+    expect(error).toEqual(expect.objectContaining({ message: "1 of 2 Card writes failed" }));
+    expect((error as CardBulkMutationError).failedIds).toEqual([second.id]);
 
     expect(dependencies.readCards).toHaveBeenCalledWith(uid);
     expect(client.getQueryData(firestoreKeys.cards(uid))).toEqual({ authoritative });

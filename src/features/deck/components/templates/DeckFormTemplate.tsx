@@ -5,11 +5,13 @@ import { DeckForm, type DeckFormProps } from "@/features/deck/components/DeckFor
 export interface DeckFormTemplateProps {
   layout?: React.ComponentProps<typeof Layout>;
   deckForm?: DeckFormProps;
+  feedbackSlot?: React.ReactNode;
 }
 
 export const DeckFormTemplate: React.FC<DeckFormTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
+      {props.feedbackSlot}
       {props.deckForm != null && <DeckForm {...props.deckForm} />}
     </Layout>
   );

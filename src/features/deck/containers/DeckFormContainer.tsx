@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import * as C from "@/constant";
 import * as selector from "@/selector";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteReadBoundary } from "@/shared/components";
+import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
 import { renameKey } from "@/shared/forms/renameKey";
 import { useActions } from "@/shared/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
@@ -29,6 +29,9 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
           onClickMenuItem: actions.goByMenu,
         },
       }}
+      feedbackSlot={
+        <RemoteMutationNotice pending={deckActions.pending} error={deckActions.error} onRetry={deckActions.retry} />
+      }
       deckForm={{
         deck,
         fields: {

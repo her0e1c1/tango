@@ -1,21 +1,35 @@
 import type React from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 import * as C from "@/constant";
 import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
 import * as selector from "@/selector";
 import { useActions } from "@/shared/hooks/useActions";
+import { useDeckImport } from "@/features/import/hooks/useDeckImport";
+import { RemoteMutationNotice } from "@/shared/components";
 
 export const DeckImportContainer: React.FC = () => {
   const actions = useActions();
   const config = useSelector(selector.config.get());
+  const navigate = useNavigate();
+  const deckImport = useDeckImport();
   useKey("t", actions.goToTop);
   useKey("s", actions.goToSettings);
 
   return (
     <DeckImportTemplate
-      onChange={actions.deckUploadAndBack}
+      onChange={(file) => {
+        void deckImport
+          .importFile(file)
+          .then(() => navigate(-1))
+          .catch(() => undefined);
+      }}
       onDownloadSample={actions.deckDownloadCsvSampleText}
+      pending={deckImport.pending}
+      feedbackSlot={
+        <RemoteMutationNotice pending={deckImport.pending} error={deckImport.error} onRetry={deckImport.retry} />
+      }
       sampleText={C.CSV_SAMPLE_TEXT}
       layout={{
         headerProps: {

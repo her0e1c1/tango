@@ -1,0 +1,90 @@
+import { act, renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { createQueryWrapper, createTestQueryClient } from "@/query/testUtils";
+import { createCard, createConfig, createDeck } from "@/test/factories";
+import type { DeckImportResult } from "@/features/import/hooks/useDeckImport";
+
+const mocks = vi.hoisted(() => ({
+  config: {} as ConfigState,
+  decks: [] as Deck[],
+  cards: [] as Card[],
+  parseCsv: vi.fn(),
+  prepareDeck: vi.fn(),
+  prepareCard: vi.fn(),
+  createDeck: vi.fn(),
+  bulkUpsert: vi.fn(),
+}));
+
+vi.mock("react-redux", () => ({ useSelector: () => mocks.config }));
+vi.mock("@/auth/AuthContext", () => ({
+  useAuth: () => ({ status: "authenticated", uid: "uid-a", user: { uid: "uid-a" } }),
+}));
+vi.mock("@/query/useRemoteCollections", () => ({
+  useRemoteCollections: () => ({
+    decks: mocks.decks,
+    cardsByDeckId: (id: DeckId) => mocks.cards.filter((card) => card.deckId === id),
+  }),
+}));
+vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
+  useDeckMutations: () => ({ create: mocks.createDeck }),
+}));
+vi.mock("@/features/card/hooks/useCardMutations", () => ({
+  useCardMutations: () => ({ bulkUpsert: mocks.bulkUpsert }),
+}));
+vi.mock("@/action", () => ({
+  deck: { parseCsv: mocks.parseCsv, prepare: mocks.prepareDeck },
+  card: { prepare: mocks.prepareCard },
+}));
+
+import { useDeckImport } from "@/features/import/hooks/useDeckImport";
+
+describe("useDeckImport", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.config = createConfig({ localMode: false, githubAccessToken: "" });
+    mocks.decks = [];
+    mocks.cards = [];
+    mocks.parseCsv.mockResolvedValue([{ frontText: "front", backText: "back", tags: [], uniqueKey: "key" }]);
+    mocks.prepareDeck.mockReturnValue(createDeck({ id: "deck", uid: "uid-a", localMode: false }));
+    mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck" }));
+    mocks.createDeck.mockResolvedValue(undefined);
+    mocks.bulkUpsert.mockResolvedValue(undefined);
+  });
+
+  it("awaits Deck creation and Card upsert as one import operation", async () => {
+    const { result } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const file = new File(["front,back"], "deck.csv", { type: "text/csv" });
+    let imported: DeckImportResult | undefined;
+
+    await act(async () => {
+      imported = await result.current.importFile(file);
+    });
+
+    expect(mocks.createDeck).toHaveBeenCalledOnce();
+    expect(mocks.bulkUpsert).toHaveBeenCalledWith([expect.objectContaining({ id: "card" })], false);
+    expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
+  });
+
+  it("treats a non-2xx URL response as an error", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("missing", { status: 404 }));
+    const { result } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
+
+    await expect(result.current.importUrl("https://example.test/deck.csv")).rejects.toThrow(
+      "Unable to fetch Deck CSV (404)"
+    );
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+  });
+
+  it("rejects a second import while the first is pending", async () => {
+    let finish!: (cards: CardRaw[]) => void;
+    mocks.parseCsv.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)));
+    const { result } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const file = new File(["front,back"], "deck.csv", { type: "text/csv" });
+
+    const first = result.current.importFile(file);
+    await expect(result.current.importFile(file)).rejects.toThrow("already running");
+    finish([]);
+    await first;
+  });
+});

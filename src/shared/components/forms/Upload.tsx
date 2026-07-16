@@ -2,7 +2,9 @@ import cx from "classnames";
 import type * as React from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 
-export const Upload: React.FC<{ className?: string; onChange?: (file: File) => void }> = (props) => (
+export const Upload: React.FC<{ className?: string; disabled?: boolean; onChange?: (file: File) => void }> = (
+  props
+) => (
   <label
     className={cx(props.className, "flex", "max-w-sm", "h-48", "rounded-lg", "border", "cursor-pointer", "shadow-lg")}
   >
@@ -15,6 +17,7 @@ export const Upload: React.FC<{ className?: string; onChange?: (file: File) => v
         type="file"
         className="h-full w-full opacity-0 bg-pink-800"
         accept=".csv"
+        disabled={props.disabled}
         onChange={(e) => {
           if (e.target.files != null) {
             const file = e.target.files[0];

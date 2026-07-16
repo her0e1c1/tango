@@ -12,11 +12,13 @@ export interface DeckListTemplateProps {
   layout?: React.ComponentProps<typeof Layout>;
   deckCard?: DeckCardActions;
   studyProgress?: ActiveStudyProgress;
+  feedbackSlot?: React.ReactNode;
 }
 
 export const DeckListTemplate: React.FC<DeckListTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
+      {props.feedbackSlot}
       <List>
         {props.decks?.map((deck) => {
           const studyProgress = props.studyProgress?.deckId === deck.id ? props.studyProgress : undefined;

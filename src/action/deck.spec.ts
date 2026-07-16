@@ -3,7 +3,6 @@ import { expect, expectTypeOf, it, describe, vi, beforeEach, afterEach } from "v
 // import moment from "moment";
 import * as fileSaver from "file-saver";
 
-import * as firestore from "@/action/firestore";
 import * as action from "@/action";
 import * as C from "@/constant";
 import { createBlobConstructor, createCard } from "@/test/factories";
@@ -58,97 +57,6 @@ describe("deck action", () => {
     });
   });
 
-  describe("create", () => {
-    it("should create", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      const config = { uid: "uid", localMode: false };
-      getState.mockReturnValue({ config, deck: { byId: {} } });
-
-      const f = action.deck.create("name");
-      await f(dispatch, getState, undefined);
-      const deck = action.deck.prepare({ name: "name" }, config);
-      expect(firestore.deck.create).lastCalledWith(deck);
-    });
-  });
-
-  describe("update", () => {
-    it("should update", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ config: { uid: "uid" } });
-
-      const d = { name: "deck" } as Deck;
-      const f = action.deck.update(d);
-      await f(dispatch, getState, undefined);
-      expect(firestore.deck.update).lastCalledWith(d);
-    });
-  });
-
-  describe("remove", () => {
-    it("should remove", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ deck: { byId: { deckId: { uid: "uid" } } } });
-
-      const f = action.deck.remove("deckId");
-      await f(dispatch, getState, undefined);
-      expect(firestore.deck.remove).toHaveBeenCalledWith("deckId", "uid");
-    });
-  });
-
-  describe("spliteCreate", () => {
-    const deck = { name: "name", id: "1" } as Deck;
-    const deckState = { byId: { "1": deck }, categories: [] } as DeckState;
-    const cardState = { byId: { 1: createCard({ id: "1", deckId: "1", uniqueKey: "a" }) }, tags: [] };
-    // TODO: add test case for not existing name
-    it("should splite & create", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ deck: deckState, card: cardState });
-
-      const bulkUpdate = vi.spyOn(action.card, "bulkUpdate");
-      const bulkCreate = vi.spyOn(action.card, "bulkCreate");
-      const create = vi.spyOn(action.deck, "create");
-
-      const cards = [{ frontText: "front", backText: "back", tags: [], uniqueKey: "a" }] satisfies CardRaw[];
-      const f = action.deck.spliteCreate("name", cards);
-      await f(dispatch, getState, undefined);
-      expect(bulkUpdate).lastCalledWith([{ ...cards[0], id: "1", deckId: "1" }]);
-      expect(bulkCreate).toBeCalledTimes(1);
-      expect(create).toBeCalledTimes(0);
-      expect(dispatch).toBeCalledTimes(2);
-    });
-  });
-
-  describe("parseUrl", () => {
-    it("should parse url", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      getState.mockReturnValue({ config: {} });
-      const spliteCreate = vi.spyOn(action.deck, "spliteCreate");
-      global.fetch = vi.fn().mockReturnValue(Promise.resolve(new Response("front,back")));
-
-      const url = "http://example.com/deck-name.csv";
-      const f = action.deck.parseUrl(url);
-      await f(dispatch, getState, undefined);
-      expect(spliteCreate).toHaveBeenCalledWith("deck-name.csv", [
-        { frontText: "front", backText: "back", uniqueKey: "", tags: [] as string[] },
-      ] satisfies CardRaw[]);
-      expect(dispatch).toBeCalledTimes(1);
-    });
-  });
-
-  describe("parseFile", () => {
-    it("should parse file", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      const spliteCreate = vi.spyOn(action.deck, "spliteCreate");
-
-      const file = new File([new Blob(["front,back"])], "deck-name.csv");
-      const f = action.deck.parseFile(file);
-      await f(dispatch, getState, undefined);
-      expect(spliteCreate).toHaveBeenCalledWith("deck-name.csv", [
-        { frontText: "front", backText: "back", uniqueKey: "", tags: [] as string[] },
-      ] satisfies CardRaw[]);
-      expect(dispatch).toBeCalledTimes(1);
-    });
-  });
-
   describe("parseCsv", () => {
     it("parses string content as raw cards", async () => {
       const cards = await action.deck.parseCsv("front,back");
@@ -165,19 +73,6 @@ describe("deck action", () => {
   });
 
   describe("download", () => {
-    it("should download", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
-      const blob = new Blob();
-      const m = vi.spyOn(global, "Blob"); // FIXME: affect Blob after this test
-      m.mockImplementation(createBlobConstructor(blob));
-      getState.mockReturnValue({ deck: { byId: { id: { name: "name", cardIds: [] } } }, card: { byId: {} } });
-
-      const f = action.deck.download("id");
-      await f(dispatch, getState, undefined);
-      expect(m).toBeCalledWith([""], { type: "text/plain;charset=utf-8" });
-      expect(fileSaver.saveAs).toBeCalledWith(expect.anything(), "name.csv");
-    });
-
     it("downloads the supplied composed Query data without reading Redux", () => {
       const blob = new Blob();
       const blobConstructor = vi.spyOn(global, "Blob");
@@ -195,14 +90,12 @@ describe("deck action", () => {
   });
 
   describe("downloadCsvSampleText", () => {
-    it("should download", async () => {
-      const [dispatch, getState] = [vi.fn(), vi.fn()];
+    it("should download", () => {
       const blob = new Blob();
       const m = vi.spyOn(global, "Blob");
       m.mockImplementation(createBlobConstructor(blob));
 
-      const f = action.deck.downloadCsvSampleText();
-      await f(dispatch, getState, undefined);
+      action.deck.downloadCsvSampleText();
       expect(m).toBeCalledWith([C.CSV_SAMPLE_TEXT], { type: "text/plain;charset=utf-8" });
       expect(fileSaver.saveAs).toBeCalledWith(expect.anything(), "sample.csv");
     });
