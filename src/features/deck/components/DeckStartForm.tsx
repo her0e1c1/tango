@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Form, FormItem, Section, Slider, Switch } from "@/shared/components";
+import { Form, FormItem, Slider, Switch } from "@/shared/components";
 import { TagFilter, type TagFilterProps } from "@/features/deck/components/TagFilter";
 
 export interface DeckStartFormProps {
@@ -25,18 +25,21 @@ const scoreText = (max: number | null, min: number | null): string => {
 };
 
 export const DeckStartForm: React.FC<DeckStartFormProps> = (props) => {
+  const range = scoreText(props.scoreMax, props.scoreMin);
+
   return (
     <Form div>
-      <Section title={`score range ${scoreText(props.scoreMax, props.scoreMin)}`} />
-      <FormItem label="max">
-        <Switch {...props.scoreMaxSwitchProps} />
-      </FormItem>
-      <Slider {...props.scoreMaxSliderProps} />
-      <FormItem label="min">
-        <Switch {...props.scoreMinSwitchProps} />
-      </FormItem>
-      <Slider {...props.scoreMinSliderProps} />
-      <Section title="tags" />
+      <fieldset className="space-y-3 rounded-surface border border-border bg-surface p-4 shadow-surface">
+        <legend className="px-2 text-body font-semibold text-ink">score range{range ? ` ${range}` : ""}</legend>
+        <FormItem label="max">
+          <Switch {...props.scoreMaxSwitchProps} />
+        </FormItem>
+        <Slider {...props.scoreMaxSliderProps} />
+        <FormItem label="min">
+          <Switch {...props.scoreMinSwitchProps} />
+        </FormItem>
+        <Slider {...props.scoreMinSliderProps} />
+      </fieldset>
       <TagFilter {...props.tagFilterProps} />
     </Form>
   );

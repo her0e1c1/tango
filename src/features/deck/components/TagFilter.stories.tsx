@@ -8,6 +8,8 @@ const meta = {
   tags: ["autodocs"],
   args: {
     tags: ["tag1", "tag2", "tag3", "tag4"],
+    selectedTags: [],
+    tagAndFilter: false,
   },
 } satisfies Meta<typeof Template>;
 
@@ -24,10 +26,14 @@ export const Selected: Story = {
   args: { selectedTags: ["tag1", "tag3"] },
 };
 
-export const TooLong: Story = {
-  args: { tags: Array(30).fill("tag") },
+export const ManyTags: Story = {
+  args: { tags: Array.from({ length: 40 }, (_, index) => `tag-${index + 1}`) },
 };
 
-export const TooLongWithScroll: Story = {
-  args: { tags: Array(30).fill("tag"), scroll: true },
+export const NoMatchCompatible: Story = {
+  args: { tags: ["advanced", "review"], selectedTags: ["advanced", "review"], tagAndFilter: true },
 };
+
+export const Mobile: Story = { ...ManyTags, parameters: { viewport: { defaultViewport: "iphone5" } } };
+
+export const Dark: Story = { ...Selected, globals: { theme: "dark" } };

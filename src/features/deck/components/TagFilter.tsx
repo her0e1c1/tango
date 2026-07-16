@@ -22,10 +22,14 @@ export interface TagFilterProps {
 
 export const TagFilter: React.FC<TagFilterProps> = (props) => {
   return (
-    <div data-testid="tag-filter">
-      <div className="flex justify-between items-center">
+    <fieldset
+      data-testid="tag-filter"
+      className="min-w-0 rounded-surface border border-border bg-surface p-4 shadow-surface"
+    >
+      <legend className="px-2 text-body font-semibold text-ink">tags</legend>
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Description>{props.tagAndFilter ? "AND" : "OR"} Filter</Description>
-        <div className="flex justify-end mb-3 gap-3 items-center">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <Switch
             name="tag-filter-click-filter"
             {...(props.tagAndFilter !== undefined ? { checked: props.tagAndFilter } : {})}
@@ -49,7 +53,6 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
         {props.tags?.map((tag) => (
           <Tag
             className="mr-1 mb-1"
-            primary
             small
             key={tag}
             label={tag}
@@ -60,6 +63,6 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
           />
         ))}
       </TagList>
-    </div>
+    </fieldset>
   );
 };
