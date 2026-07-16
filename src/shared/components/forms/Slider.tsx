@@ -23,11 +23,7 @@ export const Slider: React.FC<{
       value={props.value}
       onChange={props.onChange}
       onBlur={props.onBlur}
-      className={`
-        w-full h-2 bg-blue-100 appearance-none dark:bg-blue-900
-       disabled:bg-gray-100
-       dark:disabled:bg-gray-900
-      `}
+      className="h-2 w-full appearance-none rounded-pill bg-surface-muted accent-accent-primary transition-opacity duration-fast ease-calm disabled:cursor-not-allowed disabled:opacity-50"
     />
   );
 };

@@ -14,7 +14,7 @@ export const Switch: React.FC<{
   inputRef?: React.Ref<HTMLInputElement>;
 }> = (props) => {
   return (
-    <label className={cx("inline-block")}>
+    <label className={cx("inline-block", props.className)}>
       <input
         ref={props.inputRef}
         name={props.name}
@@ -28,18 +28,17 @@ export const Switch: React.FC<{
       />
       <span
         className={cx(
-          "flex items-center shrink-0 p-1 rounded-full",
-          "duration-300",
-          "ease-in-out",
-          "bg-gray-300",
-          "peer-checked:bg-green-400",
+          "flex shrink-0 items-center rounded-pill border border-border bg-surface-muted p-1",
+          "transition-colors duration-normal ease-calm",
+          "peer-checked:border-accent-secondary peer-checked:bg-accent-secondary",
+          "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
           props.small
             ? ["w-8 h-5", "after:w-4 after:h-4", "peer-checked:after:translate-x-2"]
             : props.large
               ? ["w-16 h-10", "after:w-8 after:h-8", "peer-checked:after:translate-x-6"]
               : ["w-10 h-6", "after:w-5 after:h-5", "peer-checked:after:translate-x-3"],
-          "after:bg-white after:rounded-full after:shadow-md",
-          "after:duration-300"
+          "after:rounded-full after:bg-surface-elevated after:shadow-surface",
+          "after:transition-transform after:duration-normal after:ease-calm"
         )}
       ></span>
     </label>

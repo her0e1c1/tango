@@ -29,6 +29,10 @@ const ownedPresentationFiles = [
   "shared/components/forms/Input.tsx",
   "shared/components/forms/Select.tsx",
   "shared/components/forms/Textarea.tsx",
+  "shared/components/forms/Slider.tsx",
+  "shared/components/forms/Switch.tsx",
+  "shared/components/forms/Tag.tsx",
+  "shared/components/forms/Upload.tsx",
 ];
 const semanticColorRoles = [
   "canvas",
