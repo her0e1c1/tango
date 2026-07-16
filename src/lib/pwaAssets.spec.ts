@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { inflateSync } from "node:zlib";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { createElement } from "react";
@@ -16,9 +17,9 @@ const stockAssetHashes = new Set([
   "9ea4f4da7050c0cc408926f6a39c253624e9babb1d43c7977cd821445a60b461",
 ]);
 const expectedAssetHashes: Record<string, string> = {
-  "public/favicon.ico": "e7331853699dfef9ce3600e79d942d96257de5501299eedf69132896d8f9149b",
-  "public/logo192.png": "a3757ad015bbe302059ae8d274220413e93329b88eb1bac9345ddc02174aa56d",
-  "public/logo512.png": "c60a008d4d65895594a221ea06f3dd17e90b6e9fe9592c4c76b2d8ce1be7817b",
+  "public/favicon.ico": "40bc22791ba2f33ab82867389960dda6bcafc9b433fc7d03328871f49f30d0bd",
+  "public/logo192.png": "26c7a9c060f01bef5f93030a5f95a3b48402af3d402b7a84ebadb931dfd7a709",
+  "public/logo512.png": "d39f7e0ed71d283fa79a8bac71634a055b69787abdcde0da34bb332b5214e5a5",
 };
 const rawPaletteUtility =
   /\b(?:bg|border|fill|stroke|text)-(?:black|white|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:-\d{2,3})?\b/g;
@@ -42,6 +43,17 @@ interface WebManifest {
 interface PngInfo {
   signature: boolean;
   chunkType: string;
+  width: number;
+  height: number;
+}
+
+interface DecodedPng {
+  width: number;
+  height: number;
+  pixels: Buffer;
+}
+
+interface ArtworkBounds {
   width: number;
   height: number;
 }
@@ -115,6 +127,126 @@ function inspectPng(bytes: Buffer): PngInfo | undefined {
     width: bytes.readUInt32BE(16),
     height: bytes.readUInt32BE(20),
   };
+}
+
+function paethPredictor(left: number, above: number, upperLeft: number): number {
+  const prediction = left + above - upperLeft;
+  const leftDistance = Math.abs(prediction - left);
+  const aboveDistance = Math.abs(prediction - above);
+  const upperLeftDistance = Math.abs(prediction - upperLeft);
+
+  if (leftDistance <= aboveDistance && leftDistance <= upperLeftDistance) return left;
+  return aboveDistance <= upperLeftDistance ? above : upperLeft;
+}
+
+function decodeRgbaPng(bytes: Buffer): DecodedPng | undefined {
+  const png = inspectPng(bytes);
+  if (
+    png === undefined ||
+    bytes[24] !== 8 ||
+    bytes[25] !== 6 ||
+    bytes[26] !== 0 ||
+    bytes[27] !== 0 ||
+    bytes[28] !== 0
+  ) {
+    return undefined;
+  }
+
+  const idatChunks: Buffer[] = [];
+  let offset = pngSignature.length;
+  while (offset < bytes.length) {
+    const chunkLength = bytes.readUInt32BE(offset);
+    const chunkType = bytes.toString("ascii", offset + 4, offset + 8);
+    if (chunkType === "IDAT") idatChunks.push(bytes.subarray(offset + 8, offset + 8 + chunkLength));
+    offset += chunkLength + 12;
+    if (chunkType === "IEND") break;
+  }
+
+  let scanlines: Buffer;
+  try {
+    scanlines = inflateSync(Buffer.concat(idatChunks));
+  } catch {
+    return undefined;
+  }
+
+  const bytesPerPixel = 4;
+  const rowLength = png.width * bytesPerPixel;
+  if (scanlines.length !== (rowLength + 1) * png.height) return undefined;
+
+  const pixels = Buffer.alloc(rowLength * png.height);
+  let inputOffset = 0;
+  for (let y = 0; y < png.height; y += 1) {
+    const filterType = scanlines.readUInt8(inputOffset);
+    inputOffset += 1;
+    const rowOffset = y * rowLength;
+
+    for (let x = 0; x < rowLength; x += 1) {
+      const rawByte = scanlines.readUInt8(inputOffset);
+      inputOffset += 1;
+      const left = x >= bytesPerPixel ? pixels.readUInt8(rowOffset + x - bytesPerPixel) : 0;
+      const above = y > 0 ? pixels.readUInt8(rowOffset + x - rowLength) : 0;
+      const upperLeft = y > 0 && x >= bytesPerPixel ? pixels.readUInt8(rowOffset + x - rowLength - bytesPerPixel) : 0;
+
+      let predictor: number;
+      if (filterType === 0) predictor = 0;
+      else if (filterType === 1) predictor = left;
+      else if (filterType === 2) predictor = above;
+      else if (filterType === 3) predictor = Math.floor((left + above) / 2);
+      else if (filterType === 4) predictor = paethPredictor(left, above, upperLeft);
+      else return undefined;
+
+      pixels.writeUInt8((rawByte + predictor) & 0xff, rowOffset + x);
+    }
+  }
+
+  return { width: png.width, height: png.height, pixels };
+}
+
+function artworkBounds(png: DecodedPng): ArtworkBounds | undefined {
+  let minX = png.width;
+  let minY = png.height;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < png.height; y += 1) {
+    for (let x = 0; x < png.width; x += 1) {
+      const offset = (y * png.width + x) * 4;
+      const red = png.pixels.readUInt8(offset);
+      const green = png.pixels.readUInt8(offset + 1);
+      const blue = png.pixels.readUInt8(offset + 2);
+      const alpha = png.pixels.readUInt8(offset + 3);
+      if (alpha === 0 || (red >= 250 && green >= 250 && blue >= 250)) continue;
+
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  return maxX === -1 ? undefined : { width: maxX - minX + 1, height: maxY - minY + 1 };
+}
+
+function icoPngPayload(bytes: Buffer): Buffer | undefined {
+  if (inspectIco(bytes) === undefined) return undefined;
+
+  const dataSize = bytes.readUInt32LE(14);
+  const dataOffset = bytes.readUInt32LE(18);
+  const payload = bytes.subarray(dataOffset, dataOffset + dataSize);
+  return payload.subarray(0, pngSignature.length).equals(pngSignature) ? payload : undefined;
+}
+
+function expectArtworkFillsCanvas(bytes: Buffer, expectedSize: number): void {
+  const png = decodeRgbaPng(bytes);
+  expect(png).toBeDefined();
+  if (png === undefined) return;
+
+  const bounds = artworkBounds(png);
+  expect(bounds).toBeDefined();
+  expect(png.width).toBe(expectedSize);
+  expect(png.height).toBe(expectedSize);
+  expect(bounds?.width).toBeGreaterThanOrEqual(expectedSize * 0.85);
+  expect(bounds?.height).toBeGreaterThanOrEqual(expectedSize * 0.85);
 }
 
 function hasValidIcoPayload(
@@ -382,6 +514,20 @@ describe("Tango PWA identity", () => {
     });
     expect(stockAssetHashes.has(sha256(bytes))).toBe(false);
     expect(sha256(bytes)).toBe(expectedAssetHashes["public/favicon.ico"]);
+  });
+
+  it.each([
+    ["public/logo192.png", 192],
+    ["public/logo512.png", 512],
+  ])("fills at least 85% of the %s canvas with decoded artwork", (relativePath, expectedSize) => {
+    expectArtworkFillsCanvas(readBytes(relativePath), expectedSize);
+  });
+
+  it("fills at least 85% of the favicon canvas with decoded artwork", () => {
+    const payload = icoPngPayload(readBytes("public/favicon.ico"));
+
+    expect(payload).toBeDefined();
+    if (payload !== undefined) expectArtworkFillsCanvas(payload, 64);
   });
 
   it("rejects a truncated PNG with plausible dimensions", () => {

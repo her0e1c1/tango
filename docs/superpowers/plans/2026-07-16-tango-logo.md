@@ -266,21 +266,22 @@ git commit -m "Use the Tango logo in the app and README"
 - Modify: `public/favicon.ico`
 - Modify: `src/lib/pwaAssets.spec.ts:18-22`
 
-- [ ] **Step 1: Render the final SVG to a temporary 512px PNG**
+- [ ] **Step 1: Create a 512px-intrinsic temporary SVG and render it**
 
 Run outside the sandbox because Quick Look needs macOS service access:
 
 ```bash
-qlmanage -t -s 512 -o /private/tmp public/tango-mark.svg
+sed 's/width="64" height="64"/width="512" height="512"/' public/tango-mark.svg > /private/tmp/tango-mark-512.svg
+qlmanage -t -s 512 -o /private/tmp /private/tmp/tango-mark-512.svg
 ```
 
-Expected: `/private/tmp/tango-mark.svg.png` is a 512 by 512 RGBA PNG.
+Expected: the temporary SVG differs only in its intrinsic dimensions, and `/private/tmp/tango-mark-512.svg.png` is a 512 by 512 RGBA PNG with centered artwork spanning 464 by 464 pixels.
 
 - [ ] **Step 2: Write the 512px and 192px PNG exports**
 
 ```bash
-cp /private/tmp/tango-mark.svg.png public/logo512.png
-sips -z 192 192 /private/tmp/tango-mark.svg.png --out public/logo192.png
+cp /private/tmp/tango-mark-512.svg.png public/logo512.png
+sips -z 192 192 /private/tmp/tango-mark-512.svg.png --out public/logo192.png
 sips -g pixelWidth -g pixelHeight public/logo512.png public/logo192.png
 ```
 
@@ -289,7 +290,7 @@ Expected: `logo512.png` reports 512 by 512 and `logo192.png` reports 192 by 192.
 - [ ] **Step 3: Write the 64px single-image ICO export**
 
 ```bash
-/Users/studio2022/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 -c 'from pathlib import Path; from struct import pack_into; from PIL import Image; path=Path("public/favicon.ico"); image=Image.open("/private/tmp/tango-mark.svg.png").convert("RGBA").resize((64,64), Image.Resampling.LANCZOS); image.save(path, format="ICO", sizes=[(64,64)]); data=bytearray(path.read_bytes()); pack_into("<H", data, 10, 1); path.write_bytes(data)'
+/Users/studio2022/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 -c 'from pathlib import Path; from struct import pack_into; from PIL import Image; path=Path("public/favicon.ico"); image=Image.open("/private/tmp/tango-mark-512.svg.png").convert("RGBA").resize((64,64), Image.Resampling.LANCZOS); image.save(path, format="ICO", sizes=[(64,64)]); data=bytearray(path.read_bytes()); pack_into("<H", data, 10, 1); path.write_bytes(data)'
 ```
 
 Expected: `file public/favicon.ico` reports one 64 by 64 icon with PNG image data.
@@ -302,7 +303,7 @@ Run:
 npx vitest run src/lib/pwaAssets.spec.ts
 ```
 
-Expected: FAIL only on the three `expectedAssetHashes` comparisons because the regenerated files no longer match the old committed hashes. Dimension, structure, manifest, SVG, README, and component assertions should already pass.
+Expected: FAIL only on the three `expectedAssetHashes` comparisons because the regenerated files no longer match the old committed hashes. Dimension, structure, decoded artwork coverage, manifest, SVG, README, and component assertions should already pass.
 
 - [ ] **Step 5: Update the three expected hashes from the generated files**
 
