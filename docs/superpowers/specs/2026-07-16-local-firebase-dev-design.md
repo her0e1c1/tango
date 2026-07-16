@@ -11,14 +11,15 @@ Make `mise dev` start Tango against local Firebase services without requiring a 
 - Keep the existing Google Cloud SDK Firestore container. Add an Auth service based on the existing Tango image, which already contains `firebase-tools`, and run `firebase emulators:start --only auth --project demo-tango --config firebase.json` bound to `0.0.0.0:9099`.
 - Configure the Auth emulator host and port in `firebase.json`, and give the service an HTTP healthcheck.
 - Publish both emulator ports to the host for the host-run Vite process.
-- Make `mise up` pass `--env-file .env.dev` to Compose so container interpolation uses the same ports as Vite.
+- Because mise loads `.env` into the parent process, make `mise up` and `mise dev` unset the Firebase-related `VITE_*` variables before launching their commands. This prevents process values from overriding mode files.
+- Make `mise up` pass `--env-file .env.dev` to Compose so container interpolation uses the same authoritative ports as Vite.
 - Connect Firebase Auth to the emulator only when `import.meta.env.MODE === "dev"`. Keep production and test behavior unchanged.
 - Start both emulator services from the `mise up` dependency used by `mise dev`.
 
 ## Data Flow
 
 1. `mise dev` starts the Firestore and Auth containers.
-2. Vite loads `.env` and then `.env.dev`, with `.env.dev` overriding Firebase development values.
+2. The task command removes Firebase variables inherited from mise's `.env`; Vite then loads `.env` and `.env.dev`, with `.env.dev` overriding the base file.
 3. The browser initializes Firebase with the demo project configuration.
 4. Firestore requests go to `localhost:8080` and authentication requests go to `localhost:9099`.
 
