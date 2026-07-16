@@ -6,3 +6,8 @@ code[data-theme="light"] {
 code[data-theme="dark"] {
   @include meta.load-css("highlight.js/styles/atom-one-dark-reasonable");
 }
+
+code[data-theme] {
+  background: transparent;
+  color: inherit;
+}

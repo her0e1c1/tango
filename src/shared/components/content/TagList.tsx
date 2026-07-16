@@ -6,7 +6,12 @@ export const TagList: React.FC<{
   children?: React.ReactNode;
 }> = (props) => {
   return (
-    <div className={cx("gap-2", "flex", "flex-wrap", "overflow-scroll", props.hasManyItems && "flex-col max-h-64")}>
+    <div
+      className={cx(
+        "flex min-w-0 gap-2 overflow-x-hidden",
+        props.hasManyItems ? "max-h-64 flex-col flex-nowrap overflow-y-auto" : "flex-wrap"
+      )}
+    >
       {props.children}
     </div>
   );

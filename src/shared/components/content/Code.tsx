@@ -9,15 +9,22 @@ const Highlight: React.FC<{ category: string; dark: boolean; children: React.Rea
     hljs.highlightAll();
   }, []);
   return (
-    <pre className={cx("dark:bg-black", props.category)}>
-      <code data-theme={props.dark ? "dark" : "light"}>{props.children}</code>
+    <pre
+      className={cx(
+        "max-w-full overflow-x-auto rounded-control border border-border bg-surface-muted p-3 text-ink",
+        props.category
+      )}
+    >
+      <code className="block min-w-max" data-theme={props.dark ? "dark" : "light"}>
+        {props.children}
+      </code>
     </pre>
   );
 };
 
 export const Code: React.FC<{ text: string; category: string }> = (props) => {
   return (
-    <Style div>
+    <Style div className="max-w-full overflow-hidden">
       <Highlight category={props.category} dark={document.querySelector("html")?.classList.contains("dark") ?? false}>
         {props.text} {/* Don't pass any <Component /> here but string */}
       </Highlight>

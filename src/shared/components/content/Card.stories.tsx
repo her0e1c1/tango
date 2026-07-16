@@ -35,5 +35,11 @@ export const Border: Story = {
 };
 
 export const TooLong: Story = {
-  args: { children: "this is a too long text".repeat(30) },
+  args: { children: "this is a too long text ".repeat(30) },
+  parameters: { viewport: { defaultViewport: "iphone5" } },
+};
+
+export const Dark: Story = {
+  args: { border: true, children: "Calm Focus surface in dark mode" },
+  globals: { theme: "dark" },
 };

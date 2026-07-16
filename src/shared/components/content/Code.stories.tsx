@@ -18,3 +18,16 @@ type Story = StoryObj<typeof meta>;
 export const Python: Story = {
   args: { category: "python" },
 };
+
+export const WideMobile: Story = {
+  args: {
+    category: "typescript",
+    text: "const veryWideValue = createValueWithManyArguments(firstArgument, secondArgument, thirdArgument);",
+  },
+  parameters: { viewport: { defaultViewport: "iphone5" } },
+};
+
+export const Dark: Story = {
+  args: { category: "python" },
+  globals: { theme: "dark" },
+};

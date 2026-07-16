@@ -14,6 +14,17 @@ const ownedPresentationFiles = [
   "shared/components/layout/List.tsx",
   "shared/components/layout/FullScreen.tsx",
   "shared/components/content/Logo.tsx",
+  "shared/components/content/Card.tsx",
+  "shared/components/content/Title.tsx",
+  "shared/components/content/Section.tsx",
+  "shared/components/content/Description.tsx",
+  "shared/components/content/Style.tsx",
+  "shared/components/content/TagList.tsx",
+  "shared/components/content/Score.tsx",
+  "shared/components/content/Code.tsx",
+  "shared/components/content/Math.tsx",
+  "shared/components/feedback/Feedback.tsx",
+  "shared/components/feedback/Overlay.tsx",
   "shared/components/forms/Button.tsx",
 ];
 const semanticColorRoles = [
