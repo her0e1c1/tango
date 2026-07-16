@@ -42,29 +42,38 @@ export const Button: React.FC<ButtonProps> = (props) => {
   const variant = props.variant ?? (props.primary ? "primary" : "secondary");
   const size = props.size ?? (props.small ? "sm" : props.large ? "lg" : "md");
   const inactive = props.disabled || props.loading;
+  const content = props.label ?? props.children;
+  const loadingAnnouncement =
+    typeof content === "string" || typeof content === "number" ? `Loading ${content}` : "Loading";
 
   return (
-    <button
-      type={props.type ?? "button"}
-      className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-control transition-opacity duration-fast ease-calm disabled:cursor-not-allowed disabled:opacity-50",
-        { hidden: props.hidden },
-        variantClasses[variant],
-        sizeClasses[size],
-        props.className
-      )}
-      disabled={inactive}
-      aria-busy={props.loading || undefined}
-      onClick={!inactive ? props.onClick : undefined}
-    >
+    <>
+      <button
+        type={props.type ?? "button"}
+        className={cx(
+          "inline-flex items-center justify-center gap-2 rounded-control transition-opacity duration-fast ease-calm disabled:cursor-not-allowed disabled:opacity-50",
+          { hidden: props.hidden },
+          variantClasses[variant],
+          sizeClasses[size],
+          props.className
+        )}
+        disabled={inactive}
+        aria-busy={props.loading || undefined}
+        onClick={!inactive ? props.onClick : undefined}
+      >
+        {props.loading ? (
+          <span
+            aria-hidden="true"
+            className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+          />
+        ) : null}
+        {content}
+      </button>
       {props.loading ? (
-        <span
-          role="status"
-          aria-label="Loading"
-          className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-        />
+        <span role="status" aria-live="polite" className="sr-only">
+          {loadingAnnouncement}
+        </span>
       ) : null}
-      {props.label ?? props.children}
-    </button>
+    </>
   );
 };

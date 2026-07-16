@@ -55,10 +55,13 @@ describe("Button action control", () => {
       </Button>
     );
 
-    const button = screen.getByRole("button", { name: /continue/i });
+    const button = screen.getByRole("button", { name: "Continue" });
+    const status = screen.getByRole("status");
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+    expect(status).toHaveAttribute("aria-live", "polite");
+    expect(status).toHaveTextContent("Loading Continue");
+    expect(button).not.toContainElement(status);
     fireEvent.click(button);
     expect(onClick).not.toHaveBeenCalled();
   });
