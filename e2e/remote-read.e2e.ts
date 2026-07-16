@@ -1,20 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const projectId = "tango-e2e";
-const firestoreBase = `http://db:8080/v1/projects/${projectId}/databases/(default)/documents`;
-
-const fetchFirestore = async (url: string, init: RequestInit) => {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < 10; attempt += 1) {
-    try {
-      return await fetch(url, init);
-    } catch (error) {
-      lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-  throw lastError;
-};
+const firestorePort = process.env.VITE_DB_PORT ?? "8080";
+const firestoreBase = `http://db:${firestorePort}/v1/projects/${projectId}/databases/(default)/documents`;
 
 const encodeTokenPart = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
 
@@ -43,7 +31,7 @@ const field = {
 };
 
 const setDocument = async (collection: "deck" | "card", id: string, fields: object) => {
-  const response = await fetchFirestore(`${firestoreBase}/${collection}/${id}`, {
+  const response = await fetch(`${firestoreBase}/${collection}/${id}`, {
     method: "PATCH",
     headers: { Authorization: "Bearer owner", "Content-Type": "application/json" },
     body: JSON.stringify({ fields }),
