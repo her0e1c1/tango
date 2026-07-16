@@ -1,11 +1,10 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useSelector } from "react-redux";
-import * as selector from "@/selector";
 import * as Page from "@/page";
 
 const App = () => {
-  const darkMode = useSelector(selector.config.getByKey("darkMode"));
+  const darkMode = useSelector((state: RootState) => state.config.darkMode);
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);

@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import * as C from "@/constant";
-import * as selector from "@/selector";
 import * as util from "@/util";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
@@ -24,7 +23,7 @@ export const DeckSwiperContainer: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
 
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const remote = useRemoteCollections();
   const deck = remote.deckById(deckId);
   const activeSession = useStudyStore((state) => state.session);

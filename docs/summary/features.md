@@ -24,9 +24,9 @@ Key files: `src/page/DeckImportPage.tsx`, `src/features/import/containers/DeckIm
 - `/deck/:id` で deck 内 card を表示します。
 - card list には score、学習回数、tags、front text が表示されます。
 - details 内の filter で tags、AND/OR、score min/max を調整できます。
-- selector は selected tags、score range、`useCardInterval` と `nextSeeingAt` に基づいてカードを絞り込み、`numberOfSeen` 昇順に並べます。
+- `useRemoteCollections` は `filterCardsForDeck` を使い、selected tags、score range、`useCardInterval` と `nextSeeingAt` に基づいてカードを絞り込み、`numberOfSeen` 昇順に並べます。
 
-Key files: `src/page/CardList.tsx`, `src/features/card/containers/CardListContainer.tsx`, `src/features/card/components/templates/CardListTemplate.tsx`, `src/features/deck/components/DeckStartForm.tsx`, `src/selector/card.ts`
+Key files: `src/page/CardList.tsx`, `src/features/card/containers/CardListContainer.tsx`, `src/features/card/components/templates/CardListTemplate.tsx`, `src/features/deck/components/DeckStartForm.tsx`, `src/query/useRemoteCollections.ts`, `src/lib/study.ts`
 
 ## Card 編集と表示
 

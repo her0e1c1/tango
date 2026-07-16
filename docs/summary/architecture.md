@@ -16,8 +16,7 @@ flowchart TD
 
     Containers --> Actions[src/action thunk]
     Actions --> Store[Redux store / src/store]
-    Store --> Selectors[src/selector]
-    Selectors --> Containers
+    Store --> Containers
     Store <--> Persist[redux-persist / LocalStorage]
 
     Actions --> FirebaseAuth[Firebase Auth]

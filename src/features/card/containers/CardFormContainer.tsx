@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
 import * as C from "@/constant";
-import * as selector from "@/selector";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
 import { useActions } from "@/shared/hooks/useActions";
@@ -12,7 +11,7 @@ import { useCardFormState } from "@/features/card/hooks/useCardFormState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 
 const CardFormContent = ({ card }: { card: Card }) => {
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const actions = useActions();
   const navigate = useNavigate();
   const mutations = useCardMutations();

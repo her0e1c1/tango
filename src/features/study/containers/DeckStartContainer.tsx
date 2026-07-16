@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as selector from "@/selector";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteReadBoundary } from "@/shared/components";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
@@ -44,7 +43,7 @@ export const DeckStartContainer: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deckId");
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const remote = useRemoteCollections();
   const deck = remote.deckById(deckId);
   const cards = remote.filteredCardsByDeckId(deckId, config);

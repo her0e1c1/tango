@@ -16,7 +16,6 @@ const connectorModules = [
   "react-use",
   "@/action",
   "@/query",
-  "@/selector",
   "@/store",
   "@/shared/hooks",
 ];
@@ -184,6 +183,18 @@ describe("component architecture", () => {
 
   it("removes the legacy Atomic Design component root", () => {
     expect(existsSync(sourcePath("component"))).toBe(false);
+  });
+
+  it("removes the legacy selector module", () => {
+    const legacySelectorModule = ["@", "selector"].join("/");
+    const selectorReferences = productionFilesUnder("").flatMap((relativePath) =>
+      moduleReferences(relativePath)
+        .filter((reference) => isModuleOrSubpath(reference.resolvedSpecifier, legacySelectorModule))
+        .map((reference) => importViolation(relativePath, reference))
+    );
+
+    expect(existsSync(sourcePath("selector"))).toBe(false);
+    expect(selectorReferences, selectorReferences.join("\n")).toEqual([]);
   });
 
   it("groups shared layout components", () => {

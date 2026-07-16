@@ -4,14 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 import * as C from "@/constant";
 import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
-import * as selector from "@/selector";
 import { useActions } from "@/shared/hooks/useActions";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
 import { RemoteMutationNotice } from "@/shared/components";
 
 export const DeckImportContainer: React.FC = () => {
   const actions = useActions();
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const navigate = useNavigate();
   const deckImport = useDeckImport();
   useKey("t", actions.goToTop);

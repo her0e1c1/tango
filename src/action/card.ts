@@ -1,7 +1,6 @@
 import type { ThunkResult } from "@/action";
 import * as action from "@/action";
 import * as firestore from "@/action/firestore";
-import * as selector from "@/selector";
 
 export const isEmpty = (c: CardRaw): boolean => {
   return c.frontText === "" && c.backText === "";
@@ -37,7 +36,8 @@ export const prepare = (card: CardRaw, deck: CardDeck): Card => {
 export const bulkCreate =
   (cards: CardRaw[], deckId: DeckId): ThunkResult =>
   async (dispatch, getState) => {
-    const deck = selector.deck.getById(deckId)(getState());
+    const deck = getState().deck.byId[deckId];
+    if (deck == null) throw new Error(`NO DECK ${deckId}`);
     await Promise.all(
       cards.map(async (card) => {
         const c = prepare(card, deck);
@@ -55,7 +55,8 @@ export const bulkUpdate =
     await Promise.all(
       action.card.filterCardsForUpdate(cards, getState().card).map(async (c) => {
         await dispatch(action.type.cardUpdate(c));
-        const deck = selector.deck.getById(c.deckId)(getState());
+        const deck = getState().deck.byId[c.deckId];
+        if (deck == null) throw new Error(`NO DECK ${c.deckId}`);
         if (!deck.localMode) {
           await firestore.card.update(c);
         }

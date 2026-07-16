@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { useKey } from "react-use";
 
 import * as action from "@/action";
-import * as selector from "@/selector";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
 import { useActions } from "@/shared/hooks/useActions";
@@ -13,7 +12,7 @@ import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 
 export const DeckListContainer: React.FC = () => {
   const actions = useActions();
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const remote = useRemoteCollections();
   const mutations = useDeckMutations();
   const decks = remote.decks;

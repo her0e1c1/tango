@@ -3,7 +3,6 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import * as selector from "@/selector";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { studyStore } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
@@ -26,7 +25,7 @@ export interface StudyActions {
 
 export const useStudyActions = (deckId: DeckId): StudyActions => {
   const navigate = useNavigate();
-  const config = useSelector(selector.config.get());
+  const config = useSelector((state: RootState) => state.config);
   const remote = useRemoteCollections();
   const cards = remote.filteredCardsByDeckId(deckId, config);
   const cardsById = remote.cardsById;
