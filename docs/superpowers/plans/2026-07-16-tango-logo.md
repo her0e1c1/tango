@@ -289,7 +289,7 @@ Expected: `logo512.png` reports 512 by 512 and `logo192.png` reports 192 by 192.
 - [ ] **Step 3: Write the 64px single-image ICO export**
 
 ```bash
-/Users/studio2022/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 -c 'from PIL import Image; image=Image.open("/private/tmp/tango-mark.svg.png").convert("RGBA").resize((64,64), Image.Resampling.LANCZOS); image.save("public/favicon.ico", format="ICO", sizes=[(64,64)])'
+/Users/studio2022/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 -c 'from pathlib import Path; from struct import pack_into; from PIL import Image; path=Path("public/favicon.ico"); image=Image.open("/private/tmp/tango-mark.svg.png").convert("RGBA").resize((64,64), Image.Resampling.LANCZOS); image.save(path, format="ICO", sizes=[(64,64)]); data=bytearray(path.read_bytes()); pack_into("<H", data, 10, 1); path.write_bytes(data)'
 ```
 
 Expected: `file public/favicon.ico` reports one 64 by 64 icon with PNG image data.

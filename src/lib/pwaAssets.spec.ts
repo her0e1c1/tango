@@ -16,9 +16,9 @@ const stockAssetHashes = new Set([
   "9ea4f4da7050c0cc408926f6a39c253624e9babb1d43c7977cd821445a60b461",
 ]);
 const expectedAssetHashes: Record<string, string> = {
-  "public/favicon.ico": "6be21ee002b1722c176c87f8e1279a723bfc428105a952c6d7e76de30b9c6049",
-  "public/logo192.png": "5e4927b22f2a8fa5d3245d71446caeebbd5d3f9f3ae4018ba004ea7482d10da2",
-  "public/logo512.png": "1427fb898a5860df1b3c3bf69e4f06571a5df218a13746b4ec15f444a5063e28",
+  "public/favicon.ico": "e7331853699dfef9ce3600e79d942d96257de5501299eedf69132896d8f9149b",
+  "public/logo192.png": "a3757ad015bbe302059ae8d274220413e93329b88eb1bac9345ddc02174aa56d",
+  "public/logo512.png": "c60a008d4d65895594a221ea06f3dd17e90b6e9fe9592c4c76b2d8ce1be7817b",
 };
 const rawPaletteUtility =
   /\b(?:bg|border|fill|stroke|text)-(?:black|white|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:-\d{2,3})?\b/g;
