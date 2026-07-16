@@ -36,7 +36,7 @@ export const Tag: React.FC<{
       <div
         className={cx(
           props.className,
-          "select-none",
+          "inline-flex min-h-touch min-w-touch select-none items-center justify-center",
           "whitespace-nowrap",
           "font-medium",
           "align-middle",

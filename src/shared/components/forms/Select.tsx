@@ -34,7 +34,7 @@ export const Select: React.FC<{
       onChange={props.onChange}
       onBlur={props.onBlur}
       className={cx(
-        "block w-full appearance-none rounded-control border border-border bg-surface px-4 py-2 pr-8 leading-tight text-ink shadow-surface transition-colors duration-fast ease-calm hover:border-ink-muted focus-visible:border-focus invalid:border-danger disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-muted",
+        "block min-h-touch w-full appearance-none rounded-control border border-border bg-surface px-4 py-2 pr-8 leading-tight text-ink shadow-surface transition-colors duration-fast ease-calm hover:border-ink-muted focus-visible:border-focus invalid:border-danger disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-muted",
         props.className
       )}
     >

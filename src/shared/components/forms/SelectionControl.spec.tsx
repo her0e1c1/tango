@@ -102,6 +102,25 @@ describe("shared selection controls", () => {
     expect(screen.queryByText("biology.csv")).not.toBeInTheDocument();
   });
 
+  it("gives the slider native input a shared mobile touch target", () => {
+    const view = render(<Slider />);
+
+    expect(view.container.querySelector("input[type=range]")).toHaveClass("min-h-touch");
+  });
+
+  it("gives the switch clickable wrapper a shared mobile touch target", () => {
+    const view = render(<Switch />);
+
+    expect(view.container.firstElementChild).toHaveClass("min-h-touch", "min-w-touch");
+  });
+
+  it("gives the tag clickable presentation a shared mobile touch target", () => {
+    const view = render(<Tag label="Biology" />);
+    const input = view.container.querySelector("input[type=checkbox]");
+
+    expect(input?.nextElementSibling).toHaveClass("min-h-touch", "min-w-touch");
+  });
+
   it("disables every native control with a consistent non-color cue", () => {
     const slider = render(<Slider disabled value="3" />);
     const sliderInput = slider.container.querySelector("input");

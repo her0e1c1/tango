@@ -14,7 +14,7 @@ export const Switch: React.FC<{
   inputRef?: React.Ref<HTMLInputElement>;
 }> = (props) => {
   return (
-    <label className={cx("inline-block", props.className)}>
+    <label className={cx("inline-flex min-h-touch min-w-touch items-center justify-center", props.className)}>
       <input
         ref={props.inputRef}
         name={props.name}

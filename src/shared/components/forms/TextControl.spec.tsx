@@ -166,6 +166,16 @@ describe("shared text controls", () => {
   });
 
   it.each([
+    ["input", () => render(<Input />)],
+    ["select", () => render(<Select options={[{ label: "Primary", value: "primary" }]} />)],
+    ["textarea", () => render(<Textarea />)],
+  ])("gives the native %s a shared mobile touch target", (_name, renderControl) => {
+    const view = renderControl();
+
+    expect(view.container.firstElementChild).toHaveClass("min-h-touch");
+  });
+
+  it.each([
     ["input", () => render(<Input required defaultValue="" />)],
     [
       "select",
