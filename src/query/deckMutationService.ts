@@ -1,9 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { isEqual } from "lodash";
 
 import { firestoreKeys } from "@/query/firestoreKeys";
 import { cardMutationLock, deckMutationLock, withMutationLocks } from "@/query/mutationLocks";
-import type { RemoteById } from "@/query/remoteReadController";
+import { runOptimisticMutation, type RemoteById } from "@/query/remoteCollection";
 
 export interface DeckMutationServiceDependencies {
   client: QueryClient;
@@ -19,40 +18,41 @@ export const createDeckMutationService = (dependencies: DeckMutationServiceDepen
     dependencies.client.setQueryData(firestoreKeys.decks(uid), next);
   const setCards = (uid: string, next: RemoteById<Card>) =>
     dependencies.client.setQueryData(firestoreKeys.cards(uid), next);
+  const optimisticDeck = <T>(
+    uid: string,
+    id: DeckId,
+    update: (previous: RemoteById<Deck>) => RemoteById<Deck>,
+    mutation: () => Promise<T>
+  ) =>
+    withMutationLocks([deckMutationLock(id)], () =>
+      runOptimisticMutation({
+        targetIds: [id],
+        read: () => decks(uid),
+        replace: (decks) => setDecks(uid, decks),
+        update,
+        mutation,
+      })
+    );
 
   return {
     create: (uid: string, deck: Deck) =>
-      withMutationLocks([deckMutationLock(deck.id)], async () => {
-        const previous = decks(uid);
-        setDecks(uid, { ...previous, [deck.id]: deck });
-        try {
-          return await dependencies.createDeck(deck);
-        } catch (error) {
-          const current = decks(uid);
-          if (isEqual(current[deck.id], deck)) {
-            const rollback = { ...current };
-            if (previous[deck.id] == null) delete rollback[deck.id];
-            else rollback[deck.id] = previous[deck.id];
-            setDecks(uid, rollback);
-          }
-          throw error;
-        }
-      }),
+      optimisticDeck(
+        uid,
+        deck.id,
+        (previous) => ({ ...previous, [deck.id]: deck }),
+        () => dependencies.createDeck(deck)
+      ),
     update: (uid: string, patch: DeckEdit) =>
-      withMutationLocks([deckMutationLock(patch.id)], async () => {
-        const previous = decks(uid);
-        const currentDeck = previous[patch.id];
-        if (currentDeck == null) throw new Error(`Deck ${patch.id} is not available`);
-        const optimistic = { ...currentDeck, ...patch };
-        setDecks(uid, { ...previous, [patch.id]: optimistic });
-        try {
-          await dependencies.updateDeck(patch);
-        } catch (error) {
-          const current = decks(uid);
-          if (isEqual(current[patch.id], optimistic)) setDecks(uid, { ...current, [patch.id]: currentDeck });
-          throw error;
-        }
-      }),
+      optimisticDeck(
+        uid,
+        patch.id,
+        (previous) => {
+          const current = previous[patch.id];
+          if (current == null) throw new Error(`Deck ${patch.id} is not available`);
+          return { ...previous, [patch.id]: { ...current, ...patch } };
+        },
+        () => dependencies.updateDeck(patch)
+      ),
     remove: (uid: string, id: DeckId) => {
       const childIds = Object.values(cards(uid))
         .filter((card): card is Card => card?.deckId === id)

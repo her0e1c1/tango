@@ -3,8 +3,7 @@ import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import type { RemoteSnapshot } from "@/action/firestore/event";
 import { firestoreKeys } from "@/query/firestoreKeys";
 import { createFirestoreSyncController, type FirestoreSyncState } from "@/query/firestoreSyncController";
-
-export type RemoteById<T> = Record<string, T | undefined>;
+import { toRemoteById, type RemoteById } from "@/query/remoteCollection";
 
 export interface RemoteSubscriptionProps<T> {
   uid: string;
@@ -23,9 +22,6 @@ export interface RemoteReadDependencies {
     event: { added?: T[]; modified?: T[]; removed?: string[] }
   ) => RemoteById<T>;
 }
-
-const toById = <T extends { id: string }>(items: T[]): RemoteById<T> =>
-  Object.fromEntries(items.map((item) => [item.id, item]));
 
 export const createRemoteReadController = (dependencies: RemoteReadDependencies) => {
   const syncController = createFirestoreSyncController(["deck", "card"] as const);
@@ -58,7 +54,7 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
     if (!syncController.isCurrent(uid, generation)) return;
     const previous = dependencies.client.getQueryData<RemoteById<T>>(queryKey) ?? {};
     const next =
-      snapshot.type === "replace" ? toById(snapshot.items) : dependencies.applyChange(previous, snapshot.event);
+      snapshot.type === "replace" ? toRemoteById(snapshot.items) : dependencies.applyChange(previous, snapshot.event);
     dependencies.client.setQueryData(queryKey, next);
     syncController.observe(uid, generation, collection, snapshot.metadata);
   };
