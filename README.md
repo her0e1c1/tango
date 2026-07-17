@@ -1,4 +1,9 @@
-# Tango
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./public/tango-logo-dark.svg">
+    <img src="./public/tango-logo.svg" alt="Tango" width="216" height="64">
+  </picture>
+</h1>
 
 ## Demo
 

@@ -9,9 +9,11 @@ afterEach(cleanup);
 describe("Header", () => {
   it("renders an elevated safe-area-aware fixed shell with touch-sized SVG actions", () => {
     const view = render(<Header fixed />);
-    const header = view.getByText("tango").parentElement;
+    const logo = view.getByText("tango").closest("div");
+    const header = logo?.parentElement;
     const actions = view.container.querySelectorAll("svg");
 
+    expect(logo).not.toBeNull();
     expect(header).not.toBeNull();
     expect(header).toHaveClass(
       "fixed",
@@ -39,7 +41,7 @@ describe("Header", () => {
       />
     );
 
-    fireEvent.click(view.getByText("tango"));
+    fireEvent.click(view.getByRole("button", { name: "tango" }));
     const lightModeActions = view.container.querySelectorAll("svg");
     fireEvent.click(lightModeActions[0] as SVGElement);
     fireEvent.click(lightModeActions[1] as SVGElement);

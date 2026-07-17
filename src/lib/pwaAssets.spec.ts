@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { inflateSync } from "node:zlib";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { createElement } from "react";
@@ -16,9 +17,9 @@ const stockAssetHashes = new Set([
   "9ea4f4da7050c0cc408926f6a39c253624e9babb1d43c7977cd821445a60b461",
 ]);
 const expectedAssetHashes: Record<string, string> = {
-  "public/favicon.ico": "6be21ee002b1722c176c87f8e1279a723bfc428105a952c6d7e76de30b9c6049",
-  "public/logo192.png": "5e4927b22f2a8fa5d3245d71446caeebbd5d3f9f3ae4018ba004ea7482d10da2",
-  "public/logo512.png": "1427fb898a5860df1b3c3bf69e4f06571a5df218a13746b4ec15f444a5063e28",
+  "public/favicon.ico": "20aa3dc1c0d77a68b69b43c5f707585a20df5940dfe126abd5868e4e6ef3e03e",
+  "public/logo192.png": "56f25aadf5cea00c3e777f24776d3c5ced2c65afb86b1df6fea2c883478b9b4f",
+  "public/logo512.png": "fecd457bd9fe9f60c27a62911db7d047f14a591f85032a9a5a66136397dfe9a4",
 };
 const rawPaletteUtility =
   /\b(?:bg|border|fill|stroke|text)-(?:black|white|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:-\d{2,3})?\b/g;
@@ -42,6 +43,17 @@ interface WebManifest {
 interface PngInfo {
   signature: boolean;
   chunkType: string;
+  width: number;
+  height: number;
+}
+
+interface DecodedPng {
+  width: number;
+  height: number;
+  pixels: Buffer;
+}
+
+interface ArtworkBounds {
   width: number;
   height: number;
 }
@@ -115,6 +127,146 @@ function inspectPng(bytes: Buffer): PngInfo | undefined {
     width: bytes.readUInt32BE(16),
     height: bytes.readUInt32BE(20),
   };
+}
+
+function paethPredictor(left: number, above: number, upperLeft: number): number {
+  const prediction = left + above - upperLeft;
+  const leftDistance = Math.abs(prediction - left);
+  const aboveDistance = Math.abs(prediction - above);
+  const upperLeftDistance = Math.abs(prediction - upperLeft);
+
+  if (leftDistance <= aboveDistance && leftDistance <= upperLeftDistance) return left;
+  return aboveDistance <= upperLeftDistance ? above : upperLeft;
+}
+
+function decodeRgbaPng(bytes: Buffer): DecodedPng | undefined {
+  const png = inspectPng(bytes);
+  if (
+    png === undefined ||
+    bytes[24] !== 8 ||
+    bytes[25] !== 6 ||
+    bytes[26] !== 0 ||
+    bytes[27] !== 0 ||
+    bytes[28] !== 0
+  ) {
+    return undefined;
+  }
+
+  const idatChunks: Buffer[] = [];
+  let offset = pngSignature.length;
+  while (offset < bytes.length) {
+    const chunkLength = bytes.readUInt32BE(offset);
+    const chunkType = bytes.toString("ascii", offset + 4, offset + 8);
+    if (chunkType === "IDAT") idatChunks.push(bytes.subarray(offset + 8, offset + 8 + chunkLength));
+    offset += chunkLength + 12;
+    if (chunkType === "IEND") break;
+  }
+
+  let scanlines: Buffer;
+  try {
+    scanlines = inflateSync(Buffer.concat(idatChunks));
+  } catch {
+    return undefined;
+  }
+
+  const bytesPerPixel = 4;
+  const rowLength = png.width * bytesPerPixel;
+  if (scanlines.length !== (rowLength + 1) * png.height) return undefined;
+
+  const pixels = Buffer.alloc(rowLength * png.height);
+  let inputOffset = 0;
+  for (let y = 0; y < png.height; y += 1) {
+    const filterType = scanlines.readUInt8(inputOffset);
+    inputOffset += 1;
+    const rowOffset = y * rowLength;
+
+    for (let x = 0; x < rowLength; x += 1) {
+      const rawByte = scanlines.readUInt8(inputOffset);
+      inputOffset += 1;
+      const left = x >= bytesPerPixel ? pixels.readUInt8(rowOffset + x - bytesPerPixel) : 0;
+      const above = y > 0 ? pixels.readUInt8(rowOffset + x - rowLength) : 0;
+      const upperLeft = y > 0 && x >= bytesPerPixel ? pixels.readUInt8(rowOffset + x - rowLength - bytesPerPixel) : 0;
+
+      let predictor: number;
+      if (filterType === 0) predictor = 0;
+      else if (filterType === 1) predictor = left;
+      else if (filterType === 2) predictor = above;
+      else if (filterType === 3) predictor = Math.floor((left + above) / 2);
+      else if (filterType === 4) predictor = paethPredictor(left, above, upperLeft);
+      else return undefined;
+
+      pixels.writeUInt8((rawByte + predictor) & 0xff, rowOffset + x);
+    }
+  }
+
+  return { width: png.width, height: png.height, pixels };
+}
+
+function artworkBounds(png: DecodedPng): ArtworkBounds | undefined {
+  let minX = png.width;
+  let minY = png.height;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < png.height; y += 1) {
+    for (let x = 0; x < png.width; x += 1) {
+      const offset = (y * png.width + x) * 4;
+      const red = png.pixels.readUInt8(offset);
+      const green = png.pixels.readUInt8(offset + 1);
+      const blue = png.pixels.readUInt8(offset + 2);
+      const alpha = png.pixels.readUInt8(offset + 3);
+      if (alpha === 0 || (red >= 250 && green >= 250 && blue >= 250)) continue;
+
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  return maxX === -1 ? undefined : { width: maxX - minX + 1, height: maxY - minY + 1 };
+}
+
+function icoPngPayload(bytes: Buffer): Buffer | undefined {
+  if (inspectIco(bytes) === undefined) return undefined;
+
+  const dataSize = bytes.readUInt32LE(14);
+  const dataOffset = bytes.readUInt32LE(18);
+  const payload = bytes.subarray(dataOffset, dataOffset + dataSize);
+  return payload.subarray(0, pngSignature.length).equals(pngSignature) ? payload : undefined;
+}
+
+function expectArtworkFillsCanvas(bytes: Buffer, expectedSize: number): void {
+  const png = decodeRgbaPng(bytes);
+  expect(png).toBeDefined();
+  if (png === undefined) return;
+
+  const bounds = artworkBounds(png);
+  expect(bounds).toBeDefined();
+  expect(png.width).toBe(expectedSize);
+  expect(png.height).toBe(expectedSize);
+  expect(bounds?.width).toBeGreaterThanOrEqual(expectedSize * 0.85);
+  expect(bounds?.height).toBeGreaterThanOrEqual(expectedSize * 0.85);
+}
+
+function expectTransparentCanvas(bytes: Buffer): void {
+  const png = decodeRgbaPng(bytes);
+  expect(png).toBeDefined();
+  if (png === undefined) return;
+
+  const cornerAlphaOffsets = [3, (png.width - 1) * 4 + 3, (png.height - 1) * png.width * 4 + 3, png.pixels.length - 1];
+  expect(cornerAlphaOffsets.map((offset) => png.pixels.readUInt8(offset))).toEqual([0, 0, 0, 0]);
+
+  let nonOpaquePixels = 0;
+  let partiallyTransparentPixels = 0;
+  for (let offset = 3; offset < png.pixels.length; offset += 4) {
+    const alpha = png.pixels.readUInt8(offset);
+    if (alpha < 255) nonOpaquePixels += 1;
+    if (alpha > 0 && alpha < 255) partiallyTransparentPixels += 1;
+  }
+
+  expect(nonOpaquePixels).toBeGreaterThan(0);
+  expect(partiallyTransparentPixels).toBeGreaterThan(0);
 }
 
 function hasValidIcoPayload(
@@ -210,6 +362,19 @@ function storyBlock(source: string, storyName: string): string {
 }
 
 describe("Tango PWA identity", () => {
+  const canonicalMarkShapes = [
+    '<rect x="3" y="3" width="58" height="58" rx="17" fill="#4f63b8" />',
+    '<rect x="18" y="14" width="34" height="27" rx="6" fill="#2f7f78" />',
+    '<rect x="12" y="21" width="36" height="28" rx="6" fill="#f8fafc" />',
+    '<path d="M20 28h20v4.5h-7.5V44h-5V32.5H20z" fill="#4f63b8" />',
+  ];
+  const canonicalLetterPaths = [
+    "M97 25v19 M97 34c0-6-4-10-9-10s-10 4-10 10 4 10 10 10 9-4 9-10",
+    "M112 44V25m0 8c2-6 6-9 11-9 6 0 9 4 9 10v10",
+    "M165 25v17c0 8-4 12-11 12-5 0-9-2-11-5 M165 34c0-6-4-10-10-10s-10 4-10 10 4 10 10 10 10-4 10-10",
+    "M189 24c-7 0-11 4-11 10s4 10 11 10 11-4 11-10-4-10-11-10z",
+  ];
+
   it("provides a code-native Tango SVG mark without the stock React identity", () => {
     const relativePath = "public/tango-mark.svg";
     const mark = readText(relativePath);
@@ -222,6 +387,58 @@ describe("Tango PWA identity", () => {
     expect(mark).toMatch(/#2f7f78/i);
     expect(mark).toMatch(/#f8fafc/i);
     expect(mark).not.toMatch(/react|atom/i);
+    expect(mark).not.toContain("<circle");
+    expect(mark.match(/<(?:rect|path)\b[^>]*\/>/g)).toEqual(canonicalMarkShapes);
+  });
+
+  it("provides geometry-identical light and dark Card trail logos with outlined lettering", () => {
+    const lightLogo = readText("public/tango-logo.svg");
+    const darkLogo = readText("public/tango-logo-dark.svg");
+    const normalizeThemeColors = (source: string) =>
+      source.replace(/#f8fafc|#182231/gi, "SURFACE").replace(/#202936|#edf2f7/gi, "INK");
+
+    expect(normalizeThemeColors(lightLogo)).toBe(normalizeThemeColors(darkLogo));
+
+    for (const logo of [lightLogo, darkLogo]) {
+      expect(logo.trimStart()).toMatch(/^<svg\b/);
+      expect(logo).toContain("<title>Tango</title>");
+      expect(logo).toMatch(/viewBox=["']0 0 216 64["']/);
+      expect(logo).toContain('stroke-width="4.5"');
+      expect(logo).toContain('stroke-linecap="round"');
+      expect(logo).toContain('stroke-linejoin="round"');
+      expect(logo).not.toContain("<text");
+
+      const letterGroup = logo.match(/<g fill="none"[^>]*>([\s\S]*?)<\/g>/)?.[1] ?? "";
+      const letterPaths = Array.from(letterGroup.matchAll(/<path d="([^"]+)" \/>/g), ([, pathData]) => pathData);
+      expect(letterPaths).toEqual(canonicalLetterPaths);
+
+      const markGroup = logo.match(/<g data-logo-part="mark">([\s\S]*?)<\/g>/)?.[1] ?? "";
+      expect(markGroup.match(/<(?:rect|path)\b[^>]*\/>/g)).toEqual(canonicalMarkShapes);
+    }
+
+    const rearTrailCard = '<rect x="36" y="14" width="176" height="42" rx="8" fill="#2f7f78" />';
+    expect(lightLogo).toContain(rearTrailCard);
+    expect(darkLogo).toContain(rearTrailCard);
+    expect(lightLogo).toContain('<rect x="32" y="8" width="180" height="44" rx="8" fill="#f8fafc" />');
+    expect(lightLogo).toContain(
+      '<g fill="none" stroke="#202936" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">'
+    );
+    expect(darkLogo).toContain('<rect x="32" y="8" width="180" height="44" rx="8" fill="#182231" />');
+    expect(darkLogo).toContain(
+      '<g fill="none" stroke="#edf2f7" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">'
+    );
+
+    const darkMark = darkLogo.match(/<g data-logo-part="mark">([\s\S]*?)<\/g>/)?.[0];
+    expect(darkMark).toMatch(/#f8fafc/i);
+  });
+
+  it("displays the light and dark Card trail logo as the README heading", () => {
+    const readme = readText("README.md");
+
+    expect(readme).toContain("<h1>");
+    expect(readme).toContain('<source media="(prefers-color-scheme: dark)" srcset="./public/tango-logo-dark.svg">');
+    expect(readme).toContain('<img src="./public/tango-logo.svg" alt="Tango" width="216" height="64">');
+    expect(readme).not.toMatch(/^# Tango$/m);
   });
 
   it("advertises SVG, fallback, touch, manifest, and light/dark browser colors", () => {
@@ -319,6 +536,31 @@ describe("Tango PWA identity", () => {
     expect(sha256(bytes)).toBe(expectedAssetHashes["public/favicon.ico"]);
   });
 
+  it.each([
+    ["public/logo192.png", 192],
+    ["public/logo512.png", 512],
+  ])("fills at least 85% of the %s canvas with decoded artwork", (relativePath, expectedSize) => {
+    expectArtworkFillsCanvas(readBytes(relativePath), expectedSize);
+  });
+
+  it("fills at least 85% of the favicon canvas with decoded artwork", () => {
+    const payload = icoPngPayload(readBytes("public/favicon.ico"));
+
+    expect(payload).toBeDefined();
+    if (payload !== undefined) expectArtworkFillsCanvas(payload, 64);
+  });
+
+  it.each(["public/logo192.png", "public/logo512.png"])("preserves transparent canvas pixels in %s", (relativePath) => {
+    expectTransparentCanvas(readBytes(relativePath));
+  });
+
+  it("preserves transparent canvas pixels in the favicon", () => {
+    const payload = icoPngPayload(readBytes("public/favicon.ico"));
+
+    expect(payload).toBeDefined();
+    if (payload !== undefined) expectTransparentCanvas(payload);
+  });
+
   it("rejects a truncated PNG with plausible dimensions", () => {
     const truncatedPng = Buffer.alloc(24);
     pngSignature.copy(truncatedPng);
@@ -344,24 +586,32 @@ describe("Tango PWA identity", () => {
     expect(inspectIco(truncatedIco)).toBeUndefined();
   });
 
-  it("renders the shared mark beside a visible accessible wordmark without changing interaction props", () => {
+  it("renders the shared mark wordmark assets with accessible text without changing interaction props", () => {
     const onClick = vi.fn();
     const view = render(createElement(Logo, { className: "contract-class", onClick }));
     const logo = view.getByRole("button", { name: "tango" });
-    const mark = logo.querySelector('img[src="/tango-mark.svg"]');
+    const lightLogo = logo.querySelector('img[src="/tango-logo.svg"]');
+    const darkLogo = logo.querySelector('img[src="/tango-logo-dark.svg"]');
 
-    expect(logo).toHaveClass("contract-class", "text-accent-primary");
-    expect(mark).toHaveAttribute("alt", "");
-    expect(mark).toHaveAttribute("aria-hidden", "true");
-    expect(view.getByText("tango")).toBeVisible();
+    expect(logo).toHaveClass("contract-class");
+    for (const image of [lightLogo, darkLogo]) {
+      expect(image).toHaveAttribute("alt", "");
+      expect(image).toHaveAttribute("aria-hidden", "true");
+      expect(image).toHaveAttribute("width", "108");
+      expect(image).toHaveAttribute("height", "32");
+    }
+    expect(view.getByText("tango")).toHaveClass("sr-only");
     fireEvent.click(logo);
     expect(onClick).toHaveBeenCalledOnce();
   });
 
   it("keeps the mark-only Logo accessible through the component API", () => {
     const view = render(createElement(Logo, { markOnly: true, onClick: vi.fn() }));
+    const logo = view.getByRole("button", { name: "tango" });
 
-    expect(view.getByRole("button", { name: "tango" })).toBeInTheDocument();
+    expect(logo.querySelector('img[src="/tango-mark.svg"]')).toBeInTheDocument();
+    expect(logo.querySelector('img[src="/tango-logo.svg"]')).not.toBeInTheDocument();
+    expect(logo.querySelector('img[src="/tango-logo-dark.svg"]')).not.toBeInTheDocument();
     expect(view.getByText("tango")).toHaveClass("sr-only");
   });
 
