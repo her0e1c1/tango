@@ -105,7 +105,7 @@ describe("useStudyActions", () => {
     mocks.pendingIds.clear();
     mocks.state = createState();
     studyStore.setState({
-      session: null,
+      sessionsByDeckId: {},
       showBackText: false,
       autoPlay: false,
       lastSwipe: undefined,
@@ -121,10 +121,13 @@ describe("useStudyActions", () => {
     studyStore.setState({ showBackText: true, lastSwipe: "cardSwipeLeft" });
     mocks.navigate.mockImplementationOnce(() => {
       expect(studyStore.getState()).toMatchObject({
-        session: {
-          deckId: deck.id,
-          cardOrderIds: [card1.id],
-          currentIndex: 0,
+        sessionsByDeckId: {
+          [deck.id]: {
+            deckId: deck.id,
+            cardOrderIds: [card1.id],
+            currentIndex: 0,
+            lastStudiedAt: 946684800000,
+          },
         },
         showBackText: false,
         autoPlay: true,
@@ -149,7 +152,8 @@ describe("useStudyActions", () => {
     });
 
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
-    expect(studyStore.getState().session?.deckId).toBe("deck-2");
+    expect(studyStore.getState().sessionsByDeckId["deck-2"]?.deckId).toBe("deck-2");
+    expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
     expect(studyStore.getState().lastSwipe).toBeUndefined();
   });
 
@@ -171,10 +175,13 @@ describe("useStudyActions", () => {
     };
     expect(mocks.cardUpdate).toHaveBeenCalledWith(patch);
     expect(studyStore.getState()).toMatchObject({
-      session: {
-        deckId: deck.id,
-        cardOrderIds: [card1.id, card2.id],
-        currentIndex: 1,
+      sessionsByDeckId: {
+        [deck.id]: {
+          deckId: deck.id,
+          cardOrderIds: [card1.id, card2.id],
+          currentIndex: 1,
+          lastStudiedAt: 946684800000,
+        },
       },
       lastSwipe: "cardSwipeRight",
       showBackText: false,
@@ -192,9 +199,31 @@ describe("useStudyActions", () => {
     });
 
     expect(studyStore.getState()).toMatchObject({
-      session: { currentIndex: 0 },
+      sessionsByDeckId: { [deck.id]: { currentIndex: 0 } },
       showBackText: true,
       lastSwipe: undefined,
+    });
+  });
+
+  it("does not roll back a newer same-index session update", async () => {
+    studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
+    let rejectWrite: ((error: Error) => void) | undefined;
+    mocks.cardUpdate.mockReturnValueOnce(
+      new Promise<void>((_resolve, reject) => {
+        rejectWrite = reject;
+      })
+    );
+    const { result } = renderHook(() => useStudyActions(deck.id));
+
+    const swipe = result.current.swipeRight();
+    vi.mocked(Date.now).mockReturnValue(946684800100);
+    act(() => studyStore.getState().touchStudy(deck.id));
+    rejectWrite?.(new Error("write failed"));
+    await act(async () => swipe);
+
+    expect(studyStore.getState().sessionsByDeckId[deck.id]).toMatchObject({
+      currentIndex: 1,
+      lastStudiedAt: 946684800100,
     });
   });
 
@@ -208,7 +237,7 @@ describe("useStudyActions", () => {
     });
 
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
-    expect(studyStore.getState().session?.currentIndex).toBe(0);
+    expect(studyStore.getState().sessionsByDeckId[deck.id]?.currentIndex).toBe(0);
   });
 
   it("keeps back text visible when the long-lived config allows it", async () => {
@@ -238,9 +267,10 @@ describe("useStudyActions", () => {
     expect(studyStore.getState()).toEqual(before);
   });
 
-  it("sets a terminal index for GoBack without a card or deck write", async () => {
+  it("removes only the route session for GoBack without a card write", async () => {
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
-    studyStore.getState().setCurrentIndex(1);
+    studyStore.getState().startStudy("deck-2", ["other-card"]);
+    studyStore.getState().setCurrentIndex(deck.id, 1);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() => useStudyActions(deck.id));
 
@@ -250,10 +280,11 @@ describe("useStudyActions", () => {
 
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
     expect(studyStore.getState()).toMatchObject({
-      session: { currentIndex: -1 },
+      sessionsByDeckId: { "deck-2": { deckId: "deck-2" } },
       lastSwipe: "cardSwipeLeft",
       showBackText: true,
     });
+    expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
   });
 
   it("updates the session index and hides back text", () => {
@@ -265,7 +296,21 @@ describe("useStudyActions", () => {
       result.current.updateIndex(1);
     });
 
-    expect(studyStore.getState().session?.currentIndex).toBe(1);
+    expect(studyStore.getState().sessionsByDeckId[deck.id]?.currentIndex).toBe(1);
     expect(studyStore.getState().showBackText).toBe(false);
+  });
+
+  it("finishes only the route session after the final card", async () => {
+    studyStore.getState().startStudy(deck.id, [card1.id]);
+    studyStore.getState().startStudy("deck-2", ["other-card"]);
+    const { result } = renderHook(() => useStudyActions(deck.id));
+
+    await act(async () => {
+      await result.current.swipeRight();
+    });
+
+    expect(mocks.cardUpdate).toHaveBeenCalledOnce();
+    expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
+    expect(studyStore.getState().sessionsByDeckId["deck-2"]).toMatchObject({ deckId: "deck-2" });
   });
 });

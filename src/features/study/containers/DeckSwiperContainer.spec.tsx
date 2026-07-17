@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -133,13 +133,13 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     mocks.state = createState();
     mocks.hydrated = true;
     studyStore.setState({
-      session: null,
+      sessionsByDeckId: {},
       showBackText: false,
       autoPlay: false,
       lastSwipe: undefined,
     });
     studyStore.getState().startStudy(deck.id, [card.id, legacyCard.id]);
-    mocks.resetStudy.mockImplementation(() => studyStore.getState().resetStudy());
+    mocks.resetStudy.mockImplementation(() => studyStore.getState().removeStudy(deck.id));
   });
 
   afterEach(() => {
@@ -163,9 +163,30 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(mocks.useKey).toHaveBeenCalledWith(" ", mocks.toggleAutoPlay);
   });
 
+  it("updates the route session activity when the study screen opens", () => {
+    studyStore.setState((state) => {
+      const session = state.sessionsByDeckId[deck.id];
+      if (session == null) return state;
+      return {
+        sessionsByDeckId: {
+          ...state.sessionsByDeckId,
+          [deck.id]: { ...session, lastStudiedAt: 100 },
+        },
+      };
+    });
+    studyStore.setState({ showBackText: true, autoPlay: true, lastSwipe: "cardSwipeLeft" });
+    const now = vi.spyOn(Date, "now").mockReturnValue(9000);
+
+    render(<DeckSwiperContainer />);
+
+    expect(studyStore.getState().sessionsByDeckId[deck.id]?.lastStudiedAt).toBe(9000);
+    expect(studyStore.getState()).toMatchObject({ showBackText: false, autoPlay: false, lastSwipe: undefined });
+    now.mockRestore();
+  });
+
   it("renders Zustand back text and controlled auto-play", () => {
-    studyStore.setState({ showBackText: true, autoPlay: true });
     const view = render(<DeckSwiperContainer />);
+    act(() => studyStore.setState({ showBackText: true, autoPlay: true }));
 
     const code = view.container.querySelector("pre.typescript") as HTMLElement;
     expect(code).toHaveTextContent(card.backText);
@@ -188,7 +209,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
       cardOrderIds: [card.id],
     };
     mocks.state = createState(legacyDeck);
-    studyStore.getState().resetStudy();
+    studyStore.getState().removeStudy(deck.id);
     mocks.hydrated = false;
 
     const view = render(<DeckSwiperContainer />);
@@ -196,7 +217,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(view.getByRole("status")).toHaveTextContent("Study session unavailable.");
     expect(mocks.resetStudy).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
-    expect(studyStore.getState().session).toBeNull();
+    expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
 
     mocks.hydrated = true;
     view.rerender(<DeckSwiperContainer />);
@@ -205,10 +226,11 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
     });
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
-    expect(studyStore.getState().session).toBeNull();
+    expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
   });
 
-  it("resets and exits when the active session belongs to another deck", async () => {
+  it("exits without removing a session that belongs to another deck", async () => {
+    studyStore.getState().removeStudy(deck.id);
     studyStore.getState().startStudy("other-deck", [card.id]);
 
     render(<DeckSwiperContainer />);
@@ -217,11 +239,11 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
     });
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
-    expect(studyStore.getState().session).toBeNull();
+    expect(studyStore.getState().sessionsByDeckId["other-deck"]).toMatchObject({ deckId: "other-deck" });
   });
 
   it("resets and exits when no session or legacy candidate exists", async () => {
-    studyStore.getState().resetStudy();
+    studyStore.getState().removeStudy(deck.id);
 
     render(<DeckSwiperContainer />);
 
@@ -232,7 +254,14 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   });
 
   it("resets and exits at a terminal session index", async () => {
-    studyStore.getState().setCurrentIndex(-1);
+    const session = studyStore.getState().sessionsByDeckId[deck.id];
+    if (session == null) throw new Error("Expected an active study session");
+    studyStore.setState((state) => ({
+      sessionsByDeckId: {
+        ...state.sessionsByDeckId,
+        [deck.id]: { ...session, currentIndex: -1 },
+      },
+    }));
 
     render(<DeckSwiperContainer />);
 

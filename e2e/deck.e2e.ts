@@ -39,9 +39,6 @@ const seedDeckSession = async (page: Page) => {
   await seedDeckAndCards(e2eDeck, [e2eCard]);
 };
 
-const deckCard = (page: Page, name: string) =>
-  page.getByText(name).locator("xpath=ancestor::div[contains(@class, 'rounded')][1]");
-
 test.beforeEach(async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => {
@@ -64,7 +61,7 @@ test("navigates from the deck list to the card list", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByText("E2E Deck")).toBeVisible();
-  await page.getByText("E2E Deck").click();
+  await page.getByRole("button", { name: "View E2E Deck" }).click();
 
   await expect(page).toHaveURL(new RegExp(`/deck/${e2eDeck.id}$`));
   await expect(page.getByText("apple")).toBeVisible();
@@ -74,7 +71,8 @@ test("navigates from the deck list to the card list", async ({ page }) => {
 test("saves deck edits and returns to the deck list", async ({ page }) => {
   await page.goto("/");
 
-  await deckCard(page, "E2E Deck").locator("svg").nth(1).click();
+  await page.getByRole("button", { name: "Open actions for E2E Deck" }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${e2eDeck.id}/edit$`));
 
   await page.locator('input[name="name"]').fill("Updated E2E Deck");
@@ -89,7 +87,8 @@ test("deletes a deck from the deck list", async ({ page }) => {
   await page.goto("/");
 
   page.on("dialog", (dialog) => dialog.accept());
-  await deckCard(page, "E2E Deck").locator("svg").nth(2).click();
+  await page.getByRole("button", { name: "Open actions for E2E Deck" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
 
   await expect(page.getByText("E2E Deck")).not.toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());

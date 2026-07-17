@@ -16,6 +16,7 @@ const meta = {
   },
   args: {
     deck: fixture.deck.default,
+    cardCount: 24,
   },
 } satisfies Meta<typeof Template>;
 
@@ -31,6 +32,7 @@ export const WithStudyProgress: Story = {
     studyProgress: {
       currentIndex: 0,
       cardCount: 3,
+      lastStudiedAt: Date.now() - 5 * 60 * 1000,
     },
   },
 };

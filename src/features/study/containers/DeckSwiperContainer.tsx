@@ -15,6 +15,7 @@ import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { useStudyControllerState } from "@/features/study/hooks/useStudyControllerState";
 import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
+import { selectStudySessionForRoute, studyStore } from "@/features/study/state/studyStore";
 import { useActions } from "@/shared/hooks/useActions";
 import { useConfig } from "@/features/settings/hooks/useConfig";
 
@@ -26,12 +27,11 @@ export const DeckSwiperContainer: React.FC = () => {
   const config = useConfig();
   const remote = useRemoteCollections();
   const deck = remote.deckById(deckId);
-  const activeSession = useStudyStore((state) => state.session);
+  const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
   const hydrated = useStudyHydrated();
 
-  const session = activeSession?.deckId === deckId ? activeSession : null;
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
   const card = cardId == null ? undefined : remote.cardById(cardId);
@@ -60,6 +60,13 @@ export const DeckSwiperContainer: React.FC = () => {
   });
 
   const exitingDeck = React.useRef<DeckId>();
+  React.useEffect(() => {
+    if (!valid) return;
+    const state = studyStore.getState();
+    state.initializeStudyUi(config.defaultAutoPlay);
+    state.touchStudy(deckId);
+  }, [config.defaultAutoPlay, deckId, valid]);
+
   React.useEffect(() => {
     if (valid) {
       exitingDeck.current = undefined;

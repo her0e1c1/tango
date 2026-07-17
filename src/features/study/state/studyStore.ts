@@ -7,10 +7,11 @@ export interface StudySession {
   deckId: DeckId;
   cardOrderIds: CardId[];
   currentIndex: number;
+  lastStudiedAt: number;
 }
 
 interface PersistedStudyState {
-  session: StudySession | null;
+  sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
 }
 
 export interface StudyState extends PersistedStudyState {
@@ -18,8 +19,9 @@ export interface StudyState extends PersistedStudyState {
   autoPlay: boolean;
   lastSwipe?: SwipeDirection | undefined;
   startStudy: (deckId: DeckId, cardOrderIds: CardId[]) => void;
-  setCurrentIndex: (currentIndex: number) => void;
-  resetStudy: () => void;
+  touchStudy: (deckId: DeckId) => void;
+  setCurrentIndex: (deckId: DeckId, currentIndex: number) => void;
+  removeStudy: (deckId: DeckId) => void;
   initializeStudyUi: (defaultAutoPlay: boolean) => void;
   toggleShowBackText: () => void;
   toggleAutoPlay: () => void;
@@ -35,56 +37,109 @@ interface CreateStudyStoreOptions {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
-const sanitizePersistedStudyState = (persistedState: unknown): PersistedStudyState => {
-  if (!isRecord(persistedState) || !isRecord(persistedState.session)) {
-    return { session: null };
-  }
-
-  const { deckId, cardOrderIds, currentIndex } = persistedState.session;
+const sanitizeStudySession = (value: unknown, fallbackLastStudiedAt?: number): StudySession | undefined => {
+  if (!isRecord(value)) return undefined;
+  const { deckId, cardOrderIds, currentIndex } = value;
+  const lastStudiedAt = value.lastStudiedAt ?? fallbackLastStudiedAt;
   if (
     typeof deckId !== "string" ||
     !Array.isArray(cardOrderIds) ||
+    cardOrderIds.length === 0 ||
     !cardOrderIds.every((cardId) => typeof cardId === "string") ||
     typeof currentIndex !== "number" ||
-    !Number.isFinite(currentIndex)
+    !Number.isInteger(currentIndex) ||
+    currentIndex < 0 ||
+    currentIndex >= cardOrderIds.length ||
+    typeof lastStudiedAt !== "number" ||
+    !Number.isFinite(lastStudiedAt) ||
+    lastStudiedAt < 0
   ) {
-    return { session: null };
+    return undefined;
   }
 
   return {
-    session: {
-      deckId,
-      cardOrderIds: [...cardOrderIds],
-      currentIndex,
-    },
+    deckId,
+    cardOrderIds: [...cardOrderIds],
+    currentIndex,
+    lastStudiedAt,
   };
 };
 
-const migratePersistedStudyState = (persistedState: unknown, version: number): PersistedStudyState =>
-  version === 1 ? sanitizePersistedStudyState(persistedState) : { session: null };
+const sanitizePersistedStudyState = (persistedState: unknown): PersistedStudyState => {
+  if (!isRecord(persistedState) || !isRecord(persistedState.sessionsByDeckId)) {
+    return { sessionsByDeckId: {} };
+  }
+
+  const sessionsByDeckId: Partial<Record<DeckId, StudySession>> = {};
+  for (const [deckId, value] of Object.entries(persistedState.sessionsByDeckId)) {
+    const session = sanitizeStudySession(value);
+    if (session?.deckId === deckId) sessionsByDeckId[deckId] = session;
+  }
+  return { sessionsByDeckId };
+};
+
+const migratePersistedStudyState = (persistedState: unknown, version: number): PersistedStudyState => {
+  if (version !== 1 && version !== 2) return { sessionsByDeckId: {} };
+  if (!isRecord(persistedState)) return { sessionsByDeckId: {} };
+  const session = sanitizeStudySession(persistedState.session, 0);
+  return session == null ? { sessionsByDeckId: {} } : { sessionsByDeckId: { [session.deckId]: session } };
+};
 
 export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedStudyState>(() => storage ?? localStorage);
   return createStore<StudyState>()(
     persist<StudyState, [], [], PersistedStudyState>(
       (set) => ({
-        session: null,
+        sessionsByDeckId: {},
         showBackText: false,
         autoPlay: false,
         lastSwipe: undefined,
         startStudy: (deckId, cardOrderIds) =>
-          set({
-            session: {
-              deckId,
-              cardOrderIds: [...cardOrderIds],
-              currentIndex: 0,
-            },
-          }),
-        setCurrentIndex: (currentIndex) =>
           set((state) => ({
-            session: state.session ? { ...state.session, currentIndex } : null,
+            sessionsByDeckId: {
+              ...state.sessionsByDeckId,
+              [deckId]: {
+                deckId,
+                cardOrderIds: [...cardOrderIds],
+                currentIndex: 0,
+                lastStudiedAt: Date.now(),
+              },
+            },
           })),
-        resetStudy: () => set({ session: null }),
+        touchStudy: (deckId) =>
+          set((state) => {
+            const session = state.sessionsByDeckId[deckId];
+            if (session == null) return state;
+            return {
+              sessionsByDeckId: {
+                ...state.sessionsByDeckId,
+                [deckId]: { ...session, lastStudiedAt: Date.now() },
+              },
+            };
+          }),
+        setCurrentIndex: (deckId, currentIndex) =>
+          set((state) => {
+            const session = state.sessionsByDeckId[deckId];
+            if (
+              session == null ||
+              !Number.isInteger(currentIndex) ||
+              currentIndex < 0 ||
+              currentIndex >= session.cardOrderIds.length
+            ) {
+              return state;
+            }
+            return {
+              sessionsByDeckId: {
+                ...state.sessionsByDeckId,
+                [deckId]: { ...session, currentIndex, lastStudiedAt: Date.now() },
+              },
+            };
+          }),
+        removeStudy: (deckId) =>
+          set((state) => {
+            const { [deckId]: _removed, ...sessionsByDeckId } = state.sessionsByDeckId;
+            return { sessionsByDeckId };
+          }),
         initializeStudyUi: (defaultAutoPlay) =>
           set({
             showBackText: false,
@@ -98,7 +153,7 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
       }),
       {
         name: STUDY_STORAGE_KEY,
-        version: 2,
+        version: 3,
         ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
         ...(skipHydration !== undefined ? { skipHydration } : {}),
         migrate: migratePersistedStudyState,
@@ -106,7 +161,7 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
           ...currentState,
           ...sanitizePersistedStudyState(persistedState),
         }),
-        partialize: ({ session }) => ({ session }),
+        partialize: ({ sessionsByDeckId }) => ({ sessionsByDeckId }),
       }
     )
   );
@@ -116,7 +171,7 @@ export const studyStore = createStudyStore();
 
 export const clearStudyStore = async (): Promise<void> => {
   studyStore.setState({
-    session: null,
+    sessionsByDeckId: {},
     showBackText: false,
     autoPlay: false,
     lastSwipe: undefined,
@@ -125,4 +180,4 @@ export const clearStudyStore = async (): Promise<void> => {
 };
 
 export const selectStudySessionForRoute = (deckId: DeckId) => (state: StudyState) =>
-  state.session?.deckId === deckId ? state.session : null;
+  state.sessionsByDeckId[deckId] ?? null;

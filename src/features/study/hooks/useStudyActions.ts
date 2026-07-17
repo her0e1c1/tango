@@ -30,6 +30,7 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
   const cards = remote.filteredCardsByDeckId(deckId, config);
   const cardsById = remote.cardsById;
   const cardMutations = useCardMutations();
+  const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
   const start = React.useCallback(() => {
     const cardOrderIds = buildStudySession(cards, config);
@@ -42,15 +43,15 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
   const swipe = React.useCallback(
     async (direction: SwipeDirection): Promise<void> => {
       const state = studyStore.getState();
-      const session = state.session;
-      if (session == null || session.deckId !== deckId) return;
+      const session = state.sessionsByDeckId[deckId];
+      if (session == null) return;
 
       const swipeAction = resolveSwipeAction(config, direction);
       if (swipeAction === "DoNothing") return;
 
       if (swipeAction === "GoBack") {
         state.setLastSwipe(direction);
-        state.setCurrentIndex(-1);
+        state.removeStudy(deckId);
         return;
       }
 
@@ -71,14 +72,28 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
 
       const patch = buildStudyPatch(card, swipeAction, Date.now());
       const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
-      state.setCurrentIndex(nextIndex);
+      const mutationToken = Symbol();
+      mutationTokenRef.current = mutationToken;
+      if (nextIndex < 0) state.removeStudy(deckId);
+      else state.setCurrentIndex(deckId, nextIndex);
+      const optimisticSession = studyStore.getState().sessionsByDeckId[deckId];
       try {
         await cardMutations.update(patch);
       } catch {
         const current = studyStore.getState();
-        if (current.session?.deckId === deckId && current.session.currentIndex === nextIndex) {
-          studyStore.setState(previous);
+        const currentSession = current.sessionsByDeckId[deckId];
+        const changeStillCurrent =
+          mutationTokenRef.current === mutationToken &&
+          (nextIndex < 0 ? currentSession == null : currentSession === optimisticSession);
+        if (changeStillCurrent) {
+          studyStore.setState((state) => ({
+            sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: previous.session },
+            showBackText: previous.showBackText,
+            lastSwipe: previous.lastSwipe,
+          }));
         }
+      } finally {
+        if (mutationTokenRef.current === mutationToken) mutationTokenRef.current = undefined;
       }
     },
     [cardMutations, cardsById, config, deckId]
@@ -93,13 +108,13 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
       swipeRight: () => swipe("cardSwipeRight"),
       updateIndex: (currentIndex: number) => {
         const state = studyStore.getState();
-        if (state.session?.deckId !== deckId) return;
+        if (state.sessionsByDeckId[deckId] == null) return;
         state.hideBackText();
-        state.setCurrentIndex(currentIndex);
+        state.setCurrentIndex(deckId, currentIndex);
       },
       toggleShowBackText: () => studyStore.getState().toggleShowBackText(),
       toggleAutoPlay: () => studyStore.getState().toggleAutoPlay(),
-      resetStudy: () => studyStore.getState().resetStudy(),
+      resetStudy: () => studyStore.getState().removeStudy(deckId),
       pending: cardMutations.pending,
       error: cardMutations.error,
       retry: cardMutations.retry,

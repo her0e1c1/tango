@@ -1,118 +1,126 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DeckCard } from "@/features/deck/components/DeckCard";
-import { DeckListTemplate } from "@/features/deck/components/templates/DeckListTemplate";
+import * as React from "react";
 
-const deck = {
+import { DeckCard, type DeckCardProps } from "@/features/deck/components/DeckCard";
+import { createDeck } from "@/test/factories";
+
+const ControlledDeckCard: React.FC<DeckCardProps> = (props) => {
+  const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
+  return (
+    <DeckCard
+      {...props}
+      openMenuDeckId={openMenuDeckId}
+      onToggleMenu={(id) => setOpenMenuDeckId((value) => (value === id ? undefined : id))}
+      onCloseMenu={() => setOpenMenuDeckId(undefined)}
+    />
+  );
+};
+
+const deck = createDeck({
   id: "deck-id",
   name: "Deck name",
   category: "math",
-  isPublic: false,
-  url: "",
-} as Deck;
+  isPublic: true,
+});
 
 describe("DeckCard", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-18T00:10:00Z"));
+  });
+
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
   });
 
-  it("renders the active study progress and enables restart", () => {
-    const view = render(<DeckCard deck={deck} studyProgress={{ currentIndex: 1, cardCount: 3 }} />);
+  it("renders compact progress for an active deck", () => {
+    const view = render(
+      <DeckCard
+        deck={deck}
+        cardCount={8}
+        studyProgress={{
+          currentIndex: 1,
+          cardCount: 3,
+          lastStudiedAt: new Date("2026-07-18T00:05:00Z").getTime(),
+        }}
+      />
+    );
 
-    expect(view.getByText("studying 2 card(s) from 3")).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Continue" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Restart" })).toBeEnabled();
+    expect(view.getByText(deck.name)).toHaveClass("truncate");
+    expect(view.getByText("math")).toBeInTheDocument();
+    expect(view.getByLabelText("Public deck")).toBeInTheDocument();
+    const status = view.getByText("2 / 3 · 5m ago").parentElement;
+    const viewButton = view.getByRole("button", { name: "View Deck name" });
+    const progressbar = view.getByRole("progressbar", { name: "Progress for Deck name" });
+    expect(status).toHaveAttribute("id");
+    expect(viewButton).toHaveAttribute("aria-describedby", status?.id);
+    expect(viewButton).not.toContainElement(progressbar);
+    expect(progressbar).toHaveAttribute("aria-valuenow", "2");
+    expect(view.getByRole("button", { name: "Continue Deck name" })).toBeInTheDocument();
   });
 
-  it("hides study progress and disables restart without an active session", () => {
-    const view = render(<DeckCard deck={deck} />);
+  it("renders the card count and Study action for an inactive deck", () => {
+    const view = render(<ControlledDeckCard deck={deck} cardCount={8} />);
 
-    expect(view.queryByText(/studying/)).not.toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Study" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Restart" })).toBeDisabled();
+    expect(view.getByText("8 cards")).toBeInTheDocument();
+    expect(view.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(view.getByRole("button", { name: "Study Deck name" })).toBeInTheDocument();
+
+    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
+    expect(view.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
   });
 
-  it("routes active Continue and Restart actions without cross-wiring callbacks", () => {
+  it("passes the deck id to navigation and management actions", () => {
     const actions = {
       onClickName: vi.fn(),
+      onClickContinue: vi.fn(),
       onClickStudy: vi.fn(),
       onClickRestart: vi.fn(),
       onClickDownload: vi.fn(),
       onClickEdit: vi.fn(),
       onClickDelete: vi.fn(),
-      onClickReimport: vi.fn(),
     };
     const view = render(
-      <DeckCard
-        deck={{ ...deck, url: "https://example.com/deck" }}
-        studyProgress={{ currentIndex: 0, cardCount: 2 }}
+      <ControlledDeckCard
+        deck={deck}
+        cardCount={8}
+        studyProgress={{ currentIndex: 0, cardCount: 3, lastStudiedAt: Date.now() }}
         {...actions}
       />
     );
 
-    fireEvent.click(view.getByText(deck.name));
+    fireEvent.click(view.getByRole("button", { name: "View Deck name" }));
+    fireEvent.click(view.getByRole("button", { name: "Continue Deck name" }));
+    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
+    fireEvent.click(view.getByRole("menuitem", { name: "Restart" }));
+    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
+    fireEvent.click(view.getByRole("menuitem", { name: "Download" }));
+    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
+    fireEvent.click(view.getByRole("menuitem", { name: "Edit" }));
+    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
+    fireEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+
     expect(actions.onClickName).toHaveBeenCalledExactlyOnceWith(deck.id);
-
-    fireEvent.click(view.getByRole("button", { name: "Continue" }));
-    expect(actions.onClickRestart).toHaveBeenCalledExactlyOnceWith(deck.id);
+    expect(actions.onClickContinue).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(actions.onClickStudy).not.toHaveBeenCalled();
-
-    fireEvent.click(view.getByRole("button", { name: "Restart" }));
-    expect(actions.onClickStudy).toHaveBeenCalledExactlyOnceWith(deck.id);
-    expect(actions.onClickRestart).toHaveBeenCalledTimes(1);
-
-    const managementIcons = view.container.querySelectorAll("svg");
-    expect(managementIcons).toHaveLength(4);
-
-    fireEvent.click(managementIcons[0] as SVGElement);
+    expect(actions.onClickRestart).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(actions.onClickDownload).toHaveBeenCalledExactlyOnceWith(deck.id);
-
-    fireEvent.click(managementIcons[1] as SVGElement);
     expect(actions.onClickEdit).toHaveBeenCalledExactlyOnceWith(deck.id);
-
-    fireEvent.click(managementIcons[2] as SVGElement);
     expect(actions.onClickDelete).toHaveBeenCalledExactlyOnceWith(deck.id);
-
-    fireEvent.click(managementIcons[3] as SVGElement);
-    expect(actions.onClickReimport).toHaveBeenCalledExactlyOnceWith(deck.id);
   });
 
-  it("routes inactive Study to onClickStudy and keeps Restart inert", () => {
+  it("routes inactive Study without opening the row", () => {
+    const onClickName = vi.fn();
     const onClickStudy = vi.fn();
-    const onClickRestart = vi.fn();
-    const view = render(<DeckCard deck={deck} onClickStudy={onClickStudy} onClickRestart={onClickRestart} />);
+    const view = render(<DeckCard deck={deck} cardCount={1} onClickName={onClickName} onClickStudy={onClickStudy} />);
 
-    fireEvent.click(view.getByRole("button", { name: "Study" }));
+    fireEvent.click(view.getByRole("button", { name: "Study Deck name" }));
+
     expect(onClickStudy).toHaveBeenCalledExactlyOnceWith(deck.id);
-    expect(onClickRestart).not.toHaveBeenCalled();
-
-    fireEvent.click(view.getByRole("button", { name: "Restart" }));
-    expect(onClickRestart).not.toHaveBeenCalled();
-    expect(onClickStudy).toHaveBeenCalledTimes(1);
-  });
-
-  it("preserves the unwrapped management icon hooks and danger styling", () => {
-    const view = render(<DeckCard deck={deck} />);
-    const managementIcons = view.container.querySelectorAll("svg");
-    const deleteGlyph = managementIcons[2];
-
-    expect(managementIcons).toHaveLength(3);
-    for (const icon of managementIcons) expect(icon.parentElement?.tagName).toBe("DIV");
-    expect(deleteGlyph).toHaveClass("text-danger");
-    expect(deleteGlyph).not.toHaveAttribute("aria-label");
-  });
-
-  it("enables restart only for the deck that owns the active progress", () => {
-    const otherDeck = { ...deck, id: "other-deck", name: "Other deck" };
-    const view = render(
-      <DeckListTemplate decks={[deck, otherDeck]} studyProgress={{ deckId: deck.id, currentIndex: 1, cardCount: 3 }} />
-    );
-
-    const restartButtons = view.getAllByRole("button", { name: "Restart" });
-    expect(restartButtons[0]).toBeEnabled();
-    expect(restartButtons[1]).toBeDisabled();
-    expect(view.getAllByText(/studying/)).toHaveLength(1);
+    expect(onClickName).not.toHaveBeenCalled();
   });
 });

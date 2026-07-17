@@ -1,14 +1,18 @@
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { studyStore } from "@/features/study/state/studyStore";
-import { createConfig, createDeck } from "@/test/factories";
+import { createCard, createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   config: {} as ConfigState,
   decksById: {} as Record<DeckId, Deck>,
   cardsById: {} as Record<CardId, Card>,
+  hydrated: true,
+  pending: false,
+  remove: vi.fn(async (_deck: Deck) => undefined),
+  downloadData: vi.fn(),
   actions: {
     goToSettings: vi.fn(),
     goToImport: vi.fn(),
@@ -19,99 +23,165 @@ const mocks = vi.hoisted(() => ({
     goToView: vi.fn(),
     goToStudy: vi.fn(),
     goToStart: vi.fn(),
-    deckDownload: vi.fn(),
-    deckRemove: vi.fn(),
   },
 }));
 
 vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
-
-vi.mock("@/action", () => ({ deck: { downloadData: vi.fn() } }));
+vi.mock("@/features/study/hooks/useStudyHydrated", () => ({ useStudyHydrated: () => mocks.hydrated }));
+vi.mock("@/action", () => ({ deck: { downloadData: mocks.downloadData } }));
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => {
-    const decksById = mocks.decksById;
+    const decks = Object.values(mocks.decksById);
+    const cards = Object.values(mocks.cardsById);
     return {
       status: "ready" as const,
       retry: vi.fn(),
-      decks: Object.values(decksById).filter((deck): deck is Deck => deck != null),
-      deckById: (id: string) => decksById[id],
-      cardsByDeckId: (id: string) => Object.values(mocks.cardsById).filter((card) => card.deckId === id),
+      decks,
+      cards,
+      deckById: (id: DeckId) => mocks.decksById[id],
+      cardsByDeckId: (id: DeckId) => cards.filter((card) => card.deckId === id),
     };
   },
 }));
-
-vi.mock("react-use", () => ({
-  useKey: vi.fn(),
-}));
-
-vi.mock("@/shared/hooks/useActions", () => ({
-  useActions: () => mocks.actions,
-}));
-
+vi.mock("react-use", () => ({ useKey: vi.fn() }));
+vi.mock("@/shared/hooks/useActions", () => ({ useActions: () => mocks.actions }));
 vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
-  useDeckMutations: () => ({ remove: vi.fn(), pending: false, error: null, retry: vi.fn() }),
+  useDeckMutations: () => ({ remove: mocks.remove, pending: mocks.pending, error: null, retry: vi.fn() }),
 }));
-
 vi.mock("@/features/import/hooks/useSampleDeckBootstrap", () => ({ useSampleDeckBootstrap: vi.fn() }));
 
 import { DeckListContainer } from "@/features/deck/containers/DeckListContainer";
 
 describe("DeckListContainer", () => {
-  const activeDeck = createDeck({
-    id: "active-deck",
-    name: "Active deck",
-    category: "math",
-    isPublic: false,
-    url: "",
-  });
-  const otherDeck = {
-    ...activeDeck,
-    id: "other-deck",
-    name: "Other deck",
-  };
+  const recentDeck = createDeck({ id: "recent", name: "Recent deck", category: "math" });
+  const oldDeck = createDeck({ id: "old", name: "Old deck", category: "design" });
+  const otherDeck = createDeck({ id: "other", name: "Alpha deck", category: "history" });
 
   beforeEach(() => {
     localStorage.clear();
-    mocks.decksById = { [activeDeck.id]: activeDeck, [otherDeck.id]: otherDeck };
-    mocks.cardsById = {};
+    vi.clearAllMocks();
+    mocks.hydrated = true;
+    mocks.pending = false;
     mocks.config = createConfig({ darkMode: false });
+    mocks.decksById = { [otherDeck.id]: otherDeck, [oldDeck.id]: oldDeck, [recentDeck.id]: recentDeck };
+    mocks.cardsById = {
+      "other-1": createCard({ id: "other-1", deckId: otherDeck.id }),
+      "other-2": createCard({ id: "other-2", deckId: otherDeck.id }),
+    };
     studyStore.setState({
-      session: {
-        deckId: activeDeck.id,
-        cardOrderIds: ["card-1", "card-2", "card-3"],
-        currentIndex: 1,
+      sessionsByDeckId: {
+        [oldDeck.id]: {
+          deckId: oldDeck.id,
+          cardOrderIds: ["old-1", "old-2"],
+          currentIndex: 0,
+          lastStudiedAt: 1000,
+        },
+        [recentDeck.id]: {
+          deckId: recentDeck.id,
+          cardOrderIds: ["recent-1", "recent-2", "recent-3"],
+          currentIndex: 1,
+          lastStudiedAt: 2000,
+        },
       },
+      showBackText: false,
+      autoPlay: false,
+      lastSwipe: undefined,
     });
   });
 
   afterEach(() => {
     cleanup();
-    studyStore.getState().resetStudy();
+    studyStore.setState({ sessionsByDeckId: {} });
+    vi.restoreAllMocks();
   });
 
-  it("renders progress only on the deck that owns the active session", () => {
+  it("renders every active deck in recent order and inactive decks by name", () => {
     const view = render(<DeckListContainer />);
 
-    expect(view.getByText("studying 2 card(s) from 3")).toBeInTheDocument();
-    const restartButtons = view.getAllByRole("button", { name: "Restart" });
-    expect(restartButtons[0]).toBeEnabled();
-    expect(restartButtons[1]).toBeDisabled();
+    const studying = view.getByRole("region", { name: "Studying" });
+    expect(
+      within(studying)
+        .getAllByRole("button", { name: /^View / })
+        .map((button) => button.getAttribute("aria-label"))
+    ).toEqual(["View Recent deck", "View Old deck"]);
+    expect(within(studying).getByText(/2 \/ 3/)).toBeInTheDocument();
+
+    const other = view.getByRole("region", { name: "Other decks" });
+    expect(within(other).getByRole("button", { name: "View Alpha deck" })).toBeInTheDocument();
+    expect(within(other).getByText("2 cards")).toBeInTheDocument();
   });
 
-  it("ignores legacy study fields when there is no current session", () => {
-    const legacyDeck = {
-      ...activeDeck,
-      currentIndex: 1,
-      cardOrderIds: ["card-1", "card-2"],
-    } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
-    mocks.decksById = { [legacyDeck.id]: legacyDeck, [otherDeck.id]: otherDeck };
-    studyStore.getState().resetStudy();
+  it("touches only the selected session before continuing", () => {
+    vi.spyOn(Date, "now").mockReturnValue(9000);
+    const view = render(<DeckListContainer />);
+
+    fireEvent.click(view.getByRole("button", { name: "Continue Recent deck" }));
+
+    expect(mocks.actions.goToStudy).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
+    expect(studyStore.getState().sessionsByDeckId[recentDeck.id]?.lastStudiedAt).toBe(9000);
+    expect(studyStore.getState().sessionsByDeckId[oldDeck.id]?.lastStudiedAt).toBe(1000);
+  });
+
+  it("routes Study and Restart through the start screen", () => {
+    const view = render(<DeckListContainer />);
+
+    fireEvent.click(view.getByRole("button", { name: "Study Alpha deck" }));
+    fireEvent.click(view.getByRole("button", { name: "Open actions for Recent deck" }));
+    fireEvent.click(view.getByRole("menuitem", { name: "Restart" }));
+
+    expect(mocks.actions.goToStart).toHaveBeenNthCalledWith(1, otherDeck.id);
+    expect(mocks.actions.goToStart).toHaveBeenNthCalledWith(2, recentDeck.id);
+  });
+
+  it("removes only the deleted deck session after the remote delete succeeds", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const view = render(<DeckListContainer />);
+
+    fireEvent.click(view.getByRole("button", { name: "Open actions for Recent deck" }));
+    fireEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(recentDeck));
+    await waitFor(() => expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeUndefined());
+    expect(studyStore.getState().sessionsByDeckId[oldDeck.id]).toBeDefined();
+  });
+
+  it("waits for study hydration before classifying decks", () => {
+    mocks.hydrated = false;
+    const view = render(<DeckListContainer />);
+
+    expect(view.getByRole("status")).toHaveTextContent("Loading study progress");
+    expect(view.queryByRole("region", { name: "Other decks" })).not.toBeInTheDocument();
+
+    mocks.hydrated = true;
+    view.rerender(<DeckListContainer />);
+    expect(view.getByRole("region", { name: "Studying" })).toBeInTheDocument();
+  });
+
+  it("prunes sessions for decks that no longer exist", async () => {
+    studyStore.setState((state) => ({
+      sessionsByDeckId: {
+        ...state.sessionsByDeckId,
+        missing: { deckId: "missing", cardOrderIds: ["card"], currentIndex: 0, lastStudiedAt: 3000 },
+      },
+    }));
+
+    render(<DeckListContainer />);
+
+    await waitFor(() => expect(studyStore.getState().sessionsByDeckId.missing).toBeUndefined());
+    expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeDefined();
+  });
+
+  it("does not prune an optimistically removed deck session while deletion is pending", () => {
+    mocks.pending = true;
+    delete mocks.decksById[recentDeck.id];
 
     const view = render(<DeckListContainer />);
 
-    const restartButtons = view.getAllByRole("button", { name: "Restart" });
-    expect(restartButtons[0]).toBeDisabled();
-    expect(restartButtons[1]).toBeDisabled();
-    expect(view.queryByText(/studying/)).not.toBeInTheDocument();
+    expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeDefined();
+
+    mocks.pending = false;
+    mocks.decksById[recentDeck.id] = recentDeck;
+    view.rerender(<DeckListContainer />);
+    expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeDefined();
   });
 });

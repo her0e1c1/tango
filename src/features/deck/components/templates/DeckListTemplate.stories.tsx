@@ -1,8 +1,33 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
-import { DeckListTemplate as Template } from "@/features/deck/components/templates/DeckListTemplate";
+import {
+  type DeckListItem,
+  type DeckListSections,
+  DeckListTemplate as Template,
+} from "@/features/deck/components/templates/DeckListTemplate";
 import * as fixture from "@/shared/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+
+const otherItems = (decks: Deck[]): DeckListItem[] => decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
+const studyingItems = (decks: Deck[]): DeckListItem[] =>
+  decks.map((deck, index) => ({
+    deck,
+    cardCount: 30 + index,
+    studyProgress: {
+      currentIndex: index + 1,
+      cardCount: 12 + index * 7,
+      lastStudiedAt: Date.now() - index * 24 * 60 * 60 * 1000,
+    },
+  }));
+
+const mixed: DeckListSections = {
+  studying: studyingItems(fixture.decks.default.slice(0, 3)),
+  other: otherItems(fixture.decks.default.slice(3)),
+};
+const longSections: DeckListSections = {
+  studying: studyingItems(fixture.decks.long.slice(0, 4)),
+  other: otherItems(fixture.decks.long.slice(4)),
+};
 
 const meta = {
   title: "Deck/DeckListTemplate",
@@ -16,7 +41,7 @@ const meta = {
     },
   },
   args: {
-    decks: fixture.decks.default,
+    sections: mixed,
   },
 } satisfies Meta<typeof Template>;
 
@@ -25,32 +50,24 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const Inactive: Story = {};
+export const Inactive: Story = {
+  args: { sections: { studying: [], other: otherItems(fixture.decks.default) } },
+};
 
 export const WithStudyProgress: Story = {
-  args: {
-    studyProgress: {
-      deckId: "deck-1",
-      currentIndex: 0,
-      cardCount: 3,
-    },
-  },
+  args: { sections: { studying: studyingItems(fixture.decks.default), other: [] } },
 };
 
 export const Active: Story = WithStudyProgress;
 
 export const Empty: Story = {
-  args: {
-    decks: [],
-  },
+  args: { sections: { studying: [], other: [] } },
 };
 
 export const EmptyComposition: Story = Empty;
 
 export const Long: Story = {
-  args: {
-    decks: fixture.decks.long,
-  },
+  args: { sections: longSections },
 };
 
 export const IphoneX: Story = {
@@ -75,7 +92,5 @@ export const IphoneXLong: Story = {
       defaultViewport: "iphonex",
     },
   },
-  args: {
-    decks: fixture.decks.long,
-  },
+  args: { sections: longSections },
 };

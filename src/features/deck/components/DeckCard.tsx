@@ -1,111 +1,127 @@
 import * as React from "react";
-import { Button, Card, Description, Tag, Title } from "@/shared/components";
-import { IconContext } from "react-icons";
-import {
-  AiOutlineCloud,
-  AiOutlineCloudDownload,
-  AiOutlineEdit,
-  AiOutlineDelete,
-  AiOutlineReload,
-} from "react-icons/ai";
+import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
-export interface DeckCardActions {
-  onClickName?: (id: string) => void;
-  onClickStudy?: (id: string) => void;
-  onClickRestart?: (id: string) => void;
-  onClickDownload?: (id: string) => void;
-  onClickEdit?: (id: string) => void;
-  onClickDelete?: (id: string) => void;
-  onClickReimport?: (id: string) => void;
-}
+import { DeckActionsMenu } from "@/features/deck/components/DeckActionsMenu";
 
-export interface StudyProgress {
+export interface DeckListStudyProgress {
   currentIndex: number;
   cardCount: number;
+  lastStudiedAt: number;
+}
+
+export interface DeckCardActions {
+  onClickName?: (id: DeckId) => void;
+  onClickContinue?: (id: DeckId) => void;
+  onClickStudy?: (id: DeckId) => void;
+  onClickRestart?: (id: DeckId) => void;
+  onClickDownload?: (id: DeckId) => void;
+  onClickEdit?: (id: DeckId) => void;
+  onClickDelete?: (id: DeckId) => void;
+  openMenuDeckId?: DeckId | undefined;
+  onToggleMenu?: (id: DeckId) => void;
+  onCloseMenu?: () => void;
 }
 
 export interface DeckCardProps extends DeckCardActions {
-  deck?: Deck;
-  studyProgress?: StudyProgress;
+  deck: Deck;
+  cardCount: number;
+  studyProgress?: DeckListStudyProgress;
 }
 
+const formatLastStudied = (timestamp: number): string => {
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+  if (elapsedSeconds < 60) return "just now";
+  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+  if (elapsedMinutes < 60) return `${elapsedMinutes}m ago`;
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) return `${elapsedHours}h ago`;
+  const elapsedDays = Math.floor(elapsedHours / 24);
+  if (elapsedDays < 30) return `${elapsedDays}d ago`;
+  const elapsedMonths = Math.floor(elapsedDays / 30);
+  if (elapsedMonths < 12) return `${elapsedMonths}mo ago`;
+  return `${Math.floor(elapsedMonths / 12)}y ago`;
+};
+
+const primaryActionClassName =
+  "inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
+
 export const DeckCard: React.FC<DeckCardProps> = (props) => {
-  const deck = props.deck;
-  if (deck == null) throw Error("invalid deck");
-  const id = deck.id;
-  const onClickName = React.useCallback(() => {
-    props.onClickName?.(id);
-  }, [id, props]);
-  const onClickStudy = React.useCallback(() => {
-    props.onClickStudy?.(id);
-  }, [id, props]);
-  const onClickRestart = React.useCallback(() => {
-    props.onClickRestart?.(id);
-  }, [id, props]);
-  const onClickDownload = React.useCallback(() => {
-    props.onClickDownload?.(id);
-  }, [id, props]);
-  const onClickEdit = React.useCallback(() => {
-    props.onClickEdit?.(id);
-  }, [id, props]);
-  const onClickDelete = React.useCallback(() => {
-    props.onClickDelete?.(id);
-  }, [id, props]);
-  const onClickReimport = React.useCallback(() => {
-    props.onClickReimport?.(id);
-  }, [id, props]);
+  const { deck, studyProgress } = props;
+  const active = studyProgress != null;
+  const progressValue = active ? studyProgress.currentIndex + 1 : 0;
+  const progressPercent = active ? Math.min(100, (progressValue / studyProgress.cardCount) * 100) : 0;
+  const withId = (action?: (id: DeckId) => void) => () => action?.(deck.id);
+  const statusId = React.useId();
+
   return (
-    <IconContext.Provider value={{ className: "text-2xl" }}>
-      <Card full className="px-4 pb-3 pt-4">
-        <div>
-          <div className="flex min-w-0 flex-wrap items-start gap-1">
-            <Title onClick={onClickName}>{deck.name}</Title>
-            <Tag className="mr-2 mb-2" round label={deck.category} hidden={!deck.category} />
-            {deck.isPublic && <AiOutlineCloud className="mt-1 shrink-0 text-ink-muted" size={24} />}
-          </div>
-          {props.studyProgress != null && (
-            <Description>
-              studying {props.studyProgress.currentIndex + 1} card(s) from {props.studyProgress.cardCount}
-            </Description>
+    <article className="relative flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 last:border-b-0">
+      <div className="min-w-0 flex-1 px-1 py-1">
+        <button
+          type="button"
+          aria-label={`View ${deck.name}`}
+          aria-describedby={statusId}
+          className="flex w-full min-w-0 items-center gap-1.5 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          onClick={withId(props.onClickName)}
+        >
+          <span className="truncate text-body font-semibold text-ink">{deck.name}</span>
+          {deck.isPublic && (
+            <span role="img" aria-label="Public deck" className="shrink-0 text-ink-muted">
+              <AiOutlineCloud aria-hidden="true" size={16} />
+            </span>
           )}
-        </div>
+        </button>
 
-        <div className="mt-4">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="primary"
-              className="flex-1"
-              onClick={props.studyProgress == null ? onClickStudy : onClickRestart}
-            >
-              {props.studyProgress == null ? "Study" : "Continue"}
-            </Button>
-            <Button variant="quiet" className="flex-1" disabled={props.studyProgress == null} onClick={onClickStudy}>
-              Restart
-            </Button>
-          </div>
+        <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
+          {deck.category !== "" && (
+            <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
+              {deck.category}
+            </span>
+          )}
+          <span className="truncate">
+            {active
+              ? `${progressValue} / ${studyProgress.cardCount} · ${formatLastStudied(studyProgress.lastStudiedAt)}`
+              : `${props.cardCount} ${props.cardCount === 1 ? "card" : "cards"}`}
+          </span>
+        </span>
 
-          <div className="mt-4 flex justify-center gap-1 border-t border-border pt-2">
-            <AiOutlineCloudDownload
-              className="size-touch rounded-control p-2 text-ink-muted hover:bg-surface-muted"
-              onClick={onClickDownload}
-            />
-            <AiOutlineEdit
-              className="size-touch rounded-control p-2 text-ink-muted hover:bg-surface-muted"
-              onClick={onClickEdit}
-            />
-            <AiOutlineDelete
-              className="size-touch rounded-control p-2 text-danger hover:bg-surface-muted"
-              onClick={onClickDelete}
-            />
-            {Boolean(deck.url) && (
-              <AiOutlineReload
-                className="size-touch rounded-control p-2 text-ink-muted hover:bg-surface-muted"
-                onClick={onClickReimport}
-              />
-            )}
-          </div>
-        </div>
-      </Card>
-    </IconContext.Provider>
+        {active && (
+          <span
+            role="progressbar"
+            aria-label={`Progress for ${deck.name}`}
+            aria-valuemin={0}
+            aria-valuemax={studyProgress.cardCount}
+            aria-valuenow={progressValue}
+            className="mt-2 block h-1 overflow-hidden rounded-pill bg-surface-muted"
+          >
+            <span className="block h-full rounded-pill bg-accent-primary" style={{ width: `${progressPercent}%` }} />
+          </span>
+        )}
+      </div>
+
+      <button
+        type="button"
+        aria-label={`${active ? "Continue" : "Study"} ${deck.name}`}
+        className={`${primaryActionClassName} ${
+          active
+            ? "bg-accent-primary text-ink-inverse hover:opacity-90"
+            : "border border-border bg-transparent text-ink hover:bg-surface-muted"
+        }`}
+        onClick={withId(active ? props.onClickContinue : props.onClickStudy)}
+      >
+        {active && <AiFillCaretRight aria-hidden="true" />}
+        <span>{active ? "Continue" : "Study"}</span>
+      </button>
+
+      <DeckActionsMenu
+        deckName={deck.name}
+        open={props.openMenuDeckId === deck.id}
+        onToggle={withId(props.onToggleMenu)}
+        onClose={() => props.onCloseMenu?.()}
+        {...(active ? { onRestart: withId(props.onClickRestart) } : {})}
+        onDownload={withId(props.onClickDownload)}
+        onEdit={withId(props.onClickEdit)}
+        onDelete={withId(props.onClickDelete)}
+      />
+    </article>
   );
 };
