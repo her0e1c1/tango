@@ -99,6 +99,7 @@ interface PersistedStudyState {
 - `startStudy(deckId, cardOrderIds)`は対象デッキのセッションだけをindex 0で作成または置換し、`lastStudiedAt`を現在時刻にする。
 - `touchStudy(deckId)`はContinueまたは直接の学習画面表示時に対象セッションの`lastStudiedAt`だけを更新する。
 - `setCurrentIndex(deckId, currentIndex)`は対象セッションのindexと`lastStudiedAt`だけを更新する。
+- 次のindexが学習終了を示す`-1`になった場合は`setCurrentIndex`を呼ばず、対象セッションを直ちに削除して一覧へ戻す。無効なindexは永続化しない。
 - `removeStudy(deckId)`は対象デッキのセッションだけを削除する。
 - 認証解除などアプリ全体のリセットでは、すべてのセッションと一時UI状態を削除する。
 - route用selectorは`deckId`で該当セッションを直接返す。
@@ -109,7 +110,7 @@ interface PersistedStudyState {
 
 study storeの永続化versionを2から3へ上げる。
 
-- version 2の有効な単一`session`は、同じ`deckId`をキーにした` sessionsByDeckId`へ移す。
+- version 2の有効な単一`session`は、同じ`deckId`をキーにした`sessionsByDeckId`へ移す。
 - 移行したセッションの`lastStudiedAt`は`0`にする。移行直後は最大1件のため並び順に影響せず、次回のStartまたはContinueで実時刻へ更新される。
 - version 1も既存のsanitizerを経由して同じversion 3形式へ移す。
 - 不正なセッションはその要素だけを破棄し、有効な別セッションを巻き込まない。
@@ -123,7 +124,7 @@ study storeの永続化versionを2から3へ上げる。
 
 ### `DeckListContainer`
 
-remote collectionのデッキ・カードと、hydration済みの` sessionsByDeckId`を結合する。表示用データをStudyingとOther decksへ分割し、Studyingは最終学習時刻降順、Other decksは名前昇順にする。各デッキのカード総数もここで算出する。
+remote collectionのデッキ・カードと、hydration済みの`sessionsByDeckId`を結合する。表示用データをStudyingとOther decksへ分割し、Studyingは最終学習時刻降順、Other decksは名前昇順にする。各デッキのカード総数もここで算出する。
 
 LocalStorageのhydrationが終わるまではセクションを確定せず、全デッキが一度Other decksへ表示された後に移動するちらつきを防ぐ。
 
