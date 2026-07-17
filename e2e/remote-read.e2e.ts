@@ -47,9 +47,6 @@ const getDocument = async (collection: "deck" | "card", id: string) => {
   return (await response.json()) as { fields: Record<string, { stringValue?: string }> };
 };
 
-const deckCard = (page: Page, name: string) =>
-  page.getByText(name, { exact: true }).locator("xpath=ancestor::div[contains(@class, 'rounded')][1]");
-
 const cardItem = (page: Page, frontText: string) =>
   page.getByText(frontText, { exact: true }).locator("xpath=ancestor::div[contains(@class, 'rounded')][1]");
 
@@ -170,7 +167,7 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
     .poll(async () => (await getDocument("deck", "remote-read-deck")).fields.name?.stringValue)
     .toBe("Updated Remote Query Deck");
 
-  await page.getByText("Updated Remote Query Deck").click();
+  await page.getByRole("button", { name: "View Updated Remote Query Deck" }).click();
   await expect(page.getByText("Remote Query Card")).toBeVisible();
 
   await page.goto("/card/remote-read-card/edit");
@@ -191,7 +188,8 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
   await expect(page.getByText("Updated Remote Query Card")).not.toBeVisible();
 
   await page.goto("/");
-  await deckCard(page, "Updated Remote Query Deck").locator("svg").nth(2).click();
+  await page.getByRole("button", { name: "Open actions for Updated Remote Query Deck" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
   await expect(page.getByText("Updated Remote Query Deck")).not.toBeVisible();
 
   const persistedEntityState = await page.evaluate(() => {
