@@ -17,7 +17,7 @@ test("shows the deck list smoke screen", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByText("tango")).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("No decks yet.");
+  await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
 

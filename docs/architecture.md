@@ -62,4 +62,4 @@ UI の依存方向は `App -> Page -> Container -> Template -> Component` です
 - 長期設定と学習セッションはそれぞれ Zustand store で管理し、設定は `tango-config`、学習状態は `tango-study` に永続化します。
 - Firebase Auth の runtime identity は Auth Context だけから参照し、LocalStorage の application state には保存しません。
 - `src/action/firestore` が Firestore との入出力を、`src/auth/AuthBootstrap.tsx` が認証に連動した購読 lifecycle を担当します。
-- `sample/build/output.json` のサンプルカードは Import 画面の明示操作で Firestore に追加します。
+- `sample/build/output.json` のサンプルカードは、サーバー同期後に Deck が0件なら自動で Firestore に追加します。Import 画面からの明示操作でも追加できます。
