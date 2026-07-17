@@ -1,9 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { isEqual } from "lodash";
 
 import { firestoreKeys } from "@/query/firestoreKeys";
-import type { RemoteById } from "@/query/remoteReadController";
 import { cardMutationLock, withMutationLocks } from "@/query/mutationLocks";
+import { runOptimisticMutation, toRemoteById, type RemoteById } from "@/query/remoteCollection";
 
 export interface CardMutationServiceDependencies {
   client: QueryClient;
@@ -23,8 +22,6 @@ export class CardBulkMutationError extends Error {
   }
 }
 
-const toById = (cards: Card[]): RemoteById<Card> => Object.fromEntries(cards.map((card) => [card.id, card]));
-
 export const createCardMutationService = (dependencies: CardMutationServiceDependencies) => {
   const cards = (uid: string) => dependencies.client.getQueryData<RemoteById<Card>>(firestoreKeys.cards(uid)) ?? {};
 
@@ -38,26 +35,15 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
     next: (previous: RemoteById<Card>) => RemoteById<Card>,
     write: () => Promise<T>
   ): Promise<T> =>
-    withMutationLocks(ids.map(cardMutationLock), async () => {
-      const previous = cards(uid);
-      const optimisticCards = next(previous);
-      replaceCards(uid, optimisticCards);
-      try {
-        return await write();
-      } catch (error) {
-        const current = cards(uid);
-        const rollback = { ...current };
-        ids.forEach((id) => {
-          const optimisticCard = optimisticCards[id];
-          if (!isEqual(current[id], optimisticCard)) return;
-          const previousCard = previous[id];
-          if (previousCard == null) delete rollback[id];
-          else rollback[id] = previousCard;
-        });
-        replaceCards(uid, rollback);
-        throw error;
-      }
-    });
+    withMutationLocks(ids.map(cardMutationLock), () =>
+      runOptimisticMutation({
+        targetIds: ids,
+        read: () => cards(uid),
+        replace: (cards) => replaceCards(uid, cards),
+        update: next,
+        mutation: write,
+      })
+    );
 
   return {
     create: (uid: string, card: Card) =>
@@ -94,7 +80,7 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
         upserts.map((card) => cardMutationLock(card.id)),
         async () => {
           const previous = cards(uid);
-          replaceCards(uid, { ...previous, ...toById(upserts) });
+          replaceCards(uid, { ...previous, ...toRemoteById(upserts) });
           const results = await Promise.allSettled(upserts.map(dependencies.upsertCard));
           const failedIds = results.flatMap((result, index) => {
             const card = upserts[index];
@@ -103,7 +89,7 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
           if (failedIds.length === 0) return;
 
           const authoritative = await dependencies.readCards(uid);
-          replaceCards(uid, toById(authoritative));
+          replaceCards(uid, toRemoteById(authoritative));
           throw new CardBulkMutationError(failedIds, upserts.length);
         }
       ),
