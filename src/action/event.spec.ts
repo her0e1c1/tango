@@ -28,7 +28,7 @@ describe("event action", () => {
     mocks.suspendAnonymousBootstrap.mockReturnValue(mocks.resumeAnonymousBootstrap);
     mocks.auth.currentUser = null;
     localStorage.clear();
-    studyStore.setState({ session: null, showBackText: false, autoPlay: false, lastSwipe: undefined });
+    studyStore.setState({ sessionsByDeckId: {}, showBackText: false, autoPlay: false, lastSwipe: undefined });
   });
 
   it("signs out before clearing Query and study state", async () => {
@@ -47,7 +47,7 @@ describe("event action", () => {
     await action.event.logout("uid-a");
 
     expect(operations).toEqual(["suspend", "sign-out", "cleanup-query", "resume"]);
-    expect(studyStore.getState().session).toBeNull();
+    expect(studyStore.getState().sessionsByDeckId).toEqual({});
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
   });
 
@@ -57,7 +57,7 @@ describe("event action", () => {
     await expect(action.event.logout("uid-a")).rejects.toThrow("sign-out failed");
 
     expect(mocks.cleanupFirestoreUid).not.toHaveBeenCalled();
-    expect(studyStore.getState().session).not.toBeNull();
+    expect(studyStore.getState().sessionsByDeckId).not.toEqual({});
   });
 
   it("clears study state after a Query cleanup failure", async () => {
@@ -65,7 +65,7 @@ describe("event action", () => {
     mocks.cleanupFirestoreUid.mockRejectedValue(new Error("cleanup failed"));
     await expect(action.event.logout("uid-a")).rejects.toThrow("cleanup failed");
 
-    expect(studyStore.getState().session).toBeNull();
+    expect(studyStore.getState().sessionsByDeckId).toEqual({});
   });
 
   it("publishes a linked Firebase user without persisting identity", async () => {

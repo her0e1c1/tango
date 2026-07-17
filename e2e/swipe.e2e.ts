@@ -127,15 +127,17 @@ test("updates study progress with a mastered deck swipe", async ({ page }) => {
 
   await expect(page.getByText("banana")).toBeVisible();
   await expect.poll(async () => persistedCard(e2eCards[0]?.id ?? "")).toMatchObject({ score: 1, numberOfSeen: 1 });
-  await expect.poll(async () => persistedStudyEnvelope(page)).toEqual({
+  await expect.poll(async () => persistedStudyEnvelope(page)).toMatchObject({
     state: {
-      session: {
-        deckId: e2eDeck.id,
-        cardOrderIds: e2eCards.map((card) => card.id),
-        currentIndex: 1,
+      sessionsByDeckId: {
+        [e2eDeck.id]: {
+          deckId: e2eDeck.id,
+          cardOrderIds: e2eCards.map((card) => card.id),
+          currentIndex: 1,
+        },
       },
     },
-    version: 2,
+    version: 3,
   });
   await expect.poll(async () => persistedStateBoundaries(page)).toEqual({
     rootDeck: false,

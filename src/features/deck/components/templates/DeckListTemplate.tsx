@@ -1,38 +1,74 @@
-import type * as React from "react";
-import { List } from "@/shared/components";
-import { Layout } from "@/shared/components/layout/Layout";
-import { DeckCard, type DeckCardActions, type StudyProgress } from "@/features/deck/components/DeckCard";
+import * as React from "react";
 
-export interface ActiveStudyProgress extends StudyProgress {
-  deckId: DeckId;
+import { DeckCard, type DeckCardActions, type DeckListStudyProgress } from "@/features/deck/components/DeckCard";
+import { Layout } from "@/shared/components/layout/Layout";
+
+export interface DeckListItem {
+  deck: Deck;
+  cardCount: number;
+  studyProgress?: DeckListStudyProgress;
+}
+
+export interface DeckListSections {
+  studying: DeckListItem[];
+  other: DeckListItem[];
 }
 
 export interface DeckListTemplateProps {
-  decks: Deck[];
+  sections: DeckListSections;
   layout?: React.ComponentProps<typeof Layout>;
   deckCard?: DeckCardActions;
-  studyProgress?: ActiveStudyProgress;
   feedbackSlot?: React.ReactNode;
 }
 
+const countLabel = (count: number) => `${count} ${count === 1 ? "deck" : "decks"}`;
+
+const DeckListSection: React.FC<{
+  title: string;
+  note: string;
+  items: DeckListItem[];
+  actions: DeckCardActions | undefined;
+}> = ({ title, note, items, actions }) => {
+  const headingId = React.useId();
+  if (items.length === 0) return null;
+
+  return (
+    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-3 px-1">
+        <h2 id={headingId} className="text-caption font-bold uppercase tracking-wide text-ink-muted">
+          {title}
+        </h2>
+        <span className="shrink-0 text-caption text-ink-muted">
+          {countLabel(items.length)} · {note}
+        </span>
+      </div>
+      <div className="rounded-surface border border-border bg-surface shadow-surface">
+        {items.map((item) => (
+          <DeckCard
+            key={item.deck.id}
+            deck={item.deck}
+            cardCount={item.cardCount}
+            {...(item.studyProgress != null ? { studyProgress: item.studyProgress } : {})}
+            {...actions}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
+
 export const DeckListTemplate: React.FC<DeckListTemplateProps> = (props) => {
+  const total = props.sections.studying.length + props.sections.other.length;
+
   return (
     <Layout showHeader {...props.layout}>
       {props.feedbackSlot}
-      <h1 className="break-words text-title font-bold text-ink">Decks</h1>
-      <List>
-        {props.decks?.map((deck) => {
-          const studyProgress = props.studyProgress?.deckId === deck.id ? props.studyProgress : undefined;
-          return (
-            <DeckCard
-              key={deck.id}
-              deck={deck}
-              {...(studyProgress !== undefined ? { studyProgress } : {})}
-              {...props.deckCard}
-            />
-          );
-        })}
-      </List>
+      <div className="flex items-baseline justify-between gap-3">
+        <h1 className="break-words text-title font-bold text-ink">Decks</h1>
+        <span className="shrink-0 text-caption text-ink-muted">{countLabel(total)}</span>
+      </div>
+      <DeckListSection title="Studying" note="recent first" items={props.sections.studying} actions={props.deckCard} />
+      <DeckListSection title="Other decks" note="A–Z" items={props.sections.other} actions={props.deckCard} />
     </Layout>
   );
 };
