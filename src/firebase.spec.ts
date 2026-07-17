@@ -17,14 +17,6 @@ const singletons = vi.hoisted(() => ({
   db: { type: "firestore", _firestoreClient: { _offlineComponents: { kind: "persistent" } } },
 }));
 
-const stubAvailableWebLock = () => {
-  const request = vi.fn((_name: string, _options: object, callback: (lock: object) => Promise<void>) =>
-    callback({ name: "lock" })
-  );
-  vi.stubGlobal("navigator", { ...navigator, locks: { request } });
-  return request;
-};
-
 vi.mock("firebase/app", () => ({
   initializeApp: vi.fn(() => singletons.app),
 }));
@@ -70,7 +62,6 @@ describe("Firebase singletons", () => {
 
   it("uses persistent single-tab cache in production", async () => {
     vi.stubEnv("PROD", true);
-    stubAvailableWebLock();
 
     const firebase = await import("@/firebase");
     await firebase.waitForFirestoreInitialization();
@@ -99,7 +90,6 @@ describe("Firebase singletons", () => {
 
   it("exposes a blocking startup state instead of falling back when persistence initialization fails", async () => {
     vi.stubEnv("PROD", true);
-    stubAvailableWebLock();
     const failure = new Error("single-tab persistence unavailable");
     vi.mocked(initializeFirestore).mockImplementationOnce(() => {
       throw failure;
@@ -112,26 +102,21 @@ describe("Firebase singletons", () => {
     expect(memoryLocalCache).not.toHaveBeenCalled();
   });
 
-  it("blocks startup when another tab owns the production lease", async () => {
+  it("does not require Web Locks for the production cache", async () => {
     vi.stubEnv("PROD", true);
-    const request = vi.fn((_name: string, _options: object, callback: (lock: object | null) => Promise<void>) =>
-      callback(null)
-    );
-    vi.stubGlobal("navigator", { ...navigator, locks: { request } });
+    vi.stubGlobal("navigator", { ...navigator, locks: undefined });
 
     const firebase = await import("@/firebase");
 
     await expect(firebase.waitForFirestoreInitialization()).resolves.toEqual({
-      status: "blocked",
-      error: expect.objectContaining({ name: "FirestoreSingleTabLeaseError" }),
+      status: "ready",
     });
-    expect(() => firebase.getDb()).toThrow("another tab");
+    expect(firebase.getDb()).toBe(singletons.db);
     expect(memoryLocalCache).not.toHaveBeenCalled();
   });
 
   it("blocks startup when Firestore silently falls back to memory", async () => {
     vi.stubEnv("PROD", true);
-    stubAvailableWebLock();
     singletons.db._firestoreClient._offlineComponents.kind = "memory";
 
     const firebase = await import("@/firebase");
@@ -143,18 +128,6 @@ describe("Firebase singletons", () => {
     expect(getDocsFromCache).toHaveBeenCalledTimes(1);
     expect(terminate).toHaveBeenCalledWith(singletons.db);
     expect(() => firebase.getDb()).toThrow("Memory fallback is disabled");
-  });
-
-  it("reports unsupported exclusive locks separately from tab contention", async () => {
-    vi.stubEnv("PROD", true);
-    vi.stubGlobal("navigator", { ...navigator, locks: undefined });
-
-    const firebase = await import("@/firebase");
-
-    await expect(firebase.waitForFirestoreInitialization()).resolves.toEqual({
-      status: "blocked",
-      error: expect.objectContaining({ name: "FirestoreSingleTabLeaseUnsupportedError" }),
-    });
   });
 
   it("connects auth to the configured emulator in dev mode", async () => {
