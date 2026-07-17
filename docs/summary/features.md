@@ -75,7 +75,7 @@ Key files: `src/page/ConfigPage.tsx`, `src/features/settings/containers/ConfigCo
 ## Sample Deck
 
 - `sample/generate.py` が Python test files から card data を生成します。
-- Import 画面の Add sample deck 操作が `sample/build/output.json` を読み込み、通常の Firestore mutation で追加します。
+- サーバー同期後に Deck が0件なら `sample/build/output.json` を通常の Firestore mutation で自動追加します。Import 画面の Add sample deck 操作でも追加できます。
 - 同じ UID では決定的な sample deck ID を使うため、再実行しても duplicate deck を作りません。
 
 Key files: `sample/generate.py`, `src/features/import/hooks/useDeckImport.ts`, `src/features/import/containers/DeckImportContainer.tsx`

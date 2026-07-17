@@ -8,6 +8,7 @@ import { useActions } from "@/shared/hooks/useActions";
 import { DeckListTemplate } from "@/features/deck/components/templates/DeckListTemplate";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
+import { useSampleDeckBootstrap } from "@/features/import/hooks/useSampleDeckBootstrap";
 import { useConfig } from "@/features/settings/hooks/useConfig";
 
 export const DeckListContainer: React.FC = () => {
@@ -17,6 +18,7 @@ export const DeckListContainer: React.FC = () => {
   const mutations = useDeckMutations();
   const decks = remote.decks;
   const studySession = useStudyStore((state) => state.session);
+  useSampleDeckBootstrap();
   useKey("s", actions.goToSettings);
   useKey("i", actions.goToImport);
 
