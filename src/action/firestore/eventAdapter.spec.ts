@@ -108,7 +108,7 @@ describe("Firestore remote-read subscriptions", () => {
 
     expect(onSnapshot).toHaveBeenCalledWith({
       type: "replace",
-      items: [expect.objectContaining({ id: "deck-a", name: "Remote Deck", localMode: false })],
+      items: [expect.objectContaining({ id: "deck-a", name: "Remote Deck" })],
       metadata: { size: 2, fromCache: false, hasPendingWrites: false },
     });
   });

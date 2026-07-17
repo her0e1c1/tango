@@ -5,23 +5,19 @@ import "@testing-library/jest-dom/vitest";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
-  state: null as RootState | null,
+  config: { darkMode: false } as ConfigState,
+  card: null as Card | null,
   cardUpdate: vi.fn(),
   navigate: vi.fn(),
 }));
 
-vi.mock("react-redux", () => ({
-  useSelector: (select: (state: RootState) => unknown) => {
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
-    return select(mocks.state);
-  },
-}));
+vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    cardById: (id: string) => mocks.state?.card.byId[id],
+    cardById: (id: string) => (mocks.card?.id === id ? mocks.card : undefined),
   }),
 }));
 
@@ -68,11 +64,8 @@ describe("CardFormContainer", () => {
 
   beforeEach(() => {
     mocks.params.id = card.id;
-    mocks.state = {
-      deck: { byId: {}, categories: [] },
-      config: { darkMode: false } as ConfigState,
-      card: { byId: { [card.id]: card }, tags: [] },
-    };
+    mocks.card = card;
+    mocks.config = { darkMode: false } as ConfigState;
     mocks.cardUpdate.mockReset();
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.navigate.mockReset();

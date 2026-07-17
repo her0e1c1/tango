@@ -1,5 +1,3 @@
-import type { ThunkResult } from "@/action";
-import * as action from "@/action";
 import * as firestore from "@/action/firestore";
 
 export const isEmpty = (c: CardRaw): boolean => {
@@ -31,50 +29,4 @@ export const prepare = (card: CardRaw, deck: CardDeck): Card => {
     updatedAt: 0,
     deletedAt: null,
   };
-};
-
-export const bulkCreate =
-  (cards: CardRaw[], deckId: DeckId): ThunkResult =>
-  async (dispatch, getState) => {
-    const deck = getState().deck.byId[deckId];
-    if (deck == null) throw new Error(`NO DECK ${deckId}`);
-    await Promise.all(
-      cards.map(async (card) => {
-        const c = prepare(card, deck);
-        if (!deck.localMode) {
-          await firestore.card.create(c);
-        }
-        await dispatch(action.type.cardInsert(c));
-      })
-    );
-  };
-
-export const bulkUpdate =
-  (cards: CardEdit[]): ThunkResult =>
-  async (dispatch, getState) => {
-    await Promise.all(
-      action.card.filterCardsForUpdate(cards, getState().card).map(async (c) => {
-        await dispatch(action.type.cardUpdate(c));
-        const deck = getState().deck.byId[c.deckId];
-        if (deck == null) throw new Error(`NO DECK ${c.deckId}`);
-        if (!deck.localMode) {
-          await firestore.card.update(c);
-        }
-      })
-    );
-  };
-
-export const filterCardsForUpdate = (cards: CardEdit[], state: CardState): Card[] => {
-  const byKey = {} as Record<string, Card>;
-  Object.entries(state.byId).forEach(([id, card]) => {
-    const c = card as Card;
-    byKey[c.uniqueKey] = { ...c, id };
-  });
-  return cards.flatMap((a) => {
-    const b = byKey[a.uniqueKey ?? ""];
-    if (b == null || (a.frontText === b.frontText && a.backText === b.backText)) {
-      return [];
-    }
-    return [{ ...b, ...a }];
-  });
 };

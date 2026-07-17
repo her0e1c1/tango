@@ -14,7 +14,7 @@
 | Action / Deck | `src/action/deck.spec.ts` | ユニットテスト |
 | Action / Card | `src/action/card.spec.ts` | ユニットテスト |
 | Action / Event | `src/action/event.spec.ts` | ユニットテスト |
-| Action / Config | `src/action/config.spec.ts` | ユニットテスト |
+| Settings / Config Store | `src/features/settings/state/configStore.spec.ts` | ユニットテスト |
 | Firestore / Deck | `src/action/firestore/deck.spec.ts` | 統合テスト |
 | Firestore / Card | `src/action/firestore/card.spec.ts` | 統合テスト |
 | Firestore / Event | `src/action/firestore/event.spec.ts` | Query購読統合テスト |
@@ -42,7 +42,7 @@
 
 | # | テスト名 | 前提条件 | 操作 | 期待結果 |
 |---|---------|---------|------|---------|
-| 1 | should prepare deck | `name: "name"`, `uid: "uid"`, `localMode: true` | `action.deck.prepare()` を呼ぶ | 返り値が `{ name, uid, localMode }` を含む |
+| 1 | should prepare deck | `name: "name"`, `uid: "uid"` | `action.deck.prepare()` を呼ぶ | 返り値が `{ name, uid }` を含む |
 
 #### generateName
 
@@ -56,7 +56,7 @@
 
 | # | テスト名 | 前提条件 | 操作 | 期待結果 |
 |---|---------|---------|------|---------|
-| 1 | should create | `uid: "uid"`, `localMode: false`, Deck State 空 | `action.deck.create("name")` を dispatch | `firestore.deck.create` が正しい Deck オブジェクトで呼ばれる |
+| 1 | should create | `uid: "uid"`, Deck Query 空 | deck mutation で作成 | `firestore.deck.create` が正しい Deck オブジェクトで呼ばれる |
 
 #### update
 
@@ -74,7 +74,7 @@
 
 | # | テスト名 | 前提条件 | 操作 | 期待結果 |
 |---|---------|---------|------|---------|
-| 1 | should start | `defaultAutoPlay: true`, `cardIds: []` | `action.deck.start("deckId")` を dispatch | `deck.update` が `{ currentIndex: 0, cardOrderIds: [] }` で呼ばれ、`configUpdate({ showBackText: false, autoPlay: true })` が dispatch される |
+| 1 | should start | `defaultAutoPlay: true`, `cardIds: []` | `useStudyActions.start()` を呼ぶ | study store に `currentIndex: 0`, `cardOrderIds: []`, `autoPlay: true` が保存される |
 
 #### swipe
 
@@ -169,23 +169,24 @@
 
 | # | テスト名 | 前提条件 | 操作 | 期待結果 |
 |---|---------|---------|------|---------|
-| 1 | should logout | confirmed UID | `action.event.logout(uid)` を dispatch | sign-out後にUID Query cacheとstudy stateが除去され、local Reduxは保持される |
+| 1 | should logout | confirmed UID | `action.event.logout(uid)` を呼ぶ | sign-out後に UID Query cache と study state が除去される |
 
 #### loginGoogle
 
 | # | テスト名 | 前提条件 | 操作 | 期待結果 |
 |---|---------|---------|------|---------|
-| 1 | should login | `linkWithPopup` が Firebase User を返す | `action.event.loginGoogle()` を dispatch | UserがAuth Contextへpublishされ、Reduxには認証情報をdispatchしない |
+| 1 | should login | `linkWithPopup` が Firebase User を返す | `action.event.loginGoogle()` を呼ぶ | User が Auth Context へ publish される |
 
 ---
 
-### 1-4. Config Action (`src/action/config.spec.ts`)
+### 1-4. Config Store (`src/features/settings/state/configStore.spec.ts`)
 
 #### update
 
 | # | テスト名 | 前提条件 | 操作 | 期待結果 |
 |---|---------|---------|------|---------|
-| 1 | should update | なし | `update("autoPlay", true)` を dispatch | `configUpdate({ autoPlay: true })` が dispatch される |
+| 1 | updates and toggles long-lived settings | default config | `updateConfig` と `toggleConfig` を呼ぶ | Zustand state が更新される |
+| 2 | persists only config state | memory storage | config を更新して rehydrate | `tango-config` に config だけが保存・復元される |
 
 ---
 
@@ -300,7 +301,7 @@
 
 ### 3-2. DeckFormContainer (`src/features/deck/containers/DeckFormContainer.spec.tsx`)
 
-> 初期 Deck: `name: "NAME"`, `isPublic: false`, `convertToBr: false`, `url: ""`, `category: ""`, `localMode: true`
+> 初期 Deck: `name: "NAME"`, `isPublic: false`, `convertToBr: false`, `url: ""`, `category: ""`
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|

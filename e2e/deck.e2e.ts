@@ -1,11 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
+import { routeAnonymousAuth, seedConfig, seedDeckAndCards } from "./fixtures";
 
 const e2eDeck = {
-  id: "e2e-deck-1",
+  id: "deck-e2e-deck",
   name: "E2E Deck",
   category: "English",
-  uid: "e2e-user",
-  localMode: true,
+  uid: "deck-e2e-user",
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
@@ -18,9 +18,9 @@ const e2eDeck = {
 };
 
 const e2eCard = {
-  id: "e2e-card-1",
-  deckId: "e2e-deck-1",
-  uid: "e2e-user",
+  id: "deck-e2e-card",
+  deckId: "deck-e2e-deck",
+  uid: "deck-e2e-user",
   frontText: "apple",
   backText: "りんご",
   tags: [],
@@ -28,70 +28,15 @@ const e2eCard = {
   score: 0,
   numberOfSeen: 0,
   interval: 0,
-  nextSeeingAt: new Date(0).toISOString(),
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
 };
 
-const persistedConfig = {
-  useCardInterval: false,
-  showSwipeButtonList: true,
-  showScoreSlider: false,
-  showHeader: true,
-  fullscreen: false,
-  maxNumberOfCardsToLearn: 10,
-  hideBodyWhenCardChanged: true,
-  sizeBackText: 0,
-  shuffled: false,
-  defaultAutoPlay: false,
-  cardInterval: 60,
-  keepBackTextViewed: false,
-  showSwipeFeedback: false,
-  cardSwipeUp: "GoToNextCardMastered",
-  cardSwipeDown: "GoToNextCardNotMastered",
-  cardSwipeLeft: "GoToPrevCard",
-  cardSwipeRight: "GoToNextCard",
-  darkMode: false,
-  uid: "e2e-user",
-  isAnonymous: false,
-  displayName: "E2E User",
-  selectedTags: [],
-  lastUpdatedAt: 0,
-  githubAccessToken: "",
-  loadSample: false,
-  localMode: true,
-};
-
 const seedDeckSession = async (page: Page) => {
-  await page.route("https://identitytoolkit.googleapis.com/**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        kind: "identitytoolkit#SignupNewUserResponse",
-        idToken: "e2e-id-token",
-        refreshToken: "e2e-refresh-token",
-        expiresIn: "3600",
-        localId: "e2e-user",
-      }),
-    });
-  });
-
-  await page.addInitScript(
-    ({ config, deck, card }) => {
-      window.localStorage.setItem(
-        "persist:root",
-        JSON.stringify({
-          config: JSON.stringify(config),
-          deck: JSON.stringify({ byId: { [deck.id]: deck }, categories: [deck.category] }),
-          card: JSON.stringify({ byId: { [card.id]: card }, tags: [] }),
-          _persist: JSON.stringify({ version: 2, rehydrated: true }),
-        })
-      );
-    },
-    { config: persistedConfig, deck: e2eDeck, card: e2eCard }
-  );
+  await routeAnonymousAuth(page, e2eDeck.uid);
+  await seedConfig(page);
+  await seedDeckAndCards(e2eDeck, [e2eCard]);
 };
 
 const deckCard = (page: Page, name: string) =>
@@ -113,13 +58,15 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test.describe.configure({ mode: "serial" });
+
 test("navigates from the deck list to the card list", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByText("E2E Deck")).toBeVisible();
   await page.getByText("E2E Deck").click();
 
-  await expect(page).toHaveURL(/\/deck\/e2e-deck-1$/);
+  await expect(page).toHaveURL(new RegExp(`/deck/${e2eDeck.id}$`));
   await expect(page.getByText("apple")).toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
@@ -128,7 +75,7 @@ test("saves deck edits and returns to the deck list", async ({ page }) => {
   await page.goto("/");
 
   await deckCard(page, "E2E Deck").locator("svg").nth(1).click();
-  await expect(page).toHaveURL(/\/deck\/e2e-deck-1\/edit$/);
+  await expect(page).toHaveURL(new RegExp(`/deck/${e2eDeck.id}/edit$`));
 
   await page.locator('input[name="name"]').fill("Updated E2E Deck");
   await page.getByRole("button", { name: "Save" }).click();

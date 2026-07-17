@@ -19,7 +19,6 @@ describe("DeckFormTemplate", () => {
             convertToBr: { name: "convertToBr" },
             url: { name: "url" },
             isPublic: { name: "isPublic" },
-            localMode: { name: "localMode" },
             category: { name: "category", options: [] },
           },
         }}

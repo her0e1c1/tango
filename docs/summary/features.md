@@ -39,7 +39,7 @@ Key files: `src/page/CardFormPage.tsx`, `src/page/CardViewPage.tsx`, `src/featur
 ## Deck 編集
 
 - `/deck/:id/edit` で deck name、convertToBr、url、category を編集できます。
-- Public と Local Mode は form 上では disabled です。
+- Public は form 上では disabled です。
 - url がある deck は deck card に reload icon が表示され、reimport action を呼べます。ただし `DeckListPage` では `onClickReimport` がコメントアウトされています。
 
 Key files: `src/page/DeckFormPage.tsx`, `src/features/deck/containers/DeckFormContainer.tsx`, `src/features/deck/components/DeckForm.tsx`, `src/action/deck.ts`
@@ -59,23 +59,23 @@ Key files: `src/page/DeckStartPage.tsx`, `src/page/DeckSwiperPage.tsx`, `src/fea
 - 初期化時、匿名状態なら Firebase anonymous sign-in を実行します。
 - Google login は anonymous user を Google credential に link し、失敗時は credential sign-in を試します。
 - auth state change 後、Auth Context の uid を使って deck/card snapshot を購読し、Query cache を更新します。
-- Redux persistence は local-mode deck/card と長期設定だけを保持します。
-- `localMode` false の deck/card は Firestore に create/update/delete されます。
+- deck/card は Firestore に create/update/delete され、Firestore SDK の persistent local cache で offline 利用できます。
+- 長期設定は Zustand store の `tango-config` に保存します。
 
 Key files: `src/action/event.ts`, `src/firebase.ts`, `src/action/firestore/*`
 
 ## Settings
 
 - `/settings` では login/logout、layout、card behavior、auto play、metadata を編集または表示できます。
-- form は `react-hook-form` の `watch()` で変更ごとに `configUpdate` を dispatch します。
+- form は `react-hook-form` の `watch()` で変更ごとに Zustand config store を更新します。
 - version は `__APP_VERSION__` から表示されます。
 
-Key files: `src/page/ConfigPage.tsx`, `src/features/settings/containers/ConfigContainer.tsx`, `src/features/settings/components/ConfigForm.tsx`, `src/store/reducer.ts`
+Key files: `src/page/ConfigPage.tsx`, `src/features/settings/containers/ConfigContainer.tsx`, `src/features/settings/components/ConfigForm.tsx`, `src/features/settings/state/configStore.ts`
 
 ## Sample Deck
 
 - `sample/generate.py` が Python test files から card data を生成します。
-- `src/store/reducer.ts` は `sample/build/output.json` を初期 sample deck として読み込みます。
-- `action.deck.loadSample()` は config の `loadSample` が true の場合に sample deck を import します。
+- Import 画面の Add sample deck 操作が `sample/build/output.json` を読み込み、通常の Firestore mutation で追加します。
+- 同じ UID では決定的な sample deck ID を使うため、再実行しても duplicate deck を作りません。
 
-Key files: `sample/generate.py`, `src/store/reducer.ts`, `src/action/deck.ts`
+Key files: `sample/generate.py`, `src/features/import/hooks/useDeckImport.ts`, `src/features/import/containers/DeckImportContainer.tsx`

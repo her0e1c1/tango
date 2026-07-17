@@ -6,7 +6,9 @@ import { studyStore } from "@/features/study/state/studyStore";
 import { createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  state: null as RootState | null,
+  config: {} as ConfigState,
+  decksById: {} as Record<DeckId, Deck>,
+  cardsById: {} as Record<CardId, Card>,
   actions: {
     goToSettings: vi.fn(),
     goToImport: vi.fn(),
@@ -22,24 +24,18 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("react-redux", () => ({
-  useSelector: (select: (state: RootState) => unknown) => {
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
-    return select(mocks.state);
-  },
-}));
+vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 
 vi.mock("@/action", () => ({ deck: { downloadData: vi.fn() } }));
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => {
-    const decksById = mocks.state?.deck.byId ?? {};
+    const decksById = mocks.decksById;
     return {
       status: "ready" as const,
       retry: vi.fn(),
       decks: Object.values(decksById).filter((deck): deck is Deck => deck != null),
       deckById: (id: string) => decksById[id],
-      cardsByDeckId: (id: string) =>
-        Object.values(mocks.state?.card.byId ?? {}).filter((card): card is Card => card?.deckId === id),
+      cardsByDeckId: (id: string) => Object.values(mocks.cardsById).filter((card) => card.deckId === id),
     };
   },
 }));
@@ -74,11 +70,9 @@ describe("DeckListContainer", () => {
 
   beforeEach(() => {
     localStorage.clear();
-    mocks.state = {
-      deck: { byId: { [activeDeck.id]: activeDeck, [otherDeck.id]: otherDeck }, categories: [] },
-      card: { byId: {}, tags: [] },
-      config: createConfig({ darkMode: false }),
-    };
+    mocks.decksById = { [activeDeck.id]: activeDeck, [otherDeck.id]: otherDeck };
+    mocks.cardsById = {};
+    mocks.config = createConfig({ darkMode: false });
     studyStore.setState({
       session: {
         deckId: activeDeck.id,
@@ -108,11 +102,7 @@ describe("DeckListContainer", () => {
       currentIndex: 1,
       cardOrderIds: ["card-1", "card-2"],
     } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state = {
-      ...mocks.state,
-      deck: { byId: { [legacyDeck.id]: legacyDeck, [otherDeck.id]: otherDeck }, categories: [] },
-    };
+    mocks.decksById = { [legacyDeck.id]: legacyDeck, [otherDeck.id]: otherDeck };
     studyStore.getState().resetStudy();
 
     const view = render(<DeckListContainer />);

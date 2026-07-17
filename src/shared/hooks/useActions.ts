@@ -1,10 +1,9 @@
 import React from "react";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import * as action from "@/action";
+import { configStore } from "@/features/settings/state/configStore";
 
 export const useActions = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   return React.useMemo(
     () => ({
@@ -47,13 +46,13 @@ export const useActions = () => {
       deckDownloadCsvSampleText: () => {
         action.deck.downloadCsvSampleText();
       },
-      login: () => dispatch(action.config.loginGoogle()),
-      logout: (confirmedUid: string) => dispatch(action.config.logout(confirmedUid)),
-      configUpdate: (config: ConfigState) => dispatch(action.config.updateAll(config)),
-      setDarkMode: (darkMode: boolean) => dispatch(action.config.update("darkMode", darkMode)),
-      toggleShowHeader: () => dispatch(action.config.toggle("showHeader")),
-      toggleShowSwipeButtonList: () => dispatch(action.config.toggle("showSwipeButtonList")),
+      login: action.event.loginGoogle,
+      logout: action.event.logout,
+      configUpdate: (config: ConfigState) => configStore.getState().updateConfig(config),
+      setDarkMode: (darkMode: boolean) => configStore.getState().updateConfig({ darkMode }),
+      toggleShowHeader: () => configStore.getState().toggleConfig("showHeader"),
+      toggleShowSwipeButtonList: () => configStore.getState().toggleConfig("showSwipeButtonList"),
     }),
-    [dispatch, navigate]
+    [navigate]
   );
 };

@@ -9,7 +9,7 @@
 
 You can access to the page for **demo** here: https://tango-ts.web.app
 
-Please keep using `localMode`. (note that any data uploaded to database are to be **deleted** without noticing)
+Demo data is stored in Firestore and may be **deleted** without notice.
 
 ## Development
 

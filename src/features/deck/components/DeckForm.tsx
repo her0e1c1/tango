@@ -8,7 +8,6 @@ export interface DeckFormFields {
   convertToBr: React.ComponentProps<typeof Switch>;
   url: React.ComponentProps<typeof Input>;
   isPublic: React.ComponentProps<typeof Switch>;
-  localMode: React.ComponentProps<typeof Switch>;
   category: React.ComponentProps<typeof Select>;
 }
 
@@ -53,9 +52,6 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
         </h2>
         <FormItem label="Public" help="Public decks are not available yet.">
           <Switch {...props.fields.isPublic} disabled />
-        </FormItem>
-        <FormItem label="Local Mode" help="Local Mode is not available yet.">
-          <Switch {...props.fields.localMode} disabled />
         </FormItem>
       </section>
       <section aria-labelledby={metadataHeadingId} className="space-y-4">

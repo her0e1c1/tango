@@ -1,7 +1,6 @@
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
 import * as card from "@/action/card";
-import * as action from "@/action";
 import { createCard } from "@/test/factories";
 
 vi.mock("./firestore");
@@ -37,39 +36,6 @@ describe("card action", () => {
     it("should be empty", async () => {
       const c = createCard({ frontText: "", backText: "", tags: [], uniqueKey: "" });
       expect(card.toRow(c)).toEqual(["", "", "", ""]);
-    });
-  });
-
-  describe.concurrent("filterCardsForUpdate", () => {
-    const state = {
-      byId: {
-        1: { uniqueKey: "a", frontText: "front", backText: "back" } as Card,
-      },
-      tags: [],
-    } as CardState;
-
-    it("should filter an old card with invalid key", async () => {
-      const card = { uniqueKey: "z" } as Card;
-      const filtered = action.card.filterCardsForUpdate([card], state);
-      expect(filtered).toEqual([]);
-    });
-
-    it("should filter an old card with the same text", async () => {
-      const card = { uniqueKey: "a", frontText: "front", backText: "back" } as Card;
-      const filtered = action.card.filterCardsForUpdate([card], state);
-      expect(filtered).toEqual([]);
-    });
-
-    it("should not filter an old card", async () => {
-      const card = { uniqueKey: "a" } as Card;
-      const filtered = action.card.filterCardsForUpdate([card], state);
-      expect(filtered).toEqual([{ uniqueKey: "a", id: "1", frontText: "front", backText: "back" } as Card]);
-    });
-
-    it("should not filter an old card and overwrite", async () => {
-      const card = { uniqueKey: "a", frontText: "f", backText: "b" } as Card;
-      const filtered = action.card.filterCardsForUpdate([card], state);
-      expect(filtered).toEqual([{ uniqueKey: "a", id: "1", frontText: "f", backText: "b" } as Card]);
     });
   });
 });

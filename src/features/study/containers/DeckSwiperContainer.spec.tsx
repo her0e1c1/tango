@@ -7,8 +7,7 @@ import { createConfig } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  state: null as RootState | null,
-  dispatch: vi.fn(),
+  state: null as { deck: Record<DeckId, Deck>; card: Record<CardId, Card>; config: ConfigState } | null,
   navigate: vi.fn(),
   toggleShowBackText: vi.fn(),
   toggleAutoPlay: vi.fn(),
@@ -24,11 +23,10 @@ const mocks = vi.hoisted(() => ({
   useKey: vi.fn(),
 }));
 
-vi.mock("react-redux", () => ({
-  useDispatch: () => mocks.dispatch,
-  useSelector: (select: (state: RootState) => unknown) => {
+vi.mock("@/features/settings/hooks/useConfig", () => ({
+  useConfig: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    return select(mocks.state);
+    return mocks.state.config;
   },
 }));
 
@@ -36,8 +34,8 @@ vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    deckById: (id: string) => mocks.state?.deck.byId[id],
-    cardById: (id: string) => mocks.state?.card.byId[id],
+    deckById: (id: string) => mocks.state?.deck[id],
+    cardById: (id: string) => mocks.state?.card[id],
   }),
 }));
 
@@ -88,7 +86,6 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     createdAt: 0,
     updatedAt: 0,
     deletedAt: null,
-    localMode: true,
     category: "raw",
     convertToBr: false,
     selectedTags: [],
@@ -118,12 +115,9 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     uniqueKey: "legacy-key",
   };
 
-  const createState = (currentDeck: Deck = deck): RootState => ({
-    deck: { byId: { [currentDeck.id]: currentDeck }, categories: [] },
-    card: {
-      byId: { [card.id]: card, [legacyCard.id]: legacyCard },
-      tags: card.tags,
-    },
+  const createState = (currentDeck: Deck = deck) => ({
+    deck: { [currentDeck.id]: currentDeck },
+    card: { [card.id]: card, [legacyCard.id]: legacyCard },
     config: createConfig({
       cardInterval: 1,
       darkMode: false,
@@ -211,7 +205,6 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
     });
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
-    expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(studyStore.getState().session).toBeNull();
   });
 

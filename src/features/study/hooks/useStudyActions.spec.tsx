@@ -5,26 +5,22 @@ import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { studyStore } from "@/features/study/state/studyStore";
 
 const mocks = vi.hoisted(() => ({
-  state: null as RootState | null,
-  dispatch: vi.fn(),
+  state: null as { card: Record<CardId, Card>; config: ConfigState } | null,
   navigate: vi.fn(),
   cardUpdate: vi.fn(),
-  deckUpdate: vi.fn(),
-  configUpdate: vi.fn(),
   pendingIds: new Set<CardId>(),
 }));
 
-vi.mock("react-redux", () => ({
-  useDispatch: () => mocks.dispatch,
-  useSelector: (select: (state: RootState) => unknown) => {
+vi.mock("@/features/settings/hooks/useConfig", () => ({
+  useConfig: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    return select(mocks.state);
+    return mocks.state.config;
   },
 }));
 
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => {
-    const cardsById = mocks.state?.card.byId ?? {};
+    const cardsById = mocks.state?.card ?? {};
     return {
       cardsById,
       filteredCardsByDeckId: (deckId: string) =>
@@ -47,12 +43,6 @@ vi.mock("@/features/card/hooks/useCardMutations", () => ({
   }),
 }));
 
-vi.mock("@/action", () => ({
-  card: { update: mocks.cardUpdate },
-  deck: { update: mocks.deckUpdate },
-  type: { configUpdate: mocks.configUpdate },
-}));
-
 const deck: Deck = {
   id: "deck-1",
   uid: "user-1",
@@ -61,7 +51,6 @@ const deck: Deck = {
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  localMode: true,
   category: "",
   convertToBr: false,
   selectedTags: [],
@@ -102,9 +91,8 @@ const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState =>
     ...overrides,
   }) as ConfigState;
 
-const createRootState = (config = createConfig()): RootState => ({
-  deck: { byId: { [deck.id]: deck }, categories: [] },
-  card: { byId: { [card1.id]: card1, [card2.id]: card2 }, tags: [] },
+const createState = (config = createConfig()) => ({
+  card: { [card1.id]: card1, [card2.id]: card2 },
   config,
 });
 
@@ -113,10 +101,9 @@ describe("useStudyActions", () => {
     localStorage.clear();
     vi.clearAllMocks();
     vi.spyOn(Date, "now").mockReturnValue(946684800000);
-    mocks.dispatch.mockResolvedValue(undefined);
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.pendingIds.clear();
-    mocks.state = createRootState();
+    mocks.state = createState();
     studyStore.setState({
       session: null,
       showBackText: false,
@@ -130,7 +117,7 @@ describe("useStudyActions", () => {
     vi.restoreAllMocks();
   });
 
-  it("starts from filtered Redux cards before navigating", () => {
+  it("starts from filtered Query cards before navigating", () => {
     studyStore.setState({ showBackText: true, lastSwipe: "cardSwipeLeft" });
     mocks.navigate.mockImplementationOnce(() => {
       expect(studyStore.getState()).toMatchObject({
@@ -151,52 +138,6 @@ describe("useStudyActions", () => {
     });
 
     expect(mocks.navigate).toHaveBeenCalledWith(`/deck/${deck.id}/study`, { replace: true });
-    expect(mocks.dispatch).not.toHaveBeenCalled();
-    expect(mocks.deckUpdate).not.toHaveBeenCalled();
-    expect(mocks.configUpdate).not.toHaveBeenCalled();
-  });
-
-  it("starts fresh from an old-shaped deck without dispatching legacy cleanup", () => {
-    const legacyDeck = {
-      ...deck,
-      currentIndex: 1,
-      cardOrderIds: [card2.id],
-    } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
-    mocks.state = {
-      ...createRootState(),
-      deck: { byId: { [legacyDeck.id]: legacyDeck }, categories: [] },
-    };
-    studyStore.setState({ showBackText: true, autoPlay: false, lastSwipe: "cardSwipeLeft" });
-    mocks.navigate.mockImplementationOnce(() => {
-      expect(studyStore.getState()).toMatchObject({
-        session: {
-          deckId: deck.id,
-          cardOrderIds: [card1.id],
-          currentIndex: 0,
-        },
-        showBackText: false,
-        autoPlay: true,
-        lastSwipe: undefined,
-      });
-    });
-    const { result } = renderHook(() => useStudyActions(deck.id));
-
-    act(() => {
-      result.current.start();
-    });
-
-    expect(mocks.navigate).toHaveBeenCalledWith(`/deck/${deck.id}/study`, { replace: true });
-    expect(mocks.dispatch).not.toHaveBeenCalled();
-    expect(studyStore.getState()).toMatchObject({
-      session: {
-        deckId: deck.id,
-        cardOrderIds: [card1.id],
-        currentIndex: 0,
-      },
-      showBackText: false,
-      autoPlay: true,
-      lastSwipe: undefined,
-    });
   });
 
   it("rejects a route and session mismatch before writing a card", async () => {
@@ -208,7 +149,6 @@ describe("useStudyActions", () => {
     });
 
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
-    expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(studyStore.getState().session?.deckId).toBe("deck-2");
     expect(studyStore.getState().lastSwipe).toBeUndefined();
   });
@@ -230,7 +170,6 @@ describe("useStudyActions", () => {
       lastSeenAt: 946684800000,
     };
     expect(mocks.cardUpdate).toHaveBeenCalledWith(patch);
-    expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(studyStore.getState()).toMatchObject({
       session: {
         deckId: deck.id,
@@ -240,8 +179,6 @@ describe("useStudyActions", () => {
       lastSwipe: "cardSwipeRight",
       showBackText: false,
     });
-    expect(mocks.deckUpdate).not.toHaveBeenCalled();
-    expect(mocks.configUpdate).not.toHaveBeenCalled();
   });
 
   it("rolls the optimistic study index back when the Card write fails", async () => {
@@ -275,7 +212,7 @@ describe("useStudyActions", () => {
   });
 
   it("keeps back text visible when the long-lived config allows it", async () => {
-    mocks.state = createRootState(createConfig({ hideBodyWhenCardChanged: false }));
+    mocks.state = createState(createConfig({ hideBodyWhenCardChanged: false }));
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() => useStudyActions(deck.id));
@@ -298,7 +235,6 @@ describe("useStudyActions", () => {
     });
 
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
-    expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(studyStore.getState()).toEqual(before);
   });
 
@@ -313,16 +249,14 @@ describe("useStudyActions", () => {
     });
 
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
-    expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(studyStore.getState()).toMatchObject({
       session: { currentIndex: -1 },
       lastSwipe: "cardSwipeLeft",
       showBackText: true,
     });
-    expect(mocks.deckUpdate).not.toHaveBeenCalled();
   });
 
-  it("updates the session index and hides back text without Redux", () => {
+  it("updates the session index and hides back text", () => {
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() => useStudyActions(deck.id));
@@ -333,6 +267,5 @@ describe("useStudyActions", () => {
 
     expect(studyStore.getState().session?.currentIndex).toBe(1);
     expect(studyStore.getState().showBackText).toBe(false);
-    expect(mocks.dispatch).not.toHaveBeenCalled();
   });
 });

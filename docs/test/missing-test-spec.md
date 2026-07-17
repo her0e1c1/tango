@@ -6,7 +6,7 @@
 ## 対象
 - `src/action/deck.spec.ts`
 - `src/action/event.spec.ts`
-- `src/action/config.spec.ts`
+- `src/features/settings/state/configStore.spec.ts`
 
 ---
 
@@ -28,14 +28,14 @@
 
 ---
 
-## 2. Config Action の不足テスト
+## 2. Config Store の不足テスト
 
 ### 3-1. `update` の他フィールド網羅（TODOコメントあり）
 
 | # | テスト名 | 前提条件 | 操作 | 期待結果 |
 |---|---|---|---|---|
-| 1 | should update showBackText | なし | `update("showBackText", true)` を dispatch | `configUpdate({ showBackText: true })` が dispatch される。 |
-| 2 | should update defaultAutoPlay | なし | `update("defaultAutoPlay", false)` を dispatch | `configUpdate({ defaultAutoPlay: false })` が dispatch される。 |
+| 1 | should update showBackText | default config | `updateConfig({ showBackText: true })` を呼ぶ | Zustand state が更新される。 |
+| 2 | should update defaultAutoPlay | default config | `updateConfig({ defaultAutoPlay: false })` を呼ぶ | Zustand state が更新される。 |
 
 ---
 

@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   bulkUpsert: vi.fn(),
 }));
 
-vi.mock("react-redux", () => ({ useSelector: () => mocks.config }));
+vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/auth/AuthContext", () => ({
   useAuth: () => ({ status: "authenticated", uid: "uid-a", user: { uid: "uid-a" } }),
 }));
@@ -37,16 +37,16 @@ vi.mock("@/action", () => ({
   card: { prepare: mocks.prepareCard },
 }));
 
-import { useDeckImport } from "@/features/import/hooks/useDeckImport";
+import { sampleDeckId, useDeckImport } from "@/features/import/hooks/useDeckImport";
 
 describe("useDeckImport", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.config = createConfig({ localMode: false, githubAccessToken: "" });
+    mocks.config = createConfig({ githubAccessToken: "" });
     mocks.decks = [];
     mocks.cards = [];
     mocks.parseCsv.mockResolvedValue([{ frontText: "front", backText: "back", tags: [], uniqueKey: "key" }]);
-    mocks.prepareDeck.mockReturnValue(createDeck({ id: "deck", uid: "uid-a", localMode: false }));
+    mocks.prepareDeck.mockReturnValue(createDeck({ id: "deck", uid: "uid-a" }));
     mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck" }));
     mocks.createDeck.mockResolvedValue(undefined);
     mocks.bulkUpsert.mockResolvedValue(undefined);
@@ -62,8 +62,31 @@ describe("useDeckImport", () => {
     });
 
     expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.bulkUpsert).toHaveBeenCalledWith([expect.objectContaining({ id: "card" })], false);
+    expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "deck.csv" }, "uid-a");
+    expect(mocks.bulkUpsert).toHaveBeenCalledWith([expect.objectContaining({ id: "card" })]);
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
+  });
+
+  it("adds the bundled sample with a stable per-user Deck id", async () => {
+    const { result } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
+
+    await act(async () => result.current.addSample());
+
+    expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "Sample Deck" }, "uid-a");
+    expect(mocks.createDeck).toHaveBeenCalledWith(
+      expect.objectContaining({ id: sampleDeckId("uid-a"), name: "Deck", uid: "uid-a" })
+    );
+    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
+  });
+
+  it("reuses the same sample Deck for the active user", async () => {
+    mocks.decks = [createDeck({ id: sampleDeckId("uid-a"), name: "Renamed sample" })];
+    const { result } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
+
+    await act(async () => result.current.addSample());
+
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
   });
 
   it("treats a non-2xx URL response as an error", async () => {

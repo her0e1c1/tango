@@ -26,7 +26,6 @@ export const mapDeckDocument = (id: DeckId, document: DeckDocument): Deck => {
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
     deletedAt: document.deletedAt,
-    localMode: false,
     scoreMax: document.scoreMax,
     scoreMin: document.scoreMin,
     selectedTags: document.selectedTags,

@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
@@ -13,6 +12,7 @@ import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
+import { useConfig } from "@/features/settings/hooks/useConfig";
 
 const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; config: ConfigState }) => {
   const { deck, cards, tags, config } = props;
@@ -74,7 +74,7 @@ export const CardListContainer: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const remote = useRemoteCollections();
   const deck = remote.deckById(deckId);
   const cards = remote.filteredCardsByDeckId(deckId, config);

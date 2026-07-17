@@ -13,14 +13,12 @@ flowchart TD
     FC --> SC
 
     C --> H[Container Hooks<br/>src/shared/hooks / src/features/*/hooks]
-    C --> A[Local Actions / Thunks<br/>src/action]
+    C --> A[Domain Actions<br/>src/action]
     H --> A
-    A --> S[Local Redux State<br/>src/store]
-    S --> C
-    S --> H
-
-    S <--> L[redux-persist v3<br/>Local Deck / Card + Settings]
-    S --> I[Sample Deck Data<br/>sample/build/output.json]
+    C --> Z[Zustand Stores<br/>Config / Study]
+    H --> Z
+    Z <--> L[LocalStorage<br/>tango-config / tango-study]
+    A --> I[Sample Deck Data<br/>sample/build/output.json]
     C --> AC[Auth Context]
     AC --> AU[Firebase Auth]
     H --> Q[TanStack Query Cache<br/>Remote Deck / Card]
@@ -36,7 +34,7 @@ flowchart TD
 UI の依存方向は `App -> Page -> Container -> Template -> Component` です。`src/page` の各 route entry は対応する feature の container を 1 つ render します。
 
 - `containers` は route と store のデータを取得し、画面の rendering を調整します。
-- feature hook は再利用する feature 固有の form/UI state と、Redux・TanStack Query・router・Zustand などの接続や副作用をカプセル化します。
+- feature hook は再利用する feature 固有の form/UI state と、TanStack Query・router・Zustand などの接続や副作用をカプセル化します。
 - `components/templates` は画面単位の stateless な合成を、`components` は props-driven な表示を担当します。domain/UI state を所有しない表示統合として、`Code` の DOM highlighting や `useSwipeable` などの render-only hook は利用できます。
 - `src/shared/components` は feature に依存しない stateless な共通表示です。feature 間の調整は container が行います。
 - feature 固有の container-support hook は `src/features/<feature>/hooks`、feature 間で共有する container hook は `src/shared/hooks` に置き、Page・Template・Component からは呼びません。
@@ -58,10 +56,10 @@ UI の依存方向は `App -> Page -> Container -> Template -> Component` です
 
 ## 構成メモ
 
-- `src/main.tsx` で Redux、TanStack Query、Auth Context を初期化します。
+- `src/main.tsx` で TanStack Query と Auth Context を初期化します。
 - `src/App.tsx` は route と application bootstrap を担当します。
-- `src/store` は local-mode entity と長期設定だけを保持し、container と hook は Redux state を直接参照します。persist v3 migration は remote entity と旧認証情報を除去します。
-- TanStack Query が Firestore由来の Deck / Card の唯一の cache です。UID変更・logout時は listener停止、query cancellation、UID cache削除を同期順序で行います。
-- Firebase Auth の runtime identity は Auth Context だけから参照し、Redux / LocalStorage には保存しません。
+- TanStack Query が Firestore 由来の Deck / Card の唯一の application cache です。Firestore SDK の persistent local cache が offline data を保持します。UID変更・logout時は listener停止、query cancellation、UID cache削除を同期順序で行います。
+- 長期設定と学習セッションはそれぞれ Zustand store で管理し、設定は `tango-config`、学習状態は `tango-study` に永続化します。
+- Firebase Auth の runtime identity は Auth Context だけから参照し、LocalStorage の application state には保存しません。
 - `src/action/firestore` が Firestore との入出力を、`src/auth/AuthBootstrap.tsx` が認証に連動した購読 lifecycle を担当します。
-- 初期状態には `sample/build/output.json` のサンプルカードが取り込まれます。
+- `sample/build/output.json` のサンプルカードは Import 画面の明示操作で Firestore に追加します。

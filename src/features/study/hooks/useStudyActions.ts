@@ -1,12 +1,12 @@
 import React from "react";
 
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { studyStore } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
+import { useConfig } from "@/features/settings/hooks/useConfig";
 
 export interface StudyActions {
   start: () => void;
@@ -25,7 +25,7 @@ export interface StudyActions {
 
 export const useStudyActions = (deckId: DeckId): StudyActions => {
   const navigate = useNavigate();
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const remote = useRemoteCollections();
   const cards = remote.filteredCardsByDeckId(deckId, config);
   const cardsById = remote.cardsById;

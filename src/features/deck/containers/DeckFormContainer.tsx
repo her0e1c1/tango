@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
@@ -10,9 +9,10 @@ import { renameKey } from "@/shared/forms/renameKey";
 import { useActions } from "@/shared/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
+import { useConfig } from "@/features/settings/hooks/useConfig";
 
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const actions = useActions();
   const deckActions = useDeckActions(deck.id);
   const categoryOptions = React.useMemo(() => C.CATEGORY.map((category) => ({ label: category, value: category })), []);
@@ -38,7 +38,6 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
           convertToBr: renameKey(register("convertToBr")),
           url: renameKey(register("url")),
           isPublic: renameKey(register("isPublic")),
-          localMode: renameKey(register("localMode")),
           category: {
             ...renameKey(register("category")),
             options: categoryOptions,

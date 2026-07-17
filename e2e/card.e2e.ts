@@ -1,11 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
+import { getDocument, routeAnonymousAuth, seedConfig, seedDeckAndCards } from "./fixtures";
 
 const e2eDeck = {
-  id: "e2e-deck-1",
+  id: "card-e2e-deck",
   name: "E2E Deck",
   category: "English",
-  uid: "e2e-user",
-  localMode: true,
+  uid: "card-e2e-user",
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
@@ -18,9 +18,9 @@ const e2eDeck = {
 };
 
 const e2eCard = {
-  id: "e2e-card-1",
-  deckId: "e2e-deck-1",
-  uid: "e2e-user",
+  id: "card-e2e-card",
+  deckId: "card-e2e-deck",
+  uid: "card-e2e-user",
   frontText: "apple",
   backText: "りんご",
   tags: [],
@@ -28,70 +28,15 @@ const e2eCard = {
   score: 0,
   numberOfSeen: 0,
   interval: 0,
-  nextSeeingAt: new Date(0).toISOString(),
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
 };
 
-const persistedConfig = {
-  useCardInterval: false,
-  showSwipeButtonList: true,
-  showScoreSlider: false,
-  showHeader: true,
-  fullscreen: false,
-  maxNumberOfCardsToLearn: 10,
-  hideBodyWhenCardChanged: true,
-  sizeBackText: 0,
-  shuffled: false,
-  defaultAutoPlay: false,
-  cardInterval: 60,
-  keepBackTextViewed: false,
-  showSwipeFeedback: false,
-  cardSwipeUp: "GoToNextCardMastered",
-  cardSwipeDown: "GoToNextCardNotMastered",
-  cardSwipeLeft: "GoToPrevCard",
-  cardSwipeRight: "GoToNextCard",
-  darkMode: false,
-  uid: "e2e-user",
-  isAnonymous: false,
-  displayName: "E2E User",
-  selectedTags: [],
-  lastUpdatedAt: 0,
-  githubAccessToken: "",
-  loadSample: false,
-  localMode: true,
-};
-
 const seedCardSession = async (page: Page) => {
-  await page.route("https://identitytoolkit.googleapis.com/**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        kind: "identitytoolkit#SignupNewUserResponse",
-        idToken: "e2e-id-token",
-        refreshToken: "e2e-refresh-token",
-        expiresIn: "3600",
-        localId: "e2e-user",
-      }),
-    });
-  });
-
-  await page.addInitScript(
-    ({ config, deck, card }) => {
-      window.localStorage.setItem(
-        "persist:root",
-        JSON.stringify({
-          config: JSON.stringify(config),
-          deck: JSON.stringify({ byId: { [deck.id]: deck }, categories: [deck.category] }),
-          card: JSON.stringify({ byId: { [card.id]: card }, tags: [] }),
-          _persist: JSON.stringify({ version: 2, rehydrated: true }),
-        })
-      );
-    },
-    { config: persistedConfig, deck: e2eDeck, card: e2eCard }
-  );
+  await routeAnonymousAuth(page, e2eDeck.uid);
+  await seedConfig(page);
+  await seedDeckAndCards(e2eDeck, [e2eCard]);
 };
 
 const cardItem = (page: Page, frontText: string) =>
@@ -99,6 +44,11 @@ const cardItem = (page: Page, frontText: string) =>
 
 const expectScore = async (page: Page, frontText: string, score: number) => {
   await expect(cardItem(page, frontText).locator("span").filter({ hasText: new RegExp(`^${score}$`) })).toBeVisible();
+};
+
+const persistedScore = async () => {
+  const document = await getDocument("card", e2eCard.id);
+  return Number(document.fields.score?.integerValue);
 };
 
 test.beforeEach(async ({ page }) => {
@@ -117,8 +67,10 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test.describe.configure({ mode: "serial" });
+
 test("shows cards for the deck", async ({ page }) => {
-  await page.goto("/deck/e2e-deck-1");
+  await page.goto(`/deck/${e2eDeck.id}`);
 
   await expect(page.getByText("apple")).toBeVisible();
   await expect(cardItem(page, "apple").getByText("studied 0 time(s)")).toBeVisible();
@@ -127,7 +79,7 @@ test("shows cards for the deck", async ({ page }) => {
 });
 
 test("opens and closes the card back text overlay", async ({ page }) => {
-  await page.goto("/deck/e2e-deck-1");
+  await page.goto(`/deck/${e2eDeck.id}`);
 
   await page.getByText("apple").click();
   await expect(page.getByText("りんご")).toBeVisible();
@@ -138,17 +90,17 @@ test("opens and closes the card back text overlay", async ({ page }) => {
 });
 
 test("saves card edits and returns to the card list", async ({ page }) => {
-  await page.goto("/deck/e2e-deck-1");
+  await page.goto(`/deck/${e2eDeck.id}`);
 
   await cardItem(page, "apple").locator("svg").first().click();
-  await expect(page).toHaveURL(/\/card\/e2e-card-1\/edit$/);
+  await expect(page).toHaveURL(new RegExp(`/card/${e2eCard.id}/edit$`));
 
   await page.locator('textarea[name="frontText"]').fill("updated apple");
   await page.locator('textarea[name="backText"]').fill("updated りんご");
   await page.getByText("math", { exact: true }).click();
   await page.getByRole("button", { name: "Save" }).click();
 
-  await expect(page).toHaveURL(/\/deck\/e2e-deck-1$/);
+  await expect(page).toHaveURL(new RegExp(`/deck/${e2eDeck.id}$`));
   await expect(page.getByText("updated apple")).toBeVisible();
   await expect(cardItem(page, "updated apple").getByText("math")).toBeVisible();
 
@@ -158,7 +110,7 @@ test("saves card edits and returns to the card list", async ({ page }) => {
 });
 
 test("deletes a card from the card list", async ({ page }) => {
-  await page.goto("/deck/e2e-deck-1");
+  await page.goto(`/deck/${e2eDeck.id}`);
 
   page.on("dialog", (dialog) => dialog.accept());
   await cardItem(page, "apple").locator("svg").nth(1).click();
@@ -168,7 +120,7 @@ test("deletes a card from the card list", async ({ page }) => {
 });
 
 test("updates the card score with swipe gestures", async ({ page }) => {
-  await page.goto("/deck/e2e-deck-1");
+  await page.goto(`/deck/${e2eDeck.id}`);
 
   const card = cardItem(page, "apple");
   const box = await card.boundingBox();
@@ -180,11 +132,14 @@ test("updates the card score with swipe gestures", async ({ page }) => {
   await page.mouse.move(box.x + box.width - 20, y);
   await page.mouse.up();
   await expectScore(page, "apple", 1);
+  await expect.poll(persistedScore).toBe(1);
+  await expect(page.getByText("Saving…", { exact: true })).not.toBeVisible();
 
   await page.mouse.move(box.x + box.width - 20, y);
   await page.mouse.down();
   await page.mouse.move(box.x + 20, y);
   await page.mouse.up();
   await expectScore(page, "apple", 0);
+  await expect.poll(persistedScore).toBe(0);
   await page.evaluate(() => window.assertNoBrowserErrors());
 });

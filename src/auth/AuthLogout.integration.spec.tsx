@@ -39,7 +39,7 @@ import { AuthProvider } from "@/auth/AuthContext";
 
 afterEach(() => cleanup());
 
-it("waits for logout cleanup while preserving Redux before bootstrapping the next anonymous UID", async () => {
+it("waits for logout cleanup before bootstrapping the next anonymous UID", async () => {
   let resolveCleanup: () => void = () => undefined;
   const delayedCleanup = new Promise<void>((resolve) => {
     resolveCleanup = resolve;
@@ -86,7 +86,7 @@ it("waits for logout cleanup while preserving Redux before bootstrapping the nex
 
   let pendingLogout!: Promise<void>;
   act(() => {
-    pendingLogout = logout("uid-a")(mocks.dispatch, vi.fn(), undefined);
+    pendingLogout = logout("uid-a");
   });
   await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledTimes(2));
 
@@ -94,7 +94,6 @@ it("waits for logout cleanup while preserving Redux before bootstrapping the nex
   expect(mocks.signInAnonymously).not.toHaveBeenCalled();
   expect(mocks.startRemoteReads).not.toHaveBeenCalledWith("uid-b");
   expect(mocks.clearStudyStore).not.toHaveBeenCalled();
-  expect(mocks.dispatch).not.toHaveBeenCalled();
 
   await act(async () => {
     resolveCleanup();

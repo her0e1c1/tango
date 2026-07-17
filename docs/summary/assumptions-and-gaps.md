@@ -23,11 +23,11 @@
 
 ## Testing Gaps
 
-- E2E test framework は見当たりません。
+- Playwright の browser E2E tests は `e2e` 配下にあります。
 - coverage report 設定は見当たりません。
 - 複数の skipped tests が残っています。詳細は `docs/summary/testing.md` と既存 `docs/test/missing-test-spec.md` を参照してください。
 
 ## Implementation Notes
 
-- `Deck.currentIndex` は型コメントで Firestore に保存しない意図がありますが、`action.deck.update()` は渡された partial deck を Firestore に送ります。呼び出し payload によっては Firestore に保存され得るため、保存対象 field の方針を明文化するとよいです。
-- 一部 Firestore 書き込みは fire-and-forget です。UI 応答性のための意図はコメントから読めますが、失敗時の扱いは統一されていません。
+- 学習中の `currentIndex` と `cardOrderIds` は Zustand study store、長期設定は Zustand config store が所有します。
+- Deck/Card mutation は TanStack Query cache を optimistic に更新し、Firestore 書き込み失敗時に rollback します。

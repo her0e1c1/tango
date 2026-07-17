@@ -2,38 +2,35 @@ import { signOut, linkWithPopup, signInWithCredential, GoogleAuthProvider } from
 import type { UserCredential } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 
-import type { ThunkResult } from "@/action/index";
 import { clearStudyStore } from "@/features/study/state/studyStore";
 import { publishAuthenticatedUser, suspendAnonymousBootstrap } from "@/auth/AuthContext";
 import { auth } from "@/firebase";
 import { cleanupFirestoreUid } from "@/query/cleanup";
 
-export const logout =
-  (confirmedUid: string): ThunkResult =>
-  async () => {
-    const resumeAnonymousBootstrap = suspendAnonymousBootstrap();
-    try {
-      await signOut(auth);
-      const errors: unknown[] = [];
-      const run = async (step: () => unknown | Promise<unknown>) => {
-        try {
-          await step();
-        } catch (error) {
-          errors.push(error);
-        }
-      };
-
-      await run(() => cleanupFirestoreUid(confirmedUid));
-      await run(clearStudyStore);
-      if (errors.length > 0) {
-        throw errors[0];
+export const logout = async (confirmedUid: string): Promise<void> => {
+  const resumeAnonymousBootstrap = suspendAnonymousBootstrap();
+  try {
+    await signOut(auth);
+    const errors: unknown[] = [];
+    const run = async (step: () => unknown | Promise<unknown>) => {
+      try {
+        await step();
+      } catch (error) {
+        errors.push(error);
       }
-    } finally {
-      resumeAnonymousBootstrap();
-    }
-  };
+    };
 
-export const loginGoogle = (): ThunkResult => async () => {
+    await run(() => cleanupFirestoreUid(confirmedUid));
+    await run(clearStudyStore);
+    if (errors.length > 0) {
+      throw errors[0];
+    }
+  } finally {
+    resumeAnonymousBootstrap();
+  }
+};
+
+export const loginGoogle = async (): Promise<void> => {
   const currentUser = auth.currentUser;
   if (!currentUser) {
     console.error("must sign in anonymously in advance");

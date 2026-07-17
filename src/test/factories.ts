@@ -6,7 +6,6 @@ export const createDeck = (overrides: Partial<Deck> = {}): Deck => ({
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  localMode: true,
   scoreMax: null,
   scoreMin: null,
   selectedTags: [],
@@ -53,15 +52,6 @@ export const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState 
   darkMode: false,
   selectedTags: [],
   githubAccessToken: "",
-  loadSample: false,
-  localMode: true,
-  ...overrides,
-});
-
-export const createRootState = (overrides: Partial<RootState> = {}): RootState => ({
-  deck: { byId: {}, categories: [] },
-  card: { byId: {}, tags: [] },
-  config: createConfig(),
   ...overrides,
 });
 

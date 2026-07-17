@@ -54,7 +54,6 @@ export const useConfigFormState = ({
       showSwipeButtonList: renameKey(register("showSwipeButtonList")),
       showSwipeFeedback: renameKey(register("showSwipeFeedback")),
       darkMode: renameKey(register("darkMode")),
-      localMode: renameKey(register("localMode")),
       shuffled: renameKey(register("shuffled")),
       useCardInterval: renameKey(register("useCardInterval")),
       maxNumberOfCardsToLearn: {

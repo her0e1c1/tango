@@ -8,7 +8,6 @@ export interface ConfigFormFields {
   showSwipeButtonList: React.ComponentProps<typeof Switch>;
   showSwipeFeedback: React.ComponentProps<typeof Switch>;
   darkMode: React.ComponentProps<typeof Switch>;
-  localMode: React.ComponentProps<typeof Switch>;
   shuffled: React.ComponentProps<typeof Switch>;
   useCardInterval: React.ComponentProps<typeof Switch>;
   maxNumberOfCardsToLearn: React.ComponentProps<typeof Slider>;
@@ -75,9 +74,6 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
         </FormItem>
         <FormItem label="Dark Mode">
           <Switch {...props.fields.darkMode} />
-        </FormItem>
-        <FormItem label="Local Mode">
-          <Switch {...props.fields.localMode} />
         </FormItem>
       </section>
       <section aria-labelledby={studyHeadingId} className="space-y-4">

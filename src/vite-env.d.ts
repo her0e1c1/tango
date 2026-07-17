@@ -27,12 +27,6 @@ type PageKey = keyof Page;
 type DeckId = string;
 type CardId = string;
 
-interface Action<P = unknown> {
-  type: string;
-  payload: P;
-  error?: { message: string };
-}
-
 type New<T> = Omit<T, "id">;
 type Edit<T> = Partial<T> & Pick<T, "id">;
 
@@ -54,10 +48,6 @@ interface Deck {
   updatedAt: number;
   deletedAt: number | null; // soft delete flag
 
-  // if true, not stored in firestore
-  // but in redux state only
-  localMode: boolean;
-
   scoreMax: number | null;
   scoreMin: number | null;
 
@@ -70,7 +60,6 @@ interface Deck {
   convertToBr: boolean;
 }
 
-type DeckConfig = { uid: string; localMode: boolean };
 type DeckRaw = Pick<Deck, "name">;
 type DeckNew = New<Deck>;
 type DeckEdit = Edit<Deck>;
@@ -105,22 +94,12 @@ interface Card {
   endLine?: number;
 }
 
-type CardDeck = Pick<Deck, "id" | "uid" | "localMode">;
+type CardDeck = Pick<Deck, "id" | "uid">;
 type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
 type CardNew = New<Card>;
 type CardEdit = Edit<Card> & { deckId: string };
 
 type CardTextKey = "frontText" | "backText" | "hint";
-
-interface DeckState {
-  byId: Record<string, Deck | undefined>;
-  categories: string[];
-}
-
-interface CardState {
-  byId: Record<string, Card | undefined>;
-  tags: string[];
-}
 
 interface SwipeState {
   cardSwipeUp: cardSwipe;
@@ -157,16 +136,4 @@ type ConfigState = SwipeState & {
   darkMode: boolean;
   selectedTags: string[];
   githubAccessToken: string;
-  loadSample: boolean;
-  localMode: boolean;
 };
-
-interface RootState {
-  deck: DeckState;
-  card: CardState;
-  config: ConfigState;
-}
-
-type Select0<O> = () => (state: RootState) => O;
-
-type Select<I, O> = (props: I) => (state: RootState) => O;
