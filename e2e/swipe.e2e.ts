@@ -1,11 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
+import { getDocument, routeAnonymousAuth, seedConfig, seedDeckAndCards } from "./fixtures";
 
 const e2eDeck = {
-  id: "e2e-deck-1",
+  id: "swipe-e2e-deck",
   name: "E2E Deck",
   category: "English",
-  uid: "e2e-user",
-  localMode: true,
+  uid: "swipe-e2e-user",
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
@@ -19,161 +19,98 @@ const e2eDeck = {
 
 const e2eCards = [
   {
-    id: "e2e-card-1",
-    deckId: "e2e-deck-1",
-    uid: "e2e-user",
+    id: "swipe-e2e-card-1",
+    deckId: e2eDeck.id,
+    uid: e2eDeck.uid,
     frontText: "apple",
     backText: "りんご",
     tags: [],
-    uniqueKey: "e2e-card-1",
+    uniqueKey: "swipe-e2e-card-1",
     score: 0,
     numberOfSeen: 0,
     interval: 0,
-    nextSeeingAt: new Date(0).toISOString(),
     createdAt: 0,
     updatedAt: 0,
     deletedAt: null,
   },
   {
-    id: "e2e-card-2",
-    deckId: "e2e-deck-1",
-    uid: "e2e-user",
+    id: "swipe-e2e-card-2",
+    deckId: e2eDeck.id,
+    uid: e2eDeck.uid,
     frontText: "banana",
     backText: "バナナ",
     tags: [],
-    uniqueKey: "e2e-card-2",
+    uniqueKey: "swipe-e2e-card-2",
     score: 0,
     numberOfSeen: 0,
     interval: 0,
-    nextSeeingAt: new Date(0).toISOString(),
     createdAt: 0,
     updatedAt: 0,
     deletedAt: null,
   },
 ];
 
-const persistedConfig = {
-  useCardInterval: false,
-  showSwipeButtonList: true,
-  showScoreSlider: false,
-  showHeader: true,
-  fullscreen: false,
-  maxNumberOfCardsToLearn: 10,
-  hideBodyWhenCardChanged: true,
-  sizeBackText: 0,
-  shuffled: false,
-  defaultAutoPlay: false,
-  cardInterval: 60,
-  keepBackTextViewed: false,
-  showSwipeFeedback: false,
-  cardSwipeUp: "GoToNextCardMastered",
-  cardSwipeDown: "GoToNextCardNotMastered",
-  cardSwipeLeft: "GoToPrevCard",
-  cardSwipeRight: "GoToNextCard",
-  darkMode: false,
-  uid: "e2e-user",
-  isAnonymous: false,
-  displayName: "E2E User",
-  selectedTags: [],
-  lastUpdatedAt: 0,
-  githubAccessToken: "",
-  loadSample: false,
-  localMode: true,
-};
-
-const session = {
-  deckId: "e2e-deck-1",
-  cardOrderIds: ["e2e-card-1", "e2e-card-2"],
-  currentIndex: 0,
-};
-
 const persistedStudy = {
-  state: { session },
+  state: {
+    session: {
+      deckId: e2eDeck.id,
+      cardOrderIds: e2eCards.map((card) => card.id),
+      currentIndex: 0,
+    },
+  },
   version: 2,
 };
 
 const seedSwipeSession = async (page: Page) => {
-  await page.route("https://identitytoolkit.googleapis.com/**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        kind: "identitytoolkit#SignupNewUserResponse",
-        idToken: "e2e-id-token",
-        refreshToken: "e2e-refresh-token",
-        expiresIn: "3600",
-        localId: "e2e-user",
-      }),
-    });
-  });
-
-  await page.addInitScript(
-    ({ config, deck, cards, study }) => {
-      window.localStorage.setItem(
-        "persist:root",
-        JSON.stringify({
-          config: JSON.stringify(config),
-          deck: JSON.stringify({ byId: { [deck.id]: deck }, categories: [deck.category] }),
-          card: JSON.stringify({
-            byId: Object.fromEntries(cards.map((card) => [card.id, card])),
-            tags: [],
-          }),
-          _persist: JSON.stringify({ version: 2, rehydrated: true }),
-        })
-      );
-      window.localStorage.setItem("tango-study", JSON.stringify(study));
-    },
-    { config: persistedConfig, deck: e2eDeck, cards: e2eCards, study: persistedStudy }
-  );
+  await routeAnonymousAuth(page, e2eDeck.uid);
+  await seedConfig(page);
+  await seedDeckAndCards(e2eDeck, e2eCards);
+  await page.addInitScript((study) => {
+    window.localStorage.setItem("tango-study", JSON.stringify(study));
+  }, persistedStudy);
 };
 
-const persistedCard = async (page: Page, cardId: string) => {
-  return page.evaluate((id) => {
-    const root = JSON.parse(window.localStorage.getItem("persist:root") ?? "{}");
-    return JSON.parse(root.card).byId[id];
-  }, cardId);
+const persistedCard = async (cardId: string) => {
+  const document = await getDocument("card", cardId);
+  return {
+    score: Number(document.fields.score?.integerValue),
+    numberOfSeen: Number(document.fields.numberOfSeen?.integerValue),
+  };
 };
 
-const persistedStudyEnvelope = async (page: Page) => {
-  return page.evaluate(() => {
-    return JSON.parse(window.localStorage.getItem("tango-study") ?? "{}");
-  });
-};
+const persistedStudyEnvelope = async (page: Page) =>
+  page.evaluate(() => JSON.parse(window.localStorage.getItem("tango-study") ?? "{}"));
 
-const persistedReduxStudyFields = async (page: Page) => {
-  return page.evaluate(() => {
-    const root = JSON.parse(window.localStorage.getItem("persist:root") ?? "{}");
-    const deck = JSON.parse(root.deck).byId["e2e-deck-1"];
-    const config = JSON.parse(root.config);
+const persistedStateBoundaries = async (page: Page) =>
+  page.evaluate(() => {
+    const root = JSON.parse(window.localStorage.getItem("tango-config") ?? "{}");
+    const state = root.state ?? {};
+    const config = state.config ?? {};
     const hasOwn = (value: object, key: PropertyKey) => Object.getOwnPropertyDescriptor(value, key) !== undefined;
     return {
-      deckCurrentIndex: hasOwn(deck, "currentIndex"),
-      deckCardOrderIds: hasOwn(deck, "cardOrderIds"),
+      rootDeck: hasOwn(state, "deck"),
+      rootCard: hasOwn(state, "card"),
       configShowBackText: hasOwn(config, "showBackText"),
       configAutoPlay: hasOwn(config, "autoPlay"),
       configLastSwipe: hasOwn(config, "lastSwipe"),
     };
   });
-};
+
+test.describe.configure({ mode: "serial" });
 
 test.beforeEach(async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => {
-    if (message.type() === "error") {
-      errors.push(message.text());
-    }
+    if (message.type() === "error") errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
 
   await seedSwipeSession(page);
-
-  await page.exposeFunction("assertNoBrowserErrors", () => {
-    expect(errors).toEqual([]);
-  });
+  await page.exposeFunction("assertNoBrowserErrors", () => expect(errors).toEqual([]));
 });
 
 test("shows the front and back text in the deck study screen", async ({ page }) => {
-  await page.goto("/deck/e2e-deck-1/study");
+  await page.goto(`/deck/${e2eDeck.id}/study`);
 
   await expect(page.getByText("apple")).toBeVisible();
   await page.keyboard.press("Enter");
@@ -183,26 +120,26 @@ test("shows the front and back text in the deck study screen", async ({ page }) 
 });
 
 test("updates study progress with a mastered deck swipe", async ({ page }) => {
-  await page.goto("/deck/e2e-deck-1/study");
+  await page.goto(`/deck/${e2eDeck.id}/study`);
 
   await expect(page.getByText("apple")).toBeVisible();
-  await page.keyboard.press("ArrowUp");
+  await page.getByRole("button", { name: "Swipe up" }).click();
 
   await expect(page.getByText("banana")).toBeVisible();
-  await expect.poll(async () => persistedCard(page, "e2e-card-1")).toMatchObject({ score: 1, numberOfSeen: 1 });
+  await expect.poll(async () => persistedCard(e2eCards[0]?.id ?? "")).toMatchObject({ score: 1, numberOfSeen: 1 });
   await expect.poll(async () => persistedStudyEnvelope(page)).toEqual({
     state: {
       session: {
-        deckId: "e2e-deck-1",
-        cardOrderIds: ["e2e-card-1", "e2e-card-2"],
+        deckId: e2eDeck.id,
+        cardOrderIds: e2eCards.map((card) => card.id),
         currentIndex: 1,
       },
     },
     version: 2,
   });
-  await expect.poll(async () => persistedReduxStudyFields(page)).toEqual({
-    deckCurrentIndex: false,
-    deckCardOrderIds: false,
+  await expect.poll(async () => persistedStateBoundaries(page)).toEqual({
+    rootDeck: false,
+    rootCard: false,
     configShowBackText: false,
     configAutoPlay: false,
     configLastSwipe: false,

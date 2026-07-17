@@ -6,12 +6,10 @@ import * as C from "@/constant";
 import * as action from "@/action";
 import * as firestore from "@/action/firestore";
 
-export const prepare = (deck: DeckRaw, config: DeckConfig): Deck => {
-  const { uid, localMode } = config;
+export const prepare = (deck: DeckRaw, uid: string): Deck => {
   return {
     ...deck,
     uid,
-    localMode,
     id: firestore.mocked.generateDeckId(),
     createdAt: 0,
     updatedAt: 0,
@@ -24,17 +22,6 @@ export const prepare = (deck: DeckRaw, config: DeckConfig): Deck => {
     convertToBr: false,
     category: "",
   };
-};
-
-export const generateName = (deckName: string, state: DeckState): string => {
-  const names = new Set(Object.values(state.byId).map((d) => d?.name));
-  if (!names.has(deckName)) return deckName;
-  let i = 1;
-  for (;;) {
-    const name = `${deckName}_${i}`;
-    if (!names.has(name)) return name;
-    i++;
-  }
 };
 
 export const downloadData = (deck: Deck, cards: Card[]) => {

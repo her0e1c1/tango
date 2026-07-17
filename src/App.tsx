@@ -1,10 +1,11 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useStore } from "zustand";
 import * as Page from "@/page";
+import { configStore } from "@/features/settings/state/configStore";
 
 const App = () => {
-  const darkMode = useSelector((state: RootState) => state.config.darkMode);
+  const darkMode = useStore(configStore, (state) => state.config.darkMode);
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);

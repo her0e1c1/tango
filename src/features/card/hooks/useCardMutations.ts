@@ -1,18 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
 
-import * as type from "@/action/type";
 import * as firestore from "@/action/firestore";
 import { useAuth } from "@/auth/AuthContext";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { createCardMutationService } from "@/query/cardMutationService";
 
 type CardMutationVariables =
-  | { kind: "create"; card: Card; local: boolean }
-  | { kind: "update"; card: CardEdit; local: boolean }
-  | { kind: "remove"; id: CardId; local: boolean }
-  | { kind: "bulkUpsert"; cards: Card[]; localIds: CardId[] };
+  | { kind: "create"; card: Card }
+  | { kind: "update"; card: CardEdit }
+  | { kind: "remove"; id: CardId }
+  | { kind: "bulkUpsert"; cards: Card[] };
 
 const variableIds = (variables: CardMutationVariables): CardId[] => {
   if (variables.kind === "remove") return [variables.id];
@@ -23,7 +21,6 @@ const variableIds = (variables: CardMutationVariables): CardId[] => {
 export const useCardMutations = () => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const dispatch = useDispatch();
   const client = useQueryClient();
   const remote = useRemoteCollections();
   const [, renderPending] = useState(0);
@@ -45,21 +42,15 @@ export const useCardMutations = () => {
   const mutation = useMutation({
     retry: false,
     mutationFn: async (variables: CardMutationVariables) => {
+      if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
       if (variables.kind === "create") {
-        if (variables.local) dispatch(type.cardInsert(variables.card));
-        else await service.create(uid, variables.card);
+        await service.create(uid, variables.card);
       } else if (variables.kind === "update") {
-        if (variables.local) dispatch(type.cardUpdate(variables.card));
-        else await service.update(uid, variables.card);
+        await service.update(uid, variables.card);
       } else if (variables.kind === "remove") {
-        if (variables.local) dispatch(type.cardDelete(variables.id));
-        else await service.remove(uid, variables.id);
+        await service.remove(uid, variables.id);
       } else {
-        const localIds = new Set(variables.localIds);
-        const localCards = variables.cards.filter((card) => localIds.has(card.id));
-        const remoteCards = variables.cards.filter((card) => !localIds.has(card.id));
-        if (localCards.length > 0) dispatch(type.cardBulkInsert(localCards));
-        if (remoteCards.length > 0) await service.bulkUpsert(uid, remoteCards);
+        await service.bulkUpsert(uid, variables.cards);
       }
     },
   });
@@ -89,22 +80,10 @@ export const useCardMutations = () => {
     [mutation]
   );
 
-  const isLocal = useCallback(
-    (deckId: DeckId) => {
-      const deck = remote.deckById(deckId);
-      if (deck == null) throw new Error(`Deck ${deckId} is not available`);
-      return deck.localMode;
-    },
-    [remote]
-  );
-
-  const update = useCallback(
-    (card: CardEdit) => run({ kind: "update", card, local: isLocal(card.deckId) }),
-    [isLocal, run]
-  );
+  const update = useCallback((card: CardEdit) => run({ kind: "update", card }), [run]);
 
   return {
-    create: (card: Card) => run({ kind: "create", card, local: isLocal(card.deckId) }),
+    create: (card: Card) => run({ kind: "create", card }),
     update,
     updateBy: (id: CardId, callback: (card: Card) => Partial<Card>) => {
       const card = remote.cardById(id);
@@ -114,14 +93,9 @@ export const useCardMutations = () => {
     remove: (id: CardId) => {
       const card = remote.cardById(id);
       if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
-      return run({ kind: "remove", id, local: isLocal(card.deckId) });
+      return run({ kind: "remove", id });
     },
-    bulkUpsert: (cards: Card[], localMode?: boolean) =>
-      run({
-        kind: "bulkUpsert",
-        cards,
-        localIds: cards.filter((card) => localMode ?? isLocal(card.deckId)).map((card) => card.id),
-      }),
+    bulkUpsert: (cards: Card[]) => run({ kind: "bulkUpsert", cards }),
     isPending: (id: CardId) => pendingCounts.current.has(id),
     pending: pendingCounts.current.size > 0,
     error: mutation.error,

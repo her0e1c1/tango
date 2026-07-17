@@ -15,11 +15,8 @@ erDiagram
         number createdAt
         number updatedAt
         number deletedAt "nullable (number | null)"
-        boolean localMode
-        number currentIndex
         number scoreMax
         number scoreMin
-        string_array cardOrderIds
         string_array selectedTags
         boolean tagAndFilter
         string category
@@ -69,4 +66,4 @@ erDiagram
 
 ## Local State Only
 
-`ConfigState` は Firestore collection ではなく Redux state と LocalStorage に保存されます。`Deck.currentIndex` は型コメントで Firestore に保存しない意図が書かれていますが、`deck.update()` は渡された field を Firestore に送るため、実際の保存範囲は呼び出し側の payload に依存します。
+`ConfigState` は Firestore collection ではなく Zustand store と LocalStorage の `tango-config` に保存されます。学習中の `currentIndex` と `cardOrderIds` は Zustand study store が所有し、deck document には保存しません。

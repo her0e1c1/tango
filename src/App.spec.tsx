@@ -6,9 +6,13 @@ const mocks = vi.hoisted(() => ({
   init: vi.fn(),
 }));
 
-vi.mock("react-redux", () => ({
-  useSelector: () => mocks.darkMode,
+vi.mock("zustand", () => ({
+  useStore: (_store: unknown, select: (state: unknown) => unknown) =>
+    select({
+      config: { darkMode: mocks.darkMode },
+    }),
 }));
+vi.mock("@/features/settings/state/configStore", () => ({ configStore: {} }));
 vi.mock("@/action", () => ({ event: { init: mocks.init } }));
 vi.mock("@/page", () => ({
   DeckListPage: () => <div>Deck list</div>,

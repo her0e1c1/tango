@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
 import * as C from "@/constant";
@@ -9,9 +8,10 @@ import { useActions } from "@/shared/hooks/useActions";
 import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";
 import { useCardFormState } from "@/features/card/hooks/useCardFormState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
+import { useConfig } from "@/features/settings/hooks/useConfig";
 
 const CardFormContent = ({ card }: { card: Card }) => {
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const actions = useActions();
   const navigate = useNavigate();
   const mutations = useCardMutations();

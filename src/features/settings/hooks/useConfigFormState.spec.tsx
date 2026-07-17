@@ -32,7 +32,6 @@ describe("ConfigForm with useConfigFormState", () => {
     maxNumberOfCardsToLearn: 0,
     cardInterval: 0,
     githubAccessToken: "",
-    localMode: true,
   } as ConfigState;
   it("auto-submits boolean and numeric field changes", async () => {
     const onSubmit = vi.fn();

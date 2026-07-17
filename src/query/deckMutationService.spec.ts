@@ -32,7 +32,7 @@ describe("createDeckMutationService", () => {
   });
 
   it("rolls back a failed Deck update", async () => {
-    const deck = createDeck({ id: "deck", name: "Before", localMode: false });
+    const deck = createDeck({ id: "deck", name: "Before" });
     client.setQueryData(firestoreKeys.decks(uid), { deck });
     dependencies.updateDeck.mockRejectedValueOnce(new Error("failed"));
     const service = createDeckMutationService({ client, ...dependencies });
@@ -42,7 +42,7 @@ describe("createDeckMutationService", () => {
   });
 
   it("rolls back a failed Deck delete together with its child Cards", async () => {
-    const deck = createDeck({ id: "deck", localMode: false });
+    const deck = createDeck({ id: "deck" });
     const card = createCard({ id: "card", deckId: deck.id });
     client.setQueryData(firestoreKeys.decks(uid), { deck });
     client.setQueryData(firestoreKeys.cards(uid), { card });
@@ -55,7 +55,7 @@ describe("createDeckMutationService", () => {
   });
 
   it("waits for a child Card mutation before deleting its Deck", async () => {
-    const deck = createDeck({ id: "deck", localMode: false });
+    const deck = createDeck({ id: "deck" });
     const card = createCard({ id: "card", deckId: deck.id });
     client.setQueryData(firestoreKeys.decks(uid), { deck });
     client.setQueryData(firestoreKeys.cards(uid), { card });

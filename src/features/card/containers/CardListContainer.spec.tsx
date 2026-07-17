@@ -5,7 +5,9 @@ import "@testing-library/jest-dom/vitest";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  state: null as RootState | null,
+  config: { darkMode: false, useCardInterval: false } as ConfigState,
+  deck: null as Deck | null,
+  cards: [] as Card[],
   cardUpdateBy: vi.fn(),
   cardRemove: vi.fn(),
 }));
@@ -21,21 +23,15 @@ vi.mock("@/features/card/hooks/useCardMutations", () => ({
   }),
 }));
 
-vi.mock("react-redux", () => ({
-  useSelector: (select: (state: RootState) => unknown) => {
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
-    return select(mocks.state);
-  },
-}));
+vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => {
-    const decks = mocks.state?.deck.byId ?? {};
-    const cards = Object.values(mocks.state?.card.byId ?? {}).filter((card): card is Card => card != null);
+    const cards = mocks.cards;
     return {
       status: "ready" as const,
       retry: vi.fn(),
-      deckById: (id: string) => decks[id],
+      deckById: (id: string) => (mocks.deck?.id === id ? mocks.deck : undefined),
       filteredCardsByDeckId: (id: string) => cards.filter((card) => card.deckId === id),
       tagsByDeckId: (id: string) => [
         ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
@@ -99,7 +95,6 @@ describe("CardListContainer", () => {
     createdAt: 0,
     updatedAt: 0,
     deletedAt: null,
-    localMode: true,
     category: "raw",
     convertToBr: false,
     selectedTags: [],
@@ -124,11 +119,9 @@ describe("CardListContainer", () => {
 
   beforeEach(() => {
     mocks.params.id = deck.id;
-    mocks.state = {
-      deck: { byId: { [deck.id]: deck }, categories: [] },
-      config: { darkMode: false, useCardInterval: false } as ConfigState,
-      card: { byId: { [card.id]: card }, tags: [] },
-    };
+    mocks.deck = deck;
+    mocks.cards = [card];
+    mocks.config = { darkMode: false, useCardInterval: false } as ConfigState;
   });
 
   afterEach(() => {
@@ -149,11 +142,7 @@ describe("CardListContainer", () => {
 
   it("renders a language card as code and closes it through the overlay callback", async () => {
     const languageCard = { ...card, tags: ["typescript"], backText: "const answer = 42;" };
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state = {
-      ...mocks.state,
-      card: { byId: { [languageCard.id]: languageCard }, tags: ["typescript"] },
-    };
+    mocks.cards = [languageCard];
     const view = render(<CardListContainer />);
 
     await userEvent.click(view.getByText(languageCard.frontText));

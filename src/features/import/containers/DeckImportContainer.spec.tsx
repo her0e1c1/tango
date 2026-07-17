@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   importFile: vi.fn(),
+  addSample: vi.fn(),
   navigate: vi.fn(),
   deckDownloadCsvSampleText: vi.fn(),
   goToTop: vi.fn(),
@@ -16,20 +17,14 @@ vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/import/hooks/useDeckImport", () => ({
   useDeckImport: () => ({
     importFile: mocks.importFile,
+    addSample: mocks.addSample,
     pending: false,
     error: null,
     retry: vi.fn(),
   }),
 }));
 
-vi.mock("react-redux", () => ({
-  useSelector: (select: (state: RootState) => unknown) =>
-    select({
-      deck: { byId: {}, categories: [] },
-      card: { byId: {}, tags: [] },
-      config: { darkMode: false } as ConfigState,
-    }),
-}));
+vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
 
 vi.mock("react-use", () => ({
   useKey: mocks.useKey,
@@ -51,6 +46,7 @@ describe("DeckImportContainer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.importFile.mockResolvedValue({});
+    mocks.addSample.mockResolvedValue({});
   });
 
   afterEach(() => {
@@ -71,5 +67,14 @@ describe("DeckImportContainer", () => {
     expect(mocks.deckDownloadCsvSampleText).toHaveBeenCalledOnce();
     expect(mocks.useKey).toHaveBeenCalledWith("t", mocks.goToTop);
     expect(mocks.useKey).toHaveBeenCalledWith("s", mocks.goToSettings);
+  });
+
+  it("adds the bundled sample through the import operation", async () => {
+    const view = render(<DeckImportContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Add sample deck" }));
+
+    expect(mocks.addSample).toHaveBeenCalledOnce();
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith(-1));
   });
 });

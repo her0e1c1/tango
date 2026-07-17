@@ -29,31 +29,10 @@ describe("deck action", () => {
 
   describe("prepareDeck", () => {
     it("should prepare deck", async () => {
-      expect(action.deck.prepare({ name: "name" }, { uid: "uid", localMode: true })).toMatchObject({
+      expect(action.deck.prepare({ name: "name" }, "uid")).toMatchObject({
         name: "name",
         uid: "uid",
-        localMode: true,
       });
-    });
-  });
-
-  describe("generateName", () => {
-    const state = { byId: { 1: { name: "name" } as Deck }, categories: [] } as DeckState;
-
-    it("should generate name", async () => {
-      const name = action.deck.generateName("deckName", state);
-      expect(name).toBe("deckName");
-    });
-
-    it("should generate name with _1", async () => {
-      const name = action.deck.generateName("name", state);
-      expect(name).toBe("name_1");
-    });
-
-    it("should generate name with _2", async () => {
-      state.byId["2"] = { name: "name_1" } as Deck;
-      const name = action.deck.generateName("name", state);
-      expect(name).toBe("name_2");
     });
   });
 
@@ -73,11 +52,11 @@ describe("deck action", () => {
   });
 
   describe("download", () => {
-    it("downloads the supplied composed Query data without reading Redux", () => {
+    it("downloads the supplied Query data", () => {
       const blob = new Blob();
       const blobConstructor = vi.spyOn(global, "Blob");
       blobConstructor.mockImplementation(createBlobConstructor(blob));
-      const deck = action.deck.prepare({ name: "Remote deck" }, { uid: "uid", localMode: false });
+      const deck = action.deck.prepare({ name: "Remote deck" }, "uid");
       const card = createCard({ frontText: "remote front", backText: "remote back", uniqueKey: "remote-key" });
 
       action.deck.downloadData(deck, [card]);

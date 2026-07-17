@@ -1,5 +1,4 @@
 import type * as React from "react";
-import { useSelector } from "react-redux";
 import { useKey } from "react-use";
 
 import * as action from "@/action";
@@ -9,10 +8,11 @@ import { useActions } from "@/shared/hooks/useActions";
 import { DeckListTemplate } from "@/features/deck/components/templates/DeckListTemplate";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
+import { useConfig } from "@/features/settings/hooks/useConfig";
 
 export const DeckListContainer: React.FC = () => {
   const actions = useActions();
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const remote = useRemoteCollections();
   const mutations = useDeckMutations();
   const decks = remote.decks;

@@ -38,7 +38,7 @@ describe("Query realtime subscriptions", () => {
         expect(cardSnapshots[0]).toMatchObject({ type: "replace" });
       });
 
-      const deck = createDeck({ id: "deck-id", uid: "uid", localMode: false });
+      const deck = createDeck({ id: "deck-id", uid: "uid" });
       const card = createCard({ id: "card-id", deckId: deck.id, uid: "uid" });
       await firestore.deck.create(deck);
       await firestore.card.create(card);

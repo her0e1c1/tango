@@ -50,10 +50,13 @@ describe("DeckImportTemplate", () => {
     expect(view.container.querySelector("input[type='file']")).toBeDisabled();
   });
 
-  it("explains the format and exposes the sample download and code surface", async () => {
+  it("explains the format and exposes sample add, download, and code controls", async () => {
+    const onAddSample = vi.fn();
     const onDownloadSample = vi.fn();
     const sampleText = "front,back,tag";
-    const view = render(<DeckImportTemplate sampleText={sampleText} onDownloadSample={onDownloadSample} />);
+    const view = render(
+      <DeckImportTemplate sampleText={sampleText} onAddSample={onAddSample} onDownloadSample={onDownloadSample} />
+    );
 
     expect(
       view.getByText("There are 3 columns without header: front text, back text, and tags (optional).")
@@ -69,8 +72,10 @@ describe("DeckImportTemplate", () => {
       "bg-surface-muted"
     );
 
+    await userEvent.click(view.getByRole("button", { name: "Add sample deck" }));
     await userEvent.click(view.getByRole("button", { name: "Download CSV sample" }));
 
+    expect(onAddSample).toHaveBeenCalledOnce();
     expect(onDownloadSample).toHaveBeenCalledOnce();
   });
 });

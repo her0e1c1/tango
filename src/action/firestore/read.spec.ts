@@ -40,7 +40,7 @@ describe("Firestore full reads", () => {
   });
 
   it("reads only active Deck documents for the UID", async () => {
-    const active = createDeck({ id: uuid(), uid: "uid", name: "Active remote", localMode: true });
+    const active = createDeck({ id: uuid(), uid: "uid", name: "Active remote" });
     const deleted = createDeck({ id: uuid(), uid: "uid", name: "Deleted remote", deletedAt: 100 });
     const foreign = createDeck({ id: uuid(), uid: "other", name: "Foreign remote" });
     await seed("deck", active.id, buildDeckCreateDto(active, active.createdAt));
@@ -48,7 +48,7 @@ describe("Firestore full reads", () => {
     await seed("deck", foreign.id, buildDeckCreateDto(foreign, foreign.createdAt));
 
     await expect(firestore.deck.readAll("uid", db)).resolves.toEqual([
-      expect.objectContaining({ id: active.id, name: "Active remote", localMode: false }),
+      expect.objectContaining({ id: active.id, name: "Active remote" }),
     ]);
   });
 

@@ -40,14 +40,12 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
       ...newCard,
       deckId,
       id: uuid(),
-      localMode: false,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies Card & { localMode: boolean; currentIndex: number; cardOrderIds: string[] };
+    } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
     await firestore.card.create(c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...newCard, deckId, id: c.id });
-    expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });
@@ -59,14 +57,12 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     const n = {
       ...c,
       frontText: "updated",
-      localMode: false,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies Card & { localMode: boolean; currentIndex: number; cardOrderIds: string[] };
+    } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
     await firestore.card.update(n);
     const data = (await getDoc(doc(db, "card", n.id))).data();
     expect(data).toEqual({ ...c, frontText: "updated" });
-    expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });

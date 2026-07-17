@@ -50,7 +50,7 @@ describe("remote read controller", () => {
 
   it("attaches one listener per collection and becomes ready from cached initial snapshots", async () => {
     const harness = createHarness();
-    const deck = createDeck({ id: "deck-a", localMode: false });
+    const deck = createDeck({ id: "deck-a" });
     const card = createCard({ id: "card-a", deckId: deck.id });
 
     const first = harness.controller.start("uid-a");
@@ -96,7 +96,7 @@ describe("remote read controller", () => {
     expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual({});
     expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "ready", syncStatus: "synced" });
 
-    const added = createDeck({ id: "deck-added", localMode: false });
+    const added = createDeck({ id: "deck-added" });
     harness.deckSubscriptions[0]?.onSnapshot({
       type: "change",
       event: { added: [added], modified: [], removed: [] },
@@ -116,7 +116,7 @@ describe("remote read controller", () => {
 
   it("forces one refetch and reconnect, then retains data on a terminal listener error", async () => {
     const harness = createHarness();
-    const deck = createDeck({ id: "deck-a", localMode: false });
+    const deck = createDeck({ id: "deck-a" });
     await harness.controller.start("uid-a");
     harness.deckSubscriptions[0]?.onSnapshot({
       type: "replace",
@@ -161,14 +161,14 @@ describe("remote read controller", () => {
 
   it("prevents snapshots from an old UID generation from mutating Query or sync state", async () => {
     const harness = createHarness();
-    const deckB = createDeck({ id: "deck-b", uid: "uid-b", localMode: false });
+    const deckB = createDeck({ id: "deck-b", uid: "uid-b" });
     const cardB = createCard({ id: "card-b", uid: "uid-b", deckId: deckB.id });
 
     await harness.controller.start("uid-a");
     await harness.controller.start("uid-b");
     harness.deckSubscriptions[0]?.onSnapshot({
       type: "replace",
-      items: [createDeck({ id: "deck-a", uid: "uid-a", localMode: false })],
+      items: [createDeck({ id: "deck-a", uid: "uid-a" })],
       metadata: { size: 1, fromCache: false, hasPendingWrites: false },
     });
     harness.cardSubscriptions[0]?.onError(new Error("stale listener"));

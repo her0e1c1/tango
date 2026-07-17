@@ -82,7 +82,7 @@ const cardFields = (uid: string, deckId: string, frontText: string) => ({
   numberOfSeen: field.integer(0),
 });
 
-const persistedConfig = (uid: string) => ({
+const persistedConfig = {
   useCardInterval: false,
   showSwipeButtonList: true,
   showScoreSlider: false,
@@ -101,17 +101,11 @@ const persistedConfig = (uid: string) => ({
   cardSwipeLeft: "GoToPrevCard",
   cardSwipeRight: "GoToNextCard",
   darkMode: false,
-  uid,
-  isAnonymous: true,
-  displayName: null,
   selectedTags: [],
-  lastUpdatedAt: 0,
   githubAccessToken: "",
-  loadSample: false,
-  localMode: false,
-});
+};
 
-const seedAuth = async (page: Page, uid: string, staleDeck?: object, nextUid?: string) => {
+const seedAuth = async (page: Page, uid: string, nextUid?: string) => {
   let activeUid = uid;
   let signInCount = 0;
   await page.route("https://identitytoolkit.googleapis.com/**", async (route) => {
@@ -148,17 +142,13 @@ const seedAuth = async (page: Page, uid: string, staleDeck?: object, nextUid?: s
     });
   });
   await page.addInitScript(
-    ({ config, deck }) => {
+    (config) => {
       window.localStorage.setItem(
-        "persist:root",
-        JSON.stringify({
-          config: JSON.stringify(config),
-          ...(deck == null ? {} : { deck: JSON.stringify({ byId: { stale: deck }, categories: [] }) }),
-          _persist: JSON.stringify({ version: 2, rehydrated: true }),
-        })
+        "tango-config",
+        JSON.stringify({ state: { config }, version: 1 })
       );
     },
-    { config: persistedConfig(uid), deck: staleDeck }
+    persistedConfig
   );
 };
 
@@ -204,94 +194,36 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
   await deckCard(page, "Updated Remote Query Deck").locator("svg").nth(2).click();
   await expect(page.getByText("Updated Remote Query Deck")).not.toBeVisible();
 
-  const persistedRemoteIds = await page.evaluate(() => {
-    const root = JSON.parse(window.localStorage.getItem("persist:root") ?? "{}") as Partial<Record<string, string>>;
-    const deck = JSON.parse(root.deck ?? '{"byId":{}}') as { byId: Record<string, unknown> };
-    const card = JSON.parse(root.card ?? '{"byId":{}}') as { byId: Record<string, unknown> };
-    return { deck: Object.keys(deck.byId), card: Object.keys(card.byId) };
-  });
-  expect(persistedRemoteIds.deck).not.toContain("remote-read-deck");
-  expect(persistedRemoteIds.deck).not.toContain("foreign-deck");
-  expect(persistedRemoteIds.card).not.toContain("remote-read-card");
-});
-
-test("migration removes a stale Redux remote mirror and persisted identity", async ({ page }) => {
-  const uid = "empty-remote-read-user";
-  const staleDeck = {
-    id: "stale",
-    uid,
-    name: "Stale Remote Deck",
-    isPublic: false,
-    createdAt: 0,
-    updatedAt: 0,
-    deletedAt: null,
-    localMode: false,
-    scoreMax: null,
-    scoreMin: null,
-    selectedTags: [],
-    tagAndFilter: false,
-    category: "",
-    convertToBr: false,
-  };
-  await seedAuth(page, uid, staleDeck);
-
-  await page.goto("/");
-
-  await expect(page.getByText("Stale Remote Deck")).not.toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("No decks yet.");
-  const persisted = await page.evaluate(() => {
-    const root = JSON.parse(window.localStorage.getItem("persist:root") ?? "{}") as Partial<Record<string, string>>;
+  const persistedEntityState = await page.evaluate(() => {
+    const root = JSON.parse(window.localStorage.getItem("tango-config") ?? "{}") as {
+      state?: Record<string, unknown>;
+    };
+    const state = root.state ?? {};
     return {
-      config: JSON.parse(root.config ?? "{}") as Record<string, unknown>,
-      deck: JSON.parse(root.deck ?? '{"byId":{}}') as { byId: Record<string, unknown> },
+      hasDeck: "deck" in state,
+      hasCard: "card" in state,
     };
   });
-  expect(persisted.deck.byId).toEqual({});
-  expect(persisted.config).not.toHaveProperty("uid");
-  expect(persisted.config).not.toHaveProperty("isAnonymous");
-  expect(persisted.config).not.toHaveProperty("displayName");
-  expect(persisted.config).not.toHaveProperty("lastUpdatedAt");
+  expect(persistedEntityState).toEqual({ hasDeck: false, hasCard: false });
 });
 
-test("logout replaces the UID-scoped Query cache and preserves local Redux data", async ({ page }) => {
+test("logout replaces the UID-scoped Query cache", async ({ page }) => {
   const uidA = "logout-user-a";
   const uidB = "logout-user-b";
-  const localDeck = {
-    id: "logout-local-deck",
-    uid: uidA,
-    name: "Preserved Local Deck",
-    isPublic: false,
-    createdAt: 0,
-    updatedAt: 0,
-    deletedAt: null,
-    localMode: true,
-    scoreMax: null,
-    scoreMin: null,
-    selectedTags: [],
-    tagAndFilter: false,
-    category: "",
-    convertToBr: false,
-  };
   await setDocument("deck", "logout-deck-a", deckFields(uidA, "Logout Deck A"));
   await setDocument("deck", "logout-deck-b", deckFields(uidB, "Logout Deck B"));
-  await seedAuth(page, uidA, localDeck, uidB);
+  await seedAuth(page, uidA, uidB);
 
   await page.goto("/");
   await expect(page.getByText("Logout Deck A")).toBeVisible();
   await expect(page.getByText("Logout Deck B")).not.toBeVisible();
-  await expect(page.getByText("Preserved Local Deck")).toBeVisible();
 
   await page.evaluate(async (uid) => {
     // @ts-expect-error Vite serves source modules to the browser during E2E tests.
-    const actions = (await import("/src/action/event.ts")) as {
-      logout: (
-        confirmedUid: string
-      ) => (dispatch: (value: unknown) => unknown, getState: () => unknown, extra: undefined) => Promise<void>;
-    };
-    await actions.logout(uid)(() => undefined, () => undefined, undefined);
+    const actions = (await import("/src/action/event.ts")) as { logout: (confirmedUid: string) => Promise<void> };
+    await actions.logout(uid);
   }, uidA);
 
   await expect(page.getByText("Logout Deck B")).toBeVisible();
   await expect(page.getByText("Logout Deck A")).not.toBeVisible();
-  await expect(page.getByText("Preserved Local Deck")).toBeVisible();
 });

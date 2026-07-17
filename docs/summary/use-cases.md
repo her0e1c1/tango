@@ -54,9 +54,9 @@ sequenceDiagram
     Import->>Import: parseCsv(file) / fromRow(row)
     Import->>Collections: read decks and cards
     Import->>DeckMutation: create deck if missing
-    DeckMutation-->>FS: create when localMode=false
+    DeckMutation-->>FS: create deck
     Import->>CardMutation: bulkUpsert(changed cards)
-    CardMutation-->>FS: create/update when localMode=false
+    CardMutation-->>FS: create/update cards
 ```
 
 ## 3. 学習を開始して swipe する

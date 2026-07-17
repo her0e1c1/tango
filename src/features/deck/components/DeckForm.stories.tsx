@@ -9,7 +9,6 @@ const fieldsFor = (deck: Deck): DeckFormFields => ({
   convertToBr: { checked: Boolean(deck.convertToBr), onChange: () => undefined },
   url: { value: deck.url ?? "", onChange: () => undefined },
   isPublic: { checked: deck.isPublic, onChange: () => undefined },
-  localMode: { checked: Boolean(deck.localMode), onChange: () => undefined },
   category: {
     value: deck.category,
     options: fixture.form.options.default,

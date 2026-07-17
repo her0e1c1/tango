@@ -19,7 +19,6 @@ describe("Firestore DTO builders", () => {
     uid: "user-1",
     createdAt: 1,
     updatedAt: 2,
-    localMode: true,
     scoreMax: 3,
     scoreMin: -2,
     selectedTags: ["math"],
@@ -60,7 +59,6 @@ describe("Firestore DTO builders", () => {
       tagAndFilter: true,
       category: "remote",
       convertToBr: true,
-      localMode: true,
       currentIndex: 2,
       cardOrderIds: ["card-2"],
     };
@@ -74,7 +72,6 @@ describe("Firestore DTO builders", () => {
       createdAt: 10,
       updatedAt: 20,
       deletedAt: null,
-      localMode: false,
       scoreMax: 5,
       scoreMin: -3,
       selectedTags: ["science"],
@@ -124,7 +121,6 @@ describe("Firestore DTO builders", () => {
       url: "https://example.com/card",
       startLine: 8,
       endLine: 9,
-      localMode: true,
       currentIndex: 2,
       cardOrderIds: ["card-2"],
     };

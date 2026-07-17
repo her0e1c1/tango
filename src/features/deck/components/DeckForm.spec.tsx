@@ -14,7 +14,6 @@ const createProps = (overrides: Partial<DeckFormProps> = {}): DeckFormProps => (
     category: "language",
     convertToBr: true,
     isPublic: true,
-    localMode: false,
     createdAt: Date.UTC(2026, 0, 2),
     updatedAt: Date.UTC(2026, 1, 3),
   }),
@@ -23,7 +22,6 @@ const createProps = (overrides: Partial<DeckFormProps> = {}): DeckFormProps => (
     convertToBr: { name: "convertToBr", checked: true, onChange: vi.fn() },
     url: { name: "url", value: "https://example.com/deck.csv", onChange: vi.fn() },
     isPublic: { name: "isPublic", checked: true, onChange: vi.fn() },
-    localMode: { name: "localMode", checked: false, onChange: vi.fn() },
     category: {
       name: "category",
       value: "language",
@@ -70,14 +68,12 @@ describe("DeckForm", () => {
     expect(props.fields.category.onChange).toHaveBeenCalledOnce();
   });
 
-  it("keeps Public and Local Mode disabled with explicit unavailable help", () => {
+  it("keeps Public disabled with explicit unavailable help", () => {
     const view = render(<DeckForm {...createProps()} />);
 
     expect(view.container.querySelector("input[name='isPublic']")).toBeDisabled();
     expect(view.container.querySelector("input[name='isPublic']")).toBeChecked();
-    expect(view.container.querySelector("input[name='localMode']")).toBeDisabled();
-    expect(view.container.querySelector("input[name='localMode']")).not.toBeChecked();
-    expect(view.getAllByText(/not available yet/i)).toHaveLength(2);
+    expect(view.getAllByText(/not available yet/i)).toHaveLength(1);
   });
 
   it("uses unique section heading relationships for each form instance", () => {

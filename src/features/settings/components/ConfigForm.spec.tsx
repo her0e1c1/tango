@@ -14,7 +14,6 @@ function createFields(): ConfigFormFields {
     showSwipeButtonList: { name: "showSwipeButtonList", checked: false, onChange: vi.fn() },
     showSwipeFeedback: { name: "showSwipeFeedback", checked: true, onChange: vi.fn() },
     darkMode: { name: "darkMode", checked: false, onChange: vi.fn() },
-    localMode: { name: "localMode", checked: true, onChange: vi.fn() },
     shuffled: { name: "shuffled", checked: false, onChange: vi.fn() },
     useCardInterval: { name: "useCardInterval", checked: true, onChange: vi.fn() },
     maxNumberOfCardsToLearn: { name: "maxNumberOfCardsToLearn", value: "24", min: 1, max: 100, onChange: vi.fn() },
@@ -62,9 +61,8 @@ describe("ConfigForm", () => {
       <ConfigForm {...createProps({ identity: { uid: "user-123", displayName: "Settings User" }, isLoggedIn: true })} />
     );
 
-    expect(view.container.querySelectorAll("input[type='checkbox']")).toHaveLength(8);
+    expect(view.container.querySelectorAll("input[type='checkbox']")).toHaveLength(7);
     expect(view.container.querySelector("input[name='showHeader']")).toBeChecked();
-    expect(view.container.querySelector("input[name='localMode']")).toBeChecked();
     expect(view.container.querySelector("input[name='useCardInterval']")).toBeChecked();
     expect(view.container.querySelector("input[name='maxNumberOfCardsToLearn']")).toHaveValue("24");
     expect(view.container.querySelector("input[name='cardInterval']")).toHaveValue("7");

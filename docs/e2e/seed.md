@@ -2,12 +2,7 @@
 
 ## Config
 
-既存 smoke test の `persistedConfig` を基本にする。
-
-| 項目 | 値 |
-|---|---|
-| `localMode` | `true` |
-| `loadSample` | `false` |
+`tango-config` の Zustand persistence envelope に E2E 用 config を seed する。
 
 Firebase UID / displayName はpersistせず、remote-mode testではAuth route mockから供給する。
 
@@ -19,9 +14,8 @@ Firebase UID / displayName はpersistせず、remote-mode testではAuth route m
 | `name` | `E2E Deck` |
 | `category` | `English` |
 | `uid` | `e2e-user` |
-| `localMode` | `true` |
-| `currentIndex` | `null` |
-| `cardOrderIds` | `[]` |
+
+Deck/Card は Firestore emulator に seed し、browser storage には entity data を保存しない。
 
 ## Card
 

@@ -1,5 +1,4 @@
 import type * as React from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import * as C from "@/constant";
@@ -8,10 +7,11 @@ import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteReadBoundary } from "@/shared/components";
 import { useActions } from "@/shared/hooks/useActions";
 import { CardViewTemplate } from "@/features/card/components/templates/CardViewTemplate";
+import { useConfig } from "@/features/settings/hooks/useConfig";
 
 const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
   const actions = useActions();
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const category = util.getCategory(deck.category, card.tags);
 
   return (

@@ -1,6 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRef } from "react";
-import { useSelector } from "react-redux";
 
 import * as action from "@/action";
 import { useAuth } from "@/auth/AuthContext";
@@ -8,6 +7,8 @@ import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { CardBulkMutationError } from "@/query/cardMutationService";
+import { useConfig } from "@/features/settings/hooks/useConfig";
+import sampleCards from "../../../../sample/build/output.json";
 
 export interface DeckImportResult {
   created: number;
@@ -17,11 +18,15 @@ export interface DeckImportResult {
   deckId: DeckId;
 }
 
-type ImportRequest = { name: string; content: string | File };
+type ImportRequest = { kind: "content"; name: string; content: string | File } | { kind: "sample" };
+
+const SAMPLE_DECK_NAME = "Sample Deck";
+const SAMPLE_VERSION = 1;
+export const sampleDeckId = (uid: string): DeckId => `sample-v${SAMPLE_VERSION}-${uid}`;
 
 export const useDeckImport = () => {
   const auth = useAuth();
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const remote = useRemoteCollections();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();
@@ -30,13 +35,19 @@ export const useDeckImport = () => {
 
   const operation = useMutation({
     retry: false,
-    mutationFn: async ({ name, content }: ImportRequest): Promise<DeckImportResult> => {
-      const rawCards = await action.deck.parseCsv(content);
-      let deck = remote.decks.find((candidate) => candidate.name === name);
+    mutationFn: async (request: ImportRequest): Promise<DeckImportResult> => {
+      const uid = auth.status === "authenticated" ? auth.uid : "";
+      if (uid === "") throw new Error("A confirmed user is required for imports");
+      const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
+      const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
+      const rawCards =
+        request.kind === "sample" ? (sampleCards as CardRaw[]) : await action.deck.parseCsv(request.content);
+      let deck = remote.decks.find((candidate) =>
+        preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
+      );
       if (deck == null) {
-        const uid = auth.status === "authenticated" ? auth.uid : "";
-        if (!config.localMode && uid === "") throw new Error("A confirmed user is required for remote imports");
-        deck = action.deck.prepare({ name }, { uid, localMode: config.localMode });
+        deck = action.deck.prepare({ name }, uid);
+        if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
         await deckMutations.create(deck);
       }
 
@@ -68,7 +79,7 @@ export const useDeckImport = () => {
         }
       });
       try {
-        if (upserts.length > 0) await cardMutations.bulkUpsert(upserts, deck.localMode);
+        if (upserts.length > 0) await cardMutations.bulkUpsert(upserts);
       } catch (error) {
         const failedIds = error instanceof CardBulkMutationError ? error.failedIds : upserts.map((card) => card.id);
         const failed = new Set(failedIds);
@@ -105,11 +116,16 @@ export const useDeckImport = () => {
     }
     const response = await fetch(url, { headers });
     if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
-    return await run({ name: name ?? url.split("/").pop() ?? "no name", content: await response.text() });
+    return await run({
+      kind: "content",
+      name: name ?? url.split("/").pop() ?? "no name",
+      content: await response.text(),
+    });
   };
 
   return {
-    importFile: (file: File) => run({ name: file.name, content: file }),
+    importFile: (file: File) => run({ kind: "content", name: file.name, content: file }),
+    addSample: () => run({ kind: "sample" }),
     importUrl,
     reimport: (deck: Deck) => {
       if (deck.url == null || deck.url === "") return Promise.reject(new Error("Deck has no import URL"));

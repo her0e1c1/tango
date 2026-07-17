@@ -10,7 +10,6 @@ const customHookDefinition = /\b(?:const|function)\s+(use[A-Z][A-Za-z0-9]*)\b/g;
 const connectorModules = [
   "@tanstack/react-query",
   "react-hook-form",
-  "react-redux",
   "react-router",
   "react-router-dom",
   "react-use",
@@ -195,6 +194,32 @@ describe("component architecture", () => {
 
     expect(existsSync(sourcePath("selector"))).toBe(false);
     expect(selectorReferences, selectorReferences.join("\n")).toEqual([]);
+  });
+
+  it("keeps entity state out of legacy client stores", () => {
+    const legacyPackages = ["react-redux", "redux", "redux-persist", "redux-thunk"];
+    const legacyImports = productionFilesUnder("").flatMap((relativePath) =>
+      moduleReferences(relativePath)
+        .filter((reference) => legacyPackages.some((name) => isModuleOrSubpath(reference.specifier, name)))
+        .map((reference) => importViolation(relativePath, reference))
+    );
+    const entityModeField = ["local", "Mode"].join("");
+    const entityModeReferences = productionFilesUnder("").filter((relativePath) =>
+      readSource(relativePath).includes(entityModeField)
+    );
+    const packageJson = JSON.parse(readFileSync(path.resolve(process.cwd(), "package.json"), "utf8")) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const dependencyNames = [
+      ...Object.keys(packageJson.dependencies ?? {}),
+      ...Object.keys(packageJson.devDependencies ?? {}),
+    ];
+
+    expect(legacyImports, legacyImports.join("\n")).toEqual([]);
+    expect(entityModeReferences, entityModeReferences.join("\n")).toEqual([]);
+    expect(dependencyNames.filter((name) => legacyPackages.includes(name))).toEqual([]);
+    expect(sourceFilesUnder("store")).toEqual([]);
   });
 
   it("groups shared layout components", () => {

@@ -5,6 +5,7 @@ import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
 
 export const DeckImportTemplate: React.FC<{
   onChange?: (file: File) => void;
+  onAddSample?: () => void;
   onDownloadSample?: () => void;
   sampleText: string;
   layout?: LayoutProps;
@@ -31,17 +32,26 @@ export const DeckImportTemplate: React.FC<{
           <section>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="break-words text-title font-bold text-ink">Sample</h2>
-              <Button
-                variant="quiet"
-                size="sm"
-                {...(props.onDownloadSample !== undefined ? { onClick: props.onDownloadSample } : {})}
-              >
-                <AiOutlineCloudDownload aria-hidden="true" className="text-xl" size={24} />
-                <span aria-hidden="true" className="text-caption text-ink-muted underline">
-                  download
-                </span>
-                <span className="sr-only">Download CSV sample</span>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  {...(props.pending !== undefined ? { disabled: props.pending } : {})}
+                  {...(props.onAddSample !== undefined ? { onClick: props.onAddSample } : {})}
+                >
+                  Add sample deck
+                </Button>
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  {...(props.onDownloadSample !== undefined ? { onClick: props.onDownloadSample } : {})}
+                >
+                  <AiOutlineCloudDownload aria-hidden="true" className="text-xl" size={24} />
+                  <span aria-hidden="true" className="text-caption text-ink-muted underline">
+                    download
+                  </span>
+                  <span className="sr-only">Download CSV sample</span>
+                </Button>
+              </div>
             </div>
             <div
               data-import-sample

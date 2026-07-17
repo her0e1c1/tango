@@ -8,7 +8,6 @@ const fields: ConfigFormFields = {
   showSwipeButtonList: { checked: fixture.config.default.showSwipeButtonList, onChange: () => undefined },
   showSwipeFeedback: { checked: fixture.config.default.showSwipeFeedback, onChange: () => undefined },
   darkMode: { checked: fixture.config.default.darkMode, onChange: () => undefined },
-  localMode: { checked: fixture.config.default.localMode, onChange: () => undefined },
   shuffled: { checked: fixture.config.default.shuffled, onChange: () => undefined },
   useCardInterval: { checked: fixture.config.default.useCardInterval, onChange: () => undefined },
   maxNumberOfCardsToLearn: {

@@ -1,5 +1,4 @@
 import type React from "react";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 import * as C from "@/constant";
@@ -7,10 +6,11 @@ import { DeckImportTemplate } from "@/features/import/components/templates/DeckI
 import { useActions } from "@/shared/hooks/useActions";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
 import { RemoteMutationNotice } from "@/shared/components";
+import { useConfig } from "@/features/settings/hooks/useConfig";
 
 export const DeckImportContainer: React.FC = () => {
   const actions = useActions();
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const navigate = useNavigate();
   const deckImport = useDeckImport();
   useKey("t", actions.goToTop);
@@ -21,6 +21,12 @@ export const DeckImportContainer: React.FC = () => {
       onChange={(file) => {
         void deckImport
           .importFile(file)
+          .then(() => navigate(-1))
+          .catch(() => undefined);
+      }}
+      onAddSample={() => {
+        void deckImport
+          .addSample()
           .then(() => navigate(-1))
           .catch(() => undefined);
       }}

@@ -5,22 +5,18 @@ import "@testing-library/jest-dom/vitest";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  state: null as RootState | null,
+  config: { darkMode: false } as ConfigState,
+  deck: null as Deck | null,
   updateAndBack: vi.fn(),
 }));
 
-vi.mock("react-redux", () => ({
-  useSelector: (select: (state: RootState) => unknown) => {
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
-    return select(mocks.state);
-  },
-}));
+vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    deckById: (id: string) => mocks.state?.deck.byId[id],
+    deckById: (id: string) => (mocks.deck?.id === id ? mocks.deck : undefined),
   }),
 }));
 
@@ -59,7 +55,6 @@ describe("DeckFormContainer", () => {
     createdAt: 0,
     updatedAt: 0,
     deletedAt: null,
-    localMode: true,
     scoreMax: null,
     scoreMin: null,
     selectedTags: [],
@@ -68,11 +63,8 @@ describe("DeckFormContainer", () => {
 
   beforeEach(() => {
     mocks.params.id = deck.id;
-    mocks.state = {
-      deck: { byId: { [deck.id]: deck }, categories: [] },
-      config: { darkMode: false } as ConfigState,
-      card: { byId: {}, tags: [] },
-    };
+    mocks.deck = deck;
+    mocks.config = { darkMode: false } as ConfigState;
     mocks.updateAndBack.mockReset();
   });
 

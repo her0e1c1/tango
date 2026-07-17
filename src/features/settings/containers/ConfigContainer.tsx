@@ -1,14 +1,14 @@
 import type * as React from "react";
-import { useSelector } from "react-redux";
 import { useKey } from "react-use";
 
 import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
 import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
 import { useActions } from "@/shared/hooks/useActions";
 import { useAuth } from "@/auth/AuthContext";
+import { useConfig } from "@/features/settings/hooks/useConfig";
 
 export const ConfigContainer: React.FC = () => {
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const authState = useAuth();
   const actions = useActions();
   const authenticated = authState.status === "authenticated" ? authState : undefined;

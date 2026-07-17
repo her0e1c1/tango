@@ -11,7 +11,6 @@ const fields: ConfigFormFields = {
   showSwipeButtonList: { name: "showSwipeButtonList" },
   showSwipeFeedback: { name: "showSwipeFeedback" },
   darkMode: { name: "darkMode" },
-  localMode: { name: "localMode" },
   shuffled: { name: "shuffled" },
   useCardInterval: { name: "useCardInterval" },
   maxNumberOfCardsToLearn: { name: "maxNumberOfCardsToLearn", value: "10", onChange: () => undefined },

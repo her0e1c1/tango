@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
@@ -17,13 +16,14 @@ import { useStudyControllerState } from "@/features/study/hooks/useStudyControll
 import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { useActions } from "@/shared/hooks/useActions";
+import { useConfig } from "@/features/settings/hooks/useConfig";
 
 export const DeckSwiperContainer: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
 
-  const config = useSelector((state: RootState) => state.config);
+  const config = useConfig();
   const remote = useRemoteCollections();
   const deck = remote.deckById(deckId);
   const activeSession = useStudyStore((state) => state.session);
