@@ -17,11 +17,6 @@ import {
   waitForFirestoreInitialization,
 } from "@/firestoreRuntime";
 import { verifyFirestorePersistence } from "@/firestorePersistenceProbe";
-import {
-  FirestoreSingleTabLeaseUnsupportedError,
-  startFirestoreSingleTabLease,
-  type FirestoreLockManager,
-} from "@/firestoreSingleTabLease";
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
 const apiKey = import.meta.env.VITE_WEB_API_KEY;
@@ -43,30 +38,19 @@ try {
     : memoryLocalCache();
   initializedDb = initializeFirestore(app, { localCache });
   if (import.meta.env.PROD) {
-    const locks = typeof navigator === "undefined" ? undefined : navigator.locks;
-    if (!locks) {
-      blockFirestoreRuntime(new FirestoreSingleTabLeaseUnsupportedError());
-    } else {
-      const lease = startFirestoreSingleTabLease(locks as unknown as FirestoreLockManager);
-      void lease.ready.then(async (state) => {
-        if (state.status === "blocked") {
-          blockFirestoreRuntime(state.error);
-          return;
-        }
+    const db = initializedDb;
+    void verifyFirestorePersistence(db)
+      .then(() => {
+        initializeFirestoreRuntime(db);
+      })
+      .catch(async (error) => {
         try {
-          await verifyFirestorePersistence(initializedDb as Firestore);
-          initializeFirestoreRuntime(initializedDb as Firestore);
-        } catch (error) {
-          try {
-            await terminate(initializedDb as Firestore);
-          } catch {
-            // Preserve the persistence failure while releasing both leases best-effort.
-          }
-          lease.release();
-          blockFirestoreRuntime(error instanceof Error ? error : new Error(String(error)));
+          await terminate(db);
+        } catch {
+          // Preserve the persistence failure while terminating best-effort.
         }
+        blockFirestoreRuntime(error instanceof Error ? error : new Error(String(error)));
       });
-    }
   } else {
     initializeFirestoreRuntime(initializedDb);
   }
