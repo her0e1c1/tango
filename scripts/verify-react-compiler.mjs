@@ -7,29 +7,37 @@ for await (const path of glob(join(buildDirectory, "assets", "*.js.map"))) {
   mapFiles.push(path);
 }
 
+const runtimeSourcePath = "node_modules/react/cjs/react-compiler-runtime.production.js";
 let runtimeSource;
+let compiledAsset;
 for (const path of mapFiles) {
   const sourceMap = JSON.parse(await readFile(path, "utf8"));
   runtimeSource = sourceMap.sources.find((source) =>
-    source.includes("react-compiler-runtime"),
+    source.replaceAll("\\", "/").endsWith(runtimeSourcePath),
   );
-  if (runtimeSource) break;
+  if (runtimeSource) {
+    compiledAsset = path.slice(0, -".map".length);
+    break;
+  }
 }
 
 if (!runtimeSource) {
   throw new Error("React Compiler runtime was not found in production source maps");
 }
 
-const cacheCall = /const \$ = \(0, [\w$]+\.c\)\(\d+\);/;
-let compiledAsset;
-for await (const path of glob(join(buildDirectory, "assets", "*.js"))) {
-  if (cacheCall.test(await readFile(path, "utf8"))) {
-    compiledAsset = path;
-    break;
-  }
+const compiledSource = await readFile(compiledAsset, "utf8");
+const compilerRuntimeImport = /\b(?:var|const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*require_compiler_runtime\(\s*\)\s*;/.exec(
+  compiledSource,
+);
+if (!compilerRuntimeImport) {
+  throw new Error("React Compiler runtime import was not found in production JavaScript");
 }
 
-if (!compiledAsset) {
+const compilerRuntimeIdentifier = compilerRuntimeImport[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const cacheCall = new RegExp(
+  `const\\s+\\$\\s*=\\s*\\(\\s*0\\s*,\\s*${compilerRuntimeIdentifier}\\s*\\.\\s*c\\s*\\)\\s*\\(\\s*\\d+\\s*\\)\\s*;`,
+);
+if (!cacheCall.test(compiledSource)) {
   throw new Error("React Compiler cache calls were not found in production JavaScript");
 }
 
