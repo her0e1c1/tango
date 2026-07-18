@@ -10,6 +10,7 @@
     "start": "vite dev",
     "start:all": "firebase emulators:start & storybook dev & vite dev --open & wait",
     "build": "vite build",
+    "verify:react-compiler": "vite build --minify=false --sourcemap && node scripts/verify-react-compiler.mjs",
     "build:storybook": "storybook build",
     "db": "firebase emulators:start",
     "e2e": "playwright test",
