@@ -8,6 +8,7 @@ import { createElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Logo } from "@/components";
+import { pwaOptions } from "../../pwaConfig";
 
 const projectRoot = process.cwd();
 const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -23,22 +24,6 @@ const expectedAssetHashes: Record<string, string> = {
 };
 const rawPaletteUtility =
   /\b(?:bg|border|fill|stroke|text)-(?:black|white|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:-\d{2,3})?\b/g;
-
-interface ManifestIcon {
-  src: string;
-  sizes: string;
-  type: string;
-  purpose?: string;
-}
-
-interface WebManifest {
-  icons: ManifestIcon[];
-  start_url: string;
-  orientation: string;
-  display: string;
-  theme_color: string;
-  background_color: string;
-}
 
 interface PngInfo {
   signature: boolean;
@@ -469,7 +454,7 @@ describe("Tango PWA identity", () => {
         type: "image/svg+xml",
       })
     ).toBe(true);
-    expect(hasLink(document, { rel: "apple-touch-icon", href: "/logo192.png" })).toBe(true);
+    expect(hasLink(document, { rel: "apple-touch-icon", href: "/apple-touch-icon.png" })).toBe(true);
     expect(hasLink(document, { rel: "manifest", href: "/manifest.json" })).toBe(true);
     expect(themeColors).toEqual([
       { content: "#f7f8fa", media: "(prefers-color-scheme: light)" },
@@ -478,31 +463,61 @@ describe("Tango PWA identity", () => {
   });
 
   it("declares truthful Tango icons and Calm Focus install colors", () => {
-    const manifest = JSON.parse(readText("public/manifest.json")) as WebManifest;
+    const manifest = pwaOptions.manifest;
 
     expect(manifest.icons).toEqual([
       {
         src: "tango-mark.svg",
         sizes: "any",
         type: "image/svg+xml",
+        purpose: "any",
       },
       {
         src: "logo192.png",
         sizes: "192x192",
         type: "image/png",
+        purpose: "any",
       },
       {
         src: "logo512.png",
         sizes: "512x512",
         type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "logo192-maskable.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "logo512-maskable.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
       },
     ]);
-    expect(manifest.icons.some((icon) => icon.purpose?.split(/\s+/).includes("maskable") === true)).toBe(false);
-    expect(manifest.theme_color).toBe("#4f63b8");
+    expect(manifest.id).toBe("/");
+    expect(manifest.scope).toBe("/");
+    expect(manifest.start_url).toBe("/");
+    expect(manifest.name).toBe("Tango Is Flashcards For Programmers");
+    expect(manifest.short_name).toBe("Tango");
+    expect(manifest.description).toBe("Flashcards For Programmers");
+    expect(manifest.theme_color).toBe("#f7f8fa");
     expect(manifest.background_color).toBe("#f7f8fa");
-    expect(manifest.start_url).toBe(".");
-    expect(manifest.orientation).toBe("landscape");
     expect(manifest.display).toBe("standalone");
+    expect(manifest).not.toHaveProperty("orientation");
+  });
+
+  it.each([
+    ["public/logo192-maskable.png", 192],
+    ["public/logo512-maskable.png", 512],
+    ["public/apple-touch-icon.png", 180],
+  ])("provides an opaque install asset at %s", (relativePath, expectedSize) => {
+    const bytes = readBytes(relativePath);
+
+    expect(inspectPng(bytes)).toMatchObject({ width: expectedSize, height: expectedSize });
+    expect(bytes[25]).toBe(2);
   });
 
   it.each([
