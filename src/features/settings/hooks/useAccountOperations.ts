@@ -17,14 +17,21 @@ interface AccountOperationState {
 interface FailedOperation {
   operation: () => Promise<void>;
   maySignOut: boolean;
+  handoffAvailable: boolean;
+}
+
+interface InFlightOperation {
+  promise: Promise<void>;
+  handoffAvailable: boolean;
 }
 
 const createAccountOperationController = () => {
   let dependencies: AccountOperationDependencies = { login: () => Promise.resolve() };
-  let inFlight: Promise<void> | null = null;
+  let inFlight: InFlightOperation | null = null;
   let failedOperation: FailedOperation | null = null;
   let generation: string | undefined;
   let logoutHandoffAvailable = false;
+  let scopeEpoch = 0;
   let subscriptionGeneration = 0;
   let state: AccountOperationState = { kind: null, pending: false, error: null };
   const listeners = new Set<() => void>();
@@ -42,6 +49,8 @@ const createAccountOperationController = () => {
   };
 
   const reset = () => {
+    scopeEpoch += 1;
+    inFlight = null;
     failedOperation = null;
     logoutHandoffAvailable = false;
     generation = undefined;
@@ -59,7 +68,13 @@ const createAccountOperationController = () => {
     }
     if (generation === nextGeneration) return;
 
-    if (inFlight != null || logoutHandoffAvailable) {
+    if (inFlight?.handoffAvailable) {
+      inFlight.handoffAvailable = false;
+      generation = nextGeneration;
+      logoutHandoffAvailable = false;
+      return;
+    }
+    if (logoutHandoffAvailable) {
       generation = nextGeneration;
       logoutHandoffAvailable = false;
       return;
@@ -70,7 +85,7 @@ const createAccountOperationController = () => {
   };
 
   const run = (kind: AccountOperationKind, retryOperation?: FailedOperation): Promise<void> => {
-    if (inFlight != null) return inFlight;
+    if (inFlight != null) return inFlight.promise;
 
     const operation = retryOperation?.operation ?? (kind === "login" ? dependencies.login : dependencies.logout);
     if (operation == null) return Promise.resolve();
@@ -79,27 +94,46 @@ const createAccountOperationController = () => {
     logoutHandoffAvailable = false;
     const operationGeneration = generation;
     const maySignOut = retryOperation?.maySignOut ?? kind === "logout";
+    const operationEpoch = scopeEpoch;
+    let currentOperation!: InFlightOperation;
     setState({ kind, pending: true, error: null });
     const promise = operation().then(
-      () => setState({ kind, pending: false, error: null }),
+      () => {
+        if (operationEpoch === scopeEpoch) setState({ kind, pending: false, error: null });
+      },
       (error: unknown) => {
-        const retry = getRetryOperation(error, operation);
-        failedOperation = { operation: retry, maySignOut: maySignOut && retry === operation };
-        logoutHandoffAvailable = maySignOut && retry !== operation && operationGeneration === generation;
-        setState({ kind, pending: false, error });
+        if (operationEpoch === scopeEpoch) {
+          const retry = getRetryOperation(error, operation);
+          const retriesFullOperation = maySignOut && retry === operation;
+          failedOperation = {
+            operation: retry,
+            maySignOut: retriesFullOperation,
+            handoffAvailable: retriesFullOperation && currentOperation.handoffAvailable,
+          };
+          logoutHandoffAvailable =
+            maySignOut &&
+            retry !== operation &&
+            currentOperation.handoffAvailable &&
+            operationGeneration === generation;
+          setState({ kind, pending: false, error });
+        }
         throw error;
       }
     );
-    inFlight = promise;
+    currentOperation = {
+      promise,
+      handoffAvailable: retryOperation?.handoffAvailable ?? maySignOut,
+    };
+    inFlight = currentOperation;
     void promise.then(
       () => {
-        if (inFlight === promise) {
+        if (inFlight?.promise === promise) {
           inFlight = null;
           resetWhenUnused();
         }
       },
       () => {
-        if (inFlight === promise) {
+        if (inFlight?.promise === promise) {
           inFlight = null;
           resetWhenUnused();
         }

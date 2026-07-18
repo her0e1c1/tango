@@ -183,4 +183,68 @@ describe("useAccountOperations", () => {
     expect(later.result.current).toMatchObject({ kind: null, pending: false, error: null });
     expect(retry).not.toHaveBeenCalled();
   });
+
+  it("resets an in-flight cleanup retry when a later auth generation takes over", async () => {
+    const cleanupRequest = deferred<void>();
+    const cleanupFailure = new Error("cleanup retry failed");
+    const retryCleanup = vi.fn(() => cleanupRequest.promise);
+    const initialFailure = Object.assign(new Error("logout cleanup failed"), { retry: retryCleanup });
+    const first = renderHook(
+      () =>
+        useAccountOperations({
+          generation: "authenticated-user",
+          login: vi.fn(),
+          logout: vi.fn().mockRejectedValue(initialFailure),
+        }),
+      { wrapper: StrictModeWrapper }
+    );
+
+    await act(async () => {
+      await expect(first.result.current.logout()).rejects.toBe(initialFailure);
+    });
+    first.unmount();
+    await act(async () => Promise.resolve());
+
+    const nextLoginRequest = deferred<void>();
+    const nextLogin = vi.fn(() => nextLoginRequest.promise);
+    const anonymous = renderHook(
+      ({ generation }) => useAccountOperations({ generation, login: nextLogin, logout: vi.fn() }),
+      { initialProps: { generation: "anonymous-user" }, wrapper: StrictModeWrapper }
+    );
+    expect(anonymous.result.current).toMatchObject({ kind: "logout", pending: false, error: initialFailure });
+
+    let staleRetry!: Promise<void>;
+    act(() => {
+      staleRetry = anonymous.result.current.retry();
+    });
+    expect(retryCleanup).toHaveBeenCalledOnce();
+    expect(anonymous.result.current).toMatchObject({ kind: "logout", pending: true, error: null });
+
+    anonymous.rerender({ generation: "later-user" });
+    await waitFor(() => expect(anonymous.result.current).toMatchObject({ kind: null, pending: false, error: null }));
+    const retryAfterReset = anonymous.result.current.retry();
+    expect(retryAfterReset).not.toBe(staleRetry);
+    await expect(retryAfterReset).resolves.toBeUndefined();
+    expect(retryCleanup).toHaveBeenCalledOnce();
+
+    let nextOperation!: Promise<void>;
+    act(() => {
+      nextOperation = anonymous.result.current.login();
+    });
+    expect(nextOperation).not.toBe(staleRetry);
+    expect(nextLogin).toHaveBeenCalledOnce();
+    expect(anonymous.result.current).toMatchObject({ kind: "login", pending: true, error: null });
+
+    await act(async () => {
+      cleanupRequest.reject(cleanupFailure);
+      await expect(staleRetry).rejects.toBe(cleanupFailure);
+    });
+    expect(anonymous.result.current).toMatchObject({ kind: "login", pending: true, error: null });
+
+    await act(async () => {
+      nextLoginRequest.resolve();
+      await nextOperation;
+    });
+    expect(anonymous.result.current).toMatchObject({ kind: "login", pending: false, error: null });
+  });
 });
