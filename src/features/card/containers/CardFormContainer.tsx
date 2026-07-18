@@ -8,7 +8,7 @@ import { useActions } from "@/hooks/useActions";
 import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";
 import { useCardFormState } from "@/features/card/hooks/useCardFormState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 const CardFormContent = ({ card }: { card: Card }) => {
   const config = useConfig();
@@ -16,13 +16,14 @@ const CardFormContent = ({ card }: { card: Card }) => {
   const navigate = useNavigate();
   const mutations = useCardMutations();
   const categoryOptions = React.useMemo(() => C.CATEGORY.map((category) => ({ label: category, value: category })), []);
+  const goBack = () => void navigate(-1);
   const cardForm = useCardFormState({
     card,
     categoryOptions,
     onSubmit: async (nextCard) => {
       try {
         await mutations.update(nextCard);
-        void navigate(-1);
+        goBack();
       } catch {
         // The mutation notice owns error feedback and retry.
       }
@@ -42,7 +43,7 @@ const CardFormContent = ({ card }: { card: Card }) => {
       feedbackSlot={
         <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
       }
-      cardForm={cardForm}
+      cardForm={{ ...cardForm, onCancel: goBack }}
     />
   );
 };

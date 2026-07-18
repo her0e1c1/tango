@@ -6,7 +6,7 @@
 ## 対象
 - `src/action/deck.spec.ts`
 - `src/action/event.spec.ts`
-- `src/features/settings/state/configStore.spec.ts`
+- `src/store/configStore.spec.ts`
 
 ---
 

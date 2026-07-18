@@ -6,7 +6,7 @@ import { DeckListTemplate } from "@/features/deck/components/templates/DeckListT
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { buildDeckListSections } from "@/features/deck/lib/buildDeckListSections";
 import { useSampleDeckBootstrap } from "@/features/import/hooks/useSampleDeckBootstrap";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { studyStore } from "@/features/study/state/studyStore";

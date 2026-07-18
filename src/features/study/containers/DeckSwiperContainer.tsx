@@ -17,7 +17,7 @@ import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { selectStudySessionForRoute, studyStore } from "@/features/study/state/studyStore";
 import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
 

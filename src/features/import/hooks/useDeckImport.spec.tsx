@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   bulkUpsert: vi.fn(),
 }));
 
-vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/auth/AuthContext", () => ({
   useAuth: () => ({ status: "authenticated", uid: "uid-a", user: { uid: "uid-a" } }),
 }));

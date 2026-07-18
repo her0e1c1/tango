@@ -8,7 +8,7 @@ import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
 import { useActions } from "@/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const config = useConfig();
