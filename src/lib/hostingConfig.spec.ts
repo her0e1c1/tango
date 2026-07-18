@@ -18,7 +18,7 @@ describe("Firebase Hosting cache policy", () => {
     expect(firebaseConfig.hosting.headers).toEqual([
       {
         source: "**",
-        headers: [{ key: "Cache-Control", value: "no-cache, no-store" }],
+        headers: [{ key: "Cache-Control", value: "no-cache" }],
       },
       {
         source: "/assets/**",
