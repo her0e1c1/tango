@@ -3,8 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import * as C from "@/constant";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
-import { useActions } from "@/shared/hooks/useActions";
+import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
+import { useActions } from "@/hooks/useActions";
 import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";
 import { useCardFormState } from "@/features/card/hooks/useCardFormState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";

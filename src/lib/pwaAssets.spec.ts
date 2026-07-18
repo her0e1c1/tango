@@ -7,7 +7,7 @@ import "@testing-library/jest-dom/vitest";
 import { createElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { Logo } from "@/shared/components";
+import { Logo } from "@/components";
 
 const projectRoot = process.cwd();
 const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -616,7 +616,7 @@ describe("Tango PWA identity", () => {
   });
 
   it("offers explicit Wordmark, MarkOnly, Light, and Dark Storybook review states", () => {
-    const stories = readText("src/shared/components/content/Logo.stories.tsx");
+    const stories = readText("src/components/content/Logo.stories.tsx");
     const markOnly = storyBlock(stories, "MarkOnly");
     const light = storyBlock(stories, "Light");
     const dark = storyBlock(stories, "Dark");

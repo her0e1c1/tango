@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { DeckCard, type DeckCardActions, type DeckListStudyProgress } from "@/features/deck/components/DeckCard";
-import { Layout } from "@/shared/components/layout/Layout";
+import { Layout } from "@/components/layout/Layout";
 
 export interface DeckListItem {
   deck: Deck;

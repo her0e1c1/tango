@@ -4,8 +4,8 @@ import { useParams } from "react-router-dom";
 import * as C from "@/constant";
 import * as util from "@/util";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteReadBoundary } from "@/shared/components";
-import { useActions } from "@/shared/hooks/useActions";
+import { RemoteReadBoundary } from "@/components";
+import { useActions } from "@/hooks/useActions";
 import { CardViewTemplate } from "@/features/card/components/templates/CardViewTemplate";
 import { useConfig } from "@/features/settings/hooks/useConfig";
 

@@ -8,7 +8,7 @@ import { CardListTemplate } from "@/features/card/components/templates/CardListT
 import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
 import { DeckSwiperTemplate } from "@/features/study/components/templates/DeckSwiperTemplate";
 import { SwipeButtonList } from "@/features/study/components/SwipeButtonList";
-import { FullScreen, Logo, Overlay, Title } from "@/shared/components";
+import { FullScreen, Logo, Overlay, Title } from "@/components";
 
 afterEach(cleanup);
 

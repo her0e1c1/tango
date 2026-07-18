@@ -3,8 +3,8 @@ import { AiOutlineDown } from "react-icons/ai";
 
 import { BackText, type BackTextProps } from "@/features/card/components/BackText";
 import { Card, type CardProps } from "@/features/card/components/Card";
-import { Overlay } from "@/shared/components";
-import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
+import { Overlay } from "@/components";
+import { Layout, type LayoutProps } from "@/components/layout/Layout";
 
 export interface CardListOverlayProps {
   backText: BackTextProps;

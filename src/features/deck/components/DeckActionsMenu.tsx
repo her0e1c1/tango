@@ -1,6 +1,6 @@
 import type * as React from "react";
 import { AiOutlineCloudDownload, AiOutlineDelete, AiOutlineEdit, AiOutlineReload } from "react-icons/ai";
-import { ActionsMenu, type ActionsMenuItem } from "@/shared/components/forms/ActionsMenu";
+import { ActionsMenu, type ActionsMenuItem } from "@/components/forms/ActionsMenu";
 
 export interface DeckActionsMenuProps {
   deckName: string;

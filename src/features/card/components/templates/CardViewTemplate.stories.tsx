@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { CardViewTemplate as Template } from "@/features/card/components/templates/CardViewTemplate";
-import * as fixture from "@/shared/storybook/fixture";
+import * as fixture from "@/storybook/fixture";
 
 const meta = {
   title: "Card/CardViewTemplate",

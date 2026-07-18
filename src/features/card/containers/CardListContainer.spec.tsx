@@ -54,7 +54,7 @@ vi.mock("react-use", () => ({
   useKey: vi.fn(),
 }));
 
-vi.mock("@/shared/hooks/useActions", () => ({
+vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goToSettings: vi.fn(),

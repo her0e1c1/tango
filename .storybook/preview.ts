@@ -2,7 +2,7 @@
 
 import { withThemeByClassName } from "@storybook/addon-themes";
 import type { Preview } from "@storybook/react";
-import { INITIAL_VIEWPORTS } from "../src/shared/storybook/storybookViewports";
+import { INITIAL_VIEWPORTS } from "../src/storybook/storybookViewports";
 import "../src/index.css";
 
 const preview: Preview = {

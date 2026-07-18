@@ -3,13 +3,13 @@ import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteReadBoundary } from "@/shared/components";
+import { RemoteReadBoundary } from "@/components";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
-import { useActions } from "@/shared/hooks/useActions";
+import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/features/settings/hooks/useConfig";
 
 const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {

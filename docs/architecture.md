@@ -9,10 +9,10 @@ flowchart TD
     C --> T[Feature Templates<br/>src/features/*/components/templates]
     C --> FC[Feature Components<br/>src/features/*/components]
     T --> FC
-    T --> SC[Shared Components<br/>src/shared/components]
+    T --> SC[Common Components<br/>src/components]
     FC --> SC
 
-    C --> H[Container Hooks<br/>src/shared/hooks / src/features/*/hooks]
+    C --> H[Container Hooks<br/>src/hooks / src/features/*/hooks]
     C --> A[Domain Actions<br/>src/action]
     H --> A
     C --> Z[Zustand Stores<br/>Config / Study]
@@ -36,19 +36,19 @@ UI の依存方向は `App -> Page -> Container -> Template -> Component` です
 - `containers` は route と store のデータを取得し、画面の rendering を調整します。
 - feature hook は再利用する feature 固有の form/UI state と、TanStack Query・router・Zustand などの接続や副作用をカプセル化します。
 - `components/templates` は画面単位の stateless な合成を、`components` は props-driven な表示を担当します。domain/UI state を所有しない表示統合として、`Code` の DOM highlighting や `useSwipeable` などの render-only hook は利用できます。
-- `src/shared/components` は feature に依存しない stateless な共通表示です。feature 間の調整は container が行います。
-- feature 固有の container-support hook は `src/features/<feature>/hooks`、feature 間で共有する container hook は `src/shared/hooks` に置き、Page・Template・Component からは呼びません。
+- `src/components` は feature に依存しない stateless な共通表示です。feature 間の調整は container が行います。
+- feature 固有の container-support hook は `src/features/<feature>/hooks`、feature 間で共有する container hook は `src/hooks` に置き、Page・Template・Component からは呼びません。
 
-## Shared component の責務別 group
+## Common component の責務別 group
 
-`src/shared/components` は component の大きさではなく責務で分類し、Atomic Design の atom/molecule taxonomy は使いません。
+`src/components` は component の大きさではなく責務で分類し、Atomic Design の atom/molecule taxonomy は使いません。
 
 - `layout`: `FullScreen`、`Header`、`Layout`、`List`、`Main`、`Outer`
 - `forms`: `Button`、`Form`、`FormItem`、`Input`、`Select`、`Slider`、`Switch`、`Tag`、`Textarea`、`Upload`
 - `content`: `Card`、`Code`、`Description`、`Logo`、`Math`、`Score`、`Section`、`Style`、`TagList`、`Title`
 - `feedback`: `Feedback`、`Overlay`
 
-公開 API は root barrel の `@/shared/components` です。stories と component 固有の style は対象 component と同じ group に置き、各 group は feature 非依存かつ stateless に保ちます。
+公開 API は root barrel の `@/components` です。stories と component 固有の style は対象 component と同じ group に置き、各 group は feature 非依存かつ stateless に保ちます。
 
 ## Feature map
 
