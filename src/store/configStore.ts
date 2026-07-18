@@ -1,30 +1,10 @@
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
+import { defaultConfig, parsePersistedConfig } from "@/store/configSchema";
+
+export { defaultConfig } from "@/store/configSchema";
 
 export const CONFIG_STORAGE_KEY = "tango-config";
-
-export const defaultConfig: ConfigState = {
-  useCardInterval: false,
-  showSwipeButtonList: true,
-  showScoreSlider: false,
-  showHeader: true,
-  fullscreen: false,
-  maxNumberOfCardsToLearn: 10,
-  hideBodyWhenCardChanged: true,
-  sizeBackText: 0,
-  shuffled: false,
-  defaultAutoPlay: false,
-  cardInterval: 60,
-  keepBackTextViewed: false,
-  showSwipeFeedback: false,
-  cardSwipeUp: "GoToNextCardMastered",
-  cardSwipeDown: "GoToNextCardNotMastered",
-  cardSwipeLeft: "GoToPrevCard",
-  cardSwipeRight: "GoToNextCard",
-  darkMode: false,
-  selectedTags: [],
-  githubAccessToken: "",
-};
 
 type BooleanConfigKey = {
   [Key in keyof ConfigState]: ConfigState[Key] extends boolean ? Key : never;
@@ -59,13 +39,10 @@ export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreO
         storage: persistStorage,
         ...(skipHydration !== undefined ? { skipHydration } : {}),
         partialize: ({ config }) => ({ config }),
-        merge: (persistedState, currentState) => {
-          const persistedConfig = (persistedState as PersistedConfigState | undefined)?.config;
-          return {
-            ...currentState,
-            config: { ...defaultConfig, ...persistedConfig },
-          };
-        },
+        merge: (persistedState, currentState) => ({
+          ...currentState,
+          config: parsePersistedConfig(persistedState),
+        }),
       }
     )
   );
