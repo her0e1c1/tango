@@ -18,6 +18,9 @@ const mocks = vi.hoisted(() => ({
   swipeRight: vi.fn(),
   updateIndex: vi.fn(),
   resetStudy: vi.fn(),
+  pending: false,
+  error: null as unknown,
+  retry: vi.fn(),
   hydrated: true,
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
@@ -59,6 +62,9 @@ vi.mock("@/features/study/hooks/useStudyActions", () => ({
     toggleShowBackText: mocks.toggleShowBackText,
     toggleAutoPlay: mocks.toggleAutoPlay,
     resetStudy: mocks.resetStudy,
+    pending: mocks.pending,
+    error: mocks.error,
+    retry: mocks.retry,
   }),
 }));
 
@@ -133,6 +139,8 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     mocks.params.id = deck.id;
     mocks.state = createState();
     mocks.hydrated = true;
+    mocks.pending = false;
+    mocks.error = null;
     window.history.replaceState(null, document.title, document.location.href);
     studyStore.setState({
       sessionsByDeckId: {},
@@ -163,6 +171,17 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(mocks.useKey).toHaveBeenCalledWith("ArrowRight", mocks.swipeRight);
     expect(mocks.useKey).toHaveBeenCalledWith("Enter", mocks.toggleShowBackText);
     expect(mocks.useKey).toHaveBeenCalledWith(" ", mocks.toggleAutoPlay);
+  });
+
+  it("keeps pending study saves silent while disabling swipe controls", () => {
+    mocks.pending = true;
+
+    const view = render(<DeckSwiperContainer />);
+
+    expect(view.queryByText("Saving…")).not.toBeInTheDocument();
+    for (const name of ["Swipe up", "Swipe down", "Swipe left", "Swipe right"]) {
+      expect(view.getByRole("button", { name })).toBeDisabled();
+    }
   });
 
   it("installs one back-navigation guard when StrictMode replays the effect", () => {

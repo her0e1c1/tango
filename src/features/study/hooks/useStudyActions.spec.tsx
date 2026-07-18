@@ -240,6 +240,31 @@ describe("useStudyActions", () => {
     expect(studyStore.getState().sessionsByDeckId[deck.id]?.currentIndex).toBe(0);
   });
 
+  it("blocks a second swipe while the first Card write is unresolved", async () => {
+    studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
+    let finishWrite: () => void = () => undefined;
+    mocks.cardUpdate.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishWrite = resolve;
+        })
+    );
+    const { result } = renderHook(() => useStudyActions(deck.id));
+
+    const firstSwipe = result.current.swipeRight();
+    await act(async () => {
+      await result.current.swipeRight();
+    });
+
+    expect(mocks.cardUpdate).toHaveBeenCalledOnce();
+    expect(studyStore.getState().sessionsByDeckId[deck.id]?.currentIndex).toBe(1);
+
+    await act(async () => {
+      finishWrite();
+      await firstSwipe;
+    });
+  });
+
   it("keeps back text visible when the long-lived config allows it", async () => {
     mocks.state = createState(createConfig({ hideBodyWhenCardChanged: false }));
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);

@@ -138,7 +138,12 @@ export const DeckSwiperContainer: React.FC = () => {
         },
       }}
       feedbackSlot={
-        <RemoteMutationNotice pending={studyActions.pending} error={studyActions.error} onRetry={studyActions.retry} />
+        <RemoteMutationNotice
+          pending={studyActions.pending}
+          error={studyActions.error}
+          onRetry={studyActions.retry}
+          showPending={false}
+        />
       }
       frontTextSlot={
         <FrontText
