@@ -58,7 +58,12 @@ export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
   };
 
   const handleBlur = (event: React.FocusEvent<HTMLFieldSetElement>) => {
-    if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) props.onClose();
+    const root = event.currentTarget;
+    if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
+
+    queueMicrotask(() => {
+      if (!root.contains(document.activeElement)) props.onClose();
+    });
   };
 
   return (

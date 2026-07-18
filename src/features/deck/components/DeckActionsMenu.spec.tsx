@@ -80,4 +80,31 @@ describe("DeckActionsMenu", () => {
     expect(view.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
+
+  it("keeps management actions active when an ambiguous blur settles inside the menu", async () => {
+    const actions = {
+      onDownload: vi.fn(),
+      onEdit: vi.fn(),
+      onDelete: vi.fn(),
+    };
+    const view = render(<ControlledMenu deckName="Biology" {...actions} />);
+    const trigger = view.getByRole("button", { name: "Open actions for Biology" });
+
+    for (const [label, action] of [
+      ["Download", actions.onDownload],
+      ["Edit", actions.onEdit],
+      ["Delete", actions.onDelete],
+    ] as const) {
+      fireEvent.click(trigger);
+      const download = view.getByRole("menuitem", { name: "Download" });
+      const item = view.getByRole("menuitem", { name: label });
+      await waitFor(() => expect(download).toHaveFocus());
+
+      download.blur();
+      item.focus();
+      fireEvent.click(item);
+
+      expect(action).toHaveBeenCalledOnce();
+    }
+  });
 });
