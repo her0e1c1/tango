@@ -89,6 +89,34 @@ describe("useDeckMutations", () => {
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
   });
 
+  it("runs remove success cleanup after a retry finishes beyond the hook lifetime", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    const error = new Error("delete failed");
+    let finishRetry: () => void = () => undefined;
+    const retryRequest = new Promise<void>((resolve) => {
+      finishRetry = resolve;
+    });
+    mocks.remove.mockRejectedValueOnce(error).mockReturnValueOnce(retryRequest);
+    const onRemoveSuccess = vi.fn();
+    const client = createTestQueryClient();
+    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
+    const { result, unmount } = renderHook(() => useDeckMutations({ onRemoveSuccess }), {
+      wrapper: createQueryWrapper(client),
+    });
+
+    await act(async () => {
+      await expect(result.current.remove(deck)).rejects.toBe(error);
+    });
+    expect(onRemoveSuccess).not.toHaveBeenCalled();
+
+    act(() => result.current.retry());
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
+    unmount();
+    finishRetry();
+
+    await waitFor(() => expect(onRemoveSuccess).toHaveBeenCalledExactlyOnceWith(deck));
+  });
+
   it("clears a failed removal after the same Deck is removed manually", async () => {
     const deck = createDeck({ id: "deck-a" });
     const error = new Error("delete failed");

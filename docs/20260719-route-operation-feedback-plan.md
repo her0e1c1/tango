@@ -280,6 +280,8 @@ git commit -m "Add missing entity recovery"
 **Files:**
 - Create: `src/features/settings/hooks/useAccountOperations.ts`
 - Create: `src/features/settings/hooks/useAccountOperations.spec.tsx`
+- Modify: `src/action/event.ts`
+- Modify: `src/auth/AuthLogout.integration.spec.tsx`
 - Modify: `src/features/settings/hooks/useConfigFormState.ts`
 - Modify: `src/features/settings/hooks/useConfigFormState.spec.tsx`
 - Modify: `src/features/settings/containers/ConfigContainer.tsx`
@@ -289,21 +291,28 @@ git commit -m "Add missing entity recovery"
 
 **Interfaces:**
 - Consumes: Task 1 label-aware `RemoteMutationNotice`.
-- Produces: `useAccountOperations({ login, logout })` with `kind`, `pending`, `error`, `login`, `logout`, and `retry`.
+- Produces: `useAccountOperations({ generation, login, logout })` with `kind`, `pending`, `error`, `login`, `logout`, and `retry`.
+- Produces: explicit failed-operation metadata distinguishing a full Logout that may sign out from a cleanup continuation that cannot.
+- Produces: phase-aware Logout cleanup errors whose Retry skips sign-out and completed cleanup phases.
 
-- [ ] **Step 1: Add failing hook tests**
+- [ ] **Step 1: Add failing account lifecycle tests**
 
-Use `renderHook` with deferred Promises. Require:
+Use `renderHook` with deferred Promises and the real Settings/Auth integration where an auth transition matters. Require:
 
 - two Login calls before the first settles return the same in-flight Promise and invoke the action once;
 - Logout follows the same duplicate suppression;
 - failure sets `error`, preserves `kind`, and Retry invokes the failed operation again;
-- a new attempt clears the previous error and pending settles to false after success.
+- a new attempt clears the previous error and pending settles to false after success;
+- StrictMode keeps exact Promise reuse and does not erase feedback during its immediate resubscribe;
+- settled feedback resets when Settings is left or an unrelated auth generation arrives;
+- a post-sign-out cleanup failure survives exactly one auth-generation handoff, while a cleanup-only retry cannot gain another handoff;
+- if the original full Logout first fails during sign-out, its full Retry may still hand a later cleanup failure to the anonymous Settings remount.
 
 Use this signature:
 
 ```ts
 interface AccountOperationDependencies {
+  generation?: string;
   login: () => Promise<void>;
   logout?: () => Promise<void>;
 }
@@ -323,7 +332,7 @@ Expected: FAIL because the hook does not exist.
 
 - [ ] **Step 3: Implement the account operation hook**
 
-Store the latest dependencies, one in-flight Promise, and the last failed `AccountOperationKind` in refs, plus render state `{ kind, pending, error }`. `run(kind)` is not declared `async`; it returns the existing Promise object while pending so duplicate callers share the same result. It chooses the latest `login` or `logout` dependency, clears errors before starting, records failure, rethrows it, and clears the in-flight ref in `finally`. `retry()` replays the last failed kind and returns `Promise<void>`; it resolves immediately when there is no failed operation.
+Use a module-scope controller with the latest dependencies, one in-flight Promise, the current auth generation, rendered state `{ kind, pending, error }`, and explicit failed-operation metadata. `run(kind)` is not declared `async`; it returns the existing Promise object while pending so duplicate callers share the same result. A full Logout failure retains `maySignOut` only while Retry still points to the full operation; a custom cleanup continuation clears it. Keep settled post-sign-out cleanup feedback for one auth-generation handoff, then reset it when unused. Use subscription-generation dedupe so StrictMode's immediate resubscribe does not reset state.
 
 - [ ] **Step 4: Run the hook test and confirm GREEN**
 
@@ -358,14 +367,16 @@ Expected: FAIL because Settings does not expose account operation state.
 
 - [ ] **Step 7: Wire account operation state into Settings**
 
-Call the hook unconditionally with the existing `actions.login` and an optional authenticated logout closure. Pass `() => void account.login().catch(() => undefined)` and the Logout equivalent into `useConfigFormState`. Pass `accountPending` and a `RemoteMutationNotice` feedback slot through `useConfigFormState`/`ConfigFormProps`; use the kind-specific labels above. Render the slot below the Account action row and set the active Button's `loading={accountPending}`.
+Call the hook unconditionally with the existing `actions.login`, the current auth generation, and an optional authenticated logout closure. Pass `() => void account.login().catch(() => undefined)` and the Logout equivalent into `useConfigFormState`. Pass `accountPending` and a `RemoteMutationNotice` feedback slot through `useConfigFormState`/`ConfigFormProps`; use the kind-specific labels above. Render the slot below the Account action row and set the active Button's `loading={accountPending}`.
+
+Make `src/action/event.ts` run sign-out before query and study cleanup. Track query/study progress so the custom error Retry resumes only unfinished cleanup without another sign-out. Record the study state created by clearing and skip a later study clear if the state identity has changed. Cover ordering, repeated cleanup failure, the one-generation handoff, and the study identity guard in `src/auth/AuthLogout.integration.spec.tsx`.
 
 - [ ] **Step 8: Run all Task 3 tests and commit**
 
 Run:
 
 ```bash
-COMPOSE_FILE=.devcontainer/compose.yaml docker compose run --rm --remove-orphans --entrypoint npm dev exec -- vitest run src/features/settings/hooks/useAccountOperations.spec.tsx src/features/settings/components/ConfigForm.spec.tsx src/features/settings/containers/ConfigContainer.spec.tsx --no-file-parallelism
+COMPOSE_FILE=.devcontainer/compose.yaml docker compose run --rm --remove-orphans --entrypoint npm dev exec -- vitest run src/features/settings/hooks/useAccountOperations.spec.tsx src/features/settings/components/ConfigForm.spec.tsx src/features/settings/containers/ConfigContainer.spec.tsx src/auth/AuthLogout.integration.spec.tsx --no-file-parallelism
 ```
 
 Expected: PASS.
@@ -373,7 +384,7 @@ Expected: PASS.
 Commit:
 
 ```bash
-git add src/features/settings
+git add src/action/event.ts src/auth/AuthLogout.integration.spec.tsx src/features/settings
 git commit -m "Add account operation feedback"
 ```
 
@@ -395,15 +406,18 @@ git commit -m "Add account operation feedback"
 **Interfaces:**
 - Consumes: Task 1 label-aware `RemoteMutationNotice` and Task 2 route recovery copy.
 - Produces: `useDeckMutations().isPending(id: DeckId): boolean` and same-Deck in-flight Promise reuse.
+- Produces: optional latest-ref `useDeckMutations({ onRemoveSuccess(deck) })` cleanup for every successful remove attempt.
 
-- [ ] **Step 1: Add failing Deck mutation duplicate tests**
+- [ ] **Step 1: Add failing Deck mutation lifecycle tests**
 
 Model `useDeckMutations.spec.tsx` after the existing Card mutation hook spec. Use a deferred Firestore update/remove Promise and a real test QueryClient. Require:
 
 - two same-Deck remove calls return the same Promise and call Firestore remove once;
 - `pending` and `isPending(deck.id)` are true while active and false after settlement;
 - a different Deck ID is not reported pending;
-- failure remains available through `error` and Retry repeats the failed operation once.
+- failure remains available through `error` and Retry repeats the failed operation once;
+- failed removal does not run `onRemoveSuccess`;
+- a successful Retry runs `onRemoveSuccess(deck)` exactly once even after the hook/container unmounts while Retry is pending.
 
 - [ ] **Step 2: Run the hook test and confirm RED**
 
@@ -417,7 +431,7 @@ Expected: FAIL because entity pending state and duplicate suppression do not exi
 
 - [ ] **Step 3: Implement entity-scoped in-flight tracking**
 
-Keep `useMutation` and the existing service. Add a `Map<DeckId, Promise<void>>` ref and a rendered `Set<DeckId>` state. Before starting a mutation, return the Map's Promise for that Deck ID when present. Add the ID before awaiting `mutateAsync`; remove it in `finally`. Preserve `lastFailed` and existing Retry semantics. Return `pending: pendingDeckIds.size > 0` and `isPending: (id) => pendingDeckIds.has(id)`.
+Keep `useMutation` and the existing service. Add a `Map<DeckId, Promise<void>>` ref and a rendered `Set<DeckId>` state. Before starting a mutation, return the Map's Promise for that Deck ID when present. Add the ID before awaiting `mutateAsync`; remove it in `finally`. Preserve the independent latest failure record and existing Retry semantics. Store `onRemoveSuccess` in a latest ref and invoke it inside each newly created successful remove operation, so Promise reuse cannot duplicate cleanup and unmount cannot drop it. Return `pending: pendingDeckIds.size > 0` and `isPending: (id) => pendingDeckIds.has(id)`.
 
 - [ ] **Step 4: Run the hook test and confirm GREEN**
 
@@ -447,7 +461,7 @@ Expected: FAIL because pending state is not wired.
 
 Compute pending from `props.isPending?.(deck.id) ?? false` in `DeckCard`; disable its three interactive entry points and set `aria-busy`. Add `disabled?: boolean` to `DeckActionsMenu` and forward it to `ActionsMenu`.
 
-In `DeckListContainer`, pass `isPending: mutations.isPending` through `deckCard` and render:
+In `DeckListContainer`, pass `onRemoveSuccess: (deck) => studyStore.getState().removeStudy(deck.id)` into `useDeckMutations`, remove the click handler's `.then(removeStudy)`, pass `isPending: mutations.isPending` through `deckCard`, and render:
 
 ```tsx
 <RemoteMutationNotice

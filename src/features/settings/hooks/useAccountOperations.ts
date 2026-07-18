@@ -14,10 +14,15 @@ interface AccountOperationState {
   error: unknown;
 }
 
+interface FailedOperation {
+  operation: () => Promise<void>;
+  maySignOut: boolean;
+}
+
 const createAccountOperationController = () => {
   let dependencies: AccountOperationDependencies = { login: () => Promise.resolve() };
   let inFlight: Promise<void> | null = null;
-  let failedOperation: (() => Promise<void>) | null = null;
+  let failedOperation: FailedOperation | null = null;
   let generation: string | undefined;
   let logoutHandoffAvailable = false;
   let subscriptionGeneration = 0;
@@ -64,23 +69,23 @@ const createAccountOperationController = () => {
     generation = nextGeneration;
   };
 
-  const run = (kind: AccountOperationKind, retryOperation?: () => Promise<void>): Promise<void> => {
+  const run = (kind: AccountOperationKind, retryOperation?: FailedOperation): Promise<void> => {
     if (inFlight != null) return inFlight;
 
-    const operation = retryOperation ?? (kind === "login" ? dependencies.login : dependencies.logout);
+    const operation = retryOperation?.operation ?? (kind === "login" ? dependencies.login : dependencies.logout);
     if (operation == null) return Promise.resolve();
 
     failedOperation = null;
     logoutHandoffAvailable = false;
     const operationGeneration = generation;
-    const mayHandoffLogout = kind === "logout" && retryOperation == null;
+    const maySignOut = retryOperation?.maySignOut ?? kind === "logout";
     setState({ kind, pending: true, error: null });
     const promise = operation().then(
       () => setState({ kind, pending: false, error: null }),
       (error: unknown) => {
         const retry = getRetryOperation(error, operation);
-        failedOperation = retry;
-        logoutHandoffAvailable = mayHandoffLogout && retry !== operation && operationGeneration === generation;
+        failedOperation = { operation: retry, maySignOut: maySignOut && retry === operation };
+        logoutHandoffAvailable = maySignOut && retry !== operation && operationGeneration === generation;
         setState({ kind, pending: false, error });
         throw error;
       }

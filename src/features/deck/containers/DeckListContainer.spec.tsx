@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   pending: false,
   pendingDeckIds: new Set<DeckId>(),
   error: null as unknown,
+  onRemoveSuccess: undefined as ((deck: Deck) => void) | undefined,
   remove: vi.fn(async (_deck: Deck) => undefined),
   retry: vi.fn(),
   downloadData: vi.fn(),
@@ -49,13 +50,16 @@ vi.mock("@/query/useRemoteCollections", () => ({
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.actions }));
 vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
-  useDeckMutations: () => ({
-    remove: mocks.remove,
-    pending: mocks.pending,
-    isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),
-    error: mocks.error,
-    retry: mocks.retry,
-  }),
+  useDeckMutations: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
+    mocks.onRemoveSuccess = options?.onRemoveSuccess;
+    return {
+      remove: (deck: Deck) => mocks.remove(deck).then(() => mocks.onRemoveSuccess?.(deck)),
+      pending: mocks.pending,
+      isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),
+      error: mocks.error,
+      retry: mocks.retry,
+    };
+  },
 }));
 vi.mock("@/features/import/hooks/useSampleDeckBootstrap", () => ({ useSampleDeckBootstrap: vi.fn() }));
 
@@ -73,6 +77,7 @@ describe("DeckListContainer", () => {
     mocks.pending = false;
     mocks.pendingDeckIds = new Set();
     mocks.error = null;
+    mocks.onRemoveSuccess = undefined;
     mocks.config = createConfig({ darkMode: false });
     mocks.decksById = { [otherDeck.id]: otherDeck, [oldDeck.id]: oldDeck, [recentDeck.id]: recentDeck };
     mocks.cardsById = {
@@ -153,6 +158,16 @@ describe("DeckListContainer", () => {
 
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(recentDeck));
     await waitFor(() => expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeUndefined());
+    expect(studyStore.getState().sessionsByDeckId[oldDeck.id]).toBeDefined();
+  });
+
+  it("owns successful removal cleanup through the Deck mutation lifecycle", () => {
+    render(<DeckListContainer />);
+
+    expect(mocks.onRemoveSuccess).toBeTypeOf("function");
+    act(() => mocks.onRemoveSuccess?.(recentDeck));
+
+    expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeUndefined();
     expect(studyStore.getState().sessionsByDeckId[oldDeck.id]).toBeDefined();
   });
 

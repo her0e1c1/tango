@@ -31,8 +31,8 @@ Extend the existing feedback boundary instead of introducing a new global workfl
 2. Gate the router on Firebase-confirmed auth state. Initializing and anonymous bootstrap display `Starting Tango…`; an auth failure displays a reload action. `AuthBootstrap` remains responsible for remote subscription lifecycle.
 3. Add a wildcard route and use the shared surface for unknown URLs. Missing Deck/Card containers pass a shared recovery surface into `RemoteReadBoundary` rather than returning a bare status string.
 4. Keep cached remote content mounted during listener failures. `RemoteReadBoundary` continues to own Retry and non-destructive sync-error behavior.
-5. Add a settings-owned account-operation hook for Login and Logout pending, failure, and retry state. Presentation receives pending and feedback props; it does not import Firebase or application actions.
-6. Prevent a second Deck mutation for the same Deck while one is active and disable that Deck row's actions until the operation settles.
+5. Add a settings-owned account-operation hook for Login and Logout pending, failure, and retry state. Its module-scope controller survives a Logout-driven Settings unmount, but feedback may cross at most one auth-generation handoff.
+6. Prevent a second Deck mutation for the same Deck while one is active, disable that Deck row's actions until the operation settles, and let the mutation hook own successful removal cleanup for both initial attempts and Retry.
 7. Add Storybook stories for route feedback, remote-read states, and mutation states, plus focused unit and browser tests for recovery paths.
 
 ## Alternatives Considered
@@ -81,10 +81,18 @@ This is the selected approach. It preserves current state ownership, adds only p
 ### Account operation hook
 
 - Lives with settings hooks and wraps the existing `login` and `logout` actions.
-- Stores only operation-local kind, pending state, last error, and the last failed operation for Retry.
+- Uses a module-scope controller so an in-flight Logout and its feedback survive the Settings unmount caused by sign-out.
+- Stores operation-local kind, pending state, last error, and the last failed operation for Retry. Failed-operation metadata distinguishes a full Logout that may still sign out from a cleanup continuation that cannot.
 - Ignores a repeated request while an account operation is already running.
 - Clears a previous error when a new attempt starts.
-- Does not alter the existing Firebase auth or cleanup lifecycle.
+- Resets stale settled feedback when Settings is left or the auth generation changes, except for one bounded handoff of a post-sign-out cleanup failure to the next Settings mount. StrictMode remounts do not duplicate or prematurely reset the operation.
+
+### Logout action
+
+- `src/action/event.ts` signs out before starting query and study cleanup.
+- Cleanup progress is phase-aware: Retry skips sign-out and any cleanup phase that already succeeded.
+- The study cleanup continuation records the state produced by clearing and does not clear again if a new auth generation has already created different study state.
+- A cleanup failure exposes its continuation on the error, while an ordinary sign-out failure retries the original full Logout.
 
 ### `ConfigForm`
 
@@ -96,6 +104,7 @@ This is the selected approach. It preserves current state ownership, adds only p
 
 - `useDeckMutations` tracks active Deck IDs before starting the asynchronous mutation.
 - A repeated mutation request for an active Deck ID is ignored.
+- Its optional latest-ref `onRemoveSuccess(deck)` callback belongs to the hook operation, so initial removal and Retry perform the same study cleanup even if the Deck list unmounts before success.
 - `DeckCard` receives entity-specific pending state, marks the row busy, and disables navigation and the actions menu for that Deck.
 - Other Deck rows remain usable.
 
@@ -122,16 +131,18 @@ This is the selected approach. It preserves current state ownership, adds only p
 ### Account operation
 
 1. The user selects Login or Logout.
-2. The settings hook records the operation as pending before calling the existing action.
+2. The module-scope settings controller records the operation as pending before calling the existing action and reuses its exact Promise for duplicate requests.
 3. The button becomes loading/disabled and the shared notice announces progress.
-4. Success clears local operation state. Failure keeps Settings mounted and displays Retry.
+4. Logout signs out first, then runs query and study cleanup. A cleanup Retry resumes only unfinished cleanup and cannot sign out again.
+5. A post-sign-out cleanup failure may cross the resulting auth-generation change once; a later Settings departure or unrelated generation clears it.
+6. Success clears local operation state. Failure keeps or restores Settings feedback with Retry.
 
 ### Deck deletion
 
 1. Confirmation remains required.
 2. The mutation hook marks the Deck ID active before calling the mutation service.
 3. The selected Deck row becomes busy and non-interactive.
-4. Success removes the associated study session. Failure preserves the row and displays a retryable deletion error.
+4. Every successful remove attempt invokes the hook-owned latest success callback and removes the associated study session. Failure does not run cleanup and displays a retryable deletion error.
 
 ## Error Handling
 
@@ -140,7 +151,8 @@ This is the selected approach. It preserves current state ownership, adds only p
 - Listener failure with cached data remains non-destructive and displays Retry beside current content.
 - Missing entity feedback is shown only after a successful read. Query/existence-check failures stay errors.
 - Login, Logout, save, import, and delete failures remain operation-local; they do not navigate away or clear user input.
-- Retry replays only the last failed operation owned by that hook.
+- Account Retry preserves whether the failed operation can still sign out; cleanup continuations never regain an auth handoff.
+- Deck Retry replays only the last failed mutation and owns the same remove-success cleanup as the initial attempt.
 
 ## Testing
 
@@ -150,8 +162,8 @@ Use test-driven development for every behavior change.
 - `App`: startup gating, auth failure Reload, normal routing, and wildcard route recovery.
 - `RemoteReadBoundary`: shared loading/error surface, cached non-destructive error, caller-provided not-found content, and Retry.
 - Missing Deck/Card containers: not-found appears only after a successful read and recovery actions are wired.
-- Account hook and Settings: pending blocks duplicate Login/Logout, failure remains visible, and Retry replays the failed operation.
-- Deck mutation and Deck card: same-Deck duplicates are blocked while other rows remain enabled.
+- Account hook, `action/event.ts`, `AuthLogout.integration.spec.tsx`, and Settings: pending blocks duplicates, StrictMode preserves exact Promise reuse, Logout phases resume safely, and cleanup feedback crosses only its allowed auth handoff.
+- Deck mutation and Deck card: same-Deck duplicates are blocked, other rows remain enabled, and a successful Retry runs study cleanup once after hook unmount.
 - Storybook: representative loading, initial error, cached sync error, not-found, mutation pending, and mutation failure stories.
 - Playwright: unknown route and missing Deck recovery routes.
 - Repository verification: `make check` is required before completion.

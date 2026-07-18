@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import * as firestore from "@/action/firestore";
 import { useAuth } from "@/auth/AuthContext";
@@ -8,13 +8,21 @@ import { createDeckMutationService } from "@/query/deckMutationService";
 type Variables = { kind: "create"; deck: Deck } | { kind: "update"; deck: DeckEdit } | { kind: "remove"; deck: Deck };
 type Failure = { variables: Variables; error: unknown };
 
+interface UseDeckMutationsOptions {
+  onRemoveSuccess?: (deck: Deck) => void;
+}
+
 const isSameOperation = (left: Variables, right: Variables) =>
   left.kind === right.kind && left.deck.id === right.deck.id;
 
-export const useDeckMutations = () => {
+export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = {}) => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const client = useQueryClient();
+  const onRemoveSuccessRef = useRef(onRemoveSuccess);
+  useEffect(() => {
+    onRemoveSuccessRef.current = onRemoveSuccess;
+  }, [onRemoveSuccess]);
   const inFlight = useRef(new Map<DeckId, Promise<void>>());
   const [pendingDeckIds, setPendingDeckIds] = useState<Set<DeckId>>(() => new Set());
   const failureRef = useRef<Failure>(undefined);
@@ -62,6 +70,7 @@ export const useDeckMutations = () => {
       setPendingDeckIds((pending) => new Set(pending).add(deckId));
       const operation = mutation.mutateAsync(variables).then(
         () => {
+          if (variables.kind === "remove") onRemoveSuccessRef.current?.(variables.deck);
           if (retryOf == null || failureRef.current !== retryOf) return;
           failureRef.current = undefined;
           setFailure(undefined);

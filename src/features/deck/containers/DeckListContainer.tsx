@@ -18,7 +18,9 @@ export const DeckListContainer: React.FC = () => {
   const actions = useActions();
   const config = useConfig();
   const remote = useRemoteCollections();
-  const mutations = useDeckMutations();
+  const mutations = useDeckMutations({
+    onRemoveSuccess: (deck) => studyStore.getState().removeStudy(deck.id),
+  });
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudyStore((state) => state.sessionsByDeckId);
   const hydrated = useStudyHydrated();
@@ -85,10 +87,7 @@ export const DeckListContainer: React.FC = () => {
             onClickDelete: (id) => {
               const deck = remote.deckById(id);
               if (deck != null && window.confirm("Are you sure of removing this deck?")) {
-                void mutations
-                  .remove(deck)
-                  .then(() => studyStore.getState().removeStudy(id))
-                  .catch(() => undefined);
+                void mutations.remove(deck).catch(() => undefined);
               }
             },
           }}

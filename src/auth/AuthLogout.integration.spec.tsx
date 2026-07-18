@@ -226,6 +226,54 @@ it("keeps post-sign-out cleanup failures visible and retries only unfinished cle
   expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
 });
 
+it("hands cleanup feedback across auth after retrying a failed sign-out", async () => {
+  const userA = { uid: "retry-uid-a", isAnonymous: false, providerData: [] } as unknown as User;
+  const userB = { uid: "retry-uid-b", isAnonymous: true, providerData: [] } as unknown as User;
+  const signOutError = new Error("sign out failed");
+  const cleanupError = new Error("cleanup failed after retry");
+  const anonymousBootstrap = new Promise<UserCredential>(() => undefined);
+
+  mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
+    mocks.publishUser = onUser;
+    return vi.fn();
+  });
+  mocks.signOut.mockRejectedValueOnce(signOutError).mockImplementationOnce(async () => mocks.publishUser?.(null));
+  mocks.signInAnonymously.mockReturnValue(anonymousBootstrap);
+  mocks.cleanupUid.mockRejectedValueOnce(cleanupError).mockResolvedValueOnce(undefined);
+  mocks.clearStudyStore.mockResolvedValue(undefined);
+
+  const store = createAuthStore({
+    auth: mocks.auth as unknown as Auth,
+    onAuthStateChanged: mocks.onAuthStateChanged,
+    signInAnonymously: mocks.signInAnonymously,
+  });
+  render(
+    <AuthProvider store={store}>
+      <AuthenticatedSettings />
+    </AuthProvider>
+  );
+  act(() => mocks.publishUser?.(userA));
+
+  fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+  expect(mocks.signOut).toHaveBeenCalledOnce();
+  expect(mocks.cleanupUid).not.toHaveBeenCalled();
+
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  await waitFor(() => expect(screen.queryByRole("button", { name: "Logout" })).not.toBeInTheDocument());
+  await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledOnce());
+  await act(async () => Promise.resolve());
+  act(() => mocks.publishUser?.(userB));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+  await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+  expect(mocks.signOut).toHaveBeenCalledTimes(2);
+  expect(mocks.cleanupUid).toHaveBeenCalledTimes(2);
+  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
+});
+
 it("does not erase a new anonymous study when obsolete logout cleanup is retried", async () => {
   const userA = { uid: "study-uid-a", isAnonymous: false, providerData: [] } as unknown as User;
   const userB = { uid: "study-uid-b", isAnonymous: true, providerData: [] } as unknown as User;
