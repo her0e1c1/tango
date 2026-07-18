@@ -34,7 +34,7 @@ export const ConfigContainer: React.FC = () => {
       <RemoteMutationNotice
         pending={account.pending}
         error={account.error}
-        onRetry={account.retry}
+        onRetry={() => void account.retry().catch(() => undefined)}
         pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
         errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
       />

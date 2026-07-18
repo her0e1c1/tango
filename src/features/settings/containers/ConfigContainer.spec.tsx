@@ -97,7 +97,7 @@ describe("ConfigContainer auth identity", () => {
     expect(options.onLogout).toBeUndefined();
   });
 
-  it("passes local account feedback and wrapped account actions to settings", () => {
+  it("passes local account feedback and wrapped account actions to settings", async () => {
     const user = {
       uid: "confirmed-uid",
       isAnonymous: false,
@@ -120,7 +120,7 @@ describe("ConfigContainer auth identity", () => {
       accountFeedback: React.ReactElement<{
         pending: boolean;
         error: unknown;
-        onRetry: () => Promise<void>;
+        onRetry: () => void;
         pendingLabel: string;
         errorLabel: string;
       }>;
@@ -138,7 +138,9 @@ describe("ConfigContainer auth identity", () => {
     expect(mocks.accountOperations.login).toHaveBeenCalledOnce();
     options.onLogout();
     expect(mocks.accountOperations.logout).toHaveBeenCalledOnce();
-    options.accountFeedback.props.onRetry();
+    mocks.accountOperations.retry.mockRejectedValueOnce(new Error("retry failed"));
+    expect(options.accountFeedback.props.onRetry()).toBeUndefined();
+    await Promise.resolve();
     expect(mocks.accountOperations.retry).toHaveBeenCalledOnce();
 
     mocks.accountOperations.kind = "logout";

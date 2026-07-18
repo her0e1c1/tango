@@ -13,51 +13,83 @@ interface AccountOperationState {
   error: unknown;
 }
 
-export const useAccountOperations = ({ login, logout }: AccountOperationDependencies) => {
-  const dependenciesRef = React.useRef({ login, logout });
-  const inFlightRef = React.useRef<Promise<void> | null>(null);
-  const lastFailedKindRef = React.useRef<AccountOperationKind | null>(null);
-  const [state, setState] = React.useState<AccountOperationState>({ kind: null, pending: false, error: null });
+const createAccountOperationController = () => {
+  let dependencies: AccountOperationDependencies = { login: () => Promise.resolve() };
+  let inFlight: Promise<void> | null = null;
+  let failedOperation: (() => Promise<void>) | null = null;
+  let state: AccountOperationState = { kind: null, pending: false, error: null };
+  const listeners = new Set<() => void>();
 
-  dependenciesRef.current = { login, logout };
+  const setState = (nextState: AccountOperationState) => {
+    state = nextState;
+    for (const listener of listeners) listener();
+  };
 
-  const run = React.useCallback((kind: AccountOperationKind): Promise<void> => {
-    if (inFlightRef.current != null) return inFlightRef.current;
+  const getRetryOperation = (error: unknown, operation: () => Promise<void>) => {
+    if (typeof error !== "object" || error == null || !("retry" in error) || typeof error.retry !== "function") {
+      return operation;
+    }
+    return error.retry as () => Promise<void>;
+  };
 
-    const operation = kind === "login" ? dependenciesRef.current.login : dependenciesRef.current.logout;
+  const run = (kind: AccountOperationKind, retryOperation?: () => Promise<void>): Promise<void> => {
+    if (inFlight != null) return inFlight;
+
+    const operation = retryOperation ?? (kind === "login" ? dependencies.login : dependencies.logout);
     if (operation == null) return Promise.resolve();
 
-    lastFailedKindRef.current = null;
+    failedOperation = null;
     setState({ kind, pending: true, error: null });
     const promise = operation().then(
       () => setState({ kind, pending: false, error: null }),
       (error: unknown) => {
-        lastFailedKindRef.current = kind;
+        failedOperation = getRetryOperation(error, operation);
         setState({ kind, pending: false, error });
         throw error;
       }
     );
-    inFlightRef.current = promise;
+    inFlight = promise;
     void promise.then(
       () => {
-        if (inFlightRef.current === promise) inFlightRef.current = null;
+        if (inFlight === promise) inFlight = null;
       },
       () => {
-        if (inFlightRef.current === promise) inFlightRef.current = null;
+        if (inFlight === promise) inFlight = null;
       }
     );
 
     return promise;
-  }, []);
+  };
 
-  const retry = React.useCallback(() => {
-    return lastFailedKindRef.current == null ? Promise.resolve() : run(lastFailedKindRef.current);
-  }, [run]);
+  return {
+    getSnapshot: () => state,
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    setDependencies: (nextDependencies: AccountOperationDependencies) => {
+      dependencies = nextDependencies;
+    },
+    login: () => run("login"),
+    logout: () => run("logout"),
+    retry: () => (failedOperation == null || state.kind == null ? Promise.resolve() : run(state.kind, failedOperation)),
+  };
+};
+
+const accountOperationController = createAccountOperationController();
+
+export const useAccountOperations = ({ login, logout }: AccountOperationDependencies) => {
+  accountOperationController.setDependencies({ login, ...(logout ? { logout } : {}) });
+  const state = React.useSyncExternalStore(
+    accountOperationController.subscribe,
+    accountOperationController.getSnapshot,
+    accountOperationController.getSnapshot
+  );
 
   return {
     ...state,
-    login: () => run("login"),
-    logout: () => run("logout"),
-    retry,
+    login: accountOperationController.login,
+    logout: accountOperationController.logout,
+    retry: accountOperationController.retry,
   };
 };

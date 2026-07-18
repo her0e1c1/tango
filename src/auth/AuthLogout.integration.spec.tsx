@@ -1,7 +1,8 @@
-import { act, cleanup, render, waitFor } from "@testing-library/react";
-import type { User, UserCredential } from "firebase/auth";
-import { StrictMode } from "react";
-import { afterEach, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import type { Auth, User, UserCredential } from "firebase/auth";
+import { StrictMode, type ReactNode } from "react";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   auth: { currentUser: null },
@@ -14,6 +15,14 @@ const mocks = vi.hoisted(() => ({
   cleanupUid: vi.fn(),
   clearStudyStore: vi.fn(),
   operations: [] as string[],
+  accountActions: {
+    login: vi.fn(),
+    logout: vi.fn(),
+    configUpdate: vi.fn(),
+    goToTop: vi.fn(),
+    setDarkMode: vi.fn(),
+    goByMenu: vi.fn(),
+  },
 }));
 
 vi.mock("@/firebase", () => ({ auth: mocks.auth }));
@@ -32,12 +41,42 @@ vi.mock("@/action/firestore", () => ({}));
 vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupUid }));
 vi.mock("@/query/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
 vi.mock("@/features/study/state/studyStore", () => ({ clearStudyStore: mocks.clearStudyStore }));
+vi.mock("@/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
+vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.accountActions }));
+vi.mock("@/features/settings/hooks/useConfigFormState", () => ({
+  useConfigFormState: (options: Record<string, unknown>) => options,
+}));
+vi.mock("@/features/settings/components/templates/ConfigFormTemplate", () => ({
+  ConfigFormTemplate: ({ configForm }: { configForm: Record<string, unknown> }) => (
+    <>
+      {configForm.accountFeedback as ReactNode}
+      {typeof configForm.onLogout === "function" && (
+        <button type="button" onClick={configForm.onLogout as () => void}>
+          Logout
+        </button>
+      )}
+    </>
+  ),
+}));
+vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
 import { logout } from "@/action/event";
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
-import { AuthProvider } from "@/auth/AuthContext";
+import { AuthProvider, createAuthStore, useAuth } from "@/auth/AuthContext";
+import { ConfigContainer } from "@/features/settings/containers/ConfigContainer";
 
 afterEach(() => cleanup());
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.auth.currentUser = null;
+  mocks.publishUser = undefined;
+  mocks.operations.length = 0;
+  mocks.accountActions.login.mockResolvedValue(undefined);
+  mocks.accountActions.logout.mockImplementation(logout);
+});
+
+const AuthenticatedSettings = () => (useAuth().status === "authenticated" ? <ConfigContainer /> : null);
 
 it("waits for logout cleanup before bootstrapping the next anonymous UID", async () => {
   let resolveCleanup: () => void = () => undefined;
@@ -107,4 +146,67 @@ it("waits for logout cleanup before bootstrapping the next anonymous UID", async
   expect(clearStudyIndex).toBeGreaterThanOrEqual(0);
   expect(anonymousStartIndex).toBeGreaterThan(clearStudyIndex);
   expect(subscribeBIndex).toBeGreaterThan(anonymousStartIndex);
+});
+
+it("keeps post-sign-out cleanup failures visible and retries only unfinished cleanup", async () => {
+  const userA = { uid: "feedback-uid-a", isAnonymous: false, providerData: [] } as unknown as User;
+  const userB = { uid: "feedback-uid-b", isAnonymous: true, providerData: [] } as unknown as User;
+  const firstCleanupError = new Error("cleanup failed");
+  const retryCleanupError = new Error("retry cleanup failed");
+  let rejectFirstCleanup!: (error: unknown) => void;
+  const firstCleanup = new Promise<void>((_resolve, reject) => {
+    rejectFirstCleanup = reject;
+  });
+  const anonymousBootstrap = new Promise<UserCredential>(() => undefined);
+
+  mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
+    mocks.publishUser = onUser;
+    return vi.fn();
+  });
+  let publishedSignedOut = false;
+  mocks.signOut.mockImplementation(async () => {
+    if (!publishedSignedOut) {
+      publishedSignedOut = true;
+      mocks.publishUser?.(null);
+    }
+  });
+  mocks.signInAnonymously.mockReturnValue(anonymousBootstrap);
+  mocks.cleanupUid
+    .mockReturnValueOnce(firstCleanup)
+    .mockRejectedValueOnce(retryCleanupError)
+    .mockResolvedValueOnce(undefined);
+  mocks.clearStudyStore.mockResolvedValue(undefined);
+
+  const store = createAuthStore({
+    auth: mocks.auth as unknown as Auth,
+    onAuthStateChanged: mocks.onAuthStateChanged,
+    signInAnonymously: mocks.signInAnonymously,
+  });
+  render(
+    <AuthProvider store={store}>
+      <AuthenticatedSettings />
+    </AuthProvider>
+  );
+  act(() => mocks.publishUser?.(userA));
+  fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
+  await waitFor(() => expect(screen.queryByRole("button", { name: "Logout" })).not.toBeInTheDocument());
+  await act(async () => rejectFirstCleanup(firstCleanupError));
+  act(() => mocks.publishUser?.(userB));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+  expect(mocks.signOut).toHaveBeenCalledOnce();
+  expect(mocks.cleanupUid).toHaveBeenCalledOnce();
+  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
+
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledTimes(2));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+  expect(mocks.signOut).toHaveBeenCalledOnce();
+  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
+
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+  expect(mocks.cleanupUid).toHaveBeenCalledTimes(3);
+  expect(mocks.signOut).toHaveBeenCalledOnce();
+  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
 });
