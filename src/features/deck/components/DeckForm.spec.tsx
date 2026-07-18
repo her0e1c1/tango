@@ -21,7 +21,6 @@ const createProps = (overrides: Partial<DeckFormProps> = {}): DeckFormProps => (
     name: { name: "name", value: "Japanese vocabulary", onChange: vi.fn() },
     convertToBr: { name: "convertToBr", checked: true, onChange: vi.fn() },
     url: { name: "url", value: "https://example.com/deck.csv", onChange: vi.fn() },
-    isPublic: { name: "isPublic", checked: true, onChange: vi.fn() },
     category: {
       name: "category",
       value: "language",
@@ -38,7 +37,7 @@ const createProps = (overrides: Partial<DeckFormProps> = {}): DeckFormProps => (
 describe("DeckForm", () => {
   afterEach(cleanup);
 
-  it("groups deck details, availability, and metadata while preserving field values and callbacks", async () => {
+  it("groups editable settings and deck information while preserving field values and callbacks", async () => {
     const props = createProps();
     const view = render(<DeckForm {...props} />);
     const name = view.container.querySelector("input[name='name']") as HTMLInputElement;
@@ -46,13 +45,17 @@ describe("DeckForm", () => {
     const url = view.container.querySelector("input[name='url']") as HTMLInputElement;
     const category = view.container.querySelector("select[name='category']") as HTMLSelectElement;
 
-    expect(view.getByRole("heading", { level: 2, name: "Deck details" })).toBeVisible();
-    expect(view.getByRole("heading", { level: 2, name: "Availability" })).toBeVisible();
-    expect(view.getByRole("heading", { level: 2, name: "Metadata" })).toBeVisible();
+    expect(view.getByRole("heading", { level: 2, name: "Basic information" })).toBeVisible();
+    expect(view.getByRole("heading", { level: 2, name: "Import & formatting" })).toBeVisible();
+    const deckInformation = view.getByText("Deck information");
+    expect(deckInformation).toBeVisible();
+    expect(view.queryByText("Public")).not.toBeInTheDocument();
+    expect(view.container.querySelector("input[name='isPublic']")).not.toBeInTheDocument();
     expect(name).toHaveValue("Japanese vocabulary");
     expect(convertToBr).toBeChecked();
     expect(url).toHaveValue("https://example.com/deck.csv");
     expect(category).toHaveValue("language");
+    await userEvent.click(deckInformation);
     expect(view.getByText("deck-123")).toBeVisible();
     expect(view.getByText(new Date(Date.UTC(2026, 0, 2)).toLocaleDateString())).toBeVisible();
     expect(view.getByText(new Date(Date.UTC(2026, 1, 3)).toLocaleDateString())).toBeVisible();
@@ -68,14 +71,6 @@ describe("DeckForm", () => {
     expect(props.fields.category.onChange).toHaveBeenCalledOnce();
   });
 
-  it("keeps Public disabled with explicit unavailable help", () => {
-    const view = render(<DeckForm {...createProps()} />);
-
-    expect(view.container.querySelector("input[name='isPublic']")).toBeDisabled();
-    expect(view.container.querySelector("input[name='isPublic']")).toBeChecked();
-    expect(view.getAllByText(/not available yet/i)).toHaveLength(1);
-  });
-
   it("uses unique section heading relationships for each form instance", () => {
     const view = render(
       <>
@@ -86,8 +81,8 @@ describe("DeckForm", () => {
     const sections = view.container.querySelectorAll("section[aria-labelledby]");
     const labelledByIds = Array.from(sections, (section) => section.getAttribute("aria-labelledby"));
 
-    expect(sections).toHaveLength(6);
-    expect(new Set(labelledByIds).size).toBe(6);
+    expect(sections).toHaveLength(4);
+    expect(new Set(labelledByIds).size).toBe(4);
     for (const section of sections) {
       const headingId = section.getAttribute("aria-labelledby");
       expect(headingId).not.toBeNull();
@@ -95,21 +90,26 @@ describe("DeckForm", () => {
     }
   });
 
-  it("submits when idle and has no cancel action", async () => {
+  it("submits or cancels from the action row", async () => {
     const onSubmit = vi.fn((event?: React.FormEvent) => event?.preventDefault());
-    const view = render(<DeckForm {...createProps({ isSubmitting: false, onSubmit })} />);
-    const save = view.getByRole("button", { name: "Save" });
+    const onCancel = vi.fn();
+    const view = render(<DeckForm {...createProps({ isSubmitting: false, onSubmit, onCancel })} />);
+    const cancel = view.getByRole("button", { name: "Cancel" });
+    const save = view.getByRole("button", { name: "Save changes" });
 
+    await userEvent.click(cancel);
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onSubmit).not.toHaveBeenCalled();
     expect(save).toBeEnabled();
-    expect(view.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument();
     await userEvent.click(save);
 
     expect(onSubmit).toHaveBeenCalledOnce();
   });
 
-  it("disables Save only while submitting", () => {
+  it("shows a disabled saving action while submitting", () => {
     const view = render(<DeckForm {...createProps({ isSubmitting: true })} />);
 
-    expect(view.getByRole("button", { name: "Save" })).toBeDisabled();
+    expect(view.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    expect(view.getByRole("button", { name: "Cancel" })).toBeEnabled();
   });
 });
