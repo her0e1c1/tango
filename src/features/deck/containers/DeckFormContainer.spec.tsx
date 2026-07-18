@@ -142,6 +142,6 @@ describe("DeckFormContainer", () => {
   it("preserves the invalid route error", () => {
     mocks.params.id = undefined;
 
-    expect(() => DeckFormContainer({})).toThrowError("invalid deck id");
+    expect(() => render(<DeckFormContainer />)).toThrowError("invalid deck id");
   });
 });

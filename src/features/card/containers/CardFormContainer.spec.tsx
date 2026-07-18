@@ -124,6 +124,6 @@ describe("CardFormContainer", () => {
   it("preserves the invalid route error", () => {
     mocks.params.id = undefined;
 
-    expect(() => CardFormContainer({})).toThrowError("invalid card id");
+    expect(() => render(<CardFormContainer />)).toThrowError("invalid card id");
   });
 });
