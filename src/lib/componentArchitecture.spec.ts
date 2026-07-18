@@ -16,7 +16,7 @@ const connectorModules = [
   "@/action",
   "@/query",
   "@/store",
-  "@/shared/hooks",
+  "@/hooks",
 ];
 
 function sourcePath(relativePath: string): string {
@@ -105,7 +105,7 @@ function expectStatelessPresentation(relativePath: string): void {
 }
 
 function isContainerSupportHook(specifier: string): boolean {
-  return isModuleOrSubpath(specifier, "@/shared/hooks") || /^@\/features\/[^/]+\/hooks\/use[A-Z][^/]*$/.test(specifier);
+  return isModuleOrSubpath(specifier, "@/hooks") || /^@\/features\/[^/]+\/hooks\/use[A-Z][^/]*$/.test(specifier);
 }
 
 function canImportContainerSupportHook(relativePath: string): boolean {
@@ -129,11 +129,11 @@ function expectSharedComponentGroup(
   extraFiles: string[] = []
 ): void {
   const groupedPaths = [
-    ...componentNames.map((name) => `shared/components/${group}/${name}.tsx`),
-    ...storyNames.map((name) => `shared/components/${group}/${name}.stories.tsx`),
-    ...extraFiles.map((name) => `shared/components/${group}/${name}`),
+    ...componentNames.map((name) => `components/${group}/${name}.tsx`),
+    ...storyNames.map((name) => `components/${group}/${name}.stories.tsx`),
+    ...extraFiles.map((name) => `components/${group}/${name}`),
   ];
-  const legacyPaths = groupedPaths.map((groupedPath) => `shared/components/${path.posix.basename(groupedPath)}`);
+  const legacyPaths = groupedPaths.map((groupedPath) => `components/${path.posix.basename(groupedPath)}`);
 
   expect(groupedPaths.filter((relativePath) => !existsSync(sourcePath(relativePath)))).toEqual([]);
   expect(legacyPaths.filter((relativePath) => existsSync(sourcePath(relativePath)))).toEqual([]);
@@ -141,7 +141,7 @@ function expectSharedComponentGroup(
 
 describe("component architecture", () => {
   it("normalizes baseUrl source imports before checking boundaries", () => {
-    expect(resolveModuleSpecifier("shared/components/content/Card.tsx", "src/action")).toBe("@/action");
+    expect(resolveModuleSpecifier("components/content/Card.tsx", "src/action")).toBe("@/action");
   });
 
   it("treats Query APIs as presentation connectors across import styles", () => {
@@ -160,7 +160,7 @@ describe("component architecture", () => {
   });
 
   it("recognizes container-support hook paths and consumers", () => {
-    expect(isContainerSupportHook("@/shared/hooks/useActions")).toBe(true);
+    expect(isContainerSupportHook("@/hooks/useActions")).toBe(true);
     expect(isContainerSupportHook("@/features/deck/hooks/useDeckActions")).toBe(true);
     expect(isContainerSupportHook("@/features/deck/containers/useDeckActions")).toBe(false);
     expect(canImportContainerSupportHook("features/deck/containers/DeckListContainer.tsx")).toBe(true);
@@ -256,7 +256,7 @@ describe("component architecture", () => {
 
   it("keeps the exact shared component groups", () => {
     expect(
-      readdirSync(sourcePath("shared/components"))
+      readdirSync(sourcePath("components"))
         .filter((entry) => entry !== ".DS_Store")
         .sort()
     ).toEqual(["content", "feedback", "forms", "index.ts", "layout"].sort());
@@ -294,7 +294,7 @@ describe("component architecture", () => {
   it("keeps shared presentation independent from features and application connectors", () => {
     const violations: string[] = [];
 
-    for (const sharedPath of productionFilesUnder("shared/components")) {
+    for (const sharedPath of productionFilesUnder("components")) {
       expectStatelessPresentation(sharedPath);
       violations.push(
         ...moduleReferences(sharedPath)
@@ -321,7 +321,7 @@ describe("component architecture", () => {
             .filter(
               (reference) =>
                 reference.resolvedSpecifier.startsWith("@/") &&
-                !isModuleOrSubpath(reference.resolvedSpecifier, "@/shared/components") &&
+                !isModuleOrSubpath(reference.resolvedSpecifier, "@/components") &&
                 !isModuleOrSubpath(reference.resolvedSpecifier, `@/features/${featureName}/components`)
             )
             .map((reference) => importViolation(componentPath, reference))

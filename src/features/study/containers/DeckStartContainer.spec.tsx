@@ -25,7 +25,7 @@ vi.mock("@/features/deck/hooks/useDeckActions", () => ({
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({ start: mocks.start }),
 }));
-vi.mock("@/shared/hooks/useActions", () => ({
+vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({ setDarkMode: vi.fn(), goToTop: vi.fn(), goByMenu: vi.fn() }),
 }));
 vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({

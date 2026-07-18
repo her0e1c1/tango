@@ -66,7 +66,7 @@ vi.mock("@/features/study/hooks/useStudyHydrated", () => ({
   useStudyHydrated: () => mocks.hydrated,
 }));
 
-vi.mock("@/shared/hooks/useActions", () => ({
+vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     toggleShowHeader: mocks.toggleShowHeader,
     toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,

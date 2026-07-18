@@ -25,7 +25,7 @@ vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
 
-vi.mock("@/shared/hooks/useActions", () => ({
+vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goByMenu: vi.fn(),

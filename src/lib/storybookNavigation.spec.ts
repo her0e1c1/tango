@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-const sharedComponentsRoot = path.resolve(process.cwd(), "src/shared/components");
+const sharedComponentsRoot = path.resolve(process.cwd(), "src/components");
 const storyGroups = {
   content: "Content",
   feedback: "Feedback",

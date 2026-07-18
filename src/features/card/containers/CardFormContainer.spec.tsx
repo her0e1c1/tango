@@ -35,7 +35,7 @@ vi.mock("@/features/card/hooks/useCardMutations", () => ({
   }),
 }));
 
-vi.mock("@/shared/hooks/useActions", () => ({
+vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goByMenu: vi.fn(),

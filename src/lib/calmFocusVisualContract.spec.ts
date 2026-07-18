@@ -3,9 +3,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const sourceRoot = path.resolve(process.cwd(), "src");
-const calmFocusStylesheet = "shared/styles/calm-focus.css";
+const calmFocusStylesheet = "styles/calm-focus.css";
 const storybookPreview = readFileSync(path.resolve(process.cwd(), ".storybook/preview.ts"), "utf8");
-const layoutStories = readFileSync(path.join(sourceRoot, "shared/components/layout/Layout.stories.tsx"), "utf8");
+const layoutStories = readFileSync(path.join(sourceRoot, "components/layout/Layout.stories.tsx"), "utf8");
 const utilityRoutePresentationFiles = [
   "features/deck/components/DeckForm.tsx",
   "features/deck/components/templates/DeckFormTemplate.tsx",
@@ -32,34 +32,34 @@ const pendingUtilityRoutePresentationFiles = utilityRoutePresentationFiles.filte
 );
 const pendingUtilityRoutePresentationFileSet = new Set<string>(pendingUtilityRoutePresentationFiles);
 const ownedPresentationFiles = [
-  "shared/components/layout/Outer.tsx",
-  "shared/components/layout/Main.tsx",
-  "shared/components/layout/Layout.tsx",
-  "shared/components/layout/Header.tsx",
-  "shared/components/layout/List.tsx",
-  "shared/components/layout/FullScreen.tsx",
-  "shared/components/content/Logo.tsx",
-  "shared/components/content/Card.tsx",
-  "shared/components/content/Title.tsx",
-  "shared/components/content/Section.tsx",
-  "shared/components/content/Description.tsx",
-  "shared/components/content/Style.tsx",
-  "shared/components/content/TagList.tsx",
-  "shared/components/content/Score.tsx",
-  "shared/components/content/Code.tsx",
-  "shared/components/content/Math.tsx",
-  "shared/components/feedback/Feedback.tsx",
-  "shared/components/feedback/Overlay.tsx",
-  "shared/components/forms/Button.tsx",
-  "shared/components/forms/Form.tsx",
-  "shared/components/forms/FormItem.tsx",
-  "shared/components/forms/Input.tsx",
-  "shared/components/forms/Select.tsx",
-  "shared/components/forms/Textarea.tsx",
-  "shared/components/forms/Slider.tsx",
-  "shared/components/forms/Switch.tsx",
-  "shared/components/forms/Tag.tsx",
-  "shared/components/forms/Upload.tsx",
+  "components/layout/Outer.tsx",
+  "components/layout/Main.tsx",
+  "components/layout/Layout.tsx",
+  "components/layout/Header.tsx",
+  "components/layout/List.tsx",
+  "components/layout/FullScreen.tsx",
+  "components/content/Logo.tsx",
+  "components/content/Card.tsx",
+  "components/content/Title.tsx",
+  "components/content/Section.tsx",
+  "components/content/Description.tsx",
+  "components/content/Style.tsx",
+  "components/content/TagList.tsx",
+  "components/content/Score.tsx",
+  "components/content/Code.tsx",
+  "components/content/Math.tsx",
+  "components/feedback/Feedback.tsx",
+  "components/feedback/Overlay.tsx",
+  "components/forms/Button.tsx",
+  "components/forms/Form.tsx",
+  "components/forms/FormItem.tsx",
+  "components/forms/Input.tsx",
+  "components/forms/Select.tsx",
+  "components/forms/Textarea.tsx",
+  "components/forms/Slider.tsx",
+  "components/forms/Switch.tsx",
+  "components/forms/Tag.tsx",
+  "components/forms/Upload.tsx",
   "features/deck/components/DeckCard.tsx",
   "features/deck/components/DeckStartForm.tsx",
   "features/deck/components/TagFilter.tsx",
@@ -166,7 +166,7 @@ describe("Calm Focus visual contract", () => {
       /import\s+\{\s*withThemeByClassName\s*\}\s+from\s+["']@storybook\/addon-themes["'];/
     );
     expect(storybookPreview).toMatch(
-      /import\s+\{\s*INITIAL_VIEWPORTS\s*\}\s+from\s+["']\.\.\/src\/shared\/storybook\/storybookViewports(?:\.ts)?["'];/
+      /import\s+\{\s*INITIAL_VIEWPORTS\s*\}\s+from\s+["']\.\.\/src\/storybook\/storybookViewports(?:\.ts)?["'];/
     );
     expect(storybookPreview).toMatch(
       /decorators:\s*\[\s*withThemeByClassName\(\s*\{[\s\S]*themes:\s*\{\s*light:\s*["']light["'],\s*dark:\s*["']dark["'],?\s*\}[\s\S]*defaultTheme:\s*["']light["'][\s\S]*\}\s*\),?\s*\]/
@@ -186,7 +186,7 @@ describe("Calm Focus visual contract", () => {
 
   it("loads the Calm Focus stylesheet from the app entry point", () => {
     expect(existsSync(sourcePath(calmFocusStylesheet))).toBe(true);
-    expect(readSource("index.css")).toMatch(/@import\s+["']\.\/shared\/styles\/calm-focus\.css["'];/);
+    expect(readSource("index.css")).toMatch(/@import\s+["']\.\/styles\/calm-focus\.css["'];/);
   });
 
   it("defines every semantic color role for light and dark modes", () => {

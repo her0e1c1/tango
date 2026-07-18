@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { DeckForm as Template, type DeckFormFields } from "@/features/deck/components/DeckForm";
-import * as fixture from "@/shared/storybook/fixture";
-import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 const fieldsFor = (deck: Deck): DeckFormFields => ({
   name: { value: deck.name, onChange: () => undefined },

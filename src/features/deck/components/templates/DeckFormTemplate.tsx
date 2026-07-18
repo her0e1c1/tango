@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 
-import { Layout } from "@/shared/components/layout/Layout";
+import { Layout } from "@/components/layout/Layout";
 import { DeckForm, type DeckFormProps } from "@/features/deck/components/DeckForm";
 
 export interface DeckFormTemplateProps {

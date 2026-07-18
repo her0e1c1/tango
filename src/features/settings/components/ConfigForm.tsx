@@ -3,7 +3,7 @@ import { useId } from "react";
 import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool, AiOutlineUser } from "react-icons/ai";
 
 import { SettingsRow, SettingsSection } from "@/features/settings/components/SettingsSection";
-import { Button, Input, Slider, Switch } from "@/shared/components";
+import { Button, Input, Slider, Switch } from "@/components";
 
 export interface ConfigFormFields {
   showHeader: React.ComponentProps<typeof Switch>;
