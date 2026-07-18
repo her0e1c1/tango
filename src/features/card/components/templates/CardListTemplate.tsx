@@ -1,17 +1,25 @@
-import type * as React from "react";
-import { List, Overlay } from "@/shared/components";
-import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
+import * as React from "react";
+
 import { BackText, type BackTextProps } from "@/features/card/components/BackText";
 import { Card, type CardProps } from "@/features/card/components/Card";
+import { Overlay } from "@/shared/components";
+import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
 
 export interface CardListOverlayProps {
   backText: BackTextProps;
   onClose?: () => void;
 }
 
+export interface CardListFilterState {
+  scoreMax: number | null;
+  scoreMin: number | null;
+  selectedTags: string[];
+}
+
 export interface CardListTemplateProps {
   cards: Card[];
   layout?: LayoutProps;
+  filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
   card?: CardProps;
   overlay?: CardListOverlayProps;
@@ -20,7 +28,59 @@ export interface CardListTemplateProps {
   isCardPending?: (id: CardId) => boolean;
 }
 
+const countLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
+
+const scoreRangeLabel = (filter: CardListFilterState) => {
+  if (filter.scoreMin != null && filter.scoreMax != null) return `score ${filter.scoreMin}–${filter.scoreMax}`;
+  if (filter.scoreMin != null) return `score ≥ ${filter.scoreMin}`;
+  if (filter.scoreMax != null) return `score ≤ ${filter.scoreMax}`;
+  return undefined;
+};
+
+const filterLabel = (filter: CardListFilterState) => {
+  const labels: string[] = [];
+  const score = scoreRangeLabel(filter);
+  if (score != null) labels.push(score);
+  if (filter.selectedTags.length > 0) {
+    labels.push(`${filter.selectedTags.length} ${filter.selectedTags.length === 1 ? "tag" : "tags"}`);
+  }
+  return labels.length > 0 ? labels.join(" · ") : "No filters";
+};
+
+const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selectedTags: [] };
+
+const CardListRows: React.FC<Pick<CardListTemplateProps, "cards" | "card" | "onShowCard" | "isCardPending">> = (
+  props
+) => {
+  const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
+
+  return (
+    <div className="overflow-visible rounded-surface border border-border bg-surface shadow-surface">
+      {props.cards.map((card) => (
+        <Card
+          key={card.id}
+          card={card}
+          disabled={props.isCardPending?.(card.id) ?? false}
+          menuOpen={openMenuCardId === card.id}
+          onToggleMenu={(id) => setOpenMenuCardId((value) => (value === id ? undefined : id))}
+          onCloseMenu={() => setOpenMenuCardId(undefined)}
+          {...(props.card?.onSwipedLeft !== undefined ? { onSwipedLeft: props.card.onSwipedLeft } : {})}
+          {...(props.card?.onSwipedRight !== undefined ? { onSwipedRight: props.card.onSwipedRight } : {})}
+          {...(props.card?.onDelete !== undefined ? { onDelete: props.card.onDelete } : {})}
+          {...(props.card?.goToEdit !== undefined ? { goToEdit: props.card.goToEdit } : {})}
+          goToView={() => {
+            setOpenMenuCardId(undefined);
+            props.onShowCard?.(card);
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
+  const filter = props.filter ?? emptyFilter;
+
   return (
     <Layout showHeader {...props.layout}>
       {props.feedbackSlot}
@@ -34,24 +94,40 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
           <BackText {...props.overlay.backText} />
         </Overlay>
       )}
-      <details className="max-h-screen rounded-surface border border-border bg-surface-muted p-3">
-        <summary className="mb-1 cursor-pointer border-b border-border pb-1 font-semibold text-ink">filter</summary>
-        {props.filterSlot}
-      </details>
-      <List col1>
-        {props.cards?.map((c) => (
-          <Card
-            key={c.id}
-            card={c}
-            disabled={props.isCardPending?.(c.id) ?? false}
-            {...(props.card?.onSwipedLeft !== undefined ? { onSwipedLeft: props.card.onSwipedLeft } : {})}
-            {...(props.card?.onSwipedRight !== undefined ? { onSwipedRight: props.card.onSwipedRight } : {})}
-            {...(props.card?.onDelete !== undefined ? { onDelete: props.card.onDelete } : {})}
-            {...(props.card?.goToEdit !== undefined ? { goToEdit: props.card.goToEdit } : {})}
-            goToView={() => props.onShowCard?.(c)}
-          />
-        ))}
-      </List>
+
+      <div className="flex items-baseline justify-between gap-3">
+        <h1 className="break-words text-title font-bold text-ink">Cards</h1>
+        <span className="shrink-0 text-caption text-ink-muted">{countLabel(props.cards.length)}</span>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <details className="rounded-surface border border-border bg-surface shadow-surface">
+          <summary className="flex min-h-touch cursor-pointer items-center justify-between gap-3 rounded-surface px-3 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <span>Filters</span>
+            <span className="min-w-0 truncate text-caption font-medium text-ink-muted">{filterLabel(filter)}</span>
+          </summary>
+          <div className="border-t border-border p-3">{props.filterSlot}</div>
+        </details>
+        {filter.selectedTags.length > 0 && (
+          <ul className="flex list-none flex-wrap gap-1 px-1">
+            {filter.selectedTags.map((tag) => (
+              <li key={tag} className="rounded-pill bg-surface-muted px-2 py-1 text-xs font-medium text-ink">
+                {tag}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {props.cards.length > 0 && (
+        <CardListRows
+          key={JSON.stringify(props.cards.map((card) => card.id))}
+          cards={props.cards}
+          {...(props.card !== undefined ? { card: props.card } : {})}
+          {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
+          {...(props.isCardPending !== undefined ? { isCardPending: props.isCardPending } : {})}
+        />
+      )}
     </Layout>
   );
 };

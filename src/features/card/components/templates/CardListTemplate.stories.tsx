@@ -27,6 +27,8 @@ const longDeckStartForm: DeckStartFormProps = {
   tagFilterProps: { ...deckStartForm.tagFilterProps, tags: [...fixture.tags.toolong] },
 };
 
+const activeFilter = { scoreMax: 1, scoreMin: -1, selectedTags: ["tag 1", "tag 2"] };
+
 const meta = {
   title: "Card/CardListTemplate",
   component: Template,
@@ -40,6 +42,7 @@ const meta = {
   },
   args: {
     cards: fixture.cards.default,
+    filter: activeFilter,
     filterSlot: <DeckStartForm {...deckStartForm} />,
   },
 } satisfies Meta<typeof Template>;
@@ -70,22 +73,21 @@ export const CardView: Story = {
 
 export const DarkCardView: Story = { ...CardView, globals: { theme: "dark" } };
 
+export const Dark: Story = { globals: { theme: "dark" } };
+
+export const Pending: Story = {
+  args: { isCardPending: (id) => id === fixture.cards.default[0]?.id },
+};
+
 export const IphoneX: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  parameters: { viewport: { defaultViewport: "iphonex" } },
 };
 
 export const IphoneXLong: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  parameters: { viewport: { defaultViewport: "iphonex" } },
   args: {
     filterSlot: <DeckStartForm {...longDeckStartForm} />,
+    filter: { scoreMax: 1, scoreMin: -1, selectedTags: [...fixture.tags.toolong] },
     cards: fixture.cards.long,
   },
 };
