@@ -22,7 +22,7 @@ const fields: ConfigFormFields = {
 describe("ConfigFormTemplate", () => {
   afterEach(cleanup);
 
-  it("composes the config form under one page heading in a bounded semantic surface", () => {
+  it("composes the config form under a compact page heading without a redundant surface", () => {
     const view = render(
       <ConfigFormTemplate
         configForm={{
@@ -35,20 +35,13 @@ describe("ConfigFormTemplate", () => {
     );
 
     const heading = view.getByRole("heading", { level: 1, name: "Settings" });
-    const surface = heading.parentElement;
+    const shell = heading.closest("section");
 
     expect(view.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(surface).toHaveClass(
-      "mx-auto",
-      "w-full",
-      "max-w-reading",
-      "rounded-surface",
-      "border",
-      "border-border",
-      "bg-surface",
-      "p-4",
-      "md:p-6"
-    );
-    expect(surface).toContainElement(view.getByRole("heading", { level: 2, name: "Account" }).closest("section"));
+    expect(shell).toHaveClass("mx-auto", "w-full", "max-w-reading");
+    expect(shell).not.toHaveClass("rounded-surface", "border", "bg-surface");
+    expect(heading).toHaveClass("text-title");
+    expect(view.getByText("Changes are saved automatically")).toHaveClass("text-ink-muted");
+    expect(shell).toContainElement(view.getByRole("heading", { level: 2, name: "Account" }).closest("section"));
   });
 });

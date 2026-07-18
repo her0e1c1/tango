@@ -2,6 +2,7 @@ import type * as React from "react";
 import cx from "classnames";
 
 export const Input: React.FC<{
+  id?: string;
   className?: string;
   name?: string;
   type?: string;
@@ -15,6 +16,7 @@ export const Input: React.FC<{
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   inputRef?: React.Ref<HTMLInputElement>;
 }> = ({
+  id,
   className,
   name,
   type,
@@ -31,6 +33,7 @@ export const Input: React.FC<{
   return (
     <input
       ref={inputRef}
+      id={id}
       type={type}
       name={name}
       defaultValue={defaultValue}

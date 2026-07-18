@@ -42,6 +42,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
     useCardInterval: `${idPrefix}-use-card-interval`,
     defaultAutoPlay: `${idPrefix}-start-autoplay`,
     cardInterval: `${idPrefix}-autoplay-interval`,
+    githubAccessToken: `${idPrefix}-github-access-token`,
   };
   const advancedHeadingId = `${idPrefix}-advanced-heading`;
   const descriptionId = (inputId: string) => `${inputId}-description`;
@@ -67,30 +68,18 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
             </div>
           </div>
           {props.isLoggedIn ? (
-            <Button
-              variant="quiet"
-              size="sm"
-              {...(props.onLogout !== undefined ? { onClick: props.onLogout } : {})}
-            >
+            <Button variant="quiet" size="sm" {...(props.onLogout !== undefined ? { onClick: props.onLogout } : {})}>
               Logout
             </Button>
           ) : (
-            <Button
-              variant="primary"
-              size="sm"
-              {...(props.onLogin !== undefined ? { onClick: props.onLogin } : {})}
-            >
+            <Button variant="primary" size="sm" {...(props.onLogin !== undefined ? { onClick: props.onLogin } : {})}>
               Login
             </Button>
           )}
         </div>
       </SettingsSection>
 
-      <SettingsSection
-        title="Appearance"
-        description="Navigation and visual feedback"
-        icon={<AiOutlineEye />}
-      >
+      <SettingsSection title="Appearance" description="Navigation and visual feedback" icon={<AiOutlineEye />}>
         <SettingsRow inputId={inputIds.showHeader} label="Show header" description="Keep app navigation visible">
           <Switch
             {...props.fields.showHeader}
@@ -180,11 +169,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
             aria-describedby={descriptionId(inputIds.defaultAutoPlay)}
           />
         </SettingsRow>
-        <SettingsRow
-          inputId={inputIds.cardInterval}
-          label="Autoplay interval"
-          description="Seconds between cards"
-        >
+        <SettingsRow inputId={inputIds.cardInterval} label="Autoplay interval" description="Seconds between cards">
           <div className="flex w-32 items-center gap-2 sm:w-52">
             <Slider
               {...props.fields.cardInterval}
@@ -226,14 +211,18 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
             <span className="text-body font-medium text-ink">Version</span>
             <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.version}</span>
           </div>
-          <label className="block px-4 py-3">
-            <span className="text-body font-medium text-ink">Github Access Token</span>
+          <div className="px-4 py-3">
+            <label htmlFor={inputIds.githubAccessToken} className="text-body font-medium text-ink">
+              Github Access Token
+            </label>
             <span className="block text-caption text-ink-muted">Used when importing private GitHub content</span>
-            <Input className="mt-2" {...props.fields.githubAccessToken} />
-          </label>
+            <Input className="mt-2" {...props.fields.githubAccessToken} id={inputIds.githubAccessToken} />
+          </div>
           <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
             <span className="shrink-0 text-body font-medium text-ink">User ID</span>
-            <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.identity?.uid ?? ""}</span>
+            <span className="min-w-0 break-all text-right text-caption text-ink-muted">
+              {props.identity?.uid ?? ""}
+            </span>
           </div>
         </div>
       </details>

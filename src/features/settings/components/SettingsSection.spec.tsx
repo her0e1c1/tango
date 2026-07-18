@@ -28,10 +28,7 @@ describe("settings presentation", () => {
     );
 
     expect(screen.getByText("Dark mode")).toHaveAttribute("for", "dark-mode");
-    expect(screen.getByText("Use the darker Calm Focus palette")).toHaveAttribute(
-      "id",
-      "dark-mode-description"
-    );
+    expect(screen.getByText("Use the darker Calm Focus palette")).toHaveAttribute("id", "dark-mode-description");
   });
 
   it("keeps the row and control region touch friendly", () => {

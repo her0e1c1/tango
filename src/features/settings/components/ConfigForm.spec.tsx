@@ -69,10 +69,7 @@ describe("ConfigForm", () => {
     expect(view.getByRole("checkbox", { name: "Use card interval" })).toBeChecked();
     expect(view.getByRole("slider", { name: "Maximum cards" })).toHaveValue("24");
     expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("7");
-    expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveAttribute(
-      "aria-valuetext",
-      "7 seconds"
-    );
+    expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveAttribute("aria-valuetext", "7 seconds");
     expect(view.container.querySelector("input[name='githubAccessToken']")).toHaveValue("github-token");
     expect(view.getByText("24")).toBeInTheDocument();
     expect(view.getByText("7s")).toBeInTheDocument();

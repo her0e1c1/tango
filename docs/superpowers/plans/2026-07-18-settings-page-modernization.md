@@ -300,7 +300,7 @@ Change the template test to require:
 
 ```tsx
 const heading = view.getByRole("heading", { level: 1, name: "Settings" });
-const shell = heading.parentElement;
+const shell = heading.closest("section");
 
 expect(shell).toHaveClass("mx-auto", "w-full", "max-w-reading");
 expect(shell).not.toHaveClass("rounded-surface", "border", "bg-surface");

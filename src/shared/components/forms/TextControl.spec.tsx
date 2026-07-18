@@ -23,6 +23,17 @@ const sharedVisualClasses = [
 ];
 
 describe("shared text controls", () => {
+  it("forwards an id so external labels can name the input", () => {
+    render(
+      <>
+        <label htmlFor="github-token">GitHub access token</label>
+        <Input id="github-token" />
+      </>
+    );
+
+    expect(screen.getByRole("textbox", { name: "GitHub access token" })).toHaveAttribute("id", "github-token");
+  });
+
   it("keeps native input values, refs, and handlers", () => {
     const inputRef = createRef<HTMLInputElement>();
     const onChange = vi.fn();
