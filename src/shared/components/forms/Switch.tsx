@@ -2,6 +2,7 @@ import cx from "classnames";
 import type * as React from "react";
 
 export const Switch: React.FC<{
+  id?: string;
   className?: string;
   small?: boolean;
   large?: boolean;
@@ -12,11 +13,28 @@ export const Switch: React.FC<{
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   inputRef?: React.Ref<HTMLInputElement>;
-}> = ({ className, small, large, checked, disabled, name, value, onChange, onBlur, inputRef }) => {
+  "aria-label"?: string;
+  "aria-describedby"?: string;
+}> = ({
+  id,
+  className,
+  small,
+  large,
+  checked,
+  disabled,
+  name,
+  value,
+  onChange,
+  onBlur,
+  inputRef,
+  "aria-label": ariaLabel,
+  "aria-describedby": ariaDescribedBy,
+}) => {
   return (
     <label className={cx("inline-flex min-h-touch min-w-touch items-center justify-center", className)}>
       <input
         ref={inputRef}
+        id={id}
         name={name}
         checked={checked}
         value={value}
@@ -25,6 +43,8 @@ export const Switch: React.FC<{
         type="checkbox"
         className="hidden peer"
         disabled={disabled}
+        aria-label={ariaLabel}
+        aria-describedby={ariaDescribedBy}
       />
       <span
         className={cx(
