@@ -255,7 +255,13 @@ describe("component architecture", () => {
   });
 
   it("groups shared feedback components", () => {
-    expectSharedComponentGroup("feedback", ["Feedback", "Overlay"]);
+    expectSharedComponentGroup("feedback", [
+      "Feedback",
+      "Overlay",
+      "RemoteMutationNotice",
+      "RemoteReadBoundary",
+      "RouteFeedback",
+    ]);
   });
 
   it("keeps the exact shared component groups", () => {

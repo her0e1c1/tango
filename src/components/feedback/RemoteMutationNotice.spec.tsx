@@ -28,4 +28,23 @@ describe("RemoteMutationNotice", () => {
     fireEvent.click(view.getByRole("button", { name: "Retry" }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
+
+  it("uses a custom pending label", () => {
+    const view = render(<RemoteMutationNotice pending error={null} onRetry={vi.fn()} pendingLabel="Deleting deck…" />);
+
+    expect(view.getByRole("status")).toHaveTextContent("Deleting deck…");
+  });
+
+  it("uses a custom error label", () => {
+    const view = render(
+      <RemoteMutationNotice
+        pending={false}
+        error={new Error("delete failed")}
+        onRetry={vi.fn()}
+        errorLabel="Unable to delete deck."
+      />
+    );
+
+    expect(view.getByRole("alert")).toHaveTextContent("Unable to delete deck.");
+  });
 });

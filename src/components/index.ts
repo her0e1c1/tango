@@ -4,6 +4,7 @@ export * from "@/components/content/Card";
 export * from "@/components/content/Code";
 export * from "@/components/content/Description";
 export * from "@/components/feedback/Feedback";
+export * from "@/components/feedback/RouteFeedback";
 export * from "@/components/feedback/RemoteReadBoundary";
 export * from "@/components/feedback/RemoteMutationNotice";
 export * from "@/components/feedback/buttonInteraction";

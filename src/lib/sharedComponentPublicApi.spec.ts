@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import * as Shared from "@/components";
-import type { ActionsMenuItem, ActionsMenuProps, HeaderProps, LayoutProps, Option } from "@/components";
+import type {
+  ActionsMenuItem,
+  ActionsMenuProps,
+  HeaderProps,
+  LayoutProps,
+  Option,
+  RemoteMutationNoticeProps,
+  RemoteReadBoundaryProps,
+  RouteFeedbackAction,
+  RouteFeedbackProps,
+} from "@/components";
 
 const components = {
   ActionsMenu: Shared.ActionsMenu,
@@ -21,6 +31,9 @@ const components = {
   MathContent: Shared.MathContent,
   Outer: Shared.Outer,
   Overlay: Shared.Overlay,
+  RemoteMutationNotice: Shared.RemoteMutationNotice,
+  RemoteReadBoundary: Shared.RemoteReadBoundary,
+  RouteFeedback: Shared.RouteFeedback,
   Score: Shared.Score,
   Section: Shared.Section,
   Select: Shared.Select,
@@ -41,13 +54,21 @@ describe("component public API", () => {
       _actionsMenuItem: ActionsMenuItem,
       _header: HeaderProps,
       _layout: LayoutProps,
-      _option: Option
+      _option: Option,
+      _remoteMutationNotice: RemoteMutationNoticeProps,
+      _remoteReadBoundary: RemoteReadBoundaryProps,
+      _routeFeedback: RouteFeedbackProps,
+      _routeFeedbackAction: RouteFeedbackAction
     ) => {
       void _actionsMenu;
       void _actionsMenuItem;
       void _header;
       void _layout;
       void _option;
+      void _remoteMutationNotice;
+      void _remoteReadBoundary;
+      void _routeFeedback;
+      void _routeFeedbackAction;
     };
     acceptsTypes(
       {
@@ -62,7 +83,11 @@ describe("component public API", () => {
       { key: "edit", label: "Edit", icon: null },
       {},
       {},
-      { label: "label", value: "value" }
+      { label: "label", value: "value" },
+      { pending: false, error: null, onRetry: () => {} },
+      { status: "idle", hasData: false, onRetry: () => {}, children: null },
+      { title: "Title" },
+      { label: "Continue", onClick: () => {} }
     );
     expect(Object.values(components).every((component) => typeof component === "function")).toBe(true);
   });
