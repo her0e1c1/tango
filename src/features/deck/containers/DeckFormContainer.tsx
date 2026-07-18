@@ -1,11 +1,11 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import * as C from "@/constant";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
+import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
 import { useActions } from "@/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
@@ -67,6 +67,7 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
 
 export const DeckFormContainer: React.FC = () => {
   const params = useParams();
+  const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
   const remote = useRemoteCollections();
@@ -76,7 +77,15 @@ export const DeckFormContainer: React.FC = () => {
     <RemoteReadBoundary
       status={remote.status}
       hasData={deck != null}
-      emptyLabel="Deck not found."
+      emptyContent={
+        <RouteFeedback
+          title="Deck not found"
+          description="The requested deck is unavailable or has been removed."
+          tone="not-found"
+          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        />
+      }
       onRetry={remote.retry}
     >
       {deck != null ? <DeckFormContent deck={deck} /> : null}
