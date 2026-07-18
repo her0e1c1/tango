@@ -19,6 +19,9 @@ export const ConfigContainer: React.FC = () => {
     displayName: authenticated?.user.providerData[0]?.displayName ?? null,
   };
   const account = useAccountOperations({
+    generation: authenticated
+      ? `authenticated:${authenticated.uid}:${authenticated.user.isAnonymous ? "anonymous" : "linked"}`
+      : authState.status,
     login: actions.login,
     ...(authenticated ? { logout: () => actions.logout(authenticated.uid) } : {}),
   });

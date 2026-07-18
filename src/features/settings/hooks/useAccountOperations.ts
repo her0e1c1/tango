@@ -1,6 +1,7 @@
 import * as React from "react";
 
 interface AccountOperationDependencies {
+  generation?: string;
   login: () => Promise<void>;
   logout?: () => Promise<void>;
 }
@@ -17,6 +18,9 @@ const createAccountOperationController = () => {
   let dependencies: AccountOperationDependencies = { login: () => Promise.resolve() };
   let inFlight: Promise<void> | null = null;
   let failedOperation: (() => Promise<void>) | null = null;
+  let generation: string | undefined;
+  let logoutHandoffAvailable = false;
+  let subscriptionGeneration = 0;
   let state: AccountOperationState = { kind: null, pending: false, error: null };
   const listeners = new Set<() => void>();
 
@@ -32,6 +36,34 @@ const createAccountOperationController = () => {
     return error.retry as () => Promise<void>;
   };
 
+  const reset = () => {
+    failedOperation = null;
+    logoutHandoffAvailable = false;
+    generation = undefined;
+    setState({ kind: null, pending: false, error: null });
+  };
+
+  const resetWhenUnused = () => {
+    if (listeners.size === 0 && inFlight == null && !logoutHandoffAvailable) reset();
+  };
+
+  const connectGeneration = (nextGeneration: string) => {
+    if (generation == null) {
+      generation = nextGeneration;
+      return;
+    }
+    if (generation === nextGeneration) return;
+
+    if (inFlight != null || logoutHandoffAvailable) {
+      generation = nextGeneration;
+      logoutHandoffAvailable = false;
+      return;
+    }
+
+    reset();
+    generation = nextGeneration;
+  };
+
   const run = (kind: AccountOperationKind, retryOperation?: () => Promise<void>): Promise<void> => {
     if (inFlight != null) return inFlight;
 
@@ -39,11 +71,16 @@ const createAccountOperationController = () => {
     if (operation == null) return Promise.resolve();
 
     failedOperation = null;
+    logoutHandoffAvailable = false;
+    const operationGeneration = generation;
+    const mayHandoffLogout = kind === "logout" && retryOperation == null;
     setState({ kind, pending: true, error: null });
     const promise = operation().then(
       () => setState({ kind, pending: false, error: null }),
       (error: unknown) => {
-        failedOperation = getRetryOperation(error, operation);
+        const retry = getRetryOperation(error, operation);
+        failedOperation = retry;
+        logoutHandoffAvailable = mayHandoffLogout && retry !== operation && operationGeneration === generation;
         setState({ kind, pending: false, error });
         throw error;
       }
@@ -51,10 +88,16 @@ const createAccountOperationController = () => {
     inFlight = promise;
     void promise.then(
       () => {
-        if (inFlight === promise) inFlight = null;
+        if (inFlight === promise) {
+          inFlight = null;
+          resetWhenUnused();
+        }
       },
       () => {
-        if (inFlight === promise) inFlight = null;
+        if (inFlight === promise) {
+          inFlight = null;
+          resetWhenUnused();
+        }
       }
     );
 
@@ -63,9 +106,18 @@ const createAccountOperationController = () => {
 
   return {
     getSnapshot: () => state,
-    subscribe: (listener: () => void) => {
+    subscribe: (nextGeneration: string, listener: () => void) => {
+      subscriptionGeneration += 1;
+      connectGeneration(nextGeneration);
       listeners.add(listener);
-      return () => listeners.delete(listener);
+      return () => {
+        listeners.delete(listener);
+        const cleanupGeneration = ++subscriptionGeneration;
+        // StrictMode immediately resubscribes, while leaving Settings does not.
+        queueMicrotask(() => {
+          if (cleanupGeneration === subscriptionGeneration) resetWhenUnused();
+        });
+      };
     },
     setDependencies: (nextDependencies: AccountOperationDependencies) => {
       dependencies = nextDependencies;
@@ -78,10 +130,14 @@ const createAccountOperationController = () => {
 
 const accountOperationController = createAccountOperationController();
 
-export const useAccountOperations = ({ login, logout }: AccountOperationDependencies) => {
+export const useAccountOperations = ({ generation = "settings", login, logout }: AccountOperationDependencies) => {
   accountOperationController.setDependencies({ login, ...(logout ? { logout } : {}) });
+  const subscribe = React.useCallback(
+    (listener: () => void) => accountOperationController.subscribe(generation, listener),
+    [generation]
+  );
   const state = React.useSyncExternalStore(
-    accountOperationController.subscribe,
+    subscribe,
     accountOperationController.getSnapshot,
     accountOperationController.getSnapshot
   );

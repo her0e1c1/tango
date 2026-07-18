@@ -2,7 +2,7 @@ import { signOut, linkWithPopup, signInWithCredential, GoogleAuthProvider } from
 import type { UserCredential } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 
-import { clearStudyStore } from "@/features/study/state/studyStore";
+import { clearStudyStore, studyStore, type StudyState } from "@/features/study/state/studyStore";
 import { publishAuthenticatedUser, suspendAnonymousBootstrap } from "@/auth/AuthContext";
 import { auth } from "@/firebase";
 import { cleanupFirestoreUid } from "@/query/cleanup";
@@ -10,7 +10,10 @@ import { cleanupFirestoreUid } from "@/query/cleanup";
 interface LogoutCleanupProgress {
   query: boolean;
   study: boolean;
+  studyStateAfterClear?: StudyState;
 }
+
+type LogoutCleanupStep = "query" | "study";
 
 class LogoutCleanupError extends Error {
   constructor(
@@ -32,7 +35,7 @@ const runLogout = async (
     if (signOutRequired) await signOut(auth);
 
     const errors: unknown[] = [];
-    const run = async (step: keyof LogoutCleanupProgress, cleanup: () => unknown | Promise<unknown>) => {
+    const run = async (step: LogoutCleanupStep, cleanup: () => unknown | Promise<unknown>) => {
       if (progress[step]) return;
       try {
         await cleanup();
@@ -43,7 +46,12 @@ const runLogout = async (
     };
 
     await run("query", () => cleanupFirestoreUid(confirmedUid));
-    await run("study", clearStudyStore);
+    await run("study", async () => {
+      if (progress.studyStateAfterClear && studyStore.getState() !== progress.studyStateAfterClear) return;
+      const cleanup = clearStudyStore();
+      progress.studyStateAfterClear = studyStore.getState();
+      await cleanup;
+    });
     if (errors.length > 0) {
       throw new LogoutCleanupError(errors[0], () => runLogout(confirmedUid, progress, false));
     }

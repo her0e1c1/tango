@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   startRemoteReads: vi.fn(),
   cleanupUid: vi.fn(),
   clearStudyStore: vi.fn(),
+  actualClearStudyStore: undefined as undefined | (() => Promise<void>),
   operations: [] as string[],
   accountActions: {
     login: vi.fn(),
@@ -40,7 +41,11 @@ vi.mock("firebase/app", () => ({
 vi.mock("@/action/firestore", () => ({}));
 vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupUid }));
 vi.mock("@/query/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
-vi.mock("@/features/study/state/studyStore", () => ({ clearStudyStore: mocks.clearStudyStore }));
+vi.mock("@/features/study/state/studyStore", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/study/state/studyStore")>();
+  mocks.actualClearStudyStore = actual.clearStudyStore;
+  return { ...actual, clearStudyStore: mocks.clearStudyStore };
+});
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
 vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.accountActions }));
 vi.mock("@/features/settings/hooks/useConfigFormState", () => ({
@@ -64,8 +69,12 @@ import { logout } from "@/action/event";
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
 import { AuthProvider, createAuthStore, useAuth } from "@/auth/AuthContext";
 import { ConfigContainer } from "@/features/settings/containers/ConfigContainer";
+import { studyStore } from "@/features/study/state/studyStore";
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -74,6 +83,12 @@ beforeEach(() => {
   mocks.operations.length = 0;
   mocks.accountActions.login.mockResolvedValue(undefined);
   mocks.accountActions.logout.mockImplementation(logout);
+  mocks.clearStudyStore.mockImplementation(() => {
+    if (!mocks.actualClearStudyStore) throw new Error("Actual study cleanup was not initialized");
+    return mocks.actualClearStudyStore();
+  });
+  studyStore.setState({ sessionsByDeckId: {}, showBackText: false, autoPlay: false, lastSwipe: undefined });
+  localStorage.clear();
 });
 
 const AuthenticatedSettings = () => (useAuth().status === "authenticated" ? <ConfigContainer /> : null);
@@ -208,5 +223,57 @@ it("keeps post-sign-out cleanup failures visible and retries only unfinished cle
   await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
   expect(mocks.cleanupUid).toHaveBeenCalledTimes(3);
   expect(mocks.signOut).toHaveBeenCalledOnce();
+  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
+});
+
+it("does not erase a new anonymous study when obsolete logout cleanup is retried", async () => {
+  const userA = { uid: "study-uid-a", isAnonymous: false, providerData: [] } as unknown as User;
+  const userB = { uid: "study-uid-b", isAnonymous: true, providerData: [] } as unknown as User;
+  const cleanupError = new Error("study storage cleanup failed");
+
+  mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
+    mocks.publishUser = onUser;
+    return vi.fn();
+  });
+  mocks.signOut.mockImplementation(async () => mocks.publishUser?.(null));
+  mocks.signInAnonymously.mockImplementation(() =>
+    Promise.resolve().then(() => {
+      mocks.publishUser?.(userB);
+      return { user: userB } as UserCredential;
+    })
+  );
+  mocks.cleanupUid.mockResolvedValue(undefined);
+  vi.spyOn(Storage.prototype, "removeItem").mockImplementationOnce(() => {
+    throw cleanupError;
+  });
+
+  const store = createAuthStore({
+    auth: mocks.auth as unknown as Auth,
+    onAuthStateChanged: mocks.onAuthStateChanged,
+    signInAnonymously: mocks.signInAnonymously,
+  });
+  render(
+    <StrictMode>
+      <AuthProvider store={store}>
+        <AuthenticatedSettings />
+      </AuthProvider>
+    </StrictMode>
+  );
+  act(() => mocks.publishUser?.(userA));
+  studyStore.getState().startStudy("old-deck", ["old-card"]);
+
+  fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+  expect(studyStore.getState().sessionsByDeckId).toEqual({});
+
+  act(() => studyStore.getState().startStudy("new-deck", ["new-card"]));
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+  await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+  expect(studyStore.getState().sessionsByDeckId).toEqual({
+    "new-deck": expect.objectContaining({ deckId: "new-deck", cardOrderIds: ["new-card"] }),
+  });
+  expect(mocks.signOut).toHaveBeenCalledOnce();
+  expect(mocks.cleanupUid).toHaveBeenCalledOnce();
   expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
 });

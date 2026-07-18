@@ -108,9 +108,11 @@ describe("ConfigContainer auth identity", () => {
     render(<ConfigContainer />);
 
     const dependencies = mocks.useAccountOperations.mock.calls[0]?.[0] as {
+      generation: string;
       login: () => Promise<void>;
       logout: () => Promise<void>;
     };
+    expect(dependencies.generation).toBe("authenticated:confirmed-uid:linked");
     expect(dependencies.login).toBe(mocks.actions.login);
     dependencies.logout();
     expect(mocks.actions.logout).toHaveBeenCalledWith("confirmed-uid");
