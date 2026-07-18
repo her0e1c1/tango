@@ -42,6 +42,7 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
 
   const swipe = React.useCallback(
     async (direction: SwipeDirection): Promise<void> => {
+      if (mutationTokenRef.current !== undefined) return;
       const state = studyStore.getState();
       const session = state.sessionsByDeckId[deckId];
       if (session == null) return;
