@@ -61,9 +61,9 @@ export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
     const root = event.currentTarget;
     if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
 
-    queueMicrotask(() => {
-      if (!root.contains(document.activeElement)) props.onClose();
-    });
+    setTimeout(() => {
+      if (root.isConnected && !root.contains(document.activeElement)) props.onClose();
+    }, 0);
   };
 
   return (
