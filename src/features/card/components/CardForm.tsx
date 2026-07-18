@@ -93,7 +93,7 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
               <dd className="text-ink">{new Date(props.card.createdAt).toLocaleDateString()}</dd>
             </div>
           )}
-          {Boolean(props.card.lastSeenAt) && (
+          {props.card.lastSeenAt != null && (
             <div>
               <dt className="font-medium text-ink-muted">Last seen</dt>
               <dd className="text-ink">{new Date(props.card.lastSeenAt).toLocaleDateString()}</dd>
@@ -102,11 +102,7 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
         </dl>
       </details>
       <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-        <Button
-          variant="quiet"
-          type="button"
-          {...(props.onCancel !== undefined ? { onClick: props.onCancel } : {})}
-        >
+        <Button variant="quiet" type="button" {...(props.onCancel !== undefined ? { onClick: props.onCancel } : {})}>
           Cancel
         </Button>
         <Button

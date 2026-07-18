@@ -27,9 +27,7 @@ export const CardFormTemplate: React.FC<CardFormTemplateProps> = (props) => {
           )}
           <p className="text-caption font-bold uppercase tracking-wider text-accent-primary">Card editor</p>
           <h1 className="mt-1 break-words text-display font-bold text-ink">Edit card</h1>
-          <p className="mt-2 text-body text-ink-muted">
-            Update the prompt, answer, and organization for this card.
-          </p>
+          <p className="mt-2 text-body text-ink-muted">Update the prompt, answer, and organization for this card.</p>
         </header>
         {props.feedbackSlot}
         {props.cardForm != null && <CardForm {...props.cardForm} />}
