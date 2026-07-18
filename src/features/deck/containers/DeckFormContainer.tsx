@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import * as C from "@/constant";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
-import { renameKey } from "@/shared/forms/renameKey";
 import { useActions } from "@/shared/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
@@ -34,11 +33,11 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
       deckForm={{
         deck,
         fields: {
-          name: renameKey(register("name")),
-          convertToBr: renameKey(register("convertToBr")),
-          url: renameKey(register("url")),
+          name: register("name"),
+          convertToBr: register("convertToBr"),
+          url: register("url"),
           category: {
-            ...renameKey(register("category")),
+            ...register("category"),
             options: categoryOptions,
           },
         },

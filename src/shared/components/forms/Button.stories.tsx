@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Button as Template } from "@/shared/components/forms/Button";
 
 const meta = {
-  title: "Shared/Button",
+  title: "Shared/Forms/Button",
   component: Template,
   tags: ["autodocs"],
   argTypes: { onClick: { action: "onClick" } },

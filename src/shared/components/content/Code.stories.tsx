@@ -4,7 +4,7 @@ import { Code as Template } from "@/shared/components/content/Code";
 import * as fixture from "@/shared/storybook/fixture";
 
 const meta = {
-  title: "Shared/Code",
+  title: "Shared/Content/Code",
   component: Template,
   tags: ["autodocs"],
   args: {

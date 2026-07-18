@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Overlay as Template } from "@/shared/components/feedback/Overlay";
 
 const meta = {
-  title: "Shared/Overlay",
+  title: "Shared/Feedback/Overlay",
   component: Template,
   tags: ["autodocs"],
   parameters: {

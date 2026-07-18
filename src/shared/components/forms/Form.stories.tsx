@@ -20,7 +20,7 @@ const reviewForm = () => (
 );
 
 const meta = {
-  title: "Shared/Form",
+  title: "Shared/Forms/Form",
   component: Template,
   tags: ["autodocs"],
 } satisfies Meta<typeof Template>;

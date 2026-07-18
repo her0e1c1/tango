@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Textarea as Template } from "@/shared/components/forms/Textarea";
 
 const meta = {
-  title: "Shared/Textarea",
+  title: "Shared/Forms/Textarea",
   component: Template,
   tags: ["autodocs"],
   args: { rows: 4 },

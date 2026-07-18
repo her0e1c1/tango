@@ -5,7 +5,7 @@ import { TagList as Template } from "@/shared/components/content/TagList";
 import * as fixture from "@/shared/storybook/fixture";
 
 const meta = {
-  title: "Shared/TagList",
+  title: "Shared/Content/TagList",
   component: Template,
   tags: ["autodocs"],
 } satisfies Meta<typeof Template>;

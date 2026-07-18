@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Score as Template } from "@/shared/components/content/Score";
 
 const meta = {
-  title: "Shared/Score",
+  title: "Shared/Content/Score",
   component: Template,
   tags: ["autodocs"],
   args: {},

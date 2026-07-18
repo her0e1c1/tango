@@ -16,7 +16,7 @@ export const Tag: React.FC<{
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  inputRef?: React.Ref<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
   children?: React.ReactNode;
 }> = ({
   className,
@@ -32,7 +32,7 @@ export const Tag: React.FC<{
   value,
   onChange,
   onBlur,
-  inputRef,
+  ref,
   children,
 }) => {
   return (
@@ -43,7 +43,7 @@ export const Tag: React.FC<{
         className="hidden peer"
         checked={checked}
         disabled={disabled}
-        ref={inputRef}
+        ref={ref}
         name={name}
         value={value}
         onChange={onChange}

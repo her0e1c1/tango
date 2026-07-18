@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Tag as Template } from "@/shared/components/forms/Tag";
 
 const meta = {
-  title: "Shared/Tag",
+  title: "Shared/Forms/Tag",
   component: Template,
   tags: ["autodocs"],
   args: {

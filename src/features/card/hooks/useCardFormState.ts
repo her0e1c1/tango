@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form";
 
-import { renameKey } from "@/shared/forms/renameKey";
 import type { Option } from "@/shared/components/forms/Select";
 import type { CardFormProps } from "@/features/card/components/CardForm";
 
@@ -16,12 +15,12 @@ export const useCardFormState = ({ card, categoryOptions, onSubmit }: UseCardFor
   return {
     card,
     fields: {
-      frontText: renameKey(register("frontText")),
-      backText: renameKey(register("backText")),
+      frontText: register("frontText"),
+      backText: register("backText"),
       tags: categoryOptions.map(({ label, value }) => ({
         label,
         value,
-        input: { ...renameKey(register("tags")), value },
+        input: { ...register("tags"), value },
       })),
     },
     isSubmitting: formState.isSubmitting,

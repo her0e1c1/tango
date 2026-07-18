@@ -12,18 +12,18 @@ afterEach(cleanup);
 
 describe("shared selection controls", () => {
   it("keeps the slider controlled value, native handlers, and input ref", () => {
-    const inputRef = createRef<HTMLInputElement>();
+    const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
     const view = render(
-      <Slider inputRef={inputRef} min={0} max={10} name="confidence" value="4" onChange={onChange} onBlur={onBlur} />
+      <Slider ref={ref} min={0} max={10} name="confidence" value="4" onChange={onChange} onBlur={onBlur} />
     );
 
     const input = view.container.querySelector<HTMLInputElement>("input[type=range]");
     if (input == null) throw new Error("Slider input is missing");
     expect(input).toHaveValue("4");
     expect(input).toHaveAttribute("name", "confidence");
-    expect(inputRef.current).toBe(input);
+    expect(ref.current).toBe(input);
     fireEvent.change(input, { target: { value: "7" } });
     fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledOnce();
@@ -31,18 +31,16 @@ describe("shared selection controls", () => {
   });
 
   it("keeps the switch checked state, native value, handlers, and input ref", () => {
-    const inputRef = createRef<HTMLInputElement>();
+    const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
-    const view = render(
-      <Switch checked inputRef={inputRef} name="published" value="yes" onChange={onChange} onBlur={onBlur} />
-    );
+    const view = render(<Switch checked ref={ref} name="published" value="yes" onChange={onChange} onBlur={onBlur} />);
 
     const input = view.container.querySelector<HTMLInputElement>("input[type=checkbox]");
     if (input == null) throw new Error("Switch input is missing");
     expect(input).toBeChecked();
     expect(input).toHaveAttribute("value", "yes");
-    expect(inputRef.current).toBe(input);
+    expect(ref.current).toBe(input);
     fireEvent.click(input);
     fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledOnce();
@@ -60,18 +58,18 @@ describe("shared selection controls", () => {
   });
 
   it("keeps tag native values, handlers, and input ref", () => {
-    const inputRef = createRef<HTMLInputElement>();
+    const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
     const view = render(
-      <Tag inputRef={inputRef} label="History" name="topic" value="history" onChange={onChange} onBlur={onBlur} />
+      <Tag ref={ref} label="History" name="topic" value="history" onChange={onChange} onBlur={onBlur} />
     );
 
     const input = view.container.querySelector<HTMLInputElement>("input[type=checkbox]");
     if (input == null) throw new Error("Tag input is missing");
     expect(input).not.toBeChecked();
     expect(input).toHaveAttribute("value", "history");
-    expect(inputRef.current).toBe(input);
+    expect(ref.current).toBe(input);
     fireEvent.click(input);
     fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledOnce();
