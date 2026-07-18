@@ -41,7 +41,7 @@ export const Switch: React.FC<{
         onChange={onChange}
         onBlur={onBlur}
         type="checkbox"
-        className="hidden peer"
+        className="sr-only peer"
         disabled={disabled}
         aria-label={ariaLabel}
         aria-describedby={ariaDescribedBy}
@@ -50,6 +50,7 @@ export const Switch: React.FC<{
         className={cx(
           "flex shrink-0 items-center rounded-pill border border-border bg-surface-muted p-1",
           "transition-colors duration-normal ease-calm",
+          "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
           "peer-checked:border-accent-secondary peer-checked:bg-accent-secondary",
           "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
           small

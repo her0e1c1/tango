@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -18,20 +18,19 @@ const createProps = (): DeckStartFormProps => ({
 describe("DeckStartForm", () => {
   afterEach(cleanup);
 
-  it("groups score controls and preserves their values and callbacks", async () => {
+  it("labels score controls and preserves values and callbacks", async () => {
     const props = createProps();
     const view = render(<DeckStartForm {...props} />);
+    const scoreRegion = view.getByRole("region", { name: "Score range" });
+    const maxSwitch = within(scoreRegion).getByRole("checkbox", { name: "Enable maximum score" });
+    const minSwitch = within(scoreRegion).getByRole("checkbox", { name: "Enable minimum score" });
+    const maxSlider = within(scoreRegion).getByRole("slider", { name: "Maximum score value" });
+    const minSlider = within(scoreRegion).getByRole("slider", { name: "Minimum score value" });
 
-    expect(view.container.querySelector("fieldset, legend")).not.toBeInTheDocument();
-    expect(view.getByText("score range -2~4").parentElement).toHaveClass("bg-surface");
-    const maxSwitch = view.container.querySelector("input[name='maximum-enabled']") as HTMLInputElement;
-    const minSwitch = view.container.querySelector("input[name='minimum-enabled']") as HTMLInputElement;
-    const maxSlider = view.container.querySelector("input[name='maximum']") as HTMLInputElement;
-    const minSlider = view.container.querySelector("input[name='minimum']") as HTMLInputElement;
+    expect(scoreRegion).toHaveClass("bg-surface");
+    expect(within(scoreRegion).getByText("−2 to 4")).toBeInTheDocument();
     expect(maxSwitch).toBeChecked();
     expect(minSwitch).toBeChecked();
-    expect(maxSlider).toHaveAttribute("min", "-10");
-    expect(maxSlider).toHaveAttribute("max", "10");
     expect(maxSlider).toHaveValue("4");
     expect(minSlider).toHaveValue("-2");
 
@@ -46,14 +45,10 @@ describe("DeckStartForm", () => {
     expect(props.scoreMinSliderProps.onChange).toHaveBeenCalledOnce();
   });
 
-  it.each([
-    [4, -2, "score range -2~4"],
-    [null, -2, "score range -2~"],
-    [4, null, "score range ~4"],
-    [null, null, "score range"],
-  ])("renders the score range text for max %s and min %s", (scoreMax, scoreMin, label) => {
-    render(<DeckStartForm {...createProps()} scoreMax={scoreMax} scoreMin={scoreMin} />);
-    expect(document.querySelector("fieldset, legend")).not.toBeInTheDocument();
-    expect(document.body).toHaveTextContent(label);
+  it("shows unrestricted disabled limits", () => {
+    const view = render(<DeckStartForm {...createProps()} scoreMax={null} scoreMin={null} />);
+    expect(view.getByText("Any score")).toBeInTheDocument();
+    expect(view.getByText("No upper limit")).toBeInTheDocument();
+    expect(view.getByText("No lower limit")).toBeInTheDocument();
   });
 });

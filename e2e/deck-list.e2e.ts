@@ -62,13 +62,13 @@ test.beforeEach(async ({ page }) => {
 
 test("keeps independent progress for multiple studying decks", async ({ page }) => {
   await page.goto(`/deck/${deckA.id}/start`);
-  await page.getByRole("button", { name: "Start to study 2 card(s) from 2" }).click();
+  await page.getByRole("button", { name: "Start 2 cards" }).click();
   await expect(page.getByText("A first")).toBeVisible();
   await page.getByRole("button", { name: "Swipe up" }).click();
   await expect(page.getByText("A second")).toBeVisible();
 
   await page.goto(`/deck/${deckB.id}/start`);
-  await page.getByRole("button", { name: "Start to study 1 card(s) from 1" }).click();
+  await page.getByRole("button", { name: "Start 1 card" }).click();
   await expect(page.getByText("B only")).toBeVisible();
 
   await page.goto("/");
