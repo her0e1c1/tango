@@ -1,4 +1,4 @@
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -10,15 +10,13 @@ describe("TagFilter", () => {
 
   it("groups tag controls and exposes the active mode and selected tags", () => {
     const view = render(<TagFilter tags={["one", "two"]} selectedTags={["two"]} tagAndFilter />);
+    const tagsRegion = view.getByRole("region", { name: "Tags" });
 
-    expect(view.getByTestId("tag-filter")).toHaveClass("bg-surface");
-    expect(view.getByTestId("tag-filter").tagName).toBe("DIV");
-    expect(view.container.querySelector("fieldset, legend")).not.toBeInTheDocument();
-    expect(view.getByText("tags")).toBeInTheDocument();
-    expect(view.getByText("AND Filter")).toBeInTheDocument();
-    expect(view.container.querySelector("input[name='tag-filter-click-filter']")).toBeChecked();
-    expect(view.getByRole("checkbox", { name: "one" })).not.toBeChecked();
-    expect(view.getByRole("checkbox", { name: "two" })).toBeChecked();
+    expect(tagsRegion).toHaveClass("bg-surface");
+    expect(within(tagsRegion).getByText("AND")).toBeInTheDocument();
+    expect(within(tagsRegion).getByRole("checkbox", { name: "Match all selected tags" })).toBeChecked();
+    expect(within(tagsRegion).getByRole("checkbox", { name: "one" })).not.toBeChecked();
+    expect(within(tagsRegion).getByRole("checkbox", { name: "two" })).toBeChecked();
   });
 
   it("preserves tag, mode, all, and clear callbacks", async () => {
@@ -40,7 +38,7 @@ describe("TagFilter", () => {
 
     await userEvent.click(view.getByRole("checkbox", { name: "two" }));
     await userEvent.click(view.getByRole("checkbox", { name: "one" }));
-    await userEvent.click(view.container.querySelector("input[name='tag-filter-click-filter']") as Element);
+    await userEvent.click(view.getByRole("checkbox", { name: "Match all selected tags" }));
     await userEvent.click(view.getByRole("button", { name: "All" }));
     await userEvent.click(view.getByRole("button", { name: "Clear" }));
 
