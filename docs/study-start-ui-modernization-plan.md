@@ -508,15 +508,18 @@ import "@testing-library/jest-dom/vitest";
 import { DeckStartContent } from "@/features/study/containers/DeckStartContainer";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
-const mocks = vi.hoisted(() => ({
-  start: vi.fn(),
-  update: vi.fn(),
+const mocks = vi.hoisted(() => {
+  const start = vi.fn();
+  return { start, currentStart: start, update: vi.fn() };
+});
+vi.mock("@/query/useRemoteCollections", () => ({
+  useRemoteCollections: vi.fn(),
 }));
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ update: mocks.update }),
 }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
-  useStudyActions: () => ({ start: mocks.start }),
+  useStudyActions: () => ({ start: mocks.currentStart }),
 }));
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({ setDarkMode: vi.fn(), goToTop: vi.fn(), goByMenu: vi.fn() }),
@@ -553,10 +556,11 @@ describe("DeckStartContent", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    mocks.currentStart = mocks.start;
   });
 ```
 
-Append these tests inside the `describe` block:
+Do not mock `react-use`; dispatch keyboard events so these tests exercise the real `useKey` listener lifecycle. Append:
 
 ```tsx
 it("passes Deck and session context to the template", () => {
@@ -565,7 +569,7 @@ it("passes Deck and session context to the template", () => {
   expect(view.getByRole("button", { name: "Start 1 card" })).toBeInTheDocument();
 });
 
-it("starts from Enter only when cards match and focus is not interactive", () => {
+it("starts from Enter when cards match and focus is not interactive", () => {
   const view = renderContent({ cards: [createCard()] });
   fireEvent.keyDown(document.body, { key: "Enter" });
   expect(mocks.start).toHaveBeenCalledOnce();
@@ -576,10 +580,39 @@ it("starts from Enter only when cards match and focus is not interactive", () =>
   expect(mocks.start).not.toHaveBeenCalled();
 });
 
-it("does not start an empty session from Enter", () => {
-  renderContent({ cards: [] });
+it("stops responding to Enter when a rerender has no matching cards", () => {
+  const view = renderContent({ cards: [createCard()] });
+  view.rerender(
+    <DeckStartContent deck={createDeck()} cards={[]} config={createConfig()} tags={[]} />
+  );
   fireEvent.keyDown(document.body, { key: "Enter" });
   expect(mocks.start).not.toHaveBeenCalled();
+});
+
+it("uses the current start action when a rerender gains matching cards", () => {
+  const currentStart = vi.fn();
+  const view = renderContent({ cards: [] });
+  mocks.currentStart = currentStart;
+  view.rerender(
+    <DeckStartContent deck={createDeck()} cards={[createCard()]} config={createConfig()} tags={[]} />
+  );
+
+  fireEvent.keyDown(document.body, { key: "Enter" });
+  expect(mocks.start).not.toHaveBeenCalled();
+  expect(currentStart).toHaveBeenCalledOnce();
+});
+
+it("uses the current start action when a rerender keeps the same card count", () => {
+  const currentStart = vi.fn();
+  const view = renderContent({ cards: [createCard()] });
+  mocks.currentStart = currentStart;
+  view.rerender(
+    <DeckStartContent deck={createDeck()} cards={[createCard()]} config={createConfig()} tags={[]} />
+  );
+
+  fireEvent.keyDown(document.body, { key: "Enter" });
+  expect(mocks.start).not.toHaveBeenCalled();
+  expect(currentStart).toHaveBeenCalledOnce();
 });
 ```
 

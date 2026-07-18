@@ -104,4 +104,22 @@ describe("DeckStartContent", () => {
     expect(mocks.start).not.toHaveBeenCalled();
     expect(currentStart).toHaveBeenCalledOnce();
   });
+
+  it("uses the current start action when a rerender keeps the same card count", () => {
+    const currentStart = vi.fn();
+    const view = renderContent({ cards: [createCard()] });
+    mocks.currentStart = currentStart;
+    view.rerender(
+      <DeckStartContent
+        deck={createDeck({ name: "Japanese vocabulary" })}
+        cards={[createCard()]}
+        config={createConfig()}
+        tags={[]}
+      />
+    );
+
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    expect(mocks.start).not.toHaveBeenCalled();
+    expect(currentStart).toHaveBeenCalledOnce();
+  });
 });
