@@ -40,7 +40,8 @@ const meta = {
     },
   },
   args: {
-    config: fixture.config.default,
+    deckName: fixture.deck.default.name,
+    maxNumberOfCardsToLearn: fixture.config.default.maxNumberOfCardsToLearn,
     cardsLength: 123,
     filterSlot: <DeckStartForm {...deckStartForm} />,
   },
@@ -53,8 +54,16 @@ export const Default: Story = {};
 
 export const Long: Story = {
   args: {
+    deckName: fixture.deck.tooLongName.name,
     filterSlot: <DeckStartForm {...longDeckStartForm} />,
   },
+};
+
+export const NoMatches: Story = { args: { cardsLength: 0 } };
+
+export const Dark: Story = {
+  ...Long,
+  globals: { theme: "dark" },
 };
 
 export const IphoneX: Story = {
