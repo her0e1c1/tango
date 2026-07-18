@@ -13,6 +13,10 @@
 
 実際の設定は `biome.json`、`tsconfig.base.json` と各 project の `tsconfig`、`package.json` と lockfile を source of truth とします。この文書は policy と理由を説明するもので、これらの設定を変更するときは同時に更新します。
 
+## React Dependency Policy
+
+`react` と `react-dom` は同じ version range、`@types/react` と `@types/react-dom` は対応する同じ React major として協調更新します。`npm ls react react-dom @types/react @types/react-dom` で duplicate major と invalid peer dependency がないことを確認します。Issue #211 などで workspace を追加するときも web application と同じ React major を使用し、React runtime を workspace ごとに独立更新しません。
+
 ## TypeScript Coverage And Policy
 
 `npm run lint:tsc` は `tsconfig.json` と `tsconfig.node.json` のそれぞれに対して `tsc --noEmit` を実行します。`tsconfig.json` は `src`、`tsconfig.node.json` は root の config、`.storybook`、`e2e` を担当します。TypeScript file の対象範囲は各 config の標準的な `include`、`exclude`、project references などで管理します。
