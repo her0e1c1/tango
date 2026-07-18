@@ -1,21 +1,18 @@
-import { act, cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { DeckStartContent } from "@/features/study/containers/DeckStartContainer";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
-const mocks = vi.hoisted(() => ({
-  start: vi.fn(),
-  update: vi.fn(),
-  keyHandler: undefined as ((event: KeyboardEvent) => void) | undefined,
-}));
-
-vi.mock("react-use", () => ({
-  useKey: (_key: string, handler: (event: KeyboardEvent) => void) => {
-    mocks.keyHandler = handler;
-  },
-}));
+const mocks = vi.hoisted(() => {
+  const start = vi.fn();
+  return {
+    start,
+    currentStart: start,
+    update: vi.fn(),
+  };
+});
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: vi.fn(),
 }));
@@ -23,7 +20,7 @@ vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ update: mocks.update }),
 }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
-  useStudyActions: () => ({ start: mocks.start }),
+  useStudyActions: () => ({ start: mocks.currentStart }),
 }));
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({ setDarkMode: vi.fn(), goToTop: vi.fn(), goByMenu: vi.fn() }),
@@ -55,7 +52,7 @@ describe("DeckStartContent", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
-    mocks.keyHandler = undefined;
+    mocks.currentStart = mocks.start;
   });
 
   it("passes Deck and session context to the template", () => {
@@ -64,20 +61,47 @@ describe("DeckStartContent", () => {
     expect(view.getByRole("button", { name: "Start 1 card" })).toBeInTheDocument();
   });
 
-  it("starts from Enter only when cards match and focus is not interactive", () => {
+  it("starts from Enter when cards match and focus is not interactive", () => {
     const view = renderContent({ cards: [createCard()] });
-    act(() => mocks.keyHandler?.({ target: document.body } as unknown as KeyboardEvent));
+    fireEvent.keyDown(document.body, { key: "Enter" });
     expect(mocks.start).toHaveBeenCalledOnce();
 
     mocks.start.mockClear();
     const slider = view.getByRole("slider", { name: "Maximum score value" });
-    act(() => mocks.keyHandler?.({ target: slider } as unknown as KeyboardEvent));
+    fireEvent.keyDown(slider, { key: "Enter" });
     expect(mocks.start).not.toHaveBeenCalled();
   });
 
-  it("does not start an empty session from Enter", () => {
-    renderContent({ cards: [] });
-    act(() => mocks.keyHandler?.({ target: document.body } as unknown as KeyboardEvent));
+  it("stops responding to Enter when a rerender has no matching cards", () => {
+    const view = renderContent({ cards: [createCard()] });
+    view.rerender(
+      <DeckStartContent
+        deck={createDeck({ name: "Japanese vocabulary" })}
+        cards={[]}
+        config={createConfig()}
+        tags={[]}
+      />
+    );
+
+    fireEvent.keyDown(document.body, { key: "Enter" });
     expect(mocks.start).not.toHaveBeenCalled();
+  });
+
+  it("uses the current start action when a rerender gains matching cards", () => {
+    const currentStart = vi.fn();
+    const view = renderContent({ cards: [] });
+    mocks.currentStart = currentStart;
+    view.rerender(
+      <DeckStartContent
+        deck={createDeck({ name: "Japanese vocabulary" })}
+        cards={[createCard()]}
+        config={createConfig()}
+        tags={[]}
+      />
+    );
+
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    expect(mocks.start).not.toHaveBeenCalled();
+    expect(currentStart).toHaveBeenCalledOnce();
   });
 });

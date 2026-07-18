@@ -20,16 +20,17 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
   const deckId = deck.id;
   const deckActions = useDeckActions(deckId);
   const studyActions = useStudyActions(deckId);
+  const startStudy = studyActions.start;
   const actions = useActions();
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
   const startFromEnter = React.useCallback(
     (event: KeyboardEvent) => {
       if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
-      studyActions.start();
+      startStudy();
     },
-    [cards.length, studyActions]
+    [cards.length, startStudy]
   );
-  useKey("Enter", startFromEnter);
+  useKey("Enter", startFromEnter, {}, [startFromEnter]);
 
   return (
     <DeckStartTemplate
@@ -44,7 +45,7 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
       deckName={deck.name}
       maxNumberOfCardsToLearn={config.maxNumberOfCardsToLearn}
       cardsLength={cards.length}
-      onClickStart={studyActions.start}
+      onClickStart={startStudy}
       filterSlot={<DeckStartForm {...deckStartForm} />}
     />
   );

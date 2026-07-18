@@ -81,6 +81,7 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
           <Tag
             className="mr-1 mb-1"
             small
+            wrap
             key={tag}
             label={tag}
             {...(props.selectedTags !== undefined ? { checked: props.selectedTags.includes(tag) } : {})}

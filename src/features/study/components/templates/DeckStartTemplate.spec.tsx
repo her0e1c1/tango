@@ -43,6 +43,12 @@ describe("DeckStartTemplate", () => {
     expect(view.getByRole("button", { name: "Start 1 card" })).toBeInTheDocument();
   });
 
+  it("uses all matching cards when the configured maximum is unlimited", () => {
+    const view = renderTemplate({ maxNumberOfCardsToLearn: 0, cardsLength: 123 });
+    expect(view.getByRole("heading", { level: 2, name: "123 cards in this session" })).toBeInTheDocument();
+    expect(view.getByRole("button", { name: "Start 123 cards" })).toBeInTheDocument();
+  });
+
   it("explains and disables an empty session", () => {
     const view = renderTemplate({ cardsLength: 0 });
     expect(view.getByRole("heading", { level: 2, name: "0 cards in this session" })).toBeInTheDocument();

@@ -32,6 +32,9 @@
 - Modify `src/features/deck/components/TagFilter.spec.tsx`: Tags section semantics and callback contracts.
 - Modify `src/features/deck/components/TagFilter.tsx`: labelled Tags section, match-mode row, quiet bulk actions, and tag list.
 - Modify `src/features/deck/components/TagFilter.stories.tsx`: default, selected, many-tag, mobile, and dark visual states.
+- Modify `src/components/forms/SelectionControl.spec.tsx`: native keyboard focus, Space activation, and focus-ring contracts.
+- Modify `src/components/forms/Switch.tsx`: focusable visually hidden input and peer focus ring.
+- Modify `src/components/forms/Tag.tsx`: focusable visually hidden input, peer focus ring, and optional wrapping.
 - Create `src/features/study/containers/DeckStartContainer.spec.tsx`: Deck wiring and guarded Enter behavior.
 - Modify `src/features/study/containers/DeckStartContainer.tsx`: narrow template props and keyboard guard.
 - Modify `src/lib/calmFocusVisualContract.spec.ts`: include the modern study start template in semantic presentation enforcement.
@@ -99,6 +102,12 @@ describe("DeckStartTemplate", () => {
     expect(view.getByRole("button", { name: "Start 1 card" })).toBeInTheDocument();
   });
 
+  it("uses all matching cards when the configured maximum is unlimited", () => {
+    const view = renderTemplate({ maxNumberOfCardsToLearn: 0, cardsLength: 123 });
+    expect(view.getByRole("heading", { level: 2, name: "123 cards in this session" })).toBeInTheDocument();
+    expect(view.getByRole("button", { name: "Start 123 cards" })).toBeInTheDocument();
+  });
+
   it("explains and disables an empty session", () => {
     const view = renderTemplate({ cardsLength: 0 });
     expect(view.getByRole("heading", { level: 2, name: "0 cards in this session" })).toBeInTheDocument();
@@ -125,8 +134,8 @@ Replace `DeckStartTemplate.tsx` with a presentation-only component that:
 ```tsx
 import type React from "react";
 
-import { Button } from "@/shared/components";
-import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
+import { Button } from "@/components";
+import { Layout, type LayoutProps } from "@/components/layout/Layout";
 
 export interface DeckStartTemplateProps {
   layout?: LayoutProps;
@@ -140,7 +149,10 @@ export interface DeckStartTemplateProps {
 const cardsLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
 
 export const DeckStartTemplate: React.FC<DeckStartTemplateProps> = (props) => {
-  const sessionCardsLength = Math.min(props.cardsLength, props.maxNumberOfCardsToLearn);
+  const sessionCardsLength =
+    props.maxNumberOfCardsToLearn <= 0
+      ? props.cardsLength
+      : Math.min(props.cardsLength, props.maxNumberOfCardsToLearn);
   const hasCards = props.cardsLength > 0;
   const matchingCopy = hasCards
     ? `${cardsLabel(props.cardsLength)} ${props.cardsLength === 1 ? "matches" : "match"} your filters.`
@@ -438,6 +450,7 @@ In `TagFilter.tsx`, import `useId`, remove `Description` and `Section`, and repl
     {props.tags?.map((tag) => (
       <Tag
         small
+        wrap
         key={tag}
         label={tag}
         {...(props.selectedTags !== undefined ? { checked: props.selectedTags.includes(tag) } : {})}
@@ -449,6 +462,8 @@ In `TagFilter.tsx`, import `useId`, remove `Description` and `Section`, and repl
 ```
 
 Only attach optional Button callbacks when they are defined, matching the existing exact-optional-property pattern.
+
+Implement `Tag`'s `wrap` option with `max-w-full`, normal whitespace, and unbroken-word breaking, and enable it only here. Keep `Switch` and `Tag` checkbox inputs focusable with `sr-only peer` and apply `peer-focus-visible:ring-2 peer-focus-visible:ring-focus` to their visible peers.
 
 - [ ] **Step 6: Update and run stories and tests**
 
@@ -486,7 +501,7 @@ git commit -m "Modernize study filters"
 Create `DeckStartContainer.spec.tsx` with this setup:
 
 ```tsx
-import { act, cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -496,13 +511,6 @@ import { createCard, createConfig, createDeck } from "@/test/factories";
 const mocks = vi.hoisted(() => ({
   start: vi.fn(),
   update: vi.fn(),
-  keyHandler: undefined as ((event: KeyboardEvent) => void) | undefined,
-}));
-
-vi.mock("react-use", () => ({
-  useKey: (_key: string, handler: (event: KeyboardEvent) => void) => {
-    mocks.keyHandler = handler;
-  },
 }));
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ update: mocks.update }),
@@ -510,7 +518,7 @@ vi.mock("@/features/deck/hooks/useDeckActions", () => ({
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({ start: mocks.start }),
 }));
-vi.mock("@/shared/hooks/useActions", () => ({
+vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({ setDarkMode: vi.fn(), goToTop: vi.fn(), goByMenu: vi.fn() }),
 }));
 vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
@@ -545,7 +553,6 @@ describe("DeckStartContent", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
-    mocks.keyHandler = undefined;
   });
 ```
 
@@ -560,18 +567,18 @@ it("passes Deck and session context to the template", () => {
 
 it("starts from Enter only when cards match and focus is not interactive", () => {
   const view = renderContent({ cards: [createCard()] });
-  act(() => mocks.keyHandler?.({ target: document.body } as unknown as KeyboardEvent));
+  fireEvent.keyDown(document.body, { key: "Enter" });
   expect(mocks.start).toHaveBeenCalledOnce();
 
   mocks.start.mockClear();
   const slider = view.getByRole("slider", { name: "Maximum score value" });
-  act(() => mocks.keyHandler?.({ target: slider } as unknown as KeyboardEvent));
+  fireEvent.keyDown(slider, { key: "Enter" });
   expect(mocks.start).not.toHaveBeenCalled();
 });
 
 it("does not start an empty session from Enter", () => {
   renderContent({ cards: [] });
-  act(() => mocks.keyHandler?.({ target: document.body } as unknown as KeyboardEvent));
+  fireEvent.keyDown(document.body, { key: "Enter" });
   expect(mocks.start).not.toHaveBeenCalled();
 });
 ```
@@ -600,15 +607,16 @@ Change the React import to a value import, export `DeckStartContent`, and add:
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
+const startStudy = studyActions.start;
 const startFromEnter = React.useCallback(
   (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
-    studyActions.start();
+    startStudy();
   },
-  [cards.length, studyActions]
+  [cards.length, startStudy]
 );
 
-useKey("Enter", startFromEnter);
+useKey("Enter", startFromEnter, {}, [startFromEnter]);
 ```
 
 Replace the old template props with:

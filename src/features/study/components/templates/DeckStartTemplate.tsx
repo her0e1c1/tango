@@ -14,7 +14,8 @@ export interface DeckStartTemplateProps {
 const cardsLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
 
 export const DeckStartTemplate: React.FC<DeckStartTemplateProps> = (props) => {
-  const sessionCardsLength = Math.min(props.cardsLength, props.maxNumberOfCardsToLearn);
+  const sessionCardsLength =
+    props.maxNumberOfCardsToLearn <= 0 ? props.cardsLength : Math.min(props.cardsLength, props.maxNumberOfCardsToLearn);
   const hasCards = props.cardsLength > 0;
   const matchingCopy = hasCards
     ? `${cardsLabel(props.cardsLength)} ${props.cardsLength === 1 ? "matches" : "match"} your filters.`

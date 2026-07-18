@@ -48,7 +48,7 @@ Use one centered `max-w-reading` column inside the existing `Layout`.
 
 The summary language distinguishes the two relevant counts:
 
-- `24 cards in this session` is `min(cardsLength, maxNumberOfCardsToLearn)`.
+- `24 cards in this session` uses all matching cards when `maxNumberOfCardsToLearn <= 0`; otherwise it is `min(cardsLength, maxNumberOfCardsToLearn)`.
 - `123 cards match your filters` is the current filtered `cardsLength`.
 
 Use correct singular labels for one card. When no cards match, show `No cards match your filters`, disable the visible Start button, and prevent the Enter shortcut from starting an empty session.
@@ -62,7 +62,7 @@ Use correct singular labels for one card. When no cards match, show `No cards ma
 - Show current score values in muted value badges beside their sliders.
 - Keep the same single-column reading order on desktop and mobile.
 - Let the summary content wrap on small screens and make the Start button full-width when needed.
-- Keep tag content within its section and preserve the existing many-tag scrolling behavior.
+- Keep tag content within its section, break long unspaced names only in `TagFilter`, and preserve the existing many-tag scrolling behavior.
 - Support long deck names and tag names without horizontal page scrolling.
 - Preserve light mode, dark mode, visible focus rings, and reduced-motion behavior.
 
@@ -82,11 +82,11 @@ The component continues to receive the same score and tag field bindings. It doe
 
 ### `TagFilter`
 
-Owns the Tags section presentation, match-mode switch, All and Clear buttons, and selectable tag list. Give the section and match-mode control explicit accessible names. Preserve the current callback API and tag selection behavior.
+Owns the Tags section presentation, match-mode switch, All and Clear buttons, and selectable tag list. Give the section and match-mode control explicit accessible names, and opt its tags into the existing `Tag` component's wrapping mode. Preserve the current callback API and compact tags elsewhere.
 
 ### `DeckStartContainer`
 
-Passes `deck.name` to `DeckStartTemplate` and continues to provide the current filtered-card count, Config, filter bindings, and Start action. Guard the Enter shortcut with the same non-empty condition as the visible Start button.
+Passes `deck.name` to `DeckStartTemplate` and continues to provide the current filtered-card count, Config, filter bindings, and Start action. Guard the Enter shortcut with the same non-empty condition as the visible Start button, and pass explicit `useKey` dependencies so rerenders use the current count and Start action.
 
 No new shared component is introduced. The patterns remain local until another screen demonstrates the same need.
 
@@ -117,7 +117,8 @@ The displayed counts and the started session therefore use the same filtered Car
 - Connect score switches, sliders, descriptions, and current values with stable IDs and ARIA attributes.
 - Give sliders meaningful names and `aria-valuetext` values.
 - Give the tag match-mode switch an explicit accessible name and explanatory text.
-- Preserve native button, checkbox, and range-input keyboard behavior.
+- Keep native checkbox inputs visually hidden with `sr-only`, not `display: none`, and show the existing `ring-focus` token on their visible peers.
+- Preserve native button, checkbox, and range-input keyboard behavior, including Space activation.
 - Keep interactive targets at least the existing `touch` token size.
 - Do not rely on color alone for selection, disabled state, match mode, or card counts.
 - Prevent the global Enter shortcut from firing while focus is on an interactive form control, so switches and buttons keep their native keyboard behavior.
@@ -128,6 +129,7 @@ The displayed counts and the started session therefore use the same filtered Car
 
 - Render the deck name and one page heading.
 - Distinguish capped session size from matching-card count.
+- Treat a non-positive maximum as unlimited.
 - Use singular and plural card wording correctly.
 - Disable Start and explain the zero-match state.
 - Preserve the Start callback and filter slot.
@@ -145,6 +147,7 @@ The displayed counts and the started session therefore use the same filtered Car
 - Pass the Deck name and filtered-card count to the template.
 - Start on Enter when cards match and focus is not inside a form control.
 - Do not start on Enter when no cards match or an interactive control is focused.
+- Cover non-empty-to-empty and empty-to-non-empty rerenders with the real `react-use` listener and the current Start action.
 
 ### Stories and verification
 

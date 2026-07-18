@@ -48,4 +48,15 @@ describe("TagFilter", () => {
     expect(onClickAll).toHaveBeenCalledOnce();
     expect(onClickClear).toHaveBeenCalledOnce();
   });
+
+  it("contains and breaks a single long unbroken tag", () => {
+    const longTag = "averylongunbrokentag".repeat(8);
+    const view = render(<TagFilter tags={[longTag]} />);
+    const input = view.getByRole("checkbox", { name: longTag });
+
+    expect(view.getByTestId("tag-filter")).toHaveClass("min-w-0");
+    expect(input.parentElement).toHaveClass("min-w-0", "max-w-full");
+    expect(input.nextElementSibling).toHaveClass("min-w-0", "max-w-full", "whitespace-normal", "break-all");
+    expect(input.nextElementSibling).not.toHaveClass("whitespace-nowrap");
+  });
 });
