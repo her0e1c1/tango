@@ -11,6 +11,33 @@ import { Upload } from "@/shared/components/forms/Upload";
 afterEach(cleanup);
 
 describe("shared selection controls", () => {
+  it("forwards accessible naming props to the switch input", () => {
+    render(<Switch id="dark-mode" aria-label="Dark mode" aria-describedby="dark-mode-description" />);
+
+    expect(screen.getByRole("checkbox", { name: "Dark mode" })).toHaveAttribute("id", "dark-mode");
+    expect(screen.getByRole("checkbox")).toHaveAttribute("aria-describedby", "dark-mode-description");
+  });
+
+  it("forwards accessible naming and value text to the slider input", () => {
+    render(
+      <Slider
+        id="autoplay-interval"
+        aria-label="Autoplay interval"
+        aria-describedby="autoplay-interval-description"
+        aria-valuetext="7 seconds"
+        min={0}
+        max={60}
+        value="7"
+        onChange={() => undefined}
+      />
+    );
+
+    const slider = screen.getByRole("slider", { name: "Autoplay interval" });
+    expect(slider).toHaveAttribute("id", "autoplay-interval");
+    expect(slider).toHaveAttribute("aria-describedby", "autoplay-interval-description");
+    expect(slider).toHaveAttribute("aria-valuetext", "7 seconds");
+  });
+
   it("keeps the slider controlled value, native handlers, and input ref", () => {
     const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();

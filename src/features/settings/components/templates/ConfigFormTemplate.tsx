@@ -10,8 +10,11 @@ export interface ConfigFormTemplateProps {
 export const ConfigFormTemplate: React.FC<ConfigFormTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
-      <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
-        <h1 className="mb-section-gap break-words text-display font-bold text-ink">Settings</h1>
+      <section className="mx-auto flex w-full max-w-reading flex-col gap-4">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+          <h1 className="break-words text-title font-bold text-ink">Settings</h1>
+          <p className="text-caption text-ink-muted">Changes are saved automatically</p>
+        </div>
         {props.configForm != null && <ConfigForm {...props.configForm} />}
       </section>
     </Layout>

@@ -13,6 +13,7 @@ const utilityRoutePresentationFiles = [
   "features/card/components/templates/CardFormTemplate.tsx",
   "features/import/components/templates/DeckImportTemplate.tsx",
   "features/settings/components/ConfigForm.tsx",
+  "features/settings/components/SettingsSection.tsx",
   "features/settings/components/templates/ConfigFormTemplate.tsx",
 ] as const;
 const completedUtilityRoutePresentationFiles = [
@@ -22,6 +23,7 @@ const completedUtilityRoutePresentationFiles = [
   "features/card/components/templates/CardFormTemplate.tsx",
   "features/import/components/templates/DeckImportTemplate.tsx",
   "features/settings/components/ConfigForm.tsx",
+  "features/settings/components/SettingsSection.tsx",
   "features/settings/components/templates/ConfigFormTemplate.tsx",
 ] as const satisfies readonly (typeof utilityRoutePresentationFiles)[number][];
 const completedUtilityRoutePresentationFileSet = new Set<string>(completedUtilityRoutePresentationFiles);
@@ -272,14 +274,16 @@ describe("Calm Focus visual contract", () => {
   });
 
   it("gives Settings semantic sections within a bounded Calm Focus surface", () => {
-    const configForm = readOwnedSource("features/settings/components/ConfigForm.tsx");
+    const settingsSection = readOwnedSource("features/settings/components/SettingsSection.tsx");
     const configTemplate = readOwnedSource("features/settings/components/templates/ConfigFormTemplate.tsx");
 
-    expect(configForm).toMatch(/<section/);
-    expect(configForm).toMatch(/bg-surface-muted/);
+    expect(settingsSection).toMatch(/<section/);
+    expect(settingsSection).toMatch(/border-border/);
+    expect(settingsSection).toMatch(/bg-surface/);
+    expect(settingsSection).toMatch(/shadow-surface/);
     expect(configTemplate).toMatch(/max-w-reading/);
-    expect(configTemplate).toMatch(/border-border/);
-    expect(configTemplate).toMatch(/bg-surface/);
+    expect(configTemplate).toMatch(/text-title/);
+    expect(configTemplate).not.toMatch(/rounded-surface/);
   });
 
   it("registers utility routes and enforces semantic surfaces for completed templates", () => {
@@ -290,6 +294,7 @@ describe("Calm Focus visual contract", () => {
       "features/card/components/templates/CardFormTemplate.tsx",
       "features/import/components/templates/DeckImportTemplate.tsx",
       "features/settings/components/ConfigForm.tsx",
+      "features/settings/components/SettingsSection.tsx",
       "features/settings/components/templates/ConfigFormTemplate.tsx",
     ]);
     expect(ownedPresentationFiles).toEqual(expect.arrayContaining([...utilityRoutePresentationFiles]));
@@ -299,7 +304,9 @@ describe("Calm Focus visual contract", () => {
       expect(enforcedOwnedPresentationFiles).not.toContain(relativePath);
     }
 
-    for (const relativePath of completedUtilityRoutePresentationFiles.filter((file) => file.includes("Template"))) {
+    for (const relativePath of completedUtilityRoutePresentationFiles.filter(
+      (file) => file.includes("Template") && !file.includes("ConfigFormTemplate")
+    )) {
       expect(readOwnedSource(relativePath), relativePath).toMatch(/bg-surface(?:-elevated)?/);
     }
   });
