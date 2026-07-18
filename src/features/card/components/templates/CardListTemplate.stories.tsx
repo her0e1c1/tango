@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import * as React from "react";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 import { CardListTemplate as Template } from "@/features/card/components/templates/CardListTemplate";
 import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
@@ -34,6 +35,17 @@ const longUnbrokenCards = fixture.cards.long.map((card, index) =>
   index === 0 ? { ...card, tags: [longUnbrokenTag] } : card
 );
 
+const RemovableSelectedTagsExample = () => {
+  const [selectedTags, setSelectedTags] = React.useState(["TypeScript", "Accessibility"]);
+  return (
+    <Template
+      cards={fixture.cards.default}
+      filter={{ scoreMin: null, scoreMax: null, selectedTags }}
+      onRemoveTag={(tag) => setSelectedTags((values) => values.filter((value) => value !== tag))}
+    />
+  );
+};
+
 const meta = {
   title: "Card/CardListTemplate",
   component: Template,
@@ -56,6 +68,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const RemovableSelectedTags: Story = {
+  render: () => <RemovableSelectedTagsExample />,
+};
 
 export const Long: Story = {
   args: {

@@ -1,6 +1,8 @@
 import cx from "classnames";
 import type * as React from "react";
 
+import { tagClassName } from "@/components/content/tagStyles";
+
 export const Tag: React.FC<{
   className?: string;
   round?: boolean;
@@ -21,13 +23,11 @@ export const Tag: React.FC<{
   children?: React.ReactNode;
 }> = ({
   className,
-  round,
   small,
   large,
   label,
   checked,
   disabled,
-  primary,
   hidden,
   wrap,
   name,
@@ -42,7 +42,7 @@ export const Tag: React.FC<{
       <input
         readOnly
         type="checkbox"
-        className="sr-only peer"
+        className="peer sr-only"
         checked={checked}
         disabled={disabled}
         ref={ref}
@@ -51,29 +51,24 @@ export const Tag: React.FC<{
         onChange={onChange}
         onBlur={onBlur}
       />
-      <div
+      <span
         className={cx(
-          className,
-          "inline-flex min-h-touch min-w-touch select-none items-center justify-center",
+          tagClassName({
+            interactive: onChange != null && !disabled,
+            ...(className !== undefined ? { className } : {}),
+          }),
+          "select-none justify-center align-middle",
           wrap ? "min-w-0 max-w-full whitespace-normal break-all" : "whitespace-nowrap",
-          "font-medium",
-          "align-middle",
-          "border border-border transition-colors duration-fast ease-calm peer-checked:ring-2 peer-checked:ring-current",
+          "before:mr-2 before:size-2 before:shrink-0 before:rounded-pill before:bg-ink-muted before:content-['']",
+          "peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 peer-checked:text-accent-primary",
+          "peer-checked:before:bg-accent-primary peer-checked:before:ring-2 peer-checked:before:ring-accent-primary/20",
           "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
           "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-          round ? "rounded-pill" : "rounded-control",
-          large ? ["py-3 px-4 text-lg"] : small ? ["py-1 px-1 text-xs"] : ["py-2 px-3 text-sm"],
-          primary
-            ? ["bg-accent-primary text-ink-inverse", "peer-checked:border-accent-primary"]
-            : [
-                "bg-surface-muted text-ink",
-                "peer-checked:border-accent-secondary peer-checked:bg-accent-secondary peer-checked:text-ink-inverse",
-              ],
-          onChange != null && !disabled && "cursor-pointer"
+          large ? "px-4 text-lg" : small ? "px-2 text-xs" : undefined
         )}
       >
-        {label ?? children}
-      </div>
+        <span className={cx("min-w-0", wrap ? "break-all" : "truncate")}>{label ?? children}</span>
+      </span>
     </label>
   );
 };

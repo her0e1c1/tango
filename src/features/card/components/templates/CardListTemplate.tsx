@@ -3,7 +3,7 @@ import { AiOutlineDown } from "react-icons/ai";
 
 import { BackText, type BackTextProps } from "@/features/card/components/BackText";
 import { Card, type CardProps } from "@/features/card/components/Card";
-import { Overlay } from "@/components";
+import { Overlay, RemovableTag } from "@/components";
 import { Layout, type LayoutProps } from "@/components/layout/Layout";
 
 export interface CardListOverlayProps {
@@ -25,6 +25,7 @@ export interface CardListTemplateProps {
   card?: CardProps;
   overlay?: CardListOverlayProps;
   onShowCard?: (card: Card) => void;
+  onRemoveTag?: (tag: string) => void;
   feedbackSlot?: React.ReactNode;
   isCardPending?: (id: CardId) => boolean;
 }
@@ -117,13 +118,10 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
           <div className="border-t border-border p-3">{props.filterSlot}</div>
         </details>
         {filter.selectedTags.length > 0 && (
-          <ul aria-label="Selected tags" className="flex min-w-0 max-w-full list-none flex-wrap gap-1 px-1">
+          <ul aria-label="Selected tags" className="flex min-w-0 max-w-full list-none flex-wrap gap-2 px-1">
             {filter.selectedTags.map((tag) => (
-              <li
-                key={tag}
-                className="max-w-full truncate rounded-pill bg-surface-muted px-2 py-1 text-xs font-medium text-ink"
-              >
-                {tag}
+              <li key={tag} className="max-w-full">
+                <RemovableTag label={tag} onRemove={(value) => props.onRemoveTag?.(value)} />
               </li>
             ))}
           </ul>

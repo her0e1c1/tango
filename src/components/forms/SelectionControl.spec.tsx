@@ -75,14 +75,39 @@ describe("shared selection controls", () => {
     expect(onBlur).toHaveBeenCalledOnce();
   });
 
-  it("shows tag selection with shape as well as semantic color", () => {
-    const view = render(<Tag checked label="Biology" primary />);
+  it("shows tag selection through marker, border, and surface changes", () => {
+    const view = render(<Tag checked label="Biology" />);
 
     const input = view.container.querySelector<HTMLInputElement>("input[type=checkbox]");
     if (input == null) throw new Error("Tag input is missing");
     const presentation = input?.nextElementSibling;
     expect(input).toBeChecked();
-    expect(presentation).toHaveClass("bg-accent-primary", "peer-checked:ring-2", "peer-checked:ring-current");
+    expect(input).toHaveClass("peer", "sr-only");
+    expect(presentation).toHaveClass(
+      "rounded-control",
+      "peer-checked:border-accent-primary",
+      "peer-checked:bg-accent-primary/10"
+    );
+    expect(presentation).toHaveClass(
+      "before:bg-ink-muted",
+      "peer-checked:before:bg-accent-primary",
+      "peer-checked:before:ring-2"
+    );
+  });
+
+  it("lets native checked state drive the marker for uncontrolled tags", () => {
+    const onChange = vi.fn();
+    const view = render(<Tag label="Biology" onChange={onChange} />);
+    const input = view.container.querySelector<HTMLInputElement>("input[type=checkbox]");
+    if (input == null) throw new Error("Tag input is missing");
+    const presentation = input.nextElementSibling;
+
+    expect(input).not.toBeChecked();
+    expect(presentation).toHaveClass("peer-checked:before:bg-accent-primary");
+
+    fireEvent.click(input);
+    expect(input).toBeChecked();
+    expect(onChange).toHaveBeenCalledOnce();
   });
 
   it("keeps tag native values, handlers, and input ref", () => {

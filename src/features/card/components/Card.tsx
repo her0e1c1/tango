@@ -3,7 +3,7 @@ import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
 import { CardActionsMenu } from "@/features/card/components/CardActionsMenu";
-import { Score } from "@/components";
+import { Score, TagLabel } from "@/components";
 
 export interface CardActionsProps {
   disabled?: boolean;
@@ -105,12 +105,7 @@ export const Card: React.FC<{ className?: string; card: Card } & CardActionsProp
               className="m-0 flex min-w-0 max-w-full gap-1 overflow-hidden border-0 p-0"
             >
               {props.card.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="max-w-full shrink-0 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs text-ink"
-                >
-                  {tag}
-                </span>
+                <TagLabel className="shrink-0" key={tag} label={tag} />
               ))}
             </fieldset>
           )}

@@ -55,7 +55,7 @@ describe("shared content hierarchy", () => {
     expect(screen.getByText("Tags")).toHaveClass("flex-wrap", "min-w-0", "overflow-x-hidden");
 
     view.rerender(<TagList hasManyItems>Many tags</TagList>);
-    expect(screen.getByText("Many tags")).toHaveClass("max-h-64", "flex-col", "flex-nowrap", "overflow-y-auto");
-    expect(screen.getByText("Many tags")).not.toHaveClass("flex-wrap");
+    expect(screen.getByText("Many tags")).toHaveClass("max-h-64", "flex-wrap", "overflow-y-auto");
+    expect(screen.getByText("Many tags")).not.toHaveClass("flex-col", "flex-nowrap");
   });
 });

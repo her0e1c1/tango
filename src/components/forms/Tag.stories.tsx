@@ -24,30 +24,6 @@ export const Large: Story = {
   args: { large: true },
 };
 
-export const Round: Story = {
-  args: { round: true },
-};
-
-export const RoundSmall: Story = {
-  args: { round: true, small: true },
-};
-
-export const RoundLarge: Story = {
-  args: { round: true, large: true },
-};
-
-export const Primary: Story = {
-  args: { primary: true },
-};
-
-export const PrimarySmall: Story = {
-  args: { primary: true, small: true },
-};
-
-export const PrimaryLarge: Story = {
-  args: { primary: true, large: true },
-};
-
 export const Checked: Story = {
   args: { checked: true },
 };
@@ -73,27 +49,15 @@ export const ClickableChecked: Story = {
   },
 };
 
-export const PrimaryChecked: Story = {
-  args: { primary: true, checked: true },
-};
-
-export const PrimaryClickable: Story = {
-  args: {
-    primary: true,
-    onChange: () => {
-      /* intentional no-op */
-    },
-  },
-};
-
-export const PrimaryClickableChecked: Story = {
-  args: {
-    primary: true,
-    onChange: () => {
-      /* intentional no-op */
-    },
-    checked: true,
-  },
+export const LongLabel: Story = {
+  args: { label: "A very long selectable tag label that stays within the available width" },
+  decorators: [
+    (StoryComponent) => (
+      <div className="w-56">
+        <StoryComponent />
+      </div>
+    ),
+  ],
 };
 
 export const LightAndDark: Story = {
@@ -101,11 +65,11 @@ export const LightAndDark: Story = {
     <div className="grid gap-4">
       <div className="flex gap-3 bg-canvas p-4 text-ink">
         <Template label="Light" />
-        <Template checked primary label="Selected" />
+        <Template checked label="Selected" />
       </div>
       <div className="dark flex gap-3 bg-canvas p-4 text-ink">
         <Template label="Dark" />
-        <Template checked primary label="Selected" />
+        <Template checked label="Selected" />
       </div>
     </div>
   ),

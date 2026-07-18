@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   goToCardEdit: vi.fn(),
   cardUpdateBy: vi.fn(),
   cardRemove: vi.fn(),
+  onClickTag: vi.fn(),
 }));
 
 vi.mock("@/features/card/hooks/useCardMutations", () => ({
@@ -85,7 +86,7 @@ vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
       onClickFilter: vi.fn(),
       onClickAll: vi.fn(),
       onClickClear: vi.fn(),
-      onClickTag: vi.fn(),
+      onClickTag: mocks.onClickTag,
     },
   }),
 }));
@@ -136,6 +137,7 @@ describe("CardListContainer", () => {
     mocks.goToCardEdit.mockReset();
     mocks.cardUpdateBy.mockReset().mockResolvedValue(undefined);
     mocks.cardRemove.mockReset().mockResolvedValue(undefined);
+    mocks.onClickTag.mockReset();
   });
 
   afterEach(() => {
@@ -152,6 +154,14 @@ describe("CardListContainer", () => {
     expect(view.getByText("score -2–4 · 1 tag")).toBeInTheDocument();
     expect(view.getByLabelText("Selected tags")).toHaveTextContent("typescript");
     expect(view.getByText("Filters").closest("details")).not.toHaveAttribute("open");
+  });
+
+  it("removes one selected tag through the existing filter callback", async () => {
+    mocks.filter = { scoreMin: null, scoreMax: null, selectedTags: ["typescript", "react"] };
+    const view = render(<CardListContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Remove typescript filter" }));
+    expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);
   });
 
   it("preserves Edit, Delete, and left/right swipe connections", async () => {
