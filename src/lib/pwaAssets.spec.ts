@@ -426,7 +426,7 @@ describe("Tango PWA identity", () => {
     expect(readme).not.toMatch(/^# Tango$/m);
   });
 
-  it("advertises SVG, fallback, touch, manifest, and light/dark browser colors", () => {
+  it("advertises SVG, fallback, touch, and light/dark browser colors without a handwritten manifest", () => {
     const indexHtml = readText("index.html");
     const document = new DOMParser().parseFromString(indexHtml, "text/html");
     const faviconLinks = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"]'));
@@ -455,7 +455,7 @@ describe("Tango PWA identity", () => {
       })
     ).toBe(true);
     expect(hasLink(document, { rel: "apple-touch-icon", href: "/apple-touch-icon.png" })).toBe(true);
-    expect(hasLink(document, { rel: "manifest", href: "/manifest.json" })).toBe(true);
+    expect(hasLink(document, { rel: "manifest", href: "/manifest.json" })).toBe(false);
     expect(themeColors).toEqual([
       { content: "#f7f8fa", media: "(prefers-color-scheme: light)" },
       { content: "#111827", media: "(prefers-color-scheme: dark)" },
