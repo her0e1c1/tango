@@ -52,12 +52,14 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
           },
         },
         errors: {
-          name: formState.errors.name?.message,
-          url: formState.errors.url?.message,
+          ...(formState.errors.name?.message !== undefined ? { name: formState.errors.name.message } : {}),
+          ...(formState.errors.url?.message !== undefined ? { url: formState.errors.url.message } : {}),
         },
         isSubmitting: formState.isSubmitting,
         onCancel: deckActions.goToList,
-        onSubmit: handleSubmit((values) => deckActions.updateAndGoToList({ ...deck, ...values })),
+        onSubmit: handleSubmit((values) =>
+          deckActions.updateAndGoToList({ ...deck, ...values, url: values.url ?? "" })
+        ),
       }}
     />
   );

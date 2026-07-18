@@ -44,7 +44,11 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">The prompt shown during study.</p>
         </div>
-        <FormItem col label="Front text" error={props.errors?.frontText}>
+        <FormItem
+          col
+          label="Front text"
+          {...(props.errors?.frontText !== undefined ? { error: props.errors.frontText } : {})}
+        >
           <Textarea rows={8} {...props.fields.frontText} aria-invalid={props.errors?.frontText != null || undefined} />
         </FormItem>
       </section>
@@ -58,7 +62,11 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">The answer revealed after the prompt.</p>
         </div>
-        <FormItem col label="Back text" error={props.errors?.backText}>
+        <FormItem
+          col
+          label="Back text"
+          {...(props.errors?.backText !== undefined ? { error: props.errors.backText } : {})}
+        >
           <Textarea rows={8} {...props.fields.backText} aria-invalid={props.errors?.backText != null || undefined} />
         </FormItem>
       </section>

@@ -39,7 +39,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">Name and organize this deck.</p>
         </div>
-        <FormItem col label="Name" error={props.errors?.name}>
+        <FormItem col label="Name" {...(props.errors?.name !== undefined ? { error: props.errors.name } : {})}>
           <Input {...props.fields.name} aria-invalid={props.errors?.name != null || undefined} />
         </FormItem>
         <FormItem col label="Category">
@@ -56,7 +56,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">Control the source and how imported text is displayed.</p>
         </div>
-        <FormItem col label="Source URL" error={props.errors?.url}>
+        <FormItem col label="Source URL" {...(props.errors?.url !== undefined ? { error: props.errors.url } : {})}>
           <Input {...props.fields.url} aria-invalid={props.errors?.url != null || undefined} />
         </FormItem>
         <FormItem label="Convert line breaks" help="Convert two line breaks to one <br />.">

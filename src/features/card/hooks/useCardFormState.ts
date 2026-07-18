@@ -33,8 +33,8 @@ export const useCardFormState = ({ card, categoryOptions, onSubmit }: UseCardFor
       })),
     },
     errors: {
-      frontText: formState.errors.frontText?.message,
-      backText: formState.errors.backText?.message,
+      ...(formState.errors.frontText?.message !== undefined ? { frontText: formState.errors.frontText.message } : {}),
+      ...(formState.errors.backText?.message !== undefined ? { backText: formState.errors.backText.message } : {}),
     },
     isSubmitting: formState.isSubmitting,
     onSubmit: handleSubmit((values) => onSubmit?.({ ...card, ...values })),
