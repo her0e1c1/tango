@@ -11,7 +11,7 @@ export const useDeckMutations = () => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const client = useQueryClient();
-  const lastFailed = useRef<Variables>();
+  const lastFailed = useRef<Variables>(undefined);
   const service = useMemo(
     () =>
       createDeckMutationService({

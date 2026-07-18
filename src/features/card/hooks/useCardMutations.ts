@@ -24,7 +24,7 @@ export const useCardMutations = () => {
   const client = useQueryClient();
   const remote = useRemoteCollections();
   const [pendingCounts, setPendingCounts] = useState(() => new Map<CardId, number>());
-  const lastFailed = useRef<CardMutationVariables>();
+  const lastFailed = useRef<CardMutationVariables>(undefined);
   const service = useMemo(
     () =>
       createCardMutationService({
