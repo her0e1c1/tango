@@ -99,15 +99,15 @@ describe("CardFormContainer", () => {
     const backText = view.container.querySelector("textarea[name='backText']") as Element;
 
     await userEvent.clear(frontText);
-    await userEvent.type(frontText, "UPDATED FRONT");
+    await userEvent.type(frontText, " UPDATED FRONT ");
     await userEvent.clear(backText);
-    await userEvent.type(backText, "UPDATED BACK");
+    await userEvent.type(backText, " UPDATED BACK ");
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
     expect(mocks.cardUpdate).toHaveBeenCalledWith({
       ...card,
-      frontText: "UPDATED FRONT",
-      backText: "UPDATED BACK",
+      frontText: " UPDATED FRONT ",
+      backText: " UPDATED BACK ",
     });
   });
 

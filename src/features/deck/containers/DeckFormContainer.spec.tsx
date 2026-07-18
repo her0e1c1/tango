@@ -88,7 +88,7 @@ describe("DeckFormContainer", () => {
     const input = view.container.querySelector("input[name='name']") as Element;
 
     await userEvent.clear(input);
-    await userEvent.type(input, "UPDATED");
+    await userEvent.type(input, " UPDATED ");
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, name: "UPDATED" });

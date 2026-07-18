@@ -31,6 +31,10 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
   const frontHeadingId = `${sectionHeadingIdPrefix}-card-front-heading`;
   const backHeadingId = `${sectionHeadingIdPrefix}-card-back-heading`;
   const tagsHeadingId = `${sectionHeadingIdPrefix}-card-tags-heading`;
+  const frontInputId = `${sectionHeadingIdPrefix}-card-front-text`;
+  const frontErrorId = `${frontInputId}-error`;
+  const backInputId = `${sectionHeadingIdPrefix}-card-back-text`;
+  const backErrorId = `${backInputId}-error`;
 
   return (
     <Form {...(props.onSubmit !== undefined ? { onSubmit: props.onSubmit } : {})}>
@@ -47,9 +51,17 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
         <FormItem
           col
           label="Front text"
+          inputId={frontInputId}
+          errorId={frontErrorId}
           {...(props.errors?.frontText !== undefined ? { error: props.errors.frontText } : {})}
         >
-          <Textarea rows={8} {...props.fields.frontText} aria-invalid={props.errors?.frontText != null || undefined} />
+          <Textarea
+            rows={8}
+            {...props.fields.frontText}
+            id={frontInputId}
+            aria-invalid={props.errors?.frontText != null || undefined}
+            aria-describedby={props.errors?.frontText !== undefined ? frontErrorId : undefined}
+          />
         </FormItem>
       </section>
       <section
@@ -65,9 +77,17 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
         <FormItem
           col
           label="Back text"
+          inputId={backInputId}
+          errorId={backErrorId}
           {...(props.errors?.backText !== undefined ? { error: props.errors.backText } : {})}
         >
-          <Textarea rows={8} {...props.fields.backText} aria-invalid={props.errors?.backText != null || undefined} />
+          <Textarea
+            rows={8}
+            {...props.fields.backText}
+            id={backInputId}
+            aria-invalid={props.errors?.backText != null || undefined}
+            aria-describedby={props.errors?.backText !== undefined ? backErrorId : undefined}
+          />
         </FormItem>
       </section>
       <section
