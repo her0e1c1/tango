@@ -8,6 +8,9 @@ import { createDeckMutationService } from "@/query/deckMutationService";
 type Variables = { kind: "create"; deck: Deck } | { kind: "update"; deck: DeckEdit } | { kind: "remove"; deck: Deck };
 type Failure = { variables: Variables; error: unknown };
 
+const isSameOperation = (left: Variables, right: Variables) =>
+  left.kind === right.kind && left.deck.id === right.deck.id;
+
 export const useDeckMutations = () => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
@@ -37,7 +40,9 @@ export const useDeckMutations = () => {
     },
   });
   const run = useCallback(
-    (variables: Variables, retryOf?: Failure) => {
+    (variables: Variables) => {
+      const failed = failureRef.current;
+      const retryOf = failed != null && isSameOperation(failed.variables, variables) ? failed : undefined;
       const deckId = variables.deck.id;
       const current = inFlight.current.get(deckId);
       if (current != null) {
@@ -91,7 +96,7 @@ export const useDeckMutations = () => {
     error: failure?.error ?? null,
     retry: () => {
       const failed = failureRef.current;
-      if (failed != null) void run(failed.variables, failed).catch(() => undefined);
+      if (failed != null) void run(failed.variables).catch(() => undefined);
     },
   };
 };

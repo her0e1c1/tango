@@ -89,6 +89,27 @@ describe("useDeckMutations", () => {
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
   });
 
+  it("clears a failed removal after the same Deck is removed manually", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    const error = new Error("delete failed");
+    mocks.remove.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+    const client = createTestQueryClient();
+    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
+    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+
+    await act(async () => {
+      await expect(result.current.remove(deck)).rejects.toThrow(error);
+    });
+    await waitFor(() => expect(result.current.error).toBe(error));
+
+    await act(async () => result.current.remove(deck));
+
+    expect(result.current.error).toBeNull();
+    act(() => result.current.retry());
+    expect(result.current.pending).toBe(false);
+    expect(mocks.remove).toHaveBeenCalledTimes(2);
+  });
+
   it("keeps a Deck failure after an unrelated Deck succeeds until its retry succeeds", async () => {
     const failedDeck = createDeck({ id: "deck-a" });
     const successfulDeck = createDeck({ id: "deck-b" });
