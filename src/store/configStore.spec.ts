@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CONFIG_STORAGE_KEY, createConfigStore, defaultConfig } from "@/features/settings/state/configStore";
+import { CONFIG_STORAGE_KEY, createConfigStore, defaultConfig } from "@/store/configStore";
 
 const createMemoryStorage = () => {
   const values = new Map<string, string>();

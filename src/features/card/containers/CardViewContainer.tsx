@@ -7,7 +7,7 @@ import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteReadBoundary } from "@/components";
 import { useActions } from "@/hooks/useActions";
 import { CardViewTemplate } from "@/features/card/components/templates/CardViewTemplate";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
   const actions = useActions();

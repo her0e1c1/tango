@@ -26,7 +26,7 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/features/study/hooks/useStudyHydrated", () => ({ useStudyHydrated: () => mocks.hydrated }));
 vi.mock("@/action", () => ({ deck: { downloadData: mocks.downloadData } }));
 vi.mock("@/query/useRemoteCollections", () => ({

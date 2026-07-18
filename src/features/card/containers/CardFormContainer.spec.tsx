@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
 }));
 
-vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
@@ -81,6 +81,15 @@ describe("CardFormContainer", () => {
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
     expect(mocks.cardUpdate).toHaveBeenCalledWith(card);
+    expect(mocks.navigate).toHaveBeenCalledWith(-1);
+  });
+
+  it("returns to the previous page without saving when cancelled", async () => {
+    const view = render(<CardFormContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Cancel" }));
+
+    expect(mocks.cardUpdate).not.toHaveBeenCalled();
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
 

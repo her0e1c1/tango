@@ -41,7 +41,7 @@ const createProps = (overrides: Partial<CardFormProps> = {}): CardFormProps => (
 describe("CardForm", () => {
   afterEach(cleanup);
 
-  it("groups card content, tags, and metadata while preserving values and callbacks", async () => {
+  it("groups front, back, tags, and card information while preserving values and callbacks", async () => {
     const props = createProps();
     const view = render(<CardForm {...props} />);
     const frontText = view.container.querySelector("textarea[name='frontText']") as HTMLTextAreaElement;
@@ -49,17 +49,21 @@ describe("CardForm", () => {
     const geography = view.container.querySelector("input[name='tags'][value='geography']") as HTMLInputElement;
     const travel = view.container.querySelector("input[name='tags'][value='travel']") as HTMLInputElement;
 
-    expect(view.getByRole("heading", { level: 2, name: "Card content" })).toBeVisible();
+    expect(view.getByRole("heading", { level: 2, name: "Front" })).toBeVisible();
+    expect(view.getByText("The prompt shown during study.")).toBeVisible();
+    expect(view.getByRole("heading", { level: 2, name: "Back" })).toBeVisible();
+    expect(view.getByText("The answer revealed after the prompt.")).toBeVisible();
     expect(view.getByRole("heading", { level: 2, name: "Tags" })).toBeVisible();
-    expect(view.getByRole("heading", { level: 2, name: "Metadata" })).toBeVisible();
+    expect(view.getByText("Organize this card for filtering and study sessions.")).toBeVisible();
+    expect(view.getByText("Card information").closest("details")).not.toHaveAttribute("open");
     expect(frontText).toHaveValue("What is the capital of Japan?");
     expect(backText).toHaveValue("Tokyo");
     expect(geography).toBeChecked();
     expect(travel).not.toBeChecked();
-    expect(view.getByText("japan-capital")).toBeVisible();
-    expect(view.getByText("card-123")).toBeVisible();
-    expect(view.getByText(String(createdAt))).toBeVisible();
-    expect(view.getByText(new Date(lastSeenAt).toLocaleDateString())).toBeVisible();
+    expect(view.getByText("japan-capital")).toBeInTheDocument();
+    expect(view.getByText("card-123")).toBeInTheDocument();
+    expect(view.getByText(new Date(createdAt).toLocaleDateString())).toBeInTheDocument();
+    expect(view.getByText(new Date(lastSeenAt).toLocaleDateString())).toBeInTheDocument();
 
     fireEvent.change(frontText, { target: { value: "Updated front" } });
     fireEvent.change(backText, { target: { value: "Updated back" } });
@@ -89,21 +93,28 @@ describe("CardForm", () => {
     }
   });
 
-  it("submits when idle and has no cancel action", async () => {
+  it("keeps cancel separate from submission while idle", async () => {
+    const onCancel = vi.fn();
     const onSubmit = vi.fn((event?: React.FormEvent) => event?.preventDefault());
-    const view = render(<CardForm {...createProps({ isSubmitting: false, onSubmit })} />);
-    const save = view.getByRole("button", { name: "Save" });
+    const view = render(<CardForm {...createProps({ isSubmitting: false, onCancel, onSubmit })} />);
+    const cancel = view.getByRole("button", { name: "Cancel" });
+    const save = view.getByRole("button", { name: "Save changes" });
 
     expect(save).toBeEnabled();
-    expect(view.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument();
+    await userEvent.click(cancel);
+
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onSubmit).not.toHaveBeenCalled();
+
     await userEvent.click(save);
 
     expect(onSubmit).toHaveBeenCalledOnce();
   });
 
-  it("disables Save only while submitting", () => {
+  it("disables Save changes and shows pending copy only while submitting", () => {
     const view = render(<CardForm {...createProps({ isSubmitting: true })} />);
 
-    expect(view.getByRole("button", { name: "Save" })).toBeDisabled();
+    expect(view.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    expect(view.queryByRole("button", { name: "Save changes" })).not.toBeInTheDocument();
   });
 });

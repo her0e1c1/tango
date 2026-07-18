@@ -12,7 +12,7 @@ vi.mock("zustand", () => ({
       config: { darkMode: mocks.darkMode },
     }),
 }));
-vi.mock("@/features/settings/state/configStore", () => ({ configStore: {} }));
+vi.mock("@/store/configStore", () => ({ configStore: {} }));
 vi.mock("@/action", () => ({ event: { init: mocks.init } }));
 vi.mock("@/page", () => ({
   DeckListPage: () => <div>Deck list</div>,
