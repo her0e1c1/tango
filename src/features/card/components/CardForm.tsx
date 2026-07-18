@@ -18,59 +18,105 @@ export interface CardFormProps {
   card: Card;
   fields: CardFormFields;
   isSubmitting?: boolean;
+  onCancel?: () => void;
   onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
 }
 
 export const CardForm: React.FC<CardFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();
-  const contentHeadingId = `${sectionHeadingIdPrefix}-card-content-heading`;
+  const frontHeadingId = `${sectionHeadingIdPrefix}-card-front-heading`;
+  const backHeadingId = `${sectionHeadingIdPrefix}-card-back-heading`;
   const tagsHeadingId = `${sectionHeadingIdPrefix}-card-tags-heading`;
-  const metadataHeadingId = `${sectionHeadingIdPrefix}-card-metadata-heading`;
 
   return (
     <Form {...(props.onSubmit !== undefined ? { onSubmit: props.onSubmit } : {})}>
-      <section aria-labelledby={contentHeadingId} className="space-y-4">
-        <h2 id={contentHeadingId} className="border-b border-border pb-2 text-title font-semibold text-ink">
-          Card content
-        </h2>
-        <FormItem col label="Front Text">
+      <section
+        aria-labelledby={frontHeadingId}
+        className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
+      >
+        <div>
+          <h2 id={frontHeadingId} className="text-title font-semibold text-ink">
+            Front
+          </h2>
+          <p className="mt-1 text-caption text-ink-muted">The prompt shown during study.</p>
+        </div>
+        <FormItem col label="Front text">
           <Textarea rows={8} {...props.fields.frontText} />
         </FormItem>
-        <FormItem col label="Back Text">
+      </section>
+      <section
+        aria-labelledby={backHeadingId}
+        className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
+      >
+        <div>
+          <h2 id={backHeadingId} className="text-title font-semibold text-ink">
+            Back
+          </h2>
+          <p className="mt-1 text-caption text-ink-muted">The answer revealed after the prompt.</p>
+        </div>
+        <FormItem col label="Back text">
           <Textarea rows={8} {...props.fields.backText} />
         </FormItem>
       </section>
       <section
         aria-labelledby={tagsHeadingId}
-        className="space-y-4 rounded-surface border border-border bg-surface-muted p-4"
+        className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
       >
-        <h2 id={tagsHeadingId} className="text-title font-semibold text-ink">
-          Tags
-        </h2>
+        <div>
+          <h2 id={tagsHeadingId} className="text-title font-semibold text-ink">
+            Tags
+          </h2>
+          <p className="mt-1 text-caption text-ink-muted">Organize this card for filtering and study sessions.</p>
+        </div>
         <TagList>
           {props.fields.tags.map(({ label, value, input }) => (
             <Tag className="mr-1 mb-1" primary small key={value} label={label} {...input} value={value} />
           ))}
         </TagList>
       </section>
-      <section aria-labelledby={metadataHeadingId} className="space-y-4">
-        <h2 id={metadataHeadingId} className="border-b border-border pb-2 text-title font-semibold text-ink">
-          Metadata
-        </h2>
-        <FormItem col label="Unique Key">
-          {props.card.uniqueKey ?? ""}
-        </FormItem>
-        <FormItem col label="id">
-          {props.card.id}
-        </FormItem>
-        <FormItem label="Created At">{props.card.createdAt}</FormItem>
-        <FormItem label="Last Seen At">
-          {props.card.lastSeenAt && new Date(props.card.lastSeenAt).toLocaleDateString()}
-        </FormItem>
-      </section>
-      <Button primary type="submit" {...(props.isSubmitting !== undefined ? { disabled: props.isSubmitting } : {})}>
-        Save
-      </Button>
+      <details className="rounded-surface border border-border bg-surface-muted p-4">
+        <summary className="flex min-h-touch cursor-pointer items-center font-semibold text-ink">
+          Card information
+        </summary>
+        <dl className="mt-4 grid gap-3 text-caption">
+          <div className="min-w-0">
+            <dt className="font-medium text-ink-muted">Unique key</dt>
+            <dd className="break-all text-ink">{props.card.uniqueKey ?? ""}</dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="font-medium text-ink-muted">ID</dt>
+            <dd className="break-all text-ink">{props.card.id}</dd>
+          </div>
+          {Boolean(props.card.createdAt) && (
+            <div>
+              <dt className="font-medium text-ink-muted">Created</dt>
+              <dd className="text-ink">{new Date(props.card.createdAt).toLocaleDateString()}</dd>
+            </div>
+          )}
+          {Boolean(props.card.lastSeenAt) && (
+            <div>
+              <dt className="font-medium text-ink-muted">Last seen</dt>
+              <dd className="text-ink">{new Date(props.card.lastSeenAt).toLocaleDateString()}</dd>
+            </div>
+          )}
+        </dl>
+      </details>
+      <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+        <Button
+          variant="quiet"
+          type="button"
+          {...(props.onCancel !== undefined ? { onClick: props.onCancel } : {})}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          type="submit"
+          {...(props.isSubmitting !== undefined ? { disabled: props.isSubmitting } : {})}
+        >
+          {props.isSubmitting ? "Saving…" : "Save changes"}
+        </Button>
+      </div>
     </Form>
   );
 };
