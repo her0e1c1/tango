@@ -6,7 +6,7 @@ import { DeckImportTemplate } from "@/features/import/components/templates/DeckI
 import { useActions } from "@/hooks/useActions";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
 import { RemoteMutationNotice } from "@/components";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 export const DeckImportContainer: React.FC = () => {
   const actions = useActions();

@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
   useConfigFormState: vi.fn((options: Record<string, unknown>) => options),
 }));
 
-vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/auth/AuthContext", () => ({ useAuth: () => mocks.authState }));
 vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.actions }));
 vi.mock("@/features/settings/hooks/useConfigFormState", () => ({

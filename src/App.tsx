@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useStore } from "zustand";
 import * as Page from "@/page";
-import { configStore } from "@/features/settings/state/configStore";
+import { configStore } from "@/store/configStore";
 
 const App = () => {
   const darkMode = useStore(configStore, (state) => state.config.darkMode);

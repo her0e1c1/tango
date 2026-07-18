@@ -24,7 +24,7 @@ const mocks = vi.hoisted(() => ({
   useKey: vi.fn(),
 }));
 
-vi.mock("@/features/settings/hooks/useConfig", () => ({
+vi.mock("@/hooks/useConfig", () => ({
   useConfig: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     return mocks.state.config;
