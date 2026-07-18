@@ -2,6 +2,8 @@ import type * as React from "react";
 import { useKey } from "react-use";
 
 import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
+import { RemoteMutationNotice } from "@/components/feedback/RemoteMutationNotice";
+import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
 import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
 import { useActions } from "@/hooks/useActions";
 import { useAuth } from "@/auth/AuthContext";
@@ -16,13 +18,27 @@ export const ConfigContainer: React.FC = () => {
     uid: authenticated?.uid ?? "",
     displayName: authenticated?.user.providerData[0]?.displayName ?? null,
   };
+  const account = useAccountOperations({
+    login: actions.login,
+    ...(authenticated ? { logout: () => actions.logout(authenticated.uid) } : {}),
+  });
   const configForm = useConfigFormState({
     config,
     identity,
     version: __APP_VERSION__,
     isLoggedIn: authenticated != null && !authenticated.user.isAnonymous,
-    onLogin: actions.login,
-    ...(authenticated ? { onLogout: () => actions.logout(authenticated.uid) } : {}),
+    onLogin: () => void account.login().catch(() => undefined),
+    ...(authenticated ? { onLogout: () => void account.logout().catch(() => undefined) } : {}),
+    accountPending: account.pending,
+    accountFeedback: (
+      <RemoteMutationNotice
+        pending={account.pending}
+        error={account.error}
+        onRetry={account.retry}
+        pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
+        errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
+      />
+    ),
     onSubmit: actions.configUpdate,
   });
   useKey("t", actions.goToTop);

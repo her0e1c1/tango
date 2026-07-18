@@ -10,6 +10,8 @@ export interface UseConfigFormStateOptions {
   identity?: ConfigFormProps["identity"];
   onLogin?: () => void;
   onLogout?: () => void;
+  accountPending?: boolean;
+  accountFeedback?: React.ReactNode;
   version?: string;
 }
 
@@ -20,6 +22,8 @@ export const useConfigFormState = ({
   identity,
   onLogin,
   onLogout,
+  accountPending,
+  accountFeedback,
   version,
 }: UseConfigFormStateOptions): ConfigFormProps => {
   const { control, handleSubmit, register, setValue, subscribe } = useForm<ConfigState>({
@@ -45,6 +49,8 @@ export const useConfigFormState = ({
     ...(identity !== undefined ? { identity } : {}),
     ...(onLogin !== undefined ? { onLogin } : {}),
     ...(onLogout !== undefined ? { onLogout } : {}),
+    ...(accountPending !== undefined ? { accountPending } : {}),
+    ...(accountFeedback !== undefined ? { accountFeedback } : {}),
     ...(version !== undefined ? { version } : {}),
     maxNumberOfCardsToLearn,
     cardInterval,
