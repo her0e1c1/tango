@@ -5,7 +5,7 @@ import { useKey } from "react-use";
 import * as C from "@/constant";
 import * as util from "@/util";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
+import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
 import { BackText } from "@/features/card/components/BackText";
 import { CardOverlay } from "@/features/card/components/CardOverlay";
 import { FrontText } from "@/features/card/components/FrontText";
@@ -16,7 +16,7 @@ import { useStudyControllerState } from "@/features/study/hooks/useStudyControll
 import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { selectStudySessionForRoute, studyStore } from "@/features/study/state/studyStore";
-import { useActions } from "@/shared/hooks/useActions";
+import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/features/settings/hooks/useConfig";
 
 const STUDY_HISTORY_GUARD = "tangoStudyDeckId";

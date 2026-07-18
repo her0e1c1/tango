@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import * as Shared from "@/shared/components";
-import type { ActionsMenuItem, ActionsMenuProps, HeaderProps, LayoutProps, Option } from "@/shared/components";
+import * as Shared from "@/components";
+import type { ActionsMenuItem, ActionsMenuProps, HeaderProps, LayoutProps, Option } from "@/components";
 
 const components = {
   ActionsMenu: Shared.ActionsMenu,
@@ -34,7 +34,7 @@ const components = {
   Upload: Shared.Upload,
 };
 
-describe("shared component public API", () => {
+describe("component public API", () => {
   it("exports every component and named prop type from the root barrel", () => {
     const acceptsTypes = (
       _actionsMenu: ActionsMenuProps,

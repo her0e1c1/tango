@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 import * as C from "@/constant";
 import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
-import { useActions } from "@/shared/hooks/useActions";
+import { useActions } from "@/hooks/useActions";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
-import { RemoteMutationNotice } from "@/shared/components";
+import { RemoteMutationNotice } from "@/components";
 import { useConfig } from "@/features/settings/hooks/useConfig";
 
 export const DeckImportContainer: React.FC = () => {

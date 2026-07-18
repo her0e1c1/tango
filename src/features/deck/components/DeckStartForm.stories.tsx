@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { DeckStartForm as Template, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
-import * as fixture from "@/shared/storybook/fixture";
+import * as fixture from "@/storybook/fixture";
 
 const args: DeckStartFormProps = {
   scoreMax: 1,

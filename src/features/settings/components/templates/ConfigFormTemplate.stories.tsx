@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 import { ConfigFormTemplate as Template } from "@/features/settings/components/templates/ConfigFormTemplate";
 import type { ConfigFormFields } from "@/features/settings/components/ConfigForm";
-import * as fixture from "@/shared/storybook/fixture";
+import * as fixture from "@/storybook/fixture";
 
 const fields: ConfigFormFields = {
   showHeader: { checked: fixture.config.default.showHeader, onChange: () => undefined },

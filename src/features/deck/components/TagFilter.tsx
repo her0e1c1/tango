@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Button, Description, Section, Switch, Tag, TagList } from "@/shared/components";
+import { Button, Description, Section, Switch, Tag, TagList } from "@/components";
 
 const updateTags = (tags: string[], tag: string) => {
   if (tags.includes(tag)) {

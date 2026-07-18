@@ -3,7 +3,7 @@ import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
 import { CardActionsMenu } from "@/features/card/components/CardActionsMenu";
-import { Score } from "@/shared/components";
+import { Score } from "@/components";
 
 export interface CardActionsProps {
   disabled?: boolean;

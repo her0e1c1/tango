@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Form, FormItem, Section, Slider, Switch } from "@/shared/components";
+import { Form, FormItem, Section, Slider, Switch } from "@/components";
 import { TagFilter, type TagFilterProps } from "@/features/deck/components/TagFilter";
 
 export interface DeckStartFormProps {

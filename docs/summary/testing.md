@@ -54,8 +54,8 @@ Compiler 診断の suppression、`"use no memo"`、annotation mode、directory f
 | Feature container tests | `src/features/*/containers/*.spec.tsx` | route/store data の接続と template への props/slot 配線を `@testing-library/react` で検証します。 |
 | Feature hook tests | `src/features/*/hooks/*.spec.tsx` | form/UI state、router/Zustand/TanStack Query 接続などの hook behavior を `@testing-library/react` で検証します。 |
 | Presentation tests | `src/features/*/components/**/*.spec.tsx` | stateless component の rendering と callback を検証します。 |
-| Architecture tests | `src/lib/componentArchitecture.spec.ts` | Page/Container/Template/Component と feature/shared の依存境界を検証します。 |
-| Storybook | `src/{features,shared}/**/*.stories.tsx`, `.storybook/*` | component/template catalog と static build の対象です。 |
+| Architecture tests | `src/lib/componentArchitecture.spec.ts` | Page/Container/Template/Component と feature/common component の依存境界を検証します。 |
+| Storybook | `src/{components,features}/**/*.stories.tsx`, `.storybook/*` | component/template catalog と static build の対象です。 |
 | Browser E2E | `e2e/*.e2e.ts` | Playwright で smoke、deck/card、swipe の主要導線を検証します。 |
 | Sample tests | `sample/test/**/*.py` | Python sample source の pytest。sample build 入力にもなります。 |
 

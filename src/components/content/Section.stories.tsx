@@ -1,0 +1,21 @@
+import type { Meta, StoryObj } from "@storybook/react";
+
+import { Section as Template } from "@/components/content/Section";
+
+const meta = {
+  title: "Shared/Content/Section",
+  component: Template,
+  tags: ["autodocs"],
+  args: {
+    title: "this is a section",
+  },
+} satisfies Meta<typeof Template>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+
+export const Page: Story = { args: { page: true } };
+
+export const Dark: Story = { globals: { theme: "dark" } };

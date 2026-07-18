@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 import type { CardFormFields } from "@/features/card/components/CardForm";
 import { CardFormTemplate as Template } from "@/features/card/components/templates/CardFormTemplate";
-import type { Option } from "@/shared/components/forms/Select";
-import * as fixture from "@/shared/storybook/fixture";
+import type { Option } from "@/components/forms/Select";
+import * as fixture from "@/storybook/fixture";
 
 const fieldsFor = (card: Card, options: Option[]): CardFormFields => ({
   frontText: { value: card.frontText, onChange: () => undefined },

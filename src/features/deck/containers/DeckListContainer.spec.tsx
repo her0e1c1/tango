@@ -44,7 +44,7 @@ vi.mock("@/query/useRemoteCollections", () => ({
   },
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
-vi.mock("@/shared/hooks/useActions", () => ({ useActions: () => mocks.actions }));
+vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.actions }));
 vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
   useDeckMutations: () => ({ remove: mocks.remove, pending: mocks.pending, error: null, retry: vi.fn() }),
 }));

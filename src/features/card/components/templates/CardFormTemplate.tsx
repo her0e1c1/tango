@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
+import { Layout, type LayoutProps } from "@/components/layout/Layout";
 import { CardForm, type CardFormProps } from "@/features/card/components/CardForm";
 
 export interface CardFormTemplateProps {

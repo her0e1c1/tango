@@ -11,8 +11,8 @@ flowchart TD
     Containers --> Templates[src/features/*/components/templates]
     Containers --> FeatureUI[src/features/*/components]
     Templates --> FeatureUI
-    Templates --> SharedUI[src/shared/components]
-    FeatureUI --> SharedUI
+    Templates --> CommonUI[src/components]
+    FeatureUI --> CommonUI
 
     Containers --> Actions[src/action]
     Containers --> Zustand[Zustand config/study stores]
@@ -75,8 +75,8 @@ flowchart LR
 
 - UI は `App -> Page -> Container -> Template -> Component` の順に依存します。`src/page` は対応する feature container を 1 つ render するだけの route entry です。
 - router、form、keyboard、timer、変更可能な UI state は `src/features/*/containers` と feature hook / Zustand store が所有します。`components/templates` と `components` は props-driven な表示層です。
-- `src/shared/components` は feature に依存せず、feature の presentation は同じ feature または shared の presentation だけを参照します。依存境界は `src/lib/componentArchitecture.spec.ts` が検証します。
-- UI stories/specs は対象 component、template、container と同じ feature/shared 配下に置き、`src/**/*.stories.tsx` と `src/**/*.spec.{ts,tsx}` から discovery されます。
+- `src/components` は feature に依存せず、feature の presentation は同じ feature または共通 component だけを参照します。依存境界は `src/lib/componentArchitecture.spec.ts` が検証します。
+- UI stories/specs は対象 component、template、container と同じ `components` または feature 配下に置き、`src/**/*.stories.tsx` と `src/**/*.spec.{ts,tsx}` から discovery されます。
 - domain 操作は `src/action` と feature mutation hook に集約されています。
 - Deck/Card mutation は TanStack Query cache を optimistic に更新し、Firestore 書き込みを待機して失敗時に rollback します。
 - sample deck は Python サブプロジェクトで生成した JSON を、Import 画面から通常の Firestore mutation で追加します。

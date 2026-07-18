@@ -11,8 +11,8 @@ import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { studyStore } from "@/features/study/state/studyStore";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
-import { useActions } from "@/shared/hooks/useActions";
+import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
+import { useActions } from "@/hooks/useActions";
 
 export const DeckListContainer: React.FC = () => {
   const actions = useActions();

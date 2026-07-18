@@ -30,7 +30,7 @@ vi.mock("react-use", () => ({
   useKey: mocks.useKey,
 }));
 
-vi.mock("@/shared/hooks/useActions", () => ({
+vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     deckDownloadCsvSampleText: mocks.deckDownloadCsvSampleText,
     goToTop: mocks.goToTop,

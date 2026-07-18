@@ -4,8 +4,8 @@ import { useForm } from "react-hook-form";
 
 import * as C from "@/constant";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary } from "@/shared/components";
-import { useActions } from "@/shared/hooks/useActions";
+import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
+import { useActions } from "@/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useConfig } from "@/features/settings/hooks/useConfig";

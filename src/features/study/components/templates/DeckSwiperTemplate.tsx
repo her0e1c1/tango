@@ -1,7 +1,7 @@
 import cx from "classnames";
 import type * as React from "react";
-import * as Shared from "@/shared/components";
-import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
+import * as Shared from "@/components";
+import { Layout, type LayoutProps } from "@/components/layout/Layout";
 import { Controller, type ControllerProps } from "@/features/study/components/Controller";
 import { SwipeButtonList, type SwipeButtonListProps } from "@/features/study/components/SwipeButtonList";
 

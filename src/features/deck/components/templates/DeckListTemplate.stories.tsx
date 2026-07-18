@@ -5,8 +5,8 @@ import {
   type DeckListSections,
   DeckListTemplate as Template,
 } from "@/features/deck/components/templates/DeckListTemplate";
-import * as fixture from "@/shared/storybook/fixture";
-import { INITIAL_VIEWPORTS } from "@/shared/storybook/storybookViewports";
+import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 const otherItems = (decks: Deck[]): DeckListItem[] => decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
 const studyingItems = (decks: Deck[]): DeckListItem[] =>

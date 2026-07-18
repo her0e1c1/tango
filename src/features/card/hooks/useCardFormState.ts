@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 
-import type { Option } from "@/shared/components/forms/Select";
+import type { Option } from "@/components/forms/Select";
 import type { CardFormProps } from "@/features/card/components/CardForm";
 
 export interface UseCardFormStateOptions {

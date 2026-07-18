@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
-import { Button, Code, Description, Upload } from "@/shared/components";
-import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
+import { Button, Code, Description, Upload } from "@/components";
+import { Layout, type LayoutProps } from "@/components/layout/Layout";
 
 export const DeckImportTemplate: React.FC<{
   onChange?: (file: File) => void;

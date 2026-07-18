@@ -4,7 +4,7 @@ import { BackText as BackTextComponent } from "@/features/card/components/BackTe
 import { CardOverlay } from "@/features/card/components/CardOverlay";
 import { FrontText as FrontTextComponent } from "@/features/card/components/FrontText";
 import { DeckSwiperTemplate as Template } from "@/features/study/components/templates/DeckSwiperTemplate";
-import * as fixture from "@/shared/storybook/fixture";
+import * as fixture from "@/storybook/fixture";
 
 const meta = {
   title: "Study/DeckSwiperTemplate",

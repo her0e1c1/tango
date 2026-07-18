@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Layout, type LayoutProps } from "@/shared/components/layout/Layout";
+import { Layout, type LayoutProps } from "@/components/layout/Layout";
 import { BackText, type BackTextProps } from "@/features/card/components/BackText";
 
 export interface CardViewTemplateProps {
