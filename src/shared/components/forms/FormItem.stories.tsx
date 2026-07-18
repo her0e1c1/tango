@@ -8,7 +8,7 @@ import { Slider } from "@/shared/components/forms/Slider";
 import { Switch } from "@/shared/components/forms/Switch";
 
 const meta = {
-  title: "Shared/FormItem",
+  title: "Shared/Forms/FormItem",
   component: Template,
   tags: ["autodocs"],
   args: {

@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Description as Template } from "@/shared/components/content/Description";
 
 const meta = {
-  title: "Shared/Description",
+  title: "Shared/Content/Description",
   component: Template,
   tags: ["autodocs"],
 } satisfies Meta<typeof Template>;

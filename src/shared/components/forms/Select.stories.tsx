@@ -4,7 +4,7 @@ import { Select as Template } from "@/shared/components/forms/Select";
 import * as fixture from "@/shared/storybook/fixture";
 
 const meta = {
-  title: "Shared/Select",
+  title: "Shared/Forms/Select",
   component: Template,
   tags: ["autodocs"],
   args: {
