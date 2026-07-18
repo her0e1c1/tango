@@ -35,6 +35,7 @@ export const DeckImportContainer: React.FC = () => {
       feedbackSlot={
         <RemoteMutationNotice pending={deckImport.pending} error={deckImport.error} onRetry={deckImport.retry} />
       }
+      dark={config.darkMode}
       sampleText={C.CSV_SAMPLE_TEXT}
       layout={{
         headerProps: {

@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { studyStore } from "@/features/study/state/studyStore";
@@ -132,6 +133,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     mocks.params.id = deck.id;
     mocks.state = createState();
     mocks.hydrated = true;
+    window.history.replaceState(null, document.title, document.location.href);
     studyStore.setState({
       sessionsByDeckId: {},
       showBackText: false,
@@ -161,6 +163,24 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(mocks.useKey).toHaveBeenCalledWith("ArrowRight", mocks.swipeRight);
     expect(mocks.useKey).toHaveBeenCalledWith("Enter", mocks.toggleShowBackText);
     expect(mocks.useKey).toHaveBeenCalledWith(" ", mocks.toggleAutoPlay);
+  });
+
+  it("installs one back-navigation guard when StrictMode replays the effect", () => {
+    const pushState = vi.spyOn(window.history, "pushState");
+    const view = render(
+      <StrictMode>
+        <DeckSwiperContainer />
+      </StrictMode>
+    );
+
+    expect(pushState).toHaveBeenCalledOnce();
+    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
+    expect(mocks.navigate).toHaveBeenCalledWith(1);
+
+    view.unmount();
+    mocks.navigate.mockClear();
+    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
   it("updates the route session activity when the study screen opens", () => {

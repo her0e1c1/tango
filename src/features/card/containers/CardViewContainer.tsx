@@ -19,6 +19,7 @@ const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
       backText={{
         ...(category !== undefined ? { category } : {}),
         code: category !== undefined && C.LANGUAGES.includes(category),
+        dark: config.darkMode,
         text: card.backText,
       }}
       layout={{

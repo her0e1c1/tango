@@ -23,18 +23,18 @@ export const useConfigFormState = ({
   onLogout,
   version,
 }: UseConfigFormStateOptions): ConfigFormProps => {
-  const { control, handleSubmit, register, setValue, watch } = useForm<ConfigState>({
+  const { control, handleSubmit, register, setValue, subscribe } = useForm<ConfigState>({
     defaultValues: config,
   });
   const maxNumberOfCardsToLearn = useWatch({ control, name: "maxNumberOfCardsToLearn" });
   const cardInterval = useWatch({ control, name: "cardInterval" });
 
   React.useEffect(() => {
-    const subscription = watch(() => {
-      void handleSubmit((data) => onSubmit?.(data))();
+    return subscribe({
+      formState: { values: true },
+      callback: () => void handleSubmit((data) => onSubmit?.(data))(),
     });
-    return () => subscription.unsubscribe();
-  }, [handleSubmit, onSubmit, watch]);
+  }, [handleSubmit, onSubmit, subscribe]);
 
   React.useEffect(() => {
     setValue("darkMode", config.darkMode);

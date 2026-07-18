@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { firestoreKeys } from "@/query/firestoreKeys";
@@ -54,5 +54,39 @@ describe("useCardMutations", () => {
     expect(client.getQueryData(firestoreKeys.cards("uid-a"))).toEqual({
       [mocks.card.id]: { ...mocks.card, score: 1 },
     });
+  });
+
+  it("exposes immutable pending state while a Card update is running", async () => {
+    let finishUpdate: () => void = () => undefined;
+    mocks.update.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishUpdate = resolve;
+        })
+    );
+    const deck = createDeck();
+    const card = createCard({ deckId: deck.id, score: 0 });
+    mocks.card = card;
+    const client = createTestQueryClient();
+    client.setQueryData(firestoreKeys.cards("uid-a"), { [card.id]: card });
+    const { result } = renderHook(useCardMutations, { wrapper: createQueryWrapper(client) });
+    let update: Promise<void> | undefined;
+
+    act(() => {
+      update = result.current.update({ ...card, score: 1 });
+    });
+
+    await waitFor(() => {
+      expect(mocks.update).toHaveBeenCalledOnce();
+      expect(result.current.pending).toBe(true);
+      expect(result.current.isPending(card.id)).toBe(true);
+    });
+
+    await act(async () => {
+      finishUpdate();
+      await update;
+    });
+    expect(result.current.pending).toBe(false);
+    expect(result.current.isPending(card.id)).toBe(false);
   });
 });

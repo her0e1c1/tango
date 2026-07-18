@@ -8,6 +8,7 @@
 | `make test` | `Makefile` | 通常 Vitest、Firestore specs、sample pytest |
 | `make test` | `README.md`, `Makefile`, `.devcontainer/compose.yaml` | Firestore emulator 付きの Vitest |
 | `make lint` | `Makefile` | `tsc` と Biome |
+| `npm run lint:react` | `package.json`, `eslint.config.mjs` | React Hooks と React Compiler の公式診断（warning も失敗） |
 | `make build` | `Makefile` | sample build、Vite build、Storybook build |
 
 実際の設定は `biome.json`、`tsconfig.base.json` と各 project の `tsconfig`、`package.json` と lockfile を source of truth とします。この文書は policy と理由を説明するもので、これらの設定を変更するときは同時に更新します。
@@ -25,6 +26,12 @@ Biome は pin した version と stable な `recommended` preset を基準にし
 Type-aware lint は `noFloatingPromises`、`noMisusedPromises`、`useAwaitThenable`、`useExhaustiveSwitchCases`、`noUnnecessaryConditions` の 5 rules だけを選択して error にします。`nursery: all` は使いません。Biome upgrade 時は version を意図的に更新し、schema、stable preset、include glob、各 rule の stable / nursery / deprecated status を再監査してから、必要な migration と code change を同じ upgrade として扱います。
 
 Suppression は原則 0 件です。検証済みの false positive だけに、対象を最小化した suppression、理由、tracking issue を付けて認めます。file 全体を抑制する `biome-ignore-all` と unsafe な bulk fix は使いません。`biome.json` で互換性や重複を理由に rule を意図的に `off` にすることは、code 上の suppression とは区別します。
+
+## React Compiler Diagnostics
+
+Biome は formatter と一般 lint の source of truth のまま維持します。ESLint は `src/**/*.{ts,tsx}` に限定し、`eslint-plugin-react-hooks` の `recommended-latest` だけを実行します。これにより Rules of Hooks に加え、Compiler の `purity`、`immutability`、`refs`、`set-state-in-effect`、`incompatible-library` などを `npm run lint:react` で検証します。`npm run lint` と `make check` からも実行し、warning を許可しません。
+
+Compiler 診断の suppression、`"use no memo"`、annotation mode、directory filter は通常使いません。upstream または third-party の blocker が確認された場合だけ、理由と tracking Issue を記録した最小範囲の一時措置として扱います。React Hook Form のように Compiler 非互換 API が診断された場合は、まず公式の互換 API（`subscribe`、`useWatch` など）へ置き換えます。
 
 ## Router Navigation Invariant
 

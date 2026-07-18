@@ -77,7 +77,8 @@ export const buildStudySession = (
 export const filterCardsForDeck = (
   cards: Card[],
   deck: Pick<Deck, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
-  config: Pick<ConfigState, "useCardInterval">
+  config: Pick<ConfigState, "useCardInterval">,
+  now: number
 ): Card[] => {
   const filtered = cards.filter((c) => {
     const tags = deck.selectedTags;
@@ -95,7 +96,7 @@ export const filterCardsForDeck = (
     if (deck.scoreMin != null && c.score < deck.scoreMin) {
       return false;
     }
-    if (config.useCardInterval && c.nextSeeingAt && c.nextSeeingAt > new Date()) {
+    if (config.useCardInterval && c.nextSeeingAt && c.nextSeeingAt.getTime() > now) {
       return false;
     }
     return true;

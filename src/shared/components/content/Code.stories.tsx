@@ -28,6 +28,6 @@ export const WideMobile: Story = {
 };
 
 export const Dark: Story = {
-  args: { category: "python" },
+  args: { category: "python", dark: true },
   globals: { theme: "dark" },
 };

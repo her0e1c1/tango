@@ -13,18 +13,18 @@ export interface UseDeckFilterStateOptions {
 export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateOptions): DeckStartFormProps => {
   const [scoreMaxEnabled, setScoreMaxEnabled] = React.useState(deck.scoreMax != null);
   const [scoreMinEnabled, setScoreMinEnabled] = React.useState(deck.scoreMin != null);
-  const { control, handleSubmit, register, setValue, watch } = useForm<Deck>({ defaultValues: deck });
+  const { control, handleSubmit, register, setValue, subscribe } = useForm<Deck>({ defaultValues: deck });
   const scoreMax = useWatch({ control, name: "scoreMax" });
   const scoreMin = useWatch({ control, name: "scoreMin" });
   const selectedTags = useWatch({ control, name: "selectedTags" });
   const tagAndFilter = useWatch({ control, name: "tagAndFilter" });
 
   React.useEffect(() => {
-    const subscription = watch(() => {
-      void handleSubmit((data) => onSubmit?.(data))();
+    return subscribe({
+      formState: { values: true },
+      callback: () => void handleSubmit((data) => onSubmit?.(data))(),
     });
-    return () => subscription.unsubscribe();
-  }, [handleSubmit, onSubmit, watch]);
+  }, [handleSubmit, onSubmit, subscribe]);
 
   const onClickFilter = React.useCallback(
     (value: boolean) => {
