@@ -11,7 +11,7 @@ vi.mock("firebase/firestore", () => ({
 }));
 vi.mock("@/firestoreRuntime", () => ({ getDb: () => "db" }));
 
-import { exists } from "./deck";
+import { exists } from "@/action/firestore/deck";
 
 describe("firestore/deck.exists", () => {
   beforeEach(() => {
