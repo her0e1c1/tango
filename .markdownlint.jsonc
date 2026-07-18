@@ -1,0 +1,7 @@
+{
+  "default": false,
+  "MD009": { "br_spaces": 0 },
+  "MD010": true,
+  "MD012": true,
+  "MD047": true
+}

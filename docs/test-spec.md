@@ -2,7 +2,7 @@
 
 ## 概要
 
-本ドキュメントは、Tango アプリケーションのテスト仕様をまとめたものです。  
+本ドキュメントは、Tango アプリケーションのテスト仕様をまとめたものです。
 テストフレームワークとして [Vitest](https://vitest.dev/) および [@testing-library/react](https://testing-library.com/docs/react-testing-library/intro/) を使用しています。
 
 ---

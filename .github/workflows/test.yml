@@ -17,8 +17,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Detect Markdown-only pull request
+        id: changes
+        if: ${{ github.event_name == 'pull_request' }}
+        continue-on-error: true
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: .github/scripts/classify-markdown-diff.sh "${BASE_SHA}" "${HEAD_SHA}" >> "${GITHUB_OUTPUT}"
 
       - name: Log into registry
+        if: ${{ github.event_name != 'pull_request' || steps.changes.outcome != 'success' || steps.changes.outputs.markdown_only != 'true' }}
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -26,9 +38,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
+        if: ${{ github.event_name != 'pull_request' || steps.changes.outcome != 'success' || steps.changes.outputs.markdown_only != 'true' }}
         uses: docker/setup-buildx-action@v4
 
       - name: Build test image
+        if: ${{ github.event_name != 'pull_request' || steps.changes.outcome != 'success' || steps.changes.outputs.markdown_only != 'true' }}
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -37,9 +51,11 @@ jobs:
           cache-from: type=gha,scope=tango-test
           cache-to: type=gha,mode=max,scope=tango-test
 
-      - uses: jdx/mise-action@v4
+      - if: ${{ github.event_name != 'pull_request' || steps.changes.outcome != 'success' || steps.changes.outputs.markdown_only != 'true' }}
+        uses: jdx/mise-action@v4
 
-      - run: mise run ci
+      - if: ${{ github.event_name != 'pull_request' || steps.changes.outcome != 'success' || steps.changes.outputs.markdown_only != 'true' }}
+        run: mise run ci
 
       - name: Upload Vitest coverage report
         if: ${{ always() }}
@@ -50,10 +66,27 @@ jobs:
           if-no-files-found: warn
 
       # mise sets COMPOSE_FILE for local development; make ci needs the Makefile defaults.
-      - run: env -u COMPOSE_FILE make ci
+      - if: ${{ github.event_name != 'pull_request' || steps.changes.outcome != 'success' || steps.changes.outputs.markdown_only != 'true' }}
+        run: env -u COMPOSE_FILE make ci
+
+      - name: Set up Node for Markdownlint
+        id: markdown-node
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.changes.outcome == 'success' && steps.changes.outputs.markdown_changed == 'true' }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.15.0
+          package-manager-cache: false
+
+      - name: Check Markdown formatting
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.changes.outcome == 'success' && steps.changes.outputs.markdown_changed == 'true' && steps.markdown-node.outcome == 'success' }}
+        run: npx --yes markdownlint-cli2@0.23.0 --config .markdownlint.jsonc "**/*.md" "#node_modules"
+
+      - name: Fail when change detection fails
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.changes.outcome == 'failure' }}
+        run: exit 1
 
       - name: Upload Playwright report
-        if: ${{ always() }}
+        if: ${{ always() && (github.event_name != 'pull_request' || steps.changes.outcome != 'success' || steps.changes.outputs.markdown_only != 'true') }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
