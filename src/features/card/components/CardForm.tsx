@@ -17,6 +17,10 @@ export interface CardFormFields {
 export interface CardFormProps {
   card: Card;
   fields: CardFormFields;
+  errors?: {
+    frontText?: string;
+    backText?: string;
+  };
   isSubmitting?: boolean;
   onCancel?: () => void;
   onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
@@ -40,8 +44,8 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">The prompt shown during study.</p>
         </div>
-        <FormItem col label="Front text">
-          <Textarea rows={8} {...props.fields.frontText} />
+        <FormItem col label="Front text" error={props.errors?.frontText}>
+          <Textarea rows={8} {...props.fields.frontText} aria-invalid={props.errors?.frontText != null || undefined} />
         </FormItem>
       </section>
       <section
@@ -54,8 +58,8 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">The answer revealed after the prompt.</p>
         </div>
-        <FormItem col label="Back text">
-          <Textarea rows={8} {...props.fields.backText} />
+        <FormItem col label="Back text" error={props.errors?.backText}>
+          <Textarea rows={8} {...props.fields.backText} aria-invalid={props.errors?.backText != null || undefined} />
         </FormItem>
       </section>
       <section

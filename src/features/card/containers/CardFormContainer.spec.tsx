@@ -120,6 +120,25 @@ describe("CardFormContainer", () => {
     expect(mocks.cardUpdate).toHaveBeenCalledWith({ ...card, tags: ["math"] });
   });
 
+  it("blocks blank front and back text", async () => {
+    const view = render(<CardFormContainer />);
+    const frontText = view.container.querySelector("textarea[name='frontText']") as Element;
+    const backText = view.container.querySelector("textarea[name='backText']") as Element;
+
+    await userEvent.clear(frontText);
+    await userEvent.type(frontText, "   ");
+    await userEvent.clear(backText);
+    await userEvent.type(backText, "   ");
+    await userEvent.click(view.getByRole("button", { name: /save/i }));
+
+    expect(view.getByText("Front text is required.")).toBeInTheDocument();
+    expect(view.getByText("Back text is required.")).toBeInTheDocument();
+    expect(frontText).toHaveAttribute("aria-invalid", "true");
+    expect(backText).toHaveAttribute("aria-invalid", "true");
+    expect(mocks.cardUpdate).not.toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
   it("does not navigate when the Card write fails", async () => {
     mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
     const view = render(<CardFormContainer />);
