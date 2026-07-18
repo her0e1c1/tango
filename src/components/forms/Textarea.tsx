@@ -10,6 +10,7 @@ export const Textarea: React.FC<{
   disabled?: boolean;
   readOnly?: boolean;
   required?: boolean;
+  "aria-invalid"?: React.AriaAttributes["aria-invalid"];
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
@@ -23,6 +24,7 @@ export const Textarea: React.FC<{
   disabled,
   readOnly,
   required,
+  "aria-invalid": ariaInvalid,
   placeholder,
   onChange,
   onBlur,
@@ -37,6 +39,7 @@ export const Textarea: React.FC<{
       disabled={disabled}
       readOnly={readOnly}
       required={required}
+      aria-invalid={ariaInvalid}
       placeholder={placeholder}
       onChange={onChange}
       onBlur={onBlur}
