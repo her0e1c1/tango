@@ -19,6 +19,25 @@ const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
   );
 };
 
+const DisableableMenu: React.FC = () => {
+  const [open, setOpen] = React.useState(false);
+  const [disabled, setDisabled] = React.useState(false);
+  return (
+    <>
+      <button type="button" onClick={() => setDisabled((value) => !value)}>
+        Toggle disabled
+      </button>
+      <DeckActionsMenu
+        deckName="Physics"
+        open={open}
+        disabled={disabled}
+        onToggle={() => setOpen((value) => !value)}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
+};
+
 describe("DeckActionsMenu", () => {
   afterEach(cleanup);
 
@@ -137,6 +156,23 @@ describe("DeckActionsMenu", () => {
     const view = render(<DeckActionsMenu deckName="Physics" open disabled onToggle={vi.fn()} onClose={vi.fn()} />);
 
     expect(view.getByRole("button", { name: "Open actions for Physics" })).toBeDisabled();
+    expect(view.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
+  });
+
+  it("closes controlled state when disabled so the menu stays closed when re-enabled", () => {
+    const view = render(<DisableableMenu />);
+    const trigger = view.getByRole("button", { name: "Open actions for Physics" });
+    const toggleDisabled = view.getByRole("button", { name: "Toggle disabled" });
+
+    fireEvent.click(trigger);
+    expect(view.getByRole("menu", { name: "Actions for Physics" })).toBeInTheDocument();
+    fireEvent.click(toggleDisabled);
+    expect(trigger).toBeDisabled();
+    expect(view.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
+
+    fireEvent.click(toggleDisabled);
+
+    expect(trigger).not.toBeDisabled();
     expect(view.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
   });
 });

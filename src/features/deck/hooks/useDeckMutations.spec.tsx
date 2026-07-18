@@ -88,4 +88,112 @@ describe("useDeckMutations", () => {
     act(() => result.current.retry());
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
   });
+
+  it("keeps a Deck failure after an unrelated Deck succeeds until its retry succeeds", async () => {
+    const failedDeck = createDeck({ id: "deck-a" });
+    const successfulDeck = createDeck({ id: "deck-b" });
+    const error = new Error("deck-a failed");
+    let rejectFailedDeck: (error: Error) => void = () => undefined;
+    let finishSuccessfulDeck: () => void = () => undefined;
+    let failedDeckAttempts = 0;
+    mocks.remove.mockImplementation((id: DeckId) => {
+      if (id === failedDeck.id && ++failedDeckAttempts === 1) {
+        return new Promise<void>((_resolve, reject) => {
+          rejectFailedDeck = reject;
+        });
+      }
+      if (id === successfulDeck.id) {
+        return new Promise<void>((resolve) => {
+          finishSuccessfulDeck = resolve;
+        });
+      }
+      return Promise.resolve();
+    });
+    const client = createTestQueryClient();
+    client.setQueryData(firestoreKeys.decks("uid-a"), {
+      [failedDeck.id]: failedDeck,
+      [successfulDeck.id]: successfulDeck,
+    });
+    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    let failedRemoval: Promise<void> | undefined;
+    let successfulRemoval: Promise<void> | undefined;
+
+    act(() => {
+      failedRemoval = result.current.remove(failedDeck);
+      successfulRemoval = result.current.remove(successfulDeck);
+    });
+    await waitFor(() => {
+      expect(mocks.remove).toHaveBeenCalledTimes(2);
+      expect(result.current.pending).toBe(true);
+      expect(result.current.isPending(failedDeck.id)).toBe(true);
+      expect(result.current.isPending(successfulDeck.id)).toBe(true);
+    });
+    await act(async () => {
+      rejectFailedDeck(error);
+      await expect(failedRemoval).rejects.toThrow(error);
+    });
+    await waitFor(() => {
+      expect(result.current.error).toBe(error);
+      expect(result.current.pending).toBe(true);
+      expect(result.current.isPending(failedDeck.id)).toBe(false);
+      expect(result.current.isPending(successfulDeck.id)).toBe(true);
+    });
+    await act(async () => {
+      finishSuccessfulDeck();
+      await successfulRemoval;
+    });
+
+    expect(result.current.error).toBe(error);
+    expect(result.current.pending).toBe(false);
+    expect(result.current.isPending(failedDeck.id)).toBe(false);
+    expect(result.current.isPending(successfulDeck.id)).toBe(false);
+    act(() => result.current.retry());
+    await waitFor(() => {
+      expect(mocks.remove).toHaveBeenCalledTimes(3);
+      expect(mocks.remove.mock.calls.filter(([id]) => id === failedDeck.id)).toHaveLength(2);
+      expect(mocks.remove.mock.calls.filter(([id]) => id === successfulDeck.id)).toHaveLength(1);
+      expect(result.current.error).toBeNull();
+    });
+  });
+
+  it("retries the most recently settled Deck failure", async () => {
+    const firstDeck = createDeck({ id: "deck-c" });
+    const laterDeck = createDeck({ id: "deck-d" });
+    const firstError = new Error("deck-c failed");
+    const laterError = new Error("deck-d failed");
+    const rejectById = new Map<DeckId, (error: Error) => void>();
+    mocks.remove.mockImplementation((id: DeckId) => {
+      if (rejectById.has(id)) return Promise.resolve();
+      return new Promise<void>((_resolve, reject) => rejectById.set(id, reject));
+    });
+    const client = createTestQueryClient();
+    client.setQueryData(firestoreKeys.decks("uid-a"), { [firstDeck.id]: firstDeck, [laterDeck.id]: laterDeck });
+    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    let firstRemoval: Promise<void> | undefined;
+    let laterRemoval: Promise<void> | undefined;
+
+    act(() => {
+      firstRemoval = result.current.remove(firstDeck);
+      laterRemoval = result.current.remove(laterDeck);
+    });
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      rejectById.get(firstDeck.id)?.(firstError);
+      await expect(firstRemoval).rejects.toThrow(firstError);
+    });
+    await waitFor(() => expect(result.current.error).toBe(firstError));
+    await act(async () => {
+      rejectById.get(laterDeck.id)?.(laterError);
+      await expect(laterRemoval).rejects.toThrow(laterError);
+    });
+    await waitFor(() => expect(result.current.error).toBe(laterError));
+
+    act(() => result.current.retry());
+
+    await waitFor(() => {
+      expect(mocks.remove).toHaveBeenCalledTimes(3);
+      expect(mocks.remove).toHaveBeenLastCalledWith(laterDeck.id, "uid-a");
+      expect(result.current.error).toBeNull();
+    });
+  });
 });

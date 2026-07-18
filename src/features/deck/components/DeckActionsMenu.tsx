@@ -1,4 +1,4 @@
-import type * as React from "react";
+import * as React from "react";
 import { AiOutlineCloudDownload, AiOutlineDelete, AiOutlineEdit, AiOutlineReload } from "react-icons/ai";
 import { ActionsMenu, type ActionsMenuItem } from "@/components/forms/ActionsMenu";
 
@@ -15,6 +15,11 @@ export interface DeckActionsMenuProps {
 }
 
 export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
+  const { disabled, onClose, open } = props;
+  React.useEffect(() => {
+    if (disabled && open) onClose();
+  }, [disabled, onClose, open]);
+
   const items: ActionsMenuItem[] = [
     ...(props.onRestart != null
       ? [{ key: "restart", label: "Restart", icon: <AiOutlineReload aria-hidden="true" />, onSelect: props.onRestart }]

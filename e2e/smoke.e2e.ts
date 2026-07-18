@@ -1,14 +1,20 @@
+import { createHash } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { routeAnonymousAuth, seedConfig } from "./fixtures";
 
-test.beforeEach(async ({ page }) => {
+const smokeAuthUid = (testId: string) => {
+  const digest = createHash("sha256").update(testId).digest("hex").slice(0, 16);
+  return `smoke-e2e-${digest}`;
+};
+
+test.beforeEach(async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
 
-  await routeAnonymousAuth(page, "smoke-e2e-user");
+  await routeAnonymousAuth(page, smokeAuthUid(testInfo.testId));
   await seedConfig(page);
   await page.exposeFunction("assertNoBrowserErrors", () => expect(errors).toEqual([]));
 });

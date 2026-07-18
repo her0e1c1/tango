@@ -6,6 +6,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { createDeckMutationService } from "@/query/deckMutationService";
 
 type Variables = { kind: "create"; deck: Deck } | { kind: "update"; deck: DeckEdit } | { kind: "remove"; deck: Deck };
+type Failure = { variables: Variables; error: unknown };
 
 export const useDeckMutations = () => {
   const auth = useAuth();
@@ -13,7 +14,8 @@ export const useDeckMutations = () => {
   const client = useQueryClient();
   const inFlight = useRef(new Map<DeckId, Promise<void>>());
   const [pendingDeckIds, setPendingDeckIds] = useState<Set<DeckId>>(() => new Set());
-  const lastFailed = useRef<Variables>(undefined);
+  const failureRef = useRef<Failure>(undefined);
+  const [failure, setFailure] = useState<Failure>();
   const service = useMemo(
     () =>
       createDeckMutationService({
@@ -35,18 +37,34 @@ export const useDeckMutations = () => {
     },
   });
   const run = useCallback(
-    (variables: Variables) => {
+    (variables: Variables, retryOf?: Failure) => {
       const deckId = variables.deck.id;
       const current = inFlight.current.get(deckId);
-      if (current != null) return current;
+      if (current != null) {
+        if (retryOf != null) {
+          void current.then(
+            () => {
+              if (failureRef.current !== retryOf) return;
+              failureRef.current = undefined;
+              setFailure(undefined);
+            },
+            () => undefined
+          );
+        }
+        return current;
+      }
 
       setPendingDeckIds((pending) => new Set(pending).add(deckId));
       const operation = mutation.mutateAsync(variables).then(
         () => {
-          lastFailed.current = undefined;
+          if (retryOf == null || failureRef.current !== retryOf) return;
+          failureRef.current = undefined;
+          setFailure(undefined);
         },
         (error: unknown) => {
-          lastFailed.current = variables;
+          const nextFailure = { variables, error };
+          failureRef.current = nextFailure;
+          setFailure(nextFailure);
           throw error;
         }
       );
@@ -70,10 +88,10 @@ export const useDeckMutations = () => {
     remove: (deck: Deck) => run({ kind: "remove", deck }),
     pending: pendingDeckIds.size > 0,
     isPending: (id: DeckId) => pendingDeckIds.has(id),
-    error: mutation.error,
+    error: failure?.error ?? null,
     retry: () => {
-      const variables = lastFailed.current;
-      if (variables != null) void run(variables).catch(() => undefined);
+      const failed = failureRef.current;
+      if (failed != null) void run(failed.variables, failed).catch(() => undefined);
     },
   };
 };
