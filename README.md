@@ -11,6 +11,10 @@ You can access to the page for **demo** here: https://tango-ts.web.app
 
 Demo data is stored in Firestore and may be **deleted** without notice.
 
+## Storybook
+
+Browse the latest Storybook at https://her0e1c1.github.io/tango/. Updates are published automatically from `main`.
+
 ## Development
 
 ### Setup for development
