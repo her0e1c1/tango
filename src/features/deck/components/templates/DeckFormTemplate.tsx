@@ -26,7 +26,7 @@ export const DeckFormTemplate: React.FC<DeckFormTemplateProps> = (props) => {
             </button>
           )}
           <p className="text-caption font-bold uppercase tracking-wider text-accent-primary">Deck settings</p>
-          <h1 className="mt-1 break-words text-display font-bold text-ink">
+          <h1 className="mt-1 line-clamp-3 break-words text-display font-bold text-ink">
             {props.deckForm?.deck.name ?? "Deck settings"}
           </h1>
           <p className="mt-2 text-body text-ink-muted">

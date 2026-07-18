@@ -34,6 +34,7 @@ describe("DeckFormTemplate", () => {
     const form = view.container.querySelector("form");
     const back = view.getByRole("button", { name: "Back to decks" });
 
+    expect(heading).toHaveClass("line-clamp-3");
     expect(surface).toHaveClass(
       "mx-auto",
       "w-full",

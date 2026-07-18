@@ -8,7 +8,6 @@ const fieldsFor = (deck: Deck): DeckFormFields => ({
   name: { value: deck.name, onChange: () => undefined },
   convertToBr: { checked: Boolean(deck.convertToBr), onChange: () => undefined },
   url: { value: deck.url ?? "", onChange: () => undefined },
-  isPublic: { checked: deck.isPublic, onChange: () => undefined },
   category: {
     value: deck.category,
     options: fixture.form.options.default,
@@ -38,6 +37,7 @@ const meta = {
   args: {
     deck: fixture.deck.default,
     fields: fieldsFor(fixture.deck.default),
+    onCancel: () => undefined,
   },
 } satisfies Meta<typeof Template>;
 

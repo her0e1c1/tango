@@ -50,9 +50,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           <h2 id={importHeadingId} className="text-title font-semibold text-ink">
             Import &amp; formatting
           </h2>
-          <p className="mt-1 text-caption text-ink-muted">
-            Control the source and how imported text is displayed.
-          </p>
+          <p className="mt-1 text-caption text-ink-muted">Control the source and how imported text is displayed.</p>
         </div>
         <FormItem col label="Source URL">
           <Input {...props.fields.url} />
