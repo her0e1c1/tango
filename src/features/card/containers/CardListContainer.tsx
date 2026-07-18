@@ -31,6 +31,11 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   return (
     <CardListTemplate
       cards={cards}
+      filter={{
+        scoreMax: deckStartForm.scoreMax,
+        scoreMin: deckStartForm.scoreMin,
+        selectedTags: deckStartForm.tagFilterProps.selectedTags ?? [],
+      }}
       filterSlot={<DeckStartForm {...deckStartForm} />}
       layout={{
         headerProps: {

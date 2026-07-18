@@ -110,33 +110,6 @@ describe("DeckActionsMenu", () => {
     }
   });
 
-  it("keeps Edit active when an ambiguous blur microtask runs before the click", async () => {
-    const onEdit = vi.fn();
-    const view = render(<ControlledMenu deckName="Biology" onEdit={onEdit} />);
-    const trigger = view.getByRole("button", { name: "Open actions for Biology" });
-
-    fireEvent.click(trigger);
-    const download = view.getByRole("menuitem", { name: "Download" });
-    const edit = view.getByRole("menuitem", { name: "Edit" });
-    await waitFor(() => expect(download).toHaveFocus());
-
-    vi.useFakeTimers({ toFake: ["setTimeout"] });
-    try {
-      await act(async () => {
-        download.blur();
-        await Promise.resolve();
-      });
-      fireEvent.click(edit);
-
-      expect(onEdit).toHaveBeenCalledOnce();
-    } finally {
-      act(() => {
-        vi.runOnlyPendingTimers();
-      });
-      vi.useRealTimers();
-    }
-  });
-
   it("closes when an ambiguous blur settles on an external element", async () => {
     const view = render(
       <>

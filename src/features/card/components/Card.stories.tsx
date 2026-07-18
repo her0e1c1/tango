@@ -17,17 +17,13 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const LongText: Story = {
-  args: {
-    card: fixture.card.long,
-  },
+export const Unstudied: Story = {
+  args: { card: { ...fixture.card.default, numberOfSeen: 0, score: 0 } },
 };
 
-export const LongTags: Story = {
-  args: {
-    card: fixture.card.longTags,
-  },
-};
-
+export const LongText: Story = { args: { card: fixture.card.long } };
+export const LongTags: Story = { args: { card: fixture.card.longTags } };
+export const ActionsOpen: Story = { args: { menuOpen: true } };
+export const Pending: Story = { args: { disabled: true } };
 export const Mobile: Story = { parameters: { viewport: { defaultViewport: "iphonex" } } };
 export const Dark: Story = { globals: { theme: "dark" } };

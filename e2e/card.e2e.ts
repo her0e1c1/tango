@@ -40,7 +40,9 @@ const seedCardSession = async (page: Page) => {
 };
 
 const cardItem = (page: Page, frontText: string) =>
-  page.getByText(frontText, { exact: true }).locator("xpath=ancestor::div[contains(@class, 'rounded')][1]");
+  page
+    .getByRole("button", { name: `View ${frontText}`, exact: true })
+    .locator("xpath=ancestor::article[1]");
 
 const expectScore = async (page: Page, frontText: string, score: number) => {
   await expect(cardItem(page, frontText).locator("span").filter({ hasText: new RegExp(`^${score}$`) })).toBeVisible();
@@ -73,7 +75,7 @@ test("shows cards for the deck", async ({ page }) => {
   await page.goto(`/deck/${e2eDeck.id}`);
 
   await expect(page.getByText("apple")).toBeVisible();
-  await expect(cardItem(page, "apple").getByText("studied 0 time(s)")).toBeVisible();
+  await expect(cardItem(page, "apple").getByText("not studied yet")).toBeVisible();
   await expectScore(page, "apple", 0);
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
@@ -81,7 +83,7 @@ test("shows cards for the deck", async ({ page }) => {
 test("opens and closes the card back text overlay", async ({ page }) => {
   await page.goto(`/deck/${e2eDeck.id}`);
 
-  await page.getByText("apple").click();
+  await page.getByRole("button", { name: "View apple" }).click();
   await expect(page.getByText("りんご")).toBeVisible();
 
   await page.getByText("りんご").click();
@@ -92,7 +94,8 @@ test("opens and closes the card back text overlay", async ({ page }) => {
 test("saves card edits and returns to the card list", async ({ page }) => {
   await page.goto(`/deck/${e2eDeck.id}`);
 
-  await cardItem(page, "apple").locator("svg").first().click();
+  await page.getByRole("button", { name: "Open actions for apple" }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
   await expect(page).toHaveURL(new RegExp(`/card/${e2eCard.id}/edit$`));
 
   await page.locator('textarea[name="frontText"]').fill("updated apple");
@@ -104,7 +107,7 @@ test("saves card edits and returns to the card list", async ({ page }) => {
   await expect(page.getByText("updated apple")).toBeVisible();
   await expect(cardItem(page, "updated apple").getByText("math")).toBeVisible();
 
-  await page.getByText("updated apple").click();
+  await page.getByRole("button", { name: "View updated apple" }).click();
   await expect(page.getByText("updated りんご")).toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
@@ -113,7 +116,8 @@ test("deletes a card from the card list", async ({ page }) => {
   await page.goto(`/deck/${e2eDeck.id}`);
 
   page.on("dialog", (dialog) => dialog.accept());
-  await cardItem(page, "apple").locator("svg").nth(1).click();
+  await page.getByRole("button", { name: "Open actions for apple" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
 
   await expect(page.getByText("apple")).not.toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
@@ -122,9 +126,9 @@ test("deletes a card from the card list", async ({ page }) => {
 test("updates the card score with swipe gestures", async ({ page }) => {
   await page.goto(`/deck/${e2eDeck.id}`);
 
-  const card = cardItem(page, "apple");
-  const box = await card.boundingBox();
-  if (box == null) throw new Error("Card bounding box is unavailable");
+  const swipeTarget = page.getByRole("button", { name: "View apple" });
+  const box = await swipeTarget.boundingBox();
+  if (box == null) throw new Error("Card swipe target bounding box is unavailable");
 
   const y = box.y + box.height / 2;
   await page.mouse.move(box.x + 20, y);

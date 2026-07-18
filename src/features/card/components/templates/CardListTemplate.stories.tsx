@@ -27,6 +27,13 @@ const longDeckStartForm: DeckStartFormProps = {
   tagFilterProps: { ...deckStartForm.tagFilterProps, tags: [...fixture.tags.toolong] },
 };
 
+const activeFilter = { scoreMax: 1, scoreMin: -1, selectedTags: ["tag 1", "tag 2"] };
+const longUnbrokenTag =
+  "tag_this_is_one_genuinely_long_unbroken_value_that_must_never_force_the_mobile_card_list_beyond_the_viewport_width_even_when_it_keeps_going_0123456789";
+const longUnbrokenCards = fixture.cards.long.map((card, index) =>
+  index === 0 ? { ...card, tags: [longUnbrokenTag] } : card
+);
+
 const meta = {
   title: "Card/CardListTemplate",
   component: Template,
@@ -40,6 +47,7 @@ const meta = {
   },
   args: {
     cards: fixture.cards.default,
+    filter: activeFilter,
     filterSlot: <DeckStartForm {...deckStartForm} />,
   },
 } satisfies Meta<typeof Template>;
@@ -70,22 +78,21 @@ export const CardView: Story = {
 
 export const DarkCardView: Story = { ...CardView, globals: { theme: "dark" } };
 
+export const Dark: Story = { globals: { theme: "dark" } };
+
+export const Pending: Story = {
+  args: { isCardPending: (id) => id === fixture.cards.default[0]?.id },
+};
+
 export const IphoneX: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  parameters: { viewport: { defaultViewport: "iphonex" } },
 };
 
 export const IphoneXLong: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  parameters: { viewport: { defaultViewport: "iphonex" } },
   args: {
     filterSlot: <DeckStartForm {...longDeckStartForm} />,
-    cards: fixture.cards.long,
+    filter: { scoreMax: 1, scoreMin: -1, selectedTags: [longUnbrokenTag] },
+    cards: longUnbrokenCards,
   },
 };
