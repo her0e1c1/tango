@@ -27,6 +27,8 @@ export * from "@/components/content/Style";
 export * from "@/components/forms/Switch";
 export * from "@/components/forms/Tag";
 export * from "@/components/content/TagList";
+export * from "@/components/content/TagLabel";
+export * from "@/components/content/RemovableTag";
 export * from "@/components/forms/Textarea";
 export * from "@/components/content/Title";
 export * from "@/components/forms/Upload";
