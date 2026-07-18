@@ -1,6 +1,13 @@
 import { Button } from "@/components/forms/Button";
 
-export const RemoteMutationNotice = (props: { pending: boolean; error: unknown; onRetry: () => void }) => {
+interface RemoteMutationNoticeProps {
+  pending: boolean;
+  error: unknown;
+  onRetry: () => void;
+  showPending?: boolean;
+}
+
+export const RemoteMutationNotice = (props: RemoteMutationNoticeProps) => {
   if (props.error != null) {
     return (
       <div role="alert" className="my-2 flex items-center justify-between rounded border border-red-300 p-2 text-sm">
@@ -11,9 +18,10 @@ export const RemoteMutationNotice = (props: { pending: boolean; error: unknown; 
       </div>
     );
   }
-  return props.pending ? (
+  if (!props.pending || props.showPending === false) return null;
+  return (
     <div role="status" className="my-2 text-sm text-gray-500">
       Saving…
     </div>
-  ) : null;
+  );
 };
