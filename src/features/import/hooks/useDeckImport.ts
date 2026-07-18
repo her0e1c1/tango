@@ -32,7 +32,7 @@ export const useDeckImport = () => {
   const cardMutations = useCardMutations();
   const runningRef = useRef(false);
   const [running, setRunning] = useState(false);
-  const lastRequest = useRef<ImportRequest>();
+  const lastRequest = useRef<ImportRequest>(undefined);
 
   const operation = useMutation({
     retry: false,

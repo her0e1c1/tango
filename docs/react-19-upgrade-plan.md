@@ -98,19 +98,19 @@ Expected: PASS, demonstrating that card mutation state, import concurrency guard
 Apply only these semantic-equivalent changes:
 
 ```ts
-const lastFailed = useRef<CardMutationVariables | undefined>(undefined);
+const lastFailed = useRef<CardMutationVariables>(undefined);
 ```
 
 ```ts
-const lastFailed = useRef<Variables | undefined>(undefined);
+const lastFailed = useRef<Variables>(undefined);
 ```
 
 ```ts
-const lastRequest = useRef<ImportRequest | undefined>(undefined);
+const lastRequest = useRef<ImportRequest>(undefined);
 ```
 
 ```ts
-const exitingDeck = React.useRef<DeckId | undefined>(undefined);
+const exitingDeck = React.useRef<DeckId>(undefined);
 ```
 
 Do not change `runningRef`, `mutationTokenRef`, or DOM refs because they already have explicit initial values.

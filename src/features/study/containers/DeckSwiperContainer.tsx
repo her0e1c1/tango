@@ -61,7 +61,7 @@ export const DeckSwiperContainer: React.FC = () => {
     onToggleAutoPlay: studyActions.toggleAutoPlay,
   });
 
-  const exitingDeck = React.useRef<DeckId>();
+  const exitingDeck = React.useRef<DeckId>(undefined);
   React.useEffect(() => {
     if (!valid) return;
     const state = studyStore.getState();
