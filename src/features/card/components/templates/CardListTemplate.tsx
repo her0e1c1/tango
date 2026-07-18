@@ -1,4 +1,5 @@
 import * as React from "react";
+import { AiOutlineDown } from "react-icons/ai";
 
 import { BackText, type BackTextProps } from "@/features/card/components/BackText";
 import { Card, type CardProps } from "@/features/card/components/Card";
@@ -101,17 +102,27 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <details className="rounded-surface border border-border bg-surface shadow-surface">
-          <summary className="flex min-h-touch cursor-pointer items-center justify-between gap-3 rounded-surface px-3 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+        <details className="group rounded-surface border border-border bg-surface shadow-surface">
+          <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded-surface px-3 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden">
             <span>Filters</span>
-            <span className="min-w-0 truncate text-caption font-medium text-ink-muted">{filterLabel(filter)}</span>
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="min-w-0 truncate text-caption font-medium text-ink-muted">{filterLabel(filter)}</span>
+              <AiOutlineDown
+                aria-hidden="true"
+                className="shrink-0 text-ink-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                size={16}
+              />
+            </span>
           </summary>
           <div className="border-t border-border p-3">{props.filterSlot}</div>
         </details>
         {filter.selectedTags.length > 0 && (
-          <ul aria-label="Selected tags" className="flex list-none flex-wrap gap-1 px-1">
+          <ul aria-label="Selected tags" className="flex min-w-0 max-w-full list-none flex-wrap gap-1 px-1">
             {filter.selectedTags.map((tag) => (
-              <li key={tag} className="rounded-pill bg-surface-muted px-2 py-1 text-xs font-medium text-ink">
+              <li
+                key={tag}
+                className="max-w-full truncate rounded-pill bg-surface-muted px-2 py-1 text-xs font-medium text-ink"
+              >
                 {tag}
               </li>
             ))}

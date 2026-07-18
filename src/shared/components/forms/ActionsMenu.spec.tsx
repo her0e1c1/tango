@@ -71,6 +71,45 @@ describe("ActionsMenu", () => {
     expect(trigger).toHaveFocus();
   });
 
+  it("keeps menu items out of the Tab sequence and moves Tab to the next external control", async () => {
+    const view = render(
+      <>
+        <button type="button">Previous control</button>
+        <ControlledMenu {...labels} items={items()} />
+        <button type="button">Next control</button>
+      </>
+    );
+    fireEvent.click(view.getByRole("button", { name: labels.triggerLabel }));
+    const edit = view.getByRole("menuitem", { name: "Edit" });
+    const remove = view.getByRole("menuitem", { name: "Delete" });
+    await waitFor(() => expect(edit).toHaveFocus());
+
+    expect(edit).toHaveAttribute("tabindex", "-1");
+    expect(remove).toHaveAttribute("tabindex", "-1");
+    await act(async () => fireEvent.keyDown(edit, { key: "Tab" }));
+
+    expect(view.queryByRole("menu")).not.toBeInTheDocument();
+    expect(view.getByRole("button", { name: "Next control" })).toHaveFocus();
+  });
+
+  it("moves Shift+Tab to the previous external control before the trigger", async () => {
+    const view = render(
+      <>
+        <button type="button">Previous control</button>
+        <ControlledMenu {...labels} items={items()} />
+        <button type="button">Next control</button>
+      </>
+    );
+    fireEvent.click(view.getByRole("button", { name: labels.triggerLabel }));
+    const edit = view.getByRole("menuitem", { name: "Edit" });
+    await waitFor(() => expect(edit).toHaveFocus());
+
+    await act(async () => fireEvent.keyDown(edit, { key: "Tab", shiftKey: true }));
+
+    expect(view.queryByRole("menu")).not.toBeInTheDocument();
+    expect(view.getByRole("button", { name: "Previous control" })).toHaveFocus();
+  });
+
   it("keeps the menu open when an ambiguous blur settles inside", async () => {
     const view = render(<ControlledMenu {...labels} items={items()} />);
     fireEvent.click(view.getByRole("button", { name: labels.triggerLabel }));

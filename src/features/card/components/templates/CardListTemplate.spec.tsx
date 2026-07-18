@@ -46,6 +46,26 @@ describe("CardListTemplate", () => {
     expect(view.getByText("score ≤ 3")).toBeInTheDocument();
   });
 
+  it("constrains a long unbroken selected tag without changing its text", () => {
+    const longTag = `tag-${"unbroken".repeat(30)}`;
+    const view = render(
+      <CardListTemplate cards={[card]} filter={{ scoreMin: null, scoreMax: null, selectedTags: [longTag] }} />
+    );
+    const chip = view.getByText(longTag);
+
+    expect(chip).toHaveTextContent(longTag);
+    expect(chip).toHaveClass("max-w-full", "truncate");
+  });
+
+  it("shows a token-styled decorative chevron for filter disclosure state", () => {
+    const view = render(<CardListTemplate cards={[card]} />);
+    const details = view.getByText("Filters").closest("details");
+    const chevron = details?.querySelector('[aria-hidden="true"]');
+
+    expect(details).toHaveClass("group");
+    expect(chevron).toHaveClass("text-ink-muted", "group-open:rotate-180");
+  });
+
   it("keeps only one menu open and removes it with a missing row", async () => {
     const view = render(<CardListTemplate cards={[card, otherCard]} />);
     fireEvent.click(view.getByRole("button", { name: "Open actions for Front" }));

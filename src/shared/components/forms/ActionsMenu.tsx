@@ -29,6 +29,26 @@ const triggerClassName =
 const menuClassName =
   "absolute right-0 top-full z-20 min-w-40 rounded-control border border-border bg-surface py-1 shadow-elevated";
 
+const focusableSelector = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
+const focusAdjacentToTrigger = (menu: HTMLElement, direction: -1 | 1) => {
+  const trigger = menu.parentElement?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]');
+  if (trigger == null) return;
+
+  const focusable = Array.from(document.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+    (element) => element.tabIndex >= 0 && element.closest("[hidden], [inert]") == null
+  );
+  const triggerIndex = focusable.indexOf(trigger);
+  focusable[triggerIndex + direction]?.focus();
+};
+
 export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
   const focusTrigger = (menu: HTMLElement) => {
     const trigger = menu.parentElement?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]');
@@ -53,6 +73,13 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
       event.preventDefault();
       props.onClose();
       focusTrigger(event.currentTarget);
+      return;
+    }
+    if (event.key === "Tab") {
+      event.preventDefault();
+      const menu = event.currentTarget;
+      props.onClose();
+      focusAdjacentToTrigger(menu, event.shiftKey ? -1 : 1);
       return;
     }
     if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
@@ -103,6 +130,7 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
               key={item.key}
               type="button"
               role="menuitem"
+              tabIndex={-1}
               className={item.danger ? `${itemClassName} text-danger` : itemClassName}
               onClick={run(item.onSelect)}
             >

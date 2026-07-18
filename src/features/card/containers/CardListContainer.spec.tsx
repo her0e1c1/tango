@@ -212,7 +212,7 @@ describe("CardListContainer", () => {
 
     expect(view.queryByText(card.backText)).not.toBeInTheDocument();
 
-    await userEvent.click(view.getByText(card.frontText));
+    await userEvent.click(view.getByRole("button", { name: `View ${card.frontText}` }));
     expect(view.getByText(card.backText)).toBeVisible();
 
     await userEvent.click(view.getByText(card.backText));
@@ -224,7 +224,7 @@ describe("CardListContainer", () => {
     mocks.cards = [languageCard];
     const view = render(<CardListContainer />);
 
-    await userEvent.click(view.getByText(languageCard.frontText));
+    await userEvent.click(view.getByRole("button", { name: `View ${languageCard.frontText}` }));
 
     const code = view.container.querySelector("pre.typescript") as HTMLElement;
     expect(code).toHaveTextContent(languageCard.backText);

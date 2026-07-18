@@ -1,5 +1,5 @@
 import cx from "classnames";
-import type * as React from "react";
+import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
 import { CardActionsMenu } from "@/features/card/components/CardActionsMenu";
@@ -30,12 +30,47 @@ const studiedText = (count: number) => {
 export const Card: React.FC<{ className?: string; card: Card } & CardActionsProps & CardRowMenuProps> = (props) => {
   const id = props.card.id;
   const disabled = Boolean(props.disabled);
+  const suppressViewClick = React.useRef(false);
+  const suppressViewClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  const menuBoundary = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(
+    () => () => {
+      if (suppressViewClickTimer.current !== undefined) clearTimeout(suppressViewClickTimer.current);
+    },
+    []
+  );
+
+  React.useEffect(() => {
+    const boundary = menuBoundary.current;
+    if (boundary == null) return;
+
+    const stopSwipeTracking = (event: Event) => event.stopPropagation();
+    const boundaryEvents = ["mousedown", "touchstart", "touchmove", "touchend", "touchcancel"] as const;
+    for (const eventName of boundaryEvents) boundary.addEventListener(eventName, stopSwipeTracking);
+
+    return () => {
+      for (const eventName of boundaryEvents) boundary.removeEventListener(eventName, stopSwipeTracking);
+    };
+  }, []);
+
   const withId = (action?: (id: CardId) => void) => () => {
     if (!disabled) action?.(id);
   };
+  const withSwipeId = (action?: (id: CardId) => void) => () => {
+    if (disabled) return;
+
+    suppressViewClick.current = true;
+    if (suppressViewClickTimer.current !== undefined) clearTimeout(suppressViewClickTimer.current);
+    suppressViewClickTimer.current = setTimeout(() => {
+      suppressViewClick.current = false;
+      suppressViewClickTimer.current = undefined;
+    }, 0);
+    action?.(id);
+  };
   const handlers = useSwipeable({
-    onSwipedLeft: withId(props.onSwipedLeft),
-    onSwipedRight: withId(props.onSwipedRight),
+    onSwipedLeft: withSwipeId(props.onSwipedLeft),
+    onSwipedRight: withSwipeId(props.onSwipedRight),
     trackMouse: true,
   });
   const seenCount = props.card.numberOfSeen ?? 0;
@@ -51,25 +86,29 @@ export const Card: React.FC<{ className?: string; card: Card } & CardActionsProp
       )}
     >
       <Score className="shrink-0" score={props.card.score} />
-      <div className="flex min-w-0 flex-1 flex-col justify-center">
+      <div className="relative flex min-h-touch min-w-0 flex-1 flex-col justify-center rounded-control">
         <button
           type="button"
           disabled={disabled}
           aria-label={`View ${props.card.frontText}`}
-          className="flex min-h-touch w-full items-center rounded-control px-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed"
-          onClick={withId(props.goToView)}
-        >
-          <span className="w-full truncate text-body font-semibold text-ink">{props.card.frontText}</span>
-        </button>
+          className="absolute inset-0 z-10 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed"
+          onClick={() => {
+            if (!disabled && !suppressViewClick.current) props.goToView?.(id);
+          }}
+        />
+        <span className="w-full truncate px-1 text-body font-semibold text-ink">{props.card.frontText}</span>
         <div className="mt-1 flex w-full min-w-0 items-center gap-2 text-caption text-ink-muted">
           <span className="shrink-0">{studiedText(seenCount)}</span>
           {props.card.tags.length > 0 && (
             <fieldset
               aria-label={`Tags: ${props.card.tags.join(", ")}`}
-              className="m-0 flex min-w-0 gap-1 overflow-hidden border-0 p-0"
+              className="m-0 flex min-w-0 max-w-full gap-1 overflow-hidden border-0 p-0"
             >
               {props.card.tags.map((tag) => (
-                <span key={tag} className="shrink-0 rounded-pill bg-surface-muted px-2 py-0.5 text-xs text-ink">
+                <span
+                  key={tag}
+                  className="max-w-full shrink-0 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs text-ink"
+                >
                   {tag}
                 </span>
               ))}
@@ -77,15 +116,17 @@ export const Card: React.FC<{ className?: string; card: Card } & CardActionsProp
           )}
         </div>
       </div>
-      <CardActionsMenu
-        cardText={props.card.frontText}
-        open={Boolean(props.menuOpen)}
-        disabled={disabled}
-        onToggle={withId(props.onToggleMenu)}
-        onClose={() => props.onCloseMenu?.()}
-        onEdit={withId(props.goToEdit)}
-        onDelete={withId(props.onDelete)}
-      />
+      <div ref={menuBoundary} className="shrink-0">
+        <CardActionsMenu
+          cardText={props.card.frontText}
+          open={Boolean(props.menuOpen)}
+          disabled={disabled}
+          onToggle={withId(props.onToggleMenu)}
+          onClose={() => props.onCloseMenu?.()}
+          onEdit={withId(props.goToEdit)}
+          onDelete={withId(props.onDelete)}
+        />
+      </div>
     </article>
   );
 };
