@@ -37,22 +37,25 @@ function createProps(overrides: Partial<ConfigFormProps> = {}): ConfigFormProps 
 describe("ConfigForm", () => {
   afterEach(cleanup);
 
-  it("groups every auto-saved setting in semantic Calm Focus sections", () => {
+  it("groups every auto-saved setting in the unified settings list", () => {
     const view = render(<ConfigForm {...createProps()} />);
 
     expect(view.container.querySelector("form")).not.toBeInTheDocument();
-    for (const name of ["Account", "Layout", "Study", "Autoplay", "Metadata"]) {
+    for (const name of ["Account", "Appearance", "Study", "Advanced"]) {
       const heading = view.getByRole("heading", { level: 2, name });
-      expect(heading.closest("section")).toHaveAttribute("aria-labelledby", heading.id);
+      expect(heading.closest("section, details")).toHaveAttribute("aria-labelledby", heading.id);
     }
+    expect(view.queryByRole("heading", { level: 2, name: "Layout" })).not.toBeInTheDocument();
+    expect(view.queryByRole("heading", { level: 2, name: "Autoplay" })).not.toBeInTheDocument();
+    expect(view.queryByRole("heading", { level: 2, name: "Metadata" })).not.toBeInTheDocument();
     expect(view.getByRole("heading", { level: 2, name: "Account" }).closest("section")).toHaveClass(
       "rounded-surface",
       "border",
       "border-border",
-      "bg-surface-muted",
-      "p-4"
+      "bg-surface",
+      "shadow-surface"
     );
-    expect(view.getByText("Show Header")).toBeInTheDocument();
+    expect(view.getByText("Show header")).toBeInTheDocument();
     expect(view.queryByText("Show Heaer")).not.toBeInTheDocument();
   });
 
@@ -62,15 +65,23 @@ describe("ConfigForm", () => {
     );
 
     expect(view.container.querySelectorAll("input[type='checkbox']")).toHaveLength(7);
-    expect(view.container.querySelector("input[name='showHeader']")).toBeChecked();
-    expect(view.container.querySelector("input[name='useCardInterval']")).toBeChecked();
-    expect(view.container.querySelector("input[name='maxNumberOfCardsToLearn']")).toHaveValue("24");
-    expect(view.container.querySelector("input[name='cardInterval']")).toHaveValue("7");
+    expect(view.getByRole("checkbox", { name: "Show header" })).toBeChecked();
+    expect(view.getByRole("checkbox", { name: "Use card interval" })).toBeChecked();
+    expect(view.getByRole("slider", { name: "Maximum cards" })).toHaveValue("24");
+    expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("7");
+    expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveAttribute(
+      "aria-valuetext",
+      "7 seconds"
+    );
     expect(view.container.querySelector("input[name='githubAccessToken']")).toHaveValue("github-token");
-    expect(view.getByText("Max number of cards to learn: 24")).toBeInTheDocument();
-    expect(view.getByText("Interval: 7 sec")).toBeInTheDocument();
-    expect(view.getByText("1.2.3")).toBeInTheDocument();
-    expect(view.getByText("user-123")).toBeInTheDocument();
+    expect(view.getByText("24")).toBeInTheDocument();
+    expect(view.getByText("7s")).toBeInTheDocument();
+
+    const details = view.getByRole("heading", { level: 2, name: "Advanced" }).closest("details");
+    expect(details).not.toHaveAttribute("open");
+    expect(details).toContainElement(view.getByDisplayValue("github-token"));
+    expect(details).toHaveTextContent("1.2.3");
+    expect(details).toHaveTextContent("user-123");
   });
 
   it("forwards switch, slider, and token changes to their field callbacks", async () => {
@@ -118,10 +129,10 @@ describe("ConfigForm", () => {
     const headings = view.getAllByRole("heading", { level: 2 });
     const headingIds = headings.map((heading) => heading.id);
 
-    expect(headings).toHaveLength(10);
-    expect(new Set(headingIds).size).toBe(10);
+    expect(headings).toHaveLength(8);
+    expect(new Set(headingIds).size).toBe(8);
     for (const heading of headings) {
-      expect(heading.closest("section")).toHaveAttribute("aria-labelledby", heading.id);
+      expect(heading.closest("section, details")).toHaveAttribute("aria-labelledby", heading.id);
       expect(document.getElementById(heading.id)).toBe(heading);
     }
   });
@@ -144,7 +155,8 @@ describe("ConfigForm", () => {
         })}
       />
     );
-    expect(view.getByText("Logged In As Settings User")).toBeInTheDocument();
+    expect(view.getByText("Settings User")).toBeInTheDocument();
+    expect(view.getByText("Signed in with Google")).toBeInTheDocument();
     await userEvent.click(view.getByRole("button", { name: "Logout" }));
     expect(onLogout).toHaveBeenCalledOnce();
   });

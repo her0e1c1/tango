@@ -1,7 +1,9 @@
 import type * as React from "react";
 import { useId } from "react";
+import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool, AiOutlineUser } from "react-icons/ai";
 
-import { Button, Form, FormItem, Input, Slider, Switch } from "@/shared/components";
+import { SettingsRow, SettingsSection } from "@/features/settings/components/SettingsSection";
+import { Button, Input, Slider, Switch } from "@/shared/components";
 
 export interface ConfigFormFields {
   showHeader: React.ComponentProps<typeof Switch>;
@@ -29,88 +31,212 @@ export interface ConfigFormProps {
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
-  const sectionHeadingIdPrefix = useId();
-  const accountHeadingId = `${sectionHeadingIdPrefix}-settings-account-heading`;
-  const layoutHeadingId = `${sectionHeadingIdPrefix}-settings-layout-heading`;
-  const studyHeadingId = `${sectionHeadingIdPrefix}-settings-study-heading`;
-  const autoplayHeadingId = `${sectionHeadingIdPrefix}-settings-autoplay-heading`;
-  const metadataHeadingId = `${sectionHeadingIdPrefix}-settings-metadata-heading`;
+  const idPrefix = useId();
+  const inputIds = {
+    showHeader: `${idPrefix}-show-header`,
+    showSwipeButtonList: `${idPrefix}-show-study-buttons`,
+    showSwipeFeedback: `${idPrefix}-show-swipe-feedback`,
+    darkMode: `${idPrefix}-dark-mode`,
+    shuffled: `${idPrefix}-shuffle-cards`,
+    maxNumberOfCardsToLearn: `${idPrefix}-maximum-cards`,
+    useCardInterval: `${idPrefix}-use-card-interval`,
+    defaultAutoPlay: `${idPrefix}-start-autoplay`,
+    cardInterval: `${idPrefix}-autoplay-interval`,
+  };
+  const advancedHeadingId = `${idPrefix}-advanced-heading`;
+  const descriptionId = (inputId: string) => `${inputId}-description`;
 
   return (
-    <Form div>
-      <section
-        aria-labelledby={accountHeadingId}
-        className="space-y-4 rounded-surface border border-border bg-surface-muted p-4"
-      >
-        <h2 id={accountHeadingId} className="text-title font-semibold text-ink">
-          Account
-        </h2>
-        <FormItem
-          label={props.isLoggedIn ? `Logged In As ${props.identity?.displayName ?? "no name"}` : "Google Login"}
-        >
+    <div className="space-y-4 text-ink">
+      <SettingsSection title="Account" description="Profile and sign-in" icon={<AiOutlineUser />}>
+        <div className="flex min-h-touch items-center justify-between gap-4 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-primary text-ink-inverse"
+            >
+              <AiOutlineUser />
+            </span>
+            <div className="min-w-0">
+              <p className="break-words text-body font-medium text-ink">
+                {props.isLoggedIn ? (props.identity?.displayName ?? "No name") : "Google Login"}
+              </p>
+              <p className="text-caption text-ink-muted">
+                {props.isLoggedIn ? "Signed in with Google" : "Sync your decks across devices"}
+              </p>
+            </div>
+          </div>
           {props.isLoggedIn ? (
-            <Button small {...(props.onLogout !== undefined ? { onClick: props.onLogout } : {})}>
+            <Button
+              variant="quiet"
+              size="sm"
+              {...(props.onLogout !== undefined ? { onClick: props.onLogout } : {})}
+            >
               Logout
             </Button>
           ) : (
-            <Button primary small {...(props.onLogin !== undefined ? { onClick: props.onLogin } : {})}>
+            <Button
+              variant="primary"
+              size="sm"
+              {...(props.onLogin !== undefined ? { onClick: props.onLogin } : {})}
+            >
               Login
             </Button>
           )}
-        </FormItem>
-      </section>
-      <section aria-labelledby={layoutHeadingId} className="space-y-4">
-        <h2 id={layoutHeadingId} className="border-b border-border pb-2 text-title font-semibold text-ink">
-          Layout
-        </h2>
-        <FormItem label="Show Header">
-          <Switch {...props.fields.showHeader} />
-        </FormItem>
-        <FormItem label="Show Button List">
-          <Switch {...props.fields.showSwipeButtonList} />
-        </FormItem>
-        <FormItem label="Show Swipe Feedback">
-          <Switch {...props.fields.showSwipeFeedback} />
-        </FormItem>
-        <FormItem label="Dark Mode">
-          <Switch {...props.fields.darkMode} />
-        </FormItem>
-      </section>
-      <section aria-labelledby={studyHeadingId} className="space-y-4">
-        <h2 id={studyHeadingId} className="border-b border-border pb-2 text-title font-semibold text-ink">
-          Study
-        </h2>
-        <FormItem label="Shuffle Cards">
-          <Switch {...props.fields.shuffled} />
-        </FormItem>
-        <FormItem label="Use Card Interval">
-          <Switch {...props.fields.useCardInterval} />
-        </FormItem>
-        <FormItem col label="Max Number" extra={`Max number of cards to learn: ${props.maxNumberOfCardsToLearn}`}>
-          <Slider {...props.fields.maxNumberOfCardsToLearn} />
-        </FormItem>
-      </section>
-      <section aria-labelledby={autoplayHeadingId} className="space-y-4">
-        <h2 id={autoplayHeadingId} className="border-b border-border pb-2 text-title font-semibold text-ink">
-          Autoplay
-        </h2>
-        <FormItem label="Auto Play Start">
-          <Switch {...props.fields.defaultAutoPlay} />
-        </FormItem>
-        <FormItem col label={`Interval: ${props.cardInterval} sec`}>
-          <Slider {...props.fields.cardInterval} />
-        </FormItem>
-      </section>
-      <section aria-labelledby={metadataHeadingId} className="space-y-4">
-        <h2 id={metadataHeadingId} className="border-b border-border pb-2 text-title font-semibold text-ink">
-          Metadata
-        </h2>
-        <FormItem label="Version">{props.version}</FormItem>
-        <FormItem col label="Github Access Token">
-          <Input {...props.fields.githubAccessToken} />
-        </FormItem>
-        <FormItem label="User Id">{props.identity?.uid ?? ""}</FormItem>
-      </section>
-    </Form>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Appearance"
+        description="Navigation and visual feedback"
+        icon={<AiOutlineEye />}
+      >
+        <SettingsRow inputId={inputIds.showHeader} label="Show header" description="Keep app navigation visible">
+          <Switch
+            {...props.fields.showHeader}
+            id={inputIds.showHeader}
+            aria-describedby={descriptionId(inputIds.showHeader)}
+          />
+        </SettingsRow>
+        <SettingsRow
+          inputId={inputIds.showSwipeButtonList}
+          label="Show study buttons"
+          description="Display study action controls"
+        >
+          <Switch
+            {...props.fields.showSwipeButtonList}
+            id={inputIds.showSwipeButtonList}
+            aria-describedby={descriptionId(inputIds.showSwipeButtonList)}
+          />
+        </SettingsRow>
+        <SettingsRow
+          inputId={inputIds.showSwipeFeedback}
+          label="Show swipe feedback"
+          description="Confirm each study action on screen"
+        >
+          <Switch
+            {...props.fields.showSwipeFeedback}
+            id={inputIds.showSwipeFeedback}
+            aria-describedby={descriptionId(inputIds.showSwipeFeedback)}
+          />
+        </SettingsRow>
+        <SettingsRow inputId={inputIds.darkMode} label="Dark mode" description="Use the darker Calm Focus palette">
+          <Switch
+            {...props.fields.darkMode}
+            id={inputIds.darkMode}
+            aria-describedby={descriptionId(inputIds.darkMode)}
+          />
+        </SettingsRow>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Study"
+        description="Card order, session size, and autoplay"
+        icon={<AiOutlinePlayCircle />}
+      >
+        <SettingsRow inputId={inputIds.shuffled} label="Shuffle cards" description="Randomize each study session">
+          <Switch
+            {...props.fields.shuffled}
+            id={inputIds.shuffled}
+            aria-describedby={descriptionId(inputIds.shuffled)}
+          />
+        </SettingsRow>
+        <SettingsRow
+          inputId={inputIds.maxNumberOfCardsToLearn}
+          label="Maximum cards"
+          description="Limit the size of a study session"
+        >
+          <div className="flex w-32 items-center gap-2 sm:w-52">
+            <Slider
+              {...props.fields.maxNumberOfCardsToLearn}
+              id={inputIds.maxNumberOfCardsToLearn}
+              aria-describedby={descriptionId(inputIds.maxNumberOfCardsToLearn)}
+              aria-valuetext={`${props.maxNumberOfCardsToLearn} cards`}
+            />
+            <span className="min-w-10 rounded-control bg-surface-muted px-2 py-1 text-center text-caption font-bold text-accent-primary">
+              {props.maxNumberOfCardsToLearn}
+            </span>
+          </div>
+        </SettingsRow>
+        <SettingsRow
+          inputId={inputIds.useCardInterval}
+          label="Use card interval"
+          description="Wait between automatic card changes"
+        >
+          <Switch
+            {...props.fields.useCardInterval}
+            id={inputIds.useCardInterval}
+            aria-describedby={descriptionId(inputIds.useCardInterval)}
+          />
+        </SettingsRow>
+        <SettingsRow
+          inputId={inputIds.defaultAutoPlay}
+          label="Start autoplay"
+          description="Begin playback when study opens"
+        >
+          <Switch
+            {...props.fields.defaultAutoPlay}
+            id={inputIds.defaultAutoPlay}
+            aria-describedby={descriptionId(inputIds.defaultAutoPlay)}
+          />
+        </SettingsRow>
+        <SettingsRow
+          inputId={inputIds.cardInterval}
+          label="Autoplay interval"
+          description="Seconds between cards"
+        >
+          <div className="flex w-32 items-center gap-2 sm:w-52">
+            <Slider
+              {...props.fields.cardInterval}
+              id={inputIds.cardInterval}
+              aria-describedby={descriptionId(inputIds.cardInterval)}
+              aria-valuetext={`${props.cardInterval} seconds`}
+            />
+            <span className="min-w-10 rounded-control bg-surface-muted px-2 py-1 text-center text-caption font-bold text-accent-primary">
+              {props.cardInterval}s
+            </span>
+          </div>
+        </SettingsRow>
+      </SettingsSection>
+
+      <details
+        aria-labelledby={advancedHeadingId}
+        className="group overflow-hidden rounded-surface border border-border bg-surface shadow-surface"
+      >
+        <summary className="flex min-h-touch cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+          <span
+            aria-hidden="true"
+            className="flex size-8 shrink-0 items-center justify-center rounded-control bg-surface-muted text-accent-primary"
+          >
+            <AiOutlineTool />
+          </span>
+          <span className="min-w-0 flex-1">
+            <h2 id={advancedHeadingId} className="text-body font-bold text-ink">
+              Advanced
+            </h2>
+            <span className="block text-caption text-ink-muted">Version, token, and user ID</span>
+          </span>
+          <AiOutlineDown
+            aria-hidden="true"
+            className="shrink-0 text-ink-muted transition-transform duration-normal ease-calm group-open:rotate-180"
+          />
+        </summary>
+        <div className="divide-y divide-border border-t border-border">
+          <div className="flex min-h-touch items-center justify-between gap-4 px-4 py-3">
+            <span className="text-body font-medium text-ink">Version</span>
+            <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.version}</span>
+          </div>
+          <label className="block px-4 py-3">
+            <span className="text-body font-medium text-ink">Github Access Token</span>
+            <span className="block text-caption text-ink-muted">Used when importing private GitHub content</span>
+            <Input className="mt-2" {...props.fields.githubAccessToken} />
+          </label>
+          <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
+            <span className="shrink-0 text-body font-medium text-ink">User ID</span>
+            <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.identity?.uid ?? ""}</span>
+          </div>
+        </div>
+      </details>
+    </div>
   );
 };
