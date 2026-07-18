@@ -8,21 +8,35 @@ import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { CardBulkMutationError } from "@/query/cardMutationService";
 import { useConfig } from "@/hooks/useConfig";
+import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
+import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
 
-export interface DeckImportResult {
-  created: number;
-  updated: number;
-  skipped: number;
-  failed: number;
-  deckId: DeckId;
-}
-
-type ImportRequest = { kind: "content"; name: string; content: string | File } | { kind: "sample" };
+type ImportRequest = { kind: "content"; name: string; rows: DeckImportRow[] } | { kind: "sample" };
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
 export const sampleDeckId = (uid: string): DeckId => `sample-v${SAMPLE_VERSION}-${uid}`;
+
+const rowsFromCards = (cards: CardRaw[]): DeckImportRow[] =>
+  cards.map((card, index) => ({ rowNumber: index + 1, card }));
+
+const partialResultFrom = (error: unknown): DeckImportResult | undefined => {
+  if (error == null || typeof error !== "object" || !("result" in error)) return undefined;
+  const result = error.result;
+  if (
+    result == null ||
+    typeof result !== "object" ||
+    !("created" in result) ||
+    !("updated" in result) ||
+    !("skipped" in result) ||
+    !("failed" in result) ||
+    !("deckId" in result)
+  ) {
+    return undefined;
+  }
+  return result as DeckImportResult;
+};
 
 export const useDeckImport = () => {
   const auth = useAuth();
@@ -32,6 +46,8 @@ export const useDeckImport = () => {
   const cardMutations = useCardMutations();
   const runningRef = useRef(false);
   const [running, setRunning] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [preview, setPreview] = useState<DeckImportPreview>();
   const lastRequest = useRef<ImportRequest>(undefined);
 
   const operation = useMutation({
@@ -41,8 +57,7 @@ export const useDeckImport = () => {
       if (uid === "") throw new Error("A confirmed user is required for imports");
       const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
       const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
-      const rawCards =
-        request.kind === "sample" ? (sampleCards as CardRaw[]) : await action.deck.parseCsv(request.content);
+      const rows = request.kind === "sample" ? rowsFromCards(sampleCards as CardRaw[]) : request.rows;
       let deck = remote.decks.find((candidate) =>
         preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
       );
@@ -54,29 +69,19 @@ export const useDeckImport = () => {
 
       const existing = remote.cardsByDeckId(deck.id);
       const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
+      const plan = buildDeckImportPlan(rows, existing);
       const upserts: Card[] = [];
       const createdIds = new Set<CardId>();
       const updatedIds = new Set<CardId>();
-      let created = 0;
-      let updated = 0;
-      let skipped = 0;
-      rawCards.forEach((raw) => {
-        const current = byUniqueKey.get(raw.uniqueKey);
-        if (current == null) {
-          const card = action.card.prepare(raw, deck);
+      plan.rows.forEach((row) => {
+        const current = byUniqueKey.get(row.card.uniqueKey);
+        if (row.action === "create") {
+          const card = action.card.prepare(row.card, deck);
           upserts.push(card);
           createdIds.add(card.id);
-          created += 1;
-        } else if (
-          current.frontText === raw.frontText &&
-          current.backText === raw.backText &&
-          current.tags.join("\0") === raw.tags.join("\0")
-        ) {
-          skipped += 1;
-        } else {
-          upserts.push({ ...current, ...raw });
+        } else if (row.action === "update" && current != null) {
+          upserts.push({ ...current, ...row.card });
           updatedIds.add(current.id);
-          updated += 1;
         }
       });
       try {
@@ -88,13 +93,19 @@ export const useDeckImport = () => {
           result: {
             created: [...createdIds].filter((id) => !failed.has(id)).length,
             updated: [...updatedIds].filter((id) => !failed.has(id)).length,
-            skipped,
+            skipped: plan.unchanged,
             failed: failed.size,
             deckId: deck.id,
           },
         });
       }
-      return { created, updated, skipped, failed: 0, deckId: deck.id };
+      return {
+        created: plan.created,
+        updated: plan.updated,
+        skipped: plan.unchanged,
+        failed: 0,
+        deckId: deck.id,
+      };
     },
   });
 
@@ -114,6 +125,43 @@ export const useDeckImport = () => {
     [operation]
   );
 
+  const selectFile = useCallback(
+    async (file: File) => {
+      if (runningRef.current) throw new Error("A Deck import is already running");
+      setValidating(true);
+      setPreview(undefined);
+      operation.reset();
+      try {
+        const analysis = await parseDeckImportCsv(file);
+        const deck = remote.decks.find((candidate) => candidate.name === file.name);
+        const existing = deck == null ? [] : remote.cardsByDeckId(deck.id);
+        const next = {
+          fileName: file.name,
+          deckName: file.name,
+          analysis,
+          plan: buildDeckImportPlan(analysis.rows, existing),
+        };
+        setPreview(next);
+        return next;
+      } finally {
+        setValidating(false);
+      }
+    },
+    [operation, remote]
+  );
+
+  const importPreview = useCallback(() => {
+    if (runningRef.current) return Promise.reject(new Error("A Deck import is already running"));
+    if (preview == null) return Promise.reject(new Error("Select a CSV file before importing"));
+    if (preview.analysis.invalidCount > 0) {
+      return Promise.reject(new Error("Fix invalid CSV rows before importing"));
+    }
+    if (preview.analysis.rows.length === 0) {
+      return Promise.reject(new Error("The CSV file has no valid rows"));
+    }
+    return run({ kind: "content", name: preview.deckName, rows: preview.analysis.rows });
+  }, [preview, run]);
+
   const importUrl = useCallback(
     async (url: string, name?: string) => {
       const headers: Record<string, string> = {};
@@ -123,10 +171,11 @@ export const useDeckImport = () => {
       }
       const response = await fetch(url, { headers });
       if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
+      const cards = await action.deck.parseCsv(await response.text());
       return await run({
         kind: "content",
         name: name ?? url.split("/").pop() ?? "no name",
-        content: await response.text(),
+        rows: rowsFromCards(cards),
       });
     },
     [config.githubAccessToken, run]
@@ -138,16 +187,20 @@ export const useDeckImport = () => {
   }, [run]);
 
   return {
-    importFile: (file: File) => run({ kind: "content", name: file.name, content: file }),
+    selectFile,
+    importPreview,
     addSample: () => run({ kind: "sample" }),
     importUrl,
     reimport: (deck: Deck) => {
       if (deck.url == null || deck.url === "") return Promise.reject(new Error("Deck has no import URL"));
       return importUrl(deck.url, deck.name);
     },
+    preview,
+    validating,
     pending: operation.isPending || running,
     error: operation.error,
     data: operation.data,
+    partialResult: partialResultFrom(operation.error),
     retry,
   };
 };

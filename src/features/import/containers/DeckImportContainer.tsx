@@ -5,7 +5,6 @@ import * as C from "@/constant";
 import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
 import { useActions } from "@/hooks/useActions";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
-import { RemoteMutationNotice } from "@/components";
 import { useConfig } from "@/hooks/useConfig";
 
 export const DeckImportContainer: React.FC = () => {
@@ -19,22 +18,23 @@ export const DeckImportContainer: React.FC = () => {
   return (
     <DeckImportTemplate
       onChange={(file) => {
-        void deckImport
-          .importFile(file)
-          .then(() => navigate(-1))
-          .catch(() => undefined);
+        void deckImport.selectFile(file).catch(() => undefined);
       }}
       onAddSample={() => {
-        void deckImport
-          .addSample()
-          .then(() => navigate(-1))
-          .catch(() => undefined);
+        void deckImport.addSample().catch(() => undefined);
       }}
+      onImport={() => {
+        void deckImport.importPreview().catch(() => undefined);
+      }}
+      onRetry={deckImport.retry}
+      onBack={() => navigate(-1)}
       onDownloadSample={actions.deckDownloadCsvSampleText}
+      validating={deckImport.validating}
       pending={deckImport.pending}
-      feedbackSlot={
-        <RemoteMutationNotice pending={deckImport.pending} error={deckImport.error} onRetry={deckImport.retry} />
-      }
+      {...(deckImport.preview !== undefined ? { preview: deckImport.preview } : {})}
+      {...(deckImport.data !== undefined ? { result: deckImport.data } : {})}
+      {...(deckImport.partialResult !== undefined ? { partialResult: deckImport.partialResult } : {})}
+      error={deckImport.error}
       dark={config.darkMode}
       sampleText={C.CSV_SAMPLE_TEXT}
       layout={{
