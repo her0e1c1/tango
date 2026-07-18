@@ -35,8 +35,8 @@ describe("CardListTemplate", () => {
 
     expect(view.getByText("1 card")).toBeInTheDocument();
     expect(view.getByText("score -1–3 · 2 tags")).toBeInTheDocument();
-    expect(view.getByText("one")).toBeVisible();
-    expect(view.getByText("two")).toBeVisible();
+    expect(view.getByRole("list", { name: "Selected tags" })).toHaveTextContent("one");
+    expect(view.getByRole("list", { name: "Selected tags" })).toHaveTextContent("two");
     expect(view.getByText("Controls")).not.toBeVisible();
 
     view.rerender(<CardListTemplate cards={[card]} filter={{ scoreMin: -1, scoreMax: null, selectedTags: [] }} />);

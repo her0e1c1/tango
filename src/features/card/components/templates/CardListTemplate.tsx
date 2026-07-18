@@ -109,7 +109,7 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
           <div className="border-t border-border p-3">{props.filterSlot}</div>
         </details>
         {filter.selectedTags.length > 0 && (
-          <ul className="flex list-none flex-wrap gap-1 px-1">
+          <ul aria-label="Selected tags" className="flex list-none flex-wrap gap-1 px-1">
             {filter.selectedTags.map((tag) => (
               <li key={tag} className="rounded-pill bg-surface-muted px-2 py-1 text-xs font-medium text-ink">
                 {tag}
