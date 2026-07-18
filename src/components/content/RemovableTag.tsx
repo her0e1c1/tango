@@ -12,7 +12,11 @@ export const RemovableTag: React.FC<RemovableTagProps> = ({ className, label, on
   <button
     type="button"
     aria-label={`Remove ${label} filter`}
-    className={tagClassName({ className, interactive: true, selected: true })}
+    className={tagClassName({
+      interactive: true,
+      selected: true,
+      ...(className !== undefined ? { className } : {}),
+    })}
     onClick={() => onRemove(label)}
   >
     <TagMarker selected />

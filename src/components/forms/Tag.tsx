@@ -37,7 +37,10 @@ export const Tag: React.FC<{
       />
       <span
         className={cx(
-          tagClassName({ className, interactive: onChange != null && !disabled }),
+          tagClassName({
+            interactive: onChange != null && !disabled,
+            ...(className !== undefined ? { className } : {}),
+          }),
           "select-none justify-center whitespace-nowrap align-middle",
           "peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 peer-checked:text-accent-primary",
           "peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
@@ -45,7 +48,7 @@ export const Tag: React.FC<{
           large ? "px-4 text-lg" : small ? "px-2 text-xs" : undefined
         )}
       >
-        <TagMarker selected={checked} />
+        <TagMarker {...(checked !== undefined ? { selected: checked } : {})} />
         <span className="min-w-0 truncate">{label ?? children}</span>
       </span>
     </label>

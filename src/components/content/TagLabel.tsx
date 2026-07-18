@@ -9,8 +9,15 @@ export interface TagLabelProps {
 }
 
 export const TagLabel: React.FC<TagLabelProps> = ({ className, label, selected }) => (
-  <span className={tagClassName({ className, compact: true, selected })} title={label}>
-    <TagMarker selected={selected} />
+  <span
+    className={tagClassName({
+      compact: true,
+      ...(className !== undefined ? { className } : {}),
+      ...(selected !== undefined ? { selected } : {}),
+    })}
+    title={label}
+  >
+    <TagMarker {...(selected !== undefined ? { selected } : {})} />
     <span className="min-w-0 max-w-full truncate">{label}</span>
   </span>
 );
