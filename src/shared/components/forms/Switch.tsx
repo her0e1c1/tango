@@ -11,12 +11,12 @@ export const Switch: React.FC<{
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  inputRef?: React.Ref<HTMLInputElement>;
-}> = ({ className, small, large, checked, disabled, name, value, onChange, onBlur, inputRef }) => {
+  ref?: React.Ref<HTMLInputElement>;
+}> = ({ className, small, large, checked, disabled, name, value, onChange, onBlur, ref }) => {
   return (
     <label className={cx("inline-flex min-h-touch min-w-touch items-center justify-center", className)}>
       <input
-        ref={inputRef}
+        ref={ref}
         name={name}
         checked={checked}
         value={value}
