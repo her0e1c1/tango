@@ -84,6 +84,15 @@ describe("CardFormContainer", () => {
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
 
+  it("returns to the previous page without saving when cancelled", async () => {
+    const view = render(<CardFormContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Cancel" }));
+
+    expect(mocks.cardUpdate).not.toHaveBeenCalled();
+    expect(mocks.navigate).toHaveBeenCalledWith(-1);
+  });
+
   it("submits edited front and back text", async () => {
     const view = render(<CardFormContainer />);
     const frontText = view.container.querySelector("textarea[name='frontText']") as Element;
