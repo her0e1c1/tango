@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -96,6 +96,14 @@ describe("Card", () => {
 
     expect(viewButton).not.toContainElement(studyText);
     expect(viewButton).not.toContainElement(tags);
+  });
+
+  it("renders card tags as compact read-only markers", () => {
+    const view = render(<Card card={card} />);
+    const metadata = view.getByLabelText("Tags: one, two");
+
+    expect(within(metadata).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(metadata).getByText("one").parentElement).toHaveClass("rounded-control", "text-xs");
   });
 
   it("covers the complete central region with View without owning its metadata", () => {

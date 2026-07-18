@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -55,6 +56,20 @@ describe("CardListTemplate", () => {
 
     expect(chip).toHaveTextContent(longTag);
     expect(chip).toHaveClass("max-w-full", "truncate");
+  });
+
+  it("removes one selected tag from the persistent filter summary", async () => {
+    const onRemoveTag = vi.fn();
+    const view = render(
+      <CardListTemplate
+        cards={[card]}
+        filter={{ scoreMin: null, scoreMax: null, selectedTags: ["one", "two"] }}
+        onRemoveTag={onRemoveTag}
+      />
+    );
+
+    await userEvent.click(view.getByRole("button", { name: "Remove one filter" }));
+    expect(onRemoveTag).toHaveBeenCalledExactlyOnceWith("one");
   });
 
   it("shows a token-styled decorative chevron for filter disclosure state", () => {

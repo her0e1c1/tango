@@ -16,7 +16,7 @@ export const RemovableTag: React.FC<RemovableTagProps> = ({ className, label, on
     onClick={() => onRemove(label)}
   >
     <TagMarker selected />
-    <span className="min-w-0 truncate">{label}</span>
+    <span className="min-w-0 max-w-full truncate">{label}</span>
     <span aria-hidden="true" className="ml-2 shrink-0">
       ×
     </span>

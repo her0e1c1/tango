@@ -37,6 +37,10 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
         selectedTags: deckStartForm.tagFilterProps.selectedTags ?? [],
       }}
       filterSlot={<DeckStartForm {...deckStartForm} />}
+      onRemoveTag={(tag) => {
+        const selectedTags = deckStartForm.tagFilterProps.selectedTags ?? [];
+        deckStartForm.tagFilterProps.onClickTag?.(selectedTags.filter((value) => value !== tag));
+      }}
       layout={{
         headerProps: {
           dark: config.darkMode,
