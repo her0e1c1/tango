@@ -61,6 +61,18 @@ sources = [
 ]
 run = "npm test"
 
+[tasks.coverage]
+depends = ["build-sample", "up"]
+sources = [
+  "src/**/*.{ts,tsx,js,jsx}",
+  "sample/generate.py",
+  "sample/test/**/*",
+  "package.json",
+  "package-lock.json",
+  "vitest.config.ts",
+]
+run = "npm run test:coverage"
+
 [tasks.fmt]
 alias = "f"
 run = "npm run fmt"
@@ -94,7 +106,7 @@ alias = "c"
 depends = ["init"]
 run = [
   "mise run build",
-  { tasks = ["fmt-check", "lint", "test"] },
+  { tasks = ["fmt-check", "lint", "coverage"] },
 ]
 
 [tasks.down]

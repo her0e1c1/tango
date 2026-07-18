@@ -41,6 +41,14 @@ jobs:
 
       - run: mise run ci
 
+      - name: Upload Vitest coverage report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage
+          path: coverage/
+          if-no-files-found: warn
+
       # mise sets COMPOSE_FILE for local development; make ci needs the Makefile defaults.
       - run: env -u COMPOSE_FILE make ci
 

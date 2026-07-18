@@ -44,6 +44,11 @@ test-firestore: ## Run Firestore tests
 test-sample: ## Run sample tests
 	@$(SAMPLE_MAKE) test
 
+.PHONY: coverage
+coverage: ## Run all Vitest specs with coverage thresholds
+	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans -d db
+	$(NPM) run test:coverage
+
 .PHONY: ci
 ci: build fmt-check lint-check test e2e ## Run the same checks as the pull request CI
 
