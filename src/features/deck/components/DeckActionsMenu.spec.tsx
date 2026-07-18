@@ -109,4 +109,27 @@ describe("DeckActionsMenu", () => {
       expect(action).toHaveBeenCalledOnce();
     }
   });
+
+  it("closes when an ambiguous blur settles on an external element", async () => {
+    const view = render(
+      <>
+        <button type="button">External focus target</button>
+        <ControlledMenu deckName="Chemistry" />
+      </>,
+    );
+    const trigger = view.getByRole("button", { name: "Open actions for Chemistry" });
+    const externalTarget = view.getByRole("button", { name: "External focus target" });
+
+    fireEvent.click(trigger);
+    const download = view.getByRole("menuitem", { name: "Download" });
+    await waitFor(() => expect(download).toHaveFocus());
+
+    await act(async () => {
+      download.blur();
+      externalTarget.focus();
+    });
+
+    expect(view.queryByRole("menu")).not.toBeInTheDocument();
+    expect(externalTarget).toHaveFocus();
+  });
 });
