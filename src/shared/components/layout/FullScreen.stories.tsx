@@ -4,7 +4,7 @@ import { FullScreen as Template } from "@/shared/components/layout/FullScreen";
 import { Container } from "@/shared/storybook/Decorator";
 
 const meta = {
-  title: "Shared/FullScreen",
+  title: "Shared/Layout/FullScreen",
   component: Template,
   tags: ["autodocs"],
   parameters: {

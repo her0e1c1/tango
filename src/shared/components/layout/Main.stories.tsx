@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Main as Template } from "@/shared/components/layout/Main";
 
 const meta = {
-  title: "Shared/Main",
+  title: "Shared/Layout/Main",
   component: Template,
   parameters: {
     layout: "fullscreen",

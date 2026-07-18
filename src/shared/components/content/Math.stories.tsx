@@ -4,7 +4,7 @@ import { MathContent as Template } from "@/shared/components/content/Math";
 import * as fixture from "@/shared/storybook/fixture";
 
 const meta = {
-  title: "Shared/Math",
+  title: "Shared/Content/Math",
   component: Template,
   tags: ["autodocs"],
   args: {},
