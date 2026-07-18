@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import * as action from "@/action";
-import { configStore } from "@/features/settings/state/configStore";
+import { configStore } from "@/store/configStore";
 
 export const useActions = () => {
   const navigate = useNavigate();

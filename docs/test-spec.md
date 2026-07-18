@@ -14,7 +14,7 @@
 | Action / Deck | `src/action/deck.spec.ts` | ユニットテスト |
 | Action / Card | `src/action/card.spec.ts` | ユニットテスト |
 | Action / Event | `src/action/event.spec.ts` | ユニットテスト |
-| Settings / Config Store | `src/features/settings/state/configStore.spec.ts` | ユニットテスト |
+| Settings / Config Store | `src/store/configStore.spec.ts` | ユニットテスト |
 | Firestore / Deck | `src/action/firestore/deck.spec.ts` | 統合テスト |
 | Firestore / Card | `src/action/firestore/card.spec.ts` | 統合テスト |
 | Firestore / Event | `src/action/firestore/event.spec.ts` | Query購読統合テスト |
@@ -179,7 +179,7 @@
 
 ---
 
-### 1-4. Config Store (`src/features/settings/state/configStore.spec.ts`)
+### 1-4. Config Store (`src/store/configStore.spec.ts`)
 
 #### update
 

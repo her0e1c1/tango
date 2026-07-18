@@ -196,7 +196,7 @@ describe("component architecture", () => {
     expect(selectorReferences, selectorReferences.join("\n")).toEqual([]);
   });
 
-  it("keeps entity state out of legacy client stores", () => {
+  it("limits application stores to global configuration", () => {
     const legacyPackages = ["react-redux", "redux", "redux-persist", "redux-thunk"];
     const legacyImports = productionFilesUnder("").flatMap((relativePath) =>
       moduleReferences(relativePath)
@@ -219,7 +219,7 @@ describe("component architecture", () => {
     expect(legacyImports, legacyImports.join("\n")).toEqual([]);
     expect(entityModeReferences, entityModeReferences.join("\n")).toEqual([]);
     expect(dependencyNames.filter((name) => legacyPackages.includes(name))).toEqual([]);
-    expect(sourceFilesUnder("store")).toEqual([]);
+    expect(sourceFilesUnder("store")).toEqual(["store/configStore.spec.ts", "store/configStore.ts"]);
   });
 
   it("groups shared layout components", () => {

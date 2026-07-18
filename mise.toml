@@ -46,7 +46,7 @@ run = "env -u VITE_PROJECT_ID -u VITE_WEB_API_KEY -u VITE_DB_HOST -u VITE_DB_POR
 [tasks.storybook]
 alias = "s"
 depends = ["build-sample"]
-run = "npm run storybook -- --no-open"
+run = "npm run storybook"
 
 [tasks.test]
 alias = "t"

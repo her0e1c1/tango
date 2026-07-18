@@ -52,6 +52,7 @@ describe("DeckForm", () => {
     expect(view.queryByText("Public")).not.toBeInTheDocument();
     expect(view.container.querySelector("input[name='isPublic']")).not.toBeInTheDocument();
     expect(name).toHaveValue("Japanese vocabulary");
+    expect(view.getByRole("checkbox", { name: "Convert line breaks" })).toBe(convertToBr);
     expect(convertToBr).toBeChecked();
     expect(url).toHaveValue("https://example.com/deck.csv");
     expect(category).toHaveValue("language");

@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { createRef } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -126,6 +127,52 @@ describe("shared selection controls", () => {
     fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
+  });
+
+  it("keeps switch and tag inputs keyboard focusable and activates them with Space", async () => {
+    const user = userEvent.setup();
+    const onSwitchChange = vi.fn();
+    const onTagChange = vi.fn();
+    const view = render(
+      <>
+        <Switch aria-label="Published" onChange={onSwitchChange} />
+        <Tag label="History" onChange={onTagChange} />
+      </>
+    );
+    const inputs = view.container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+
+    await user.tab();
+    expect(inputs[0]).toHaveFocus();
+    await user.keyboard(" ");
+    expect(onSwitchChange).toHaveBeenCalledOnce();
+
+    await user.tab();
+    expect(inputs[1]).toHaveFocus();
+    await user.keyboard(" ");
+    expect(onTagChange).toHaveBeenCalledOnce();
+  });
+
+  it("exposes a semantic focus-visible ring on switch and tag presentations", () => {
+    const switchView = render(<Switch />);
+    const switchInput = switchView.container.querySelector("input");
+    expect(switchInput).toHaveClass("sr-only", "peer");
+    expect(switchInput).not.toHaveClass("hidden");
+    expect(switchInput?.nextElementSibling).toHaveClass(
+      "peer-focus-visible:outline-none",
+      "peer-focus-visible:ring-2",
+      "peer-focus-visible:ring-focus"
+    );
+    switchView.unmount();
+
+    const tagView = render(<Tag label="History" />);
+    const tagInput = tagView.container.querySelector("input");
+    expect(tagInput).toHaveClass("sr-only", "peer");
+    expect(tagInput).not.toHaveClass("hidden");
+    expect(tagInput?.nextElementSibling).toHaveClass(
+      "peer-focus-visible:outline-none",
+      "peer-focus-visible:ring-2",
+      "peer-focus-visible:ring-focus"
+    );
   });
 
   it("passes the chosen native file to the unchanged upload callback", () => {
