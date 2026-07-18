@@ -12,6 +12,7 @@ export const Tag: React.FC<{
   default?: boolean;
   primary?: boolean;
   hidden?: boolean;
+  wrap?: boolean;
   name?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -28,6 +29,7 @@ export const Tag: React.FC<{
   disabled,
   primary,
   hidden,
+  wrap,
   name,
   value,
   onChange,
@@ -36,11 +38,11 @@ export const Tag: React.FC<{
   children,
 }) => {
   return (
-    <label className={cx("inline-block", { hidden })}>
+    <label className={cx("inline-block", wrap && "min-w-0 max-w-full", { hidden })}>
       <input
         readOnly
         type="checkbox"
-        className="hidden peer"
+        className="sr-only peer"
         checked={checked}
         disabled={disabled}
         ref={ref}
@@ -53,10 +55,11 @@ export const Tag: React.FC<{
         className={cx(
           className,
           "inline-flex min-h-touch min-w-touch select-none items-center justify-center",
-          "whitespace-nowrap",
+          wrap ? "min-w-0 max-w-full whitespace-normal break-all" : "whitespace-nowrap",
           "font-medium",
           "align-middle",
           "border border-border transition-colors duration-fast ease-calm peer-checked:ring-2 peer-checked:ring-current",
+          "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
           "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
           round ? "rounded-pill" : "rounded-control",
           large ? ["py-3 px-4 text-lg"] : small ? ["py-1 px-1 text-xs"] : ["py-2 px-3 text-sm"],

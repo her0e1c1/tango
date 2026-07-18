@@ -36,4 +36,9 @@ export const NoMatchCompatible: Story = {
 
 export const Mobile: Story = { ...ManyTags, parameters: { viewport: { defaultViewport: "iphone5" } } };
 
+export const LongTagMobile: Story = {
+  args: { tags: ["averylongunbrokentag".repeat(12)] },
+  parameters: { viewport: { defaultViewport: "iphone5" } },
+};
+
 export const Dark: Story = { ...Selected, globals: { theme: "dark" } };

@@ -1,4 +1,4 @@
-import type * as React from "react";
+import * as React from "react";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
@@ -12,14 +12,25 @@ import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/hooks/useConfig";
 
-const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
+const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
+  target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
+
+export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
   const { deck, cards, config, tags } = props;
   const deckId = deck.id;
   const deckActions = useDeckActions(deckId);
   const studyActions = useStudyActions(deckId);
+  const startStudy = studyActions.start;
   const actions = useActions();
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
-  useKey("Enter", studyActions.start);
+  const startFromEnter = React.useCallback(
+    (event: KeyboardEvent) => {
+      if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
+      startStudy();
+    },
+    [cards.length, startStudy]
+  );
+  useKey("Enter", startFromEnter, {}, [startFromEnter]);
 
   return (
     <DeckStartTemplate
@@ -31,9 +42,10 @@ const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigStat
           onClickMenuItem: actions.goByMenu,
         },
       }}
-      config={config}
+      deckName={deck.name}
+      maxNumberOfCardsToLearn={config.maxNumberOfCardsToLearn}
       cardsLength={cards.length}
-      onClickStart={studyActions.start}
+      onClickStart={startStudy}
       filterSlot={<DeckStartForm {...deckStartForm} />}
     />
   );

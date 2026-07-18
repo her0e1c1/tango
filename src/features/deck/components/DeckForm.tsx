@@ -56,7 +56,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           <Input {...props.fields.url} />
         </FormItem>
         <FormItem label="Convert line breaks" help="Convert two line breaks to one <br />.">
-          <Switch {...props.fields.convertToBr} />
+          <Switch {...props.fields.convertToBr} aria-label="Convert line breaks" />
         </FormItem>
       </section>
       <details className="rounded-surface border border-border bg-surface-muted p-4">
