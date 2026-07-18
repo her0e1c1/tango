@@ -63,6 +63,7 @@ const ownedPresentationFiles = [
   "features/deck/components/DeckCard.tsx",
   "features/deck/components/DeckStartForm.tsx",
   "features/deck/components/TagFilter.tsx",
+  "features/study/components/templates/DeckStartTemplate.tsx",
   "features/deck/components/templates/DeckListTemplate.tsx",
   "features/card/components/Card.tsx",
   "features/card/components/FrontText.tsx",
@@ -258,6 +259,18 @@ describe("Calm Focus visual contract", () => {
   it("gives the deck filter surfaces semantic Calm Focus treatment", () => {
     expect(readOwnedSource("features/deck/components/DeckStartForm.tsx")).toMatch(/bg-surface/);
     expect(readOwnedSource("features/deck/components/TagFilter.tsx")).toMatch(/bg-surface/);
+  });
+
+  it("gives the study start route a focused semantic setup surface", () => {
+    const startTemplate = readOwnedSource("features/study/components/templates/DeckStartTemplate.tsx");
+    const startForm = readOwnedSource("features/deck/components/DeckStartForm.tsx");
+    const tagFilter = readOwnedSource("features/deck/components/TagFilter.tsx");
+
+    expect(startTemplate).toMatch(/max-w-reading/);
+    expect(startTemplate).toMatch(/text-display/);
+    expect(startTemplate).toMatch(/bg-surface/);
+    expect(startForm).toMatch(/<section/);
+    expect(tagFilter).toMatch(/<section/);
   });
 
   it("gives the card editing surfaces semantic Calm Focus treatment", () => {
