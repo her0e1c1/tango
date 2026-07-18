@@ -164,4 +164,3 @@ Use test-driven development for every behavior change.
 - Study completion or onboarding behavior, which remains owned by #208.
 - Changes to Firebase auth providers, Firestore schema, query ownership, or mutation retry policy.
 - A new global notification queue or application workflow store.
-
