@@ -115,7 +115,7 @@ describe("DeckActionsMenu", () => {
       <>
         <button type="button">External focus target</button>
         <ControlledMenu deckName="Chemistry" />
-      </>,
+      </>
     );
     const trigger = view.getByRole("button", { name: "Open actions for Chemistry" });
     const externalTarget = view.getByRole("button", { name: "External focus target" });
