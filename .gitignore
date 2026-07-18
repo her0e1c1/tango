@@ -15,6 +15,7 @@ node_modules
 
 # misc
 .DS_Store
+.superpowers/
 .worktrees/
 .env
 .env.*
