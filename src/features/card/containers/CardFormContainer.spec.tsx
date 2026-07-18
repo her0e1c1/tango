@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
 }));
 
-vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => ({

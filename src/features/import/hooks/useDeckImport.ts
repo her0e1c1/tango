@@ -7,7 +7,7 @@ import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { CardBulkMutationError } from "@/query/cardMutationService";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 import sampleCards from "../../../../sample/build/output.json";
 
 export interface DeckImportResult {

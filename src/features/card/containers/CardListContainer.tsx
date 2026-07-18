@@ -12,7 +12,7 @@ import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; config: ConfigState }) => {
   const { deck, cards, tags, config } = props;

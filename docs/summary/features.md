@@ -70,7 +70,7 @@ Key files: `src/action/event.ts`, `src/firebase.ts`, `src/action/firestore/*`
 - form は `react-hook-form` の `watch()` で変更ごとに Zustand config store を更新します。
 - version は `__APP_VERSION__` から表示されます。
 
-Key files: `src/page/ConfigPage.tsx`, `src/features/settings/containers/ConfigContainer.tsx`, `src/features/settings/components/ConfigForm.tsx`, `src/features/settings/state/configStore.ts`
+Key files: `src/page/ConfigPage.tsx`, `src/features/settings/containers/ConfigContainer.tsx`, `src/features/settings/components/ConfigForm.tsx`, `src/store/configStore.ts`
 
 ## Sample Deck
 

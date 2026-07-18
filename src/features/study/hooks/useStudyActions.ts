@@ -6,7 +6,7 @@ import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { studyStore } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 export interface StudyActions {
   start: () => void;

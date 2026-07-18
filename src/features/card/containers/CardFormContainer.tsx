@@ -8,7 +8,7 @@ import { useActions } from "@/hooks/useActions";
 import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";
 import { useCardFormState } from "@/features/card/hooks/useCardFormState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 const CardFormContent = ({ card }: { card: Card }) => {
   const config = useConfig();

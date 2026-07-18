@@ -10,7 +10,7 @@ import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
   const { deck, cards, config, tags } = props;

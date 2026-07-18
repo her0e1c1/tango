@@ -24,7 +24,7 @@ vi.mock("@/features/import/hooks/useDeckImport", () => ({
   }),
 }));
 
-vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
+vi.mock("@/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
 
 vi.mock("react-use", () => ({
   useKey: mocks.useKey,

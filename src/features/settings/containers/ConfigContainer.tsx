@@ -5,7 +5,7 @@ import { ConfigFormTemplate } from "@/features/settings/components/templates/Con
 import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
 import { useActions } from "@/hooks/useActions";
 import { useAuth } from "@/auth/AuthContext";
-import { useConfig } from "@/features/settings/hooks/useConfig";
+import { useConfig } from "@/hooks/useConfig";
 
 export const ConfigContainer: React.FC = () => {
   const config = useConfig();
