@@ -68,73 +68,90 @@ git commit -m "Add React Compiler build dependencies"
 - Modify: `.storybook/main.ts`
 
 **Interfaces:**
-- Produces: `createReactCompilerPlugin(): Plugin`, which returns a fresh Babel plugin configured with `reactCompilerPreset()`.
+- Produces: `createReactCompilerPlugin(): Promise<Plugin>`, which returns a fresh Babel plugin configured with `reactCompilerPreset()`.
 - Consumes: the factory from Vite, Vitest, and Storybook configuration.
 
 - [ ] **Step 1: Write the failing configuration test**
 
-Create `reactCompiler.spec.ts`. Derive the expected plugin name directly from the official Babel preset so the test can fail before the factory exists:
+Create `reactCompiler.spec.ts`. Hoist a mock of the shared factory that returns a uniquely identifiable plugin promise for every call, then resolve nested plugin arrays before checking them:
 
 ```ts
-import babel from "@rolldown/plugin-babel";
-import { reactCompilerPreset } from "@vitejs/plugin-react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import storybookConfig from "./.storybook/main";
 import viteConfig from "./vite.config";
 import vitestConfig from "./vitest.config";
 
-const compilerPluginName = babel({
-  presets: [reactCompilerPreset()],
-}).name;
+const reactCompilerMock = vi.hoisted(() => {
+  const compilerPluginName = "react-compiler-test-sentinel";
+  let instance = 0;
 
-const collectPlugins = (values: readonly unknown[] | undefined): object[] => {
+  return {
+    compilerPluginName,
+    createReactCompilerPlugin: vi.fn(async () => ({
+      name: compilerPluginName,
+      instance: ++instance,
+    })),
+  };
+});
+
+vi.mock("./reactCompiler", () => ({
+  createReactCompilerPlugin: reactCompilerMock.createReactCompilerPlugin,
+}));
+
+const { compilerPluginName, createReactCompilerPlugin } = reactCompilerMock;
+
+const collectPlugins = async (
+  values: readonly unknown[] | undefined,
+): Promise<object[]> => {
   const plugins: object[] = [];
-  const collect = (value: unknown) => {
-    if (Array.isArray(value)) {
-      value.forEach(collect);
-    } else if (typeof value === "object" && value !== null) {
-      plugins.push(value);
+  const collect = async (value: unknown): Promise<void> => {
+    const resolved = await value;
+
+    if (Array.isArray(resolved)) {
+      await Promise.all(resolved.map(collect));
+    } else if (typeof resolved === "object" && resolved !== null) {
+      plugins.push(resolved);
     }
   };
-  values?.forEach(collect);
+  await Promise.all(values?.map(collect) ?? []);
   return plugins;
 };
 
-const compilerPlugins = (values: readonly unknown[] | undefined) =>
-  collectPlugins(values).filter(
+const compilerPlugins = async (values: readonly unknown[] | undefined) =>
+  (await collectPlugins(values)).filter(
     (plugin) => "name" in plugin && plugin.name === compilerPluginName,
   );
 
+const storybookInput = { plugins: [] };
+const storybookViteConfig = await storybookConfig.viteFinal?.(
+  storybookInput,
+  { configType: "PRODUCTION" } as never,
+);
+
 describe("React Compiler Vite integration", () => {
-  it("adds one compiler plugin to the application", () => {
-    expect(compilerPlugins(viteConfig.plugins)).toHaveLength(1);
+  it("calls the shared factory once for every environment", () => {
+    expect(createReactCompilerPlugin).toHaveBeenCalledTimes(3);
   });
 
-  it("adds one compiler plugin to Vitest", () => {
-    expect(compilerPlugins(vitestConfig.plugins)).toHaveLength(1);
+  it("adds one compiler plugin to the application", async () => {
+    expect(await compilerPlugins(viteConfig.plugins)).toHaveLength(1);
+  });
+
+  it("adds one compiler plugin to Vitest", async () => {
+    expect(await compilerPlugins(vitestConfig.plugins)).toHaveLength(1);
   });
 
   it("adds one compiler plugin to Storybook", async () => {
     expect(storybookConfig.viteFinal).toBeTypeOf("function");
-    const input = { plugins: [] };
-    const output = await storybookConfig.viteFinal?.(
-      input,
-      { configType: "PRODUCTION" } as never,
-    );
-
-    expect(output).not.toBe(input);
-    expect(compilerPlugins(output?.plugins)).toHaveLength(1);
+    expect(storybookViteConfig).not.toBe(storybookInput);
+    expect(await compilerPlugins(storybookViteConfig?.plugins)).toHaveLength(1);
   });
 
   it("creates independent plugin instances for every environment", async () => {
-    const storybookViteConfig = await storybookConfig.viteFinal?.(
-      { plugins: [] },
-      { configType: "PRODUCTION" } as never,
-    );
     const instances = [
-      ...compilerPlugins(viteConfig.plugins),
-      ...compilerPlugins(vitestConfig.plugins),
-      ...compilerPlugins(storybookViteConfig?.plugins),
+      ...(await compilerPlugins(viteConfig.plugins)),
+      ...(await compilerPlugins(vitestConfig.plugins)),
+      ...(await compilerPlugins(storybookViteConfig?.plugins)),
     ];
 
     expect(instances).toHaveLength(3);
@@ -151,7 +168,7 @@ Run:
 npx vitest run reactCompiler.spec.ts
 ```
 
-Expected: four assertion failures because none of the configurations expose the compiler plugin or Storybook `viteFinal` hook.
+Expected: five assertion failures because the factory is never called and none of the configurations expose a sentinel plugin or Storybook `viteFinal` hook.
 
 - [ ] **Step 3: Implement the minimal shared factory**
 
@@ -160,8 +177,9 @@ Create `reactCompiler.ts`:
 ```ts
 import babel from "@rolldown/plugin-babel";
 import { reactCompilerPreset } from "@vitejs/plugin-react";
+import type { Plugin } from "vite";
 
-export const createReactCompilerPlugin = () =>
+export const createReactCompilerPlugin = (): Promise<Plugin> =>
   babel({
     presets: [reactCompilerPreset()],
   });

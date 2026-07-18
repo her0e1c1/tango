@@ -1,13 +1,26 @@
-import babel from "@rolldown/plugin-babel";
-import { reactCompilerPreset } from "@vitejs/plugin-react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import storybookConfig from "./.storybook/main";
 import viteConfig from "./vite.config";
 import vitestConfig from "./vitest.config";
 
-const compilerPluginName = (await babel({
-  presets: [reactCompilerPreset()],
-})).name;
+const reactCompilerMock = vi.hoisted(() => {
+  const compilerPluginName = "react-compiler-test-sentinel";
+  let instance = 0;
+
+  return {
+    compilerPluginName,
+    createReactCompilerPlugin: vi.fn(async () => ({
+      name: compilerPluginName,
+      instance: ++instance,
+    })),
+  };
+});
+
+vi.mock("./reactCompiler", () => ({
+  createReactCompilerPlugin: reactCompilerMock.createReactCompilerPlugin,
+}));
+
+const { compilerPluginName, createReactCompilerPlugin } = reactCompilerMock;
 
 const collectPlugins = async (
   values: readonly unknown[] | undefined,
@@ -31,7 +44,17 @@ const compilerPlugins = async (values: readonly unknown[] | undefined) =>
     (plugin) => "name" in plugin && plugin.name === compilerPluginName,
   );
 
+const storybookInput = { plugins: [] };
+const storybookViteConfig = await storybookConfig.viteFinal?.(
+  storybookInput,
+  { configType: "PRODUCTION" } as never,
+);
+
 describe("React Compiler Vite integration", () => {
+  it("calls the shared factory once for every environment", () => {
+    expect(createReactCompilerPlugin).toHaveBeenCalledTimes(3);
+  });
+
   it("adds one compiler plugin to the application", async () => {
     expect(await compilerPlugins(viteConfig.plugins)).toHaveLength(1);
   });
@@ -42,21 +65,11 @@ describe("React Compiler Vite integration", () => {
 
   it("adds one compiler plugin to Storybook", async () => {
     expect(storybookConfig.viteFinal).toBeTypeOf("function");
-    const input = { plugins: [] };
-    const output = await storybookConfig.viteFinal?.(
-      input,
-      { configType: "PRODUCTION" } as never,
-    );
-
-    expect(output).not.toBe(input);
-    expect(await compilerPlugins(output?.plugins)).toHaveLength(1);
+    expect(storybookViteConfig).not.toBe(storybookInput);
+    expect(await compilerPlugins(storybookViteConfig?.plugins)).toHaveLength(1);
   });
 
   it("creates independent plugin instances for every environment", async () => {
-    const storybookViteConfig = await storybookConfig.viteFinal?.(
-      { plugins: [] },
-      { configType: "PRODUCTION" } as never,
-    );
     const instances = [
       ...(await compilerPlugins(viteConfig.plugins)),
       ...(await compilerPlugins(vitestConfig.plugins)),
