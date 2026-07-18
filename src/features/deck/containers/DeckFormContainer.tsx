@@ -36,14 +36,14 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
           name: register("name"),
           convertToBr: register("convertToBr"),
           url: register("url"),
-          isPublic: register("isPublic"),
           category: {
             ...register("category"),
             options: categoryOptions,
           },
         },
         isSubmitting: formState.isSubmitting,
-        onSubmit: handleSubmit((data) => deckActions.updateAndBack(data)),
+        onCancel: deckActions.goToList,
+        onSubmit: handleSubmit((data) => deckActions.updateAndGoToList(data)),
       }}
     />
   );

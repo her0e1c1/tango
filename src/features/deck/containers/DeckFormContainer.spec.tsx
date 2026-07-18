@@ -7,7 +7,8 @@ const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
   config: { darkMode: false } as ConfigState,
   deck: null as Deck | null,
-  updateAndBack: vi.fn(),
+  updateAndGoToList: vi.fn(),
+  goToList: vi.fn(),
 }));
 
 vi.mock("@/features/settings/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
@@ -34,7 +35,8 @@ vi.mock("@/shared/hooks/useActions", () => ({
 
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({
-    updateAndBack: mocks.updateAndBack,
+    updateAndGoToList: mocks.updateAndGoToList,
+    goToList: mocks.goToList,
     pending: false,
     error: null,
     retry: vi.fn(),
@@ -65,7 +67,8 @@ describe("DeckFormContainer", () => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
     mocks.config = { darkMode: false } as ConfigState;
-    mocks.updateAndBack.mockReset();
+    mocks.updateAndGoToList.mockReset();
+    mocks.goToList.mockReset();
   });
 
   afterEach(() => {
@@ -77,7 +80,7 @@ describe("DeckFormContainer", () => {
 
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.updateAndBack).toHaveBeenCalledWith(deck);
+    expect(mocks.updateAndGoToList).toHaveBeenCalledWith(deck);
   });
 
   it("submits an edited name", async () => {
@@ -88,7 +91,7 @@ describe("DeckFormContainer", () => {
     await userEvent.type(input, "UPDATED");
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.updateAndBack).toHaveBeenCalledWith({ ...deck, name: "UPDATED" });
+    expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, name: "UPDATED" });
   });
 
   it("submits an edited URL", async () => {
@@ -98,7 +101,7 @@ describe("DeckFormContainer", () => {
     await userEvent.type(input, "https://example.com/deck.csv");
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.updateAndBack).toHaveBeenCalledWith({ ...deck, url: "https://example.com/deck.csv" });
+    expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, url: "https://example.com/deck.csv" });
   });
 
   it("submits the convert setting", async () => {
@@ -108,7 +111,7 @@ describe("DeckFormContainer", () => {
     await userEvent.click(input);
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.updateAndBack).toHaveBeenCalledWith({ ...deck, convertToBr: true });
+    expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, convertToBr: true });
   });
 
   it("submits an edited category", async () => {
@@ -118,7 +121,22 @@ describe("DeckFormContainer", () => {
     await userEvent.selectOptions(select, "math");
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.updateAndBack).toHaveBeenCalledWith({ ...deck, category: "math" });
+    expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, category: "math" });
+  });
+
+  it("cancels without submitting", async () => {
+    const view = render(<DeckFormContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Cancel" }));
+
+    expect(mocks.goToList).toHaveBeenCalledOnce();
+    expect(mocks.updateAndGoToList).not.toHaveBeenCalled();
+  });
+
+  it("does not render the unavailable public setting", () => {
+    const view = render(<DeckFormContainer />);
+
+    expect(view.container.querySelector("input[name='isPublic']")).not.toBeInTheDocument();
   });
 
   it("preserves the invalid route error", () => {
