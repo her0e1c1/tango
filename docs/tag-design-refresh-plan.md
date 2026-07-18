@@ -4,7 +4,7 @@
 
 **Goal:** Unify selectable, read-only, and removable tags with the approved Structured Marker design and Dense Wrap layout.
 
-**Architecture:** Keep semantic components separate: the existing checkbox-based `Tag`, a read-only `TagLabel`, and a button-based `RemovableTag`. Centralize their visual class composition in `src/components/content/tagStyles.ts`, and route active-filter removal through the existing `useDeckFilterState` callback.
+**Architecture:** Keep semantic components separate: the existing checkbox-based `Tag`, a read-only `TagLabel`, and a button-based `RemovableTag`. Centralize their visual class composition in `src/components/content/tagStyles.tsx`, and route active-filter removal through the existing `useDeckFilterState` callback.
 
 **Tech Stack:** React 19, TypeScript 5.9, Tailwind CSS 4, Vitest, Testing Library, Storybook 10.
 
@@ -25,7 +25,7 @@
 ### Task 1: Shared Read-only and Removable Tag Components
 
 **Files:**
-- Create: `src/components/content/tagStyles.ts`
+- Create: `src/components/content/tagStyles.tsx`
 - Create: `src/components/content/TagLabel.tsx`
 - Create: `src/components/content/RemovableTag.tsx`
 - Create: `src/components/content/TagPresentation.spec.tsx`
@@ -70,7 +70,7 @@ Expected: FAIL because `TagLabel` and `RemovableTag` do not exist.
 - [ ] **Step 3: Implement the centralized visual helper and components**
 
 ```tsx
-// tagStyles.ts
+// tagStyles.tsx
 export interface TagStyleOptions {
   className?: string;
   compact?: boolean;
@@ -132,7 +132,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit the shared presentation components**
 
 ```bash
-git add src/components/content/tagStyles.ts src/components/content/TagLabel.tsx src/components/content/RemovableTag.tsx src/components/content/TagPresentation.spec.tsx src/components/content/TagLabel.stories.tsx src/components/index.ts
+git add src/components/content/tagStyles.tsx src/components/content/TagLabel.tsx src/components/content/RemovableTag.tsx src/components/content/TagPresentation.spec.tsx src/components/content/TagLabel.stories.tsx src/components/index.ts
 git commit -m "Add shared tag presentation components"
 ```
 
@@ -342,7 +342,7 @@ git commit -m "Unify card tag interactions"
 Run:
 
 ```bash
-npx biome check --write src/components/content/tagStyles.ts src/components/content/TagLabel.tsx src/components/content/RemovableTag.tsx src/components/content/TagPresentation.spec.tsx src/components/content/TagLabel.stories.tsx src/components/index.ts src/components/forms/Tag.tsx src/components/forms/SelectionControl.spec.tsx src/components/forms/Tag.stories.tsx src/components/content/TagList.tsx src/components/content/ContentHierarchy.spec.tsx src/components/content/TagList.stories.tsx src/features/card/components/Card.tsx src/features/card/components/Card.spec.tsx src/features/card/components/templates/CardListTemplate.tsx src/features/card/components/templates/CardListTemplate.spec.tsx src/features/card/containers/CardListContainer.tsx src/features/card/containers/CardListContainer.spec.tsx src/features/card/components/Card.stories.tsx src/features/card/components/templates/CardListTemplate.stories.tsx
+npx biome check --write src/components/content/tagStyles.tsx src/components/content/TagLabel.tsx src/components/content/RemovableTag.tsx src/components/content/TagPresentation.spec.tsx src/components/content/TagLabel.stories.tsx src/components/index.ts src/components/forms/Tag.tsx src/components/forms/SelectionControl.spec.tsx src/components/forms/Tag.stories.tsx src/components/content/TagList.tsx src/components/content/ContentHierarchy.spec.tsx src/components/content/TagList.stories.tsx src/features/card/components/Card.tsx src/features/card/components/Card.spec.tsx src/features/card/components/templates/CardListTemplate.tsx src/features/card/components/templates/CardListTemplate.spec.tsx src/features/card/containers/CardListContainer.tsx src/features/card/containers/CardListContainer.spec.tsx src/features/card/components/Card.stories.tsx src/features/card/components/templates/CardListTemplate.stories.tsx
 git diff --stat
 git diff
 ```
@@ -359,7 +359,7 @@ Expected: sample build, format check, lint check, and all unit tests pass.
 
 Run: `git status --short`, `git diff origin/main...HEAD --check`, and `git diff origin/main...HEAD --stat`.
 
-Expected: no unstaged source changes, no whitespace errors, and only tag design/spec/plan files in scope.
+Expected: no unstaged source changes, no whitespace errors, and only files listed in this plan are in scope.
 
 - [ ] **Step 4: Commit any verification-only correction**
 
