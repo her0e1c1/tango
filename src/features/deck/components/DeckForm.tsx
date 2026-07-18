@@ -13,6 +13,10 @@ export interface DeckFormFields {
 export interface DeckFormProps {
   deck: Deck;
   fields: DeckFormFields;
+  errors?: {
+    name?: string;
+    url?: string;
+  };
   isSubmitting?: boolean;
   onCancel?: () => void;
   onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
@@ -35,8 +39,8 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">Name and organize this deck.</p>
         </div>
-        <FormItem col label="Name">
-          <Input {...props.fields.name} />
+        <FormItem col label="Name" error={props.errors?.name}>
+          <Input {...props.fields.name} aria-invalid={props.errors?.name != null || undefined} />
         </FormItem>
         <FormItem col label="Category">
           <Select empty {...props.fields.category} />
@@ -52,8 +56,8 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">Control the source and how imported text is displayed.</p>
         </div>
-        <FormItem col label="Source URL">
-          <Input {...props.fields.url} />
+        <FormItem col label="Source URL" error={props.errors?.url}>
+          <Input {...props.fields.url} aria-invalid={props.errors?.url != null || undefined} />
         </FormItem>
         <FormItem label="Convert line breaks" help="Convert two line breaks to one <br />.">
           <Switch {...props.fields.convertToBr} aria-label="Convert line breaks" />

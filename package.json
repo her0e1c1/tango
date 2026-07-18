@@ -28,6 +28,7 @@
     "build-storybook": "npm run build:storybook"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
     "@tailwindcss/postcss": "^4.3.2",
     "@tanstack/react-query": "^5.101.2",
     "@types/file-saver": "^2.0.7",
