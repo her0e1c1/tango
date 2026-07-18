@@ -129,7 +129,7 @@ describe("DeckActionsMenu", () => {
       externalTarget.focus();
     });
 
-    expect(view.queryByRole("menu")).not.toBeInTheDocument();
+    await waitFor(() => expect(view.queryByRole("menu")).not.toBeInTheDocument());
     expect(externalTarget).toHaveFocus();
   });
 });

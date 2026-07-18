@@ -19,6 +19,27 @@ const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
   );
 };
 
+const SharedOpenMenus: React.FC = () => {
+  const [openMenu, setOpenMenu] = React.useState<"first" | "second" | null>(null);
+  const menu = (id: "first" | "second") => ({
+    ...labels,
+    groupLabel: `${id} ${labels.groupLabel}`,
+    triggerLabel: `Open ${id} actions`,
+    menuLabel: `${id} ${labels.menuLabel}`,
+    items: items(),
+    open: openMenu === id,
+    onToggle: () => setOpenMenu((current) => (current === id ? null : id)),
+    onClose: () => setOpenMenu(null),
+  });
+
+  return (
+    <>
+      <ActionsMenu {...menu("first")} />
+      <ActionsMenu {...menu("second")} />
+    </>
+  );
+};
+
 const labels = {
   groupLabel: "Card actions for Binary search",
   triggerLabel: "Open actions for Binary search",
@@ -126,6 +147,72 @@ describe("ActionsMenu", () => {
     expect(remove).toHaveFocus();
   });
 
+  it("keeps Edit active when an ambiguous blur microtask runs before the click", async () => {
+    const editAction = vi.fn();
+    const view = render(<ControlledMenu {...labels} items={items(editAction)} />);
+    const trigger = view.getByRole("button", { name: labels.triggerLabel });
+
+    fireEvent.click(trigger);
+    const edit = view.getByRole("menuitem", { name: "Edit" });
+    await waitFor(() => expect(edit).toHaveFocus());
+
+    vi.useFakeTimers({ toFake: ["setTimeout"] });
+    try {
+      await act(async () => {
+        edit.blur();
+        await Promise.resolve();
+      });
+      fireEvent.click(edit);
+
+      expect(editAction).toHaveBeenCalledOnce();
+    } finally {
+      act(() => {
+        vi.runOnlyPendingTimers();
+      });
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps a newly opened sibling menu open after a stale blur timer runs", async () => {
+    const view = render(<SharedOpenMenus />);
+    fireEvent.click(view.getByRole("button", { name: "Open first actions" }));
+    const firstEdit = view.getByRole("menuitem", { name: "Edit" });
+    await waitFor(() => expect(firstEdit).toHaveFocus());
+
+    vi.useFakeTimers({ toFake: ["setTimeout"] });
+    try {
+      await act(async () => {
+        firstEdit.blur();
+        fireEvent.click(view.getByRole("button", { name: "Open second actions" }));
+      });
+
+      const secondMenu = view.getByRole("menu", { name: `second ${labels.menuLabel}` });
+      expect(secondMenu).toBeInTheDocument();
+      act(() => vi.runOnlyPendingTimers());
+      expect(secondMenu).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not close after its root unmounts during an ambiguous blur", async () => {
+    const onClose = vi.fn();
+    const view = render(<ActionsMenu {...labels} items={items()} open onToggle={vi.fn()} onClose={onClose} />);
+    const edit = view.getByRole("menuitem", { name: "Edit" });
+    edit.focus();
+
+    vi.useFakeTimers({ toFake: ["setTimeout"] });
+    try {
+      act(() => edit.blur());
+      view.unmount();
+      act(() => vi.runOnlyPendingTimers());
+
+      expect(onClose).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("closes when an ambiguous blur settles outside", async () => {
     const view = render(
       <>
@@ -143,7 +230,7 @@ describe("ActionsMenu", () => {
       external.focus();
     });
 
-    expect(view.queryByRole("menu")).not.toBeInTheDocument();
+    await waitFor(() => expect(view.queryByRole("menu")).not.toBeInTheDocument());
     expect(external).toHaveFocus();
   });
 
