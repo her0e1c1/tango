@@ -82,7 +82,7 @@ Expected: FAIL because `RouteFeedback` does not exist.
 
 - [ ] **Step 3: Implement and export `RouteFeedback`**
 
-Render a `Layout` containing one centered section with semantic surface, border, spacing, and text-token classes. Use `role="alert"` only for `tone="error"`; use `role="status"` otherwise. Render the secondary quiet action before the primary action. Export the component and named prop types from `src/components/index.ts`. Update architecture/public-API tests so `RouteFeedback`, `RemoteReadBoundary`, and `RemoteMutationNotice` are included in the feedback group and root API.
+Render a `Layout` containing one centered section with semantic surface, border, spacing, and text-token classes. Use `role="alert"` only for `tone="error"`; use `role="status"` otherwise. Render the secondary quiet action before the primary action. Export the component and named prop types from `src/components/index.ts`. Update architecture/public-API tests so `RouteFeedback`, `RemoteReadBoundary`, and `RemoteMutationNotice` are included in the feedback group and root API. Create their Storybook files at this step with the minimal default states needed by the architecture contract; Step 13 expands those files with every representative state.
 
 - [ ] **Step 4: Run the focused component and architecture tests and confirm GREEN**
 
