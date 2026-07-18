@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -8,6 +8,12 @@ const mocks = vi.hoisted(() => ({
   config: { darkMode: false, useCardInterval: false } as ConfigState,
   deck: null as Deck | null,
   cards: [] as Card[],
+  filter: { scoreMax: null as number | null, scoreMin: null as number | null, selectedTags: [] as string[] },
+  pendingCardId: undefined as CardId | undefined,
+  pending: false,
+  error: null as unknown,
+  retry: vi.fn(),
+  goToCardEdit: vi.fn(),
   cardUpdateBy: vi.fn(),
   cardRemove: vi.fn(),
 }));
@@ -16,10 +22,10 @@ vi.mock("@/features/card/hooks/useCardMutations", () => ({
   useCardMutations: () => ({
     updateBy: mocks.cardUpdateBy,
     remove: mocks.cardRemove,
-    isPending: () => false,
-    pending: false,
-    error: null,
-    retry: vi.fn(),
+    isPending: (id: CardId) => id === mocks.pendingCardId,
+    pending: mocks.pending,
+    error: mocks.error,
+    retry: mocks.retry,
   }),
 }));
 
@@ -55,7 +61,7 @@ vi.mock("@/shared/hooks/useActions", () => ({
     goByMenu: vi.fn(),
     setDarkMode: vi.fn(),
     cardUpdateBy: vi.fn(() => vi.fn()),
-    goToCardEdit: vi.fn(),
+    goToCardEdit: mocks.goToCardEdit,
     cardRemove: vi.fn(),
   }),
 }));
@@ -66,15 +72,15 @@ vi.mock("@/features/deck/hooks/useDeckActions", () => ({
 
 vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
-    scoreMax: null,
-    scoreMin: null,
+    scoreMax: mocks.filter.scoreMax,
+    scoreMin: mocks.filter.scoreMin,
     scoreMaxSwitchProps: { name: "scoreMaxSwitch" },
     scoreMinSwitchProps: { name: "scoreMinSwitch" },
     scoreMaxSliderProps: { name: "scoreMax" },
     scoreMinSliderProps: { name: "scoreMin" },
     tagFilterProps: {
       tags: [],
-      selectedTags: [],
+      selectedTags: mocks.filter.selectedTags,
       tagAndFilter: false,
       onClickFilter: vi.fn(),
       onClickAll: vi.fn(),
@@ -122,10 +128,83 @@ describe("CardListContainer", () => {
     mocks.deck = deck;
     mocks.cards = [card];
     mocks.config = { darkMode: false, useCardInterval: false } as ConfigState;
+    mocks.filter = { scoreMax: null, scoreMin: null, selectedTags: [] };
+    mocks.pendingCardId = undefined;
+    mocks.pending = false;
+    mocks.error = null;
+    mocks.retry.mockReset();
+    mocks.goToCardEdit.mockReset();
+    mocks.cardUpdateBy.mockReset().mockResolvedValue(undefined);
+    mocks.cardRemove.mockReset().mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
+  });
+
+  it("renders the current score and tag filters in the collapsed summary", () => {
+    mocks.filter = { scoreMin: -2, scoreMax: 4, selectedTags: ["typescript"] };
+    const view = render(<CardListContainer />);
+
+    expect(view.getByRole("heading", { level: 1, name: "Cards" })).toBeInTheDocument();
+    expect(view.getByText("1 card")).toBeInTheDocument();
+    expect(view.getByText("score -2–4 · 1 tag")).toBeInTheDocument();
+    expect(view.getByLabelText("Selected tags")).toHaveTextContent("typescript");
+    expect(view.getByText("Filters").closest("details")).not.toHaveAttribute("open");
+  });
+
+  it("preserves Edit, Delete, and left/right swipe connections", async () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const view = render(<CardListContainer />);
+    const trigger = view.getByRole("button", { name: `Open actions for ${card.frontText}` });
+
+    await userEvent.click(trigger);
+    await userEvent.click(view.getByRole("menuitem", { name: "Edit" }));
+    expect(mocks.goToCardEdit).toHaveBeenCalledExactlyOnceWith(card.id);
+
+    await userEvent.click(trigger);
+    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+    expect(confirm).toHaveBeenCalledOnce();
+    expect(mocks.cardRemove).toHaveBeenCalledExactlyOnceWith(card.id);
+
+    confirm.mockReturnValue(false);
+    await userEvent.click(trigger);
+    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(mocks.cardRemove).toHaveBeenCalledOnce();
+
+    const article = view.getByRole("article");
+    fireEvent.mouseDown(article, { clientX: 100, clientY: 0 });
+    fireEvent.mouseMove(document, { clientX: 0, clientY: 0 });
+    fireEvent.mouseUp(document, { clientX: 0, clientY: 0 });
+    fireEvent.mouseDown(article, { clientX: 0, clientY: 0 });
+    fireEvent.mouseMove(document, { clientX: 100, clientY: 0 });
+    fireEvent.mouseUp(document, { clientX: 100, clientY: 0 });
+
+    expect(mocks.cardUpdateBy).toHaveBeenCalledTimes(2);
+    const decrement = mocks.cardUpdateBy.mock.calls[0]?.[1] as (value: Card) => Partial<Card>;
+    const increment = mocks.cardUpdateBy.mock.calls[1]?.[1] as (value: Card) => Partial<Card>;
+    expect(decrement(card)).toEqual({ score: -1 });
+    expect(increment(card)).toEqual({ score: 1 });
+  });
+
+  it("forwards pending, error, and retry state", async () => {
+    mocks.pending = true;
+    mocks.pendingCardId = card.id;
+    const view = render(<CardListContainer />);
+
+    expect(view.getByText("Saving…").closest('[role="status"]')).toHaveTextContent("Saving…");
+    expect(view.getByRole("button", { name: `View ${card.frontText}` })).toBeDisabled();
+    expect(view.getByRole("button", { name: `Open actions for ${card.frontText}` })).toBeDisabled();
+
+    mocks.pending = false;
+    mocks.pendingCardId = undefined;
+    mocks.error = new Error("write failed");
+    view.rerender(<CardListContainer />);
+    expect(view.getByRole("alert")).toHaveTextContent("Unable to save changes.");
+    await userEvent.click(view.getByRole("button", { name: "Retry" }));
+    expect(mocks.retry).toHaveBeenCalledOnce();
   });
 
   it("opens a selected card's back text and closes it through the overlay callback", async () => {
@@ -133,7 +212,7 @@ describe("CardListContainer", () => {
 
     expect(view.queryByText(card.backText)).not.toBeInTheDocument();
 
-    await userEvent.click(view.getByText(card.frontText));
+    await userEvent.click(view.getByRole("button", { name: `View ${card.frontText}` }));
     expect(view.getByText(card.backText)).toBeVisible();
 
     await userEvent.click(view.getByText(card.backText));
@@ -145,7 +224,7 @@ describe("CardListContainer", () => {
     mocks.cards = [languageCard];
     const view = render(<CardListContainer />);
 
-    await userEvent.click(view.getByText(languageCard.frontText));
+    await userEvent.click(view.getByRole("button", { name: `View ${languageCard.frontText}` }));
 
     const code = view.container.querySelector("pre.typescript") as HTMLElement;
     expect(code).toHaveTextContent(languageCard.backText);

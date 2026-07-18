@@ -1,4 +1,5 @@
 export * from "@/shared/components/forms/Button";
+export * from "@/shared/components/forms/ActionsMenu";
 export * from "@/shared/components/content/Card";
 export * from "@/shared/components/content/Code";
 export * from "@/shared/components/content/Description";

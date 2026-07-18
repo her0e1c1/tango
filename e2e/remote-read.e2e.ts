@@ -47,9 +47,6 @@ const getDocument = async (collection: "deck" | "card", id: string) => {
   return (await response.json()) as { fields: Record<string, { stringValue?: string }> };
 };
 
-const cardItem = (page: Page, frontText: string) =>
-  page.getByText(frontText, { exact: true }).locator("xpath=ancestor::div[contains(@class, 'rounded')][1]");
-
 const deckFields = (uid: string, name: string) => ({
   uid: field.string(uid),
   name: field.string(name),
@@ -184,7 +181,8 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
   await expect(page.getByText("Updated Remote Query Card")).toBeVisible();
 
   page.on("dialog", (dialog) => dialog.accept());
-  await cardItem(page, "Updated Remote Query Card").locator("svg").nth(1).click();
+  await page.getByRole("button", { name: "Open actions for Updated Remote Query Card" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
   await expect(page.getByText("Updated Remote Query Card")).not.toBeVisible();
 
   await page.goto("/");
