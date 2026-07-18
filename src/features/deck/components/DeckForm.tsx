@@ -13,6 +13,10 @@ export interface DeckFormFields {
 export interface DeckFormProps {
   deck: Deck;
   fields: DeckFormFields;
+  errors?: {
+    name?: string;
+    url?: string;
+  };
   isSubmitting?: boolean;
   onCancel?: () => void;
   onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
@@ -22,6 +26,10 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();
   const basicHeadingId = `${sectionHeadingIdPrefix}-deck-basic-heading`;
   const importHeadingId = `${sectionHeadingIdPrefix}-deck-import-heading`;
+  const nameInputId = `${sectionHeadingIdPrefix}-deck-name`;
+  const nameErrorId = `${nameInputId}-error`;
+  const urlInputId = `${sectionHeadingIdPrefix}-deck-url`;
+  const urlErrorId = `${urlInputId}-error`;
 
   return (
     <Form {...(props.onSubmit !== undefined ? { onSubmit: props.onSubmit } : {})}>
@@ -35,8 +43,19 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">Name and organize this deck.</p>
         </div>
-        <FormItem col label="Name">
-          <Input {...props.fields.name} />
+        <FormItem
+          col
+          label="Name"
+          inputId={nameInputId}
+          errorId={nameErrorId}
+          {...(props.errors?.name !== undefined ? { error: props.errors.name } : {})}
+        >
+          <Input
+            {...props.fields.name}
+            id={nameInputId}
+            aria-invalid={props.errors?.name != null || undefined}
+            aria-describedby={props.errors?.name !== undefined ? nameErrorId : undefined}
+          />
         </FormItem>
         <FormItem col label="Category">
           <Select empty {...props.fields.category} />
@@ -52,8 +71,19 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">Control the source and how imported text is displayed.</p>
         </div>
-        <FormItem col label="Source URL">
-          <Input {...props.fields.url} />
+        <FormItem
+          col
+          label="Source URL"
+          inputId={urlInputId}
+          errorId={urlErrorId}
+          {...(props.errors?.url !== undefined ? { error: props.errors.url } : {})}
+        >
+          <Input
+            {...props.fields.url}
+            id={urlInputId}
+            aria-invalid={props.errors?.url != null || undefined}
+            aria-describedby={props.errors?.url !== undefined ? urlErrorId : undefined}
+          />
         </FormItem>
         <FormItem label="Convert line breaks" help="Convert two line breaks to one <br />.">
           <Switch {...props.fields.convertToBr} aria-label="Convert line breaks" />

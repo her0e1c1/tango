@@ -88,7 +88,7 @@ describe("DeckFormContainer", () => {
     const input = view.container.querySelector("input[name='name']") as Element;
 
     await userEvent.clear(input);
-    await userEvent.type(input, "UPDATED");
+    await userEvent.type(input, " UPDATED ");
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, name: "UPDATED" });
@@ -122,6 +122,23 @@ describe("DeckFormContainer", () => {
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, category: "math" });
+  });
+
+  it("blocks a blank name and malformed URL", async () => {
+    const view = render(<DeckFormContainer />);
+    const name = view.container.querySelector("input[name='name']") as Element;
+    const url = view.container.querySelector("input[name='url']") as Element;
+
+    await userEvent.clear(name);
+    await userEvent.type(name, "   ");
+    await userEvent.type(url, "not-a-url");
+    await userEvent.click(view.getByRole("button", { name: /save/i }));
+
+    expect(view.getByText("Deck name is required.")).toBeInTheDocument();
+    expect(view.getByText("Enter a valid URL.")).toBeInTheDocument();
+    expect(name).toHaveAttribute("aria-invalid", "true");
+    expect(url).toHaveAttribute("aria-invalid", "true");
+    expect(mocks.updateAndGoToList).not.toHaveBeenCalled();
   });
 
   it("cancels without submitting", async () => {

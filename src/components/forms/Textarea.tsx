@@ -2,6 +2,7 @@ import type * as React from "react";
 import cx from "classnames";
 
 export const Textarea: React.FC<{
+  id?: string;
   className?: string;
   rows?: number;
   name?: string;
@@ -10,11 +11,14 @@ export const Textarea: React.FC<{
   disabled?: boolean;
   readOnly?: boolean;
   required?: boolean;
+  "aria-invalid"?: React.AriaAttributes["aria-invalid"];
+  "aria-describedby"?: React.AriaAttributes["aria-describedby"];
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
   ref?: React.Ref<HTMLTextAreaElement>;
 }> = ({
+  id,
   className,
   rows,
   name,
@@ -23,6 +27,8 @@ export const Textarea: React.FC<{
   disabled,
   readOnly,
   required,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
   placeholder,
   onChange,
   onBlur,
@@ -31,12 +37,15 @@ export const Textarea: React.FC<{
   return (
     <textarea
       ref={ref}
+      id={id}
       name={name}
       value={value}
       defaultValue={defaultValue}
       disabled={disabled}
       readOnly={readOnly}
       required={required}
+      aria-invalid={ariaInvalid}
+      aria-describedby={ariaDescribedBy}
       placeholder={placeholder}
       onChange={onChange}
       onBlur={onBlur}

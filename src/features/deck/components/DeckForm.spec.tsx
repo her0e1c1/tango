@@ -91,6 +91,15 @@ describe("DeckForm", () => {
     }
   });
 
+  it("associates validation errors with their named controls", () => {
+    const view = render(
+      <DeckForm {...createProps({ errors: { name: "Deck name is required.", url: "Enter a valid URL." } })} />
+    );
+
+    expect(view.getByRole("textbox", { name: "Name" })).toHaveAccessibleDescription("Deck name is required.");
+    expect(view.getByRole("textbox", { name: "Source URL" })).toHaveAccessibleDescription("Enter a valid URL.");
+  });
+
   it("submits or cancels from the action row", async () => {
     const onSubmit = vi.fn((event?: React.FormEvent) => event?.preventDefault());
     const onCancel = vi.fn();

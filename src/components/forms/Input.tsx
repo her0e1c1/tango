@@ -11,6 +11,8 @@ export const Input: React.FC<{
   disabled?: boolean;
   readOnly?: boolean;
   required?: boolean;
+  "aria-invalid"?: React.AriaAttributes["aria-invalid"];
+  "aria-describedby"?: React.AriaAttributes["aria-describedby"];
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
@@ -25,6 +27,8 @@ export const Input: React.FC<{
   disabled,
   readOnly,
   required,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
   placeholder,
   onChange,
   onBlur,
@@ -41,6 +45,8 @@ export const Input: React.FC<{
       disabled={disabled}
       readOnly={readOnly}
       required={required}
+      aria-invalid={ariaInvalid}
+      aria-describedby={ariaDescribedBy}
       placeholder={placeholder}
       onChange={onChange}
       onBlur={onBlur}

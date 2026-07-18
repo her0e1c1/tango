@@ -93,6 +93,19 @@ describe("CardForm", () => {
     }
   });
 
+  it("associates validation errors with their named controls", () => {
+    const view = render(
+      <CardForm
+        {...createProps({
+          errors: { frontText: "Front text is required.", backText: "Back text is required." },
+        })}
+      />
+    );
+
+    expect(view.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription("Front text is required.");
+    expect(view.getByRole("textbox", { name: "Back text" })).toHaveAccessibleDescription("Back text is required.");
+  });
+
   it("keeps cancel separate from submission while idle", async () => {
     const onCancel = vi.fn();
     const onSubmit = vi.fn((event?: React.FormEvent) => event?.preventDefault());

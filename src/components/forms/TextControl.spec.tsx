@@ -94,6 +94,19 @@ describe("shared text controls", () => {
     expect(onBlur).toHaveBeenCalledOnce();
   });
 
+  it("forwards invalid state to native text controls", () => {
+    const view = render(
+      <>
+        <Input aria-invalid />
+        <Textarea aria-invalid />
+      </>
+    );
+
+    for (const control of view.container.querySelectorAll("input, textarea")) {
+      expect(control).toHaveAttribute("aria-invalid", "true");
+    }
+  });
+
   it("styles input states with semantic Calm Focus roles", () => {
     render(
       <Input

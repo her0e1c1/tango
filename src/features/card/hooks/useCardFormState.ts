@@ -1,7 +1,9 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import type { Option } from "@/components/forms/Select";
 import type { CardFormProps } from "@/features/card/components/CardForm";
+import { cardFormSchema, type CardFormValues } from "@/features/card/lib/cardFormSchema";
 
 export interface UseCardFormStateOptions {
   card: Card;
@@ -10,7 +12,14 @@ export interface UseCardFormStateOptions {
 }
 
 export const useCardFormState = ({ card, categoryOptions, onSubmit }: UseCardFormStateOptions): CardFormProps => {
-  const { formState, handleSubmit, register } = useForm<Card>({ defaultValues: card });
+  const { formState, handleSubmit, register } = useForm<CardFormValues>({
+    defaultValues: {
+      frontText: card.frontText,
+      backText: card.backText,
+      tags: card.tags,
+    },
+    resolver: zodResolver(cardFormSchema),
+  });
 
   return {
     card,
@@ -23,7 +32,11 @@ export const useCardFormState = ({ card, categoryOptions, onSubmit }: UseCardFor
         input: { ...register("tags"), value },
       })),
     },
+    errors: {
+      ...(formState.errors.frontText?.message !== undefined ? { frontText: formState.errors.frontText.message } : {}),
+      ...(formState.errors.backText?.message !== undefined ? { backText: formState.errors.backText.message } : {}),
+    },
     isSubmitting: formState.isSubmitting,
-    onSubmit: handleSubmit((data) => onSubmit?.(data)),
+    onSubmit: handleSubmit((values) => onSubmit?.({ ...card, ...values })),
   };
 };

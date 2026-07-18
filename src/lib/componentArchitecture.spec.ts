@@ -219,7 +219,11 @@ describe("component architecture", () => {
     expect(legacyImports, legacyImports.join("\n")).toEqual([]);
     expect(entityModeReferences, entityModeReferences.join("\n")).toEqual([]);
     expect(dependencyNames.filter((name) => legacyPackages.includes(name))).toEqual([]);
-    expect(sourceFilesUnder("store")).toEqual(["store/configStore.spec.ts", "store/configStore.ts"]);
+    expect(sourceFilesUnder("store")).toEqual([
+      "store/configSchema.ts",
+      "store/configStore.spec.ts",
+      "store/configStore.ts",
+    ]);
   });
 
   it("groups shared layout components", () => {

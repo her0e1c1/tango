@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { CONFIG_STORAGE_KEY, createConfigStore, defaultConfig } from "@/store/configStore";
 
-const createMemoryStorage = () => {
-  const values = new Map<string, string>();
+const createMemoryStorage = (initial: Record<string, string> = {}) => {
+  const values = new Map(Object.entries(initial));
   return {
     getItem: (name: string) => values.get(name) ?? null,
     setItem: (name: string, value: string) => values.set(name, value),
@@ -45,5 +45,40 @@ describe("config store", () => {
     expect(restored.getState().config).toEqual({ ...defaultConfig, darkMode: true });
     expect(restored.getState().updateConfig).toBeTypeOf("function");
     expect(restored.getState().toggleConfig).toBeTypeOf("function");
+  });
+
+  it("keeps valid persisted settings and replaces invalid values with current defaults", async () => {
+    const storage = createMemoryStorage({
+      [CONFIG_STORAGE_KEY]: JSON.stringify({
+        state: {
+          config: {
+            cardInterval: 15,
+            darkMode: "yes",
+            removedSetting: true,
+          },
+        },
+        version: 1,
+      }),
+    });
+    const store = createConfigStore({ storage, skipHydration: true });
+
+    await store.persist.rehydrate();
+
+    expect(store.getState().config).toEqual({
+      ...defaultConfig,
+      cardInterval: 15,
+    });
+    expect(store.getState().config).not.toHaveProperty("removedSetting");
+  });
+
+  it("uses current defaults when persisted config is not an object", async () => {
+    const storage = createMemoryStorage({
+      [CONFIG_STORAGE_KEY]: JSON.stringify({ state: { config: "invalid" }, version: 1 }),
+    });
+    const store = createConfigStore({ storage, skipHydration: true });
+
+    await store.persist.rehydrate();
+
+    expect(store.getState().config).toEqual(defaultConfig);
   });
 });
