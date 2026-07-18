@@ -28,7 +28,10 @@ describe("shared overlay surface", () => {
     ["bottom", "inset-x-0", "bottom-0"],
   ] as const)("retains the %s position contract", (position, insetClass, edgeClass) => {
     render(<Overlay position={position}>Overlay</Overlay>);
-    expect(screen.getByText("Overlay")).toHaveClass(insetClass, edgeClass);
+    const overlay = screen.getByText("Overlay");
+
+    expect(overlay).toHaveClass(insetClass, edgeClass);
+    expect(overlay).not.toHaveClass("before:bg-canvas/70");
   });
 
   it("retains click, accessible name, custom class, and shared focus appearance", () => {
