@@ -11,14 +11,15 @@ export const useDeckActions = (id: DeckId) => {
   return React.useMemo(
     () => ({
       update: mutations.update,
-      updateAndBack: async (deck: Deck) => {
+      updateAndGoToList: async (deck: Deck) => {
         try {
           await mutations.update(deck);
-          void navigate(-1);
+          void navigate("/", { replace: true });
         } catch {
           // The mutation notice owns error feedback and retry.
         }
       },
+      goToList: () => void navigate("/", { replace: true }),
       remove: () => {
         const deck = remote.deckById(id);
         return deck == null ? Promise.reject(new Error(`Deck ${id} is not available`)) : mutations.remove(deck);

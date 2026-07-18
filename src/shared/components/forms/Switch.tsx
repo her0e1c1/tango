@@ -12,7 +12,7 @@ export const Switch: React.FC<{
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  inputRef?: React.Ref<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
   "aria-label"?: string;
   "aria-describedby"?: string;
 }> = ({
@@ -26,14 +26,14 @@ export const Switch: React.FC<{
   value,
   onChange,
   onBlur,
-  inputRef,
+  ref,
   "aria-label": ariaLabel,
   "aria-describedby": ariaDescribedBy,
 }) => {
   return (
     <label className={cx("inline-flex min-h-touch min-w-touch items-center justify-center", className)}>
       <input
-        ref={inputRef}
+        ref={ref}
         id={id}
         name={name}
         checked={checked}

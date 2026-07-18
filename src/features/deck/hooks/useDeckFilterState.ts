@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import { renameKey } from "@/shared/forms/renameKey";
 import type { DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
 
 export interface UseDeckFilterStateOptions {
@@ -67,14 +66,14 @@ export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateO
       },
     },
     scoreMaxSliderProps: {
-      ...renameKey(register("scoreMax", { valueAsNumber: true })),
+      ...register("scoreMax", { valueAsNumber: true }),
       step: 1,
       max: 10,
       min: -10,
       disabled: !scoreMaxEnabled,
     },
     scoreMinSliderProps: {
-      ...renameKey(register("scoreMin", { valueAsNumber: true })),
+      ...register("scoreMin", { valueAsNumber: true }),
       step: 1,
       max: 10,
       min: -10,

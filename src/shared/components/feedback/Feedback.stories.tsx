@@ -4,7 +4,7 @@ import { Feedback as Template } from "@/shared/components/feedback/Feedback";
 import { AiOutlineArrowUp } from "react-icons/ai";
 
 const meta = {
-  title: "Shared/Feedback",
+  title: "Shared/Feedback/Feedback",
   component: Template,
   tags: ["autodocs"],
   args: {

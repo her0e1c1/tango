@@ -9,7 +9,6 @@ const fieldsFor = (deck: Deck): DeckFormFields => ({
   name: { value: deck.name, onChange: () => undefined },
   convertToBr: { checked: Boolean(deck.convertToBr), onChange: () => undefined },
   url: { value: deck.url ?? "", onChange: () => undefined },
-  isPublic: { checked: deck.isPublic, onChange: () => undefined },
   category: {
     value: deck.category,
     options: fixture.form.options.default,
@@ -38,6 +37,7 @@ const meta = {
     deckForm: {
       deck: fixture.deck.default,
       fields: fieldsFor(fixture.deck.default),
+      onCancel: () => undefined,
     },
   },
 } satisfies Meta<typeof Template>;
@@ -48,12 +48,17 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const LongValues: Story = {
-  args: { deckForm: { deck: longDeck, fields: fieldsFor(longDeck) } },
+  args: { deckForm: { deck: longDeck, fields: fieldsFor(longDeck), onCancel: () => undefined } },
 };
 
 export const Submitting: Story = {
   args: {
-    deckForm: { deck: fixture.deck.default, fields: fieldsFor(fixture.deck.default), isSubmitting: true },
+    deckForm: {
+      deck: fixture.deck.default,
+      fields: fieldsFor(fixture.deck.default),
+      isSubmitting: true,
+      onCancel: () => undefined,
+    },
   },
 };
 

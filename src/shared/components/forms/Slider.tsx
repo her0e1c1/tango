@@ -10,7 +10,7 @@ export const Slider: React.FC<{
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  inputRef?: React.Ref<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
   "aria-label"?: string;
   "aria-describedby"?: string;
   "aria-valuetext"?: string;
@@ -24,7 +24,7 @@ export const Slider: React.FC<{
   value,
   onChange,
   onBlur,
-  inputRef,
+  ref,
   "aria-label": ariaLabel,
   "aria-describedby": ariaDescribedBy,
   "aria-valuetext": ariaValueText,
@@ -42,7 +42,7 @@ export const Slider: React.FC<{
         max={max}
         step={step ?? 1}
         disabled={disabled}
-        ref={inputRef}
+        ref={ref}
         name={name}
         value={value}
         onChange={onChange}

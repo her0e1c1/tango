@@ -4,7 +4,7 @@ import { Card } from "@/shared/components/content/Card";
 import { List as Template } from "@/shared/components/layout/List";
 
 const meta = {
-  title: "Shared/List",
+  title: "Shared/Layout/List",
   component: Template,
   tags: ["autodocs"],
 } satisfies Meta<typeof Template>;

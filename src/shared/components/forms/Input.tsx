@@ -14,7 +14,7 @@ export const Input: React.FC<{
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  inputRef?: React.Ref<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }> = ({
   id,
   className,
@@ -28,11 +28,11 @@ export const Input: React.FC<{
   placeholder,
   onChange,
   onBlur,
-  inputRef,
+  ref,
 }) => {
   return (
     <input
-      ref={inputRef}
+      ref={ref}
       id={id}
       type={type}
       name={name}

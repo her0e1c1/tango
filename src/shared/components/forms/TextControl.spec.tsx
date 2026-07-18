@@ -35,15 +35,15 @@ describe("shared text controls", () => {
   });
 
   it("keeps native input values, refs, and handlers", () => {
-    const inputRef = createRef<HTMLInputElement>();
+    const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
 
-    render(<Input inputRef={inputRef} defaultValue="Original" name="title" onChange={onChange} onBlur={onBlur} />);
+    render(<Input ref={ref} defaultValue="Original" name="title" onChange={onChange} onBlur={onBlur} />);
 
     const input = screen.getByRole("textbox");
     expect(input).toHaveValue("Original");
-    expect(inputRef.current).toBe(input);
+    expect(ref.current).toBe(input);
     fireEvent.change(input, { target: { value: "Updated" } });
     fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledOnce();
@@ -51,13 +51,13 @@ describe("shared text controls", () => {
   });
 
   it("keeps native select values, refs, and handlers", () => {
-    const inputRef = createRef<HTMLSelectElement>();
+    const ref = createRef<HTMLSelectElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
 
     render(
       <Select
-        inputRef={inputRef}
+        ref={ref}
         defaultValue="secondary"
         options={[
           { label: "Primary", value: "primary" },
@@ -71,7 +71,7 @@ describe("shared text controls", () => {
 
     const select = screen.getByRole("combobox");
     expect(select).toHaveValue("secondary");
-    expect(inputRef.current).toBe(select);
+    expect(ref.current).toBe(select);
     fireEvent.change(select, { target: { value: "primary" } });
     fireEvent.blur(select);
     expect(onChange).toHaveBeenCalledOnce();
@@ -79,17 +79,15 @@ describe("shared text controls", () => {
   });
 
   it("keeps native textarea values, refs, and handlers", () => {
-    const inputRef = createRef<HTMLTextAreaElement>();
+    const ref = createRef<HTMLTextAreaElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
 
-    render(
-      <Textarea inputRef={inputRef} defaultValue="Original notes" name="notes" onChange={onChange} onBlur={onBlur} />
-    );
+    render(<Textarea ref={ref} defaultValue="Original notes" name="notes" onChange={onChange} onBlur={onBlur} />);
 
     const textarea = screen.getByRole("textbox");
     expect(textarea).toHaveValue("Original notes");
-    expect(inputRef.current).toBe(textarea);
+    expect(ref.current).toBe(textarea);
     fireEvent.change(textarea, { target: { value: "Updated notes" } });
     fireEvent.blur(textarea);
     expect(onChange).toHaveBeenCalledOnce();

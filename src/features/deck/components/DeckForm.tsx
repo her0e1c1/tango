@@ -7,7 +7,6 @@ export interface DeckFormFields {
   name: React.ComponentProps<typeof Input>;
   convertToBr: React.ComponentProps<typeof Switch>;
   url: React.ComponentProps<typeof Input>;
-  isPublic: React.ComponentProps<typeof Switch>;
   category: React.ComponentProps<typeof Select>;
 }
 
@@ -15,62 +14,86 @@ export interface DeckFormProps {
   deck: Deck;
   fields: DeckFormFields;
   isSubmitting?: boolean;
+  onCancel?: () => void;
   onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
 }
 
 export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();
-  const detailsHeadingId = `${sectionHeadingIdPrefix}-deck-details-heading`;
-  const availabilityHeadingId = `${sectionHeadingIdPrefix}-deck-availability-heading`;
-  const metadataHeadingId = `${sectionHeadingIdPrefix}-deck-metadata-heading`;
+  const basicHeadingId = `${sectionHeadingIdPrefix}-deck-basic-heading`;
+  const importHeadingId = `${sectionHeadingIdPrefix}-deck-import-heading`;
 
   return (
     <Form {...(props.onSubmit !== undefined ? { onSubmit: props.onSubmit } : {})}>
-      <section aria-labelledby={detailsHeadingId} className="space-y-4">
-        <h2 id={detailsHeadingId} className="border-b border-border pb-2 text-title font-semibold text-ink">
-          Deck details
-        </h2>
+      <section
+        aria-labelledby={basicHeadingId}
+        className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
+      >
+        <div>
+          <h2 id={basicHeadingId} className="text-title font-semibold text-ink">
+            Basic information
+          </h2>
+          <p className="mt-1 text-caption text-ink-muted">Name and organize this deck.</p>
+        </div>
         <FormItem col label="Name">
           <Input {...props.fields.name} />
-        </FormItem>
-        <FormItem label="Convert" extra="Convert two line breaks to one <br />">
-          <Switch {...props.fields.convertToBr} />
-        </FormItem>
-        <FormItem col label="URL">
-          <Input {...props.fields.url} />
         </FormItem>
         <FormItem col label="Category">
           <Select empty {...props.fields.category} />
         </FormItem>
       </section>
       <section
-        aria-labelledby={availabilityHeadingId}
-        className="space-y-4 rounded-surface border border-border bg-surface-muted p-4"
+        aria-labelledby={importHeadingId}
+        className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
       >
-        <h2 id={availabilityHeadingId} className="text-title font-semibold text-ink">
-          Availability
-        </h2>
-        <FormItem label="Public" help="Public decks are not available yet.">
-          <Switch {...props.fields.isPublic} disabled />
+        <div>
+          <h2 id={importHeadingId} className="text-title font-semibold text-ink">
+            Import &amp; formatting
+          </h2>
+          <p className="mt-1 text-caption text-ink-muted">Control the source and how imported text is displayed.</p>
+        </div>
+        <FormItem col label="Source URL">
+          <Input {...props.fields.url} />
+        </FormItem>
+        <FormItem label="Convert line breaks" help="Convert two line breaks to one <br />.">
+          <Switch {...props.fields.convertToBr} />
         </FormItem>
       </section>
-      <section aria-labelledby={metadataHeadingId} className="space-y-4">
-        <h2 id={metadataHeadingId} className="border-b border-border pb-2 text-title font-semibold text-ink">
-          Metadata
-        </h2>
-        <FormItem col label="id">
-          {props.deck.id}
-        </FormItem>
-        {Boolean(props.deck.createdAt) && (
-          <FormItem label="Created At">{new Date(props.deck.createdAt).toLocaleDateString()}</FormItem>
-        )}
-        {Boolean(props.deck.updatedAt) && (
-          <FormItem label="Updated At">{new Date(props.deck.updatedAt).toLocaleDateString()}</FormItem>
-        )}
-      </section>
-      <Button primary type="submit" {...(props.isSubmitting !== undefined ? { disabled: props.isSubmitting } : {})}>
-        Save
-      </Button>
+      <details className="rounded-surface border border-border bg-surface-muted p-4">
+        <summary className="flex min-h-touch cursor-pointer items-center font-semibold text-ink">
+          Deck information
+        </summary>
+        <dl className="mt-4 grid gap-3 text-caption">
+          <div className="min-w-0">
+            <dt className="font-medium text-ink-muted">ID</dt>
+            <dd className="break-all text-ink">{props.deck.id}</dd>
+          </div>
+          {Boolean(props.deck.createdAt) && (
+            <div>
+              <dt className="font-medium text-ink-muted">Created</dt>
+              <dd className="text-ink">{new Date(props.deck.createdAt).toLocaleDateString()}</dd>
+            </div>
+          )}
+          {Boolean(props.deck.updatedAt) && (
+            <div>
+              <dt className="font-medium text-ink-muted">Updated</dt>
+              <dd className="text-ink">{new Date(props.deck.updatedAt).toLocaleDateString()}</dd>
+            </div>
+          )}
+        </dl>
+      </details>
+      <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+        <Button variant="quiet" type="button" {...(props.onCancel !== undefined ? { onClick: props.onCancel } : {})}>
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          type="submit"
+          {...(props.isSubmitting !== undefined ? { disabled: props.isSubmitting } : {})}
+        >
+          {props.isSubmitting ? "Saving…" : "Save changes"}
+        </Button>
+      </div>
     </Form>
   );
 };

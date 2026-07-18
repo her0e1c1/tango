@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Switch as Template } from "@/shared/components/forms/Switch";
 
 const meta = {
-  title: "Shared/Switch",
+  title: "Shared/Forms/Switch",
   component: Template,
   tags: ["autodocs"],
   args: {},
