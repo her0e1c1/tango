@@ -62,8 +62,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await firestore.deck.create(d);
     expect((await getDoc(doc(db, "deck", d.id))).exists()).toBeTruthy();
     await firestore.deck.remove(d.id, "uid");
-    // getDoc can not be called here because of permission error
-    expect(await firestore.deck.exists(d.id)).toBeFalsy();
+    await expect(firestore.deck.exists(d.id)).rejects.toMatchObject({ code: "permission-denied" });
   });
 
   describe("splitCards", () => {

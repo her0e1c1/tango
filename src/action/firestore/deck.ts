@@ -69,15 +69,8 @@ export const remove = async (deckId: string, uid: string) => {
 export const exists = async (id: string): Promise<boolean> => {
   const db = getDb();
   const ref = doc(db, "deck", id);
-  try {
-    const snapshot = await getDoc(ref);
-    if (snapshot.exists()) {
-      return true;
-    }
-  } catch (_) {
-    // ignore permission error if not exist
-  }
-  return false;
+  const snapshot = await getDoc(ref);
+  return snapshot.exists();
 };
 
 // for test
