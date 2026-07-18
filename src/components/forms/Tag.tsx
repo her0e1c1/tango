@@ -1,6 +1,8 @@
 import cx from "classnames";
 import type * as React from "react";
 
+import { TagMarker, tagClassName } from "@/components/content/tagStyles";
+
 export const Tag: React.FC<{
   className?: string;
   round?: boolean;
@@ -18,29 +20,13 @@ export const Tag: React.FC<{
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   ref?: React.Ref<HTMLInputElement>;
   children?: React.ReactNode;
-}> = ({
-  className,
-  round,
-  small,
-  large,
-  label,
-  checked,
-  disabled,
-  primary,
-  hidden,
-  name,
-  value,
-  onChange,
-  onBlur,
-  ref,
-  children,
-}) => {
+}> = ({ className, small, large, label, checked, disabled, hidden, name, value, onChange, onBlur, ref, children }) => {
   return (
     <label className={cx("inline-block", { hidden })}>
       <input
         readOnly
         type="checkbox"
-        className="hidden peer"
+        className="peer sr-only"
         checked={checked}
         disabled={disabled}
         ref={ref}
@@ -49,28 +35,19 @@ export const Tag: React.FC<{
         onChange={onChange}
         onBlur={onBlur}
       />
-      <div
+      <span
         className={cx(
-          className,
-          "inline-flex min-h-touch min-w-touch select-none items-center justify-center",
-          "whitespace-nowrap",
-          "font-medium",
-          "align-middle",
-          "border border-border transition-colors duration-fast ease-calm peer-checked:ring-2 peer-checked:ring-current",
+          tagClassName({ className, interactive: onChange != null && !disabled }),
+          "select-none justify-center whitespace-nowrap align-middle",
+          "peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 peer-checked:text-accent-primary",
+          "peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
           "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-          round ? "rounded-pill" : "rounded-control",
-          large ? ["py-3 px-4 text-lg"] : small ? ["py-1 px-1 text-xs"] : ["py-2 px-3 text-sm"],
-          primary
-            ? ["bg-accent-primary text-ink-inverse", "peer-checked:border-accent-primary"]
-            : [
-                "bg-surface-muted text-ink",
-                "peer-checked:border-accent-secondary peer-checked:bg-accent-secondary peer-checked:text-ink-inverse",
-              ],
-          onChange != null && !disabled && "cursor-pointer"
+          large ? "px-4 text-lg" : small ? "px-2 text-xs" : undefined
         )}
       >
-        {label ?? children}
-      </div>
+        <TagMarker selected={checked} />
+        <span className="min-w-0 truncate">{label ?? children}</span>
+      </span>
     </label>
   );
 };
