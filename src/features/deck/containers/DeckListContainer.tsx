@@ -49,7 +49,13 @@ export const DeckListContainer: React.FC = () => {
         <DeckListTemplate
           sections={sections}
           feedbackSlot={
-            <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
+            <RemoteMutationNotice
+              pending={mutations.pending}
+              error={mutations.error}
+              onRetry={mutations.retry}
+              pendingLabel="Deleting deck…"
+              errorLabel="Unable to delete deck."
+            />
           }
           layout={{
             headerProps: {
@@ -60,6 +66,7 @@ export const DeckListContainer: React.FC = () => {
             },
           }}
           deckCard={{
+            isPending: mutations.isPending,
             openMenuDeckId,
             onToggleMenu: (id) => setOpenMenuDeckId((value) => (value === id ? undefined : id)),
             onCloseMenu: () => setOpenMenuDeckId(undefined),

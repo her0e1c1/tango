@@ -5,6 +5,7 @@ import { ActionsMenu, type ActionsMenuItem } from "@/components/forms/ActionsMen
 export interface DeckActionsMenuProps {
   deckName: string;
   open: boolean;
+  disabled?: boolean;
   onToggle: () => void;
   onClose: () => void;
   onRestart?: () => void;
@@ -45,6 +46,7 @@ export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
       triggerLabel={`Open actions for ${props.deckName}`}
       menuLabel={`Actions for ${props.deckName}`}
       open={props.open}
+      {...(props.disabled !== undefined ? { disabled: props.disabled } : {})}
       onToggle={props.onToggle}
       onClose={props.onClose}
       items={items}

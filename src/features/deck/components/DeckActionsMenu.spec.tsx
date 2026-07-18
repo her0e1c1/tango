@@ -132,4 +132,11 @@ describe("DeckActionsMenu", () => {
     await waitFor(() => expect(view.queryByRole("menu")).not.toBeInTheDocument());
     expect(externalTarget).toHaveFocus();
   });
+
+  it("disables its trigger and hides a controlled open menu", () => {
+    const view = render(<DeckActionsMenu deckName="Physics" open disabled onToggle={vi.fn()} onClose={vi.fn()} />);
+
+    expect(view.getByRole("button", { name: "Open actions for Physics" })).toBeDisabled();
+    expect(view.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
+  });
 });
