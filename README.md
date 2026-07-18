@@ -63,6 +63,25 @@ npm run test  # need to start firestore before running
 make test     # test in docker
 ```
 
+### Vitest Coverage
+
+Run every TypeScript and React spec, including the Firestore emulator specs, in one Vitest invocation:
+
+```bash
+mise run coverage
+# Or run the same coverage command in Docker
+env -u COMPOSE_FILE make coverage
+```
+
+Coverage includes `src/**/*.{ts,tsx}`, including files that no test imports. Specs, stories, declaration files,
+and `src/shared/storybook/**` are excluded. The committed global thresholds are 86% statements, 78% branches,
+85% functions, and 92% lines. When the full-suite result improves, raise the relevant integer threshold manually
+in `vitest.config.ts`; do not auto-update thresholds.
+
+The terminal summary, HTML report, LCOV data, and JSON summary are written to `coverage/`. Open
+`coverage/index.html` for details after a failure. These percentages cover Vitest only: sample Python tests use
+pytest, and browser behavior is tested separately with Playwright.
+
 ### E2E Test
 
 Playwright is used for browser-level smoke tests. `make e2e` starts the official Playwright Docker image as a

@@ -11,5 +11,23 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.d.ts',
+        'src/**/*.spec.{ts,tsx}',
+        'src/**/*.stories.{ts,tsx}',
+        'src/shared/storybook/**',
+      ],
+      reporter: ['text', 'html', 'lcov', 'json-summary'],
+      reportOnFailure: true,
+      thresholds: {
+        statements: 86,
+        branches: 78,
+        functions: 85,
+        lines: 92,
+      },
+    },
   },
 })
