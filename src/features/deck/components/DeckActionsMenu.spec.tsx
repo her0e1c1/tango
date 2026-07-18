@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -100,8 +100,10 @@ describe("DeckActionsMenu", () => {
       const item = view.getByRole("menuitem", { name: label });
       await waitFor(() => expect(download).toHaveFocus());
 
-      download.blur();
-      item.focus();
+      await act(async () => {
+        download.blur();
+        item.focus();
+      });
       fireEvent.click(item);
 
       expect(action).toHaveBeenCalledOnce();
