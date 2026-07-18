@@ -1,6 +1,7 @@
 import type { StorybookConfig } from "@storybook/react-vite";
 import { mergeConfig } from "vite";
 import { createReactCompilerPlugin } from "../reactCompiler";
+import { withoutPwaPlugins } from "./vitePlugins";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.tsx"],
@@ -14,8 +15,14 @@ const config: StorybookConfig = {
     options: {},
   },
   viteFinal: async (viteConfig) =>
-    mergeConfig(viteConfig, {
-      plugins: [createReactCompilerPlugin()],
-    }),
+    mergeConfig(
+      {
+        ...viteConfig,
+        plugins: withoutPwaPlugins(viteConfig.plugins),
+      },
+      {
+        plugins: [createReactCompilerPlugin()],
+      },
+    ),
 };
 export default config;
