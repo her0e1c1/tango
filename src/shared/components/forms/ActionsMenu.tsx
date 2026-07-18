@@ -101,9 +101,12 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
   const handleBlur = (event: React.FocusEvent<HTMLFieldSetElement>) => {
     const root = event.currentTarget;
     if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
+    const menu = root.querySelector<HTMLElement>('[role="menu"]');
 
     setTimeout(() => {
-      if (root.isConnected && !root.contains(document.activeElement)) props.onClose();
+      if (root.isConnected && menu?.isConnected && root.contains(menu) && !root.contains(document.activeElement)) {
+        props.onClose();
+      }
     }, 0);
   };
 
