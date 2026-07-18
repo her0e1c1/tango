@@ -1,15 +1,17 @@
-import * as React from "react";
+import { useSyncExternalStore } from "react";
 
 import { studyStore } from "@/features/study/state/studyStore";
 
-export const useStudyHydrated = (): boolean => {
-  const [hydrated, setHydrated] = React.useState(() => studyStore.persist.hasHydrated());
+const getStudyHydrationSnapshot = () => studyStore.persist.hasHydrated();
 
-  React.useEffect(() => {
-    const unsubscribe = studyStore.persist.onFinishHydration(() => setHydrated(true));
-    setHydrated(studyStore.persist.hasHydrated());
-    return unsubscribe;
-  }, []);
-
-  return hydrated;
+const subscribeToStudyHydration = (onStoreChange: () => void) => {
+  const unsubscribeStart = studyStore.persist.onHydrate(onStoreChange);
+  const unsubscribeFinish = studyStore.persist.onFinishHydration(onStoreChange);
+  return () => {
+    unsubscribeStart();
+    unsubscribeFinish();
+  };
 };
+
+export const useStudyHydrated = (): boolean =>
+  useSyncExternalStore(subscribeToStudyHydration, getStudyHydrationSnapshot, getStudyHydrationSnapshot);

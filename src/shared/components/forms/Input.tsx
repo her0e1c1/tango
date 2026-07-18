@@ -14,23 +14,36 @@ export const Input: React.FC<{
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   inputRef?: React.Ref<HTMLInputElement>;
-}> = (props) => {
+}> = ({
+  className,
+  name,
+  type,
+  value,
+  defaultValue,
+  disabled,
+  readOnly,
+  required,
+  placeholder,
+  onChange,
+  onBlur,
+  inputRef,
+}) => {
   return (
     <input
-      ref={props.inputRef}
-      type={props.type}
-      name={props.name}
-      defaultValue={props.defaultValue}
-      value={props.value}
-      disabled={props.disabled}
-      readOnly={props.readOnly}
-      required={props.required}
-      placeholder={props.placeholder}
-      onChange={props.onChange}
-      onBlur={props.onBlur}
+      ref={inputRef}
+      type={type}
+      name={name}
+      defaultValue={defaultValue}
+      value={value}
+      disabled={disabled}
+      readOnly={readOnly}
+      required={required}
+      placeholder={placeholder}
+      onChange={onChange}
+      onBlur={onBlur}
       className={cx(
         "min-h-touch w-full appearance-none rounded-control border border-border bg-surface px-3 py-2 leading-tight text-ink shadow-surface transition-colors duration-fast ease-calm placeholder:text-ink-muted hover:border-ink-muted focus-visible:border-focus invalid:border-danger disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-muted read-only:bg-surface-muted",
-        props.className
+        className
       )}
     />
   );

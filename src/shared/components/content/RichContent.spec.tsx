@@ -20,6 +20,24 @@ describe("shared rich content", () => {
     await waitFor(() => expect(code).toHaveClass("hljs"));
   });
 
+  it("highlights only its own element and follows explicit text and theme changes", async () => {
+    const outside = document.createElement("code");
+    outside.className = "language-typescript";
+    outside.textContent = "const outside = true;";
+    document.body.append(outside);
+    const view = render(<Code text="const value = 1;" category="typescript" />);
+    const code = view.container.querySelector("code");
+
+    await waitFor(() => expect(code).toHaveClass("hljs"));
+    expect(outside).not.toHaveClass("hljs");
+
+    view.rerender(<Code text="const value = 2;" category="typescript" dark />);
+
+    await waitFor(() => expect(code).toHaveTextContent("const value = 2;"));
+    expect(code).toHaveAttribute("data-theme", "dark");
+    outside.remove();
+  });
+
   it("keeps GFM and KaTeX rendering readable inside narrow surfaces", () => {
     const view = render(<MathContent text={"| A | B |\n| - | - |\n| 1 | 2 |\n\n$$x^2$$"} />);
     const wrapper = view.container.firstElementChild;

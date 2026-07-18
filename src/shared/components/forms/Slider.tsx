@@ -10,7 +10,7 @@ export const Slider: React.FC<{
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   inputRef?: React.Ref<HTMLInputElement>;
-}> = (props) => {
+}> = ({ min, max, step, disabled, name, value, onChange, onBlur, inputRef }) => {
   return (
     <div className="relative min-h-touch w-full">
       <span
@@ -19,15 +19,15 @@ export const Slider: React.FC<{
       />
       <input
         type="range"
-        min={props.min}
-        max={props.max}
-        step={props.step ?? 1}
-        disabled={props.disabled}
-        ref={props.inputRef}
-        name={props.name}
-        value={props.value}
-        onChange={props.onChange}
-        onBlur={props.onBlur}
+        min={min}
+        max={max}
+        step={step ?? 1}
+        disabled={disabled}
+        ref={inputRef}
+        name={name}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
         className="absolute inset-0 min-h-touch w-full appearance-none bg-transparent accent-accent-primary transition-opacity duration-fast ease-calm disabled:cursor-not-allowed disabled:opacity-50"
       />
     </div>

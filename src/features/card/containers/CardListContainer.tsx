@@ -60,6 +60,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
                 text: showCard.backText,
                 category,
                 code: C.LANGUAGES.includes(category),
+                dark: config.darkMode,
               },
               onClose: closeCard,
             },

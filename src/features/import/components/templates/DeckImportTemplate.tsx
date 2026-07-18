@@ -8,6 +8,7 @@ export const DeckImportTemplate: React.FC<{
   onAddSample?: () => void;
   onDownloadSample?: () => void;
   sampleText: string;
+  dark?: boolean;
   layout?: LayoutProps;
   pending?: boolean;
   feedbackSlot?: React.ReactNode;
@@ -57,7 +58,7 @@ export const DeckImportTemplate: React.FC<{
               data-import-sample
               className="overflow-x-auto rounded-surface border border-border bg-surface-muted p-2"
             >
-              <Code text={props.sampleText} category="csv" />
+              <Code text={props.sampleText} category="csv" dark={props.dark ?? false} />
             </div>
           </section>
         </div>

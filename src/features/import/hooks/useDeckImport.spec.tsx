@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createQueryWrapper, createTestQueryClient } from "@/query/testUtils";
@@ -105,9 +105,16 @@ describe("useDeckImport", () => {
     const { result } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
     const file = new File(["front,back"], "deck.csv", { type: "text/csv" });
 
-    const first = result.current.importFile(file);
+    let first: Promise<DeckImportResult> | undefined;
+    act(() => {
+      first = result.current.importFile(file);
+    });
+    await waitFor(() => expect(result.current.pending).toBe(true));
     await expect(result.current.importFile(file)).rejects.toThrow("already running");
-    finish([]);
-    await first;
+    await act(async () => {
+      finish([]);
+      await first;
+    });
+    expect(result.current.pending).toBe(false);
   });
 });

@@ -12,19 +12,19 @@ export const Switch: React.FC<{
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   inputRef?: React.Ref<HTMLInputElement>;
-}> = (props) => {
+}> = ({ className, small, large, checked, disabled, name, value, onChange, onBlur, inputRef }) => {
   return (
-    <label className={cx("inline-flex min-h-touch min-w-touch items-center justify-center", props.className)}>
+    <label className={cx("inline-flex min-h-touch min-w-touch items-center justify-center", className)}>
       <input
-        ref={props.inputRef}
-        name={props.name}
-        checked={props.checked}
-        value={props.value}
-        onChange={props.onChange}
-        onBlur={props.onBlur}
+        ref={inputRef}
+        name={name}
+        checked={checked}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
         type="checkbox"
         className="hidden peer"
-        disabled={props.disabled}
+        disabled={disabled}
       />
       <span
         className={cx(
@@ -32,9 +32,9 @@ export const Switch: React.FC<{
           "transition-colors duration-normal ease-calm",
           "peer-checked:border-accent-secondary peer-checked:bg-accent-secondary",
           "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-          props.small
+          small
             ? ["w-8 h-5", "after:w-4 after:h-4", "peer-checked:after:translate-x-2"]
-            : props.large
+            : large
               ? ["w-16 h-10", "after:w-8 after:h-8", "peer-checked:after:translate-x-6"]
               : ["w-10 h-6", "after:w-5 after:h-5", "peer-checked:after:translate-x-3"],
           "after:rounded-full after:bg-surface-elevated after:shadow-surface",

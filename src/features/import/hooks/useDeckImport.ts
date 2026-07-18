@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import * as action from "@/action";
 import { useAuth } from "@/auth/AuthContext";
@@ -30,7 +30,8 @@ export const useDeckImport = () => {
   const remote = useRemoteCollections();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();
-  const running = useRef(false);
+  const runningRef = useRef(false);
+  const [running, setRunning] = useState(false);
   const lastRequest = useRef<ImportRequest>();
 
   const operation = useMutation({
@@ -97,31 +98,44 @@ export const useDeckImport = () => {
     },
   });
 
-  const run = async (request: ImportRequest) => {
-    if (running.current) throw new Error("A Deck import is already running");
-    running.current = true;
-    lastRequest.current = request;
-    try {
-      return await operation.mutateAsync(request);
-    } finally {
-      running.current = false;
-    }
-  };
+  const run = useCallback(
+    async (request: ImportRequest) => {
+      if (runningRef.current) throw new Error("A Deck import is already running");
+      runningRef.current = true;
+      setRunning(true);
+      lastRequest.current = request;
+      try {
+        return await operation.mutateAsync(request);
+      } finally {
+        runningRef.current = false;
+        setRunning(false);
+      }
+    },
+    [operation]
+  );
 
-  const importUrl = async (url: string, name?: string) => {
-    const headers: Record<string, string> = {};
-    if (config.githubAccessToken !== "") {
-      headers.Accept = "application/vnd.github.raw";
-      headers.Authorization = `Bearer ${config.githubAccessToken}`;
-    }
-    const response = await fetch(url, { headers });
-    if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
-    return await run({
-      kind: "content",
-      name: name ?? url.split("/").pop() ?? "no name",
-      content: await response.text(),
-    });
-  };
+  const importUrl = useCallback(
+    async (url: string, name?: string) => {
+      const headers: Record<string, string> = {};
+      if (config.githubAccessToken !== "") {
+        headers.Accept = "application/vnd.github.raw";
+        headers.Authorization = `Bearer ${config.githubAccessToken}`;
+      }
+      const response = await fetch(url, { headers });
+      if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
+      return await run({
+        kind: "content",
+        name: name ?? url.split("/").pop() ?? "no name",
+        content: await response.text(),
+      });
+    },
+    [config.githubAccessToken, run]
+  );
+
+  const retry = useCallback(() => {
+    const request = lastRequest.current;
+    if (request != null && !runningRef.current) void run(request).catch(() => undefined);
+  }, [run]);
 
   return {
     importFile: (file: File) => run({ kind: "content", name: file.name, content: file }),
@@ -131,12 +145,9 @@ export const useDeckImport = () => {
       if (deck.url == null || deck.url === "") return Promise.reject(new Error("Deck has no import URL"));
       return importUrl(deck.url, deck.name);
     },
-    pending: operation.isPending || running.current,
+    pending: operation.isPending || running,
     error: operation.error,
     data: operation.data,
-    retry: () => {
-      const request = lastRequest.current;
-      if (request != null && !running.current) void run(request).catch(() => undefined);
-    },
+    retry,
   };
 };

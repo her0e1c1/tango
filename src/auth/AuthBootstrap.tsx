@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 import { useAuth, type AuthState } from "@/auth/AuthContext";
 import { cleanupFirestoreUid } from "@/query/cleanup";
@@ -104,38 +104,27 @@ export const createAuthTransitionController = (dependencies: AuthTransitionDepen
 
 export const AuthBootstrap = () => {
   const authState = useAuth();
-  const controllerRef = useRef<ReturnType<typeof createAuthTransitionController>>();
-  const retryRef = useRef<{ request: AuthRequest; attempted: boolean }>();
-  const nextRequest = getRequest(authState);
-
-  if (!retryRef.current || !isSameRequest(retryRef.current.request, nextRequest)) {
-    retryRef.current = { request: nextRequest, attempted: false };
-  }
-  const request = retryRef.current.request;
-
-  if (!controllerRef.current) {
-    controllerRef.current = createAuthTransitionController({
+  const [controller] = useState(() =>
+    createAuthTransitionController({
       cleanupUid: cleanupFirestoreUid,
       subscribeUid: startRemoteReads,
       reportError: (error) => console.error("Auth transition failed", error),
-    });
-  }
+    })
+  );
 
   useEffect(() => {
     let cancelled = false;
     const transition = async () => {
-      const succeeded = await controllerRef.current?.transition(authState);
-      const retry = retryRef.current;
-      if (!cancelled && succeeded === false && retry && !retry.attempted && isSameRequest(retry.request, request)) {
-        retry.attempted = true;
-        await controllerRef.current?.transition(authState);
+      const succeeded = await controller.transition(authState);
+      if (!cancelled && succeeded === false) {
+        await controller.transition(authState);
       }
     };
     void transition();
     return () => {
       cancelled = true;
     };
-  }, [authState, request]);
+  }, [authState, controller]);
 
   return null;
 };

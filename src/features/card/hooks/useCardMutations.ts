@@ -23,8 +23,7 @@ export const useCardMutations = () => {
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const client = useQueryClient();
   const remote = useRemoteCollections();
-  const [, renderPending] = useState(0);
-  const pendingCounts = useRef(new Map<CardId, number>());
+  const [pendingCounts, setPendingCounts] = useState(() => new Map<CardId, number>());
   const lastFailed = useRef<CardMutationVariables>();
   const service = useMemo(
     () =>
@@ -58,10 +57,13 @@ export const useCardMutations = () => {
   const run = useCallback(
     async (variables: CardMutationVariables) => {
       const ids = variableIds(variables);
-      ids.forEach((id) => {
-        pendingCounts.current.set(id, (pendingCounts.current.get(id) ?? 0) + 1);
+      setPendingCounts((current) => {
+        const next = new Map(current);
+        ids.forEach((id) => {
+          next.set(id, (next.get(id) ?? 0) + 1);
+        });
+        return next;
       });
-      renderPending((value) => value + 1);
       try {
         await mutation.mutateAsync(variables);
         lastFailed.current = undefined;
@@ -69,12 +71,15 @@ export const useCardMutations = () => {
         lastFailed.current = variables;
         throw error;
       } finally {
-        ids.forEach((id) => {
-          const count = (pendingCounts.current.get(id) ?? 1) - 1;
-          if (count === 0) pendingCounts.current.delete(id);
-          else pendingCounts.current.set(id, count);
+        setPendingCounts((current) => {
+          const next = new Map(current);
+          ids.forEach((id) => {
+            const count = (next.get(id) ?? 1) - 1;
+            if (count === 0) next.delete(id);
+            else next.set(id, count);
+          });
+          return next;
         });
-        renderPending((value) => value + 1);
       }
     },
     [mutation]
@@ -96,8 +101,8 @@ export const useCardMutations = () => {
       return run({ kind: "remove", id });
     },
     bulkUpsert: (cards: Card[]) => run({ kind: "bulkUpsert", cards }),
-    isPending: (id: CardId) => pendingCounts.current.has(id),
-    pending: pendingCounts.current.size > 0,
+    isPending: (id: CardId) => pendingCounts.has(id),
+    pending: pendingCounts.size > 0,
     error: mutation.error,
     retry: () => {
       const variables = lastFailed.current;

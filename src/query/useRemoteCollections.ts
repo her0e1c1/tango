@@ -65,7 +65,7 @@ export const useRemoteCollections = () => {
     filteredCardsByDeckId: (deckId: string, config: ConfigState) => {
       const deck = decksById[deckId];
       const deckCards = cards.filter((card) => card.deckId === deckId);
-      return deck == null ? [] : filterCardsForDeck(deckCards, deck, config);
+      return deck == null ? [] : filterCardsForDeck(deckCards, deck, config, Date.now());
     },
     tagsByDeckId: (deckId: string) =>
       uniq(cards.filter((card) => card.deckId === deckId).flatMap((card) => card.tags)).sort(),

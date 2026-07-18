@@ -125,6 +125,7 @@ describe("buildStudySession", () => {
 });
 
 describe("filterCardsForDeck", () => {
+  const now = 1_000;
   const makeCard = (overrides: Partial<Card>): Card =>
     ({
       id: "c1",
@@ -146,43 +147,43 @@ describe("filterCardsForDeck", () => {
 
   it("returns all cards when no filters active", () => {
     const cards = [makeCard({ id: "a" }), makeCard({ id: "b" })];
-    expect(filterCardsForDeck(cards, baseDeck, baseConfig)).toHaveLength(2);
+    expect(filterCardsForDeck(cards, baseDeck, baseConfig, now)).toHaveLength(2);
   });
 
   it("filters by tag (OR mode)", () => {
     const cards = [makeCard({ id: "a", tags: ["x"] }), makeCard({ id: "b", tags: ["y"] })];
     const deck = { ...baseDeck, selectedTags: ["x"], tagAndFilter: false };
-    expect(filterCardsForDeck(cards, deck, baseConfig).map((c) => c.id)).toEqual(["a"]);
+    expect(filterCardsForDeck(cards, deck, baseConfig, now).map((c) => c.id)).toEqual(["a"]);
   });
 
   it("filters by tag (AND mode)", () => {
     const cards = [makeCard({ id: "a", tags: ["x", "y"] }), makeCard({ id: "b", tags: ["x"] })];
     const deck = { ...baseDeck, selectedTags: ["x", "y"], tagAndFilter: true };
-    expect(filterCardsForDeck(cards, deck, baseConfig).map((c) => c.id)).toEqual(["a"]);
+    expect(filterCardsForDeck(cards, deck, baseConfig, now).map((c) => c.id)).toEqual(["a"]);
   });
 
   it("filters by scoreMax", () => {
     const cards = [makeCard({ id: "a", score: 3 }), makeCard({ id: "b", score: 1 })];
     const deck = { ...baseDeck, scoreMax: 2 };
-    expect(filterCardsForDeck(cards, deck, baseConfig).map((c) => c.id)).toEqual(["b"]);
+    expect(filterCardsForDeck(cards, deck, baseConfig, now).map((c) => c.id)).toEqual(["b"]);
   });
 
   it("filters by scoreMin", () => {
     const cards = [makeCard({ id: "a", score: 1 }), makeCard({ id: "b", score: 3 })];
     const deck = { ...baseDeck, scoreMin: 2 };
-    expect(filterCardsForDeck(cards, deck, baseConfig).map((c) => c.id)).toEqual(["b"]);
+    expect(filterCardsForDeck(cards, deck, baseConfig, now).map((c) => c.id)).toEqual(["b"]);
   });
 
   it("filters by card interval when useCardInterval is true", () => {
-    const future = new Date(Date.now() + 100_000);
+    const future = new Date(now + 100_000);
     const cards = [makeCard({ id: "a", nextSeeingAt: future }), makeCard({ id: "b" })];
     const config = { useCardInterval: true } as ConfigState;
-    expect(filterCardsForDeck(cards, baseDeck, config).map((c) => c.id)).toEqual(["b"]);
+    expect(filterCardsForDeck(cards, baseDeck, config, now).map((c) => c.id)).toEqual(["b"]);
   });
 
   it("sorts by numberOfSeen ascending", () => {
     const cards = [makeCard({ id: "a", numberOfSeen: 5 }), makeCard({ id: "b", numberOfSeen: 1 })];
-    const result = filterCardsForDeck(cards, baseDeck, baseConfig);
+    const result = filterCardsForDeck(cards, baseDeck, baseConfig, now);
     expect(result.map((c) => c.id)).toEqual(["b", "a"]);
   });
 });

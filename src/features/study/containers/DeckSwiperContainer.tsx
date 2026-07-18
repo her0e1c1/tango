@@ -19,6 +19,8 @@ import { selectStudySessionForRoute, studyStore } from "@/features/study/state/s
 import { useActions } from "@/shared/hooks/useActions";
 import { useConfig } from "@/features/settings/hooks/useConfig";
 
+const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
+
 export const DeckSwiperContainer: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
@@ -81,15 +83,19 @@ export const DeckSwiperContainer: React.FC = () => {
 
   // disable browser back
   React.useEffect(() => {
-    window.history.pushState(null, document.title, document.location.href);
-    const f = () => {
+    const currentState = window.history.state;
+    const state = typeof currentState === "object" && currentState != null ? currentState : {};
+    if (state[STUDY_HISTORY_GUARD] !== deckId) {
+      window.history.pushState({ ...state, [STUDY_HISTORY_GUARD]: deckId }, document.title, document.location.href);
+    }
+    const handlePopState = () => {
       void navigate(1);
     };
-    window.addEventListener("popstate", f);
+    window.addEventListener("popstate", handlePopState);
     return () => {
-      window.removeEventListener("popstate", f);
+      window.removeEventListener("popstate", handlePopState);
     };
-  }, [navigate]);
+  }, [deckId, navigate]);
 
   if (card == null || deck == null) {
     return (
@@ -154,6 +160,7 @@ export const DeckSwiperContainer: React.FC = () => {
         <BackText
           {...(category !== undefined ? { category } : {})}
           code={category !== undefined && C.LANGUAGES.includes(category)}
+          dark={config.darkMode}
           text={card.backText}
           onClick={studyActions.toggleShowBackText}
         />

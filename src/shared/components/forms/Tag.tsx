@@ -18,42 +18,58 @@ export const Tag: React.FC<{
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   inputRef?: React.Ref<HTMLInputElement>;
   children?: React.ReactNode;
-}> = (props) => {
+}> = ({
+  className,
+  round,
+  small,
+  large,
+  label,
+  checked,
+  disabled,
+  primary,
+  hidden,
+  name,
+  value,
+  onChange,
+  onBlur,
+  inputRef,
+  children,
+}) => {
   return (
-    <label className={cx("inline-block", { hidden: props.hidden })}>
+    <label className={cx("inline-block", { hidden })}>
       <input
         readOnly
         type="checkbox"
         className="hidden peer"
-        checked={props.checked}
-        disabled={props.disabled}
-        ref={props.inputRef}
-        name={props.name}
-        value={props.value}
-        onChange={props.onChange}
-        onBlur={props.onBlur}
+        checked={checked}
+        disabled={disabled}
+        ref={inputRef}
+        name={name}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
       />
       <div
         className={cx(
-          props.className,
+          className,
           "inline-flex min-h-touch min-w-touch select-none items-center justify-center",
           "whitespace-nowrap",
           "font-medium",
           "align-middle",
           "border border-border transition-colors duration-fast ease-calm peer-checked:ring-2 peer-checked:ring-current",
           "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-          props.round ? "rounded-pill" : "rounded-control",
-          props.large ? ["py-3 px-4 text-lg"] : props.small ? ["py-1 px-1 text-xs"] : ["py-2 px-3 text-sm"],
-          props.primary
+          round ? "rounded-pill" : "rounded-control",
+          large ? ["py-3 px-4 text-lg"] : small ? ["py-1 px-1 text-xs"] : ["py-2 px-3 text-sm"],
+          primary
             ? ["bg-accent-primary text-ink-inverse", "peer-checked:border-accent-primary"]
             : [
                 "bg-surface-muted text-ink",
                 "peer-checked:border-accent-secondary peer-checked:bg-accent-secondary peer-checked:text-ink-inverse",
               ],
-          props.onChange != null && !props.disabled && "cursor-pointer"
+          onChange != null && !disabled && "cursor-pointer"
         )}
       >
-        {props.label ?? props.children}
+        {label ?? children}
       </div>
     </label>
   );
