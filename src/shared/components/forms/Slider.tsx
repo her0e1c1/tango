@@ -9,8 +9,8 @@ export const Slider: React.FC<{
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  inputRef?: React.Ref<HTMLInputElement>;
-}> = ({ min, max, step, disabled, name, value, onChange, onBlur, inputRef }) => {
+  ref?: React.Ref<HTMLInputElement>;
+}> = ({ min, max, step, disabled, name, value, onChange, onBlur, ref }) => {
   return (
     <div className="relative min-h-touch w-full">
       <span
@@ -23,7 +23,7 @@ export const Slider: React.FC<{
         max={max}
         step={step ?? 1}
         disabled={disabled}
-        ref={inputRef}
+        ref={ref}
         name={name}
         value={value}
         onChange={onChange}

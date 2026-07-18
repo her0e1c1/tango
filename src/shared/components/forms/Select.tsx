@@ -17,7 +17,7 @@ export const Select: React.FC<{
   required?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLSelectElement>) => void;
-  inputRef?: React.Ref<HTMLSelectElement>;
+  ref?: React.Ref<HTMLSelectElement>;
 }> = ({
   options: originalOptions,
   empty,
@@ -29,7 +29,7 @@ export const Select: React.FC<{
   required,
   onChange,
   onBlur,
-  inputRef,
+  ref,
 }) => {
   let options = originalOptions;
   if (empty) {
@@ -37,7 +37,7 @@ export const Select: React.FC<{
   }
   return (
     <select
-      ref={inputRef}
+      ref={ref}
       name={name}
       value={value}
       defaultValue={defaultValue}

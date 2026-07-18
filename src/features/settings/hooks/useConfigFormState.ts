@@ -2,7 +2,6 @@ import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import type { ConfigFormProps } from "@/features/settings/components/ConfigForm";
-import { renameKey } from "@/shared/forms/renameKey";
 
 export interface UseConfigFormStateOptions {
   config: ConfigState;
@@ -50,24 +49,24 @@ export const useConfigFormState = ({
     maxNumberOfCardsToLearn,
     cardInterval,
     fields: {
-      showHeader: renameKey(register("showHeader")),
-      showSwipeButtonList: renameKey(register("showSwipeButtonList")),
-      showSwipeFeedback: renameKey(register("showSwipeFeedback")),
-      darkMode: renameKey(register("darkMode")),
-      shuffled: renameKey(register("shuffled")),
-      useCardInterval: renameKey(register("useCardInterval")),
+      showHeader: register("showHeader"),
+      showSwipeButtonList: register("showSwipeButtonList"),
+      showSwipeFeedback: register("showSwipeFeedback"),
+      darkMode: register("darkMode"),
+      shuffled: register("shuffled"),
+      useCardInterval: register("useCardInterval"),
       maxNumberOfCardsToLearn: {
-        ...renameKey(register("maxNumberOfCardsToLearn", { valueAsNumber: true })),
+        ...register("maxNumberOfCardsToLearn", { valueAsNumber: true }),
         min: 0,
         max: 100,
       },
-      defaultAutoPlay: renameKey(register("defaultAutoPlay")),
+      defaultAutoPlay: register("defaultAutoPlay"),
       cardInterval: {
-        ...renameKey(register("cardInterval", { valueAsNumber: true })),
+        ...register("cardInterval", { valueAsNumber: true }),
         min: 0,
         max: 60,
       },
-      githubAccessToken: renameKey(register("githubAccessToken")),
+      githubAccessToken: register("githubAccessToken"),
     },
   };
 };

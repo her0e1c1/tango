@@ -13,7 +13,7 @@ export const Textarea: React.FC<{
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
-  inputRef?: React.Ref<HTMLTextAreaElement>;
+  ref?: React.Ref<HTMLTextAreaElement>;
 }> = ({
   className,
   rows,
@@ -26,11 +26,11 @@ export const Textarea: React.FC<{
   placeholder,
   onChange,
   onBlur,
-  inputRef,
+  ref,
 }) => {
   return (
     <textarea
-      ref={inputRef}
+      ref={ref}
       name={name}
       value={value}
       defaultValue={defaultValue}
