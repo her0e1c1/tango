@@ -87,7 +87,26 @@ describe("shared selection controls", () => {
       "peer-checked:border-accent-primary",
       "peer-checked:bg-accent-primary/10"
     );
-    expect(presentation?.querySelector('[aria-hidden="true"]')).toHaveClass("bg-accent-primary");
+    expect(presentation).toHaveClass(
+      "before:bg-ink-muted",
+      "peer-checked:before:bg-accent-primary",
+      "peer-checked:before:ring-2"
+    );
+  });
+
+  it("lets native checked state drive the marker for uncontrolled tags", () => {
+    const onChange = vi.fn();
+    const view = render(<Tag label="Biology" onChange={onChange} />);
+    const input = view.container.querySelector<HTMLInputElement>("input[type=checkbox]");
+    if (input == null) throw new Error("Tag input is missing");
+    const presentation = input.nextElementSibling;
+
+    expect(input).not.toBeChecked();
+    expect(presentation).toHaveClass("peer-checked:before:bg-accent-primary");
+
+    fireEvent.click(input);
+    expect(input).toBeChecked();
+    expect(onChange).toHaveBeenCalledOnce();
   });
 
   it("keeps tag native values, handlers, and input ref", () => {

@@ -1,7 +1,7 @@
 import cx from "classnames";
 import type * as React from "react";
 
-import { TagMarker, tagClassName } from "@/components/content/tagStyles";
+import { tagClassName } from "@/components/content/tagStyles";
 
 export const Tag: React.FC<{
   className?: string;
@@ -42,13 +42,14 @@ export const Tag: React.FC<{
             ...(className !== undefined ? { className } : {}),
           }),
           "select-none justify-center whitespace-nowrap align-middle",
+          "before:mr-2 before:size-2 before:shrink-0 before:rounded-pill before:bg-ink-muted before:content-['']",
           "peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 peer-checked:text-accent-primary",
+          "peer-checked:before:bg-accent-primary peer-checked:before:ring-2 peer-checked:before:ring-accent-primary/20",
           "peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
           "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
           large ? "px-4 text-lg" : small ? "px-2 text-xs" : undefined
         )}
       >
-        <TagMarker {...(checked !== undefined ? { selected: checked } : {})} />
         <span className="min-w-0 truncate">{label ?? children}</span>
       </span>
     </label>
