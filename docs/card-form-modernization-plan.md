@@ -110,7 +110,7 @@ Replace Metadata with a native disclosure:
     {Boolean(props.card.createdAt) && (
       <div><dt className="font-medium text-ink-muted">Created</dt><dd className="text-ink">{new Date(props.card.createdAt).toLocaleDateString()}</dd></div>
     )}
-    {Boolean(props.card.lastSeenAt) && (
+    {props.card.lastSeenAt != null && (
       <div><dt className="font-medium text-ink-muted">Last seen</dt><dd className="text-ink">{new Date(props.card.lastSeenAt).toLocaleDateString()}</dd></div>
     )}
   </dl>
@@ -128,7 +128,11 @@ Finish with the shared footer pattern:
   >
     Cancel
   </Button>
-  <Button variant="primary" type="submit" disabled={props.isSubmitting}>
+  <Button
+    variant="primary"
+    type="submit"
+    {...(props.isSubmitting !== undefined ? { disabled: props.isSubmitting } : {})}
+  >
     {props.isSubmitting ? "Saving…" : "Save changes"}
   </Button>
 </div>
