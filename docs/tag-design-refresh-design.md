@@ -95,7 +95,7 @@ No new persistence API or client state store is introduced.
 
 ## Error Handling
 
-Tag removal uses the existing deck update path. Pending and failed remote updates continue to use the existing remote mutation feedback. The tag components do not introduce a separate error state or retry mechanism.
+Tag removal uses the existing deck update path and preserves its current pending, failure, and retry behavior. This refresh does not add tag-specific error state, feedback, or retry handling.
 
 ## Accessibility
 
