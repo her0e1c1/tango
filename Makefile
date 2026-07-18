@@ -54,7 +54,7 @@ check: sample-build fmt-check lint-check test-unit ## Run lightweight checks
 e2e: COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
 e2e: ## Run end-to-end tests
 	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans
-	$(NPM) run e2e
+	$(RUN) --env CI --entrypoint npm $(SERVICE) run e2e
 
 .PHONY: fmt
 fmt: ## Format source files
