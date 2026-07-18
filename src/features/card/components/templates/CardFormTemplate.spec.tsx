@@ -1,5 +1,6 @@
 import { cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";
@@ -8,7 +9,8 @@ import { createCard } from "@/test/factories";
 describe("CardFormTemplate", () => {
   afterEach(cleanup);
 
-  it("composes feedback before the form in a bounded semantic editing surface", () => {
+  it("presents the card editor and composes feedback before the form", async () => {
+    const onCancel = vi.fn();
     const view = render(
       <CardFormTemplate
         feedbackSlot={<div role="status">Saved</div>}
@@ -19,15 +21,18 @@ describe("CardFormTemplate", () => {
             backText: { name: "backText" },
             tags: [],
           },
+          onCancel,
         }}
       />
     );
 
     const heading = view.getByRole("heading", { level: 1, name: "Edit card" });
-    const surface = heading.parentElement;
+    const surface = heading.closest("section");
     const feedback = view.getByRole("status");
     const form = view.container.querySelector("form");
 
+    expect(view.getByText("Card editor")).toBeVisible();
+    expect(view.getByText("Update the prompt, answer, and organization for this card.")).toBeVisible();
     expect(surface).toHaveClass(
       "mx-auto",
       "w-full",
@@ -42,5 +47,9 @@ describe("CardFormTemplate", () => {
     expect(surface).toContainElement(feedback);
     expect(surface).toContainElement(form);
     expect(feedback.compareDocumentPosition(form as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await userEvent.click(view.getByRole("button", { name: "Back to cards" }));
+
+    expect(onCancel).toHaveBeenCalledOnce();
   });
 });
