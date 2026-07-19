@@ -49,6 +49,17 @@ describe("deck action", () => {
         "CSV content must be a string or File"
       );
     });
+
+    it("keeps the bundled sample safe for identical re-imports", async () => {
+      const cards = await action.deck.parseCsv(C.CSV_SAMPLE_TEXT);
+
+      expect(cards).toHaveLength(3);
+      expect(cards.map((card) => card.uniqueKey)).toEqual([
+        "question-answer-example",
+        "hello-world-python",
+        "circle-area",
+      ]);
+    });
   });
 
   describe("download", () => {
