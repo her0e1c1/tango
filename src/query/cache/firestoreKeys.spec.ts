@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { firestoreKeys } from "@/query/firestoreKeys";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
 
 describe("firestoreKeys", () => {
   const uid = "user-123";

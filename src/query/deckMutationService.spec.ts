@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCardMutationService } from "@/query/cardMutationService";
 import { createDeckMutationService } from "@/query/deckMutationService";
-import { firestoreKeys } from "@/query/firestoreKeys";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
 import { createCard, createDeck } from "@/test/factories";
 
 const deferred = () => {

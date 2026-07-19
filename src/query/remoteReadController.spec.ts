@@ -2,7 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { applyRealtimeChange } from "@/lib/realtimeChange";
-import { firestoreKeys } from "@/query/firestoreKeys";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
 import {
   createRemoteReadController,
   type RemoteReadDependencies,

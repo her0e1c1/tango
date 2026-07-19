@@ -4,8 +4,8 @@ import { uniq } from "lodash";
 
 import { useAuth } from "@/auth/AuthContext";
 import { filterCardsForDeck } from "@/lib/study";
-import { firestoreKeys } from "@/query/firestoreKeys";
-import type { RemoteById } from "@/query/remoteCollection";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
+import type { RemoteById } from "@/query/cache/remoteCollection";
 import type { RemoteReadState } from "@/query/remoteReadController";
 import {
   getRemoteReadBlocker,

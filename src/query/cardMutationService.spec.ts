@@ -2,7 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { type CardBulkMutationError, createCardMutationService } from "@/query/cardMutationService";
-import { firestoreKeys } from "@/query/firestoreKeys";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
 import { createCard } from "@/test/factories";
 
 const deferred = <T>() => {

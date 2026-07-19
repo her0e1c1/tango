@@ -7,7 +7,7 @@ vi.mock("@/query/remoteReadSession", () => ({ stopRemoteReads }));
 
 import { cleanupFirestoreUid } from "@/query/cleanup";
 import { queryClient } from "@/query/client";
-import { firestoreKeys } from "@/query/firestoreKeys";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
 
 describe("cleanupFirestoreUid", () => {
   const temporaryClients: QueryClient[] = [];

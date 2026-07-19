@@ -1,9 +1,6 @@
 import { isEqual } from "lodash";
 
-export type RemoteById<T> = Record<string, T | undefined>;
-
-export const toRemoteById = <T extends { id: string }>(items: T[]): RemoteById<T> =>
-  Object.fromEntries(items.map((item) => [item.id, item]));
+import type { RemoteById } from "@/query/cache/remoteCollection";
 
 interface OptimisticMutationOptions<T, Result> {
   targetIds: string[];

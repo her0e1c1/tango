@@ -1,8 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import { firestoreKeys } from "@/query/firestoreKeys";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
+import { toRemoteById, type RemoteById } from "@/query/cache/remoteCollection";
 import { cardMutationLock, withMutationLocks } from "@/query/mutationLocks";
-import { runOptimisticMutation, toRemoteById, type RemoteById } from "@/query/remoteCollection";
+import { runOptimisticMutation } from "@/query/remoteCollection";
 
 export interface CardMutationServiceDependencies {
   client: QueryClient;

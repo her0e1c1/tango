@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { firestoreKeys } from "@/query/firestoreKeys";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
 import { createTestQueryClient, createQueryWrapper } from "@/query/testUtils";
 import { createCard, createDeck } from "@/test/factories";
 
