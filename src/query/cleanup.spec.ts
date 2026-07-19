@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { stopRemoteReads } = vi.hoisted(() => ({ stopRemoteReads: vi.fn() }));
 
-vi.mock("@/query/remoteReadSession", () => ({ stopRemoteReads }));
+vi.mock("@/query/reads/remoteReadSession", () => ({ stopRemoteReads }));
 
 import { cleanupFirestoreUid } from "@/query/cleanup";
 import { queryClient } from "@/query/client";

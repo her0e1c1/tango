@@ -6,14 +6,14 @@ import { useAuth } from "@/auth/AuthContext";
 import { filterCardsForDeck } from "@/lib/study";
 import { firestoreKeys } from "@/query/cache/firestoreKeys";
 import type { RemoteById } from "@/query/cache/remoteCollection";
-import type { RemoteReadState } from "@/query/remoteReadController";
+import type { RemoteReadState } from "@/query/reads/syncState";
 import {
   getRemoteReadBlocker,
   getRemoteReadState,
   retryRemoteReads,
   subscribeRemoteReadBlocker,
   subscribeRemoteReadState,
-} from "@/query/remoteReadSession";
+} from "@/query/reads/remoteReadSession";
 
 const definedEntries = <T>(items: Record<string, T | undefined>) =>
   Object.entries(items).filter((entry): entry is [string, T] => entry[1] != null);

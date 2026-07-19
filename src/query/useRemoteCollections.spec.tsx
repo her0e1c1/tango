@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/auth/AuthContext", () => ({
   useAuth: () => ({ status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } }),
 }));
-vi.mock("@/query/remoteReadSession", () => ({
+vi.mock("@/query/reads/remoteReadSession", () => ({
   subscribeRemoteReadState: () => () => undefined,
   subscribeRemoteReadBlocker: () => () => undefined,
   getRemoteReadState: () => mocks.state,
