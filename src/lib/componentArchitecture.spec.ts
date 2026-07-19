@@ -105,17 +105,11 @@ function isFirebaseModule(specifier: string): boolean {
 }
 
 function isFirestoreAdapterModule(specifier: string): boolean {
-  return (
-    isModuleOrSubpath(specifier, "@/adapters/firestore") ||
-    isModuleOrSubpath(specifier, "@/action/firestore")
-  );
+  return isModuleOrSubpath(specifier, "@/adapters/firestore") || isModuleOrSubpath(specifier, "@/action/firestore");
 }
 
 function canImportFirestoreAdapter(relativePath: string, specifier: string): boolean {
-  return (
-    firestoreCompositionModules.has(relativePath) &&
-    isModuleOrSubpath(specifier, "@/adapters/firestore")
-  );
+  return firestoreCompositionModules.has(relativePath) && isModuleOrSubpath(specifier, "@/adapters/firestore");
 }
 
 function expectStatelessPresentation(relativePath: string): void {
@@ -191,9 +185,9 @@ describe("component architecture", () => {
     expect(isFirebaseModule("@/firebase")).toBe(true);
     expect(isFirestoreAdapterModule("@/adapters/firestore/event")).toBe(true);
     expect(isFirestoreAdapterModule("@/action/firestore")).toBe(true);
-    expect(
-      isFirestoreAdapterModule(resolveModuleSpecifier(presentationPath, "../../../adapters/firestore"))
-    ).toBe(true);
+    expect(isFirestoreAdapterModule(resolveModuleSpecifier(presentationPath, "../../../adapters/firestore"))).toBe(
+      true
+    );
   });
 
   it("keeps Firestore SDK imports inside the adapter", () => {
@@ -235,8 +229,7 @@ describe("component architecture", () => {
       moduleReferences(relativePath)
         .filter(
           (reference) =>
-            isFirebaseModule(reference.resolvedSpecifier) ||
-            isFirestoreAdapterModule(reference.resolvedSpecifier)
+            isFirebaseModule(reference.resolvedSpecifier) || isFirestoreAdapterModule(reference.resolvedSpecifier)
         )
         .map((reference) => importViolation(relativePath, reference))
     );
