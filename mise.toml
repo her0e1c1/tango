@@ -5,6 +5,7 @@ watchexec = "2.5.1"
 
 [env]
 _.file = ".env"
+_.path = ["{{config_root}}/node_modules/.bin"]
 COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.local.yaml"
 
 [hooks]
