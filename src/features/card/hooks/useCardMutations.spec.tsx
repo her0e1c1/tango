@@ -22,7 +22,7 @@ vi.mock("@/query/useRemoteCollections", () => ({
     cardById: () => mocks.card,
   }),
 }));
-vi.mock("@/action/firestore", () => ({
+vi.mock("@/adapters/firestore", () => ({
   card: {
     create: mocks.create,
     update: mocks.update,

@@ -18,7 +18,7 @@
     "test": "vitest run --project=unit --no-file-parallelism",
     "test:coverage": "vitest run --project=unit --coverage --no-file-parallelism",
     "test:unit": "vitest run --project=unit --exclude '**/firestore/**/*.spec.ts'",
-    "test:firestore": "vitest run --project=unit src/action/firestore --no-file-parallelism",
+    "test:firestore": "vitest run --project=unit src/adapters/firestore --no-file-parallelism",
     "test:storybook": "vitest run --project=storybook",
     "fmt": "biome format --write ./src && biome lint --write .",
     "fmt:check": "biome format ./src && biome lint --error-on-warnings .",

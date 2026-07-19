@@ -1,5 +1,3 @@
-import * as firestore from "@/action/firestore";
-
 export const isEmpty = (c: CardRaw): boolean => {
   return c.frontText === "" && c.backText === "";
 };
@@ -16,13 +14,13 @@ export const fromRow = (row: string[]): CardRaw => {
 
 export const toRow = (card: Card): string[] => [card.frontText, card.backText, card.tags.join(","), card.uniqueKey];
 
-export const prepare = (card: CardRaw, deck: CardDeck): Card => {
+export const prepare = (card: CardRaw, deck: CardDeck, generateId: () => string): Card => {
   const { uid, id: deckId } = deck;
   return {
     ...card,
     uid,
     deckId,
-    id: firestore.mocked.generateCardId(),
+    id: generateId(),
     score: 0,
     numberOfSeen: 0,
     createdAt: 0,

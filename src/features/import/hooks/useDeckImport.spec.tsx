@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
   parseCsv: vi.fn(),
   prepareDeck: vi.fn(),
   prepareCard: vi.fn(),
+  generateDeckId: vi.fn(() => "generated-deck-id"),
+  generateCardId: vi.fn(() => "generated-card-id"),
   createDeck: vi.fn(),
   bulkUpsert: vi.fn(),
 }));
@@ -36,6 +38,9 @@ vi.mock("@/features/card/hooks/useCardMutations", () => ({
 vi.mock("@/action", () => ({
   deck: { parseCsv: mocks.parseCsv, prepare: mocks.prepareDeck },
   card: { prepare: mocks.prepareCard },
+}));
+vi.mock("@/adapters/firestore", () => ({
+  documentMetadata: { generateDeckId: mocks.generateDeckId, generateCardId: mocks.generateCardId },
 }));
 
 import { sampleDeckId, useDeckImport } from "@/features/import/hooks/useDeckImport";
@@ -75,7 +80,8 @@ describe("useDeckImport", () => {
       imported = await result.current.importPreview();
     });
     expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "deck.csv" }, "uid-a");
+    expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "deck.csv" }, "uid-a", mocks.generateDeckId);
+    expect(mocks.prepareCard).toHaveBeenCalledWith(expect.anything(), expect.anything(), mocks.generateCardId);
     expect(mocks.bulkUpsert).toHaveBeenCalledWith([expect.objectContaining({ id: "card" })]);
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
   });
@@ -134,7 +140,7 @@ describe("useDeckImport", () => {
 
     await act(async () => result.current.addSample());
 
-    expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "Sample Deck" }, "uid-a");
+    expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "Sample Deck" }, "uid-a", mocks.generateDeckId);
     expect(mocks.createDeck).toHaveBeenCalledWith(
       expect.objectContaining({ id: sampleDeckId("uid-a"), name: "Deck", uid: "uid-a" })
     );

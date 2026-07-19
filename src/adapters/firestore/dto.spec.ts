@@ -8,7 +8,7 @@ import {
   buildDeckUpdateDto,
   mapCardDocument,
   mapDeckDocument,
-} from "@/action/firestore/dto";
+} from "@/adapters/firestore/dto";
 import { createCard, createDeck } from "@/test/factories";
 
 describe("Firestore DTO builders", () => {

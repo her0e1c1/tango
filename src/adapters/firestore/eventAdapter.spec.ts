@@ -28,9 +28,9 @@ vi.mock("firebase/firestore", () => ({
     }
   ),
 }));
-vi.mock("@/firestoreRuntime", () => ({ getDb: () => "db" }));
+vi.mock("@/adapters/firestore/runtime", () => ({ getDb: () => "db" }));
 
-import { subscribeCardReads, subscribeDeckReads } from "@/action/firestore/event";
+import { subscribeCardReads, subscribeDeckReads } from "@/adapters/firestore/event";
 
 const document = (id: string, data: Record<string, unknown>): TestDocument => ({ id, data: () => data });
 const snapshot = (

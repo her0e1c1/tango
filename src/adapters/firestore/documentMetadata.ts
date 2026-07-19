@@ -1,5 +1,5 @@
 import { doc, collection } from "firebase/firestore";
-import { getDb } from "@/firestoreRuntime";
+import { getDb } from "@/adapters/firestore/runtime";
 
 export const generateDeckId = (): string => doc(collection(getDb(), "deck")).id;
 

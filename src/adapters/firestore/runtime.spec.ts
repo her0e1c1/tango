@@ -1,7 +1,7 @@
 import type { Firestore } from "firebase/firestore";
 import { describe, expect, it, vi } from "vitest";
 
-import { createFirestoreRuntime } from "@/firestoreRuntime";
+import { createFirestoreRuntime } from "@/adapters/firestore/runtime";
 
 describe("Firestore runtime", () => {
   it("keeps one injected instance and rejects a different duplicate initialization", () => {

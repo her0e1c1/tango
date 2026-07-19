@@ -7,6 +7,13 @@ const sourceExtension = /\.tsx?$/;
 const testOrStory = /\.(?:spec|stories)\.tsx?$/;
 const mutablePresentationHook = /\b(?:React\.)?(?:useState|useReducer|useForm|useController|useWatch)\s*\(/;
 const customHookDefinition = /\b(?:const|function)\s+(use[A-Z][A-Za-z0-9]*)\b/g;
+const firestoreCompositionModules = new Set([
+  "firebase.ts",
+  "query/reads/remoteReadSession.ts",
+  "features/card/hooks/useCardMutations.ts",
+  "features/deck/hooks/useDeckMutations.ts",
+  "features/import/hooks/useDeckImport.ts",
+]);
 const connectorModules = [
   "@tanstack/react-query",
   "react-hook-form",
@@ -93,6 +100,18 @@ function forbiddenConnector(specifier: string): boolean {
   );
 }
 
+function isFirebaseModule(specifier: string): boolean {
+  return isModuleOrSubpath(specifier, "firebase") || isModuleOrSubpath(specifier, "@/firebase");
+}
+
+function isFirestoreAdapterModule(specifier: string): boolean {
+  return isModuleOrSubpath(specifier, "@/adapters/firestore") || isModuleOrSubpath(specifier, "@/action/firestore");
+}
+
+function canImportFirestoreAdapter(relativePath: string, specifier: string): boolean {
+  return firestoreCompositionModules.has(relativePath) && isModuleOrSubpath(specifier, "@/adapters/firestore");
+}
+
 function expectStatelessPresentation(relativePath: string): void {
   const source = readSource(relativePath);
   expect(source, relativePath).not.toMatch(mutablePresentationHook);
@@ -157,6 +176,70 @@ describe("component architecture", () => {
     for (const specifier of queryImports) {
       expect(forbiddenConnector(resolveModuleSpecifier(presentationPath, specifier)), specifier).toBe(true);
     }
+  });
+
+  it("recognizes Firebase and Firestore adapter dependencies across import styles", () => {
+    const presentationPath = "features/deck/components/DeckCard.tsx";
+
+    expect(isFirebaseModule("firebase/firestore")).toBe(true);
+    expect(isFirebaseModule("@/firebase")).toBe(true);
+    expect(isFirestoreAdapterModule("@/adapters/firestore/event")).toBe(true);
+    expect(isFirestoreAdapterModule("@/action/firestore")).toBe(true);
+    expect(isFirestoreAdapterModule(resolveModuleSpecifier(presentationPath, "../../../adapters/firestore"))).toBe(
+      true
+    );
+  });
+
+  it("keeps Firestore SDK imports inside the adapter", () => {
+    const violations = productionFilesUnder("").flatMap((relativePath) => {
+      if (relativePath.startsWith("adapters/firestore/")) return [];
+      return moduleReferences(relativePath)
+        .filter((reference) => isModuleOrSubpath(reference.specifier, "firebase/firestore"))
+        .map((reference) => importViolation(relativePath, reference));
+    });
+
+    expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("uses production-oriented names for Firestore adapter modules", () => {
+    expect(existsSync(sourcePath("adapters/firestore/mocked.ts"))).toBe(false);
+    expect(existsSync(sourcePath("adapters/firestore/documentMetadata.ts"))).toBe(true);
+  });
+
+  it("limits concrete Firestore dependencies to composition modules", () => {
+    const applicationFiles = [
+      ...productionFilesUnder("action"),
+      ...productionFilesUnder("features"),
+      ...productionFilesUnder("query"),
+    ];
+    const violations = applicationFiles.flatMap((relativePath) =>
+      moduleReferences(relativePath)
+        .filter(
+          (reference) =>
+            isFirestoreAdapterModule(reference.resolvedSpecifier) &&
+            !canImportFirestoreAdapter(relativePath, reference.resolvedSpecifier)
+        )
+        .map((reference) => importViolation(relativePath, reference))
+    );
+
+    expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("keeps presentation independent from Firebase and Firestore adapters", () => {
+    const presentationFiles = [
+      ...productionFilesUnder("components"),
+      ...productionFilesUnder("features").filter((relativePath) => relativePath.includes("/components/")),
+    ];
+    const violations = presentationFiles.flatMap((relativePath) =>
+      moduleReferences(relativePath)
+        .filter(
+          (reference) =>
+            isFirebaseModule(reference.resolvedSpecifier) || isFirestoreAdapterModule(reference.resolvedSpecifier)
+        )
+        .map((reference) => importViolation(relativePath, reference))
+    );
+
+    expect(violations, violations.join("\n")).toEqual([]);
   });
 
   it("recognizes container-support hook paths and consumers", () => {

@@ -5,8 +5,8 @@ import { initializeTestEnvironment, type RulesTestEnvironment } from "@firebase/
 import { doc, setDoc, type Firestore } from "firebase/firestore";
 import { v4 as uuid } from "uuid";
 
-import * as firestore from "@/action/firestore";
-import { buildCardCreateDto, buildDeckCreateDto } from "@/action/firestore/dto";
+import * as firestore from "@/adapters/firestore";
+import { buildCardCreateDto, buildDeckCreateDto } from "@/adapters/firestore/dto";
 import { createCard, createDeck } from "@/test/factories";
 
 describe("Firestore full reads", () => {

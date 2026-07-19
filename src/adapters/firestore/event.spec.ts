@@ -2,11 +2,11 @@ import "./init";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import * as firestore from "@/action/firestore";
-import type { RemoteSnapshot } from "@/action/firestore/event";
+import * as firestore from "@/adapters/firestore";
+import type { RemoteSnapshot } from "@/query/remoteReadContract";
 import { createCard, createDeck } from "@/test/factories";
 
-vi.mock("./mocked", () => ({
+vi.mock("./documentMetadata", () => ({
   generateDeckId: vi.fn(() => "unused-deck-id"),
   generateCardId: vi.fn(() => "unused-card-id"),
   getTimestamp: vi.fn(() => 100),

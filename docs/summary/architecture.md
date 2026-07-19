@@ -19,7 +19,7 @@ flowchart TD
     Zustand <--> Persist[LocalStorage]
 
     Actions --> FirebaseAuth[Firebase Auth]
-    Actions --> FirestoreGateway[src/action/firestore]
+    Actions --> FirestoreGateway[src/adapters/firestore]
     FirestoreGateway <--> Firestore[(Firestore deck/card)]
     FirebaseAuth --> FirestoreGateway
 
@@ -34,7 +34,8 @@ flowchart TD
 
 - Browser 内で動く React SPA が中心です。server-side application code は見当たりません。
 - Firebase Auth は匿名ログインと Google ログインを扱います。
-- Firestore には `deck` と `card` の collection があり、`src/action/firestore/event.ts` が uid 条件で snapshot を購読します。
+- Firestore には `deck` と `card` の collection があり、`src/adapters/firestore/event.ts` が uid 条件で snapshot を購読します。
+- Firestore SDK、document DTO、mapper、collection 名、Timestamp 変換、runtime 初期化は `src/adapters/firestore` に閉じます。Firebase 非依存の read contract は `src/query/remoteReadContract.ts` が所有します。
 - deck/card は Firestore に保存し、Firestore SDK の persistent local cache で offline 利用に対応します。TanStack Query は application cache を担います。
 - runtime identity は Auth Context、長期設定と学習セッションは Zustand で保持します。
 
@@ -79,6 +80,7 @@ flowchart LR
 - UI stories/specs は対象 component、template、container と同じ `components` または feature 配下に置き、`src/**/*.stories.tsx` と `src/**/*.spec.{ts,tsx}` から discovery されます。
 - domain 操作は `src/action` と feature mutation hook に集約されています。
 - Deck/Card mutation は TanStack Query cache を optimistic に更新し、Firestore 書き込みを待機して失敗時に rollback します。
+- mutation service と remote read controller は既存の関数注入境界を使います。Repository interface や DI container は追加せず、concrete Firestore adapter は application composition module だけで配線します。
 - `src/query/cache` は UID-scoped Query cache、`src/query/reads` は Firestore 購読 lifecycle、`src/query/mutations` は lock・optimistic update・rollback を担当します。`src/query/selectors.ts` は React 非依存の派生データ計算を担当します。
 - remote read は `AuthBootstrap -> reads/session -> reads/controller -> cache/remoteCache -> QueryClient`、mutation は `feature hook -> mutations/service -> mutations/locks -> mutations/optimisticMutation -> cache/remoteCache -> Firestore` の一方向に流れます。
 - sample deck は Python サブプロジェクトで生成した JSON を、Import 画面から通常の Firestore mutation で追加します。

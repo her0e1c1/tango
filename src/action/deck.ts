@@ -4,13 +4,12 @@ import * as Papa from "papaparse";
 
 import * as C from "@/constant";
 import * as action from "@/action";
-import * as firestore from "@/action/firestore";
 
-export const prepare = (deck: DeckRaw, uid: string): Deck => {
+export const prepare = (deck: DeckRaw, uid: string, generateId: () => string): Deck => {
   return {
     ...deck,
     uid,
-    id: firestore.mocked.generateDeckId(),
+    id: generateId(),
     createdAt: 0,
     updatedAt: 0,
     deletedAt: null,

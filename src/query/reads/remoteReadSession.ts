@@ -1,9 +1,9 @@
-import * as firestore from "@/action/firestore";
 import {
+  event,
   getFirestoreInitializationState,
   subscribeFirestoreInitialization,
   waitForFirestoreInitialization,
-} from "@/firestoreRuntime";
+} from "@/adapters/firestore";
 import { applyRealtimeChange } from "@/lib/realtimeChange";
 import { createRemoteCache } from "@/query/cache/remoteCache";
 import { queryClient } from "@/query/client";
@@ -11,8 +11,8 @@ import { createRemoteReadController } from "@/query/reads/remoteReadController";
 
 export const remoteReadController = createRemoteReadController({
   cache: createRemoteCache(queryClient),
-  subscribeDecks: firestore.event.subscribeDeckReads,
-  subscribeCards: firestore.event.subscribeCardReads,
+  subscribeDecks: event.subscribeDeckReads,
+  subscribeCards: event.subscribeCardReads,
   applyChange: applyRealtimeChange,
 });
 

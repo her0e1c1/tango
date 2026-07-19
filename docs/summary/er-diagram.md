@@ -49,8 +49,8 @@ erDiagram
 
 | Collection | Source | Notes |
 | --- | --- | --- |
-| `deck` | `src/action/firestore/deck.ts`, `src/vite-env.d.ts` | deck document を `deck.id` で保存します。`create()` は `createdAt` と `updatedAt` を現在時刻に更新します。 |
-| `card` | `src/action/firestore/card.ts`, `src/vite-env.d.ts` | card document を `card.id` で保存します。`deckId` が deck への参照です。 |
+| `deck` | `src/adapters/firestore/deck.ts`, `src/vite-env.d.ts` | deck document を `deck.id` で保存します。`create()` は `createdAt` と `updatedAt` を現在時刻に更新します。 |
+| `card` | `src/adapters/firestore/card.ts`, `src/vite-env.d.ts` | card document を `card.id` で保存します。`deckId` が deck への参照です。 |
 
 ## Relationship
 

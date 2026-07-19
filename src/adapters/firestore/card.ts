@@ -10,9 +10,9 @@ import {
   where,
   type Firestore,
 } from "firebase/firestore";
-import { getTimestamp } from "@/action/firestore/mocked";
-import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument, type CardDocument } from "@/action/firestore/dto";
-import { getDb } from "@/firestoreRuntime";
+import { getTimestamp } from "@/adapters/firestore/documentMetadata";
+import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument, type CardDocument } from "@/adapters/firestore/dto";
+import { getDb } from "@/adapters/firestore/runtime";
 
 export const readAll = async (uid: string, firestore: Firestore = getDb()): Promise<Card[]> => {
   const snapshot = await getDocs(query(collection(firestore, "card"), where("uid", "==", uid)));
