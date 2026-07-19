@@ -1,3 +1,6 @@
+# Use this directory's docker-compose.yml instead of the root project's configuration.
+unexport COMPOSE_FILE
+
 COMPOSE = docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = base

@@ -1,5 +1,5 @@
-COMPOSE_FILE ?= .devcontainer/compose.yaml
-COMPOSE = COMPOSE_FILE=$(COMPOSE_FILE) docker compose
+export COMPOSE_FILE := .devcontainer/compose.yaml
+COMPOSE = docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
@@ -56,7 +56,7 @@ ci: build fmt-check lint-check test e2e ## Run the same checks as the pull reque
 check: sample-build fmt-check lint-check test-unit ## Run lightweight checks
 
 .PHONY: e2e
-e2e: COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
+e2e: export COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
 e2e: ## Run end-to-end tests
 	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans
 	$(RUN) --env CI --entrypoint npm $(SERVICE) run e2e
