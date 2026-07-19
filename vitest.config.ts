@@ -41,6 +41,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           globals: true,
+          include: ['src/**/*.spec.{ts,tsx}', '*.spec.{ts,tsx}'],
           environment: 'jsdom',
         },
       },
