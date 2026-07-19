@@ -50,7 +50,7 @@ annotation mode、filter、suppression、custom panic threshold、runtime gating
 
 ## Vitest Configuration
 
-`vitest.config.ts` は `globals: true`、`environment: "jsdom"`、`vite-tsconfig-paths` plugin を設定しています。Firestore integration tests は `src/action/firestore/init.ts` で emulator に接続し、mock user token を使います。
+`vitest.config.ts` は `globals: true`、`environment: "jsdom"`、Vite の native tsconfig paths resolution を設定しています。Firestore integration tests は `src/action/firestore/init.ts` で emulator に接続し、mock user token を使います。
 
 ## Test Suites
 
