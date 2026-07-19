@@ -2,34 +2,13 @@ import { onSnapshot, where, collection, query } from "firebase/firestore";
 
 import { mapCardDocument, mapDeckDocument, type CardDocument, type DeckDocument } from "@/action/firestore/dto";
 import { getDb } from "@/firestoreRuntime";
-
-export interface RemoteSnapshotMetadata {
-  size: number;
-  fromCache: boolean;
-  hasPendingWrites: boolean;
-}
-
-export interface RemoteChange<T> {
-  added: T[];
-  modified: T[];
-  removed: string[];
-}
-
-export type RemoteSnapshot<T> =
-  | { type: "replace"; items: T[]; metadata: RemoteSnapshotMetadata }
-  | { type: "change"; event: RemoteChange<T>; metadata: RemoteSnapshotMetadata };
-
-interface RemoteReadProps<T> {
-  uid: string;
-  onSnapshot: (snapshot: RemoteSnapshot<T>) => void;
-  onError: (error: Error) => void;
-}
+import type { RemoteChange, RemoteSubscriptionProps } from "@/query/remoteReadContract";
 
 type RemoteEntity = { id: string; updatedAt: number; deletedAt: number | null };
 
 const subscribeReads = <T extends RemoteEntity>(
   collectionName: "deck" | "card",
-  props: RemoteReadProps<T>,
+  props: RemoteSubscriptionProps<T>,
   mapDocument: (id: string, data: Record<string, unknown>) => T
 ): Callback => {
   const q = query(collection(getDb(), collectionName), where("uid", "==", props.uid));
@@ -70,8 +49,8 @@ const subscribeReads = <T extends RemoteEntity>(
   );
 };
 
-export const subscribeDeckReads = (props: RemoteReadProps<Deck>): Callback =>
+export const subscribeDeckReads = (props: RemoteSubscriptionProps<Deck>): Callback =>
   subscribeReads("deck", props, (id, data) => mapDeckDocument(id, data as unknown as DeckDocument));
 
-export const subscribeCardReads = (props: RemoteReadProps<Card>): Callback =>
+export const subscribeCardReads = (props: RemoteSubscriptionProps<Card>): Callback =>
   subscribeReads("card", props, (id, data) => mapCardDocument(id, data as unknown as CardDocument));

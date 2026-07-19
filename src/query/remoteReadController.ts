@@ -1,15 +1,11 @@
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 
-import type { RemoteSnapshot } from "@/action/firestore/event";
 import { firestoreKeys } from "@/query/firestoreKeys";
 import { createFirestoreSyncController, type FirestoreSyncState } from "@/query/firestoreSyncController";
 import { toRemoteById, type RemoteById } from "@/query/remoteCollection";
+import type { RemoteSnapshot, RemoteSubscriptionProps } from "@/query/remoteReadContract";
 
-export interface RemoteSubscriptionProps<T> {
-  uid: string;
-  onSnapshot: (snapshot: RemoteSnapshot<T>) => void;
-  onError: (error: Error) => void;
-}
+export type { RemoteSubscriptionProps } from "@/query/remoteReadContract";
 
 export type RemoteReadState = FirestoreSyncState;
 
