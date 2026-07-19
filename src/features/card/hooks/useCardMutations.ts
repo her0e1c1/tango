@@ -4,7 +4,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import * as firestore from "@/action/firestore";
 import { useAuth } from "@/auth/AuthContext";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { createCardMutationService } from "@/query/cardMutationService";
+import { createRemoteCache } from "@/query/cache/remoteCache";
+import { createCardMutationService } from "@/query/mutations/cardMutationService";
 
 type CardMutationVariables =
   | { kind: "create"; card: Card }
@@ -28,7 +29,7 @@ export const useCardMutations = () => {
   const service = useMemo(
     () =>
       createCardMutationService({
-        client,
+        cache: createRemoteCache(client),
         createCard: firestore.card.create,
         updateCard: firestore.card.update,
         removeCard: firestore.card.logicalRemove,

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper, createTestQueryClient } from "@/query/testUtils";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 import type { DeckImportResult } from "@/features/import/components/deckImportTypes";
-import { CardBulkMutationError } from "@/query/cardMutationService";
+import { CardBulkMutationError } from "@/query/mutations/cardMutationService";
 
 const mocks = vi.hoisted(() => ({
   config: {} as ConfigState,

@@ -1,9 +1,10 @@
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCardMutationService } from "@/query/cardMutationService";
-import { createDeckMutationService } from "@/query/deckMutationService";
 import { firestoreKeys } from "@/query/cache/firestoreKeys";
+import { createRemoteCache } from "@/query/cache/remoteCache";
+import { createCardMutationService } from "@/query/mutations/cardMutationService";
+import { createDeckMutationService } from "@/query/mutations/deckMutationService";
 import { createCard, createDeck } from "@/test/factories";
 
 const deferred = () => {
@@ -35,7 +36,7 @@ describe("createDeckMutationService", () => {
     const deck = createDeck({ id: "deck", name: "Before" });
     client.setQueryData(firestoreKeys.decks(uid), { deck });
     dependencies.updateDeck.mockRejectedValueOnce(new Error("failed"));
-    const service = createDeckMutationService({ client, ...dependencies });
+    const service = createDeckMutationService({ cache: createRemoteCache(client), ...dependencies });
 
     await expect(service.update(uid, { ...deck, name: "After" })).rejects.toThrow("failed");
     expect(client.getQueryData(firestoreKeys.decks(uid))).toEqual({ deck });
@@ -47,7 +48,7 @@ describe("createDeckMutationService", () => {
     client.setQueryData(firestoreKeys.decks(uid), { deck });
     client.setQueryData(firestoreKeys.cards(uid), { card });
     dependencies.removeDeck.mockRejectedValueOnce(new Error("failed"));
-    const service = createDeckMutationService({ client, ...dependencies });
+    const service = createDeckMutationService({ cache: createRemoteCache(client), ...dependencies });
 
     await expect(service.remove(uid, deck.id)).rejects.toThrow("failed");
     expect(client.getQueryData(firestoreKeys.decks(uid))).toEqual({ deck });
@@ -61,15 +62,16 @@ describe("createDeckMutationService", () => {
     client.setQueryData(firestoreKeys.cards(uid), { card });
     const write = deferred();
     const updateCard = vi.fn(() => write.promise);
+    const cache = createRemoteCache(client);
     const cardService = createCardMutationService({
-      client,
+      cache,
       createCard: vi.fn(),
       updateCard,
       removeCard: vi.fn(),
       upsertCard: vi.fn(),
       readCards: vi.fn(),
     });
-    const deckService = createDeckMutationService({ client, ...dependencies });
+    const deckService = createDeckMutationService({ cache, ...dependencies });
 
     const update = cardService.update(uid, { ...card, score: 1 });
     await vi.waitFor(() => expect(updateCard).toHaveBeenCalled());
