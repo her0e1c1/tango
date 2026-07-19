@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
 }));
 
-vi.mock("@/features/card/hooks/useCardMutations", () => ({
+vi.mock("@/hooks/card/useCardMutations", () => ({
   useCardMutations: () => ({
     updateBy: mocks.cardUpdateBy,
     remove: mocks.cardRemove,
@@ -69,11 +69,11 @@ vi.mock("@/hooks/useActions", () => ({
   }),
 }));
 
-vi.mock("@/features/deck/hooks/useDeckActions", () => ({
+vi.mock("@/hooks/deck/useDeckActions", () => ({
   useDeckActions: () => ({ update: vi.fn() }),
 }));
 
-vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
+vi.mock("@/hooks/deck/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
     scoreMax: mocks.filter.scoreMax,
     scoreMin: mocks.filter.scoreMin,

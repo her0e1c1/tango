@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 
-vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
+vi.mock("@/hooks/deck/useDeckMutations", () => ({
   useDeckMutations: () => ({
     create: mocks.create,
     update: mocks.update,

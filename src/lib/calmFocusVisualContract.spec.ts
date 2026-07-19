@@ -257,14 +257,14 @@ describe("Calm Focus visual contract", () => {
   });
 
   it("gives the deck filter surfaces semantic Calm Focus treatment", () => {
-    expect(readOwnedSource("features/deck/components/DeckStartForm.tsx")).toMatch(/bg-surface/);
-    expect(readOwnedSource("features/deck/components/TagFilter.tsx")).toMatch(/bg-surface/);
+    expect(readOwnedSource("components/deck/DeckStartForm.tsx")).toMatch(/bg-surface/);
+    expect(readOwnedSource("components/deck/TagFilter.tsx")).toMatch(/bg-surface/);
   });
 
   it("gives the study start route a focused semantic setup surface", () => {
     const startTemplate = readOwnedSource("features/study/components/templates/DeckStartTemplate.tsx");
-    const startForm = readOwnedSource("features/deck/components/DeckStartForm.tsx");
-    const tagFilter = readOwnedSource("features/deck/components/TagFilter.tsx");
+    const startForm = readOwnedSource("components/deck/DeckStartForm.tsx");
+    const tagFilter = readOwnedSource("components/deck/TagFilter.tsx");
 
     expect(startTemplate).toMatch(/max-w-reading/);
     expect(startTemplate).toMatch(/text-display/);

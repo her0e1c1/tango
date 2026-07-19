@@ -1,4 +1,5 @@
 import tsParser from "@typescript-eslint/parser";
+import boundaries from "eslint-plugin-boundaries";
 import reactHooks from "eslint-plugin-react-hooks";
 
 export default [
@@ -11,6 +12,47 @@ export default [
         ecmaFeatures: { jsx: true },
         sourceType: "module",
       },
+    },
+    plugins: {
+      boundaries,
+    },
+    settings: {
+      "import/resolver": {
+        typescript: true,
+      },
+      "boundaries/elements": [
+        {
+          type: "feature",
+          pattern: "src/features/*",
+          capture: ["feature"],
+        },
+      ],
+    },
+    rules: {
+      "boundaries/dependencies": [
+        "error",
+        {
+          default: "allow",
+          policies: [
+            {
+              from: {
+                element: {
+                  type: "feature",
+                },
+              },
+              disallow: {
+                element: {
+                  type: "feature",
+                  captured: {
+                    feature: "!{{feature}}",
+                  },
+                },
+              },
+              message: "featureから別のfeatureをimportできません。",
+            },
+          ],
+        },
+      ],
     },
   },
 ];

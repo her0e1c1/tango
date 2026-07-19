@@ -27,10 +27,10 @@ vi.mock("@/query/useRemoteCollections", () => ({
     cardsByDeckId: (id: DeckId) => mocks.cards.filter((card) => card.deckId === id),
   }),
 }));
-vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
+vi.mock("@/hooks/deck/useDeckMutations", () => ({
   useDeckMutations: () => ({ create: mocks.createDeck }),
 }));
-vi.mock("@/features/card/hooks/useCardMutations", () => ({
+vi.mock("@/hooks/card/useCardMutations", () => ({
   useCardMutations: () => ({ bulkUpsert: mocks.bulkUpsert }),
 }));
 vi.mock("@/action", () => ({

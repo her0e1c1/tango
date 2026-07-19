@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => {
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: vi.fn(),
 }));
-vi.mock("@/features/deck/hooks/useDeckActions", () => ({
+vi.mock("@/hooks/deck/useDeckActions", () => ({
   useDeckActions: () => ({ update: mocks.update }),
 }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
@@ -25,7 +25,7 @@ vi.mock("@/features/study/hooks/useStudyActions", () => ({
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({ setDarkMode: vi.fn(), goToTop: vi.fn(), goByMenu: vi.fn() }),
 }));
-vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
+vi.mock("@/hooks/deck/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,
