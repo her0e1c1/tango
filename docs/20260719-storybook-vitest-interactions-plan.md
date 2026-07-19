@@ -25,7 +25,6 @@
 ### Task 1: Storybook Vitest Browser Project
 
 **Files:**
-- Create: `.storybook/vitest.setup.ts`
 - Create: `storybookVitest.spec.ts`
 - Modify: `.storybook/main.ts`
 - Modify: `vitest.config.ts`
@@ -92,16 +91,9 @@ npm install --save-dev @storybook/addon-vitest@10.4.6 @vitest/browser-playwright
 
 Expected: `package.json` and `package-lock.json` add only the Storybook Vitest addon, Vitest Playwright provider, and their transitive dependencies.
 
-- [ ] **Step 4: Configure Storybook and preview annotations**
+- [ ] **Step 4: Configure Storybook's test addon**
 
-Append `"@storybook/addon-vitest"` to `.storybook/main.ts` `addons`. Create `.storybook/vitest.setup.ts`:
-
-```ts
-import { setProjectAnnotations } from "@storybook/react-vite";
-import * as previewAnnotations from "./preview";
-
-setProjectAnnotations([previewAnnotations]);
-```
+Append `"@storybook/addon-vitest"` to `.storybook/main.ts` `addons`. Storybook 10.4 automatically applies `.storybook/preview.ts` annotations, so do not add a redundant setup file.
 
 - [ ] **Step 5: Split Vitest into named projects**
 
@@ -126,7 +118,6 @@ Retain the existing root `plugins` and `define`. Move the current `globals`, `en
       screenshotFailures: true,
       screenshotDirectory: "test-results/storybook",
     },
-    setupFiles: ["./.storybook/vitest.setup.ts"],
   },
 }
 ```
@@ -166,7 +157,7 @@ Expected: 52 story files and 279 story tests pass in the `storybook (chromium)` 
 - [ ] **Step 9: Commit the browser project**
 
 ```bash
-git add .storybook/main.ts .storybook/vitest.setup.ts package.json package-lock.json vitest.config.ts storybookVitest.spec.ts
+git add .storybook/main.ts package.json package-lock.json vitest.config.ts storybookVitest.spec.ts docs/20260719-storybook-vitest-interactions-design.md docs/20260719-storybook-vitest-interactions-plan.md
 git commit -m "Add Storybook Vitest browser project"
 ```
 

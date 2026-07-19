@@ -1,6 +1,12 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
+import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { createReactCompilerPlugin } from './reactCompiler'
+
+const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -9,8 +15,6 @@ export default defineConfig({
     '__APP_VERSION__': JSON.stringify(process.env.npm_package_version),
   },
   test: {
-    globals: true,
-    environment: 'jsdom',
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
@@ -29,5 +33,35 @@ export default defineConfig({
         lines: 92,
       },
     },
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          globals: true,
+          environment: 'jsdom',
+        },
+      },
+      {
+        extends: true,
+        plugins: [
+          storybookTest({
+            configDir: path.join(dirname, '.storybook'),
+            storybookScript: 'npm run storybook -- --no-open',
+          }),
+        ],
+        test: {
+          name: 'storybook',
+          browser: {
+            enabled: true,
+            provider: playwright({}),
+            headless: true,
+            instances: [{ browser: 'chromium' }],
+            screenshotFailures: true,
+            screenshotDirectory: 'test-results/storybook',
+          },
+        },
+      },
+    ],
   },
 })

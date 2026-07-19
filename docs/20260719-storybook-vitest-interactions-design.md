@@ -32,7 +32,7 @@ Two alternatives were rejected:
 
 ## Test Infrastructure
 
-Add version-aligned `@storybook/addon-vitest` and `@vitest/browser-playwright` development dependencies. Register the addon in `.storybook/main.ts` and load project preview annotations from `.storybook/vitest.setup.ts`.
+Add version-aligned `@storybook/addon-vitest` and `@vitest/browser-playwright` development dependencies. Register the addon in `.storybook/main.ts`; Storybook 10.4 automatically applies project preview annotations to Vitest browser tests.
 
 The Vitest root configuration will define two named projects:
 
