@@ -44,15 +44,20 @@ const compilerPlugins = async (values: readonly unknown[] | undefined) =>
     (plugin) => "name" in plugin && plugin.name === compilerPluginName,
   );
 
-const storybookInput = { plugins: [] };
+const pluginNames = async (values: readonly unknown[] | undefined) =>
+  (await collectPlugins(values)).flatMap((plugin) =>
+    "name" in plugin && typeof plugin.name === "string" ? [plugin.name] : [],
+  );
+
+const storybookInput = { plugins: viteConfig.plugins ?? [] };
 const storybookViteConfig = await storybookConfig.viteFinal?.(
   storybookInput,
   { configType: "PRODUCTION" } as never,
 );
 
 describe("React Compiler Vite integration", () => {
-  it("calls the shared factory once for every environment", () => {
-    expect(createReactCompilerPlugin).toHaveBeenCalledTimes(3);
+  it("calls the shared factory for the application and Vitest", () => {
+    expect(createReactCompilerPlugin).toHaveBeenCalledTimes(2);
   });
 
   it("adds one compiler plugin to the application", async () => {
@@ -63,20 +68,28 @@ describe("React Compiler Vite integration", () => {
     expect(await compilerPlugins(vitestConfig.plugins)).toHaveLength(1);
   });
 
-  it("adds one compiler plugin to Storybook", async () => {
+  it("keeps one compiler plugin from the root Vite configuration in Storybook", async () => {
     expect(storybookConfig.viteFinal).toBeTypeOf("function");
     expect(storybookViteConfig).not.toBe(storybookInput);
     expect(await compilerPlugins(storybookViteConfig?.plugins)).toHaveLength(1);
   });
 
-  it("creates independent plugin instances for every environment", async () => {
+  it("removes PWA plugins from the Storybook configuration", async () => {
+    expect(await pluginNames(storybookViteConfig?.plugins)).not.toContain(
+      "vite-plugin-pwa",
+    );
+    expect(await pluginNames(storybookViteConfig?.plugins)).not.toContain(
+      "vite-plugin-pwa:build",
+    );
+  });
+
+  it("creates independent plugin instances for the application and Vitest", async () => {
     const instances = [
       ...(await compilerPlugins(viteConfig.plugins)),
       ...(await compilerPlugins(vitestConfig.plugins)),
-      ...(await compilerPlugins(storybookViteConfig?.plugins)),
     ];
 
-    expect(instances).toHaveLength(3);
-    expect(new Set(instances).size).toBe(3);
+    expect(instances).toHaveLength(2);
+    expect(new Set(instances).size).toBe(2);
   });
 });

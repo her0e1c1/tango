@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { withoutPwaPlugins } from "./.storybook/vitePlugins";
 
 describe("Storybook Vite plugins", () => {
+  it("returns an empty plugin list when Vite has no plugins", () => {
+    expect(withoutPwaPlugins(undefined)).toEqual([]);
+  });
+
   it("excludes PWA plugins from Storybook builds", () => {
     const plugins = [
       { name: "vite:react-babel" },
