@@ -135,4 +135,3 @@ The hook's returned API and value semantics remain unchanged so feature containe
 - New cache and selector unit tests pass.
 - Documentation describes the new query module boundaries.
 - `make check` succeeds.
-

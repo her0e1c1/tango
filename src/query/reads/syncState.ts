@@ -35,12 +35,7 @@ export const createSyncState = <Collection extends string>(collections: readonly
       setState({ uid, status: "loading" });
       return currentGeneration;
     },
-    observe: (
-      uid: string,
-      currentGeneration: number,
-      collection: Collection,
-      nextMetadata: RemoteSnapshotMetadata
-    ) => {
+    observe: (uid: string, currentGeneration: number, collection: Collection, nextMetadata: RemoteSnapshotMetadata) => {
       if (!isCurrent(uid, currentGeneration)) return;
       metadata.set(collection, nextMetadata);
       if (collections.some((name) => !metadata.has(name))) return;

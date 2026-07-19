@@ -79,4 +79,6 @@ flowchart LR
 - UI stories/specs は対象 component、template、container と同じ `components` または feature 配下に置き、`src/**/*.stories.tsx` と `src/**/*.spec.{ts,tsx}` から discovery されます。
 - domain 操作は `src/action` と feature mutation hook に集約されています。
 - Deck/Card mutation は TanStack Query cache を optimistic に更新し、Firestore 書き込みを待機して失敗時に rollback します。
+- `src/query/cache` は UID-scoped Query cache、`src/query/reads` は Firestore 購読 lifecycle、`src/query/mutations` は lock・optimistic update・rollback を担当します。`src/query/selectors.ts` は React 非依存の派生データ計算を担当します。
+- remote read は `AuthBootstrap -> reads/session -> reads/controller -> cache/remoteCache -> QueryClient`、mutation は `feature hook -> mutations/service -> mutations/locks -> mutations/optimisticMutation -> cache/remoteCache -> Firestore` の一方向に流れます。
 - sample deck は Python サブプロジェクトで生成した JSON を、Import 画面から通常の Firestore mutation で追加します。

@@ -1,9 +1,5 @@
 import type { RemoteSnapshot } from "@/action/firestore/event";
-import type {
-  RemoteCache,
-  RemoteCollectionName,
-  RemoteCollectionTypes,
-} from "@/query/cache/remoteCache";
+import type { RemoteCache, RemoteCollectionName, RemoteCollectionTypes } from "@/query/cache/remoteCache";
 import { toRemoteById, type RemoteById } from "@/query/cache/remoteCollection";
 import { createSyncState } from "@/query/reads/syncState";
 

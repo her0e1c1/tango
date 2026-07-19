@@ -27,9 +27,7 @@ describe("remote collection selectors", () => {
     const future = createCard({ id: "future", deckId: deck.id, nextSeeingAt: new Date(now + 1) });
     const config = createConfig({ useCardInterval: true });
 
-    expect(filteredCardsForDeck({ [deck.id]: deck }, [available, future], deck.id, config, now)).toEqual([
-      available,
-    ]);
+    expect(filteredCardsForDeck({ [deck.id]: deck }, [available, future], deck.id, config, now)).toEqual([available]);
     expect(filteredCardsForDeck({}, [available], "missing", config, now)).toEqual([]);
   });
 });

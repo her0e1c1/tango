@@ -6,8 +6,7 @@ import type { RemoteById } from "@/query/cache/remoteCollection";
 export const remoteValues = <T>(items: RemoteById<T>): T[] =>
   Object.values(items).filter((item): item is T => item != null);
 
-export const cardsForDeck = (cards: Card[], deckId: DeckId): Card[] =>
-  cards.filter((card) => card.deckId === deckId);
+export const cardsForDeck = (cards: Card[], deckId: DeckId): Card[] => cards.filter((card) => card.deckId === deckId);
 
 export const filteredCardsForDeck = (
   decksById: RemoteById<Deck>,
