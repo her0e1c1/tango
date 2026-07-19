@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import * as React from "react";
+import { expect, fn } from "storybook/test";
 
 import { DeckForm as Template, type DeckFormFields } from "@/features/deck/components/DeckForm";
 import * as fixture from "@/storybook/fixture";
@@ -19,6 +21,27 @@ const longDeck: Deck = {
   ...fixture.deck.tooLongName,
   url: `https://example.com/${"deeply-nested/".repeat(12)}deck.csv`,
   category: "value 3",
+};
+
+const InteractiveDeckForm = (props: React.ComponentProps<typeof Template>) => {
+  const [name, setName] = React.useState(props.fields.name.value ?? "");
+
+  return (
+    <Template
+      {...props}
+      fields={{
+        ...props.fields,
+        name: {
+          ...props.fields.name,
+          value: name,
+          onChange: (event) => {
+            setName(event.target.value);
+            props.fields.name.onChange?.(event);
+          },
+        },
+      }}
+    />
+  );
 };
 
 const meta = {
@@ -45,6 +68,29 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const Interaction: Story = {
+  args: {
+    fields: {
+      ...fieldsFor(fixture.deck.default),
+      name: { value: fixture.deck.default.name, onChange: fn() },
+    },
+    onSubmit: fn((event?: React.FormEvent<HTMLFormElement>) => event?.preventDefault()),
+  },
+  render: (args) => <InteractiveDeckForm {...args} />,
+  play: async ({ args, canvas, userEvent }) => {
+    const nameInput = canvas.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, "Interaction deck");
+    await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+
+    await expect(nameInput).toHaveValue("Interaction deck");
+    await expect(args.fields.name.onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ target: expect.objectContaining({ value: "Interaction deck" }) })
+    );
+    await expect(args.onSubmit).toHaveBeenCalledOnce();
+  },
+};
 
 export const LongValues: Story = {
   args: { deck: longDeck, fields: fieldsFor(longDeck) },

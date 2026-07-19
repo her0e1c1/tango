@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
+import { expect, fn } from "storybook/test";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 import { CardListTemplate as Template } from "@/features/card/components/templates/CardListTemplate";
 import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
@@ -35,13 +36,40 @@ const longUnbrokenCards = fixture.cards.long.map((card, index) =>
   index === 0 ? { ...card, tags: [longUnbrokenTag] } : card
 );
 
-const RemovableSelectedTagsExample = () => {
+const RemovableSelectedTagsExample: React.FC<{
+  onRemoveTag: React.ComponentProps<typeof Template>["onRemoveTag"];
+}> = (props) => {
   const [selectedTags, setSelectedTags] = React.useState(["TypeScript", "Accessibility"]);
   return (
     <Template
       cards={fixture.cards.default}
       filter={{ scoreMin: null, scoreMax: null, selectedTags }}
-      onRemoveTag={(tag) => setSelectedTags((values) => values.filter((value) => value !== tag))}
+      onRemoveTag={(tag) => {
+        props.onRemoveTag?.(tag);
+        setSelectedTags((values) => values.filter((value) => value !== tag));
+      }}
+    />
+  );
+};
+
+const ClosableCardViewExample: React.FC<React.ComponentProps<typeof Template>> = (props) => {
+  const { overlay: initialOverlay, ...rest } = props;
+  const [overlay, setOverlay] = React.useState(initialOverlay);
+
+  return (
+    <Template
+      {...rest}
+      {...(overlay !== undefined
+        ? {
+            overlay: {
+              ...overlay,
+              onClose: () => {
+                overlay.onClose?.();
+                setOverlay(undefined);
+              },
+            },
+          }
+        : {})}
     />
   );
 };
@@ -70,7 +98,13 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const RemovableSelectedTags: Story = {
-  render: () => <RemovableSelectedTagsExample />,
+  args: { onRemoveTag: fn() },
+  render: (args) => <RemovableSelectedTagsExample onRemoveTag={args.onRemoveTag} />,
+  play: async ({ args, canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Remove TypeScript filter" }));
+    await expect(args.onRemoveTag).toHaveBeenCalledWith("TypeScript");
+    await expect(canvas.queryByRole("button", { name: "Remove TypeScript filter" })).not.toBeInTheDocument();
+  },
 };
 
 export const Long: Story = {
@@ -87,8 +121,14 @@ export const CardView: Story = {
         text: fixture.card.default.backText,
         category: fixture.deck.default.category,
       },
-      onClose: () => undefined,
+      onClose: fn(),
     },
+  },
+  render: (args) => <ClosableCardViewExample {...args} />,
+  play: async ({ args, canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Close card" }));
+    await expect(args.overlay?.onClose).toHaveBeenCalledOnce();
+    await expect(canvas.queryByText(fixture.card.default.backText)).not.toBeInTheDocument();
   },
 };
 

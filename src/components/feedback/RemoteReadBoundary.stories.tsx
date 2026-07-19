@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, fn } from "storybook/test";
 
 import { RemoteReadBoundary as Template } from "@/components/feedback/RemoteReadBoundary";
 import { RouteFeedback } from "@/components/feedback/RouteFeedback";
@@ -16,7 +17,11 @@ type Story = StoryObj<typeof meta>;
 export const InitialLoading: Story = {};
 
 export const InitialError: Story = {
-  args: { status: "error", hasData: false },
+  args: { status: "error", hasData: false, onRetry: fn() },
+  play: async ({ args, canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Retry" }));
+    await expect(args.onRetry).toHaveBeenCalledOnce();
+  },
 };
 
 export const CachedSyncError: Story = {
