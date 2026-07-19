@@ -2,12 +2,13 @@ import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { applyRealtimeChange } from "@/lib/realtimeChange";
-import { firestoreKeys } from "@/query/firestoreKeys";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
+import { createRemoteCache } from "@/query/cache/remoteCache";
 import {
   createRemoteReadController,
   type RemoteReadDependencies,
   type RemoteSubscriptionProps,
-} from "@/query/remoteReadController";
+} from "@/query/reads/remoteReadController";
 import { createCard, createDeck } from "@/test/factories";
 
 const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map((item) => [item.id, item]));
@@ -19,7 +20,7 @@ const createHarness = () => {
   const deckUnsubscribes: ReturnType<typeof vi.fn>[] = [];
   const cardUnsubscribes: ReturnType<typeof vi.fn>[] = [];
   const dependencies: RemoteReadDependencies = {
-    client,
+    cache: createRemoteCache(client),
     subscribeDecks: vi.fn((props) => {
       deckSubscriptions.push(props);
       const unsubscribe = vi.fn();

@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import * as firestore from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
-import { createDeckMutationService } from "@/query/deckMutationService";
+import { createRemoteCache } from "@/query/cache/remoteCache";
+import { createDeckMutationService } from "@/query/mutations/deckMutationService";
 
 type Variables = { kind: "create"; deck: Deck } | { kind: "update"; deck: DeckEdit } | { kind: "remove"; deck: Deck };
 type Failure = { variables: Variables; error: unknown };
@@ -30,7 +31,7 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   const service = useMemo(
     () =>
       createDeckMutationService({
-        client,
+        cache: createRemoteCache(client),
         createDeck: firestore.deck.create,
         updateDeck: firestore.deck.update,
         removeDeck: firestore.deck.remove,

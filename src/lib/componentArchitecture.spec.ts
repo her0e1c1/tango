@@ -9,7 +9,7 @@ const mutablePresentationHook = /\b(?:React\.)?(?:useState|useReducer|useForm|us
 const customHookDefinition = /\b(?:const|function)\s+(use[A-Z][A-Za-z0-9]*)\b/g;
 const firestoreCompositionModules = new Set([
   "firebase.ts",
-  "query/remoteReadSession.ts",
+  "query/reads/remoteReadSession.ts",
   "features/card/hooks/useCardMutations.ts",
   "features/deck/hooks/useDeckMutations.ts",
   "features/import/hooks/useDeckImport.ts",

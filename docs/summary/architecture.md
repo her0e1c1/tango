@@ -81,4 +81,6 @@ flowchart LR
 - domain 操作は `src/action` と feature mutation hook に集約されています。
 - Deck/Card mutation は TanStack Query cache を optimistic に更新し、Firestore 書き込みを待機して失敗時に rollback します。
 - mutation service と remote read controller は既存の関数注入境界を使います。Repository interface や DI container は追加せず、concrete Firestore adapter は application composition module だけで配線します。
+- `src/query/cache` は UID-scoped Query cache、`src/query/reads` は Firestore 購読 lifecycle、`src/query/mutations` は lock・optimistic update・rollback を担当します。`src/query/selectors.ts` は React 非依存の派生データ計算を担当します。
+- remote read は `AuthBootstrap -> reads/session -> reads/controller -> cache/remoteCache -> QueryClient`、mutation は `feature hook -> mutations/service -> mutations/locks -> mutations/optimisticMutation -> cache/remoteCache -> Firestore` の一方向に流れます。
 - sample deck は Python サブプロジェクトで生成した JSON を、Import 画面から通常の Firestore mutation で追加します。

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createFirestoreSyncController } from "@/query/firestoreSyncController";
+import { createSyncState } from "@/query/reads/syncState";
 
-describe("Firestore sync controller", () => {
+describe("remote sync state", () => {
   it("distinguishes cached, pending, and server-synced snapshots after both collections load", () => {
-    const controller = createFirestoreSyncController(["deck", "card"]);
+    const controller = createSyncState(["deck", "card"]);
     const generation = controller.start("uid-a");
 
     controller.observe("uid-a", generation, "deck", { fromCache: true, hasPendingWrites: false });
@@ -21,7 +21,7 @@ describe("Firestore sync controller", () => {
   });
 
   it("ignores snapshots and errors from an old UID generation", () => {
-    const controller = createFirestoreSyncController(["deck", "card"]);
+    const controller = createSyncState(["deck", "card"]);
     const oldGeneration = controller.start("uid-a");
     const currentGeneration = controller.start("uid-b");
 
@@ -36,7 +36,7 @@ describe("Firestore sync controller", () => {
   });
 
   it("publishes listener errors and resets to idle when stopped", () => {
-    const controller = createFirestoreSyncController(["deck", "card"]);
+    const controller = createSyncState(["deck", "card"]);
     const listener = vi.fn();
     controller.subscribe(listener);
     const generation = controller.start("uid-a");

@@ -54,6 +54,18 @@ UI の依存方向は `App -> Page -> Container -> Template -> Component` です
 
 `src/features` は `deck`、`card`、`study`、`import`、`settings` に分かれます。stories と specs は対象の component、template、container と同じ feature に置きます。Storybook は `src/**/*.stories.tsx`、Vitest は `src/**/*.spec.{ts,tsx}` を discovery します。
 
+## Query module の責務
+
+`src/query` は server state の責務別に分かれます。
+
+- `cache` は UID-scoped key、Deck/Card の ID map、TanStack Query cache の typed read/replace を所有します。
+- `reads` は Firestore listener、古い UID generation の除外、同期状態、自動再接続、runtime 初期化待ちを所有します。
+- `mutations` は entity lock、optimistic update、条件付き rollback、Deck/Card 固有の書き込み規則を所有します。
+- `selectors.ts` は Deck/Card の関係、tag、study 対象を計算する純粋関数を提供します。
+- `useRemoteCollections.ts` は認証 UID、read 状態、Query subscription、selector を React 向け API として接続します。
+
+read は `AuthBootstrap -> reads/session -> reads/controller -> cache/remoteCache -> QueryClient`、write は `feature hook -> mutations/service -> mutations/locks -> mutations/optimisticMutation -> cache/remoteCache -> Firestore` の順に流れます。
+
 ## 構成メモ
 
 - `src/main.tsx` で TanStack Query と Auth Context を初期化します。

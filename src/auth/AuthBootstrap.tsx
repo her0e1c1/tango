@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { useAuth, type AuthState } from "@/auth/AuthContext";
 import { cleanupFirestoreUid } from "@/query/cleanup";
-import { startRemoteReads } from "@/query/remoteReadSession";
+import { startRemoteReads } from "@/query/reads/remoteReadSession";
 
 type AuthenticatedIdentity = {
   uid: string;

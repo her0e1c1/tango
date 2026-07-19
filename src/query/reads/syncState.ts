@@ -1,24 +1,24 @@
-export interface FirestoreSnapshotMetadata {
+export interface RemoteSnapshotMetadata {
   fromCache: boolean;
   hasPendingWrites: boolean;
 }
 
-export type FirestoreSyncStatus = "cached" | "pending" | "synced";
+export type RemoteSyncStatus = "cached" | "pending" | "synced";
 
-export type FirestoreSyncState =
+export type RemoteReadState =
   | { uid: null; status: "idle" }
   | { uid: string; status: "loading" }
-  | { uid: string; status: "ready"; syncStatus: FirestoreSyncStatus }
+  | { uid: string; status: "ready"; syncStatus: RemoteSyncStatus }
   | { uid: string; status: "error"; error: Error };
 
-export const createFirestoreSyncController = <Collection extends string>(collections: readonly Collection[]) => {
+export const createSyncState = <Collection extends string>(collections: readonly Collection[]) => {
   let activeUid: string | undefined;
   let generation = 0;
-  let state: FirestoreSyncState = { uid: null, status: "idle" };
-  let metadata = new Map<Collection, FirestoreSnapshotMetadata>();
+  let state: RemoteReadState = { uid: null, status: "idle" };
+  let metadata = new Map<Collection, RemoteSnapshotMetadata>();
   const listeners = new Set<Callback>();
 
-  const setState = (next: FirestoreSyncState) => {
+  const setState = (next: RemoteReadState) => {
     state = next;
     listeners.forEach((listener) => {
       listener();
@@ -35,17 +35,12 @@ export const createFirestoreSyncController = <Collection extends string>(collect
       setState({ uid, status: "loading" });
       return currentGeneration;
     },
-    observe: (
-      uid: string,
-      currentGeneration: number,
-      collection: Collection,
-      nextMetadata: FirestoreSnapshotMetadata
-    ) => {
+    observe: (uid: string, currentGeneration: number, collection: Collection, nextMetadata: RemoteSnapshotMetadata) => {
       if (!isCurrent(uid, currentGeneration)) return;
       metadata.set(collection, nextMetadata);
       if (collections.some((name) => !metadata.has(name))) return;
 
-      const snapshots = collections.map((name) => metadata.get(name) as FirestoreSnapshotMetadata);
+      const snapshots = collections.map((name) => metadata.get(name) as RemoteSnapshotMetadata);
       const syncStatus = snapshots.some((snapshot) => snapshot.hasPendingWrites)
         ? "pending"
         : snapshots.some((snapshot) => snapshot.fromCache)
