@@ -10,7 +10,7 @@ import {
   setDoc,
   type Firestore,
 } from "firebase/firestore";
-import { getTimestamp } from "@/adapters/firestore/mocked";
+import { getTimestamp } from "@/adapters/firestore/documentMetadata";
 import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument, type DeckDocument } from "@/adapters/firestore/dto";
 import { getDb } from "@/adapters/firestore/runtime";
 

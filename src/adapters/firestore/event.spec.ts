@@ -6,7 +6,7 @@ import * as firestore from "@/adapters/firestore";
 import type { RemoteSnapshot } from "@/query/remoteReadContract";
 import { createCard, createDeck } from "@/test/factories";
 
-vi.mock("./mocked", () => ({
+vi.mock("./documentMetadata", () => ({
   generateDeckId: vi.fn(() => "unused-deck-id"),
   generateCardId: vi.fn(() => "unused-card-id"),
   getTimestamp: vi.fn(() => 100),

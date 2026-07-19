@@ -201,6 +201,11 @@ describe("component architecture", () => {
     expect(violations, violations.join("\n")).toEqual([]);
   });
 
+  it("uses production-oriented names for Firestore adapter modules", () => {
+    expect(existsSync(sourcePath("adapters/firestore/mocked.ts"))).toBe(false);
+    expect(existsSync(sourcePath("adapters/firestore/documentMetadata.ts"))).toBe(true);
+  });
+
   it("limits concrete Firestore dependencies to composition modules", () => {
     const applicationFiles = [
       ...productionFilesUnder("action"),

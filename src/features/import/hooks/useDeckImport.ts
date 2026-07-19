@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 
 import * as action from "@/action";
-import { mocked as firestoreIds } from "@/adapters/firestore";
+import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
@@ -63,7 +63,7 @@ export const useDeckImport = () => {
         preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
       );
       if (deck == null) {
-        deck = action.deck.prepare({ name }, uid, firestoreIds.generateDeckId);
+        deck = action.deck.prepare({ name }, uid, firestoreMetadata.generateDeckId);
         if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
         await deckMutations.create(deck);
       }
@@ -77,7 +77,7 @@ export const useDeckImport = () => {
       plan.rows.forEach((row) => {
         const current = byUniqueKey.get(row.card.uniqueKey);
         if (row.action === "create") {
-          const card = action.card.prepare(row.card, deck, firestoreIds.generateCardId);
+          const card = action.card.prepare(row.card, deck, firestoreMetadata.generateCardId);
           upserts.push(card);
           createdIds.add(card.id);
         } else if (row.action === "update" && current != null) {

@@ -10,7 +10,7 @@ import {
   where,
   type Firestore,
 } from "firebase/firestore";
-import { getTimestamp } from "@/adapters/firestore/mocked";
+import { getTimestamp } from "@/adapters/firestore/documentMetadata";
 import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument, type CardDocument } from "@/adapters/firestore/dto";
 import { getDb } from "@/adapters/firestore/runtime";
 

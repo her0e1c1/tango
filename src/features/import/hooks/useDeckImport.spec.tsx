@@ -40,7 +40,7 @@ vi.mock("@/action", () => ({
   card: { prepare: mocks.prepareCard },
 }));
 vi.mock("@/adapters/firestore", () => ({
-  mocked: { generateDeckId: mocks.generateDeckId, generateCardId: mocks.generateCardId },
+  documentMetadata: { generateDeckId: mocks.generateDeckId, generateCardId: mocks.generateCardId },
 }));
 
 import { sampleDeckId, useDeckImport } from "@/features/import/hooks/useDeckImport";

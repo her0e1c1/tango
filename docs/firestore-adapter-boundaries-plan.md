@@ -146,7 +146,7 @@ git commit -m "Extract remote read contracts"
 - Modify: `src/auth/AuthLogout.integration.spec.tsx`
 
 **Interfaces:**
-- Produces: the existing `deck`, `card`, `event`, and `mocked` namespace exports from `@/adapters/firestore`
+- Produces: the existing `deck`, `card`, and `event` namespace exports plus production-oriented `documentMetadata` helpers from `@/adapters/firestore`
 - Produces: `initializeFirestoreAdapter(app)`, `getDb`, `getFirestoreInitializationState`, `waitForFirestoreInitialization`, and `subscribeFirestoreInitialization` from the adapter runtime
 - Consumes: neutral remote-read contracts from `@/query/remoteReadContract`
 
@@ -193,7 +193,7 @@ git commit -m "Move Firestore implementation into adapter"
 
 **Interfaces:**
 - Produces: `deck.prepare(deck, uid, generateId)` and `card.prepare(card, deck, generateId)`
-- Consumes: `firestore.mocked.generateDeckId` and `firestore.mocked.generateCardId` only from the import feature's composition hook
+- Consumes: `firestore.documentMetadata.generateDeckId` and `firestore.documentMetadata.generateCardId` only from the import feature's composition hook
 
 - [ ] **Step 1: Write failing ID-injection tests**
 
