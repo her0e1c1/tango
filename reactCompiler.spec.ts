@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { describe, expect, it, vi } from "vitest";
 import storybookConfig from "./.storybook/main";
 import viteConfig from "./vite.config";
