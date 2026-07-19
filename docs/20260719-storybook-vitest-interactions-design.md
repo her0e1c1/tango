@@ -45,13 +45,15 @@ The `test:storybook` npm script will run only the Storybook project in non-watch
 
 ## Representative Interactions
 
-Existing stories will remain the source of test cases. The new `play` functions will use accessible queries and `userEvent`, and callback args involved in assertions will use Storybook's `fn()` utility.
+Existing stories will remain the source of test cases. The new `play` functions will use accessible queries with `userEvent` or `fireEvent`, and callback args involved in assertions will use Storybook's `fn()` utility.
 
 - `DeckForm`: edit the name field and submit the form; assert the field callback and submit callback.
 - `RemoteReadBoundary`: activate Retry from an error state; assert the retry callback.
 - `CardListTemplate`: close an open card overlay; assert the close callback.
 - `CardListTemplate`: remove a selected tag; assert that the tag disappears and the removal behavior completes.
-- `DeckStartForm`: toggle a score limit and change its slider; assert both callbacks with their resulting input values.
+- `TagFilter`: select and remove a tag; assert the checkbox state and selected-tag callback payloads.
+- `Switch`: toggle the control; assert its checked state and change callback.
+- `Slider`: change the control value; assert its visible value and change callback.
 
 Each interaction awaits browser events and asserts the user-visible result or callback payload. Other stories still receive automatic render smoke coverage through the Storybook Vitest plugin.
 
@@ -65,7 +67,7 @@ Locally, developers can run the npm script for terminal output or use Storybook'
 
 The implementation is complete when:
 
-- the Storybook test command executes all 279 stories in Chromium;
+- the Storybook test command executes all 283 stories in Chromium, including the four new interaction scenarios;
 - the representative interaction stories pass and prove their intended results;
 - unit-test and coverage commands still target only the unit project;
 - pull request CI contains the Storybook browser test;

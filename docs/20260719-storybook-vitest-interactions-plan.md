@@ -16,7 +16,7 @@
 - Preserve application behavior, existing jsdom unit-test scope, Firestore-test scope, and coverage thresholds.
 - Replace no-op callbacks only where the new interaction stories observe them.
 - Use accessible queries and await every browser interaction.
-- Run all 279 stories through Playwright Chromium.
+- Run every discovered story through Playwright Chromium (279 baseline stories plus four new interaction scenarios).
 - Before publishing, run `npm run test:storybook`, `npm run build:storybook`, and `make check`.
 - The pull request must include `Closes #339`.
 
@@ -231,11 +231,13 @@ git commit -m "Test Storybook form and retry interactions"
 
 **Files:**
 - Modify: `src/features/card/components/templates/CardListTemplate.stories.tsx`
-- Modify: `src/features/deck/components/DeckStartForm.stories.tsx`
+- Modify: `src/features/deck/components/TagFilter.stories.tsx`
+- Modify: `src/components/forms/Switch.stories.tsx`
+- Modify: `src/components/forms/Slider.stories.tsx`
 
 **Interfaces:**
 - Produces: stateful `CardView` and `RemovableSelectedTags` stories that call spies and update visible state.
-- Produces: `DeckStartForm.Interaction`, which controls maximum-score enablement, slider value, and selected tags while forwarding events to `fn()` spies.
+- Produces: `TagFilter.Interaction`, `Switch.Interaction`, and `Slider.Interaction`, which control their own state while forwarding events to `fn()` spies.
 
 - [ ] **Step 1: Add failing CardList play assertions**
 
@@ -257,52 +259,34 @@ Import `{ expect, fn }` from `storybook/test`. Change `RemovableSelectedTagsExam
 
 Run the Step 2 command. Expected: all CardList stories pass, and both interactions prove callback plus visible-state behavior.
 
-- [ ] **Step 5: Add a failing DeckStartForm play function**
+- [ ] **Step 5: Add failing tag, switch, and slider play functions**
 
-Create `Interaction` with `fn()` callbacks for the maximum switch, maximum slider, and `onClickTag`. In `play`:
+Create one `Interaction` story for each control. Select and remove `tag1`, toggle the switch, and change the slider from `40` to `41`. Assert the resulting element state and callback invocation or payload in each play function.
 
-```ts
-const maxSwitch = canvas.getByRole("checkbox", { name: "Enable maximum score" });
-await userEvent.click(maxSwitch);
-await expect(args.scoreMaxSwitchProps.onChange).toHaveBeenCalled();
-await expect(canvas.getByText("−1 and above")).toBeVisible();
-
-await userEvent.click(maxSwitch);
-const maxSlider = canvas.getByRole("slider", { name: "Maximum score value" });
-maxSlider.focus();
-await userEvent.keyboard("{ArrowRight}");
-await expect(args.scoreMaxSliderProps.onChange).toHaveBeenCalled();
-await expect(canvas.getByText("Current limit: 2")).toBeVisible();
-
-await userEvent.click(canvas.getByRole("checkbox", { name: "tag 1" }));
-await expect(args.tagFilterProps.onClickTag).toHaveBeenCalledWith(["tag 1"]);
-await expect(canvas.getByRole("checkbox", { name: "tag 1" })).toBeChecked();
-```
-
-- [ ] **Step 6: Run DeckStartForm stories and confirm RED**
+- [ ] **Step 6: Run the control stories and confirm RED**
 
 ```bash
-npm run test:storybook -- src/features/deck/components/DeckStartForm.stories.tsx
+npm run test:storybook -- src/features/deck/components/TagFilter.stories.tsx src/components/forms/Switch.stories.tsx src/components/forms/Slider.stories.tsx
 ```
 
-Expected: FAIL because controlled props do not update visible state.
+Expected: FAIL because controlled props do not update visible state and the callbacks are ordinary functions.
 
-- [ ] **Step 7: Add the controlled DeckStartForm wrapper**
+- [ ] **Step 7: Add controlled wrappers and observable callbacks**
 
-Create a wrapper that owns `scoreMax`, maximum enabled state, and `selectedTags`. Its switch, slider, and tag handlers update local state first and then call the original callbacks. Keep minimum-score props unchanged. Render `Interaction` through the wrapper so the badge, description, slider, and tag checkbox reflect each browser event.
+Create wrappers that own `selectedTags` and the slider value. Use `fn()` callbacks in interaction args, and add `fn()` change handlers to the remaining controlled Switch and Slider stories so browser smoke tests do not emit React read-only-field errors. Use `fireEvent.change` for the range input because the instrumented browser `userEvent` does not apply its native value default.
 
 - [ ] **Step 8: Run all Task 3 stories and confirm GREEN**
 
 ```bash
-npm run test:storybook -- src/features/card/components/templates/CardListTemplate.stories.tsx src/features/deck/components/DeckStartForm.stories.tsx
+npm run test:storybook -- src/features/card/components/templates/CardListTemplate.stories.tsx src/features/deck/components/TagFilter.stories.tsx src/components/forms/Switch.stories.tsx src/components/forms/Slider.stories.tsx
 ```
 
-Expected: every story and all overlay, removal, selection, switch, and slider assertions pass.
+Expected: all 31 stories and all overlay, removal, selection, switch, and slider assertions pass without controlled-field console errors.
 
 - [ ] **Step 9: Commit the remaining interactions**
 
 ```bash
-git add src/features/card/components/templates/CardListTemplate.stories.tsx src/features/deck/components/DeckStartForm.stories.tsx
+git add src/features/card/components/templates/CardListTemplate.stories.tsx src/features/deck/components/TagFilter.stories.tsx src/components/forms/Switch.stories.tsx src/components/forms/Slider.stories.tsx docs/20260719-storybook-vitest-interactions-design.md docs/20260719-storybook-vitest-interactions-plan.md
 git commit -m "Test Storybook filter control interactions"
 ```
 
@@ -375,7 +359,7 @@ npm run test:unit -- storybookVitest.spec.ts src/lib/storybookCi.spec.ts reactCo
 npm run test:storybook
 ```
 
-Expected: configuration tests pass and all 52 story files / 279 stories pass in Chromium.
+Expected: configuration tests pass and all 52 story files / 283 stories pass in Chromium.
 
 - [ ] **Step 2: Verify Storybook build and repository gate**
 
