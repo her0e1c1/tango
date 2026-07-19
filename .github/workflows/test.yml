@@ -49,8 +49,7 @@ jobs:
           path: coverage/
           if-no-files-found: warn
 
-      # mise sets COMPOSE_FILE for local development; make ci needs the Makefile defaults.
-      - run: env -u COMPOSE_FILE make ci
+      - run: make ci
 
       - name: Upload Playwright report
         if: ${{ always() }}

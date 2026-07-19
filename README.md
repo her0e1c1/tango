@@ -74,7 +74,7 @@ Run every TypeScript and React spec, including the Firestore emulator specs, in 
 ```bash
 mise run coverage
 # Or run the same coverage command in Docker
-env -u COMPOSE_FILE make coverage
+make coverage
 ```
 
 Coverage includes `src/**/*.{ts,tsx}`, including files that no test imports. Specs, stories, declaration files,
