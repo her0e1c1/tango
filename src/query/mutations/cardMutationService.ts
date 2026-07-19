@@ -1,11 +1,10 @@
-import type { QueryClient } from "@tanstack/react-query";
-
-import { firestoreKeys } from "@/query/firestoreKeys";
-import { cardMutationLock, withMutationLocks } from "@/query/mutationLocks";
-import { runOptimisticMutation, toRemoteById, type RemoteById } from "@/query/remoteCollection";
+import type { RemoteCache } from "@/query/cache/remoteCache";
+import { toRemoteById, type RemoteById } from "@/query/cache/remoteCollection";
+import { cardMutationLock, withMutationLocks } from "@/query/mutations/locks";
+import { runOptimisticMutation } from "@/query/mutations/optimisticMutation";
 
 export interface CardMutationServiceDependencies {
-  client: QueryClient;
+  cache: RemoteCache;
   createCard: (card: Card) => Promise<string>;
   updateCard: (card: CardEdit) => Promise<void>;
   removeCard: (id: CardId) => Promise<void>;
@@ -23,10 +22,10 @@ export class CardBulkMutationError extends Error {
 }
 
 export const createCardMutationService = (dependencies: CardMutationServiceDependencies) => {
-  const cards = (uid: string) => dependencies.client.getQueryData<RemoteById<Card>>(firestoreKeys.cards(uid)) ?? {};
+  const cards = (uid: string) => dependencies.cache.read(uid, "cards");
 
   const replaceCards = (uid: string, next: RemoteById<Card>) => {
-    dependencies.client.setQueryData(firestoreKeys.cards(uid), next);
+    dependencies.cache.replace(uid, "cards", next);
   };
 
   const optimistic = async <T>(

@@ -1,23 +1,20 @@
-import type { QueryClient } from "@tanstack/react-query";
-
-import { firestoreKeys } from "@/query/firestoreKeys";
-import { cardMutationLock, deckMutationLock, withMutationLocks } from "@/query/mutationLocks";
-import { runOptimisticMutation, type RemoteById } from "@/query/remoteCollection";
+import type { RemoteCache } from "@/query/cache/remoteCache";
+import type { RemoteById } from "@/query/cache/remoteCollection";
+import { cardMutationLock, deckMutationLock, withMutationLocks } from "@/query/mutations/locks";
+import { runOptimisticMutation } from "@/query/mutations/optimisticMutation";
 
 export interface DeckMutationServiceDependencies {
-  client: QueryClient;
+  cache: RemoteCache;
   createDeck: (deck: Deck) => Promise<string>;
   updateDeck: (deck: DeckEdit) => Promise<void>;
   removeDeck: (deckId: DeckId, uid: string) => Promise<void>;
 }
 
 export const createDeckMutationService = (dependencies: DeckMutationServiceDependencies) => {
-  const decks = (uid: string) => dependencies.client.getQueryData<RemoteById<Deck>>(firestoreKeys.decks(uid)) ?? {};
-  const cards = (uid: string) => dependencies.client.getQueryData<RemoteById<Card>>(firestoreKeys.cards(uid)) ?? {};
-  const setDecks = (uid: string, next: RemoteById<Deck>) =>
-    dependencies.client.setQueryData(firestoreKeys.decks(uid), next);
-  const setCards = (uid: string, next: RemoteById<Card>) =>
-    dependencies.client.setQueryData(firestoreKeys.cards(uid), next);
+  const decks = (uid: string) => dependencies.cache.read(uid, "decks");
+  const cards = (uid: string) => dependencies.cache.read(uid, "cards");
+  const setDecks = (uid: string, next: RemoteById<Deck>) => dependencies.cache.replace(uid, "decks", next);
+  const setCards = (uid: string, next: RemoteById<Card>) => dependencies.cache.replace(uid, "cards", next);
   const optimisticDeck = <T>(
     uid: string,
     id: DeckId,

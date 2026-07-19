@@ -1,8 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 import { queryClient } from "@/query/client";
-import { firestoreKeys } from "@/query/firestoreKeys";
-import { stopRemoteReads } from "@/query/remoteReadSession";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
+import { stopRemoteReads } from "@/query/reads/remoteReadSession";
 
 export const cleanupFirestoreUid = async (uid: string, client: QueryClient = queryClient) => {
   const filter = { queryKey: firestoreKeys.uid(uid) };

@@ -1,22 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
-import { uniq } from "lodash";
 
 import { useAuth } from "@/auth/AuthContext";
-import { filterCardsForDeck } from "@/lib/study";
-import { firestoreKeys } from "@/query/firestoreKeys";
-import type { RemoteById } from "@/query/remoteCollection";
-import type { RemoteReadState } from "@/query/remoteReadController";
+import { firestoreKeys } from "@/query/cache/firestoreKeys";
+import type { RemoteById } from "@/query/cache/remoteCollection";
+import type { RemoteReadState } from "@/query/reads/syncState";
 import {
   getRemoteReadBlocker,
   getRemoteReadState,
   retryRemoteReads,
   subscribeRemoteReadBlocker,
   subscribeRemoteReadState,
-} from "@/query/remoteReadSession";
-
-const definedEntries = <T>(items: Record<string, T | undefined>) =>
-  Object.entries(items).filter((entry): entry is [string, T] => entry[1] != null);
+} from "@/query/reads/remoteReadSession";
+import { cardsForDeck, filteredCardsForDeck, remoteValues, tagsForDeck } from "@/query/selectors";
 
 export const useRemoteCollections = () => {
   const authState = useAuth();
@@ -37,8 +33,8 @@ export const useRemoteCollections = () => {
 
   const decksById = hasActiveUid ? (remoteDeckQuery.data ?? {}) : {};
   const cardsById = hasActiveUid ? (remoteCardQuery.data ?? {}) : {};
-  const decks = definedEntries(decksById).map(([, deck]) => deck);
-  const cards = definedEntries(cardsById).map(([, card]) => card);
+  const decks = remoteValues(decksById);
+  const cards = remoteValues(cardsById);
 
   const status: RemoteReadState["status"] | "blocked" = blocker
     ? "blocked"
@@ -61,13 +57,9 @@ export const useRemoteCollections = () => {
     retry: retryRemoteReads,
     deckById: (id: string) => decksById[id],
     cardById: (id: string) => cardsById[id],
-    cardsByDeckId: (deckId: string) => cards.filter((card) => card.deckId === deckId),
-    filteredCardsByDeckId: (deckId: string, config: ConfigState) => {
-      const deck = decksById[deckId];
-      const deckCards = cards.filter((card) => card.deckId === deckId);
-      return deck == null ? [] : filterCardsForDeck(deckCards, deck, config, Date.now());
-    },
-    tagsByDeckId: (deckId: string) =>
-      uniq(cards.filter((card) => card.deckId === deckId).flatMap((card) => card.tags)).sort(),
+    cardsByDeckId: (deckId: string) => cardsForDeck(cards, deckId),
+    filteredCardsByDeckId: (deckId: string, config: ConfigState) =>
+      filteredCardsForDeck(decksById, cards, deckId, config, Date.now()),
+    tagsByDeckId: (deckId: string) => tagsForDeck(cards, deckId),
   };
 };

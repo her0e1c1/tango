@@ -17,7 +17,7 @@ vi.mock("firebase/auth", () => ({
   signInAnonymously: mocks.signInAnonymously,
 }));
 vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupUid }));
-vi.mock("@/query/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
+vi.mock("@/query/reads/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
 
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
 import { AuthProvider, createAuthStore } from "@/auth/AuthContext";

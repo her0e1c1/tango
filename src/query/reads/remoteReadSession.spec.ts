@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { RemoteReadDependencies } from "@/query/remoteReadController";
+import type { RemoteReadDependencies } from "@/query/reads/remoteReadController";
 
 type InitializationState = { status: "ready" } | { status: "blocked"; error: Error };
 
@@ -31,7 +31,7 @@ vi.mock("@/action/firestore", () => ({
 }));
 vi.mock("@/query/client", () => ({ queryClient: {} }));
 vi.mock("@/lib/realtimeChange", () => ({ applyRealtimeChange: vi.fn() }));
-vi.mock("@/query/remoteReadController", () => ({
+vi.mock("@/query/reads/remoteReadController", () => ({
   createRemoteReadController: vi.fn((dependencies: RemoteReadDependencies) => {
     mocks.dependencies = dependencies;
     return {
@@ -44,7 +44,7 @@ vi.mock("@/query/remoteReadController", () => ({
   }),
 }));
 
-import { startRemoteReads, stopRemoteReads } from "@/query/remoteReadSession";
+import { startRemoteReads, stopRemoteReads } from "@/query/reads/remoteReadSession";
 
 describe("remote read session", () => {
   beforeEach(() => {
