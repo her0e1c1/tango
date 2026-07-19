@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/auth/AuthContext", () => ({
   useAuth: () => ({ status: "authenticated", uid: "uid-a", user: { uid: "uid-a" } }),
 }));
-vi.mock("@/action/firestore", () => ({
+vi.mock("@/adapters/firestore", () => ({
   deck: {
     create: mocks.create,
     update: mocks.update,

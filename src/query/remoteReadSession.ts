@@ -1,17 +1,17 @@
-import * as firestore from "@/action/firestore";
 import {
+  event,
   getFirestoreInitializationState,
   subscribeFirestoreInitialization,
   waitForFirestoreInitialization,
-} from "@/firestoreRuntime";
+} from "@/adapters/firestore";
 import { applyRealtimeChange } from "@/lib/realtimeChange";
 import { queryClient } from "@/query/client";
 import { createRemoteReadController } from "@/query/remoteReadController";
 
 export const remoteReadController = createRemoteReadController({
   client: queryClient,
-  subscribeDecks: firestore.event.subscribeDeckReads,
-  subscribeCards: firestore.event.subscribeCardReads,
+  subscribeDecks: event.subscribeDeckReads,
+  subscribeCards: event.subscribeCardReads,
   applyChange: applyRealtimeChange,
 });
 

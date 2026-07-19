@@ -18,16 +18,13 @@ const mocks = vi.hoisted(() => ({
   subscribeCards: vi.fn(),
 }));
 
-vi.mock("@/firestoreRuntime", () => ({
-  getFirestoreInitializationState: () => mocks.initializationState,
-  subscribeFirestoreInitialization: vi.fn(() => () => undefined),
-  waitForFirestoreInitialization: mocks.waitForInitialization,
-}));
-
-vi.mock("@/action/firestore", () => ({
+vi.mock("@/adapters/firestore", () => ({
   deck: { readAll: mocks.readDecks },
   card: { readAll: mocks.readCards },
   event: { subscribeDeckReads: mocks.subscribeDecks, subscribeCardReads: mocks.subscribeCards },
+  getFirestoreInitializationState: () => mocks.initializationState,
+  subscribeFirestoreInitialization: vi.fn(() => () => undefined),
+  waitForFirestoreInitialization: mocks.waitForInitialization,
 }));
 vi.mock("@/query/client", () => ({ queryClient: {} }));
 vi.mock("@/lib/realtimeChange", () => ({ applyRealtimeChange: vi.fn() }));

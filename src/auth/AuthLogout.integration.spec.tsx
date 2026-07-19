@@ -38,7 +38,7 @@ vi.mock("firebase/auth", () => ({
 vi.mock("firebase/app", () => ({
   FirebaseError: class FirebaseError extends Error {},
 }));
-vi.mock("@/action/firestore", () => ({}));
+vi.mock("@/adapters/firestore", () => ({}));
 vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupUid }));
 vi.mock("@/query/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
 vi.mock("@/features/study/state/studyStore", async (importOriginal) => {

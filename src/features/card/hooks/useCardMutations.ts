@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import * as firestore from "@/action/firestore";
+import * as firestore from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { createCardMutationService } from "@/query/cardMutationService";

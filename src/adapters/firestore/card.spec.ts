@@ -1,8 +1,8 @@
 import "./init";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-import * as firestore from "@/action/firestore";
-import { getTimestamp } from "@/action/firestore/mocked";
+import * as firestore from "@/adapters/firestore";
+import { getTimestamp } from "@/adapters/firestore/mocked";
 import { v4 as uuid } from "uuid";
 import { createCard, createDeck } from "@/test/factories";
 

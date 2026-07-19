@@ -10,9 +10,9 @@ import {
   setDoc,
   type Firestore,
 } from "firebase/firestore";
-import { getTimestamp } from "@/action/firestore/mocked";
-import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument, type DeckDocument } from "@/action/firestore/dto";
-import { getDb } from "@/firestoreRuntime";
+import { getTimestamp } from "@/adapters/firestore/mocked";
+import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument, type DeckDocument } from "@/adapters/firestore/dto";
+import { getDb } from "@/adapters/firestore/runtime";
 
 export const readAll = async (uid: string, firestore: Firestore = getDb()): Promise<Deck[]> => {
   const snapshot = await getDocs(query(collection(firestore, "deck"), where("uid", "==", uid)));

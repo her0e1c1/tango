@@ -2,8 +2,8 @@ import "./init";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import * as firestore from "@/action/firestore";
-import type { RemoteSnapshot } from "@/action/firestore/event";
+import * as firestore from "@/adapters/firestore";
+import type { RemoteSnapshot } from "@/adapters/firestore/event";
 import { createCard, createDeck } from "@/test/factories";
 
 vi.mock("./mocked", () => ({

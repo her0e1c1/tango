@@ -1,7 +1,7 @@
 import type { Firestore } from "firebase/firestore";
 import { describe, expect, it, vi } from "vitest";
 
-import { FirestorePersistenceUnavailableError, verifyFirestorePersistence } from "@/firestorePersistenceProbe";
+import { FirestorePersistenceUnavailableError, verifyFirestorePersistence } from "@/adapters/firestore/persistenceProbe";
 
 const firestoreWithCacheKind = (kind: string): Firestore =>
   ({ _firestoreClient: { _offlineComponents: { kind } } }) as unknown as Firestore;
