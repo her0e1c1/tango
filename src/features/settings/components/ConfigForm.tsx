@@ -27,6 +27,8 @@ export interface ConfigFormProps {
   cardInterval: number;
   onLogin?: () => void;
   onLogout?: () => void;
+  accountPending?: boolean;
+  accountFeedback?: React.ReactNode;
   version?: string;
 }
 
@@ -68,15 +70,26 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
             </div>
           </div>
           {props.isLoggedIn ? (
-            <Button variant="quiet" size="sm" {...(props.onLogout !== undefined ? { onClick: props.onLogout } : {})}>
+            <Button
+              variant="quiet"
+              size="sm"
+              {...(props.accountPending !== undefined ? { loading: props.accountPending } : {})}
+              {...(props.onLogout !== undefined ? { onClick: props.onLogout } : {})}
+            >
               Logout
             </Button>
           ) : (
-            <Button variant="primary" size="sm" {...(props.onLogin !== undefined ? { onClick: props.onLogin } : {})}>
+            <Button
+              variant="primary"
+              size="sm"
+              {...(props.accountPending !== undefined ? { loading: props.accountPending } : {})}
+              {...(props.onLogin !== undefined ? { onClick: props.onLogin } : {})}
+            >
               Login
             </Button>
           )}
         </div>
+        {props.accountFeedback}
       </SettingsSection>
 
       <SettingsSection title="Appearance" description="Navigation and visual feedback" icon={<AiOutlineEye />}>

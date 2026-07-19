@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   cardUpdateBy: vi.fn(),
   cardRemove: vi.fn(),
   onClickTag: vi.fn(),
+  navigate: vi.fn(),
 }));
 
 vi.mock("@/features/card/hooks/useCardMutations", () => ({
@@ -49,6 +50,7 @@ vi.mock("@/query/useRemoteCollections", () => ({
 
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
+  useNavigate: () => mocks.navigate,
 }));
 
 vi.mock("react-use", () => ({
@@ -138,6 +140,7 @@ describe("CardListContainer", () => {
     mocks.cardUpdateBy.mockReset().mockResolvedValue(undefined);
     mocks.cardRemove.mockReset().mockResolvedValue(undefined);
     mocks.onClickTag.mockReset();
+    mocks.navigate.mockReset();
   });
 
   afterEach(() => {

@@ -1,20 +1,16 @@
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/forms/Button";
+import { RouteFeedback } from "@/components/feedback/RouteFeedback";
 
-type RemoteReadBoundaryProps = {
+export type RemoteReadBoundaryProps = {
   status: "idle" | "loading" | "ready" | "error" | "blocked";
   hasData: boolean;
   emptyLabel?: string;
+  emptyContent?: ReactNode;
   onRetry: () => void;
   children: ReactNode;
 };
-
-const Status = ({ children }: { children: ReactNode }) => (
-  <div role="status" className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
-    {children}
-  </div>
-);
 
 const ErrorNotice = ({ hasData, onRetry }: Pick<RemoteReadBoundaryProps, "hasData" | "onRetry">) => (
   <div
@@ -31,19 +27,26 @@ const ErrorNotice = ({ hasData, onRetry }: Pick<RemoteReadBoundaryProps, "hasDat
 export const RemoteReadBoundary = (props: RemoteReadBoundaryProps) => {
   if (props.status === "blocked") {
     return (
-      <div
-        role="alert"
-        className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
-      >
-        Offline storage is unavailable. Close other tabs or use a supported browser, then reload this page.
-      </div>
+      <RouteFeedback
+        title="Offline storage is unavailable."
+        description="Close other tabs or use a supported browser, then reload this page."
+        tone="error"
+      />
     );
   }
-  if (props.status === "loading" && !props.hasData) return <Status>Loading…</Status>;
+  if (props.status === "loading" && !props.hasData) return <RouteFeedback title="Loading…" tone="loading" />;
   if (props.status === "error" && !props.hasData) {
-    return <ErrorNotice hasData={false} onRetry={props.onRetry} />;
+    return (
+      <RouteFeedback
+        title="Unable to load data."
+        tone="error"
+        primaryAction={{ label: "Retry", onClick: props.onRetry }}
+      />
+    );
   }
-  if (props.status === "ready" && !props.hasData) return <Status>{props.emptyLabel ?? "No data yet."}</Status>;
+  if (props.status === "ready" && !props.hasData) {
+    return props.emptyContent ?? <RouteFeedback title={props.emptyLabel ?? "No data yet."} tone="not-found" />;
+  }
 
   return (
     <>

@@ -1,9 +1,9 @@
 import * as React from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteReadBoundary } from "@/components";
+import { RemoteReadBoundary, RouteFeedback } from "@/components";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
@@ -53,6 +53,7 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
 
 export const DeckStartContainer: React.FC = () => {
   const params = useParams();
+  const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deckId");
   const config = useConfig();
@@ -65,7 +66,15 @@ export const DeckStartContainer: React.FC = () => {
     <RemoteReadBoundary
       status={remote.status}
       hasData={deck != null}
-      emptyLabel="Deck not found."
+      emptyContent={
+        <RouteFeedback
+          title="Deck not found"
+          description="The requested deck is unavailable or has been removed."
+          tone="not-found"
+          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        />
+      }
       onRetry={remote.retry}
     >
       {deck != null ? <DeckStartContent deck={deck} cards={cards} config={config} tags={tags} /> : null}

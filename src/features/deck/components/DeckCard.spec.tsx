@@ -123,4 +123,25 @@ describe("DeckCard", () => {
     expect(onClickStudy).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(onClickName).not.toHaveBeenCalled();
   });
+
+  it("makes only the pending Deck row unavailable", () => {
+    const otherDeck = createDeck({ id: "other-deck", name: "Other deck" });
+    const view = render(
+      <>
+        <ControlledDeckCard deck={deck} cardCount={8} isPending={(id) => id === deck.id} />
+        <ControlledDeckCard deck={otherDeck} cardCount={2} isPending={(id) => id === deck.id} />
+      </>
+    );
+
+    expect(view.getByRole("button", { name: "View Deck name" })).toBeDisabled();
+    expect(view.getByRole("button", { name: "Study Deck name" })).toBeDisabled();
+    expect(view.getByRole("button", { name: "Open actions for Deck name" })).toBeDisabled();
+    expect(view.getByRole("button", { name: "View Deck name" }).closest("article")).toHaveAttribute(
+      "aria-busy",
+      "true"
+    );
+    expect(view.getByRole("button", { name: "View Other deck" })).not.toBeDisabled();
+    expect(view.getByRole("button", { name: "Study Other deck" })).not.toBeDisabled();
+    expect(view.getByRole("button", { name: "Open actions for Other deck" })).not.toBeDisabled();
+  });
 });

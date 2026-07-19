@@ -2,33 +2,66 @@ import { signOut, linkWithPopup, signInWithCredential, GoogleAuthProvider } from
 import type { UserCredential } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 
-import { clearStudyStore } from "@/features/study/state/studyStore";
+import { clearStudyStore, studyStore, type StudyState } from "@/features/study/state/studyStore";
 import { publishAuthenticatedUser, suspendAnonymousBootstrap } from "@/auth/AuthContext";
 import { auth } from "@/firebase";
 import { cleanupFirestoreUid } from "@/query/cleanup";
 
-export const logout = async (confirmedUid: string): Promise<void> => {
+interface LogoutCleanupProgress {
+  query: boolean;
+  study: boolean;
+  studyStateAfterClear?: StudyState;
+}
+
+type LogoutCleanupStep = "query" | "study";
+
+class LogoutCleanupError extends Error {
+  constructor(
+    readonly originalError: unknown,
+    readonly retry: () => Promise<void>
+  ) {
+    super(originalError instanceof Error ? originalError.message : "Logout cleanup failed");
+    this.name = "LogoutCleanupError";
+  }
+}
+
+const runLogout = async (
+  confirmedUid: string,
+  progress: LogoutCleanupProgress,
+  signOutRequired: boolean
+): Promise<void> => {
   const resumeAnonymousBootstrap = suspendAnonymousBootstrap();
   try {
-    await signOut(auth);
+    if (signOutRequired) await signOut(auth);
+
     const errors: unknown[] = [];
-    const run = async (step: () => unknown | Promise<unknown>) => {
+    const run = async (step: LogoutCleanupStep, cleanup: () => unknown | Promise<unknown>) => {
+      if (progress[step]) return;
       try {
-        await step();
+        await cleanup();
+        progress[step] = true;
       } catch (error) {
         errors.push(error);
       }
     };
 
-    await run(() => cleanupFirestoreUid(confirmedUid));
-    await run(clearStudyStore);
+    await run("query", () => cleanupFirestoreUid(confirmedUid));
+    await run("study", async () => {
+      if (progress.studyStateAfterClear && studyStore.getState() !== progress.studyStateAfterClear) return;
+      const cleanup = clearStudyStore();
+      progress.studyStateAfterClear = studyStore.getState();
+      await cleanup;
+    });
     if (errors.length > 0) {
-      throw errors[0];
+      throw new LogoutCleanupError(errors[0], () => runLogout(confirmedUid, progress, false));
     }
   } finally {
     resumeAnonymousBootstrap();
   }
 };
+
+export const logout = (confirmedUid: string): Promise<void> =>
+  runLogout(confirmedUid, { query: false, study: false }, true);
 
 export const loginGoogle = async (): Promise<void> => {
   const currentUser = auth.currentUser;

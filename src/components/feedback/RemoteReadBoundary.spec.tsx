@@ -1,7 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
 import { RemoteReadBoundary } from "@/components/feedback/RemoteReadBoundary";
+import { RouteFeedback } from "@/components/feedback/RouteFeedback";
 
 describe("RemoteReadBoundary", () => {
   it("shows loading instead of children before initial data", () => {
@@ -59,5 +61,21 @@ describe("RemoteReadBoundary", () => {
     );
 
     expect(screen.getByRole("status").textContent).toContain("No decks yet.");
+  });
+
+  it("shows custom empty content after a successful empty read", () => {
+    render(
+      <RemoteReadBoundary
+        status="ready"
+        hasData={false}
+        emptyContent={<RouteFeedback title="Deck not found" tone="not-found" />}
+        onRetry={vi.fn()}
+      >
+        content
+      </RemoteReadBoundary>
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeInTheDocument();
+    expect(screen.queryByText("No data yet.")).toBeNull();
   });
 });

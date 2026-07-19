@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   deck: null as Deck | null,
   updateAndGoToList: vi.fn(),
   goToList: vi.fn(),
+  navigate: vi.fn(),
 }));
 
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
@@ -23,6 +24,7 @@ vi.mock("@/query/useRemoteCollections", () => ({
 
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
+  useNavigate: () => mocks.navigate,
 }));
 
 vi.mock("@/hooks/useActions", () => ({
@@ -69,6 +71,7 @@ describe("DeckFormContainer", () => {
     mocks.config = { darkMode: false } as ConfigState;
     mocks.updateAndGoToList.mockReset();
     mocks.goToList.mockReset();
+    mocks.navigate.mockReset();
   });
 
   afterEach(() => {
@@ -154,6 +157,33 @@ describe("DeckFormContainer", () => {
     const view = render(<DeckFormContainer />);
 
     expect(view.container.querySelector("input[name='isPublic']")).not.toBeInTheDocument();
+  });
+
+  it("shows recovery actions when the deck is unavailable", () => {
+    mocks.deck = null;
+    const view = render(<DeckFormContainer />);
+
+    expect(view.getByRole("heading", { level: 1, name: "Deck not found" })).toBeInTheDocument();
+    expect(view.getByRole("button", { name: "Go home" })).toBeInTheDocument();
+    expect(view.getByRole("button", { name: "Go back" })).toBeInTheDocument();
+  });
+
+  it("goes home when deck recovery is requested", async () => {
+    mocks.deck = null;
+    const view = render(<DeckFormContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Go home" }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith("/");
+  });
+
+  it("goes back when deck recovery is requested", async () => {
+    mocks.deck = null;
+    const view = render(<DeckFormContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Go back" }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
 
   it("preserves the invalid route error", () => {

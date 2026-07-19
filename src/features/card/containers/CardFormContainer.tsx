@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import * as C from "@/constant";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
+import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
 import { useActions } from "@/hooks/useActions";
 import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";
 import { useCardFormState } from "@/features/card/hooks/useCardFormState";
@@ -50,6 +50,7 @@ const CardFormContent = ({ card }: { card: Card }) => {
 
 export const CardFormContainer: React.FC = () => {
   const params = useParams();
+  const navigate = useNavigate();
   const cardId = params.id;
   if (cardId == null) throw Error("invalid card id");
   const remote = useRemoteCollections();
@@ -59,7 +60,15 @@ export const CardFormContainer: React.FC = () => {
     <RemoteReadBoundary
       status={remote.status}
       hasData={card != null}
-      emptyLabel="Card not found."
+      emptyContent={
+        <RouteFeedback
+          title="Card not found"
+          description="The requested card is unavailable or has been removed."
+          tone="not-found"
+          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        />
+      }
       onRetry={remote.retry}
     >
       {card != null ? <CardFormContent card={card} /> : null}

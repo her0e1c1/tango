@@ -1,14 +1,20 @@
+import { createHash } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { routeAnonymousAuth, seedConfig } from "./fixtures";
 
-test.beforeEach(async ({ page }) => {
+const smokeAuthUid = (testId: string) => {
+  const digest = createHash("sha256").update(testId).digest("hex").slice(0, 16);
+  return `smoke-e2e-${digest}`;
+};
+
+test.beforeEach(async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
 
-  await routeAnonymousAuth(page, "smoke-e2e-user");
+  await routeAnonymousAuth(page, smokeAuthUid(testInfo.testId));
   await seedConfig(page);
   await page.exposeFunction("assertNoBrowserErrors", () => expect(errors).toEqual([]));
 });
@@ -45,5 +51,32 @@ test("shows the import screen", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 2, name: "CSV format", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Sample", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Add sample deck" })).toBeVisible();
+  await page.evaluate(() => window.assertNoBrowserErrors());
+});
+
+test("read: recovers from an unknown route", async ({ page }) => {
+  await page.goto("/unknown-route");
+
+  await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
+  await page.getByRole("button", { name: "Go home" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+  await page.evaluate(() => window.assertNoBrowserErrors());
+});
+
+test("read: recovers from a missing Deck", async ({ page }) => {
+  await page.goto("/deck/missing-deck");
+
+  await expect(page.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
+  await page.getByRole("button", { name: "Go home" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+  await page.evaluate(() => window.assertNoBrowserErrors());
+});
+
+test("read: recovers from a missing Card", async ({ page }) => {
+  await page.goto("/card/missing-card");
+
+  await expect(page.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
+  await page.getByRole("button", { name: "Go home" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });

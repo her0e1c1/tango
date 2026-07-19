@@ -1,17 +1,32 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import * as firestore from "@/action/firestore";
 import { useAuth } from "@/auth/AuthContext";
 import { createDeckMutationService } from "@/query/deckMutationService";
 
 type Variables = { kind: "create"; deck: Deck } | { kind: "update"; deck: DeckEdit } | { kind: "remove"; deck: Deck };
+type Failure = { variables: Variables; error: unknown };
 
-export const useDeckMutations = () => {
+interface UseDeckMutationsOptions {
+  onRemoveSuccess?: (deck: Deck) => void;
+}
+
+const isSameOperation = (left: Variables, right: Variables) =>
+  left.kind === right.kind && left.deck.id === right.deck.id;
+
+export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = {}) => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const client = useQueryClient();
-  const lastFailed = useRef<Variables>(undefined);
+  const onRemoveSuccessRef = useRef(onRemoveSuccess);
+  useEffect(() => {
+    onRemoveSuccessRef.current = onRemoveSuccess;
+  }, [onRemoveSuccess]);
+  const inFlight = useRef(new Map<DeckId, Promise<void>>());
+  const [pendingDeckIds, setPendingDeckIds] = useState<Set<DeckId>>(() => new Set());
+  const failureRef = useRef<Failure>(undefined);
+  const [failure, setFailure] = useState<Failure>();
   const service = useMemo(
     () =>
       createDeckMutationService({
@@ -33,14 +48,50 @@ export const useDeckMutations = () => {
     },
   });
   const run = useCallback(
-    async (variables: Variables) => {
-      try {
-        await mutation.mutateAsync(variables);
-        lastFailed.current = undefined;
-      } catch (error) {
-        lastFailed.current = variables;
-        throw error;
+    (variables: Variables) => {
+      const failed = failureRef.current;
+      const retryOf = failed != null && isSameOperation(failed.variables, variables) ? failed : undefined;
+      const deckId = variables.deck.id;
+      const current = inFlight.current.get(deckId);
+      if (current != null) {
+        if (retryOf != null) {
+          void current.then(
+            () => {
+              if (failureRef.current !== retryOf) return;
+              failureRef.current = undefined;
+              setFailure(undefined);
+            },
+            () => undefined
+          );
+        }
+        return current;
       }
+
+      setPendingDeckIds((pending) => new Set(pending).add(deckId));
+      const operation = mutation.mutateAsync(variables).then(
+        () => {
+          if (variables.kind === "remove") onRemoveSuccessRef.current?.(variables.deck);
+          if (retryOf == null || failureRef.current !== retryOf) return;
+          failureRef.current = undefined;
+          setFailure(undefined);
+        },
+        (error: unknown) => {
+          const nextFailure = { variables, error };
+          failureRef.current = nextFailure;
+          setFailure(nextFailure);
+          throw error;
+        }
+      );
+      const settled = operation.finally(() => {
+        inFlight.current.delete(deckId);
+        setPendingDeckIds((pending) => {
+          const next = new Set(pending);
+          next.delete(deckId);
+          return next;
+        });
+      });
+      inFlight.current.set(deckId, settled);
+      return settled;
     },
     [mutation]
   );
@@ -49,11 +100,12 @@ export const useDeckMutations = () => {
     create: (deck: Deck) => run({ kind: "create", deck }),
     update: (deck: DeckEdit) => run({ kind: "update", deck }),
     remove: (deck: Deck) => run({ kind: "remove", deck }),
-    pending: mutation.isPending,
-    error: mutation.error,
+    pending: pendingDeckIds.size > 0,
+    isPending: (id: DeckId) => pendingDeckIds.has(id),
+    error: failure?.error ?? null,
     retry: () => {
-      const variables = lastFailed.current;
-      if (variables != null) void run(variables).catch(() => undefined);
+      const failed = failureRef.current;
+      if (failed != null) void run(failed.variables).catch(() => undefined);
     },
   };
 };

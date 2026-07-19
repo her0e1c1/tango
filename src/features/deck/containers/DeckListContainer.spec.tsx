@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,7 +11,11 @@ const mocks = vi.hoisted(() => ({
   cardsById: {} as Record<CardId, Card>,
   hydrated: true,
   pending: false,
+  pendingDeckIds: new Set<DeckId>(),
+  error: null as unknown,
+  onRemoveSuccess: undefined as ((deck: Deck) => void) | undefined,
   remove: vi.fn(async (_deck: Deck) => undefined),
+  retry: vi.fn(),
   downloadData: vi.fn(),
   actions: {
     goToSettings: vi.fn(),
@@ -46,7 +50,16 @@ vi.mock("@/query/useRemoteCollections", () => ({
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.actions }));
 vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
-  useDeckMutations: () => ({ remove: mocks.remove, pending: mocks.pending, error: null, retry: vi.fn() }),
+  useDeckMutations: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
+    mocks.onRemoveSuccess = options?.onRemoveSuccess;
+    return {
+      remove: (deck: Deck) => mocks.remove(deck).then(() => mocks.onRemoveSuccess?.(deck)),
+      pending: mocks.pending,
+      isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),
+      error: mocks.error,
+      retry: mocks.retry,
+    };
+  },
 }));
 vi.mock("@/features/import/hooks/useSampleDeckBootstrap", () => ({ useSampleDeckBootstrap: vi.fn() }));
 
@@ -62,6 +75,9 @@ describe("DeckListContainer", () => {
     vi.clearAllMocks();
     mocks.hydrated = true;
     mocks.pending = false;
+    mocks.pendingDeckIds = new Set();
+    mocks.error = null;
+    mocks.onRemoveSuccess = undefined;
     mocks.config = createConfig({ darkMode: false });
     mocks.decksById = { [otherDeck.id]: otherDeck, [oldDeck.id]: oldDeck, [recentDeck.id]: recentDeck };
     mocks.cardsById = {
@@ -145,6 +161,16 @@ describe("DeckListContainer", () => {
     expect(studyStore.getState().sessionsByDeckId[oldDeck.id]).toBeDefined();
   });
 
+  it("owns successful removal cleanup through the Deck mutation lifecycle", () => {
+    render(<DeckListContainer />);
+
+    expect(mocks.onRemoveSuccess).toBeTypeOf("function");
+    act(() => mocks.onRemoveSuccess?.(recentDeck));
+
+    expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeUndefined();
+    expect(studyStore.getState().sessionsByDeckId[oldDeck.id]).toBeDefined();
+  });
+
   it("waits for study hydration before classifying decks", () => {
     mocks.hydrated = false;
     const view = render(<DeckListContainer />);
@@ -183,5 +209,20 @@ describe("DeckListContainer", () => {
     mocks.decksById[recentDeck.id] = recentDeck;
     view.rerender(<DeckListContainer />);
     expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeDefined();
+  });
+
+  it("shows Deck deletion feedback and disables only the pending row", () => {
+    mocks.pending = true;
+    mocks.pendingDeckIds = new Set([recentDeck.id]);
+    mocks.error = new Error("delete failed");
+    const view = render(<DeckListContainer />);
+
+    expect(view.getByRole("alert")).toHaveTextContent("Unable to delete deck.");
+    fireEvent.click(view.getByRole("button", { name: "Retry" }));
+    expect(mocks.retry).toHaveBeenCalledOnce();
+    expect(view.getByRole("button", { name: "View Recent deck" })).toBeDisabled();
+    expect(view.getByRole("button", { name: "Continue Recent deck" })).toBeDisabled();
+    expect(view.getByRole("button", { name: "Open actions for Recent deck" })).toBeDisabled();
+    expect(view.getByRole("button", { name: "View Alpha deck" })).not.toBeDisabled();
   });
 });

@@ -149,6 +149,33 @@ describe("CardFormContainer", () => {
     expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
+  it("shows recovery actions when the card is unavailable", () => {
+    mocks.card = null;
+    const view = render(<CardFormContainer />);
+
+    expect(view.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
+    expect(view.getByRole("button", { name: "Go home" })).toBeInTheDocument();
+    expect(view.getByRole("button", { name: "Go back" })).toBeInTheDocument();
+  });
+
+  it("goes home when card recovery is requested", async () => {
+    mocks.card = null;
+    const view = render(<CardFormContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Go home" }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith("/");
+  });
+
+  it("goes back when card recovery is requested", async () => {
+    mocks.card = null;
+    const view = render(<CardFormContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Go back" }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith(-1);
+  });
+
   it("preserves the invalid route error", () => {
     mocks.params.id = undefined;
 

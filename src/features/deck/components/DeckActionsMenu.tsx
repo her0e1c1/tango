@@ -1,10 +1,11 @@
-import type * as React from "react";
+import * as React from "react";
 import { AiOutlineCloudDownload, AiOutlineDelete, AiOutlineEdit, AiOutlineReload } from "react-icons/ai";
 import { ActionsMenu, type ActionsMenuItem } from "@/components/forms/ActionsMenu";
 
 export interface DeckActionsMenuProps {
   deckName: string;
   open: boolean;
+  disabled?: boolean;
   onToggle: () => void;
   onClose: () => void;
   onRestart?: () => void;
@@ -14,6 +15,11 @@ export interface DeckActionsMenuProps {
 }
 
 export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
+  const { disabled, onClose, open } = props;
+  React.useEffect(() => {
+    if (disabled && open) onClose();
+  }, [disabled, onClose, open]);
+
   const items: ActionsMenuItem[] = [
     ...(props.onRestart != null
       ? [{ key: "restart", label: "Restart", icon: <AiOutlineReload aria-hidden="true" />, onSelect: props.onRestart }]
@@ -45,6 +51,7 @@ export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
       triggerLabel={`Open actions for ${props.deckName}`}
       menuLabel={`Actions for ${props.deckName}`}
       open={props.open}
+      {...(props.disabled !== undefined ? { disabled: props.disabled } : {})}
       onToggle={props.onToggle}
       onClose={props.onClose}
       items={items}

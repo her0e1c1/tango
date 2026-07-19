@@ -157,4 +157,30 @@ describe("ConfigForm", () => {
     await userEvent.click(view.getByRole("button", { name: "Logout" }));
     expect(onLogout).toHaveBeenCalledOnce();
   });
+
+  it("shows account feedback and disables the active account action while pending", () => {
+    const feedback = <p>Signing in…</p>;
+    const view = render(<ConfigForm {...createProps({ accountPending: true, accountFeedback: feedback })} />);
+
+    const login = view.getByRole("button", { name: "Login" });
+    expect(login).toBeDisabled();
+    expect(login).toHaveAttribute("aria-busy", "true");
+    expect(view.getByText("Signing in…").closest("section")).toBe(
+      view.getByRole("heading", { level: 2, name: "Account" }).closest("section")
+    );
+
+    view.rerender(
+      <ConfigForm
+        {...createProps({
+          isLoggedIn: true,
+          identity: { uid: "user-123", displayName: "Settings User" },
+          accountPending: true,
+        })}
+      />
+    );
+
+    const logout = view.getByRole("button", { name: "Logout" });
+    expect(logout).toBeDisabled();
+    expect(logout).toHaveAttribute("aria-busy", "true");
+  });
 });

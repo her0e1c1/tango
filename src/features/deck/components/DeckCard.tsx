@@ -17,6 +17,7 @@ export interface DeckCardActions {
   onClickDownload?: (id: DeckId) => void;
   onClickEdit?: (id: DeckId) => void;
   onClickDelete?: (id: DeckId) => void;
+  isPending?: (id: DeckId) => boolean;
   openMenuDeckId?: DeckId | undefined;
   onToggleMenu?: (id: DeckId) => void;
   onCloseMenu?: () => void;
@@ -50,11 +51,15 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
   const active = studyProgress != null;
   const progressValue = active ? studyProgress.currentIndex + 1 : 0;
   const progressPercent = active ? Math.min(100, (progressValue / studyProgress.cardCount) * 100) : 0;
+  const pending = props.isPending?.(deck.id) ?? false;
   const withId = (action?: (id: DeckId) => void) => () => action?.(deck.id);
   const statusId = React.useId();
 
   return (
-    <article className="relative flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 last:border-b-0">
+    <article
+      aria-busy={pending}
+      className="relative flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 last:border-b-0"
+    >
       <div className="min-w-0 flex-1 px-1 py-1">
         <button
           type="button"
@@ -62,6 +67,7 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
           aria-describedby={statusId}
           className="flex w-full min-w-0 items-center gap-1.5 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           onClick={withId(props.onClickName)}
+          disabled={pending}
         >
           <span className="truncate text-body font-semibold text-ink">{deck.name}</span>
           {deck.isPublic && (
@@ -107,6 +113,7 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
             : "border border-border bg-transparent text-ink hover:bg-surface-muted"
         }`}
         onClick={withId(active ? props.onClickContinue : props.onClickStudy)}
+        disabled={pending}
       >
         {active && <AiFillCaretRight aria-hidden="true" />}
         <span>{active ? "Continue" : "Study"}</span>
@@ -115,6 +122,7 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
       <DeckActionsMenu
         deckName={deck.name}
         open={props.openMenuDeckId === deck.id}
+        disabled={pending}
         onToggle={withId(props.onToggleMenu)}
         onClose={() => props.onCloseMenu?.()}
         {...(active ? { onRestart: withId(props.onClickRestart) } : {})}
