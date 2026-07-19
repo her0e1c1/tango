@@ -44,6 +44,9 @@ export default defineConfig({
       },
       {
         extends: true,
+        optimizeDeps: {
+          include: ['storybook/test'],
+        },
         plugins: [
           storybookTest({
             configDir: path.join(dirname, '.storybook'),
@@ -52,6 +55,7 @@ export default defineConfig({
         ],
         test: {
           name: 'storybook',
+          attachmentsDir: 'test-results/storybook/attachments',
           browser: {
             enabled: true,
             provider: playwright({}),

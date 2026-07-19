@@ -102,6 +102,9 @@ Retain the existing root `plugins` and `define`. Move the current `globals`, `en
 ```ts
 {
   extends: true,
+  optimizeDeps: {
+    include: ["storybook/test"],
+  },
   plugins: [
     storybookTest({
       configDir: path.join(dirname, ".storybook"),
@@ -110,6 +113,7 @@ Retain the existing root `plugins` and `define`. Move the current `globals`, `en
   ],
   test: {
     name: "storybook",
+    attachmentsDir: "test-results/storybook/attachments",
     browser: {
       enabled: true,
       provider: playwright({}),

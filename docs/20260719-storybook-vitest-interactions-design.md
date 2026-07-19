@@ -39,6 +39,8 @@ The Vitest root configuration will define two named projects:
 - `unit`: inherits the existing React compiler, path aliases, jsdom environment, globals, and coverage configuration.
 - `storybook`: inherits the shared Vite configuration, applies the Storybook test plugin, and runs headless Chromium through Playwright browser mode.
 
+The Storybook project pre-optimizes `storybook/test` so the first interaction import cannot trigger a Vite reload during a browser test run.
+
 The `test:storybook` npm script will run only the Storybook project in non-watch mode. Existing unit, Firestore, and coverage scripts will explicitly select the unit project so their scope remains unchanged.
 
 ## Representative Interactions

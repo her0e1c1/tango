@@ -10,9 +10,13 @@ interface PackageJson {
 }
 
 interface TestProject {
+  optimizeDeps?: {
+    include?: string[];
+  };
   test?: {
     name?: string;
     environment?: string;
+    attachmentsDir?: string;
     browser?: {
       enabled?: boolean;
       headless?: boolean;
@@ -47,5 +51,17 @@ describe("Storybook Vitest integration", () => {
       screenshotDirectory: "test-results/storybook",
       instances: [{ browser: "chromium" }],
     });
+  });
+
+  it("pre-optimizes Storybook interaction helpers", () => {
+    expect(projectNamed("storybook")?.optimizeDeps?.include).toContain(
+      "storybook/test",
+    );
+  });
+
+  it("stores browser failure evidence with CI artifacts", () => {
+    expect(projectNamed("storybook")?.test?.attachmentsDir).toBe(
+      "test-results/storybook/attachments",
+    );
   });
 });
