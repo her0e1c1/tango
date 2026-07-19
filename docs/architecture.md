@@ -22,7 +22,7 @@ flowchart TD
     C --> AC[Auth Context]
     AC --> AU[Firebase Auth]
     H --> Q[TanStack Query Cache<br/>Remote Deck / Card]
-    Q --> F[Firestore Gateway<br/>src/action/firestore]
+    Q --> F[Firestore Gateway<br/>src/adapters/firestore]
     F --> DB[(Firebase Firestore<br/>deck / card collections)]
     AU -. auth state change .-> AC
     DB -. UID-scoped snapshot .-> F
@@ -61,5 +61,7 @@ UI の依存方向は `App -> Page -> Container -> Template -> Component` です
 - TanStack Query が Firestore 由来の Deck / Card の唯一の application cache です。Firestore SDK の persistent local cache が offline data を保持します。UID変更・logout時は listener停止、query cancellation、UID cache削除を同期順序で行います。
 - 長期設定と学習セッションはそれぞれ Zustand store で管理し、設定は `tango-config`、学習状態は `tango-study` に永続化します。
 - Firebase Auth の runtime identity は Auth Context だけから参照し、LocalStorage の application state には保存しません。
-- `src/action/firestore` が Firestore との入出力を、`src/auth/AuthBootstrap.tsx` が認証に連動した購読 lifecycle を担当します。
+- `src/adapters/firestore` が Firestore SDK、DTO、mapper、collection 名、runtime 初期化、Firestore との入出力を所有します。Firebase 非依存の snapshot・change・subscription contract は `src/query/remoteReadContract.ts` が所有します。
+- Query controller と mutation service は関数注入による差し替え境界を維持します。concrete adapter は `remoteReadSession` と feature hook などの composition module だけが参照し、Deck/Card の CRUD Repository interface は設けません。
+- `src/auth/AuthBootstrap.tsx` が認証に連動した購読 lifecycle を担当します。
 - `sample/build/output.json` のサンプルカードは、サーバー同期後に Deck が0件なら自動で Firestore に追加します。Import 画面からの明示操作でも追加できます。

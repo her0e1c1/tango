@@ -62,7 +62,7 @@ Key files: `src/page/DeckStartPage.tsx`, `src/page/DeckSwiperPage.tsx`, `src/fea
 - deck/card は Firestore に create/update/delete され、Firestore SDK の persistent local cache で offline 利用できます。
 - 長期設定は Zustand store の `tango-config` に保存します。
 
-Key files: `src/action/event.ts`, `src/firebase.ts`, `src/action/firestore/*`
+Key files: `src/action/event.ts`, `src/firebase.ts`, `src/adapters/firestore/*`
 
 ## Settings
 

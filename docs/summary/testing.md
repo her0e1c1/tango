@@ -50,18 +50,18 @@ annotation mode、filter、suppression、custom panic threshold、runtime gating
 
 ## Vitest Configuration
 
-`vitest.config.ts` は `globals: true`、`environment: "jsdom"`、Vite の native tsconfig paths resolution を設定しています。Firestore integration tests は `src/action/firestore/init.ts` で emulator に接続し、mock user token を使います。
+`vitest.config.ts` は `globals: true`、`environment: "jsdom"`、Vite の native tsconfig paths resolution を設定しています。Firestore integration tests は `src/adapters/firestore/init.ts` で emulator に接続し、mock user token を使います。
 
 ## Test Suites
 
 | Area | Files | Notes |
 | --- | --- | --- |
 | Action unit tests | `src/action/*.spec.ts` | deck/card/event actions。Firestore や file-saver などは mock される箇所があります。 |
-| Firestore integration | `src/action/firestore/*.spec.ts` | Firestore emulator を使う deck/card tests と rule tests。 |
+| Firestore integration | `src/adapters/firestore/*.spec.ts` | Firestore emulator を使う deck/card tests と rule tests。 |
 | Feature container tests | `src/features/*/containers/*.spec.tsx` | route/store data の接続と template への props/slot 配線を `@testing-library/react` で検証します。 |
 | Feature hook tests | `src/features/*/hooks/*.spec.tsx` | form/UI state、router/Zustand/TanStack Query 接続などの hook behavior を `@testing-library/react` で検証します。 |
 | Presentation tests | `src/features/*/components/**/*.spec.tsx` | stateless component の rendering と callback を検証します。 |
-| Architecture tests | `src/lib/componentArchitecture.spec.ts` | Page/Container/Template/Component と feature/common component の依存境界を検証します。 |
+| Architecture tests | `src/lib/componentArchitecture.spec.ts` | Page/Container/Template/Component と feature/common component の依存境界に加え、presentation から Firebase SDK を直接 import できないこと、Firestore SDK が adapter 外へ漏れないことを検証します。 |
 | Storybook | `src/{components,features}/**/*.stories.tsx`, `.storybook/*` | component/template catalog と static build の対象です。 |
 | Browser E2E | `e2e/*.e2e.ts` | Playwright で smoke、deck/card、swipe の主要導線を検証します。 |
 | Sample tests | `sample/test/**/*.py` | Python sample source の pytest。sample build 入力にもなります。 |
@@ -70,7 +70,7 @@ annotation mode、filter、suppression、custom panic threshold、runtime gating
 
 `rg` で確認できる skip は以下です。
 
-- `src/action/firestore/event.spec.ts`: `describe.skip("firestore/event", ...)`
+- `src/adapters/firestore/event.spec.ts`: `describe.skip("firestore/event", ...)`
 - `src/action/deck.spec.ts`: `it.skip("should parse file", ...)`
 
 Controller、deck filter、config form の旧 skip は解消され、対応する specs は feature 配下で実行されます。既存の `docs/test/missing-test-spec.md` は、`parseFile`、`spliteCreate` の deck 新規作成分岐、event subscribe/unsubscribe、config update の追加テストを優先候補として整理しています。

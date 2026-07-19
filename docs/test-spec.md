@@ -15,10 +15,10 @@
 | Action / Card | `src/action/card.spec.ts` | ユニットテスト |
 | Action / Event | `src/action/event.spec.ts` | ユニットテスト |
 | Settings / Config Store | `src/store/configStore.spec.ts` | ユニットテスト |
-| Firestore / Deck | `src/action/firestore/deck.spec.ts` | 統合テスト |
-| Firestore / Card | `src/action/firestore/card.spec.ts` | 統合テスト |
-| Firestore / Event | `src/action/firestore/event.spec.ts` | Query購読統合テスト |
-| Firestore / Rule | `src/action/firestore/rule/rule.spec.ts` | セキュリティルールテスト |
+| Firestore / Deck | `src/adapters/firestore/deck.spec.ts` | 統合テスト |
+| Firestore / Card | `src/adapters/firestore/card.spec.ts` | 統合テスト |
+| Firestore / Event | `src/adapters/firestore/event.spec.ts` | Query購読統合テスト |
+| Firestore / Rule | `src/adapters/firestore/rule/rule.spec.ts` | セキュリティルールテスト |
 | Container / CardForm | `src/features/card/containers/CardFormContainer.spec.tsx` | container テスト |
 | Container / CardList | `src/features/card/containers/CardListContainer.spec.tsx` | container/template 統合テスト |
 | Container / DeckForm | `src/features/deck/containers/DeckFormContainer.spec.tsx` | container テスト |
@@ -194,7 +194,7 @@
 
 > Firestore エミュレータを使用して実行。並列実行 (`describe.concurrent`) および `retry: 3` を設定。
 
-### 2-1. Firestore / Deck (`src/action/firestore/deck.spec.ts`)
+### 2-1. Firestore / Deck (`src/adapters/firestore/deck.spec.ts`)
 
 #### CRUD
 
@@ -215,7 +215,7 @@
 
 ---
 
-### 2-2. Firestore / Card (`src/action/firestore/card.spec.ts`)
+### 2-2. Firestore / Card (`src/adapters/firestore/card.spec.ts`)
 
 | # | テスト名 | 操作 | 期待結果 |
 |---|---------|------|---------|
@@ -227,7 +227,7 @@
 
 ---
 
-### 2-3. Firestore / Event (`src/action/firestore/event.spec.ts`)
+### 2-3. Firestore / Event (`src/adapters/firestore/event.spec.ts`)
 
 | # | テスト名 | 期待結果 |
 |---|---------|---------|
@@ -235,7 +235,7 @@
 
 ---
 
-### 2-4. Firestore / Security Rule (`src/action/firestore/rule/rule.spec.ts`)
+### 2-4. Firestore / Security Rule (`src/adapters/firestore/rule/rule.spec.ts`)
 
 > Firestore セキュリティルール (`firestore.rules`) を対象としたテスト。
 
