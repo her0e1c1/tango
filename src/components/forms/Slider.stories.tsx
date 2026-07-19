@@ -36,7 +36,7 @@ export const Interaction: Story = {
   render: (args) => <InteractiveSlider {...args} />,
   play: async ({ args, canvas }) => {
     const control = canvas.getByRole("slider", { name: "Interactive slider" });
-    fireEvent.change(control, { target: { value: "41" } });
+    await fireEvent.change(control, { target: { value: "41" } });
     await expect(control).toHaveValue("41");
     await expect(args.onChange).toHaveBeenCalledOnce();
   },

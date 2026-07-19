@@ -85,7 +85,9 @@ export const Interaction: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
 
     await expect(nameInput).toHaveValue("Interaction deck");
-    await expect(args.fields.name.onChange).toHaveBeenCalled();
+    await expect(args.fields.name.onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ target: expect.objectContaining({ value: "Interaction deck" }) })
+    );
     await expect(args.onSubmit).toHaveBeenCalledOnce();
   },
 };
