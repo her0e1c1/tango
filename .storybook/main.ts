@@ -1,5 +1,5 @@
 import type { StorybookConfig } from "@storybook/react-vite";
-import { withoutPwaPlugins } from "./vitePlugins";
+import { withoutPwaPlugins } from "./vitePlugins.ts";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.tsx"],
