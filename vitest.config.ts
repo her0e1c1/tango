@@ -3,14 +3,16 @@ import { fileURLToPath } from 'node:url'
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
-import tsconfigPaths from 'vite-tsconfig-paths'
 import { createReactCompilerPlugin } from './reactCompiler'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [createReactCompilerPlugin(), tsconfigPaths()],
+  plugins: [createReactCompilerPlugin()],
+  resolve: {
+    tsconfigPaths: true,
+  },
   define: {
     '__APP_VERSION__': JSON.stringify(process.env.npm_package_version),
   },

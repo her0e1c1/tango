@@ -192,11 +192,13 @@ Do not pass compiler options or mutate the preset filter.
 Import the factory into both root configurations. Use these plugin orders:
 
 ```ts
-plugins: [react(), createReactCompilerPlugin(), tsconfigPaths()]
+plugins: [react(), createReactCompilerPlugin()]
+resolve: { tsconfigPaths: true }
 ```
 
 ```ts
-plugins: [createReactCompilerPlugin(), tsconfigPaths()]
+plugins: [createReactCompilerPlugin()]
+resolve: { tsconfigPaths: true }
 ```
 
 The Babel compiler runs before non-Babel application transforms, and each configuration receives its own plugin instance.
