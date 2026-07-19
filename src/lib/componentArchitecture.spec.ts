@@ -109,7 +109,7 @@ function isContainerSupportHook(specifier: string): boolean {
 }
 
 function canImportContainerSupportHook(relativePath: string): boolean {
-  return /^features\/[^/]+\/(?:containers|hooks)\//.test(relativePath);
+  return /^features\/[^/]+\/(?:containers|hooks)\//.test(relativePath) || /^hooks\//.test(relativePath);
 }
 
 function forbiddenContainerDependency(specifier: string): boolean {
@@ -223,6 +223,7 @@ describe("component architecture", () => {
       "store/configSchema.ts",
       "store/configStore.spec.ts",
       "store/configStore.ts",
+      "store/studyStore.ts",
     ]);
   });
 
@@ -269,7 +270,7 @@ describe("component architecture", () => {
       readdirSync(sourcePath("components"))
         .filter((entry) => entry !== ".DS_Store")
         .sort()
-    ).toEqual(["content", "feedback", "forms", "index.ts", "layout"].sort());
+    ).toEqual(["card", "content", "deck", "feedback", "forms", "index.ts", "layout"].sort());
   });
 
   it("keeps every page as one feature container route entry", () => {

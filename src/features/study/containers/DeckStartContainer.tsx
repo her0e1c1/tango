@@ -4,9 +4,9 @@ import { useKey } from "react-use";
 
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteReadBoundary, RouteFeedback } from "@/components";
-import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
-import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
-import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
+import { DeckStartForm } from "@/components/deck/DeckStartForm";
+import { useDeckActions } from "@/hooks/deck/useDeckActions";
+import { useDeckFilterState } from "@/hooks/deck/useDeckFilterState";
 import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { useActions } from "@/hooks/useActions";

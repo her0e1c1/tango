@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildDeckListSections } from "@/features/deck/lib/buildDeckListSections";
-import type { StudySession } from "@/features/study/state/studyStore";
+import type { StudySession } from "@/store/studyStore";
 import { createCard, createDeck } from "@/test/factories";
 
 describe("buildDeckListSections", () => {

@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, waitFor, within } from "@testing-libra
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { studyStore } from "@/features/study/state/studyStore";
+import { studyStore } from "@/store/studyStore";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -31,7 +31,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
-vi.mock("@/features/study/hooks/useStudyHydrated", () => ({ useStudyHydrated: () => mocks.hydrated }));
+vi.mock("@/hooks/useStudyHydrated", () => ({ useStudyHydrated: () => mocks.hydrated }));
 vi.mock("@/action", () => ({ deck: { downloadData: mocks.downloadData } }));
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => {
@@ -49,7 +49,7 @@ vi.mock("@/query/useRemoteCollections", () => ({
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.actions }));
-vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
+vi.mock("@/hooks/deck/useDeckMutations", () => ({
   useDeckMutations: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
     mocks.onRemoveSuccess = options?.onRemoveSuccess;
     return {
@@ -61,7 +61,7 @@ vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
     };
   },
 }));
-vi.mock("@/features/import/hooks/useSampleDeckBootstrap", () => ({ useSampleDeckBootstrap: vi.fn() }));
+vi.mock("@/hooks/useSampleDeckBootstrap", () => ({ useSampleDeckBootstrap: vi.fn() }));
 
 import { DeckListContainer } from "@/features/deck/containers/DeckListContainer";
 

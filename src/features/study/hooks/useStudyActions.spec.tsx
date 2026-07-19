@@ -33,7 +33,7 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
 }));
 
-vi.mock("@/features/card/hooks/useCardMutations", () => ({
+vi.mock("@/hooks/card/useCardMutations", () => ({
   useCardMutations: () => ({
     update: mocks.cardUpdate,
     isPending: (id: CardId) => mocks.pendingIds.has(id),

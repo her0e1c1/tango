@@ -1,5 +1,5 @@
 import type { DeckListItem, DeckListSections } from "@/features/deck/components/templates/DeckListTemplate";
-import type { StudySession } from "@/features/study/state/studyStore";
+import type { StudySession } from "@/store/studyStore";
 
 const compareNames = (left: DeckListItem, right: DeckListItem) => left.deck.name.localeCompare(right.deck.name);
 
