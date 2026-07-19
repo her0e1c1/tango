@@ -17,6 +17,7 @@ interface TestProject {
   };
   test?: {
     name?: string;
+    include?: string[];
     environment?: string;
     attachmentsDir?: string;
     browser?: {
@@ -45,6 +46,10 @@ describe("Storybook Vitest integration", () => {
   });
 
   it("keeps unit and Chromium Storybook tests isolated", () => {
+    expect(projectNamed("unit")?.test?.include).toEqual([
+      "src/**/*.spec.{ts,tsx}",
+      "*.spec.{ts,tsx}",
+    ]);
     expect(projectNamed("unit")?.test?.environment).toBe("jsdom");
     expect(projectNamed("storybook")?.test?.browser).toMatchObject({
       enabled: true,
