@@ -1,7 +1,7 @@
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
 import * as card from "@/action/card";
-import { createCard } from "@/test/factories";
+import { createCard, createDeck } from "@/test/factories";
 
 vi.mock("./firestore");
 vi.mock("@/firebase", () => ({ auth: { currentUser: null } }));
@@ -15,6 +15,16 @@ describe("card action", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.resetModules();
+  });
+
+  it("prepares a card with an injected id", () => {
+    const prepared = card.prepare(
+      { frontText: "front", backText: "back", tags: [], uniqueKey: "key" },
+      createDeck({ id: "deck-id", uid: "uid-a" }),
+      () => "card-id"
+    );
+
+    expect(prepared).toMatchObject({ id: "card-id", deckId: "deck-id", uid: "uid-a" });
   });
 
   describe.concurrent("fromRow", () => {

@@ -29,7 +29,8 @@ describe("deck action", () => {
 
   describe("prepareDeck", () => {
     it("should prepare deck", async () => {
-      expect(action.deck.prepare({ name: "name" }, "uid")).toMatchObject({
+      expect(action.deck.prepare({ name: "name" }, "uid", () => "deck-id")).toMatchObject({
+        id: "deck-id",
         name: "name",
         uid: "uid",
       });
@@ -67,7 +68,7 @@ describe("deck action", () => {
       const blob = new Blob();
       const blobConstructor = vi.spyOn(global, "Blob");
       blobConstructor.mockImplementation(createBlobConstructor(blob));
-      const deck = action.deck.prepare({ name: "Remote deck" }, "uid");
+      const deck = action.deck.prepare({ name: "Remote deck" }, "uid", () => "deck-id");
       const card = createCard({ frontText: "remote front", backText: "remote back", uniqueKey: "remote-key" });
 
       action.deck.downloadData(deck, [card]);
