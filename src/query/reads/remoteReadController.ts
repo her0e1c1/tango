@@ -157,7 +157,7 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
     }
 
     automaticRecoveries += 1;
-    void begin(uid, false);
+    void begin(uid, false).catch(() => undefined);
   };
 
   return {

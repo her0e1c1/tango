@@ -206,6 +206,46 @@ describe("remote read controller", () => {
     await vi.waitFor(() => expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(4));
   });
 
+  it("consumes a synchronous setup failure during automatic recovery", async () => {
+    const harness = createHarness();
+    const recoveryError = new Error("automatic recovery setup failed");
+    const unhandledRejections: unknown[] = [];
+    const recordUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", recordUnhandledRejection);
+
+    try {
+      await harness.controller.start("uid-a");
+      vi.mocked(harness.dependencies.subscribeDecks).mockImplementationOnce(() => {
+        throw recoveryError;
+      });
+
+      harness.deckSubscriptions[0]?.onError(new Error("listener failed"));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(harness.controller.getSnapshot()).toMatchObject({
+        uid: "uid-a",
+        status: "error",
+        error: recoveryError,
+      });
+      expect(unhandledRejections).toEqual([]);
+    } finally {
+      process.off("unhandledRejection", recordUnhandledRejection);
+    }
+  });
+
+  it("rejects a synchronous setup failure from a caller-initiated retry", async () => {
+    const harness = createHarness();
+    const retryError = new Error("manual retry setup failed");
+    await harness.controller.start("uid-a");
+    vi.mocked(harness.dependencies.subscribeCards).mockImplementationOnce(() => {
+      throw retryError;
+    });
+
+    await expect(harness.controller.retry()).rejects.toBe(retryError);
+
+    expect(harness.controller.getSnapshot()).toMatchObject({ uid: "uid-a", status: "error", error: retryError });
+  });
+
   it("prevents snapshots from an old UID generation from mutating Store state", async () => {
     const harness = createHarness();
     const deckB = createDeck({ id: "deck-b", uid: "uid-b" });
