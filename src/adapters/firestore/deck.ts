@@ -84,11 +84,9 @@ export const remove = async (deckId: string, uid: string) => {
   const db = getDb();
   const q = query(collection(db, "card"), where("uid", "==", uid), where("deckId", "==", deckId));
   const snapshot = await getDocs(q);
-  await Promise.all(
-    snapshot.docs.map(async (doc) => {
-      await deleteDoc(doc.ref);
-    })
-  );
+  const childResults = await Promise.allSettled(snapshot.docs.map((document) => deleteDoc(document.ref)));
+  const childFailure = childResults.find((result): result is PromiseRejectedResult => result.status === "rejected");
+  if (childFailure != null) throw childFailure.reason;
   const ref = doc(db, "deck", deckId);
   await deleteDoc(ref);
 };

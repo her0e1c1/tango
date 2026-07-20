@@ -14,7 +14,7 @@ import { createCardMutationService } from "@/query/mutations/cardMutationService
 type CardMutationVariables =
   | { kind: "create"; card: Card }
   | { kind: "update"; card: CardEdit }
-  | { kind: "remove"; id: CardId }
+  | { kind: "remove"; id: CardId; deckId: DeckId }
   | { kind: "bulkUpsert"; cards: Card[] };
 type CardMutationFailure = { variables: CardMutationVariables; error: unknown; sequence: number };
 
@@ -148,7 +148,7 @@ export const useCardMutations = () => {
     } else if (variables.kind === "update") {
       await service.update(uid, variables.card);
     } else if (variables.kind === "remove") {
-      await service.remove(uid, variables.id);
+      await service.remove(uid, variables.id, variables.deckId);
     } else {
       await service.bulkUpsert(uid, variables.cards);
     }
@@ -183,7 +183,7 @@ export const useCardMutations = () => {
     remove: (id: CardId) => {
       const card = remote.cardById(id);
       if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
-      return run({ kind: "remove", id });
+      return run({ kind: "remove", id, deckId: card.deckId });
     },
     bulkUpsert: (cards: Card[]) => run({ kind: "bulkUpsert", cards }),
     isPending: (id: CardId) => pendingState.uid === uid && pendingState.counts.has(id),

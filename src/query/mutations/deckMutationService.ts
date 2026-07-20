@@ -1,6 +1,11 @@
 /** @file Coordinates serialized remote Deck mutations. */
 
-import { deckMutationLock, withMutationLocks } from "@/query/mutations/locks";
+import {
+  deckMembershipMutationLock,
+  deckMutationLock,
+  withDeckMembershipLocks,
+  withMutationLocks,
+} from "@/query/mutations/locks";
 
 export interface DeckMutationServiceDependencies {
   createDeck: (deck: Deck) => Promise<string>;
@@ -23,6 +28,10 @@ export const createDeckMutationService = (dependencies: DeckMutationServiceDepen
       withMutationLocks([deckMutationLock(uid, patch.id)], () => dependencies.updateDeck(patch)),
     /** Removes a deck while holding its UID-scoped Deck lock. */
     remove: (uid: string, id: DeckId) =>
-      withMutationLocks([deckMutationLock(uid, id)], () => dependencies.removeDeck(id, uid)),
+      withMutationLocks([deckMutationLock(uid, id)], () =>
+        withDeckMembershipLocks([deckMembershipMutationLock(uid, id)], "exclusive", () =>
+          dependencies.removeDeck(id, uid)
+        )
+      ),
   };
 };

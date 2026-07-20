@@ -1,6 +1,11 @@
 /** @file Coordinates serialized remote Card mutations. */
 
-import { cardMutationLock, withMutationLocks } from "@/query/mutations/locks";
+import {
+  cardMutationLock,
+  deckMembershipMutationLock,
+  withDeckMembershipLocks,
+  withMutationLocks,
+} from "@/query/mutations/locks";
 
 export interface CardMutationServiceDependencies {
   createCard: (card: Card) => Promise<string>;
@@ -33,26 +38,41 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
   return {
     /** Persists a card while holding its card lock. */
     create: (uid: string, card: Card) =>
-      withMutationLocks([cardMutationLock(uid, card.id)], () => dependencies.createCard(card)),
+      withMutationLocks([cardMutationLock(uid, card.id)], () =>
+        withDeckMembershipLocks([deckMembershipMutationLock(uid, card.deckId)], "shared", () =>
+          dependencies.createCard(card)
+        )
+      ),
     /** Persists a card patch while holding its card lock. */
     update: (uid: string, patch: CardEdit) =>
-      withMutationLocks([cardMutationLock(uid, patch.id)], () => dependencies.updateCard(patch)),
+      withMutationLocks([cardMutationLock(uid, patch.id)], () =>
+        withDeckMembershipLocks([deckMembershipMutationLock(uid, patch.deckId)], "shared", () =>
+          dependencies.updateCard(patch)
+        )
+      ),
     /** Logically removes a card while holding its card lock. */
-    remove: (uid: string, id: CardId) =>
-      withMutationLocks([cardMutationLock(uid, id)], () => dependencies.removeCard(id)),
+    remove: (uid: string, id: CardId, deckId: DeckId) =>
+      withMutationLocks([cardMutationLock(uid, id)], () =>
+        withDeckMembershipLocks([deckMembershipMutationLock(uid, deckId)], "shared", () => dependencies.removeCard(id))
+      ),
     /** Writes many cards under their locks and reports every failed Card ID. */
     bulkUpsert: (uid: string, upserts: Card[]) =>
       withMutationLocks(
         upserts.map((card) => cardMutationLock(uid, card.id)),
-        async () => {
-          const results = await Promise.allSettled(upserts.map((card) => dependencies.upsertCard(card)));
-          const failedIds = results.flatMap((result, index) => {
-            const card = upserts[index];
-            return result.status === "rejected" && card != null ? [card.id] : [];
-          });
-          if (failedIds.length === 0) return;
-          throw new CardBulkMutationError(failedIds, upserts.length);
-        }
+        () =>
+          withDeckMembershipLocks(
+            upserts.map((card) => deckMembershipMutationLock(uid, card.deckId)),
+            "shared",
+            async () => {
+              const results = await Promise.allSettled(upserts.map((card) => dependencies.upsertCard(card)));
+              const failedIds = results.flatMap((result, index) => {
+                const card = upserts[index];
+                return result.status === "rejected" && card != null ? [card.id] : [];
+              });
+              if (failedIds.length === 0) return;
+              throw new CardBulkMutationError(failedIds, upserts.length);
+            }
+          )
       ),
   };
 };

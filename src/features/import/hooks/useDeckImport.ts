@@ -18,7 +18,19 @@ import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/featu
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
 
-type ImportRequest = { kind: "content"; name: string; rows: DeckImportRow[] } | { kind: "sample" };
+interface DeckImportAttempt {
+  uid: string;
+  deck: Deck;
+  createDeckPending: boolean;
+  remainingUpserts: Card[];
+  createdIds: CardId[];
+  updatedIds: CardId[];
+  totals: Pick<DeckImportResult, "created" | "updated" | "skipped">;
+}
+
+type ImportRequest =
+  | { kind: "content"; name: string; rows: DeckImportRow[]; attempt?: DeckImportAttempt }
+  | { kind: "sample"; attempt?: DeckImportAttempt };
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
@@ -65,6 +77,50 @@ interface DeckImportDependencies {
   bulkUpsert: (cards: Card[]) => Promise<unknown>;
 }
 
+const prepareDeckImportAttempt = (
+  request: ImportRequest,
+  { uid, decks, cardsByDeckId }: DeckImportDependencies
+): DeckImportAttempt => {
+  const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
+  const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
+  const rows = request.kind === "sample" ? rowsFromCards(sampleCards as CardRaw[]) : request.rows;
+  let deck = decks.find((candidate) =>
+    preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
+  );
+  const createDeckPending = deck == null;
+  if (deck == null) {
+    deck = action.deck.prepare({ name }, uid, firestoreMetadata.generateDeckId);
+    if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
+  }
+
+  const existing = cardsByDeckId(deck.id);
+  const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
+  const plan = buildDeckImportPlan(rows, existing);
+  const remainingUpserts: Card[] = [];
+  const createdIds: CardId[] = [];
+  const updatedIds: CardId[] = [];
+  plan.rows.forEach((row) => {
+    const current = byUniqueKey.get(row.card.uniqueKey);
+    if (row.action === "create") {
+      const card = action.card.prepare(row.card, deck, firestoreMetadata.generateCardId);
+      remainingUpserts.push(card);
+      createdIds.push(card.id);
+    } else if (row.action === "update" && current != null) {
+      remainingUpserts.push({ ...current, ...row.card });
+      updatedIds.push(current.id);
+    }
+  });
+  return {
+    uid,
+    deck,
+    createDeckPending,
+    remainingUpserts,
+    createdIds,
+    updatedIds,
+    totals: { created: plan.created, updated: plan.updated, skipped: plan.unchanged },
+  };
+};
+
 /**
  * Creates or finds the destination deck, plans row changes, and writes imported cards.
  * A bulk-write failure is converted into counts that distinguish successful, skipped, and failed
@@ -75,56 +131,37 @@ const executeDeckImport = async (
   { uid, decks, cardsByDeckId, createDeck, bulkUpsert }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
-  const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
-  const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
-  const rows = request.kind === "sample" ? rowsFromCards(sampleCards as CardRaw[]) : request.rows;
-  let deck = decks.find((candidate) =>
-    preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
-  );
-  if (deck == null) {
-    deck = action.deck.prepare({ name }, uid, firestoreMetadata.generateDeckId);
-    if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
-    await createDeck(deck);
+  let attempt = request.attempt;
+  if (attempt == null || attempt.uid !== uid) {
+    attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId, createDeck, bulkUpsert });
+    request.attempt = attempt;
   }
-
-  const existing = cardsByDeckId(deck.id);
-  const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
-  const plan = buildDeckImportPlan(rows, existing);
-  const upserts: Card[] = [];
-  const createdIds = new Set<CardId>();
-  const updatedIds = new Set<CardId>();
-  plan.rows.forEach((row) => {
-    const current = byUniqueKey.get(row.card.uniqueKey);
-    if (row.action === "create") {
-      const card = action.card.prepare(row.card, deck, firestoreMetadata.generateCardId);
-      upserts.push(card);
-      createdIds.add(card.id);
-    } else if (row.action === "update" && current != null) {
-      upserts.push({ ...current, ...row.card });
-      updatedIds.add(current.id);
-    }
-  });
+  if (attempt.createDeckPending) {
+    await createDeck(attempt.deck);
+    attempt.createDeckPending = false;
+  }
+  const upserts = attempt.remainingUpserts;
   try {
     if (upserts.length > 0) await bulkUpsert(upserts);
   } catch (error) {
     const failedIds = error instanceof CardBulkMutationError ? error.failedIds : upserts.map((card) => card.id);
     const failed = new Set(failedIds);
+    attempt.remainingUpserts = upserts.filter((card) => failed.has(card.id));
     throw Object.assign(new Error(`Deck import did not complete: ${String(error)}`), {
       result: {
-        created: [...createdIds].filter((id) => !failed.has(id)).length,
-        updated: [...updatedIds].filter((id) => !failed.has(id)).length,
-        skipped: plan.unchanged,
-        failed: failed.size,
-        deckId: deck.id,
+        created: attempt.createdIds.filter((id) => !failed.has(id)).length,
+        updated: attempt.updatedIds.filter((id) => !failed.has(id)).length,
+        skipped: attempt.totals.skipped,
+        failed: attempt.remainingUpserts.length,
+        deckId: attempt.deck.id,
       },
     });
   }
+  attempt.remainingUpserts = [];
   return {
-    created: plan.created,
-    updated: plan.updated,
-    skipped: plan.unchanged,
+    ...attempt.totals,
     failed: 0,
-    deckId: deck.id,
+    deckId: attempt.deck.id,
   };
 };
 
@@ -302,6 +339,7 @@ export const useDeckImport = () => {
   };
 
   const resetOperation = () => {
+    lastRequest.current = undefined;
     setData(undefined);
     setError(null);
   };

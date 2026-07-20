@@ -244,6 +244,50 @@ describe("useDeckImport", () => {
     });
   });
 
+  it("retries only failed prepared Cards with stable IDs before listener publication", async () => {
+    const deck = createDeck({ id: "destination", uid: "uid-a" });
+    const first = createCard({ id: "prepared-first", deckId: deck.id, uniqueKey: "first" });
+    const second = createCard({ id: "prepared-second", deckId: deck.id, uniqueKey: "second" });
+    mocks.prepareDeck.mockReturnValue(deck);
+    mocks.prepareCard.mockReturnValueOnce(first).mockReturnValueOnce(second);
+    mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([second.id], 2)).mockResolvedValueOnce(undefined);
+    const { result } = renderHook(useDeckImport);
+    const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {
+      type: "text/csv",
+    });
+
+    await act(async () => result.current.selectFile(file));
+    await act(async () => {
+      await expect(result.current.importPreview()).rejects.toThrow("did not complete");
+    });
+    expect(result.current.partialResult).toEqual({
+      created: 1,
+      updated: 0,
+      skipped: 0,
+      failed: 1,
+      deckId: deck.id,
+    });
+
+    act(() => result.current.retry());
+    await waitFor(() =>
+      expect(result.current.data).toEqual({
+        created: 2,
+        updated: 0,
+        skipped: 0,
+        failed: 0,
+        deckId: deck.id,
+      })
+    );
+
+    expect(mocks.decks).toEqual([]);
+    expect(mocks.cards).toEqual([]);
+    expect(mocks.createDeck).toHaveBeenCalledOnce();
+    expect(mocks.prepareDeck).toHaveBeenCalledOnce();
+    expect(mocks.prepareCard).toHaveBeenCalledTimes(2);
+    expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(1, [first, second]);
+    expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(2, [second]);
+  });
+
   it("clears operation data and error when a new file is selected", async () => {
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });

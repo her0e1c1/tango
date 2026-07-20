@@ -53,8 +53,59 @@ interface CurrentRemoteSnapshot {
   metadata: ReadonlyMap<RemoteCollectionName, RemoteSnapshotMetadata>;
 }
 
-const freezeCollection = <T>(collection: RemoteById<T>): RemoteById<T> => Object.freeze({ ...collection });
-const emptyData = (): RemoteData => ({ decksById: freezeCollection({}), cardsById: freezeCollection({}) });
+const dateMutationMethods = [
+  "setDate",
+  "setFullYear",
+  "setHours",
+  "setMilliseconds",
+  "setMinutes",
+  "setMonth",
+  "setSeconds",
+  "setTime",
+  "setUTCDate",
+  "setUTCFullYear",
+  "setUTCHours",
+  "setUTCMilliseconds",
+  "setUTCMinutes",
+  "setUTCMonth",
+  "setUTCSeconds",
+  "setYear",
+] as const;
+
+const freezeDate = (value: Date): Date => {
+  const copy = new Date(value.getTime());
+  dateMutationMethods.forEach((method) => {
+    Object.defineProperty(copy, method, {
+      value: () => {
+        throw new TypeError("Published Date values are immutable");
+      },
+    });
+  });
+  return Object.freeze(copy);
+};
+
+const freezeDeck = (deck: Deck): Deck =>
+  Object.freeze({ ...deck, selectedTags: Object.freeze([...deck.selectedTags]) }) as Deck;
+
+const freezeCard = (card: Card): Card =>
+  Object.freeze({
+    ...card,
+    tags: Object.freeze([...card.tags]),
+    nextSeeingAt: card.nextSeeingAt == null ? card.nextSeeingAt : freezeDate(card.nextSeeingAt),
+  }) as Card;
+
+const freezeCollection = <T>(collection: RemoteById<T>, freezeEntity: (entity: T) => T): RemoteById<T> => {
+  const copy: Record<string, T | undefined> = {};
+  Object.entries(collection).forEach(([id, entity]) => {
+    copy[id] = entity == null ? undefined : freezeEntity(entity);
+  });
+  return Object.freeze(copy);
+};
+
+const emptyData = (): RemoteData => ({
+  decksById: freezeCollection({}, freezeDeck),
+  cardsById: freezeCollection({}, freezeCard),
+});
 const emptyMetadata = (): ReadonlyMap<RemoteCollectionName, RemoteSnapshotMetadata> => new Map();
 
 export const createRemoteStore = (): RemoteStore => {
@@ -92,8 +143,8 @@ export const createRemoteStore = (): RemoteStore => {
     metadata.set(collection, Object.freeze({ ...snapshot.metadata }));
     const data: RemoteData =
       collection === "decks"
-        ? { decksById: freezeCollection(snapshot.data as RemoteById<Deck>), cardsById: state.cardsById }
-        : { decksById: state.decksById, cardsById: freezeCollection(snapshot.data as RemoteById<Card>) };
+        ? { decksById: freezeCollection(snapshot.data as RemoteById<Deck>, freezeDeck), cardsById: state.cardsById }
+        : { decksById: state.decksById, cardsById: freezeCollection(snapshot.data as RemoteById<Card>, freezeCard) };
     const deckMetadata = metadata.get("decks");
     const cardMetadata = metadata.get("cards");
     if (!deckMetadata || !cardMetadata) {

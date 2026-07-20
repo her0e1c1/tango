@@ -215,6 +215,68 @@ describe("remote store", () => {
     expect(store.getSnapshot().cardsById).toEqual({ [card.id]: card });
   });
 
+  it("copies entity values and nested mutable data before publishing them", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a", name: "Original", selectedTags: ["deck-tag"] });
+    const nextSeeingAt = new Date(100);
+    const card = createCard({
+      id: "card-a",
+      deckId: deck.id,
+      frontText: "Original",
+      tags: ["card-tag"],
+      nextSeeingAt,
+    });
+    store.begin("uid-a");
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    store.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const snapshot = store.getSnapshot();
+
+    deck.name = "Changed";
+    deck.selectedTags.push("changed");
+    card.frontText = "Changed";
+    card.tags.push("changed");
+    nextSeeingAt.setTime(200);
+
+    expect(store.getSnapshot()).toBe(snapshot);
+    expect(snapshot.decksById[deck.id]).toMatchObject({ name: "Original", selectedTags: ["deck-tag"] });
+    expect(snapshot.cardsById[card.id]).toMatchObject({ frontText: "Original", tags: ["card-tag"] });
+    expect(snapshot.cardsById[card.id]?.nextSeeingAt?.getTime()).toBe(100);
+  });
+
+  it("freezes published entities, nested arrays, and Date values", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a", selectedTags: ["deck-tag"] });
+    const card = createCard({ id: "card-a", deckId: deck.id, tags: ["card-tag"], nextSeeingAt: new Date(100) });
+    store.begin("uid-a");
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    store.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const snapshot = store.getSnapshot();
+    const publishedDeck = snapshot.decksById[deck.id];
+    const publishedCard = snapshot.cardsById[card.id];
+    if (publishedDeck == null || publishedCard == null) throw new Error("Expected published entities");
+
+    expect(Reflect.set(publishedDeck, "name", "Changed")).toBe(false);
+    expect(() => publishedDeck.selectedTags.push("changed")).toThrow();
+    expect(Reflect.set(publishedCard, "frontText", "Changed")).toBe(false);
+    expect(() => publishedCard.tags.push("changed")).toThrow();
+    expect(() => publishedCard.nextSeeingAt?.setTime(200)).toThrow();
+    expect(store.getSnapshot()).toBe(snapshot);
+    expect(publishedCard.nextSeeingAt).toBeInstanceOf(Date);
+    expect(publishedCard.nextSeeingAt?.getTime()).toBe(100);
+  });
+
   it("freezes published state and collection maps", () => {
     const store = createRemoteStore();
     const deck = createDeck({ id: "deck-a" });

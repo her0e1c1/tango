@@ -43,7 +43,7 @@ describe("createCardMutationService", () => {
 
     await service.create(uid, created);
     await service.update(uid, { id: existing.id, deckId: existing.deckId, score: 1 });
-    await service.remove(uid, existing.id);
+    await service.remove(uid, existing.id, existing.deckId);
 
     expect(store.getSnapshot()).toBe(beforeWrite);
     expect(dependencies.createCard).toHaveBeenCalledWith(created);

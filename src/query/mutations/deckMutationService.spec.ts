@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createCardMutationService } from "@/query/mutations/cardMutationService";
 import { createDeckMutationService } from "@/query/mutations/deckMutationService";
 import { createRemoteStore } from "@/store/remoteStore";
 import { createCard, createDeck } from "@/test/factories";
@@ -105,5 +106,96 @@ describe("createDeckMutationService", () => {
     await Promise.all([updateA, removeA, removeB]);
     expect(dependencies.removeDeck).toHaveBeenCalledTimes(2);
     expect(dependencies.removeDeck).toHaveBeenLastCalledWith(deck.id, "uid-a");
+  });
+
+  it("serializes Deck removal with every Card write for the same Deck membership", async () => {
+    const deck = createDeck({ id: "deck" });
+    const cardToCreate = createCard({ id: "create", deckId: deck.id });
+    const cardToUpdate = createCard({ id: "update", deckId: deck.id });
+    const cardToRemove = createCard({ id: "remove", deckId: deck.id });
+    const cardToUpsert = createCard({ id: "upsert", deckId: deck.id });
+    const removal = deferred();
+    dependencies.removeDeck.mockReturnValueOnce(removal.promise);
+    const cardDependencies = {
+      createCard: vi.fn<(card: Card) => Promise<string>>().mockResolvedValue("create"),
+      updateCard: vi.fn<(card: CardEdit) => Promise<void>>().mockResolvedValue(undefined),
+      removeCard: vi.fn<(id: CardId) => Promise<void>>().mockResolvedValue(undefined),
+      upsertCard: vi.fn<(card: Card) => Promise<string>>().mockResolvedValue("upsert"),
+    };
+    const deckService = createDeckMutationService(dependencies);
+    const cardService = createCardMutationService(cardDependencies);
+
+    const removeDeck = deckService.remove(uid, deck.id);
+    await vi.waitFor(() => expect(dependencies.removeDeck).toHaveBeenCalledOnce());
+    const cardWrites = [
+      cardService.create(uid, cardToCreate),
+      cardService.update(uid, cardToUpdate),
+      cardService.remove(uid, cardToRemove.id, deck.id),
+      cardService.bulkUpsert(uid, [cardToUpsert]),
+    ];
+    await Promise.resolve();
+    const callsWhileRemoving = {
+      create: cardDependencies.createCard.mock.calls.length,
+      update: cardDependencies.updateCard.mock.calls.length,
+      remove: cardDependencies.removeCard.mock.calls.length,
+      upsert: cardDependencies.upsertCard.mock.calls.length,
+    };
+
+    removal.resolve();
+    await Promise.all([removeDeck, ...cardWrites]);
+    expect(callsWhileRemoving).toEqual({ create: 0, update: 0, remove: 0, upsert: 0 });
+    expect(cardDependencies.createCard).toHaveBeenCalledWith(cardToCreate);
+    expect(cardDependencies.updateCard).toHaveBeenCalledWith(cardToUpdate);
+    expect(cardDependencies.removeCard).toHaveBeenCalledWith(cardToRemove.id);
+    expect(cardDependencies.upsertCard).toHaveBeenCalledWith(cardToUpsert);
+  });
+
+  it("allows Card writes for another Deck or UID during Deck removal", async () => {
+    const deck = createDeck({ id: "deck" });
+    const removal = deferred();
+    dependencies.removeDeck.mockReturnValueOnce(removal.promise);
+    const cardDependencies = {
+      createCard: vi.fn<(card: Card) => Promise<string>>().mockResolvedValue("created"),
+      updateCard: vi.fn<(card: CardEdit) => Promise<void>>().mockResolvedValue(undefined),
+      removeCard: vi.fn<(id: CardId) => Promise<void>>().mockResolvedValue(undefined),
+      upsertCard: vi.fn<(card: Card) => Promise<string>>().mockResolvedValue("upserted"),
+    };
+    const deckService = createDeckMutationService(dependencies);
+    const cardService = createCardMutationService(cardDependencies);
+
+    const removeDeck = deckService.remove("uid-a", deck.id);
+    await vi.waitFor(() => expect(dependencies.removeDeck).toHaveBeenCalledOnce());
+    const otherDeckWrite = cardService.create("uid-a", createCard({ id: "other-deck", deckId: "other" }));
+    const otherUidWrite = cardService.update("uid-b", createCard({ id: "other-uid", deckId: deck.id }));
+
+    await vi.waitFor(() => expect(cardDependencies.createCard).toHaveBeenCalledOnce());
+    await vi.waitFor(() => expect(cardDependencies.updateCard).toHaveBeenCalledOnce());
+    removal.resolve();
+    await Promise.all([removeDeck, otherDeckWrite, otherUidWrite]);
+  });
+
+  it("waits for an in-flight Card membership write before starting Deck removal", async () => {
+    const deck = createDeck({ id: "deck" });
+    const card = createCard({ id: "card", deckId: deck.id });
+    const cardWrite = deferred();
+    const cardDependencies = {
+      createCard: vi.fn<(card: Card) => Promise<string>>().mockResolvedValue("created"),
+      updateCard: vi.fn<(card: CardEdit) => Promise<void>>().mockReturnValueOnce(cardWrite.promise),
+      removeCard: vi.fn<(id: CardId) => Promise<void>>().mockResolvedValue(undefined),
+      upsertCard: vi.fn<(card: Card) => Promise<string>>().mockResolvedValue("upserted"),
+    };
+    const deckService = createDeckMutationService(dependencies);
+    const cardService = createCardMutationService(cardDependencies);
+
+    const updateCard = cardService.update(uid, card);
+    await vi.waitFor(() => expect(cardDependencies.updateCard).toHaveBeenCalledOnce());
+    const removeDeck = deckService.remove(uid, deck.id);
+    await Promise.resolve();
+    const removalCallsWhileWriting = dependencies.removeDeck.mock.calls.length;
+
+    cardWrite.resolve();
+    await Promise.all([updateCard, removeDeck]);
+    expect(removalCallsWhileWriting).toBe(0);
+    expect(dependencies.removeDeck).toHaveBeenCalledOnce();
   });
 });

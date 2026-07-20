@@ -112,12 +112,16 @@ function productionFilesUnder(relativeDirectory: string): string[] {
 }
 
 function remoteMutationFiles(): string[] {
-  return [
-    ...productionFilesUnder("query/mutations"),
-    ...productionFilesUnder("features").filter((relativePath) =>
-      /\/hooks\/use[A-Z][^/]*Mutations\.tsx?$/.test(relativePath)
-    ),
-  ];
+  const featureOrchestrationFiles = productionFilesUnder("features").filter((relativePath) => {
+    if (!/^features\/[^/]+\/hooks\/use[A-Z][^/]*\.tsx?$/.test(relativePath)) return false;
+    if (/(?:Actions|Bootstrap|Import|Mutations)\.tsx?$/.test(relativePath)) return true;
+    return moduleReferences(relativePath).some(
+      ({ resolvedSpecifier }) =>
+        isModuleOrSubpath(resolvedSpecifier, "@/query/mutations") ||
+        /^@\/features\/[^/]+\/hooks\/use[A-Z][^/]*(?:Import|Mutations)$/.test(resolvedSpecifier)
+    );
+  });
+  return [...productionFilesUnder("query/mutations"), ...featureOrchestrationFiles];
 }
 
 /**
@@ -248,15 +252,30 @@ function looksStoreLike(expression: ts.Expression | undefined): boolean {
   return false;
 }
 
+function isDeclaredInStoreLikeMember(node: ts.Node): boolean {
+  let current = node.parent;
+  while (current != null && !ts.isSourceFile(current)) {
+    if (ts.isTypeLiteralNode(current)) {
+      const name = propertyLikeName(current.parent);
+      if (name === "state" || (name !== undefined && remoteStorePropertyNames.has(name))) return true;
+    }
+    current = current.parent;
+  }
+  return false;
+}
+
 function hasRemoteMutationStoreAccess(subject: TextSubject): boolean {
   return containsSyntax(parseSource(subject), (node) => {
     if (ts.isIdentifier(node) && node.text === remoteStoreTypeName) return true;
     if (ts.isIdentifier(node) && node.text === remoteStoreValueName) return true;
     const name = propertyLikeName(node);
     if (name === undefined) return false;
-    if (remoteStorePropertyNames.has(name) || name === remoteStoreSnapshotReadName) return true;
+    if (remoteStorePropertyNames.has(name)) return true;
     const receiver = accessReceiver(node);
-    return looksStoreLike(receiver) && (name === "subscribe" || isDirectLifecycleCall(node, name));
+    return (
+      (looksStoreLike(receiver) || isDeclaredInStoreLikeMember(node)) &&
+      (name === remoteStoreSnapshotReadName || name === "subscribe" || isDirectLifecycleCall(node, name))
+    );
   });
 }
 
@@ -507,6 +526,10 @@ describe("component architecture", () => {
         relativePath: "local-function.ts",
         source: "const getSnapshot = () => ({ local: true }); void getSnapshot();",
       },
+      {
+        relativePath: "local-store.ts",
+        source: "const localStore = { getSnapshot: () => ({ local: true }) }; localStore.getSnapshot();",
+      },
     ];
 
     expect(remoteMutationStoreViolations(subjects)).toEqual([]);
@@ -527,6 +550,23 @@ describe("component architecture", () => {
   });
 
   it("keeps production mutation code independent from the RemoteStore", () => {
+    expect(remoteMutationFiles()).toEqual(
+      expect.arrayContaining([
+        "features/card/hooks/useCardMutations.ts",
+        "features/deck/hooks/useDeckActions.ts",
+        "features/deck/hooks/useDeckMutations.ts",
+        "features/import/hooks/useDeckImport.ts",
+        "features/import/hooks/useSampleDeckBootstrap.ts",
+        "features/study/hooks/useStudyActions.ts",
+      ])
+    );
+    expect(remoteMutationFiles()).not.toEqual(
+      expect.arrayContaining([
+        "features/card/hooks/useCardFormState.ts",
+        "features/settings/hooks/useAccountOperations.ts",
+        "features/study/hooks/useStudyStore.ts",
+      ])
+    );
     const violations = remoteMutationStoreViolations(
       remoteMutationFiles().map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
     );
