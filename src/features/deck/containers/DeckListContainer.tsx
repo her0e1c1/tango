@@ -24,10 +24,7 @@ export const DeckListContainer: React.FC = () => {
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudyStore((state) => state.sessionsByDeckId);
   const hydrated = useStudyHydrated();
-  const sections = React.useMemo(
-    () => buildDeckListSections(remote.decks, remote.cards, sessionsByDeckId),
-    [remote.cards, remote.decks, sessionsByDeckId]
-  );
+  const sections = buildDeckListSections(remote.decks, remote.cards, sessionsByDeckId);
   useSampleDeckBootstrap();
   useKey("s", actions.goToSettings);
   useKey("i", actions.goToImport);

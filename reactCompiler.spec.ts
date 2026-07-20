@@ -3,6 +3,7 @@
 import { describe, expect, it, vi } from "vitest";
 import storybookConfig from "./.storybook/main";
 import viteConfig from "./vite.config";
+import compilerVerificationConfig from "./vite.react-compiler.config";
 import vitestConfig from "./vitest.config";
 
 const reactCompilerMock = vi.hoisted(() => {
@@ -58,8 +59,8 @@ const storybookViteConfig = await storybookConfig.viteFinal?.(
 );
 
 describe("React Compiler Vite integration", () => {
-  it("calls the shared factory for the application and Vitest", () => {
-    expect(createReactCompilerPlugin).toHaveBeenCalledTimes(2);
+  it("calls the shared factory for the application, compiler verification, and Vitest", () => {
+    expect(createReactCompilerPlugin).toHaveBeenCalledTimes(3);
   });
 
   it("adds one compiler plugin to the application", async () => {
@@ -68,6 +69,12 @@ describe("React Compiler Vite integration", () => {
 
   it("adds one compiler plugin to Vitest", async () => {
     expect(await compilerPlugins(vitestConfig.plugins)).toHaveLength(1);
+  });
+
+  it("adds one compiler plugin without PWA generation to compiler verification", async () => {
+    expect(await compilerPlugins(compilerVerificationConfig.plugins)).toHaveLength(1);
+    expect(await pluginNames(compilerVerificationConfig.plugins)).not.toContain("vite-plugin-pwa");
+    expect(await pluginNames(compilerVerificationConfig.plugins)).not.toContain("vite-plugin-pwa:build");
   });
 
   it("keeps one compiler plugin from the root Vite configuration in Storybook", async () => {
@@ -88,10 +95,11 @@ describe("React Compiler Vite integration", () => {
   it("creates independent plugin instances for the application and Vitest", async () => {
     const instances = [
       ...(await compilerPlugins(viteConfig.plugins)),
+      ...(await compilerPlugins(compilerVerificationConfig.plugins)),
       ...(await compilerPlugins(vitestConfig.plugins)),
     ];
 
-    expect(instances).toHaveLength(2);
-    expect(new Set(instances).size).toBe(2);
+    expect(instances).toHaveLength(3);
+    expect(new Set(instances).size).toBe(3);
   });
 });

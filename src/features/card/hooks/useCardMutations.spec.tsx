@@ -41,6 +41,15 @@ describe("useCardMutations", () => {
     mocks.readAll.mockResolvedValue([]);
   });
 
+  it("keeps the update runner stable across an unchanged render", () => {
+    const { result, rerender } = renderHook(useCardMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const update = result.current.update;
+
+    rerender();
+
+    expect(result.current.update).toBe(update);
+  });
+
   it("routes Card updates through the Firestore mutation service", async () => {
     const deck = createDeck();
     mocks.card = createCard({ deckId: deck.id, score: 0 });

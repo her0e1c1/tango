@@ -4,12 +4,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { studyStore } from "@/features/study/state/studyStore";
 
-const mocks = vi.hoisted(() => ({
-  state: null as { card: Record<CardId, Card>; config: ConfigState } | null,
-  navigate: vi.fn(),
-  cardUpdate: vi.fn(),
-  pendingIds: new Set<CardId>(),
-}));
+const mocks = vi.hoisted(() => {
+  const cardUpdate = vi.fn();
+  const pendingIds = new Set<CardId>();
+
+  return {
+    state: null as { card: Record<CardId, Card>; config: ConfigState } | null,
+    filteredCards: [] as Card[],
+    navigate: vi.fn(),
+    cardUpdate,
+    pendingIds,
+    cardMutations: {
+      update: cardUpdate,
+      isPending: (id: CardId) => pendingIds.has(id),
+      pending: false,
+      error: null,
+      retry: vi.fn(),
+    },
+  };
+});
 
 vi.mock("@/hooks/useConfig", () => ({
   useConfig: () => {
@@ -23,8 +36,7 @@ vi.mock("@/query/useRemoteCollections", () => ({
     const cardsById = mocks.state?.card ?? {};
     return {
       cardsById,
-      filteredCardsByDeckId: (deckId: string) =>
-        Object.values(cardsById).filter((card): card is Card => card?.deckId === deckId),
+      filteredCardsByDeckId: () => mocks.filteredCards,
     };
   },
 }));
@@ -34,13 +46,7 @@ vi.mock("react-router-dom", () => ({
 }));
 
 vi.mock("@/features/card/hooks/useCardMutations", () => ({
-  useCardMutations: () => ({
-    update: mocks.cardUpdate,
-    isPending: (id: CardId) => mocks.pendingIds.has(id),
-    pending: false,
-    error: null,
-    retry: vi.fn(),
-  }),
+  useCardMutations: () => mocks.cardMutations,
 }));
 
 const deck: Deck = {
@@ -104,12 +110,22 @@ describe("useStudyActions", () => {
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.pendingIds.clear();
     mocks.state = createState();
+    mocks.filteredCards = Object.values(mocks.state.card);
     studyStore.setState({
       sessionsByDeckId: {},
       showBackText: false,
       autoPlay: false,
       lastSwipe: undefined,
     });
+  });
+
+  it("keeps the action API stable across an unchanged render", () => {
+    const { result, rerender } = renderHook(() => useStudyActions(deck.id));
+    const actions = result.current;
+
+    rerender();
+
+    expect(result.current).toBe(actions);
   });
 
   afterEach(() => {

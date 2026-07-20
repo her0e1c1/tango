@@ -6,6 +6,7 @@ const sourceRoot = path.resolve(process.cwd(), "src");
 const sourceExtension = /\.tsx?$/;
 const testOrStory = /\.(?:spec|stories)\.tsx?$/;
 const mutablePresentationHook = /\b(?:React\.)?(?:useState|useReducer|useForm|useController|useWatch)\s*\(/;
+const manualMemoizationHook = /\b(?:React\.)?(?:useMemo|useCallback)\s*\(/g;
 const customHookDefinition = /\b(?:const|function)\s+(use[A-Z][A-Za-z0-9]*)\b/g;
 const firestoreCompositionModules = new Set([
   "firebase.ts",
@@ -159,6 +160,15 @@ function expectSharedComponentGroup(
 }
 
 describe("component architecture", () => {
+  it("leaves render memoization to React Compiler", () => {
+    const inventory = productionFilesUnder("").flatMap((relativePath) => {
+      const count = readSource(relativePath).match(manualMemoizationHook)?.length ?? 0;
+      return count === 0 ? [] : [{ relativePath, count }];
+    });
+
+    expect(inventory).toEqual([]);
+  });
+
   it("normalizes baseUrl source imports before checking boundaries", () => {
     expect(resolveModuleSpecifier("components/content/Card.tsx", "src/action")).toBe("@/action");
   });

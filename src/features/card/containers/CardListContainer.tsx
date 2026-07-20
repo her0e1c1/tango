@@ -22,7 +22,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const mutations = useCardMutations();
   const deckActions = useDeckActions(deckId);
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
-  const closeCard = React.useCallback(() => setShowCard(undefined), []);
+  const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : util.getCategory(deck.category, showCard.tags);
 
   useKey("t", actions.goToTop);

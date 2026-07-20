@@ -171,10 +171,7 @@ const accountOperationController = createAccountOperationController();
 
 export const useAccountOperations = ({ generation = "settings", login, logout }: AccountOperationDependencies) => {
   accountOperationController.setDependencies({ login, ...(logout ? { logout } : {}) });
-  const subscribe = React.useCallback(
-    (listener: () => void) => accountOperationController.subscribe(generation, listener),
-    [generation]
-  );
+  const subscribe = (listener: () => void) => accountOperationController.subscribe(generation, listener);
   const state = React.useSyncExternalStore(
     subscribe,
     accountOperationController.getSnapshot,

@@ -1,4 +1,4 @@
-import * as React from "react";
+import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import * as C from "@/constant";
@@ -15,7 +15,7 @@ const CardFormContent = ({ card }: { card: Card }) => {
   const actions = useActions();
   const navigate = useNavigate();
   const mutations = useCardMutations();
-  const categoryOptions = React.useMemo(() => C.CATEGORY.map((category) => ({ label: category, value: category })), []);
+  const categoryOptions = C.CATEGORY.map((category) => ({ label: category, value: category }));
   const goBack = () => void navigate(-1);
   const cardForm = useCardFormState({
     card,

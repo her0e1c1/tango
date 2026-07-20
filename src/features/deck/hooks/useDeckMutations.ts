@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import * as firestore from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
@@ -28,16 +28,12 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   const [pendingDeckIds, setPendingDeckIds] = useState<Set<DeckId>>(() => new Set());
   const failureRef = useRef<Failure>(undefined);
   const [failure, setFailure] = useState<Failure>();
-  const service = useMemo(
-    () =>
-      createDeckMutationService({
-        cache: createRemoteCache(client),
-        createDeck: firestore.deck.create,
-        updateDeck: firestore.deck.update,
-        removeDeck: firestore.deck.remove,
-      }),
-    [client]
-  );
+  const service = createDeckMutationService({
+    cache: createRemoteCache(client),
+    createDeck: firestore.deck.create,
+    updateDeck: firestore.deck.update,
+    removeDeck: firestore.deck.remove,
+  });
   const mutation = useMutation({
     retry: false,
     mutationFn: async (variables: Variables) => {
@@ -48,54 +44,51 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
       else await service.remove(uid, deck.id);
     },
   });
-  const run = useCallback(
-    (variables: Variables) => {
-      const failed = failureRef.current;
-      const retryOf = failed != null && isSameOperation(failed.variables, variables) ? failed : undefined;
-      const deckId = variables.deck.id;
-      const current = inFlight.current.get(deckId);
-      if (current != null) {
-        if (retryOf != null) {
-          void current.then(
-            () => {
-              if (failureRef.current !== retryOf) return;
-              failureRef.current = undefined;
-              setFailure(undefined);
-            },
-            () => undefined
-          );
-        }
-        return current;
+  const run = (variables: Variables) => {
+    const failed = failureRef.current;
+    const retryOf = failed != null && isSameOperation(failed.variables, variables) ? failed : undefined;
+    const deckId = variables.deck.id;
+    const current = inFlight.current.get(deckId);
+    if (current != null) {
+      if (retryOf != null) {
+        void current.then(
+          () => {
+            if (failureRef.current !== retryOf) return;
+            failureRef.current = undefined;
+            setFailure(undefined);
+          },
+          () => undefined
+        );
       }
+      return current;
+    }
 
-      setPendingDeckIds((pending) => new Set(pending).add(deckId));
-      const operation = mutation.mutateAsync(variables).then(
-        () => {
-          if (variables.kind === "remove") onRemoveSuccessRef.current?.(variables.deck);
-          if (retryOf == null || failureRef.current !== retryOf) return;
-          failureRef.current = undefined;
-          setFailure(undefined);
-        },
-        (error: unknown) => {
-          const nextFailure = { variables, error };
-          failureRef.current = nextFailure;
-          setFailure(nextFailure);
-          throw error;
-        }
-      );
-      const settled = operation.finally(() => {
-        inFlight.current.delete(deckId);
-        setPendingDeckIds((pending) => {
-          const next = new Set(pending);
-          next.delete(deckId);
-          return next;
-        });
+    setPendingDeckIds((pending) => new Set(pending).add(deckId));
+    const operation = mutation.mutateAsync(variables).then(
+      () => {
+        if (variables.kind === "remove") onRemoveSuccessRef.current?.(variables.deck);
+        if (retryOf == null || failureRef.current !== retryOf) return;
+        failureRef.current = undefined;
+        setFailure(undefined);
+      },
+      (error: unknown) => {
+        const nextFailure = { variables, error };
+        failureRef.current = nextFailure;
+        setFailure(nextFailure);
+        throw error;
+      }
+    );
+    const settled = operation.finally(() => {
+      inFlight.current.delete(deckId);
+      setPendingDeckIds((pending) => {
+        const next = new Set(pending);
+        next.delete(deckId);
+        return next;
       });
-      inFlight.current.set(deckId, settled);
-      return settled;
-    },
-    [mutation]
-  );
+    });
+    inFlight.current.set(deckId, settled);
+    return settled;
+  };
 
   return {
     create: (deck: Deck) => run({ kind: "create", deck }),
