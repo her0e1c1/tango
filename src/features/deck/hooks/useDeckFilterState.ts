@@ -25,24 +25,18 @@ export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateO
     });
   }, [handleSubmit, onSubmit, subscribe]);
 
-  const onClickFilter = React.useCallback(
-    (value: boolean) => {
-      setValue("tagAndFilter", value);
-    },
-    [setValue]
-  );
-  const onClickAll = React.useCallback(() => {
+  const onClickFilter = (value: boolean) => {
+    setValue("tagAndFilter", value);
+  };
+  const onClickAll = () => {
     setValue("selectedTags", tags);
-  }, [setValue, tags]);
-  const onClickClear = React.useCallback(() => {
+  };
+  const onClickClear = () => {
     setValue("selectedTags", []);
-  }, [setValue]);
-  const onClickTag = React.useCallback(
-    (value: string[]) => {
-      setValue("selectedTags", value);
-    },
-    [setValue]
-  );
+  };
+  const onClickTag = (value: string[]) => {
+    setValue("selectedTags", value);
+  };
 
   return {
     scoreMax,

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import * as firestore from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
@@ -19,6 +19,43 @@ const variableIds = (variables: CardMutationVariables): CardId[] => {
   return [variables.card.id];
 };
 
+interface CardMutationRunDependencies {
+  mutateAsync: (variables: CardMutationVariables) => Promise<unknown>;
+  lastFailed: { current: CardMutationVariables | undefined };
+  setPendingCounts: (update: (current: Map<CardId, number>) => Map<CardId, number>) => void;
+}
+
+const runCardMutation = async (
+  variables: CardMutationVariables,
+  { mutateAsync, lastFailed, setPendingCounts }: CardMutationRunDependencies
+) => {
+  const ids = variableIds(variables);
+  setPendingCounts((current) => {
+    const next = new Map(current);
+    ids.forEach((id) => {
+      next.set(id, (next.get(id) ?? 0) + 1);
+    });
+    return next;
+  });
+  try {
+    await mutateAsync(variables);
+    lastFailed.current = undefined;
+  } catch (error) {
+    lastFailed.current = variables;
+    throw error;
+  } finally {
+    setPendingCounts((current) => {
+      const next = new Map(current);
+      ids.forEach((id) => {
+        const count = (next.get(id) ?? 1) - 1;
+        if (count === 0) next.delete(id);
+        else next.set(id, count);
+      });
+      return next;
+    });
+  }
+};
+
 export const useCardMutations = () => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
@@ -26,18 +63,14 @@ export const useCardMutations = () => {
   const remote = useRemoteCollections();
   const [pendingCounts, setPendingCounts] = useState(() => new Map<CardId, number>());
   const lastFailed = useRef<CardMutationVariables>(undefined);
-  const service = useMemo(
-    () =>
-      createCardMutationService({
-        cache: createRemoteCache(client),
-        createCard: firestore.card.create,
-        updateCard: firestore.card.update,
-        removeCard: firestore.card.logicalRemove,
-        upsertCard: firestore.card.upsert,
-        readCards: firestore.card.readAll,
-      }),
-    [client]
-  );
+  const service = createCardMutationService({
+    cache: createRemoteCache(client),
+    createCard: firestore.card.create,
+    updateCard: firestore.card.update,
+    removeCard: firestore.card.logicalRemove,
+    upsertCard: firestore.card.upsert,
+    readCards: firestore.card.readAll,
+  });
 
   const mutation = useMutation({
     retry: false,
@@ -55,38 +88,14 @@ export const useCardMutations = () => {
     },
   });
 
-  const run = useCallback(
-    async (variables: CardMutationVariables) => {
-      const ids = variableIds(variables);
-      setPendingCounts((current) => {
-        const next = new Map(current);
-        ids.forEach((id) => {
-          next.set(id, (next.get(id) ?? 0) + 1);
-        });
-        return next;
-      });
-      try {
-        await mutation.mutateAsync(variables);
-        lastFailed.current = undefined;
-      } catch (error) {
-        lastFailed.current = variables;
-        throw error;
-      } finally {
-        setPendingCounts((current) => {
-          const next = new Map(current);
-          ids.forEach((id) => {
-            const count = (next.get(id) ?? 1) - 1;
-            if (count === 0) next.delete(id);
-            else next.set(id, count);
-          });
-          return next;
-        });
-      }
-    },
-    [mutation]
-  );
+  const run = (variables: CardMutationVariables) =>
+    runCardMutation(variables, {
+      mutateAsync: mutation.mutateAsync,
+      lastFailed,
+      setPendingCounts,
+    });
 
-  const update = useCallback((card: CardEdit) => run({ kind: "update", card }), [run]);
+  const update = (card: CardEdit) => run({ kind: "update", card });
 
   return {
     create: (card: Card) => run({ kind: "create", card }),

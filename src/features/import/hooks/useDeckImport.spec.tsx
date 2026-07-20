@@ -58,6 +58,15 @@ describe("useDeckImport", () => {
     mocks.bulkUpsert.mockResolvedValue(undefined);
   });
 
+  it("keeps retry orchestration stable across an unchanged render", () => {
+    const { result, rerender } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const retry = result.current.retry;
+
+    rerender();
+
+    expect(result.current.retry).toBe(retry);
+  });
+
   it("previews a file without writing until import is confirmed", async () => {
     const { result } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });

@@ -1,4 +1,4 @@
-import * as React from "react";
+import type * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -16,7 +16,7 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const config = useConfig();
   const actions = useActions();
   const deckActions = useDeckActions(deck.id);
-  const categoryOptions = React.useMemo(() => C.CATEGORY.map((category) => ({ label: category, value: category })), []);
+  const categoryOptions = C.CATEGORY.map((category) => ({ label: category, value: category }));
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
     defaultValues: {
       name: deck.name,

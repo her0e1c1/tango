@@ -1,4 +1,4 @@
-import * as React from "react";
+import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
@@ -23,13 +23,10 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
   const startStudy = studyActions.start;
   const actions = useActions();
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
-  const startFromEnter = React.useCallback(
-    (event: KeyboardEvent) => {
-      if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
-      startStudy();
-    },
-    [cards.length, startStudy]
-  );
+  const startFromEnter = (event: KeyboardEvent) => {
+    if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
+    startStudy();
+  };
   useKey("Enter", startFromEnter, {}, [startFromEnter]);
 
   return (
