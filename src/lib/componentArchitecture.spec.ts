@@ -26,6 +26,11 @@ const remoteSnapshotCapabilityName = ["apply", "Snapshot"].join("");
 const remoteStoreStateName = "RemoteStoreState";
 const remoteReadLifecycleActionNames = new Set(["start", "stop", "retryReads"]);
 const remoteEntityMapNames = new Set(["decksById", "cardsById"]);
+const ownedFirestoreAdapterModules = new Set([
+  "@/adapters/firestore/card",
+  "@/adapters/firestore/deck",
+  "@/adapters/firestore/event",
+]);
 const connectorModules = [
   "react-hook-form",
   "react-router",
@@ -155,6 +160,44 @@ function moduleReferencesForSource(relativePath: string, source: string): Module
   }));
 }
 
+function sourceModuleId(relativePath: string): string {
+  return `@/${relativePath.replace(/\.tsx?$/, "").replace(/\/index$/, "")}`;
+}
+
+function normalizedSourceSpecifier(specifier: string): string {
+  return specifier.replace(/\.tsx?$/, "").replace(/\/index$/, "");
+}
+
+function firestoreOwnedAdapterConsumers(subjects: TextSubject[]): string[] {
+  const firestoreAdaptersByModule = new Map(
+    subjects
+      .filter((subject) => subject.relativePath.startsWith("adapters/firestore/"))
+      .map((subject) => [sourceModuleId(subject.relativePath), subject] as const)
+  );
+
+  const reachesOwnedAdapter = (specifier: string, visitedModules: Set<string>): boolean => {
+    const moduleId = normalizedSourceSpecifier(specifier);
+    if (ownedFirestoreAdapterModules.has(moduleId)) return true;
+    if (visitedModules.has(moduleId)) return false;
+
+    const adapter = firestoreAdaptersByModule.get(moduleId);
+    if (adapter == null) return false;
+
+    const nextVisitedModules = new Set(visitedModules).add(moduleId);
+    return moduleReferencesForSource(adapter.relativePath, adapter.source).some((reference) =>
+      reachesOwnedAdapter(reference.resolvedSpecifier, nextVisitedModules)
+    );
+  };
+
+  return subjects.flatMap((subject) => {
+    if (subject.relativePath.startsWith("adapters/firestore/")) return [];
+    const consumesOwnedAdapter = moduleReferencesForSource(subject.relativePath, subject.source).some((reference) =>
+      reachesOwnedAdapter(reference.resolvedSpecifier, new Set())
+    );
+    return consumesOwnedAdapter ? [subject.relativePath] : [];
+  });
+}
+
 function parseSource({ relativePath, source }: TextSubject): ts.SourceFile {
   const scriptKind = relativePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
   return ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true, scriptKind);
@@ -211,16 +254,20 @@ function remoteSnapshotCapabilityViolations(subjects: TextSubject[]): string[] {
 
 function remoteMutationEntityAccessViolations(subject: TextSubject): string[] {
   const sourceFile = parseSource(subject);
-  const mutationActionNames = new Set<string>();
-  const localFunctions = new Map<string, ts.FunctionLikeDeclaration[]>();
-
-  const addLocalFunction = (name: string, declaration: ts.FunctionLikeDeclaration) => {
-    const declarations = localFunctions.get(name) ?? [];
-    declarations.push(declaration);
-    localFunctions.set(name, declarations);
+  const compilerOptions: ts.CompilerOptions = {
+    noLib: true,
+    noResolve: true,
+    target: ts.ScriptTarget.Latest,
   };
+  const compilerHost = ts.createCompilerHost(compilerOptions);
+  compilerHost.fileExists = (fileName) => fileName === sourceFile.fileName;
+  compilerHost.readFile = (fileName) => (fileName === sourceFile.fileName ? subject.source : undefined);
+  compilerHost.getSourceFile = (fileName) => (fileName === sourceFile.fileName ? sourceFile : undefined);
+  const program = ts.createProgram([sourceFile.fileName], compilerOptions, compilerHost);
+  const checker = program.getTypeChecker();
+  const mutationActionNames = new Set<string>();
 
-  const indexSource = (node: ts.Node): void => {
+  const discoverMutationActions = (node: ts.Node): void => {
     if (ts.isInterfaceDeclaration(node) && node.name.text === remoteStoreStateName) {
       node.members.forEach((member) => {
         const name = propertyLikeName(member);
@@ -230,53 +277,149 @@ function remoteMutationEntityAccessViolations(subject: TextSubject): string[] {
         if (name != null && isAction && !remoteReadLifecycleActionNames.has(name)) mutationActionNames.add(name);
       });
     }
-    if (
-      ts.isVariableDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.initializer != null &&
-      (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))
-    ) {
-      addLocalFunction(node.name.text, node.initializer);
-    }
-    if (ts.isFunctionDeclaration(node) && node.name != null && node.body != null) {
-      addLocalFunction(node.name.text, node);
-    }
-    ts.forEachChild(node, indexSource);
+    ts.forEachChild(node, discoverMutationActions);
   };
-  indexSource(sourceFile);
+  discoverMutationActions(sourceFile);
 
-  const singleLocalFunction = (name: string): ts.FunctionLikeDeclaration | undefined => {
-    const declarations = localFunctions.get(name);
-    return declarations?.length === 1 ? declarations.at(0) : undefined;
+  const actionSymbols = new Map<string, Set<ts.Symbol>>();
+  const indexActionImplementations = (node: ts.Node): void => {
+    let name: ts.Identifier | undefined;
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) name = node.name;
+    if (ts.isFunctionDeclaration(node) && node.name != null) name = node.name;
+    if (name != null && mutationActionNames.has(name.text)) {
+      const symbol = checker.getSymbolAtLocation(name);
+      if (symbol != null) {
+        const symbols = actionSymbols.get(name.text) ?? new Set<ts.Symbol>();
+        symbols.add(symbol);
+        actionSymbols.set(name.text, symbols);
+      }
+    }
+    ts.forEachChild(node, indexActionImplementations);
+  };
+  indexActionImplementations(sourceFile);
+
+  type CallableResolution =
+    | { kind: "resolved"; declaration: ts.FunctionLikeDeclaration }
+    | { kind: "external" }
+    | { kind: "unresolved" };
+
+  const resolvedCallable = (declaration: ts.FunctionLikeDeclaration): CallableResolution => ({
+    kind: "resolved",
+    declaration,
+  });
+
+  const resolveSymbol = (symbol: ts.Symbol, visitedSymbols: Set<ts.Symbol>): CallableResolution => {
+    if (visitedSymbols.has(symbol)) return { kind: "unresolved" };
+    const nextVisitedSymbols = new Set(visitedSymbols).add(symbol);
+    const declarations = (symbol.declarations ?? []).filter(
+      (declaration) => declaration.getSourceFile() === sourceFile
+    );
+    const runtimeDeclarations = declarations.filter(
+      (declaration) =>
+        (ts.isFunctionDeclaration(declaration) && declaration.body != null) ||
+        ts.isVariableDeclaration(declaration) ||
+        (ts.isMethodDeclaration(declaration) && declaration.body != null) ||
+        ts.isPropertyAssignment(declaration) ||
+        ts.isShorthandPropertyAssignment(declaration) ||
+        ts.isPropertyDeclaration(declaration) ||
+        ts.isBindingElement(declaration)
+    );
+    if (runtimeDeclarations.length === 0) return { kind: "external" };
+
+    const resolveExpression = (expression: ts.Expression): CallableResolution => {
+      if (ts.isArrowFunction(expression) || ts.isFunctionExpression(expression)) return resolvedCallable(expression);
+      if (
+        ts.isParenthesizedExpression(expression) ||
+        ts.isAsExpression(expression) ||
+        ts.isTypeAssertionExpression(expression) ||
+        ts.isNonNullExpression(expression) ||
+        ts.isSatisfiesExpression(expression)
+      ) {
+        return resolveExpression(expression.expression);
+      }
+      if (
+        ts.isIdentifier(expression) ||
+        ts.isPropertyAccessExpression(expression) ||
+        ts.isElementAccessExpression(expression)
+      ) {
+        const target = checker.getSymbolAtLocation(expression);
+        return target == null ? { kind: "external" } : resolveSymbol(target, nextVisitedSymbols);
+      }
+      return { kind: "unresolved" };
+    };
+
+    const resolutions = runtimeDeclarations.map((declaration): CallableResolution => {
+      if (ts.isFunctionDeclaration(declaration) || ts.isMethodDeclaration(declaration)) {
+        return resolvedCallable(declaration);
+      }
+      if (ts.isVariableDeclaration(declaration) || ts.isPropertyAssignment(declaration)) {
+        return declaration.initializer == null ? { kind: "unresolved" } : resolveExpression(declaration.initializer);
+      }
+      if (ts.isPropertyDeclaration(declaration)) {
+        return declaration.initializer == null ? { kind: "unresolved" } : resolveExpression(declaration.initializer);
+      }
+      if (ts.isShorthandPropertyAssignment(declaration)) {
+        const valueSymbol = checker.getShorthandAssignmentValueSymbol(declaration);
+        return valueSymbol == null ? { kind: "unresolved" } : resolveSymbol(valueSymbol, nextVisitedSymbols);
+      }
+      if (ts.isBindingElement(declaration) && ts.isObjectBindingPattern(declaration.parent)) {
+        const variableDeclaration = declaration.parent.parent;
+        if (ts.isVariableDeclaration(variableDeclaration) && variableDeclaration.initializer != null) {
+          const name = staticName(declaration.propertyName ?? declaration.name);
+          const property =
+            name == null
+              ? undefined
+              : checker.getPropertyOfType(checker.getTypeAtLocation(variableDeclaration.initializer), name);
+          return property == null ? { kind: "unresolved" } : resolveSymbol(property, nextVisitedSymbols);
+        }
+      }
+      return { kind: "external" };
+    });
+    if (resolutions.some((resolution) => resolution.kind === "unresolved")) return { kind: "unresolved" };
+
+    const resolvedDeclarations = resolutions.flatMap((resolution) =>
+      resolution.kind === "resolved" ? [resolution.declaration] : []
+    );
+    const uniqueDeclarations = new Set(resolvedDeclarations);
+    if (uniqueDeclarations.size === 1 && resolutions.every((resolution) => resolution.kind === "resolved")) {
+      const declaration = resolvedDeclarations[0];
+      return declaration == null ? { kind: "unresolved" } : resolvedCallable(declaration);
+    }
+    return uniqueDeclarations.size === 0 ? { kind: "external" } : { kind: "unresolved" };
   };
 
   const violations: string[] = [];
   mutationActionNames.forEach((actionName) => {
     const referencedMaps = new Set<string>();
-    const visitedFunctions = new Set<string>();
-    const actionDeclaration = singleLocalFunction(actionName);
-    if (actionDeclaration == null) {
+    const visitedFunctions = new Set<ts.FunctionLikeDeclaration>();
+    const symbols = actionSymbols.get(actionName);
+    const actionSymbol = symbols?.size === 1 ? symbols.values().next().value : undefined;
+    const actionResolution =
+      actionSymbol == null ? ({ kind: "unresolved" } as const) : resolveSymbol(actionSymbol, new Set());
+    if (actionResolution.kind !== "resolved") {
       violations.push(`${subject.relativePath}: ${actionName} -> unresolved`);
       return;
     }
 
-    const inspectFunction = (name: string, declaration: ts.FunctionLikeDeclaration): void => {
-      if (visitedFunctions.has(name)) return;
-      visitedFunctions.add(name);
+    const inspectFunction = (declaration: ts.FunctionLikeDeclaration): void => {
+      if (visitedFunctions.has(declaration)) return;
+      visitedFunctions.add(declaration);
       const inspectNode = (node: ts.Node): void => {
         if (ts.isIdentifier(node) && remoteEntityMapNames.has(node.text)) referencedMaps.add(node.text);
-        if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
-          const helperName = node.expression.text;
-          const helperDeclaration = singleLocalFunction(helperName);
-          if (helperDeclaration != null) inspectFunction(helperName, helperDeclaration);
-          if (localFunctions.has(helperName) && helperDeclaration == null) referencedMaps.add("unresolved");
+        if (ts.isCallExpression(node)) {
+          const target = checker.getSymbolAtLocation(node.expression);
+          if (target != null) {
+            const resolution = resolveSymbol(target, new Set());
+            if (resolution.kind === "resolved") inspectFunction(resolution.declaration);
+            if (resolution.kind === "unresolved") referencedMaps.add("unresolved");
+          }
         }
         ts.forEachChild(node, inspectNode);
       };
       inspectNode(declaration);
     };
 
-    inspectFunction(actionName, actionDeclaration);
+    inspectFunction(actionResolution.declaration);
     referencedMaps.forEach((name) => {
       violations.push(`${subject.relativePath}: ${actionName} -> ${name}`);
     });
@@ -559,6 +702,47 @@ describe("component architecture", () => {
     ]);
   });
 
+  it("follows local helper aliases called by mutation actions", () => {
+    const subject = {
+      relativePath: "aliased-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          updateCard: () => void;
+        }
+        const inspectCards = () => void cardsById;
+        const aliasedHelper = inspectCards;
+        const updateCard = () => aliasedHelper();
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["aliased-action.ts: updateCard -> cardsById"]);
+  });
+
+  it("follows local object-property helpers called by mutation actions", () => {
+    const subject = {
+      relativePath: "property-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          updateDeck: () => void;
+        }
+        const helpers = {
+          mutate() { void decksById; },
+        };
+        const updateDeck = () => helpers.mutate();
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["property-action.ts: updateDeck -> decksById"]);
+  });
+
   it("fails closed when a mutation action has no local function body", () => {
     const subject = {
       relativePath: "unresolved-action.ts",
@@ -639,30 +823,16 @@ describe("component architecture", () => {
   });
 
   it("keeps remote subscription and mutation adapters owned by the Zustand store", () => {
-    const ownedAdapters = new Set([
-      "@/adapters/firestore/card",
-      "@/adapters/firestore/deck",
-      "@/adapters/firestore/event",
-    ]);
-    const owners = productionFilesUnder("").flatMap((relativePath) => {
-      if (relativePath.startsWith("adapters/firestore/")) return [];
-      const importsOwnedAdapter = moduleReferences(relativePath).some((reference) =>
-        ownedAdapters.has(reference.resolvedSpecifier)
-      );
-      return importsOwnedAdapter ? [relativePath] : [];
-    });
+    const owners = firestoreOwnedAdapterConsumers(
+      productionFilesUnder("").map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
+    );
 
     expect(owners).toEqual(["store/remoteStore.ts"]);
   });
 
   it("keeps remote subscription and mutation adapters out of the Firestore barrel", () => {
-    const ownedAdapters = new Set([
-      "@/adapters/firestore/card",
-      "@/adapters/firestore/deck",
-      "@/adapters/firestore/event",
-    ]);
     const violations = moduleReferences("adapters/firestore/index.ts")
-      .filter((reference) => ownedAdapters.has(reference.resolvedSpecifier))
+      .filter((reference) => ownedFirestoreAdapterModules.has(reference.resolvedSpecifier))
       .map((reference) => importViolation("adapters/firestore/index.ts", reference));
 
     expect(violations, violations.join("\n")).toEqual([]);
@@ -678,19 +848,29 @@ describe("component architecture", () => {
         void event.subscribeCardReads;
       `,
     };
-    const ownedAdapters = new Set([
-      "@/adapters/firestore/card",
-      "@/adapters/firestore/deck",
-      "@/adapters/firestore/event",
-    ]);
     const barrelExportsOwnedAdapters = moduleReferences("adapters/firestore/index.ts").some((reference) =>
-      ownedAdapters.has(reference.resolvedSpecifier)
+      ownedFirestoreAdapterModules.has(reference.resolvedSpecifier)
     );
     const fixtureImportsBarrel = moduleReferencesForSource(fixture.relativePath, fixture.source).some(
       (reference) => reference.resolvedSpecifier === "@/adapters/firestore"
     );
 
     expect(barrelExportsOwnedAdapters && fixtureImportsBarrel).toBe(false);
+  });
+
+  it("detects owned adapters consumed through a nested Firestore barrel", () => {
+    const subjects = [
+      {
+        relativePath: "adapters/firestore/owned/index.ts",
+        source: `export * as card from "@/adapters/firestore/card";`,
+      },
+      {
+        relativePath: "firebase.ts",
+        source: `import { card } from "@/adapters/firestore/owned"; void card.create;`,
+      },
+    ];
+
+    expect(firestoreOwnedAdapterConsumers(subjects)).toEqual(["firebase.ts"]);
   });
 
   it("keeps presentation independent from Firebase and Firestore adapters", () => {
