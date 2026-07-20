@@ -146,6 +146,37 @@ describe("useDeckMutations", () => {
     expect(result.current.isPending(deck.id)).toBe(false);
   });
 
+  it("clears an older queued Deck failure after a newer same-Deck update succeeds", async () => {
+    const deck = createDeck({ id: "deck-a", name: "Before" });
+    const firstUpdate = { ...deck, name: "First" };
+    const secondUpdate = { ...deck, name: "Second" };
+    const error = new Error("first update failed");
+    let rejectFirst!: (error: Error) => void;
+    mocks.update
+      .mockReturnValueOnce(new Promise<void>((_resolve, reject) => (rejectFirst = reject)))
+      .mockResolvedValueOnce(undefined);
+    const { result } = renderHook(useDeckMutations);
+
+    let firstOperation!: Promise<void>;
+    let secondOperation!: Promise<void>;
+    act(() => {
+      firstOperation = result.current.update(firstUpdate);
+      secondOperation = result.current.update(secondUpdate);
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledExactlyOnceWith(firstUpdate));
+
+    await act(async () => {
+      rejectFirst(error);
+      await expect(firstOperation).rejects.toBe(error);
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+    await act(async () => secondOperation);
+
+    expect(result.current.error).toBeNull();
+    act(() => result.current.retry());
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+  });
+
   it("serializes a same-Deck removal after an update", async () => {
     const deck = createDeck({ id: "deck-a" });
     let finishUpdate!: () => void;

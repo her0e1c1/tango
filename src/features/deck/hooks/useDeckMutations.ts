@@ -12,7 +12,7 @@ import { createDeckMutationService } from "@/query/mutations/deckMutationService
 import { remoteStore } from "@/store/remoteStore";
 
 type Variables = { kind: "create"; deck: Deck } | { kind: "update"; deck: DeckEdit } | { kind: "remove"; deck: Deck };
-type Failure = { variables: Variables; error: unknown };
+type Failure = { variables: Variables; error: unknown; sequence: number };
 
 interface UseDeckMutationsOptions {
   onRemoveSuccess?: (deck: Deck) => void;
@@ -39,6 +39,7 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   }, [onRemoveSuccess]);
   const inFlightRemovals = useRef(new Map<DeckId, Promise<void>>());
   const generation = useRef(0);
+  const operationSequence = useRef(0);
   const generationUid = useRef(uid);
   const [stateUid, setStateUid] = useState(uid);
   const [pendingState, setPendingState] = useState(() => ({ uid, counts: new Map<DeckId, number>() }));
@@ -82,6 +83,7 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
    */
   const run = (variables: Variables): Promise<void> => {
     const operationGeneration = generation.current;
+    const sequence = ++operationSequence.current;
     const failed = failureRef.current;
     const retryOf = failed != null && isSameOperation(failed.variables, variables) ? failed : undefined;
     const deckId = variables.deck.id;
@@ -108,13 +110,19 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
       () => {
         if (generation.current !== operationGeneration) return;
         if (variables.kind === "remove") onRemoveSuccessRef.current?.(variables.deck);
-        if (retryOf == null || failureRef.current !== retryOf) return;
-        failureRef.current = undefined;
-        setFailure(undefined);
+        const currentFailure = failureRef.current;
+        if (
+          currentFailure != null &&
+          currentFailure.sequence < sequence &&
+          isSameOperation(currentFailure.variables, variables)
+        ) {
+          failureRef.current = undefined;
+          setFailure(undefined);
+        }
       },
       (error: unknown) => {
         if (generation.current !== operationGeneration) throw error;
-        const nextFailure = { variables, error };
+        const nextFailure = { variables, error, sequence };
         failureRef.current = nextFailure;
         setFailure(nextFailure);
         throw error;
