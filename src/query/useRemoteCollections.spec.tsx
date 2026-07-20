@@ -8,7 +8,7 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RemoteState } from "@/store/remoteStore";
+import type { RemoteReadState } from "@/store/remoteStore";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => ({
     syncStatus: "synced",
     decksById: {},
     cardsById: {},
-  } as RemoteState,
+  } as RemoteReadState,
   blocker: undefined as Error | undefined,
   retry: vi.fn(),
 }));
@@ -27,12 +27,17 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/auth/AuthContext", () => ({
   useAuth: () => ({ status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } }),
 }));
-vi.mock("@/query/reads/remoteReadSession", () => ({
-  subscribeRemoteReadState: () => () => undefined,
-  subscribeRemoteReadBlocker: () => () => undefined,
-  getRemoteReadState: () => mocks.state,
-  retryRemoteReads: mocks.retry,
-  getRemoteReadBlocker: () => mocks.blocker,
+vi.mock("@/store/remoteStore", () => ({
+  remoteStore: {
+    subscribe: () => () => undefined,
+    getState: () => ({ read: mocks.state, retryReads: mocks.retry }),
+    getInitialState: () => ({ read: mocks.state, retryReads: mocks.retry }),
+  },
+}));
+vi.mock("@/adapters/firestore/runtime", () => ({
+  subscribeFirestoreInitialization: () => () => undefined,
+  getFirestoreInitializationState: () =>
+    mocks.blocker ? { status: "blocked", error: mocks.blocker } : { status: "ready" },
 }));
 
 import { useRemoteCollections } from "@/query/useRemoteCollections";

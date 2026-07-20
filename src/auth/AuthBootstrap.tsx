@@ -8,8 +8,7 @@ import type { User } from "firebase/auth";
 import { useEffect, useState } from "react";
 
 import { useAuth, type AuthState } from "@/auth/AuthContext";
-import { cleanupFirestoreUid } from "@/query/cleanup";
-import { startRemoteReads } from "@/query/reads/remoteReadSession";
+import { remoteStore } from "@/store/remoteStore";
 
 type AuthenticatedIdentity = {
   uid: string;
@@ -149,8 +148,8 @@ export const AuthBootstrap = () => {
   const authState = useAuth();
   const [controller] = useState(() =>
     createAuthTransitionController({
-      cleanupUid: cleanupFirestoreUid,
-      subscribeUid: startRemoteReads,
+      cleanupUid: (uid) => remoteStore.getState().stop(uid),
+      subscribeUid: (uid) => remoteStore.getState().start(uid),
       reportError: (error) => console.error("Auth transition failed", error),
     })
   );
