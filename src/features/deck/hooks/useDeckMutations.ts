@@ -37,11 +37,11 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   useEffect(() => {
     onRemoveSuccessRef.current = onRemoveSuccess;
   }, [onRemoveSuccess]);
-  const inFlight = useRef(new Map<DeckId, Promise<void>>());
+  const inFlightRemovals = useRef(new Map<DeckId, Promise<void>>());
   const generation = useRef(0);
   const generationUid = useRef(uid);
   const [stateUid, setStateUid] = useState(uid);
-  const [pendingState, setPendingState] = useState(() => ({ uid, ids: new Set<DeckId>() }));
+  const [pendingState, setPendingState] = useState(() => ({ uid, counts: new Map<DeckId, number>() }));
   const failureRef = useRef<Failure>(undefined);
   const [failureState, setFailureState] = useState<{ uid: string; failure: Failure | undefined }>(() => ({
     uid,
@@ -49,18 +49,18 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   }));
   if (stateUid !== uid) {
     setStateUid(uid);
-    setPendingState({ uid, ids: new Set() });
+    setPendingState({ uid, counts: new Map() });
     setFailureState({ uid, failure: undefined });
   }
   useEffect(() => {
     if (generationUid.current === uid) return;
     generationUid.current = uid;
     generation.current += 1;
-    inFlight.current = new Map();
+    inFlightRemovals.current = new Map();
     failureRef.current = undefined;
   }, [uid]);
-  const setPendingDeckIds = (update: (current: Set<DeckId>) => Set<DeckId>) => {
-    setPendingState((current) => ({ uid, ids: update(current.uid === uid ? current.ids : new Set()) }));
+  const setPendingCounts = (update: (current: Map<DeckId, number>) => Map<DeckId, number>) => {
+    setPendingState((current) => ({ uid, counts: update(current.uid === uid ? current.counts : new Map()) }));
   };
   const setFailure = (failure: Failure | undefined) => setFailureState({ uid, failure });
   const service = createDeckMutationService({
@@ -85,10 +85,10 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
     const failed = failureRef.current;
     const retryOf = failed != null && isSameOperation(failed.variables, variables) ? failed : undefined;
     const deckId = variables.deck.id;
-    const current = inFlight.current.get(deckId);
-    if (current != null) {
+    const currentRemoval = variables.kind === "remove" ? inFlightRemovals.current.get(deckId) : undefined;
+    if (currentRemoval != null) {
       if (retryOf != null) {
-        return current.then(
+        return currentRemoval.then(
           () => {
             if (generation.current !== operationGeneration || failureRef.current !== retryOf) return;
             return run(variables);
@@ -96,10 +96,14 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
           () => undefined
         );
       }
-      return current;
+      return currentRemoval;
     }
 
-    setPendingDeckIds((pending) => new Set(pending).add(deckId));
+    setPendingCounts((pending) => {
+      const next = new Map(pending);
+      next.set(deckId, (next.get(deckId) ?? 0) + 1);
+      return next;
+    });
     const operation = mutateAsync(variables).then(
       () => {
         if (generation.current !== operationGeneration) return;
@@ -118,26 +122,28 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
     );
     const settled = operation.finally(() => {
       if (generation.current !== operationGeneration) return;
-      inFlight.current.delete(deckId);
-      setPendingDeckIds((pending) => {
-        const next = new Set(pending);
-        next.delete(deckId);
+      if (inFlightRemovals.current.get(deckId) === settled) inFlightRemovals.current.delete(deckId);
+      setPendingCounts((pending) => {
+        const next = new Map(pending);
+        const count = (next.get(deckId) ?? 1) - 1;
+        if (count === 0) next.delete(deckId);
+        else next.set(deckId, count);
         return next;
       });
     });
-    inFlight.current.set(deckId, settled);
+    if (variables.kind === "remove") inFlightRemovals.current.set(deckId, settled);
     return settled;
   };
 
-  const pendingDeckIds = pendingState.uid === uid ? pendingState.ids : new Set<DeckId>();
+  const pendingCounts = pendingState.uid === uid ? pendingState.counts : new Map<DeckId, number>();
   const failure = failureState.uid === uid ? failureState.failure : undefined;
 
   return {
     create: (deck: Deck) => run({ kind: "create", deck }),
     update: (deck: DeckEdit) => run({ kind: "update", deck }),
     remove: (deck: Deck) => run({ kind: "remove", deck }),
-    pending: pendingDeckIds.size > 0,
-    isPending: (id: DeckId) => pendingDeckIds.has(id),
+    pending: pendingCounts.size > 0,
+    isPending: (id: DeckId) => pendingCounts.has(id),
     error: failure?.error ?? null,
     retry: () => {
       const failed = failureRef.current;

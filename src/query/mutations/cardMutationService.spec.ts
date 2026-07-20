@@ -122,6 +122,25 @@ describe("createCardMutationService", () => {
     });
   });
 
+  it("allows different users to update the same Card ID concurrently", async () => {
+    const card = createCard({ id: "shared", score: 0 });
+    const first = deferred<void>();
+    dependencies.updateCard.mockImplementationOnce(() => first.promise).mockResolvedValueOnce(undefined);
+    const service = createCardMutationService({ store, ...dependencies });
+
+    const updateA = service.update("uid-a", { ...card, score: 1 });
+    await vi.waitFor(() => expect(dependencies.updateCard).toHaveBeenCalledOnce());
+    const updateB = service.update("uid-b", { ...card, score: 2 });
+    try {
+      await Promise.resolve();
+      expect(dependencies.updateCard).toHaveBeenCalledTimes(2);
+      expect(dependencies.updateCard).toHaveBeenLastCalledWith({ ...card, score: 2 });
+    } finally {
+      first.resolve();
+      await Promise.all([updateA, updateB]);
+    }
+  });
+
   it("authoritatively refetches after a partial bulk upsert failure", async () => {
     const first = createCard({ id: "first" });
     const second = createCard({ id: "second" });

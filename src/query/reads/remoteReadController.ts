@@ -136,8 +136,10 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
       currentStart = Promise.resolve();
     } catch (error) {
       const initializationError = error instanceof Error ? error : new Error(String(error));
+      const publishFailure = isCurrent(uid, currentGeneration);
+      if (publishFailure) generation += 1;
       stopListeners();
-      dependencies.store.fail(uid, initializationError);
+      if (publishFailure) dependencies.store.fail(uid, initializationError);
       currentStart = Promise.reject(initializationError);
     }
     return currentStart;
@@ -148,14 +150,16 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
    * The controller retries once automatically, then exposes a stable error that the user can retry
    * manually.
    */
-  const handleListenerError = (uid: string, generation: number, error: Error) => {
-    if (!isCurrent(uid, generation)) return;
-    stopListeners();
+  const handleListenerError = (uid: string, currentGeneration: number, error: Error) => {
+    if (!isCurrent(uid, currentGeneration)) return;
     if (automaticRecoveries >= 1) {
+      generation += 1;
+      stopListeners();
       dependencies.store.fail(uid, error);
       return;
     }
 
+    stopListeners();
     automaticRecoveries += 1;
     void begin(uid, false).catch(() => undefined);
   };

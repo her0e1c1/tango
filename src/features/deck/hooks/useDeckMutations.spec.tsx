@@ -114,6 +114,63 @@ describe("useDeckMutations", () => {
     expect(result.current.isPending(deck.id)).toBe(false);
   });
 
+  it("serializes distinct updates for the same Deck and stays pending until both settle", async () => {
+    const deck = createDeck({ id: "deck-a", name: "Before" });
+    let finishFirst!: () => void;
+    let finishSecond!: () => void;
+    mocks.update
+      .mockReturnValueOnce(new Promise<void>((resolve) => (finishFirst = resolve)))
+      .mockReturnValueOnce(new Promise<void>((resolve) => (finishSecond = resolve)));
+    const { result } = renderHook(useDeckMutations);
+
+    let first!: Promise<void>;
+    let second!: Promise<void>;
+    act(() => {
+      first = result.current.update({ ...deck, name: "First" });
+      second = result.current.update({ ...deck, name: "Second" });
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledExactlyOnceWith({ ...deck, name: "First" }));
+
+    await act(async () => {
+      finishFirst();
+      await first;
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+    expect(mocks.update).toHaveBeenLastCalledWith({ ...deck, name: "Second" });
+    expect(result.current.isPending(deck.id)).toBe(true);
+
+    await act(async () => {
+      finishSecond();
+      await second;
+    });
+    expect(result.current.isPending(deck.id)).toBe(false);
+  });
+
+  it("serializes a same-Deck removal after an update", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    let finishUpdate!: () => void;
+    mocks.update.mockReturnValueOnce(new Promise<void>((resolve) => (finishUpdate = resolve)));
+    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+    const { result } = renderHook(useDeckMutations);
+
+    let update!: Promise<void>;
+    let remove!: Promise<void>;
+    act(() => {
+      update = result.current.update({ ...deck, name: "Updated" });
+      remove = result.current.remove(deck);
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledOnce());
+    expect(mocks.remove).not.toHaveBeenCalled();
+
+    await act(async () => {
+      finishUpdate();
+      await update;
+    });
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id, "uid-a"));
+    await remove;
+    expect(result.current.isPending(deck.id)).toBe(false);
+  });
+
   it("keeps a failed removal available for a safe retry", async () => {
     const deck = createDeck({ id: "deck-a" });
     const error = new Error("delete failed");

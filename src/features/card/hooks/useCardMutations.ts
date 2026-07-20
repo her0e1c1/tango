@@ -17,7 +17,7 @@ type CardMutationVariables =
   | { kind: "update"; card: CardEdit }
   | { kind: "remove"; id: CardId }
   | { kind: "bulkUpsert"; cards: Card[] };
-type CardMutationFailure = { variables: CardMutationVariables; error: unknown };
+type CardMutationFailure = { variables: CardMutationVariables; error: unknown; sequence: number };
 
 /**
  * Returns the card identifiers affected by one mutation request.
@@ -41,6 +41,7 @@ interface CardMutationRunDependencies {
   failureRef: { current: CardMutationFailure | undefined };
   setPendingCounts: (update: (current: Map<CardId, number>) => Map<CardId, number>) => void;
   setError: (error: unknown) => void;
+  sequence: number;
   generation: number;
   currentGeneration: { current: number };
 }
@@ -51,11 +52,17 @@ interface CardMutationRunDependencies {
  */
 const runCardMutation = async (
   variables: CardMutationVariables,
-  { mutateAsync, failureRef, setPendingCounts, setError, generation, currentGeneration }: CardMutationRunDependencies
+  {
+    mutateAsync,
+    failureRef,
+    setPendingCounts,
+    setError,
+    sequence,
+    generation,
+    currentGeneration,
+  }: CardMutationRunDependencies
 ) => {
   const ids = variableIds(variables);
-  const failed = failureRef.current;
-  const supersededFailure = failed != null && sameMutationIdentity(failed.variables, variables) ? failed : undefined;
   setPendingCounts((current) => {
     const next = new Map(current);
     ids.forEach((id) => {
@@ -66,13 +73,14 @@ const runCardMutation = async (
   try {
     await mutateAsync(variables);
     if (currentGeneration.current !== generation) return;
-    if (supersededFailure != null && failureRef.current === supersededFailure) {
+    const failed = failureRef.current;
+    if (failed != null && failed.sequence < sequence && sameMutationIdentity(failed.variables, variables)) {
       failureRef.current = undefined;
       setError(null);
     }
   } catch (error) {
     if (currentGeneration.current !== generation) throw error;
-    failureRef.current = { variables, error };
+    failureRef.current = { variables, error, sequence };
     setError(error);
     throw error;
   } finally {
@@ -100,6 +108,7 @@ export const useCardMutations = () => {
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const remote = useRemoteCollections();
   const generation = useRef(0);
+  const operationSequence = useRef(0);
   const generationUid = useRef(uid);
   const [stateUid, setStateUid] = useState(uid);
   const [pendingState, setPendingState] = useState(() => ({ uid, counts: new Map<CardId, number>() }));
@@ -158,6 +167,7 @@ export const useCardMutations = () => {
       failureRef,
       setPendingCounts,
       setError,
+      sequence: ++operationSequence.current,
       generation: generation.current,
       currentGeneration: generation,
     });

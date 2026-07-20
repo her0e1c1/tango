@@ -1,4 +1,4 @@
-export type RemoteById<T> = Record<string, T | undefined>;
+export type RemoteById<T> = Readonly<Record<string, T | undefined>>;
 
 export const toRemoteById = <T extends { id: string }>(items: T[]): RemoteById<T> =>
   Object.fromEntries(items.map((item) => [item.id, item]));
@@ -18,21 +18,21 @@ interface RemoteSnapshotMetadata {
 }
 
 interface RemoteData {
-  decksById: RemoteById<Deck>;
-  cardsById: RemoteById<Card>;
+  readonly decksById: RemoteById<Deck>;
+  readonly cardsById: RemoteById<Card>;
 }
 
 export type RemoteState = RemoteData &
   (
-    | { uid: null; status: "idle" }
-    | { uid: string; status: "loading" }
-    | { uid: string; status: "ready"; syncStatus: RemoteSyncStatus }
-    | { uid: string; status: "error"; error: Error }
+    | { readonly uid: null; readonly status: "idle" }
+    | { readonly uid: string; readonly status: "loading" }
+    | { readonly uid: string; readonly status: "ready"; readonly syncStatus: RemoteSyncStatus }
+    | { readonly uid: string; readonly status: "error"; readonly error: Error }
   );
 
 export interface RemoteCollectionSnapshot<T> {
-  data: RemoteById<T>;
-  metadata: RemoteSnapshotMetadata;
+  readonly data: RemoteById<T>;
+  readonly metadata: RemoteSnapshotMetadata;
 }
 
 export interface RemoteStore {
@@ -62,18 +62,19 @@ interface CurrentRemoteSnapshot {
   metadata: ReadonlyMap<RemoteCollectionName, RemoteSnapshotMetadata>;
 }
 
-const emptyData = (): RemoteData => ({ decksById: {}, cardsById: {} });
+const freezeCollection = <T>(collection: RemoteById<T>): RemoteById<T> => Object.freeze({ ...collection });
+const emptyData = (): RemoteData => ({ decksById: freezeCollection({}), cardsById: freezeCollection({}) });
 const emptyMetadata = (): ReadonlyMap<RemoteCollectionName, RemoteSnapshotMetadata> => new Map();
 
 export const createRemoteStore = (): RemoteStore => {
   let current: CurrentRemoteSnapshot = {
-    state: { uid: null, status: "idle", ...emptyData() },
+    state: Object.freeze({ uid: null, status: "idle", ...emptyData() }),
     metadata: emptyMetadata(),
   };
   const listeners = new Set<Callback>();
 
   const publish = (next: CurrentRemoteSnapshot) => {
-    current = next;
+    current = { ...next, state: Object.freeze(next.state) };
     listeners.forEach((listener) => {
       listener();
     });
@@ -88,7 +89,7 @@ export const createRemoteStore = (): RemoteStore => {
 
   const read: RemoteStore["read"] = (uid, collection) => {
     const state = current.state;
-    if (state.uid !== uid) return {};
+    if (state.uid !== uid) return freezeCollection({});
     return (collection === "decks" ? state.decksById : state.cardsById) as never;
   };
 
@@ -98,7 +99,9 @@ export const createRemoteStore = (): RemoteStore => {
     publish({
       state: {
         ...state,
-        ...(collection === "decks" ? { decksById: next as RemoteById<Deck> } : { cardsById: next as RemoteById<Card> }),
+        ...(collection === "decks"
+          ? { decksById: freezeCollection(next as RemoteById<Deck>) }
+          : { cardsById: freezeCollection(next as RemoteById<Card>) }),
       },
       metadata: current.metadata,
     });
@@ -118,8 +121,8 @@ export const createRemoteStore = (): RemoteStore => {
     metadata.set(collection, Object.freeze({ ...snapshot.metadata }));
     const data: RemoteData =
       collection === "decks"
-        ? { decksById: snapshot.data as RemoteById<Deck>, cardsById: state.cardsById }
-        : { decksById: state.decksById, cardsById: snapshot.data as RemoteById<Card> };
+        ? { decksById: freezeCollection(snapshot.data as RemoteById<Deck>), cardsById: state.cardsById }
+        : { decksById: state.decksById, cardsById: freezeCollection(snapshot.data as RemoteById<Card>) };
     const deckMetadata = metadata.get("decks");
     const cardMetadata = metadata.get("cards");
     if (!deckMetadata || !cardMetadata) {

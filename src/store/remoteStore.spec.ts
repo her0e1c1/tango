@@ -177,4 +177,51 @@ describe("remote store", () => {
     expect(store.read("uid-b", "decks")).toEqual({});
     expect(store.getSnapshot()).toBe(active);
   });
+
+  it("copies caller collection maps before publishing them", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a" });
+    const otherDeck = createDeck({ id: "deck-b" });
+    const replacement: Record<string, Deck | undefined> = { [deck.id]: deck };
+    store.begin("uid-a");
+    store.replace("uid-a", "decks", replacement);
+    const afterReplace = store.getSnapshot();
+
+    replacement[otherDeck.id] = otherDeck;
+    expect(store.getSnapshot()).toBe(afterReplace);
+    expect(store.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+
+    const card = createCard({ id: "card-a", deckId: deck.id });
+    const otherCard = createCard({ id: "card-b", deckId: deck.id });
+    const snapshotData: Record<string, Card | undefined> = { [card.id]: card };
+    store.applySnapshot("uid-a", "cards", {
+      data: snapshotData,
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const afterSnapshot = store.getSnapshot();
+
+    snapshotData[otherCard.id] = otherCard;
+    expect(store.getSnapshot()).toBe(afterSnapshot);
+    expect(store.getSnapshot().cardsById).toEqual({ [card.id]: card });
+  });
+
+  it("freezes published state and collection maps", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a" });
+    const otherDeck = createDeck({ id: "deck-b" });
+    store.begin("uid-a");
+    store.replace("uid-a", "decks", { [deck.id]: deck });
+    const snapshot = store.getSnapshot();
+    const read = store.read("uid-a", "decks");
+
+    expect(Reflect.set(snapshot, "status", "idle")).toBe(false);
+    expect(Reflect.set(snapshot.decksById, otherDeck.id, otherDeck)).toBe(false);
+    expect(Reflect.deleteProperty(read, deck.id)).toBe(false);
+    expect(store.getSnapshot()).toBe(snapshot);
+    expect(store.getSnapshot()).toMatchObject({
+      uid: "uid-a",
+      status: "loading",
+      decksById: { [deck.id]: deck },
+    });
+  });
 });

@@ -33,11 +33,11 @@ export const withMutationLocks = async <T>(keys: string[], task: () => Promise<T
 
 /**
  * Builds the lock key used to serialize mutations for one card.
- * The `card:` prefix keeps card locks separate from deck locks with the same identifier.
+ * The user identifier keeps sessions independent, and the `card:` prefix separates entity types.
  */
-export const cardMutationLock = (id: CardId) => `card:${id}`;
+export const cardMutationLock = (uid: string, id: CardId) => `card:${uid}:${id}`;
 /**
  * Builds the lock key used to serialize mutations for one deck.
- * The `deck:` prefix keeps deck locks separate from card locks with the same identifier.
+ * The user identifier keeps sessions independent, and the `deck:` prefix separates entity types.
  */
-export const deckMutationLock = (id: DeckId) => `deck:${id}`;
+export const deckMutationLock = (uid: string, id: DeckId) => `deck:${uid}:${id}`;

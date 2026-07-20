@@ -256,4 +256,34 @@ describe("useCardMutations", () => {
     expect(mocks.update).toHaveBeenNthCalledWith(1, stale);
     expect(mocks.update).toHaveBeenNthCalledWith(2, replacement);
   });
+
+  it("clears an older queued Card failure after a newer same-Card update succeeds", async () => {
+    const first = createCard({ id: "card", score: 1 });
+    const second = { ...first, score: 2 };
+    const error = new Error("first update failed");
+    let rejectFirst!: (error: Error) => void;
+    mocks.update
+      .mockReturnValueOnce(new Promise<void>((_resolve, reject) => (rejectFirst = reject)))
+      .mockResolvedValueOnce(undefined);
+    const { result } = renderHook(useCardMutations);
+
+    let firstOperation!: Promise<void>;
+    let secondOperation!: Promise<void>;
+    act(() => {
+      firstOperation = result.current.update(first);
+      secondOperation = result.current.update(second);
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledExactlyOnceWith(first));
+
+    await act(async () => {
+      rejectFirst(error);
+      await expect(firstOperation).rejects.toBe(error);
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+    await act(async () => secondOperation);
+
+    expect(result.current.error).toBeNull();
+    act(() => result.current.retry());
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+  });
 });

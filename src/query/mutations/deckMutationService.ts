@@ -42,11 +42,11 @@ export const createDeckMutationService = (dependencies: DeckMutationServiceDepen
 
   return {
     /** Persists a deck while holding its deck lock. */
-    create: (_uid: string, deck: Deck) =>
-      withMutationLocks([deckMutationLock(deck.id)], () => dependencies.createDeck(deck)),
+    create: (uid: string, deck: Deck) =>
+      withMutationLocks([deckMutationLock(uid, deck.id)], () => dependencies.createDeck(deck)),
     /** Persists a deck patch while holding its deck lock. */
-    update: (_uid: string, patch: DeckEdit) =>
-      withMutationLocks([deckMutationLock(patch.id)], () => dependencies.updateDeck(patch)),
+    update: (uid: string, patch: DeckEdit) =>
+      withMutationLocks([deckMutationLock(uid, patch.id)], () => dependencies.updateDeck(patch)),
     /**
      * Optimistically removes a deck and its cached child cards while holding all related locks.
      * If remote deletion fails, only entries that are still absent are restored so newer work is
@@ -56,35 +56,38 @@ export const createDeckMutationService = (dependencies: DeckMutationServiceDepen
       const childIds = Object.values(cards(uid))
         .filter((card): card is Card => card?.deckId === id)
         .map((card) => card.id);
-      return withMutationLocks([deckMutationLock(id), ...childIds.map(cardMutationLock)], async () => {
-        const previousDecks = decks(uid);
-        const previousCards = cards(uid);
-        const nextDecks = { ...previousDecks };
-        const nextCards = { ...previousCards };
-        delete nextDecks[id];
-        childIds.forEach((cardId) => {
-          delete nextCards[cardId];
-        });
-        setDecks(uid, nextDecks);
-        setCards(uid, nextCards);
-        try {
-          await dependencies.removeDeck(id, uid);
-        } catch (error) {
-          const currentDecks = decks(uid);
-          const currentCards = cards(uid);
-          const rollbackDecks = { ...currentDecks };
-          const rollbackCards = { ...currentCards };
-          if (currentDecks[id] == null && previousDecks[id] != null) rollbackDecks[id] = previousDecks[id];
+      return withMutationLocks(
+        [deckMutationLock(uid, id), ...childIds.map((cardId) => cardMutationLock(uid, cardId))],
+        async () => {
+          const previousDecks = decks(uid);
+          const previousCards = cards(uid);
+          const nextDecks = { ...previousDecks };
+          const nextCards = { ...previousCards };
+          delete nextDecks[id];
           childIds.forEach((cardId) => {
-            if (currentCards[cardId] == null && previousCards[cardId] != null) {
-              rollbackCards[cardId] = previousCards[cardId];
-            }
+            delete nextCards[cardId];
           });
-          setDecks(uid, rollbackDecks);
-          setCards(uid, rollbackCards);
-          throw error;
+          setDecks(uid, nextDecks);
+          setCards(uid, nextCards);
+          try {
+            await dependencies.removeDeck(id, uid);
+          } catch (error) {
+            const currentDecks = decks(uid);
+            const currentCards = cards(uid);
+            const rollbackDecks = { ...currentDecks };
+            const rollbackCards = { ...currentCards };
+            if (currentDecks[id] == null && previousDecks[id] != null) rollbackDecks[id] = previousDecks[id];
+            childIds.forEach((cardId) => {
+              if (currentCards[cardId] == null && previousCards[cardId] != null) {
+                rollbackCards[cardId] = previousCards[cardId];
+              }
+            });
+            setDecks(uid, rollbackDecks);
+            setCards(uid, rollbackCards);
+            throw error;
+          }
         }
-      });
+      );
     },
   };
 };

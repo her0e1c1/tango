@@ -91,4 +91,23 @@ describe("createDeckMutationService", () => {
     await remove;
     expect(dependencies.removeDeck).toHaveBeenCalledWith(deck.id, uid);
   });
+
+  it("allows different users to update the same Deck ID concurrently", async () => {
+    const deck = createDeck({ id: "shared", name: "Before" });
+    const first = deferred();
+    dependencies.updateDeck.mockImplementationOnce(() => first.promise).mockResolvedValueOnce(undefined);
+    const service = createDeckMutationService({ store, ...dependencies });
+
+    const updateA = service.update("uid-a", { ...deck, name: "First" });
+    await vi.waitFor(() => expect(dependencies.updateDeck).toHaveBeenCalledOnce());
+    const updateB = service.update("uid-b", { ...deck, name: "Second" });
+    try {
+      await Promise.resolve();
+      expect(dependencies.updateDeck).toHaveBeenCalledTimes(2);
+      expect(dependencies.updateDeck).toHaveBeenLastCalledWith({ ...deck, name: "Second" });
+    } finally {
+      first.resolve();
+      await Promise.all([updateA, updateB]);
+    }
+  });
 });

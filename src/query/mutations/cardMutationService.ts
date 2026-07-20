@@ -46,19 +46,20 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
 
   return {
     /** Persists a card while holding its card lock. */
-    create: (_uid: string, card: Card) =>
-      withMutationLocks([cardMutationLock(card.id)], () => dependencies.createCard(card)),
+    create: (uid: string, card: Card) =>
+      withMutationLocks([cardMutationLock(uid, card.id)], () => dependencies.createCard(card)),
     /** Persists a card patch while holding its card lock. */
-    update: (_uid: string, patch: CardEdit) =>
-      withMutationLocks([cardMutationLock(patch.id)], () => dependencies.updateCard(patch)),
+    update: (uid: string, patch: CardEdit) =>
+      withMutationLocks([cardMutationLock(uid, patch.id)], () => dependencies.updateCard(patch)),
     /** Logically removes a card while holding its card lock. */
-    remove: (_uid: string, id: CardId) => withMutationLocks([cardMutationLock(id)], () => dependencies.removeCard(id)),
+    remove: (uid: string, id: CardId) =>
+      withMutationLocks([cardMutationLock(uid, id)], () => dependencies.removeCard(id)),
     /**
      * Writes many cards under their locks, then resynchronizes from Firestore after partial failure.
      */
     bulkUpsert: (uid: string, upserts: Card[]) =>
       withMutationLocks(
-        upserts.map((card) => cardMutationLock(card.id)),
+        upserts.map((card) => cardMutationLock(uid, card.id)),
         async () => {
           const results = await Promise.allSettled(upserts.map((card) => dependencies.upsertCard(card)));
           const failedIds = results.flatMap((result, index) => {

@@ -154,6 +154,8 @@ describe("remote read controller", () => {
   it("reconnects once, then retains data on a terminal listener error", async () => {
     const harness = createHarness();
     const deck = createDeck({ id: "deck-a" });
+    const staleDeck = createDeck({ id: "stale-deck" });
+    const staleCard = createCard({ id: "stale-card", deckId: staleDeck.id });
     await harness.controller.start("uid-a");
     harness.deckSubscriptions[0]?.onSnapshot({
       type: "replace",
@@ -177,6 +179,19 @@ describe("remote read controller", () => {
       expect(harness.controller.getSnapshot()).toMatchObject({ uid: "uid-a", status: "error", error: terminalError })
     );
 
+    const terminalSnapshot = harness.controller.getSnapshot();
+    harness.deckSubscriptions[1]?.onSnapshot({
+      type: "replace",
+      items: [staleDeck],
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    harness.cardSubscriptions[1]?.onSnapshot({
+      type: "replace",
+      items: [staleCard],
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+
+    expect(harness.controller.getSnapshot()).toBe(terminalSnapshot);
     expect(harness.controller.getSnapshot().decksById).toEqual(byId([deck]));
   });
 
@@ -296,5 +311,13 @@ describe("remote read controller", () => {
       decksById: {},
       cardsById: {},
     });
+
+    const failedSnapshot = harness.controller.getSnapshot();
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [createDeck({ id: "stale-deck" })],
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(harness.controller.getSnapshot()).toBe(failedSnapshot);
   });
 });
