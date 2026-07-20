@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { firestoreKeys } from "@/query/cache/firestoreKeys";
 import { createTestQueryClient, createQueryWrapper } from "@/query/testUtils";
-import { createCard, createDeck } from "@/test/factories";
+import { createCard, createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
@@ -45,7 +45,7 @@ describe("useRemoteCollections", () => {
 
   it("returns Firestore Query data as the only Deck and Card read model", () => {
     const freshRemote = createDeck({ id: "fresh" });
-    const freshRemoteCard = createCard({ id: "fresh-card", deckId: freshRemote.id });
+    const freshRemoteCard = createCard({ id: "fresh-card", deckId: freshRemote.id, tags: ["z", "a"] });
     const client = createTestQueryClient();
     client.setQueryData(firestoreKeys.decks("uid-a"), { fresh: freshRemote });
     client.setQueryData(firestoreKeys.cards("uid-a"), { "fresh-card": freshRemoteCard });
@@ -56,7 +56,11 @@ describe("useRemoteCollections", () => {
 
     expect(result.current.decksById).toEqual({ fresh: freshRemote });
     expect(result.current.cardsById).toEqual({ "fresh-card": freshRemoteCard });
+    expect(result.current.deckById(freshRemote.id)).toBe(freshRemote);
+    expect(result.current.cardById(freshRemoteCard.id)).toBe(freshRemoteCard);
     expect(result.current.cardsByDeckId(freshRemote.id)).toEqual([freshRemoteCard]);
+    expect(result.current.filteredCardsByDeckId(freshRemote.id, createConfig())).toEqual([freshRemoteCard]);
+    expect(result.current.tagsByDeckId(freshRemote.id)).toEqual(["a", "z"]);
     expect(result.current.status).toBe("ready");
     expect(result.current.syncStatus).toBe("synced");
   });
@@ -75,31 +79,40 @@ describe("useRemoteCollections", () => {
     expect(result.current.decks).toEqual([remoteDeck]);
     expect(result.current.status).toBe("error");
     expect(result.current.error).toBe(error);
+    expect(result.current.retry).toBe(mocks.retry);
     expect(mocks.retry).toHaveBeenCalledTimes(1);
   });
 
   it("does not expose Query data until authenticated and active UIDs match", () => {
     const remoteDeck = createDeck({ id: "remote" });
+    const remoteCard = createCard({ id: "remote-card", deckId: remoteDeck.id });
     mocks.state = { uid: "uid-b", status: "ready", syncStatus: "synced" };
+    const client = createTestQueryClient();
+    client.setQueryData(firestoreKeys.decks("uid-a"), { remote: remoteDeck });
+    client.setQueryData(firestoreKeys.cards("uid-a"), { "remote-card": remoteCard });
+    const QueryWrapper = createQueryWrapper(client);
+
+    const { result } = renderHook(useRemoteCollections, { wrapper: QueryWrapper });
+
+    expect(result.current.decks).toEqual([]);
+    expect(result.current.cards).toEqual([]);
+    expect(result.current.deckById(remoteDeck.id)).toBeUndefined();
+    expect(result.current.cardById(remoteCard.id)).toBeUndefined();
+    expect(result.current.status).toBe("loading");
+  });
+
+  it("exposes persistent cache initialization failures as blocking state", () => {
+    const blocker = new Error("another tab owns the cache");
+    const remoteDeck = createDeck({ id: "remote" });
+    mocks.blocker = blocker;
     const client = createTestQueryClient();
     client.setQueryData(firestoreKeys.decks("uid-a"), { remote: remoteDeck });
     const QueryWrapper = createQueryWrapper(client);
 
     const { result } = renderHook(useRemoteCollections, { wrapper: QueryWrapper });
 
-    expect(result.current.decks).toEqual([]);
-    expect(result.current.status).toBe("loading");
-  });
-
-  it("exposes persistent cache initialization failures as blocking state", () => {
-    const blocker = new Error("another tab owns the cache");
-    mocks.blocker = blocker;
-    const client = createTestQueryClient();
-    const QueryWrapper = createQueryWrapper(client);
-
-    const { result } = renderHook(useRemoteCollections, { wrapper: QueryWrapper });
-
     expect(result.current.status).toBe("blocked");
     expect(result.current.error).toBe(blocker);
+    expect(result.current.decks).toEqual([remoteDeck]);
   });
 });

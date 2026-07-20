@@ -162,7 +162,13 @@ describe("remote read controller", () => {
 
   it("manually retries a terminal error and grants the new connection one automatic recovery", async () => {
     const harness = createHarness();
+    const deck = createDeck({ id: "deck-a" });
     await harness.controller.start("uid-a");
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [deck],
+      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
+    });
     harness.deckSubscriptions[0]?.onError(new Error("automatic recovery"));
     await vi.waitFor(() => expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(2));
     harness.deckSubscriptions[1]?.onError(new Error("terminal"));
@@ -171,6 +177,7 @@ describe("remote read controller", () => {
     await harness.controller.retry();
 
     expect(harness.controller.getSnapshot()).toEqual({ uid: "uid-a", status: "loading" });
+    expect(harness.client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual(byId([deck]));
     expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(3);
     harness.deckSubscriptions[2]?.onError(new Error("new automatic recovery"));
     await vi.waitFor(() => expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(4));
