@@ -49,6 +49,7 @@ describe("Storybook Vitest integration", () => {
     expect(projectNamed("unit")?.test?.include).toEqual([
       "src/**/*.spec.{ts,tsx}",
       "*.spec.{ts,tsx}",
+      "scripts/**/*.spec.mjs",
     ]);
     expect(projectNamed("unit")?.test?.environment).toBe("jsdom");
     expect(projectNamed("storybook")?.test?.browser).toMatchObject({

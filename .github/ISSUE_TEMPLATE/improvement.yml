@@ -1,0 +1,48 @@
+name: 改善提案
+description: 機能や開発体験の改善を提案します。
+title: "[Improvement]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: 目的
+      description: この改善で達成したいことを説明してください。
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景
+      description: この改善が必要な背景を説明してください。
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 対象範囲
+      description: 変更する範囲と変更しない範囲を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: 受け入れ条件
+      description: 完了と判断できる条件を記載してください。
+    validations:
+      required: true
+  - type: dropdown
+    id: change-areas
+    attributes:
+      label: Change areas
+      description: Select every area changed by this issue.
+      multiple: true
+      options:
+        - ci
+        - ui
+        - test
+        - dev
+        - docs
+        - dependencies
+    validations:
+      required: true

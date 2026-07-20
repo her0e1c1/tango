@@ -1,0 +1,48 @@
+name: Issue label guard
+
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened, edited, reopened, transferred, labeled, unlabeled]
+
+permissions: {}
+
+jobs:
+  reconcile-issue:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    concurrency:
+      group: issue-label-guard-${{ github.repository }}-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.15.0
+      - name: Reconcile issue labels
+        run: node scripts/reconcile-issue-labels.mjs --repo "$GITHUB_REPOSITORY" --issue "$ISSUE_NUMBER"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+  reconcile-all:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    concurrency:
+      group: issue-label-guard-${{ github.repository }}-all
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.15.0
+      - name: Reconcile all open issues
+        run: node scripts/reconcile-issue-labels.mjs --repo "$GITHUB_REPOSITORY" --all-open
+        env:
+          GH_TOKEN: ${{ github.token }}
