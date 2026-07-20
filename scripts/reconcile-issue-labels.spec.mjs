@@ -1,4 +1,5 @@
 import { EventEmitter } from "node:events";
+import { spawnSync } from "node:child_process";
 import { PassThrough } from "node:stream";
 import { describe, expect, it, vi } from "vitest";
 
@@ -16,13 +17,23 @@ function issue({ number = 1, state = "open", body = "", labels = [], pullRequest
 
 function createFakeChild() {
   const child = new EventEmitter();
-  child.stdin = {
-    write: vi.fn(),
-    end: vi.fn(),
-  };
+  child.stdin = new EventEmitter();
+  child.stdin.write = vi.fn();
+  child.stdin.end = vi.fn();
   child.stdout = new PassThrough();
   child.stderr = new PassThrough();
   return child;
+}
+
+async function emitErrorAsynchronously(emitter, error) {
+  await Promise.resolve();
+
+  try {
+    emitter.emit("error", error);
+    return undefined;
+  } catch (thrown) {
+    return thrown;
+  }
 }
 
 async function loadModule() {
@@ -30,10 +41,57 @@ async function loadModule() {
 }
 
 describe("module loading", () => {
-  it("is import-safe and exports main without executing it", async () => {
-    const imported = await import(`${modulePath}?import-safe=${crypto.randomUUID()}`);
+  it("has no process, gh, mutation, or output effects when freshly imported", () => {
+    const targetUrl = `${new URL(modulePath, import.meta.url).href}?isolated=${crypto.randomUUID()}`;
+    const harness = `
+      import childProcess from "node:child_process";
+      import { syncBuiltinESMExports } from "node:module";
 
-    expect(imported.main).toBeTypeOf("function");
+      const spawnCalls = [];
+      childProcess.spawn = (...args) => {
+        spawnCalls.push(args);
+        throw new Error("gh spawn during import");
+      };
+      syncBuiltinESMExports();
+
+      const output = [];
+      const stdoutWrite = process.stdout.write.bind(process.stdout);
+      const stderrWrite = process.stderr.write.bind(process.stderr);
+      const initialExitCode = process.exitCode;
+      process.stdout.write = (chunk) => {
+        output.push({ stream: "stdout", text: String(chunk) });
+        return true;
+      };
+      process.stderr.write = (chunk) => {
+        output.push({ stream: "stderr", text: String(chunk) });
+        return true;
+      };
+
+      const imported = await import(${JSON.stringify(targetUrl)});
+      const result = {
+        exportsMain: typeof imported.main === "function",
+        spawnCalls,
+        output,
+        exitCodeChanged: process.exitCode !== initialExitCode,
+      };
+
+      process.stdout.write = stdoutWrite;
+      process.stderr.write = stderrWrite;
+      process.exitCode = 0;
+      stdoutWrite(JSON.stringify(result));
+    `;
+
+    const result = spawnSync(process.execPath, ["--input-type=module", "--eval", harness], {
+      encoding: "utf8",
+    });
+
+    expect(result).toMatchObject({ status: 0, stderr: "" });
+    expect(JSON.parse(result.stdout)).toEqual({
+      exportsMain: true,
+      spawnCalls: [],
+      output: [],
+      exitCodeChanged: false,
+    });
   });
 });
 
@@ -92,6 +150,61 @@ describe("createGhRunner", () => {
       stderr: "permission denied",
     });
   });
+
+  it("attaches one-shot stream error handlers before writing or ending stdin", async () => {
+    const { createGhRunner } = await loadModule();
+    const child = createFakeChild();
+    const expectErrorHandlers = () => {
+      expect(child.stdin.listenerCount("error")).toBe(1);
+      expect(child.stdout.listenerCount("error")).toBe(1);
+      expect(child.stderr.listenerCount("error")).toBe(1);
+    };
+    child.stdin.write.mockImplementation(expectErrorHandlers);
+    child.stdin.end.mockImplementation(expectErrorHandlers);
+    const runGh = createGhRunner({ spawnImpl: () => child });
+
+    const pending = runGh({ args: ["api", "input"], input: { key: "value" } });
+    child.stdout.end();
+    child.stderr.end();
+    child.emit("close", 0);
+
+    await expect(pending).resolves.toBe("");
+    expect(child.stdin.write).toHaveBeenCalledExactlyOnceWith('{"key":"value"}');
+    expect(child.stdin.end).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it("rejects an asynchronous stdin EPIPE even when the child later closes successfully", async () => {
+    const { createGhRunner } = await loadModule();
+    const child = createFakeChild();
+    const runGh = createGhRunner({ spawnImpl: () => child });
+    const error = Object.assign(new Error("write EPIPE"), { code: "EPIPE" });
+
+    const pending = runGh({ args: ["api", "input"], input: { key: "value" } });
+    const unhandled = await emitErrorAsynchronously(child.stdin, error);
+    child.emit("close", 0);
+
+    expect(unhandled).toBeUndefined();
+    await expect(pending).rejects.toBe(error);
+    expect(child.stdin.listenerCount("error")).toBe(0);
+  });
+
+  it.each(["stdout", "stderr"])(
+    "rejects an asynchronous %s stream error even when the child later closes successfully",
+    async (streamName) => {
+      const { createGhRunner } = await loadModule();
+      const child = createFakeChild();
+      const runGh = createGhRunner({ spawnImpl: () => child });
+      const error = new Error(`${streamName} read failed`);
+
+      const pending = runGh({ args: ["api", "output"] });
+      const unhandled = await emitErrorAsynchronously(child[streamName], error);
+      child.emit("close", 0);
+
+      expect(unhandled).toBeUndefined();
+      await expect(pending).rejects.toBe(error);
+      expect(child[streamName].listenerCount("error")).toBe(0);
+    }
+  );
 });
 
 describe("createGhClient", () => {

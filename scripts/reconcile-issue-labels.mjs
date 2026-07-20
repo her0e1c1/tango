@@ -10,27 +10,39 @@ import {
 export function createGhRunner({ spawnImpl }) {
   return function runGh({ args, input }) {
     return new Promise((resolve, reject) => {
+      let settled = false;
+      const settle = (error, stdout) => {
+        if (settled) return;
+        settled = true;
+
+        if (error !== undefined) reject(error);
+        else resolve(stdout);
+      };
       let child;
 
       try {
         child = spawnImpl("gh", args, { stdio: ["pipe", "pipe", "pipe"] });
       } catch (error) {
-        reject(error);
+        settle(error);
         return;
       }
 
       const stdoutChunks = [];
       const stderrChunks = [];
+      const settleError = (error) => settle(error);
 
+      child.once("error", settleError);
+      child.stdin.once("error", settleError);
+      child.stdout.once("error", settleError);
+      child.stderr.once("error", settleError);
       child.stdout.on("data", (chunk) => stdoutChunks.push(Buffer.from(chunk)));
       child.stderr.on("data", (chunk) => stderrChunks.push(Buffer.from(chunk)));
-      child.once("error", reject);
       child.once("close", (code) => {
         const stdout = Buffer.concat(stdoutChunks).toString();
         const stderr = Buffer.concat(stderrChunks).toString();
 
         if (code === 0) {
-          resolve(stdout);
+          settle(undefined, stdout);
           return;
         }
 
@@ -38,11 +50,15 @@ export function createGhRunner({ spawnImpl }) {
         error.code = code;
         error.stdout = stdout;
         error.stderr = stderr;
-        reject(error);
+        settle(error);
       });
 
-      if (input !== undefined) child.stdin.write(JSON.stringify(input));
-      child.stdin.end();
+      try {
+        if (input !== undefined) child.stdin.write(JSON.stringify(input));
+        child.stdin.end();
+      } catch (error) {
+        settle(error);
+      }
     });
   };
 }
