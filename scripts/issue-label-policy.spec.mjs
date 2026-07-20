@@ -62,9 +62,24 @@ describe("parseChangeAreas", () => {
   });
 
   it("reads only through the next unfenced level-three heading", () => {
-    const body = `### Change areas\n\nui\n\n~~~\n### Ignored heading\n~~~\n\n### Goal\n\ndocs`;
+    const body = `### Change areas\n\nui\n\n### Goal\n\ndocs`;
 
     expect(parseChangeAreas(body)).toEqual(["ui"]);
+  });
+
+  it.each([
+    ["unknown", "```\nunknown\n```"],
+    ["shell-like", "~~~\nui; gh issue delete 1\n~~~"],
+  ])("rejects %s fenced content inside the selected section", (_name, fencedContent) => {
+    const body = `### Change areas\n\nui\n\n${fencedContent}\n\n### Goal\n\nText`;
+
+    expect(parseChangeAreas(body)).toEqual([]);
+  });
+
+  it("does not let an invalid backtick info string hide a duplicate heading", () => {
+    const body = `### Change areas\n\nui\n\n\`\`\`invalid\`info\n### Change areas\n\ndocs\n\`\`\``;
+
+    expect(parseChangeAreas(body)).toEqual([]);
   });
 
   it.each([

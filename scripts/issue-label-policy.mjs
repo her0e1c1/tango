@@ -3,8 +3,10 @@ export const AREA_LABELS = ["ci", "ui", "test", "dev", "docs", "dependencies"];
 export const TRIAGE_LABEL = "needs-triage";
 
 function openingFence(line) {
-  const match = line.match(/^ {0,3}(`{3,}|~{3,})/);
+  const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
   if (match === null) return null;
+
+  if (match[1][0] === "`" && match[2].includes("`")) return null;
 
   return { marker: match[1][0], length: match[1].length };
 }
@@ -14,18 +16,19 @@ function closesFence(line, fence) {
   return match !== null && match[1][0] === fence.marker && match[1].length >= fence.length;
 }
 
-function unfencedLines(body) {
+function linesWithFenceState(body) {
   const result = [];
   let fence = null;
 
   for (const [index, line] of body.replaceAll("\r\n", "\n").split("\n").entries()) {
     if (fence !== null) {
       if (closesFence(line, fence)) fence = null;
+      result.push({ index, line, fenced: true });
       continue;
     }
 
     fence = openingFence(line);
-    if (fence === null) result.push({ index, line });
+    result.push({ index, line, fenced: fence !== null });
   }
 
   return result;
@@ -34,12 +37,14 @@ function unfencedLines(body) {
 export function parseChangeAreas(body) {
   if (typeof body !== "string" || body.length === 0) return [];
 
-  const lines = unfencedLines(body);
-  const headings = lines.filter(({ line }) => line === "### Change areas");
+  const lines = linesWithFenceState(body);
+  const headings = lines.filter(({ line, fenced }) => !fenced && line === "### Change areas");
   if (headings.length !== 1) return [];
 
   const headingIndex = headings[0].index;
-  const nextHeading = lines.find(({ index, line }) => index > headingIndex && line.startsWith("### "));
+  const nextHeading = lines.find(
+    ({ index, line, fenced }) => index > headingIndex && !fenced && line.startsWith("### ")
+  );
   const values = lines
     .filter(({ index }) => index > headingIndex && (nextHeading === undefined || index < nextHeading.index))
     .map(({ line }) => line)
