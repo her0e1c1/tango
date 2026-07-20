@@ -1,3 +1,9 @@
+/**
+ * @file Defines persistent study feature state for Study Store.
+ * The store validates saved browser data and exposes the actions that move an active session
+ * forward.
+ */
+
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 
@@ -34,9 +40,18 @@ interface CreateStudyStoreOptions {
   skipHydration?: boolean;
 }
 
+/**
+ * Checks whether an unknown value is a non-null object rather than an array.
+ * Persisted-state validation uses this guard before reading named properties safely.
+ */
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
+/**
+ * Validates unknown persisted data before treating it as a study session.
+ * Invalid identifiers, card orders, indexes, or timestamps are rejected instead of entering the
+ * live store.
+ */
 const sanitizeStudySession = (value: unknown, fallbackLastStudiedAt?: number): StudySession | undefined => {
   if (!isRecord(value)) return undefined;
   const { deckId, cardOrderIds, currentIndex } = value;
@@ -65,6 +80,10 @@ const sanitizeStudySession = (value: unknown, fallbackLastStudiedAt?: number): S
   };
 };
 
+/**
+ * Builds safe study state from unknown browser storage data.
+ * Only sessions that pass validation and match their storage key are retained.
+ */
 const sanitizePersistedStudyState = (persistedState: unknown): PersistedStudyState => {
   if (!isRecord(persistedState) || !isRecord(persistedState.sessionsByDeckId)) {
     return { sessionsByDeckId: {} };
@@ -78,6 +97,10 @@ const sanitizePersistedStudyState = (persistedState: unknown): PersistedStudySta
   return { sessionsByDeckId };
 };
 
+/**
+ * Converts supported older study-state formats into the current per-deck format.
+ * Unknown versions are discarded so incompatible saved data cannot corrupt a study session.
+ */
 const migratePersistedStudyState = (persistedState: unknown, version: number): PersistedStudyState => {
   if (version !== 1 && version !== 2) return { sessionsByDeckId: {} };
   if (!isRecord(persistedState)) return { sessionsByDeckId: {} };
@@ -85,6 +108,11 @@ const migratePersistedStudyState = (persistedState: unknown, version: number): P
   return session == null ? { sessionsByDeckId: {} } : { sessionsByDeckId: { [session.deckId]: session } };
 };
 
+/**
+ * Creates and configures a study store.
+ * Optional dependencies or settings let production code and tests reuse the same behavior in
+ * different environments.
+ */
 export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedStudyState>(() => storage ?? localStorage);
   return createStore<StudyState>()(
@@ -169,6 +197,10 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
 
 export const studyStore = createStudyStore();
 
+/**
+ * Clears every study session, resets transient study controls, and removes persisted browser data.
+ * Logout awaits this function so a previous user's study progress cannot reappear after hydration.
+ */
 export const clearStudyStore = async (): Promise<void> => {
   studyStore.setState({
     sessionsByDeckId: {},
@@ -179,5 +211,9 @@ export const clearStudyStore = async (): Promise<void> => {
   await studyStore.persist.clearStorage();
 };
 
+/**
+ * Selects study session for route from a larger state value.
+ * Callers can subscribe to this focused result without learning how the full store is organized.
+ */
 export const selectStudySessionForRoute = (deckId: DeckId) => (state: StudyState) =>
   state.sessionsByDeckId[deckId] ?? null;

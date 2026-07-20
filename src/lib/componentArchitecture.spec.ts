@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "component architecture" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "leaves render memoization
+ * to React Compiler", "normalizes baseUrl source imports before checking boundaries", "treats
+ * Query APIs as presentation connectors across import styles".
+ */
+
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -27,14 +34,26 @@ const connectorModules = [
   "@/hooks",
 ];
 
+/**
+ * Provides the source path test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function sourcePath(relativePath: string): string {
   return path.join(sourceRoot, relativePath);
 }
 
+/**
+ * Reads source needed by the test.
+ * File access stays in one helper so assertions work with consistent paths and encoding.
+ */
 function readSource(relativePath: string): string {
   return readFileSync(sourcePath(relativePath), "utf8");
 }
 
+/**
+ * Provides the source files under test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function sourceFilesUnder(relativeDirectory: string): string[] {
   const absoluteDirectory = sourcePath(relativeDirectory);
   if (!existsSync(absoluteDirectory)) return [];
@@ -48,10 +67,18 @@ function sourceFilesUnder(relativeDirectory: string): string[] {
     .sort();
 }
 
+/**
+ * Provides the production files under test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function productionFilesUnder(relativeDirectory: string): string[] {
   return sourceFilesUnder(relativeDirectory).filter((relativePath) => !testOrStory.test(relativePath));
 }
 
+/**
+ * Provides the module specifiers test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function moduleSpecifiers(source: string): string[] {
   const staticMatches = source.matchAll(
     /(?:^|\n)\s*(?:import\s+(?:type\s+)?(?:[^;]*?\s+from\s+)?|export\s+(?:type\s+)?[^;]*?\s+from\s+)["']([^"']+)["']/g
@@ -68,6 +95,10 @@ interface ModuleReference {
   resolvedSpecifier: string;
 }
 
+/**
+ * Provides the resolve module specifier test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function resolveModuleSpecifier(relativePath: string, specifier: string): string {
   if (specifier.startsWith(".")) {
     return `@/${path.posix.normalize(path.posix.join(path.posix.dirname(relativePath), specifier))}`;
@@ -78,6 +109,10 @@ function resolveModuleSpecifier(relativePath: string, specifier: string): string
   return specifier;
 }
 
+/**
+ * Provides the module references test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function moduleReferences(relativePath: string): ModuleReference[] {
   return moduleSpecifiers(readSource(relativePath)).map((specifier) => ({
     specifier,
@@ -85,15 +120,27 @@ function moduleReferences(relativePath: string): ModuleReference[] {
   }));
 }
 
+/**
+ * Evaluates the is module or subpath condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function isModuleOrSubpath(specifier: string, moduleName: string): boolean {
   return specifier === moduleName || specifier.startsWith(`${moduleName}/`);
 }
 
+/**
+ * Provides the import violation test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function importViolation(relativePath: string, reference: ModuleReference): string {
   const resolution = reference.resolvedSpecifier === reference.specifier ? "" : ` -> ${reference.resolvedSpecifier}`;
   return `${relativePath}: ${reference.specifier}${resolution}`;
 }
 
+/**
+ * Evaluates the forbidden connector condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function forbiddenConnector(specifier: string): boolean {
   return (
     connectorModules.some((moduleName) => isModuleOrSubpath(specifier, moduleName)) ||
@@ -101,18 +148,34 @@ function forbiddenConnector(specifier: string): boolean {
   );
 }
 
+/**
+ * Evaluates the is firebase module condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function isFirebaseModule(specifier: string): boolean {
   return isModuleOrSubpath(specifier, "firebase") || isModuleOrSubpath(specifier, "@/firebase");
 }
 
+/**
+ * Evaluates the is firestore adapter module condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function isFirestoreAdapterModule(specifier: string): boolean {
   return isModuleOrSubpath(specifier, "@/adapters/firestore") || isModuleOrSubpath(specifier, "@/action/firestore");
 }
 
+/**
+ * Evaluates the can import firestore adapter condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function canImportFirestoreAdapter(relativePath: string, specifier: string): boolean {
   return firestoreCompositionModules.has(relativePath) && isModuleOrSubpath(specifier, "@/adapters/firestore");
 }
 
+/**
+ * Runs the shared expect stateless presentation assertions for one test subject.
+ * Keeping the repeated expectations together lets each test emphasize the scenario being checked.
+ */
 function expectStatelessPresentation(relativePath: string): void {
   const source = readSource(relativePath);
   expect(source, relativePath).not.toMatch(mutablePresentationHook);
@@ -124,14 +187,26 @@ function expectStatelessPresentation(relativePath: string): void {
   ).toEqual([]);
 }
 
+/**
+ * Evaluates the is container support hook condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function isContainerSupportHook(specifier: string): boolean {
   return isModuleOrSubpath(specifier, "@/hooks") || /^@\/features\/[^/]+\/hooks\/use[A-Z][^/]*$/.test(specifier);
 }
 
+/**
+ * Evaluates the can import container support hook condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function canImportContainerSupportHook(relativePath: string): boolean {
   return /^features\/[^/]+\/(?:containers|hooks)\//.test(relativePath);
 }
 
+/**
+ * Evaluates the forbidden container dependency condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function forbiddenContainerDependency(specifier: string): boolean {
   if (isContainerSupportHook(specifier)) return false;
 
@@ -142,6 +217,10 @@ function forbiddenContainerDependency(specifier: string): boolean {
   );
 }
 
+/**
+ * Runs the shared expect shared component group assertions for one test subject.
+ * Keeping the repeated expectations together lets each test emphasize the scenario being checked.
+ */
 function expectSharedComponentGroup(
   group: "layout" | "forms" | "content" | "feedback",
   componentNames: string[],

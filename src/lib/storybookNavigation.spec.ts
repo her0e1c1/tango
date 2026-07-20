@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "Storybook navigation" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "groups ${directory} stories
+ * under Shared/${storybookGroup}".
+ */
+
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";

@@ -1,3 +1,9 @@
+/**
+ * @file Provides import feature rules for Deck Import Analysis.
+ * Keeping these calculations outside React makes their inputs, outputs, and edge cases easier to
+ * understand and test.
+ */
+
 import * as Papa from "papaparse";
 
 import * as cardAction from "@/action/card";
@@ -9,13 +15,25 @@ import type {
   DeckImportRow,
 } from "@/features/import/components/deckImportTypes";
 
+/**
+ * Formats raw CSV columns for inclusion in a validation message.
+ * Keeping the original values visible helps users identify the row that needs correction.
+ */
 const rowContext = (columns: string[]) => JSON.stringify(columns);
 
+/**
+ * Checks whether two imported card values contain the same user-editable content.
+ * The comparison decides whether an import row can be skipped instead of written again.
+ */
 const sameCardContent = (left: CardRaw, right: CardRaw) =>
   left.frontText === right.frontText &&
   left.backText === right.backText &&
   left.tags.join("\0") === right.tags.join("\0");
 
+/**
+ * Parses deck import csv into validated application data.
+ * Malformed input is reported before downstream code relies on the result.
+ */
 export const parseDeckImportCsv = async (content: string | File): Promise<DeckImportAnalysis> => {
   const parsed = await new Promise<Papa.ParseResult<string[]>>((resolve, reject) => {
     Papa.parse<string[]>(content, { delimiter: ",", complete: resolve, error: reject });
@@ -95,6 +113,11 @@ export const parseDeckImportCsv = async (content: string | File): Promise<DeckIm
   };
 };
 
+/**
+ * Builds deck import plan from the supplied application values.
+ * The returned value is ready for the next layer, so callers do not need to repeat assembly or
+ * defaulting rules.
+ */
 export const buildDeckImportPlan = (rows: DeckImportRow[], existingCards: Card[]): DeckImportPlan => {
   const existingByUniqueKey = new Map(existingCards.map((card) => [card.uniqueKey, card]));
   const plannedRows = rows.map((row): DeckImportPlanRow => {

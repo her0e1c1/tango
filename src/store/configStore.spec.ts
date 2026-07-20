@@ -1,7 +1,18 @@
+/**
+ * @file Verifies the "config store" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "updates and toggles
+ * long-lived settings", "persists only config state and restores it with current defaults", "keeps
+ * valid persisted settings and replaces invalid values with current defaults".
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { CONFIG_STORAGE_KEY, createConfigStore, defaultConfig } from "@/store/configStore";
 
+/**
+ * Provides the create memory storage test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createMemoryStorage = (initial: Record<string, string> = {}) => {
   const values = new Map(Object.entries(initial));
   return {

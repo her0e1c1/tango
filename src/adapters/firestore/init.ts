@@ -1,3 +1,9 @@
+/**
+ * @file Implements the Firestore adapter responsibility for Init.
+ * This boundary translates between Tango's application models and Firebase so feature code does
+ * not handle database details directly.
+ */
+
 import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { initializeFirestoreRuntime } from "@/adapters/firestore/runtime";

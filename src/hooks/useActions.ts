@@ -1,7 +1,18 @@
+/**
+ * @file Provides the application-wide Use Actions React hook.
+ * It gives components a focused view of shared state and operations without exposing the
+ * underlying store setup.
+ */
+
 import { useNavigate } from "react-router-dom";
 import * as action from "@/action";
 import { configStore } from "@/store/configStore";
 
+/**
+ * Provides application navigation and cross-feature actions to React components.
+ * Components call these named operations without constructing route URLs or reaching into domain
+ * modules directly.
+ */
 export const useActions = () => {
   const navigate = useNavigate();
   return {

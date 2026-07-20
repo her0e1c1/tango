@@ -1,5 +1,16 @@
+/**
+ * @file Defines the reusable Slider component in the shared form library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import type React from "react";
 
+/**
+ * Renders the Slider user interface.
+ * Renders a styled range control from its bounds and value and reports each value change to its
+ * owner.
+ */
 export const Slider: React.FC<{
   id?: string;
   min?: number;

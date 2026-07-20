@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "useStudyActions" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "keeps the action API stable
+ * across an unchanged render", "starts from filtered Query cards before navigating", "rejects a
+ * route and session mismatch before writing a card".
+ */
+
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -65,6 +72,10 @@ const deck: Deck = {
   scoreMin: null,
 };
 
+/**
+ * Provides the create card test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createCard = (id: CardId, numberOfSeen: number): Card => ({
   id,
   deckId: deck.id,
@@ -83,6 +94,10 @@ const createCard = (id: CardId, numberOfSeen: number): Card => ({
 const card1 = createCard("card-1", 0);
 const card2 = createCard("card-2", 1);
 
+/**
+ * Provides the create config test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState =>
   ({
     shuffled: false,
@@ -97,6 +112,10 @@ const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState =>
     ...overrides,
   }) as ConfigState;
 
+/**
+ * Provides the create state test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createState = (config = createConfig()) => ({
   card: { [card1.id]: card1, [card2.id]: card2 },
   config,

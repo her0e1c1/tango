@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Calm Focus visual contract" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "configures the global
+ * Storybook review surface", "recognizes raw palette utilities, including directional borders",
+ * "loads the Calm Focus stylesheet from the app entry point".
+ */
+
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -118,21 +125,37 @@ const foundationThemeTokens = [
 const rawPaletteUtility =
   /\b(?:accent|bg|border(?:-[xysetrbl])?|caret|decoration|divide|fill|from|outline|placeholder|ring-offset|ring|shadow|stroke|text|to|via)-(?:black|white|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:-\d{2,3})?(?:\/\d{1,3})?\b/g;
 
+/**
+ * Provides the source path test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function sourcePath(relativePath: string): string {
   return path.join(sourceRoot, relativePath);
 }
 
+/**
+ * Reads source needed by the test.
+ * File access stays in one helper so assertions work with consistent paths and encoding.
+ */
 function readSource(relativePath: string): string {
   const absolutePath = sourcePath(relativePath);
   return existsSync(absolutePath) ? readFileSync(absolutePath, "utf8") : "";
 }
 
+/**
+ * Reads owned source needed by the test.
+ * File access stays in one helper so assertions work with consistent paths and encoding.
+ */
 function readOwnedSource(relativePath: string): string {
   const absolutePath = sourcePath(relativePath);
   if (!existsSync(absolutePath)) throw new Error(`Owned presentation file is missing: ${relativePath}`);
   return readFileSync(absolutePath, "utf8");
 }
 
+/**
+ * Provides the css block test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function cssBlock(source: string, selector: string): string {
   const selectorStart = source.indexOf(`${selector} {`);
   if (selectorStart === -1) return "";
@@ -144,6 +167,10 @@ function cssBlock(source: string, selector: string): string {
   return blockEnd === -1 ? "" : source.slice(blockStart + 1, blockEnd);
 }
 
+/**
+ * Provides the custom properties test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function customProperties(source: string): Map<string, string> {
   const properties = new Map<string, string>();
   for (const match of source.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
@@ -154,6 +181,10 @@ function customProperties(source: string): Map<string, string> {
   return properties;
 }
 
+/**
+ * Provides the raw palette utilities test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function rawPaletteUtilities(source: string): string[] {
   return Array.from(source.matchAll(rawPaletteUtility), (match) => match[0]);
 }

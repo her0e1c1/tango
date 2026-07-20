@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "App" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "updates only the theme when
+ * the setting changes", "shows startup feedback for initializing and signed-out authentication",
+ * "shows startup errors and reloads on request".
+ */
+
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import type { User } from "firebase/auth";

@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "component public API" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "exports every component and
+ * named prop type from the root barrel".
+ */
+
 import { describe, expect, it } from "vitest";
 import * as Shared from "@/components";
 import type {

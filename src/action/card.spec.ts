@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "card action" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "prepares a card with an
+ * injected id", "should be fromRow", "should be empty".
+ */
+
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
 import * as card from "@/action/card";

@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "CardListContainer" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders the current score
+ * and tag filters in the collapsed summary", "removes one selected tag through the existing filter
+ * callback", "preserves Edit, Delete, and left/right swipe connections".
+ */
+
 import userEvent from "@testing-library/user-event";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

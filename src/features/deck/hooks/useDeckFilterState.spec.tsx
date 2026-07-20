@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "DeckStartForm with useDeckFilterState" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "auto-submits score and tag
+ * filter changes", "auto-submits score toggle and slider changes", "auto-submits individual tag,
+ * all, and clear changes".
+ */
+
 import type React from "react";
 
 import userEvent from "@testing-library/user-event";
@@ -9,6 +16,10 @@ import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { createDeck } from "@/test/factories";
 
+/**
+ * Renders the test-only Deck Filter Harness component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const DeckFilterHarness: React.FC<{
   deck: Deck;
   tags: string[];

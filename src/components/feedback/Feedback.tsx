@@ -1,3 +1,9 @@
+/**
+ * @file Defines the reusable Feedback component in the shared feedback library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 
@@ -10,6 +16,11 @@ const tonePresentation: Record<FeedbackTone, { className: string; label: string 
   error: { className: "bg-danger", label: "Error" },
 };
 
+/**
+ * Renders the Feedback user interface.
+ * Shows child content as a fixed status message with neutral, positive, or negative styling, and
+ * renders nothing for empty content.
+ */
 export const Feedback: React.FC<{ children: React.ReactNode; tone?: FeedbackTone }> = (props) => {
   if (props.children == null) return null;
 

@@ -1,3 +1,9 @@
+/**
+ * @file Defines the deck feature's Deck Form presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import type * as React from "react";
 import { useId } from "react";
 
@@ -22,6 +28,11 @@ export interface DeckFormProps {
   onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
 }
 
+/**
+ * Renders the Deck Form user interface.
+ * Collects deck metadata and import settings, connects validation messages, and forwards submit or
+ * cancel actions.
+ */
 export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();
   const basicHeadingId = `${sectionHeadingIdPrefix}-deck-basic-heading`;

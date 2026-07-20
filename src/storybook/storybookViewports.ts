@@ -1,3 +1,9 @@
+/**
+ * @file Provides shared Storybook support for Storybook Viewports.
+ * Stories reuse this setup to display components with realistic data, providers, and viewport
+ * settings.
+ */
+
 export const INITIAL_VIEWPORTS = {
   iphone5: { name: "iPhone 5", styles: { height: "568px", width: "320px" }, type: "mobile" },
   iphone6: { name: "iPhone 6", styles: { height: "667px", width: "375px" }, type: "mobile" },

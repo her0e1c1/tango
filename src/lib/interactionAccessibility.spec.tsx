@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "keyboard-accessible interactions" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "activates FrontText with
+ * Enter", "activates the CSV sample download with Enter", "activates swipe actions with Enter".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";

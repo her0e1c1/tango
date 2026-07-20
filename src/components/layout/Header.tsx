@@ -1,3 +1,9 @@
+/**
+ * @file Defines the reusable Header component in the shared layout library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 import { IconContext } from "react-icons";
@@ -12,6 +18,11 @@ export interface HeaderProps {
   onClickMenuItem?: (key: PageKey) => void;
 }
 
+/**
+ * Renders the Header user interface.
+ * Builds the application header from navigation, title, and action props and can keep it fixed
+ * above scrolling content.
+ */
 export const Header: React.FC<HeaderProps> = (props) => {
   return (
     <IconContext.Provider

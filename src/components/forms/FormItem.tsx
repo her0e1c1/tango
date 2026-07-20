@@ -1,7 +1,18 @@
+/**
+ * @file Defines the reusable Form Item component in the shared form library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type React from "react";
 import { Description } from "@/components/content/Description";
 
+/**
+ * Renders the Form Item user interface.
+ * Groups a control with its label, help text, extra information, and validation message using
+ * linked identifiers.
+ */
 export const FormItem: React.FC<{
   label: string;
   inputId?: string;

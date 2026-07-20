@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "DeckStartContent" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "passes Deck and session
+ * context to the template", "starts from Enter when cards match and focus is not interactive",
+ * "stops responding to Enter when a rerender has no matching cards".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -37,6 +44,10 @@ vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
   }),
 }));
 
+/**
+ * Provides the render content test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const renderContent = ({
   cards = [createCard()],
   config = createConfig(),

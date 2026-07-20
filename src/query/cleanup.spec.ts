@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "cleanupFirestoreUid" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "stops subscriptions, awaits
+ * cancellation, then removes the UID cache", "removes only the selected UID query prefix",
+ * "finishes cache cleanup before surfacing a listener stop error".
+ */
+
 import { QueryClient } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

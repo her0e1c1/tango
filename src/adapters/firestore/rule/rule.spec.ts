@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "firestore/rule" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "should read a deck",
+ * "should create a deck", "should update a deck".
+ */
+
 import { it, describe, beforeEach, beforeAll, afterAll } from "vitest";
 import * as fs from "node:fs";
 import {

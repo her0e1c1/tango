@@ -1,3 +1,9 @@
+/**
+ * @file Coordinates remote mutation behavior for Optimistic Mutation.
+ * It applies optimistic cache changes, serializes conflicting work, and restores consistent state
+ * when a request fails.
+ */
+
 import { isEqual } from "lodash";
 
 import type { RemoteById } from "@/query/cache/remoteCollection";
@@ -10,6 +16,10 @@ export interface OptimisticMutationOptions<T, Result> {
   mutation: () => Promise<Result>;
 }
 
+/**
+ * Runs the optimistic mutation workflow for the remote-data layer.
+ * The sequence and its cleanup remain together so partial failures can be handled consistently.
+ */
 export const runOptimisticMutation = async <T, Result>({
   targetIds,
   read,

@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "CardActionsMenu" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders edit and delete
+ * actions", "disables the trigger and hides an open menu".
+ */
+
 import * as React from "react";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -7,6 +13,10 @@ import { CardActionsMenu } from "@/features/card/components/CardActionsMenu";
 
 type ControlledMenuProps = Omit<React.ComponentProps<typeof CardActionsMenu>, "open" | "onToggle" | "onClose">;
 
+/**
+ * Renders the test-only Controlled Menu component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
   const [open, setOpen] = React.useState(false);
   return (

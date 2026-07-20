@@ -1,3 +1,9 @@
+/**
+ * @file Composes the card feature's complete Card List Template screen.
+ * Data and callbacks arrive through props, which keeps this presentation usable in both a live
+ * container and Storybook.
+ */
+
 import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
@@ -30,8 +36,16 @@ export interface CardListTemplateProps {
   isCardPending?: (id: CardId) => boolean;
 }
 
+/**
+ * Formats the count label text shown to the user.
+ * The helper keeps wording and singular or plural rules consistent across the screen.
+ */
 const countLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
 
+/**
+ * Formats the score range label text shown to the user.
+ * The helper keeps wording and singular or plural rules consistent across the screen.
+ */
 const scoreRangeLabel = (filter: CardListFilterState) => {
   if (filter.scoreMin != null && filter.scoreMax != null) return `score ${filter.scoreMin}–${filter.scoreMax}`;
   if (filter.scoreMin != null) return `score ≥ ${filter.scoreMin}`;
@@ -39,6 +53,10 @@ const scoreRangeLabel = (filter: CardListFilterState) => {
   return undefined;
 };
 
+/**
+ * Formats the filter label text shown to the user.
+ * The helper keeps wording and singular or plural rules consistent across the screen.
+ */
 const filterLabel = (filter: CardListFilterState) => {
   const labels: string[] = [];
   const score = scoreRangeLabel(filter);
@@ -51,6 +69,11 @@ const filterLabel = (filter: CardListFilterState) => {
 
 const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selectedTags: [] };
 
+/**
+ * Composes the complete Card List Rows screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 const CardListRows: React.FC<Pick<CardListTemplateProps, "cards" | "card" | "onShowCard" | "isCardPending">> = (
   props
 ) => {
@@ -80,6 +103,11 @@ const CardListRows: React.FC<Pick<CardListTemplateProps, "cards" | "card" | "onS
   );
 };
 
+/**
+ * Composes the complete Card List Template screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
   const filter = props.filter ?? emptyFilter;
 

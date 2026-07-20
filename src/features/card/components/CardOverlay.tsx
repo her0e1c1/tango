@@ -1,6 +1,17 @@
+/**
+ * @file Defines the card feature's Card Overlay presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import type * as React from "react";
 import { Description, Overlay, Score } from "@/components";
 
+/**
+ * Renders the Card Overlay user interface.
+ * Shows the active card's score and tags in a compact overlay, falling back to neutral values
+ * before a card is available.
+ */
 export const CardOverlay: React.FC<{ card?: Card }> = (props) => {
   const card = props.card;
   return (

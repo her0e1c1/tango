@@ -1,3 +1,9 @@
+/**
+ * @file Defines the card feature's Back Text presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import type * as React from "react";
 import { MathContent, Code, Style } from "@/components";
 
@@ -9,6 +15,11 @@ export interface BackTextProps {
   onClick?: () => void;
 }
 
+/**
+ * Renders the Back Text user interface.
+ * Displays a card's answer content, including rich text and optional code or mathematical
+ * notation.
+ */
 export const BackText: React.FC<BackTextProps> = (props) => {
   return (
     <Style

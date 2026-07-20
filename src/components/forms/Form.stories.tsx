@@ -1,3 +1,9 @@
+/**
+ * @file Defines Storybook examples for Form.
+ * These isolated scenarios show developers how the component looks, which props it accepts, and
+ * how it responds to interaction.
+ */
+
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { Form as Template } from "@/components/forms/Form";
@@ -5,6 +11,11 @@ import { FormItem } from "@/components/forms/FormItem";
 import { Input } from "@/components/forms/Input";
 import { Switch } from "@/components/forms/Switch";
 
+/**
+ * Prepares review form data for the Storybook examples in this file.
+ * The helper keeps sample setup separate from the component configuration readers are meant to
+ * inspect.
+ */
 const reviewForm = () => (
   <Template div>
     <FormItem col label="Deck name" help="Shown in your library and study history.">

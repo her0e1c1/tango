@@ -1,3 +1,9 @@
+/**
+ * @file Creates the Firebase services used by authentication and Firestore adapters.
+ * Initialization is kept here so the rest of the application can reuse one configured service
+ * instance.
+ */
+
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 import {

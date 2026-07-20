@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "CardViewTemplate" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "preserves optional back
+ * content in a reading-width surface", "renders without back content".
+ */
+
 import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";

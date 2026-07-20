@@ -1,3 +1,9 @@
+/**
+ * @file Provides the deck feature's Use Deck Filter State React hook.
+ * The hook combines state and operations behind one interface so components do not need to
+ * coordinate services themselves.
+ */
+
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
@@ -9,6 +15,11 @@ export interface UseDeckFilterStateOptions {
   onSubmit?: (deck: Deck) => void;
 }
 
+/**
+ * Provides the deck filter state values and operations needed by React components.
+ * Callers receive one focused interface without coordinating the deck feature's stores and
+ * services themselves.
+ */
 export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateOptions): DeckStartFormProps => {
   const [scoreMaxEnabled, setScoreMaxEnabled] = React.useState(deck.scoreMax != null);
   const [scoreMinEnabled, setScoreMinEnabled] = React.useState(deck.scoreMin != null);
@@ -25,15 +36,35 @@ export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateO
     });
   }, [handleSubmit, onSubmit, subscribe]);
 
+  /**
+   * Handles the click filter callback for the deck feature.
+   * The handler translates the event or asynchronous result into the next state change or
+   * operation.
+   */
   const onClickFilter = (value: boolean) => {
     setValue("tagAndFilter", value);
   };
+  /**
+   * Handles the click all callback for the deck feature.
+   * The handler translates the event or asynchronous result into the next state change or
+   * operation.
+   */
   const onClickAll = () => {
     setValue("selectedTags", tags);
   };
+  /**
+   * Handles the click clear callback for the deck feature.
+   * The handler translates the event or asynchronous result into the next state change or
+   * operation.
+   */
   const onClickClear = () => {
     setValue("selectedTags", []);
   };
+  /**
+   * Handles the click tag callback for the deck feature.
+   * The handler translates the event or asynchronous result into the next state change or
+   * operation.
+   */
   const onClickTag = (value: string[]) => {
     setValue("selectedTags", value);
   };

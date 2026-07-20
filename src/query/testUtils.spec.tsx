@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Query test utilities" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "creates isolated clients
+ * with retries disabled", "provides the requested client to rendered tests", "creates a
+ * retry-disabled client when no client is supplied".
+ */
+
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import { useQueryClient } from "@tanstack/react-query";

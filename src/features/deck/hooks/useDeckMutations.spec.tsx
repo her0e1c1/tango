@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "useDeckMutations" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "shares one in-flight
+ * removal for the same Deck", "keeps a failed removal available for a safe retry", "runs remove
+ * success cleanup after a retry finishes beyond the hook lifetime".
+ */
+
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

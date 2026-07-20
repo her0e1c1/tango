@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Button action control" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "does not activate while
+ * disabled", "announces loading without color and prevents activation", "retains native submit
+ * behavior".
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";

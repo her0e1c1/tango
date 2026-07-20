@@ -1,3 +1,9 @@
+/**
+ * @file Defines the deck feature's Deck Card presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
@@ -29,6 +35,10 @@ export interface DeckCardProps extends DeckCardActions {
   studyProgress?: DeckListStudyProgress;
 }
 
+/**
+ * Formats a deck's last-study time for display in the deck list.
+ * Decks that have never been studied receive a clear fallback instead of an invalid date.
+ */
 const formatLastStudied = (timestamp: number): string => {
   const elapsedSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
   if (elapsedSeconds < 60) return "just now";
@@ -46,12 +56,22 @@ const formatLastStudied = (timestamp: number): string => {
 const primaryActionClassName =
   "inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
+/**
+ * Renders the Deck Card user interface.
+ * Summarizes a deck, its tags, study progress, and available actions while reflecting pending
+ * operations.
+ */
 export const DeckCard: React.FC<DeckCardProps> = (props) => {
   const { deck, studyProgress } = props;
   const active = studyProgress != null;
   const progressValue = active ? studyProgress.currentIndex + 1 : 0;
   const progressPercent = active ? Math.min(100, (progressValue / studyProgress.cardCount) * 100) : 0;
   const pending = props.isPending?.(deck.id) ?? false;
+  /**
+   * Wraps an optional action so it receives the current item's identifier when invoked.
+   * Presentation markup can pass a parameterless callback while domain actions still receive the
+   * item they should change.
+   */
   const withId = (action?: (id: DeckId) => void) => () => action?.(deck.id);
   const statusId = React.useId();
 

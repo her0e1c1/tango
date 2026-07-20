@@ -1,3 +1,9 @@
+/**
+ * @file Defines the reusable Route Feedback component in the shared feedback library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import type * as React from "react";
 
 import { Button, type ButtonVariant } from "@/components/forms/Button";
@@ -19,12 +25,21 @@ export interface RouteFeedbackProps {
   secondaryAction?: RouteFeedbackAction;
 }
 
+/**
+ * Renders the Action Button user interface.
+ * Renders the optional recovery action and calls its handler when the user activates the button.
+ */
 const ActionButton = ({ action, defaultVariant }: { action: RouteFeedbackAction; defaultVariant: ButtonVariant }) => (
   <Button variant={action.variant ?? defaultVariant} onClick={action.onClick}>
     {action.label}
   </Button>
 );
 
+/**
+ * Renders the Route Feedback user interface.
+ * Presents a full-route status with a title, description, optional details, and an optional
+ * recovery action.
+ */
 export const RouteFeedback: React.FC<RouteFeedbackProps> = (props) => {
   const tone = props.tone ?? "loading";
   const role = tone === "error" ? "alert" : "status";

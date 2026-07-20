@@ -1,3 +1,9 @@
+/**
+ * @file Defines the study feature's Controller presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import type * as React from "react";
 import { IconContext } from "react-icons";
 import { AiOutlinePause, AiOutlineCaretRight } from "react-icons/ai";
@@ -12,6 +18,11 @@ export interface ControllerProps {
   onChange?: (index: number) => void;
 }
 
+/**
+ * Renders the Controller user interface.
+ * Shows study progress and controls for reveal, navigation, and autoplay based on the current card
+ * index.
+ */
 export const Controller: React.FC<ControllerProps> = (props) => {
   const numberOfCards = props.numberOfCards ?? 0;
   const index = props.index ?? 0;

@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "ConfigForm with useConfigFormState" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "auto-submits boolean and
+ * numeric field changes", "synchronizes dark mode when the config prop changes".
+ */
+
 import type React from "react";
 
 import userEvent from "@testing-library/user-event";
@@ -8,6 +14,10 @@ import "@testing-library/jest-dom/vitest";
 import { ConfigForm } from "@/features/settings/components/ConfigForm";
 import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
 
+/**
+ * Renders the test-only Config Form Harness component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const ConfigFormHarness: React.FC<{
   config: ConfigState;
   onSubmit: (config: ConfigState) => void;

@@ -1,7 +1,18 @@
+/**
+ * @file Verifies the "study store" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "keeps independent study
+ * sessions for multiple decks", "updates only the requested session and its last studied time",
+ * "touches only an existing requested session".
+ */
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { STUDY_STORAGE_KEY, createStudyStore, selectStudySessionForRoute } from "@/features/study/state/studyStore";
 
+/**
+ * Provides the create memory storage test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createMemoryStorage = (initial: Record<string, string> = {}) => {
   const values = new Map(Object.entries(initial));
   return {
@@ -15,16 +26,28 @@ const createMemoryStorage = (initial: Record<string, string> = {}) => {
   };
 };
 
+/**
+ * Provides the create versioned storage test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createVersionedStorage = (state: unknown, version: number) =>
   createMemoryStorage({
     [STUDY_STORAGE_KEY]: JSON.stringify({ state, version }),
   });
 
+/**
+ * Provides the call set current index test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const callSetCurrentIndex = (store: ReturnType<typeof createStudyStore>, deckId: DeckId, currentIndex: number) => {
   const setCurrentIndex = store.getState().setCurrentIndex as unknown as (id: DeckId, index: number) => void;
   setCurrentIndex(deckId, currentIndex);
 };
 
+/**
+ * Provides the call remove study test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const callRemoveStudy = (store: ReturnType<typeof createStudyStore>, deckId: DeckId) => {
   const removeStudy = Reflect.get(store.getState(), "removeStudy");
   expect(removeStudy).toBeTypeOf("function");

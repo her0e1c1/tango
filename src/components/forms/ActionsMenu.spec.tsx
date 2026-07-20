@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "ActionsMenu" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders supplied labels and
+ * runs items before returning focus", "supports wrapping arrows, Home, End, and Escape", "keeps
+ * menu items out of the Tab sequence and moves Tab to the next external control".
+ */
+
 import * as React from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -5,6 +12,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ActionsMenu, type ActionsMenuItem } from "@/components/forms/ActionsMenu";
 
+/**
+ * Provides the items test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const items = (edit = vi.fn(), remove = vi.fn()): ActionsMenuItem[] => [
   { key: "edit", label: "Edit", icon: <span aria-hidden="true">E</span>, onSelect: edit },
   { key: "delete", label: "Delete", icon: <span aria-hidden="true">D</span>, danger: true, onSelect: remove },
@@ -12,6 +23,10 @@ const items = (edit = vi.fn(), remove = vi.fn()): ActionsMenuItem[] => [
 
 type ControlledMenuProps = Omit<React.ComponentProps<typeof ActionsMenu>, "open" | "onToggle" | "onClose">;
 
+/**
+ * Renders the test-only Controlled Menu component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
   const [open, setOpen] = React.useState(false);
   return (
@@ -19,6 +34,10 @@ const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
   );
 };
 
+/**
+ * Renders the test-only Shared Open Menus component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const SharedOpenMenus: React.FC = () => {
   const [openMenu, setOpenMenu] = React.useState<"first" | "second" | null>(null);
   const menu = (id: "first" | "second") => ({

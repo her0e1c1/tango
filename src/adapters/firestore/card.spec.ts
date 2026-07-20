@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "card" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "should create a card",
+ * "should update a card", "should bulk-update a card".
+ */
+
 import "./init";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";

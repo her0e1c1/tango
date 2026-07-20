@@ -1,3 +1,9 @@
+/**
+ * @file Composes the study feature's complete Deck Swiper Template screen.
+ * Data and callbacks arrive through props, which keeps this presentation usable in both a live
+ * container and Storybook.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 import * as Shared from "@/components";
@@ -20,6 +26,11 @@ export interface DeckSwiperTemplateProps {
   feedbackSlot?: React.ReactNode;
 }
 
+/**
+ * Composes the complete Deck Swiper Template screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 export const DeckSwiperTemplate: React.FC<DeckSwiperTemplateProps> = (props) => {
   return (
     <Layout

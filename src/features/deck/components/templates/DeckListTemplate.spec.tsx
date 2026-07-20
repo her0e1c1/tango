@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "DeckListTemplate" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders the page count,
+ * feedback, and both compact sections", "omits empty sections", "opens one deck actions menu at a
+ * time".
+ */
+
 import * as React from "react";
 import { cleanup, fireEvent, render, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -20,6 +27,10 @@ const sections: DeckListSections = {
   other: [{ deck: otherDeck, cardCount: 7 }],
 };
 
+/**
+ * Renders the test-only Controlled Deck List component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const ControlledDeckList = () => {
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   return (

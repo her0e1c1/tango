@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "CardForm" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "groups front, back, tags,
+ * and card information while preserving values and callbacks", "uses unique section heading
+ * relationships for each form instance", "associates validation errors with their named controls".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -9,6 +16,10 @@ import { createCard } from "@/test/factories";
 const createdAt = Date.UTC(2026, 0, 2);
 const lastSeenAt = Date.UTC(2026, 1, 3);
 
+/**
+ * Provides the create props test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createProps = (overrides: Partial<CardFormProps> = {}): CardFormProps => ({
   card: createCard({
     id: "card-123",

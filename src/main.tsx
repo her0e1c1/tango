@@ -1,3 +1,9 @@
+/**
+ * @file Starts the React application in the browser.
+ * It creates the root providers, enables development diagnostics, and mounts the route tree into
+ * the HTML page.
+ */
+
 import "./firebase";
 import "./index.css";
 

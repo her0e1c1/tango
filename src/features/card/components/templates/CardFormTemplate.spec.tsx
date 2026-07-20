@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "CardFormTemplate" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "presents the card editor
+ * and composes feedback before the form".
+ */
+
 import { cleanup, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";

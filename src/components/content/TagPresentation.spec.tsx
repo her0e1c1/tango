@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "tag presentation" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders compact read-only
+ * tag content outside the tab order", "removes one active filter through a native button".
+ */
+
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";

@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "event action" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "signs out before clearing
+ * Query and study state", "preserves local state when sign-out fails", "clears study state after a
+ * Query cleanup failure".
+ */
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { linkWithPopup, signOut } from "firebase/auth";
 

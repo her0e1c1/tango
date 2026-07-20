@@ -1,3 +1,9 @@
+/**
+ * @file Composes the deck feature's complete Deck List Template screen.
+ * Data and callbacks arrive through props, which keeps this presentation usable in both a live
+ * container and Storybook.
+ */
+
 import * as React from "react";
 
 import { DeckCard, type DeckCardActions, type DeckListStudyProgress } from "@/features/deck/components/DeckCard";
@@ -21,8 +27,17 @@ export interface DeckListTemplateProps {
   feedbackSlot?: React.ReactNode;
 }
 
+/**
+ * Formats the count label text shown to the user.
+ * The helper keeps wording and singular or plural rules consistent across the screen.
+ */
 const countLabel = (count: number) => `${count} ${count === 1 ? "deck" : "decks"}`;
 
+/**
+ * Composes the complete Deck List Section screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 const DeckListSection: React.FC<{
   title: string;
   note: string;
@@ -57,6 +72,11 @@ const DeckListSection: React.FC<{
   );
 };
 
+/**
+ * Composes the complete Deck List Template screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 export const DeckListTemplate: React.FC<DeckListTemplateProps> = (props) => {
   const total = props.sections.studying.length + props.sections.other.length;
 

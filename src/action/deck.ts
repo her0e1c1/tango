@@ -1,3 +1,9 @@
+/**
+ * @file Implements application-level Deck operations.
+ * The functions turn user intent into domain data or coordinated authentication work without
+ * depending on React components.
+ */
+
 // import moment from "moment";
 import { saveAs } from "file-saver";
 import * as Papa from "papaparse";
@@ -5,6 +11,11 @@ import * as Papa from "papaparse";
 import * as C from "@/constant";
 import * as action from "@/action";
 
+/**
+ * Creates a complete deck from raw input, defaults, and generated identifiers.
+ * The returned domain object is ready to validate, display, or persist without extra setup from
+ * the caller.
+ */
 export const prepare = (deck: DeckRaw, uid: string, generateId: () => string): Deck => {
   return {
     ...deck,
@@ -23,11 +34,21 @@ export const prepare = (deck: DeckRaw, uid: string, generateId: () => string): D
   };
 };
 
+/**
+ * Prepares and downloads data for the user.
+ * Browser file handling remains behind this function so domain preparation can be understood
+ * separately.
+ */
 export const downloadData = (deck: Deck, cards: Card[]) => {
   const csv = Papa.unparse(cards.map(action.card.toRow));
   _saveAs(csv, deck.name);
 };
 
+/**
+ * Prepares and downloads as for the user.
+ * Browser file handling remains behind this function so domain preparation can be understood
+ * separately.
+ */
 export const _saveAs = (content: string, name: string) => {
   if (!name.endsWith(".csv")) {
     name += ".csv";
@@ -36,10 +57,19 @@ export const _saveAs = (content: string, name: string) => {
   saveAs(blob, name);
 };
 
+/**
+ * Prepares and downloads csv sample text for the user.
+ * Browser file handling remains behind this function so domain preparation can be understood
+ * separately.
+ */
 export const downloadCsvSampleText = () => {
   _saveAs(C.CSV_SAMPLE_TEXT, "sample.csv");
 };
 
+/**
+ * Parses csv into validated application data.
+ * Malformed input is reported before downstream code relies on the result.
+ */
 export const parseCsv = async (content: unknown): Promise<CardRaw[]> => {
   if (typeof content !== "string" && !(typeof File !== "undefined" && content instanceof File)) {
     throw new TypeError("CSV content must be a string or File");

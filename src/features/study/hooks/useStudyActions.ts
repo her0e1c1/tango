@@ -1,3 +1,9 @@
+/**
+ * @file Provides the study feature's Use Study Actions React hook.
+ * The hook combines state and operations behind one interface so components do not need to
+ * coordinate services themselves.
+ */
+
 import React from "react";
 
 import { useNavigate } from "react-router-dom";
@@ -32,6 +38,10 @@ interface StudySwipeDependencies {
   update: (card: CardEdit) => Promise<void>;
 }
 
+/**
+ * Runs the study swipe workflow for the study feature.
+ * The sequence and its cleanup remain together so partial failures can be handled consistently.
+ */
 const runStudySwipe = async (
   direction: SwipeDirection,
   { mutationTokenRef, deckId, config, cardsById, isPending, update }: StudySwipeDependencies
@@ -92,6 +102,11 @@ const runStudySwipe = async (
   }
 };
 
+/**
+ * Provides the study actions values and operations needed by React components.
+ * Callers receive one focused interface without coordinating the study feature's stores and
+ * services themselves.
+ */
 export const useStudyActions = (deckId: DeckId): StudyActions => {
   const navigate = useNavigate();
   const config = useConfig();
@@ -101,6 +116,11 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
   const cardMutations = useCardMutations();
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
+  /**
+   * Creates a new study session from the currently filtered cards and opens the study route.
+   * The saved UI preferences are applied before navigation so the first card renders in the
+   * expected state.
+   */
   const start = () => {
     const cardOrderIds = buildStudySession(cards, config);
     const state = studyStore.getState();
@@ -109,6 +129,11 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
     void navigate(`/deck/${deckId}/study`, { replace: true });
   };
 
+  /**
+   * Runs the study workflow for one swipe direction.
+   * Direction-specific callbacks reuse this function so pending checks, optimistic state, and
+   * persistence stay identical.
+   */
   const swipe = (direction: SwipeDirection) =>
     runStudySwipe(direction, {
       mutationTokenRef,

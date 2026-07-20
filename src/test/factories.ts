@@ -1,3 +1,13 @@
+/**
+ * @file Provides reusable test data builders for Factories.
+ * Tests can override only the fields they care about while receiving complete, valid application
+ * objects.
+ */
+
+/**
+ * Builds a complete test deck with predictable defaults and optional field overrides.
+ * Tests can describe only the deck fields relevant to their scenario.
+ */
 export const createDeck = (overrides: Partial<Deck> = {}): Deck => ({
   id: "deck-id",
   uid: "user-id",
@@ -15,6 +25,10 @@ export const createDeck = (overrides: Partial<Deck> = {}): Deck => ({
   ...overrides,
 });
 
+/**
+ * Builds a complete test card with predictable defaults and optional field overrides.
+ * Tests can describe only the card fields relevant to their scenario.
+ */
 export const createCard = (overrides: Partial<Card> = {}): Card => ({
   id: "card-id",
   deckId: "deck-id",
@@ -31,6 +45,10 @@ export const createCard = (overrides: Partial<Card> = {}): Card => ({
   ...overrides,
 });
 
+/**
+ * Builds a complete test configuration with predictable defaults and optional overrides.
+ * Tests can change one setting without repeating every required configuration field.
+ */
 export const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState => ({
   useCardInterval: false,
   showSwipeButtonList: true,
@@ -57,6 +75,11 @@ export const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState 
 
 const NativeBlob = Blob;
 
+/**
+ * Creates a test Blob constructor that always returns the supplied blob.
+ * Download tests use it to inspect generated content without depending on the browser's native
+ * constructor.
+ */
 export const createBlobConstructor = (blob: Blob): typeof Blob =>
   new Proxy(NativeBlob, {
     construct: () => blob,

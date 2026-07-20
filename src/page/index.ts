@@ -1,3 +1,9 @@
+/**
+ * @file Collects the route-level page exports used by the application router.
+ * The router can import every page from one boundary without depending on individual page file
+ * paths.
+ */
+
 export * from "@/page/DeckList";
 export * from "@/page/DeckFormPage";
 export * from "@/page/DeckStartPage";

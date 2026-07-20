@@ -1,3 +1,9 @@
+/**
+ * @file Connects application state and operations to the settings feature's Config Container view.
+ * The container prepares route data and callbacks, then delegates visual rendering to presentation
+ * components.
+ */
+
 import type * as React from "react";
 import { useKey } from "react-use";
 
@@ -9,6 +15,11 @@ import { useActions } from "@/hooks/useActions";
 import { useAuth } from "@/auth/AuthContext";
 import { useConfig } from "@/hooks/useConfig";
 
+/**
+ * Connects the Config Container view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const ConfigContainer: React.FC = () => {
   const config = useConfig();
   const authState = useAuth();

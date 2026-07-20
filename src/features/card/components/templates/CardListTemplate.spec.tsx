@@ -1,3 +1,11 @@
+/**
+ * @file Verifies the "CardListTemplate" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders the heading, zero
+ * count, collapsed no-filter summary, and feedback", "formats score bounds, tag count, persistent
+ * chips, and singular card count", "constrains a long unbroken selected tag without changing its
+ * text".
+ */
+
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";

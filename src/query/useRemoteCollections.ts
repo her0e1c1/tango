@@ -1,3 +1,9 @@
+/**
+ * @file Provides shared remote-data behavior for Use Remote Collections.
+ * Feature hooks use this layer to read and update Firestore data without owning cache or
+ * subscription details.
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
 
@@ -14,6 +20,11 @@ import {
 } from "@/query/reads/remoteReadSession";
 import { cardsForDeck, filteredCardsForDeck, remoteValues, tagsForDeck } from "@/query/selectors";
 
+/**
+ * Provides the remote collections values and operations needed by React components.
+ * Callers receive one focused interface without coordinating the remote-data layer's stores and
+ * services themselves.
+ */
 export const useRemoteCollections = () => {
   const authState = useAuth();
   const uid = authState.status === "authenticated" ? authState.uid : "";

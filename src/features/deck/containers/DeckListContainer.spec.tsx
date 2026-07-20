@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "DeckListContainer" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders every active deck
+ * in recent order and inactive decks by name", "touches only the selected session before
+ * continuing", "routes Study and Restart through the start screen".
+ */
+
 import { act, cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

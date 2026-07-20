@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "shared overlay surface" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "uses a shared backdrop and
+ * constrained scrolling for center content", "retains click, accessible name, custom class, and
+ * shared focus appearance".
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";

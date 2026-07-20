@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "storybook card fixtures" contract with automated examples.
+ * The examples confirm that every default and long-card fixture receives a unique, predictable
+ * identifier.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { cards } from "@/storybook/fixture";

@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "DeckImportContainer" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "selects a CSV without
+ * importing or navigating automatically", "adds the bundled sample without navigating
+ * automatically", "imports the preview explicitly and navigates only from Back to decks".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";

@@ -1,3 +1,10 @@
+/**
+ * @file Connects application state and operations to the study feature's Deck Swiper Container
+ * view.
+ * The container prepares route data and callbacks, then delegates visual rendering to presentation
+ * components.
+ */
+
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
@@ -21,6 +28,11 @@ import { useConfig } from "@/hooks/useConfig";
 
 const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
 
+/**
+ * Connects the Deck Swiper Container view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const DeckSwiperContainer: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
@@ -88,6 +100,11 @@ export const DeckSwiperContainer: React.FC = () => {
     if (state[STUDY_HISTORY_GUARD] !== deckId) {
       window.history.pushState({ ...state, [STUDY_HISTORY_GUARD]: deckId }, document.title, document.location.href);
     }
+    /**
+     * Handles the pop state callback for the study feature.
+     * The handler translates the event or asynchronous result into the next state change or
+     * operation.
+     */
     const handlePopState = () => {
       void navigate(1);
     };

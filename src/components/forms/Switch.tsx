@@ -1,6 +1,17 @@
+/**
+ * @file Defines the reusable Switch component in the shared form library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 
+/**
+ * Renders the Switch user interface.
+ * Renders an accessible checkbox switch whose size, checked state, disabled state, and change
+ * handler come from its owner.
+ */
 export const Switch: React.FC<{
   id?: string;
   className?: string;

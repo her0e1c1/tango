@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "shared content hierarchy" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "uses the Calm Focus surface
+ * hierarchy while retaining Card props", "wraps long titles and retains keyboard click behavior",
+ * "gives sections, descriptions, and styled text semantic type roles".
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";

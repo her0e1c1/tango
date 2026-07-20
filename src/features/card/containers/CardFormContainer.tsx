@@ -1,3 +1,9 @@
+/**
+ * @file Connects application state and operations to the card feature's Card Form Container view.
+ * The container prepares route data and callbacks, then delegates visual rendering to presentation
+ * components.
+ */
+
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -10,12 +16,21 @@ import { useCardFormState } from "@/features/card/hooks/useCardFormState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useConfig } from "@/hooks/useConfig";
 
+/**
+ * Connects the Card Form Content view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 const CardFormContent = ({ card }: { card: Card }) => {
   const config = useConfig();
   const actions = useActions();
   const navigate = useNavigate();
   const mutations = useCardMutations();
   const categoryOptions = C.CATEGORY.map((category) => ({ label: category, value: category }));
+  /**
+   * Navigates back to the route the user visited before the current form.
+   * The container uses this after saving or cancelling instead of knowing the previous URL.
+   */
   const goBack = () => void navigate(-1);
   const cardForm = useCardFormState({
     card,
@@ -48,6 +63,11 @@ const CardFormContent = ({ card }: { card: Card }) => {
   );
 };
 
+/**
+ * Connects the Card Form Container view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const CardFormContainer: React.FC = () => {
   const params = useParams();
   const navigate = useNavigate();

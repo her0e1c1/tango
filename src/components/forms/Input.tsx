@@ -1,6 +1,17 @@
+/**
+ * @file Defines the reusable Input component in the shared form library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import type * as React from "react";
 import cx from "classnames";
 
+/**
+ * Renders the Input user interface.
+ * Renders the shared text input styling while forwarding its value, state, accessibility
+ * attributes, and change handler.
+ */
 export const Input: React.FC<{
   id?: string;
   className?: string;

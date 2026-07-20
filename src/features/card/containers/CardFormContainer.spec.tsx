@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "CardFormContainer" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "submits the current card",
+ * "returns to the previous page without saving when cancelled", "submits edited front and back
+ * text".
+ */
+
 import userEvent from "@testing-library/user-event";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

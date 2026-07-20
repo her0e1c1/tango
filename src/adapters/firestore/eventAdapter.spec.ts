@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Firestore remote-read subscriptions" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "emits an empty Deck
+ * replacement for the initial snapshot", "maps active Decks and omits logical deletions from the
+ * initial replacement", "emits Deck deltas after the initial replacement".
+ */
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type TestDocument = { id: string; data: () => Record<string, unknown> };
@@ -32,7 +39,15 @@ vi.mock("@/adapters/firestore/runtime", () => ({ getDb: () => "db" }));
 
 import { subscribeCardReads, subscribeDeckReads } from "@/adapters/firestore/event";
 
+/**
+ * Provides the document test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const document = (id: string, data: Record<string, unknown>): TestDocument => ({ id, data: () => data });
+/**
+ * Provides the snapshot test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const snapshot = (
   docs: TestDocument[],
   changes: TestChange[] = [],
@@ -43,6 +58,10 @@ const snapshot = (
   metadata,
 });
 
+/**
+ * Provides the deck document test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const deckDocument = (overrides: Record<string, unknown> = {}) => ({
   id: "payload-deck",
   name: "Remote Deck",
@@ -60,6 +79,10 @@ const deckDocument = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
+/**
+ * Provides the card document test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const cardDocument = (overrides: Record<string, unknown> = {}) => ({
   id: "payload-card",
   frontText: "Remote front",

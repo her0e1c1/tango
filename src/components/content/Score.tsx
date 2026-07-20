@@ -1,6 +1,17 @@
+/**
+ * @file Defines the reusable Score component in the shared content library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 
+/**
+ * Renders the Score user interface.
+ * Formats a numeric score as an accessible status and changes its visual cue for positive,
+ * neutral, or negative values.
+ */
 export const Score: React.FC<{ score?: number; large?: boolean; className?: string }> = (props) => {
   const score = props.score ?? 0;
   const cue = score > 0 ? "positive" : score < 0 ? "negative" : "neutral";

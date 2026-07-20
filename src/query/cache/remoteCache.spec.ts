@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "remote cache" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "reads and replaces
+ * UID-scoped collections independently".
+ */
+
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 

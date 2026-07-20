@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "shared app shell" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "keeps Outer as the standard
+ * dynamic-viewport scroll owner", "renders Main as a bounded semantic content surface", "renders
+ * the standard branch in shell order and ignores fullscreen-only interaction props".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";

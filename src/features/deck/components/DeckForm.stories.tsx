@@ -1,3 +1,9 @@
+/**
+ * @file Defines Storybook examples for Deck Form.
+ * These isolated scenarios show developers how the component looks, which props it accepts, and
+ * how it responds to interaction.
+ */
+
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
@@ -6,6 +12,11 @@ import { DeckForm as Template, type DeckFormFields } from "@/features/deck/compo
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
+/**
+ * Prepares fields for data for the Storybook examples in this file.
+ * The helper keeps sample setup separate from the component configuration readers are meant to
+ * inspect.
+ */
 const fieldsFor = (deck: Deck): DeckFormFields => ({
   name: { value: deck.name, onChange: () => undefined },
   convertToBr: { checked: Boolean(deck.convertToBr), onChange: () => undefined },
@@ -23,6 +34,10 @@ const longDeck: Deck = {
   category: "value 3",
 };
 
+/**
+ * Renders the Interactive Deck Form Storybook example with local interactive state.
+ * Local state lets readers try the component without connecting it to the full application.
+ */
 const InteractiveDeckForm = (props: React.ComponentProps<typeof Template>) => {
   const [name, setName] = React.useState(props.fields.name.value ?? "");
 

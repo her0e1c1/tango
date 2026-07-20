@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "ConfigFormTemplate" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "composes the config form
+ * under a compact page heading without a redundant surface".
+ */
+
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";

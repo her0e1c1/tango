@@ -1,4 +1,9 @@
 /// <reference types="vite/client" />
+/**
+ * @file Declares the browser and application-wide TypeScript types used throughout Tango.
+ * Keeping these shared shapes in one declaration file lets feature modules refer to the same Deck,
+ * Card, and configuration contracts.
+ */
 
 declare const __APP_VERSION__: string;
 

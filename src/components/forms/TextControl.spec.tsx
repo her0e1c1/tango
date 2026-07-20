@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "shared text controls" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "forwards an id so external
+ * labels can name the input", "keeps native input values, refs, and handlers", "keeps native
+ * select values, refs, and handlers".
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { createRef } from "react";

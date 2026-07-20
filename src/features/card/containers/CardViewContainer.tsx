@@ -1,3 +1,9 @@
+/**
+ * @file Connects application state and operations to the card feature's Card View Container view.
+ * The container prepares route data and callbacks, then delegates visual rendering to presentation
+ * components.
+ */
+
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -9,6 +15,11 @@ import { useActions } from "@/hooks/useActions";
 import { CardViewTemplate } from "@/features/card/components/templates/CardViewTemplate";
 import { useConfig } from "@/hooks/useConfig";
 
+/**
+ * Connects the Card View Content view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
   const actions = useActions();
   const config = useConfig();
@@ -34,6 +45,11 @@ const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
   );
 };
 
+/**
+ * Connects the Card View Container view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const CardViewContainer: React.FC = () => {
   const params = useParams();
   const navigate = useNavigate();

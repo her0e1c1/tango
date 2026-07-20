@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Card" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders compact metadata
+ * and routes view, menu actions, and swipes by card id", "uses explicit copy for unstudied and
+ * singular study counts", "keeps study and tag metadata outside the View button".
+ */
+
 import * as React from "react";
 import { cleanup, fireEvent, render, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -14,6 +21,10 @@ const card = {
   tags: ["one", "two"],
 } as Card;
 
+/**
+ * Renders the test-only Controlled Card component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const ControlledCard: React.FC<React.ComponentProps<typeof Card>> = (props) => {
   const [menuOpen, setMenuOpen] = React.useState(false);
   return (
@@ -29,12 +40,20 @@ const ControlledCard: React.FC<React.ComponentProps<typeof Card>> = (props) => {
   );
 };
 
+/**
+ * Provides the swipe test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const swipe = (article: HTMLElement, from: number, to: number) => {
   fireEvent.mouseDown(article, { clientX: from, clientY: 0 });
   fireEvent.mouseMove(document, { clientX: to, clientY: 0 });
   fireEvent.mouseUp(document, { clientX: to, clientY: 0 });
 };
 
+/**
+ * Provides the touch gesture test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const touchGesture = (target: HTMLElement, from: number, to: number) => {
   const start = { identifier: 1, target, clientX: from, clientY: 24 };
   const end = { identifier: 1, target, clientX: to, clientY: 24 };

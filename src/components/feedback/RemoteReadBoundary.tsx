@@ -1,3 +1,9 @@
+/**
+ * @file Defines the reusable Remote Read Boundary component in the shared feedback library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/forms/Button";
@@ -12,6 +18,11 @@ export type RemoteReadBoundaryProps = {
   children: ReactNode;
 };
 
+/**
+ * Renders the Error Notice user interface.
+ * Explains whether loading failed completely or synchronization stopped after data arrived, and
+ * offers retry.
+ */
 const ErrorNotice = ({ hasData, onRetry }: Pick<RemoteReadBoundaryProps, "hasData" | "onRetry">) => (
   <div
     role="alert"
@@ -24,6 +35,11 @@ const ErrorNotice = ({ hasData, onRetry }: Pick<RemoteReadBoundaryProps, "hasDat
   </div>
 );
 
+/**
+ * Renders the Remote Read Boundary user interface.
+ * Chooses blocked, loading, error, refreshing, or ready content from the remote-read status
+ * supplied by its parent.
+ */
 export const RemoteReadBoundary = (props: RemoteReadBoundaryProps) => {
   if (props.status === "blocked") {
     return (

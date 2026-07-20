@@ -1,3 +1,9 @@
+/*
+ * @file Defines the Calm Focus visual rules shared by the related components.
+ * The selectors describe appearance only; component behavior remains in the neighboring TypeScript
+ * files.
+ */
+
 :root {
   color-scheme: light;
   --calm-color-canvas: #f7f8fa;

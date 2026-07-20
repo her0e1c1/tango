@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Controller with useStudyControllerState" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "delegates the auto-play
+ * toggle to the controlled callback", "advances the index after the configured interval while
+ * playing", "reflects a rerendered controlled autoPlay value immediately".
+ */
+
 import type React from "react";
 
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
@@ -7,6 +14,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Controller, type ControllerProps } from "@/features/study/components/Controller";
 import { useStudyControllerState } from "@/features/study/hooks/useStudyControllerState";
 
+/**
+ * Renders the test-only Controller Harness component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const ControllerHarness: React.FC<ControllerProps> = (props) => {
   const controller = useStudyControllerState(props);
   return <Controller {...controller} />;

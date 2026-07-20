@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "createCardMutationService" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "optimistically creates and
+ * removes only the target Card", "rolls back only the failed target Card", "does not let an old
+ * rollback overwrite a newer listener snapshot".
+ */
+
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -6,6 +13,10 @@ import { createRemoteCache } from "@/query/cache/remoteCache";
 import { type CardBulkMutationError, createCardMutationService } from "@/query/mutations/cardMutationService";
 import { createCard } from "@/test/factories";
 
+/**
+ * Provides the deferred test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const deferred = <T>() => {
   let resolve!: (value: T) => void;
   let reject!: (error: unknown) => void;

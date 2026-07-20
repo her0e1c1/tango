@@ -1,3 +1,9 @@
+/**
+ * @file Defines Storybook examples for Slider.
+ * These isolated scenarios show developers how the component looks, which props it accepts, and
+ * how it responds to interaction.
+ */
+
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fireEvent, fn } from "storybook/test";
@@ -14,6 +20,10 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/**
+ * Renders the Interactive Slider Storybook example with local interactive state.
+ * Local state lets readers try the component without connecting it to the full application.
+ */
 const InteractiveSlider: React.FC<React.ComponentProps<typeof Template>> = (props) => {
   const [value, setValue] = React.useState(props.value ?? "40");
 

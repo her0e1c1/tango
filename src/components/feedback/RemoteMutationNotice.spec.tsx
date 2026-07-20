@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "RemoteMutationNotice" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "shows pending feedback by
+ * default", "hides pending feedback when requested", "keeps the error and Retry action when
+ * pending feedback is hidden".
+ */
+
 import { fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";

@@ -1,3 +1,9 @@
+/**
+ * @file Provides keyboard-accessible button behavior for non-button elements.
+ * The hook mirrors native Enter, Space, focus, and click interactions when a visual component must
+ * act like a button.
+ */
+
 import { useEffect, useRef } from "react";
 import type * as React from "react";
 
@@ -6,6 +12,11 @@ type ButtonInteraction<Element extends HTMLElement> = Pick<
   "onBlur" | "onClick" | "onKeyDown" | "onKeyUp" | "role" | "tabIndex"
 >;
 
+/**
+ * Adds native-like keyboard and click behavior when a non-button element is interactive.
+ * Enter activates immediately, Space activates on release, and nested controls keep their own
+ * events.
+ */
 export const useButtonInteraction = <Element extends HTMLElement>(
   onClick: (() => void) | undefined
 ): ButtonInteraction<Element> | Record<string, never> => {

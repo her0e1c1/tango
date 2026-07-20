@@ -1,3 +1,9 @@
+/**
+ * @file Implements the Firestore adapter responsibility for Event.
+ * This boundary translates between Tango's application models and Firebase so feature code does
+ * not handle database details directly.
+ */
+
 import { onSnapshot, where, collection, query } from "firebase/firestore";
 
 import { mapCardDocument, mapDeckDocument, type CardDocument, type DeckDocument } from "@/adapters/firestore/dto";
@@ -6,6 +12,11 @@ import type { RemoteChange, RemoteSubscriptionProps } from "@/query/remoteReadCo
 
 type RemoteEntity = { id: string; updatedAt: number; deletedAt: number | null };
 
+/**
+ * Creates a Firestore listener that converts document changes into Tango remote snapshots.
+ * The generic adapter handles initial data, incremental changes, metadata, and listener errors for
+ * either entity type.
+ */
 const subscribeReads = <T extends RemoteEntity>(
   collectionName: "deck" | "card",
   props: RemoteSubscriptionProps<T>,
@@ -49,8 +60,16 @@ const subscribeReads = <T extends RemoteEntity>(
   );
 };
 
+/**
+ * Subscribes to active deck documents for one user.
+ * Deck-specific mapping is supplied to the shared Firestore subscription adapter.
+ */
 export const subscribeDeckReads = (props: RemoteSubscriptionProps<Deck>): Callback =>
   subscribeReads("deck", props, (id, data) => mapDeckDocument(id, data as unknown as DeckDocument));
 
+/**
+ * Subscribes to active card documents for one user.
+ * Card-specific mapping is supplied to the shared Firestore subscription adapter.
+ */
 export const subscribeCardReads = (props: RemoteSubscriptionProps<Card>): Callback =>
   subscribeReads("card", props, (id, data) => mapCardDocument(id, data as unknown as CardDocument));

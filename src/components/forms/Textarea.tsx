@@ -1,6 +1,17 @@
+/**
+ * @file Defines the reusable Textarea component in the shared form library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import type * as React from "react";
 import cx from "classnames";
 
+/**
+ * Renders the Textarea user interface.
+ * Renders the shared multiline input styling while forwarding its value, row count, validation
+ * state, and change handler.
+ */
 export const Textarea: React.FC<{
   id?: string;
   className?: string;

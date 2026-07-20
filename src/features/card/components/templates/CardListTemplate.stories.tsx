@@ -1,3 +1,9 @@
+/**
+ * @file Defines Storybook examples for Card List Template.
+ * These isolated scenarios show developers how the component looks, which props it accepts, and
+ * how it responds to interaction.
+ */
+
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
@@ -36,6 +42,10 @@ const longUnbrokenCards = fixture.cards.long.map((card, index) =>
   index === 0 ? { ...card, tags: [longUnbrokenTag] } : card
 );
 
+/**
+ * Renders the Removable Selected Tags Example Storybook example with local interactive state.
+ * Local state lets readers try the component without connecting it to the full application.
+ */
 const RemovableSelectedTagsExample: React.FC<{
   onRemoveTag: React.ComponentProps<typeof Template>["onRemoveTag"];
 }> = (props) => {
@@ -52,6 +62,10 @@ const RemovableSelectedTagsExample: React.FC<{
   );
 };
 
+/**
+ * Renders the Closable Card View Example Storybook example with local interactive state.
+ * Local state lets readers try the component without connecting it to the full application.
+ */
 const ClosableCardViewExample: React.FC<React.ComponentProps<typeof Template>> = (props) => {
   const { overlay: initialOverlay, ...rest } = props;
   const [overlay, setOverlay] = React.useState(initialOverlay);

@@ -1,4 +1,10 @@
 /**
+ * @file Defines shared application rules for Realtime Change.
+ * The module keeps framework-independent calculations and contracts separate from components and
+ * remote services.
+ */
+
+/**
  * Applies a single Firestore realtime event to a normalized `byId` map.
  *
  * Handles `added`, `modified`, and `removed` changes. Logical deletion

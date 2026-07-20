@@ -1,3 +1,9 @@
+/**
+ * @file Composes the card feature's complete Card Form Template screen.
+ * Data and callbacks arrive through props, which keeps this presentation usable in both a live
+ * container and Storybook.
+ */
+
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 
@@ -10,6 +16,11 @@ export interface CardFormTemplateProps {
   feedbackSlot?: React.ReactNode;
 }
 
+/**
+ * Composes the complete Card Form Template screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 export const CardFormTemplate: React.FC<CardFormTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>

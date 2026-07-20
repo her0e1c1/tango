@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "resolveSwipeAction" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "returns the swipe action
+ * for the given direction", "increments score for GoToNextCardMastered when score is
+ * non-negative", "resets to 0 for GoToNextCardMastered when score is negative".
+ */
+
 import { expect, it, describe } from "vitest";
 import {
   resolveSwipeAction,

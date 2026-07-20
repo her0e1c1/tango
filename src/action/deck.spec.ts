@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "deck action" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "should prepare deck",
+ * "parses string content as raw cards", "rejects unsupported input at the parser boundary".
+ */
+
 import { expect, expectTypeOf, it, describe, vi, beforeEach, afterEach } from "vitest";
 
 // import moment from "moment";

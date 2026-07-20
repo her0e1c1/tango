@@ -1,9 +1,20 @@
+/**
+ * @file Verifies the "useAccountOperations" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "shares the login promise
+ * while login is pending", "shares the logout promise while logout is pending", "retries the
+ * failed operation".
+ */
+
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { StrictMode, type PropsWithChildren } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
 
+/**
+ * Provides the deferred test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const deferred = <T,>() => {
   let resolve!: (value: T) => void;
   let reject!: (reason?: unknown) => void;
@@ -15,6 +26,10 @@ const deferred = <T,>() => {
   return { promise, resolve, reject };
 };
 
+/**
+ * Renders the test-only Strict Mode Wrapper component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const StrictModeWrapper = ({ children }: PropsWithChildren) => <StrictMode>{children}</StrictMode>;
 
 afterEach(() => cleanup());

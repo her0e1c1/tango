@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "remote read session" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "connects production
+ * gateways to the Query controller", "does not start listeners when persistent cache
+ * initialization is blocked", "does not start a stale UID after initialization finishes".
+ */
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RemoteReadDependencies } from "@/query/reads/remoteReadController";
 

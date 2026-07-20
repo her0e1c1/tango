@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "settings presentation" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "relates a settings section
+ * to its unique heading", "relates a settings row label and description to its input id", "keeps
+ * the row and control region touch friendly".
+ */
+
 import { cleanup, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";

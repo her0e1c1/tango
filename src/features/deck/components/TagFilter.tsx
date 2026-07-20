@@ -1,7 +1,17 @@
+/**
+ * @file Defines the deck feature's Tag Filter presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import { useId } from "react";
 import type * as React from "react";
 import { Button, Switch, Tag, TagList } from "@/components";
 
+/**
+ * Toggles one tag in the current selection without mutating the original array.
+ * Selecting an existing tag removes it; selecting a new tag appends it for the filter callback.
+ */
 const updateTags = (tags: string[], tag: string) => {
   if (tags.includes(tag)) {
     return tags.filter((t) => t !== tag);
@@ -21,6 +31,11 @@ export interface TagFilterProps {
   scroll?: boolean;
 }
 
+/**
+ * Renders the Tag Filter user interface.
+ * Lets the user choose filter mode and tag selections, then reports the resulting filter or a
+ * clear action.
+ */
 export const TagFilter: React.FC<TagFilterProps> = (props) => {
   const idPrefix = useId();
   const headingId = `${idPrefix}-tags-heading`;

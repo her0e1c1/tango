@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "shared status content" contract with automated examples.
+ * The examples verify semantic score cues and ensure every feedback tone includes a non-color
+ * label for assistive technology.
+ */
+
 import { cleanup, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";

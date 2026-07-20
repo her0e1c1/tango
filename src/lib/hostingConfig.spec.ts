@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "Firebase Hosting cache policy" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "revalidates app routes
+ * while caching fingerprinted assets".
+ */
+
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";

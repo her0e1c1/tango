@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Auth store" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "starts without exposing a
+ * UID", "starts one app-lifetime observer on the first subscriber", "ignores an in-flight
+ * anonymous sign-in failure after disposal".
+ */
+
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { StrictMode, type PropsWithChildren } from "react";
@@ -16,6 +23,10 @@ vi.mock("firebase/auth", () => ({
   signInAnonymously: singletonMocks.signInAnonymously,
 }));
 
+/**
+ * Provides the uninitialized callback test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const uninitializedCallback = (): never => {
   throw new Error("Callback was used before auth observer setup");
 };

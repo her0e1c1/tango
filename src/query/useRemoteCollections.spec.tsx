@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "useRemoteCollections" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "returns Firestore Query
+ * data as the only Deck and Card read model", "exposes terminal state and Retry without dropping
+ * cached data", "does not expose Query data until authenticated and active UIDs match".
+ */
+
 import { renderHook } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";

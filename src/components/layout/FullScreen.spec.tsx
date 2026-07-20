@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "FullScreen" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "fills the dynamic viewport
+ * without screen-width overflow", "uses intentional vertical scrolling without forcing horizontal
+ * scrolling", "preserves flex, centering, and custom class semantics".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";

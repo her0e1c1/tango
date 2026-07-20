@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "firestoreKeys" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "creates exact UID-scoped
+ * collection keys", "returns frozen keys".
+ */
+
 import { describe, expect, it } from "vitest";
 import { firestoreKeys } from "@/query/cache/firestoreKeys";
 

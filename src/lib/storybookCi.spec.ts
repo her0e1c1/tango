@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "Storybook pull request CI" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "runs Chromium story tests
+ * and preserves failure artifacts".
+ */
+
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
