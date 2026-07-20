@@ -1,7 +1,5 @@
 /**
- * @file Provides shared remote-data behavior for Use Remote Collections.
- * Feature hooks use this layer to read and update Firestore data without owning cache or
- * subscription details.
+ * @file Provides shared remote collection data and lookup behavior to React consumers.
  */
 
 import { useSyncExternalStore } from "react";
@@ -9,7 +7,7 @@ import { useStore } from "zustand";
 
 import { getFirestoreInitializationState, subscribeFirestoreInitialization } from "@/adapters/firestore/runtime";
 import { useAuth } from "@/auth/AuthContext";
-import { cardsForDeck, filteredCardsForDeck, remoteValues, tagsForDeck } from "@/query/selectors";
+import { remoteValues, cardsForDeck, filteredCardsForDeck, tagsForDeck } from "@/store/remoteSelectors";
 import { remoteStore, type RemoteReadState } from "@/store/remoteStore";
 
 const getRemoteReadBlocker = () => {

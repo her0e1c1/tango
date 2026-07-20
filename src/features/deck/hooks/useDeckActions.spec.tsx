@@ -32,7 +32,7 @@ vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
   }),
 }));
 
-vi.mock("@/query/useRemoteCollections", () => ({
+vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({ deckById: mocks.deckById }),
 }));
 

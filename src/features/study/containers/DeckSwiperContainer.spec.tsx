@@ -42,7 +42,7 @@ vi.mock("@/hooks/useConfig", () => ({
   },
 }));
 
-vi.mock("@/query/useRemoteCollections", () => ({
+vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
     status: "ready" as const,
     retry: vi.fn(),

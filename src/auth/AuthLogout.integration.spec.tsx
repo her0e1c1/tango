@@ -46,9 +46,9 @@ vi.mock("firebase/auth", () => ({
 vi.mock("firebase/app", () => ({
   FirebaseError: class FirebaseError extends Error {},
 }));
-vi.mock("@/adapters/firestore", () => ({}));
-vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupUid }));
-vi.mock("@/query/reads/remoteReadSession", () => ({ startRemoteReads: mocks.startRemoteReads }));
+vi.mock("@/store/remoteStore", () => ({
+  remoteStore: { getState: () => ({ start: mocks.startRemoteReads, stop: mocks.cleanupUid }) },
+}));
 vi.mock("@/features/study/state/studyStore", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study/state/studyStore")>();
   mocks.actualClearStudyStore = actual.clearStudyStore;

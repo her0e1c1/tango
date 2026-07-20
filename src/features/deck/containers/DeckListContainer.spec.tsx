@@ -40,7 +40,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/features/study/hooks/useStudyHydrated", () => ({ useStudyHydrated: () => mocks.hydrated }));
 vi.mock("@/action", () => ({ deck: { downloadData: mocks.downloadData } }));
-vi.mock("@/query/useRemoteCollections", () => ({
+vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => {
     const decks = Object.values(mocks.decksById);
     const cards = Object.values(mocks.cardsById);

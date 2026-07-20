@@ -1,7 +1,5 @@
 /**
- * @file Provides shared remote-data behavior for Selectors.
- * Feature hooks use this layer to read and update Firestore data without owning cache or
- * subscription details.
+ * @file Provides pure selection helpers for remote store data.
  */
 
 import { uniq } from "lodash";

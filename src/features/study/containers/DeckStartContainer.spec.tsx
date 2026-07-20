@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => {
     update: vi.fn(),
   };
 });
-vi.mock("@/query/useRemoteCollections", () => ({
+vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: vi.fn(),
 }));
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({

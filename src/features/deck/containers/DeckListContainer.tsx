@@ -16,7 +16,7 @@ import { useConfig } from "@/hooks/useConfig";
 import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { studyStore } from "@/features/study/state/studyStore";
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
 import { useActions } from "@/hooks/useActions";
 

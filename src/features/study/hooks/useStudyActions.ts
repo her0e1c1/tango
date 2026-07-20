@@ -8,7 +8,7 @@ import React from "react";
 
 import { useNavigate } from "react-router-dom";
 
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { studyStore } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";

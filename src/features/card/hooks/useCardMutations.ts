@@ -3,7 +3,7 @@
 import { useStore } from "zustand";
 
 import { useAuth } from "@/auth/AuthContext";
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { remoteStore } from "@/store/remoteStore";
 
 const noPendingCards = new Map<CardId, number>();

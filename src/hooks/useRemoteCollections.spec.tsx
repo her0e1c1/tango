@@ -40,7 +40,7 @@ vi.mock("@/adapters/firestore/runtime", () => ({
     mocks.blocker ? { status: "blocked", error: mocks.blocker } : { status: "ready" },
 }));
 
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 
 describe("useRemoteCollections", () => {
   beforeEach(() => {

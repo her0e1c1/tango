@@ -7,7 +7,7 @@
 import { useNavigate } from "react-router-dom";
 
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 
 /**
  * Provides the deck actions values and operations needed by React components.

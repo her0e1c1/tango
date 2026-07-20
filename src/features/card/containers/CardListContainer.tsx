@@ -10,7 +10,7 @@ import { useKey } from "react-use";
 
 import * as C from "@/constant";
 import * as util from "@/util";
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
 import { useActions } from "@/hooks/useActions";
 import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";

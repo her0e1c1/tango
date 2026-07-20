@@ -9,7 +9,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import * as C from "@/constant";
 import * as util from "@/util";
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteReadBoundary, RouteFeedback } from "@/components";
 import { useActions } from "@/hooks/useActions";
 import { CardViewTemplate } from "@/features/card/components/templates/CardViewTemplate";
