@@ -38,15 +38,6 @@ export interface RemoteCollectionSnapshot<T> {
 export interface RemoteStore {
   getSnapshot: () => RemoteState;
   subscribe: (listener: Callback) => Callback;
-  read: <Collection extends RemoteCollectionName>(
-    uid: string,
-    collection: Collection
-  ) => RemoteById<RemoteCollectionTypes[Collection]>;
-  replace: <Collection extends RemoteCollectionName>(
-    uid: string,
-    collection: Collection,
-    next: RemoteById<RemoteCollectionTypes[Collection]>
-  ) => void;
   begin: (uid: string) => void;
   applySnapshot: <Collection extends RemoteCollectionName>(
     uid: string,
@@ -85,26 +76,6 @@ export const createRemoteStore = (): RemoteStore => {
   const subscribe = (listener: Callback) => {
     listeners.add(listener);
     return () => listeners.delete(listener);
-  };
-
-  const read: RemoteStore["read"] = (uid, collection) => {
-    const state = current.state;
-    if (state.uid !== uid) return freezeCollection({});
-    return (collection === "decks" ? state.decksById : state.cardsById) as never;
-  };
-
-  const replace: RemoteStore["replace"] = (uid, collection, next) => {
-    const state = current.state;
-    if (state.uid !== uid) return;
-    publish({
-      state: {
-        ...state,
-        ...(collection === "decks"
-          ? { decksById: freezeCollection(next as RemoteById<Deck>) }
-          : { cardsById: freezeCollection(next as RemoteById<Card>) }),
-      },
-      metadata: current.metadata,
-    });
   };
 
   const begin = (uid: string) => {
@@ -154,7 +125,7 @@ export const createRemoteStore = (): RemoteStore => {
     publish({ state: { uid: null, status: "idle", ...emptyData() }, metadata: emptyMetadata() });
   };
 
-  return { getSnapshot, subscribe, read, replace, begin, applySnapshot, fail, clear };
+  return { getSnapshot, subscribe, begin, applySnapshot, fail, clear };
 };
 
 export const remoteStore = createRemoteStore();

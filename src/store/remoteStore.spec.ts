@@ -153,42 +153,52 @@ describe("remote store", () => {
     expect(store.getSnapshot()).toEqual({ uid: null, status: "idle", decksById: {}, cardsById: {} });
   });
 
-  it("reads and replaces an active collection without changing the other collection", () => {
+  it("exposes snapshots as the only read model and changes entity data only through applySnapshot", () => {
     const store = createRemoteStore();
     const deck = createDeck({ id: "deck-a" });
     const card = createCard({ id: "card-a", deckId: deck.id });
     store.begin("uid-a");
 
-    expect(store).toMatchObject({ read: expect.any(Function), replace: expect.any(Function) });
-    store.replace("uid-a", "decks", { [deck.id]: deck });
-    store.replace("uid-a", "cards", { [card.id]: card });
-
-    expect(store.read("uid-a", "decks")).toEqual({ [deck.id]: deck });
-    expect(store.read("uid-a", "cards")).toEqual({ [card.id]: card });
+    expect(store).not.toHaveProperty("read");
+    expect(store).not.toHaveProperty("replace");
     expect(store.getSnapshot()).toEqual({
       uid: "uid-a",
       status: "loading",
+      decksById: {},
+      cardsById: {},
+    });
+
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    store.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(store.getSnapshot()).toEqual({
+      uid: "uid-a",
+      status: "ready",
+      syncStatus: "synced",
       decksById: { [deck.id]: deck },
       cardsById: { [card.id]: card },
     });
-
-    const active = store.getSnapshot();
-    store.replace("uid-b", "decks", {});
-    expect(store.read("uid-b", "decks")).toEqual({});
-    expect(store.getSnapshot()).toBe(active);
   });
 
   it("copies caller collection maps before publishing them", () => {
     const store = createRemoteStore();
     const deck = createDeck({ id: "deck-a" });
     const otherDeck = createDeck({ id: "deck-b" });
-    const replacement: Record<string, Deck | undefined> = { [deck.id]: deck };
+    const snapshotDecks: Record<string, Deck | undefined> = { [deck.id]: deck };
     store.begin("uid-a");
-    store.replace("uid-a", "decks", replacement);
-    const afterReplace = store.getSnapshot();
+    store.applySnapshot("uid-a", "decks", {
+      data: snapshotDecks,
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const afterDeckSnapshot = store.getSnapshot();
 
-    replacement[otherDeck.id] = otherDeck;
-    expect(store.getSnapshot()).toBe(afterReplace);
+    snapshotDecks[otherDeck.id] = otherDeck;
+    expect(store.getSnapshot()).toBe(afterDeckSnapshot);
     expect(store.getSnapshot().decksById).toEqual({ [deck.id]: deck });
 
     const card = createCard({ id: "card-a", deckId: deck.id });
@@ -210,13 +220,15 @@ describe("remote store", () => {
     const deck = createDeck({ id: "deck-a" });
     const otherDeck = createDeck({ id: "deck-b" });
     store.begin("uid-a");
-    store.replace("uid-a", "decks", { [deck.id]: deck });
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
     const snapshot = store.getSnapshot();
-    const read = store.read("uid-a", "decks");
 
     expect(Reflect.set(snapshot, "status", "idle")).toBe(false);
     expect(Reflect.set(snapshot.decksById, otherDeck.id, otherDeck)).toBe(false);
-    expect(Reflect.deleteProperty(read, deck.id)).toBe(false);
+    expect(Reflect.deleteProperty(snapshot.decksById, deck.id)).toBe(false);
     expect(store.getSnapshot()).toBe(snapshot);
     expect(store.getSnapshot()).toMatchObject({
       uid: "uid-a",

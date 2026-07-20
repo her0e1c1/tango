@@ -1,8 +1,4 @@
-/**
- * @file Coordinates remote mutation behavior for Locks.
- * It applies optimistic cache changes, serializes conflicting work, and restores consistent state
- * when a request fails.
- */
+/** @file Serializes conflicting remote mutations. */
 
 const tails = new Map<string, Promise<void>>();
 
