@@ -15,6 +15,8 @@ import { CardBulkMutationError } from "@/query/mutations/cardMutationService";
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
   config: {} as ConfigState,
+  remoteStatus: "ready" as "idle" | "loading" | "ready" | "error" | "blocked",
+  syncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
   decks: [] as Deck[],
   cards: [] as Card[],
   parseDeckImportCsv: vi.fn(),
@@ -34,6 +36,8 @@ vi.mock("@/auth/AuthContext", () => ({
 }));
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
+    status: mocks.remoteStatus,
+    syncStatus: mocks.syncStatus,
     decks: mocks.decks,
     cardsByDeckId: (id: DeckId) => mocks.cards.filter((card) => card.deckId === id),
   }),
@@ -66,6 +70,8 @@ describe("useDeckImport", () => {
     vi.clearAllMocks();
     mocks.uid = "uid-a";
     mocks.config = createConfig({ githubAccessToken: "" });
+    mocks.remoteStatus = "ready";
+    mocks.syncStatus = "synced";
     mocks.decks = [];
     mocks.cards = [];
     mocks.parseDeckImportCsv.mockImplementation(async (content: string | File) => {
@@ -116,6 +122,45 @@ describe("useDeckImport", () => {
     expect(mocks.prepareCard).toHaveBeenCalledWith(expect.anything(), expect.anything(), mocks.generateCardId);
     expect(mocks.bulkUpsert).toHaveBeenCalledWith([expect.objectContaining({ id: "card" })]);
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
+  });
+
+  it("rejects an import before writing when Firestore is not synchronized", async () => {
+    mocks.syncStatus = "cached";
+    const { result } = renderHook(useDeckImport);
+    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
+
+    await act(async () => result.current.selectFile(file));
+    await act(async () => {
+      await expect(result.current.importPreview()).rejects.toThrow("synchronized connection");
+    });
+
+    expect(result.current.pending).toBe(false);
+    expect(result.current.error).toEqual(
+      new Error("Deck import requires a synchronized connection. Check your connection and retry.")
+    );
+    expect(mocks.prepareDeck).not.toHaveBeenCalled();
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+  });
+
+  it("retries the rejected import after Firestore synchronizes", async () => {
+    mocks.syncStatus = "cached";
+    const { result, rerender } = renderHook(useDeckImport);
+    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
+
+    await act(async () => result.current.selectFile(file));
+    await act(async () => {
+      await expect(result.current.importPreview()).rejects.toThrow("synchronized connection");
+    });
+    mocks.syncStatus = "synced";
+    rerender();
+    act(() => result.current.retry());
+
+    await waitFor(() =>
+      expect(result.current.data).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" })
+    );
+    expect(mocks.createDeck).toHaveBeenCalledOnce();
+    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
   });
 
   it("keeps invalid files in preview without mutating state", async () => {
