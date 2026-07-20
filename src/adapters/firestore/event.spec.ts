@@ -8,7 +8,9 @@ import "./init";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import * as firestore from "@/adapters/firestore";
+import * as cardAdapter from "@/adapters/firestore/card";
+import * as deckAdapter from "@/adapters/firestore/deck";
+import * as eventAdapter from "@/adapters/firestore/event";
 import type { RemoteSnapshot } from "@/store/remoteStore";
 import { createCard, createDeck } from "@/test/factories";
 
@@ -27,12 +29,12 @@ describe("Query realtime subscriptions", () => {
     const deckSnapshots: RemoteSnapshot<Deck>[] = [];
     const cardSnapshots: RemoteSnapshot<Card>[] = [];
     const errors: Error[] = [];
-    const stopDecks = firestore.event.subscribeDeckReads({
+    const stopDecks = eventAdapter.subscribeDeckReads({
       uid: "uid",
       onSnapshot: (snapshot) => deckSnapshots.push(snapshot),
       onError: (error) => errors.push(error),
     });
-    const stopCards = firestore.event.subscribeCardReads({
+    const stopCards = eventAdapter.subscribeCardReads({
       uid: "uid",
       onSnapshot: (snapshot) => cardSnapshots.push(snapshot),
       onError: (error) => errors.push(error),
@@ -46,8 +48,8 @@ describe("Query realtime subscriptions", () => {
 
       const deck = createDeck({ id: "deck-id", uid: "uid" });
       const card = createCard({ id: "card-id", deckId: deck.id, uid: "uid" });
-      await firestore.deck.create(deck);
-      await firestore.card.create(card);
+      await deckAdapter.create(deck);
+      await cardAdapter.create(card);
       await vi.waitFor(() => {
         expect(
           deckSnapshots.some(
@@ -61,8 +63,8 @@ describe("Query realtime subscriptions", () => {
         ).toBe(true);
       });
 
-      await firestore.deck.update({ ...deck, name: "Updated" });
-      await firestore.card.update({ ...card, frontText: "Updated" });
+      await deckAdapter.update({ ...deck, name: "Updated" });
+      await cardAdapter.update({ ...card, frontText: "Updated" });
       await vi.waitFor(() => {
         expect(
           deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.modified[0]?.name === "Updated")
@@ -74,8 +76,8 @@ describe("Query realtime subscriptions", () => {
         ).toBe(true);
       });
 
-      await firestore.card.remove(card.id);
-      await firestore.deck.remove(deck.id, deck.uid);
+      await cardAdapter.remove(card.id);
+      await deckAdapter.remove(deck.id, deck.uid);
       await vi.waitFor(() => {
         expect(
           deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.removed.includes(deck.id))

@@ -7,7 +7,7 @@
 import "./init";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
-import * as firestore from "@/adapters/firestore";
+import * as deckAdapter from "@/adapters/firestore/deck";
 import { getTimestamp } from "@/adapters/firestore/documentMetadata";
 import { v4 as uuid } from "uuid";
 import { createCard, createDeck } from "@/test/factories";
@@ -39,24 +39,24 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
-    await firestore.deck.create(d);
+    await deckAdapter.create(d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...newDeck, id: d.id });
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
-    expect(await firestore.deck.exists(d.id)).toBeTruthy();
+    expect(await deckAdapter.exists(d.id)).toBeTruthy();
   });
 
   it("should update a deck", async () => {
     const d = { ...newDeck, id: uuid() };
-    await firestore.deck.create(d);
+    await deckAdapter.create(d);
     const n = {
       ...d,
       name: "updated",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
-    await firestore.deck.update(n);
+    await deckAdapter.update(n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...d, name: "updated" });
     expect(data).not.toHaveProperty("currentIndex");
@@ -65,41 +65,41 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
 
   it("should delete a deck", async () => {
     const d = { ...newDeck, id: uuid() };
-    await firestore.deck.create(d);
+    await deckAdapter.create(d);
     expect((await getDoc(doc(db, "deck", d.id))).exists()).toBeTruthy();
-    await firestore.deck.remove(d.id, "uid");
-    await expect(firestore.deck.exists(d.id)).rejects.toMatchObject({ code: "permission-denied" });
+    await deckAdapter.remove(d.id, "uid");
+    await expect(deckAdapter.exists(d.id)).rejects.toMatchObject({ code: "permission-denied" });
   });
 
   describe("splitCards", () => {
     const cards = [...Array(5)].map((_, i) => createCard({ id: String(i) }));
 
     it("should split cards (max) = (5)", async () => {
-      const css = firestore.deck.splitCards(cards, 5);
+      const css = deckAdapter.splitCards(cards, 5);
       expect(css).toEqual([cards]);
     });
 
     it("should split cards (max) = (3)", async () => {
-      const css = firestore.deck.splitCards(cards, 3);
+      const css = deckAdapter.splitCards(cards, 3);
       expect(css).toEqual([cards.slice(0, 3), cards.slice(3, 5)]);
     });
 
     it("should split cards (max) = (2)", async () => {
-      const css = firestore.deck.splitCards(cards, 2);
+      const css = deckAdapter.splitCards(cards, 2);
       expect(css).toEqual([cards.slice(0, 2), cards.slice(2, 4), cards.slice(4, 5)]);
     });
 
     it("should be empty cards", async () => {
-      expect(firestore.deck.splitCards(cards, 0)).toEqual([]);
-      expect(firestore.deck.splitCards([], 5)).toEqual([]);
+      expect(deckAdapter.splitCards(cards, 0)).toEqual([]);
+      expect(deckAdapter.splitCards([], 5)).toEqual([]);
     });
 
     it("returns no chunks for a negative maximum", () => {
-      expect(firestore.deck.splitCards(cards, -1)).toEqual([]);
+      expect(deckAdapter.splitCards(cards, -1)).toEqual([]);
     });
 
     it("rounds a positive fractional maximum up", () => {
-      expect(firestore.deck.splitCards(cards, 2.5)).toEqual([cards.slice(0, 3), cards.slice(3, 5)]);
+      expect(deckAdapter.splitCards(cards, 2.5)).toEqual([cards.slice(0, 3), cards.slice(3, 5)]);
     });
   });
 });

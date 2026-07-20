@@ -23,19 +23,8 @@ const firestoreCompositionModules = new Set([
   "store/remoteStore.ts",
 ]);
 const remoteSnapshotCapabilityName = ["apply", "Snapshot"].join("");
-const remoteMutationActionNames = new Set([
-  "runCardMutation",
-  "createCard",
-  "updateCard",
-  "removeCard",
-  "bulkUpsertCards",
-  "retryCardMutation",
-  "runDeckMutation",
-  "createDeck",
-  "updateDeck",
-  "removeDeck",
-  "retryDeckMutation",
-]);
+const remoteStoreStateName = "RemoteStoreState";
+const remoteReadLifecycleActionNames = new Set(["start", "stop", "retryReads"]);
 const remoteEntityMapNames = new Set(["decksById", "cardsById"]);
 const connectorModules = [
   "react-hook-form",
@@ -220,31 +209,78 @@ function remoteSnapshotCapabilityViolations(subjects: TextSubject[]): string[] {
   });
 }
 
-function remoteMutationEntityMapViolations(subject: TextSubject): string[] {
+function remoteMutationEntityAccessViolations(subject: TextSubject): string[] {
   const sourceFile = parseSource(subject);
-  const violations: string[] = [];
-  const visit = (node: ts.Node): void => {
+  const mutationActionNames = new Set<string>();
+  const localFunctions = new Map<string, ts.FunctionLikeDeclaration[]>();
+
+  const addLocalFunction = (name: string, declaration: ts.FunctionLikeDeclaration) => {
+    const declarations = localFunctions.get(name) ?? [];
+    declarations.push(declaration);
+    localFunctions.set(name, declarations);
+  };
+
+  const indexSource = (node: ts.Node): void => {
+    if (ts.isInterfaceDeclaration(node) && node.name.text === remoteStoreStateName) {
+      node.members.forEach((member) => {
+        const name = propertyLikeName(member);
+        const isAction =
+          ts.isMethodSignature(member) ||
+          (ts.isPropertySignature(member) && member.type != null && ts.isFunctionTypeNode(member.type));
+        if (name != null && isAction && !remoteReadLifecycleActionNames.has(name)) mutationActionNames.add(name);
+      });
+    }
     if (
       ts.isVariableDeclaration(node) &&
       ts.isIdentifier(node.name) &&
-      remoteMutationActionNames.has(node.name.text) &&
-      node.initializer != null
+      node.initializer != null &&
+      (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))
     ) {
-      const actionName = node.name.text;
-      const referencedMaps = new Set<string>();
-      const findEntityMaps = (child: ts.Node): void => {
-        if (ts.isIdentifier(child) && remoteEntityMapNames.has(child.text)) referencedMaps.add(child.text);
-        ts.forEachChild(child, findEntityMaps);
-      };
-      findEntityMaps(node.initializer);
-      referencedMaps.forEach((name) => {
-        violations.push(`${subject.relativePath}: ${actionName} -> ${name}`);
-      });
+      addLocalFunction(node.name.text, node.initializer);
+    }
+    if (ts.isFunctionDeclaration(node) && node.name != null && node.body != null) {
+      addLocalFunction(node.name.text, node);
+    }
+    ts.forEachChild(node, indexSource);
+  };
+  indexSource(sourceFile);
+
+  const singleLocalFunction = (name: string): ts.FunctionLikeDeclaration | undefined => {
+    const declarations = localFunctions.get(name);
+    return declarations?.length === 1 ? declarations.at(0) : undefined;
+  };
+
+  const violations: string[] = [];
+  mutationActionNames.forEach((actionName) => {
+    const referencedMaps = new Set<string>();
+    const visitedFunctions = new Set<string>();
+    const actionDeclaration = singleLocalFunction(actionName);
+    if (actionDeclaration == null) {
+      violations.push(`${subject.relativePath}: ${actionName} -> unresolved`);
       return;
     }
-    ts.forEachChild(node, visit);
-  };
-  visit(sourceFile);
+
+    const inspectFunction = (name: string, declaration: ts.FunctionLikeDeclaration): void => {
+      if (visitedFunctions.has(name)) return;
+      visitedFunctions.add(name);
+      const inspectNode = (node: ts.Node): void => {
+        if (ts.isIdentifier(node) && remoteEntityMapNames.has(node.text)) referencedMaps.add(node.text);
+        if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
+          const helperName = node.expression.text;
+          const helperDeclaration = singleLocalFunction(helperName);
+          if (helperDeclaration != null) inspectFunction(helperName, helperDeclaration);
+          if (localFunctions.has(helperName) && helperDeclaration == null) referencedMaps.add("unresolved");
+        }
+        ts.forEachChild(node, inspectNode);
+      };
+      inspectNode(declaration);
+    };
+
+    inspectFunction(actionName, actionDeclaration);
+    referencedMaps.forEach((name) => {
+      violations.push(`${subject.relativePath}: ${actionName} -> ${name}`);
+    });
+  });
   return violations;
 }
 
@@ -455,15 +491,113 @@ describe("component architecture", () => {
   it("detects subscription-owned entity map access in mutation action fixtures", () => {
     const subject = {
       relativePath: "remote-store.ts",
-      source: "const createCard = () => set((state) => ({ read: { ...state.read, cardsById: {} } }));",
+      source: `
+        interface RemoteStoreState { createCard: () => void; }
+        const createCard = () => set((state) => ({ read: { ...state.read, cardsById: {} } }));
+      `,
     };
 
-    expect(remoteMutationEntityMapViolations(subject)).toEqual(["remote-store.ts: createCard -> cardsById"]);
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["remote-store.ts: createCard -> cardsById"]);
+  });
+
+  it("discovers newly named mutation actions from the RemoteStoreState surface", () => {
+    const subject = {
+      relativePath: "new-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          archiveCard: () => void;
+        }
+        const archiveCard = () => void cardsById;
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["new-action.ts: archiveCard -> cardsById"]);
+  });
+
+  it("resolves function declaration mutation actions", () => {
+    const subject = {
+      relativePath: "function-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          createCard: () => void;
+        }
+        function createCard() { void decksById; }
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["function-action.ts: createCard -> decksById"]);
+  });
+
+  it("follows local helpers called transitively by mutation actions", () => {
+    const subject = {
+      relativePath: "transitive-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          updateCard: () => void;
+        }
+        const inspectCards = () => void cardsById;
+        function prepareUpdate() { inspectCards(); void decksById; }
+        const updateCard = () => prepareUpdate();
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual([
+      "transitive-action.ts: updateCard -> cardsById",
+      "transitive-action.ts: updateCard -> decksById",
+    ]);
+  });
+
+  it("fails closed when a mutation action has no local function body", () => {
+    const subject = {
+      relativePath: "unresolved-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          createCard: () => void;
+        }
+        const store = { createCard: dependencies.createCard };
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["unresolved-action.ts: createCard -> unresolved"]);
+  });
+
+  it("allows mutation actions to call unrelated dependency properties", () => {
+    const subject = {
+      relativePath: "dependency-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          createCard: () => void;
+        }
+        const createCard = () => dependencies.createCard();
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual([]);
   });
 
   it("keeps mutation actions from accessing subscription-owned entity maps", () => {
     const subject = { relativePath: "store/remoteStore.ts", source: readSource("store/remoteStore.ts") };
-    const violations = remoteMutationEntityMapViolations(subject);
+    const violations = remoteMutationEntityAccessViolations(subject);
 
     expect(violations, violations.join("\n")).toEqual([]);
   });
@@ -519,6 +653,44 @@ describe("component architecture", () => {
     });
 
     expect(owners).toEqual(["store/remoteStore.ts"]);
+  });
+
+  it("keeps remote subscription and mutation adapters out of the Firestore barrel", () => {
+    const ownedAdapters = new Set([
+      "@/adapters/firestore/card",
+      "@/adapters/firestore/deck",
+      "@/adapters/firestore/event",
+    ]);
+    const violations = moduleReferences("adapters/firestore/index.ts")
+      .filter((reference) => ownedAdapters.has(reference.resolvedSpecifier))
+      .map((reference) => importViolation("adapters/firestore/index.ts", reference));
+
+    expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("prevents composition modules from gaining owned adapters through the Firestore barrel", () => {
+    const fixture = {
+      relativePath: "firebase.ts",
+      source: `
+        import { card, deck, event } from "@/adapters/firestore";
+        void card.create;
+        void deck.create;
+        void event.subscribeCardReads;
+      `,
+    };
+    const ownedAdapters = new Set([
+      "@/adapters/firestore/card",
+      "@/adapters/firestore/deck",
+      "@/adapters/firestore/event",
+    ]);
+    const barrelExportsOwnedAdapters = moduleReferences("adapters/firestore/index.ts").some((reference) =>
+      ownedAdapters.has(reference.resolvedSpecifier)
+    );
+    const fixtureImportsBarrel = moduleReferencesForSource(fixture.relativePath, fixture.source).some(
+      (reference) => reference.resolvedSpecifier === "@/adapters/firestore"
+    );
+
+    expect(barrelExportsOwnedAdapters && fixtureImportsBarrel).toBe(false);
   });
 
   it("keeps presentation independent from Firebase and Firestore adapters", () => {

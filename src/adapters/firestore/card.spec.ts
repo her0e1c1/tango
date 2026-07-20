@@ -7,7 +7,8 @@
 import "./init";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-import * as firestore from "@/adapters/firestore";
+import * as cardAdapter from "@/adapters/firestore/card";
+import * as deckAdapter from "@/adapters/firestore/deck";
 import { getTimestamp } from "@/adapters/firestore/documentMetadata";
 import { v4 as uuid } from "uuid";
 import { createCard, createDeck } from "@/test/factories";
@@ -36,7 +37,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   // card needs to belong to its deck
   const initDeck = async () => {
     const id = uuid();
-    await firestore.deck.create(createDeck({ uid: "uid", id }));
+    await deckAdapter.create(createDeck({ uid: "uid", id }));
     return id;
   };
 
@@ -49,7 +50,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
-    await firestore.card.create(c);
+    await cardAdapter.create(c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...newCard, deckId, id: c.id });
     expect(data).not.toHaveProperty("currentIndex");
@@ -59,14 +60,14 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   it("should update a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
-    await firestore.card.create(c);
+    await cardAdapter.create(c);
     const n = {
       ...c,
       frontText: "updated",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
-    await firestore.card.update(n);
+    await cardAdapter.update(n);
     const data = (await getDoc(doc(db, "card", n.id))).data();
     expect(data).toEqual({ ...c, frontText: "updated" });
     expect(data).not.toHaveProperty("currentIndex");
@@ -76,9 +77,9 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   it("should bulk-update a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
-    await firestore.card.create(c);
+    await cardAdapter.create(c);
     const n = { ...c, frontText: "updated" };
-    await firestore.card.bulkUpdate([n]);
+    await cardAdapter.bulkUpdate([n]);
     expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(n);
   });
 
@@ -86,7 +87,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
 
-    await firestore.card.upsert(c);
+    await cardAdapter.upsert(c);
 
     expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(c);
   });
@@ -94,8 +95,8 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   it("should logical-remove a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
-    await firestore.card.create(c);
-    await firestore.card.logicalRemove(c.id);
+    await cardAdapter.create(c);
+    await cardAdapter.logicalRemove(c.id);
     const d = { ...c, deckId, deletedAt: timestamp } as Card;
     expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(d);
   });
@@ -103,7 +104,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   it("should exists a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
-    await firestore.card.create(c);
-    expect(await firestore.card.exists(c.id)).toBeTruthy();
+    await cardAdapter.create(c);
+    expect(await cardAdapter.exists(c.id)).toBeTruthy();
   });
 });
