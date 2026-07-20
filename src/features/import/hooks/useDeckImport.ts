@@ -11,11 +11,11 @@ import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
-import { CardBulkMutationError } from "@/query/mutations/cardMutationService";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { useConfig } from "@/hooks/useConfig";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
+import { CardBulkMutationError } from "@/store/remoteStore";
 import sampleCards from "../../../../sample/build/output.json";
 
 interface DeckImportAttempt {
