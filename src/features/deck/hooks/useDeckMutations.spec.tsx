@@ -121,6 +121,29 @@ describe("useDeckMutations", () => {
     expect(result.current.pending).toBe(false);
   });
 
+  it("leaves remote Deck data unchanged after a failed update and its retry", async () => {
+    const deck = createDeck({ id: "failed-update", name: "Before" });
+    const updated = { ...deck, name: "After" };
+    const error = new Error("update failed");
+    mocks.update.mockRejectedValueOnce(error);
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
+
+    await act(async () => {
+      await expect(result.current.update(updated)).rejects.toBe(error);
+    });
+
+    expect(result.current.error).toBe(error);
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+    act(() => result.current.retry());
+    await waitFor(() => expect(result.current.error).toBeNull());
+    expect(mocks.update).toHaveBeenCalledTimes(2);
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+  });
+
   it("shares one in-flight removal for the same Deck", async () => {
     let finishRemove: () => void = () => undefined;
     mocks.remove.mockImplementationOnce(
@@ -269,8 +292,10 @@ describe("useDeckMutations", () => {
     });
 
     await waitFor(() => expect(result.current.error).toBe(error));
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
     act(() => result.current.retry());
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
   });
 
   it("runs remove success cleanup after a retry finishes beyond the hook lifetime", async () => {

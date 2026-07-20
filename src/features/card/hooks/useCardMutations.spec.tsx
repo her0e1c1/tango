@@ -194,6 +194,77 @@ describe("useCardMutations", () => {
     );
   });
 
+  it("leaves remote Card data unchanged after a failed update and its retry", async () => {
+    const card = createCard({ id: "failed-update", score: 0 });
+    const updated = { ...card, score: 1 };
+    const error = new Error("update failed");
+    mocks.update.mockRejectedValueOnce(error);
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useCardMutations);
+
+    await act(async () => {
+      await expect(result.current.update(updated)).rejects.toBe(error);
+    });
+
+    expect(result.current.error).toBe(error);
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [card.id]: card });
+    act(() => result.current.retry());
+    await waitFor(() => expect(result.current.error).toBeNull());
+    expect(mocks.update).toHaveBeenCalledTimes(2);
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [card.id]: card });
+  });
+
+  it("leaves remote Card data unchanged after a failed removal and its retry", async () => {
+    const card = createCard({ id: "failed-remove" });
+    const error = new Error("remove failed");
+    mocks.card = card;
+    mocks.logicalRemove.mockRejectedValueOnce(error);
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useCardMutations);
+
+    await act(async () => {
+      await expect(result.current.remove(card.id)).rejects.toBe(error);
+    });
+
+    expect(result.current.error).toBe(error);
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [card.id]: card });
+    act(() => result.current.retry());
+    await waitFor(() => expect(result.current.error).toBeNull());
+    expect(mocks.logicalRemove).toHaveBeenCalledTimes(2);
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [card.id]: card });
+  });
+
+  it("leaves remote Card data unchanged after a partial bulk failure", async () => {
+    const first = createCard({ id: "first", score: 0 });
+    const second = createCard({ id: "second", score: 0 });
+    const updates = [
+      { ...first, score: 1 },
+      { ...second, score: 1 },
+    ];
+    const error = new Error("second failed");
+    mocks.upsert.mockImplementation((card: Card) =>
+      card.id === second.id ? Promise.reject(error) : Promise.resolve(card.id)
+    );
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [first.id]: first, [second.id]: second },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useCardMutations);
+
+    await act(async () => {
+      await expect(result.current.bulkUpsert(updates)).rejects.toThrow("1 of 2 Card writes failed");
+    });
+
+    expect(result.current.error).toEqual(expect.objectContaining({ failedIds: [second.id] }));
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [first.id]: first, [second.id]: second });
+  });
+
   it("ignores an old UID operation when it settles during a current operation", async () => {
     const oldCard = createCard({ id: "shared" });
     const newCard = createCard({ id: "shared", uid: "uid-b" });

@@ -7,6 +7,7 @@
 
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+import * as ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 const sourceRoot = path.resolve(process.cwd(), "src");
@@ -23,8 +24,12 @@ const firestoreCompositionModules = new Set([
   "features/import/hooks/useDeckImport.ts",
 ]);
 const remoteStoreModule = ["@/store", "remoteStore"].join("/");
-const remoteMutationMethodNames = ["begin", ["apply", "Snapshot"].join(""), "fail", "clear"];
-const remoteSnapshotApplyCall = new RegExp(`\\.${["apply", "Snapshot"].join("")}\\s*\\(`, "g");
+const remoteStoreTypeName = ["Remote", "Store"].join("");
+const remoteStoreValueName = ["remote", "Store"].join("");
+const remoteStorePropertyNames = new Set(["store", remoteStoreValueName]);
+const remoteStoreSnapshotReadName = ["get", "Snapshot"].join("");
+const remoteStoreLifecycleMethodNames = new Set(["begin", ["apply", "Snapshot"].join(""), "fail", "clear"]);
+const remoteSnapshotCapabilityName = ["apply", "Snapshot"].join("");
 const connectorModules = [
   "react-hook-form",
   "react-router",
@@ -154,10 +159,124 @@ function resolveModuleSpecifier(relativePath: string, specifier: string): string
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
 function moduleReferences(relativePath: string): ModuleReference[] {
-  return moduleSpecifiers(readSource(relativePath)).map((specifier) => ({
+  return moduleReferencesForSource(relativePath, readSource(relativePath));
+}
+
+function moduleReferencesForSource(relativePath: string, source: string): ModuleReference[] {
+  return moduleSpecifiers(source).map((specifier) => ({
     specifier,
     resolvedSpecifier: resolveModuleSpecifier(relativePath, specifier),
   }));
+}
+
+function parseSource({ relativePath, source }: TextSubject): ts.SourceFile {
+  const scriptKind = relativePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  return ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true, scriptKind);
+}
+
+function staticName(node: ts.Node | undefined): string | undefined {
+  if (node === undefined) return undefined;
+  if (ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+    return node.text;
+  }
+  if (ts.isComputedPropertyName(node)) return staticName(node.expression);
+  return undefined;
+}
+
+function propertyLikeName(node: ts.Node): string | undefined {
+  if (ts.isPropertyAccessExpression(node)) return node.name.text;
+  if (ts.isElementAccessExpression(node)) return staticName(node.argumentExpression);
+  if (ts.isBindingElement(node)) return staticName(node.propertyName ?? node.name);
+  if (ts.isShorthandPropertyAssignment(node)) return node.name.text;
+  if (
+    ts.isPropertySignature(node) ||
+    ts.isMethodSignature(node) ||
+    ts.isPropertyDeclaration(node) ||
+    ts.isMethodDeclaration(node) ||
+    ts.isPropertyAssignment(node) ||
+    ts.isGetAccessorDeclaration(node) ||
+    ts.isSetAccessorDeclaration(node)
+  ) {
+    return staticName(node.name);
+  }
+  return undefined;
+}
+
+function containsSyntax(sourceFile: ts.SourceFile, predicate: (node: ts.Node) => boolean): boolean {
+  let matched = false;
+  const visit = (node: ts.Node): void => {
+    if (matched) return;
+    matched = predicate(node);
+    if (!matched) ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  return matched;
+}
+
+function isDirectLifecycleCall(node: ts.Node, name: string): boolean {
+  return (
+    remoteStoreLifecycleMethodNames.has(name) && ts.isCallExpression(node.parent) && node.parent.expression === node
+  );
+}
+
+function accessReceiver(node: ts.Node): ts.Expression | undefined {
+  if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)) return node.expression;
+  if (ts.isBindingElement(node) && ts.isObjectBindingPattern(node.parent)) {
+    const declaration = node.parent.parent;
+    if (ts.isVariableDeclaration(declaration)) return declaration.initializer;
+  }
+  return undefined;
+}
+
+function looksStoreLike(expression: ts.Expression | undefined): boolean {
+  if (expression === undefined) return false;
+  if (ts.isIdentifier(expression)) {
+    return remoteStorePropertyNames.has(expression.text) || expression.text === "state";
+  }
+  if (ts.isPropertyAccessExpression(expression) || ts.isElementAccessExpression(expression)) {
+    const name = propertyLikeName(expression);
+    return (name !== undefined && remoteStorePropertyNames.has(name)) || looksStoreLike(expression.expression);
+  }
+  if (
+    ts.isParenthesizedExpression(expression) ||
+    ts.isAsExpression(expression) ||
+    ts.isTypeAssertionExpression(expression) ||
+    ts.isNonNullExpression(expression)
+  ) {
+    return looksStoreLike(expression.expression);
+  }
+  return false;
+}
+
+function hasRemoteMutationStoreAccess(subject: TextSubject): boolean {
+  return containsSyntax(parseSource(subject), (node) => {
+    if (ts.isIdentifier(node) && node.text === remoteStoreTypeName) return true;
+    if (ts.isIdentifier(node) && node.text === remoteStoreValueName) return true;
+    const name = propertyLikeName(node);
+    if (name === undefined) return false;
+    if (remoteStorePropertyNames.has(name) || name === remoteStoreSnapshotReadName) return true;
+    const receiver = accessReceiver(node);
+    return looksStoreLike(receiver) && (name === "subscribe" || isDirectLifecycleCall(node, name));
+  });
+}
+
+function remoteMutationStoreViolations(subjects: TextSubject[]): string[] {
+  return subjects.flatMap((subject) => {
+    const importsRemoteStore = moduleReferencesForSource(subject.relativePath, subject.source).some((reference) =>
+      isModuleOrSubpath(reference.resolvedSpecifier, remoteStoreModule)
+    );
+    return importsRemoteStore || hasRemoteMutationStoreAccess(subject) ? [subject.relativePath] : [];
+  });
+}
+
+function remoteSnapshotCapabilityViolations(subjects: TextSubject[]): string[] {
+  return subjects.flatMap((subject) => {
+    const hasCapability = containsSyntax(parseSource(subject), (node) => {
+      if (ts.isIdentifier(node) && node.text === remoteSnapshotCapabilityName) return true;
+      return propertyLikeName(node) === remoteSnapshotCapabilityName;
+    });
+    return hasCapability ? [subject.relativePath] : [];
+  });
 }
 
 /**
@@ -350,31 +469,85 @@ describe("component architecture", () => {
     expect(violations, violations.join("\n")).toEqual([]);
   });
 
+  it("detects structural and aliased Store access in mutation fixtures", () => {
+    const subjects = [
+      {
+        relativePath: "structural-store.ts",
+        source:
+          "interface Dependencies { state: { getSnapshot(): unknown; subscribe(listener: () => void): () => void } }",
+      },
+      {
+        relativePath: "store-alias.ts",
+        source: "const state = dependencies.store; const read = state.getSnapshot; read();",
+      },
+      {
+        relativePath: "store-destructure.ts",
+        source: "const { store: state } = dependencies; const { subscribe: listen } = state; listen(listener);",
+      },
+      {
+        relativePath: "store-bracket.ts",
+        source: 'const listen = dependencies["store"]["subscribe"]; listen(listener);',
+      },
+    ];
+
+    expect(remoteMutationStoreViolations(subjects)).toEqual(subjects.map(({ relativePath }) => relativePath));
+  });
+
+  it("allows unrelated local state helpers in mutation fixtures", () => {
+    const subjects = [
+      {
+        relativePath: "event-subscription.ts",
+        source: "eventBus.subscribe(listener);",
+      },
+      {
+        relativePath: "collection-clear.ts",
+        source: "const store = new Map<string, string>(); cache.clear(); void store.size;",
+      },
+      {
+        relativePath: "local-function.ts",
+        source: "const getSnapshot = () => ({ local: true }); void getSnapshot();",
+      },
+    ];
+
+    expect(remoteMutationStoreViolations(subjects)).toEqual([]);
+  });
+
+  it("detects every RemoteStore snapshot capability reference in fixtures", () => {
+    const capability = ["apply", "Snapshot"].join("");
+    const subjects = [
+      { relativePath: "dotted-call.ts", source: `remote.${capability}(value);` },
+      { relativePath: "optional-call.ts", source: `remote?.${capability}?.(value);` },
+      { relativePath: "bracket-access.ts", source: `remote["${capability}"](value);` },
+      { relativePath: "aliased-reference.ts", source: `const publish = remote.${capability}; publish(value);` },
+      { relativePath: "destructured-reference.ts", source: `const { ${capability}: publish } = remote;` },
+      { relativePath: "bare-reference.ts", source: `void remote.${capability};` },
+    ];
+
+    expect(remoteSnapshotCapabilityViolations(subjects)).toEqual(subjects.map(({ relativePath }) => relativePath));
+  });
+
   it("keeps production mutation code independent from the RemoteStore", () => {
-    const violations = remoteMutationFiles().flatMap((relativePath) => {
-      const importViolations = moduleReferences(relativePath)
-        .filter((reference) => isModuleOrSubpath(reference.resolvedSpecifier, remoteStoreModule))
-        .map((reference) => importViolation(relativePath, reference));
-      const source = readSource(relativePath);
-      const writeViolations = remoteMutationMethodNames.flatMap((methodName) =>
-        new RegExp(`\\.${methodName}\\s*\\(`).test(source) ? [`${relativePath}: ${methodName}`] : []
-      );
-      return [...importViolations, ...writeViolations];
-    });
+    const violations = remoteMutationStoreViolations(
+      remoteMutationFiles().map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
+    );
 
     expect(violations, violations.join("\n")).toEqual([]);
   });
 
   it("applies production RemoteStore snapshots only in the Firestore read controller", () => {
-    const allowedPath = "query/reads/remoteReadController.ts";
-    const violations = productionFilesUnder("").flatMap((relativePath) => {
-      if (relativePath === allowedPath) return [];
-      const matches = readSource(relativePath).match(remoteSnapshotApplyCall) ?? [];
-      return matches.map(() => relativePath);
-    });
+    const allowedPaths = new Set(["store/remoteStore.ts", "query/reads/remoteReadController.ts"]);
+    const violations = remoteSnapshotCapabilityViolations(
+      productionFilesUnder("").flatMap((relativePath) =>
+        allowedPaths.has(relativePath) ? [] : [{ relativePath, source: readSource(relativePath) }]
+      )
+    );
 
     expect(violations, violations.join("\n")).toEqual([]);
-    expect(readSource(allowedPath).match(remoteSnapshotApplyCall)).toHaveLength(1);
+    expect(
+      remoteSnapshotCapabilityViolations(
+        [...allowedPaths].map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
+      )
+    ).toEqual([...allowedPaths]);
   });
 
   it("uses production-oriented names for Firestore adapter modules", () => {
