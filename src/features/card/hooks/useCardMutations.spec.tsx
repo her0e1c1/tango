@@ -242,4 +242,25 @@ describe("useCardMutations", () => {
       expect(result.current.error).toBeNull();
     });
   });
+
+  it("clears a failed Card update after a newer update for the same Card succeeds", async () => {
+    const stale = createCard({ id: "card", score: 1 });
+    const replacement = { ...stale, score: 2 };
+    const error = new Error("stale update failed");
+    mocks.update.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
+    const { result } = renderHook(useCardMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+
+    await act(async () => {
+      await expect(result.current.update(stale)).rejects.toBe(error);
+    });
+    expect(result.current.error).toBe(error);
+
+    await act(async () => result.current.update(replacement));
+    expect(result.current.error).toBeNull();
+    act(() => result.current.retry());
+
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+    expect(mocks.update).toHaveBeenNthCalledWith(1, stale);
+    expect(mocks.update).toHaveBeenNthCalledWith(2, replacement);
+  });
 });

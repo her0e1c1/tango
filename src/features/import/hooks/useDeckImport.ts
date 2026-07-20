@@ -166,6 +166,10 @@ interface FilePreviewDependencies {
   reset: () => void;
   decks: Deck[];
   cardsByDeckId: (id: DeckId) => Card[];
+  uid: string;
+  currentUid: { current: string };
+  generation: number;
+  currentGeneration: { current: number };
 }
 
 /**
@@ -175,14 +179,27 @@ interface FilePreviewDependencies {
  */
 const previewDeckImportFile = async (
   file: File,
-  { runningRef, setValidating, setPreview, reset, decks, cardsByDeckId }: FilePreviewDependencies
+  {
+    runningRef,
+    setValidating,
+    setPreview,
+    reset,
+    decks,
+    cardsByDeckId,
+    uid,
+    currentUid,
+    generation,
+    currentGeneration,
+  }: FilePreviewDependencies
 ) => {
+  const isCurrent = () => currentGeneration.current === generation && currentUid.current === uid;
   if (runningRef.current) throw new Error("A Deck import is already running");
   setValidating(true);
   setPreview(undefined);
   reset();
   try {
     const analysis = await parseDeckImportCsv(file);
+    if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
     const deck = decks.find((candidate) => candidate.name === file.name);
     const existing = deck == null ? [] : cardsByDeckId(deck.id);
     const next = {
@@ -194,7 +211,7 @@ const previewDeckImportFile = async (
     setPreview(next);
     return next;
   } finally {
-    setValidating(false);
+    if (isCurrent()) setValidating(false);
   }
 };
 
@@ -324,6 +341,10 @@ export const useDeckImport = () => {
       reset: resetOperation,
       decks: remote.decks,
       cardsByDeckId: remote.cardsByDeckId,
+      uid,
+      currentUid: generationUid,
+      generation: generation.current,
+      currentGeneration: generation,
     });
 
   /**

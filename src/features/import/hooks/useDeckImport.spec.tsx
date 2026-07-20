@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   config: {} as ConfigState,
   decks: [] as Deck[],
   cards: [] as Card[],
+  parseDeckImportCsv: vi.fn(),
   parseCsv: vi.fn(),
   prepareDeck: vi.fn(),
   prepareCard: vi.fn(),
@@ -44,6 +45,13 @@ vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
 vi.mock("@/features/card/hooks/useCardMutations", () => ({
   useCardMutations: () => ({ bulkUpsert: mocks.bulkUpsert }),
 }));
+vi.mock("@/features/import/lib/deckImportAnalysis", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/import/lib/deckImportAnalysis")>();
+  return {
+    ...actual,
+    parseDeckImportCsv: (...args: Parameters<typeof actual.parseDeckImportCsv>) => mocks.parseDeckImportCsv(...args),
+  };
+});
 vi.mock("@/action", () => ({
   deck: { parseCsv: mocks.parseCsv, prepare: mocks.prepareDeck },
   card: { prepare: mocks.prepareCard },
@@ -61,6 +69,12 @@ describe("useDeckImport", () => {
     mocks.config = createConfig({ githubAccessToken: "" });
     mocks.decks = [];
     mocks.cards = [];
+    mocks.parseDeckImportCsv.mockImplementation(async (content: string | File) => {
+      const { parseDeckImportCsv } = await vi.importActual<typeof import("@/features/import/lib/deckImportAnalysis")>(
+        "@/features/import/lib/deckImportAnalysis"
+      );
+      return parseDeckImportCsv(content);
+    });
     mocks.parseCsv.mockResolvedValue([{ frontText: "front", backText: "back", tags: [], uniqueKey: "key" }]);
     mocks.prepareDeck.mockReturnValue(createDeck({ id: "deck", uid: "uid-a" }));
     mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck" }));
@@ -290,6 +304,51 @@ describe("useDeckImport", () => {
     expect(result.current.pending).toBe(false);
     expect(result.current.error).toBeNull();
     expect(result.current.data).toBeUndefined();
+  });
+
+  it("does not publish or import a file preview after an A-to-B-to-A UID transition", async () => {
+    let finishParse!: (analysis: Awaited<ReturnType<typeof mocks.parseDeckImportCsv>>) => void;
+    mocks.parseDeckImportCsv.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishParse = resolve;
+      })
+    );
+    const { result, rerender } = renderHook(useDeckImport, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+    const file = new File(['"stale-front","stale-back","","stale-key"'], "stale.csv", {
+      type: "text/csv",
+    });
+
+    let selection!: ReturnType<typeof result.current.selectFile>;
+    act(() => {
+      selection = result.current.selectFile(file);
+    });
+    const rejection = expect(selection).rejects.toThrow("user changed");
+    await waitFor(() => expect(result.current.validating).toBe(true));
+    mocks.uid = "uid-b";
+    rerender();
+    mocks.uid = "uid-a";
+    rerender();
+    await act(async () => {
+      finishParse({
+        rows: [
+          {
+            rowNumber: 1,
+            card: { frontText: "stale-front", backText: "stale-back", tags: [], uniqueKey: "stale-key" },
+          },
+        ],
+        skippedRows: [],
+        issues: [],
+        invalidCount: 0,
+      });
+      await rejection;
+    });
+    expect(result.current.preview).toBeUndefined();
+    expect(result.current.validating).toBe(false);
+    await expect(result.current.importPreview()).rejects.toThrow("Select a CSV file");
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
   });
 
   it("does not resurrect import data after an A-to-B-to-A UID transition", async () => {

@@ -29,6 +29,13 @@ const variableIds = (variables: CardMutationVariables): CardId[] => {
   return [variables.card.id];
 };
 
+const sameMutationIdentity = (left: CardMutationVariables, right: CardMutationVariables) => {
+  if (left.kind !== right.kind) return false;
+  const leftIds = variableIds(left).sort();
+  const rightIds = variableIds(right).sort();
+  return leftIds.length === rightIds.length && leftIds.every((id, index) => id === rightIds[index]);
+};
+
 interface CardMutationRunDependencies {
   mutateAsync: (variables: CardMutationVariables) => Promise<unknown>;
   failureRef: { current: CardMutationFailure | undefined };
@@ -48,7 +55,7 @@ const runCardMutation = async (
 ) => {
   const ids = variableIds(variables);
   const failed = failureRef.current;
-  const retryOf = failed?.variables === variables ? failed : undefined;
+  const supersededFailure = failed != null && sameMutationIdentity(failed.variables, variables) ? failed : undefined;
   setPendingCounts((current) => {
     const next = new Map(current);
     ids.forEach((id) => {
@@ -59,7 +66,7 @@ const runCardMutation = async (
   try {
     await mutateAsync(variables);
     if (currentGeneration.current !== generation) return;
-    if (retryOf != null && failureRef.current === retryOf) {
+    if (supersededFailure != null && failureRef.current === supersededFailure) {
       failureRef.current = undefined;
       setError(null);
     }
