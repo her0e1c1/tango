@@ -14,5 +14,6 @@ This decision is superseded. Firestore subscriptions now feed an application-own
 `src/store/remoteStore.ts`. The latest metadata for each collection remains private, but the Store
 replaces it in the same atomic internal snapshot update as normalized Deck and Card data and the
 public read and sync status. React consumes the stable public state from that snapshot directly.
-Remote mutations write through the Firestore adapter and rely on subscription updates, except for
-explicitly optimistic workflows with rollback.
+Remote mutations follow one-way data flow: write through the Firestore adapter, let Firestore notify
+the `onSnapshot` listener, then let the read controller call `remoteStore.applySnapshot`. Entity
+results enter the Store only through that listener path; there is no optimistic mutation exception.

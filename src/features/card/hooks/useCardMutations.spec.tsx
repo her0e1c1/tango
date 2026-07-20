@@ -18,7 +18,6 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   logicalRemove: vi.fn(),
   upsert: vi.fn(),
-  readAll: vi.fn(),
 }));
 
 vi.mock("@/auth/AuthContext", () => ({
@@ -36,7 +35,6 @@ vi.mock("@/adapters/firestore", () => ({
     update: mocks.update,
     logicalRemove: mocks.logicalRemove,
     upsert: mocks.upsert,
-    readAll: mocks.readAll,
   },
 }));
 
@@ -46,10 +44,13 @@ describe("useCardMutations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.uid = "uid-a";
+    mocks.card = null;
     remoteStore.clear();
     remoteStore.begin("uid-a");
+    mocks.create.mockResolvedValue("card-id");
     mocks.update.mockResolvedValue(undefined);
-    mocks.readAll.mockResolvedValue([]);
+    mocks.logicalRemove.mockResolvedValue(undefined);
+    mocks.upsert.mockResolvedValue("card-id");
   });
 
   it("keeps the update runner stable across an unchanged render", () => {
@@ -61,16 +62,85 @@ describe("useCardMutations", () => {
     expect(result.current.update).toBe(update);
   });
 
-  it("writes a Card without replacing remote data before the listener responds", async () => {
-    const deck = createDeck();
-    mocks.card = createCard({ deckId: deck.id, score: 0 });
-    remoteStore.replace("uid-a", "cards", { [mocks.card.id]: mocks.card });
+  it("publishes a created Card only after the listener responds", async () => {
+    const card = createCard({ id: "created" });
     const { result } = renderHook(useCardMutations);
 
-    await act(async () => result.current.update({ ...mocks.card, score: 1 } as Card));
+    await act(async () => result.current.create(card));
 
-    expect(mocks.update).toHaveBeenCalledWith({ ...mocks.card, score: 1 });
-    expect(remoteStore.read("uid-a", "cards")).toEqual({ [mocks.card.id]: mocks.card });
+    expect(mocks.create).toHaveBeenCalledWith(card);
+    expect(remoteStore.getSnapshot().cardsById).toEqual({});
+
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [card.id]: card });
+  });
+
+  it("publishes an updated Card only after the listener responds", async () => {
+    const deck = createDeck();
+    mocks.card = createCard({ deckId: deck.id, score: 0 });
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [mocks.card.id]: mocks.card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useCardMutations);
+    const updated = { ...mocks.card, score: 1 } as Card;
+
+    await act(async () => result.current.update(updated));
+
+    expect(mocks.update).toHaveBeenCalledWith(updated);
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [mocks.card.id]: mocks.card });
+
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [updated.id]: updated },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [updated.id]: updated });
+  });
+
+  it("removes a Card from remote data only after the listener responds", async () => {
+    const card = createCard({ id: "removed" });
+    mocks.card = card;
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useCardMutations);
+
+    await act(async () => result.current.remove(card.id));
+
+    expect(mocks.logicalRemove).toHaveBeenCalledWith(card.id);
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [card.id]: card });
+
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: {},
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().cardsById).toEqual({});
+  });
+
+  it("publishes bulk-upserted Cards only after the listener responds", async () => {
+    const existing = createCard({ id: "existing", score: 0 });
+    const created = createCard({ id: "created", score: 0 });
+    const updated = { ...existing, score: 1 };
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [existing.id]: existing },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useCardMutations);
+
+    await act(async () => result.current.bulkUpsert([updated, created]));
+
+    expect(mocks.upsert).toHaveBeenCalledTimes(2);
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [existing.id]: existing });
+
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [updated.id]: updated, [created.id]: created },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().cardsById).toEqual({ [updated.id]: updated, [created.id]: created });
   });
 
   it("exposes immutable pending state while a Card update is running", async () => {
@@ -84,7 +154,10 @@ describe("useCardMutations", () => {
     const deck = createDeck();
     const card = createCard({ deckId: deck.id, score: 0 });
     mocks.card = card;
-    remoteStore.replace("uid-a", "cards", { [card.id]: card });
+    remoteStore.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
     const { result } = renderHook(useCardMutations);
     let update: Promise<void> | undefined;
 

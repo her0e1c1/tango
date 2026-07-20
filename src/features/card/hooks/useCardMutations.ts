@@ -10,7 +10,6 @@ import * as firestore from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { createCardMutationService } from "@/query/mutations/cardMutationService";
-import { remoteStore } from "@/store/remoteStore";
 
 type CardMutationVariables =
   | { kind: "create"; card: Card }
@@ -136,12 +135,10 @@ export const useCardMutations = () => {
   };
   const setError = (error: unknown) => setErrorState({ uid, error });
   const service = createCardMutationService({
-    store: remoteStore,
     createCard: firestore.card.create,
     updateCard: firestore.card.update,
     removeCard: firestore.card.logicalRemove,
     upsertCard: firestore.card.upsert,
-    readCards: firestore.card.readAll,
   });
 
   const mutateAsync = async (variables: CardMutationVariables) => {

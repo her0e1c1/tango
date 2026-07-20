@@ -43,15 +43,61 @@ describe("useDeckMutations", () => {
     mocks.remove.mockResolvedValue(undefined);
   });
 
-  it("writes a Deck update without replacing remote data before the listener responds", async () => {
-    const deck = createDeck({ id: "deck-a", name: "Before" });
-    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+  it("publishes a created Deck only after the listener responds", async () => {
+    const deck = createDeck({ id: "created" });
     const { result } = renderHook(useDeckMutations);
 
-    await act(async () => result.current.update({ ...deck, name: "After" }));
+    await act(async () => result.current.create(deck));
 
-    expect(mocks.update).toHaveBeenCalledWith({ ...deck, name: "After" });
-    expect(remoteStore.read("uid-a", "decks")).toEqual({ [deck.id]: deck });
+    expect(mocks.create).toHaveBeenCalledWith(deck);
+    expect(remoteStore.getSnapshot().decksById).toEqual({});
+
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+  });
+
+  it("publishes an updated Deck only after the listener responds", async () => {
+    const deck = createDeck({ id: "deck-a", name: "Before" });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
+    const updated = { ...deck, name: "After" };
+
+    await act(async () => result.current.update(updated));
+
+    expect(mocks.update).toHaveBeenCalledWith(updated);
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [updated.id]: updated },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [updated.id]: updated });
+  });
+
+  it("removes a Deck from remote data only after the listener responds", async () => {
+    const deck = createDeck({ id: "removed" });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
+
+    await act(async () => result.current.remove(deck));
+
+    expect(mocks.remove).toHaveBeenCalledWith(deck.id, "uid-a");
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: {},
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().decksById).toEqual({});
   });
 
   it("does not publish an old UID failure into the current UID", async () => {
@@ -85,7 +131,10 @@ describe("useDeckMutations", () => {
     );
     const deck = createDeck({ id: "deck-a" });
     const otherDeck = createDeck({ id: "deck-b" });
-    remoteStore.replace("uid-a", "decks", { [deck.id]: deck, [otherDeck.id]: otherDeck });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck, [otherDeck.id]: otherDeck },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
+    });
     const { result } = renderHook(useDeckMutations);
     let firstRemove: Promise<void> | undefined;
     let secondRemove: Promise<void> | undefined;
@@ -181,7 +230,10 @@ describe("useDeckMutations", () => {
     const deck = createDeck({ id: "deck-a" });
     let finishUpdate!: () => void;
     mocks.update.mockReturnValueOnce(new Promise<void>((resolve) => (finishUpdate = resolve)));
-    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
     const { result } = renderHook(useDeckMutations);
 
     let update!: Promise<void>;
@@ -206,7 +258,10 @@ describe("useDeckMutations", () => {
     const deck = createDeck({ id: "deck-a" });
     const error = new Error("delete failed");
     mocks.remove.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
-    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
     const { result } = renderHook(useDeckMutations);
 
     await act(async () => {
@@ -227,7 +282,10 @@ describe("useDeckMutations", () => {
     });
     mocks.remove.mockRejectedValueOnce(error).mockReturnValueOnce(retryRequest);
     const onRemoveSuccess = vi.fn();
-    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
     const { result, unmount } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
 
     await act(async () => {
@@ -247,7 +305,10 @@ describe("useDeckMutations", () => {
     const deck = createDeck({ id: "deck-a" });
     const error = new Error("delete failed");
     mocks.remove.mockRejectedValueOnce(error).mockResolvedValue(undefined);
-    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
     const { result } = renderHook(useDeckMutations);
 
     await act(async () => {
@@ -283,9 +344,12 @@ describe("useDeckMutations", () => {
       }
       return Promise.resolve();
     });
-    remoteStore.replace("uid-a", "decks", {
-      [failedDeck.id]: failedDeck,
-      [successfulDeck.id]: successfulDeck,
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: {
+        [failedDeck.id]: failedDeck,
+        [successfulDeck.id]: successfulDeck,
+      },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
     });
     const { result } = renderHook(useDeckMutations);
     let failedRemoval: Promise<void> | undefined;
@@ -339,7 +403,10 @@ describe("useDeckMutations", () => {
       if (rejectById.has(id)) return Promise.resolve();
       return new Promise<void>((_resolve, reject) => rejectById.set(id, reject));
     });
-    remoteStore.replace("uid-a", "decks", { [firstDeck.id]: firstDeck, [laterDeck.id]: laterDeck });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [firstDeck.id]: firstDeck, [laterDeck.id]: laterDeck },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
+    });
     const { result } = renderHook(useDeckMutations);
     let firstRemoval: Promise<void> | undefined;
     let laterRemoval: Promise<void> | undefined;

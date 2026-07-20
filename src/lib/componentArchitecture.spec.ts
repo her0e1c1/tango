@@ -22,6 +22,9 @@ const firestoreCompositionModules = new Set([
   "features/deck/hooks/useDeckMutations.ts",
   "features/import/hooks/useDeckImport.ts",
 ]);
+const remoteStoreModule = ["@/store", "remoteStore"].join("/");
+const remoteMutationMethodNames = ["begin", ["apply", "Snapshot"].join(""), "fail", "clear"];
+const remoteSnapshotApplyCall = new RegExp(`\\.${["apply", "Snapshot"].join("")}\\s*\\(`, "g");
 const connectorModules = [
   "react-hook-form",
   "react-router",
@@ -101,6 +104,15 @@ function serverStateResidualViolations(subjects: TextSubject[]): string[] {
  */
 function productionFilesUnder(relativeDirectory: string): string[] {
   return sourceFilesUnder(relativeDirectory).filter((relativePath) => !testOrStory.test(relativePath));
+}
+
+function remoteMutationFiles(): string[] {
+  return [
+    ...productionFilesUnder("query/mutations"),
+    ...productionFilesUnder("features").filter((relativePath) =>
+      /\/hooks\/use[A-Z][^/]*Mutations\.tsx?$/.test(relativePath)
+    ),
+  ];
 }
 
 /**
@@ -336,6 +348,33 @@ describe("component architecture", () => {
     });
 
     expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("keeps production mutation code independent from the RemoteStore", () => {
+    const violations = remoteMutationFiles().flatMap((relativePath) => {
+      const importViolations = moduleReferences(relativePath)
+        .filter((reference) => isModuleOrSubpath(reference.resolvedSpecifier, remoteStoreModule))
+        .map((reference) => importViolation(relativePath, reference));
+      const source = readSource(relativePath);
+      const writeViolations = remoteMutationMethodNames.flatMap((methodName) =>
+        new RegExp(`\\.${methodName}\\s*\\(`).test(source) ? [`${relativePath}: ${methodName}`] : []
+      );
+      return [...importViolations, ...writeViolations];
+    });
+
+    expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("applies production RemoteStore snapshots only in the Firestore read controller", () => {
+    const allowedPath = "query/reads/remoteReadController.ts";
+    const violations = productionFilesUnder("").flatMap((relativePath) => {
+      if (relativePath === allowedPath) return [];
+      const matches = readSource(relativePath).match(remoteSnapshotApplyCall) ?? [];
+      return matches.map(() => relativePath);
+    });
+
+    expect(violations, violations.join("\n")).toEqual([]);
+    expect(readSource(allowedPath).match(remoteSnapshotApplyCall)).toHaveLength(1);
   });
 
   it("uses production-oriented names for Firestore adapter modules", () => {

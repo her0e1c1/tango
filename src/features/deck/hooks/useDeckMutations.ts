@@ -9,7 +9,6 @@ import { useEffect, useRef, useState } from "react";
 import * as firestore from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
 import { createDeckMutationService } from "@/query/mutations/deckMutationService";
-import { remoteStore } from "@/store/remoteStore";
 
 type Variables = { kind: "create"; deck: Deck } | { kind: "update"; deck: DeckEdit } | { kind: "remove"; deck: Deck };
 type Failure = { variables: Variables; error: unknown; sequence: number };
@@ -65,7 +64,6 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   };
   const setFailure = (failure: Failure | undefined) => setFailureState({ uid, failure });
   const service = createDeckMutationService({
-    store: remoteStore,
     createDeck: firestore.deck.create,
     updateDeck: firestore.deck.update,
     removeDeck: firestore.deck.remove,
