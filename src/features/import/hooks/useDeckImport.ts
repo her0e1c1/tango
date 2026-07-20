@@ -71,15 +71,18 @@ const partialResultFrom = (error: unknown): DeckImportResult | undefined => {
 
 interface DeckImportDependencies {
   uid: string;
+  synchronized: boolean;
   decks: Deck[];
   cardsByDeckId: (id: DeckId) => Card[];
   createDeck: (deck: Deck) => Promise<unknown>;
   bulkUpsert: (cards: Card[]) => Promise<unknown>;
 }
 
+type DeckImportPreparationDependencies = Pick<DeckImportDependencies, "uid" | "decks" | "cardsByDeckId">;
+
 const prepareDeckImportAttempt = (
   request: ImportRequest,
-  { uid, decks, cardsByDeckId }: DeckImportDependencies
+  { uid, decks, cardsByDeckId }: DeckImportPreparationDependencies
 ): DeckImportAttempt => {
   const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
   const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
@@ -128,12 +131,15 @@ const prepareDeckImportAttempt = (
  */
 const executeDeckImport = async (
   request: ImportRequest,
-  { uid, decks, cardsByDeckId, createDeck, bulkUpsert }: DeckImportDependencies
+  { uid, synchronized, decks, cardsByDeckId, createDeck, bulkUpsert }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
+  if (!synchronized) {
+    throw new Error("Deck import requires a synchronized connection. Check your connection and retry.");
+  }
   let attempt = request.attempt;
   if (attempt == null || attempt.uid !== uid) {
-    attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId, createDeck, bulkUpsert });
+    attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId });
     request.attempt = attempt;
   }
   if (attempt.createDeckPending) {
@@ -308,12 +314,21 @@ export const useDeckImport = () => {
   useEffect(() => {
     dependenciesRef.current = {
       uid,
+      synchronized: remote.status === "ready" && remote.syncStatus === "synced",
       decks: remote.decks,
       cardsByDeckId: remote.cardsByDeckId,
       createDeck: deckMutations.create,
       bulkUpsert: cardMutations.bulkUpsert,
     };
-  }, [cardMutations.bulkUpsert, deckMutations.create, remote.cardsByDeckId, remote.decks, uid]);
+  }, [
+    cardMutations.bulkUpsert,
+    deckMutations.create,
+    remote.cardsByDeckId,
+    remote.decks,
+    remote.status,
+    remote.syncStatus,
+    uid,
+  ]);
   const setRunning = (value: boolean) => setRunningState({ uid, value });
   const setValidating = (value: boolean) => setValidatingState({ uid, value });
   const setPreview = (value: DeckImportPreview | undefined) => setPreviewState({ uid, value });
