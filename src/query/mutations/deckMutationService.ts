@@ -3,9 +3,8 @@
  * It serializes conflicting writes and owns optimistic Deck removal rollback.
  */
 
-import type { RemoteById } from "@/query/cache/remoteCollection";
 import { cardMutationLock, deckMutationLock, withMutationLocks } from "@/query/mutations/locks";
-import type { RemoteStore } from "@/store/remoteStore";
+import type { RemoteById, RemoteStore } from "@/store/remoteStore";
 
 export interface DeckMutationServiceDependencies {
   store: Pick<RemoteStore, "read" | "replace">;

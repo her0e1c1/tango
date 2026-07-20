@@ -2,7 +2,7 @@
  * @file Verifies the "component architecture" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "leaves render memoization
  * to React Compiler", "normalizes baseUrl source imports before checking boundaries", "treats
- * Query APIs as presentation connectors across import styles".
+ * application connectors across import styles".
  */
 
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -23,7 +23,6 @@ const firestoreCompositionModules = new Set([
   "features/import/hooks/useDeckImport.ts",
 ]);
 const connectorModules = [
-  "@tanstack/react-query",
   "react-hook-form",
   "react-router",
   "react-router-dom",
@@ -252,19 +251,32 @@ describe("component architecture", () => {
     expect(resolveModuleSpecifier("components/content/Card.tsx", "src/action")).toBe("@/action");
   });
 
-  it("treats Query APIs as presentation connectors across import styles", () => {
+  it("treats application modules as presentation connectors across import styles", () => {
     const presentationPath = "features/deck/components/templates/DeckListTemplate.tsx";
-    const queryImports = [
-      "@tanstack/react-query",
-      "@/query",
-      "@/query/client",
-      "src/query/client",
-      "../../../../query/client",
-    ];
+    const applicationImports = ["@/query", "@/store", "src/query", "../../../../query"];
 
-    for (const specifier of queryImports) {
+    for (const specifier of applicationImports) {
       expect(forbiddenConnector(resolveModuleSpecifier(presentationPath, specifier)), specifier).toBe(true);
     }
+  });
+
+  it("removes obsolete server-state client infrastructure", () => {
+    const obsoletePackage = ["@tanstack", "react-query"].join("/");
+    const obsoletePaths = [
+      "query/client.ts",
+      ["query/cache", ["firestore", "Keys.ts"].join("")].join("/"),
+      "query/cache/remoteCache.ts",
+      "query/cache/remoteCollection.ts",
+      "query/testUtils.tsx",
+    ];
+    const packageJson = JSON.parse(readFileSync(path.resolve(process.cwd(), "package.json"), "utf8")) as {
+      dependencies?: Record<string, string>;
+    };
+
+    expect(obsoletePaths.filter((relativePath) => existsSync(sourcePath(relativePath)))).toEqual([]);
+    expect(packageJson.dependencies).not.toHaveProperty(obsoletePackage);
+    expect(moduleSpecifiers(readSource("main.tsx"))).not.toContain(obsoletePackage);
+    expect(moduleSpecifiers(readSource("main.tsx"))).not.toContain("@/query/client");
   });
 
   it("recognizes Firebase and Firestore adapter dependencies across import styles", () => {
@@ -368,7 +380,7 @@ describe("component architecture", () => {
     expect(selectorReferences, selectorReferences.join("\n")).toEqual([]);
   });
 
-  it("limits application stores to global configuration", () => {
+  it("limits application stores to configuration and remote data", () => {
     const legacyPackages = ["react-redux", "redux", "redux-persist", "redux-thunk"];
     const legacyImports = productionFilesUnder("").flatMap((relativePath) =>
       moduleReferences(relativePath)
@@ -395,6 +407,8 @@ describe("component architecture", () => {
       "store/configSchema.ts",
       "store/configStore.spec.ts",
       "store/configStore.ts",
+      "store/remoteStore.spec.ts",
+      "store/remoteStore.ts",
     ]);
   });
 

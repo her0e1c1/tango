@@ -6,7 +6,7 @@
 
 import { isEqual } from "lodash";
 
-import type { RemoteById } from "@/query/cache/remoteCollection";
+import type { RemoteById } from "@/store/remoteStore";
 
 export interface OptimisticMutationOptions<T, Result> {
   targetIds: string[];

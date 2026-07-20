@@ -8,8 +8,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { firestoreKeys } from "@/query/cache/firestoreKeys";
-import { createQueryWrapper, createTestQueryClient } from "@/query/testUtils";
+import { remoteStore } from "@/store/remoteStore";
 import { createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -37,6 +36,8 @@ describe("useDeckMutations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.uid = "uid-a";
+    remoteStore.clear();
+    remoteStore.begin("uid-a");
     mocks.create.mockResolvedValue("deck-id");
     mocks.update.mockResolvedValue(undefined);
     mocks.remove.mockResolvedValue(undefined);
@@ -44,23 +45,20 @@ describe("useDeckMutations", () => {
 
   it("writes a Deck update without replacing remote data before the listener responds", async () => {
     const deck = createDeck({ id: "deck-a", name: "Before" });
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+    const { result } = renderHook(useDeckMutations);
 
     await act(async () => result.current.update({ ...deck, name: "After" }));
 
     expect(mocks.update).toHaveBeenCalledWith({ ...deck, name: "After" });
-    expect(client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual({ [deck.id]: deck });
+    expect(remoteStore.read("uid-a", "decks")).toEqual({ [deck.id]: deck });
   });
 
   it("does not publish an old UID failure into the current UID", async () => {
     const deck = createDeck({ id: "deck-a" });
     let rejectOld!: (error: Error) => void;
     mocks.update.mockReturnValueOnce(new Promise<void>((_resolve, reject) => (rejectOld = reject)));
-    const { result, rerender } = renderHook(useDeckMutations, {
-      wrapper: createQueryWrapper(createTestQueryClient()),
-    });
+    const { result, rerender } = renderHook(useDeckMutations);
 
     let operation!: Promise<void>;
     act(() => {
@@ -87,9 +85,8 @@ describe("useDeckMutations", () => {
     );
     const deck = createDeck({ id: "deck-a" });
     const otherDeck = createDeck({ id: "deck-b" });
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck, [otherDeck.id]: otherDeck });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.replace("uid-a", "decks", { [deck.id]: deck, [otherDeck.id]: otherDeck });
+    const { result } = renderHook(useDeckMutations);
     let firstRemove: Promise<void> | undefined;
     let secondRemove: Promise<void> | undefined;
 
@@ -121,9 +118,8 @@ describe("useDeckMutations", () => {
     const deck = createDeck({ id: "deck-a" });
     const error = new Error("delete failed");
     mocks.remove.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+    const { result } = renderHook(useDeckMutations);
 
     await act(async () => {
       await expect(result.current.remove(deck)).rejects.toThrow(error);
@@ -143,11 +139,8 @@ describe("useDeckMutations", () => {
     });
     mocks.remove.mockRejectedValueOnce(error).mockReturnValueOnce(retryRequest);
     const onRemoveSuccess = vi.fn();
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
-    const { result, unmount } = renderHook(() => useDeckMutations({ onRemoveSuccess }), {
-      wrapper: createQueryWrapper(client),
-    });
+    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+    const { result, unmount } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
 
     await act(async () => {
       await expect(result.current.remove(deck)).rejects.toBe(error);
@@ -166,9 +159,8 @@ describe("useDeckMutations", () => {
     const deck = createDeck({ id: "deck-a" });
     const error = new Error("delete failed");
     mocks.remove.mockRejectedValueOnce(error).mockResolvedValue(undefined);
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.replace("uid-a", "decks", { [deck.id]: deck });
+    const { result } = renderHook(useDeckMutations);
 
     await act(async () => {
       await expect(result.current.remove(deck)).rejects.toThrow(error);
@@ -203,12 +195,11 @@ describe("useDeckMutations", () => {
       }
       return Promise.resolve();
     });
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), {
+    remoteStore.replace("uid-a", "decks", {
       [failedDeck.id]: failedDeck,
       [successfulDeck.id]: successfulDeck,
     });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    const { result } = renderHook(useDeckMutations);
     let failedRemoval: Promise<void> | undefined;
     let successfulRemoval: Promise<void> | undefined;
 
@@ -260,9 +251,8 @@ describe("useDeckMutations", () => {
       if (rejectById.has(id)) return Promise.resolve();
       return new Promise<void>((_resolve, reject) => rejectById.set(id, reject));
     });
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [firstDeck.id]: firstDeck, [laterDeck.id]: laterDeck });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.replace("uid-a", "decks", { [firstDeck.id]: firstDeck, [laterDeck.id]: laterDeck });
+    const { result } = renderHook(useDeckMutations);
     let firstRemoval: Promise<void> | undefined;
     let laterRemoval: Promise<void> | undefined;
 
@@ -295,9 +285,7 @@ describe("useDeckMutations", () => {
     const deck = createDeck({ id: "deck-a" });
     const error = new Error("failed");
     mocks.update.mockRejectedValueOnce(error);
-    const { result, rerender } = renderHook(useDeckMutations, {
-      wrapper: createQueryWrapper(createTestQueryClient()),
-    });
+    const { result, rerender } = renderHook(useDeckMutations);
 
     await act(async () => {
       await expect(result.current.update(deck)).rejects.toBe(error);
@@ -321,7 +309,7 @@ describe("useDeckMutations", () => {
       .mockRejectedValueOnce(error)
       .mockReturnValueOnce(new Promise<void>((resolve) => (finishRetry = resolve)));
     mocks.update.mockReturnValueOnce(new Promise<void>((resolve) => (finishUpdate = resolve)));
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const { result } = renderHook(useDeckMutations);
 
     await act(async () => {
       await expect(result.current.remove(deck)).rejects.toBe(error);

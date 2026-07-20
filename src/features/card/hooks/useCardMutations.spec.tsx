@@ -8,8 +8,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { firestoreKeys } from "@/query/cache/firestoreKeys";
-import { createTestQueryClient, createQueryWrapper } from "@/query/testUtils";
+import { remoteStore } from "@/store/remoteStore";
 import { createCard, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -47,12 +46,14 @@ describe("useCardMutations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.uid = "uid-a";
+    remoteStore.clear();
+    remoteStore.begin("uid-a");
     mocks.update.mockResolvedValue(undefined);
     mocks.readAll.mockResolvedValue([]);
   });
 
   it("keeps the update runner stable across an unchanged render", () => {
-    const { result, rerender } = renderHook(useCardMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const { result, rerender } = renderHook(useCardMutations);
     const update = result.current.update;
 
     rerender();
@@ -63,14 +64,13 @@ describe("useCardMutations", () => {
   it("writes a Card without replacing remote data before the listener responds", async () => {
     const deck = createDeck();
     mocks.card = createCard({ deckId: deck.id, score: 0 });
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.cards("uid-a"), { [mocks.card.id]: mocks.card });
-    const { result } = renderHook(useCardMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.replace("uid-a", "cards", { [mocks.card.id]: mocks.card });
+    const { result } = renderHook(useCardMutations);
 
     await act(async () => result.current.update({ ...mocks.card, score: 1 } as Card));
 
     expect(mocks.update).toHaveBeenCalledWith({ ...mocks.card, score: 1 });
-    expect(client.getQueryData(firestoreKeys.cards("uid-a"))).toEqual({ [mocks.card.id]: mocks.card });
+    expect(remoteStore.read("uid-a", "cards")).toEqual({ [mocks.card.id]: mocks.card });
   });
 
   it("exposes immutable pending state while a Card update is running", async () => {
@@ -84,9 +84,8 @@ describe("useCardMutations", () => {
     const deck = createDeck();
     const card = createCard({ deckId: deck.id, score: 0 });
     mocks.card = card;
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.cards("uid-a"), { [card.id]: card });
-    const { result } = renderHook(useCardMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.replace("uid-a", "cards", { [card.id]: card });
+    const { result } = renderHook(useCardMutations);
     let update: Promise<void> | undefined;
 
     act(() => {
@@ -110,7 +109,7 @@ describe("useCardMutations", () => {
   it("rejects remote writes without a confirmed user", async () => {
     mocks.uid = "";
     const card = createCard();
-    const { result } = renderHook(useCardMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const { result } = renderHook(useCardMutations);
 
     await act(async () => {
       await expect(result.current.create(card)).rejects.toThrow("confirmed user");
@@ -130,9 +129,7 @@ describe("useCardMutations", () => {
     mocks.create
       .mockReturnValueOnce(new Promise<string>((resolve) => (finishOld = () => resolve(oldCard.id))))
       .mockReturnValueOnce(new Promise<string>((resolve) => (finishNew = () => resolve(newCard.id))));
-    const { result, rerender } = renderHook(useCardMutations, {
-      wrapper: createQueryWrapper(createTestQueryClient()),
-    });
+    const { result, rerender } = renderHook(useCardMutations);
 
     let oldOperation!: Promise<void>;
     act(() => {
@@ -163,9 +160,7 @@ describe("useCardMutations", () => {
     let finish!: () => void;
     mocks.create.mockReturnValueOnce(new Promise<string>((resolve) => (finish = () => resolve("card"))));
     const card = createCard({ id: "card" });
-    const { result, rerender } = renderHook(useCardMutations, {
-      wrapper: createQueryWrapper(createTestQueryClient()),
-    });
+    const { result, rerender } = renderHook(useCardMutations);
 
     let operation!: Promise<void>;
     act(() => {
@@ -188,9 +183,7 @@ describe("useCardMutations", () => {
   it("does not resurrect an error after an A-to-B-to-A UID transition", async () => {
     const error = new Error("write failed");
     mocks.create.mockRejectedValueOnce(error);
-    const { result, rerender } = renderHook(useCardMutations, {
-      wrapper: createQueryWrapper(createTestQueryClient()),
-    });
+    const { result, rerender } = renderHook(useCardMutations);
 
     await act(async () => {
       await expect(result.current.create(createCard())).rejects.toBe(error);
@@ -217,7 +210,7 @@ describe("useCardMutations", () => {
       if (card.id === successful.id) return new Promise<void>((resolve) => (finishSuccessful = resolve));
       return Promise.resolve();
     });
-    const { result } = renderHook(useCardMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const { result } = renderHook(useCardMutations);
 
     let failedOperation!: Promise<void>;
     let successfulOperation!: Promise<void>;
@@ -248,7 +241,7 @@ describe("useCardMutations", () => {
     const replacement = { ...stale, score: 2 };
     const error = new Error("stale update failed");
     mocks.update.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
-    const { result } = renderHook(useCardMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const { result } = renderHook(useCardMutations);
 
     await act(async () => {
       await expect(result.current.update(stale)).rejects.toBe(error);

@@ -3,9 +3,8 @@
  * It serializes conflicting writes and restores authoritative state after partial bulk failures.
  */
 
-import { toRemoteById, type RemoteById } from "@/query/cache/remoteCollection";
 import { cardMutationLock, withMutationLocks } from "@/query/mutations/locks";
-import type { RemoteStore } from "@/store/remoteStore";
+import { toRemoteById, type RemoteById, type RemoteStore } from "@/store/remoteStore";
 
 export interface CardMutationServiceDependencies {
   store: Pick<RemoteStore, "read" | "replace">;

@@ -4,14 +4,14 @@
  * stale callbacks, and errors.
  */
 
-import { toRemoteById } from "@/query/cache/remoteCollection";
 import type { RemoteSnapshot, RemoteSubscriptionProps } from "@/query/remoteReadContract";
-import type {
-  RemoteById,
-  RemoteCollectionName,
-  RemoteCollectionTypes,
-  RemoteState,
-  RemoteStore,
+import {
+  toRemoteById,
+  type RemoteById,
+  type RemoteCollectionName,
+  type RemoteCollectionTypes,
+  type RemoteState,
+  type RemoteStore,
 } from "@/store/remoteStore";
 
 export type { RemoteSubscriptionProps } from "@/query/remoteReadContract";
