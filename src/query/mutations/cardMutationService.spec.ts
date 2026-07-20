@@ -6,7 +6,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { type CardBulkMutationError, createCardMutationService } from "@/query/mutations/cardMutationService";
+import { CardBulkMutationError, createCardMutationService } from "@/query/mutations/cardMutationService";
 import { createRemoteStore, type RemoteStore } from "@/store/remoteStore";
 import { createCard } from "@/test/factories";
 
@@ -152,5 +152,20 @@ describe("createCardMutationService", () => {
     expect(store.read(uid, "cards")).toEqual({ existing });
     write.resolve(upsert.id);
     await operation;
+  });
+
+  it("preserves failed Card IDs when authoritative resynchronization also fails", async () => {
+    const first = createCard({ id: "first" });
+    const second = createCard({ id: "second" });
+    const readError = new Error("authoritative read failed");
+    dependencies.upsertCard.mockResolvedValueOnce(first.id).mockRejectedValueOnce(new Error("write failed"));
+    dependencies.readCards.mockRejectedValueOnce(readError);
+    const service = createCardMutationService({ store, ...dependencies });
+
+    const error = await service.bulkUpsert(uid, [first, second]).catch((cause: unknown) => cause);
+
+    expect(error).toBeInstanceOf(CardBulkMutationError);
+    expect((error as CardBulkMutationError).failedIds).toEqual([second.id]);
+    expect((error as Error).cause).toBe(readError);
   });
 });

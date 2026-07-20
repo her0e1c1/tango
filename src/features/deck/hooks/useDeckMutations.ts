@@ -40,12 +40,18 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   const inFlight = useRef(new Map<DeckId, Promise<void>>());
   const generation = useRef(0);
   const generationUid = useRef(uid);
+  const [stateUid, setStateUid] = useState(uid);
   const [pendingState, setPendingState] = useState(() => ({ uid, ids: new Set<DeckId>() }));
   const failureRef = useRef<Failure>(undefined);
   const [failureState, setFailureState] = useState<{ uid: string; failure: Failure | undefined }>(() => ({
     uid,
     failure: undefined,
   }));
+  if (stateUid !== uid) {
+    setStateUid(uid);
+    setPendingState({ uid, ids: new Set() });
+    setFailureState({ uid, failure: undefined });
+  }
   useEffect(() => {
     if (generationUid.current === uid) return;
     generationUid.current = uid;
@@ -74,7 +80,7 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
    * Runs the current deck feature operation and returns its result.
    * Progress and failure cleanup stay in one place so callers observe a consistent workflow state.
    */
-  const run = (variables: Variables) => {
+  const run = (variables: Variables): Promise<void> => {
     const operationGeneration = generation.current;
     const failed = failureRef.current;
     const retryOf = failed != null && isSameOperation(failed.variables, variables) ? failed : undefined;
@@ -82,11 +88,10 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
     const current = inFlight.current.get(deckId);
     if (current != null) {
       if (retryOf != null) {
-        void current.then(
+        return current.then(
           () => {
             if (generation.current !== operationGeneration || failureRef.current !== retryOf) return;
-            failureRef.current = undefined;
-            setFailure(undefined);
+            return run(variables);
           },
           () => undefined
         );

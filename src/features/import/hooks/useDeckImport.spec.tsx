@@ -270,4 +270,91 @@ describe("useDeckImport", () => {
     expect(result.current.error).toBeNull();
     expect(result.current.pending).toBe(false);
   });
+
+  it("does not write a slow URL import after the initiating UID changes", async () => {
+    let finishFetch!: (response: Response) => void;
+    vi.spyOn(globalThis, "fetch").mockReturnValueOnce(new Promise<Response>((resolve) => (finishFetch = resolve)));
+    const { result, rerender } = renderHook(useDeckImport, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+
+    const operation = result.current.importUrl("https://example.test/deck.csv");
+    const rejection = expect(operation).rejects.toThrow("user changed");
+    mocks.uid = "uid-b";
+    rerender();
+    finishFetch(new Response('"front","back","","key"'));
+
+    await rejection;
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+    expect(result.current.pending).toBe(false);
+    expect(result.current.error).toBeNull();
+    expect(result.current.data).toBeUndefined();
+  });
+
+  it("does not resurrect import data after an A-to-B-to-A UID transition", async () => {
+    const { result, rerender } = renderHook(useDeckImport, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+    await act(async () => result.current.addSample());
+    expect(result.current.data).toBeDefined();
+
+    mocks.uid = "uid-b";
+    rerender();
+    mocks.uid = "uid-a";
+    rerender();
+
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.error).toBeNull();
+  });
+
+  it("does not resurrect import running state after an A-to-B-to-A UID transition", async () => {
+    let finish!: () => void;
+    mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
+    const { result, rerender } = renderHook(useDeckImport, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+
+    let operation!: Promise<DeckImportResult>;
+    act(() => {
+      operation = result.current.addSample();
+    });
+    await waitFor(() => expect(result.current.pending).toBe(true));
+    mocks.uid = "uid-b";
+    rerender();
+    mocks.uid = "uid-a";
+    rerender();
+
+    expect(result.current.pending).toBe(false);
+    await act(async () => {
+      finish();
+      await operation;
+    });
+  });
+
+  it("keeps successful import rows successful when authoritative recovery fails", async () => {
+    const first = createCard({ id: "first", deckId: "deck", uniqueKey: "first" });
+    const second = createCard({ id: "second", deckId: "deck", uniqueKey: "second" });
+    mocks.prepareCard.mockReturnValueOnce(first).mockReturnValueOnce(second);
+    mocks.bulkUpsert.mockRejectedValueOnce(
+      new CardBulkMutationError([second.id], 2, { cause: new Error("authoritative read failed") })
+    );
+    const { result } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {
+      type: "text/csv",
+    });
+
+    await act(async () => result.current.selectFile(file));
+    await act(async () => {
+      await expect(result.current.importPreview()).rejects.toThrow("did not complete");
+    });
+
+    expect(result.current.partialResult).toEqual({
+      created: 1,
+      updated: 0,
+      skipped: 0,
+      failed: 1,
+      deckId: "deck",
+    });
+  });
 });

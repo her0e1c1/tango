@@ -158,4 +158,88 @@ describe("useCardMutations", () => {
       await newOperation;
     });
   });
+
+  it("does not resurrect pending state after an A-to-B-to-A UID transition", async () => {
+    let finish!: () => void;
+    mocks.create.mockReturnValueOnce(new Promise<string>((resolve) => (finish = () => resolve("card"))));
+    const card = createCard({ id: "card" });
+    const { result, rerender } = renderHook(useCardMutations, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+
+    let operation!: Promise<void>;
+    act(() => {
+      operation = result.current.create(card);
+    });
+    await waitFor(() => expect(result.current.pending).toBe(true));
+    mocks.uid = "uid-b";
+    rerender();
+    mocks.uid = "uid-a";
+    rerender();
+
+    expect(result.current.pending).toBe(false);
+    expect(result.current.isPending(card.id)).toBe(false);
+    await act(async () => {
+      finish();
+      await operation;
+    });
+  });
+
+  it("does not resurrect an error after an A-to-B-to-A UID transition", async () => {
+    const error = new Error("write failed");
+    mocks.create.mockRejectedValueOnce(error);
+    const { result, rerender } = renderHook(useCardMutations, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+
+    await act(async () => {
+      await expect(result.current.create(createCard())).rejects.toBe(error);
+    });
+    expect(result.current.error).toBe(error);
+    mocks.uid = "uid-b";
+    rerender();
+    mocks.uid = "uid-a";
+    rerender();
+
+    expect(result.current.error).toBeNull();
+  });
+
+  it("keeps the latest Card failure retryable after an unrelated Card succeeds", async () => {
+    const failed = createCard({ id: "failed" });
+    const successful = createCard({ id: "successful" });
+    const error = new Error("failed write");
+    let rejectFailed!: (error: Error) => void;
+    let finishSuccessful!: () => void;
+    mocks.update.mockImplementation((card: CardEdit) => {
+      if (card.id === failed.id && mocks.update.mock.calls.filter(([value]) => value.id === failed.id).length === 1) {
+        return new Promise<void>((_resolve, reject) => (rejectFailed = reject));
+      }
+      if (card.id === successful.id) return new Promise<void>((resolve) => (finishSuccessful = resolve));
+      return Promise.resolve();
+    });
+    const { result } = renderHook(useCardMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+
+    let failedOperation!: Promise<void>;
+    let successfulOperation!: Promise<void>;
+    act(() => {
+      failedOperation = result.current.update(failed);
+      successfulOperation = result.current.update(successful);
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      rejectFailed(error);
+      await expect(failedOperation).rejects.toBe(error);
+    });
+    await act(async () => {
+      finishSuccessful();
+      await successfulOperation;
+    });
+
+    expect(result.current.error).toBe(error);
+    act(() => result.current.retry());
+    await waitFor(() => {
+      expect(mocks.update.mock.calls.filter(([card]) => card.id === failed.id)).toHaveLength(2);
+      expect(result.current.error).toBeNull();
+    });
+  });
 });

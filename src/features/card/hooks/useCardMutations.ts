@@ -17,6 +17,7 @@ type CardMutationVariables =
   | { kind: "update"; card: CardEdit }
   | { kind: "remove"; id: CardId }
   | { kind: "bulkUpsert"; cards: Card[] };
+type CardMutationFailure = { variables: CardMutationVariables; error: unknown };
 
 /**
  * Returns the card identifiers affected by one mutation request.
@@ -30,7 +31,7 @@ const variableIds = (variables: CardMutationVariables): CardId[] => {
 
 interface CardMutationRunDependencies {
   mutateAsync: (variables: CardMutationVariables) => Promise<unknown>;
-  lastFailed: { current: CardMutationVariables | undefined };
+  failureRef: { current: CardMutationFailure | undefined };
   setPendingCounts: (update: (current: Map<CardId, number>) => Map<CardId, number>) => void;
   setError: (error: unknown) => void;
   generation: number;
@@ -43,9 +44,11 @@ interface CardMutationRunDependencies {
  */
 const runCardMutation = async (
   variables: CardMutationVariables,
-  { mutateAsync, lastFailed, setPendingCounts, setError, generation, currentGeneration }: CardMutationRunDependencies
+  { mutateAsync, failureRef, setPendingCounts, setError, generation, currentGeneration }: CardMutationRunDependencies
 ) => {
   const ids = variableIds(variables);
+  const failed = failureRef.current;
+  const retryOf = failed?.variables === variables ? failed : undefined;
   setPendingCounts((current) => {
     const next = new Map(current);
     ids.forEach((id) => {
@@ -56,11 +59,13 @@ const runCardMutation = async (
   try {
     await mutateAsync(variables);
     if (currentGeneration.current !== generation) return;
-    lastFailed.current = undefined;
-    setError(null);
+    if (retryOf != null && failureRef.current === retryOf) {
+      failureRef.current = undefined;
+      setError(null);
+    }
   } catch (error) {
     if (currentGeneration.current !== generation) throw error;
-    lastFailed.current = variables;
+    failureRef.current = { variables, error };
     setError(error);
     throw error;
   } finally {
@@ -89,17 +94,23 @@ export const useCardMutations = () => {
   const remote = useRemoteCollections();
   const generation = useRef(0);
   const generationUid = useRef(uid);
+  const [stateUid, setStateUid] = useState(uid);
   const [pendingState, setPendingState] = useState(() => ({ uid, counts: new Map<CardId, number>() }));
   const [errorState, setErrorState] = useState<{ uid: string; error: unknown }>(() => ({
     uid,
     error: null,
   }));
-  const lastFailed = useRef<CardMutationVariables>(undefined);
+  const failureRef = useRef<CardMutationFailure>(undefined);
+  if (stateUid !== uid) {
+    setStateUid(uid);
+    setPendingState({ uid, counts: new Map() });
+    setErrorState({ uid, error: null });
+  }
   useEffect(() => {
     if (generationUid.current === uid) return;
     generationUid.current = uid;
     generation.current += 1;
-    lastFailed.current = undefined;
+    failureRef.current = undefined;
   }, [uid]);
   const setPendingCounts = (update: (current: Map<CardId, number>) => Map<CardId, number>) => {
     setPendingState((current) => ({
@@ -137,7 +148,7 @@ export const useCardMutations = () => {
   const run = (variables: CardMutationVariables) =>
     runCardMutation(variables, {
       mutateAsync,
-      lastFailed,
+      failureRef,
       setPendingCounts,
       setError,
       generation: generation.current,
@@ -165,8 +176,8 @@ export const useCardMutations = () => {
     pending: pendingState.uid === uid && pendingState.counts.size > 0,
     error: errorState.uid === uid ? errorState.error : null,
     retry: () => {
-      const variables = lastFailed.current;
-      if (variables != null) void run(variables).catch(() => undefined);
+      const failure = failureRef.current;
+      if (failure != null) void run(failure.variables).catch(() => undefined);
     },
   };
 };

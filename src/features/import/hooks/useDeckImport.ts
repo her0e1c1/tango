@@ -212,6 +212,7 @@ export const useDeckImport = () => {
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const generation = useRef(0);
   const generationUid = useRef(uid);
+  const [stateUid, setStateUid] = useState(uid);
   const runningRef = useRef(false);
   const [runningState, setRunningState] = useState(() => ({ uid, value: false }));
   const [validatingState, setValidatingState] = useState(() => ({ uid, value: false }));
@@ -227,6 +228,14 @@ export const useDeckImport = () => {
     uid,
     value: undefined,
   }));
+  if (stateUid !== uid) {
+    setStateUid(uid);
+    setRunningState({ uid, value: false });
+    setValidatingState({ uid, value: false });
+    setPreviewState({ uid, value: undefined });
+    setErrorState({ uid, value: null });
+    setDataState({ uid, value: undefined });
+  }
   const lastRequest = useRef<ImportRequest>(undefined);
   const dependenciesRef = useRef<DeckImportDependencies>(undefined);
   const runRef = useRef<(request: ImportRequest) => Promise<DeckImportResult>>(undefined);
@@ -339,6 +348,8 @@ export const useDeckImport = () => {
    * A configured GitHub token is attached for private raw-content requests.
    */
   const importUrl = async (url: string, name?: string) => {
+    const operationGeneration = generation.current;
+    const operationUid = uid;
     const headers: Record<string, string> = {};
     if (config.githubAccessToken !== "") {
       headers.Accept = "application/vnd.github.raw";
@@ -347,6 +358,9 @@ export const useDeckImport = () => {
     const response = await fetch(url, { headers });
     if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
     const cards = await action.deck.parseCsv(await response.text());
+    if (generation.current !== operationGeneration || dependenciesRef.current?.uid !== operationUid) {
+      throw new Error("Deck import user changed before the import could start");
+    }
     return await run({
       kind: "content",
       name: name ?? url.split("/").pop() ?? "no name",

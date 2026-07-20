@@ -290,4 +290,57 @@ describe("useDeckMutations", () => {
       expect(result.current.error).toBeNull();
     });
   });
+
+  it("does not resurrect Deck state after an A-to-B-to-A UID transition", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    const error = new Error("failed");
+    mocks.update.mockRejectedValueOnce(error);
+    const { result, rerender } = renderHook(useDeckMutations, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+
+    await act(async () => {
+      await expect(result.current.update(deck)).rejects.toBe(error);
+    });
+    expect(result.current.error).toBe(error);
+    mocks.uid = "uid-b";
+    rerender();
+    mocks.uid = "uid-a";
+    rerender();
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.pending).toBe(false);
+  });
+
+  it("queues a failed remove retry behind an unrelated same-Deck update", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    const error = new Error("remove failed");
+    let finishUpdate!: () => void;
+    let finishRetry!: () => void;
+    mocks.remove
+      .mockRejectedValueOnce(error)
+      .mockReturnValueOnce(new Promise<void>((resolve) => (finishRetry = resolve)));
+    mocks.update.mockReturnValueOnce(new Promise<void>((resolve) => (finishUpdate = resolve)));
+    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+
+    await act(async () => {
+      await expect(result.current.remove(deck)).rejects.toBe(error);
+    });
+    let update!: Promise<void>;
+    act(() => {
+      update = result.current.update(deck);
+      result.current.retry();
+    });
+    expect(mocks.remove).toHaveBeenCalledOnce();
+    expect(result.current.error).toBe(error);
+
+    await act(async () => {
+      finishUpdate();
+      await update;
+    });
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
+    expect(result.current.error).toBe(error);
+    await act(async () => finishRetry());
+    await waitFor(() => expect(result.current.error).toBeNull());
+  });
 });

@@ -24,9 +24,10 @@ export interface CardMutationServiceDependencies {
 export class CardBulkMutationError extends Error {
   constructor(
     public readonly failedIds: CardId[],
-    total: number
+    total: number,
+    options?: ErrorOptions
   ) {
-    super(`${failedIds.length} of ${total} Card writes failed`);
+    super(`${failedIds.length} of ${total} Card writes failed`, options);
   }
 }
 
@@ -67,7 +68,12 @@ export const createCardMutationService = (dependencies: CardMutationServiceDepen
           });
           if (failedIds.length === 0) return;
 
-          const authoritative = await dependencies.readCards(uid);
+          let authoritative: Card[];
+          try {
+            authoritative = await dependencies.readCards(uid);
+          } catch (error) {
+            throw new CardBulkMutationError(failedIds, upserts.length, { cause: error });
+          }
           replaceCards(uid, toRemoteById(authoritative));
           throw new CardBulkMutationError(failedIds, upserts.length);
         }
