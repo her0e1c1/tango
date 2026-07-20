@@ -1,3 +1,9 @@
+/**
+ * @file Defines Storybook examples for Remote Mutation Notice.
+ * These isolated scenarios show developers how the component looks, which props it accepts, and
+ * how it responds to interaction.
+ */
+
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { RemoteMutationNotice as Template } from "@/components/feedback/RemoteMutationNotice";

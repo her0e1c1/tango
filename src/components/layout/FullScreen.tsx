@@ -1,7 +1,18 @@
+/**
+ * @file Defines the reusable Full Screen component in the shared layout library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 import { useButtonInteraction } from "@/components/feedback/buttonInteraction";
 
+/**
+ * Renders the Full Screen user interface.
+ * Creates a viewport-sized wrapper whose children can be centered, scrollable, flex-based, or
+ * clickable.
+ */
 export const FullScreen: React.FC<{
   className?: string;
   scroll?: boolean;

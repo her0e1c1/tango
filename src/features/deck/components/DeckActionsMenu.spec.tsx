@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "DeckActionsMenu" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "opens an accessible menu
+ * and routes each action", "omits Restart for inactive decks", "supports arrow navigation and
+ * returns focus to the trigger on Escape".
+ */
+
 import * as React from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -7,6 +14,10 @@ import { DeckActionsMenu } from "@/features/deck/components/DeckActionsMenu";
 
 type ControlledMenuProps = Omit<React.ComponentProps<typeof DeckActionsMenu>, "open" | "onToggle" | "onClose">;
 
+/**
+ * Renders the test-only Controlled Menu component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
   const [open, setOpen] = React.useState(false);
   return (
@@ -19,6 +30,10 @@ const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
   );
 };
 
+/**
+ * Renders the test-only Disableable Menu component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const DisableableMenu: React.FC = () => {
   const [open, setOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);

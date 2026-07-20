@@ -1,3 +1,9 @@
+/**
+ * @file Connects application state and operations to the card feature's Card List Container view.
+ * The container prepares route data and callbacks, then delegates visual rendering to presentation
+ * components.
+ */
+
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
@@ -14,6 +20,11 @@ import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useConfig } from "@/hooks/useConfig";
 
+/**
+ * Connects the Card List Content view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; config: ConfigState }) => {
   const { deck, cards, tags, config } = props;
   const deckId = deck.id;
@@ -22,6 +33,10 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const mutations = useCardMutations();
   const deckActions = useDeckActions(deckId);
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
+  /**
+   * Closes the currently selected card preview.
+   * Clearing the selection returns the list container to its unexpanded state.
+   */
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : util.getCategory(deck.category, showCard.tags);
 
@@ -80,6 +95,11 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   );
 };
 
+/**
+ * Connects the Card List Container view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const CardListContainer: React.FC = () => {
   const params = useParams();
   const navigate = useNavigate();

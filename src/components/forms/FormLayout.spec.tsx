@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "shared form layout" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "presents label, value,
+ * help, and error with a clear visual hierarchy", "allows long labels and values to wrap without
+ * widening the form", "keeps legacy extra copy and stacks column items on mobile".
+ */
+
 import { cleanup, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";

@@ -1,3 +1,9 @@
+/**
+ * @file Defines the deck feature's Deck Actions Menu presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import * as React from "react";
 import { AiOutlineCloudDownload, AiOutlineDelete, AiOutlineEdit, AiOutlineReload } from "react-icons/ai";
 import { ActionsMenu, type ActionsMenuItem } from "@/components/forms/ActionsMenu";
@@ -14,6 +20,11 @@ export interface DeckActionsMenuProps {
   onDelete?: () => void;
 }
 
+/**
+ * Renders the Deck Actions Menu user interface.
+ * Offers deck actions, closes when disabled during pending work, and reports selections and
+ * dismissal to its owner.
+ */
 export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
   const { disabled, onClose, open } = props;
   React.useEffect(() => {

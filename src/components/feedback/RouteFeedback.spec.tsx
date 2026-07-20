@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "RouteFeedback" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders loading feedback
+ * with a heading and description", "renders error feedback as an alert and invokes its primary
+ * action", "renders secondary action before primary action for not-found feedback".
+ */
+
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";

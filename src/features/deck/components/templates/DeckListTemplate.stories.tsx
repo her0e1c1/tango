@@ -1,3 +1,9 @@
+/**
+ * @file Defines Storybook examples for Deck List Template.
+ * These isolated scenarios show developers how the component looks, which props it accepts, and
+ * how it responds to interaction.
+ */
+
 import type { Meta, StoryObj } from "@storybook/react";
 
 import {
@@ -8,7 +14,17 @@ import {
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
+/**
+ * Prepares other items data for the Storybook examples in this file.
+ * The helper keeps sample setup separate from the component configuration readers are meant to
+ * inspect.
+ */
 const otherItems = (decks: Deck[]): DeckListItem[] => decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
+/**
+ * Prepares studying items data for the Storybook examples in this file.
+ * The helper keeps sample setup separate from the component configuration readers are meant to
+ * inspect.
+ */
 const studyingItems = (decks: Deck[]): DeckListItem[] =>
   decks.map((deck, index) => ({
     deck,

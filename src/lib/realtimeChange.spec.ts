@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "applyRealtimeChange" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "inserts added items",
+ * "updates modified items", "deletes removed items".
+ */
+
 import { expect, it, describe } from "vitest";
 import { applyRealtimeChange } from "@/lib/realtimeChange";
 

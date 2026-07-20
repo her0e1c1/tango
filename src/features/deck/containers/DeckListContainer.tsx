@@ -1,3 +1,9 @@
+/**
+ * @file Connects application state and operations to the deck feature's Deck List Container view.
+ * The container prepares route data and callbacks, then delegates visual rendering to presentation
+ * components.
+ */
+
 import * as React from "react";
 import { useKey } from "react-use";
 
@@ -14,6 +20,11 @@ import { useRemoteCollections } from "@/query/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
 import { useActions } from "@/hooks/useActions";
 
+/**
+ * Connects the Deck List Container view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const DeckListContainer: React.FC = () => {
   const actions = useActions();
   const config = useConfig();

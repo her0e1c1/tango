@@ -1,3 +1,9 @@
+/*
+ * @file Defines the Code visual rules shared by the related components.
+ * The selectors describe appearance only; component behavior remains in the neighboring TypeScript
+ * files.
+ */
+
 @use "sass:meta";
 
 code[data-theme="light"] {

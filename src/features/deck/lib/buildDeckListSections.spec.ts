@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "buildDeckListSections" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "puts active decks in recent
+ * order and inactive decks in name order", "uses deck name as a stable tie breaker for equally
+ * recent sessions".
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { buildDeckListSections } from "@/features/deck/lib/buildDeckListSections";

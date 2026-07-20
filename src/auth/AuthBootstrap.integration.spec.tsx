@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "AuthBootstrap integration" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "starts remote reads once
+ * for one confirmed state under StrictMode and AuthProvider", "automatically retries a failed
+ * unchanged auth request only once".
+ */
+
 import { act, cleanup, render, waitFor } from "@testing-library/react";
 import type { Auth, User, UserCredential } from "firebase/auth";
 import { StrictMode } from "react";
@@ -22,6 +29,10 @@ vi.mock("@/query/reads/remoteReadSession", () => ({ startRemoteReads: mocks.star
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
 import { AuthProvider, createAuthStore } from "@/auth/AuthContext";
 
+/**
+ * Provides the create harness test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createHarness = () => {
   let publishUser: (user: User | null) => void = () => undefined;
   const store = createAuthStore({

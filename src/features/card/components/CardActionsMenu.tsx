@@ -1,3 +1,9 @@
+/**
+ * @file Defines the card feature's Card Actions Menu presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import type * as React from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { ActionsMenu, type ActionsMenuItem } from "@/components/forms/ActionsMenu";
@@ -12,6 +18,11 @@ export interface CardActionsMenuProps {
   onDelete?: () => void;
 }
 
+/**
+ * Renders the Card Actions Menu user interface.
+ * Offers edit and delete actions for a card and reports closing, selection, and pending state to
+ * its owner.
+ */
 export const CardActionsMenu: React.FC<CardActionsMenuProps> = (props) => {
   const items: ActionsMenuItem[] = [
     {

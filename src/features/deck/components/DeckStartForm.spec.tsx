@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "DeckStartForm" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "labels score controls and
+ * preserves values and callbacks", "shows unrestricted disabled limits".
+ */
+
 import { cleanup, fireEvent, render, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -5,6 +11,10 @@ import "@testing-library/jest-dom/vitest";
 
 import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
 
+/**
+ * Provides the create props test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createProps = (): DeckStartFormProps => ({
   scoreMax: 4,
   scoreMin: -2,

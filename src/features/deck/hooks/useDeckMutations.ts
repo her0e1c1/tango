@@ -1,3 +1,9 @@
+/**
+ * @file Provides the deck feature's Use Deck Mutations React hook.
+ * The hook combines state and operations behind one interface so components do not need to
+ * coordinate services themselves.
+ */
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
@@ -13,9 +19,18 @@ interface UseDeckMutationsOptions {
   onRemoveSuccess?: (deck: Deck) => void;
 }
 
+/**
+ * Checks whether the supplied value satisfies the same operation condition.
+ * A named predicate makes the decision rule reusable and easier to recognize at each call site.
+ */
 const isSameOperation = (left: Variables, right: Variables) =>
   left.kind === right.kind && left.deck.id === right.deck.id;
 
+/**
+ * Provides the deck mutations values and operations needed by React components.
+ * Callers receive one focused interface without coordinating the deck feature's stores and
+ * services themselves.
+ */
 export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = {}) => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
@@ -44,6 +59,10 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
       else await service.remove(uid, deck.id);
     },
   });
+  /**
+   * Runs the current deck feature operation and returns its result.
+   * Progress and failure cleanup stay in one place so callers observe a consistent workflow state.
+   */
   const run = (variables: Variables) => {
     const failed = failureRef.current;
     const retryOf = failed != null && isSameOperation(failed.variables, variables) ? failed : undefined;

@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "BackText" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "preserves plain text and
+ * click behavior with long-content wrapping", "preserves code and math rendering".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";

@@ -1,3 +1,9 @@
+/**
+ * @file Defines Storybook examples for Card Form Template.
+ * These isolated scenarios show developers how the component looks, which props it accepts, and
+ * how it responds to interaction.
+ */
+
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
@@ -6,6 +12,11 @@ import { CardFormTemplate as Template } from "@/features/card/components/templat
 import type { Option } from "@/components/forms/Select";
 import * as fixture from "@/storybook/fixture";
 
+/**
+ * Prepares fields for data for the Storybook examples in this file.
+ * The helper keeps sample setup separate from the component configuration readers are meant to
+ * inspect.
+ */
 const fieldsFor = (card: Card, options: Option[]): CardFormFields => ({
   frontText: { value: card.frontText, onChange: () => undefined },
   backText: { value: card.backText, onChange: () => undefined },

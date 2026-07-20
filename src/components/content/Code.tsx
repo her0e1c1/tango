@@ -1,9 +1,20 @@
+/**
+ * @file Defines the reusable Code component in the shared content library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import * as React from "react";
 import { Style } from "@/components/content/Style";
 import hljs from "highlight.js";
 import "./Code.scss";
 
+/**
+ * Renders the Highlight user interface.
+ * Highlights the supplied source text with its Prism language category and the selected light or
+ * dark theme.
+ */
 const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = ({ category, dark, text }) => {
   const codeRef = React.useRef<HTMLElement>(null);
 
@@ -37,6 +48,11 @@ const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = (
   );
 };
 
+/**
+ * Renders the Code user interface.
+ * Displays source text in a horizontally scrollable code block and delegates syntax coloring to
+ * Highlight.
+ */
 export const Code: React.FC<{ text: string; category: string; dark?: boolean }> = ({
   text,
   category,

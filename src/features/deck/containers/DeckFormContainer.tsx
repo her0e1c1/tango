@@ -1,3 +1,9 @@
+/**
+ * @file Connects application state and operations to the deck feature's Deck Form Container view.
+ * The container prepares route data and callbacks, then delegates visual rendering to presentation
+ * components.
+ */
+
 import type * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
@@ -12,6 +18,11 @@ import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { deckFormSchema, type DeckFormValues } from "@/features/deck/lib/deckFormSchema";
 import { useConfig } from "@/hooks/useConfig";
 
+/**
+ * Connects the Deck Form Content view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const config = useConfig();
   const actions = useActions();
@@ -65,6 +76,11 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
   );
 };
 
+/**
+ * Connects the Deck Form Container view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const DeckFormContainer: React.FC = () => {
   const params = useParams();
   const navigate = useNavigate();

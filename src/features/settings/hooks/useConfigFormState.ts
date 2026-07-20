@@ -1,3 +1,9 @@
+/**
+ * @file Provides the settings feature's Use Config Form State React hook.
+ * The hook combines state and operations behind one interface so components do not need to
+ * coordinate services themselves.
+ */
+
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
@@ -15,6 +21,11 @@ export interface UseConfigFormStateOptions {
   version?: string;
 }
 
+/**
+ * Provides the config form state values and operations needed by React components.
+ * Callers receive one focused interface without coordinating the settings feature's stores and
+ * services themselves.
+ */
 export const useConfigFormState = ({
   config,
   onSubmit,

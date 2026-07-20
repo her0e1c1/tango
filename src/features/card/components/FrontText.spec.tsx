@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "FrontText" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "should swipe", "preserves
+ * the front hook, content, and click interaction", "renders math content".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { expect, it, describe, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom";

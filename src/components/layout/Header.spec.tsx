@@ -1,3 +1,11 @@
+/**
+ * @file Verifies the "Header" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders an elevated
+ * safe-area-aware fixed shell with touch-sized SVG actions", "preserves action order and callback
+ * payloads for light and dark modes", "retains clickable SVG actions without changing their
+ * selector contract".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";

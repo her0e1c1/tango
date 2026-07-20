@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "remote sync state" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "distinguishes cached,
+ * pending, and server-synced snapshots after both collections load", "ignores snapshots and errors
+ * from an old UID generation", "publishes listener errors and resets to idle when stopped".
+ */
+
 import { describe, expect, it, vi } from "vitest";
 
 import { createSyncState } from "@/query/reads/syncState";

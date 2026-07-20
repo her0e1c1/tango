@@ -1,3 +1,8 @@
+/**
+ * @file Collects the public exports for the components area.
+ * Callers can import from this boundary without depending on the area's internal folder layout.
+ */
+
 export * from "@/components/forms/Button";
 export * from "@/components/forms/ActionsMenu";
 export * from "@/components/content/Card";

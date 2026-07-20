@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "firestore/deck.exists" contract with automated examples.
+ * The examples cover both snapshot existence values and confirm that Firestore read errors reach
+ * the caller unchanged.
+ */
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({

@@ -1,3 +1,11 @@
+/**
+ * @file Verifies the "remote read controller" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "attaches one listener per
+ * collection and becomes ready from cached initial snapshots", "applies delta snapshots and
+ * publishes pending then server-synced metadata", "forces one refetch and reconnect, then retains
+ * data on a terminal listener error".
+ */
+
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,8 +19,16 @@ import {
 } from "@/query/reads/remoteReadController";
 import { createCard, createDeck } from "@/test/factories";
 
+/**
+ * Provides the by id test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map((item) => [item.id, item]));
 
+/**
+ * Provides the create harness test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createHarness = () => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const deckSubscriptions: Array<RemoteSubscriptionProps<Deck>> = [];

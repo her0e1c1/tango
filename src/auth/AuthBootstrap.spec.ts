@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Auth transition controller" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "ignores persisted identity
+ * until Firebase confirms a user", "starts remote reads from the confirmed Firebase UID", "does
+ * not duplicate work when StrictMode replays the same auth effect".
+ */
+
 import type { User } from "firebase/auth";
 import { describe, expect, it, vi } from "vitest";
 
@@ -9,6 +16,10 @@ vi.mock("@/auth/AuthContext", () => ({ useAuth: vi.fn() }));
 
 import { createAuthTransitionController } from "@/auth/AuthBootstrap";
 
+/**
+ * Provides the create user test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createUser = (
   uid: string,
   { isAnonymous = true, displayName = null }: { isAnonymous?: boolean; displayName?: string | null } = {}
@@ -19,8 +30,16 @@ const createUser = (
     providerData: displayName == null ? [] : [{ displayName }],
   }) as User;
 
+/**
+ * Provides the authenticated test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const authenticated = (user: User): AuthState => ({ status: "authenticated", user, uid: user.uid });
 
+/**
+ * Provides the create dependencies test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createDependencies = () => ({
   cleanupUid: vi.fn(),
   subscribeUid: vi.fn(),

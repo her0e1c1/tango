@@ -1,7 +1,18 @@
+/**
+ * @file Defines the reusable Overlay component in the shared feedback library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 import { useButtonInteraction } from "@/components/feedback/buttonInteraction";
 
+/**
+ * Renders the Overlay user interface.
+ * Positions child content over an edge or the center of its parent and can forward an optional
+ * click action.
+ */
 export const Overlay: React.FC<{
   className?: string;
   position: "left" | "right" | "top" | "bottom" | "center";

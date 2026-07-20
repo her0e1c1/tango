@@ -1,3 +1,9 @@
+/**
+ * @file Provides the import feature's Use Deck Import React hook.
+ * The hook combines state and operations behind one interface so components do not need to
+ * coordinate services themselves.
+ */
+
 import { useMutation } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
@@ -17,11 +23,24 @@ type ImportRequest = { kind: "content"; name: string; rows: DeckImportRow[] } | 
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
+/**
+ * Builds the stable sample deck id used by the import feature.
+ * Centralizing the format prevents different callers from producing incompatible identifiers.
+ */
 export const sampleDeckId = (uid: string): DeckId => `sample-v${SAMPLE_VERSION}-${uid}`;
 
+/**
+ * Converts imported card records into rows with human-readable row numbers.
+ * The row numbers are later used to explain validation and import results to the user.
+ */
 const rowsFromCards = (cards: CardRaw[]): DeckImportRow[] =>
   cards.map((card, index) => ({ rowNumber: index + 1, card }));
 
+/**
+ * Reads a partial import result from an unknown error value when one is available.
+ * The defensive shape checks let the UI show completed and failed row counts without trusting
+ * arbitrary thrown data.
+ */
 const partialResultFrom = (error: unknown): DeckImportResult | undefined => {
   if (error == null || typeof error !== "object" || !("result" in error)) return undefined;
   const result = error.result;
@@ -47,6 +66,11 @@ interface DeckImportDependencies {
   bulkUpsert: (cards: Card[]) => Promise<unknown>;
 }
 
+/**
+ * Creates or finds the destination deck, plans row changes, and writes imported cards.
+ * A bulk-write failure is converted into counts that distinguish successful, skipped, and failed
+ * rows.
+ */
 const executeDeckImport = async (
   request: ImportRequest,
   { uid, decks, cardsByDeckId, createDeck, bulkUpsert }: DeckImportDependencies
@@ -112,6 +136,10 @@ interface ImportRunDependencies {
   mutateAsync: (request: ImportRequest) => Promise<DeckImportResult>;
 }
 
+/**
+ * Runs the deck import workflow for the import feature.
+ * The sequence and its cleanup remain together so partial failures can be handled consistently.
+ */
 const runDeckImport = async (
   request: ImportRequest,
   { runningRef, setRunning, lastRequest, mutateAsync }: ImportRunDependencies
@@ -137,6 +165,11 @@ interface FilePreviewDependencies {
   cardsByDeckId: (id: DeckId) => Card[];
 }
 
+/**
+ * Parses a selected CSV file and builds the preview shown before import.
+ * Existing cards are included in the plan so users can see which rows will be created, updated, or
+ * skipped.
+ */
 const previewDeckImportFile = async (
   file: File,
   { runningRef, setValidating, setPreview, reset, decks, cardsByDeckId }: FilePreviewDependencies
@@ -162,6 +195,11 @@ const previewDeckImportFile = async (
   }
 };
 
+/**
+ * Provides the deck import values and operations needed by React components.
+ * Callers receive one focused interface without coordinating the import feature's stores and
+ * services themselves.
+ */
 export const useDeckImport = () => {
   const auth = useAuth();
   const config = useConfig();
@@ -186,6 +224,10 @@ export const useDeckImport = () => {
       }),
   });
 
+  /**
+   * Runs the current import feature operation and returns its result.
+   * Progress and failure cleanup stay in one place so callers observe a consistent workflow state.
+   */
   const run = (request: ImportRequest) =>
     runDeckImport(request, {
       runningRef,
@@ -194,6 +236,10 @@ export const useDeckImport = () => {
       mutateAsync: operation.mutateAsync,
     });
 
+  /**
+   * Validates the selected CSV file and stores its import preview.
+   * No remote data is changed until the user confirms that preview.
+   */
   const selectFile = (file: File) =>
     previewDeckImportFile(file, {
       runningRef,
@@ -204,6 +250,11 @@ export const useDeckImport = () => {
       cardsByDeckId: remote.cardsByDeckId,
     });
 
+  /**
+   * Imports the currently validated preview after checking that it contains usable rows.
+   * Concurrent imports and previews with validation errors are rejected before any remote mutation
+   * starts.
+   */
   const importPreview = () => {
     if (runningRef.current) return Promise.reject(new Error("A Deck import is already running"));
     if (preview == null) return Promise.reject(new Error("Select a CSV file before importing"));
@@ -216,6 +267,10 @@ export const useDeckImport = () => {
     return run({ kind: "content", name: preview.deckName, rows: preview.analysis.rows });
   };
 
+  /**
+   * Downloads card CSV data from a URL and runs it through the normal import workflow.
+   * A configured GitHub token is attached for private raw-content requests.
+   */
   const importUrl = async (url: string, name?: string) => {
     const headers: Record<string, string> = {};
     if (config.githubAccessToken !== "") {
@@ -232,6 +287,10 @@ export const useDeckImport = () => {
     });
   };
 
+  /**
+   * Retries the current import feature operation and returns its result.
+   * Progress and failure cleanup stay in one place so callers observe a consistent workflow state.
+   */
   const retry = () => {
     const request = lastRequest.current;
     if (request != null && !runningRef.current) void run(request).catch(() => undefined);

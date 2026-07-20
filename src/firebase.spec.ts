@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Firebase singletons" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "exports one app with stable
+ * auth and Firestore instances", "uses persistent single-tab cache in production", "uses
+ * injectable memory cache for tests and the emulator".
+ */
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 import { initializeApp } from "firebase/app";

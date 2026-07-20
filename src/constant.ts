@@ -1,3 +1,8 @@
+/**
+ * @file Defines shared defaults and option lists used across Tango.
+ * Centralizing these values keeps forms, study behavior, and persistence code consistent.
+ */
+
 export const SWIPE_GESTURES = {
   cardSwipeUp: "↑",
   cardSwipeDown: "↓",
@@ -57,6 +62,10 @@ export const MAPPING = {
 
 type MAPPINGKEY = keyof typeof MAPPING;
 
+/**
+ * Checks whether a language name is one of Tango's recognized shorthand aliases.
+ * A successful check lets TypeScript safely use the value as a key in the language mapping table.
+ */
 export const CanMapping = (x: string): x is MAPPINGKEY => {
   return x in MAPPING;
 };

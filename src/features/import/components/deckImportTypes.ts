@@ -1,3 +1,9 @@
+/**
+ * @file Defines the data contracts shared by the deck-import screen, hook, and analysis logic.
+ * Keeping preview, result, and row shapes here lets each layer exchange import data without
+ * depending on another layer's implementation.
+ */
+
 export interface DeckImportRow {
   rowNumber: number;
   card: CardRaw;

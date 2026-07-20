@@ -1,3 +1,9 @@
+/**
+ * @file Composes the settings feature's complete Config Form Template screen.
+ * Data and callbacks arrive through props, which keeps this presentation usable in both a live
+ * container and Storybook.
+ */
+
 import type * as React from "react";
 import { Layout } from "@/components/layout/Layout";
 import { ConfigForm, type ConfigFormProps } from "@/features/settings/components/ConfigForm";
@@ -7,6 +13,11 @@ export interface ConfigFormTemplateProps {
   configForm?: ConfigFormProps;
 }
 
+/**
+ * Composes the complete Config Form Template screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 export const ConfigFormTemplate: React.FC<ConfigFormTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>

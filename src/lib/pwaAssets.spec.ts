@@ -1,3 +1,11 @@
+/**
+ * @file Verifies the "Tango PWA identity" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "provides a code-native
+ * Tango SVG mark without the stock React identity", "provides geometry-identical light and dark
+ * Card trail logos with outlined lettering", "displays the light and dark Card trail logo as the
+ * README heading".
+ */
+
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -53,24 +61,44 @@ interface IcoInfo {
 
 afterEach(cleanup);
 
+/**
+ * Provides the project path test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function projectPath(relativePath: string): string {
   return path.resolve(projectRoot, relativePath);
 }
 
+/**
+ * Reads text needed by the test.
+ * File access stays in one helper so assertions work with consistent paths and encoding.
+ */
 function readText(relativePath: string): string {
   const absolutePath = projectPath(relativePath);
   return existsSync(absolutePath) ? readFileSync(absolutePath, "utf8") : "";
 }
 
+/**
+ * Reads bytes needed by the test.
+ * File access stays in one helper so assertions work with consistent paths and encoding.
+ */
 function readBytes(relativePath: string): Buffer {
   const absolutePath = projectPath(relativePath);
   return existsSync(absolutePath) ? readFileSync(absolutePath) : Buffer.alloc(0);
 }
 
+/**
+ * Provides the sha256 test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function sha256(bytes: Buffer): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+/**
+ * Provides the inspect png test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function inspectPng(bytes: Buffer): PngInfo | undefined {
   if (bytes.length < 33 || !bytes.subarray(0, pngSignature.length).equals(pngSignature)) return undefined;
 
@@ -114,6 +142,10 @@ function inspectPng(bytes: Buffer): PngInfo | undefined {
   };
 }
 
+/**
+ * Provides the paeth predictor test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function paethPredictor(left: number, above: number, upperLeft: number): number {
   const prediction = left + above - upperLeft;
   const leftDistance = Math.abs(prediction - left);
@@ -124,6 +156,10 @@ function paethPredictor(left: number, above: number, upperLeft: number): number 
   return aboveDistance <= upperLeftDistance ? above : upperLeft;
 }
 
+/**
+ * Provides the decode rgba png test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function decodeRgbaPng(bytes: Buffer): DecodedPng | undefined {
   const png = inspectPng(bytes);
   if (
@@ -187,6 +223,10 @@ function decodeRgbaPng(bytes: Buffer): DecodedPng | undefined {
   return { width: png.width, height: png.height, pixels };
 }
 
+/**
+ * Provides the artwork bounds test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function artworkBounds(png: DecodedPng): ArtworkBounds | undefined {
   let minX = png.width;
   let minY = png.height;
@@ -212,6 +252,10 @@ function artworkBounds(png: DecodedPng): ArtworkBounds | undefined {
   return maxX === -1 ? undefined : { width: maxX - minX + 1, height: maxY - minY + 1 };
 }
 
+/**
+ * Provides the ico png payload test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function icoPngPayload(bytes: Buffer): Buffer | undefined {
   if (inspectIco(bytes) === undefined) return undefined;
 
@@ -221,6 +265,10 @@ function icoPngPayload(bytes: Buffer): Buffer | undefined {
   return payload.subarray(0, pngSignature.length).equals(pngSignature) ? payload : undefined;
 }
 
+/**
+ * Runs the shared expect artwork fills canvas assertions for one test subject.
+ * Keeping the repeated expectations together lets each test emphasize the scenario being checked.
+ */
 function expectArtworkFillsCanvas(bytes: Buffer, expectedSize: number): void {
   const png = decodeRgbaPng(bytes);
   expect(png).toBeDefined();
@@ -234,6 +282,10 @@ function expectArtworkFillsCanvas(bytes: Buffer, expectedSize: number): void {
   expect(bounds?.height).toBeGreaterThanOrEqual(expectedSize * 0.85);
 }
 
+/**
+ * Runs the shared expect transparent canvas assertions for one test subject.
+ * Keeping the repeated expectations together lets each test emphasize the scenario being checked.
+ */
 function expectTransparentCanvas(bytes: Buffer): void {
   const png = decodeRgbaPng(bytes);
   expect(png).toBeDefined();
@@ -254,6 +306,10 @@ function expectTransparentCanvas(bytes: Buffer): void {
   expect(partiallyTransparentPixels).toBeGreaterThan(0);
 }
 
+/**
+ * Evaluates the has valid ico payload condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function hasValidIcoPayload(
   bytes: Buffer,
   dataOffset: number,
@@ -292,6 +348,10 @@ function hasValidIcoPayload(
   );
 }
 
+/**
+ * Provides the inspect ico test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function inspectIco(bytes: Buffer): IcoInfo | undefined {
   if (bytes.length < 6) return undefined;
 
@@ -332,12 +392,20 @@ function inspectIco(bytes: Buffer): IcoInfo | undefined {
   };
 }
 
+/**
+ * Evaluates the has link condition used by this test file.
+ * The named predicate makes the architecture or behavior rule explicit in each assertion.
+ */
 function hasLink(document: Document, attributes: Record<string, string>): boolean {
   return Array.from(document.querySelectorAll("link")).some((link) =>
     Object.entries(attributes).every(([name, value]) => link.getAttribute(name) === value)
   );
 }
 
+/**
+ * Provides the story block test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function storyBlock(source: string, storyName: string): string {
   const start = source.indexOf(`export const ${storyName}:`);
   if (start === -1) return "";

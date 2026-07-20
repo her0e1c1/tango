@@ -1,3 +1,9 @@
+/**
+ * @file Defines the card feature's Front Text presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 import { MathContent, Title, useButtonInteraction } from "@/components";
@@ -13,6 +19,11 @@ export interface FrontTextProps {
   onClick?: () => void;
 }
 
+/**
+ * Renders the Front Text user interface.
+ * Displays a card's prompt content, including rich text and optional code or mathematical
+ * notation.
+ */
 export const FrontText: React.FC<FrontTextProps> = (props) => {
   const handlers = useSwipeable({
     ...(props.onSwipeLeft !== undefined ? { onSwipedLeft: props.onSwipeLeft } : {}),

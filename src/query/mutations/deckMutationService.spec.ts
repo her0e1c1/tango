@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "createDeckMutationService" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "rolls back a failed Deck
+ * update", "rolls back a failed Deck delete together with its child Cards", "waits for a child
+ * Card mutation before deleting its Deck".
+ */
+
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,6 +14,10 @@ import { createCardMutationService } from "@/query/mutations/cardMutationService
 import { createDeckMutationService } from "@/query/mutations/deckMutationService";
 import { createCard, createDeck } from "@/test/factories";
 
+/**
+ * Provides the deferred test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const deferred = () => {
   let resolve!: () => void;
   const promise = new Promise<void>((next) => {

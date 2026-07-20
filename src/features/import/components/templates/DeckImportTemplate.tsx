@@ -1,3 +1,9 @@
+/**
+ * @file Composes the import feature's complete Deck Import Template screen.
+ * Data and callbacks arrive through props, which keeps this presentation usable in both a live
+ * container and Storybook.
+ */
+
 import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
 
@@ -23,6 +29,10 @@ interface DeckImportTemplateProps {
   error?: unknown;
 }
 
+/**
+ * Renders the created, updated, skipped, and failed totals for an import result.
+ * The same compact summary is used for successful and partially failed imports.
+ */
 const resultCounts = (result: DeckImportResult) => (
   <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption">
     <li>{result.created} created</li>
@@ -40,6 +50,11 @@ interface ImportResultProps {
   onBack: (() => void) | undefined;
 }
 
+/**
+ * Composes the complete Import Result screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 const ImportResult = (props: ImportResultProps) => {
   if (props.partialResult != null) {
     return (
@@ -96,6 +111,11 @@ interface ImportPreviewProps {
   onImport: (() => void) | undefined;
 }
 
+/**
+ * Composes the complete Import Preview screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 const ImportPreview = (props: ImportPreviewProps) => {
   const preview = props.preview;
   if (preview == null) return null;
@@ -201,6 +221,11 @@ const ImportPreview = (props: ImportPreviewProps) => {
   );
 };
 
+/**
+ * Composes the complete Deck Import Template screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 export const DeckImportTemplate: React.FC<DeckImportTemplateProps> = (props) => {
   const busy = props.pending === true || props.validating === true;
 

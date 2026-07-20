@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "RemoteReadBoundary" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "shows loading instead of
+ * children before initial data", "shows a terminal error and Retry before initial data", "blocks
+ * data access when another tab owns persistent offline storage".
+ */
+
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";

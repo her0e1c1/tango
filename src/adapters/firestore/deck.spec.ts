@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "splitCards" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "should create a deck and
+ * check if exists", "should update a deck", "should delete a deck".
+ */
+
 import "./init";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";

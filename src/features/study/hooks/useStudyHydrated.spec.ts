@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "useStudyHydrated" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "subscribes to hydration
+ * start and finish without an effect state update".
+ */
+
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

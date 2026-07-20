@@ -1,3 +1,9 @@
+/**
+ * @file Defines Storybook examples for Config Form.
+ * These isolated scenarios show developers how the component looks, which props it accepts, and
+ * how it responds to interaction.
+ */
+
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { ConfigForm as Template, type ConfigFormFields } from "@/features/settings/components/ConfigForm";

@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "Query realtime subscriptions" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "delivers initial, update,
+ * and delete snapshots without a cursor".
+ */
+
 import "./init";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";

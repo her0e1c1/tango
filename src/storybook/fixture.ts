@@ -1,3 +1,9 @@
+/**
+ * @file Provides shared Storybook support for Fixture.
+ * Stories reuse this setup to display components with realistic data, providers, and viewport
+ * settings.
+ */
+
 import type { Option } from "@/components/forms/Select";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 

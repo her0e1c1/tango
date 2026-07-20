@@ -1,8 +1,19 @@
+/**
+ * @file Provides the deck feature's Use Deck Actions React hook.
+ * The hook combines state and operations behind one interface so components do not need to
+ * coordinate services themselves.
+ */
+
 import { useNavigate } from "react-router-dom";
 
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
 
+/**
+ * Provides the deck actions values and operations needed by React components.
+ * Callers receive one focused interface without coordinating the deck feature's stores and
+ * services themselves.
+ */
 export const useDeckActions = (id: DeckId) => {
   const navigate = useNavigate();
   const remote = useRemoteCollections();

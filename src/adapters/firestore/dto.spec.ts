@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Firestore DTO builders" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "maps only remote deck
+ * fields using the snapshot id", "omits an absent optional url when mapping a remote deck", "maps
+ * only remote card fields using the snapshot id".
+ */
+
 import { describe, expect, it } from "vitest";
 import { Timestamp } from "firebase/firestore";
 

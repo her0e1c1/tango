@@ -1,3 +1,9 @@
+/**
+ * @file Defines the reusable Actions Menu component in the shared form library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import type * as React from "react";
 import { AiOutlineMore } from "react-icons/ai";
 
@@ -38,6 +44,10 @@ const focusableSelector = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(",");
 
+/**
+ * Moves keyboard focus to the menu item next to the trigger button.
+ * This preserves an intuitive focus position when an actions menu opens from either direction.
+ */
 const focusAdjacentToTrigger = (menu: HTMLElement, direction: -1 | 1) => {
   const trigger = menu.parentElement?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]');
   if (trigger == null) return;
@@ -49,12 +59,25 @@ const focusAdjacentToTrigger = (menu: HTMLElement, direction: -1 | 1) => {
   focusable[triggerIndex + direction]?.focus();
 };
 
+/**
+ * Renders the Actions Menu user interface.
+ * Displays available actions in an accessible menu, manages keyboard focus, and reports selection
+ * or dismissal to its owner.
+ */
 export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
+  /**
+   * Returns keyboard focus to the button that opened this actions menu.
+   * Closing an item or tabbing away therefore leaves focus at a predictable control.
+   */
   const focusTrigger = (menu: HTMLElement) => {
     const trigger = menu.parentElement?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]');
     trigger?.focus();
   };
 
+  /**
+   * Wraps a menu action so selecting it also closes the menu and restores trigger focus.
+   * Items can omit their action while still receiving the same predictable menu cleanup.
+   */
   const run = (action?: () => void) => (event: React.MouseEvent<HTMLButtonElement>) => {
     const menu = event.currentTarget.parentElement;
     action?.();
@@ -62,12 +85,22 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
     if (menu != null) focusTrigger(menu);
   };
 
+  /**
+   * Handles the toggle callback for the application.
+   * The handler translates the event or asynchronous result into the next state change or
+   * operation.
+   */
   const handleToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
     const root = event.currentTarget.parentElement;
     props.onToggle();
     if (!props.open) queueMicrotask(() => root?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus());
   };
 
+  /**
+   * Handles the menu key down callback for the application.
+   * The handler translates the event or asynchronous result into the next state change or
+   * operation.
+   */
   const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
       event.preventDefault();
@@ -98,6 +131,11 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
     items[nextIndex]?.focus();
   };
 
+  /**
+   * Handles the blur callback for the application.
+   * The handler translates the event or asynchronous result into the next state change or
+   * operation.
+   */
   const handleBlur = (event: React.FocusEvent<HTMLFieldSetElement>) => {
     const root = event.currentTarget;
     if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;

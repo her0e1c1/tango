@@ -1,3 +1,9 @@
+/**
+ * @file Defines application configuration behavior for Config Store.
+ * It validates persisted settings and exposes a predictable store interface to the rest of the
+ * application.
+ */
+
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import { defaultConfig, parsePersistedConfig } from "@/store/configSchema";
@@ -23,6 +29,10 @@ interface CreateConfigStoreOptions {
   skipHydration?: boolean;
 }
 
+/**
+ * Creates a configuration store that validates and persists user settings.
+ * Optional storage and hydration controls let tests run without the browser's local storage.
+ */
 export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedConfigState>(() => storage ?? localStorage);
   return createStore<ConfigStoreState>()(

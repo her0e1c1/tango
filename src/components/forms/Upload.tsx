@@ -1,7 +1,17 @@
+/**
+ * @file Defines the reusable Upload component in the shared form library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 
+/**
+ * Renders the Upload user interface.
+ * Presents a file picker, displays the selected file name, and passes the chosen File to onChange.
+ */
 export const Upload: React.FC<{
   className?: string;
   disabled?: boolean;

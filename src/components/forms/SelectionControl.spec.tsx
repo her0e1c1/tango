@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "shared selection controls" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "forwards accessible naming
+ * props to the switch input", "forwards accessible naming and value text to the slider input",
+ * "keeps the slider controlled value, native handlers, and input ref".
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";

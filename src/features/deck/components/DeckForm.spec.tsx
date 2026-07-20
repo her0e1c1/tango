@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "DeckForm" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "groups editable settings
+ * and deck information while preserving field values and callbacks", "uses unique section heading
+ * relationships for each form instance", "associates validation errors with their named controls".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -6,6 +13,10 @@ import "@testing-library/jest-dom/vitest";
 import { DeckForm, type DeckFormProps } from "@/features/deck/components/DeckForm";
 import { createDeck } from "@/test/factories";
 
+/**
+ * Provides the create props test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const createProps = (overrides: Partial<DeckFormProps> = {}): DeckFormProps => ({
   deck: createDeck({
     id: "deck-123",

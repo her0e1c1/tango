@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "Firestore full reads" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "reads only active Deck
+ * documents for the UID", "reads only active Card documents for the UID", "returns empty
+ * collections when the UID has no documents".
+ */
+
 import "./init";
 import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";

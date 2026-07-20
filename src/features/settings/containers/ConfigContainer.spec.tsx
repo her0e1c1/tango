@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "ConfigContainer auth identity" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "uses the confirmed
+ * AuthContext UID for display and logout", "does not expose persisted identity while auth is
+ * unconfirmed", "passes local account feedback and wrapped account actions to settings".
+ */
+
 import { render } from "@testing-library/react";
 import type React from "react";
 import type { User } from "firebase/auth";

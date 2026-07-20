@@ -1,3 +1,11 @@
+/**
+ * @file Verifies the "Auth Logout integration" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "waits for logout cleanup
+ * before bootstrapping the next anonymous UID", "keeps post-sign-out cleanup failures visible and
+ * retries only unfinished cleanup", "hands cleanup feedback across auth after retrying a failed
+ * sign-out".
+ */
+
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import type { Auth, User, UserCredential } from "firebase/auth";
@@ -91,6 +99,10 @@ beforeEach(() => {
   localStorage.clear();
 });
 
+/**
+ * Renders the test-only Authenticated Settings component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const AuthenticatedSettings = () => (useAuth().status === "authenticated" ? <ConfigContainer /> : null);
 
 it("waits for logout cleanup before bootstrapping the next anonymous UID", async () => {

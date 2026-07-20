@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "useCardMutations" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "keeps the update runner
+ * stable across an unchanged render", "routes Card updates through the Firestore mutation
+ * service", "exposes immutable pending state while a Card update is running".
+ */
+
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

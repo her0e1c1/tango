@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "useDeckActions" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "navigates to the deck list
+ * after a successful update", "keeps the editor open when the update fails", "goes directly to the
+ * deck list without updating".
+ */
+
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

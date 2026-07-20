@@ -1,3 +1,9 @@
+/**
+ * @file Defines the card feature's Card presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import cx from "classnames";
 import * as React from "react";
 import { useSwipeable } from "react-swipeable";
@@ -22,11 +28,19 @@ export interface CardRowMenuProps {
 
 export type CardProps = CardActionsProps;
 
+/**
+ * Formats how many times a card has been studied.
+ * The label handles the singular and plural forms shown in card metadata.
+ */
 const studiedText = (count: number) => {
   if (count === 0) return "not studied yet";
   return `studied ${count} ${count === 1 ? "time" : "times"}`;
 };
 
+/**
+ * Renders the Card user interface.
+ * Presents one study card's front, back, score, and tags according to its current reveal state.
+ */
 export const Card: React.FC<{ className?: string; card: Card } & CardActionsProps & CardRowMenuProps> = (props) => {
   const id = props.card.id;
   const disabled = Boolean(props.disabled);
@@ -45,6 +59,11 @@ export const Card: React.FC<{ className?: string; card: Card } & CardActionsProp
     const boundary = menuBoundary.current;
     if (boundary == null) return;
 
+    /**
+     * Stops swipe events inside an interactive card element from reaching the outer card gesture
+     * handler.
+     * Links and buttons can therefore be used without accidentally triggering a card swipe.
+     */
     const stopSwipeTracking = (event: Event) => event.stopPropagation();
     const boundaryEvents = ["mousedown", "touchstart", "touchmove", "touchend", "touchcancel"] as const;
     for (const eventName of boundaryEvents) boundary.addEventListener(eventName, stopSwipeTracking);
@@ -54,9 +73,18 @@ export const Card: React.FC<{ className?: string; card: Card } & CardActionsProp
     };
   }, []);
 
+  /**
+   * Wraps an optional action so it receives the current item's identifier when invoked.
+   * Presentation markup can pass a parameterless callback while domain actions still receive the
+   * item they should change.
+   */
   const withId = (action?: (id: CardId) => void) => () => {
     if (!disabled) action?.(id);
   };
+  /**
+   * Wraps an optional swipe action so it receives the current card identifier.
+   * The wrapper also keeps swipe callbacks independent from the card component's event details.
+   */
   const withSwipeId = (action?: (id: CardId) => void) => () => {
     if (disabled) return;
 

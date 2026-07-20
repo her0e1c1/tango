@@ -1,7 +1,18 @@
+/**
+ * @file Defines the reusable Logo component in the shared content library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 import { useButtonInteraction } from "@/components/feedback/buttonInteraction";
 
+/**
+ * Renders the Logo user interface.
+ * Shows the Tango mark or full wordmark and makes it keyboard-accessible when an onClick handler
+ * is supplied.
+ */
 export const Logo: React.FC<{ onClick?: () => void; className?: string; markOnly?: boolean }> = (props) => {
   const clickInteraction = useButtonInteraction<HTMLDivElement>(props.onClick);
   return (

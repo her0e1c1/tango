@@ -1,3 +1,9 @@
+/**
+ * @file Implements the Firestore adapter responsibility for Initialize.
+ * This boundary translates between Tango's application models and Firebase so feature code does
+ * not handle database details directly.
+ */
+
 import type { FirebaseApp } from "firebase/app";
 import {
   connectFirestoreEmulator,
@@ -12,6 +18,11 @@ import {
 import { verifyFirestorePersistence } from "@/adapters/firestore/persistenceProbe";
 import { blockFirestoreRuntime, initializeFirestoreRuntime } from "@/adapters/firestore/runtime";
 
+/**
+ * Initializes Firestore persistence and connects the database to Tango's runtime adapter.
+ * If persistent storage cannot be trusted, the adapter is blocked instead of silently using a
+ * different storage mode.
+ */
 export const initializeFirestoreAdapter = (app: FirebaseApp): Firestore | undefined => {
   let db: Firestore | undefined;
 

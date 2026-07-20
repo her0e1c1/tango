@@ -1,3 +1,9 @@
+/**
+ * @file Defines the reusable Remote Mutation Notice component in the shared feedback library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import { Button } from "@/components/forms/Button";
 
 export interface RemoteMutationNoticeProps {
@@ -9,6 +15,11 @@ export interface RemoteMutationNoticeProps {
   errorLabel?: string;
 }
 
+/**
+ * Renders the Remote Mutation Notice user interface.
+ * Translates mutation progress or failure into a concise status notice and exposes retry when
+ * recovery is available.
+ */
 export const RemoteMutationNotice = (props: RemoteMutationNoticeProps) => {
   const pendingLabel = props.pendingLabel ?? "Saving…";
   const errorLabel = props.errorLabel ?? "Unable to save changes.";

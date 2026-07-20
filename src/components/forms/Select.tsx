@@ -1,3 +1,9 @@
+/**
+ * @file Defines the reusable Select component in the shared form library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 
@@ -6,6 +12,11 @@ export interface Option {
   value: string;
 }
 
+/**
+ * Renders the Select user interface.
+ * Builds a select control from the supplied options and reports the chosen value through its
+ * change handler.
+ */
 export const Select: React.FC<{
   options?: Option[];
   empty?: boolean;

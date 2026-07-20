@@ -1,6 +1,17 @@
+/**
+ * @file Defines the reusable Card component in the shared content library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 
+/**
+ * Renders the Card user interface.
+ * Wraps child content in the shared card surface, with optional full-width, border, and disabled
+ * styles.
+ */
 export const Card: React.FC<{
   className?: string;
   full?: boolean;

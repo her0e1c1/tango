@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "ConfigForm" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "groups every auto-saved
+ * setting in the unified settings list", "preserves all switch, slider, token, and metadata
+ * values", "forwards switch, slider, and token changes to their field callbacks".
+ */
+
 import type React from "react";
 
 import { cleanup, fireEvent, render } from "@testing-library/react";
@@ -8,6 +15,10 @@ import "@testing-library/jest-dom/vitest";
 import { ConfigForm, type ConfigFormFields, type ConfigFormProps } from "@/features/settings/components/ConfigForm";
 import { createConfig } from "@/test/factories";
 
+/**
+ * Provides the create fields test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function createFields(): ConfigFormFields {
   return {
     showHeader: { name: "showHeader", checked: true, onChange: vi.fn() },
@@ -23,6 +34,10 @@ function createFields(): ConfigFormFields {
   };
 }
 
+/**
+ * Provides the create props test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function createProps(overrides: Partial<ConfigFormProps> = {}): ConfigFormProps {
   return {
     config: createConfig(),

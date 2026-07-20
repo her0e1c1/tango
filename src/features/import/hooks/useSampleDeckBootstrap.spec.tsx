@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "sample Deck bootstrap" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "adds the sample once for a
+ * server-synced empty user under StrictMode", "waits for the server before treating an empty cache
+ * as an empty user", "does not add the sample when the user already has a Deck".
+ */
+
 import { renderHook, waitFor } from "@testing-library/react";
 import { StrictMode, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -23,6 +30,10 @@ import {
   useSampleDeckBootstrap,
 } from "@/features/import/hooks/useSampleDeckBootstrap";
 
+/**
+ * Provides the strict mode test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const strictMode = ({ children }: { children: ReactNode }) => <StrictMode>{children}</StrictMode>;
 
 describe("sample Deck bootstrap", () => {

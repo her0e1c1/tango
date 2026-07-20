@@ -1,3 +1,9 @@
+/**
+ * @file Provides the card feature's Use Card Mutations React hook.
+ * The hook combines state and operations behind one interface so components do not need to
+ * coordinate services themselves.
+ */
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
@@ -13,6 +19,10 @@ type CardMutationVariables =
   | { kind: "remove"; id: CardId }
   | { kind: "bulkUpsert"; cards: Card[] };
 
+/**
+ * Returns the card identifiers affected by one mutation request.
+ * The identifiers are used to detect conflicting queued or pending card operations.
+ */
 const variableIds = (variables: CardMutationVariables): CardId[] => {
   if (variables.kind === "remove") return [variables.id];
   if (variables.kind === "bulkUpsert") return variables.cards.map((card) => card.id);
@@ -25,6 +35,10 @@ interface CardMutationRunDependencies {
   setPendingCounts: (update: (current: Map<CardId, number>) => Map<CardId, number>) => void;
 }
 
+/**
+ * Runs the card mutation workflow for the card feature.
+ * The sequence and its cleanup remain together so partial failures can be handled consistently.
+ */
 const runCardMutation = async (
   variables: CardMutationVariables,
   { mutateAsync, lastFailed, setPendingCounts }: CardMutationRunDependencies
@@ -56,6 +70,11 @@ const runCardMutation = async (
   }
 };
 
+/**
+ * Provides the card mutations values and operations needed by React components.
+ * Callers receive one focused interface without coordinating the card feature's stores and
+ * services themselves.
+ */
 export const useCardMutations = () => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
@@ -88,6 +107,10 @@ export const useCardMutations = () => {
     },
   });
 
+  /**
+   * Runs the current card feature operation and returns its result.
+   * Progress and failure cleanup stay in one place so callers observe a consistent workflow state.
+   */
   const run = (variables: CardMutationVariables) =>
     runCardMutation(variables, {
       mutateAsync: mutation.mutateAsync,
@@ -95,6 +118,10 @@ export const useCardMutations = () => {
       setPendingCounts,
     });
 
+  /**
+   * Queues an update for the supplied card and applies it optimistically to the remote cache.
+   * The hook exposes the same pending, error, and retry state used by other card mutations.
+   */
   const update = (card: CardEdit) => run({ kind: "update", card });
 
   return {

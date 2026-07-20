@@ -1,3 +1,11 @@
+/**
+ * @file Verifies the "DeckSwiperContainer with DeckSwiperTemplate" contract with automated
+ * examples.
+ * The examples make the expected behavior concrete with cases such as "renders the active session
+ * card and forwards study callbacks", "keeps pending study saves silent while disabling swipe
+ * controls", "installs one back-navigation guard when StrictMode replays the effect".
+ */
+
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { StrictMode } from "react";

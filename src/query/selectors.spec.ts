@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "remote collection selectors" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "omits undefined collection
+ * entries", "selects Cards and sorted unique tags for one Deck", "filters Deck Cards using the
+ * supplied time".
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { cardsForDeck, filteredCardsForDeck, remoteValues, tagsForDeck } from "@/query/selectors";

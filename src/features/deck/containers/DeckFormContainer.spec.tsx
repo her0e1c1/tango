@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "DeckFormContainer" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "submits the current deck",
+ * "submits an edited name", "submits an edited URL".
+ */
+
 import userEvent from "@testing-library/user-event";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

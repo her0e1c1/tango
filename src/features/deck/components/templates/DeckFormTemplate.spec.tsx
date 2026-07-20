@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "DeckFormTemplate" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "composes deck context,
+ * feedback, and form in a bounded semantic editing surface".
+ */
+
 import { cleanup, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";

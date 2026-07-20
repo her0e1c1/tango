@@ -1,3 +1,10 @@
+/**
+ * @file Connects application state and operations to the study feature's Deck Start Container
+ * view.
+ * The container prepares route data and callbacks, then delegates visual rendering to presentation
+ * components.
+ */
+
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
@@ -12,9 +19,18 @@ import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/hooks/useConfig";
 
+/**
+ * Checks whether the supplied value satisfies the interactive shortcut target condition.
+ * A named predicate makes the decision rule reusable and easier to recognize at each call site.
+ */
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
+/**
+ * Connects the Deck Start Content view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
   const { deck, cards, config, tags } = props;
   const deckId = deck.id;
@@ -23,6 +39,11 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
   const startStudy = studyActions.start;
   const actions = useActions();
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
+  /**
+   * Starts the study session when Enter is pressed outside an interactive control.
+   * The guard prevents the shortcut from stealing Enter presses intended for buttons or form
+   * fields.
+   */
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
     startStudy();
@@ -48,6 +69,11 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
   );
 };
 
+/**
+ * Connects the Deck Start Container view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const DeckStartContainer: React.FC = () => {
   const params = useParams();
   const navigate = useNavigate();

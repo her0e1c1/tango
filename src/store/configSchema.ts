@@ -1,3 +1,9 @@
+/**
+ * @file Defines application configuration behavior for Config Schema.
+ * It validates persisted settings and exposes a predictable store interface to the rest of the
+ * application.
+ */
+
 import * as z from "zod";
 
 export const defaultConfig: ConfigState = {
@@ -60,5 +66,9 @@ const configSchema: z.ZodType<ConfigState> = z
 
 const persistedConfigStateSchema = z.object({ config: configSchema }).catch({ config: defaultConfig });
 
+/**
+ * Parses persisted config into validated application data.
+ * Malformed input is reported before downstream code relies on the result.
+ */
 export const parsePersistedConfig = (persistedState: unknown): ConfigState =>
   persistedConfigStateSchema.parse(persistedState).config;

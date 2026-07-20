@@ -1,3 +1,9 @@
+/**
+ * @file Implements the Firestore adapter responsibility for Dto.
+ * This boundary translates between Tango's application models and Firebase so feature code does
+ * not handle database details directly.
+ */
+
 export interface DeckDocument {
   id: DeckId;
   name: string;
@@ -17,6 +23,10 @@ export interface DeckDocument {
 
 export type DeckUpdateDto = Partial<Omit<DeckDocument, "id" | "updatedAt">> & Pick<DeckDocument, "updatedAt">;
 
+/**
+ * Converts deck document into the shape used by the next application layer.
+ * The mapping keeps storage-specific representations out of domain and component code.
+ */
 export const mapDeckDocument = (id: DeckId, document: DeckDocument): Deck => {
   const deck: Deck = {
     id,
@@ -60,6 +70,10 @@ export interface CardDocument {
 
 export type CardUpdateDto = Partial<Omit<CardDocument, "id" | "updatedAt">> & Pick<CardDocument, "updatedAt">;
 
+/**
+ * Converts card document into the shape used by the next application layer.
+ * The mapping keeps storage-specific representations out of domain and component code.
+ */
 export const mapCardDocument = (id: CardId, document: CardDocument): Card => {
   const card: Card = {
     id,
@@ -92,9 +106,19 @@ type OmitUndefined<T extends Record<string, unknown>> = {
   [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>;
 };
 
+/**
+ * Copies an object while removing properties whose value is `undefined`.
+ * Firestore receives only concrete fields, while optional fields that are intentionally absent
+ * stay omitted.
+ */
 const omitUndefined = <T extends Record<string, unknown>>(value: T): OmitUndefined<T> =>
   Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as OmitUndefined<T>;
 
+/**
+ * Builds deck create dto from the supplied application values.
+ * The returned value is ready for the next layer, so callers do not need to repeat assembly or
+ * defaulting rules.
+ */
 export const buildDeckCreateDto = (deck: Deck, createdAt: number): DeckDocument =>
   omitUndefined({
     id: deck.id,
@@ -113,6 +137,11 @@ export const buildDeckCreateDto = (deck: Deck, createdAt: number): DeckDocument 
     convertToBr: deck.convertToBr,
   });
 
+/**
+ * Builds deck update dto from the supplied application values.
+ * The returned value is ready for the next layer, so callers do not need to repeat assembly or
+ * defaulting rules.
+ */
 export const buildDeckUpdateDto = (deck: DeckEdit, updatedAt: number): DeckUpdateDto =>
   omitUndefined({
     name: deck.name,
@@ -130,6 +159,11 @@ export const buildDeckUpdateDto = (deck: DeckEdit, updatedAt: number): DeckUpdat
     convertToBr: deck.convertToBr,
   });
 
+/**
+ * Builds card create dto from the supplied application values.
+ * The returned value is ready for the next layer, so callers do not need to repeat assembly or
+ * defaulting rules.
+ */
 export const buildCardCreateDto = (card: Card, createdAt: number): CardDocument =>
   omitUndefined({
     id: card.id,
@@ -152,6 +186,11 @@ export const buildCardCreateDto = (card: Card, createdAt: number): CardDocument 
     endLine: card.endLine,
   });
 
+/**
+ * Builds card update dto from the supplied application values.
+ * The returned value is ready for the next layer, so callers do not need to repeat assembly or
+ * defaulting rules.
+ */
 export const buildCardUpdateDto = (card: CardEdit, updatedAt: number): CardUpdateDto =>
   omitUndefined({
     frontText: card.frontText,

@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "CardOverlay" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "preserves score and seen
+ * metadata".
+ */
+
 import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";

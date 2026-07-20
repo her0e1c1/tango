@@ -1,3 +1,9 @@
+/**
+ * @file Defines the card feature's Card Form presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import type * as React from "react";
 import { useId } from "react";
 
@@ -26,6 +32,11 @@ export interface CardFormProps {
   onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
 }
 
+/**
+ * Renders the Card Form user interface.
+ * Collects a card's front, back, code, math, and tag fields and connects validation messages to
+ * each input.
+ */
 export const CardForm: React.FC<CardFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();
   const frontHeadingId = `${sectionHeadingIdPrefix}-card-front-heading`;

@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "DeckCard" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "renders compact progress
+ * for an active deck", "renders the card count and Study action for an inactive deck", "passes the
+ * deck id to navigation and management actions".
+ */
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,6 +14,10 @@ import * as React from "react";
 import { DeckCard, type DeckCardProps } from "@/features/deck/components/DeckCard";
 import { createDeck } from "@/test/factories";
 
+/**
+ * Renders the test-only Controlled Deck Card component with controlled state or providers.
+ * Individual tests reuse it to exercise realistic interactions without repeating setup code.
+ */
 const ControlledDeckCard: React.FC<DeckCardProps> = (props) => {
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   return (

@@ -1,3 +1,9 @@
+/**
+ * @file Provides the card feature's Use Card Form State React hook.
+ * The hook combines state and operations behind one interface so components do not need to
+ * coordinate services themselves.
+ */
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -11,6 +17,11 @@ export interface UseCardFormStateOptions {
   onSubmit?: (card: Card) => void | Promise<void>;
 }
 
+/**
+ * Provides the card form state values and operations needed by React components.
+ * Callers receive one focused interface without coordinating the card feature's stores and
+ * services themselves.
+ */
 export const useCardFormState = ({ card, categoryOptions, onSubmit }: UseCardFormStateOptions): CardFormProps => {
   const { formState, handleSubmit, register } = useForm<CardFormValues>({
     defaultValues: {

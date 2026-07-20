@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "parseDeckImportCsv" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "separates valid, skipped,
+ * and invalid rows with context", "rejects an empty file", "reports duplicate unique keys with row
+ * context".
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";

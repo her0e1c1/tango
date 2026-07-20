@@ -1,3 +1,9 @@
+/**
+ * @file Defines the settings feature's Config Form presentation component.
+ * The component renders props and reports user intent through callbacks while data access stays
+ * outside the view.
+ */
+
 import type * as React from "react";
 import { useId } from "react";
 import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool, AiOutlineUser } from "react-icons/ai";
@@ -32,6 +38,11 @@ export interface ConfigFormProps {
   version?: string;
 }
 
+/**
+ * Renders the Config Form user interface.
+ * Presents display and study preferences together with account actions and reports each setting
+ * change to its owner.
+ */
 export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
   const idPrefix = useId();
   const inputIds = {
@@ -47,6 +58,11 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
     githubAccessToken: `${idPrefix}-github-access-token`,
   };
   const advancedHeadingId = `${idPrefix}-advanced-heading`;
+  /**
+   * Builds the stable HTML identifier used by a field's explanatory text.
+   * Inputs can reference this identifier with `aria-describedby` so assistive technology reads the
+   * description.
+   */
   const descriptionId = (inputId: string) => `${inputId}-description`;
 
   return (

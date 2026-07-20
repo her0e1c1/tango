@@ -1,3 +1,9 @@
+/**
+ * @file Defines shared application rules for Study.
+ * The module keeps framework-independent calculations and contracts separate from components and
+ * remote services.
+ */
+
 import { shuffle } from "lodash";
 
 /**

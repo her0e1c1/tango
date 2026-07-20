@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "useDeckImport" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "keeps retry orchestration
+ * stable across an unchanged render", "previews a file without writing until import is confirmed",
+ * "keeps invalid files in preview without mutating state".
+ */
+
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

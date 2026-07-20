@@ -1,8 +1,19 @@
+/**
+ * @file Defines the reusable Tag component in the shared form library.
+ * Feature screens compose this building block through props instead of duplicating presentation
+ * and interaction rules.
+ */
+
 import cx from "classnames";
 import type * as React from "react";
 
 import { tagClassName } from "@/components/content/tagStyles";
 
+/**
+ * Renders the Tag user interface.
+ * Displays a tag-shaped control with optional size and selection styles and forwards click
+ * interaction when provided.
+ */
 export const Tag: React.FC<{
   className?: string;
   round?: boolean;

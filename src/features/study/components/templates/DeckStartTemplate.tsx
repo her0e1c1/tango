@@ -1,3 +1,9 @@
+/**
+ * @file Composes the study feature's complete Deck Start Template screen.
+ * Data and callbacks arrive through props, which keeps this presentation usable in both a live
+ * container and Storybook.
+ */
+
 import type React from "react";
 import { Button } from "@/components";
 import { Layout, type LayoutProps } from "@/components/layout/Layout";
@@ -11,8 +17,17 @@ export interface DeckStartTemplateProps {
   onClickStart?: () => void;
 }
 
+/**
+ * Formats the cards label text shown to the user.
+ * The helper keeps wording and singular or plural rules consistent across the screen.
+ */
 const cardsLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
 
+/**
+ * Composes the complete Deck Start Template screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in containers,
+ * tests, and Storybook.
+ */
 export const DeckStartTemplate: React.FC<DeckStartTemplateProps> = (props) => {
   const sessionCardsLength =
     props.maxNumberOfCardsToLearn <= 0 ? props.cardsLength : Math.min(props.cardsLength, props.maxNumberOfCardsToLearn);

@@ -1,3 +1,10 @@
+/**
+ * @file Connects application state and operations to the import feature's Deck Import Container
+ * view.
+ * The container prepares route data and callbacks, then delegates visual rendering to presentation
+ * components.
+ */
+
 import type React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
@@ -7,6 +14,11 @@ import { useActions } from "@/hooks/useActions";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
 import { useConfig } from "@/hooks/useConfig";
 
+/**
+ * Connects the Deck Import Container view to stores, remote data, route parameters, and mutations.
+ * It prepares plain props for presentation components so those components remain independent of
+ * application services.
+ */
 export const DeckImportContainer: React.FC = () => {
   const actions = useActions();
   const config = useConfig();

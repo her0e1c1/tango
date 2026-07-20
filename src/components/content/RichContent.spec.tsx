@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "shared rich content" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "keeps code copyable,
+ * categorized, and horizontally scrollable", "highlights only its own element and follows explicit
+ * text and theme changes", "keeps GFM and KaTeX rendering readable inside narrow surfaces".
+ */
+
 import { cleanup, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";

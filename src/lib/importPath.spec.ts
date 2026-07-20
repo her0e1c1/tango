@@ -1,3 +1,9 @@
+/**
+ * @file Verifies the "import paths" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "uses @ for source-local
+ * imports".
+ */
+
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -6,6 +12,10 @@ const sourceRoot = path.resolve(process.cwd(), "src");
 const sourceFilePattern = /\.(ts|tsx)$/;
 const relativeSourceImportPattern = /\b(?:import|export)\b(?:[\s\S]*?)\bfrom\s+["'](\.{1,2}(?:\/[^"']*)?)["']/g;
 
+/**
+ * Provides the list source files test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function listSourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const fullPath = path.join(dir, entry);
@@ -16,6 +26,10 @@ function listSourceFiles(dir: string): string[] {
   });
 }
 
+/**
+ * Provides the resolves inside source test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 function resolvesInsideSource(filePath: string, importPath: string): boolean {
   return path.resolve(path.dirname(filePath), importPath).startsWith(`${sourceRoot}${path.sep}`);
 }

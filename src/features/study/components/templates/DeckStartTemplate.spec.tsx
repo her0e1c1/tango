@@ -1,3 +1,10 @@
+/**
+ * @file Verifies the "DeckStartTemplate" contract with automated examples.
+ * The examples make the expected behavior concrete with cases such as "shows Deck context, capped
+ * session size, matching count, and filters", "uses singular card wording", "explains and disables
+ * an empty session".
+ */
+
 import type React from "react";
 import { cleanup, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -6,6 +13,10 @@ import "@testing-library/jest-dom/vitest";
 
 import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
 
+/**
+ * Provides the render template test helper used by this file.
+ * Keeping this setup in one function lets each test focus on the behavior it is proving.
+ */
 const renderTemplate = (overrides: Partial<React.ComponentProps<typeof DeckStartTemplate>> = {}) => {
   const onClickStart = vi.fn();
   const view = render(
