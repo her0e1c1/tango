@@ -1,0 +1,52 @@
+name: バグ報告
+description: 再現可能な不具合を報告します。
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: 現在の挙動
+      description: 現在発生している挙動を説明してください。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 再現手順
+      description: 問題を再現する手順を記載してください。
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 期待する挙動
+      description: 期待していた挙動を説明してください。
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: 実際の挙動
+      description: 実際に発生した挙動を説明してください。
+    validations:
+      required: true
+  - type: dropdown
+    id: change-areas
+    attributes:
+      label: Change areas
+      description: Select every area changed by this issue.
+      multiple: true
+      options:
+        - ci
+        - ui
+        - test
+        - dev
+        - docs
+        - dependencies
+    validations:
+      required: true

@@ -1,0 +1,19 @@
+name: 質問
+description: プロジェクトに関する質問をします。
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: 質問
+      description: 知りたいことを具体的に記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 背景
+      description: 質問に至った背景や試したことを記載してください。
+    validations:
+      required: true
