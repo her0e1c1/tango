@@ -158,7 +158,7 @@ describe("useDeckMutations", () => {
     );
   });
 
-  it("does not expose or publish a stale removal after the authenticated UID changes", async () => {
+  it("does not invoke remove success for an operation started before an A-to-B-to-A UID change", async () => {
     let finish!: () => void;
     mocks.remove.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
     const deck = createDeck({ id: "deck" });
@@ -170,9 +170,12 @@ describe("useDeckMutations", () => {
       operation = result.current.remove(deck);
     });
     await waitFor(() => expect(result.current.pending).toBe(true));
-    remoteStore.getState().stop();
     mocks.uid = "uid-b";
     rerender();
+    await act(async () => result.current.update(createDeck({ id: "transition-b", uid: "uid-b" })));
+    mocks.uid = "uid-a";
+    rerender();
+    await act(async () => result.current.update(createDeck({ id: "transition-a", uid: "uid-a" })));
     finish();
     await operation;
 

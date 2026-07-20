@@ -198,6 +198,11 @@ interface DeckMutationFailure {
   sequence: number;
 }
 
+interface InFlightDeckRemoval {
+  generation: number;
+  operation: Promise<void>;
+}
+
 export class CardBulkMutationError extends Error {
   constructor(
     public readonly failedIds: CardId[],
@@ -248,7 +253,7 @@ export const createRemoteStore = (
   let deckMutationGeneration = 0;
   let deckMutationSequence = 0;
   let deckMutationFailure: DeckMutationFailure | undefined;
-  const inFlightDeckRemovals = new Map<string, Promise<void>>();
+  const inFlightDeckRemovals = new Map<string, InFlightDeckRemoval>();
 
   const isCurrent = (uid: string, currentGeneration: number) => activeUid === uid && generation === currentGeneration;
 
@@ -457,8 +462,9 @@ export const createRemoteStore = (
 
     const removeDeck = (uid: string, deck: Deck): Promise<boolean> => {
       const key = deckMutationLock(uid, deck.id);
+      const operationGeneration = prepareDeckMutation(uid);
       const currentRemoval = inFlightDeckRemovals.get(key);
-      if (currentRemoval != null) return currentRemoval.then(() => false);
+      if (currentRemoval?.generation === operationGeneration) return currentRemoval.operation.then(() => false);
 
       const operation = runDeckMutation(uid, { kind: "remove", deck }, () =>
         withMutationLocks([key], () =>
@@ -469,22 +475,24 @@ export const createRemoteStore = (
           })
         )
       );
+      let entry: InFlightDeckRemoval;
       const shared = operation.then(
         () => {
-          if (inFlightDeckRemovals.get(key) === shared) inFlightDeckRemovals.delete(key);
+          if (inFlightDeckRemovals.get(key) === entry) inFlightDeckRemovals.delete(key);
         },
         (error: unknown) => {
-          if (inFlightDeckRemovals.get(key) === shared) inFlightDeckRemovals.delete(key);
+          if (inFlightDeckRemovals.get(key) === entry) inFlightDeckRemovals.delete(key);
           throw error;
         }
       );
-      inFlightDeckRemovals.set(key, shared);
-      return shared.then(() => true);
+      entry = { generation: operationGeneration, operation: shared };
+      inFlightDeckRemovals.set(key, entry);
+      return shared.then(() => deckMutationGeneration === operationGeneration);
     };
 
     const retryDeckMutation = async (uid: string): Promise<Deck | undefined> => {
       if (uid === "") throw new Error("A confirmed user is required for remote Deck writes");
-      if (get().deckMutation.uid !== uid) prepareDeckMutation(uid);
+      const operationGeneration = prepareDeckMutation(uid);
       const failure = deckMutationFailure;
       if (failure == null) return;
       const variables = failure.variables;
@@ -499,15 +507,16 @@ export const createRemoteStore = (
 
       const key = deckMutationLock(uid, variables.deck.id);
       const currentRemoval = inFlightDeckRemovals.get(key);
-      if (currentRemoval != null) {
+      if (currentRemoval?.generation === operationGeneration) {
         try {
-          await currentRemoval;
+          await currentRemoval.operation;
         } catch {
           return;
         }
-        if (deckMutationFailure !== failure) return;
+        if (deckMutationGeneration !== operationGeneration || deckMutationFailure !== failure) return;
       }
-      return (await removeDeck(uid, variables.deck)) ? variables.deck : undefined;
+      const ownsSuccess = await removeDeck(uid, variables.deck);
+      return ownsSuccess && deckMutationGeneration === operationGeneration ? variables.deck : undefined;
     };
 
     const beginRead = (uid: string) => {

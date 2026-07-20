@@ -263,6 +263,39 @@ describe("remote store mutations", () => {
     expect(store.getState().deckMutation.pendingCounts).toEqual(new Map());
   });
 
+  it("starts a new Deck removal after an A-to-B-to-A mutation generation change", async () => {
+    const { store, dependencies } = createHarness();
+    const deck = createDeck({ id: "deck" });
+    const staleWrite = deferred<void>();
+    const currentWrite = deferred<void>();
+    dependencies.removeDeck.mockReturnValueOnce(staleWrite.promise).mockReturnValueOnce(currentWrite.promise);
+
+    const staleRemoval = store.getState().removeDeck("uid-a", deck);
+    await vi.waitFor(() => expect(dependencies.removeDeck).toHaveBeenCalledOnce());
+    await store.getState().updateDeck("uid-b", createDeck({ id: "transition-b", uid: "uid-b" }));
+    await store.getState().updateDeck("uid-a", createDeck({ id: "transition-a", uid: "uid-a" }));
+
+    const currentRemoval = store.getState().removeDeck("uid-a", deck);
+    const pendingAfterCurrentStart = store.getState().deckMutation.pendingCounts;
+    staleWrite.resolve();
+    const staleOwnsSuccess = await staleRemoval;
+    await vi.waitFor(() => expect(dependencies.removeDeck).toHaveBeenCalledTimes(2));
+
+    const pendingAfterStaleCompletion = store.getState().deckMutation.pendingCounts;
+    const currentError = store.getState().deckMutation.error;
+    const retryResult = await store.getState().retryDeckMutation("uid-a");
+    currentWrite.resolve();
+    const currentOwnsSuccess = await currentRemoval;
+
+    expect(pendingAfterCurrentStart).toEqual(new Map([[deck.id, 1]]));
+    expect(staleOwnsSuccess).toBe(false);
+    expect(pendingAfterStaleCompletion).toEqual(new Map([[deck.id, 1]]));
+    expect(currentError).toBeNull();
+    expect(retryResult).toBeUndefined();
+    expect(currentOwnsSuccess).toBe(true);
+    expect(store.getState().deckMutation.pendingCounts).toEqual(new Map());
+  });
+
   it("gives Deck removal exclusive access to Card membership writes", async () => {
     const { store, dependencies } = createHarness();
     const deck = createDeck({ id: "deck" });
@@ -366,6 +399,25 @@ describe("remote store mutations", () => {
 
     await expect(firstRetry).resolves.toBe(deck);
     await expect(duplicateRetry).resolves.toBeUndefined();
+    expect(store.getState().deckMutation.error).toBeNull();
+  });
+
+  it("does not return a Deck from a removal retry started before an A-to-B-to-A change", async () => {
+    const { store, dependencies } = createHarness();
+    const deck = createDeck({ id: "deck" });
+    const failure = new Error("remove failed");
+    const staleRetryWrite = deferred<void>();
+    dependencies.removeDeck.mockRejectedValueOnce(failure).mockReturnValueOnce(staleRetryWrite.promise);
+    await expect(store.getState().removeDeck("uid-a", deck)).rejects.toBe(failure);
+
+    const staleRetry = store.getState().retryDeckMutation("uid-a");
+    await vi.waitFor(() => expect(dependencies.removeDeck).toHaveBeenCalledTimes(2));
+    await store.getState().updateDeck("uid-b", createDeck({ id: "transition-b", uid: "uid-b" }));
+    await store.getState().updateDeck("uid-a", createDeck({ id: "transition-a", uid: "uid-a" }));
+    staleRetryWrite.resolve();
+
+    await expect(staleRetry).resolves.toBeUndefined();
+    expect(store.getState().deckMutation.pendingCounts).toEqual(new Map());
     expect(store.getState().deckMutation.error).toBeNull();
   });
 
