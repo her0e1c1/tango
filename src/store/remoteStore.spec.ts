@@ -80,6 +80,26 @@ describe("remote store", () => {
     expect(listener).toHaveBeenCalledTimes(5);
   });
 
+  it("publishes a private metadata copy with the matching public state", () => {
+    const store = createRemoteStore();
+    const published: ReturnType<typeof store.getSnapshot>[] = [];
+    const deckMetadata = { size: 0, fromCache: false, hasPendingWrites: false };
+    store.subscribe(() => published.push(store.getSnapshot()));
+    store.begin("uid-a");
+
+    store.applySnapshot("uid-a", "decks", { data: {}, metadata: deckMetadata });
+    const decksPublished = store.getSnapshot();
+    deckMetadata.hasPendingWrites = true;
+    store.applySnapshot("uid-a", "cards", {
+      data: {},
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+
+    expect(published.at(-2)).toBe(decksPublished);
+    expect(published.at(-1)).toBe(store.getSnapshot());
+    expect(store.getSnapshot()).toMatchObject({ status: "ready", syncStatus: "synced" });
+  });
+
   it("retains data for a same-UID retry and clears it for a different UID", () => {
     const store = createRemoteStore();
     const deck = createDeck({ id: "deck-a" });

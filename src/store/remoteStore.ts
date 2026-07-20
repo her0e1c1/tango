@@ -12,9 +12,9 @@ export type RemoteCollectionName = keyof RemoteCollectionTypes;
 export type RemoteSyncStatus = "cached" | "pending" | "synced";
 
 interface RemoteSnapshotMetadata {
-  size: number;
-  fromCache: boolean;
-  hasPendingWrites: boolean;
+  readonly size: number;
+  readonly fromCache: boolean;
+  readonly hasPendingWrites: boolean;
 }
 
 interface RemoteData {
@@ -57,21 +57,29 @@ export interface RemoteStore {
   clear: (uid?: string) => void;
 }
 
+interface CurrentRemoteSnapshot {
+  state: RemoteState;
+  metadata: ReadonlyMap<RemoteCollectionName, RemoteSnapshotMetadata>;
+}
+
 const emptyData = (): RemoteData => ({ decksById: {}, cardsById: {} });
+const emptyMetadata = (): ReadonlyMap<RemoteCollectionName, RemoteSnapshotMetadata> => new Map();
 
 export const createRemoteStore = (): RemoteStore => {
-  let state: RemoteState = { uid: null, status: "idle", ...emptyData() };
-  let metadata = new Map<RemoteCollectionName, RemoteSnapshotMetadata>();
+  let current: CurrentRemoteSnapshot = {
+    state: { uid: null, status: "idle", ...emptyData() },
+    metadata: emptyMetadata(),
+  };
   const listeners = new Set<Callback>();
 
-  const publish = (next: RemoteState) => {
-    state = next;
+  const publish = (next: CurrentRemoteSnapshot) => {
+    current = next;
     listeners.forEach((listener) => {
       listener();
     });
   };
 
-  const getSnapshot = () => state;
+  const getSnapshot = () => current.state;
 
   const subscribe = (listener: Callback) => {
     listeners.add(listener);
@@ -79,28 +87,35 @@ export const createRemoteStore = (): RemoteStore => {
   };
 
   const read: RemoteStore["read"] = (uid, collection) => {
+    const state = current.state;
     if (state.uid !== uid) return {};
     return (collection === "decks" ? state.decksById : state.cardsById) as never;
   };
 
   const replace: RemoteStore["replace"] = (uid, collection, next) => {
+    const state = current.state;
     if (state.uid !== uid) return;
     publish({
-      ...state,
-      ...(collection === "decks" ? { decksById: next as RemoteById<Deck> } : { cardsById: next as RemoteById<Card> }),
+      state: {
+        ...state,
+        ...(collection === "decks" ? { decksById: next as RemoteById<Deck> } : { cardsById: next as RemoteById<Card> }),
+      },
+      metadata: current.metadata,
     });
   };
 
   const begin = (uid: string) => {
+    const state = current.state;
     const data = state.uid === uid ? { decksById: state.decksById, cardsById: state.cardsById } : emptyData();
-    metadata = new Map();
-    publish({ uid, status: "loading", ...data });
+    publish({ state: { uid, status: "loading", ...data }, metadata: emptyMetadata() });
   };
 
   const applySnapshot: RemoteStore["applySnapshot"] = (uid, collection, snapshot) => {
+    const state = current.state;
     if (state.uid !== uid) return;
 
-    metadata.set(collection, snapshot.metadata);
+    const metadata = new Map(current.metadata);
+    metadata.set(collection, Object.freeze({ ...snapshot.metadata }));
     const data: RemoteData =
       collection === "decks"
         ? { decksById: snapshot.data as RemoteById<Deck>, cardsById: state.cardsById }
@@ -108,7 +123,7 @@ export const createRemoteStore = (): RemoteStore => {
     const deckMetadata = metadata.get("decks");
     const cardMetadata = metadata.get("cards");
     if (!deckMetadata || !cardMetadata) {
-      publish({ uid, status: "loading", ...data });
+      publish({ state: { uid, status: "loading", ...data }, metadata });
       return;
     }
 
@@ -118,18 +133,22 @@ export const createRemoteStore = (): RemoteStore => {
       : latestMetadata.some((value) => value.fromCache)
         ? "cached"
         : "synced";
-    publish({ uid, status: "ready", syncStatus, ...data });
+    publish({ state: { uid, status: "ready", syncStatus, ...data }, metadata });
   };
 
   const fail = (uid: string, error: Error) => {
+    const state = current.state;
     if (state.uid !== uid) return;
-    publish({ uid, status: "error", error, decksById: state.decksById, cardsById: state.cardsById });
+    publish({
+      state: { uid, status: "error", error, decksById: state.decksById, cardsById: state.cardsById },
+      metadata: current.metadata,
+    });
   };
 
   const clear = (uid?: string) => {
+    const state = current.state;
     if (uid && state.uid !== uid) return;
-    metadata = new Map();
-    publish({ uid: null, status: "idle", ...emptyData() });
+    publish({ state: { uid: null, status: "idle", ...emptyData() }, metadata: emptyMetadata() });
   };
 
   return { getSnapshot, subscribe, read, replace, begin, applySnapshot, fail, clear };

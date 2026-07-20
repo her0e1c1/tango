@@ -41,6 +41,18 @@ function sourcePath(relativePath: string): string {
   return path.join(sourceRoot, relativePath);
 }
 
+function filesUnder(relativeDirectory: string): string[] {
+  const absoluteDirectory = sourcePath(relativeDirectory);
+  if (!existsSync(absoluteDirectory)) return [];
+
+  return readdirSync(absoluteDirectory, { withFileTypes: true })
+    .flatMap((entry) => {
+      const relativePath = path.posix.join(relativeDirectory, entry.name);
+      return entry.isDirectory() ? filesUnder(relativePath) : [relativePath];
+    })
+    .sort();
+}
+
 /**
  * Reads source needed by the test.
  * File access stays in one helper so assertions work with consistent paths and encoding.
@@ -54,16 +66,33 @@ function readSource(relativePath: string): string {
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
 function sourceFilesUnder(relativeDirectory: string): string[] {
-  const absoluteDirectory = sourcePath(relativeDirectory);
-  if (!existsSync(absoluteDirectory)) return [];
+  return filesUnder(relativeDirectory).filter((relativePath) => sourceExtension.test(relativePath));
+}
 
-  return readdirSync(absoluteDirectory, { withFileTypes: true })
-    .flatMap((entry) => {
-      const relativePath = path.posix.join(relativeDirectory, entry.name);
-      return entry.isDirectory() ? sourceFilesUnder(relativePath) : [relativePath];
-    })
-    .filter((relativePath) => sourceExtension.test(relativePath))
-    .sort();
+interface TextSubject {
+  relativePath: string;
+  source: string;
+}
+
+const prohibitedServerStateTokens = [
+  { value: ["@tanstack", "react-query"].join("/"), wordEnd: false },
+  { value: ["use", "Query", "Client"].join(""), wordEnd: false },
+  { value: ["Query", "Client"].join(""), wordEnd: false },
+  { value: ["use", "Query"].join(""), wordEnd: true },
+  { value: ["use", "Mutation"].join(""), wordEnd: true },
+  { value: ["firestore", "Keys"].join(""), wordEnd: false },
+  { value: ["Remote", "Cache"].join(""), wordEnd: false },
+] as const;
+
+const escapeRegularExpression = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+function serverStateResidualViolations(subjects: TextSubject[]): string[] {
+  return subjects.flatMap(({ relativePath, source }) => {
+    const match = prohibitedServerStateTokens.find(({ value, wordEnd }) =>
+      wordEnd ? new RegExp(`${escapeRegularExpression(value)}\\b`).test(source) : source.includes(value)
+    );
+    return match == null ? [] : [`${relativePath}: ${match.value}`];
+  });
 }
 
 /**
@@ -260,23 +289,30 @@ describe("component architecture", () => {
     }
   });
 
-  it("removes obsolete server-state client infrastructure", () => {
-    const obsoletePackage = ["@tanstack", "react-query"].join("/");
-    const obsoletePaths = [
-      "query/client.ts",
-      ["query/cache", ["firestore", "Keys.ts"].join("")].join("/"),
-      "query/cache/remoteCache.ts",
-      "query/cache/remoteCollection.ts",
-      "query/testUtils.tsx",
-    ];
-    const packageJson = JSON.parse(readFileSync(path.resolve(process.cwd(), "package.json"), "utf8")) as {
-      dependencies?: Record<string, string>;
-    };
+  it("detects every prohibited server-state token in text subjects", () => {
+    const subjects = prohibitedServerStateTokens.map(({ value }, index) => ({
+      relativePath: `fixture-${index}`,
+      source: `before ${value} after`,
+    }));
 
-    expect(obsoletePaths.filter((relativePath) => existsSync(sourcePath(relativePath)))).toEqual([]);
-    expect(packageJson.dependencies).not.toHaveProperty(obsoletePackage);
-    expect(moduleSpecifiers(readSource("main.tsx"))).not.toContain(obsoletePackage);
-    expect(moduleSpecifiers(readSource("main.tsx"))).not.toContain("@/query/client");
+    expect(serverStateResidualViolations(subjects)).toEqual(
+      prohibitedServerStateTokens.map(({ value }, index) => `fixture-${index}: ${value}`)
+    );
+  });
+
+  it("keeps obsolete server-state tokens out of source and package metadata", () => {
+    const subjects = [
+      ...filesUnder("").map((relativePath) => ({
+        relativePath: `src/${relativePath}`,
+        source: readSource(relativePath),
+      })),
+      ...["package.json", "package-lock.json"].map((relativePath) => ({
+        relativePath,
+        source: readFileSync(path.resolve(process.cwd(), relativePath), "utf8"),
+      })),
+    ];
+
+    expect(serverStateResidualViolations(subjects)).toEqual([]);
   });
 
   it("recognizes Firebase and Firestore adapter dependencies across import styles", () => {
