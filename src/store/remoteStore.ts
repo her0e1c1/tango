@@ -146,17 +146,19 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
 
   const isCurrent = (uid: string, currentGeneration: number) => activeUid === uid && generation === currentGeneration;
 
+  const stopListener = (unsubscribe: Callback | undefined) => {
+    try {
+      unsubscribe?.();
+    } catch {
+      // Listener cleanup is best-effort.
+    }
+  };
+
   const stopListeners = () => {
     const subscriptions = [unsubscribeDeck, unsubscribeCard];
     unsubscribeDeck = undefined;
     unsubscribeCard = undefined;
-    subscriptions.forEach((unsubscribe) => {
-      try {
-        unsubscribe?.();
-      } catch {
-        // Both listeners must be given a chance to stop.
-      }
-    });
+    subscriptions.forEach(stopListener);
   };
 
   const store = createStore<RemoteStoreState>()((set, get) => {
@@ -235,8 +237,7 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
         onError,
       });
       if (!isCurrent(uid, currentGeneration)) {
-        unsubscribeDeck = nextDeckSubscription;
-        stopListeners();
+        stopListener(nextDeckSubscription);
         return;
       }
       unsubscribeDeck = nextDeckSubscription;
@@ -247,8 +248,7 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
         onError,
       });
       if (!isCurrent(uid, currentGeneration)) {
-        unsubscribeCard = nextCardSubscription;
-        stopListeners();
+        stopListener(nextCardSubscription);
         return;
       }
       unsubscribeCard = nextCardSubscription;

@@ -179,6 +179,64 @@ describe("remote store reads", () => {
     expect(harness.store.getState().read.decksById).toEqual(byId([deck]));
   });
 
+  it("keeps recovery listeners active when setup reports an error before returning", async () => {
+    const deckSubscriptions: Array<RemoteSubscriptionProps<Deck>> = [];
+    const cardSubscriptions: Array<RemoteSubscriptionProps<Card>> = [];
+    const deckUnsubscribes: ReturnType<typeof vi.fn>[] = [];
+    const cardUnsubscribes: ReturnType<typeof vi.fn>[] = [];
+    const dependencies: RemoteReadDependencies = {
+      waitForInitialization: vi.fn<RemoteReadDependencies["waitForInitialization"]>(async () => ({ status: "ready" })),
+      subscribeDecks: vi.fn((props) => {
+        deckSubscriptions.push(props);
+        const unsubscribe = vi.fn();
+        deckUnsubscribes.push(unsubscribe);
+        if (deckSubscriptions.length === 1) props.onError(new Error("synchronous listener failure"));
+        return unsubscribe;
+      }),
+      subscribeCards: vi.fn((props) => {
+        cardSubscriptions.push(props);
+        const unsubscribe = vi.fn();
+        cardUnsubscribes.push(unsubscribe);
+        return unsubscribe;
+      }),
+      applyChange: applyRealtimeChange,
+    };
+    const store = createRemoteStore(dependencies);
+    const deck = createDeck({ id: "deck-a" });
+    const card = createCard({ id: "card-a", deckId: deck.id });
+
+    await store.getState().start("uid-a");
+
+    expect(deckSubscriptions).toHaveLength(2);
+    expect(cardSubscriptions).toHaveLength(1);
+    expect(deckUnsubscribes[0]).toHaveBeenCalledTimes(1);
+    expect(deckUnsubscribes[1]).not.toHaveBeenCalled();
+    expect(cardUnsubscribes[0]).not.toHaveBeenCalled();
+
+    deckSubscriptions[1]?.onSnapshot({
+      type: "replace",
+      items: [deck],
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    cardSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [card],
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(store.getState().read).toEqual({
+      uid: "uid-a",
+      status: "ready",
+      syncStatus: "synced",
+      decksById: byId([deck]),
+      cardsById: byId([card]),
+    });
+
+    store.getState().stop("uid-a");
+    expect(deckUnsubscribes[0]).toHaveBeenCalledTimes(1);
+    expect(deckUnsubscribes[1]).toHaveBeenCalledTimes(1);
+    expect(cardUnsubscribes[0]).toHaveBeenCalledTimes(1);
+  });
+
   it("manual retry resets automatic recovery and retains same-UID data", async () => {
     const harness = createHarness();
     const deck = createDeck({ id: "deck-a" });
