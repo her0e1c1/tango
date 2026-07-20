@@ -4,15 +4,20 @@
  * stale callbacks, and errors.
  */
 
-import type { RemoteCache, RemoteCollectionName, RemoteCollectionTypes } from "@/query/cache/remoteCache";
-import { toRemoteById, type RemoteById } from "@/query/cache/remoteCollection";
+import { toRemoteById } from "@/query/cache/remoteCollection";
 import type { RemoteSnapshot, RemoteSubscriptionProps } from "@/query/remoteReadContract";
-import { createSyncState } from "@/query/reads/syncState";
+import type {
+  RemoteById,
+  RemoteCollectionName,
+  RemoteCollectionTypes,
+  RemoteState,
+  RemoteStore,
+} from "@/store/remoteStore";
 
 export type { RemoteSubscriptionProps } from "@/query/remoteReadContract";
 
 export interface RemoteReadDependencies {
-  cache: RemoteCache;
+  store: RemoteStore;
   subscribeDecks: (props: RemoteSubscriptionProps<Deck>) => Callback;
   subscribeCards: (props: RemoteSubscriptionProps<Card>) => Callback;
   applyChange: <T extends { id: string }>(
@@ -21,18 +26,26 @@ export interface RemoteReadDependencies {
   ) => RemoteById<T>;
 }
 
+const readCollection = <Collection extends RemoteCollectionName>(
+  state: RemoteState,
+  collection: Collection
+): RemoteById<RemoteCollectionTypes[Collection]> =>
+  (collection === "decks" ? state.decksById : state.cardsById) as RemoteById<RemoteCollectionTypes[Collection]>;
+
 /**
  * Creates and configures a remote read controller.
  * Optional dependencies or settings let production code and tests reuse the same behavior in
  * different environments.
  */
 export const createRemoteReadController = (dependencies: RemoteReadDependencies) => {
-  const syncState = createSyncState(["deck", "card"] as const);
   let activeUid: string | undefined;
+  let generation = 0;
   let automaticRecoveries = 0;
   let unsubscribeDeck: Callback | undefined;
   let unsubscribeCard: Callback | undefined;
   let currentStart: Promise<void> | undefined;
+
+  const isCurrent = (uid: string, currentGeneration: number) => activeUid === uid && generation === currentGeneration;
 
   /**
    * Stops every active remote listener and clears the stored unsubscribe callbacks.
@@ -53,23 +66,22 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
   };
 
   /**
-   * Applies a current Firestore snapshot to the in-memory remote cache.
+   * Applies a current Firestore snapshot to the in-memory remote Store.
    * Snapshots from an older user or subscription generation are ignored so stale network callbacks
    * cannot overwrite newer data.
    */
   const applySnapshot = <Collection extends RemoteCollectionName>(
     uid: string,
     generation: number,
-    syncCollection: "deck" | "card",
     collection: Collection,
     snapshot: RemoteSnapshot<RemoteCollectionTypes[Collection]>
   ) => {
-    if (!syncState.isCurrent(uid, generation)) return;
-    const previous = dependencies.cache.read(uid, collection);
+    if (!isCurrent(uid, generation)) return;
+    const state = dependencies.store.getSnapshot();
+    const previous = readCollection(state, collection);
     const next =
       snapshot.type === "replace" ? toRemoteById(snapshot.items) : dependencies.applyChange(previous, snapshot.event);
-    dependencies.cache.replace(uid, collection, next);
-    syncState.observe(uid, generation, syncCollection, snapshot.metadata);
+    dependencies.store.applySnapshot(uid, collection, { data: next, metadata: snapshot.metadata });
   };
 
   /**
@@ -85,10 +97,10 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
     const onError = (error: Error) => handleListenerError(uid, generation, error);
     const nextDeckSubscription = dependencies.subscribeDecks({
       uid,
-      onSnapshot: (snapshot) => applySnapshot(uid, generation, "deck", "decks", snapshot),
+      onSnapshot: (snapshot) => applySnapshot(uid, generation, "decks", snapshot),
       onError,
     });
-    if (!syncState.isCurrent(uid, generation)) {
+    if (!isCurrent(uid, generation)) {
       nextDeckSubscription();
       return;
     }
@@ -96,10 +108,10 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
 
     const nextCardSubscription = dependencies.subscribeCards({
       uid,
-      onSnapshot: (snapshot) => applySnapshot(uid, generation, "card", "cards", snapshot),
+      onSnapshot: (snapshot) => applySnapshot(uid, generation, "cards", snapshot),
       onError,
     });
-    if (!syncState.isCurrent(uid, generation)) {
+    if (!isCurrent(uid, generation)) {
       nextCardSubscription();
       stopListeners();
       return;
@@ -116,15 +128,16 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
     stopListeners();
     activeUid = uid;
     if (resetAutomaticRecoveries) automaticRecoveries = 0;
-    const generation = syncState.start(uid);
+    const currentGeneration = ++generation;
+    dependencies.store.begin(uid);
 
     try {
-      attachListeners(uid, generation);
+      attachListeners(uid, currentGeneration);
       currentStart = Promise.resolve();
     } catch (error) {
       const initializationError = error instanceof Error ? error : new Error(String(error));
       stopListeners();
-      syncState.fail(uid, generation, initializationError);
+      dependencies.store.fail(uid, initializationError);
       currentStart = Promise.reject(initializationError);
     }
     return currentStart;
@@ -136,10 +149,10 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
    * manually.
    */
   const handleListenerError = (uid: string, generation: number, error: Error) => {
-    if (!syncState.isCurrent(uid, generation)) return;
+    if (!isCurrent(uid, generation)) return;
     stopListeners();
     if (automaticRecoveries >= 1) {
-      syncState.fail(uid, generation, error);
+      dependencies.store.fail(uid, error);
       return;
     }
 
@@ -149,7 +162,7 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
 
   return {
     start: (uid: string) => {
-      const state = syncState.getSnapshot();
+      const state = dependencies.store.getSnapshot();
       if (activeUid === uid && (state.status === "loading" || state.status === "ready")) {
         return currentStart ?? Promise.resolve();
       }
@@ -161,9 +174,10 @@ export const createRemoteReadController = (dependencies: RemoteReadDependencies)
       stopListeners();
       activeUid = undefined;
       currentStart = undefined;
-      syncState.stop(uid);
+      generation += 1;
+      dependencies.store.clear(uid);
     },
-    subscribe: syncState.subscribe,
-    getSnapshot: syncState.getSnapshot,
+    subscribe: dependencies.store.subscribe,
+    getSnapshot: dependencies.store.getSnapshot,
   };
 };
