@@ -4,13 +4,9 @@
  * subscription details.
  */
 
-import { useQuery } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
-import { firestoreKeys } from "@/query/cache/firestoreKeys";
-import type { RemoteById } from "@/query/cache/remoteCollection";
-import type { RemoteReadState } from "@/query/reads/syncState";
 import {
   getRemoteReadBlocker,
   getRemoteReadState,
@@ -19,6 +15,7 @@ import {
   subscribeRemoteReadState,
 } from "@/query/reads/remoteReadSession";
 import { cardsForDeck, filteredCardsForDeck, remoteValues, tagsForDeck } from "@/query/selectors";
+import type { RemoteState } from "@/store/remoteStore";
 
 /**
  * Provides the remote collections values and operations needed by React components.
@@ -31,23 +28,12 @@ export const useRemoteCollections = () => {
   const remoteState = useSyncExternalStore(subscribeRemoteReadState, getRemoteReadState, getRemoteReadState);
   const blocker = useSyncExternalStore(subscribeRemoteReadBlocker, getRemoteReadBlocker, getRemoteReadBlocker);
   const hasActiveUid = uid !== "" && remoteState.uid === uid;
-  const remoteDeckQuery = useQuery<RemoteById<Deck>>({
-    queryKey: firestoreKeys.decks(uid),
-    queryFn: async () => ({}),
-    enabled: false,
-  });
-  const remoteCardQuery = useQuery<RemoteById<Card>>({
-    queryKey: firestoreKeys.cards(uid),
-    queryFn: async () => ({}),
-    enabled: false,
-  });
-
-  const decksById = hasActiveUid ? (remoteDeckQuery.data ?? {}) : {};
-  const cardsById = hasActiveUid ? (remoteCardQuery.data ?? {}) : {};
+  const decksById = hasActiveUid ? remoteState.decksById : {};
+  const cardsById = hasActiveUid ? remoteState.cardsById : {};
   const decks = remoteValues(decksById);
   const cards = remoteValues(cardsById);
 
-  const status: RemoteReadState["status"] | "blocked" = blocker
+  const status: RemoteState["status"] | "blocked" = blocker
     ? "blocked"
     : uid === ""
       ? "idle"

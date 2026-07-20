@@ -1,0 +1,301 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { createRemoteStore } from "@/store/remoteStore";
+import { createCard, createDeck } from "@/test/factories";
+
+describe("remote store", () => {
+  it("publishes each collection atomically and becomes ready after both initial snapshots", () => {
+    const store = createRemoteStore();
+    const listener = vi.fn();
+    const unsubscribe = store.subscribe(listener);
+    const deck = createDeck({ id: "deck-a" });
+    const card = createCard({ id: "card-a", deckId: deck.id });
+
+    const idle = store.getSnapshot();
+    expect(store.getSnapshot()).toBe(idle);
+
+    store.begin("uid-a");
+    const loading = store.getSnapshot();
+    expect(loading).toEqual({ uid: "uid-a", status: "loading", decksById: {}, cardsById: {} });
+    expect(store.getSnapshot()).toBe(loading);
+
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
+    });
+    expect(store.getSnapshot()).toEqual({
+      uid: "uid-a",
+      status: "loading",
+      decksById: { [deck.id]: deck },
+      cardsById: {},
+    });
+
+    store.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(store.getSnapshot()).toEqual({
+      uid: "uid-a",
+      status: "ready",
+      syncStatus: "cached",
+      decksById: { [deck.id]: deck },
+      cardsById: { [card.id]: card },
+    });
+    expect(listener).toHaveBeenCalledTimes(3);
+
+    unsubscribe();
+    store.fail("uid-a", new Error("after unsubscribe"));
+    expect(listener).toHaveBeenCalledTimes(3);
+  });
+
+  it("aggregates metadata and notifies when only metadata changes", () => {
+    const store = createRemoteStore();
+    const listener = vi.fn();
+    store.subscribe(listener);
+    store.begin("uid-a");
+
+    store.applySnapshot("uid-a", "decks", {
+      data: {},
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+    store.applySnapshot("uid-a", "cards", {
+      data: {},
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+    expect(store.getSnapshot()).toMatchObject({ status: "ready", syncStatus: "synced" });
+
+    const synced = store.getSnapshot();
+    store.applySnapshot("uid-a", "decks", {
+      data: synced.decksById,
+      metadata: { size: 0, fromCache: true, hasPendingWrites: false },
+    });
+    expect(store.getSnapshot()).not.toBe(synced);
+    expect(store.getSnapshot()).toMatchObject({ status: "ready", syncStatus: "cached" });
+
+    store.applySnapshot("uid-a", "cards", {
+      data: store.getSnapshot().cardsById,
+      metadata: { size: 0, fromCache: false, hasPendingWrites: true },
+    });
+    expect(store.getSnapshot()).toMatchObject({ status: "ready", syncStatus: "pending" });
+    expect(listener).toHaveBeenCalledTimes(5);
+  });
+
+  it("publishes a private metadata copy with the matching public state", () => {
+    const store = createRemoteStore();
+    const published: ReturnType<typeof store.getSnapshot>[] = [];
+    const deckMetadata = { size: 0, fromCache: false, hasPendingWrites: false };
+    store.subscribe(() => published.push(store.getSnapshot()));
+    store.begin("uid-a");
+
+    store.applySnapshot("uid-a", "decks", { data: {}, metadata: deckMetadata });
+    const decksPublished = store.getSnapshot();
+    deckMetadata.hasPendingWrites = true;
+    store.applySnapshot("uid-a", "cards", {
+      data: {},
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+
+    expect(published.at(-2)).toBe(decksPublished);
+    expect(published.at(-1)).toBe(store.getSnapshot());
+    expect(store.getSnapshot()).toMatchObject({ status: "ready", syncStatus: "synced" });
+  });
+
+  it("retains data for a same-UID retry and clears it for a different UID", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a" });
+    store.begin("uid-a");
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+
+    store.begin("uid-a");
+    expect(store.getSnapshot()).toEqual({
+      uid: "uid-a",
+      status: "loading",
+      decksById: { [deck.id]: deck },
+      cardsById: {},
+    });
+
+    store.begin("uid-b");
+    expect(store.getSnapshot()).toEqual({ uid: "uid-b", status: "loading", decksById: {}, cardsById: {} });
+  });
+
+  it("retains data in an error and ignores updates for a different UID", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a" });
+    store.begin("uid-a");
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const beforeStaleUpdates = store.getSnapshot();
+
+    store.applySnapshot("uid-b", "cards", {
+      data: {},
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+    store.fail("uid-b", new Error("stale"));
+    store.clear("uid-b");
+    expect(store.getSnapshot()).toBe(beforeStaleUpdates);
+
+    const error = new Error("listener failed");
+    store.fail("uid-a", error);
+    expect(store.getSnapshot()).toEqual({
+      uid: "uid-a",
+      status: "error",
+      error,
+      decksById: { [deck.id]: deck },
+      cardsById: {},
+    });
+
+    store.clear("uid-a");
+    expect(store.getSnapshot()).toEqual({ uid: null, status: "idle", decksById: {}, cardsById: {} });
+  });
+
+  it("exposes snapshots as the only read model and changes entity data only through applySnapshot", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a" });
+    const card = createCard({ id: "card-a", deckId: deck.id });
+    store.begin("uid-a");
+
+    expect(store).not.toHaveProperty("read");
+    expect(store).not.toHaveProperty("replace");
+    expect(store.getSnapshot()).toEqual({
+      uid: "uid-a",
+      status: "loading",
+      decksById: {},
+      cardsById: {},
+    });
+
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    store.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(store.getSnapshot()).toEqual({
+      uid: "uid-a",
+      status: "ready",
+      syncStatus: "synced",
+      decksById: { [deck.id]: deck },
+      cardsById: { [card.id]: card },
+    });
+  });
+
+  it("copies caller collection maps before publishing them", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a" });
+    const otherDeck = createDeck({ id: "deck-b" });
+    const snapshotDecks: Record<string, Deck | undefined> = { [deck.id]: deck };
+    store.begin("uid-a");
+    store.applySnapshot("uid-a", "decks", {
+      data: snapshotDecks,
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const afterDeckSnapshot = store.getSnapshot();
+
+    snapshotDecks[otherDeck.id] = otherDeck;
+    expect(store.getSnapshot()).toBe(afterDeckSnapshot);
+    expect(store.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+
+    const card = createCard({ id: "card-a", deckId: deck.id });
+    const otherCard = createCard({ id: "card-b", deckId: deck.id });
+    const snapshotData: Record<string, Card | undefined> = { [card.id]: card };
+    store.applySnapshot("uid-a", "cards", {
+      data: snapshotData,
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const afterSnapshot = store.getSnapshot();
+
+    snapshotData[otherCard.id] = otherCard;
+    expect(store.getSnapshot()).toBe(afterSnapshot);
+    expect(store.getSnapshot().cardsById).toEqual({ [card.id]: card });
+  });
+
+  it("copies entity values and nested mutable data before publishing them", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a", name: "Original", selectedTags: ["deck-tag"] });
+    const nextSeeingAt = new Date(100);
+    const card = createCard({
+      id: "card-a",
+      deckId: deck.id,
+      frontText: "Original",
+      tags: ["card-tag"],
+      nextSeeingAt,
+    });
+    store.begin("uid-a");
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    store.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const snapshot = store.getSnapshot();
+
+    deck.name = "Changed";
+    deck.selectedTags.push("changed");
+    card.frontText = "Changed";
+    card.tags.push("changed");
+    nextSeeingAt.setTime(200);
+
+    expect(store.getSnapshot()).toBe(snapshot);
+    expect(snapshot.decksById[deck.id]).toMatchObject({ name: "Original", selectedTags: ["deck-tag"] });
+    expect(snapshot.cardsById[card.id]).toMatchObject({ frontText: "Original", tags: ["card-tag"] });
+    expect(snapshot.cardsById[card.id]?.nextSeeingAt?.getTime()).toBe(100);
+  });
+
+  it("freezes published entities, nested arrays, and Date values", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a", selectedTags: ["deck-tag"] });
+    const card = createCard({ id: "card-a", deckId: deck.id, tags: ["card-tag"], nextSeeingAt: new Date(100) });
+    store.begin("uid-a");
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    store.applySnapshot("uid-a", "cards", {
+      data: { [card.id]: card },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const snapshot = store.getSnapshot();
+    const publishedDeck = snapshot.decksById[deck.id];
+    const publishedCard = snapshot.cardsById[card.id];
+    if (publishedDeck == null || publishedCard == null) throw new Error("Expected published entities");
+
+    expect(Reflect.set(publishedDeck, "name", "Changed")).toBe(false);
+    expect(() => publishedDeck.selectedTags.push("changed")).toThrow();
+    expect(Reflect.set(publishedCard, "frontText", "Changed")).toBe(false);
+    expect(() => publishedCard.tags.push("changed")).toThrow();
+    expect(() => publishedCard.nextSeeingAt?.setTime(200)).toThrow();
+    expect(store.getSnapshot()).toBe(snapshot);
+    expect(publishedCard.nextSeeingAt).toBeInstanceOf(Date);
+    expect(publishedCard.nextSeeingAt?.getTime()).toBe(100);
+  });
+
+  it("freezes published state and collection maps", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a" });
+    const otherDeck = createDeck({ id: "deck-b" });
+    store.begin("uid-a");
+    store.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const snapshot = store.getSnapshot();
+
+    expect(Reflect.set(snapshot, "status", "idle")).toBe(false);
+    expect(Reflect.set(snapshot.decksById, otherDeck.id, otherDeck)).toBe(false);
+    expect(Reflect.deleteProperty(snapshot.decksById, deck.id)).toBe(false);
+    expect(store.getSnapshot()).toBe(snapshot);
+    expect(store.getSnapshot()).toMatchObject({
+      uid: "uid-a",
+      status: "loading",
+      decksById: { [deck.id]: deck },
+    });
+  });
+});

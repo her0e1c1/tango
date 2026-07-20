@@ -1,12 +1,13 @@
 /**
  * @file Verifies the "remote read session" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "connects production
- * gateways to the Query controller", "does not start listeners when persistent cache
+ * gateways and Store to the controller", "does not start listeners when persistent cache
  * initialization is blocked", "does not start a stale UID after initialization finishes".
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RemoteReadDependencies } from "@/query/reads/remoteReadController";
+import type { RemoteStore } from "@/store/remoteStore";
 
 type InitializationState = { status: "ready" } | { status: "blocked"; error: Error };
 
@@ -23,6 +24,7 @@ const mocks = vi.hoisted(() => ({
   readCards: vi.fn(),
   subscribeDecks: vi.fn(),
   subscribeCards: vi.fn(),
+  store: {} as RemoteStore,
 }));
 
 vi.mock("@/adapters/firestore", () => ({
@@ -33,7 +35,7 @@ vi.mock("@/adapters/firestore", () => ({
   subscribeFirestoreInitialization: vi.fn(() => () => undefined),
   waitForFirestoreInitialization: mocks.waitForInitialization,
 }));
-vi.mock("@/query/client", () => ({ queryClient: {} }));
+vi.mock("@/store/remoteStore", () => ({ remoteStore: mocks.store }));
 vi.mock("@/lib/realtimeChange", () => ({ applyRealtimeChange: vi.fn() }));
 vi.mock("@/query/reads/remoteReadController", () => ({
   createRemoteReadController: vi.fn((dependencies: RemoteReadDependencies) => {
@@ -57,9 +59,10 @@ describe("remote read session", () => {
     mocks.waitForInitialization.mockResolvedValue({ status: "ready" });
   });
 
-  it("connects production gateways to the Query controller", async () => {
+  it("connects the production Store and gateways to the remote read controller", async () => {
     await startRemoteReads("uid-a");
 
+    expect(mocks.dependencies?.store).toBe(mocks.store);
     expect(mocks.start).toHaveBeenCalledWith("uid-a");
     stopRemoteReads("uid-a");
     expect(mocks.stop).toHaveBeenCalledWith("uid-a");

@@ -4,20 +4,19 @@
  * coordinate services themselves.
  */
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import * as firestore from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
 import { useRemoteCollections } from "@/query/useRemoteCollections";
-import { createRemoteCache } from "@/query/cache/remoteCache";
 import { createCardMutationService } from "@/query/mutations/cardMutationService";
 
 type CardMutationVariables =
   | { kind: "create"; card: Card }
   | { kind: "update"; card: CardEdit }
-  | { kind: "remove"; id: CardId }
+  | { kind: "remove"; id: CardId; deckId: DeckId }
   | { kind: "bulkUpsert"; cards: Card[] };
+type CardMutationFailure = { variables: CardMutationVariables; error: unknown; sequence: number };
 
 /**
  * Returns the card identifiers affected by one mutation request.
@@ -29,10 +28,21 @@ const variableIds = (variables: CardMutationVariables): CardId[] => {
   return [variables.card.id];
 };
 
+const sameMutationIdentity = (left: CardMutationVariables, right: CardMutationVariables) => {
+  if (left.kind !== right.kind) return false;
+  const leftIds = variableIds(left).sort();
+  const rightIds = variableIds(right).sort();
+  return leftIds.length === rightIds.length && leftIds.every((id, index) => id === rightIds[index]);
+};
+
 interface CardMutationRunDependencies {
   mutateAsync: (variables: CardMutationVariables) => Promise<unknown>;
-  lastFailed: { current: CardMutationVariables | undefined };
+  failureRef: { current: CardMutationFailure | undefined };
   setPendingCounts: (update: (current: Map<CardId, number>) => Map<CardId, number>) => void;
+  setError: (error: unknown) => void;
+  sequence: number;
+  generation: number;
+  currentGeneration: { current: number };
 }
 
 /**
@@ -41,7 +51,15 @@ interface CardMutationRunDependencies {
  */
 const runCardMutation = async (
   variables: CardMutationVariables,
-  { mutateAsync, lastFailed, setPendingCounts }: CardMutationRunDependencies
+  {
+    mutateAsync,
+    failureRef,
+    setPendingCounts,
+    setError,
+    sequence,
+    generation,
+    currentGeneration,
+  }: CardMutationRunDependencies
 ) => {
   const ids = variableIds(variables);
   setPendingCounts((current) => {
@@ -53,20 +71,29 @@ const runCardMutation = async (
   });
   try {
     await mutateAsync(variables);
-    lastFailed.current = undefined;
+    if (currentGeneration.current !== generation) return;
+    const failed = failureRef.current;
+    if (failed != null && failed.sequence < sequence && sameMutationIdentity(failed.variables, variables)) {
+      failureRef.current = undefined;
+      setError(null);
+    }
   } catch (error) {
-    lastFailed.current = variables;
+    if (currentGeneration.current !== generation) throw error;
+    failureRef.current = { variables, error, sequence };
+    setError(error);
     throw error;
   } finally {
-    setPendingCounts((current) => {
-      const next = new Map(current);
-      ids.forEach((id) => {
-        const count = (next.get(id) ?? 1) - 1;
-        if (count === 0) next.delete(id);
-        else next.set(id, count);
+    if (currentGeneration.current === generation) {
+      setPendingCounts((current) => {
+        const next = new Map(current);
+        ids.forEach((id) => {
+          const count = (next.get(id) ?? 1) - 1;
+          if (count === 0) next.delete(id);
+          else next.set(id, count);
+        });
+        return next;
       });
-      return next;
-    });
+    }
   }
 };
 
@@ -78,34 +105,54 @@ const runCardMutation = async (
 export const useCardMutations = () => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const client = useQueryClient();
   const remote = useRemoteCollections();
-  const [pendingCounts, setPendingCounts] = useState(() => new Map<CardId, number>());
-  const lastFailed = useRef<CardMutationVariables>(undefined);
+  const generation = useRef(0);
+  const operationSequence = useRef(0);
+  const generationUid = useRef(uid);
+  const [stateUid, setStateUid] = useState(uid);
+  const [pendingState, setPendingState] = useState(() => ({ uid, counts: new Map<CardId, number>() }));
+  const [errorState, setErrorState] = useState<{ uid: string; error: unknown }>(() => ({
+    uid,
+    error: null,
+  }));
+  const failureRef = useRef<CardMutationFailure>(undefined);
+  if (stateUid !== uid) {
+    setStateUid(uid);
+    setPendingState({ uid, counts: new Map() });
+    setErrorState({ uid, error: null });
+  }
+  useEffect(() => {
+    if (generationUid.current === uid) return;
+    generationUid.current = uid;
+    generation.current += 1;
+    failureRef.current = undefined;
+  }, [uid]);
+  const setPendingCounts = (update: (current: Map<CardId, number>) => Map<CardId, number>) => {
+    setPendingState((current) => ({
+      uid,
+      counts: update(current.uid === uid ? current.counts : new Map()),
+    }));
+  };
+  const setError = (error: unknown) => setErrorState({ uid, error });
   const service = createCardMutationService({
-    cache: createRemoteCache(client),
     createCard: firestore.card.create,
     updateCard: firestore.card.update,
     removeCard: firestore.card.logicalRemove,
     upsertCard: firestore.card.upsert,
-    readCards: firestore.card.readAll,
   });
 
-  const mutation = useMutation({
-    retry: false,
-    mutationFn: async (variables: CardMutationVariables) => {
-      if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
-      if (variables.kind === "create") {
-        await service.create(uid, variables.card);
-      } else if (variables.kind === "update") {
-        await service.update(uid, variables.card);
-      } else if (variables.kind === "remove") {
-        await service.remove(uid, variables.id);
-      } else {
-        await service.bulkUpsert(uid, variables.cards);
-      }
-    },
-  });
+  const mutateAsync = async (variables: CardMutationVariables) => {
+    if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
+    if (variables.kind === "create") {
+      await service.create(uid, variables.card);
+    } else if (variables.kind === "update") {
+      await service.update(uid, variables.card);
+    } else if (variables.kind === "remove") {
+      await service.remove(uid, variables.id, variables.deckId);
+    } else {
+      await service.bulkUpsert(uid, variables.cards);
+    }
+  };
 
   /**
    * Runs the current card feature operation and returns its result.
@@ -113,15 +160,16 @@ export const useCardMutations = () => {
    */
   const run = (variables: CardMutationVariables) =>
     runCardMutation(variables, {
-      mutateAsync: mutation.mutateAsync,
-      lastFailed,
+      mutateAsync,
+      failureRef,
       setPendingCounts,
+      setError,
+      sequence: ++operationSequence.current,
+      generation: generation.current,
+      currentGeneration: generation,
     });
 
-  /**
-   * Queues an update for the supplied card and applies it optimistically to the remote cache.
-   * The hook exposes the same pending, error, and retry state used by other card mutations.
-   */
+  /** Queues an update for the supplied card with the shared pending, error, and retry state. */
   const update = (card: CardEdit) => run({ kind: "update", card });
 
   return {
@@ -135,15 +183,15 @@ export const useCardMutations = () => {
     remove: (id: CardId) => {
       const card = remote.cardById(id);
       if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
-      return run({ kind: "remove", id });
+      return run({ kind: "remove", id, deckId: card.deckId });
     },
     bulkUpsert: (cards: Card[]) => run({ kind: "bulkUpsert", cards }),
-    isPending: (id: CardId) => pendingCounts.has(id),
-    pending: pendingCounts.size > 0,
-    error: mutation.error,
+    isPending: (id: CardId) => pendingState.uid === uid && pendingState.counts.has(id),
+    pending: pendingState.uid === uid && pendingState.counts.size > 0,
+    error: errorState.uid === uid ? errorState.error : null,
     retry: () => {
-      const variables = lastFailed.current;
-      if (variables != null) void run(variables).catch(() => undefined);
+      const failure = failureRef.current;
+      if (failure != null) void run(failure.variables).catch(() => undefined);
     },
   };
 };

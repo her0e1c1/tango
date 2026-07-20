@@ -8,18 +8,19 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { firestoreKeys } from "@/query/cache/firestoreKeys";
-import { createQueryWrapper, createTestQueryClient } from "@/query/testUtils";
+import { remoteStore } from "@/store/remoteStore";
 import { createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
+  uid: "uid-a",
   create: vi.fn(),
   update: vi.fn(),
   remove: vi.fn(),
 }));
 
 vi.mock("@/auth/AuthContext", () => ({
-  useAuth: () => ({ status: "authenticated", uid: "uid-a", user: { uid: "uid-a" } }),
+  useAuth: () =>
+    mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
 vi.mock("@/adapters/firestore", () => ({
   deck: {
@@ -34,9 +35,113 @@ import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 describe("useDeckMutations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.uid = "uid-a";
+    remoteStore.clear();
+    remoteStore.begin("uid-a");
     mocks.create.mockResolvedValue("deck-id");
     mocks.update.mockResolvedValue(undefined);
     mocks.remove.mockResolvedValue(undefined);
+  });
+
+  it("publishes a created Deck only after the listener responds", async () => {
+    const deck = createDeck({ id: "created" });
+    const { result } = renderHook(useDeckMutations);
+
+    await act(async () => result.current.create(deck));
+
+    expect(mocks.create).toHaveBeenCalledWith(deck);
+    expect(remoteStore.getSnapshot().decksById).toEqual({});
+
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+  });
+
+  it("publishes an updated Deck only after the listener responds", async () => {
+    const deck = createDeck({ id: "deck-a", name: "Before" });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
+    const updated = { ...deck, name: "After" };
+
+    await act(async () => result.current.update(updated));
+
+    expect(mocks.update).toHaveBeenCalledWith(updated);
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [updated.id]: updated },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [updated.id]: updated });
+  });
+
+  it("removes a Deck from remote data only after the listener responds", async () => {
+    const deck = createDeck({ id: "removed" });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
+
+    await act(async () => result.current.remove(deck));
+
+    expect(mocks.remove).toHaveBeenCalledWith(deck.id, "uid-a");
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: {},
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+    expect(remoteStore.getSnapshot().decksById).toEqual({});
+  });
+
+  it("does not publish an old UID failure into the current UID", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    let rejectOld!: (error: Error) => void;
+    mocks.update.mockReturnValueOnce(new Promise<void>((_resolve, reject) => (rejectOld = reject)));
+    const { result, rerender } = renderHook(useDeckMutations);
+
+    let operation!: Promise<void>;
+    act(() => {
+      operation = result.current.update(deck);
+    });
+    await waitFor(() => expect(result.current.pending).toBe(true));
+    mocks.uid = "uid-b";
+    rerender();
+    await waitFor(() => expect(result.current.pending).toBe(false));
+
+    rejectOld(new Error("old failure"));
+    await expect(operation).rejects.toThrow("old failure");
+    expect(result.current.error).toBeNull();
+    expect(result.current.pending).toBe(false);
+  });
+
+  it("leaves remote Deck data unchanged after a failed update and its retry", async () => {
+    const deck = createDeck({ id: "failed-update", name: "Before" });
+    const updated = { ...deck, name: "After" };
+    const error = new Error("update failed");
+    mocks.update.mockRejectedValueOnce(error);
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
+
+    await act(async () => {
+      await expect(result.current.update(updated)).rejects.toBe(error);
+    });
+
+    expect(result.current.error).toBe(error);
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
+    act(() => result.current.retry());
+    await waitFor(() => expect(result.current.error).toBeNull());
+    expect(mocks.update).toHaveBeenCalledTimes(2);
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
   });
 
   it("shares one in-flight removal for the same Deck", async () => {
@@ -49,9 +154,11 @@ describe("useDeckMutations", () => {
     );
     const deck = createDeck({ id: "deck-a" });
     const otherDeck = createDeck({ id: "deck-b" });
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck, [otherDeck.id]: otherDeck });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck, [otherDeck.id]: otherDeck },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
     let firstRemove: Promise<void> | undefined;
     let secondRemove: Promise<void> | undefined;
 
@@ -79,21 +186,116 @@ describe("useDeckMutations", () => {
     expect(result.current.isPending(deck.id)).toBe(false);
   });
 
+  it("serializes distinct updates for the same Deck and stays pending until both settle", async () => {
+    const deck = createDeck({ id: "deck-a", name: "Before" });
+    let finishFirst!: () => void;
+    let finishSecond!: () => void;
+    mocks.update
+      .mockReturnValueOnce(new Promise<void>((resolve) => (finishFirst = resolve)))
+      .mockReturnValueOnce(new Promise<void>((resolve) => (finishSecond = resolve)));
+    const { result } = renderHook(useDeckMutations);
+
+    let first!: Promise<void>;
+    let second!: Promise<void>;
+    act(() => {
+      first = result.current.update({ ...deck, name: "First" });
+      second = result.current.update({ ...deck, name: "Second" });
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledExactlyOnceWith({ ...deck, name: "First" }));
+
+    await act(async () => {
+      finishFirst();
+      await first;
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+    expect(mocks.update).toHaveBeenLastCalledWith({ ...deck, name: "Second" });
+    expect(result.current.isPending(deck.id)).toBe(true);
+
+    await act(async () => {
+      finishSecond();
+      await second;
+    });
+    expect(result.current.isPending(deck.id)).toBe(false);
+  });
+
+  it("clears an older queued Deck failure after a newer same-Deck update succeeds", async () => {
+    const deck = createDeck({ id: "deck-a", name: "Before" });
+    const firstUpdate = { ...deck, name: "First" };
+    const secondUpdate = { ...deck, name: "Second" };
+    const error = new Error("first update failed");
+    let rejectFirst!: (error: Error) => void;
+    mocks.update
+      .mockReturnValueOnce(new Promise<void>((_resolve, reject) => (rejectFirst = reject)))
+      .mockResolvedValueOnce(undefined);
+    const { result } = renderHook(useDeckMutations);
+
+    let firstOperation!: Promise<void>;
+    let secondOperation!: Promise<void>;
+    act(() => {
+      firstOperation = result.current.update(firstUpdate);
+      secondOperation = result.current.update(secondUpdate);
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledExactlyOnceWith(firstUpdate));
+
+    await act(async () => {
+      rejectFirst(error);
+      await expect(firstOperation).rejects.toBe(error);
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+    await act(async () => secondOperation);
+
+    expect(result.current.error).toBeNull();
+    act(() => result.current.retry());
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(2));
+  });
+
+  it("serializes a same-Deck removal after an update", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    let finishUpdate!: () => void;
+    mocks.update.mockReturnValueOnce(new Promise<void>((resolve) => (finishUpdate = resolve)));
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
+
+    let update!: Promise<void>;
+    let remove!: Promise<void>;
+    act(() => {
+      update = result.current.update({ ...deck, name: "Updated" });
+      remove = result.current.remove(deck);
+    });
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledOnce());
+    expect(mocks.remove).not.toHaveBeenCalled();
+
+    await act(async () => {
+      finishUpdate();
+      await update;
+    });
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id, "uid-a"));
+    await remove;
+    expect(result.current.isPending(deck.id)).toBe(false);
+  });
+
   it("keeps a failed removal available for a safe retry", async () => {
     const deck = createDeck({ id: "deck-a" });
     const error = new Error("delete failed");
     mocks.remove.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
 
     await act(async () => {
       await expect(result.current.remove(deck)).rejects.toThrow(error);
     });
 
     await waitFor(() => expect(result.current.error).toBe(error));
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
     act(() => result.current.retry());
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
+    expect(remoteStore.getSnapshot().decksById).toEqual({ [deck.id]: deck });
   });
 
   it("runs remove success cleanup after a retry finishes beyond the hook lifetime", async () => {
@@ -105,11 +307,11 @@ describe("useDeckMutations", () => {
     });
     mocks.remove.mockRejectedValueOnce(error).mockReturnValueOnce(retryRequest);
     const onRemoveSuccess = vi.fn();
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
-    const { result, unmount } = renderHook(() => useDeckMutations({ onRemoveSuccess }), {
-      wrapper: createQueryWrapper(client),
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
     });
+    const { result, unmount } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
 
     await act(async () => {
       await expect(result.current.remove(deck)).rejects.toBe(error);
@@ -128,9 +330,11 @@ describe("useDeckMutations", () => {
     const deck = createDeck({ id: "deck-a" });
     const error = new Error("delete failed");
     mocks.remove.mockRejectedValueOnce(error).mockResolvedValue(undefined);
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [deck.id]: deck },
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
 
     await act(async () => {
       await expect(result.current.remove(deck)).rejects.toThrow(error);
@@ -165,12 +369,14 @@ describe("useDeckMutations", () => {
       }
       return Promise.resolve();
     });
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), {
-      [failedDeck.id]: failedDeck,
-      [successfulDeck.id]: successfulDeck,
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: {
+        [failedDeck.id]: failedDeck,
+        [successfulDeck.id]: successfulDeck,
+      },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
     });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    const { result } = renderHook(useDeckMutations);
     let failedRemoval: Promise<void> | undefined;
     let successfulRemoval: Promise<void> | undefined;
 
@@ -222,9 +428,11 @@ describe("useDeckMutations", () => {
       if (rejectById.has(id)) return Promise.resolve();
       return new Promise<void>((_resolve, reject) => rejectById.set(id, reject));
     });
-    const client = createTestQueryClient();
-    client.setQueryData(firestoreKeys.decks("uid-a"), { [firstDeck.id]: firstDeck, [laterDeck.id]: laterDeck });
-    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+    remoteStore.applySnapshot("uid-a", "decks", {
+      data: { [firstDeck.id]: firstDeck, [laterDeck.id]: laterDeck },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
+    });
+    const { result } = renderHook(useDeckMutations);
     let firstRemoval: Promise<void> | undefined;
     let laterRemoval: Promise<void> | undefined;
 
@@ -251,5 +459,56 @@ describe("useDeckMutations", () => {
       expect(mocks.remove).toHaveBeenLastCalledWith(laterDeck.id, "uid-a");
       expect(result.current.error).toBeNull();
     });
+  });
+
+  it("does not resurrect Deck state after an A-to-B-to-A UID transition", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    const error = new Error("failed");
+    mocks.update.mockRejectedValueOnce(error);
+    const { result, rerender } = renderHook(useDeckMutations);
+
+    await act(async () => {
+      await expect(result.current.update(deck)).rejects.toBe(error);
+    });
+    expect(result.current.error).toBe(error);
+    mocks.uid = "uid-b";
+    rerender();
+    mocks.uid = "uid-a";
+    rerender();
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.pending).toBe(false);
+  });
+
+  it("queues a failed remove retry behind an unrelated same-Deck update", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    const error = new Error("remove failed");
+    let finishUpdate!: () => void;
+    let finishRetry!: () => void;
+    mocks.remove
+      .mockRejectedValueOnce(error)
+      .mockReturnValueOnce(new Promise<void>((resolve) => (finishRetry = resolve)));
+    mocks.update.mockReturnValueOnce(new Promise<void>((resolve) => (finishUpdate = resolve)));
+    const { result } = renderHook(useDeckMutations);
+
+    await act(async () => {
+      await expect(result.current.remove(deck)).rejects.toBe(error);
+    });
+    let update!: Promise<void>;
+    act(() => {
+      update = result.current.update(deck);
+      result.current.retry();
+    });
+    expect(mocks.remove).toHaveBeenCalledOnce();
+    expect(result.current.error).toBe(error);
+
+    await act(async () => {
+      finishUpdate();
+      await update;
+    });
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
+    expect(result.current.error).toBe(error);
+    await act(async () => finishRetry());
+    await waitFor(() => expect(result.current.error).toBeNull());
   });
 });

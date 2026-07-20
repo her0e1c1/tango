@@ -4,16 +4,14 @@
  * coordinate services themselves.
  */
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 import * as firestore from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
-import { createRemoteCache } from "@/query/cache/remoteCache";
 import { createDeckMutationService } from "@/query/mutations/deckMutationService";
 
 type Variables = { kind: "create"; deck: Deck } | { kind: "update"; deck: DeckEdit } | { kind: "remove"; deck: Deck };
-type Failure = { variables: Variables; error: unknown };
+type Failure = { variables: Variables; error: unknown; sequence: number };
 
 interface UseDeckMutationsOptions {
   onRemoveSuccess?: (deck: Deck) => void;
@@ -34,87 +32,124 @@ const isSameOperation = (left: Variables, right: Variables) =>
 export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = {}) => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const client = useQueryClient();
   const onRemoveSuccessRef = useRef(onRemoveSuccess);
   useEffect(() => {
     onRemoveSuccessRef.current = onRemoveSuccess;
   }, [onRemoveSuccess]);
-  const inFlight = useRef(new Map<DeckId, Promise<void>>());
-  const [pendingDeckIds, setPendingDeckIds] = useState<Set<DeckId>>(() => new Set());
+  const inFlightRemovals = useRef(new Map<DeckId, Promise<void>>());
+  const generation = useRef(0);
+  const operationSequence = useRef(0);
+  const generationUid = useRef(uid);
+  const [stateUid, setStateUid] = useState(uid);
+  const [pendingState, setPendingState] = useState(() => ({ uid, counts: new Map<DeckId, number>() }));
   const failureRef = useRef<Failure>(undefined);
-  const [failure, setFailure] = useState<Failure>();
+  const [failureState, setFailureState] = useState<{ uid: string; failure: Failure | undefined }>(() => ({
+    uid,
+    failure: undefined,
+  }));
+  if (stateUid !== uid) {
+    setStateUid(uid);
+    setPendingState({ uid, counts: new Map() });
+    setFailureState({ uid, failure: undefined });
+  }
+  useEffect(() => {
+    if (generationUid.current === uid) return;
+    generationUid.current = uid;
+    generation.current += 1;
+    inFlightRemovals.current = new Map();
+    failureRef.current = undefined;
+  }, [uid]);
+  const setPendingCounts = (update: (current: Map<DeckId, number>) => Map<DeckId, number>) => {
+    setPendingState((current) => ({ uid, counts: update(current.uid === uid ? current.counts : new Map()) }));
+  };
+  const setFailure = (failure: Failure | undefined) => setFailureState({ uid, failure });
   const service = createDeckMutationService({
-    cache: createRemoteCache(client),
     createDeck: firestore.deck.create,
     updateDeck: firestore.deck.update,
     removeDeck: firestore.deck.remove,
   });
-  const mutation = useMutation({
-    retry: false,
-    mutationFn: async (variables: Variables) => {
-      if (uid === "") throw new Error("A confirmed user is required for remote Deck writes");
-      const deck = variables.deck;
-      if (variables.kind === "create") await service.create(uid, deck as Deck);
-      else if (variables.kind === "update") await service.update(uid, deck);
-      else await service.remove(uid, deck.id);
-    },
-  });
+  const mutateAsync = async (variables: Variables) => {
+    if (uid === "") throw new Error("A confirmed user is required for remote Deck writes");
+    const deck = variables.deck;
+    if (variables.kind === "create") await service.create(uid, deck as Deck);
+    else if (variables.kind === "update") await service.update(uid, deck);
+    else await service.remove(uid, deck.id);
+  };
   /**
    * Runs the current deck feature operation and returns its result.
    * Progress and failure cleanup stay in one place so callers observe a consistent workflow state.
    */
-  const run = (variables: Variables) => {
+  const run = (variables: Variables): Promise<void> => {
+    const operationGeneration = generation.current;
+    const sequence = ++operationSequence.current;
     const failed = failureRef.current;
     const retryOf = failed != null && isSameOperation(failed.variables, variables) ? failed : undefined;
     const deckId = variables.deck.id;
-    const current = inFlight.current.get(deckId);
-    if (current != null) {
+    const currentRemoval = variables.kind === "remove" ? inFlightRemovals.current.get(deckId) : undefined;
+    if (currentRemoval != null) {
       if (retryOf != null) {
-        void current.then(
+        return currentRemoval.then(
           () => {
-            if (failureRef.current !== retryOf) return;
-            failureRef.current = undefined;
-            setFailure(undefined);
+            if (generation.current !== operationGeneration || failureRef.current !== retryOf) return;
+            return run(variables);
           },
           () => undefined
         );
       }
-      return current;
+      return currentRemoval;
     }
 
-    setPendingDeckIds((pending) => new Set(pending).add(deckId));
-    const operation = mutation.mutateAsync(variables).then(
+    setPendingCounts((pending) => {
+      const next = new Map(pending);
+      next.set(deckId, (next.get(deckId) ?? 0) + 1);
+      return next;
+    });
+    const operation = mutateAsync(variables).then(
       () => {
+        if (generation.current !== operationGeneration) return;
         if (variables.kind === "remove") onRemoveSuccessRef.current?.(variables.deck);
-        if (retryOf == null || failureRef.current !== retryOf) return;
-        failureRef.current = undefined;
-        setFailure(undefined);
+        const currentFailure = failureRef.current;
+        if (
+          currentFailure != null &&
+          currentFailure.sequence < sequence &&
+          isSameOperation(currentFailure.variables, variables)
+        ) {
+          failureRef.current = undefined;
+          setFailure(undefined);
+        }
       },
       (error: unknown) => {
-        const nextFailure = { variables, error };
+        if (generation.current !== operationGeneration) throw error;
+        const nextFailure = { variables, error, sequence };
         failureRef.current = nextFailure;
         setFailure(nextFailure);
         throw error;
       }
     );
     const settled = operation.finally(() => {
-      inFlight.current.delete(deckId);
-      setPendingDeckIds((pending) => {
-        const next = new Set(pending);
-        next.delete(deckId);
+      if (generation.current !== operationGeneration) return;
+      if (inFlightRemovals.current.get(deckId) === settled) inFlightRemovals.current.delete(deckId);
+      setPendingCounts((pending) => {
+        const next = new Map(pending);
+        const count = (next.get(deckId) ?? 1) - 1;
+        if (count === 0) next.delete(deckId);
+        else next.set(deckId, count);
         return next;
       });
     });
-    inFlight.current.set(deckId, settled);
+    if (variables.kind === "remove") inFlightRemovals.current.set(deckId, settled);
     return settled;
   };
+
+  const pendingCounts = pendingState.uid === uid ? pendingState.counts : new Map<DeckId, number>();
+  const failure = failureState.uid === uid ? failureState.failure : undefined;
 
   return {
     create: (deck: Deck) => run({ kind: "create", deck }),
     update: (deck: DeckEdit) => run({ kind: "update", deck }),
     remove: (deck: Deck) => run({ kind: "remove", deck }),
-    pending: pendingDeckIds.size > 0,
-    isPending: (id: DeckId) => pendingDeckIds.has(id),
+    pending: pendingCounts.size > 0,
+    isPending: (id: DeckId) => pendingCounts.has(id),
     error: failure?.error ?? null,
     retry: () => {
       const failed = failureRef.current;

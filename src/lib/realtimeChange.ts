@@ -12,7 +12,7 @@
  * before the event reaches this helper — removed IDs are listed in `removed`.
  */
 export const applyRealtimeChange = <T extends { id: string }>(
-  prevById: Record<string, T | undefined>,
+  prevById: Readonly<Record<string, T | undefined>>,
   event: { added?: T[]; modified?: T[]; removed?: string[] }
 ): Record<string, T | undefined> => {
   const next = { ...prevById };

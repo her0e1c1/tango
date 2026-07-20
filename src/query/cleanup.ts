@@ -4,19 +4,15 @@
  * subscription details.
  */
 
-import type { QueryClient } from "@tanstack/react-query";
-
-import { queryClient } from "@/query/client";
-import { firestoreKeys } from "@/query/cache/firestoreKeys";
 import { stopRemoteReads } from "@/query/reads/remoteReadSession";
+import { remoteStore, type RemoteStore } from "@/store/remoteStore";
 
 /**
- * Stops remote reads and removes cached queries that belong to one user.
+ * Stops remote reads and clears Store data that belongs to one user.
  * Logout and account switches call this boundary so data from the previous identity cannot remain
  * visible.
  */
-export const cleanupFirestoreUid = async (uid: string, client: QueryClient = queryClient) => {
-  const filter = { queryKey: firestoreKeys.uid(uid) };
+export const cleanupFirestoreUid = async (uid: string, store: RemoteStore = remoteStore) => {
   const errors: unknown[] = [];
   try {
     stopRemoteReads(uid);
@@ -24,12 +20,7 @@ export const cleanupFirestoreUid = async (uid: string, client: QueryClient = que
     errors.push(error);
   }
   try {
-    await client.cancelQueries(filter);
-  } catch (error) {
-    errors.push(error);
-  }
-  try {
-    client.removeQueries(filter);
+    store.clear(uid);
   } catch (error) {
     errors.push(error);
   }

@@ -4,8 +4,7 @@
  * coordinate services themselves.
  */
 
-import { useMutation } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import * as action from "@/action";
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
@@ -19,7 +18,19 @@ import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/featu
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
 
-type ImportRequest = { kind: "content"; name: string; rows: DeckImportRow[] } | { kind: "sample" };
+interface DeckImportAttempt {
+  uid: string;
+  deck: Deck;
+  createDeckPending: boolean;
+  remainingUpserts: Card[];
+  createdIds: CardId[];
+  updatedIds: CardId[];
+  totals: Pick<DeckImportResult, "created" | "updated" | "skipped">;
+}
+
+type ImportRequest =
+  | { kind: "content"; name: string; rows: DeckImportRow[]; attempt?: DeckImportAttempt }
+  | { kind: "sample"; attempt?: DeckImportAttempt };
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
@@ -66,6 +77,50 @@ interface DeckImportDependencies {
   bulkUpsert: (cards: Card[]) => Promise<unknown>;
 }
 
+const prepareDeckImportAttempt = (
+  request: ImportRequest,
+  { uid, decks, cardsByDeckId }: DeckImportDependencies
+): DeckImportAttempt => {
+  const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
+  const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
+  const rows = request.kind === "sample" ? rowsFromCards(sampleCards as CardRaw[]) : request.rows;
+  let deck = decks.find((candidate) =>
+    preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
+  );
+  const createDeckPending = deck == null;
+  if (deck == null) {
+    deck = action.deck.prepare({ name }, uid, firestoreMetadata.generateDeckId);
+    if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
+  }
+
+  const existing = cardsByDeckId(deck.id);
+  const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
+  const plan = buildDeckImportPlan(rows, existing);
+  const remainingUpserts: Card[] = [];
+  const createdIds: CardId[] = [];
+  const updatedIds: CardId[] = [];
+  plan.rows.forEach((row) => {
+    const current = byUniqueKey.get(row.card.uniqueKey);
+    if (row.action === "create") {
+      const card = action.card.prepare(row.card, deck, firestoreMetadata.generateCardId);
+      remainingUpserts.push(card);
+      createdIds.push(card.id);
+    } else if (row.action === "update" && current != null) {
+      remainingUpserts.push({ ...current, ...row.card });
+      updatedIds.push(current.id);
+    }
+  });
+  return {
+    uid,
+    deck,
+    createDeckPending,
+    remainingUpserts,
+    createdIds,
+    updatedIds,
+    totals: { created: plan.created, updated: plan.updated, skipped: plan.unchanged },
+  };
+};
+
 /**
  * Creates or finds the destination deck, plans row changes, and writes imported cards.
  * A bulk-write failure is converted into counts that distinguish successful, skipped, and failed
@@ -76,56 +131,37 @@ const executeDeckImport = async (
   { uid, decks, cardsByDeckId, createDeck, bulkUpsert }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
-  const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
-  const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
-  const rows = request.kind === "sample" ? rowsFromCards(sampleCards as CardRaw[]) : request.rows;
-  let deck = decks.find((candidate) =>
-    preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
-  );
-  if (deck == null) {
-    deck = action.deck.prepare({ name }, uid, firestoreMetadata.generateDeckId);
-    if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
-    await createDeck(deck);
+  let attempt = request.attempt;
+  if (attempt == null || attempt.uid !== uid) {
+    attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId, createDeck, bulkUpsert });
+    request.attempt = attempt;
   }
-
-  const existing = cardsByDeckId(deck.id);
-  const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
-  const plan = buildDeckImportPlan(rows, existing);
-  const upserts: Card[] = [];
-  const createdIds = new Set<CardId>();
-  const updatedIds = new Set<CardId>();
-  plan.rows.forEach((row) => {
-    const current = byUniqueKey.get(row.card.uniqueKey);
-    if (row.action === "create") {
-      const card = action.card.prepare(row.card, deck, firestoreMetadata.generateCardId);
-      upserts.push(card);
-      createdIds.add(card.id);
-    } else if (row.action === "update" && current != null) {
-      upserts.push({ ...current, ...row.card });
-      updatedIds.add(current.id);
-    }
-  });
+  if (attempt.createDeckPending) {
+    await createDeck(attempt.deck);
+    attempt.createDeckPending = false;
+  }
+  const upserts = attempt.remainingUpserts;
   try {
     if (upserts.length > 0) await bulkUpsert(upserts);
   } catch (error) {
     const failedIds = error instanceof CardBulkMutationError ? error.failedIds : upserts.map((card) => card.id);
     const failed = new Set(failedIds);
+    attempt.remainingUpserts = upserts.filter((card) => failed.has(card.id));
     throw Object.assign(new Error(`Deck import did not complete: ${String(error)}`), {
       result: {
-        created: [...createdIds].filter((id) => !failed.has(id)).length,
-        updated: [...updatedIds].filter((id) => !failed.has(id)).length,
-        skipped: plan.unchanged,
-        failed: failed.size,
-        deckId: deck.id,
+        created: attempt.createdIds.filter((id) => !failed.has(id)).length,
+        updated: attempt.updatedIds.filter((id) => !failed.has(id)).length,
+        skipped: attempt.totals.skipped,
+        failed: attempt.remainingUpserts.length,
+        deckId: attempt.deck.id,
       },
     });
   }
+  attempt.remainingUpserts = [];
   return {
-    created: plan.created,
-    updated: plan.updated,
-    skipped: plan.unchanged,
+    ...attempt.totals,
     failed: 0,
-    deckId: deck.id,
+    deckId: attempt.deck.id,
   };
 };
 
@@ -134,6 +170,8 @@ interface ImportRunDependencies {
   setRunning: (running: boolean) => void;
   lastRequest: { current: ImportRequest | undefined };
   mutateAsync: (request: ImportRequest) => Promise<DeckImportResult>;
+  generation: number;
+  currentGeneration: { current: number };
 }
 
 /**
@@ -142,7 +180,7 @@ interface ImportRunDependencies {
  */
 const runDeckImport = async (
   request: ImportRequest,
-  { runningRef, setRunning, lastRequest, mutateAsync }: ImportRunDependencies
+  { runningRef, setRunning, lastRequest, mutateAsync, generation, currentGeneration }: ImportRunDependencies
 ) => {
   if (runningRef.current) throw new Error("A Deck import is already running");
   runningRef.current = true;
@@ -151,8 +189,10 @@ const runDeckImport = async (
   try {
     return await mutateAsync(request);
   } finally {
-    runningRef.current = false;
-    setRunning(false);
+    if (currentGeneration.current === generation) {
+      runningRef.current = false;
+      setRunning(false);
+    }
   }
 };
 
@@ -163,6 +203,10 @@ interface FilePreviewDependencies {
   reset: () => void;
   decks: Deck[];
   cardsByDeckId: (id: DeckId) => Card[];
+  uid: string;
+  currentUid: { current: string };
+  generation: number;
+  currentGeneration: { current: number };
 }
 
 /**
@@ -172,14 +216,27 @@ interface FilePreviewDependencies {
  */
 const previewDeckImportFile = async (
   file: File,
-  { runningRef, setValidating, setPreview, reset, decks, cardsByDeckId }: FilePreviewDependencies
+  {
+    runningRef,
+    setValidating,
+    setPreview,
+    reset,
+    decks,
+    cardsByDeckId,
+    uid,
+    currentUid,
+    generation,
+    currentGeneration,
+  }: FilePreviewDependencies
 ) => {
+  const isCurrent = () => currentGeneration.current === generation && currentUid.current === uid;
   if (runningRef.current) throw new Error("A Deck import is already running");
   setValidating(true);
   setPreview(undefined);
   reset();
   try {
     const analysis = await parseDeckImportCsv(file);
+    if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
     const deck = decks.find((candidate) => candidate.name === file.name);
     const existing = deck == null ? [] : cardsByDeckId(deck.id);
     const next = {
@@ -191,7 +248,7 @@ const previewDeckImportFile = async (
     setPreview(next);
     return next;
   } finally {
-    setValidating(false);
+    if (isCurrent()) setValidating(false);
   }
 };
 
@@ -206,23 +263,86 @@ export const useDeckImport = () => {
   const remote = useRemoteCollections();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();
+  const uid = auth.status === "authenticated" ? auth.uid : "";
+  const generation = useRef(0);
+  const generationUid = useRef(uid);
+  const [stateUid, setStateUid] = useState(uid);
   const runningRef = useRef(false);
-  const [running, setRunning] = useState(false);
-  const [validating, setValidating] = useState(false);
-  const [preview, setPreview] = useState<DeckImportPreview>();
+  const [runningState, setRunningState] = useState(() => ({ uid, value: false }));
+  const [validatingState, setValidatingState] = useState(() => ({ uid, value: false }));
+  const [previewState, setPreviewState] = useState<{
+    uid: string;
+    value: DeckImportPreview | undefined;
+  }>(() => ({ uid, value: undefined }));
+  const [errorState, setErrorState] = useState<{ uid: string; value: unknown }>(() => ({
+    uid,
+    value: null,
+  }));
+  const [dataState, setDataState] = useState<{ uid: string; value: DeckImportResult | undefined }>(() => ({
+    uid,
+    value: undefined,
+  }));
+  if (stateUid !== uid) {
+    setStateUid(uid);
+    setRunningState({ uid, value: false });
+    setValidatingState({ uid, value: false });
+    setPreviewState({ uid, value: undefined });
+    setErrorState({ uid, value: null });
+    setDataState({ uid, value: undefined });
+  }
   const lastRequest = useRef<ImportRequest>(undefined);
-
-  const operation = useMutation({
-    retry: false,
-    mutationFn: (request: ImportRequest) =>
-      executeDeckImport(request, {
-        uid: auth.status === "authenticated" ? auth.uid : "",
-        decks: remote.decks,
-        cardsByDeckId: remote.cardsByDeckId,
-        createDeck: deckMutations.create,
-        bulkUpsert: cardMutations.bulkUpsert,
-      }),
+  const dependenciesRef = useRef<DeckImportDependencies>(undefined);
+  const runRef = useRef<(request: ImportRequest) => Promise<DeckImportResult>>(undefined);
+  const [retry] = useState(() => () => {
+    const request = lastRequest.current;
+    const currentRun = runRef.current;
+    if (request != null && currentRun != null && !runningRef.current) void currentRun(request).catch(() => undefined);
   });
+  useEffect(() => {
+    if (generationUid.current === uid) return;
+    generationUid.current = uid;
+    generation.current += 1;
+    runningRef.current = false;
+    lastRequest.current = undefined;
+  }, [uid]);
+  useEffect(() => {
+    dependenciesRef.current = {
+      uid,
+      decks: remote.decks,
+      cardsByDeckId: remote.cardsByDeckId,
+      createDeck: deckMutations.create,
+      bulkUpsert: cardMutations.bulkUpsert,
+    };
+  }, [cardMutations.bulkUpsert, deckMutations.create, remote.cardsByDeckId, remote.decks, uid]);
+  const setRunning = (value: boolean) => setRunningState({ uid, value });
+  const setValidating = (value: boolean) => setValidatingState({ uid, value });
+  const setPreview = (value: DeckImportPreview | undefined) => setPreviewState({ uid, value });
+  const setError = (value: unknown) => setErrorState({ uid, value });
+  const setData = (value: DeckImportResult | undefined) => setDataState({ uid, value });
+
+  const mutateAsync = async (request: ImportRequest) => {
+    const operationGeneration = generation.current;
+    setError(null);
+    try {
+      const dependencies = dependenciesRef.current;
+      if (dependencies == null) throw new Error("Deck import dependencies are not available");
+      const result = await executeDeckImport(request, dependencies);
+      if (generation.current === operationGeneration) setData(result);
+      return result;
+    } catch (nextError) {
+      if (generation.current === operationGeneration) {
+        setData(undefined);
+        setError(nextError);
+      }
+      throw nextError;
+    }
+  };
+
+  const resetOperation = () => {
+    lastRequest.current = undefined;
+    setData(undefined);
+    setError(null);
+  };
 
   /**
    * Runs the current import feature operation and returns its result.
@@ -233,8 +353,19 @@ export const useDeckImport = () => {
       runningRef,
       setRunning,
       lastRequest,
-      mutateAsync: operation.mutateAsync,
+      mutateAsync,
+      generation: generation.current,
+      currentGeneration: generation,
     });
+  useEffect(() => {
+    runRef.current = run;
+  });
+
+  const preview = previewState.uid === uid ? previewState.value : undefined;
+  const validating = validatingState.uid === uid && validatingState.value;
+  const running = runningState.uid === uid && runningState.value;
+  const error = errorState.uid === uid ? errorState.value : null;
+  const data = dataState.uid === uid ? dataState.value : undefined;
 
   /**
    * Validates the selected CSV file and stores its import preview.
@@ -245,9 +376,13 @@ export const useDeckImport = () => {
       runningRef,
       setValidating,
       setPreview,
-      reset: operation.reset,
+      reset: resetOperation,
       decks: remote.decks,
       cardsByDeckId: remote.cardsByDeckId,
+      uid,
+      currentUid: generationUid,
+      generation: generation.current,
+      currentGeneration: generation,
     });
 
   /**
@@ -272,6 +407,8 @@ export const useDeckImport = () => {
    * A configured GitHub token is attached for private raw-content requests.
    */
   const importUrl = async (url: string, name?: string) => {
+    const operationGeneration = generation.current;
+    const operationUid = uid;
     const headers: Record<string, string> = {};
     if (config.githubAccessToken !== "") {
       headers.Accept = "application/vnd.github.raw";
@@ -280,20 +417,14 @@ export const useDeckImport = () => {
     const response = await fetch(url, { headers });
     if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
     const cards = await action.deck.parseCsv(await response.text());
+    if (generation.current !== operationGeneration || dependenciesRef.current?.uid !== operationUid) {
+      throw new Error("Deck import user changed before the import could start");
+    }
     return await run({
       kind: "content",
       name: name ?? url.split("/").pop() ?? "no name",
       rows: rowsFromCards(cards),
     });
-  };
-
-  /**
-   * Retries the current import feature operation and returns its result.
-   * Progress and failure cleanup stay in one place so callers observe a consistent workflow state.
-   */
-  const retry = () => {
-    const request = lastRequest.current;
-    if (request != null && !runningRef.current) void run(request).catch(() => undefined);
   };
 
   return {
@@ -307,10 +438,10 @@ export const useDeckImport = () => {
     },
     preview,
     validating,
-    pending: operation.isPending || running,
-    error: operation.error,
-    data: operation.data,
-    partialResult: partialResultFrom(operation.error),
+    pending: running,
+    error,
+    data,
+    partialResult: partialResultFrom(error),
     retry,
   };
 };

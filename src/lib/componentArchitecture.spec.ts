@@ -2,11 +2,12 @@
  * @file Verifies the "component architecture" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "leaves render memoization
  * to React Compiler", "normalizes baseUrl source imports before checking boundaries", "treats
- * Query APIs as presentation connectors across import styles".
+ * application connectors across import styles".
  */
 
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+import * as ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 const sourceRoot = path.resolve(process.cwd(), "src");
@@ -22,8 +23,14 @@ const firestoreCompositionModules = new Set([
   "features/deck/hooks/useDeckMutations.ts",
   "features/import/hooks/useDeckImport.ts",
 ]);
+const remoteStoreModule = ["@/store", "remoteStore"].join("/");
+const remoteStoreTypeName = ["Remote", "Store"].join("");
+const remoteStoreValueName = ["remote", "Store"].join("");
+const remoteStorePropertyNames = new Set(["store", remoteStoreValueName]);
+const remoteStoreSnapshotReadName = ["get", "Snapshot"].join("");
+const remoteStoreLifecycleMethodNames = new Set(["begin", ["apply", "Snapshot"].join(""), "fail", "clear"]);
+const remoteSnapshotCapabilityName = ["apply", "Snapshot"].join("");
 const connectorModules = [
-  "@tanstack/react-query",
   "react-hook-form",
   "react-router",
   "react-router-dom",
@@ -42,6 +49,18 @@ function sourcePath(relativePath: string): string {
   return path.join(sourceRoot, relativePath);
 }
 
+function filesUnder(relativeDirectory: string): string[] {
+  const absoluteDirectory = sourcePath(relativeDirectory);
+  if (!existsSync(absoluteDirectory)) return [];
+
+  return readdirSync(absoluteDirectory, { withFileTypes: true })
+    .flatMap((entry) => {
+      const relativePath = path.posix.join(relativeDirectory, entry.name);
+      return entry.isDirectory() ? filesUnder(relativePath) : [relativePath];
+    })
+    .sort();
+}
+
 /**
  * Reads source needed by the test.
  * File access stays in one helper so assertions work with consistent paths and encoding.
@@ -55,16 +74,33 @@ function readSource(relativePath: string): string {
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
 function sourceFilesUnder(relativeDirectory: string): string[] {
-  const absoluteDirectory = sourcePath(relativeDirectory);
-  if (!existsSync(absoluteDirectory)) return [];
+  return filesUnder(relativeDirectory).filter((relativePath) => sourceExtension.test(relativePath));
+}
 
-  return readdirSync(absoluteDirectory, { withFileTypes: true })
-    .flatMap((entry) => {
-      const relativePath = path.posix.join(relativeDirectory, entry.name);
-      return entry.isDirectory() ? sourceFilesUnder(relativePath) : [relativePath];
-    })
-    .filter((relativePath) => sourceExtension.test(relativePath))
-    .sort();
+interface TextSubject {
+  relativePath: string;
+  source: string;
+}
+
+const prohibitedServerStateTokens = [
+  { value: ["@tanstack", "react-query"].join("/"), wordEnd: false },
+  { value: ["use", "Query", "Client"].join(""), wordEnd: false },
+  { value: ["Query", "Client"].join(""), wordEnd: false },
+  { value: ["use", "Query"].join(""), wordEnd: true },
+  { value: ["use", "Mutation"].join(""), wordEnd: true },
+  { value: ["firestore", "Keys"].join(""), wordEnd: false },
+  { value: ["Remote", "Cache"].join(""), wordEnd: false },
+] as const;
+
+const escapeRegularExpression = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+function serverStateResidualViolations(subjects: TextSubject[]): string[] {
+  return subjects.flatMap(({ relativePath, source }) => {
+    const match = prohibitedServerStateTokens.find(({ value, wordEnd }) =>
+      wordEnd ? new RegExp(`${escapeRegularExpression(value)}\\b`).test(source) : source.includes(value)
+    );
+    return match == null ? [] : [`${relativePath}: ${match.value}`];
+  });
 }
 
 /**
@@ -73,6 +109,19 @@ function sourceFilesUnder(relativeDirectory: string): string[] {
  */
 function productionFilesUnder(relativeDirectory: string): string[] {
   return sourceFilesUnder(relativeDirectory).filter((relativePath) => !testOrStory.test(relativePath));
+}
+
+function remoteMutationFiles(): string[] {
+  const featureOrchestrationFiles = productionFilesUnder("features").filter((relativePath) => {
+    if (!/^features\/[^/]+\/hooks\/use[A-Z][^/]*\.tsx?$/.test(relativePath)) return false;
+    if (/(?:Actions|Bootstrap|Import|Mutations)\.tsx?$/.test(relativePath)) return true;
+    return moduleReferences(relativePath).some(
+      ({ resolvedSpecifier }) =>
+        isModuleOrSubpath(resolvedSpecifier, "@/query/mutations") ||
+        /^@\/features\/[^/]+\/hooks\/use[A-Z][^/]*(?:Import|Mutations)$/.test(resolvedSpecifier)
+    );
+  });
+  return [...productionFilesUnder("query/mutations"), ...featureOrchestrationFiles];
 }
 
 /**
@@ -114,10 +163,139 @@ function resolveModuleSpecifier(relativePath: string, specifier: string): string
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
 function moduleReferences(relativePath: string): ModuleReference[] {
-  return moduleSpecifiers(readSource(relativePath)).map((specifier) => ({
+  return moduleReferencesForSource(relativePath, readSource(relativePath));
+}
+
+function moduleReferencesForSource(relativePath: string, source: string): ModuleReference[] {
+  return moduleSpecifiers(source).map((specifier) => ({
     specifier,
     resolvedSpecifier: resolveModuleSpecifier(relativePath, specifier),
   }));
+}
+
+function parseSource({ relativePath, source }: TextSubject): ts.SourceFile {
+  const scriptKind = relativePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  return ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true, scriptKind);
+}
+
+function staticName(node: ts.Node | undefined): string | undefined {
+  if (node === undefined) return undefined;
+  if (ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+    return node.text;
+  }
+  if (ts.isComputedPropertyName(node)) return staticName(node.expression);
+  return undefined;
+}
+
+function propertyLikeName(node: ts.Node): string | undefined {
+  if (ts.isPropertyAccessExpression(node)) return node.name.text;
+  if (ts.isElementAccessExpression(node)) return staticName(node.argumentExpression);
+  if (ts.isBindingElement(node)) return staticName(node.propertyName ?? node.name);
+  if (ts.isShorthandPropertyAssignment(node)) return node.name.text;
+  if (
+    ts.isPropertySignature(node) ||
+    ts.isMethodSignature(node) ||
+    ts.isPropertyDeclaration(node) ||
+    ts.isMethodDeclaration(node) ||
+    ts.isPropertyAssignment(node) ||
+    ts.isGetAccessorDeclaration(node) ||
+    ts.isSetAccessorDeclaration(node)
+  ) {
+    return staticName(node.name);
+  }
+  return undefined;
+}
+
+function containsSyntax(sourceFile: ts.SourceFile, predicate: (node: ts.Node) => boolean): boolean {
+  let matched = false;
+  const visit = (node: ts.Node): void => {
+    if (matched) return;
+    matched = predicate(node);
+    if (!matched) ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  return matched;
+}
+
+function isDirectLifecycleCall(node: ts.Node, name: string): boolean {
+  return (
+    remoteStoreLifecycleMethodNames.has(name) && ts.isCallExpression(node.parent) && node.parent.expression === node
+  );
+}
+
+function accessReceiver(node: ts.Node): ts.Expression | undefined {
+  if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)) return node.expression;
+  if (ts.isBindingElement(node) && ts.isObjectBindingPattern(node.parent)) {
+    const declaration = node.parent.parent;
+    if (ts.isVariableDeclaration(declaration)) return declaration.initializer;
+  }
+  return undefined;
+}
+
+function looksStoreLike(expression: ts.Expression | undefined): boolean {
+  if (expression === undefined) return false;
+  if (ts.isIdentifier(expression)) {
+    return remoteStorePropertyNames.has(expression.text) || expression.text === "state";
+  }
+  if (ts.isPropertyAccessExpression(expression) || ts.isElementAccessExpression(expression)) {
+    const name = propertyLikeName(expression);
+    return (name !== undefined && remoteStorePropertyNames.has(name)) || looksStoreLike(expression.expression);
+  }
+  if (
+    ts.isParenthesizedExpression(expression) ||
+    ts.isAsExpression(expression) ||
+    ts.isTypeAssertionExpression(expression) ||
+    ts.isNonNullExpression(expression)
+  ) {
+    return looksStoreLike(expression.expression);
+  }
+  return false;
+}
+
+function isDeclaredInStoreLikeMember(node: ts.Node): boolean {
+  let current = node.parent;
+  while (current != null && !ts.isSourceFile(current)) {
+    if (ts.isTypeLiteralNode(current)) {
+      const name = propertyLikeName(current.parent);
+      if (name === "state" || (name !== undefined && remoteStorePropertyNames.has(name))) return true;
+    }
+    current = current.parent;
+  }
+  return false;
+}
+
+function hasRemoteMutationStoreAccess(subject: TextSubject): boolean {
+  return containsSyntax(parseSource(subject), (node) => {
+    if (ts.isIdentifier(node) && node.text === remoteStoreTypeName) return true;
+    if (ts.isIdentifier(node) && node.text === remoteStoreValueName) return true;
+    const name = propertyLikeName(node);
+    if (name === undefined) return false;
+    if (remoteStorePropertyNames.has(name)) return true;
+    const receiver = accessReceiver(node);
+    return (
+      (looksStoreLike(receiver) || isDeclaredInStoreLikeMember(node)) &&
+      (name === remoteStoreSnapshotReadName || name === "subscribe" || isDirectLifecycleCall(node, name))
+    );
+  });
+}
+
+function remoteMutationStoreViolations(subjects: TextSubject[]): string[] {
+  return subjects.flatMap((subject) => {
+    const importsRemoteStore = moduleReferencesForSource(subject.relativePath, subject.source).some((reference) =>
+      isModuleOrSubpath(reference.resolvedSpecifier, remoteStoreModule)
+    );
+    return importsRemoteStore || hasRemoteMutationStoreAccess(subject) ? [subject.relativePath] : [];
+  });
+}
+
+function remoteSnapshotCapabilityViolations(subjects: TextSubject[]): string[] {
+  return subjects.flatMap((subject) => {
+    const hasCapability = containsSyntax(parseSource(subject), (node) => {
+      if (ts.isIdentifier(node) && node.text === remoteSnapshotCapabilityName) return true;
+      return propertyLikeName(node) === remoteSnapshotCapabilityName;
+    });
+    return hasCapability ? [subject.relativePath] : [];
+  });
 }
 
 /**
@@ -252,19 +430,39 @@ describe("component architecture", () => {
     expect(resolveModuleSpecifier("components/content/Card.tsx", "src/action")).toBe("@/action");
   });
 
-  it("treats Query APIs as presentation connectors across import styles", () => {
+  it("treats application modules as presentation connectors across import styles", () => {
     const presentationPath = "features/deck/components/templates/DeckListTemplate.tsx";
-    const queryImports = [
-      "@tanstack/react-query",
-      "@/query",
-      "@/query/client",
-      "src/query/client",
-      "../../../../query/client",
-    ];
+    const applicationImports = ["@/query", "@/store", "src/query", "../../../../query"];
 
-    for (const specifier of queryImports) {
+    for (const specifier of applicationImports) {
       expect(forbiddenConnector(resolveModuleSpecifier(presentationPath, specifier)), specifier).toBe(true);
     }
+  });
+
+  it("detects every prohibited server-state token in text subjects", () => {
+    const subjects = prohibitedServerStateTokens.map(({ value }, index) => ({
+      relativePath: `fixture-${index}`,
+      source: `before ${value} after`,
+    }));
+
+    expect(serverStateResidualViolations(subjects)).toEqual(
+      prohibitedServerStateTokens.map(({ value }, index) => `fixture-${index}: ${value}`)
+    );
+  });
+
+  it("keeps obsolete server-state tokens out of source and package metadata", () => {
+    const subjects = [
+      ...filesUnder("").map((relativePath) => ({
+        relativePath: `src/${relativePath}`,
+        source: readSource(relativePath),
+      })),
+      ...["package.json", "package-lock.json"].map((relativePath) => ({
+        relativePath,
+        source: readFileSync(path.resolve(process.cwd(), relativePath), "utf8"),
+      })),
+    ];
+
+    expect(serverStateResidualViolations(subjects)).toEqual([]);
   });
 
   it("recognizes Firebase and Firestore adapter dependencies across import styles", () => {
@@ -288,6 +486,108 @@ describe("component architecture", () => {
     });
 
     expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("detects structural and aliased Store access in mutation fixtures", () => {
+    const subjects = [
+      {
+        relativePath: "structural-store.ts",
+        source:
+          "interface Dependencies { state: { getSnapshot(): unknown; subscribe(listener: () => void): () => void } }",
+      },
+      {
+        relativePath: "store-alias.ts",
+        source: "const state = dependencies.store; const read = state.getSnapshot; read();",
+      },
+      {
+        relativePath: "store-destructure.ts",
+        source: "const { store: state } = dependencies; const { subscribe: listen } = state; listen(listener);",
+      },
+      {
+        relativePath: "store-bracket.ts",
+        source: 'const listen = dependencies["store"]["subscribe"]; listen(listener);',
+      },
+    ];
+
+    expect(remoteMutationStoreViolations(subjects)).toEqual(subjects.map(({ relativePath }) => relativePath));
+  });
+
+  it("allows unrelated local state helpers in mutation fixtures", () => {
+    const subjects = [
+      {
+        relativePath: "event-subscription.ts",
+        source: "eventBus.subscribe(listener);",
+      },
+      {
+        relativePath: "collection-clear.ts",
+        source: "const store = new Map<string, string>(); cache.clear(); void store.size;",
+      },
+      {
+        relativePath: "local-function.ts",
+        source: "const getSnapshot = () => ({ local: true }); void getSnapshot();",
+      },
+      {
+        relativePath: "local-store.ts",
+        source: "const localStore = { getSnapshot: () => ({ local: true }) }; localStore.getSnapshot();",
+      },
+    ];
+
+    expect(remoteMutationStoreViolations(subjects)).toEqual([]);
+  });
+
+  it("detects every RemoteStore snapshot capability reference in fixtures", () => {
+    const capability = ["apply", "Snapshot"].join("");
+    const subjects = [
+      { relativePath: "dotted-call.ts", source: `remote.${capability}(value);` },
+      { relativePath: "optional-call.ts", source: `remote?.${capability}?.(value);` },
+      { relativePath: "bracket-access.ts", source: `remote["${capability}"](value);` },
+      { relativePath: "aliased-reference.ts", source: `const publish = remote.${capability}; publish(value);` },
+      { relativePath: "destructured-reference.ts", source: `const { ${capability}: publish } = remote;` },
+      { relativePath: "bare-reference.ts", source: `void remote.${capability};` },
+    ];
+
+    expect(remoteSnapshotCapabilityViolations(subjects)).toEqual(subjects.map(({ relativePath }) => relativePath));
+  });
+
+  it("keeps production mutation code independent from the RemoteStore", () => {
+    expect(remoteMutationFiles()).toEqual(
+      expect.arrayContaining([
+        "features/card/hooks/useCardMutations.ts",
+        "features/deck/hooks/useDeckActions.ts",
+        "features/deck/hooks/useDeckMutations.ts",
+        "features/import/hooks/useDeckImport.ts",
+        "features/import/hooks/useSampleDeckBootstrap.ts",
+        "features/study/hooks/useStudyActions.ts",
+      ])
+    );
+    expect(remoteMutationFiles()).not.toEqual(
+      expect.arrayContaining([
+        "features/card/hooks/useCardFormState.ts",
+        "features/settings/hooks/useAccountOperations.ts",
+        "features/study/hooks/useStudyStore.ts",
+      ])
+    );
+    const violations = remoteMutationStoreViolations(
+      remoteMutationFiles().map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
+    );
+
+    expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("applies production RemoteStore snapshots only in the Firestore read controller", () => {
+    const allowedPaths = new Set(["store/remoteStore.ts", "query/reads/remoteReadController.ts"]);
+    const violations = remoteSnapshotCapabilityViolations(
+      productionFilesUnder("").flatMap((relativePath) =>
+        allowedPaths.has(relativePath) ? [] : [{ relativePath, source: readSource(relativePath) }]
+      )
+    );
+
+    expect(violations, violations.join("\n")).toEqual([]);
+    expect(
+      remoteSnapshotCapabilityViolations(
+        [...allowedPaths].map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
+      )
+    ).toEqual([...allowedPaths]);
   });
 
   it("uses production-oriented names for Firestore adapter modules", () => {
@@ -368,7 +668,7 @@ describe("component architecture", () => {
     expect(selectorReferences, selectorReferences.join("\n")).toEqual([]);
   });
 
-  it("limits application stores to global configuration", () => {
+  it("limits application stores to configuration and remote data", () => {
     const legacyPackages = ["react-redux", "redux", "redux-persist", "redux-thunk"];
     const legacyImports = productionFilesUnder("").flatMap((relativePath) =>
       moduleReferences(relativePath)
@@ -395,6 +695,8 @@ describe("component architecture", () => {
       "store/configSchema.ts",
       "store/configStore.spec.ts",
       "store/configStore.ts",
+      "store/remoteStore.spec.ts",
+      "store/remoteStore.ts",
     ]);
   });
 

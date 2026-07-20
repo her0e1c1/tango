@@ -7,7 +7,7 @@
 import { uniq } from "lodash";
 
 import { filterCardsForDeck as filterStudyCards } from "@/lib/study";
-import type { RemoteById } from "@/query/cache/remoteCollection";
+import type { RemoteById } from "@/store/remoteStore";
 
 /**
  * Returns the concrete values stored in an identifier-indexed remote collection.
