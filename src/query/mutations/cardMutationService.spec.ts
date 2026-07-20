@@ -1,16 +1,13 @@
 /**
  * @file Verifies the "createCardMutationService" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "optimistically creates and
- * removes only the target Card", "rolls back only the failed target Card", "does not let an old
- * rollback overwrite a newer listener snapshot".
+ * The examples cover locked writes, listener-owned single-write state, and authoritative recovery
+ * after partial bulk failure.
  */
 
-import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { firestoreKeys } from "@/query/cache/firestoreKeys";
-import { createRemoteCache } from "@/query/cache/remoteCache";
 import { type CardBulkMutationError, createCardMutationService } from "@/query/mutations/cardMutationService";
+import { createRemoteStore, type RemoteStore } from "@/store/remoteStore";
 import { createCard } from "@/test/factories";
 
 /**
@@ -29,7 +26,7 @@ const deferred = <T>() => {
 
 describe("createCardMutationService", () => {
   const uid = "uid-a";
-  let client: QueryClient;
+  let store: RemoteStore;
   const dependencies = {
     createCard: vi.fn<(card: Card) => Promise<string>>(),
     updateCard: vi.fn<(card: CardEdit) => Promise<void>>(),
@@ -40,7 +37,8 @@ describe("createCardMutationService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    store = createRemoteStore();
+    store.begin(uid);
     dependencies.createCard.mockResolvedValue("created");
     dependencies.updateCard.mockResolvedValue(undefined);
     dependencies.removeCard.mockResolvedValue(undefined);
@@ -48,57 +46,57 @@ describe("createCardMutationService", () => {
     dependencies.readCards.mockResolvedValue([]);
   });
 
-  it("optimistically creates and removes only the target Card", async () => {
+  it("leaves listener-owned data unchanged for create and remove", async () => {
     const existing = createCard({ id: "existing" });
     const created = createCard({ id: "created" });
-    client.setQueryData(firestoreKeys.cards(uid), { existing });
-    const service = createCardMutationService({ cache: createRemoteCache(client), ...dependencies });
+    store.replace(uid, "cards", { existing });
+    const service = createCardMutationService({ store, ...dependencies });
 
     await service.create(uid, created);
-    expect(client.getQueryData(firestoreKeys.cards(uid))).toEqual({ existing, created });
+    expect(store.read(uid, "cards")).toEqual({ existing });
     expect(dependencies.createCard).toHaveBeenCalledWith(created);
 
     await service.remove(uid, created.id);
-    expect(client.getQueryData(firestoreKeys.cards(uid))).toEqual({ existing });
+    expect(store.read(uid, "cards")).toEqual({ existing });
     expect(dependencies.removeCard).toHaveBeenCalledWith(created.id);
   });
 
-  it("rolls back only the failed target Card", async () => {
+  it("leaves listener-owned data unchanged after a failed update", async () => {
     const card = createCard({ id: "card", score: 1 });
     const other = createCard({ id: "other", score: 5 });
-    client.setQueryData(firestoreKeys.cards(uid), { card, other });
+    store.replace(uid, "cards", { card, other });
     dependencies.updateCard.mockRejectedValueOnce(new Error("write failed"));
-    const service = createCardMutationService({ cache: createRemoteCache(client), ...dependencies });
+    const service = createCardMutationService({ store, ...dependencies });
 
     await expect(service.update(uid, { id: card.id, deckId: card.deckId, score: 2 })).rejects.toThrow("write failed");
 
-    expect(client.getQueryData(firestoreKeys.cards(uid))).toEqual({ card, other });
+    expect(store.read(uid, "cards")).toEqual({ card, other });
   });
 
-  it("does not let an old rollback overwrite a newer listener snapshot", async () => {
+  it("does not overwrite a newer listener snapshot after a failed write", async () => {
     const card = createCard({ id: "card", score: 1 });
     const write = deferred<void>();
     dependencies.updateCard.mockReturnValueOnce(write.promise);
-    client.setQueryData(firestoreKeys.cards(uid), { card });
-    const service = createCardMutationService({ cache: createRemoteCache(client), ...dependencies });
+    store.replace(uid, "cards", { card });
+    const service = createCardMutationService({ store, ...dependencies });
 
     const update = service.update(uid, { id: card.id, deckId: card.deckId, score: 2 });
     await vi.waitFor(() => expect(dependencies.updateCard).toHaveBeenCalled());
     const listenerCard = { ...card, score: 3 };
-    client.setQueryData(firestoreKeys.cards(uid), { card: listenerCard });
+    store.replace(uid, "cards", { card: listenerCard });
     write.reject(new Error("old write failed"));
 
     await expect(update).rejects.toThrow("old write failed");
-    expect(client.getQueryData(firestoreKeys.cards(uid))).toEqual({ card: listenerCard });
+    expect(store.read(uid, "cards")).toEqual({ card: listenerCard });
   });
 
   it("serializes the same Card while allowing different Cards to update concurrently", async () => {
     const cardA = createCard({ id: "a", score: 0 });
     const cardB = createCard({ id: "b", score: 0 });
-    client.setQueryData(firestoreKeys.cards(uid), { a: cardA, b: cardB });
+    store.replace(uid, "cards", { a: cardA, b: cardB });
     const first = deferred<void>();
     dependencies.updateCard.mockImplementationOnce(() => first.promise).mockResolvedValue(undefined);
-    const service = createCardMutationService({ cache: createRemoteCache(client), ...dependencies });
+    const service = createCardMutationService({ store, ...dependencies });
 
     const updateA1 = service.update(uid, { id: "a", deckId: cardA.deckId, score: 1 });
     const updateA2 = service.update(uid, { id: "a", deckId: cardA.deckId, score: 2 });
@@ -130,13 +128,29 @@ describe("createCardMutationService", () => {
     dependencies.upsertCard.mockResolvedValueOnce(first.id).mockRejectedValueOnce(new Error("partial"));
     const authoritative = createCard({ id: "authoritative" });
     dependencies.readCards.mockResolvedValue([authoritative]);
-    const service = createCardMutationService({ cache: createRemoteCache(client), ...dependencies });
+    const service = createCardMutationService({ store, ...dependencies });
 
     const error = await service.bulkUpsert(uid, [first, second]).catch((cause: unknown) => cause);
     expect(error).toEqual(expect.objectContaining({ message: "1 of 2 Card writes failed" }));
     expect((error as CardBulkMutationError).failedIds).toEqual([second.id]);
 
     expect(dependencies.readCards).toHaveBeenCalledWith(uid);
-    expect(client.getQueryData(firestoreKeys.cards(uid))).toEqual({ authoritative });
+    expect(store.read(uid, "cards")).toEqual({ authoritative });
+  });
+
+  it("does not pre-replace Cards before bulk writes settle", async () => {
+    const existing = createCard({ id: "existing" });
+    const upsert = createCard({ id: "upsert" });
+    const write = deferred<string>();
+    dependencies.upsertCard.mockReturnValueOnce(write.promise);
+    store.replace(uid, "cards", { existing });
+    const service = createCardMutationService({ store, ...dependencies });
+
+    const operation = service.bulkUpsert(uid, [upsert]);
+
+    await vi.waitFor(() => expect(dependencies.upsertCard).toHaveBeenCalled());
+    expect(store.read(uid, "cards")).toEqual({ existing });
+    write.resolve(upsert.id);
+    await operation;
   });
 });

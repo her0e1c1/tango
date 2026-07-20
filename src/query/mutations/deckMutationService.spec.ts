@@ -5,13 +5,11 @@
  * Card mutation before deleting its Deck".
  */
 
-import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { firestoreKeys } from "@/query/cache/firestoreKeys";
-import { createRemoteCache } from "@/query/cache/remoteCache";
 import { createCardMutationService } from "@/query/mutations/cardMutationService";
 import { createDeckMutationService } from "@/query/mutations/deckMutationService";
+import { createRemoteStore, type RemoteStore } from "@/store/remoteStore";
 import { createCard, createDeck } from "@/test/factories";
 
 /**
@@ -28,7 +26,7 @@ const deferred = () => {
 
 describe("createDeckMutationService", () => {
   const uid = "uid-a";
-  let client: QueryClient;
+  let store: RemoteStore;
   const dependencies = {
     createDeck: vi.fn(),
     updateDeck: vi.fn(),
@@ -37,52 +35,52 @@ describe("createDeckMutationService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    client = new QueryClient();
+    store = createRemoteStore();
+    store.begin(uid);
     dependencies.createDeck.mockResolvedValue("deck");
     dependencies.updateDeck.mockResolvedValue(undefined);
     dependencies.removeDeck.mockResolvedValue(undefined);
   });
 
-  it("rolls back a failed Deck update", async () => {
+  it("leaves listener-owned data unchanged after a failed Deck update", async () => {
     const deck = createDeck({ id: "deck", name: "Before" });
-    client.setQueryData(firestoreKeys.decks(uid), { deck });
+    store.replace(uid, "decks", { deck });
     dependencies.updateDeck.mockRejectedValueOnce(new Error("failed"));
-    const service = createDeckMutationService({ cache: createRemoteCache(client), ...dependencies });
+    const service = createDeckMutationService({ store, ...dependencies });
 
     await expect(service.update(uid, { ...deck, name: "After" })).rejects.toThrow("failed");
-    expect(client.getQueryData(firestoreKeys.decks(uid))).toEqual({ deck });
+    expect(store.read(uid, "decks")).toEqual({ deck });
   });
 
   it("rolls back a failed Deck delete together with its child Cards", async () => {
     const deck = createDeck({ id: "deck" });
     const card = createCard({ id: "card", deckId: deck.id });
-    client.setQueryData(firestoreKeys.decks(uid), { deck });
-    client.setQueryData(firestoreKeys.cards(uid), { card });
+    store.replace(uid, "decks", { deck });
+    store.replace(uid, "cards", { card });
     dependencies.removeDeck.mockRejectedValueOnce(new Error("failed"));
-    const service = createDeckMutationService({ cache: createRemoteCache(client), ...dependencies });
+    const service = createDeckMutationService({ store, ...dependencies });
 
     await expect(service.remove(uid, deck.id)).rejects.toThrow("failed");
-    expect(client.getQueryData(firestoreKeys.decks(uid))).toEqual({ deck });
-    expect(client.getQueryData(firestoreKeys.cards(uid))).toEqual({ card });
+    expect(store.read(uid, "decks")).toEqual({ deck });
+    expect(store.read(uid, "cards")).toEqual({ card });
   });
 
   it("waits for a child Card mutation before deleting its Deck", async () => {
     const deck = createDeck({ id: "deck" });
     const card = createCard({ id: "card", deckId: deck.id });
-    client.setQueryData(firestoreKeys.decks(uid), { deck });
-    client.setQueryData(firestoreKeys.cards(uid), { card });
+    store.replace(uid, "decks", { deck });
+    store.replace(uid, "cards", { card });
     const write = deferred();
     const updateCard = vi.fn(() => write.promise);
-    const cache = createRemoteCache(client);
     const cardService = createCardMutationService({
-      cache,
+      store,
       createCard: vi.fn(),
       updateCard,
       removeCard: vi.fn(),
       upsertCard: vi.fn(),
       readCards: vi.fn(),
     });
-    const deckService = createDeckMutationService({ cache, ...dependencies });
+    const deckService = createDeckMutationService({ store, ...dependencies });
 
     const update = cardService.update(uid, { ...card, score: 1 });
     await vi.waitFor(() => expect(updateCard).toHaveBeenCalled());

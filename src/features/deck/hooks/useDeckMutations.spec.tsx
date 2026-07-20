@@ -13,13 +13,15 @@ import { createQueryWrapper, createTestQueryClient } from "@/query/testUtils";
 import { createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
+  uid: "uid-a",
   create: vi.fn(),
   update: vi.fn(),
   remove: vi.fn(),
 }));
 
 vi.mock("@/auth/AuthContext", () => ({
-  useAuth: () => ({ status: "authenticated", uid: "uid-a", user: { uid: "uid-a" } }),
+  useAuth: () =>
+    mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
 vi.mock("@/adapters/firestore", () => ({
   deck: {
@@ -34,9 +36,45 @@ import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 describe("useDeckMutations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.uid = "uid-a";
     mocks.create.mockResolvedValue("deck-id");
     mocks.update.mockResolvedValue(undefined);
     mocks.remove.mockResolvedValue(undefined);
+  });
+
+  it("writes a Deck update without replacing remote data before the listener responds", async () => {
+    const deck = createDeck({ id: "deck-a", name: "Before" });
+    const client = createTestQueryClient();
+    client.setQueryData(firestoreKeys.decks("uid-a"), { [deck.id]: deck });
+    const { result } = renderHook(useDeckMutations, { wrapper: createQueryWrapper(client) });
+
+    await act(async () => result.current.update({ ...deck, name: "After" }));
+
+    expect(mocks.update).toHaveBeenCalledWith({ ...deck, name: "After" });
+    expect(client.getQueryData(firestoreKeys.decks("uid-a"))).toEqual({ [deck.id]: deck });
+  });
+
+  it("does not publish an old UID failure into the current UID", async () => {
+    const deck = createDeck({ id: "deck-a" });
+    let rejectOld!: (error: Error) => void;
+    mocks.update.mockReturnValueOnce(new Promise<void>((_resolve, reject) => (rejectOld = reject)));
+    const { result, rerender } = renderHook(useDeckMutations, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+
+    let operation!: Promise<void>;
+    act(() => {
+      operation = result.current.update(deck);
+    });
+    await waitFor(() => expect(result.current.pending).toBe(true));
+    mocks.uid = "uid-b";
+    rerender();
+    await waitFor(() => expect(result.current.pending).toBe(false));
+
+    rejectOld(new Error("old failure"));
+    await expect(operation).rejects.toThrow("old failure");
+    expect(result.current.error).toBeNull();
+    expect(result.current.pending).toBe(false);
   });
 
   it("shares one in-flight removal for the same Deck", async () => {

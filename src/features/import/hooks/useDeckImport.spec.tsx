@@ -14,6 +14,7 @@ import type { DeckImportResult } from "@/features/import/components/deckImportTy
 import { CardBulkMutationError } from "@/query/mutations/cardMutationService";
 
 const mocks = vi.hoisted(() => ({
+  uid: "uid-a",
   config: {} as ConfigState,
   decks: [] as Deck[],
   cards: [] as Card[],
@@ -28,7 +29,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/auth/AuthContext", () => ({
-  useAuth: () => ({ status: "authenticated", uid: "uid-a", user: { uid: "uid-a" } }),
+  useAuth: () =>
+    mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
@@ -55,6 +57,7 @@ import { sampleDeckId, useDeckImport } from "@/features/import/hooks/useDeckImpo
 describe("useDeckImport", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.uid = "uid-a";
     mocks.config = createConfig({ githubAccessToken: "" });
     mocks.decks = [];
     mocks.cards = [];
@@ -226,5 +229,45 @@ describe("useDeckImport", () => {
       failed: 1,
       deckId: "deck",
     });
+  });
+
+  it("clears operation data and error when a new file is selected", async () => {
+    const { result } = renderHook(useDeckImport, { wrapper: createQueryWrapper(createTestQueryClient()) });
+    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
+    await act(async () => result.current.addSample());
+    expect(result.current.data).toBeDefined();
+
+    mocks.bulkUpsert.mockRejectedValueOnce(new Error("failed"));
+    await act(async () => {
+      await expect(result.current.addSample()).rejects.toThrow("failed");
+    });
+    expect(result.current.error).toBeDefined();
+
+    await act(async () => result.current.selectFile(file));
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.error).toBeNull();
+  });
+
+  it("ignores completion from an old UID operation", async () => {
+    let finishOld!: () => void;
+    mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finishOld = resolve)));
+    const { result, rerender } = renderHook(useDeckImport, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+
+    let oldOperation!: Promise<DeckImportResult>;
+    act(() => {
+      oldOperation = result.current.addSample();
+    });
+    await waitFor(() => expect(result.current.pending).toBe(true));
+    mocks.uid = "uid-b";
+    rerender();
+    await waitFor(() => expect(result.current.pending).toBe(false));
+
+    finishOld();
+    await oldOperation;
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.error).toBeNull();
+    expect(result.current.pending).toBe(false);
   });
 });

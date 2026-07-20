@@ -13,6 +13,7 @@ import { createTestQueryClient, createQueryWrapper } from "@/query/testUtils";
 import { createCard, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
+  uid: "uid-a",
   card: null as Card | null,
   create: vi.fn(),
   update: vi.fn(),
@@ -22,7 +23,8 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/auth/AuthContext", () => ({
-  useAuth: () => ({ status: "authenticated", uid: "uid-a", user: { uid: "uid-a" } }),
+  useAuth: () =>
+    mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
 vi.mock("@/query/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
@@ -44,6 +46,7 @@ import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 describe("useCardMutations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.uid = "uid-a";
     mocks.update.mockResolvedValue(undefined);
     mocks.readAll.mockResolvedValue([]);
   });
@@ -57,7 +60,7 @@ describe("useCardMutations", () => {
     expect(result.current.update).toBe(update);
   });
 
-  it("routes Card updates through the Firestore mutation service", async () => {
+  it("writes a Card without replacing remote data before the listener responds", async () => {
     const deck = createDeck();
     mocks.card = createCard({ deckId: deck.id, score: 0 });
     const client = createTestQueryClient();
@@ -67,9 +70,7 @@ describe("useCardMutations", () => {
     await act(async () => result.current.update({ ...mocks.card, score: 1 } as Card));
 
     expect(mocks.update).toHaveBeenCalledWith({ ...mocks.card, score: 1 });
-    expect(client.getQueryData(firestoreKeys.cards("uid-a"))).toEqual({
-      [mocks.card.id]: { ...mocks.card, score: 1 },
-    });
+    expect(client.getQueryData(firestoreKeys.cards("uid-a"))).toEqual({ [mocks.card.id]: mocks.card });
   });
 
   it("exposes immutable pending state while a Card update is running", async () => {
@@ -104,5 +105,57 @@ describe("useCardMutations", () => {
     });
     expect(result.current.pending).toBe(false);
     expect(result.current.isPending(card.id)).toBe(false);
+  });
+
+  it("rejects remote writes without a confirmed user", async () => {
+    mocks.uid = "";
+    const card = createCard();
+    const { result } = renderHook(useCardMutations, { wrapper: createQueryWrapper(createTestQueryClient()) });
+
+    await act(async () => {
+      await expect(result.current.create(card)).rejects.toThrow("confirmed user");
+    });
+
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(result.current.error).toEqual(
+      expect.objectContaining({ message: expect.stringContaining("confirmed user") })
+    );
+  });
+
+  it("ignores an old UID operation when it settles during a current operation", async () => {
+    const oldCard = createCard({ id: "shared" });
+    const newCard = createCard({ id: "shared", uid: "uid-b" });
+    let finishOld!: () => void;
+    let finishNew!: () => void;
+    mocks.create
+      .mockReturnValueOnce(new Promise<string>((resolve) => (finishOld = () => resolve(oldCard.id))))
+      .mockReturnValueOnce(new Promise<string>((resolve) => (finishNew = () => resolve(newCard.id))));
+    const { result, rerender } = renderHook(useCardMutations, {
+      wrapper: createQueryWrapper(createTestQueryClient()),
+    });
+
+    let oldOperation!: Promise<void>;
+    act(() => {
+      oldOperation = result.current.create(oldCard);
+    });
+    await waitFor(() => expect(result.current.isPending(oldCard.id)).toBe(true));
+    mocks.uid = "uid-b";
+    rerender();
+    await waitFor(() => expect(result.current.pending).toBe(false));
+    let newOperation!: Promise<void>;
+    act(() => {
+      newOperation = result.current.create(newCard);
+    });
+    await waitFor(() => expect(result.current.isPending(newCard.id)).toBe(true));
+
+    await act(async () => {
+      finishOld();
+      await oldOperation;
+    });
+    expect(result.current.isPending(newCard.id)).toBe(true);
+    await act(async () => {
+      finishNew();
+      await newOperation;
+    });
   });
 });

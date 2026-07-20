@@ -132,4 +132,29 @@ describe("remote store", () => {
     store.clear("uid-a");
     expect(store.getSnapshot()).toEqual({ uid: null, status: "idle", decksById: {}, cardsById: {} });
   });
+
+  it("reads and replaces an active collection without changing the other collection", () => {
+    const store = createRemoteStore();
+    const deck = createDeck({ id: "deck-a" });
+    const card = createCard({ id: "card-a", deckId: deck.id });
+    store.begin("uid-a");
+
+    expect(store).toMatchObject({ read: expect.any(Function), replace: expect.any(Function) });
+    store.replace("uid-a", "decks", { [deck.id]: deck });
+    store.replace("uid-a", "cards", { [card.id]: card });
+
+    expect(store.read("uid-a", "decks")).toEqual({ [deck.id]: deck });
+    expect(store.read("uid-a", "cards")).toEqual({ [card.id]: card });
+    expect(store.getSnapshot()).toEqual({
+      uid: "uid-a",
+      status: "loading",
+      decksById: { [deck.id]: deck },
+      cardsById: { [card.id]: card },
+    });
+
+    const active = store.getSnapshot();
+    store.replace("uid-b", "decks", {});
+    expect(store.read("uid-b", "decks")).toEqual({});
+    expect(store.getSnapshot()).toBe(active);
+  });
 });

@@ -4,8 +4,7 @@
  * coordinate services themselves.
  */
 
-import { useMutation } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import * as action from "@/action";
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
@@ -134,6 +133,8 @@ interface ImportRunDependencies {
   setRunning: (running: boolean) => void;
   lastRequest: { current: ImportRequest | undefined };
   mutateAsync: (request: ImportRequest) => Promise<DeckImportResult>;
+  generation: number;
+  currentGeneration: { current: number };
 }
 
 /**
@@ -142,7 +143,7 @@ interface ImportRunDependencies {
  */
 const runDeckImport = async (
   request: ImportRequest,
-  { runningRef, setRunning, lastRequest, mutateAsync }: ImportRunDependencies
+  { runningRef, setRunning, lastRequest, mutateAsync, generation, currentGeneration }: ImportRunDependencies
 ) => {
   if (runningRef.current) throw new Error("A Deck import is already running");
   runningRef.current = true;
@@ -151,8 +152,10 @@ const runDeckImport = async (
   try {
     return await mutateAsync(request);
   } finally {
-    runningRef.current = false;
-    setRunning(false);
+    if (currentGeneration.current === generation) {
+      runningRef.current = false;
+      setRunning(false);
+    }
   }
 };
 
@@ -206,23 +209,76 @@ export const useDeckImport = () => {
   const remote = useRemoteCollections();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();
+  const uid = auth.status === "authenticated" ? auth.uid : "";
+  const generation = useRef(0);
+  const generationUid = useRef(uid);
   const runningRef = useRef(false);
-  const [running, setRunning] = useState(false);
-  const [validating, setValidating] = useState(false);
-  const [preview, setPreview] = useState<DeckImportPreview>();
+  const [runningState, setRunningState] = useState(() => ({ uid, value: false }));
+  const [validatingState, setValidatingState] = useState(() => ({ uid, value: false }));
+  const [previewState, setPreviewState] = useState<{
+    uid: string;
+    value: DeckImportPreview | undefined;
+  }>(() => ({ uid, value: undefined }));
+  const [errorState, setErrorState] = useState<{ uid: string; value: unknown }>(() => ({
+    uid,
+    value: null,
+  }));
+  const [dataState, setDataState] = useState<{ uid: string; value: DeckImportResult | undefined }>(() => ({
+    uid,
+    value: undefined,
+  }));
   const lastRequest = useRef<ImportRequest>(undefined);
-
-  const operation = useMutation({
-    retry: false,
-    mutationFn: (request: ImportRequest) =>
-      executeDeckImport(request, {
-        uid: auth.status === "authenticated" ? auth.uid : "",
-        decks: remote.decks,
-        cardsByDeckId: remote.cardsByDeckId,
-        createDeck: deckMutations.create,
-        bulkUpsert: cardMutations.bulkUpsert,
-      }),
+  const dependenciesRef = useRef<DeckImportDependencies>(undefined);
+  const runRef = useRef<(request: ImportRequest) => Promise<DeckImportResult>>(undefined);
+  const [retry] = useState(() => () => {
+    const request = lastRequest.current;
+    const currentRun = runRef.current;
+    if (request != null && currentRun != null && !runningRef.current) void currentRun(request).catch(() => undefined);
   });
+  useEffect(() => {
+    if (generationUid.current === uid) return;
+    generationUid.current = uid;
+    generation.current += 1;
+    runningRef.current = false;
+    lastRequest.current = undefined;
+  }, [uid]);
+  useEffect(() => {
+    dependenciesRef.current = {
+      uid,
+      decks: remote.decks,
+      cardsByDeckId: remote.cardsByDeckId,
+      createDeck: deckMutations.create,
+      bulkUpsert: cardMutations.bulkUpsert,
+    };
+  }, [cardMutations.bulkUpsert, deckMutations.create, remote.cardsByDeckId, remote.decks, uid]);
+  const setRunning = (value: boolean) => setRunningState({ uid, value });
+  const setValidating = (value: boolean) => setValidatingState({ uid, value });
+  const setPreview = (value: DeckImportPreview | undefined) => setPreviewState({ uid, value });
+  const setError = (value: unknown) => setErrorState({ uid, value });
+  const setData = (value: DeckImportResult | undefined) => setDataState({ uid, value });
+
+  const mutateAsync = async (request: ImportRequest) => {
+    const operationGeneration = generation.current;
+    setError(null);
+    try {
+      const dependencies = dependenciesRef.current;
+      if (dependencies == null) throw new Error("Deck import dependencies are not available");
+      const result = await executeDeckImport(request, dependencies);
+      if (generation.current === operationGeneration) setData(result);
+      return result;
+    } catch (nextError) {
+      if (generation.current === operationGeneration) {
+        setData(undefined);
+        setError(nextError);
+      }
+      throw nextError;
+    }
+  };
+
+  const resetOperation = () => {
+    setData(undefined);
+    setError(null);
+  };
 
   /**
    * Runs the current import feature operation and returns its result.
@@ -233,8 +289,19 @@ export const useDeckImport = () => {
       runningRef,
       setRunning,
       lastRequest,
-      mutateAsync: operation.mutateAsync,
+      mutateAsync,
+      generation: generation.current,
+      currentGeneration: generation,
     });
+  useEffect(() => {
+    runRef.current = run;
+  });
+
+  const preview = previewState.uid === uid ? previewState.value : undefined;
+  const validating = validatingState.uid === uid && validatingState.value;
+  const running = runningState.uid === uid && runningState.value;
+  const error = errorState.uid === uid ? errorState.value : null;
+  const data = dataState.uid === uid ? dataState.value : undefined;
 
   /**
    * Validates the selected CSV file and stores its import preview.
@@ -245,7 +312,7 @@ export const useDeckImport = () => {
       runningRef,
       setValidating,
       setPreview,
-      reset: operation.reset,
+      reset: resetOperation,
       decks: remote.decks,
       cardsByDeckId: remote.cardsByDeckId,
     });
@@ -287,15 +354,6 @@ export const useDeckImport = () => {
     });
   };
 
-  /**
-   * Retries the current import feature operation and returns its result.
-   * Progress and failure cleanup stay in one place so callers observe a consistent workflow state.
-   */
-  const retry = () => {
-    const request = lastRequest.current;
-    if (request != null && !runningRef.current) void run(request).catch(() => undefined);
-  };
-
   return {
     selectFile,
     importPreview,
@@ -307,10 +365,10 @@ export const useDeckImport = () => {
     },
     preview,
     validating,
-    pending: operation.isPending || running,
-    error: operation.error,
-    data: operation.data,
-    partialResult: partialResultFrom(operation.error),
+    pending: running,
+    error,
+    data,
+    partialResult: partialResultFrom(error),
     retry,
   };
 };
