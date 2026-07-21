@@ -10,8 +10,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AuthState } from "@/auth/AuthContext";
 
-vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: vi.fn() }));
-vi.mock("@/query/reads/remoteReadSession", () => ({ startRemoteReads: vi.fn() }));
+vi.mock("@/store/remoteStore", () => ({
+  remoteStore: { getState: () => ({ start: vi.fn(), stop: vi.fn() }) },
+}));
 vi.mock("@/auth/AuthContext", () => ({ useAuth: vi.fn() }));
 
 import { createAuthTransitionController } from "@/auth/AuthBootstrap";

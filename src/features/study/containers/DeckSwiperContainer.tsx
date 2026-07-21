@@ -11,7 +11,7 @@ import { useKey } from "react-use";
 
 import * as C from "@/constant";
 import * as util from "@/util";
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
 import { BackText } from "@/features/card/components/BackText";
 import { CardOverlay } from "@/features/card/components/CardOverlay";

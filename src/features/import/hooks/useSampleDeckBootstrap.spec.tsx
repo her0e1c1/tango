@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/auth/AuthContext", () => ({ useAuth: () => mocks.auth }));
-vi.mock("@/query/useRemoteCollections", () => ({ useRemoteCollections: () => mocks.remote }));
+vi.mock("@/hooks/useRemoteCollections", () => ({ useRemoteCollections: () => mocks.remote }));
 vi.mock("@/features/import/hooks/useDeckImport", () => ({
   useDeckImport: () => ({ addSample: mocks.addSample }),
 }));

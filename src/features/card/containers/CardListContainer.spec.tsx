@@ -40,7 +40,7 @@ vi.mock("@/features/card/hooks/useCardMutations", () => ({
 
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 
-vi.mock("@/query/useRemoteCollections", () => ({
+vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => {
     const cards = mocks.cards;
     return {

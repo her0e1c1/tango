@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 
-vi.mock("@/query/useRemoteCollections", () => ({
+vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
     status: "ready" as const,
     retry: vi.fn(),

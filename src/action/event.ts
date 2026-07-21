@@ -11,15 +11,15 @@ import { FirebaseError } from "firebase/app";
 import { clearStudyStore, studyStore, type StudyState } from "@/features/study/state/studyStore";
 import { publishAuthenticatedUser, suspendAnonymousBootstrap } from "@/auth/AuthContext";
 import { auth } from "@/firebase";
-import { cleanupFirestoreUid } from "@/query/cleanup";
+import { remoteStore } from "@/store/remoteStore";
 
 interface LogoutCleanupProgress {
-  query: boolean;
+  remote: boolean;
   study: boolean;
   studyStateAfterClear?: StudyState;
 }
 
-type LogoutCleanupStep = "query" | "study";
+type LogoutCleanupStep = "remote" | "study";
 
 /**
  * Represents the logout cleanup error condition used by the application.
@@ -65,7 +65,7 @@ const runLogout = async (
       }
     };
 
-    await run("query", () => cleanupFirestoreUid(confirmedUid));
+    await run("remote", () => remoteStore.getState().stop(confirmedUid));
     await run("study", async () => {
       if (progress.studyStateAfterClear && studyStore.getState() !== progress.studyStateAfterClear) return;
       const cleanup = clearStudyStore();
@@ -81,11 +81,11 @@ const runLogout = async (
 };
 
 /**
- * Signs out the confirmed user and removes that user's query and study state.
+ * Signs out the confirmed user and removes that user's remote and study state.
  * If local cleanup fails, the returned error carries a retry that resumes the unfinished steps.
  */
 export const logout = (confirmedUid: string): Promise<void> =>
-  runLogout(confirmedUid, { query: false, study: false }, true);
+  runLogout(confirmedUid, { remote: false, study: false }, true);
 
 /**
  * Upgrades the current anonymous Firebase user to a Google-authenticated account.

@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   publishAuthenticatedUser: vi.fn(),
   suspendAnonymousBootstrap: vi.fn(),
   resumeAnonymousBootstrap: vi.fn(),
-  cleanupFirestoreUid: vi.fn(),
+  stopRemoteReads: vi.fn(),
 }));
 
 vi.mock("firebase/auth");
@@ -27,7 +27,9 @@ vi.mock("@/auth/AuthContext", () => ({
   publishAuthenticatedUser: mocks.publishAuthenticatedUser,
   suspendAnonymousBootstrap: mocks.suspendAnonymousBootstrap,
 }));
-vi.mock("@/query/cleanup", () => ({ cleanupFirestoreUid: mocks.cleanupFirestoreUid }));
+vi.mock("@/store/remoteStore", () => ({
+  remoteStore: { getState: () => ({ stop: mocks.stopRemoteReads }) },
+}));
 
 describe("event action", () => {
   beforeEach(() => {
@@ -47,13 +49,13 @@ describe("event action", () => {
     vi.mocked(signOut).mockImplementation(async () => {
       operations.push("sign-out");
     });
-    mocks.cleanupFirestoreUid.mockImplementation(async () => {
-      operations.push("cleanup-query");
+    mocks.stopRemoteReads.mockImplementation(() => {
+      operations.push("stop-remote");
     });
     studyStore.getState().startStudy("deck", ["card"]);
     await action.event.logout("uid-a");
 
-    expect(operations).toEqual(["suspend", "sign-out", "cleanup-query", "resume"]);
+    expect(operations).toEqual(["suspend", "sign-out", "stop-remote", "resume"]);
     expect(studyStore.getState().sessionsByDeckId).toEqual({});
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
   });
@@ -63,13 +65,15 @@ describe("event action", () => {
     vi.mocked(signOut).mockRejectedValue(new Error("sign-out failed"));
     await expect(action.event.logout("uid-a")).rejects.toThrow("sign-out failed");
 
-    expect(mocks.cleanupFirestoreUid).not.toHaveBeenCalled();
+    expect(mocks.stopRemoteReads).not.toHaveBeenCalled();
     expect(studyStore.getState().sessionsByDeckId).not.toEqual({});
   });
 
-  it("clears study state after a Query cleanup failure", async () => {
+  it("clears study state after remote cleanup fails", async () => {
     studyStore.getState().startStudy("deck", ["card"]);
-    mocks.cleanupFirestoreUid.mockRejectedValue(new Error("cleanup failed"));
+    mocks.stopRemoteReads.mockImplementation(() => {
+      throw new Error("cleanup failed");
+    });
     await expect(action.event.logout("uid-a")).rejects.toThrow("cleanup failed");
 
     expect(studyStore.getState().sessionsByDeckId).toEqual({});

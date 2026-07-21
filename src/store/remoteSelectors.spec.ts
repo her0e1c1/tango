@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { cardsForDeck, filteredCardsForDeck, remoteValues, tagsForDeck } from "@/query/selectors";
+import { cardsForDeck, filteredCardsForDeck, remoteValues, tagsForDeck } from "@/store/remoteSelectors";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
 describe("remote collection selectors", () => {

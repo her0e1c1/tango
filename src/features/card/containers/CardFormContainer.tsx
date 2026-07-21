@@ -8,7 +8,7 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import * as C from "@/constant";
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
 import { useActions } from "@/hooks/useActions";
 import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";

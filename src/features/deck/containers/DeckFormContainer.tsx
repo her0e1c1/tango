@@ -10,7 +10,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import * as C from "@/constant";
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
 import { useActions } from "@/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";

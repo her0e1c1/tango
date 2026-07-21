@@ -75,15 +75,6 @@ export const withDeckMembershipLocks = async <T>(
   }
 };
 
-/**
- * Builds the lock key used to serialize mutations for one card.
- * The user identifier keeps sessions independent, and the `card:` prefix separates entity types.
- */
 export const cardMutationLock = (uid: string, id: CardId) => `card:${uid}:${id}`;
-/** Builds the lock key shared by Deck removal and Card membership writes. */
 export const deckMembershipMutationLock = (uid: string, id: DeckId) => `deck-membership:${uid}:${id}`;
-/**
- * Builds the lock key used to serialize mutations for one deck.
- * The user identifier keeps sessions independent, and the `deck:` prefix separates entity types.
- */
 export const deckMutationLock = (uid: string, id: DeckId) => `deck:${uid}:${id}`;

@@ -18,25 +18,25 @@ const manualMemoizationHook = /\b(?:React\.)?(?:useMemo|useCallback)\s*\(/g;
 const customHookDefinition = /\b(?:const|function)\s+(use[A-Z][A-Za-z0-9]*)\b/g;
 const firestoreCompositionModules = new Set([
   "firebase.ts",
-  "query/reads/remoteReadSession.ts",
-  "features/card/hooks/useCardMutations.ts",
-  "features/deck/hooks/useDeckMutations.ts",
   "features/import/hooks/useDeckImport.ts",
+  "hooks/useRemoteCollections.ts",
+  "store/remoteStore.ts",
 ]);
-const remoteStoreModule = ["@/store", "remoteStore"].join("/");
-const remoteStoreTypeName = ["Remote", "Store"].join("");
-const remoteStoreValueName = ["remote", "Store"].join("");
-const remoteStorePropertyNames = new Set(["store", remoteStoreValueName]);
-const remoteStoreSnapshotReadName = ["get", "Snapshot"].join("");
-const remoteStoreLifecycleMethodNames = new Set(["begin", ["apply", "Snapshot"].join(""), "fail", "clear"]);
 const remoteSnapshotCapabilityName = ["apply", "Snapshot"].join("");
+const remoteStoreStateName = "RemoteStoreState";
+const remoteReadLifecycleActionNames = new Set(["start", "stop", "retryReads"]);
+const remoteEntityMapNames = new Set(["decksById", "cardsById"]);
+const ownedFirestoreAdapterModules = new Set([
+  "@/adapters/firestore/card",
+  "@/adapters/firestore/deck",
+  "@/adapters/firestore/event",
+]);
 const connectorModules = [
   "react-hook-form",
   "react-router",
   "react-router-dom",
   "react-use",
   "@/action",
-  "@/query",
   "@/store",
   "@/hooks",
 ];
@@ -111,19 +111,6 @@ function productionFilesUnder(relativeDirectory: string): string[] {
   return sourceFilesUnder(relativeDirectory).filter((relativePath) => !testOrStory.test(relativePath));
 }
 
-function remoteMutationFiles(): string[] {
-  const featureOrchestrationFiles = productionFilesUnder("features").filter((relativePath) => {
-    if (!/^features\/[^/]+\/hooks\/use[A-Z][^/]*\.tsx?$/.test(relativePath)) return false;
-    if (/(?:Actions|Bootstrap|Import|Mutations)\.tsx?$/.test(relativePath)) return true;
-    return moduleReferences(relativePath).some(
-      ({ resolvedSpecifier }) =>
-        isModuleOrSubpath(resolvedSpecifier, "@/query/mutations") ||
-        /^@\/features\/[^/]+\/hooks\/use[A-Z][^/]*(?:Import|Mutations)$/.test(resolvedSpecifier)
-    );
-  });
-  return [...productionFilesUnder("query/mutations"), ...featureOrchestrationFiles];
-}
-
 /**
  * Provides the module specifiers test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
@@ -173,6 +160,44 @@ function moduleReferencesForSource(relativePath: string, source: string): Module
   }));
 }
 
+function sourceModuleId(relativePath: string): string {
+  return `@/${relativePath.replace(/\.tsx?$/, "").replace(/\/index$/, "")}`;
+}
+
+function normalizedSourceSpecifier(specifier: string): string {
+  return specifier.replace(/\.tsx?$/, "").replace(/\/index$/, "");
+}
+
+function firestoreOwnedAdapterConsumers(subjects: TextSubject[]): string[] {
+  const firestoreAdaptersByModule = new Map(
+    subjects
+      .filter((subject) => subject.relativePath.startsWith("adapters/firestore/"))
+      .map((subject) => [sourceModuleId(subject.relativePath), subject] as const)
+  );
+
+  const reachesOwnedAdapter = (specifier: string, visitedModules: Set<string>): boolean => {
+    const moduleId = normalizedSourceSpecifier(specifier);
+    if (ownedFirestoreAdapterModules.has(moduleId)) return true;
+    if (visitedModules.has(moduleId)) return false;
+
+    const adapter = firestoreAdaptersByModule.get(moduleId);
+    if (adapter == null) return false;
+
+    const nextVisitedModules = new Set(visitedModules).add(moduleId);
+    return moduleReferencesForSource(adapter.relativePath, adapter.source).some((reference) =>
+      reachesOwnedAdapter(reference.resolvedSpecifier, nextVisitedModules)
+    );
+  };
+
+  return subjects.flatMap((subject) => {
+    if (subject.relativePath.startsWith("adapters/firestore/")) return [];
+    const consumesOwnedAdapter = moduleReferencesForSource(subject.relativePath, subject.source).some((reference) =>
+      reachesOwnedAdapter(reference.resolvedSpecifier, new Set())
+    );
+    return consumesOwnedAdapter ? [subject.relativePath] : [];
+  });
+}
+
 function parseSource({ relativePath, source }: TextSubject): ts.SourceFile {
   const scriptKind = relativePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
   return ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true, scriptKind);
@@ -217,77 +242,6 @@ function containsSyntax(sourceFile: ts.SourceFile, predicate: (node: ts.Node) =>
   return matched;
 }
 
-function isDirectLifecycleCall(node: ts.Node, name: string): boolean {
-  return (
-    remoteStoreLifecycleMethodNames.has(name) && ts.isCallExpression(node.parent) && node.parent.expression === node
-  );
-}
-
-function accessReceiver(node: ts.Node): ts.Expression | undefined {
-  if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)) return node.expression;
-  if (ts.isBindingElement(node) && ts.isObjectBindingPattern(node.parent)) {
-    const declaration = node.parent.parent;
-    if (ts.isVariableDeclaration(declaration)) return declaration.initializer;
-  }
-  return undefined;
-}
-
-function looksStoreLike(expression: ts.Expression | undefined): boolean {
-  if (expression === undefined) return false;
-  if (ts.isIdentifier(expression)) {
-    return remoteStorePropertyNames.has(expression.text) || expression.text === "state";
-  }
-  if (ts.isPropertyAccessExpression(expression) || ts.isElementAccessExpression(expression)) {
-    const name = propertyLikeName(expression);
-    return (name !== undefined && remoteStorePropertyNames.has(name)) || looksStoreLike(expression.expression);
-  }
-  if (
-    ts.isParenthesizedExpression(expression) ||
-    ts.isAsExpression(expression) ||
-    ts.isTypeAssertionExpression(expression) ||
-    ts.isNonNullExpression(expression)
-  ) {
-    return looksStoreLike(expression.expression);
-  }
-  return false;
-}
-
-function isDeclaredInStoreLikeMember(node: ts.Node): boolean {
-  let current = node.parent;
-  while (current != null && !ts.isSourceFile(current)) {
-    if (ts.isTypeLiteralNode(current)) {
-      const name = propertyLikeName(current.parent);
-      if (name === "state" || (name !== undefined && remoteStorePropertyNames.has(name))) return true;
-    }
-    current = current.parent;
-  }
-  return false;
-}
-
-function hasRemoteMutationStoreAccess(subject: TextSubject): boolean {
-  return containsSyntax(parseSource(subject), (node) => {
-    if (ts.isIdentifier(node) && node.text === remoteStoreTypeName) return true;
-    if (ts.isIdentifier(node) && node.text === remoteStoreValueName) return true;
-    const name = propertyLikeName(node);
-    if (name === undefined) return false;
-    if (remoteStorePropertyNames.has(name)) return true;
-    const receiver = accessReceiver(node);
-    return (
-      (looksStoreLike(receiver) || isDeclaredInStoreLikeMember(node)) &&
-      (name === remoteStoreSnapshotReadName || name === "subscribe" || isDirectLifecycleCall(node, name))
-    );
-  });
-}
-
-function remoteMutationStoreViolations(subjects: TextSubject[]): string[] {
-  return subjects.flatMap((subject) => {
-    const importsRemoteStore = moduleReferencesForSource(subject.relativePath, subject.source).some((reference) =>
-      isModuleOrSubpath(reference.resolvedSpecifier, remoteStoreModule)
-    );
-    return importsRemoteStore || hasRemoteMutationStoreAccess(subject) ? [subject.relativePath] : [];
-  });
-}
-
 function remoteSnapshotCapabilityViolations(subjects: TextSubject[]): string[] {
   return subjects.flatMap((subject) => {
     const hasCapability = containsSyntax(parseSource(subject), (node) => {
@@ -296,6 +250,181 @@ function remoteSnapshotCapabilityViolations(subjects: TextSubject[]): string[] {
     });
     return hasCapability ? [subject.relativePath] : [];
   });
+}
+
+function remoteMutationEntityAccessViolations(subject: TextSubject): string[] {
+  const sourceFile = parseSource(subject);
+  const compilerOptions: ts.CompilerOptions = {
+    noLib: true,
+    noResolve: true,
+    target: ts.ScriptTarget.Latest,
+  };
+  const compilerHost = ts.createCompilerHost(compilerOptions);
+  compilerHost.fileExists = (fileName) => fileName === sourceFile.fileName;
+  compilerHost.readFile = (fileName) => (fileName === sourceFile.fileName ? subject.source : undefined);
+  compilerHost.getSourceFile = (fileName) => (fileName === sourceFile.fileName ? sourceFile : undefined);
+  const program = ts.createProgram([sourceFile.fileName], compilerOptions, compilerHost);
+  const checker = program.getTypeChecker();
+  const mutationActionNames = new Set<string>();
+
+  const discoverMutationActions = (node: ts.Node): void => {
+    if (ts.isInterfaceDeclaration(node) && node.name.text === remoteStoreStateName) {
+      node.members.forEach((member) => {
+        const name = propertyLikeName(member);
+        const isAction =
+          ts.isMethodSignature(member) ||
+          (ts.isPropertySignature(member) && member.type != null && ts.isFunctionTypeNode(member.type));
+        if (name != null && isAction && !remoteReadLifecycleActionNames.has(name)) mutationActionNames.add(name);
+      });
+    }
+    ts.forEachChild(node, discoverMutationActions);
+  };
+  discoverMutationActions(sourceFile);
+
+  const actionSymbols = new Map<string, Set<ts.Symbol>>();
+  const indexActionImplementations = (node: ts.Node): void => {
+    let name: ts.Identifier | undefined;
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) name = node.name;
+    if (ts.isFunctionDeclaration(node) && node.name != null) name = node.name;
+    if (name != null && mutationActionNames.has(name.text)) {
+      const symbol = checker.getSymbolAtLocation(name);
+      if (symbol != null) {
+        const symbols = actionSymbols.get(name.text) ?? new Set<ts.Symbol>();
+        symbols.add(symbol);
+        actionSymbols.set(name.text, symbols);
+      }
+    }
+    ts.forEachChild(node, indexActionImplementations);
+  };
+  indexActionImplementations(sourceFile);
+
+  type CallableResolution =
+    | { kind: "resolved"; declaration: ts.FunctionLikeDeclaration }
+    | { kind: "external" }
+    | { kind: "unresolved" };
+
+  const resolvedCallable = (declaration: ts.FunctionLikeDeclaration): CallableResolution => ({
+    kind: "resolved",
+    declaration,
+  });
+
+  const resolveSymbol = (symbol: ts.Symbol, visitedSymbols: Set<ts.Symbol>): CallableResolution => {
+    if (visitedSymbols.has(symbol)) return { kind: "unresolved" };
+    const nextVisitedSymbols = new Set(visitedSymbols).add(symbol);
+    const declarations = (symbol.declarations ?? []).filter(
+      (declaration) => declaration.getSourceFile() === sourceFile
+    );
+    const runtimeDeclarations = declarations.filter(
+      (declaration) =>
+        (ts.isFunctionDeclaration(declaration) && declaration.body != null) ||
+        ts.isVariableDeclaration(declaration) ||
+        (ts.isMethodDeclaration(declaration) && declaration.body != null) ||
+        ts.isPropertyAssignment(declaration) ||
+        ts.isShorthandPropertyAssignment(declaration) ||
+        ts.isPropertyDeclaration(declaration) ||
+        ts.isBindingElement(declaration)
+    );
+    if (runtimeDeclarations.length === 0) return { kind: "external" };
+
+    const resolveExpression = (expression: ts.Expression): CallableResolution => {
+      if (ts.isArrowFunction(expression) || ts.isFunctionExpression(expression)) return resolvedCallable(expression);
+      if (
+        ts.isParenthesizedExpression(expression) ||
+        ts.isAsExpression(expression) ||
+        ts.isTypeAssertionExpression(expression) ||
+        ts.isNonNullExpression(expression) ||
+        ts.isSatisfiesExpression(expression)
+      ) {
+        return resolveExpression(expression.expression);
+      }
+      if (
+        ts.isIdentifier(expression) ||
+        ts.isPropertyAccessExpression(expression) ||
+        ts.isElementAccessExpression(expression)
+      ) {
+        const target = checker.getSymbolAtLocation(expression);
+        return target == null ? { kind: "external" } : resolveSymbol(target, nextVisitedSymbols);
+      }
+      return { kind: "unresolved" };
+    };
+
+    const resolutions = runtimeDeclarations.map((declaration): CallableResolution => {
+      if (ts.isFunctionDeclaration(declaration) || ts.isMethodDeclaration(declaration)) {
+        return resolvedCallable(declaration);
+      }
+      if (ts.isVariableDeclaration(declaration) || ts.isPropertyAssignment(declaration)) {
+        return declaration.initializer == null ? { kind: "unresolved" } : resolveExpression(declaration.initializer);
+      }
+      if (ts.isPropertyDeclaration(declaration)) {
+        return declaration.initializer == null ? { kind: "unresolved" } : resolveExpression(declaration.initializer);
+      }
+      if (ts.isShorthandPropertyAssignment(declaration)) {
+        const valueSymbol = checker.getShorthandAssignmentValueSymbol(declaration);
+        return valueSymbol == null ? { kind: "unresolved" } : resolveSymbol(valueSymbol, nextVisitedSymbols);
+      }
+      if (ts.isBindingElement(declaration) && ts.isObjectBindingPattern(declaration.parent)) {
+        const variableDeclaration = declaration.parent.parent;
+        if (ts.isVariableDeclaration(variableDeclaration) && variableDeclaration.initializer != null) {
+          const name = staticName(declaration.propertyName ?? declaration.name);
+          const property =
+            name == null
+              ? undefined
+              : checker.getPropertyOfType(checker.getTypeAtLocation(variableDeclaration.initializer), name);
+          return property == null ? { kind: "unresolved" } : resolveSymbol(property, nextVisitedSymbols);
+        }
+      }
+      return { kind: "external" };
+    });
+    if (resolutions.some((resolution) => resolution.kind === "unresolved")) return { kind: "unresolved" };
+
+    const resolvedDeclarations = resolutions.flatMap((resolution) =>
+      resolution.kind === "resolved" ? [resolution.declaration] : []
+    );
+    const uniqueDeclarations = new Set(resolvedDeclarations);
+    if (uniqueDeclarations.size === 1 && resolutions.every((resolution) => resolution.kind === "resolved")) {
+      const declaration = resolvedDeclarations[0];
+      return declaration == null ? { kind: "unresolved" } : resolvedCallable(declaration);
+    }
+    return uniqueDeclarations.size === 0 ? { kind: "external" } : { kind: "unresolved" };
+  };
+
+  const violations: string[] = [];
+  mutationActionNames.forEach((actionName) => {
+    const referencedMaps = new Set<string>();
+    const visitedFunctions = new Set<ts.FunctionLikeDeclaration>();
+    const symbols = actionSymbols.get(actionName);
+    const actionSymbol = symbols?.size === 1 ? symbols.values().next().value : undefined;
+    const actionResolution =
+      actionSymbol == null ? ({ kind: "unresolved" } as const) : resolveSymbol(actionSymbol, new Set());
+    if (actionResolution.kind !== "resolved") {
+      violations.push(`${subject.relativePath}: ${actionName} -> unresolved`);
+      return;
+    }
+
+    const inspectFunction = (declaration: ts.FunctionLikeDeclaration): void => {
+      if (visitedFunctions.has(declaration)) return;
+      visitedFunctions.add(declaration);
+      const inspectNode = (node: ts.Node): void => {
+        if (ts.isIdentifier(node) && remoteEntityMapNames.has(node.text)) referencedMaps.add(node.text);
+        if (ts.isCallExpression(node)) {
+          const target = checker.getSymbolAtLocation(node.expression);
+          if (target != null) {
+            const resolution = resolveSymbol(target, new Set());
+            if (resolution.kind === "resolved") inspectFunction(resolution.declaration);
+            if (resolution.kind === "unresolved") referencedMaps.add("unresolved");
+          }
+        }
+        ts.forEachChild(node, inspectNode);
+      };
+      inspectNode(declaration);
+    };
+
+    inspectFunction(actionResolution.declaration);
+    referencedMaps.forEach((name) => {
+      violations.push(`${subject.relativePath}: ${actionName} -> ${name}`);
+    });
+  });
+  return violations;
 }
 
 /**
@@ -432,7 +561,7 @@ describe("component architecture", () => {
 
   it("treats application modules as presentation connectors across import styles", () => {
     const presentationPath = "features/deck/components/templates/DeckListTemplate.tsx";
-    const applicationImports = ["@/query", "@/store", "src/query", "../../../../query"];
+    const applicationImports = ["@/store", "@/hooks", "src/store", "../../../../hooks"];
 
     for (const specifier of applicationImports) {
       expect(forbiddenConnector(resolveModuleSpecifier(presentationPath, specifier)), specifier).toBe(true);
@@ -488,53 +617,6 @@ describe("component architecture", () => {
     expect(violations, violations.join("\n")).toEqual([]);
   });
 
-  it("detects structural and aliased Store access in mutation fixtures", () => {
-    const subjects = [
-      {
-        relativePath: "structural-store.ts",
-        source:
-          "interface Dependencies { state: { getSnapshot(): unknown; subscribe(listener: () => void): () => void } }",
-      },
-      {
-        relativePath: "store-alias.ts",
-        source: "const state = dependencies.store; const read = state.getSnapshot; read();",
-      },
-      {
-        relativePath: "store-destructure.ts",
-        source: "const { store: state } = dependencies; const { subscribe: listen } = state; listen(listener);",
-      },
-      {
-        relativePath: "store-bracket.ts",
-        source: 'const listen = dependencies["store"]["subscribe"]; listen(listener);',
-      },
-    ];
-
-    expect(remoteMutationStoreViolations(subjects)).toEqual(subjects.map(({ relativePath }) => relativePath));
-  });
-
-  it("allows unrelated local state helpers in mutation fixtures", () => {
-    const subjects = [
-      {
-        relativePath: "event-subscription.ts",
-        source: "eventBus.subscribe(listener);",
-      },
-      {
-        relativePath: "collection-clear.ts",
-        source: "const store = new Map<string, string>(); cache.clear(); void store.size;",
-      },
-      {
-        relativePath: "local-function.ts",
-        source: "const getSnapshot = () => ({ local: true }); void getSnapshot();",
-      },
-      {
-        relativePath: "local-store.ts",
-        source: "const localStore = { getSnapshot: () => ({ local: true }) }; localStore.getSnapshot();",
-      },
-    ];
-
-    expect(remoteMutationStoreViolations(subjects)).toEqual([]);
-  });
-
   it("detects every RemoteStore snapshot capability reference in fixtures", () => {
     const capability = ["apply", "Snapshot"].join("");
     const subjects = [
@@ -549,45 +631,173 @@ describe("component architecture", () => {
     expect(remoteSnapshotCapabilityViolations(subjects)).toEqual(subjects.map(({ relativePath }) => relativePath));
   });
 
-  it("keeps production mutation code independent from the RemoteStore", () => {
-    expect(remoteMutationFiles()).toEqual(
-      expect.arrayContaining([
-        "features/card/hooks/useCardMutations.ts",
-        "features/deck/hooks/useDeckActions.ts",
-        "features/deck/hooks/useDeckMutations.ts",
-        "features/import/hooks/useDeckImport.ts",
-        "features/import/hooks/useSampleDeckBootstrap.ts",
-        "features/study/hooks/useStudyActions.ts",
-      ])
-    );
-    expect(remoteMutationFiles()).not.toEqual(
-      expect.arrayContaining([
-        "features/card/hooks/useCardFormState.ts",
-        "features/settings/hooks/useAccountOperations.ts",
-        "features/study/hooks/useStudyStore.ts",
-      ])
-    );
-    const violations = remoteMutationStoreViolations(
-      remoteMutationFiles().map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
-    );
+  it("detects subscription-owned entity map access in mutation action fixtures", () => {
+    const subject = {
+      relativePath: "remote-store.ts",
+      source: `
+        interface RemoteStoreState { createCard: () => void; }
+        const createCard = () => set((state) => ({ read: { ...state.read, cardsById: {} } }));
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["remote-store.ts: createCard -> cardsById"]);
+  });
+
+  it("discovers newly named mutation actions from the RemoteStoreState surface", () => {
+    const subject = {
+      relativePath: "new-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          archiveCard: () => void;
+        }
+        const archiveCard = () => void cardsById;
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["new-action.ts: archiveCard -> cardsById"]);
+  });
+
+  it("resolves function declaration mutation actions", () => {
+    const subject = {
+      relativePath: "function-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          createCard: () => void;
+        }
+        function createCard() { void decksById; }
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["function-action.ts: createCard -> decksById"]);
+  });
+
+  it("follows local helpers called transitively by mutation actions", () => {
+    const subject = {
+      relativePath: "transitive-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          updateCard: () => void;
+        }
+        const inspectCards = () => void cardsById;
+        function prepareUpdate() { inspectCards(); void decksById; }
+        const updateCard = () => prepareUpdate();
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual([
+      "transitive-action.ts: updateCard -> cardsById",
+      "transitive-action.ts: updateCard -> decksById",
+    ]);
+  });
+
+  it("follows local helper aliases called by mutation actions", () => {
+    const subject = {
+      relativePath: "aliased-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          updateCard: () => void;
+        }
+        const inspectCards = () => void cardsById;
+        const aliasedHelper = inspectCards;
+        const updateCard = () => aliasedHelper();
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["aliased-action.ts: updateCard -> cardsById"]);
+  });
+
+  it("follows local object-property helpers called by mutation actions", () => {
+    const subject = {
+      relativePath: "property-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          updateDeck: () => void;
+        }
+        const helpers = {
+          mutate() { void decksById; },
+        };
+        const updateDeck = () => helpers.mutate();
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["property-action.ts: updateDeck -> decksById"]);
+  });
+
+  it("fails closed when a mutation action has no local function body", () => {
+    const subject = {
+      relativePath: "unresolved-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          createCard: () => void;
+        }
+        const store = { createCard: dependencies.createCard };
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual(["unresolved-action.ts: createCard -> unresolved"]);
+  });
+
+  it("allows mutation actions to call unrelated dependency properties", () => {
+    const subject = {
+      relativePath: "dependency-action.ts",
+      source: `
+        interface RemoteStoreState {
+          read: unknown;
+          start: () => void;
+          stop: () => void;
+          retryReads: () => void;
+          createCard: () => void;
+        }
+        const createCard = () => dependencies.createCard();
+      `,
+    };
+
+    expect(remoteMutationEntityAccessViolations(subject)).toEqual([]);
+  });
+
+  it("keeps mutation actions from accessing subscription-owned entity maps", () => {
+    const subject = { relativePath: "store/remoteStore.ts", source: readSource("store/remoteStore.ts") };
+    const violations = remoteMutationEntityAccessViolations(subject);
 
     expect(violations, violations.join("\n")).toEqual([]);
   });
 
-  it("applies production RemoteStore snapshots only in the Firestore read controller", () => {
-    const allowedPaths = new Set(["store/remoteStore.ts", "query/reads/remoteReadController.ts"]);
+  it("applies production subscription snapshots only in the Zustand remote store", () => {
+    const allowedPath = "store/remoteStore.ts";
     const violations = remoteSnapshotCapabilityViolations(
       productionFilesUnder("").flatMap((relativePath) =>
-        allowedPaths.has(relativePath) ? [] : [{ relativePath, source: readSource(relativePath) }]
+        relativePath === allowedPath ? [] : [{ relativePath, source: readSource(relativePath) }]
       )
     );
 
     expect(violations, violations.join("\n")).toEqual([]);
     expect(
-      remoteSnapshotCapabilityViolations(
-        [...allowedPaths].map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
-      )
-    ).toEqual([...allowedPaths]);
+      remoteSnapshotCapabilityViolations([{ relativePath: allowedPath, source: readSource(allowedPath) }])
+    ).toEqual([allowedPath]);
   });
 
   it("uses production-oriented names for Firestore adapter modules", () => {
@@ -596,11 +806,9 @@ describe("component architecture", () => {
   });
 
   it("limits concrete Firestore dependencies to composition modules", () => {
-    const applicationFiles = [
-      ...productionFilesUnder("action"),
-      ...productionFilesUnder("features"),
-      ...productionFilesUnder("query"),
-    ];
+    const applicationFiles = productionFilesUnder("").filter(
+      (relativePath) => !relativePath.startsWith("adapters/firestore/")
+    );
     const violations = applicationFiles.flatMap((relativePath) =>
       moduleReferences(relativePath)
         .filter(
@@ -612,6 +820,57 @@ describe("component architecture", () => {
     );
 
     expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("keeps remote subscription and mutation adapters owned by the Zustand store", () => {
+    const owners = firestoreOwnedAdapterConsumers(
+      productionFilesUnder("").map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
+    );
+
+    expect(owners).toEqual(["store/remoteStore.ts"]);
+  });
+
+  it("keeps remote subscription and mutation adapters out of the Firestore barrel", () => {
+    const violations = moduleReferences("adapters/firestore/index.ts")
+      .filter((reference) => ownedFirestoreAdapterModules.has(reference.resolvedSpecifier))
+      .map((reference) => importViolation("adapters/firestore/index.ts", reference));
+
+    expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("prevents composition modules from gaining owned adapters through the Firestore barrel", () => {
+    const fixture = {
+      relativePath: "firebase.ts",
+      source: `
+        import { card, deck, event } from "@/adapters/firestore";
+        void card.create;
+        void deck.create;
+        void event.subscribeCardReads;
+      `,
+    };
+    const barrelExportsOwnedAdapters = moduleReferences("adapters/firestore/index.ts").some((reference) =>
+      ownedFirestoreAdapterModules.has(reference.resolvedSpecifier)
+    );
+    const fixtureImportsBarrel = moduleReferencesForSource(fixture.relativePath, fixture.source).some(
+      (reference) => reference.resolvedSpecifier === "@/adapters/firestore"
+    );
+
+    expect(barrelExportsOwnedAdapters && fixtureImportsBarrel).toBe(false);
+  });
+
+  it("detects owned adapters consumed through a nested Firestore barrel", () => {
+    const subjects = [
+      {
+        relativePath: "adapters/firestore/owned/index.ts",
+        source: `export * as card from "@/adapters/firestore/card";`,
+      },
+      {
+        relativePath: "firebase.ts",
+        source: `import { card } from "@/adapters/firestore/owned"; void card.create;`,
+      },
+    ];
+
+    expect(firestoreOwnedAdapterConsumers(subjects)).toEqual(["firebase.ts"]);
   });
 
   it("keeps presentation independent from Firebase and Firestore adapters", () => {
@@ -668,6 +927,18 @@ describe("component architecture", () => {
     expect(selectorReferences, selectorReferences.join("\n")).toEqual([]);
   });
 
+  it("removes the obsolete query layer and its imports", () => {
+    const obsoleteQueryModule = ["@", "query"].join("/");
+    const queryReferences = sourceFilesUnder("").flatMap((relativePath) =>
+      moduleReferences(relativePath)
+        .filter((reference) => isModuleOrSubpath(reference.resolvedSpecifier, obsoleteQueryModule))
+        .map((reference) => importViolation(relativePath, reference))
+    );
+
+    expect(existsSync(sourcePath("query"))).toBe(false);
+    expect(queryReferences, queryReferences.join("\n")).toEqual([]);
+  });
+
   it("limits application stores to configuration and remote data", () => {
     const legacyPackages = ["react-redux", "redux", "redux-persist", "redux-thunk"];
     const legacyImports = productionFilesUnder("").flatMap((relativePath) =>
@@ -695,6 +966,11 @@ describe("component architecture", () => {
       "store/configSchema.ts",
       "store/configStore.spec.ts",
       "store/configStore.ts",
+      "store/remoteMutationLocks.ts",
+      "store/remoteSelectors.spec.ts",
+      "store/remoteSelectors.ts",
+      "store/remoteStore.mutations.spec.ts",
+      "store/remoteStore.reads.spec.ts",
       "store/remoteStore.spec.ts",
       "store/remoteStore.ts",
     ]);

@@ -12,7 +12,8 @@ import { initializeTestEnvironment, type RulesTestEnvironment } from "@firebase/
 import { doc, setDoc, type Firestore } from "firebase/firestore";
 import { v4 as uuid } from "uuid";
 
-import * as firestore from "@/adapters/firestore";
+import * as cardAdapter from "@/adapters/firestore/card";
+import * as deckAdapter from "@/adapters/firestore/deck";
 import { buildCardCreateDto, buildDeckCreateDto } from "@/adapters/firestore/dto";
 import { createCard, createDeck } from "@/test/factories";
 
@@ -54,7 +55,7 @@ describe("Firestore full reads", () => {
     await seed("deck", deleted.id, buildDeckCreateDto(deleted, deleted.createdAt));
     await seed("deck", foreign.id, buildDeckCreateDto(foreign, foreign.createdAt));
 
-    await expect(firestore.deck.readAll("uid", db)).resolves.toEqual([
+    await expect(deckAdapter.readAll("uid", db)).resolves.toEqual([
       expect.objectContaining({ id: active.id, name: "Active remote" }),
     ]);
   });
@@ -69,13 +70,13 @@ describe("Firestore full reads", () => {
     await seed("card", deleted.id, { ...buildCardCreateDto(deleted, deleted.createdAt), deletedAt: 100 });
     await seed("card", foreign.id, buildCardCreateDto(foreign, foreign.createdAt));
 
-    await expect(firestore.card.readAll("uid", db)).resolves.toEqual([
+    await expect(cardAdapter.readAll("uid", db)).resolves.toEqual([
       expect.objectContaining({ id: active.id, frontText: "Active remote" }),
     ]);
   });
 
   it("returns empty collections when the UID has no documents", async () => {
-    await expect(firestore.deck.readAll("uid", db)).resolves.toEqual([]);
-    await expect(firestore.card.readAll("uid", db)).resolves.toEqual([]);
+    await expect(deckAdapter.readAll("uid", db)).resolves.toEqual([]);
+    await expect(cardAdapter.readAll("uid", db)).resolves.toEqual([]);
   });
 });

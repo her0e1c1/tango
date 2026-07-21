@@ -1,21 +1,19 @@
 /**
- * @file Provides shared remote-data behavior for Use Remote Collections.
- * Feature hooks use this layer to read and update Firestore data without owning cache or
- * subscription details.
+ * @file Provides shared remote collection data and lookup behavior to React consumers.
  */
 
 import { useSyncExternalStore } from "react";
+import { useStore } from "zustand";
 
+import { getFirestoreInitializationState, subscribeFirestoreInitialization } from "@/adapters/firestore/runtime";
 import { useAuth } from "@/auth/AuthContext";
-import {
-  getRemoteReadBlocker,
-  getRemoteReadState,
-  retryRemoteReads,
-  subscribeRemoteReadBlocker,
-  subscribeRemoteReadState,
-} from "@/query/reads/remoteReadSession";
-import { cardsForDeck, filteredCardsForDeck, remoteValues, tagsForDeck } from "@/query/selectors";
-import type { RemoteState } from "@/store/remoteStore";
+import { remoteValues, cardsForDeck, filteredCardsForDeck, tagsForDeck } from "@/store/remoteSelectors";
+import { remoteStore, type RemoteReadState } from "@/store/remoteStore";
+
+const getRemoteReadBlocker = () => {
+  const state = getFirestoreInitializationState();
+  return state.status === "blocked" ? state.error : undefined;
+};
 
 /**
  * Provides the remote collections values and operations needed by React components.
@@ -25,15 +23,16 @@ import type { RemoteState } from "@/store/remoteStore";
 export const useRemoteCollections = () => {
   const authState = useAuth();
   const uid = authState.status === "authenticated" ? authState.uid : "";
-  const remoteState = useSyncExternalStore(subscribeRemoteReadState, getRemoteReadState, getRemoteReadState);
-  const blocker = useSyncExternalStore(subscribeRemoteReadBlocker, getRemoteReadBlocker, getRemoteReadBlocker);
+  const remoteState = useStore(remoteStore, (state) => state.read);
+  const retryReads = useStore(remoteStore, (state) => state.retryReads);
+  const blocker = useSyncExternalStore(subscribeFirestoreInitialization, getRemoteReadBlocker, getRemoteReadBlocker);
   const hasActiveUid = uid !== "" && remoteState.uid === uid;
   const decksById = hasActiveUid ? remoteState.decksById : {};
   const cardsById = hasActiveUid ? remoteState.cardsById : {};
   const decks = remoteValues(decksById);
   const cards = remoteValues(cardsById);
 
-  const status: RemoteState["status"] | "blocked" = blocker
+  const status: RemoteReadState["status"] | "blocked" = blocker
     ? "blocked"
     : uid === ""
       ? "idle"
@@ -51,7 +50,7 @@ export const useRemoteCollections = () => {
     status,
     syncStatus,
     error,
-    retry: retryRemoteReads,
+    retry: retryReads,
     deckById: (id: string) => decksById[id],
     cardById: (id: string) => cardsById[id],
     cardsByDeckId: (deckId: string) => cardsForDeck(cards, deckId),

@@ -38,7 +38,7 @@ vi.mock("@/hooks/useConfig", () => ({
   },
 }));
 
-vi.mock("@/query/useRemoteCollections", () => ({
+vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => {
     const cardsById = mocks.state?.card ?? {};
     return {

@@ -8,7 +8,7 @@ import { useEffect } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
-import { useRemoteCollections } from "@/query/useRemoteCollections";
+import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 
 type AddSample = () => Promise<unknown>;
 

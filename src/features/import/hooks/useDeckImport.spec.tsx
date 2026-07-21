@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createConfig, createDeck } from "@/test/factories";
 import type { DeckImportResult } from "@/features/import/components/deckImportTypes";
-import { CardBulkMutationError } from "@/query/mutations/cardMutationService";
+import { CardBulkMutationError } from "@/store/remoteStore";
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
@@ -34,7 +34,7 @@ vi.mock("@/auth/AuthContext", () => ({
   useAuth: () =>
     mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
-vi.mock("@/query/useRemoteCollections", () => ({
+vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
     status: mocks.remoteStatus,
     syncStatus: mocks.syncStatus,
