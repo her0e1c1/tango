@@ -24,7 +24,7 @@ export default defineConfig({
         'src/**/*.d.ts',
         'src/**/*.spec.{ts,tsx}',
         'src/**/*.stories.{ts,tsx}',
-        'src/shared/storybook/**',
+        'src/storybook/**',
       ],
       reporter: ['text', 'html', 'lcov', 'json-summary'],
       reportOnFailure: true,
