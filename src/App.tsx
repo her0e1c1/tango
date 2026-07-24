@@ -30,6 +30,25 @@ const UnknownRoute = () => {
 };
 
 /**
+ * Renders Tango's route tree inside the router supplied by the caller.
+ * Production uses BrowserRouter while Storybook can provide MemoryRouter for isolated page stories.
+ */
+export const AppRoutes: React.FC = () => (
+  <Routes>
+    <Route path="/" element={<Page.DeckListPage />} />
+    <Route path="/deck/:id" element={<Page.CardListPage />} />
+    <Route path="/deck/:id/edit" element={<Page.DeckFormPage />} />
+    <Route path="/deck/:id/start" element={<Page.DeckStartPage />} />
+    <Route path="/deck/:id/study" element={<Page.DeckSwiperPage />} />
+    <Route path="/card/:id" element={<Page.CardViewPage />} />
+    <Route path="/card/:id/edit" element={<Page.CardFormPage />} />
+    <Route path="/settings" element={<Page.ConfigPage />} />
+    <Route path="/import" element={<Page.DeckImportPage />} />
+    <Route path="*" element={<UnknownRoute />} />
+  </Routes>
+);
+
+/**
  * Renders the App user interface.
  * Reads authentication and display settings, installs the application routes, and offers reload
  * when startup fails.
@@ -61,18 +80,7 @@ const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Page.DeckListPage />} />
-        <Route path="/deck/:id" element={<Page.CardListPage />} />
-        <Route path="/deck/:id/edit" element={<Page.DeckFormPage />} />
-        <Route path="/deck/:id/start" element={<Page.DeckStartPage />} />
-        <Route path="/deck/:id/study" element={<Page.DeckSwiperPage />} />
-        <Route path="/card/:id" element={<Page.CardViewPage />} />
-        <Route path="/card/:id/edit" element={<Page.CardFormPage />} />
-        <Route path="/settings" element={<Page.ConfigPage />} />
-        <Route path="/import" element={<Page.DeckImportPage />} />
-        <Route path="*" element={<UnknownRoute />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   );
 };

@@ -15,6 +15,17 @@ Demo data is stored in Firestore and may be **deleted** without notice.
 
 Browse the latest Storybook at https://her0e1c1.github.io/tango/. Updates are published automatically from `main`.
 
+Run Storybook locally with:
+
+```bash
+npm run storybook
+```
+
+The `Page` stories render every application route with deterministic authentication, remote collections, configuration,
+and study progress. They do not require a Firebase project or emulator. Storybook initializes Mock Service Worker (MSW)
+globally, serves `public/mockServiceWorker.js`, and provides a mocked CSV response for the fixture deck's reimport URL.
+Additional network states can be defined per story with `beforeEach(({ msw }) => msw.use(...handlers))`.
+
 ## Development
 
 ### Setup for development
@@ -78,7 +89,7 @@ make coverage
 ```
 
 Coverage includes `src/**/*.{ts,tsx}`, including files that no test imports. Specs, stories, declaration files,
-and `src/shared/storybook/**` are excluded. The committed global thresholds are 86% statements, 78% branches,
+and `src/storybook/**` are excluded. The committed global thresholds are 86% statements, 78% branches,
 85% functions, and 92% lines. When the full-suite result improves, raise the relevant integer threshold manually
 in `vitest.config.ts`; do not auto-update thresholds.
 

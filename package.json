@@ -89,6 +89,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "firebase-tools": "^15.22.4",
     "jsdom": "^29.1.1",
+    "msw": "^2.15.0",
+    "msw-storybook-addon": "^3.0.0",
     "postcss": "^8.5.16",
     "storybook": "^10.4.6",
     "tailwindcss": "^4.3.2",
@@ -97,5 +99,10 @@
     "vite-plugin-pwa": "^1.3.0",
     "vitest": "4.1.10",
     "yaml": "2.9.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
