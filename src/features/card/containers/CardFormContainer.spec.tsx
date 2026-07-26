@@ -10,11 +10,14 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
+import type { MutationLifecycle } from "@/hooks/mutationLifecycle";
+
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
   config: { darkMode: false } as ConfigState,
   card: null as Card | null,
   cardUpdate: vi.fn(),
+  cardUpdateFailure: undefined as Error | undefined,
   navigate: vi.fn(),
 }));
 
@@ -73,8 +76,21 @@ describe("CardFormContainer", () => {
     mocks.params.id = card.id;
     mocks.card = card;
     mocks.config = { darkMode: false } as ConfigState;
-    mocks.cardUpdate.mockReset();
-    mocks.cardUpdate.mockResolvedValue(undefined);
+    mocks.cardUpdateFailure = undefined;
+    mocks.cardUpdate.mockReset().mockImplementation(
+      async (_card: CardEdit, lifecycle?: MutationLifecycle<unknown>): Promise<void> => {
+        const context = await lifecycle?.onMutate?.();
+        try {
+          if (mocks.cardUpdateFailure != null) throw mocks.cardUpdateFailure;
+          await lifecycle?.onSuccess?.(context);
+        } catch (error) {
+          await lifecycle?.onError?.(error, context);
+          throw error;
+        } finally {
+          await lifecycle?.onSettled?.(context);
+        }
+      }
+    );
     mocks.navigate.mockReset();
   });
 
@@ -87,7 +103,7 @@ describe("CardFormContainer", () => {
 
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.cardUpdate).toHaveBeenCalledWith(card);
+    expect(mocks.cardUpdate).toHaveBeenCalledWith(card, expect.objectContaining({ onSuccess: expect.any(Function) }));
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
 
@@ -111,11 +127,10 @@ describe("CardFormContainer", () => {
     await userEvent.type(backText, " UPDATED BACK ");
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.cardUpdate).toHaveBeenCalledWith({
-      ...card,
-      frontText: " UPDATED FRONT ",
-      backText: " UPDATED BACK ",
-    });
+    expect(mocks.cardUpdate).toHaveBeenCalledWith(
+      { ...card, frontText: " UPDATED FRONT ", backText: " UPDATED BACK " },
+      expect.objectContaining({ onSuccess: expect.any(Function) })
+    );
   });
 
   it("submits edited tags", async () => {
@@ -124,7 +139,10 @@ describe("CardFormContainer", () => {
     await userEvent.click(view.container.querySelector("input[name='tags'][value='math']") as Element);
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.cardUpdate).toHaveBeenCalledWith({ ...card, tags: ["math"] });
+    expect(mocks.cardUpdate).toHaveBeenCalledWith(
+      { ...card, tags: ["math"] },
+      expect.objectContaining({ onSuccess: expect.any(Function) })
+    );
   });
 
   it("blocks blank front and back text", async () => {
@@ -147,12 +165,12 @@ describe("CardFormContainer", () => {
   });
 
   it("does not navigate when the Card write fails", async () => {
-    mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
+    mocks.cardUpdateFailure = new Error("write failed");
     const view = render(<CardFormContainer />);
 
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
-    expect(mocks.cardUpdate).toHaveBeenCalledWith(card);
+    expect(mocks.cardUpdate).toHaveBeenCalledWith(card, expect.objectContaining({ onSuccess: expect.any(Function) }));
     expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
