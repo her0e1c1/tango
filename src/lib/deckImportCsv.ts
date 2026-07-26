@@ -20,14 +20,19 @@ export class DeckImportValidationError extends Error {
   }
 }
 
+const parseCsvSource = (content: string | File): Promise<Papa.ParseResult<string[]>> =>
+  new Promise((resolve, reject) => {
+    const options: Papa.ParseConfig<string[]> = { delimiter: ",", complete: resolve, error: reject };
+    if (typeof content === "string") Papa.parse<string[]>(content, options);
+    else Papa.parse<string[]>(content, options);
+  });
+
 /**
  * Parses a string or File with the same row, normalization, required-field, and duplicate-key
  * rules used by upload, URL import, re-import, and legacy action callers.
  */
 export const parseDeckImportCsv = async (content: string | File): Promise<DeckImportAnalysis> => {
-  const parsed = await new Promise<Papa.ParseResult<string[]>>((resolve, reject) => {
-    Papa.parse<string[]>(content, { delimiter: ",", complete: resolve, error: reject });
-  });
+  const parsed = await parseCsvSource(content);
   const rows: DeckImportRow[] = [];
   const skippedRows: number[] = [];
   const issues: DeckImportIssue[] = [];
