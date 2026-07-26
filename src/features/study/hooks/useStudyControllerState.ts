@@ -16,6 +16,8 @@ export type StudyControllerState = ControllerProps & {
   onToggleAutoPlay: () => void;
 };
 
+const noop = () => undefined;
+
 /**
  * Provides the study controller state values and operations needed by React components.
  * Callers receive one focused interface without coordinating the study feature's stores and
@@ -28,21 +30,22 @@ export const useStudyControllerState = (props: UseStudyControllerStateOptions): 
   const autoPlay = props.autoPlay ?? false;
   const enabled = props.enabled ?? true;
   const onChange = props.onChange;
+  const onToggleAutoPlay = props.onToggleAutoPlay;
 
   React.useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !autoPlay) return;
 
     const timeout = setTimeout(() => {
-      if (autoPlay && index < numberOfCards) {
-        onChange?.(index + 1);
+      if (numberOfCards <= 0 || index >= numberOfCards - 1) {
+        onToggleAutoPlay?.();
+        return;
       }
+      onChange?.(index + 1);
     }, cardInterval * 1000);
     return () => {
       clearTimeout(timeout);
     };
-  }, [autoPlay, cardInterval, enabled, index, numberOfCards, onChange]);
-
-  const onToggleAutoPlay = props.onToggleAutoPlay ?? (() => undefined);
+  }, [autoPlay, cardInterval, enabled, index, numberOfCards, onChange, onToggleAutoPlay]);
 
   return {
     autoPlay,
@@ -50,6 +53,6 @@ export const useStudyControllerState = (props: UseStudyControllerStateOptions): 
     index,
     numberOfCards,
     ...(onChange !== undefined ? { onChange } : {}),
-    onToggleAutoPlay,
+    onToggleAutoPlay: onToggleAutoPlay ?? noop,
   };
 };
