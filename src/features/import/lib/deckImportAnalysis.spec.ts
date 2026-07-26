@@ -1,8 +1,5 @@
 /**
- * @file Verifies the "parseDeckImportCsv" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "separates valid, skipped,
- * and invalid rows with context", "rejects an empty file", "reports duplicate unique keys with row
- * context".
+ * @file Verifies the shared Deck CSV parser, normalizer, validator, and import planning rules.
  */
 
 import { describe, expect, it } from "vitest";
@@ -35,6 +32,31 @@ describe("parseDeckImportCsv", () => {
         message: "uniqueKey is required.",
         context: '["other","back","",""]',
       },
+    ]);
+  });
+
+  it("uses identical parsing and validation for File and string sources", async () => {
+    const csv = '"front","back"," z, a,z, b ,,a "," key "';
+
+    const fromString = await parseDeckImportCsv(csv);
+    const fromFile = await parseDeckImportCsv(new File([csv], "deck.csv", { type: "text/csv" }));
+
+    expect(fromFile).toEqual(fromString);
+    expect(fromString.rows[0]?.card).toEqual({
+      frontText: "front",
+      backText: "back",
+      tags: ["z", "a", "b"],
+      uniqueKey: "key",
+    });
+  });
+
+  it("rejects empty front and back text through the shared Card rules", async () => {
+    const result = await parseDeckImportCsv('"","back","","front-empty"\n"front","","","back-empty"');
+
+    expect(result.invalidCount).toBe(2);
+    expect(result.issues).toEqual([
+      expect.objectContaining({ rowNumber: 1, message: "frontText is required." }),
+      expect.objectContaining({ rowNumber: 2, message: "backText is required." }),
     ]);
   });
 
