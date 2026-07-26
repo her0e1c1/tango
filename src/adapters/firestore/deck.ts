@@ -16,9 +16,17 @@ import {
   setDoc,
   type Firestore,
 } from "firebase/firestore";
+
+import { removeDeck } from "@/adapters/functions/deck";
 import { getTimestamp } from "@/adapters/firestore/documentMetadata";
-import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument, type DeckDocument } from "@/adapters/firestore/dto";
+import {
+  buildDeckCreateDto,
+  buildDeckFilterUpdateDto,
+  buildDeckUpdateDto,
+  mapDeckDocument,
+} from "@/adapters/firestore/dto";
 import { getDb } from "@/adapters/firestore/runtime";
+import type { DeckFilterPatch } from "@/domain/deckFilter";
 
 /**
  * Reads every active deck owned by the requested user from Firestore.
@@ -27,7 +35,7 @@ import { getDb } from "@/adapters/firestore/runtime";
 export const readAll = async (uid: string, firestore: Firestore = getDb()): Promise<Deck[]> => {
   const snapshot = await getDocs(query(collection(firestore, "deck"), where("uid", "==", uid)));
   return snapshot.docs
-    .map((document) => mapDeckDocument(document.id, document.data() as DeckDocument))
+    .map((document) => mapDeckDocument(document.id, document.data()))
     .filter((deck) => deck.deletedAt === null);
 };
 
@@ -56,9 +64,7 @@ export const splitCards = <T>(cards: T[], max: number): T[][] => {
   let i = 0;
   while (i < cards.length) {
     const cs = cards.slice(i, i + chunkSize);
-    if (cs.length === 0) {
-      break;
-    }
+    if (cs.length === 0) break;
     css.push(cs);
     i += cs.length;
   }
@@ -72,23 +78,19 @@ export const splitCards = <T>(cards: T[], max: number): T[][] => {
 export const update = async (deck: DeckEdit) => {
   const db = getDb();
   const ref = doc(db, "deck", deck.id);
-  const updatedAt = getTimestamp();
-  await updateDoc(ref, buildDeckUpdateDto(deck, updatedAt));
+  await updateDoc(ref, buildDeckUpdateDto(deck, getTimestamp()));
 };
 
-/**
- * Permanently deletes a deck and each card that belongs to it from Firestore.
- * Child cards are split into safe batch sizes before the deck document itself is removed.
- */
-export const remove = async (deckId: string, uid: string) => {
+/** Updates only the auto-saving filter fields, preserving concurrent non-filter Deck edits. */
+export const updateFilter = async (deckId: DeckId, patch: DeckFilterPatch) => {
   const db = getDb();
-  const q = query(collection(db, "card"), where("uid", "==", uid), where("deckId", "==", deckId));
-  const snapshot = await getDocs(q);
-  const childResults = await Promise.allSettled(snapshot.docs.map((document) => deleteDoc(document.ref)));
-  const childFailure = childResults.find((result): result is PromiseRejectedResult => result.status === "rejected");
-  if (childFailure != null) throw childFailure.reason;
   const ref = doc(db, "deck", deckId);
-  await deleteDoc(ref);
+  await updateDoc(ref, buildDeckFilterUpdateDto(patch, getTimestamp()));
+};
+
+/** Delegates destructive Deck removal to the trusted, retryable server-side use case. */
+export const remove = async (deckId: DeckId) => {
+  await removeDeck(deckId);
 };
 
 /**
@@ -104,18 +106,14 @@ export const exists = async (id: string): Promise<boolean> => {
 };
 
 // for test
-/**
- * Permanently removes all deck documents handled by this test-only cleanup.
- * Documents are split into Firestore-sized batches so cleanup does not exceed a single commit
- * limit.
- */
+/** Permanently removes all Deck and Card documents handled by test-only cleanup. */
 export const removeAll = async () => {
   const db = getDb();
   const q = query(collection(db, "deck"));
   const snapshot = await getDocs(q);
-  for (const doc of snapshot.docs) await deleteDoc(doc.ref);
+  for (const document of snapshot.docs) await deleteDoc(document.ref);
 
   const q2 = query(collection(db, "card"));
   const snapshot2 = await getDocs(q2);
-  for (const doc of snapshot2.docs) await deleteDoc(doc.ref);
+  for (const document of snapshot2.docs) await deleteDoc(document.ref);
 };
