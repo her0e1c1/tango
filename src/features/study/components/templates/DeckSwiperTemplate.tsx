@@ -11,11 +11,19 @@ import { Layout, type LayoutProps } from "@/components/layout/Layout";
 import { Controller, type ControllerProps } from "@/features/study/components/Controller";
 import { SwipeButtonList, type SwipeButtonListProps } from "@/features/study/components/SwipeButtonList";
 
+const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
+  cardSwipeUp: "Swiped up",
+  cardSwipeDown: "Swiped down",
+  cardSwipeLeft: "Swiped left",
+  cardSwipeRight: "Swiped right",
+};
+
 export interface DeckSwiperTemplateProps {
   showHeader?: boolean;
   showBackText?: boolean;
   showSwipeButtonList?: boolean;
   showController?: boolean;
+  swipeFeedback?: SwipeDirection;
   layout?: LayoutProps;
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
@@ -40,6 +48,15 @@ export const DeckSwiperTemplate: React.FC<DeckSwiperTemplateProps> = (props) => 
       {...props.layout}
     >
       {props.feedbackSlot}
+      {props.swipeFeedback !== undefined ? (
+        <div
+          role="status"
+          data-testid="swipe-feedback"
+          className="pointer-events-none fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-control bg-surface px-4 py-2 text-body font-bold text-ink shadow-surface"
+        >
+          {SWIPE_FEEDBACK_LABEL[props.swipeFeedback]}
+        </div>
+      ) : null}
       {props.showBackText && props.backTextSlot != null ? (
         <>
           <Shared.Overlay
