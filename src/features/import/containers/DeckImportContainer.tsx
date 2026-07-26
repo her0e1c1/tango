@@ -7,12 +7,12 @@
 
 import type React from "react";
 import { useNavigate } from "react-router-dom";
-import { useKey } from "react-use";
 import * as C from "@/constant";
 import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
 import { useActions } from "@/hooks/useActions";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
 import { useConfig } from "@/hooks/useConfig";
+import { useGlobalShortcut } from "@/hooks/useGlobalShortcut";
 
 /**
  * Connects the Deck Import Container view to stores, remote data, route parameters, and mutations.
@@ -24,8 +24,8 @@ export const DeckImportContainer: React.FC = () => {
   const config = useConfig();
   const navigate = useNavigate();
   const deckImport = useDeckImport();
-  useKey("t", actions.goToTop);
-  useKey("s", actions.goToSettings);
+  useGlobalShortcut("t", actions.goToTop);
+  useGlobalShortcut("s", actions.goToSettings);
 
   return (
     <DeckImportTemplate
