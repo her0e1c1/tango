@@ -242,6 +242,33 @@ describe("remote store mutations", () => {
     expect(store.getState().cardMutation.error).toBeNull();
   });
 
+  it("keeps an earlier Card failure retryable when a later unrelated operation succeeds", async () => {
+    const { store, dependencies } = createHarness();
+    const failed = createCard({ id: "failed" });
+    const successful = createCard({ id: "successful" });
+    const failedWrite = deferred<void>();
+    const successfulWrite = deferred<void>();
+    const failure = new Error("failed update");
+    dependencies.updateCard.mockImplementation((card) => {
+      if (card.id === failed.id && dependencies.updateCard.mock.calls.length === 1) return failedWrite.promise;
+      if (card.id === successful.id) return successfulWrite.promise;
+      return Promise.resolve();
+    });
+
+    const earlierOperation = store.getState().updateCard("uid-a", failed);
+    const laterOperation = store.getState().updateCard("uid-a", successful);
+    await vi.waitFor(() => expect(dependencies.updateCard).toHaveBeenCalledTimes(2));
+    failedWrite.reject(failure);
+    await expect(earlierOperation).rejects.toBe(failure);
+    successfulWrite.resolve();
+    await laterOperation;
+
+    expect(store.getState().cardMutation.error).toBe(failure);
+    await store.getState().retryCardMutation("uid-a");
+    expect(dependencies.updateCard.mock.calls.filter(([card]) => card.id === failed.id)).toHaveLength(2);
+    expect(store.getState().cardMutation.error).toBeNull();
+  });
+
   it("clears an older same-Card failure only after the newer queued update succeeds", async () => {
     const { store, dependencies } = createHarness();
     const first = createCard({ id: "card", score: 1 });
@@ -399,6 +426,28 @@ describe("remote store mutations", () => {
     await vi.waitFor(() => expect(dependencies.updateCard).toHaveBeenCalledOnce());
     removal.resolve();
     await Promise.all([remove, otherDeck, otherUid]);
+  });
+
+  it("allows another Deck update and removal during Deck removal", async () => {
+    const { store, dependencies } = createHarness();
+    const blockedDeck = createDeck({ id: "blocked" });
+    const unrelatedDeck = createDeck({ id: "unrelated" });
+    const blockedRemoval = deferred<void>();
+    dependencies.removeDeck.mockImplementation((id) =>
+      id === blockedDeck.id ? blockedRemoval.promise : Promise.resolve()
+    );
+
+    const removeBlockedDeck = store.getState().removeDeck("uid-a", blockedDeck);
+    await vi.waitFor(() => expect(dependencies.removeDeck).toHaveBeenCalledExactlyOnceWith(blockedDeck.id, "uid-a"));
+    const updateUnrelatedDeck = store.getState().updateDeck("uid-a", unrelatedDeck);
+    const removeUnrelatedDeck = store.getState().removeDeck("uid-a", unrelatedDeck);
+
+    await expect(updateUnrelatedDeck).resolves.toBeUndefined();
+    await expect(removeUnrelatedDeck).resolves.toBe(true);
+    expect(dependencies.updateDeck).toHaveBeenCalledExactlyOnceWith(unrelatedDeck);
+    expect(dependencies.removeDeck).toHaveBeenCalledWith(unrelatedDeck.id, "uid-a");
+    blockedRemoval.resolve();
+    await removeBlockedDeck;
   });
 
   it("returns the removed Deck from exactly one successful removal retry", async () => {
