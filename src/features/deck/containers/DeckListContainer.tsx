@@ -41,12 +41,14 @@ export const DeckListContainer: React.FC = () => {
   useKey("i", actions.goToImport);
 
   React.useEffect(() => {
-    if (!hydrated || mutations.pending || remote.status !== "ready") return;
+    if (!hydrated || mutations.pending || remote.status !== "ready" || remote.syncStatus !== "synced") {
+      return;
+    }
     const deckIds = new Set(remote.decks.map((deck) => deck.id));
     for (const deckId of Object.keys(studyStore.getState().sessionsByDeckId)) {
       if (!deckIds.has(deckId)) studyStore.getState().removeStudy(deckId);
     }
-  }, [hydrated, mutations.pending, remote.decks, remote.status]);
+  }, [hydrated, mutations.pending, remote.decks, remote.status, remote.syncStatus]);
 
   return (
     <RemoteReadBoundary
