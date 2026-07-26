@@ -6,11 +6,7 @@
 
 import * as z from "zod";
 
-/**
- * Creates a validation rule that rejects card text containing only whitespace.
- * The caller supplies the message shown beside the invalid form field.
- */
-const requiredCardText = (message: string) => z.string().refine((value) => value.trim().length > 0, { message });
+import { requiredCardText } from "@/domain/cardInput";
 
 export const cardFormSchema = z.object({
   frontText: requiredCardText("Front text is required."),
