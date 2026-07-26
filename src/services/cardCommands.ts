@@ -10,6 +10,7 @@ import {
   withDeckMembershipLocks,
   withMutationLocks,
 } from "@/store/remoteMutationLocks";
+import { waitForRemoteWrite } from "@/services/remoteWrite";
 
 const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
@@ -40,18 +41,22 @@ export const cardCommands = {
   create: async (uid: string, card: Card): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await withCardWriteLocks(uid, card.id, card.deckId, () => createRemoteCard(card));
+    await withCardWriteLocks(uid, card.id, card.deckId, () =>
+      waitForRemoteWrite(createRemoteCard(card), "Card creation")
+    );
   },
 
   update: async (uid: string, card: CardEdit): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await withCardWriteLocks(uid, card.id, card.deckId, () => updateRemoteCard(card));
+    await withCardWriteLocks(uid, card.id, card.deckId, () =>
+      waitForRemoteWrite(updateRemoteCard(card), "Card update")
+    );
   },
 
   remove: async (uid: string, id: CardId, deckId: DeckId): Promise<void> => {
     requireUid(uid);
-    await withCardWriteLocks(uid, id, deckId, () => removeRemoteCard(id));
+    await withCardWriteLocks(uid, id, deckId, () => waitForRemoteWrite(removeRemoteCard(id), "Card deletion"));
   },
 
   bulkUpsert: async (uid: string, cards: Card[]): Promise<void> => {
@@ -61,7 +66,9 @@ export const cardCommands = {
     }
 
     const results = await Promise.allSettled(
-      cards.map((card) => withCardWriteLocks(uid, card.id, card.deckId, () => upsertRemoteCard(card)))
+      cards.map((card) =>
+        withCardWriteLocks(uid, card.id, card.deckId, () => waitForRemoteWrite(upsertRemoteCard(card), "Card import"))
+      )
     );
     const failedIds = results.flatMap((result, index) => {
       const card = cards[index];

@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { REMOTE_WRITE_TIMEOUT_MS } from "@/services/remoteWrite";
 import { createCard as createCardFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -27,6 +28,10 @@ describe("card commands", () => {
     mocks.update.mockResolvedValue(undefined);
     mocks.logicalRemove.mockResolvedValue(undefined);
     mocks.upsert.mockResolvedValue("upserted");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("rejects missing users and mismatched owners before writing", async () => {
@@ -65,6 +70,21 @@ describe("card commands", () => {
       failedIds: [second.id],
       message: "1 of 2 Card writes failed",
     });
+  });
+
+  it("reports stalled Card imports instead of leaving them pending", async () => {
+    vi.useFakeTimers();
+    const card = createCard({ id: "stalled-import" });
+    mocks.upsert.mockReturnValueOnce(new Promise(() => undefined));
+    const operation = cardCommands.bulkUpsert("uid-a", [card]);
+    const assertion = expect(operation).rejects.toMatchObject({
+      failedIds: [card.id],
+      message: "1 of 1 Card writes failed",
+    });
+
+    await vi.advanceTimersByTimeAsync(REMOTE_WRITE_TIMEOUT_MS);
+
+    await assertion;
   });
 
   it("logically removes a Card by id", async () => {
