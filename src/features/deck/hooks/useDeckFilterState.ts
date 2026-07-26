@@ -7,12 +7,14 @@
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
+import type { DeckFilterPatch } from "@/domain/deckFilter";
+import { deckFilterPatchFrom } from "@/domain/deckFilter";
 import type { DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
 
 export interface UseDeckFilterStateOptions {
   deck: Deck;
   tags: string[];
-  onSubmit?: (deck: Deck) => void;
+  onSubmit?: (patch: DeckFilterPatch) => void | Promise<unknown>;
 }
 
 /**
@@ -21,9 +23,9 @@ export interface UseDeckFilterStateOptions {
  * services themselves.
  */
 export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateOptions): DeckStartFormProps => {
-  const [scoreMaxEnabled, setScoreMaxEnabled] = React.useState(deck.scoreMax != null);
-  const [scoreMinEnabled, setScoreMinEnabled] = React.useState(deck.scoreMin != null);
-  const { control, handleSubmit, register, setValue, subscribe } = useForm<Deck>({ defaultValues: deck });
+  const { control, handleSubmit, register, setValue, subscribe } = useForm<DeckFilterPatch>({
+    defaultValues: deckFilterPatchFrom(deck),
+  });
   const scoreMax = useWatch({ control, name: "scoreMax" });
   const scoreMin = useWatch({ control, name: "scoreMin" });
   const selectedTags = useWatch({ control, name: "selectedTags" });
@@ -32,7 +34,11 @@ export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateO
   React.useEffect(() => {
     return subscribe({
       formState: { values: true },
-      callback: () => void handleSubmit((data) => onSubmit?.(data))(),
+      callback: () => {
+        void handleSubmit(async (data) => {
+          await onSubmit?.(deckFilterPatchFrom(data));
+        })().catch(() => undefined);
+      },
     });
   }, [handleSubmit, onSubmit, subscribe]);
 
@@ -70,24 +76,20 @@ export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateO
   };
 
   return {
-    scoreMax,
-    scoreMin,
+    scoreMax: scoreMax ?? null,
+    scoreMin: scoreMin ?? null,
     scoreMaxSwitchProps: {
       name: "scoreMaxSwitch",
-      checked: scoreMaxEnabled,
+      checked: scoreMax != null,
       onChange: (event) => {
-        const enabled = event.currentTarget.checked;
-        setValue("scoreMax", enabled ? 0 : null);
-        setScoreMaxEnabled(enabled);
+        setValue("scoreMax", event.currentTarget.checked ? 0 : null);
       },
     },
     scoreMinSwitchProps: {
       name: "scoreMinSwitch",
-      checked: scoreMinEnabled,
+      checked: scoreMin != null,
       onChange: (event) => {
-        const enabled = event.currentTarget.checked;
-        setValue("scoreMin", enabled ? 0 : null);
-        setScoreMinEnabled(enabled);
+        setValue("scoreMin", event.currentTarget.checked ? 0 : null);
       },
     },
     scoreMaxSliderProps: {
@@ -95,14 +97,14 @@ export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateO
       step: 1,
       max: 10,
       min: -10,
-      disabled: !scoreMaxEnabled,
+      disabled: scoreMax == null,
     },
     scoreMinSliderProps: {
       ...register("scoreMin", { valueAsNumber: true }),
       step: 1,
       max: 10,
       min: -10,
-      disabled: !scoreMinEnabled,
+      disabled: scoreMin == null,
     },
     tagFilterProps: {
       tags,
