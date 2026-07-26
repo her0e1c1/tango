@@ -22,7 +22,7 @@ vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
       const task = async () => {
         let context: Context | undefined;
         try {
-          context = await lifecycle?.onMutate?.();
+          context = (await lifecycle?.onMutate?.()) as Context | undefined;
           await mocks.remoteUpdate(deck);
           await lifecycle?.onSuccess?.(context);
         } catch (error) {
