@@ -23,7 +23,9 @@ service cloud.firestore {
       allow create: if isValid() &&
                        request.resource.data.get('deletedAt', null) == null &&
                        request.resource.data.get('deletionState', null) == null;
-      allow update: if isValidOwner() && preservesServerDeletionState();
+      allow update: if isValidOwner() &&
+                       resource.data.get('deletionState', null) != 'deleting' &&
+                       preservesServerDeletionState();
       // Physical Deck deletion is owned by the trusted deleteDeck callable function.
       allow delete: if false;
     }
