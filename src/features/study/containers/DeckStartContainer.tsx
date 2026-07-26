@@ -9,7 +9,7 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { RemoteReadBoundary, RouteFeedback } from "@/components";
+import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
@@ -48,6 +48,15 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
       maxNumberOfCardsToLearn={config.maxNumberOfCardsToLearn}
       cardsLength={cards.length}
       onClickStart={startStudy}
+      feedbackSlot={
+        <RemoteMutationNotice
+          pending={deckActions.pending}
+          error={deckActions.error}
+          onRetry={deckActions.retry}
+          pendingLabel="Saving filters…"
+          errorLabel="Unable to save filters."
+        />
+      }
       filterSlot={<DeckStartForm {...deckStartForm} />}
     />
   );
