@@ -32,6 +32,7 @@ export interface StudyState extends PersistedStudyState {
   toggleShowBackText: () => void;
   toggleAutoPlay: () => void;
   setLastSwipe: (lastSwipe: SwipeDirection) => void;
+  clearLastSwipe: () => void;
   hideBackText: () => void;
 }
 
@@ -177,6 +178,7 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
         toggleShowBackText: () => set((state) => ({ showBackText: !state.showBackText })),
         toggleAutoPlay: () => set((state) => ({ autoPlay: !state.autoPlay })),
         setLastSwipe: (lastSwipe) => set({ lastSwipe }),
+        clearLastSwipe: () => set({ lastSwipe: undefined }),
         hideBackText: () => set({ showBackText: false }),
       }),
       {
