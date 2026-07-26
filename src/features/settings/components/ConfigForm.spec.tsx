@@ -15,10 +15,7 @@ import "@testing-library/jest-dom/vitest";
 import { ConfigForm, type ConfigFormFields, type ConfigFormProps } from "@/features/settings/components/ConfigForm";
 import { createConfig } from "@/test/factories";
 
-/**
- * Provides the create fields test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
+/** Provides fully controlled fields for ConfigForm presentation tests. */
 function createFields(): ConfigFormFields {
   return {
     showHeader: { name: "showHeader", checked: true, onChange: vi.fn() },
@@ -34,10 +31,7 @@ function createFields(): ConfigFormFields {
   };
 }
 
-/**
- * Provides the create props test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
+/** Provides complete ConfigForm props while allowing each test to override its relevant values. */
 function createProps(overrides: Partial<ConfigFormProps> = {}): ConfigFormProps {
   return {
     config: createConfig(),
@@ -74,6 +68,15 @@ describe("ConfigForm", () => {
     expect(view.queryByText("Show Heaer")).not.toBeInTheDocument();
   });
 
+  it("describes review scheduling independently from autoplay", () => {
+    const view = render(<ConfigForm {...createProps()} />);
+
+    expect(view.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
+    expect(view.getByText("Hide cards until their next review time")).toBeInTheDocument();
+    expect(view.getByRole("slider", { name: "Autoplay interval" })).toBeInTheDocument();
+    expect(view.queryByText("Wait between automatic card changes")).not.toBeInTheDocument();
+  });
+
   it("preserves all switch, slider, token, and metadata values", () => {
     const view = render(
       <ConfigForm {...createProps({ identity: { uid: "user-123", displayName: "Settings User" }, isLoggedIn: true })} />
@@ -81,7 +84,7 @@ describe("ConfigForm", () => {
 
     expect(view.container.querySelectorAll("input[type='checkbox']")).toHaveLength(7);
     expect(view.getByRole("checkbox", { name: "Show header" })).toBeChecked();
-    expect(view.getByRole("checkbox", { name: "Use card interval" })).toBeChecked();
+    expect(view.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
     expect(view.getByRole("slider", { name: "Maximum cards" })).toHaveValue("24");
     expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("7");
     expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveAttribute("aria-valuetext", "7 seconds");
