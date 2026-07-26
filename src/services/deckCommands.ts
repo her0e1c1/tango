@@ -2,7 +2,9 @@ import {
   create as createRemoteDeck,
   remove as removeRemoteDeck,
   update as updateRemoteDeck,
+  updateFilter as updateRemoteDeckFilter,
 } from "@/adapters/firestore/deck";
+import type { DeckFilterPatch } from "@/domain/deckFilter";
 import {
   deckMembershipMutationLock,
   deckMutationLock,
@@ -33,13 +35,16 @@ export const deckCommands = {
     await withMutationLocks([deckMutationLock(uid, deck.id)], () => updateRemoteDeck(deck));
   },
 
+  updateFilter: async (uid: string, deckId: DeckId, patch: DeckFilterPatch): Promise<void> => {
+    requireUid(uid);
+    await withMutationLocks([deckMutationLock(uid, deckId)], () => updateRemoteDeckFilter(deckId, patch));
+  },
+
   remove: async (uid: string, deck: Deck): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, deck.uid);
     await withMutationLocks([deckMutationLock(uid, deck.id)], () =>
-      withDeckMembershipLocks([deckMembershipMutationLock(uid, deck.id)], "exclusive", () =>
-        removeRemoteDeck(deck.id, uid)
-      )
+      withDeckMembershipLocks([deckMembershipMutationLock(uid, deck.id)], "exclusive", () => removeRemoteDeck(deck.id))
     );
   },
 };
