@@ -39,7 +39,25 @@ jobs:
 
       - uses: jdx/mise-action@v4
 
-      - run: mise run ci
+      - name: Run mise CI
+        id: mise-ci
+        shell: bash
+        run: |
+          set +e
+          mise run ci >mise-ci.log 2>&1
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            tail -n 200 mise-ci.log
+          fi
+          exit "$status"
+
+      - name: Upload mise CI failure log
+        if: ${{ failure() && steps.mise-ci.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mise-ci-log
+          path: mise-ci.log
+          if-no-files-found: error
 
       - name: Install Storybook Chromium
         run: npx playwright install --with-deps chromium
