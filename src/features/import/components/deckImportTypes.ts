@@ -1,51 +1,14 @@
 /**
- * @file Defines the data contracts shared by the deck-import screen, hook, and analysis logic.
- * Keeping preview, result, and row shapes here lets each layer exchange import data without
- * depending on another layer's implementation.
+ * @file Re-exports Deck import contracts from the domain boundary for existing feature consumers.
  */
 
-export interface DeckImportRow {
-  rowNumber: number;
-  card: CardRaw;
-}
-
-export interface DeckImportIssue {
-  rowNumber?: number;
-  message: string;
-  context?: string;
-}
-
-export interface DeckImportAnalysis {
-  rows: DeckImportRow[];
-  skippedRows: number[];
-  issues: DeckImportIssue[];
-  invalidCount: number;
-}
-
-export type DeckImportAction = "create" | "update" | "unchanged";
-
-export interface DeckImportPlanRow extends DeckImportRow {
-  action: DeckImportAction;
-}
-
-export interface DeckImportPlan {
-  rows: DeckImportPlanRow[];
-  created: number;
-  updated: number;
-  unchanged: number;
-}
-
-export interface DeckImportPreview {
-  fileName: string;
-  deckName: string;
-  analysis: DeckImportAnalysis;
-  plan: DeckImportPlan;
-}
-
-export interface DeckImportResult {
-  created: number;
-  updated: number;
-  skipped: number;
-  failed: number;
-  deckId: DeckId;
-}
+export type {
+  DeckImportAction,
+  DeckImportAnalysis,
+  DeckImportIssue,
+  DeckImportPlan,
+  DeckImportPlanRow,
+  DeckImportPreview,
+  DeckImportResult,
+  DeckImportRow,
+} from "@/domain/deckImport";
