@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createConfig, createDeck } from "@/test/factories";
 import type { DeckImportResult } from "@/features/import/components/deckImportTypes";
-import { CardBulkMutationError } from "@/store/remoteStore";
+import { CardBulkMutationError } from "@/services/cardCommands";
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",

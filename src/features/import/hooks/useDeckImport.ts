@@ -15,7 +15,7 @@ import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { useConfig } from "@/hooks/useConfig";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
-import { CardBulkMutationError } from "@/store/remoteStore";
+import { CardBulkMutationError } from "@/services/cardCommands";
 import sampleCards from "../../../../sample/build/output.json";
 
 interface DeckImportAttempt {

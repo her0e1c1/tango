@@ -8,7 +8,7 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RemoteReadState } from "@/store/remoteStore";
+import type { RemoteStoreState } from "@/store/remoteStore";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -19,8 +19,7 @@ const mocks = vi.hoisted(() => ({
     syncStatus: "synced",
     decksById: {},
     cardsById: {},
-  } as RemoteReadState,
-  blocker: undefined as Error | undefined,
+  } as Omit<RemoteStoreState, "start" | "stop" | "retry">,
   retry: vi.fn(),
 }));
 
@@ -30,14 +29,9 @@ vi.mock("@/auth/AuthContext", () => ({
 vi.mock("@/store/remoteStore", () => ({
   remoteStore: {
     subscribe: () => () => undefined,
-    getState: () => ({ read: mocks.state, retryReads: mocks.retry }),
-    getInitialState: () => ({ read: mocks.state, retryReads: mocks.retry }),
+    getState: () => Object.assign(mocks.state, { retry: mocks.retry }),
+    getInitialState: () => Object.assign(mocks.state, { retry: mocks.retry }),
   },
-}));
-vi.mock("@/adapters/firestore/runtime", () => ({
-  subscribeFirestoreInitialization: () => () => undefined,
-  getFirestoreInitializationState: () =>
-    mocks.blocker ? { status: "blocked", error: mocks.blocker } : { status: "ready" },
 }));
 
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
@@ -52,7 +46,6 @@ describe("useRemoteCollections", () => {
       decksById: {},
       cardsById: {},
     };
-    mocks.blocker = undefined;
   });
 
   it("returns RemoteStore data as the only Deck and Card read model", () => {
@@ -123,11 +116,10 @@ describe("useRemoteCollections", () => {
   it("exposes persistent cache initialization failures as blocking state", () => {
     const blocker = new Error("another tab owns the cache");
     const remoteDeck = createDeck({ id: "remote" });
-    mocks.blocker = blocker;
     mocks.state = {
       uid: "uid-a",
-      status: "ready",
-      syncStatus: "synced",
+      status: "blocked",
+      error: blocker,
       decksById: { remote: remoteDeck },
       cardsById: {},
     };

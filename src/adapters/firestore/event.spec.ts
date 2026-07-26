@@ -11,7 +11,7 @@ import { deleteApp, getApps } from "firebase/app";
 import * as cardAdapter from "@/adapters/firestore/card";
 import * as deckAdapter from "@/adapters/firestore/deck";
 import * as eventAdapter from "@/adapters/firestore/event";
-import type { RemoteSnapshot } from "@/store/remoteStore";
+import type { RemoteSnapshot } from "@/domain/remoteSnapshot";
 import { createCard, createDeck } from "@/test/factories";
 
 vi.mock("./documentMetadata", () => ({

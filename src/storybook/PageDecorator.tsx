@@ -89,23 +89,11 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
     lastSwipe: undefined,
   });
   remoteStore.setState({
-    read: {
-      uid: PAGE_STORY_UID,
-      status: "ready",
-      decksById: toRemoteById(decks),
-      cardsById: toRemoteById(cards),
-      syncStatus: "synced",
-    },
-    cardMutation: {
-      uid: PAGE_STORY_UID,
-      pendingCounts: new Map<CardId, number>(),
-      error: null,
-    },
-    deckMutation: {
-      uid: PAGE_STORY_UID,
-      pendingCounts: new Map<DeckId, number>(),
-      error: null,
-    },
+    uid: PAGE_STORY_UID,
+    status: "ready",
+    decksById: toRemoteById(decks),
+    cardsById: toRemoteById(cards),
+    syncStatus: "synced",
   });
 };
 
