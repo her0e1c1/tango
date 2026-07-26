@@ -22,9 +22,19 @@ export class DeckImportValidationError extends Error {
 
 const parseCsvSource = (content: string | File): Promise<Papa.ParseResult<string[]>> =>
   new Promise((resolve, reject) => {
-    const options: Papa.ParseConfig<string[]> = { delimiter: ",", complete: resolve, error: reject };
-    if (typeof content === "string") Papa.parse<string[]>(content, options);
-    else Papa.parse<string[]>(content, options);
+    if (typeof content === "string") {
+      Papa.parse<string[]>(content, {
+        delimiter: ",",
+        complete: resolve,
+      });
+      return;
+    }
+
+    Papa.parse(content, {
+      delimiter: ",",
+      complete: (result: Papa.ParseResult<string[]>) => resolve(result),
+      error: reject,
+    });
   });
 
 /**
