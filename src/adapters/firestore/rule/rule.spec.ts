@@ -1,10 +1,6 @@
-/**
- * @file Verifies the "firestore/rule" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "should read a deck",
- * "should create a deck", "should update a deck".
- */
+/** @file Verifies ownership, public reads, and the server-only Deck deletion boundary. */
 
-import { it, describe, beforeEach, beforeAll, afterAll } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import * as fs from "node:fs";
 import {
   assertFails,
@@ -12,7 +8,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { setDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { v4 as uuid } from "uuid";
 
 describe("firestore/rule", () => {
@@ -20,8 +16,7 @@ describe("firestore/rule", () => {
 
   const createData = async (path: string, id: string, data: object) => {
     await testEnv.withSecurityRulesDisabled(async (context) => {
-      const db = context.firestore();
-      await setDoc(doc(db, path, id), data);
+      await setDoc(doc(context.firestore(), path, id), data);
     });
   };
 
@@ -31,7 +26,7 @@ describe("firestore/rule", () => {
       firestore: {
         rules: fs.readFileSync("./firestore.rules", "utf8"),
         host: import.meta.env.VITE_DB_HOST,
-        port: parseInt(import.meta.env.VITE_DB_PORT, 10),
+        port: Number.parseInt(import.meta.env.VITE_DB_PORT, 10),
       },
     });
   });
@@ -44,205 +39,145 @@ describe("firestore/rule", () => {
     await testEnv.cleanup();
   });
 
-  describe("authenticated context", () => {
+  describe("authenticated owner", () => {
     let db: firebase.default.firestore.Firestore;
 
-    beforeEach(async () => {
+    beforeEach(() => {
       db = testEnv.authenticatedContext("uid").firestore();
     });
 
-    describe("deck", () => {
-      it("should read a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid", isPublic: false });
-        await assertSucceeds(getDoc(doc(db, "deck", id)));
-      });
+    it("reads, creates, and updates an owned Deck", async () => {
+      const existingId = uuid();
+      await createData("deck", existingId, { uid: "uid", isPublic: false });
 
-      it("should create a deck", async () => {
-        const id = uuid();
-        await assertSucceeds(setDoc(doc(db, "deck", id), { uid: "uid" }));
-      });
-
-      it("should update a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertSucceeds(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
-      });
-
-      it("should delete a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertSucceeds(deleteDoc(doc(db, "deck", id)));
-      });
+      await assertSucceeds(getDoc(doc(db, "deck", existingId)));
+      await assertSucceeds(setDoc(doc(db, "deck", uuid()), { uid: "uid" }));
+      await assertSucceeds(updateDoc(doc(db, "deck", existingId), { uid: "uid", name: "updated" }));
     });
 
-    describe("card", () => {
-      it("should read a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
-        await assertSucceeds(getDoc(doc(db, "card", id)));
-      });
+    it("cannot physically delete a Deck from the client", async () => {
+      const id = uuid();
+      await createData("deck", id, { uid: "uid" });
 
-      it("should create a card", async () => {
-        const [deckId, id] = [uuid(), uuid()];
-        await createData("deck", deckId, { uid: "uid" });
-        await assertSucceeds(setDoc(doc(db, "card", id), { uid: "uid", deckId }));
-      });
+      await assertFails(deleteDoc(doc(db, "deck", id)));
+    });
 
-      it("should update a card", async () => {
-        const [deckId, id] = [uuid(), uuid()];
-        await createData("deck", deckId, { uid: "uid" });
-        await createData("card", id, { uid: "uid" });
-        await assertSucceeds(updateDoc(doc(db, "card", id), { uid: "uid", deckId }));
-      });
+    it("cannot claim or alter the server deletion state", async () => {
+      const id = uuid();
+      await createData("deck", id, { uid: "uid", deletedAt: null });
 
-      it("should delete a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
-        await assertSucceeds(deleteDoc(doc(db, "card", id)));
+      await assertFails(updateDoc(doc(db, "deck", id), { deletionState: "deleting", deletedAt: Date.now() }));
+    });
+
+    it("reads, creates, updates, and deletes an owned Card under an active Deck", async () => {
+      const deckId = uuid();
+      const cardId = uuid();
+      await createData("deck", deckId, { uid: "uid", deletedAt: null });
+      await createData("card", cardId, { uid: "uid", deckId });
+
+      await assertSucceeds(getDoc(doc(db, "card", cardId)));
+      await assertSucceeds(setDoc(doc(db, "card", uuid()), { uid: "uid", deckId }));
+      await assertSucceeds(updateDoc(doc(db, "card", cardId), { uid: "uid", deckId, name: "updated" }));
+      await assertSucceeds(deleteDoc(doc(db, "card", cardId)));
+    });
+
+    it("blocks Card creation and updates while the parent Deck is deleting", async () => {
+      const deckId = uuid();
+      const cardId = uuid();
+      await createData("deck", deckId, {
+        uid: "uid",
+        deletedAt: Date.now(),
+        deletionState: "deleting",
       });
+      await createData("card", cardId, { uid: "uid", deckId });
+
+      await assertFails(setDoc(doc(db, "card", uuid()), { uid: "uid", deckId }));
+      await assertFails(updateDoc(doc(db, "card", cardId), { uid: "uid", deckId, name: "late write" }));
+    });
+
+    it("does not allow a Card to move to another Deck", async () => {
+      const firstDeckId = uuid();
+      const secondDeckId = uuid();
+      const cardId = uuid();
+      await createData("deck", firstDeckId, { uid: "uid" });
+      await createData("deck", secondDeckId, { uid: "uid" });
+      await createData("card", cardId, { uid: "uid", deckId: firstDeckId });
+
+      await assertFails(updateDoc(doc(db, "card", cardId), { uid: "uid", deckId: secondDeckId }));
     });
   });
 
-  describe("invalid authenticated context", () => {
+  describe("different authenticated user", () => {
     let db: firebase.default.firestore.Firestore;
 
-    beforeEach(async () => {
+    beforeEach(() => {
       db = testEnv.authenticatedContext("invalid").firestore();
     });
 
-    describe("deck", () => {
-      it("should not read a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(getDoc(doc(db, "deck", id)));
-      });
+    it("cannot read, create, update, or delete another user's private Deck", async () => {
+      const id = uuid();
+      await createData("deck", id, { uid: "uid", isPublic: false });
 
-      it("should read a publick deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid", isPublic: true });
-        await assertSucceeds(getDoc(doc(db, "deck", id)));
-      });
-
-      it("should not create a deck", async () => {
-        const id = uuid();
-        await assertFails(setDoc(doc(db, "deck", id), { uid: "uid" }));
-      });
-
-      it("should not update a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
-      });
-
-      it("should not delete a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "deck", id)));
-      });
+      await assertFails(getDoc(doc(db, "deck", id)));
+      await assertFails(setDoc(doc(db, "deck", uuid()), { uid: "uid" }));
+      await assertFails(updateDoc(doc(db, "deck", id), { uid: "uid", name: "updated" }));
+      await assertFails(deleteDoc(doc(db, "deck", id)));
     });
 
-    describe("card", () => {
-      it("should not read a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
-        await assertFails(getDoc(doc(db, "card", id)));
-      });
+    it("can read a public Deck and its Cards but cannot write them", async () => {
+      const deckId = uuid();
+      const cardId = uuid();
+      await createData("deck", deckId, { uid: "uid", isPublic: true });
+      await createData("card", cardId, { uid: "uid", deckId });
 
-      it("should read a public card", async () => {
-        const [deckId, id] = [uuid(), uuid()];
-        await createData("deck", deckId, { uid: "uid", isPublic: true });
-        await createData("card", id, { uid: "uid", deckId });
-        await assertSucceeds(getDoc(doc(db, "card", id)));
-      });
+      await assertSucceeds(getDoc(doc(db, "deck", deckId)));
+      await assertSucceeds(getDoc(doc(db, "card", cardId)));
+      await assertFails(setDoc(doc(db, "card", uuid()), { uid: "uid", deckId }));
+      await assertFails(updateDoc(doc(db, "card", cardId), { uid: "uid", deckId, name: "updated" }));
+      await assertFails(deleteDoc(doc(db, "card", cardId)));
+    });
 
-      it("should not create a card", async () => {
-        const id = uuid();
-        await assertFails(setDoc(doc(db, "card", id), { uid: "uid" }));
-      });
+    it("cannot read another user's private Card", async () => {
+      const deckId = uuid();
+      const cardId = uuid();
+      await createData("deck", deckId, { uid: "uid", isPublic: false });
+      await createData("card", cardId, { uid: "uid", deckId });
 
-      it("should not update a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "card", id), { uid: "uid", name: "update" }));
-      });
-
-      it("should not delete a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "card", id)));
-      });
+      await assertFails(getDoc(doc(db, "card", cardId)));
     });
   });
 
-  describe("unauthenticated context", () => {
+  describe("unauthenticated user", () => {
     let db: firebase.default.firestore.Firestore;
 
-    beforeEach(async () => {
+    beforeEach(() => {
       db = testEnv.unauthenticatedContext().firestore();
     });
 
-    describe("deck", () => {
-      it("should not read a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(getDoc(doc(db, "deck", id)));
-      });
+    it("can read public Decks and Cards", async () => {
+      const deckId = uuid();
+      const cardId = uuid();
+      await createData("deck", deckId, { uid: "uid", isPublic: true });
+      await createData("card", cardId, { uid: "uid", deckId });
 
-      it("should read a publick deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid", isPublic: true });
-        await assertSucceeds(getDoc(doc(db, "deck", id)));
-      });
-
-      it("should not create a deck", async () => {
-        const id = uuid();
-        await assertFails(setDoc(doc(db, "deck", id), { uid: "uid" }));
-      });
-
-      it("should not update a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
-      });
-
-      it("should not delete a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "deck", id)));
-      });
+      await assertSucceeds(getDoc(doc(db, "deck", deckId)));
+      await assertSucceeds(getDoc(doc(db, "card", cardId)));
     });
 
-    describe("card", () => {
-      it("should not read a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
-        await assertFails(getDoc(doc(db, "card", id)));
-      });
+    it("cannot read private data or perform writes", async () => {
+      const deckId = uuid();
+      const cardId = uuid();
+      await createData("deck", deckId, { uid: "uid", isPublic: false });
+      await createData("card", cardId, { uid: "uid", deckId });
 
-      it("should read a public card", async () => {
-        const [deckId, id] = [uuid(), uuid()];
-        await createData("deck", deckId, { uid: "uid", isPublic: true });
-        await createData("card", id, { uid: "uid", deckId });
-        await assertSucceeds(getDoc(doc(db, "card", id)));
-      });
-
-      it("should not create a card", async () => {
-        const id = uuid();
-        await assertFails(setDoc(doc(db, "card", id), { uid: "uid" }));
-      });
-
-      it("should not update a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "card", id), { uid: "uid", name: "update" }));
-      });
-
-      it("should not delete a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "card", id)));
-      });
+      await assertFails(getDoc(doc(db, "deck", deckId)));
+      await assertFails(getDoc(doc(db, "card", cardId)));
+      await assertFails(setDoc(doc(db, "deck", uuid()), { uid: "uid" }));
+      await assertFails(setDoc(doc(db, "card", uuid()), { uid: "uid", deckId }));
+      await assertFails(updateDoc(doc(db, "deck", deckId), { uid: "uid", name: "updated" }));
+      await assertFails(updateDoc(doc(db, "card", cardId), { uid: "uid", deckId, name: "updated" }));
+      await assertFails(deleteDoc(doc(db, "deck", deckId)));
+      await assertFails(deleteDoc(doc(db, "card", cardId)));
     });
   });
 });
