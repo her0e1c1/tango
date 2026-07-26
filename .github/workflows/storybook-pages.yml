@@ -25,6 +25,7 @@ jobs:
           cache: npm
 
       - run: npm ci
+      - run: make sample-build
       - run: npm run build:storybook
 
       - uses: actions/configure-pages@v5
