@@ -79,4 +79,28 @@ describe("Firestore full reads", () => {
     await expect(deckAdapter.readAll("uid", db)).resolves.toEqual([]);
     await expect(cardAdapter.readAll("uid", db)).resolves.toEqual([]);
   });
+
+  it("rejects an invalid Deck document with its field path", async () => {
+    const deck = createDeck({ id: uuid(), uid: "uid" });
+    await seed("deck", deck.id, { ...buildDeckCreateDto(deck, deck.createdAt), selectedTags: [42] });
+
+    await expect(deckAdapter.readAll("uid", db)).rejects.toMatchObject({
+      name: "FirestoreDocumentValidationError",
+      collectionName: "deck",
+      documentId: deck.id,
+      message: expect.stringContaining("selectedTags.0"),
+    });
+  });
+
+  it("rejects an invalid Card nextSeeingAt with its field path", async () => {
+    const card = createCard({ id: uuid(), uid: "uid" });
+    await seed("card", card.id, { ...buildCardCreateDto(card, card.createdAt), nextSeeingAt: null });
+
+    await expect(cardAdapter.readAll("uid", db)).rejects.toMatchObject({
+      name: "FirestoreDocumentValidationError",
+      collectionName: "card",
+      documentId: card.id,
+      message: expect.stringContaining("nextSeeingAt"),
+    });
+  });
 });

@@ -148,6 +148,20 @@ describe("Firebase singletons", () => {
     expect(connectAuthEmulator).toHaveBeenCalledWith(auth, "http://127.0.0.1:9099");
   });
 
+  it.each([
+    ["host", "", "9099"],
+    ["port", "127.0.0.1", ""],
+  ])("does not connect auth when the emulator %s is missing", async (_missingSetting, host, port) => {
+    vi.stubEnv("MODE", "development");
+    vi.stubEnv("DEV", true);
+    vi.stubEnv("VITE_AUTH_HOST", host);
+    vi.stubEnv("VITE_AUTH_PORT", port);
+
+    await import("@/firebase");
+
+    expect(connectAuthEmulator).not.toHaveBeenCalled();
+  });
+
   it("does not connect auth to the emulator in production", async () => {
     vi.stubEnv("MODE", "production");
     vi.stubEnv("DEV", false);

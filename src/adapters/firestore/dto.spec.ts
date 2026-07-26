@@ -13,6 +13,7 @@ import {
   buildCardUpdateDto,
   buildDeckCreateDto,
   buildDeckUpdateDto,
+  FirestoreDocumentValidationError,
   mapCardDocument,
   mapDeckDocument,
 } from "@/adapters/firestore/dto";
@@ -50,9 +51,23 @@ describe("Firestore DTO builders", () => {
     endLine: 9,
   });
 
-  it("maps only remote deck fields using the snapshot id", () => {
+  const cardDocument = (overrides: Record<string, unknown> = {}) => ({
+    frontText: "Remote front",
+    backText: "Remote back",
+    tags: ["science"],
+    uniqueKey: "remote-key",
+    deckId: "deck-2",
+    uid: "user-2",
+    createdAt: 10,
+    updatedAt: 20,
+    deletedAt: null,
+    score: 3,
+    numberOfSeen: 4,
+    ...overrides,
+  });
+
+  it("maps a remote deck without a payload id using the snapshot id", () => {
     const document = {
-      id: "payload-id",
       name: "Remote Deck",
       url: "https://example.com/deck",
       isPublic: true,
@@ -108,20 +123,8 @@ describe("Firestore DTO builders", () => {
     expect(mapDeckDocument("snapshot-id", document)).not.toHaveProperty("url");
   });
 
-  it("maps only remote card fields using the snapshot id", () => {
-    const document = {
-      id: "payload-id",
-      frontText: "Remote front",
-      backText: "Remote back",
-      tags: ["science"],
-      uniqueKey: "remote-key",
-      deckId: "deck-2",
-      uid: "user-2",
-      createdAt: 10,
-      updatedAt: 20,
-      deletedAt: null,
-      score: 3,
-      numberOfSeen: 4,
+  it("maps a remote card without a payload id using the snapshot id", () => {
+    const document = cardDocument({
       lastSeenAt: 50,
       nextSeeingAt: Timestamp.fromMillis(60),
       interval: 7,
@@ -130,7 +133,7 @@ describe("Firestore DTO builders", () => {
       endLine: 9,
       currentIndex: 2,
       cardOrderIds: ["card-2"],
-    };
+    });
 
     expect(mapCardDocument("snapshot-id", document)).toEqual({
       id: "snapshot-id",
@@ -155,20 +158,7 @@ describe("Firestore DTO builders", () => {
   });
 
   it("omits absent optional fields when mapping a remote card", () => {
-    const document = {
-      id: "payload-id",
-      frontText: "Remote front",
-      backText: "Remote back",
-      tags: [],
-      uniqueKey: "remote-key",
-      deckId: "deck-2",
-      uid: "user-2",
-      createdAt: 10,
-      updatedAt: 20,
-      deletedAt: null,
-      score: 0,
-      numberOfSeen: 0,
-    };
+    const document = cardDocument({ tags: [], score: 0, numberOfSeen: 0 });
 
     const mapped = mapCardDocument("snapshot-id", document);
 
@@ -178,6 +168,36 @@ describe("Firestore DTO builders", () => {
     expect(mapped).not.toHaveProperty("url");
     expect(mapped).not.toHaveProperty("startLine");
     expect(mapped).not.toHaveProperty("endLine");
+  });
+
+  it("accepts a legacy Date for nextSeeingAt", () => {
+    const nextSeeingAt = new Date(60);
+
+    expect(mapCardDocument("snapshot-id", cardDocument({ nextSeeingAt }))).toEqual(
+      expect.objectContaining({ nextSeeingAt })
+    );
+  });
+
+  it.each([null, "2026-01-01", 60, {}])("rejects invalid nextSeeingAt value %j with its field path", (value) => {
+    expect(() => mapCardDocument("invalid-card", cardDocument({ nextSeeingAt: value }))).toThrowError(
+      expect.objectContaining({
+        name: "FirestoreDocumentValidationError",
+        collectionName: "card",
+        documentId: "invalid-card",
+        message: expect.stringContaining("nextSeeingAt"),
+      })
+    );
+  });
+
+  it("rejects missing required fields and field type mismatches", () => {
+    const { frontText: _frontText, ...missingFrontText } = cardDocument();
+
+    expect(() => mapCardDocument("missing-field", missingFrontText)).toThrow(FirestoreDocumentValidationError);
+    expect(() => mapDeckDocument("wrong-type", { name: 42 })).toThrowError(
+      expect.objectContaining({
+        message: expect.stringContaining("name"),
+      })
+    );
   });
 
   it("allows only server deck fields when creating", () => {
@@ -256,5 +276,17 @@ describe("Firestore DTO builders", () => {
       startLine: 8,
       endLine: 9,
     });
+  });
+
+  it("validates write DTOs with the same storage contract", () => {
+    const invalidCard = { ...card, tags: ["math", 42] } as unknown as Card;
+    const invalidDeck = { ...deck, selectedTags: [42] } as unknown as Deck;
+    const cardWithoutId = { ...card, id: undefined } as unknown as Card;
+    const deckWithoutId = { ...deck, id: undefined } as unknown as Deck;
+
+    expect(() => buildCardCreateDto(invalidCard, 200)).toThrow();
+    expect(() => buildDeckUpdateDto(invalidDeck, 201)).toThrow();
+    expect(() => buildCardCreateDto(cardWithoutId, 200)).toThrow();
+    expect(() => buildDeckCreateDto(deckWithoutId, 200)).toThrow();
   });
 });

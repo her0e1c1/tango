@@ -17,7 +17,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import { getTimestamp } from "@/adapters/firestore/documentMetadata";
-import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument, type DeckDocument } from "@/adapters/firestore/dto";
+import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument } from "@/adapters/firestore/dto";
 import { getDb } from "@/adapters/firestore/runtime";
 
 /**
@@ -27,7 +27,7 @@ import { getDb } from "@/adapters/firestore/runtime";
 export const readAll = async (uid: string, firestore: Firestore = getDb()): Promise<Deck[]> => {
   const snapshot = await getDocs(query(collection(firestore, "deck"), where("uid", "==", uid)));
   return snapshot.docs
-    .map((document) => mapDeckDocument(document.id, document.data() as DeckDocument))
+    .map((document) => mapDeckDocument(document.id, document.data()))
     .filter((deck) => deck.deletedAt === null);
 };
 

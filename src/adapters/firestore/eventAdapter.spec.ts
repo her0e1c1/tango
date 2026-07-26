@@ -170,7 +170,14 @@ describe("Firestore remote-read subscriptions", () => {
     const onSnapshot = vi.fn();
     subscribeCardReads({ uid: "uid-a", onSnapshot, onError: vi.fn() });
 
-    mocks.next?.(snapshot([document("card-a", cardDocument({ nextSeeingAt: { toDate: () => new Date(50) } }))]));
+    mocks.next?.(
+      snapshot([
+        document(
+          "card-a",
+          cardDocument({ nextSeeingAt: { seconds: 0, nanoseconds: 50_000_000, toDate: () => new Date(50) } })
+        ),
+      ])
+    );
     expect(onSnapshot).toHaveBeenLastCalledWith({
       type: "replace",
       items: [expect.objectContaining({ id: "card-a", nextSeeingAt: new Date(50) })],
@@ -187,6 +194,59 @@ describe("Firestore remote-read subscriptions", () => {
       },
       metadata: { size: 1, fromCache: false, hasPendingWrites: false },
     });
+  });
+
+  it("forwards initial document validation errors without emitting a partial snapshot", () => {
+    const onSnapshot = vi.fn();
+    const onError = vi.fn();
+    subscribeCardReads({ uid: "uid-a", onSnapshot, onError });
+
+    expect(() =>
+      mocks.next?.(
+        snapshot([
+          document("card-valid", cardDocument()),
+          document("card-invalid", cardDocument({ nextSeeingAt: null })),
+        ])
+      )
+    ).not.toThrow();
+
+    expect(onSnapshot).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "FirestoreDocumentValidationError",
+        documentId: "card-invalid",
+        message: expect.stringContaining("nextSeeingAt"),
+      })
+    );
+  });
+
+  it("forwards change validation errors without emitting a partial delta", () => {
+    const onSnapshot = vi.fn();
+    const onError = vi.fn();
+    subscribeDeckReads({ uid: "uid-a", onSnapshot, onError });
+    mocks.next?.(snapshot([]));
+    onSnapshot.mockClear();
+
+    expect(() =>
+      mocks.next?.(
+        snapshot(
+          [],
+          [
+            { type: "added", doc: document("deck-valid", deckDocument()) },
+            { type: "added", doc: document("deck-invalid", deckDocument({ selectedTags: [42] })) },
+          ]
+        )
+      )
+    ).not.toThrow();
+
+    expect(onSnapshot).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "FirestoreDocumentValidationError",
+        documentId: "deck-invalid",
+        message: expect.stringContaining("selectedTags.0"),
+      })
+    );
   });
 
   it("emits metadata-only snapshots so pending writes can become synced", () => {

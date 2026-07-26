@@ -149,7 +149,11 @@ const seedAuth = async (page: Page, uid: string, nextUid?: string) => {
 test("loads UID-scoped remote Decks and Cards again after reload", async ({ page }) => {
   const uid = "remote-read-user";
   await setDocument("deck", "remote-read-deck", deckFields(uid, "Remote Query Deck"));
-  await setDocument("card", "remote-read-card", cardFields(uid, "remote-read-deck", "Remote Query Card"));
+  await setDocument(
+    "card",
+    "remote-read-card",
+    cardFields(uid, "remote-read-deck", "Remote Query Card")
+  );
   await setDocument("deck", "foreign-deck", deckFields("foreign-user", "Foreign Deck"));
   await seedAuth(page, uid);
 
