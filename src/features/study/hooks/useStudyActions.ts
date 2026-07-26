@@ -9,10 +9,11 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { studyStore } from "@/features/study/state/studyStore";
+import { studyStore, type StudySession } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useConfig } from "@/hooks/useConfig";
+import type { MutationLifecycle } from "@/hooks/mutationLifecycle";
 
 export interface StudyActions {
   start: () => void;
@@ -29,13 +30,23 @@ export interface StudyActions {
   retry: () => void;
 }
 
+interface StudyMutationContext {
+  token: symbol;
+  previous: {
+    session: StudySession;
+    showBackText: boolean;
+    lastSwipe: SwipeDirection | undefined;
+  };
+  optimisticSession: StudySession | undefined;
+}
+
 interface StudySwipeDependencies {
   mutationTokenRef: { current: symbol | undefined };
   deckId: DeckId;
   config: ConfigState;
   cardsById: Partial<Record<CardId, Card>>;
   isPending: (id: CardId) => boolean;
-  update: (card: CardEdit) => Promise<void>;
+  update: <Context = unknown>(card: CardEdit, lifecycle?: MutationLifecycle<Context>) => Promise<void>;
 }
 
 /**
@@ -64,41 +75,59 @@ const runStudySwipe = async (
   const card = cardId == null ? undefined : cardsById[cardId];
   if (card == null || isPending(card.id)) return;
 
-  const previous = {
-    session: { ...session },
-    showBackText: state.showBackText,
-    lastSwipe: state.lastSwipe,
-  };
-
-  state.setLastSwipe(direction);
-  if (config.hideBodyWhenCardChanged) {
-    state.hideBackText();
-  }
-
   const patch = buildStudyPatch(card, swipeAction, Date.now());
   const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
-  const mutationToken = Symbol();
-  mutationTokenRef.current = mutationToken;
-  if (nextIndex < 0) state.removeStudy(deckId);
-  else state.setCurrentIndex(deckId, nextIndex);
-  const optimisticSession = studyStore.getState().sessionsByDeckId[deckId];
-  try {
-    await update(patch);
-  } catch {
-    const current = studyStore.getState();
-    const currentSession = current.sessionsByDeckId[deckId];
-    const changeStillCurrent =
-      mutationTokenRef.current === mutationToken &&
-      (nextIndex < 0 ? currentSession == null : currentSession === optimisticSession);
-    if (changeStillCurrent) {
-      studyStore.setState((state) => ({
-        sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: previous.session },
-        showBackText: previous.showBackText,
-        lastSwipe: previous.lastSwipe,
+  const lifecycle: MutationLifecycle<StudyMutationContext> = {
+    onMutate: () => {
+      if (mutationTokenRef.current !== undefined) throw new Error("A study swipe is already running");
+      const current = studyStore.getState();
+      const currentSession = current.sessionsByDeckId[deckId];
+      if (currentSession == null || currentSession.cardOrderIds[currentSession.currentIndex] !== card.id) {
+        throw new Error("The study session changed before the swipe could be retried");
+      }
+
+      const previous = {
+        session: { ...currentSession },
+        showBackText: current.showBackText,
+        lastSwipe: current.lastSwipe,
+      };
+      const token = Symbol();
+      mutationTokenRef.current = token;
+      current.setLastSwipe(direction);
+      if (config.hideBodyWhenCardChanged) current.hideBackText();
+      if (nextIndex < 0) current.removeStudy(deckId);
+      else current.setCurrentIndex(deckId, nextIndex);
+
+      return {
+        token,
+        previous,
+        optimisticSession: studyStore.getState().sessionsByDeckId[deckId],
+      };
+    },
+    onError: (_error, context) => {
+      if (context == null) return;
+      const current = studyStore.getState();
+      const currentSession = current.sessionsByDeckId[deckId];
+      const changeStillCurrent =
+        mutationTokenRef.current === context.token &&
+        (nextIndex < 0 ? currentSession == null : currentSession === context.optimisticSession);
+      if (!changeStillCurrent) return;
+
+      studyStore.setState((nextState) => ({
+        sessionsByDeckId: { ...nextState.sessionsByDeckId, [deckId]: context.previous.session },
+        showBackText: context.previous.showBackText,
+        lastSwipe: context.previous.lastSwipe,
       }));
-    }
-  } finally {
-    if (mutationTokenRef.current === mutationToken) mutationTokenRef.current = undefined;
+    },
+    onSettled: (context) => {
+      if (context != null && mutationTokenRef.current === context.token) mutationTokenRef.current = undefined;
+    },
+  };
+
+  try {
+    await update(patch, lifecycle);
+  } catch {
+    // The mutation notice owns error feedback and retry.
   }
 };
 
