@@ -1,56 +1,50 @@
 /** @file Provides Deck mutation state and actions to React features. */
 
 import { useEffect, useRef } from "react";
-import { useStore } from "zustand";
 
 import { useAuth } from "@/auth/AuthContext";
-import { remoteStore } from "@/store/remoteStore";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { deckCommands } from "@/services/deckCommands";
 
 interface UseDeckMutationsOptions {
   onRemoveSuccess?: (deck: Deck) => void;
 }
 
-const noPendingDecks = new Map<DeckId, number>();
-
 export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = {}) => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const currentUid = useRef(uid);
+  const mutation = useAsyncAction<DeckId>(uid);
+  const scope = useRef({ uid });
   const onRemoveSuccessRef = useRef(onRemoveSuccess);
+
   useEffect(() => {
-    currentUid.current = uid;
     onRemoveSuccessRef.current = onRemoveSuccess;
-  }, [onRemoveSuccess, uid]);
+  }, [onRemoveSuccess]);
 
-  const mutation = useStore(remoteStore, (state) => state.deckMutation);
-  const createDeck = useStore(remoteStore, (state) => state.createDeck);
-  const updateDeck = useStore(remoteStore, (state) => state.updateDeck);
-  const removeDeck = useStore(remoteStore, (state) => state.removeDeck);
-  const retryDeckMutation = useStore(remoteStore, (state) => state.retryDeckMutation);
-  const pendingCounts = mutation.uid === uid ? mutation.pendingCounts : noPendingDecks;
+  useEffect(() => {
+    scope.current = { uid };
+    return () => {
+      scope.current = { uid };
+    };
+  }, [uid]);
 
-  const create = (deck: Deck) => createDeck(uid, deck);
-  const update = (deck: DeckEdit) => updateDeck(uid, deck);
-  const remove = async (deck: Deck) => {
-    const started = await removeDeck(uid, deck);
-    if (started && currentUid.current === uid) onRemoveSuccessRef.current?.(deck);
-  };
-  const isPending = (id: DeckId) => pendingCounts.has(id);
-  const retry = () => {
-    void retryDeckMutation(uid)
-      .then((deck) => {
-        if (deck != null && currentUid.current === uid) onRemoveSuccessRef.current?.(deck);
-      })
-      .catch(() => undefined);
+  const create = (deck: Deck) => mutation.run([deck.id], () => deckCommands.create(uid, deck));
+  const update = (deck: DeckEdit) => mutation.run([deck.id], () => deckCommands.update(uid, deck));
+  const remove = (deck: Deck) => {
+    const operationScope = scope.current;
+    return mutation.run([deck.id], async () => {
+      await deckCommands.remove(uid, deck);
+      if (scope.current === operationScope) onRemoveSuccessRef.current?.(deck);
+    });
   };
 
   return {
     create,
     update,
     remove,
-    pending: pendingCounts.size > 0,
-    isPending,
-    error: mutation.uid === uid ? mutation.error : null,
-    retry,
+    pending: mutation.pending,
+    isPending: mutation.isPending,
+    error: mutation.error,
+    retry: mutation.retry,
   };
 };

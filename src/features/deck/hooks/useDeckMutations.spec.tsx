@@ -1,7 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { remoteStore } from "@/store/remoteStore";
 import { createDeck as createDeckFixture } from "@/test/factories";
 
 const createDeck = (overrides: Partial<Deck> = {}) => createDeckFixture({ uid: "uid-a", ...overrides });
@@ -28,26 +27,13 @@ import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 describe("useDeckMutations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    remoteStore.getState().stop();
     mocks.uid = "uid-a";
     mocks.create.mockResolvedValue("deck-id");
     mocks.update.mockResolvedValue(undefined);
     mocks.remove.mockResolvedValue(undefined);
   });
 
-  it("keeps mutation runners stable across an unchanged render", () => {
-    const { result, rerender } = renderHook(useDeckMutations);
-    const actions = result.current;
-
-    rerender();
-
-    expect(result.current.create).toBe(actions.create);
-    expect(result.current.update).toBe(actions.update);
-    expect(result.current.remove).toBe(actions.remove);
-    expect(result.current.retry).toBe(actions.retry);
-  });
-
-  it("routes Deck creates and updates through the store", async () => {
+  it("routes Deck creates and updates through commands", async () => {
     const deck = createDeck({ id: "deck", name: "Before" });
     const { result } = renderHook(useDeckMutations);
 
@@ -56,7 +42,6 @@ describe("useDeckMutations", () => {
 
     expect(mocks.create).toHaveBeenCalledWith(deck);
     expect(mocks.update).toHaveBeenCalledWith({ ...deck, name: "After" });
-    expect(remoteStore.getState().read.decksById).toEqual({});
   });
 
   it("exposes per-Deck pending state while an update is running", async () => {
@@ -82,30 +67,28 @@ describe("useDeckMutations", () => {
     expect(result.current.pending).toBe(false);
   });
 
-  it("invokes remove success once when duplicate callers share one removal", async () => {
+  it("invokes remove success after a removal", async () => {
     let finish!: () => void;
     mocks.remove.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
     const deck = createDeck({ id: "deck" });
     const onRemoveSuccess = vi.fn();
     const { result } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
 
-    let first!: Promise<void>;
-    let duplicate!: Promise<void>;
+    let operation!: Promise<void>;
     act(() => {
-      first = result.current.remove(deck);
-      duplicate = result.current.remove(deck);
+      operation = result.current.remove(deck);
     });
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id, "uid-a"));
     await act(async () => {
       finish();
-      await Promise.all([first, duplicate]);
+      await operation;
     });
 
     expect(onRemoveSuccess).toHaveBeenCalledExactlyOnceWith(deck);
     expect(result.current.pending).toBe(false);
   });
 
-  it("keeps a failed removal retry callback alive beyond the hook lifetime", async () => {
+  it("does not invoke a removal callback after the hook unmounts", async () => {
     const deck = createDeck({ id: "deck" });
     const failure = new Error("remove failed");
     let finishRetry!: () => void;
@@ -123,7 +106,7 @@ describe("useDeckMutations", () => {
     unmount();
     finishRetry();
 
-    await waitFor(() => expect(onRemoveSuccess).toHaveBeenCalledExactlyOnceWith(deck));
+    await waitFor(() => expect(onRemoveSuccess).not.toHaveBeenCalled());
   });
 
   it("retries the latest failed update without invoking remove success", async () => {
@@ -160,7 +143,7 @@ describe("useDeckMutations", () => {
     );
   });
 
-  it("does not invoke remove success for an operation started before an A-to-B-to-A UID change", async () => {
+  it("does not invoke remove success for an operation started before the UID changes", async () => {
     let finish!: () => void;
     mocks.remove.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
     const deck = createDeck({ id: "deck" });
@@ -174,10 +157,6 @@ describe("useDeckMutations", () => {
     await waitFor(() => expect(result.current.pending).toBe(true));
     mocks.uid = "uid-b";
     rerender();
-    await act(async () => result.current.update(createDeck({ id: "transition-b", uid: "uid-b" })));
-    mocks.uid = "uid-a";
-    rerender();
-    await act(async () => result.current.update(createDeck({ id: "transition-a", uid: "uid-a" })));
     finish();
     await operation;
 

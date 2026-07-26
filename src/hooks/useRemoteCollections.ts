@@ -2,18 +2,11 @@
  * @file Provides shared remote collection data and lookup behavior to React consumers.
  */
 
-import { useSyncExternalStore } from "react";
 import { useStore } from "zustand";
 
-import { getFirestoreInitializationState, subscribeFirestoreInitialization } from "@/adapters/firestore/runtime";
 import { useAuth } from "@/auth/AuthContext";
 import { remoteValues, cardsForDeck, filteredCardsForDeck, tagsForDeck } from "@/store/remoteSelectors";
-import { remoteStore, type RemoteReadState } from "@/store/remoteStore";
-
-const getRemoteReadBlocker = () => {
-  const state = getFirestoreInitializationState();
-  return state.status === "blocked" ? state.error : undefined;
-};
+import { remoteStore } from "@/store/remoteStore";
 
 /**
  * Provides the remote collections values and operations needed by React components.
@@ -23,23 +16,18 @@ const getRemoteReadBlocker = () => {
 export const useRemoteCollections = () => {
   const authState = useAuth();
   const uid = authState.status === "authenticated" ? authState.uid : "";
-  const remoteState = useStore(remoteStore, (state) => state.read);
-  const retryReads = useStore(remoteStore, (state) => state.retryReads);
-  const blocker = useSyncExternalStore(subscribeFirestoreInitialization, getRemoteReadBlocker, getRemoteReadBlocker);
+  const remoteState = useStore(remoteStore);
   const hasActiveUid = uid !== "" && remoteState.uid === uid;
   const decksById = hasActiveUid ? remoteState.decksById : {};
   const cardsById = hasActiveUid ? remoteState.cardsById : {};
   const decks = remoteValues(decksById);
   const cards = remoteValues(cardsById);
 
-  const status: RemoteReadState["status"] | "blocked" = blocker
-    ? "blocked"
-    : uid === ""
-      ? "idle"
-      : hasActiveUid
-        ? remoteState.status
-        : "loading";
-  const error = blocker ?? (hasActiveUid && remoteState.status === "error" ? remoteState.error : undefined);
+  const status = uid === "" ? "idle" : hasActiveUid ? remoteState.status : "loading";
+  const error =
+    hasActiveUid && (remoteState.status === "error" || remoteState.status === "blocked")
+      ? remoteState.error
+      : undefined;
   const syncStatus = hasActiveUid && remoteState.status === "ready" ? remoteState.syncStatus : undefined;
 
   return {
@@ -50,7 +38,7 @@ export const useRemoteCollections = () => {
     status,
     syncStatus,
     error,
-    retry: retryReads,
+    retry: remoteState.retry,
     deckById: (id: string) => decksById[id],
     cardById: (id: string) => cardsById[id],
     cardsByDeckId: (deckId: string) => cardsForDeck(cards, deckId),

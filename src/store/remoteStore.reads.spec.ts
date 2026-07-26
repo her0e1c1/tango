@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { applyRealtimeChange } from "@/lib/realtimeChange";
-import { createRemoteStore, type RemoteReadDependencies, type RemoteSubscriptionProps } from "@/store/remoteStore";
+import type { FirestoreInitializationState } from "@/adapters/firestore/runtime";
+import type { RemoteSubscriptionProps } from "@/domain/remoteSnapshot";
+import { createRemoteStore, type RemoteReadDependencies } from "@/store/remoteStore";
 import { createCard, createDeck } from "@/test/factories";
 
-const byId = <T extends { id: string }>(items: T[]) => Object.fromEntries(items.map((item) => [item.id, item]));
+const synced = { size: 0, fromCache: false, hasPendingWrites: false };
 
 const createHarness = (
   waitForInitialization: RemoteReadDependencies["waitForInitialization"] = vi.fn<
@@ -29,7 +30,6 @@ const createHarness = (
       cardUnsubscribes.push(unsubscribe);
       return unsubscribe;
     }),
-    applyChange: applyRealtimeChange,
   };
   return {
     dependencies,
@@ -41,378 +41,229 @@ const createHarness = (
   };
 };
 
+const publishInitial = (harness: ReturnType<typeof createHarness>, decks: Deck[] = [], cards: Card[] = []) => {
+  harness.deckSubscriptions.at(-1)?.onSnapshot({
+    type: "replace",
+    items: decks,
+    metadata: { ...synced, size: decks.length },
+  });
+  harness.cardSubscriptions.at(-1)?.onSnapshot({
+    type: "replace",
+    items: cards,
+    metadata: { ...synced, size: cards.length },
+  });
+};
+
 describe("remote store reads", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("exposes idle read state and lifecycle actions through Zustand", () => {
+  it("starts idle with read lifecycle actions", () => {
     const { store } = createHarness();
 
-    expect(store.getState().read).toEqual({
+    expect(store.getState()).toMatchObject({
+      uid: null,
+      status: "idle",
+      decksById: {},
+      cardsById: {},
+      start: expect.any(Function),
+      stop: expect.any(Function),
+      retry: expect.any(Function),
+    });
+  });
+
+  it("waits for both initial snapshots before becoming ready", async () => {
+    const harness = createHarness();
+    const deck = createDeck({ id: "deck" });
+    const card = createCard({ id: "card", deckId: deck.id });
+
+    await harness.store.getState().start("uid-a");
+
+    expect(harness.dependencies.subscribeDecks).toHaveBeenCalledOnce();
+    expect(harness.dependencies.subscribeCards).toHaveBeenCalledOnce();
+    expect(harness.store.getState()).toMatchObject({ uid: "uid-a", status: "loading" });
+
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [deck],
+      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
+    });
+    expect(harness.store.getState().status).toBe("loading");
+
+    harness.cardSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [card],
+      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
+    });
+    expect(harness.store.getState()).toMatchObject({
+      status: "ready",
+      syncStatus: "cached",
+      decksById: { [deck.id]: deck },
+      cardsById: { [card.id]: card },
+    });
+  });
+
+  it("derives pending, cached, and synced states from metadata", async () => {
+    const harness = createHarness();
+    await harness.store.getState().start("uid-a");
+    publishInitial(harness);
+    expect(harness.store.getState().syncStatus).toBe("synced");
+
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "change",
+      event: { added: [], modified: [], removed: [] },
+      metadata: { ...synced, hasPendingWrites: true },
+    });
+    expect(harness.store.getState().syncStatus).toBe("pending");
+
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "change",
+      event: { added: [], modified: [], removed: [] },
+      metadata: { ...synced, fromCache: true },
+    });
+    expect(harness.store.getState().syncStatus).toBe("cached");
+
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "change",
+      event: { added: [], modified: [], removed: [] },
+      metadata: synced,
+    });
+    expect(harness.store.getState().syncStatus).toBe("synced");
+  });
+
+  it("applies incremental changes and preserves unchanged references", async () => {
+    const harness = createHarness();
+    const first = createCard({ id: "first" });
+    const second = createCard({ id: "second" });
+    await harness.store.getState().start("uid-a");
+    publishInitial(harness, [], [first, second]);
+    const initialCards = harness.store.getState().cardsById;
+    const unchanged = initialCards.second;
+
+    harness.cardSubscriptions[0]?.onSnapshot({
+      type: "change",
+      event: { added: [], modified: [{ ...first, frontText: "updated" }], removed: [] },
+      metadata: synced,
+    });
+
+    expect(harness.store.getState().cardsById).not.toBe(initialCards);
+    expect(harness.store.getState().cardsById.second).toBe(unchanged);
+
+    const changedCards = harness.store.getState().cardsById;
+    harness.cardSubscriptions[0]?.onSnapshot({
+      type: "change",
+      event: { added: [], modified: [], removed: [] },
+      metadata: synced,
+    });
+    expect(harness.store.getState().cardsById).toBe(changedCards);
+  });
+
+  it("stops listeners and ignores stale callbacks", async () => {
+    const harness = createHarness();
+    await harness.store.getState().start("uid-a");
+    const staleDeckSubscription = harness.deckSubscriptions[0];
+
+    harness.store.getState().stop("uid-a");
+
+    expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
+    expect(harness.cardUnsubscribes[0]).toHaveBeenCalledOnce();
+    expect(harness.store.getState()).toMatchObject({
       uid: null,
       status: "idle",
       decksById: {},
       cardsById: {},
     });
-    expect(store.getState().start).toEqual(expect.any(Function));
-    expect(store.getState().stop).toEqual(expect.any(Function));
-    expect(store.getState().retryReads).toEqual(expect.any(Function));
+
+    staleDeckSubscription?.onSnapshot({
+      type: "replace",
+      items: [createDeck({ id: "stale" })],
+      metadata: synced,
+    });
+    expect(harness.store.getState().decksById).toEqual({});
   });
 
-  it("attaches one listener per collection and becomes ready from cached initial snapshots", async () => {
+  it("keeps data when retrying the same user and clears it for another user", async () => {
     const harness = createHarness();
-    const deck = createDeck({ id: "deck-a" });
-    const card = createCard({ id: "card-a", deckId: deck.id });
+    const deck = createDeck({ id: "deck" });
+    await harness.store.getState().start("uid-a");
+    publishInitial(harness, [deck]);
 
-    const first = harness.store.getState().start("uid-a");
-    const strictModeReplay = harness.store.getState().start("uid-a");
-    await Promise.all([first, strictModeReplay]);
-
-    expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(1);
-    expect(harness.dependencies.subscribeCards).toHaveBeenCalledTimes(1);
-    expect(harness.store.getState().read).toEqual({
+    const retry = harness.store.getState().retry();
+    expect(harness.store.getState()).toMatchObject({
       uid: "uid-a",
+      status: "loading",
+      decksById: { [deck.id]: deck },
+    });
+    await retry;
+
+    await harness.store.getState().start("uid-b");
+    expect(harness.store.getState()).toMatchObject({
+      uid: "uid-b",
       status: "loading",
       decksById: {},
       cardsById: {},
     });
-
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [deck],
-      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
-    });
-    harness.cardSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [card],
-      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
-    });
-
-    expect(harness.store.getState().read).toEqual({
-      uid: "uid-a",
-      status: "ready",
-      syncStatus: "cached",
-      decksById: byId([deck]),
-      cardsById: byId([card]),
-    });
   });
 
-  it("applies changes and publishes pending, cached, and synced metadata-only updates", async () => {
-    const harness = createHarness();
-    const listener = vi.fn();
-    harness.store.subscribe(listener);
-    await harness.store.getState().start("uid-a");
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [],
-      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
-    });
-    harness.cardSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [],
-      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
-    });
-    expect(harness.store.getState().read).toMatchObject({ status: "ready", syncStatus: "synced" });
-
-    const added = createDeck({ id: "deck-added" });
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "change",
-      event: { added: [added], modified: [], removed: [] },
-      metadata: { size: 1, fromCache: true, hasPendingWrites: true },
-    });
-    expect(harness.store.getState().read).toMatchObject({
-      status: "ready",
-      syncStatus: "pending",
-      decksById: byId([added]),
+  it("publishes initialization and listener failures without automatic recovery", async () => {
+    const initializationFailure = new Error("initialization failed");
+    const rejected = createHarness(vi.fn().mockRejectedValue(initializationFailure));
+    await expect(rejected.store.getState().start("uid-a")).rejects.toBe(initializationFailure);
+    expect(rejected.store.getState()).toMatchObject({
+      status: "error",
+      error: initializationFailure,
     });
 
-    const pending = harness.store.getState().read;
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "change",
-      event: { added: [], modified: [], removed: [] },
-      metadata: { size: 0, fromCache: true, hasPendingWrites: false },
-    });
-    expect(harness.store.getState().read).not.toBe(pending);
-    expect(harness.store.getState().read).toMatchObject({ status: "ready", syncStatus: "cached" });
-
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "change",
-      event: { added: [], modified: [], removed: [] },
-      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
-    });
-    expect(harness.store.getState().read).toMatchObject({ status: "ready", syncStatus: "synced" });
-    expect(listener).toHaveBeenCalledTimes(6);
-  });
-
-  it("preserves unchanged entity and collection references", async () => {
-    const harness = createHarness();
-    const first = createCard({ id: "first" });
-    const second = createCard({ id: "second" });
-    await harness.store.getState().start("uid-a");
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [],
-      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
-    });
-    harness.cardSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [first, second],
-      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
-    });
-    const initial = harness.store.getState().read.cardsById;
-    const unchanged = initial.second;
-
-    harness.cardSubscriptions[0]?.onSnapshot({
-      type: "change",
-      event: { added: [], modified: [{ ...first, frontText: "updated" }], removed: [] },
-      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
-    });
-
-    expect(harness.store.getState().read.cardsById.second).toBe(unchanged);
-    const changed = harness.store.getState().read.cardsById;
-    expect(Object.isFrozen(changed)).toBe(true);
-    harness.cardSubscriptions[0]?.onSnapshot({
-      type: "change",
-      event: { added: [], modified: [], removed: [] },
-      metadata: { size: 2, fromCache: true, hasPendingWrites: false },
-    });
-    expect(harness.store.getState().read.cardsById).toBe(changed);
-  });
-
-  it("recovers once, then retains data on a terminal listener error and ignores stale callbacks", async () => {
-    const harness = createHarness();
-    const deck = createDeck({ id: "deck-a" });
-    await harness.store.getState().start("uid-a");
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [deck],
-      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
-    });
-    harness.cardSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [],
-      metadata: { size: 0, fromCache: true, hasPendingWrites: false },
-    });
-
-    harness.deckSubscriptions[0]?.onError(new Error("first listener failure"));
-    await vi.waitFor(() => expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(2));
-    expect(harness.deckUnsubscribes[0]).toHaveBeenCalledTimes(1);
-    expect(harness.cardUnsubscribes[0]).toHaveBeenCalledTimes(1);
-
-    const terminalError = new Error("terminal listener failure");
-    harness.deckSubscriptions[1]?.onError(terminalError);
-    await vi.waitFor(() =>
-      expect(harness.store.getState().read).toMatchObject({ status: "error", error: terminalError })
-    );
-    const terminalRead = harness.store.getState().read;
-    harness.deckSubscriptions[1]?.onSnapshot({
-      type: "replace",
-      items: [createDeck({ id: "stale" })],
-      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
-    });
-
-    expect(harness.store.getState().read).toBe(terminalRead);
-    expect(harness.store.getState().read.decksById).toEqual(byId([deck]));
-  });
-
-  it("keeps recovery listeners active when setup reports an error before returning", async () => {
-    const deckSubscriptions: Array<RemoteSubscriptionProps<Deck>> = [];
-    const cardSubscriptions: Array<RemoteSubscriptionProps<Card>> = [];
-    const deckUnsubscribes: ReturnType<typeof vi.fn>[] = [];
-    const cardUnsubscribes: ReturnType<typeof vi.fn>[] = [];
-    const dependencies: RemoteReadDependencies = {
-      waitForInitialization: vi.fn<RemoteReadDependencies["waitForInitialization"]>(async () => ({ status: "ready" })),
-      subscribeDecks: vi.fn((props) => {
-        deckSubscriptions.push(props);
-        const unsubscribe = vi.fn();
-        deckUnsubscribes.push(unsubscribe);
-        if (deckSubscriptions.length === 1) props.onError(new Error("synchronous listener failure"));
-        return unsubscribe;
-      }),
-      subscribeCards: vi.fn((props) => {
-        cardSubscriptions.push(props);
-        const unsubscribe = vi.fn();
-        cardUnsubscribes.push(unsubscribe);
-        return unsubscribe;
-      }),
-      applyChange: applyRealtimeChange,
-    };
-    const store = createRemoteStore(dependencies);
-    const deck = createDeck({ id: "deck-a" });
-    const card = createCard({ id: "card-a", deckId: deck.id });
-
-    await store.getState().start("uid-a");
-
-    expect(deckSubscriptions).toHaveLength(2);
-    expect(cardSubscriptions).toHaveLength(1);
-    expect(deckUnsubscribes[0]).toHaveBeenCalledTimes(1);
-    expect(deckUnsubscribes[1]).not.toHaveBeenCalled();
-    expect(cardUnsubscribes[0]).not.toHaveBeenCalled();
-
-    deckSubscriptions[1]?.onSnapshot({
-      type: "replace",
-      items: [deck],
-      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
-    });
-    cardSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [card],
-      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
-    });
-    expect(store.getState().read).toEqual({
-      uid: "uid-a",
-      status: "ready",
-      syncStatus: "synced",
-      decksById: byId([deck]),
-      cardsById: byId([card]),
-    });
-
-    store.getState().stop("uid-a");
-    expect(deckUnsubscribes[0]).toHaveBeenCalledTimes(1);
-    expect(deckUnsubscribes[1]).toHaveBeenCalledTimes(1);
-    expect(cardUnsubscribes[0]).toHaveBeenCalledTimes(1);
-  });
-
-  it("manual retry resets automatic recovery and retains same-UID data", async () => {
-    const harness = createHarness();
-    const deck = createDeck({ id: "deck-a" });
-    await harness.store.getState().start("uid-a");
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [deck],
-      metadata: { size: 1, fromCache: true, hasPendingWrites: false },
-    });
-    harness.deckSubscriptions[0]?.onError(new Error("automatic recovery"));
-    await vi.waitFor(() => expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(2));
-    harness.deckSubscriptions[1]?.onError(new Error("terminal"));
-    await vi.waitFor(() => expect(harness.store.getState().read.status).toBe("error"));
-
-    await harness.store.getState().retryReads();
-
-    expect(harness.store.getState().read).toMatchObject({
-      uid: "uid-a",
-      status: "loading",
-      decksById: byId([deck]),
-    });
-    expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(3);
-    harness.deckSubscriptions[2]?.onError(new Error("new automatic recovery"));
-    await vi.waitFor(() => expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(4));
-  });
-
-  it("publishes and rejects a synchronous setup failure", async () => {
-    const harness = createHarness();
-    const initializationError = new Error("card listener setup failed");
-    vi.mocked(harness.dependencies.subscribeCards).mockImplementationOnce(() => {
-      throw initializationError;
-    });
-
-    await expect(harness.store.getState().start("uid-a")).rejects.toBe(initializationError);
-
-    expect(harness.deckUnsubscribes[0]).toHaveBeenCalledTimes(1);
-    expect(harness.store.getState().read).toMatchObject({ uid: "uid-a", status: "error", error: initializationError });
-    const failedRead = harness.store.getState().read;
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [createDeck({ id: "stale" })],
-      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
-    });
-    expect(harness.store.getState().read).toBe(failedRead);
-  });
-
-  it("consumes a synchronous setup failure during automatic recovery", async () => {
-    const harness = createHarness();
-    const recoveryError = new Error("automatic recovery setup failed");
-    const unhandledRejections: unknown[] = [];
-    const recordUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
-    process.on("unhandledRejection", recordUnhandledRejection);
-
-    try {
-      await harness.store.getState().start("uid-a");
-      vi.mocked(harness.dependencies.subscribeDecks).mockImplementationOnce(() => {
-        throw recoveryError;
-      });
-      harness.deckSubscriptions[0]?.onError(new Error("listener failed"));
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(harness.store.getState().read).toMatchObject({ status: "error", error: recoveryError });
-      expect(unhandledRejections).toEqual([]);
-    } finally {
-      process.off("unhandledRejection", recordUnhandledRejection);
-    }
-  });
-
-  it("attempts both listener cleanups when one throws", async () => {
+    const listenerFailure = new Error("listener failed");
     const harness = createHarness();
     await harness.store.getState().start("uid-a");
-    harness.deckUnsubscribes[0]?.mockImplementation(() => {
-      throw new Error("deck cleanup failed");
-    });
-
-    expect(() => harness.store.getState().stop("uid-a")).not.toThrow();
-
-    expect(harness.deckUnsubscribes[0]).toHaveBeenCalledTimes(1);
-    expect(harness.cardUnsubscribes[0]).toHaveBeenCalledTimes(1);
-    expect(harness.store.getState().read).toEqual({ uid: null, status: "idle", decksById: {}, cardsById: {} });
+    harness.cardSubscriptions[0]?.onError(listenerFailure);
+    expect(harness.store.getState()).toMatchObject({ status: "error", error: listenerFailure });
+    expect(harness.dependencies.subscribeCards).toHaveBeenCalledOnce();
   });
 
-  it("does not attach listeners when Firestore initialization is blocked", async () => {
-    const error = new Error("another tab owns the cache");
+  it("publishes blocked initialization", async () => {
+    const error = new Error("persistence blocked");
     const harness = createHarness(
       vi.fn<RemoteReadDependencies["waitForInitialization"]>(async () => ({ status: "blocked", error }))
     );
 
     await harness.store.getState().start("uid-a");
 
-    expect(harness.dependencies.subscribeDecks).not.toHaveBeenCalled();
-    expect(harness.dependencies.subscribeCards).not.toHaveBeenCalled();
-    expect(harness.store.getState().read.status).toBe("idle");
-  });
-
-  it("does not start a stopped initialization request", async () => {
-    let finishInitialization: (state: { status: "ready" }) => void = () => undefined;
-    const harness = createHarness(
-      vi.fn<RemoteReadDependencies["waitForInitialization"]>(
-        () =>
-          new Promise<{ status: "ready" }>((resolve) => {
-            finishInitialization = resolve;
-          })
-      )
-    );
-
-    const starting = harness.store.getState().start("uid-a");
-    harness.store.getState().stop("uid-a");
-    finishInitialization({ status: "ready" });
-    await starting;
-
+    expect(harness.store.getState()).toMatchObject({ uid: "uid-a", status: "blocked", error });
     expect(harness.dependencies.subscribeDecks).not.toHaveBeenCalled();
     expect(harness.dependencies.subscribeCards).not.toHaveBeenCalled();
   });
 
-  it("ignores stale UID callbacks and clears data for the replacement UID", async () => {
+  it("closes a partial subscription when listener setup throws", async () => {
     const harness = createHarness();
-    const deckA = createDeck({ id: "deck-a", uid: "uid-a" });
-    const deckB = createDeck({ id: "deck-b", uid: "uid-b" });
-    await harness.store.getState().start("uid-a");
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [deckA],
-      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    const failure = new Error("card listener setup failed");
+    vi.mocked(harness.dependencies.subscribeCards).mockImplementationOnce(() => {
+      throw failure;
     });
 
-    await harness.store.getState().start("uid-b");
-    expect(harness.store.getState().read).toEqual({ uid: "uid-b", status: "loading", decksById: {}, cardsById: {} });
-    harness.deckSubscriptions[0]?.onSnapshot({
-      type: "replace",
-      items: [deckA],
-      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
-    });
-    harness.cardSubscriptions[0]?.onError(new Error("stale listener"));
-    harness.deckSubscriptions[1]?.onSnapshot({
-      type: "replace",
-      items: [deckB],
-      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
-    });
+    await expect(harness.store.getState().start("uid-a")).rejects.toBe(failure);
 
-    expect(harness.store.getState().read).toMatchObject({ uid: "uid-b", decksById: byId([deckB]) });
-    expect(harness.dependencies.subscribeDecks).toHaveBeenCalledTimes(2);
+    expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
+    expect(harness.store.getState()).toMatchObject({ status: "error", error: failure });
+  });
+
+  it("lets the latest start own subscriptions", async () => {
+    let resolveInitialization!: (state: FirestoreInitializationState) => void;
+    const initialization = new Promise<FirestoreInitializationState>((resolve) => {
+      resolveInitialization = resolve;
+    });
+    const harness = createHarness(vi.fn(() => initialization));
+
+    const stale = harness.store.getState().start("uid-a");
+    const current = harness.store.getState().start("uid-b");
+    resolveInitialization({ status: "ready" });
+    await Promise.all([stale, current]);
+
+    expect(harness.dependencies.subscribeDecks).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ uid: "uid-b" })
+    );
+    expect(harness.dependencies.subscribeCards).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ uid: "uid-b" })
+    );
   });
 });

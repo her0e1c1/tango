@@ -5,13 +5,13 @@
 import { uniq } from "lodash";
 
 import { filterCardsForDeck as filterStudyCards } from "@/lib/study";
-import type { RemoteById } from "@/store/remoteStore";
+import type { RemoteById } from "@/domain/remoteSnapshot";
 
 /**
  * Returns the concrete values stored in an identifier-indexed remote collection.
  * Missing entries are filtered out so callers receive a normal list of usable items.
  */
-export const remoteValues = <T>(items: RemoteById<T>): T[] =>
+export const remoteValues = <T extends { id: string }>(items: RemoteById<T>): T[] =>
   Object.values(items).filter((item): item is T => item != null);
 
 /**

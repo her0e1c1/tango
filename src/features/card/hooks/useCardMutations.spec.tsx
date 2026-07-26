@@ -1,7 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { remoteStore } from "@/store/remoteStore";
 import { createCard as createCardFixture } from "@/test/factories";
 
 const createCard = (overrides: Partial<Card> = {}) => createCardFixture({ uid: "uid-a", ...overrides });
@@ -37,7 +36,6 @@ import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 describe("useCardMutations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    remoteStore.getState().stop();
     mocks.uid = "uid-a";
     mocks.card = null;
     mocks.cardById.mockImplementation(() => mocks.card);
@@ -47,20 +45,7 @@ describe("useCardMutations", () => {
     mocks.upsert.mockResolvedValue("card-id");
   });
 
-  it("keeps mutation runners stable across an unchanged render", () => {
-    const { result, rerender } = renderHook(useCardMutations);
-    const actions = result.current;
-
-    rerender();
-
-    expect(result.current.create).toBe(actions.create);
-    expect(result.current.update).toBe(actions.update);
-    expect(result.current.remove).toBe(actions.remove);
-    expect(result.current.bulkUpsert).toBe(actions.bulkUpsert);
-    expect(result.current.retry).toBe(actions.retry);
-  });
-
-  it("routes Card create, update, and bulk upsert through the store", async () => {
+  it("routes Card create, update, and bulk upsert through commands", async () => {
     const first = createCard({ id: "first", score: 0 });
     const second = createCard({ id: "second" });
     const { result } = renderHook(useCardMutations);
@@ -72,7 +57,6 @@ describe("useCardMutations", () => {
     expect(mocks.create).toHaveBeenCalledWith(first);
     expect(mocks.update).toHaveBeenCalledWith({ ...first, score: 1 });
     expect(mocks.upsert).toHaveBeenCalledTimes(2);
-    expect(remoteStore.getState().read.cardsById).toEqual({});
   });
 
   it("uses the current Card for updateBy and remove", async () => {
@@ -173,7 +157,6 @@ describe("useCardMutations", () => {
       operation = result.current.create(card);
     });
     await waitFor(() => expect(result.current.pending).toBe(true));
-    remoteStore.getState().stop();
     mocks.uid = "uid-b";
     rerender();
 

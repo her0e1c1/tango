@@ -19,12 +19,13 @@ const customHookDefinition = /\b(?:const|function)\s+(use[A-Z][A-Za-z0-9]*)\b/g;
 const firestoreCompositionModules = new Set([
   "firebase.ts",
   "features/import/hooks/useDeckImport.ts",
-  "hooks/useRemoteCollections.ts",
+  "services/cardCommands.ts",
+  "services/deckCommands.ts",
   "store/remoteStore.ts",
 ]);
 const remoteSnapshotCapabilityName = ["apply", "Snapshot"].join("");
 const remoteStoreStateName = "RemoteStoreState";
-const remoteReadLifecycleActionNames = new Set(["start", "stop", "retryReads"]);
+const remoteReadLifecycleActionNames = new Set(["start", "stop", "retry"]);
 const remoteEntityMapNames = new Set(["decksById", "cardsById"]);
 const ownedFirestoreAdapterModules = new Set([
   "@/adapters/firestore/card",
@@ -651,7 +652,7 @@ describe("component architecture", () => {
           read: unknown;
           start: () => void;
           stop: () => void;
-          retryReads: () => void;
+          retry: () => void;
           archiveCard: () => void;
         }
         const archiveCard = () => void cardsById;
@@ -669,7 +670,7 @@ describe("component architecture", () => {
           read: unknown;
           start: () => void;
           stop: () => void;
-          retryReads: () => void;
+          retry: () => void;
           createCard: () => void;
         }
         function createCard() { void decksById; }
@@ -687,7 +688,7 @@ describe("component architecture", () => {
           read: unknown;
           start: () => void;
           stop: () => void;
-          retryReads: () => void;
+          retry: () => void;
           updateCard: () => void;
         }
         const inspectCards = () => void cardsById;
@@ -710,7 +711,7 @@ describe("component architecture", () => {
           read: unknown;
           start: () => void;
           stop: () => void;
-          retryReads: () => void;
+          retry: () => void;
           updateCard: () => void;
         }
         const inspectCards = () => void cardsById;
@@ -730,7 +731,7 @@ describe("component architecture", () => {
           read: unknown;
           start: () => void;
           stop: () => void;
-          retryReads: () => void;
+          retry: () => void;
           updateDeck: () => void;
         }
         const helpers = {
@@ -751,7 +752,7 @@ describe("component architecture", () => {
           read: unknown;
           start: () => void;
           stop: () => void;
-          retryReads: () => void;
+          retry: () => void;
           createCard: () => void;
         }
         const store = { createCard: dependencies.createCard };
@@ -769,7 +770,7 @@ describe("component architecture", () => {
           read: unknown;
           start: () => void;
           stop: () => void;
-          retryReads: () => void;
+          retry: () => void;
           createCard: () => void;
         }
         const createCard = () => dependencies.createCard();
@@ -822,12 +823,12 @@ describe("component architecture", () => {
     expect(violations, violations.join("\n")).toEqual([]);
   });
 
-  it("keeps remote subscription and mutation adapters owned by the Zustand store", () => {
+  it("keeps remote subscriptions in the store and mutations in command services", () => {
     const owners = firestoreOwnedAdapterConsumers(
       productionFilesUnder("").map((relativePath) => ({ relativePath, source: readSource(relativePath) }))
     );
 
-    expect(owners).toEqual(["store/remoteStore.ts"]);
+    expect(owners).toEqual(["services/cardCommands.ts", "services/deckCommands.ts", "store/remoteStore.ts"]);
   });
 
   it("keeps remote subscription and mutation adapters out of the Firestore barrel", () => {
@@ -969,9 +970,7 @@ describe("component architecture", () => {
       "store/remoteMutationLocks.ts",
       "store/remoteSelectors.spec.ts",
       "store/remoteSelectors.ts",
-      "store/remoteStore.mutations.spec.ts",
       "store/remoteStore.reads.spec.ts",
-      "store/remoteStore.spec.ts",
       "store/remoteStore.ts",
     ]);
   });
