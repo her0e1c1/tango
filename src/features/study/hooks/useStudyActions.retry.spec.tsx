@@ -6,45 +6,51 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MutationLifecycle } from "@/hooks/mutationLifecycle";
 import { studyStore } from "@/features/study/state/studyStore";
 
-const mocks = vi.hoisted(() => ({
-  remoteUpdate: vi.fn(),
-  retry: vi.fn(),
-  retryTask: undefined as (() => Promise<void>) | undefined,
-}));
+const mocks = vi.hoisted(() => {
+  const deckId = "deck-retry";
+  const card1: Card = {
+    id: "card-1",
+    deckId,
+    uid: "user",
+    frontText: "front 1",
+    backText: "back 1",
+    tags: [],
+    uniqueKey: "card-1",
+    score: 2,
+    numberOfSeen: 4,
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+  };
+  const card2: Card = { ...card1, id: "card-2", uniqueKey: "card-2", frontText: "front 2" };
+  const config = {
+    cardSwipeUp: "DoNothing",
+    cardSwipeDown: "DoNothing",
+    cardSwipeLeft: "GoBack",
+    cardSwipeRight: "GoToNextCardMastered",
+    shuffled: false,
+    maxNumberOfCardsToLearn: 10,
+    useCardInterval: false,
+    defaultAutoPlay: false,
+    hideBodyWhenCardChanged: true,
+  } as ConfigState;
 
-const deckId = "deck-retry";
-const card1: Card = {
-  id: "card-1",
-  deckId,
-  uid: "user",
-  frontText: "front 1",
-  backText: "back 1",
-  tags: [],
-  uniqueKey: "card-1",
-  score: 2,
-  numberOfSeen: 4,
-  createdAt: 0,
-  updatedAt: 0,
-  deletedAt: null,
-};
-const card2: Card = { ...card1, id: "card-2", uniqueKey: "card-2", frontText: "front 2" };
-const config = {
-  cardSwipeUp: "DoNothing",
-  cardSwipeDown: "DoNothing",
-  cardSwipeLeft: "GoBack",
-  cardSwipeRight: "GoToNextCardMastered",
-  shuffled: false,
-  maxNumberOfCardsToLearn: 10,
-  useCardInterval: false,
-  defaultAutoPlay: false,
-  hideBodyWhenCardChanged: true,
-} as ConfigState;
+  return {
+    deckId,
+    card1,
+    card2,
+    config,
+    remoteUpdate: vi.fn(),
+    retry: vi.fn(),
+    retryTask: undefined as (() => Promise<void>) | undefined,
+  };
+});
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => config }));
+vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
-    cardsById: { [card1.id]: card1, [card2.id]: card2 },
-    filteredCardsByDeckId: () => [card1, card2],
+    cardsById: { [mocks.card1.id]: mocks.card1, [mocks.card2.id]: mocks.card2 },
+    filteredCardsByDeckId: () => [mocks.card1, mocks.card2],
   }),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => vi.fn() }));
@@ -103,14 +109,14 @@ describe("useStudyActions retry", () => {
   it("reapplies the optimistic advance with the same absolute Card patch after retry", async () => {
     const failure = new Error("offline");
     mocks.remoteUpdate.mockRejectedValueOnce(failure).mockResolvedValueOnce(undefined);
-    studyStore.getState().startStudy(deckId, [card1.id, card2.id]);
+    studyStore.getState().startStudy(mocks.deckId, [mocks.card1.id, mocks.card2.id]);
     studyStore.setState({ showBackText: true });
-    const { result } = renderHook(() => useStudyActions(deckId));
+    const { result } = renderHook(() => useStudyActions(mocks.deckId));
 
     await act(async () => result.current.swipeRight());
 
     expect(studyStore.getState()).toMatchObject({
-      sessionsByDeckId: { [deckId]: { currentIndex: 0 } },
+      sessionsByDeckId: { [mocks.deckId]: { currentIndex: 0 } },
       showBackText: true,
       lastSwipe: undefined,
     });
@@ -120,14 +126,14 @@ describe("useStudyActions retry", () => {
     await waitFor(() => expect(mocks.remoteUpdate).toHaveBeenCalledTimes(2));
     expect(mocks.remoteUpdate.mock.calls[0]?.[0]).toEqual(mocks.remoteUpdate.mock.calls[1]?.[0]);
     expect(mocks.remoteUpdate.mock.calls[1]?.[0]).toMatchObject({
-      id: card1.id,
-      deckId,
+      id: mocks.card1.id,
+      deckId: mocks.deckId,
       score: 3,
       numberOfSeen: 5,
       lastSeenAt: 1_000,
     });
     expect(studyStore.getState()).toMatchObject({
-      sessionsByDeckId: { [deckId]: { currentIndex: 1 } },
+      sessionsByDeckId: { [mocks.deckId]: { currentIndex: 1 } },
       showBackText: false,
       lastSwipe: "cardSwipeRight",
     });
@@ -135,15 +141,15 @@ describe("useStudyActions retry", () => {
 
   it("ends a one-card session after a failed final swipe succeeds on retry", async () => {
     mocks.remoteUpdate.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce(undefined);
-    studyStore.getState().startStudy(deckId, [card1.id]);
-    const { result } = renderHook(() => useStudyActions(deckId));
+    studyStore.getState().startStudy(mocks.deckId, [mocks.card1.id]);
+    const { result } = renderHook(() => useStudyActions(mocks.deckId));
 
     await act(async () => result.current.swipeRight());
-    expect(studyStore.getState().sessionsByDeckId[deckId]).toBeDefined();
+    expect(studyStore.getState().sessionsByDeckId[mocks.deckId]).toBeDefined();
 
     act(() => result.current.retry());
 
-    await waitFor(() => expect(studyStore.getState().sessionsByDeckId[deckId]).toBeUndefined());
+    await waitFor(() => expect(studyStore.getState().sessionsByDeckId[mocks.deckId]).toBeUndefined());
     expect(mocks.remoteUpdate).toHaveBeenCalledTimes(2);
   });
 });
