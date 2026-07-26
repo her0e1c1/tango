@@ -24,13 +24,17 @@ describe("Firestore DTO runtime validation", () => {
   it("identifies an invalid Deck and its document ID", () => {
     const invalid = { ...deckDocument(), selectedTags: "not-an-array" };
 
-    expect(() => mapDeckDocument("broken-deck", invalid)).toThrowError(
-      expect.objectContaining({
+    try {
+      mapDeckDocument("broken-deck", invalid);
+      throw new Error("Expected mapDeckDocument to reject malformed data");
+    } catch (error) {
+      expect(error).toBeInstanceOf(FirestoreDocumentValidationError);
+      expect(error).toMatchObject({
         name: "FirestoreDocumentValidationError",
         collection: "deck",
         documentId: "broken-deck",
-      })
-    );
+      });
+    }
   });
 
   it("rejects invalid Card counters instead of accepting a cast", () => {
