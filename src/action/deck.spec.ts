@@ -1,7 +1,8 @@
 /**
  * @file Verifies the "deck action" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "should prepare deck",
- * "parses string content as raw cards", "rejects unsupported input at the parser boundary".
+ * "parses string content as validated raw cards", "rejects unsupported input at the parser
+ * boundary".
  */
 
 import { expect, expectTypeOf, it, describe, vi, beforeEach, afterEach } from "vitest";
@@ -44,11 +45,19 @@ describe("deck action", () => {
   });
 
   describe("parseCsv", () => {
-    it("parses string content as raw cards", async () => {
-      const cards = await action.deck.parseCsv("front,back");
+    it("parses string content as validated raw cards", async () => {
+      const cards = await action.deck.parseCsv("front,back,tag,key");
 
       expectTypeOf(cards).toEqualTypeOf<CardRaw[]>();
-      expect(cards).toEqual([{ frontText: "front", backText: "back", uniqueKey: "", tags: [] }]);
+      expect(cards).toEqual([{ frontText: "front", backText: "back", uniqueKey: "key", tags: ["tag"] }]);
+    });
+
+    it("rejects rows that bypass the canonical four-column contract", async () => {
+      await expect(action.deck.parseCsv("front,back")).rejects.toThrow("Expected 4 columns");
+    });
+
+    it("rejects missing required Card fields", async () => {
+      await expect(action.deck.parseCsv("front,back,tag,   ")).rejects.toThrow("uniqueKey is required");
     });
 
     it("rejects unsupported input at the parser boundary", async () => {
