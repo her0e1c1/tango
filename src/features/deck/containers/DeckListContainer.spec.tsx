@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   cardsById: {} as Record<CardId, Card>,
   hydrated: true,
   pending: false,
+  syncStatus: "synced" as "cached" | "pending" | "synced",
   pendingDeckIds: new Set<DeckId>(),
   error: null as unknown,
   onRemoveSuccess: undefined as ((deck: Deck) => void) | undefined,
@@ -46,6 +47,7 @@ vi.mock("@/hooks/useRemoteCollections", () => ({
     const cards = Object.values(mocks.cardsById);
     return {
       status: "ready" as const,
+      syncStatus: mocks.syncStatus,
       retry: vi.fn(),
       decks,
       cards,
@@ -82,6 +84,7 @@ describe("DeckListContainer", () => {
     vi.clearAllMocks();
     mocks.hydrated = true;
     mocks.pending = false;
+    mocks.syncStatus = "synced";
     mocks.pendingDeckIds = new Set();
     mocks.error = null;
     mocks.onRemoveSuccess = undefined;
@@ -201,6 +204,15 @@ describe("DeckListContainer", () => {
     render(<DeckListContainer />);
 
     await waitFor(() => expect(studyStore.getState().sessionsByDeckId.missing).toBeUndefined());
+    expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeDefined();
+  });
+
+  it("keeps sessions while remote decks are only available from cache", () => {
+    mocks.syncStatus = "cached";
+    delete mocks.decksById[recentDeck.id];
+
+    render(<DeckListContainer />);
+
     expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeDefined();
   });
 
