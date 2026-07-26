@@ -20,6 +20,15 @@ export const normalizeCardRaw = (card: CardRaw): CardRaw => ({
   uniqueKey: card.uniqueKey.trim(),
 });
 
+/** Converts the four supported CSV columns into one canonical raw Card. */
+export const cardRawFromCsvColumns = (columns: readonly string[]): CardRaw =>
+  normalizeCardRaw({
+    frontText: columns[0] ?? "",
+    backText: columns[1] ?? "",
+    tags: (columns[2] ?? "").split(","),
+    uniqueKey: columns[3] ?? "",
+  });
+
 export const cardRawSchema: z.ZodType<CardRaw> = z.object({
   frontText: requiredCardText("frontText is required."),
   backText: requiredCardText("backText is required."),
