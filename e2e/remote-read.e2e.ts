@@ -47,8 +47,7 @@ const getDocument = async (collection: "deck" | "card", id: string) => {
   return (await response.json()) as { fields: Record<string, { stringValue?: string }> };
 };
 
-const deckFields = (id: string, uid: string, name: string) => ({
-  id: field.string(id),
+const deckFields = (uid: string, name: string) => ({
   uid: field.string(uid),
   name: field.string(name),
   isPublic: field.boolean(false),
@@ -63,8 +62,7 @@ const deckFields = (id: string, uid: string, name: string) => ({
   convertToBr: field.boolean(false),
 });
 
-const cardFields = (id: string, uid: string, deckId: string, frontText: string) => ({
-  id: field.string(id),
+const cardFields = (uid: string, deckId: string, frontText: string) => ({
   uid: field.string(uid),
   deckId: field.string(deckId),
   frontText: field.string(frontText),
@@ -150,13 +148,13 @@ const seedAuth = async (page: Page, uid: string, nextUid?: string) => {
 
 test("loads UID-scoped remote Decks and Cards again after reload", async ({ page }) => {
   const uid = "remote-read-user";
-  await setDocument("deck", "remote-read-deck", deckFields("remote-read-deck", uid, "Remote Query Deck"));
+  await setDocument("deck", "remote-read-deck", deckFields(uid, "Remote Query Deck"));
   await setDocument(
     "card",
     "remote-read-card",
-    cardFields("remote-read-card", uid, "remote-read-deck", "Remote Query Card")
+    cardFields(uid, "remote-read-deck", "Remote Query Card")
   );
-  await setDocument("deck", "foreign-deck", deckFields("foreign-deck", "foreign-user", "Foreign Deck"));
+  await setDocument("deck", "foreign-deck", deckFields("foreign-user", "Foreign Deck"));
   await seedAuth(page, uid);
 
   await page.goto("/");
@@ -212,8 +210,8 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
 test("logout replaces the UID-scoped Query cache", async ({ page }) => {
   const uidA = "logout-user-a";
   const uidB = "logout-user-b";
-  await setDocument("deck", "logout-deck-a", deckFields("logout-deck-a", uidA, "Logout Deck A"));
-  await setDocument("deck", "logout-deck-b", deckFields("logout-deck-b", uidB, "Logout Deck B"));
+  await setDocument("deck", "logout-deck-a", deckFields(uidA, "Logout Deck A"));
+  await setDocument("deck", "logout-deck-b", deckFields(uidB, "Logout Deck B"));
   await seedAuth(page, uidA, uidB);
 
   await page.goto("/");

@@ -32,7 +32,7 @@ const timestampOrDateSchema = z.union([validDateSchema, timestampSchema]).transf
 });
 
 export const deckDocumentSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   name: z.string(),
   url: z.string().optional(),
   isPublic: z.boolean(),
@@ -48,11 +48,16 @@ export const deckDocumentSchema = z.object({
   convertToBr: z.boolean(),
 });
 
+export const deckCreateDtoSchema = deckDocumentSchema.extend({
+  id: z.string(),
+});
+
 export const deckUpdateDtoSchema = deckDocumentSchema.omit({ id: true }).partial().extend({
   updatedAt: z.number(),
 });
 
 export type DeckDocument = z.infer<typeof deckDocumentSchema>;
+export type DeckCreateDto = z.infer<typeof deckCreateDtoSchema>;
 export type DeckUpdateDto = z.infer<typeof deckUpdateDtoSchema>;
 
 export class FirestoreDocumentValidationError extends Error {
@@ -106,7 +111,7 @@ export const mapDeckDocument = (id: DeckId, value: unknown): Deck => {
 };
 
 export const cardDocumentSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   frontText: z.string(),
   backText: z.string(),
   tags: z.array(z.string()),
@@ -126,11 +131,16 @@ export const cardDocumentSchema = z.object({
   endLine: z.number().optional(),
 });
 
+export const cardCreateDtoSchema = cardDocumentSchema.extend({
+  id: z.string(),
+});
+
 export const cardUpdateDtoSchema = cardDocumentSchema.omit({ id: true }).partial().extend({
   updatedAt: z.number(),
 });
 
 export type CardDocument = z.infer<typeof cardDocumentSchema>;
+export type CardCreateDto = z.infer<typeof cardCreateDtoSchema>;
 export type CardUpdateDto = z.infer<typeof cardUpdateDtoSchema>;
 
 export const parseCardDocument = (id: CardId, value: unknown): CardDocument =>
@@ -184,8 +194,8 @@ const omitUndefined = <T extends Record<string, unknown>>(value: T): OmitUndefin
  * The returned value is ready for the next layer, so callers do not need to repeat assembly or
  * defaulting rules.
  */
-export const buildDeckCreateDto = (deck: Deck, createdAt: number): DeckDocument =>
-  deckDocumentSchema.parse(
+export const buildDeckCreateDto = (deck: Deck, createdAt: number): DeckCreateDto =>
+  deckCreateDtoSchema.parse(
     omitUndefined({
       id: deck.id,
       name: deck.name,
@@ -233,8 +243,8 @@ export const buildDeckUpdateDto = (deck: DeckEdit, updatedAt: number): DeckUpdat
  * The returned value is ready for the next layer, so callers do not need to repeat assembly or
  * defaulting rules.
  */
-export const buildCardCreateDto = (card: Card, createdAt: number): CardDocument =>
-  cardDocumentSchema.parse(
+export const buildCardCreateDto = (card: Card, createdAt: number): CardCreateDto =>
+  cardCreateDtoSchema.parse(
     omitUndefined({
       id: card.id,
       frontText: card.frontText,

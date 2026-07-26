@@ -52,7 +52,6 @@ describe("Firestore DTO builders", () => {
   });
 
   const cardDocument = (overrides: Record<string, unknown> = {}) => ({
-    id: "payload-id",
     frontText: "Remote front",
     backText: "Remote back",
     tags: ["science"],
@@ -67,9 +66,8 @@ describe("Firestore DTO builders", () => {
     ...overrides,
   });
 
-  it("maps only remote deck fields using the snapshot id", () => {
+  it("maps a remote deck without a payload id using the snapshot id", () => {
     const document = {
-      id: "payload-id",
       name: "Remote Deck",
       url: "https://example.com/deck",
       isPublic: true,
@@ -125,7 +123,7 @@ describe("Firestore DTO builders", () => {
     expect(mapDeckDocument("snapshot-id", document)).not.toHaveProperty("url");
   });
 
-  it("maps only remote card fields using the snapshot id", () => {
+  it("maps a remote card without a payload id using the snapshot id", () => {
     const document = cardDocument({
       lastSeenAt: 50,
       nextSeeingAt: Timestamp.fromMillis(60),
@@ -283,8 +281,12 @@ describe("Firestore DTO builders", () => {
   it("validates write DTOs with the same storage contract", () => {
     const invalidCard = { ...card, tags: ["math", 42] } as unknown as Card;
     const invalidDeck = { ...deck, selectedTags: [42] } as unknown as Deck;
+    const cardWithoutId = { ...card, id: undefined } as unknown as Card;
+    const deckWithoutId = { ...deck, id: undefined } as unknown as Deck;
 
     expect(() => buildCardCreateDto(invalidCard, 200)).toThrow();
     expect(() => buildDeckUpdateDto(invalidDeck, 201)).toThrow();
+    expect(() => buildCardCreateDto(cardWithoutId, 200)).toThrow();
+    expect(() => buildDeckCreateDto(deckWithoutId, 200)).toThrow();
   });
 });
