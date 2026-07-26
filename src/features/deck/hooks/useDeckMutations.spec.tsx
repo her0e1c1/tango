@@ -2,7 +2,9 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { remoteStore } from "@/store/remoteStore";
-import { createDeck } from "@/test/factories";
+import { createDeck as createDeckFixture } from "@/test/factories";
+
+const createDeck = (overrides: Partial<Deck> = {}) => createDeckFixture({ uid: "uid-a", ...overrides });
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",

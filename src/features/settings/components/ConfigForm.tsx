@@ -245,7 +245,12 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
               Github Access Token
             </label>
             <span className="block text-caption text-ink-muted">Used when importing private GitHub content</span>
-            <Input className="mt-2" {...props.fields.githubAccessToken} id={inputIds.githubAccessToken} />
+            <Input
+              className="mt-2"
+              {...props.fields.githubAccessToken}
+              id={inputIds.githubAccessToken}
+              type="password"
+            />
           </div>
           <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
             <span className="shrink-0 text-body font-medium text-ink">User ID</span>

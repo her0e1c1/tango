@@ -244,6 +244,32 @@ describe("useDeckImport", () => {
     expect(mocks.createDeck).not.toHaveBeenCalled();
   });
 
+  it("does not send a GitHub token to an unapproved URL", async () => {
+    mocks.config = createConfig({ githubAccessToken: "secret" });
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"front","back","","key"'));
+    const { result } = renderHook(useDeckImport);
+
+    await act(async () => result.current.importUrl("https://example.test/deck.csv"));
+
+    expect(fetch).toHaveBeenCalledWith(new URL("https://example.test/deck.csv"), { headers: {} });
+  });
+
+  it("sends a GitHub token only to the repository contents API", async () => {
+    mocks.config = createConfig({ githubAccessToken: "secret" });
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"front","back","","key"'));
+    const { result } = renderHook(useDeckImport);
+    const url = "https://api.github.com/repos/owner/repository/contents/deck.csv";
+
+    await act(async () => result.current.importUrl(url));
+
+    expect(fetch).toHaveBeenCalledWith(new URL(url), {
+      headers: {
+        Accept: "application/vnd.github.raw",
+        Authorization: "Bearer secret",
+      },
+    });
+  });
+
   it("rejects a second import while the first is pending", async () => {
     let finish!: () => void;
     mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));

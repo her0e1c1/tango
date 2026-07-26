@@ -7,6 +7,12 @@
 import { expect, it, describe } from "vitest";
 import { applyRealtimeChange } from "@/lib/realtimeChange";
 
+it("keeps the collection reference for metadata-only changes", () => {
+  const previous = { card: { id: "card" } };
+
+  expect(applyRealtimeChange(previous, { added: [], modified: [], removed: [] })).toBe(previous);
+});
+
 describe("applyRealtimeChange", () => {
   type Item = { id: string; name: string };
 

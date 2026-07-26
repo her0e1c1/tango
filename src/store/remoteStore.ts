@@ -165,6 +165,15 @@ const freezeCollection = <T>(collection: RemoteById<T>, freezeEntity: (entity: T
   return Object.freeze(copy);
 };
 
+const freezeChange = <T extends { id: string }>(
+  event: RemoteChange<T>,
+  freezeEntity: (entity: T) => T
+): RemoteChange<T> => ({
+  added: event.added.map(freezeEntity),
+  modified: event.modified.map(freezeEntity),
+  removed: event.removed,
+});
+
 const emptyData = (): RemoteData => ({
   decksById: freezeCollection({}, freezeDeck),
   cardsById: freezeCollection({}, freezeCard),
@@ -275,6 +284,12 @@ export const createRemoteStore = (
   const store = createStore<RemoteStoreState>()((set, get) => {
     const publish = (read: RemoteReadState) => set({ read: Object.freeze(read) });
 
+    const applyFrozenChange = <T extends { id: string }>(
+      previous: RemoteById<T>,
+      event: RemoteChange<T>,
+      freezeEntity: (entity: T) => T
+    ) => dependencies.applyChange(previous, freezeChange(event, freezeEntity));
+
     const publishCardMutation = (state: RemoteMutationState<CardId>) => set({ cardMutation: Object.freeze(state) });
 
     const resetCardMutation = (uid: string | null) => {
@@ -330,6 +345,7 @@ export const createRemoteStore = (
       runCardMutation(uid, { kind: "create", card }, () =>
         withMutationLocks([cardMutationLock(uid, card.id)], () =>
           withDeckMembershipLocks([deckMembershipMutationLock(uid, card.deckId)], "shared", async () => {
+            if (card.uid !== uid) throw new Error("Card owner does not match the authenticated user");
             const create = dependencies.createCard;
             if (create == null) throw new Error("Remote Card create dependency is unavailable");
             await create(card);
@@ -341,6 +357,9 @@ export const createRemoteStore = (
       runCardMutation(uid, { kind: "update", card }, () =>
         withMutationLocks([cardMutationLock(uid, card.id)], () =>
           withDeckMembershipLocks([deckMembershipMutationLock(uid, card.deckId)], "shared", async () => {
+            if (card.uid != null && card.uid !== uid) {
+              throw new Error("Card owner does not match the authenticated user");
+            }
             const update = dependencies.updateCard;
             if (update == null) throw new Error("Remote Card update dependency is unavailable");
             await update(card);
@@ -368,6 +387,9 @@ export const createRemoteStore = (
               cards.map((card) => deckMembershipMutationLock(uid, card.deckId)),
               "shared",
               async () => {
+                if (cards.some((card) => card.uid !== uid)) {
+                  throw new Error("Card owner does not match the authenticated user");
+                }
                 const upsert = dependencies.upsertCard;
                 if (upsert == null) throw new Error("Remote Card upsert dependency is unavailable");
                 const results = await Promise.allSettled(cards.map((card) => upsert(card)));
@@ -445,6 +467,7 @@ export const createRemoteStore = (
     const createDeck = (uid: string, deck: Deck) =>
       runDeckMutation(uid, { kind: "create", deck }, () =>
         withMutationLocks([deckMutationLock(uid, deck.id)], async () => {
+          if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
           const create = dependencies.createDeck;
           if (create == null) throw new Error("Remote Deck create dependency is unavailable");
           await create(deck);
@@ -454,6 +477,9 @@ export const createRemoteStore = (
     const updateDeck = (uid: string, deck: DeckEdit) =>
       runDeckMutation(uid, { kind: "update", deck }, () =>
         withMutationLocks([deckMutationLock(uid, deck.id)], async () => {
+          if (deck.uid != null && deck.uid !== uid) {
+            throw new Error("Deck owner does not match the authenticated user");
+          }
           const update = dependencies.updateDeck;
           if (update == null) throw new Error("Remote Deck update dependency is unavailable");
           await update(deck);
@@ -548,15 +574,21 @@ export const createRemoteStore = (
       const read = get().read;
       const previous = readCollection(read, collection);
       const next =
-        snapshot.type === "replace" ? toRemoteById(snapshot.items) : dependencies.applyChange(previous, snapshot.event);
+        snapshot.type === "replace"
+          ? collection === "decks"
+            ? freezeCollection(toRemoteById(snapshot.items as Deck[]), freezeDeck)
+            : freezeCollection(toRemoteById(snapshot.items as Card[]), freezeCard)
+          : collection === "decks"
+            ? applyFrozenChange(previous as RemoteById<Deck>, snapshot.event as RemoteChange<Deck>, freezeDeck)
+            : applyFrozenChange(previous as RemoteById<Card>, snapshot.event as RemoteChange<Card>, freezeCard);
       const nextMetadata = new Map(metadata);
       nextMetadata.set(collection, Object.freeze({ ...snapshot.metadata }));
       metadata = nextMetadata;
 
       const data: RemoteData =
         collection === "decks"
-          ? { decksById: freezeCollection(next as RemoteById<Deck>, freezeDeck), cardsById: read.cardsById }
-          : { decksById: read.decksById, cardsById: freezeCollection(next as RemoteById<Card>, freezeCard) };
+          ? { decksById: next as RemoteById<Deck>, cardsById: read.cardsById }
+          : { decksById: read.decksById, cardsById: next as RemoteById<Card> };
       const deckMetadata = metadata.get("decks");
       const cardMetadata = metadata.get("cards");
       if (!deckMetadata || !cardMetadata) {

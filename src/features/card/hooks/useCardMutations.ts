@@ -25,7 +25,7 @@ export const useCardMutations = () => {
   const updateBy = (id: CardId, callback: (card: Card) => Partial<Card>) => {
     const card = cardById(id);
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
-    return updateCard(uid, { ...card, ...callback(card) });
+    return updateCard(uid, { id: card.id, deckId: card.deckId, ...callback(card) });
   };
   const remove = (id: CardId) => {
     const card = cardById(id);

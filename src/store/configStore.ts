@@ -6,7 +6,7 @@
 
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
-import { defaultConfig, parsePersistedConfig } from "@/store/configSchema";
+import { configSchema, defaultConfig, parsePersistedConfig } from "@/store/configSchema";
 
 export { defaultConfig } from "@/store/configSchema";
 
@@ -22,7 +22,10 @@ export interface ConfigStoreState {
   toggleConfig: (key: BooleanConfigKey) => void;
 }
 
-type PersistedConfigState = Pick<ConfigStoreState, "config">;
+type PersistedConfig = Omit<ConfigState, "githubAccessToken">;
+interface PersistedConfigState {
+  config: PersistedConfig;
+}
 
 interface CreateConfigStoreOptions {
   storage?: StateStorage;
@@ -38,8 +41,15 @@ export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreO
   return createStore<ConfigStoreState>()(
     persist<ConfigStoreState, [], [], PersistedConfigState>(
       (set) => ({
-        config: defaultConfig,
-        updateConfig: (config) => set((state) => ({ config: { ...state.config, ...config } })),
+        config: { ...defaultConfig, selectedTags: [...defaultConfig.selectedTags] },
+        updateConfig: (config) =>
+          set((state) => ({
+            config: configSchema.parse({
+              ...state.config,
+              ...config,
+              selectedTags: config.selectedTags == null ? state.config.selectedTags : [...config.selectedTags],
+            }),
+          })),
         toggleConfig: (key) =>
           set((state) => ({ config: { ...state.config, [key]: !state.config[key] } as ConfigState })),
       }),
@@ -48,7 +58,10 @@ export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreO
         version: 1,
         storage: persistStorage,
         ...(skipHydration !== undefined ? { skipHydration } : {}),
-        partialize: ({ config }) => ({ config }),
+        partialize: ({ config }) => {
+          const { githubAccessToken: _githubAccessToken, ...persistedConfig } = config;
+          return { config: persistedConfig };
+        },
         merge: (persistedState, currentState) => ({
           ...currentState,
           config: parsePersistedConfig(persistedState),

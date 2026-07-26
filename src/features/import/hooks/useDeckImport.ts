@@ -34,6 +34,11 @@ type ImportRequest =
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
+
+const isGitHubContentsApiUrl = (url: URL): boolean =>
+  url.protocol === "https:" &&
+  url.hostname === "api.github.com" &&
+  /^\/repos\/[^/]+\/[^/]+\/contents\/.+/.test(url.pathname);
 /**
  * Builds the stable sample deck id used by the import feature.
  * Centralizing the format prevents different callers from producing incompatible identifiers.
@@ -425,11 +430,12 @@ export const useDeckImport = () => {
     const operationGeneration = generation.current;
     const operationUid = uid;
     const headers: Record<string, string> = {};
-    if (config.githubAccessToken !== "") {
+    const parsedUrl = new URL(url);
+    if (config.githubAccessToken !== "" && isGitHubContentsApiUrl(parsedUrl)) {
       headers.Accept = "application/vnd.github.raw";
       headers.Authorization = `Bearer ${config.githubAccessToken}`;
     }
-    const response = await fetch(url, { headers });
+    const response = await fetch(parsedUrl, { headers });
     if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
     const cards = await action.deck.parseCsv(await response.text());
     if (generation.current !== operationGeneration || dependenciesRef.current?.uid !== operationUid) {
