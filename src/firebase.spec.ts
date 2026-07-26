@@ -151,6 +151,19 @@ describe("Firebase singletons", () => {
   it("does not connect auth to the emulator in production", async () => {
     vi.stubEnv("MODE", "production");
     vi.stubEnv("DEV", false);
+    vi.stubEnv("VITE_AUTH_HOST", "127.0.0.1");
+    vi.stubEnv("VITE_AUTH_PORT", "9099");
+
+    await import("@/firebase");
+
+    expect(connectAuthEmulator).not.toHaveBeenCalled();
+  });
+
+  it("does not connect auth to an invalid URL when the emulator is not configured", async () => {
+    vi.stubEnv("MODE", "development");
+    vi.stubEnv("DEV", true);
+    vi.stubEnv("VITE_AUTH_HOST", "");
+    vi.stubEnv("VITE_AUTH_PORT", "");
 
     await import("@/firebase");
 
