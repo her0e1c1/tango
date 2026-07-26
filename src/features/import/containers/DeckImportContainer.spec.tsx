@@ -1,8 +1,5 @@
 /**
- * @file Verifies the "DeckImportContainer" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "selects a CSV without
- * importing or navigating automatically", "adds the bundled sample without navigating
- * automatically", "imports the preview explicitly and navigates only from Back to decks".
+ * @file Verifies the Deck import container, explicit import flow, and guarded global shortcuts.
  */
 
 import { cleanup, fireEvent, render } from "@testing-library/react";
@@ -21,7 +18,7 @@ const mocks = vi.hoisted(() => ({
   deckDownloadCsvSampleText: vi.fn(),
   goToTop: vi.fn(),
   goToSettings: vi.fn(),
-  useKey: vi.fn(),
+  useGlobalShortcut: vi.fn(),
   preview: undefined as DeckImportPreview | undefined,
   data: undefined as DeckImportResult | undefined,
   partialResult: undefined as DeckImportResult | undefined,
@@ -45,13 +42,8 @@ vi.mock("@/features/import/hooks/useDeckImport", () => ({
     error: mocks.error,
   }),
 }));
-
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
-
-vi.mock("react-use", () => ({
-  useKey: mocks.useKey,
-}));
-
+vi.mock("@/hooks/useGlobalShortcut", () => ({ useGlobalShortcut: mocks.useGlobalShortcut }));
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     deckDownloadCsvSampleText: mocks.deckDownloadCsvSampleText,
@@ -121,8 +113,8 @@ describe("DeckImportContainer", () => {
     expect(mocks.importPreview).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
     expect(mocks.deckDownloadCsvSampleText).toHaveBeenCalledOnce();
-    expect(mocks.useKey).toHaveBeenCalledWith("t", mocks.goToTop);
-    expect(mocks.useKey).toHaveBeenCalledWith("s", mocks.goToSettings);
+    expect(mocks.useGlobalShortcut).toHaveBeenCalledWith("t", mocks.goToTop);
+    expect(mocks.useGlobalShortcut).toHaveBeenCalledWith("s", mocks.goToSettings);
   });
 
   it("adds the bundled sample without navigating automatically", async () => {
