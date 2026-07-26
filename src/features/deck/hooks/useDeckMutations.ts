@@ -3,7 +3,9 @@
 import { useEffect, useRef } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
+import type { DeckFilterPatch } from "@/domain/deckFilter";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { runMutationLifecycle, type MutationLifecycle } from "@/hooks/mutationLifecycle";
 import { deckCommands } from "@/services/deckCommands";
 
 interface UseDeckMutationsOptions {
@@ -29,7 +31,18 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   }, [uid]);
 
   const create = (deck: Deck) => mutation.run([deck.id], `create:${deck.id}`, () => deckCommands.create(uid, deck));
-  const update = (deck: DeckEdit) => mutation.run([deck.id], `update:${deck.id}`, () => deckCommands.update(uid, deck));
+  const update = <Context = unknown>(deck: DeckEdit, lifecycle?: MutationLifecycle<Context>) =>
+    mutation.run([deck.id], `update:${deck.id}`, () =>
+      runMutationLifecycle(() => deckCommands.update(uid, deck), lifecycle)
+    );
+  const updateFilter = <Context = unknown>(
+    deckId: DeckId,
+    patch: DeckFilterPatch,
+    lifecycle?: MutationLifecycle<Context>
+  ) =>
+    mutation.run([deckId], `updateFilter:${deckId}`, () =>
+      runMutationLifecycle(() => deckCommands.updateFilter(uid, deckId, patch), lifecycle)
+    );
   const remove = (deck: Deck) => {
     const operationScope = scope.current;
     return mutation.run([deck.id], `remove:${deck.id}`, async () => {
@@ -41,6 +54,7 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   return {
     create,
     update,
+    updateFilter,
     remove,
     pending: mutation.pending,
     isPending: mutation.isPending,
