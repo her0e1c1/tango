@@ -74,7 +74,16 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
         },
       }}
       feedbackSlot={
-        <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
+        <>
+          <RemoteMutationNotice
+            pending={deckActions.pending}
+            error={deckActions.error}
+            onRetry={deckActions.retry}
+            pendingLabel="Saving filters…"
+            errorLabel="Unable to save filters."
+          />
+          <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
+        </>
       }
       isCardPending={mutations.isPending}
       {...(showCard != null && category != null
