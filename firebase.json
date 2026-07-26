@@ -2,10 +2,26 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
+    }
+  ],
   "emulators": {
     "auth": {
       "host": "0.0.0.0",
       "port": 9099
+    },
+    "functions": {
+      "host": "0.0.0.0",
+      "port": 5001
     }
   },
   "hosting": {
