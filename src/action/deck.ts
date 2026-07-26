@@ -10,6 +10,7 @@ import * as Papa from "papaparse";
 
 import * as C from "@/constant";
 import * as action from "@/action";
+import { parseDeckImportCsv, requireValidDeckImportRows } from "@/lib/deckImportCsv";
 
 /**
  * Creates a complete deck from raw input, defaults, and generated identifiers.
@@ -67,19 +68,13 @@ export const downloadCsvSampleText = () => {
 };
 
 /**
- * Parses csv into validated application data.
- * Malformed input is reported before downstream code relies on the result.
+ * Parses CSV through the same normalization and validation pipeline used by file and URL imports.
+ * Invalid rows are rejected rather than silently returning a different result shape.
  */
 export const parseCsv = async (content: unknown): Promise<CardRaw[]> => {
   if (typeof content !== "string" && !(typeof File !== "undefined" && content instanceof File)) {
     throw new TypeError("CSV content must be a string or File");
   }
-  return await new Promise((resolve) =>
-    Papa.parse(content, {
-      complete: async (results: { data: string[][] }) => {
-        const cards = results.data.map(action.card.fromRow).filter((c) => !action.card.isEmpty(c));
-        resolve(cards);
-      },
-    })
-  );
+  const analysis = await parseDeckImportCsv(content);
+  return requireValidDeckImportRows(analysis).map((row) => row.card);
 };
