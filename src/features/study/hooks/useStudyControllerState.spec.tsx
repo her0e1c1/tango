@@ -27,7 +27,6 @@ describe("Controller with useStudyControllerState", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllTimers();
-    vi.runOnlyPendingTimers();
     vi.useRealTimers();
   });
   beforeEach(() => {
@@ -60,6 +59,50 @@ describe("Controller with useStudyControllerState", () => {
     expect(onChange).toHaveBeenLastCalledWith(1);
   });
 
+  it("stops autoplay instead of advancing past the last card", () => {
+    const onChange = vi.fn();
+    const onToggleAutoPlay = vi.fn();
+    render(
+      <ControllerHarness
+        onChange={onChange}
+        onToggleAutoPlay={onToggleAutoPlay}
+        autoPlay
+        index={4}
+        numberOfCards={5}
+        cardInterval={1}
+      />
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onToggleAutoPlay).toHaveBeenCalledOnce();
+  });
+
+  it("uses the same terminal behavior for a one-card session", () => {
+    const onChange = vi.fn();
+    const onToggleAutoPlay = vi.fn();
+    render(
+      <ControllerHarness
+        onChange={onChange}
+        onToggleAutoPlay={onToggleAutoPlay}
+        autoPlay
+        index={0}
+        numberOfCards={1}
+        cardInterval={1}
+      />
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onToggleAutoPlay).toHaveBeenCalledOnce();
+  });
+
   it("reflects a rerendered controlled autoPlay value immediately", () => {
     const c = render(<ControllerHarness autoPlay={false} />);
 
@@ -75,15 +118,5 @@ describe("Controller with useStudyControllerState", () => {
 
     fireEvent.change(c.getByRole("slider"), { target: { value: 3 } });
     expect(onChange).toHaveBeenLastCalledWith(3);
-  });
-
-  it("does not advance past the existing terminal index behavior", () => {
-    const onChange = vi.fn();
-    render(<ControllerHarness onChange={onChange} autoPlay index={5} numberOfCards={5} cardInterval={1} />);
-
-    act(() => {
-      vi.advanceTimersByTime(1000);
-    });
-    expect(onChange).not.toHaveBeenCalled();
   });
 });
