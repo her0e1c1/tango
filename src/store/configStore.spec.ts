@@ -45,7 +45,7 @@ describe("config store", () => {
     const { githubAccessToken: _githubAccessToken, ...persistedDefaultConfig } = defaultConfig;
     expect(persisted).toEqual({
       state: { config: { ...persistedDefaultConfig, darkMode: true } },
-      version: 1,
+      version: 2,
     });
     expect(persisted.state).not.toHaveProperty("deck");
     expect(persisted.state).not.toHaveProperty("card");
@@ -73,6 +73,8 @@ describe("config store", () => {
     await store.persist.rehydrate();
 
     expect(store.getState().config.githubAccessToken).toBe("");
+    expect(storage.getItem(CONFIG_STORAGE_KEY)).not.toContain("legacy-secret");
+    expect(JSON.parse(storage.getItem(CONFIG_STORAGE_KEY) ?? "{}")).toMatchObject({ version: 2 });
   });
 
   it("validates numeric ranges during updates", () => {

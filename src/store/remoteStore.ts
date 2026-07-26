@@ -288,7 +288,10 @@ export const createRemoteStore = (
       previous: RemoteById<T>,
       event: RemoteChange<T>,
       freezeEntity: (entity: T) => T
-    ) => dependencies.applyChange(previous, freezeChange(event, freezeEntity));
+    ) => {
+      const next = dependencies.applyChange(previous, freezeChange(event, freezeEntity));
+      return next === previous ? previous : Object.freeze(next);
+    };
 
     const publishCardMutation = (state: RemoteMutationState<CardId>) => set({ cardMutation: Object.freeze(state) });
 

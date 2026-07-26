@@ -169,6 +169,7 @@ describe("remote store reads", () => {
 
     expect(harness.store.getState().read.cardsById.second).toBe(unchanged);
     const changed = harness.store.getState().read.cardsById;
+    expect(Object.isFrozen(changed)).toBe(true);
     harness.cardSubscriptions[0]?.onSnapshot({
       type: "change",
       event: { added: [], modified: [], removed: [] },

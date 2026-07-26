@@ -87,6 +87,17 @@ describe("useCardMutations", () => {
     expect(mocks.logicalRemove).toHaveBeenCalledWith(card.id);
   });
 
+  it("does not allow updateBy patches to redirect the target Card", async () => {
+    const card = createCard({ id: "card", deckId: "deck" });
+    mocks.card = card;
+    const { result } = renderHook(useCardMutations);
+    const redirectingPatch = () => ({ id: "other-card", deckId: "other-deck", score: 2 });
+
+    await act(async () => result.current.updateBy(card.id, redirectingPatch));
+
+    expect(mocks.update).toHaveBeenCalledWith({ id: card.id, deckId: card.deckId, score: 2 });
+  });
+
   it("rejects updateBy and remove when the Card is unavailable", async () => {
     const { result } = renderHook(useCardMutations);
 

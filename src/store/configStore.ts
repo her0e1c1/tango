@@ -11,6 +11,7 @@ import { configSchema, defaultConfig, parsePersistedConfig } from "@/store/confi
 export { defaultConfig } from "@/store/configSchema";
 
 export const CONFIG_STORAGE_KEY = "tango-config";
+const CONFIG_STORAGE_VERSION = 2;
 
 type BooleanConfigKey = {
   [Key in keyof ConfigState]: ConfigState[Key] extends boolean ? Key : never;
@@ -55,9 +56,13 @@ export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreO
       }),
       {
         name: CONFIG_STORAGE_KEY,
-        version: 1,
+        version: CONFIG_STORAGE_VERSION,
         storage: persistStorage,
         ...(skipHydration !== undefined ? { skipHydration } : {}),
+        migrate: (persistedState) => {
+          const { githubAccessToken: _githubAccessToken, ...config } = parsePersistedConfig(persistedState);
+          return { config };
+        },
         partialize: ({ config }) => {
           const { githubAccessToken: _githubAccessToken, ...persistedConfig } = config;
           return { config: persistedConfig };
