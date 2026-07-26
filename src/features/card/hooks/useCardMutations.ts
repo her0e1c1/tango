@@ -13,8 +13,8 @@ export const useCardMutations = () => {
   const { cardById } = useRemoteCollections();
   const mutation = useAsyncAction<CardId>(uid);
 
-  const create = (card: Card) => mutation.run([card.id], () => cardCommands.create(uid, card));
-  const update = (card: CardEdit) => mutation.run([card.id], () => cardCommands.update(uid, card));
+  const create = (card: Card) => mutation.run([card.id], `create:${card.id}`, () => cardCommands.create(uid, card));
+  const update = (card: CardEdit) => mutation.run([card.id], `update:${card.id}`, () => cardCommands.update(uid, card));
   const updateBy = (id: CardId, callback: (card: Card) => CardPatch) => {
     const card = cardById(id);
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
@@ -23,13 +23,14 @@ export const useCardMutations = () => {
   const remove = (id: CardId) => {
     const card = cardById(id);
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
-    return mutation.run([id], () => cardCommands.remove(uid, id));
+    return mutation.run([id], `remove:${id}`, () => cardCommands.remove(uid, id, card.deckId));
   };
-  const bulkUpsert = (cards: Card[]) =>
-    mutation.run(
-      cards.map((card) => card.id),
-      () => cardCommands.bulkUpsert(uid, cards)
+  const bulkUpsert = (cards: Card[]) => {
+    const ids = cards.map((card) => card.id);
+    return mutation.run(ids, `bulkUpsert:${JSON.stringify([...ids].sort())}`, () =>
+      cardCommands.bulkUpsert(uid, cards)
     );
+  };
 
   return {
     create,

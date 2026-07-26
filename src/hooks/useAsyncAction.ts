@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 interface Failure<Id> {
   ids: readonly Id[];
+  operationKey: string;
   task: () => Promise<unknown>;
+  retrying?: boolean;
 }
 
 interface ActionState<Id> {
@@ -20,7 +22,6 @@ const initialActionState = <Id>(scope: string): ActionState<Id> => ({
 export const useAsyncAction = <Id>(scope: string) => {
   const generation = useRef(0);
   const currentScope = useRef(scope);
-  const sequence = useRef(0);
   const lastFailure = useRef<Failure<Id> | null>(null);
   const [state, setState] = useState<ActionState<Id>>(() => initialActionState(scope));
   const currentState = state.scope === scope ? state : initialActionState<Id>(scope);
@@ -48,25 +49,23 @@ export const useAsyncAction = <Id>(scope: string) => {
     });
   };
 
-  const run = async <T>(ids: readonly Id[], task: () => Promise<T>): Promise<T> => {
+  const run = async <T>(ids: readonly Id[], operationKey: string, task: () => Promise<T>): Promise<T> => {
     const operationGeneration = generation.current;
-    const operationSequence = ++sequence.current;
-    lastFailure.current = null;
-    setState((current) => ({
-      ...(current.scope === scope ? current : initialActionState<Id>(scope)),
-      error: null,
-    }));
     updatePending(ids, 1);
 
     try {
-      return await task();
+      const result = await task();
+      if (currentScope.current === scope && generation.current === operationGeneration) {
+        const failure = lastFailure.current;
+        if (failure?.operationKey === operationKey) {
+          lastFailure.current = null;
+          setState((current) => (current.scope === scope ? { ...current, error: null } : current));
+        }
+      }
+      return result;
     } catch (nextError) {
-      if (
-        currentScope.current === scope &&
-        generation.current === operationGeneration &&
-        sequence.current === operationSequence
-      ) {
-        lastFailure.current = { ids, task };
+      if (currentScope.current === scope && generation.current === operationGeneration) {
+        lastFailure.current = { ids, operationKey, task };
         setState((current) => (current.scope === scope ? { ...current, error: nextError } : current));
       }
       throw nextError;
@@ -79,8 +78,13 @@ export const useAsyncAction = <Id>(scope: string) => {
 
   const retry = () => {
     const failure = lastFailure.current;
-    if (failure == null) return;
-    void run(failure.ids, failure.task).catch(() => undefined);
+    if (failure == null || failure.retrying === true) return;
+    failure.retrying = true;
+    void run(failure.ids, failure.operationKey, failure.task)
+      .catch(() => undefined)
+      .finally(() => {
+        if (lastFailure.current === failure) failure.retrying = false;
+      });
   };
 
   return {

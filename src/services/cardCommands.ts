@@ -4,7 +4,12 @@ import {
   update as updateRemoteCard,
   upsert as upsertRemoteCard,
 } from "@/adapters/firestore/card";
-import { cardMutationLock, withMutationLocks } from "@/store/remoteMutationLocks";
+import {
+  cardMutationLock,
+  deckMembershipMutationLock,
+  withDeckMembershipLocks,
+  withMutationLocks,
+} from "@/store/remoteMutationLocks";
 
 const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
@@ -15,6 +20,11 @@ const requireOwner = (uid: string, entityUid: string | undefined) => {
     throw new Error("Card owner does not match the authenticated user");
   }
 };
+
+const withCardWriteLocks = <T>(uid: string, id: CardId, deckId: DeckId, task: () => Promise<T>): Promise<T> =>
+  withMutationLocks([cardMutationLock(uid, id)], () =>
+    withDeckMembershipLocks([deckMembershipMutationLock(uid, deckId)], "shared", task)
+  );
 
 export class CardBulkMutationError extends Error {
   constructor(
@@ -30,18 +40,18 @@ export const cardCommands = {
   create: async (uid: string, card: Card): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await withMutationLocks([cardMutationLock(uid, card.id)], () => createRemoteCard(card));
+    await withCardWriteLocks(uid, card.id, card.deckId, () => createRemoteCard(card));
   },
 
   update: async (uid: string, card: CardEdit): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await withMutationLocks([cardMutationLock(uid, card.id)], () => updateRemoteCard(card));
+    await withCardWriteLocks(uid, card.id, card.deckId, () => updateRemoteCard(card));
   },
 
-  remove: async (uid: string, id: CardId): Promise<void> => {
+  remove: async (uid: string, id: CardId, deckId: DeckId): Promise<void> => {
     requireUid(uid);
-    await withMutationLocks([cardMutationLock(uid, id)], () => removeRemoteCard(id));
+    await withCardWriteLocks(uid, id, deckId, () => removeRemoteCard(id));
   },
 
   bulkUpsert: async (uid: string, cards: Card[]): Promise<void> => {
@@ -51,7 +61,7 @@ export const cardCommands = {
     }
 
     const results = await Promise.allSettled(
-      cards.map((card) => withMutationLocks([cardMutationLock(uid, card.id)], () => upsertRemoteCard(card)))
+      cards.map((card) => withCardWriteLocks(uid, card.id, card.deckId, () => upsertRemoteCard(card)))
     );
     const failedIds = results.flatMap((result, index) => {
       const card = cards[index];

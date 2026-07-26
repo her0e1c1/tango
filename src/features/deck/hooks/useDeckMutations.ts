@@ -28,11 +28,11 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
     };
   }, [uid]);
 
-  const create = (deck: Deck) => mutation.run([deck.id], () => deckCommands.create(uid, deck));
-  const update = (deck: DeckEdit) => mutation.run([deck.id], () => deckCommands.update(uid, deck));
+  const create = (deck: Deck) => mutation.run([deck.id], `create:${deck.id}`, () => deckCommands.create(uid, deck));
+  const update = (deck: DeckEdit) => mutation.run([deck.id], `update:${deck.id}`, () => deckCommands.update(uid, deck));
   const remove = (deck: Deck) => {
     const operationScope = scope.current;
-    return mutation.run([deck.id], async () => {
+    return mutation.run([deck.id], `remove:${deck.id}`, async () => {
       await deckCommands.remove(uid, deck);
       if (scope.current === operationScope) onRemoveSuccessRef.current?.(deck);
     });

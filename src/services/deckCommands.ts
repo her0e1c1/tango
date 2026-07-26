@@ -3,7 +3,12 @@ import {
   remove as removeRemoteDeck,
   update as updateRemoteDeck,
 } from "@/adapters/firestore/deck";
-import { deckMutationLock, withMutationLocks } from "@/store/remoteMutationLocks";
+import {
+  deckMembershipMutationLock,
+  deckMutationLock,
+  withDeckMembershipLocks,
+  withMutationLocks,
+} from "@/store/remoteMutationLocks";
 
 const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Deck writes");
@@ -31,6 +36,10 @@ export const deckCommands = {
   remove: async (uid: string, deck: Deck): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, deck.uid);
-    await withMutationLocks([deckMutationLock(uid, deck.id)], () => removeRemoteDeck(deck.id, uid));
+    await withMutationLocks([deckMutationLock(uid, deck.id)], () =>
+      withDeckMembershipLocks([deckMembershipMutationLock(uid, deck.id)], "exclusive", () =>
+        removeRemoteDeck(deck.id, uid)
+      )
+    );
   },
 };
