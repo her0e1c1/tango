@@ -5,7 +5,6 @@
  */
 
 import type * as React from "react";
-import { useKey } from "react-use";
 
 import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
 import { RemoteMutationNotice } from "@/components/feedback/RemoteMutationNotice";
@@ -14,6 +13,7 @@ import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState
 import { useActions } from "@/hooks/useActions";
 import { useAuth } from "@/auth/AuthContext";
 import { useConfig } from "@/hooks/useConfig";
+import { useGlobalShortcut } from "@/hooks/useGlobalShortcut";
 
 /**
  * Connects the Config Container view to stores, remote data, route parameters, and mutations.
@@ -55,7 +55,7 @@ export const ConfigContainer: React.FC = () => {
     ),
     onSubmit: actions.configUpdate,
   });
-  useKey("t", actions.goToTop);
+  useGlobalShortcut("t", actions.goToTop);
 
   return (
     <ConfigFormTemplate
