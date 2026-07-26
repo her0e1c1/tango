@@ -6,11 +6,18 @@ import * as z from "zod";
 export const requiredCardText = (message: string) =>
   z.string().refine((value) => value.trim().length > 0, { message });
 
-/** Canonicalizes tags so all import entry points compare and persist the same values. */
-export const normalizeTags = (tags: readonly string[]): string[] =>
-  [...new Set(tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0))].sort((left, right) =>
-    left.localeCompare(right)
-  );
+/** Canonicalizes tags while preserving the first occurrence order from the user's input. */
+export const normalizeTags = (tags: readonly string[]): string[] => {
+  const normalized: string[] = [];
+  const seen = new Set<string>();
+  for (const rawTag of tags) {
+    const tag = rawTag.trim();
+    if (tag === "" || seen.has(tag)) continue;
+    seen.add(tag);
+    normalized.push(tag);
+  }
+  return normalized;
+};
 
 /** Canonicalizes one raw Card while preserving the user's front and back text. */
 export const normalizeCardRaw = (card: CardRaw): CardRaw => ({
