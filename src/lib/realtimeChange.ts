@@ -15,6 +15,9 @@ export const applyRealtimeChange = <T extends { id: string }>(
   prevById: Readonly<Record<string, T | undefined>>,
   event: { added?: T[]; modified?: T[]; removed?: string[] }
 ): Record<string, T | undefined> => {
+  if ((event.added?.length ?? 0) === 0 && (event.modified?.length ?? 0) === 0 && (event.removed?.length ?? 0) === 0) {
+    return prevById as Record<string, T | undefined>;
+  }
   const next = { ...prevById };
   (event.added ?? []).forEach((item) => {
     next[item.id] = item;

@@ -2,7 +2,9 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { remoteStore } from "@/store/remoteStore";
-import { createCard } from "@/test/factories";
+import { createCard as createCardFixture } from "@/test/factories";
+
+const createCard = (overrides: Partial<Card> = {}) => createCardFixture({ uid: "uid-a", ...overrides });
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
@@ -81,8 +83,19 @@ describe("useCardMutations", () => {
     await act(async () => result.current.updateBy(card.id, () => ({ score: 2 })));
     await act(async () => result.current.remove(card.id));
 
-    expect(mocks.update).toHaveBeenCalledWith({ ...card, score: 2 });
+    expect(mocks.update).toHaveBeenCalledWith({ id: card.id, deckId: card.deckId, score: 2 });
     expect(mocks.logicalRemove).toHaveBeenCalledWith(card.id);
+  });
+
+  it("does not allow updateBy patches to redirect the target Card", async () => {
+    const card = createCard({ id: "card", deckId: "deck" });
+    mocks.card = card;
+    const { result } = renderHook(useCardMutations);
+    const redirectingPatch = () => ({ id: "other-card", deckId: "other-deck", score: 2 });
+
+    await act(async () => result.current.updateBy(card.id, redirectingPatch));
+
+    expect(mocks.update).toHaveBeenCalledWith({ id: card.id, deckId: card.deckId, score: 2 });
   });
 
   it("rejects updateBy and remove when the Card is unavailable", async () => {

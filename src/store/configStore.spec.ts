@@ -42,9 +42,10 @@ describe("config store", () => {
     store.getState().updateConfig({ darkMode: true });
 
     const persisted = JSON.parse(storage.getItem(CONFIG_STORAGE_KEY) ?? "{}");
+    const { githubAccessToken: _githubAccessToken, ...persistedDefaultConfig } = defaultConfig;
     expect(persisted).toEqual({
-      state: { config: { ...defaultConfig, darkMode: true } },
-      version: 1,
+      state: { config: { ...persistedDefaultConfig, darkMode: true } },
+      version: 2,
     });
     expect(persisted.state).not.toHaveProperty("deck");
     expect(persisted.state).not.toHaveProperty("card");
@@ -56,6 +57,36 @@ describe("config store", () => {
     expect(restored.getState().config).toEqual({ ...defaultConfig, darkMode: true });
     expect(restored.getState().updateConfig).toBeTypeOf("function");
     expect(restored.getState().toggleConfig).toBeTypeOf("function");
+  });
+
+  it("never persists a GitHub access token and drops legacy persisted tokens", async () => {
+    const storage = createMemoryStorage();
+    const store = createConfigStore({ storage, skipHydration: true });
+
+    store.getState().updateConfig({ githubAccessToken: "secret" });
+    expect(storage.getItem(CONFIG_STORAGE_KEY)).not.toContain("secret");
+
+    storage.setItem(
+      CONFIG_STORAGE_KEY,
+      JSON.stringify({ state: { config: { ...defaultConfig, githubAccessToken: "legacy-secret" } }, version: 1 })
+    );
+    await store.persist.rehydrate();
+
+    expect(store.getState().config.githubAccessToken).toBe("");
+    expect(storage.getItem(CONFIG_STORAGE_KEY)).not.toContain("legacy-secret");
+    expect(JSON.parse(storage.getItem(CONFIG_STORAGE_KEY) ?? "{}")).toMatchObject({ version: 2 });
+  });
+
+  it("validates numeric ranges during updates", () => {
+    const store = createConfigStore({ storage: createMemoryStorage(), skipHydration: true });
+
+    store.getState().updateConfig({ maxNumberOfCardsToLearn: 101, cardInterval: -1, sizeBackText: -1 });
+
+    expect(store.getState().config).toMatchObject({
+      maxNumberOfCardsToLearn: defaultConfig.maxNumberOfCardsToLearn,
+      cardInterval: defaultConfig.cardInterval,
+      sizeBackText: defaultConfig.sizeBackText,
+    });
   });
 
   it("keeps valid persisted settings and replaces invalid values with current defaults", async () => {

@@ -7,7 +7,10 @@ import {
   type RemoteReadDependencies,
   type RemoteSubscriptionProps,
 } from "@/store/remoteStore";
-import { createCard, createDeck } from "@/test/factories";
+import { createCard as createCardFixture, createDeck as createDeckFixture } from "@/test/factories";
+
+const createCard = (overrides: Partial<Card> = {}) => createCardFixture({ uid: "uid-a", ...overrides });
+const createDeck = (overrides: Partial<Deck> = {}) => createDeckFixture({ uid: "uid-a", ...overrides });
 
 const deferred = <T>() => {
   let resolve!: (value: T) => void;
@@ -54,6 +57,20 @@ const createHarness = () => {
 describe("remote store mutations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("rejects writes whose owner differs from the authenticated user", async () => {
+    const { store, dependencies } = createHarness();
+
+    await expect(store.getState().createCard("uid-a", createCard({ uid: "uid-b" }))).rejects.toThrow(
+      "Card owner does not match"
+    );
+    await expect(store.getState().createDeck("uid-a", createDeck({ uid: "uid-b" }))).rejects.toThrow(
+      "Deck owner does not match"
+    );
+
+    expect(dependencies.createCard).not.toHaveBeenCalled();
+    expect(dependencies.createDeck).not.toHaveBeenCalled();
   });
 
   it("tracks a pending Card create without publishing the entity before its snapshot", async () => {

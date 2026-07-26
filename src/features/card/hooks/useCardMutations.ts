@@ -7,6 +7,7 @@ import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { remoteStore } from "@/store/remoteStore";
 
 const noPendingCards = new Map<CardId, number>();
+type CardPatch = Partial<Omit<Card, "id" | "deckId" | "uid">>;
 
 export const useCardMutations = () => {
   const auth = useAuth();
@@ -22,10 +23,10 @@ export const useCardMutations = () => {
 
   const create = (card: Card) => createCard(uid, card);
   const update = (card: CardEdit) => updateCard(uid, card);
-  const updateBy = (id: CardId, callback: (card: Card) => Partial<Card>) => {
+  const updateBy = (id: CardId, callback: (card: Card) => CardPatch) => {
     const card = cardById(id);
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
-    return updateCard(uid, { ...card, ...callback(card) });
+    return updateCard(uid, { ...callback(card), id: card.id, deckId: card.deckId });
   };
   const remove = (id: CardId) => {
     const card = cardById(id);

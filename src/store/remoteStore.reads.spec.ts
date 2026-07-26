@@ -143,6 +143,41 @@ describe("remote store reads", () => {
     expect(listener).toHaveBeenCalledTimes(6);
   });
 
+  it("preserves unchanged entity and collection references", async () => {
+    const harness = createHarness();
+    const first = createCard({ id: "first" });
+    const second = createCard({ id: "second" });
+    await harness.store.getState().start("uid-a");
+    harness.deckSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [],
+      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+    });
+    harness.cardSubscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [first, second],
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
+    });
+    const initial = harness.store.getState().read.cardsById;
+    const unchanged = initial.second;
+
+    harness.cardSubscriptions[0]?.onSnapshot({
+      type: "change",
+      event: { added: [], modified: [{ ...first, frontText: "updated" }], removed: [] },
+      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
+    });
+
+    expect(harness.store.getState().read.cardsById.second).toBe(unchanged);
+    const changed = harness.store.getState().read.cardsById;
+    expect(Object.isFrozen(changed)).toBe(true);
+    harness.cardSubscriptions[0]?.onSnapshot({
+      type: "change",
+      event: { added: [], modified: [], removed: [] },
+      metadata: { size: 2, fromCache: true, hasPendingWrites: false },
+    });
+    expect(harness.store.getState().read.cardsById).toBe(changed);
+  });
+
   it("recovers once, then retains data on a terminal listener error and ignores stale callbacks", async () => {
     const harness = createHarness();
     const deck = createDeck({ id: "deck-a" });
