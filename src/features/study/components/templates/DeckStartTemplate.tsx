@@ -13,6 +13,7 @@ export interface DeckStartTemplateProps {
   deckName: string;
   maxNumberOfCardsToLearn: number;
   cardsLength: number;
+  feedbackSlot?: React.ReactNode;
   filterSlot?: React.ReactNode;
   onClickStart?: () => void;
 }
@@ -24,7 +25,7 @@ export interface DeckStartTemplateProps {
 const cardsLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
 
 /**
- * Composes the complete Deck Start Template screen from reusable UI components.
+ * Composes the complete Deck Swiper Template screen from reusable UI components.
  * All data and callbacks arrive through props, allowing the same screen to run in containers,
  * tests, and Storybook.
  */
@@ -38,6 +39,7 @@ export const DeckStartTemplate: React.FC<DeckStartTemplateProps> = (props) => {
 
   return (
     <Layout showHeader {...props.layout}>
+      {props.feedbackSlot}
       <div className="mx-auto w-full max-w-reading space-y-section-gap">
         <header>
           <p className="text-caption font-bold uppercase tracking-wider text-accent-primary">Study setup</p>
