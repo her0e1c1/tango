@@ -7,7 +7,6 @@
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useKey } from "react-use";
 
 import * as C from "@/constant";
 import * as util from "@/util";
@@ -25,8 +24,10 @@ import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { selectStudySessionForRoute, studyStore } from "@/features/study/state/studyStore";
 import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/hooks/useConfig";
+import { useGlobalShortcut } from "@/hooks/useGlobalShortcut";
 
 const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
+const SWIPE_FEEDBACK_DURATION_MS = 900;
 
 /**
  * Connects the Deck Swiper Container view to stores, remote data, route parameters, and mutations.
@@ -44,6 +45,7 @@ export const DeckSwiperContainer: React.FC = () => {
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
+  const lastSwipe = useStudyStore((state) => state.lastSwipe);
   const hydrated = useStudyHydrated();
 
   const index = session?.currentIndex ?? -1;
@@ -52,14 +54,27 @@ export const DeckSwiperContainer: React.FC = () => {
   const studyActions = useStudyActions(deckId);
   const actions = useActions();
 
-  useKey("ArrowUp", studyActions.swipeUp);
-  useKey("ArrowDown", studyActions.swipeDown);
-  useKey("ArrowLeft", studyActions.swipeLeft);
-  useKey("ArrowRight", studyActions.swipeRight);
-  useKey("Enter", studyActions.toggleShowBackText);
-  useKey("h", actions.toggleShowHeader);
-  useKey("b", actions.toggleShowSwipeButtonList);
-  useKey(" ", studyActions.toggleAutoPlay);
+  useGlobalShortcut("ArrowUp", () => void studyActions.swipeUp());
+  useGlobalShortcut("ArrowDown", () => void studyActions.swipeDown());
+  useGlobalShortcut("ArrowLeft", () => void studyActions.swipeLeft());
+  useGlobalShortcut("ArrowRight", () => void studyActions.swipeRight());
+  useGlobalShortcut("Enter", studyActions.toggleShowBackText);
+  useGlobalShortcut("h", actions.toggleShowHeader);
+  useGlobalShortcut("b", actions.toggleShowSwipeButtonList);
+  useGlobalShortcut(" ", studyActions.toggleAutoPlay);
+
+  React.useEffect(() => {
+    if (!config.showSwipeFeedback) {
+      if (lastSwipe !== undefined) studyStore.getState().clearLastSwipe();
+      return;
+    }
+    if (lastSwipe === undefined) return;
+
+    const timeout = window.setTimeout(() => {
+      if (studyStore.getState().lastSwipe === lastSwipe) studyStore.getState().clearLastSwipe();
+    }, SWIPE_FEEDBACK_DURATION_MS);
+    return () => window.clearTimeout(timeout);
+  }, [config.showSwipeFeedback, lastSwipe]);
 
   const navigate = useNavigate();
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
@@ -146,6 +161,7 @@ export const DeckSwiperContainer: React.FC = () => {
       showBackText={showBackText}
       showHeader={config.showHeader}
       showSwipeButtonList={config.showSwipeButtonList}
+      {...(config.showSwipeFeedback && lastSwipe !== undefined ? { swipeFeedback: lastSwipe } : {})}
       layout={{
         headerProps: {
           dark: config.darkMode,
