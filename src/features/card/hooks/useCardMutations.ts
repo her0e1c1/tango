@@ -3,6 +3,7 @@
 import { useAuth } from "@/auth/AuthContext";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { runMutationLifecycle, type MutationLifecycle } from "@/hooks/mutationLifecycle";
 import { cardCommands } from "@/services/cardCommands";
 
 type CardPatch = Partial<Omit<Card, "id" | "deckId" | "uid">>;
@@ -14,7 +15,10 @@ export const useCardMutations = () => {
   const mutation = useAsyncAction<CardId>(uid);
 
   const create = (card: Card) => mutation.run([card.id], `create:${card.id}`, () => cardCommands.create(uid, card));
-  const update = (card: CardEdit) => mutation.run([card.id], `update:${card.id}`, () => cardCommands.update(uid, card));
+  const update = <Context = unknown>(card: CardEdit, lifecycle?: MutationLifecycle<Context>) =>
+    mutation.run([card.id], `update:${card.id}`, () =>
+      runMutationLifecycle(() => cardCommands.update(uid, card), lifecycle)
+    );
   const updateBy = (id: CardId, callback: (card: Card) => CardPatch) => {
     const card = cardById(id);
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
