@@ -53,6 +53,15 @@ describe("Firestore DTO runtime validation", () => {
     expect(() => mapCardDocument("broken-card", invalid)).toThrow("nextSeeingAt");
   });
 
+  it("accepts the legacy Date representation for scheduled Cards", () => {
+    const nextSeeingAt = new Date("2025-01-02T03:04:05.000Z");
+
+    expect(mapCardDocument("legacy-card", { ...cardDocument(), nextSeeingAt })).toMatchObject({
+      id: "legacy-card",
+      nextSeeingAt,
+    });
+  });
+
   it("builds a narrow Deck filter update DTO", () => {
     expect(
       buildDeckFilterUpdateDto(
