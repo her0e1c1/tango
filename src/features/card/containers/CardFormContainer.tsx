@@ -37,8 +37,7 @@ const CardFormContent = ({ card }: { card: Card }) => {
     categoryOptions,
     onSubmit: async (nextCard) => {
       try {
-        await mutations.update(nextCard);
-        goBack();
+        await mutations.update(nextCard, { onSuccess: goBack });
       } catch {
         // The mutation notice owns error feedback and retry.
       }
