@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { useStore } from "zustand";
 
 import { useAuth } from "@/auth/AuthContext";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { remoteValues, cardsForDeck, filteredCardsForDeck, tagsForDeck } from "@/store/remoteSelectors";
 import { remoteStore } from "@/store/remoteStore";
 
