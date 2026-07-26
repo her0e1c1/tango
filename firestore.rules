@@ -1,23 +1,31 @@
 service cloud.firestore {
   function isOwner() {
-    return request.auth.uid == resource.data.uid;
+    return request.auth != null && request.auth.uid == resource.data.uid;
   }
   function isValidOwner() {
-    return request.auth.uid == resource.data.uid &&
+    return request.auth != null &&
+           request.auth.uid == resource.data.uid &&
            request.auth.uid == request.resource.data.uid;
   }
   function isValid() {
-    return request.auth.uid == request.resource.data.uid;
+    return request.auth != null && request.auth.uid == request.resource.data.uid;
   }
   match /databases/{database}/documents {
     match /deck/{deckId} {
       function isPublic() {
         return resource.data.isPublic == true;
       }
+      function preservesServerDeletionState() {
+        return request.resource.data.deletedAt == resource.data.deletedAt &&
+               request.resource.data.get('deletionState', null) == resource.data.get('deletionState', null);
+      }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid();
-      allow update: if isValidOwner();
-      allow delete: if isOwner();
+      allow create: if isValid() &&
+                       request.resource.data.deletedAt == null &&
+                       request.resource.data.get('deletionState', null) == null;
+      allow update: if isValidOwner() && preservesServerDeletionState();
+      // Physical Deck deletion is owned by the trusted deleteDeck callable function.
+      allow delete: if false;
     }
     match /card/{cardId} {
       function getDeck(deckId) {
@@ -26,12 +34,17 @@ service cloud.firestore {
       function isPublic() {
         return getDeck(resource.data.deckId).data.isPublic == true;
       }
-      function belongsToDeck() {
-        return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
+      function deckAcceptsWrites(deckId) {
+        let deck = getDeck(deckId);
+        return deck.data.uid == request.auth.uid &&
+               deck.data.deletedAt == null &&
+               deck.data.get('deletionState', null) != 'deleting';
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid() && belongsToDeck();
-      allow update: if isValidOwner() && belongsToDeck();
+      allow create: if isValid() && deckAcceptsWrites(request.resource.data.deckId);
+      allow update: if isValidOwner() &&
+                       request.resource.data.deckId == resource.data.deckId &&
+                       deckAcceptsWrites(request.resource.data.deckId);
       allow delete: if isOwner();
     }
   }
