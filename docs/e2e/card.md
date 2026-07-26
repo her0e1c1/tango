@@ -9,7 +9,7 @@ Card 管理の主要導線が、ブラウザ上で表示・編集・削除・状
 ### 1. Card 一覧を表示できる
 
 | 項目 | 内容 |
-|---|---|
+| --- | --- |
 | カテゴリ | read |
 | 目的 | Deck 詳細画面で、対象 deck に紐づく card が一覧表示されることを確認する。 |
 | Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
@@ -21,7 +21,7 @@ Card 管理の主要導線が、ブラウザ上で表示・編集・削除・状
 ### 2. Card の裏面を overlay で確認できる
 
 | 項目 | 内容 |
-|---|---|
+| --- | --- |
 | カテゴリ | read |
 | 目的 | Card 一覧から card の裏面を確認でき、overlay を閉じられることを確認する。 |
 | Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
@@ -35,7 +35,7 @@ Card 管理の主要導線が、ブラウザ上で表示・編集・削除・状
 ### 3. Card 編集内容を保存して前画面に戻れる
 
 | 項目 | 内容 |
-|---|---|
+| --- | --- |
 | カテゴリ | write |
 | 目的 | Card の front text、back text、tags を編集し、Deck 詳細画面に反映されることを確認する。 |
 | Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
@@ -52,7 +52,7 @@ Card 管理の主要導線が、ブラウザ上で表示・編集・削除・状
 ### 4. Card を削除できる
 
 | 項目 | 内容 |
-|---|---|
+| --- | --- |
 | カテゴリ | write |
 | 目的 | Deck 詳細画面から Card を削除でき、削除後に一覧から消えることを確認する。 |
 | Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
@@ -65,7 +65,7 @@ Card 管理の主要導線が、ブラウザ上で表示・編集・削除・状
 ### 5. Card の swipe 操作で score を更新できる
 
 | 項目 | 内容 |
-|---|---|
+| --- | --- |
 | カテゴリ | write |
 | 目的 | Card 一覧で swipe 操作を行うと、card の score が更新されることを確認する。 |
 | Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
