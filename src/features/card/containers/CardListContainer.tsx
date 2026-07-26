@@ -6,7 +6,6 @@
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useKey } from "react-use";
 
 import * as C from "@/constant";
 import * as util from "@/util";
@@ -19,6 +18,7 @@ import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useConfig } from "@/hooks/useConfig";
+import { useGlobalShortcut } from "@/hooks/useGlobalShortcut";
 
 /**
  * Connects the Card List Content view to stores, remote data, route parameters, and mutations.
@@ -32,7 +32,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const actions = useActions();
   const mutations = useCardMutations();
   const deckActions = useDeckActions(deckId);
-  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
+  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.updateFilter });
   /**
    * Closes the currently selected card preview.
    * Clearing the selection returns the list container to its unexpanded state.
@@ -40,8 +40,8 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : util.getCategory(deck.category, showCard.tags);
 
-  useKey("t", actions.goToTop);
-  useKey("s", actions.goToSettings);
+  useGlobalShortcut("t", actions.goToTop);
+  useGlobalShortcut("s", actions.goToSettings);
 
   return (
     <CardListTemplate
