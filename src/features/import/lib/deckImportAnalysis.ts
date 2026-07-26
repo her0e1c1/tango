@@ -4,22 +4,9 @@
  * understand and test.
  */
 
-import * as Papa from "papaparse";
+import type { DeckImportPlan, DeckImportPlanRow, DeckImportRow } from "@/domain/deckImport";
 
-import * as cardAction from "@/action/card";
-import type {
-  DeckImportAnalysis,
-  DeckImportIssue,
-  DeckImportPlan,
-  DeckImportPlanRow,
-  DeckImportRow,
-} from "@/features/import/components/deckImportTypes";
-
-/**
- * Formats raw CSV columns for inclusion in a validation message.
- * Keeping the original values visible helps users identify the row that needs correction.
- */
-const rowContext = (columns: string[]) => JSON.stringify(columns);
+export { parseDeckImportCsv } from "@/lib/deckImportCsv";
 
 /**
  * Checks whether two imported card values contain the same user-editable content.
@@ -29,89 +16,6 @@ const sameCardContent = (left: CardRaw, right: CardRaw) =>
   left.frontText === right.frontText &&
   left.backText === right.backText &&
   left.tags.join("\0") === right.tags.join("\0");
-
-/**
- * Parses deck import csv into validated application data.
- * Malformed input is reported before downstream code relies on the result.
- */
-export const parseDeckImportCsv = async (content: string | File): Promise<DeckImportAnalysis> => {
-  const parsed = await new Promise<Papa.ParseResult<string[]>>((resolve, reject) => {
-    Papa.parse<string[]>(content, { delimiter: ",", complete: resolve, error: reject });
-  });
-  const rows: DeckImportRow[] = [];
-  const skippedRows: number[] = [];
-  const issues: DeckImportIssue[] = [];
-  const invalidRows = new Set<number>();
-  const parseErrorRows = new Set<number>();
-  const uniqueKeys = new Set<string>();
-  let fileIssueCount = 0;
-
-  parsed.errors.forEach((error) => {
-    if (error.row == null) {
-      fileIssueCount += 1;
-      issues.push({ message: error.message });
-      return;
-    }
-    const rowNumber = error.row + 1;
-    invalidRows.add(rowNumber);
-    parseErrorRows.add(error.row);
-    issues.push({
-      rowNumber,
-      message: error.message,
-      context: rowContext(parsed.data[error.row] ?? []),
-    });
-  });
-
-  parsed.data.forEach((columns, index) => {
-    const rowNumber = index + 1;
-    if (parseErrorRows.has(index)) return;
-    if (columns.every((column) => column.trim() === "")) {
-      skippedRows.push(rowNumber);
-      return;
-    }
-    if (columns.length !== 4) {
-      invalidRows.add(rowNumber);
-      issues.push({
-        rowNumber,
-        message: `Expected 4 columns, found ${columns.length}.`,
-        context: rowContext(columns),
-      });
-      return;
-    }
-
-    const card = cardAction.fromRow(columns);
-    card.uniqueKey = card.uniqueKey.trim();
-    if (card.uniqueKey === "") {
-      invalidRows.add(rowNumber);
-      issues.push({ rowNumber, message: "uniqueKey is required.", context: rowContext(columns) });
-      return;
-    }
-    if (uniqueKeys.has(card.uniqueKey)) {
-      invalidRows.add(rowNumber);
-      issues.push({
-        rowNumber,
-        message: `uniqueKey "${card.uniqueKey}" is duplicated in this file.`,
-        context: rowContext(columns),
-      });
-      return;
-    }
-
-    uniqueKeys.add(card.uniqueKey);
-    rows.push({ rowNumber, card });
-  });
-
-  if (rows.length === 0 && issues.length === 0) {
-    fileIssueCount += 1;
-    issues.push({ message: "The CSV file is empty." });
-  }
-
-  return {
-    rows,
-    skippedRows,
-    issues,
-    invalidCount: invalidRows.size + fileIssueCount,
-  };
-};
 
 /**
  * Builds deck import plan from the supplied application values.
