@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   uid: "uid-a",
   create: vi.fn(),
   update: vi.fn(),
+  updateFilter: vi.fn(),
   remove: vi.fn(),
 }));
 
@@ -19,6 +20,7 @@ vi.mock("@/auth/AuthContext", () => ({
 vi.mock("@/adapters/firestore/deck", () => ({
   create: mocks.create,
   update: mocks.update,
+  updateFilter: mocks.updateFilter,
   remove: mocks.remove,
 }));
 
@@ -30,18 +32,22 @@ describe("useDeckMutations", () => {
     mocks.uid = "uid-a";
     mocks.create.mockResolvedValue("deck-id");
     mocks.update.mockResolvedValue(undefined);
+    mocks.updateFilter.mockResolvedValue(undefined);
     mocks.remove.mockResolvedValue(undefined);
   });
 
-  it("routes Deck creates and updates through commands", async () => {
+  it("routes Deck creates, updates, and filter patches through commands", async () => {
     const deck = createDeck({ id: "deck", name: "Before" });
+    const patch = { selectedTags: ["tag"], tagAndFilter: true, scoreMin: -1, scoreMax: 2 };
     const { result } = renderHook(useDeckMutations);
 
     await act(async () => result.current.create(deck));
     await act(async () => result.current.update({ ...deck, name: "After" }));
+    await act(async () => result.current.updateFilter(deck.id, patch));
 
     expect(mocks.create).toHaveBeenCalledWith(deck);
     expect(mocks.update).toHaveBeenCalledWith({ ...deck, name: "After" });
+    expect(mocks.updateFilter).toHaveBeenCalledWith(deck.id, patch);
   });
 
   it("exposes per-Deck pending state while an update is running", async () => {
@@ -67,7 +73,7 @@ describe("useDeckMutations", () => {
     expect(result.current.pending).toBe(false);
   });
 
-  it("invokes remove success after a removal", async () => {
+  it("invokes remove success after the server-side removal completes", async () => {
     let finish!: () => void;
     mocks.remove.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
     const deck = createDeck({ id: "deck" });
@@ -78,7 +84,7 @@ describe("useDeckMutations", () => {
     act(() => {
       operation = result.current.remove(deck);
     });
-    await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id, "uid-a"));
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id));
     await act(async () => {
       finish();
       await operation;
@@ -127,6 +133,26 @@ describe("useDeckMutations", () => {
       expect(result.current.error).toBeNull();
     });
     expect(onRemoveSuccess).not.toHaveBeenCalled();
+  });
+
+  it("replays lifecycle callbacks when retrying a failed update", async () => {
+    const deck = createDeck({ id: "deck" });
+    const failure = new Error("update failed");
+    mocks.update.mockRejectedValueOnce(failure).mockResolvedValueOnce(undefined);
+    const onMutate = vi.fn(() => "context");
+    const onSuccess = vi.fn();
+    const onError = vi.fn();
+    const { result } = renderHook(useDeckMutations);
+
+    await act(async () => {
+      await expect(result.current.update(deck, { onMutate, onSuccess, onError })).rejects.toBe(failure);
+    });
+    act(() => result.current.retry());
+
+    await waitFor(() => expect(result.current.error).toBeNull());
+    expect(onMutate).toHaveBeenCalledTimes(2);
+    expect(onError).toHaveBeenCalledExactlyOnceWith(failure, "context");
+    expect(onSuccess).toHaveBeenCalledExactlyOnceWith("context");
   });
 
   it("rejects writes without a confirmed user and exposes the error", async () => {
