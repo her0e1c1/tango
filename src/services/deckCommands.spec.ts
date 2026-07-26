@@ -5,6 +5,7 @@ import { createCard as createCardFixture, createDeck as createDeckFixture } from
 const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   update: vi.fn(),
+  updateFilter: vi.fn(),
   remove: vi.fn(),
 }));
 
@@ -18,6 +19,7 @@ const cardMocks = vi.hoisted(() => ({
 vi.mock("@/adapters/firestore/deck", () => ({
   create: mocks.create,
   update: mocks.update,
+  updateFilter: mocks.updateFilter,
   remove: mocks.remove,
 }));
 
@@ -39,6 +41,7 @@ describe("deck commands", () => {
     vi.clearAllMocks();
     mocks.create.mockResolvedValue("created");
     mocks.update.mockResolvedValue(undefined);
+    mocks.updateFilter.mockResolvedValue(undefined);
     mocks.remove.mockResolvedValue(undefined);
     cardMocks.create.mockResolvedValue("created");
     cardMocks.update.mockResolvedValue(undefined);
@@ -52,6 +55,14 @@ describe("deck commands", () => {
 
     expect(mocks.create).not.toHaveBeenCalled();
     expect(mocks.remove).not.toHaveBeenCalled();
+  });
+
+  it("writes only the requested filter patch", async () => {
+    const patch = { selectedTags: ["tag"], tagAndFilter: true, scoreMin: -1, scoreMax: 3 };
+
+    await deckCommands.updateFilter("uid-a", "deck", patch);
+
+    expect(mocks.updateFilter).toHaveBeenCalledExactlyOnceWith("deck", patch);
   });
 
   it("serializes writes to the same Deck", async () => {
@@ -70,7 +81,7 @@ describe("deck commands", () => {
 
     finishUpdate();
     await Promise.all([update, remove]);
-    expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id, "uid-a");
+    expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id);
   });
 
   it("allows writes to unrelated Decks to proceed independently", async () => {
@@ -131,7 +142,7 @@ describe("deck commands", () => {
 
     finishCardWrite();
     await Promise.all([cardWrite, removal]);
-    expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id, "uid-a");
+    expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id);
   });
 
   it("does not block Card writes or Deck removals for other memberships", async () => {
