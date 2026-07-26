@@ -1,9 +1,6 @@
 /**
- * @file Verifies the "DeckSwiperContainer with DeckSwiperTemplate" contract with automated
- * examples.
- * The examples make the expected behavior concrete with cases such as "renders the active session
- * card and forwards study callbacks", "keeps pending study saves silent while disabling swipe
- * controls", "installs one back-navigation guard when StrictMode replays the effect".
+ * @file Verifies the Deck swiper container, guarded shortcuts, transient feedback, and route-session
+ * recovery behavior.
  */
 
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
@@ -32,7 +29,7 @@ const mocks = vi.hoisted(() => ({
   hydrated: true,
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
-  useKey: vi.fn(),
+  useGlobalShortcut: vi.fn(),
 }));
 
 vi.mock("@/hooks/useConfig", () => ({
@@ -56,8 +53,8 @@ vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
 
-vi.mock("react-use", () => ({
-  useKey: mocks.useKey,
+vi.mock("@/hooks/useGlobalShortcut", () => ({
+  useGlobalShortcut: mocks.useGlobalShortcut,
 }));
 
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
@@ -138,6 +135,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
       darkMode: false,
       showHeader: true,
       showSwipeButtonList: true,
+      showSwipeFeedback: false,
     }),
   });
 
@@ -162,9 +160,11 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
 
   afterEach(() => {
     cleanup();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
-  it("renders the active session card and forwards study callbacks", () => {
+  it("renders the active session Card and registers guarded study shortcuts", () => {
     const view = render(<DeckSwiperContainer />);
 
     expect(view.getByText(card.frontText)).toBeVisible();
@@ -175,10 +175,33 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
 
     expect(mocks.toggleShowBackText).toHaveBeenCalledOnce();
     expect(mocks.updateIndex).toHaveBeenCalledWith(1);
-    expect(mocks.useKey).toHaveBeenCalledWith("ArrowLeft", mocks.swipeLeft);
-    expect(mocks.useKey).toHaveBeenCalledWith("ArrowRight", mocks.swipeRight);
-    expect(mocks.useKey).toHaveBeenCalledWith("Enter", mocks.toggleShowBackText);
-    expect(mocks.useKey).toHaveBeenCalledWith(" ", mocks.toggleAutoPlay);
+    expect(mocks.useGlobalShortcut).toHaveBeenCalledWith("ArrowLeft", mocks.swipeLeft);
+    expect(mocks.useGlobalShortcut).toHaveBeenCalledWith("ArrowRight", mocks.swipeRight);
+    expect(mocks.useGlobalShortcut).toHaveBeenCalledWith("Enter", mocks.toggleShowBackText);
+    expect(mocks.useGlobalShortcut).toHaveBeenCalledWith(" ", mocks.toggleAutoPlay);
+  });
+
+  it("shows configured swipe feedback briefly", () => {
+    vi.useFakeTimers();
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    mocks.state.config = { ...mocks.state.config, showSwipeFeedback: true };
+    const view = render(<DeckSwiperContainer />);
+
+    act(() => studyStore.setState({ lastSwipe: "cardSwipeRight" }));
+    expect(view.getByTestId("swipe-feedback")).toHaveTextContent("Swiped right");
+
+    act(() => vi.advanceTimersByTime(900));
+    expect(view.queryByTestId("swipe-feedback")).not.toBeInTheDocument();
+    expect(studyStore.getState().lastSwipe).toBeUndefined();
+  });
+
+  it("does not render or retain swipe feedback when the setting is disabled", async () => {
+    const view = render(<DeckSwiperContainer />);
+
+    act(() => studyStore.setState({ lastSwipe: "cardSwipeLeft" }));
+
+    await waitFor(() => expect(studyStore.getState().lastSwipe).toBeUndefined());
+    expect(view.queryByTestId("swipe-feedback")).not.toBeInTheDocument();
   });
 
   it("keeps pending study saves silent while disabling swipe controls", () => {
@@ -210,7 +233,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
-  it("updates the route session activity when the study screen opens", () => {
+  it("updates route-session activity when the study screen opens", () => {
     studyStore.setState((state) => {
       const session = state.sessionsByDeckId[deck.id];
       if (session == null) return state;
@@ -231,7 +254,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     now.mockRestore();
   });
 
-  it("renders Zustand back text and controlled auto-play", () => {
+  it("renders Zustand back text and controlled autoplay", () => {
     const view = render(<DeckSwiperContainer />);
     act(() => studyStore.setState({ showBackText: true, autoPlay: true }));
 
@@ -249,12 +272,8 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(mocks.swipeRight).toHaveBeenCalledOnce();
   });
 
-  it("waits for hydration, then rejects an old-shaped deck without a current session", async () => {
-    const legacyDeck = {
-      ...deck,
-      currentIndex: 0,
-      cardOrderIds: [card.id],
-    };
+  it("waits for hydration, then rejects an old-shaped Deck without a current session", async () => {
+    const legacyDeck = { ...deck, currentIndex: 0, cardOrderIds: [card.id] };
     mocks.state = createState(legacyDeck);
     studyStore.getState().removeStudy(deck.id);
     mocks.hydrated = false;
@@ -269,38 +288,32 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     mocks.hydrated = true;
     view.rerender(<DeckSwiperContainer />);
 
-    await waitFor(() => {
-      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
-    });
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
     expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
   });
 
-  it("exits without removing a session that belongs to another deck", async () => {
+  it("exits without removing a session that belongs to another Deck", async () => {
     studyStore.getState().removeStudy(deck.id);
     studyStore.getState().startStudy("other-deck", [card.id]);
 
     render(<DeckSwiperContainer />);
 
-    await waitFor(() => {
-      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
-    });
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
     expect(studyStore.getState().sessionsByDeckId["other-deck"]).toMatchObject({ deckId: "other-deck" });
   });
 
-  it("resets and exits when no session or legacy candidate exists", async () => {
+  it("resets and exits when no session exists", async () => {
     studyStore.getState().removeStudy(deck.id);
 
     render(<DeckSwiperContainer />);
 
-    await waitFor(() => {
-      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
-    });
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
   });
 
-  it("resets and exits at a terminal session index", async () => {
+  it("resets and exits at an invalid session index", async () => {
     const session = studyStore.getState().sessionsByDeckId[deck.id];
     if (session == null) throw new Error("Expected an active study session");
     studyStore.setState((state) => ({
@@ -312,20 +325,16 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
 
     render(<DeckSwiperContainer />);
 
-    await waitFor(() => {
-      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
-    });
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
   });
 
-  it("resets and exits when the session card is missing", async () => {
+  it("resets and exits when the session Card is missing", async () => {
     studyStore.getState().startStudy(deck.id, ["missing-card"]);
 
     render(<DeckSwiperContainer />);
 
-    await waitFor(() => {
-      expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
-    });
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
   });
 });
