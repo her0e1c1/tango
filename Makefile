@@ -3,6 +3,7 @@ COMPOSE = docker compose
 RUN = $(COMPOSE) run --rm --remove-orphans
 SERVICE = dev
 NPM = $(RUN) --entrypoint npm $(SERVICE)
+NODE = $(RUN) --entrypoint node $(SERVICE)
 SAMPLE_MAKE = $(MAKE) -C sample
 .DEFAULT_GOAL := help
 
@@ -17,8 +18,9 @@ init: .env image npm-install ## Initialize local development environment
 	cp -n .env.example .env
 
 .PHONY: npm-install
-npm-install: ## Install npm packages in the dev container
+npm-install: ## Install npm packages in the app and Functions directories
 	$(NPM) ci
+	$(NPM) --prefix functions install
 
 .PHONY: up
 up: init ## Start development containers
@@ -29,7 +31,7 @@ sh: ## Open a shell in the dev container
 	$(RUN) --entrypoint bash $(SERVICE)
 
 .PHONY: test
-test: test-unit test-firestore test-sample ## Run all tests
+test: test-unit test-firestore test-functions test-sample ## Run all tests
 
 .PHONY: test-unit
 test-unit: ## Run unit tests
@@ -39,6 +41,10 @@ test-unit: ## Run unit tests
 test-firestore: ## Run Firestore tests
 	$(COMPOSE) up --wait --wait-timeout 120 --remove-orphans -d db
 	$(NPM) run test:firestore
+
+.PHONY: test-functions
+test-functions: ## Run pure Firebase Functions use-case tests
+	$(NODE) --test functions/test
 
 .PHONY: test-sample
 test-sample: ## Run sample tests
@@ -53,7 +59,7 @@ coverage: ## Run all Vitest specs with coverage thresholds
 ci: build fmt-check lint-check test e2e ## Run the same checks as the pull request CI
 
 .PHONY: check
-check: sample-build fmt-check lint-check test-unit ## Run lightweight checks
+check: sample-build fmt-check lint-check test-unit test-functions ## Run lightweight checks
 
 .PHONY: e2e
 e2e: export COMPOSE_FILE := .devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
@@ -112,5 +118,5 @@ image: ## Build the dev container image
 	$(COMPOSE) build $(SERVICE)
 
 .PHONY: start
-start: ## Start local development services
+start: init ## Start local development services
 	$(NPM) run start:all
