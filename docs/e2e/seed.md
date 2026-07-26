@@ -9,7 +9,7 @@ Firebase UID / displayName はpersistせず、remote-mode testではAuth route m
 ## Deck
 
 | 項目 | 値 |
-|---|---|
+| --- | --- |
 | `id` | `e2e-deck-1` |
 | `name` | `E2E Deck` |
 | `category` | `English` |
@@ -21,6 +21,6 @@ Deck/Card は Firestore emulator に seed し、browser storage には entity da
 
 詳細画面の表示確認用に、対象 deck に紐づく card を1枚だけ seed する。
 
-| id | deckId | frontText | backText |
-|---|---|---|---|
-| `e2e-card-1` | `e2e-deck-1` | `apple` | `りんご` |
+| id           | deckId       | frontText | backText |
+| ------------ | ------------ | --------- | -------- |
+| `e2e-card-1` | `e2e-deck-1` | `apple`   | `りんご` |
