@@ -5,7 +5,6 @@
  */
 
 import * as React from "react";
-import { useKey } from "react-use";
 
 import * as action from "@/action";
 import { DeckListTemplate } from "@/features/deck/components/templates/DeckListTemplate";
@@ -19,6 +18,7 @@ import { studyStore } from "@/features/study/state/studyStore";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
 import { useActions } from "@/hooks/useActions";
+import { useGlobalShortcut } from "@/hooks/useGlobalShortcut";
 
 /**
  * Connects the Deck List Container view to stores, remote data, route parameters, and mutations.
@@ -37,8 +37,8 @@ export const DeckListContainer: React.FC = () => {
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(remote.decks, remote.cards, sessionsByDeckId);
   useSampleDeckBootstrap();
-  useKey("s", actions.goToSettings);
-  useKey("i", actions.goToImport);
+  useGlobalShortcut("s", actions.goToSettings);
+  useGlobalShortcut("i", actions.goToImport);
 
   React.useEffect(() => {
     if (!hydrated || mutations.pending || remote.status !== "ready" || remote.syncStatus !== "synced") {
