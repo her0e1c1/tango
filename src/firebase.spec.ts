@@ -137,8 +137,9 @@ describe("Firebase singletons", () => {
     expect(() => firebase.getDb()).toThrow("Memory fallback is disabled");
   });
 
-  it("connects auth to the configured emulator in dev mode", async () => {
-    vi.stubEnv("MODE", "dev");
+  it("connects auth to the configured emulator in development", async () => {
+    vi.stubEnv("MODE", "development");
+    vi.stubEnv("DEV", true);
     vi.stubEnv("VITE_AUTH_HOST", "127.0.0.1");
     vi.stubEnv("VITE_AUTH_PORT", "9099");
 
@@ -147,8 +148,9 @@ describe("Firebase singletons", () => {
     expect(connectAuthEmulator).toHaveBeenCalledWith(auth, "http://127.0.0.1:9099");
   });
 
-  it("does not connect auth to the emulator in test mode", async () => {
-    vi.stubEnv("MODE", "test");
+  it("does not connect auth to the emulator in production", async () => {
+    vi.stubEnv("MODE", "production");
+    vi.stubEnv("DEV", false);
 
     await import("@/firebase");
 
