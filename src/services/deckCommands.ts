@@ -9,6 +9,7 @@ import {
   withDeckMembershipLocks,
   withMutationLocks,
 } from "@/store/remoteMutationLocks";
+import { waitForRemoteWrite } from "@/services/remoteWrite";
 
 const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Deck writes");
@@ -24,13 +25,17 @@ export const deckCommands = {
   create: async (uid: string, deck: Deck): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, deck.uid);
-    await withMutationLocks([deckMutationLock(uid, deck.id)], () => createRemoteDeck(deck));
+    await withMutationLocks([deckMutationLock(uid, deck.id)], () =>
+      waitForRemoteWrite(createRemoteDeck(deck), "Deck creation")
+    );
   },
 
   update: async (uid: string, deck: DeckEdit): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, deck.uid);
-    await withMutationLocks([deckMutationLock(uid, deck.id)], () => updateRemoteDeck(deck));
+    await withMutationLocks([deckMutationLock(uid, deck.id)], () =>
+      waitForRemoteWrite(updateRemoteDeck(deck), "Deck update")
+    );
   },
 
   remove: async (uid: string, deck: Deck): Promise<void> => {
@@ -38,7 +43,7 @@ export const deckCommands = {
     requireOwner(uid, deck.uid);
     await withMutationLocks([deckMutationLock(uid, deck.id)], () =>
       withDeckMembershipLocks([deckMembershipMutationLock(uid, deck.id)], "exclusive", () =>
-        removeRemoteDeck(deck.id, uid)
+        waitForRemoteWrite(removeRemoteDeck(deck.id, uid), "Deck deletion")
       )
     );
   },

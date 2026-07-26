@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { REMOTE_WRITE_TIMEOUT_MS } from "@/services/remoteWrite";
 import { createCard as createCardFixture, createDeck as createDeckFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -46,6 +47,10 @@ describe("deck commands", () => {
     cardMocks.upsert.mockResolvedValue("upserted");
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("rejects missing users and mismatched owners before writing", async () => {
     await expect(deckCommands.create("", createDeck())).rejects.toThrow("confirmed user");
     await expect(deckCommands.remove("uid-a", createDeck({ uid: "uid-b" }))).rejects.toThrow("owner does not match");
@@ -90,6 +95,21 @@ describe("deck commands", () => {
 
     finishFirst();
     await Promise.all([firstUpdate, secondUpdate]);
+  });
+
+  it.each([
+    ["create", "Deck creation"],
+    ["update", "Deck update"],
+    ["remove", "Deck deletion"],
+  ] as const)("rejects a stalled Deck %s instead of leaving it pending", async (command, label) => {
+    vi.useFakeTimers();
+    mocks[command].mockReturnValueOnce(new Promise(() => undefined));
+    const operation = deckCommands[command]("uid-a", createDeck({ id: `stalled-${command}` }));
+    const assertion = expect(operation).rejects.toThrow(`${label} did not finish`);
+
+    await vi.advanceTimersByTimeAsync(REMOTE_WRITE_TIMEOUT_MS);
+
+    await assertion;
   });
 
   it("waits to write a Card while its Deck is being removed", async () => {
