@@ -28,8 +28,8 @@ initializeFirestoreAdapter(app);
 
 export { getDb, getFirestoreInitializationState, waitForFirestoreInitialization };
 
-const authEmulatorHost = import.meta.env.VITE_AUTH_HOST;
-const authEmulatorPort = import.meta.env.VITE_AUTH_PORT;
-if (import.meta.env.DEV && authEmulatorHost && authEmulatorPort) {
-  connectAuthEmulator(auth, `http://${authEmulatorHost}:${authEmulatorPort}`);
+const authHost = import.meta.env.VITE_AUTH_HOST;
+const authPort = import.meta.env.VITE_AUTH_PORT;
+if (import.meta.env.DEV && authHost && authPort) {
+  connectAuthEmulator(auth, `http://${authHost}:${authPort}`);
 }
