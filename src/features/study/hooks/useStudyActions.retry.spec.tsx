@@ -60,7 +60,7 @@ vi.mock("@/features/card/hooks/useCardMutations", () => ({
       const task = async () => {
         let context: Context | undefined;
         try {
-          context = await lifecycle?.onMutate?.();
+          context = (await lifecycle?.onMutate?.()) as Context | undefined;
           await mocks.remoteUpdate(card);
           await lifecycle?.onSuccess?.(context);
         } catch (error) {
