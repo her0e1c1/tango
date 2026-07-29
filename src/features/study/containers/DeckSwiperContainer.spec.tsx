@@ -208,7 +208,6 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     act(() => vi.advanceTimersByTime(1));
     expect(view.queryByText("Swiped left")).not.toBeInTheDocument();
 
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
     mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: false });
     view.rerender(<DeckSwiperContainer />);
     act(() => studyStore.setState({ lastSwipe: "cardSwipeRight" }));

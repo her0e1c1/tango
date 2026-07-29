@@ -46,6 +46,7 @@ export const DeckSwiperContainer: React.FC = () => {
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
   const lastSwipe = useStudyStore((state) => state.lastSwipe);
+  const clearLastSwipe = useStudyStore((state) => state.clearLastSwipe);
   const hydrated = useStudyHydrated();
 
   const index = session?.currentIndex ?? -1;
@@ -65,16 +66,14 @@ export const DeckSwiperContainer: React.FC = () => {
 
   React.useEffect(() => {
     if (!config.showSwipeFeedback) {
-      if (lastSwipe !== undefined) studyStore.getState().clearLastSwipe();
+      if (lastSwipe !== undefined) clearLastSwipe();
       return;
     }
     if (lastSwipe === undefined) return;
 
-    const timeout = window.setTimeout(() => {
-      if (studyStore.getState().lastSwipe === lastSwipe) studyStore.getState().clearLastSwipe();
-    }, SWIPE_FEEDBACK_DURATION_MS);
+    const timeout = window.setTimeout(clearLastSwipe, SWIPE_FEEDBACK_DURATION_MS);
     return () => window.clearTimeout(timeout);
-  }, [config.showSwipeFeedback, lastSwipe]);
+  }, [clearLastSwipe, config.showSwipeFeedback, lastSwipe]);
 
   const navigate = useNavigate();
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;

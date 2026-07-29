@@ -41,19 +41,16 @@ export const useRemoteCollections = () => {
   const cardsById = hasActiveUid ? remoteState.cardsById : EMPTY_CARDS;
   const decks = remoteValues(decksById);
   const cards = remoteValues(cardsById);
-  const [scheduleVersion, setScheduleVersion] = useState(0);
+  const [scheduleClock, setScheduleClock] = useState(() => Date.now());
 
   useEffect(() => {
-    const current = Date.now();
+    const current = Math.max(scheduleClock, Date.now());
     const next = nextCardAvailabilityAt(remoteValues(cardsById), current);
     if (next === undefined) return;
 
-    const timeout = window.setTimeout(
-      () => setScheduleVersion(scheduleVersion + 1),
-      Math.min(next - current, MAX_TIMEOUT_MS)
-    );
+    const timeout = window.setTimeout(() => setScheduleClock(Date.now()), Math.min(next - current, MAX_TIMEOUT_MS));
     return () => window.clearTimeout(timeout);
-  }, [cardsById, scheduleVersion]);
+  }, [cardsById, scheduleClock]);
 
   const status = uid === "" ? "idle" : hasActiveUid ? remoteState.status : "loading";
   const error =
