@@ -27,6 +27,7 @@ import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/hooks/useConfig";
 
 const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
+const SWIPE_FEEDBACK_DURATION_MS = 900;
 
 /**
  * Connects the Deck Swiper Container view to stores, remote data, route parameters, and mutations.
@@ -44,6 +45,7 @@ export const DeckSwiperContainer: React.FC = () => {
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
+  const lastSwipe = useStudyStore((state) => state.lastSwipe);
   const hydrated = useStudyHydrated();
 
   const index = session?.currentIndex ?? -1;
@@ -60,6 +62,19 @@ export const DeckSwiperContainer: React.FC = () => {
   useKey("h", actions.toggleShowHeader);
   useKey("b", actions.toggleShowSwipeButtonList);
   useKey(" ", studyActions.toggleAutoPlay);
+
+  React.useEffect(() => {
+    if (!config.showSwipeFeedback) {
+      if (lastSwipe !== undefined) studyStore.getState().clearLastSwipe();
+      return;
+    }
+    if (lastSwipe === undefined) return;
+
+    const timeout = window.setTimeout(() => {
+      if (studyStore.getState().lastSwipe === lastSwipe) studyStore.getState().clearLastSwipe();
+    }, SWIPE_FEEDBACK_DURATION_MS);
+    return () => window.clearTimeout(timeout);
+  }, [config.showSwipeFeedback, lastSwipe]);
 
   const navigate = useNavigate();
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
@@ -146,6 +161,7 @@ export const DeckSwiperContainer: React.FC = () => {
       showBackText={showBackText}
       showHeader={config.showHeader}
       showSwipeButtonList={config.showSwipeButtonList}
+      {...(config.showSwipeFeedback && lastSwipe !== undefined ? { swipeFeedback: lastSwipe } : {})}
       layout={{
         headerProps: {
           dark: config.darkMode,

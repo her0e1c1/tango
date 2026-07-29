@@ -162,6 +162,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
   });
 
   it("renders the active session card and forwards study callbacks", () => {
@@ -190,6 +191,28 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     for (const name of ["Swipe up", "Swipe down", "Swipe left", "Swipe right"]) {
       expect(view.getByRole("button", { name })).toBeDisabled();
     }
+  });
+
+  it("shows the last swipe briefly only when feedback is enabled", () => {
+    vi.useFakeTimers();
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: true });
+    const view = render(<DeckSwiperContainer />);
+
+    act(() => studyStore.setState({ lastSwipe: "cardSwipeLeft" }));
+    expect(view.getByText("Swiped left")).toHaveAttribute("role", "status");
+
+    act(() => vi.advanceTimersByTime(899));
+    expect(view.getByText("Swiped left")).toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(view.queryByText("Swiped left")).not.toBeInTheDocument();
+
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: false });
+    view.rerender(<DeckSwiperContainer />);
+    act(() => studyStore.setState({ lastSwipe: "cardSwipeRight" }));
+    expect(view.queryByText("Swiped right")).not.toBeInTheDocument();
   });
 
   it("installs one back-navigation guard when StrictMode replays the effect", () => {
