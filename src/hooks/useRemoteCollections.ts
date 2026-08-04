@@ -44,7 +44,7 @@ export const useRemoteCollections = () => {
   const [scheduleClock, setScheduleClock] = useState(() => Date.now());
 
   useEffect(() => {
-    const current = Math.max(scheduleClock, Date.now());
+    const current = Date.now();
     const next = nextCardAvailabilityAt(remoteValues(cardsById), current);
     if (next === undefined) return;
 
