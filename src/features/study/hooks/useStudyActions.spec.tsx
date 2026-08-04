@@ -153,7 +153,7 @@ describe("useStudyActions", () => {
   });
 
   it("starts from filtered Query cards before navigating", () => {
-    studyStore.setState({ showBackText: true, lastSwipe: "cardSwipeLeft" });
+    studyStore.setState({ showBackText: true, lastSwipe: { direction: "cardSwipeLeft", eventId: 1 } });
     mocks.navigate.mockImplementationOnce(() => {
       expect(studyStore.getState()).toMatchObject({
         sessionsByDeckId: {
@@ -218,7 +218,7 @@ describe("useStudyActions", () => {
           lastStudiedAt: 946684800000,
         },
       },
-      lastSwipe: "cardSwipeRight",
+      lastSwipe: { direction: "cardSwipeRight" },
       showBackText: false,
     });
   });
@@ -341,7 +341,7 @@ describe("useStudyActions", () => {
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
     expect(studyStore.getState()).toMatchObject({
       sessionsByDeckId: { "deck-2": { deckId: "deck-2" } },
-      lastSwipe: "cardSwipeLeft",
+      lastSwipe: { direction: "cardSwipeLeft" },
       showBackText: true,
     });
     expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();

@@ -5,8 +5,8 @@
  * "does not expose Store data until authenticated and active UIDs match".
  */
 
-import { renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RemoteStoreState } from "@/store/remoteStore";
 import { createCard, createConfig, createDeck } from "@/test/factories";
@@ -34,7 +34,7 @@ vi.mock("@/store/remoteStore", () => ({
   },
 }));
 
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { nextCardAvailabilityAt, useRemoteCollections } from "@/hooks/useRemoteCollections";
 
 describe("useRemoteCollections", () => {
   beforeEach(() => {
@@ -46,6 +46,11 @@ describe("useRemoteCollections", () => {
       decksById: {},
       cardsById: {},
     };
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
   });
 
   it("returns RemoteStore data as the only Deck and Card read model", () => {
@@ -70,6 +75,48 @@ describe("useRemoteCollections", () => {
     expect(result.current.tagsByDeckId(freshRemote.id)).toEqual(["a", "z"]);
     expect(result.current.status).toBe("ready");
     expect(result.current.syncStatus).toBe("synced");
+  });
+
+  it("re-evaluates scheduled cards when their next review time arrives", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+    const deck = createDeck({ id: "scheduled" });
+    const card = createCard({ id: "scheduled-card", deckId: deck.id, nextSeeingAt: new Date(1_500) });
+    mocks.state = {
+      uid: "uid-a",
+      status: "ready",
+      syncStatus: "synced",
+      decksById: { [deck.id]: deck },
+      cardsById: { [card.id]: card },
+    };
+    const enabled = createConfig({ useCardInterval: true });
+    const disabled = createConfig({ useCardInterval: false });
+    const { result } = renderHook(() => {
+      const remote = useRemoteCollections();
+      return {
+        enabled: remote.filteredCardsByDeckId(deck.id, enabled),
+        disabled: remote.filteredCardsByDeckId(deck.id, disabled),
+      };
+    });
+
+    expect(result.current.enabled).toEqual([]);
+    expect(result.current.disabled).toEqual([card]);
+
+    act(() => vi.advanceTimersByTime(499));
+    expect(result.current.enabled).toEqual([]);
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current.enabled).toEqual([card]);
+  });
+
+  it("selects the nearest future review time", () => {
+    const cards = [
+      createCard({ id: "past", nextSeeingAt: new Date(900) }),
+      createCard({ id: "later", nextSeeingAt: new Date(2_000) }),
+      createCard({ id: "next", nextSeeingAt: new Date(1_500) }),
+    ];
+
+    expect(nextCardAvailabilityAt(cards, 1_000)).toBe(1_500);
   });
 
   it("exposes terminal state and retry without dropping Store data", () => {

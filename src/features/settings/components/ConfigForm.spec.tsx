@@ -81,7 +81,7 @@ describe("ConfigForm", () => {
 
     expect(view.container.querySelectorAll("input[type='checkbox']")).toHaveLength(7);
     expect(view.getByRole("checkbox", { name: "Show header" })).toBeChecked();
-    expect(view.getByRole("checkbox", { name: "Use card interval" })).toBeChecked();
+    expect(view.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
     expect(view.getByRole("slider", { name: "Maximum cards" })).toHaveValue("24");
     expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("7");
     expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveAttribute("aria-valuetext", "7 seconds");
@@ -94,6 +94,15 @@ describe("ConfigForm", () => {
     expect(details).toContainElement(view.getByDisplayValue("github-token"));
     expect(details).toHaveTextContent("1.2.3");
     expect(details).toHaveTextContent("user-123");
+  });
+
+  it("describes review scheduling independently from autoplay", () => {
+    const view = render(<ConfigForm {...createProps()} />);
+
+    expect(view.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
+    expect(view.getByText("Hide cards until their next review time")).toBeInTheDocument();
+    expect(view.getByRole("slider", { name: "Autoplay interval" })).toBeInTheDocument();
+    expect(view.queryByText("Wait between automatic card changes")).not.toBeInTheDocument();
   });
 
   it("forwards switch, slider, and token changes to their field callbacks", async () => {

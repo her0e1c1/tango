@@ -178,8 +178,8 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
         </SettingsRow>
         <SettingsRow
           inputId={inputIds.useCardInterval}
-          label="Use card interval"
-          description="Wait between automatic card changes"
+          label="Respect review schedule"
+          description="Hide cards until their next review time"
         >
           <Switch
             {...props.fields.useCardInterval}

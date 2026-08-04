@@ -148,7 +148,11 @@ describe("study store", () => {
     store.getState().toggleShowBackText();
     store.getState().toggleAutoPlay();
     store.getState().setLastSwipe("cardSwipeRight");
-    expect(store.getState()).toMatchObject({ showBackText: true, autoPlay: false, lastSwipe: "cardSwipeRight" });
+    expect(store.getState()).toMatchObject({
+      showBackText: true,
+      autoPlay: false,
+      lastSwipe: { direction: "cardSwipeRight" },
+    });
 
     store.getState().hideBackText();
     expect(store.getState().showBackText).toBe(false);
