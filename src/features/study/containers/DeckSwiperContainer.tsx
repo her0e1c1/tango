@@ -160,7 +160,7 @@ export const DeckSwiperContainer: React.FC = () => {
       showBackText={showBackText}
       showHeader={config.showHeader}
       showSwipeButtonList={config.showSwipeButtonList}
-      {...(config.showSwipeFeedback && lastSwipe !== undefined ? { swipeFeedback: lastSwipe } : {})}
+      {...(config.showSwipeFeedback && lastSwipe !== undefined ? { swipeFeedback: lastSwipe.direction } : {})}
       layout={{
         headerProps: {
           dark: config.darkMode,

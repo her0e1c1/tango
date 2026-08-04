@@ -16,6 +16,11 @@ export interface StudySession {
   lastStudiedAt: number;
 }
 
+export interface StudySwipeFeedback {
+  direction: SwipeDirection;
+  eventId: number;
+}
+
 interface PersistedStudyState {
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
 }
@@ -23,7 +28,7 @@ interface PersistedStudyState {
 export interface StudyState extends PersistedStudyState {
   showBackText: boolean;
   autoPlay: boolean;
-  lastSwipe?: SwipeDirection | undefined;
+  lastSwipe?: StudySwipeFeedback | undefined;
   startStudy: (deckId: DeckId, cardOrderIds: CardId[]) => void;
   touchStudy: (deckId: DeckId) => void;
   setCurrentIndex: (deckId: DeckId, currentIndex: number) => void;
@@ -177,7 +182,13 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
           }),
         toggleShowBackText: () => set((state) => ({ showBackText: !state.showBackText })),
         toggleAutoPlay: () => set((state) => ({ autoPlay: !state.autoPlay })),
-        setLastSwipe: (lastSwipe) => set({ lastSwipe }),
+        setLastSwipe: (direction) =>
+          set((state) => ({
+            lastSwipe: {
+              direction,
+              eventId: (state.lastSwipe?.eventId ?? 0) + 1,
+            },
+          })),
         clearLastSwipe: () => set({ lastSwipe: undefined }),
         hideBackText: () => set({ showBackText: false }),
       }),
