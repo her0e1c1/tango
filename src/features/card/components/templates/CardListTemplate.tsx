@@ -33,6 +33,7 @@ export interface CardListTemplateProps {
   onShowCard?: (card: Card) => void;
   onRemoveTag?: (tag: string) => void;
   feedbackSlot?: React.ReactNode;
+  dialogSlot?: React.ReactNode;
   isCardPending?: (id: CardId) => boolean;
 }
 
@@ -114,6 +115,7 @@ export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       {props.feedbackSlot}
+      {props.dialogSlot}
       {props.overlay != null && (
         <Overlay
           position="center"

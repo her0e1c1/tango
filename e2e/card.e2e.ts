@@ -115,11 +115,24 @@ test("saves card edits and returns to the card list", async ({ page }) => {
 test("deletes a card from the card list", async ({ page }) => {
   await page.goto(`/deck/${e2eDeck.id}`);
 
-  page.on("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "Open actions for apple" }).click();
+  const trigger = page.getByRole("button", { name: "Open actions for apple" });
+  await trigger.click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
+  const dialog = page.getByRole("alertdialog", { name: "Delete card?" });
+  await expect(dialog).toContainText("apple");
+  await expect(dialog).toContainText("cannot be undone");
+  await expect(page.getByRole("button", { name: "Cancel" })).toBeFocused();
+
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(trigger).toBeFocused();
+  await expect(page.getByText("apple")).toBeVisible();
+
+  await trigger.click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "Delete card" }).click();
 
   await expect(page.getByText("apple")).not.toBeVisible();
+  await expect(page.getByText("Deleted card “apple”.")).toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
 

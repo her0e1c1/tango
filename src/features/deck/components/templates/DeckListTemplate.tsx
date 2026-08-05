@@ -25,6 +25,7 @@ export interface DeckListTemplateProps {
   layout?: React.ComponentProps<typeof Layout>;
   deckCard?: DeckCardActions;
   feedbackSlot?: React.ReactNode;
+  dialogSlot?: React.ReactNode;
 }
 
 /**
@@ -83,6 +84,7 @@ export const DeckListTemplate: React.FC<DeckListTemplateProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       {props.feedbackSlot}
+      {props.dialogSlot}
       <div className="flex items-baseline justify-between gap-3">
         <h1 className="break-words text-title font-bold text-ink">Decks</h1>
         <span className="shrink-0 text-caption text-ink-muted">{countLabel(total)}</span>

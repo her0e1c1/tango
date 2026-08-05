@@ -17,7 +17,7 @@ import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
 import { useStudyStore } from "@/features/study/hooks/useStudyStore";
 import { studyStore } from "@/features/study/state/studyStore";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary } from "@/components";
+import { DestructiveActionDialog, Feedback, RemoteMutationNotice, RemoteReadBoundary } from "@/components";
 import { useActions } from "@/hooks/useActions";
 
 /**
@@ -29,8 +29,14 @@ export const DeckListContainer: React.FC = () => {
   const actions = useActions();
   const config = useConfig();
   const remote = useRemoteCollections();
+  const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
+  const [successMessage, setSuccessMessage] = React.useState<string>();
   const mutations = useDeckMutations({
-    onRemoveSuccess: (deck) => studyStore.getState().removeStudy(deck.id),
+    onRemoveSuccess: (deck) => {
+      studyStore.getState().removeStudy(deck.id);
+      setDeletionTarget((target) => (target?.deck.id === deck.id ? undefined : target));
+      setSuccessMessage(`Deleted deck “${deck.name}”.`);
+    },
   });
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudyStore((state) => state.sessionsByDeckId);
@@ -61,13 +67,42 @@ export const DeckListContainer: React.FC = () => {
         <DeckListTemplate
           sections={sections}
           feedbackSlot={
-            <RemoteMutationNotice
-              pending={mutations.pending}
-              error={mutations.error}
-              onRetry={mutations.retry}
-              pendingLabel="Deleting deck…"
-              errorLabel="Unable to delete deck."
-            />
+            <>
+              <RemoteMutationNotice
+                pending={mutations.pending}
+                error={mutations.error}
+                onRetry={mutations.retry}
+                pendingLabel="Deleting deck…"
+                errorLabel="Unable to delete deck."
+              />
+              <Feedback tone="success">{successMessage}</Feedback>
+            </>
+          }
+          dialogSlot={
+            deletionTarget != null ? (
+              <DestructiveActionDialog
+                title="Delete deck?"
+                targetLabel="Deck"
+                targetName={deletionTarget.deck.name}
+                confirmLabel="Delete deck"
+                pending={mutations.isPending(deletionTarget.deck.id)}
+                {...(mutations.error != null
+                  ? { errorMessage: "Unable to delete this deck. Check your connection and try again." }
+                  : {})}
+                description={
+                  <>
+                    <p>
+                      This permanently deletes {deletionTarget.cardCount}{" "}
+                      {deletionTarget.cardCount === 1 ? "card" : "cards"} in this deck.
+                    </p>
+                    <p>Any in-progress study session for this deck will also end.</p>
+                    <p>This action cannot be undone.</p>
+                  </>
+                }
+                onCancel={() => setDeletionTarget(undefined)}
+                onConfirm={() => mutations.remove(deletionTarget.deck).catch(() => undefined)}
+              />
+            ) : null
           }
           layout={{
             headerProps: {
@@ -96,8 +131,9 @@ export const DeckListContainer: React.FC = () => {
             },
             onClickDelete: (id) => {
               const deck = remote.deckById(id);
-              if (deck != null && window.confirm("Are you sure of removing this deck?")) {
-                void mutations.remove(deck).catch(() => undefined);
+              if (deck != null) {
+                setSuccessMessage(undefined);
+                setDeletionTarget({ deck, cardCount: remote.cardsByDeckId(id).length });
               }
             },
           }}

@@ -11,7 +11,13 @@ import { useKey } from "react-use";
 import * as C from "@/constant";
 import * as util from "@/util";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
+import {
+  DestructiveActionDialog,
+  Feedback,
+  RemoteMutationNotice,
+  RemoteReadBoundary,
+  RouteFeedback,
+} from "@/components";
 import { useActions } from "@/hooks/useActions";
 import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
@@ -29,8 +35,17 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const { deck, cards, tags, config } = props;
   const deckId = deck.id;
   const [showCard, setShowCard] = React.useState<Card>();
+  const [deletionTarget, setDeletionTarget] = React.useState<Card>();
+  const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
+  const [successMessage, setSuccessMessage] = React.useState<string>();
   const actions = useActions();
-  const mutations = useCardMutations();
+  const mutations = useCardMutations({
+    onRemoveSuccess: (card) => {
+      setDeletionTarget((target) => (target?.id === card.id ? undefined : target));
+      setDeletionErrorCardId((id) => (id === card.id ? undefined : id));
+      setSuccessMessage(`Deleted card “${card.frontText}”.`);
+    },
+  });
   const deckActions = useDeckActions(deckId);
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
   /**
@@ -70,11 +85,50 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
           void mutations.updateBy(id, (card) => ({ score: card.score + 1 })).catch(() => undefined),
         goToEdit: actions.goToCardEdit,
         onDelete: (id) => {
-          if (window.confirm("Are you sure?")) void mutations.remove(id).catch(() => undefined);
+          const card = cards.find((candidate) => candidate.id === id);
+          if (card != null) {
+            setSuccessMessage(undefined);
+            setDeletionErrorCardId(undefined);
+            setDeletionTarget(card);
+          }
         },
       }}
       feedbackSlot={
-        <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
+        <>
+          <RemoteMutationNotice
+            pending={mutations.pending}
+            error={mutations.error}
+            onRetry={mutations.retry}
+            {...(deletionTarget != null ? { pendingLabel: "Deleting card…" } : {})}
+          />
+          <Feedback tone="success">{successMessage}</Feedback>
+        </>
+      }
+      dialogSlot={
+        deletionTarget != null ? (
+          <DestructiveActionDialog
+            title="Delete card?"
+            targetLabel="Card front"
+            targetName={deletionTarget.frontText}
+            description={
+              <>
+                <p>This permanently deletes this card.</p>
+                <p>This action cannot be undone.</p>
+              </>
+            }
+            confirmLabel="Delete card"
+            pending={mutations.isPending(deletionTarget.id)}
+            {...(deletionErrorCardId === deletionTarget.id
+              ? { errorMessage: "Unable to delete this card. Check your connection and try again." }
+              : {})}
+            onCancel={() => setDeletionTarget(undefined)}
+            onConfirm={() =>
+              mutations.remove(deletionTarget.id).catch(() => {
+                setDeletionErrorCardId(deletionTarget.id);
+              })
+            }
+          />
+        ) : null
       }
       isCardPending={mutations.isPending}
       {...(showCard != null && category != null
