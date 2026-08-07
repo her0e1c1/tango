@@ -129,9 +129,9 @@ test("deletes a card from the card list", async ({ page }) => {
 
   await trigger.click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
-  await page.getByRole("button", { name: "Delete card" }).click();
+  await dialog.getByRole("button", { name: "Delete card" }).click();
 
-  await expect(page.getByText("apple")).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "View apple", exact: true })).toHaveCount(0);
   await expect(page.getByText("Deleted card “apple”.")).toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });

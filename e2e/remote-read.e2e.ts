@@ -184,15 +184,18 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
 
   await expect(page.getByText("Updated Remote Query Card")).toBeVisible();
 
-  page.on("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Open actions for Updated Remote Query Card" }).click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
-  await expect(page.getByText("Updated Remote Query Card")).not.toBeVisible();
+  const cardDialog = page.getByRole("alertdialog", { name: "Delete card?" });
+  await cardDialog.getByRole("button", { name: "Delete card" }).click();
+  await expect(page.getByRole("button", { name: "View Updated Remote Query Card", exact: true })).toHaveCount(0);
 
   await page.goto("/");
   await page.getByRole("button", { name: "Open actions for Updated Remote Query Deck" }).click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
-  await expect(page.getByText("Updated Remote Query Deck")).not.toBeVisible();
+  const deckDialog = page.getByRole("alertdialog", { name: "Delete deck?" });
+  await deckDialog.getByRole("button", { name: "Delete deck" }).click();
+  await expect(page.getByRole("button", { name: "View Updated Remote Query Deck", exact: true })).toHaveCount(0);
 
   const persistedEntityState = await page.evaluate(() => {
     const root = JSON.parse(window.localStorage.getItem("tango-config") ?? "{}") as {

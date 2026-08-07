@@ -86,10 +86,12 @@ test("saves deck edits and returns to the deck list", async ({ page }) => {
 test("deletes a deck from the deck list", async ({ page }) => {
   await page.goto("/");
 
-  page.on("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Open actions for E2E Deck" }).click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
+  const dialog = page.getByRole("alertdialog", { name: "Delete deck?" });
+  await dialog.getByRole("button", { name: "Delete deck" }).click();
 
-  await expect(page.getByText("E2E Deck")).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "View E2E Deck", exact: true })).toHaveCount(0);
+  await expect(page.getByText("Deleted deck “E2E Deck”.")).toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
