@@ -93,6 +93,8 @@ describe("DeckListContainer", () => {
     mocks.cardsById = {
       "other-1": createCard({ id: "other-1", deckId: otherDeck.id }),
       "other-2": createCard({ id: "other-2", deckId: otherDeck.id }),
+      "recent-1": createCard({ id: "recent-1", deckId: recentDeck.id }),
+      "recent-2": createCard({ id: "recent-2", deckId: recentDeck.id }),
     };
     studyStore.setState({
       sessionsByDeckId: {
@@ -160,15 +162,32 @@ describe("DeckListContainer", () => {
   });
 
   it("removes only the deleted deck session after the remote delete succeeds", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const confirm = vi.spyOn(window, "confirm");
     const view = render(<DeckListContainer />);
+    const trigger = view.getByRole("button", { name: "Open actions for Recent deck" });
 
-    fireEvent.click(view.getByRole("button", { name: "Open actions for Recent deck" }));
+    fireEvent.click(trigger);
     fireEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+    const dialog = view.getByRole("alertdialog", { name: "Delete deck?" });
+    expect(dialog).toHaveTextContent("Recent deck");
+    expect(dialog).toHaveTextContent("2 cards");
+    expect(dialog).toHaveTextContent("in-progress study session");
+    expect(dialog).toHaveTextContent("cannot be undone");
+    expect(view.getByRole("button", { name: "Cancel" })).toHaveFocus();
+
+    fireEvent.click(view.getByRole("button", { name: "Cancel" }));
+    expect(mocks.remove).not.toHaveBeenCalled();
+    expect(trigger).toHaveFocus();
+
+    fireEvent.click(trigger);
+    fireEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(view.getByRole("button", { name: "Delete deck" }));
 
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(recentDeck));
     await waitFor(() => expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeUndefined());
     expect(studyStore.getState().sessionsByDeckId[oldDeck.id]).toBeDefined();
+    expect(view.getByRole("status")).toHaveTextContent("Deleted deck “Recent deck”.");
+    expect(confirm).not.toHaveBeenCalled();
   });
 
   it("owns successful removal cleanup through the Deck mutation lifecycle", () => {

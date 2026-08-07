@@ -89,3 +89,28 @@ test("keeps independent progress for multiple studying decks", async ({ page }) 
   await expect(page.getByRole("button", { name: "Continue Deck B" })).not.toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
+
+test("explains and confirms deck deletion", async ({ page }) => {
+  await page.goto("/");
+
+  const trigger = page.getByRole("button", { name: "Open actions for Deck A" });
+  await trigger.click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  const dialog = page.getByRole("alertdialog", { name: "Delete deck?" });
+  await expect(dialog).toContainText("Deck A");
+  await expect(dialog).toContainText("2 cards");
+  await expect(dialog).toContainText("in-progress study session");
+  await expect(dialog).toContainText("cannot be undone");
+
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(trigger).toBeFocused();
+  await expect(page.getByRole("button", { name: "View Deck A" })).toBeVisible();
+
+  await trigger.click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "Delete deck" }).click();
+
+  await expect(page.getByRole("button", { name: "View Deck A" })).not.toBeVisible();
+  await expect(page.getByText("Deleted deck “Deck A”.")).toBeVisible();
+  await page.evaluate(() => window.assertNoBrowserErrors());
+});

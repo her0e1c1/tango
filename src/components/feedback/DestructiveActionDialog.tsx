@@ -1,0 +1,135 @@
+import * as React from "react";
+
+import { Button } from "@/components/forms/Button";
+
+export interface DestructiveActionDialogProps {
+  title: string;
+  targetLabel: string;
+  targetName: string;
+  description: React.ReactNode;
+  confirmLabel: string;
+  pending?: boolean;
+  errorMessage?: string;
+  onCancel: () => void;
+  onConfirm: () => unknown;
+}
+
+const focusableSelector = [
+  "button:not([disabled])",
+  "a[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
+export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (props) => {
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const confirmingRef = React.useRef(false);
+  const titleId = React.useId();
+  const targetId = React.useId();
+  const descriptionId = React.useId();
+  const errorId = React.useId();
+
+  React.useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    cancelRef.current?.focus();
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+    };
+  }, []);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      props.onCancel();
+      return;
+    }
+    if (event.key !== "Tab") return;
+
+    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? []);
+    if (focusable.length === 0) {
+      event.preventDefault();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    if (first == null || last == null) return;
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  const describedBy = [targetId, descriptionId, props.errorMessage != null ? errorId : null]
+    .filter((id) => id != null)
+    .join(" ");
+
+  const handleConfirm = () => {
+    if (props.pending || confirmingRef.current) return;
+    confirmingRef.current = true;
+    try {
+      void Promise.resolve(props.onConfirm()).finally(() => {
+        confirmingRef.current = false;
+      });
+    } catch (error) {
+      confirmingRef.current = false;
+      throw error;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-canvas/70 px-shell-gutter py-6">
+      <div
+        ref={dialogRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={describedBy}
+        aria-busy={props.pending || undefined}
+        className="w-full max-w-reading rounded-surface border border-border bg-surface-elevated p-4 text-ink shadow-elevated sm:p-6"
+        onKeyDown={handleKeyDown}
+      >
+        <h2 id={titleId} className="text-title font-bold">
+          {props.title}
+        </h2>
+        <div id={targetId} className="mt-4 rounded-control bg-surface-muted p-3">
+          <span className="block text-caption font-bold uppercase tracking-wide text-ink-muted">
+            {props.targetLabel}
+          </span>
+          <span className="mt-1 block max-h-24 overflow-y-auto break-words font-semibold">{props.targetName}</span>
+        </div>
+        <div id={descriptionId} className="mt-4 space-y-2 text-body text-ink-muted">
+          {props.description}
+        </div>
+        {props.errorMessage != null && (
+          <p id={errorId} role="alert" className="mt-4 rounded-control border border-danger p-3 text-body text-danger">
+            {props.errorMessage}
+          </p>
+        )}
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            ref={cancelRef}
+            type="button"
+            className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-border bg-transparent px-4 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            onClick={props.onCancel}
+          >
+            Cancel
+          </button>
+          <Button variant="destructive" loading={Boolean(props.pending)} onClick={handleConfirm}>
+            {props.confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};

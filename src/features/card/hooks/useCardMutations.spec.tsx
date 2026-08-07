@@ -61,14 +61,16 @@ describe("useCardMutations", () => {
 
   it("uses the current Card for updateBy and remove", async () => {
     const card = createCard({ id: "card", score: 0 });
+    const onRemoveSuccess = vi.fn();
     mocks.card = card;
-    const { result } = renderHook(useCardMutations);
+    const { result } = renderHook(() => useCardMutations({ onRemoveSuccess }));
 
     await act(async () => result.current.updateBy(card.id, () => ({ score: 2 })));
     await act(async () => result.current.remove(card.id));
 
     expect(mocks.update).toHaveBeenCalledWith({ id: card.id, deckId: card.deckId, score: 2 });
     expect(mocks.logicalRemove).toHaveBeenCalledWith(card.id);
+    expect(onRemoveSuccess).toHaveBeenCalledExactlyOnceWith(card);
   });
 
   it("does not allow updateBy patches to redirect the target Card", async () => {
@@ -144,6 +146,22 @@ describe("useCardMutations", () => {
       expect(mocks.update).toHaveBeenCalledTimes(2);
       expect(result.current.error).toBeNull();
     });
+  });
+
+  it("reports a successful Card removal after retry", async () => {
+    const card = createCard({ id: "failed-remove" });
+    const onRemoveSuccess = vi.fn();
+    mocks.card = card;
+    mocks.logicalRemove.mockRejectedValueOnce(new Error("remove failed")).mockResolvedValueOnce(undefined);
+    const { result } = renderHook(() => useCardMutations({ onRemoveSuccess }));
+
+    await act(async () => {
+      await expect(result.current.remove(card.id)).rejects.toThrow("remove failed");
+    });
+    expect(onRemoveSuccess).not.toHaveBeenCalled();
+    act(() => result.current.retry());
+
+    await waitFor(() => expect(onRemoveSuccess).toHaveBeenCalledExactlyOnceWith(card));
   });
 
   it("does not expose a stale operation after the authenticated UID changes", async () => {

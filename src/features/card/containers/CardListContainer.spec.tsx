@@ -25,12 +25,19 @@ const mocks = vi.hoisted(() => ({
   cardRemove: vi.fn(),
   onClickTag: vi.fn(),
   navigate: vi.fn(),
+  onRemoveSuccess: undefined as ((card: Card) => void) | undefined,
 }));
 
 vi.mock("@/features/card/hooks/useCardMutations", () => ({
-  useCardMutations: () => ({
+  useCardMutations: (options?: { onRemoveSuccess?: (card: Card) => void }) => ({
     updateBy: mocks.cardUpdateBy,
-    remove: mocks.cardRemove,
+    remove: (id: CardId) => {
+      mocks.onRemoveSuccess = options?.onRemoveSuccess;
+      return mocks.cardRemove(id).then(() => {
+        const card = mocks.cards.find((candidate) => candidate.id === id);
+        if (card != null) mocks.onRemoveSuccess?.(card);
+      });
+    },
     isPending: (id: CardId) => id === mocks.pendingCardId,
     pending: mocks.pending,
     error: mocks.error,
@@ -148,6 +155,7 @@ describe("CardListContainer", () => {
     mocks.cardRemove.mockReset().mockResolvedValue(undefined);
     mocks.onClickTag.mockReset();
     mocks.navigate.mockReset();
+    mocks.onRemoveSuccess = undefined;
   });
 
   afterEach(() => {
@@ -175,7 +183,7 @@ describe("CardListContainer", () => {
   });
 
   it("preserves Edit, Delete, and left/right swipe connections", async () => {
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const confirm = vi.spyOn(window, "confirm");
     const view = render(<CardListContainer />);
     const trigger = view.getByRole("button", { name: `Open actions for ${card.frontText}` });
 
@@ -185,14 +193,19 @@ describe("CardListContainer", () => {
 
     await userEvent.click(trigger);
     await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
-    expect(confirm).toHaveBeenCalledOnce();
-    expect(mocks.cardRemove).toHaveBeenCalledExactlyOnceWith(card.id);
+    const dialog = view.getByRole("alertdialog", { name: "Delete card?" });
+    expect(dialog).toHaveTextContent(card.frontText);
+    expect(dialog).toHaveTextContent("cannot be undone");
+    await userEvent.click(view.getByRole("button", { name: "Cancel" }));
+    expect(mocks.cardRemove).not.toHaveBeenCalled();
+    expect(trigger).toHaveFocus();
 
-    confirm.mockReturnValue(false);
     await userEvent.click(trigger);
     await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
-    expect(confirm).toHaveBeenCalledTimes(2);
+    await userEvent.click(view.getByRole("button", { name: "Delete card" }));
     expect(mocks.cardRemove).toHaveBeenCalledOnce();
+    expect(view.getByText(`Deleted card “${card.frontText}”.`).closest('[role="status"]')).toBeInTheDocument();
+    expect(confirm).not.toHaveBeenCalled();
 
     const article = view.getByRole("article");
     fireEvent.mouseDown(article, { clientX: 100, clientY: 0 });
@@ -223,6 +236,22 @@ describe("CardListContainer", () => {
     mocks.error = new Error("write failed");
     view.rerender(<CardListContainer />);
     expect(view.getByRole("alert")).toHaveTextContent("Unable to save changes.");
+    await userEvent.click(view.getByRole("button", { name: "Retry" }));
+    expect(mocks.retry).toHaveBeenCalledOnce();
+  });
+
+  it("keeps a failed Card deletion explainable and retryable", async () => {
+    mocks.cardRemove.mockRejectedValueOnce(new Error("delete failed"));
+    const view = render(<CardListContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: `Open actions for ${card.frontText}` }));
+    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(view.getByRole("button", { name: "Delete card" }));
+
+    expect(view.getByRole("alertdialog", { name: "Delete card?" })).toBeInTheDocument();
+    expect(view.getByText("Unable to delete this card. Check your connection and try again.")).toBeInTheDocument();
+    mocks.error = new Error("delete failed");
+    view.rerender(<CardListContainer />);
     await userEvent.click(view.getByRole("button", { name: "Retry" }));
     expect(mocks.retry).toHaveBeenCalledOnce();
   });

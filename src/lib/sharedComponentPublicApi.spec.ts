@@ -9,6 +9,7 @@ import * as Shared from "@/components";
 import type {
   ActionsMenuItem,
   ActionsMenuProps,
+  DestructiveActionDialogProps,
   HeaderProps,
   LayoutProps,
   Option,
@@ -24,6 +25,7 @@ const components = {
   Card: Shared.Card,
   Code: Shared.Code,
   Description: Shared.Description,
+  DestructiveActionDialog: Shared.DestructiveActionDialog,
   Feedback: Shared.Feedback,
   Form: Shared.Form,
   FormItem: Shared.FormItem,
@@ -58,6 +60,7 @@ describe("component public API", () => {
     const acceptsTypes = (
       _actionsMenu: ActionsMenuProps,
       _actionsMenuItem: ActionsMenuItem,
+      _destructiveActionDialog: DestructiveActionDialogProps,
       _header: HeaderProps,
       _layout: LayoutProps,
       _option: Option,
@@ -68,6 +71,7 @@ describe("component public API", () => {
     ) => {
       void _actionsMenu;
       void _actionsMenuItem;
+      void _destructiveActionDialog;
       void _header;
       void _layout;
       void _option;
@@ -87,6 +91,15 @@ describe("component public API", () => {
         items: [{ key: "edit", label: "Edit", icon: null }],
       },
       { key: "edit", label: "Edit", icon: null },
+      {
+        title: "Delete?",
+        targetLabel: "Item",
+        targetName: "Example",
+        description: "This cannot be undone.",
+        confirmLabel: "Delete",
+        onCancel: () => {},
+        onConfirm: () => {},
+      },
       {},
       {},
       { label: "label", value: "value" },
