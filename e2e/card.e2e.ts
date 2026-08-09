@@ -70,6 +70,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe.configure({ mode: "serial" });
+test.use({ hasTouch: true });
 
 test("shows cards for the deck", async ({ page }) => {
   await page.goto(`/deck/${e2eDeck.id}`);
@@ -83,10 +84,18 @@ test("shows cards for the deck", async ({ page }) => {
 test("opens and closes the card back text overlay", async ({ page }) => {
   await page.goto(`/deck/${e2eDeck.id}`);
 
-  await page.getByRole("button", { name: "View apple" }).click();
+  const viewCard = page.getByRole("button", { name: "View apple" });
+  const viewCardBox = await viewCard.boundingBox();
+  if (viewCardBox == null) throw new Error("Card view button bounding box is unavailable");
+  const tapPoint = {
+    x: viewCardBox.x + viewCardBox.width / 2,
+    y: viewCardBox.y + viewCardBox.height / 2,
+  };
+
+  await page.touchscreen.tap(tapPoint.x, tapPoint.y);
   await expect(page.getByText("りんご")).toBeVisible();
 
-  await page.getByText("りんご").click();
+  await page.touchscreen.tap(tapPoint.x, tapPoint.y);
   await expect(page.getByText("りんご")).not.toBeVisible();
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
