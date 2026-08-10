@@ -58,7 +58,7 @@ const DeckListSection: React.FC<{
           {countLabel(items.length)} · {note}
         </span>
       </div>
-      <div className="rounded-surface border border-border bg-surface shadow-surface">
+      <div className="rounded-surface border border-border bg-surface shadow-surface dark:border-black">
         {items.map((item) => (
           <DeckCard
             key={item.deck.id}

@@ -81,7 +81,7 @@ const CardListRows: React.FC<Pick<CardListTemplateProps, "cards" | "card" | "onS
   const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
 
   return (
-    <div className="overflow-visible rounded-surface border border-border bg-surface shadow-surface">
+    <div className="overflow-visible rounded-surface border border-border bg-surface shadow-surface dark:border-black">
       {props.cards.map((card) => (
         <Card
           key={card.id}

@@ -108,7 +108,7 @@ export const Card: React.FC<{ className?: string; card: Card } & CardActionsProp
       {...handlers}
       aria-busy={disabled}
       className={cx(
-        "flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 last:border-b-0 sm:gap-3 sm:px-4",
+        "flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 last:border-b-0 sm:gap-3 sm:px-4 dark:border-black",
         disabled ? "bg-surface-muted" : "bg-surface",
         props.className
       )}
