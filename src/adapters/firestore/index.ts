@@ -4,6 +4,7 @@
  */
 
 export * as documentMetadata from "@/adapters/firestore/documentMetadata";
+export type { StudyAttemptDocumentV1 } from "@/adapters/firestore/studyAttemptDto";
 export { initializeFirestoreAdapter } from "@/adapters/firestore/initialize";
 export {
   getDb,

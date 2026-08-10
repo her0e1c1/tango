@@ -4,6 +4,8 @@
  * objects.
  */
 
+import type { StudyAttempt } from "@/domain/studyHistory";
+
 /**
  * Builds a complete test deck with predictable defaults and optional field overrides.
  * Tests can describe only the deck fields relevant to their scenario.
@@ -42,6 +44,24 @@ export const createCard = (overrides: Partial<Card> = {}): Card => ({
   deletedAt: null,
   score: 0,
   numberOfSeen: 0,
+  ...overrides,
+});
+
+/**
+ * Builds a complete study attempt with a stable UTC answer context.
+ * Tests can override only the identity, outcome, or time fields relevant to their scenario.
+ */
+export const createStudyAttempt = (overrides: Partial<StudyAttempt> = {}): StudyAttempt => ({
+  id: "attempt-id",
+  uid: "user-id",
+  sessionId: "session-id",
+  deckId: "deck-id",
+  cardId: "card-id",
+  outcome: "mastered",
+  answeredAt: Date.UTC(2026, 0, 1),
+  localDate: "2026-01-01",
+  timeZone: "UTC",
+  schemaVersion: 1,
   ...overrides,
 });
 

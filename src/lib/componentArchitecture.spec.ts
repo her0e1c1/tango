@@ -31,6 +31,7 @@ const ownedFirestoreAdapterModules = new Set([
   "@/adapters/firestore/card",
   "@/adapters/firestore/deck",
   "@/adapters/firestore/event",
+  "@/adapters/firestore/studyAttempt",
 ]);
 const connectorModules = [
   "react-hook-form",

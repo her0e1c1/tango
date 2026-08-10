@@ -62,7 +62,7 @@ export type DeckUpdateDto = z.infer<typeof deckUpdateDtoSchema>;
 
 export class FirestoreDocumentValidationError extends Error {
   constructor(
-    readonly collectionName: "deck" | "card",
+    readonly collectionName: "deck" | "card" | "studyAttempt",
     readonly documentId: string,
     readonly issues: z.core.$ZodIssue[]
   ) {

@@ -34,5 +34,77 @@ service cloud.firestore {
       allow update: if isValidOwner() && belongsToDeck();
       allow delete: if isOwner();
     }
+    match /studyAttempt/{attemptId} {
+      function cardPath() {
+        return /databases/$(database)/documents/card/$(request.resource.data.cardId);
+      }
+      function deckPath() {
+        return /databases/$(database)/documents/deck/$(request.resource.data.deckId);
+      }
+      function hasExactFields() {
+        return request.resource.data.keys().hasAll([
+                 "uid",
+                 "sessionId",
+                 "deckId",
+                 "cardId",
+                 "outcome",
+                 "answeredAt",
+                 "localDate",
+                 "timeZone",
+                 "schemaVersion"
+               ]) &&
+               request.resource.data.keys().hasOnly([
+                 "uid",
+                 "sessionId",
+                 "deckId",
+                 "cardId",
+                 "outcome",
+                 "answeredAt",
+                 "localDate",
+                 "timeZone",
+                 "schemaVersion"
+               ]);
+      }
+      function hasValidFields() {
+        return hasExactFields() &&
+               request.resource.data.uid is string &&
+               request.resource.data.uid.size() > 0 &&
+               request.resource.data.sessionId is string &&
+               request.resource.data.sessionId.size() > 0 &&
+               request.resource.data.deckId is string &&
+               request.resource.data.deckId.size() > 0 &&
+               request.resource.data.cardId is string &&
+               request.resource.data.cardId.size() > 0 &&
+               request.resource.data.outcome in ["mastered", "notMastered"] &&
+               request.resource.data.answeredAt is timestamp &&
+               request.resource.data.answeredAt >= timestamp.date(2000, 1, 1) &&
+               request.resource.data.answeredAt <= request.time + duration.value(10, "m") &&
+               request.resource.data.localDate is string &&
+               request.resource.data.localDate.matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}$") &&
+               request.resource.data.timeZone is string &&
+               request.resource.data.timeZone.size() > 0 &&
+               request.resource.data.schemaVersion == 1;
+      }
+      function ownsReferencedDocuments() {
+        return existsAfter(cardPath()) &&
+               existsAfter(deckPath()) &&
+               getAfter(cardPath()).data.uid == request.auth.uid &&
+               getAfter(cardPath()).data.deckId == request.resource.data.deckId &&
+               getAfter(deckPath()).data.uid == request.auth.uid;
+      }
+      function ownsStoredAttempt() {
+        return request.auth != null && resource.data.uid == request.auth.uid;
+      }
+      allow get: if ownsStoredAttempt();
+      allow list: if ownsStoredAttempt() &&
+                     request.query.limit != null &&
+                     request.query.limit <= 6001;
+      allow create: if request.auth != null &&
+                       request.resource.data.uid == request.auth.uid &&
+                       hasValidFields() &&
+                       ownsReferencedDocuments();
+      allow update: if ownsStoredAttempt() && request.resource.data == resource.data;
+      allow delete: if false;
+    }
   }
 }
