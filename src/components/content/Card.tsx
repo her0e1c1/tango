@@ -25,7 +25,7 @@ export const Card: React.FC<{
         className={cx(
           "flex min-w-0 flex-1 flex-col justify-between overflow-hidden rounded-surface text-ink shadow-surface",
           props.disabled ? "bg-surface-muted" : "bg-surface",
-          props.border && "border border-border",
+          props.border && "border border-border dark:border-black",
           props.className
         )}
       >

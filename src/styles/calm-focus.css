@@ -49,9 +49,9 @@
 
 .dark {
   color-scheme: dark;
-  --calm-color-canvas: #111827;
-  --calm-color-surface: #182231;
-  --calm-color-surface-elevated: #202c3d;
+  --calm-color-canvas: #000000;
+  --calm-color-surface: #000000;
+  --calm-color-surface-elevated: #000000;
   --calm-color-surface-muted: #273447;
   --calm-color-ink: #edf2f7;
   --calm-color-ink-muted: #aeb9c8;
@@ -64,6 +64,7 @@
   --calm-color-warning: #e5b566;
   --calm-color-danger: #f09a9a;
   --calm-color-info: #82bde4;
+  --calm-shadow-surface: none;
 }
 
 @theme inline {
