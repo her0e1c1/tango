@@ -8,7 +8,7 @@ import type { ConfigState } from "@/entities/config";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import type { ConfigFormProps } from "@/features/settings/components/ConfigForm";
+import type { ConfigFormProps } from "../components/ConfigForm";
 
 export interface UseConfigFormStateOptions {
   config: ConfigState;

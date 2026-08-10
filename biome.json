@@ -10,7 +10,7 @@
     "includes": ["**/*.{ts,tsx}", "src/**/*.{js,jsx,css}", "scripts/**/*.mjs", "*.{js,mjs}"]
   },
   "formatter": {
-    "includes": ["src/**"],
+    "includes": ["src/**", "scripts/**"],
     "indentStyle": "space",
     "lineWidth": 120
   },

@@ -9,8 +9,8 @@ import { prepareDeck, type Deck, type DeckId } from "@/entities/deck";
 import { useEffect, useRef, useState } from "react";
 
 import { generateCardId, generateDeckId } from "@/shared/firebase/document-metadata";
-import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
-import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
+import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../components/deckImportTypes";
+import { buildDeckImportPlan, parseDeckImportCsv } from "../lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
 
 import { parseCardCsv } from "../lib/cardCsv";

@@ -8,7 +8,7 @@ import { useId } from "react";
 import type * as React from "react";
 import { Form } from "@/shared/ui/form";
 import { Slider, Switch } from "@/shared/ui/form-controls";
-import { TagFilter, type TagFilterProps } from "@/features/deck/components/TagFilter";
+import { TagFilter, type TagFilterProps } from "./TagFilter";
 
 export interface DeckStartFormProps {
   scoreMax: number | null;

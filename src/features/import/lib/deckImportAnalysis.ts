@@ -13,7 +13,7 @@ import type {
   DeckImportPlan,
   DeckImportPlanRow,
   DeckImportRow,
-} from "@/features/import/components/deckImportTypes";
+} from "../components/deckImportTypes";
 
 /**
  * Formats raw CSV columns for inclusion in a validation message.

@@ -11,7 +11,7 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
-import { studyStore } from "@/features/study/state/studyStore";
+import { studyStore } from "../store/studyStore";
 import { actAsync } from "@/shared/testing";
 
 const mocks = vi.hoisted(() => {

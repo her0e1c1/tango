@@ -8,7 +8,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { linkWithPopup, signOut } from "firebase/auth";
 
-import { STUDY_STORAGE_KEY, studyStore } from "@/features/study/state/studyStore";
+import { STUDY_STORAGE_KEY, studyStore } from "@/features/study/store/studyStore";
 
 import * as accountCommands from "./accountCommands";
 

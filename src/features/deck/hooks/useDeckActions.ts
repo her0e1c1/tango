@@ -7,7 +7,7 @@ import type { Deck } from "@/entities/deck";
 
 import { useNavigate } from "react-router-dom";
 
-import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
+import { useDeckMutations } from "./useDeckMutations";
 
 /**
  * Provides the deck actions values and operations needed by React components.

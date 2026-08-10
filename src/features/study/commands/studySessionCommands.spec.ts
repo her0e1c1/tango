@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { studyStore } from "../state/studyStore";
+import { studyStore } from "../store/studyStore";
 import { discardStudySessionsMissingDecks, removeStudySession, touchStudySession } from "./studySessionCommands";
 
 describe("study session commands", () => {

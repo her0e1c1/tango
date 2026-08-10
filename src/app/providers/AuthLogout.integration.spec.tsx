@@ -52,8 +52,8 @@ vi.mock("firebase/app", () => ({
 vi.mock("@/features/remote-collections/model/remoteStore", () => ({
   remoteStore: { getState: () => ({ start: mocks.startRemoteReads, stop: mocks.cleanupUid }) },
 }));
-vi.mock("@/features/study/state/studyStore", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/study/state/studyStore")>();
+vi.mock("@/features/study/store/studyStore", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/study/store/studyStore")>();
   mocks.actualClearStudyStore = actual.clearStudyStore;
   return { ...actual, clearStudyStore: mocks.clearStudyStore };
 });
@@ -85,7 +85,7 @@ vi.mock("react-use", () => ({ useKey: vi.fn() }));
 import { logout } from "@/pages/settings/model/accountCommands";
 import { AuthBootstrap } from "@/app/providers/AuthBootstrap";
 import { AuthProvider, createAuthStore, useAuth } from "@/shared/auth";
-import { studyStore } from "@/features/study/state/studyStore";
+import { studyStore } from "@/features/study/store/studyStore";
 import { SettingsPage } from "@/pages/settings";
 
 afterEach(() => {

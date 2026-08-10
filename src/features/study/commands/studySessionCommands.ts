@@ -1,6 +1,6 @@
 import type { DeckId } from "@/entities/deck";
 
-import { studyStore } from "../state/studyStore";
+import { studyStore } from "../store/studyStore";
 
 export const removeStudySession = (deckId: DeckId) => {
   studyStore.getState().removeStudy(deckId);

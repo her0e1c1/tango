@@ -14,7 +14,7 @@ import "@testing-library/jest-dom/vitest";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { studyStore } from "@/features/study/state/studyStore";
+import { studyStore } from "@/features/study/store/studyStore";
 import { createConfig } from "@/entities/config";
 
 const mocks = vi.hoisted(() => ({
@@ -89,7 +89,7 @@ vi.mock("@/features/study", async () => {
         "@/features/study/hooks/useStudyControllerState"
       ),
       vi.importActual<typeof import("@/features/study/hooks/useStudyStore")>("@/features/study/hooks/useStudyStore"),
-      vi.importActual<typeof import("@/features/study/state/studyStore")>("@/features/study/state/studyStore"),
+      vi.importActual<typeof import("@/features/study/store/studyStore")>("@/features/study/store/studyStore"),
     ]);
   return {
     Controller,

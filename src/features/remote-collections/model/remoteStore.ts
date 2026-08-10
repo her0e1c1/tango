@@ -206,8 +206,6 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
   });
 };
 
-export { toRemoteById };
-
 export const remoteStore = createRemoteStore({
   waitForInitialization: waitForFirestoreInitialization,
   subscribeDecks: subscribeDeckReads,

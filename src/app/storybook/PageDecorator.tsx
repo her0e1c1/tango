@@ -12,11 +12,14 @@ import type { User } from "firebase/auth";
 import { MemoryRouter } from "react-router-dom";
 
 import { AuthProvider, type AuthState, type AuthStore } from "@/shared/auth";
-import { studyStore, type StudySession } from "@/features/study/state/studyStore";
+import { studyStore, type StudySession } from "@/features/study";
 import { configStore, defaultConfig } from "@/entities/config";
-import { remoteStore, toRemoteById } from "@/features/remote-collections/model/remoteStore";
+import { remoteStore } from "@/features/remote-collections";
 
 export const PAGE_STORY_UID = "storybook-user";
+
+const indexById = <T extends { id: string }>(items: T[]): Record<string, T> =>
+  Object.fromEntries(items.map((item) => [item.id, item]));
 
 export interface PageStoryParameters {
   path: string;
@@ -94,8 +97,8 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   remoteStore.setState({
     uid: PAGE_STORY_UID,
     status: "ready",
-    decksById: toRemoteById(decks),
-    cardsById: toRemoteById(cards),
+    decksById: indexById(decks),
+    cardsById: indexById(cards),
     syncStatus: "synced",
   });
 };

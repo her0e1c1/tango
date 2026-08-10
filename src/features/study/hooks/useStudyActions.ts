@@ -11,13 +11,8 @@ import React from "react";
 
 import { useNavigate } from "react-router-dom";
 
-import { studyStore } from "@/features/study/state/studyStore";
-import {
-  buildStudyPatch,
-  buildStudySession,
-  calculateNextIndex,
-  resolveSwipeAction,
-} from "@/features/study/rules/study";
+import { studyStore } from "../store/studyStore";
+import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "../rules/study";
 
 export interface StudyActions {
   start: () => void;

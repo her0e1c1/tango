@@ -9,8 +9,8 @@ import { useStore } from "zustand";
 
 import { useAuth } from "@/shared/auth";
 import type { RemoteById } from "@/shared/lib/remote";
-import { remoteValues, cardsForDeck, tagsForDeck } from "@/features/remote-collections/lib/remoteSelectors";
-import { remoteStore } from "@/features/remote-collections/model/remoteStore";
+import { remoteValues, cardsForDeck, tagsForDeck } from "../lib/remoteSelectors";
+import { remoteStore } from "../model/remoteStore";
 
 const MAX_TIMEOUT_MS = 2_147_483_647;
 const EMPTY_DECKS: RemoteById<Deck> = {};

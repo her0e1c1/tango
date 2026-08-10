@@ -9,7 +9,7 @@ import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
 import type { Card as CardEntity, CardId } from "@/entities/card";
-import { CardActionsMenu } from "@/features/card/components/CardActionsMenu";
+import { CardActionsMenu } from "./CardActionsMenu";
 import { Score } from "@/shared/ui/score";
 import { TagLabel } from "@/shared/ui/tag";
 

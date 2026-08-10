@@ -17,4 +17,4 @@ export {
   studyStore,
   type StudySession,
   type StudyState,
-} from "./state/studyStore";
+} from "./store/studyStore";
