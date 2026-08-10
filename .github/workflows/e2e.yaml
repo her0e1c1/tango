@@ -1,0 +1,57 @@
+name: E2E
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  COMPOSE_PROJECT_NAME: tango-e2e
+
+jobs:
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log into registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build test image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: ghcr.io/her0e1c1/tango:latest
+          cache-from: type=gha,scope=tango-e2e
+          cache-to: type=gha,mode=max,scope=tango-e2e
+
+      - name: Build sample data
+        run: docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base
+
+      - name: Start E2E services
+        run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml up --wait --wait-timeout 120 --remove-orphans
+
+      - name: Run E2E tests
+        run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
+
+      - name: Stop E2E services
+        if: ${{ always() }}
+        run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml down --volumes --remove-orphans
+
+      - name: Upload Playwright report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
