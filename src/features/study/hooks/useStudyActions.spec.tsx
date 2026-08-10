@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { studyStore } from "@/features/study/state/studyStore";
+import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => {
   const cardUpdate = vi.fn();
@@ -172,7 +173,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy("deck-2", [card1.id]);
     const { result } = renderHook(() => useStudyActions(deck.id));
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.swipeRight();
     });
 
@@ -187,7 +188,7 @@ describe("useStudyActions", () => {
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() => useStudyActions(deck.id));
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.swipeRight();
     });
 
@@ -219,7 +220,7 @@ describe("useStudyActions", () => {
     mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() => useStudyActions(deck.id));
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.swipeRight();
     });
 
@@ -244,7 +245,7 @@ describe("useStudyActions", () => {
     vi.mocked(Date.now).mockReturnValue(946684800100);
     act(() => studyStore.getState().touchStudy(deck.id));
     rejectWrite?.(new Error("write failed"));
-    await act(async () => swipe);
+    await actAsync(async () => swipe);
 
     expect(studyStore.getState().sessionsByDeckId[deck.id]).toMatchObject({
       currentIndex: 1,
@@ -257,7 +258,7 @@ describe("useStudyActions", () => {
     mocks.pendingIds.add(card1.id);
     const { result } = renderHook(() => useStudyActions(deck.id));
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.swipeRight();
     });
 
@@ -277,14 +278,14 @@ describe("useStudyActions", () => {
     const { result } = renderHook(() => useStudyActions(deck.id));
 
     const firstSwipe = result.current.swipeRight();
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.swipeRight();
     });
 
     expect(mocks.cardUpdate).toHaveBeenCalledOnce();
     expect(studyStore.getState().sessionsByDeckId[deck.id]?.currentIndex).toBe(1);
 
-    await act(async () => {
+    await actAsync(async () => {
       finishWrite();
       await firstSwipe;
     });
@@ -296,7 +297,7 @@ describe("useStudyActions", () => {
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() => useStudyActions(deck.id));
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.swipeRight();
     });
 
@@ -309,7 +310,7 @@ describe("useStudyActions", () => {
     const before = studyStore.getState();
     const { result } = renderHook(() => useStudyActions(deck.id));
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.swipeDown();
     });
 
@@ -324,7 +325,7 @@ describe("useStudyActions", () => {
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() => useStudyActions(deck.id));
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.swipeLeft();
     });
 
@@ -355,7 +356,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy("deck-2", ["other-card"]);
     const { result } = renderHook(() => useStudyActions(deck.id));
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.swipeRight();
     });
 

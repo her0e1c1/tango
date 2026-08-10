@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDeck as createDeckFixture } from "@/test/factories";
+import { actAsync } from "@/test/act";
 
 const createDeck = (overrides: Partial<Deck> = {}) => createDeckFixture({ uid: "uid-a", ...overrides });
 
@@ -49,7 +50,7 @@ describe("useDeckMutations", () => {
       expect(result.current.isPending(deck.id)).toBe(true);
       expect(result.current.isPending("other")).toBe(false);
     });
-    await act(async () => {
+    await actAsync(async () => {
       finish();
       await operation;
     });
@@ -68,7 +69,7 @@ describe("useDeckMutations", () => {
       operation = result.current.remove(deck);
     });
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id, "uid-a"));
-    await act(async () => {
+    await actAsync(async () => {
       finish();
       await operation;
     });
@@ -86,7 +87,7 @@ describe("useDeckMutations", () => {
       .mockReturnValueOnce(new Promise<void>((resolve) => (finishRetry = resolve)));
     const onRemoveSuccess = vi.fn();
     const { result, unmount } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.remove(deck)).rejects.toBe(failure);
     });
 
@@ -105,7 +106,7 @@ describe("useDeckMutations", () => {
     const onRemoveSuccess = vi.fn();
     const { result } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.update(deck)).rejects.toBe(failure);
     });
     expect(result.current.error).toBe(failure);
@@ -122,7 +123,7 @@ describe("useDeckMutations", () => {
     mocks.uid = "";
     const { result } = renderHook(useDeckMutations);
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.create(createDeck())).rejects.toThrow("confirmed user");
     });
 

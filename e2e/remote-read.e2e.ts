@@ -164,6 +164,7 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Updated Remote Query Deck")).toBeVisible();
   await expect
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Biome ignores noUncheckedIndexedAccess; remove after biomejs/biome#11277.
     .poll(async () => (await getDocument("deck", "remote-read-deck")).fields.name?.stringValue)
     .toBe("Updated Remote Query Deck");
 
@@ -176,6 +177,7 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Updated Remote Query Card")).toBeVisible();
   await expect
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Biome ignores noUncheckedIndexedAccess; remove after biomejs/biome#11277.
     .poll(async () => (await getDocument("card", "remote-read-card")).fields.frontText?.stringValue)
     .toBe("Updated Remote Query Card");
 

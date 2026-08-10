@@ -10,6 +10,7 @@ import React, { type PropsWithChildren } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
+import { actAsync } from "@/test/act";
 
 /**
  * Provides the deferred test helper used by this file.
@@ -51,7 +52,7 @@ describe("useAccountOperations", () => {
     expect(login).toHaveBeenCalledOnce();
     expect(result.current).toMatchObject({ kind: "login", pending: true, error: null });
 
-    await act(async () => {
+    await actAsync(async () => {
       request.resolve();
       await first;
     });
@@ -74,7 +75,7 @@ describe("useAccountOperations", () => {
     expect(logoutPromise).toBe(loginPromise);
     expect(result.current).toMatchObject({ kind: "login", pending: true, error: null });
 
-    await act(async () => {
+    await actAsync(async () => {
       request.resolve();
       await logoutPromise;
     });
@@ -100,7 +101,7 @@ describe("useAccountOperations", () => {
     expect(logout).toHaveBeenCalledOnce();
     expect(result.current).toMatchObject({ kind: "logout", pending: true, error: null });
 
-    await act(async () => {
+    await actAsync(async () => {
       request.resolve();
       await first;
     });
@@ -113,13 +114,13 @@ describe("useAccountOperations", () => {
     const login = vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
     const { result } = renderHook(() => useAccountOperations({ login }));
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.login()).rejects.toBe(error);
     });
 
     expect(result.current).toMatchObject({ kind: "login", pending: false, error });
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.retry()).resolves.toBeUndefined();
     });
 
@@ -133,7 +134,7 @@ describe("useAccountOperations", () => {
     const login = vi.fn().mockRejectedValueOnce(error).mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useAccountOperations({ login }));
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.login()).rejects.toBe(error);
     });
     expect(result.current.error).toBe(error);
@@ -145,7 +146,7 @@ describe("useAccountOperations", () => {
 
     expect(result.current).toMatchObject({ kind: "login", pending: true, error: null });
 
-    await act(async () => {
+    await actAsync(async () => {
       request.resolve();
       await retry;
     });
@@ -160,11 +161,11 @@ describe("useAccountOperations", () => {
       wrapper: StrictModeWrapper,
     });
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(first.result.current.login()).rejects.toBe(error);
     });
     first.unmount();
-    await act(async () => Promise.resolve());
+    await actAsync(async () => Promise.resolve());
 
     const next = renderHook(() => useAccountOperations({ login, generation: "user-a" }), {
       wrapper: StrictModeWrapper,
@@ -182,7 +183,7 @@ describe("useAccountOperations", () => {
       wrapper: StrictModeWrapper,
     });
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.login()).rejects.toBe(error);
     });
     rerender({ generation: "user-b" });
@@ -200,11 +201,11 @@ describe("useAccountOperations", () => {
       wrapper: StrictModeWrapper,
     });
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(first.result.current.logout()).rejects.toBe(error);
     });
     first.unmount();
-    await act(async () => Promise.resolve());
+    await actAsync(async () => Promise.resolve());
 
     const anonymous = renderHook(
       () => useAccountOperations({ login: vi.fn(), logout: vi.fn(), generation: "anonymous-user" }),
@@ -213,7 +214,7 @@ describe("useAccountOperations", () => {
     expect(anonymous.result.current).toMatchObject({ kind: "logout", pending: false, error });
 
     anonymous.unmount();
-    await act(async () => Promise.resolve());
+    await actAsync(async () => Promise.resolve());
     const later = renderHook(
       () => useAccountOperations({ login: vi.fn(), logout: vi.fn(), generation: "anonymous-user" }),
       { wrapper: StrictModeWrapper }
@@ -237,11 +238,11 @@ describe("useAccountOperations", () => {
       { wrapper: StrictModeWrapper }
     );
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(first.result.current.logout()).rejects.toBe(initialFailure);
     });
     first.unmount();
-    await act(async () => Promise.resolve());
+    await actAsync(async () => Promise.resolve());
 
     const nextLoginRequest = deferred<void>();
     const nextLogin = vi.fn(() => nextLoginRequest.promise);
@@ -273,13 +274,13 @@ describe("useAccountOperations", () => {
     expect(nextLogin).toHaveBeenCalledOnce();
     expect(anonymous.result.current).toMatchObject({ kind: "login", pending: true, error: null });
 
-    await act(async () => {
+    await actAsync(async () => {
       cleanupRequest.reject(cleanupFailure);
       await expect(staleRetry).rejects.toBe(cleanupFailure);
     });
     expect(anonymous.result.current).toMatchObject({ kind: "login", pending: true, error: null });
 
-    await act(async () => {
+    await actAsync(async () => {
       nextLoginRequest.resolve();
       await nextOperation;
     });

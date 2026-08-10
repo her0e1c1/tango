@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { actAsync } from "@/test/act";
 
 const deferred = <T,>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -28,7 +29,7 @@ describe("useAsyncAction", () => {
       later = result.current.run(["later"], "update:later", () => laterOperation.promise);
     });
 
-    await act(async () => {
+    await actAsync(async () => {
       firstAttempt.reject(failure);
       await expect(first).rejects.toBe(failure);
       laterOperation.resolve();
@@ -49,12 +50,12 @@ describe("useAsyncAction", () => {
     const unrelatedTask = vi.fn().mockResolvedValue(undefined);
     const { result } = renderHook(() => useAsyncAction<string>("uid-a"));
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.run(["first"], "update:first", firstTask)).rejects.toBe(failure);
     });
     expect(result.current.error).toBe(failure);
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.run(["later"], "update:later", unrelatedTask);
     });
 

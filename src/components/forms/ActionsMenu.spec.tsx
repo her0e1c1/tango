@@ -11,6 +11,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ActionsMenu, type ActionsMenuItem } from "@/components/forms/ActionsMenu";
+import { actAsync } from "@/test/act";
 
 /**
  * Provides the items test helper used by this file.
@@ -126,7 +127,7 @@ describe("ActionsMenu", () => {
 
     expect(edit).toHaveAttribute("tabindex", "-1");
     expect(remove).toHaveAttribute("tabindex", "-1");
-    await act(async () => fireEvent.keyDown(edit, { key: "Tab" }));
+    await actAsync(async () => fireEvent.keyDown(edit, { key: "Tab" }));
 
     expect(view.queryByRole("menu")).not.toBeInTheDocument();
     expect(view.getByRole("button", { name: "Next control" })).toHaveFocus();
@@ -144,7 +145,7 @@ describe("ActionsMenu", () => {
     const edit = view.getByRole("menuitem", { name: "Edit" });
     await waitFor(() => expect(edit).toHaveFocus());
 
-    await act(async () => fireEvent.keyDown(edit, { key: "Tab", shiftKey: true }));
+    await actAsync(async () => fireEvent.keyDown(edit, { key: "Tab", shiftKey: true }));
 
     expect(view.queryByRole("menu")).not.toBeInTheDocument();
     expect(view.getByRole("button", { name: "Previous control" })).toHaveFocus();
@@ -157,7 +158,7 @@ describe("ActionsMenu", () => {
     const remove = view.getByRole("menuitem", { name: "Delete" });
     await waitFor(() => expect(edit).toHaveFocus());
 
-    await act(async () => {
+    await actAsync(async () => {
       edit.blur();
       remove.focus();
     });
@@ -177,7 +178,7 @@ describe("ActionsMenu", () => {
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
     try {
-      await act(async () => {
+      await actAsync(async () => {
         edit.blur();
         await Promise.resolve();
       });
@@ -200,7 +201,7 @@ describe("ActionsMenu", () => {
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
     try {
-      await act(async () => {
+      await actAsync(async () => {
         firstEdit.blur();
         fireEvent.click(view.getByRole("button", { name: "Open second actions" }));
       });
@@ -244,7 +245,7 @@ describe("ActionsMenu", () => {
     const external = view.getByRole("button", { name: "External target" });
     await waitFor(() => expect(edit).toHaveFocus());
 
-    await act(async () => {
+    await actAsync(async () => {
       edit.blur();
       external.focus();
     });

@@ -48,6 +48,7 @@ export const useButtonInteraction = <Element extends HTMLElement>(
       if (event.target !== event.currentTarget || event.key !== " ") return;
 
       event.preventDefault();
+      // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
       if (spacePressed.current) {
         spacePressed.current = false;
         onClick();

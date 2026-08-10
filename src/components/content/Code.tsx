@@ -21,6 +21,7 @@ const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = (
 
   React.useEffect(() => {
     const code = codeRef.current;
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
     if (code == null) return;
 
     code.textContent = text;

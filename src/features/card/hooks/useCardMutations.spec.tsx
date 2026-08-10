@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard as createCardFixture } from "@/test/factories";
+import { actAsync } from "@/test/act";
 
 const createCard = (overrides: Partial<Card> = {}) => createCardFixture({ uid: "uid-a", ...overrides });
 
@@ -51,7 +52,7 @@ describe("useCardMutations", () => {
     const { result } = renderHook(useCardMutations);
     const redirectingPatch = () => ({ id: "other-card", deckId: "other-deck", score: 2 });
 
-    await act(async () => result.current.updateBy(card.id, redirectingPatch));
+    await actAsync(async () => result.current.updateBy(card.id, redirectingPatch));
 
     expect(mocks.update).toHaveBeenCalledWith({ id: card.id, deckId: card.deckId, score: 2 });
   });
@@ -81,7 +82,7 @@ describe("useCardMutations", () => {
       expect(result.current.isPending(card.id)).toBe(true);
       expect(result.current.isPending("other")).toBe(false);
     });
-    await act(async () => {
+    await actAsync(async () => {
       finish();
       await operation;
     });
@@ -92,7 +93,7 @@ describe("useCardMutations", () => {
     mocks.uid = "";
     const { result } = renderHook(useCardMutations);
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.create(createCard())).rejects.toThrow("confirmed user");
     });
 
@@ -108,7 +109,7 @@ describe("useCardMutations", () => {
     mocks.update.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
     const { result } = renderHook(useCardMutations);
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.update(card)).rejects.toBe(error);
     });
     expect(result.current.error).toBe(error);
@@ -127,7 +128,7 @@ describe("useCardMutations", () => {
     mocks.logicalRemove.mockRejectedValueOnce(new Error("remove failed")).mockResolvedValueOnce(undefined);
     const { result } = renderHook(() => useCardMutations({ onRemoveSuccess }));
 
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.remove(card.id)).rejects.toThrow("remove failed");
     });
     expect(onRemoveSuccess).not.toHaveBeenCalled();
@@ -152,7 +153,7 @@ describe("useCardMutations", () => {
 
     expect(result.current.pending).toBe(false);
     expect(result.current.error).toBeNull();
-    await act(async () => {
+    await actAsync(async () => {
       finish();
       await operation;
     });
