@@ -8,7 +8,7 @@ import type * as React from "react";
 import { useKey } from "react-use";
 
 import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
-import { RemoteMutationNotice } from "@/components/feedback/RemoteMutationNotice";
+import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
 import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
 import { useActions } from "@/hooks/useActions";
@@ -64,7 +64,8 @@ export const ConfigContainer: React.FC = () => {
           dark: config.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
-          onClickMenuItem: actions.goByMenu,
+          onClickImport: actions.goToImport,
+          onClickSettings: actions.goToSettings,
         },
       }}
       configForm={configForm}

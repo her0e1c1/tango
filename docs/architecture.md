@@ -97,7 +97,7 @@ for a Page, Widget, Feature, or Entity slice. It explicitly exports only contrac
 slice:
 
 ```ts
-export { DeckListContainer } from "./containers/DeckListContainer";
+export { DeckListPage } from "./ui/DeckListPage";
 ```
 
 Do not use wildcard exports. Consumers use the slice root, never a segment or file deep import.
@@ -131,6 +131,21 @@ modules. Components receive plain values and callbacks; they do not access appli
 route state. Exported presentation Components normally have an adjacent behavior-focused test and
 Storybook story. Stories use args, fixtures, and callback spies instead of real stores, Firebase,
 or the network.
+
+### Deck List pilot decisions
+
+The Deck List pilot established these ownership decisions for later Page migrations:
+
+- screen-specific sections, deck-row presentation, dialogs, keyboard shortcuts, and lower-layer
+  coordination belong to `pages/deck-list` rather than a route-sized Deck Feature;
+- the Page consumes Deck mutation, sample import, and study-session behavior through each Feature
+  root, while each Feature keeps its store and command implementation private;
+- Deck and Card contracts begin at `entities/deck` and `entities/card`; remaining ambient consumers
+  migrate to those contracts as their owning Page moves;
+- reusable controls use focused `shared/ui/*` public APIs, and Firebase initialization and runtime
+  ownership lives at `shared/firebase` rather than a business adapter or top-level module;
+- legacy compatibility barrels may re-export migrated Shared contracts temporarily, but migrated
+  slices import the focused Shared public API directly.
 
 ## Migration inventory
 

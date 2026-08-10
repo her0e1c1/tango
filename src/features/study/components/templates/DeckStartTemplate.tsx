@@ -6,7 +6,7 @@
 
 import type React from "react";
 import { Button } from "@/components";
-import { Layout, type LayoutProps } from "@/components/layout/Layout";
+import { Layout, type LayoutProps } from "@/shared/ui/layout";
 
 export interface DeckStartTemplateProps {
   layout?: LayoutProps;

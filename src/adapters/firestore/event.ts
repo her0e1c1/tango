@@ -7,7 +7,7 @@
 import { onSnapshot, where, collection, query } from "firebase/firestore";
 
 import { mapCardDocument, mapDeckDocument } from "@/adapters/firestore/dto";
-import { getDb } from "@/adapters/firestore/runtime";
+import { getDb } from "@/shared/firebase/firestore-runtime";
 import type { RemoteChange, RemoteSubscriptionProps } from "@/domain/remoteSnapshot";
 
 type RemoteEntity = { id: string; updatedAt: number; deletedAt: number | null };

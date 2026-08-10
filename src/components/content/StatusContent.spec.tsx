@@ -9,7 +9,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { Score } from "@/components/content/Score";
-import { Feedback, type FeedbackTone } from "@/components/feedback/Feedback";
+import { Feedback, type FeedbackTone } from "@/shared/ui/feedback";
 
 afterEach(cleanup);
 

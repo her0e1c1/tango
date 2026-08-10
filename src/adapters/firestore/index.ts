@@ -4,9 +4,3 @@
  */
 
 export * as documentMetadata from "@/adapters/firestore/documentMetadata";
-export { initializeFirestoreAdapter } from "@/adapters/firestore/initialize";
-export {
-  getDb,
-  getFirestoreInitializationState,
-  waitForFirestoreInitialization,
-} from "@/adapters/firestore/runtime";

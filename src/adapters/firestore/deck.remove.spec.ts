@@ -19,7 +19,7 @@ vi.mock("firebase/firestore", () => ({
   query: mocks.query,
   where: mocks.where,
 }));
-vi.mock("@/adapters/firestore/runtime", () => ({ getDb: () => "db" }));
+vi.mock("@/shared/firebase/firestore-runtime", () => ({ getDb: () => "db" }));
 
 import { remove } from "@/adapters/firestore/deck";
 

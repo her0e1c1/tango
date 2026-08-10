@@ -22,7 +22,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("firebase/auth");
 vi.mock("firebase/firestore");
 vi.mock("./firestore");
-vi.mock("@/firebase", () => ({ auth: mocks.auth }));
+vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
 vi.mock("@/auth/AuthContext", () => ({
   publishAuthenticatedUser: mocks.publishAuthenticatedUser,
   suspendAnonymousBootstrap: mocks.suspendAnonymousBootstrap,

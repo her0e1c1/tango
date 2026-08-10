@@ -5,7 +5,7 @@
  */
 
 import { doc, collection } from "firebase/firestore";
-import { getDb } from "@/adapters/firestore/runtime";
+import { getDb } from "@/shared/firebase/firestore-runtime";
 
 /**
  * Asks Firestore to generate a unique identifier for a new deck.

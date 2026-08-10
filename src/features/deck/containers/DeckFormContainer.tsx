@@ -45,7 +45,8 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
           dark: config.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
-          onClickMenuItem: actions.goByMenu,
+          onClickImport: actions.goToImport,
+          onClickSettings: actions.goToSettings,
         },
       }}
       feedbackSlot={
