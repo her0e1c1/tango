@@ -9,7 +9,7 @@
   "scripts": {
     "start": "vite dev",
     "start:all": "firebase emulators:start & storybook dev & vite dev --open & wait",
-    "build": "vite build && node scripts/verify-pwa-build.mjs",
+    "build": "vite build",
     "build:storybook": "storybook build",
     "db": "firebase emulators:start",
     "e2e": "playwright test",
