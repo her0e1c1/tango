@@ -140,5 +140,4 @@ type ConfigState = SwipeState & {
   cardInterval: number;
   darkMode: boolean;
   selectedTags: string[];
-  githubAccessToken: string;
 };

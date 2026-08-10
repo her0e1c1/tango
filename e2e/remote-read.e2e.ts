@@ -96,7 +96,6 @@ const persistedConfig = {
   cardSwipeRight: "GoToNextCard",
   darkMode: false,
   selectedTags: [],
-  githubAccessToken: "",
 };
 
 const seedAuth = async (page: Page, uid: string, nextUid?: string) => {

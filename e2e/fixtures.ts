@@ -42,7 +42,6 @@ export const e2eConfig = {
   cardSwipeRight: "GoToNextCard",
   darkMode: false,
   selectedTags: [],
-  githubAccessToken: "",
 };
 
 export const seedConfig = async (page: Page, config: typeof e2eConfig = e2eConfig) => {
