@@ -164,7 +164,7 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
         <AiOutlineMore aria-hidden="true" size={24} />
       </button>
 
-      {isOpen && (
+      {isOpen ? (
         <div role="menu" aria-label={props.menuLabel} className={menuClassName} onKeyDown={handleMenuKeyDown}>
           {props.items.map((item) => (
             <button
@@ -180,7 +180,7 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
             </button>
           ))}
         </div>
-      )}
+      ) : null}
     </fieldset>
   );
 };

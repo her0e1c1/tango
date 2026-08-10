@@ -10,12 +10,14 @@ import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { initializeTestEnvironment, type RulesTestEnvironment } from "@firebase/rules-unit-testing";
 import { doc, setDoc, type Firestore } from "firebase/firestore";
-import { v4 as uuid } from "uuid";
+import * as UUID from "uuid";
 
 import * as cardAdapter from "@/adapters/firestore/card";
 import * as deckAdapter from "@/adapters/firestore/deck";
 import { buildCardCreateDto, buildDeckCreateDto } from "@/adapters/firestore/dto";
 import { createCard, createDeck } from "@/test/factories";
+
+const uuid = UUID.v4;
 
 describe("Firestore full reads", () => {
   let testEnv: RulesTestEnvironment;

@@ -86,12 +86,12 @@ export const DeckSwiperTemplate: React.FC<DeckSwiperTemplateProps> = (props) => 
           {props.frontTextSlot}
         </div>
       ) : null}
-      {(props.showSwipeButtonList || props.showController) && (
+      {props.showSwipeButtonList || props.showController ? (
         <div className={cx("fixed w-full bottom-2", "pb-5", props.showBackText && "invisible")}>
-          {props.showSwipeButtonList && <SwipeButtonList {...props.swipeButtonList} />}
-          {props.showController && <Controller {...props.controller} />}
+          {props.showSwipeButtonList ? <SwipeButtonList {...props.swipeButtonList} /> : null}
+          {props.showController ? <Controller {...props.controller} /> : null}
         </div>
-      )}
+      ) : null}
     </Layout>
   );
 };

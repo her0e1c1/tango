@@ -5,11 +5,11 @@
  */
 
 // import moment from "moment";
-import { saveAs } from "file-saver";
+import * as FileSaver from "file-saver";
 import * as Papa from "papaparse";
 
+import * as cardAction from "@/action/card";
 import * as C from "@/constant";
-import * as action from "@/action";
 
 /**
  * Creates a complete deck from raw input, defaults, and generated identifiers.
@@ -40,7 +40,7 @@ export const prepare = (deck: DeckRaw, uid: string, generateId: () => string): D
  * separately.
  */
 export const downloadData = (deck: Deck, cards: Card[]) => {
-  const csv = Papa.unparse(cards.map(action.card.toRow), { escapeFormulae: true });
+  const csv = Papa.unparse(cards.map(cardAction.toRow), { escapeFormulae: true });
   _saveAs(csv, deck.name);
 };
 
@@ -54,7 +54,7 @@ export const _saveAs = (content: string, name: string) => {
     name += ".csv";
   }
   const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-  saveAs(blob, name);
+  FileSaver.saveAs(blob, name);
 };
 
 /**
@@ -77,7 +77,7 @@ export const parseCsv = async (content: unknown): Promise<CardRaw[]> => {
   return await new Promise((resolve) =>
     Papa.parse(content, {
       complete: async (results: { data: string[][] }) => {
-        const cards = results.data.map(action.card.fromRow).filter((c) => !action.card.isEmpty(c));
+        const cards = results.data.map(cardAction.fromRow).filter((c) => !cardAction.isEmpty(c));
         resolve(cards);
       },
     })

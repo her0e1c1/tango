@@ -8,7 +8,7 @@ import "./firebase";
 import "./index.css";
 
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import App from "@/App";
 import { AuthProvider } from "@/auth/AuthContext";
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
@@ -16,7 +16,7 @@ import { AuthBootstrap } from "@/auth/AuthBootstrap";
 const root = document.getElementById("root");
 if (root == null) throw new Error("Missing root element");
 
-ReactDOM.createRoot(root).render(
+createRoot(root).render(
   <React.StrictMode>
     <AuthProvider>
       <AuthBootstrap />

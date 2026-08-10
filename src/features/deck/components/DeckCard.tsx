@@ -90,11 +90,11 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
           disabled={pending}
         >
           <span className="truncate text-body font-semibold text-ink">{deck.name}</span>
-          {deck.isPublic && (
+          {deck.isPublic ? (
             <span role="img" aria-label="Public deck" className="shrink-0 text-ink-muted">
               <AiOutlineCloud aria-hidden="true" size={16} />
             </span>
-          )}
+          ) : null}
         </button>
 
         <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
