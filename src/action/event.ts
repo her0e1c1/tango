@@ -13,6 +13,9 @@ import { publishAuthenticatedUser, suspendAnonymousBootstrap } from "@/auth/Auth
 import { auth } from "@/firebase";
 import { remoteStore } from "@/store/remoteStore";
 
+const { getState: getRemoteState } = remoteStore;
+const { getState: getStudyState } = studyStore;
+
 interface LogoutCleanupProgress {
   remote: boolean;
   study: boolean;
@@ -65,11 +68,11 @@ const runLogout = async (
       }
     };
 
-    await run("remote", () => remoteStore.getState().stop(confirmedUid));
+    await run("remote", () => getRemoteState().stop(confirmedUid));
     await run("study", async () => {
-      if (progress.studyStateAfterClear && studyStore.getState() !== progress.studyStateAfterClear) return;
+      if (progress.studyStateAfterClear && getStudyState() !== progress.studyStateAfterClear) return;
       const cleanup = clearStudyStore();
-      progress.studyStateAfterClear = studyStore.getState();
+      progress.studyStateAfterClear = getStudyState();
       await cleanup;
     });
     if (errors.length > 0) {

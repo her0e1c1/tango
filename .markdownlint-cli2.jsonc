@@ -1,7 +1,8 @@
 {
   "globs": [
     "**/*.md",
-    "!node_modules/**"
+    "!node_modules/**",
+    "!.worktrees/**"
   ],
   "config": {
     "MD013": false,
