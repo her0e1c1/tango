@@ -75,7 +75,9 @@ const seedSwipeSession = async (page: Page) => {
 const persistedCard = async (cardId: string) => {
   const document = await getDocument("card", cardId);
   return {
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Biome ignores noUncheckedIndexedAccess; remove after biomejs/biome#11277.
     score: Number(document.fields.score?.integerValue),
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Biome ignores noUncheckedIndexedAccess; remove after biomejs/biome#11277.
     numberOfSeen: Number(document.fields.numberOfSeen?.integerValue),
   };
 };

@@ -19,15 +19,16 @@ const preview: Preview = {
     }),
   ],
   loaders: [
-    mswLoader(async () => {
+    mswLoader(() => {
       const worker = setupWorker();
-      await worker.start({
-        onUnhandledRequest: "bypass",
-        serviceWorker: {
-          url: "./storybookServiceWorker.js",
-        },
-      });
-      return worker;
+      return worker
+        .start({
+          onUnhandledRequest: "bypass",
+          serviceWorker: {
+            url: "./storybookServiceWorker.js",
+          },
+        })
+        .then(() => worker);
     }),
   ],
   parameters: {

@@ -6,11 +6,12 @@
  */
 
 import * as React from "react";
-import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DeckActionsMenu } from "@/features/deck/components/DeckActionsMenu";
+import { actAsync } from "@/test/act";
 
 type ControlledMenuProps = Omit<React.ComponentProps<typeof DeckActionsMenu>, "open" | "onToggle" | "onClose">;
 
@@ -134,7 +135,7 @@ describe("DeckActionsMenu", () => {
       const item = view.getByRole("menuitem", { name: label });
       await waitFor(() => expect(download).toHaveFocus());
 
-      await act(async () => {
+      await actAsync(async () => {
         download.blur();
         item.focus();
       });
@@ -158,7 +159,7 @@ describe("DeckActionsMenu", () => {
     const download = view.getByRole("menuitem", { name: "Download" });
     await waitFor(() => expect(download).toHaveFocus());
 
-    await act(async () => {
+    await actAsync(async () => {
       download.blur();
       externalTarget.focus();
     });

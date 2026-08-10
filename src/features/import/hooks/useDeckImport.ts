@@ -301,6 +301,7 @@ export const useDeckImport = () => {
   const [retry] = useState(() => () => {
     const request = lastRequest.current;
     const currentRun = runRef.current;
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
     if (request != null && currentRun != null && !runningRef.current) void currentRun(request).catch(() => undefined);
   });
   useEffect(() => {
@@ -339,6 +340,7 @@ export const useDeckImport = () => {
     setError(null);
     try {
       const dependencies = dependenciesRef.current;
+      // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
       if (dependencies == null) throw new Error("Deck import dependencies are not available");
       const result = await executeDeckImport(request, dependencies);
       if (generation.current === operationGeneration) setData(result);
@@ -405,6 +407,7 @@ export const useDeckImport = () => {
    * starts.
    */
   const importPreview = () => {
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
     if (runningRef.current) return Promise.reject(new Error("A Deck import is already running"));
     if (preview == null) return Promise.reject(new Error("Select a CSV file before importing"));
     if (preview.analysis.invalidCount > 0) {

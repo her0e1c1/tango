@@ -50,6 +50,7 @@ const expectScore = async (page: Page, frontText: string, score: number) => {
 
 const persistedScore = async () => {
   const document = await getDocument("card", e2eCard.id);
+  // biome-ignore lint/suspicious/noUnnecessaryConditions: Biome ignores noUncheckedIndexedAccess; remove after biomejs/biome#11277.
   return Number(document.fields.score?.integerValue);
 };
 

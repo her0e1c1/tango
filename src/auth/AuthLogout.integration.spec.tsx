@@ -12,6 +12,8 @@ import type { Auth, User, UserCredential } from "firebase/auth";
 import React, { type ReactNode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import { actAsync } from "@/test/act";
+
 const mocks = vi.hoisted(() => ({
   auth: { currentUser: null },
   onAuthStateChanged: vi.fn(),
@@ -161,7 +163,7 @@ it("waits for logout cleanup before bootstrapping the next anonymous UID", async
   expect(mocks.startRemoteReads).not.toHaveBeenCalledWith("uid-b");
   expect(mocks.clearStudyStore).not.toHaveBeenCalled();
 
-  await act(async () => {
+  await actAsync(async () => {
     resolveCleanup();
     await pendingLogout;
   });
@@ -217,7 +219,7 @@ it("keeps post-sign-out cleanup failures visible and retries only unfinished cle
   act(() => mocks.publishUser?.(userA));
   fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
   await waitFor(() => expect(screen.queryByRole("button", { name: "Logout" })).not.toBeInTheDocument());
-  await act(async () => rejectFirstCleanup(firstCleanupError));
+  await actAsync(async () => rejectFirstCleanup(firstCleanupError));
   act(() => mocks.publishUser?.(userB));
 
   expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
@@ -274,7 +276,7 @@ it("hands cleanup feedback across auth after retrying a failed sign-out", async 
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(screen.queryByRole("button", { name: "Logout" })).not.toBeInTheDocument());
   await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledOnce());
-  await act(async () => Promise.resolve());
+  await actAsync(async () => Promise.resolve());
   act(() => mocks.publishUser?.(userB));
 
   expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");

@@ -78,6 +78,7 @@ export const useAsyncAction = <Id>(scope: string) => {
 
   const retry = () => {
     const failure = lastFailure.current;
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
     if (failure == null || failure.retrying === true) return;
     failure.retrying = true;
     void run(failure.ids, failure.operationKey, failure.task)

@@ -96,21 +96,21 @@ describe("Auth transition controller", () => {
     expect(dependencies.cleanupUid).toHaveBeenCalledWith("uid-a");
   });
 
-  it.each([
-    { status: "signedOut" } as const,
-    { status: "error", error: new Error("auth failed") } as const,
-  ])("cleans the confirmed UID without subscribing for $status", async (state) => {
-    const dependencies = createDependencies();
-    const controller = createAuthTransitionController(dependencies);
-    await controller.transition(authenticated(createUser("uid-a")));
-    dependencies.cleanupUid.mockClear();
-    dependencies.subscribeUid.mockClear();
+  it.each([{ status: "signedOut" } as const, { status: "error", error: new Error("auth failed") } as const])(
+    "cleans the confirmed UID without subscribing for $status",
+    async (state) => {
+      const dependencies = createDependencies();
+      const controller = createAuthTransitionController(dependencies);
+      await controller.transition(authenticated(createUser("uid-a")));
+      dependencies.cleanupUid.mockClear();
+      dependencies.subscribeUid.mockClear();
 
-    await controller.transition(state);
+      await controller.transition(state);
 
-    expect(dependencies.cleanupUid).toHaveBeenCalledWith("uid-a");
-    expect(dependencies.subscribeUid).not.toHaveBeenCalled();
-  });
+      expect(dependencies.cleanupUid).toHaveBeenCalledWith("uid-a");
+      expect(dependencies.subscribeUid).not.toHaveBeenCalled();
+    }
+  );
 
   it("skips a stale intermediate UID during a rapid transition", async () => {
     let finishCleanup: () => void = () => undefined;

@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCard, createDeck } from "@/test/factories";
 import type { DeckImportResult } from "@/features/import/components/deckImportTypes";
 import { CardBulkMutationError } from "@/services/cardCommands";
+import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
@@ -88,7 +89,7 @@ describe("useDeckImport", () => {
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     let imported: DeckImportResult | undefined;
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.selectFile(file);
     });
 
@@ -101,7 +102,7 @@ describe("useDeckImport", () => {
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
 
-    await act(async () => {
+    await actAsync(async () => {
       imported = await result.current.importPreview();
     });
     expect(mocks.createDeck).toHaveBeenCalledOnce();
@@ -116,8 +117,8 @@ describe("useDeckImport", () => {
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
-    await act(async () => result.current.selectFile(file));
-    await act(async () => {
+    await actAsync(async () => result.current.selectFile(file));
+    await actAsync(async () => {
       await expect(result.current.importPreview()).rejects.toThrow("synchronized connection");
     });
 
@@ -135,8 +136,8 @@ describe("useDeckImport", () => {
     const { result, rerender } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
-    await act(async () => result.current.selectFile(file));
-    await act(async () => {
+    await actAsync(async () => result.current.selectFile(file));
+    await actAsync(async () => {
       await expect(result.current.importPreview()).rejects.toThrow("synchronized connection");
     });
     mocks.syncStatus = "synced";
@@ -154,7 +155,7 @@ describe("useDeckImport", () => {
     const { result } = renderHook(useDeckImport);
     const file = new File(["front,back"], "invalid.csv", { type: "text/csv" });
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.selectFile(file);
     });
 
@@ -186,10 +187,10 @@ describe("useDeckImport", () => {
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     let imported: DeckImportResult | undefined;
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.selectFile(file);
     });
-    await act(async () => {
+    await actAsync(async () => {
       imported = await result.current.importPreview();
     });
 
@@ -202,7 +203,7 @@ describe("useDeckImport", () => {
   it("adds the bundled sample with a stable per-user Deck id", async () => {
     const { result } = renderHook(useDeckImport);
 
-    await act(async () => result.current.addSample());
+    await actAsync(async () => result.current.addSample());
 
     expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "Sample Deck" }, "uid-a", mocks.generateDeckId);
     expect(mocks.createDeck).toHaveBeenCalledWith(
@@ -215,7 +216,7 @@ describe("useDeckImport", () => {
     mocks.decks = [createDeck({ id: sampleDeckId("uid-a"), name: "Renamed sample" })];
     const { result } = renderHook(useDeckImport);
 
-    await act(async () => result.current.addSample());
+    await actAsync(async () => result.current.addSample());
 
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
@@ -235,7 +236,7 @@ describe("useDeckImport", () => {
     const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"front","back","","key"'));
     const { result } = renderHook(useDeckImport);
 
-    await act(async () => result.current.importUrl("https://example.test/deck.csv"));
+    await actAsync(async () => result.current.importUrl("https://example.test/deck.csv"));
 
     expect(fetch).toHaveBeenCalledWith(new URL("https://example.test/deck.csv"));
   });
@@ -246,7 +247,7 @@ describe("useDeckImport", () => {
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.selectFile(file);
     });
 
@@ -256,7 +257,7 @@ describe("useDeckImport", () => {
     });
     await waitFor(() => expect(result.current.pending).toBe(true));
     await expect(result.current.importPreview()).rejects.toThrow("already running");
-    await act(async () => {
+    await actAsync(async () => {
       finish();
       await first;
     });
@@ -269,10 +270,10 @@ describe("useDeckImport", () => {
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
-    await act(async () => {
+    await actAsync(async () => {
       await result.current.selectFile(file);
     });
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.importPreview()).rejects.toThrow("did not complete");
     });
 
@@ -297,8 +298,8 @@ describe("useDeckImport", () => {
       type: "text/csv",
     });
 
-    await act(async () => result.current.selectFile(file));
-    await act(async () => {
+    await actAsync(async () => result.current.selectFile(file));
+    await actAsync(async () => {
       await expect(result.current.importPreview()).rejects.toThrow("did not complete");
     });
     expect(result.current.partialResult).toEqual({
@@ -332,16 +333,16 @@ describe("useDeckImport", () => {
   it("clears operation data and error when a new file is selected", async () => {
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-    await act(async () => result.current.addSample());
+    await actAsync(async () => result.current.addSample());
     expect(result.current.data).toBeDefined();
 
     mocks.bulkUpsert.mockRejectedValueOnce(new Error("failed"));
-    await act(async () => {
+    await actAsync(async () => {
       await expect(result.current.addSample()).rejects.toThrow("failed");
     });
     expect(result.current.error).toBeDefined();
 
-    await act(async () => result.current.selectFile(file));
+    await actAsync(async () => result.current.selectFile(file));
     expect(result.current.data).toBeUndefined();
     expect(result.current.error).toBeNull();
   });
@@ -408,7 +409,7 @@ describe("useDeckImport", () => {
     rerender();
     mocks.uid = "uid-a";
     rerender();
-    await act(async () => {
+    await actAsync(async () => {
       finishParse({
         rows: [
           {
@@ -431,7 +432,7 @@ describe("useDeckImport", () => {
 
   it("does not resurrect import data after an A-to-B-to-A UID transition", async () => {
     const { result, rerender } = renderHook(useDeckImport);
-    await act(async () => result.current.addSample());
+    await actAsync(async () => result.current.addSample());
     expect(result.current.data).toBeDefined();
 
     mocks.uid = "uid-b";
@@ -459,7 +460,7 @@ describe("useDeckImport", () => {
     rerender();
 
     expect(result.current.pending).toBe(false);
-    await act(async () => {
+    await actAsync(async () => {
       finish();
       await operation;
     });
@@ -477,8 +478,8 @@ describe("useDeckImport", () => {
       type: "text/csv",
     });
 
-    await act(async () => result.current.selectFile(file));
-    await act(async () => {
+    await actAsync(async () => result.current.selectFile(file));
+    await actAsync(async () => {
       await expect(result.current.importPreview()).rejects.toThrow("did not complete");
     });
 

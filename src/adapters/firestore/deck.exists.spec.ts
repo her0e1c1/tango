@@ -30,14 +30,13 @@ describe("firestore/deck.exists", () => {
     await expect(exists("deck-id")).resolves.toBe(expected);
   });
 
-  it.each([
-    "unavailable",
-    "permission-denied",
-    "unauthenticated",
-  ])("rejects the original %s read error", async (code) => {
-    const error = Object.assign(new Error(code), { code });
-    mocks.getDoc.mockRejectedValue(error);
+  it.each(["unavailable", "permission-denied", "unauthenticated"])(
+    "rejects the original %s read error",
+    async (code) => {
+      const error = Object.assign(new Error(code), { code });
+      mocks.getDoc.mockRejectedValue(error);
 
-    await expect(exists("deck-id")).rejects.toBe(error);
-  });
+      await expect(exists("deck-id")).rejects.toBe(error);
+    }
+  );
 });
