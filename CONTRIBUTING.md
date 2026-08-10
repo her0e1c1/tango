@@ -18,10 +18,6 @@ mise run check
 
 For details on running specific test suites, see [README.md](README.md#test).
 
-## Issue Labels
+## Issue Categorization
 
-Every issue must have exactly one type label. Type labels are `bug`, `enhancement`, or `question`.
-
-Issues with `bug` or `enhancement` must have at least one area label for the modified area. Available area labels are `ci`, `ui`, `test`, `dev`, `docs`, and `dependencies`.
-
-Issues missing a type or area classification should be labeled with `needs-triage`.
+When opening an issue, select the appropriate type and target area using the GitHub Issue templates. Unclassified issues will be marked for triage.
