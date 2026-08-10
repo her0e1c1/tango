@@ -9,7 +9,7 @@ export default defineConfig({
   root: "public",
   envDir: import.meta.dirname,
   cacheDir: `${import.meta.dirname}/node_modules/.vite`,
-  publicDir: ".",
+  publicDir: false,
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] }),
