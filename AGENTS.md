@@ -15,3 +15,8 @@
 - Prefer clear names and small functions over comments.
 - Comment only non-obvious intent, constraints, and behavior—especially concurrency, retries, migrations, and workarounds. Explain why, not what.
 - Remove stale comments and commented-out code.
+
+## Testing
+
+- Write tests against observable behavior so they remain stable under refactoring.
+- Do not write tests that depend on implementation details.
