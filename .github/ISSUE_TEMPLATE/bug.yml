@@ -1,20 +1,20 @@
-name: バグ報告
-description: 再現可能な不具合を報告します。
+name: Bug report
+description: Report a reproducible bug.
 title: "[Bug]: "
 labels: ["bug", "needs-triage"]
 body:
   - type: textarea
     id: current-behavior
     attributes:
-      label: 現在の挙動
-      description: 現在発生している挙動を説明してください。
+      label: Current behavior
+      description: Describe what currently happens.
     validations:
       required: true
   - type: textarea
     id: reproduction-steps
     attributes:
-      label: 再現手順
-      description: 問題を再現する手順を記載してください。
+      label: Steps to reproduce
+      description: Provide the steps needed to reproduce the problem.
       placeholder: |
         1.
         2.
@@ -24,15 +24,15 @@ body:
   - type: textarea
     id: expected-behavior
     attributes:
-      label: 期待する挙動
-      description: 期待していた挙動を説明してください。
+      label: Expected behavior
+      description: Describe what you expected to happen.
     validations:
       required: true
   - type: textarea
     id: actual-behavior
     attributes:
-      label: 実際の挙動
-      description: 実際に発生した挙動を説明してください。
+      label: Actual behavior
+      description: Describe what actually happened.
     validations:
       required: true
   - type: dropdown
