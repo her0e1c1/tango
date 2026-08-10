@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "CardListTemplate" contract with automated examples.
+ * @file Verifies the "CardListView" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders the heading, zero
  * count, collapsed no-filter summary, and feedback", "formats score bounds, tag count, persistent
  * chips, and singular card count", "constrains a long unbroken selected tag without changing its
@@ -11,18 +11,27 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
 import { createCard } from "@/test/factories";
+
+vi.mock("@/features/card", async () => {
+  const [{ BackText }, { Card }] = await Promise.all([
+    vi.importActual<typeof import("@/features/card/components/BackText")>("@/features/card/components/BackText"),
+    vi.importActual<typeof import("@/features/card/components/Card")>("@/features/card/components/Card"),
+  ]);
+  return { BackText, Card };
+});
+
+import { CardListView } from "./CardListView";
 
 const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", score: 0, tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
-describe("CardListTemplate", () => {
+describe("CardListView", () => {
   afterEach(cleanup);
 
   it("renders the heading, zero count, collapsed no-filter summary, and feedback", () => {
     const view = render(
-      <CardListTemplate cards={[]} feedbackSlot={<div role="status">Saved</div>} filterSlot={<div>Controls</div>} />
+      <CardListView cards={[]} feedbackSlot={<div role="status">Saved</div>} filterSlot={<div>Controls</div>} />
     );
 
     expect(view.getByRole("heading", { level: 1, name: "Cards" })).toBeInTheDocument();
@@ -35,7 +44,7 @@ describe("CardListTemplate", () => {
 
   it("formats score bounds, tag count, persistent chips, and singular card count", () => {
     const view = render(
-      <CardListTemplate
+      <CardListView
         cards={[card]}
         filter={{ scoreMin: -1, scoreMax: 3, selectedTags: ["one", "two"] }}
         filterSlot={<div>Controls</div>}
@@ -48,17 +57,17 @@ describe("CardListTemplate", () => {
     expect(view.getByRole("list", { name: "Selected tags" })).toHaveTextContent("two");
     expect(view.getByText("Controls")).not.toBeVisible();
 
-    view.rerender(<CardListTemplate cards={[card]} filter={{ scoreMin: -1, scoreMax: null, selectedTags: [] }} />);
+    view.rerender(<CardListView cards={[card]} filter={{ scoreMin: -1, scoreMax: null, selectedTags: [] }} />);
     expect(view.getByText("score ≥ -1")).toBeInTheDocument();
 
-    view.rerender(<CardListTemplate cards={[card]} filter={{ scoreMin: null, scoreMax: 3, selectedTags: [] }} />);
+    view.rerender(<CardListView cards={[card]} filter={{ scoreMin: null, scoreMax: 3, selectedTags: [] }} />);
     expect(view.getByText("score ≤ 3")).toBeInTheDocument();
   });
 
   it("constrains a long unbroken selected tag without changing its text", () => {
     const longTag = `tag-${"unbroken".repeat(30)}`;
     const view = render(
-      <CardListTemplate cards={[card]} filter={{ scoreMin: null, scoreMax: null, selectedTags: [longTag] }} />
+      <CardListView cards={[card]} filter={{ scoreMin: null, scoreMax: null, selectedTags: [longTag] }} />
     );
     const chip = view.getByText(longTag);
 
@@ -69,7 +78,7 @@ describe("CardListTemplate", () => {
   it("removes one selected tag from the persistent filter summary", async () => {
     const onRemoveTag = vi.fn();
     const view = render(
-      <CardListTemplate
+      <CardListView
         cards={[card]}
         filter={{ scoreMin: null, scoreMax: null, selectedTags: ["one", "two"] }}
         onRemoveTag={onRemoveTag}
@@ -81,7 +90,7 @@ describe("CardListTemplate", () => {
   });
 
   it("shows a token-styled decorative chevron for filter disclosure state", () => {
-    const view = render(<CardListTemplate cards={[card]} />);
+    const view = render(<CardListView cards={[card]} />);
     const details = view.getByText("Filters").closest("details");
     const chevron = details?.querySelector('[aria-hidden="true"]');
 
@@ -90,7 +99,7 @@ describe("CardListTemplate", () => {
   });
 
   it("keeps only one menu open and removes it with a missing row", async () => {
-    const view = render(<CardListTemplate cards={[card, otherCard]} />);
+    const view = render(<CardListView cards={[card, otherCard]} />);
     fireEvent.click(view.getByRole("button", { name: "Open actions for Front" }));
     expect(view.getByRole("menu", { name: "Actions for Front" })).toBeInTheDocument();
 
@@ -98,7 +107,7 @@ describe("CardListTemplate", () => {
     expect(view.queryByRole("menu", { name: "Actions for Front" })).not.toBeInTheDocument();
     expect(view.getByRole("menu", { name: "Actions for Other" })).toBeInTheDocument();
 
-    view.rerender(<CardListTemplate cards={[card]} />);
+    view.rerender(<CardListView cards={[card]} />);
     await waitFor(() => expect(view.queryByRole("menu")).not.toBeInTheDocument());
   });
 
@@ -106,11 +115,7 @@ describe("CardListTemplate", () => {
     const onShowCard = vi.fn();
     const onClose = vi.fn();
     const view = render(
-      <CardListTemplate
-        cards={[card]}
-        onShowCard={onShowCard}
-        overlay={{ backText: { text: "Overlay back" }, onClose }}
-      />
+      <CardListView cards={[card]} onShowCard={onShowCard} overlay={{ backText: { text: "Overlay back" }, onClose }} />
     );
 
     fireEvent.click(view.getByRole("button", { name: "View Front" }));

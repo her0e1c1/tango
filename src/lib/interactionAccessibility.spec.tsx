@@ -19,9 +19,17 @@ vi.mock("@/features/study", async () => {
   return { Controller, SwipeButtonList };
 });
 
+vi.mock("@/features/card", async () => {
+  const [{ BackText }, { Card }] = await Promise.all([
+    vi.importActual<typeof import("@/features/card/components/BackText")>("@/features/card/components/BackText"),
+    vi.importActual<typeof import("@/features/card/components/Card")>("@/features/card/components/Card"),
+  ]);
+  return { BackText, Card };
+});
+
 import { FrontText } from "@/features/card/components/FrontText";
-import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
 import { SwipeButtonList } from "@/features/study/components/SwipeButtonList";
+import { CardListView } from "@/pages/card-list/ui/CardListView";
 import { DeckImportView } from "@/pages/deck-import/ui/DeckImportView";
 import { DeckSwiperView } from "@/pages/deck-swiper/ui/DeckSwiperView";
 import { FullScreen, Logo, Overlay, Title } from "@/components";
@@ -214,8 +222,8 @@ describe("keyboard-accessible interactions", () => {
     expect(view.getByRole("button", { name: "Swipe down" })).toBeInTheDocument();
   });
 
-  it("names the interactive CardListTemplate close overlay", () => {
-    const view = render(<CardListTemplate cards={[]} overlay={{ backText: { text: "Back" }, onClose: vi.fn() }} />);
+  it("names the interactive CardListView close overlay", () => {
+    const view = render(<CardListView cards={[]} overlay={{ backText: { text: "Back" }, onClose: vi.fn() }} />);
 
     expect(view.getByRole("button", { name: "Close card" })).toBeInTheDocument();
   });
