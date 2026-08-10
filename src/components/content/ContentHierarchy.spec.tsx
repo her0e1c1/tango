@@ -23,7 +23,16 @@ describe("shared content hierarchy", () => {
     const view = render(<Card className="custom-card">Card content</Card>);
     const surface = screen.getByText("Card content");
     expect(view.container.firstElementChild).toHaveClass("w-full", "md:w-1/2", "lg:w-1/3");
-    expect(surface).toHaveClass("rounded-surface", "bg-surface", "text-ink", "shadow-surface", "custom-card");
+    expect(surface).toHaveClass(
+      "gap-3",
+      "rounded-surface",
+      "bg-surface",
+      "p-4",
+      "md:p-5",
+      "text-ink",
+      "shadow-surface",
+      "custom-card"
+    );
 
     view.rerender(
       <Card full disabled border>

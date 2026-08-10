@@ -22,7 +22,6 @@ const fields: ConfigFormFields = {
   maxNumberOfCardsToLearn: { name: "maxNumberOfCardsToLearn", value: "10", onChange: () => undefined },
   defaultAutoPlay: { name: "defaultAutoPlay" },
   cardInterval: { name: "cardInterval", value: "5", onChange: () => undefined },
-  githubAccessToken: { name: "githubAccessToken" },
 };
 
 describe("ConfigFormTemplate", () => {

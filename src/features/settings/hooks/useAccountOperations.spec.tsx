@@ -6,7 +6,7 @@
  */
 
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
-import { StrictMode, type PropsWithChildren } from "react";
+import React, { type PropsWithChildren } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
@@ -30,7 +30,7 @@ const deferred = <T,>() => {
  * Renders the test-only Strict Mode Wrapper component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const StrictModeWrapper = ({ children }: PropsWithChildren) => <StrictMode>{children}</StrictMode>;
+const StrictModeWrapper = ({ children }: PropsWithChildren) => <React.StrictMode>{children}</React.StrictMode>;
 
 afterEach(() => cleanup());
 

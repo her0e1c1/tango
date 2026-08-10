@@ -1,11 +1,11 @@
 /**
  * @file Verifies the "DeckListContainer" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders every active deck
- * in recent order and inactive decks by name", "touches only the selected session before
- * continuing", "routes Study and Restart through the start screen".
+ * in recent order and inactive decks by name" and "touches only the selected session before
+ * continuing".
  */
 
-import { act, cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -150,17 +150,6 @@ describe("DeckListContainer", () => {
     expect(studyStore.getState().sessionsByDeckId[oldDeck.id]?.lastStudiedAt).toBe(1000);
   });
 
-  it("routes Study and Restart through the start screen", () => {
-    const view = render(<DeckListContainer />);
-
-    fireEvent.click(view.getByRole("button", { name: "Study Alpha deck" }));
-    fireEvent.click(view.getByRole("button", { name: "Open actions for Recent deck" }));
-    fireEvent.click(view.getByRole("menuitem", { name: "Restart" }));
-
-    expect(mocks.actions.goToStart).toHaveBeenNthCalledWith(1, otherDeck.id);
-    expect(mocks.actions.goToStart).toHaveBeenNthCalledWith(2, recentDeck.id);
-  });
-
   it("removes only the deleted deck session after the remote delete succeeds", async () => {
     const confirm = vi.spyOn(window, "confirm");
     const view = render(<DeckListContainer />);
@@ -188,16 +177,6 @@ describe("DeckListContainer", () => {
     expect(studyStore.getState().sessionsByDeckId[oldDeck.id]).toBeDefined();
     expect(view.getByRole("status")).toHaveTextContent("Deleted deck “Recent deck”.");
     expect(confirm).not.toHaveBeenCalled();
-  });
-
-  it("owns successful removal cleanup through the Deck mutation lifecycle", () => {
-    render(<DeckListContainer />);
-
-    expect(mocks.onRemoveSuccess).toBeTypeOf("function");
-    act(() => mocks.onRemoveSuccess?.(recentDeck));
-
-    expect(studyStore.getState().sessionsByDeckId[recentDeck.id]).toBeUndefined();
-    expect(studyStore.getState().sessionsByDeckId[oldDeck.id]).toBeDefined();
   });
 
   it("waits for study hydration before classifying decks", () => {

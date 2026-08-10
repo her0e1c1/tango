@@ -7,7 +7,7 @@
     "defaultBranch": "main"
   },
   "files": {
-    "includes": ["**/*.ts", "**/*.tsx", "src/**/*.js", "src/**/*.jsx"]
+    "includes": ["**/*.{ts,tsx}", "src/**/*.{js,jsx,css}", "scripts/**/*.mjs", "*.{js,mjs}"]
   },
   "formatter": {
     "includes": ["src/**"],
@@ -17,6 +17,33 @@
   "javascript": {
     "formatter": {
       "trailingCommas": "es5"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "linter": {
+    "rules": {
+      "correctness": {
+        "noUndeclaredDependencies": {
+          "level": "error",
+          "options": {
+            "devDependencies": [
+              "**/*.{spec,stories}.{ts,tsx}",
+              "**/{.storybook,storybook,e2e,scripts}/**",
+              "**/*.config.{js,mjs,ts}"
+            ]
+          }
+        },
+        "noUnresolvedImports": "error"
+      },
+      "suspicious": {
+        "noDeprecatedImports": "error",
+        "noImportCycles": "error",
+        "noLeakedRender": "error"
+      }
     }
   },
   "assist": {

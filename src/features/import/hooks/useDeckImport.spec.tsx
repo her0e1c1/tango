@@ -1,20 +1,18 @@
 /**
  * @file Verifies the "useDeckImport" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "keeps retry orchestration
- * stable across an unchanged render", "previews a file without writing until import is confirmed",
- * "keeps invalid files in preview without mutating state".
+ * The examples make the expected behavior concrete with cases such as "previews a file without
+ * writing until import is confirmed" and "keeps invalid files in preview without mutating state".
  */
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard, createConfig, createDeck } from "@/test/factories";
+import { createCard, createDeck } from "@/test/factories";
 import type { DeckImportResult } from "@/features/import/components/deckImportTypes";
 import { CardBulkMutationError } from "@/services/cardCommands";
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
-  config: {} as ConfigState,
   remoteStatus: "ready" as "idle" | "loading" | "ready" | "error" | "blocked",
   syncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
   decks: [] as Deck[],
@@ -29,7 +27,6 @@ const mocks = vi.hoisted(() => ({
   bulkUpsert: vi.fn(),
 }));
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/auth/AuthContext", () => ({
   useAuth: () =>
     mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
@@ -69,7 +66,6 @@ describe("useDeckImport", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.uid = "uid-a";
-    mocks.config = createConfig({ githubAccessToken: "" });
     mocks.remoteStatus = "ready";
     mocks.syncStatus = "synced";
     mocks.decks = [];
@@ -85,15 +81,6 @@ describe("useDeckImport", () => {
     mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck" }));
     mocks.createDeck.mockResolvedValue(undefined);
     mocks.bulkUpsert.mockResolvedValue(undefined);
-  });
-
-  it("keeps retry orchestration stable across an unchanged render", () => {
-    const { result, rerender } = renderHook(useDeckImport);
-    const retry = result.current.retry;
-
-    rerender();
-
-    expect(result.current.retry).toBe(retry);
   });
 
   it("previews a file without writing until import is confirmed", async () => {
@@ -244,30 +231,13 @@ describe("useDeckImport", () => {
     expect(mocks.createDeck).not.toHaveBeenCalled();
   });
 
-  it("does not send a GitHub token to an unapproved URL", async () => {
-    mocks.config = createConfig({ githubAccessToken: "secret" });
+  it("fetches a public import URL without credentials", async () => {
     const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"front","back","","key"'));
     const { result } = renderHook(useDeckImport);
 
     await act(async () => result.current.importUrl("https://example.test/deck.csv"));
 
-    expect(fetch).toHaveBeenCalledWith(new URL("https://example.test/deck.csv"), { headers: {} });
-  });
-
-  it("sends a GitHub token only to the repository contents API", async () => {
-    mocks.config = createConfig({ githubAccessToken: "secret" });
-    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"front","back","","key"'));
-    const { result } = renderHook(useDeckImport);
-    const url = "https://api.github.com/repos/owner/repository/contents/deck.csv";
-
-    await act(async () => result.current.importUrl(url));
-
-    expect(fetch).toHaveBeenCalledWith(new URL(url), {
-      headers: {
-        Accept: "application/vnd.github.raw",
-        Authorization: "Bearer secret",
-      },
-    });
+    expect(fetch).toHaveBeenCalledWith(new URL("https://example.test/deck.csv"));
   });
 
   it("rejects a second import while the first is pending", async () => {

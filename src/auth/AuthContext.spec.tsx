@@ -7,7 +7,7 @@
 
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { StrictMode, type PropsWithChildren } from "react";
+import React, { type PropsWithChildren } from "react";
 import type { Auth, User, UserCredential } from "firebase/auth";
 import { AuthProvider, createAuthStore, publishAuthenticatedUser, useAuth } from "@/auth/AuthContext";
 
@@ -436,9 +436,9 @@ describe("AuthProvider", () => {
       signInAnonymously: vi.fn(),
     });
     const Wrapper = ({ children }: PropsWithChildren) => (
-      <StrictMode>
+      <React.StrictMode>
         <AuthProvider store={store}>{children}</AuthProvider>
-      </StrictMode>
+      </React.StrictMode>
     );
 
     const { result } = renderHook(() => useAuth(), { wrapper: Wrapper });

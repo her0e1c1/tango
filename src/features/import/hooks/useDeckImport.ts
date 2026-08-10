@@ -12,7 +12,6 @@ import { useAuth } from "@/auth/AuthContext";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { useConfig } from "@/hooks/useConfig";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
 import { CardBulkMutationError } from "@/services/cardCommands";
@@ -35,10 +34,6 @@ type ImportRequest =
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
 
-const isGitHubContentsApiUrl = (url: URL): boolean =>
-  url.protocol === "https:" &&
-  url.hostname === "api.github.com" &&
-  /^\/repos\/[^/]+\/[^/]+\/contents\/.+/.test(url.pathname);
 /**
  * Builds the stable sample deck id used by the import feature.
  * Centralizing the format prevents different callers from producing incompatible identifiers.
@@ -270,7 +265,6 @@ const previewDeckImportFile = async (
  */
 export const useDeckImport = () => {
   const auth = useAuth();
-  const config = useConfig();
   const remote = useRemoteCollections();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();
@@ -422,20 +416,12 @@ export const useDeckImport = () => {
     return run({ kind: "content", name: preview.deckName, rows: preview.analysis.rows });
   };
 
-  /**
-   * Downloads card CSV data from a URL and runs it through the normal import workflow.
-   * A configured GitHub token is attached for private raw-content requests.
-   */
+  /** Downloads card CSV data from a public URL and runs it through the normal import workflow. */
   const importUrl = async (url: string, name?: string) => {
     const operationGeneration = generation.current;
     const operationUid = uid;
-    const headers: Record<string, string> = {};
     const parsedUrl = new URL(url);
-    if (config.githubAccessToken !== "" && isGitHubContentsApiUrl(parsedUrl)) {
-      headers.Accept = "application/vnd.github.raw";
-      headers.Authorization = `Bearer ${config.githubAccessToken}`;
-    }
-    const response = await fetch(parsedUrl, { headers });
+    const response = await fetch(parsedUrl);
     if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
     const cards = await action.deck.parseCsv(await response.text());
     if (generation.current !== operationGeneration || dependenciesRef.current?.uid !== operationUid) {

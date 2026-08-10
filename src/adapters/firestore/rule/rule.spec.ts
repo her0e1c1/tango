@@ -13,7 +13,9 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { setDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import { v4 as uuid } from "uuid";
+import * as UUID from "uuid";
+
+const uuid = UUID.v4;
 
 describe("firestore/rule", () => {
   let testEnv: RulesTestEnvironment;

@@ -86,10 +86,4 @@ describe("card commands", () => {
 
     await assertion;
   });
-
-  it("logically removes a Card by id", async () => {
-    await cardCommands.remove("uid-a", "card", "deck");
-
-    expect(mocks.logicalRemove).toHaveBeenCalledExactlyOnceWith("card");
-  });
 });

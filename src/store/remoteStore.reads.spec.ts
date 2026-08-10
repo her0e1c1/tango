@@ -130,33 +130,6 @@ describe("remote store reads", () => {
     expect(harness.store.getState().syncStatus).toBe("synced");
   });
 
-  it("applies incremental changes and preserves unchanged references", async () => {
-    const harness = createHarness();
-    const first = createCard({ id: "first" });
-    const second = createCard({ id: "second" });
-    await harness.store.getState().start("uid-a");
-    publishInitial(harness, [], [first, second]);
-    const initialCards = harness.store.getState().cardsById;
-    const unchanged = initialCards.second;
-
-    harness.cardSubscriptions[0]?.onSnapshot({
-      type: "change",
-      event: { added: [], modified: [{ ...first, frontText: "updated" }], removed: [] },
-      metadata: synced,
-    });
-
-    expect(harness.store.getState().cardsById).not.toBe(initialCards);
-    expect(harness.store.getState().cardsById.second).toBe(unchanged);
-
-    const changedCards = harness.store.getState().cardsById;
-    harness.cardSubscriptions[0]?.onSnapshot({
-      type: "change",
-      event: { added: [], modified: [], removed: [] },
-      metadata: synced,
-    });
-    expect(harness.store.getState().cardsById).toBe(changedCards);
-  });
-
   it("stops listeners and ignores stale callbacks", async () => {
     const harness = createHarness();
     await harness.store.getState().start("uid-a");

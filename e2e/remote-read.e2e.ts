@@ -96,7 +96,6 @@ const persistedConfig = {
   cardSwipeRight: "GoToNextCard",
   darkMode: false,
   selectedTags: [],
-  githubAccessToken: "",
 };
 
 const seedAuth = async (page: Page, uid: string, nextUid?: string) => {
@@ -223,6 +222,7 @@ test("logout replaces the UID-scoped Query cache", async ({ page }) => {
 
   await page.evaluate(async (uid) => {
     // @ts-expect-error Vite serves source modules to the browser during E2E tests.
+    // biome-ignore lint/correctness/noUnresolvedImports: Vite serves this browser-only absolute module path.
     const actions = (await import("/src/action/event.ts")) as { logout: (confirmedUid: string) => Promise<void> };
     await actions.logout(uid);
   }, uidA);

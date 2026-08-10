@@ -7,7 +7,7 @@
 
 import { act, cleanup, render, waitFor } from "@testing-library/react";
 import type { Auth, User, UserCredential } from "firebase/auth";
-import { StrictMode } from "react";
+import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -45,11 +45,11 @@ const createHarness = () => {
     signInAnonymously: vi.fn<() => Promise<UserCredential>>(),
   });
   render(
-    <StrictMode>
+    <React.StrictMode>
       <AuthProvider store={store}>
         <AuthBootstrap />
       </AuthProvider>
-    </StrictMode>
+    </React.StrictMode>
   );
   return { publishUser, store };
 };

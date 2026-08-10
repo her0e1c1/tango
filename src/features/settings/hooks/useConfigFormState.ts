@@ -83,7 +83,6 @@ export const useConfigFormState = ({
         min: 0,
         max: 60,
       },
-      githubAccessToken: register("githubAccessToken"),
     },
   };
 };

@@ -2,7 +2,7 @@
  * @file Provides pure selection helpers for remote store data.
  */
 
-import { uniq } from "lodash";
+import * as lodash from "lodash";
 
 import { filterCardsForDeck as filterStudyCards } from "@/lib/study";
 import type { RemoteById } from "@/domain/remoteSnapshot";
@@ -41,4 +41,4 @@ export const filteredCardsForDeck = (
  * Filter controls use this list without needing to scan card data themselves.
  */
 export const tagsForDeck = (cards: Card[], deckId: DeckId): string[] =>
-  uniq(cardsForDeck(cards, deckId).flatMap((card) => card.tags)).sort();
+  lodash.uniq(cardsForDeck(cards, deckId).flatMap((card) => card.tags)).sort();

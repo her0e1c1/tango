@@ -66,6 +66,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const HoverHighlight: Story = {
+  play: async ({ canvas, userEvent }) => {
+    const firstDeck = canvas.getAllByRole("button", { name: /^View / })[0];
+    if (firstDeck == null) throw new Error("HoverHighlight requires at least one deck");
+    await userEvent.hover(firstDeck);
+  },
+};
+
 export const Inactive: Story = {
   args: { sections: { studying: [], other: otherItems(fixture.decks.default) } },
 };

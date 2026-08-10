@@ -54,7 +54,7 @@ describe("DestructiveActionDialog", () => {
           <button type="button" onClick={() => setOpen(true)}>
             Open delete
           </button>
-          {open && <DestructiveActionDialog {...defaultProps} onCancel={() => setOpen(false)} />}
+          {open ? <DestructiveActionDialog {...defaultProps} onCancel={() => setOpen(false)} /> : null}
         </>
       );
     };

@@ -4,7 +4,7 @@
  * remote services.
  */
 
-import { shuffle } from "lodash";
+import * as lodash from "lodash";
 
 /**
  * Resolves the swipe action value from config for a given direction.
@@ -69,7 +69,7 @@ export const buildStudySession = (
 ): string[] => {
   let cardOrderIds = cards.map((c) => c.id);
   if (config.shuffled) {
-    cardOrderIds = shuffle(cardOrderIds);
+    cardOrderIds = lodash.shuffle(cardOrderIds);
   }
   if (config.maxNumberOfCardsToLearn > 0) {
     cardOrderIds = cardOrderIds.slice(0, config.maxNumberOfCardsToLearn);

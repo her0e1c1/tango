@@ -31,15 +31,6 @@ const fields: ConfigFormFields = {
     max: 60,
     onChange: () => undefined,
   },
-  githubAccessToken: { value: fixture.config.default.githubAccessToken, onChange: () => undefined },
-};
-
-const longFields: ConfigFormFields = {
-  ...fields,
-  githubAccessToken: {
-    value: "github_pat_story_token_with_an_intentionally_long_value_for_responsive_review_1234567890",
-    onChange: () => undefined,
-  },
 };
 
 const meta = {
@@ -92,7 +83,7 @@ export const LongContent: Story = {
         displayName: "A settings user with an intentionally long display name for responsive review",
       },
       config: fixture.config.longUserName,
-      fields: longFields,
+      fields,
       maxNumberOfCardsToLearn: fixture.config.longUserName.maxNumberOfCardsToLearn,
       cardInterval: fixture.config.longUserName.cardInterval,
       version: "2026.07.16-calm-focus-settings-presentation-long-metadata",

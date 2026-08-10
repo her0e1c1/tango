@@ -69,7 +69,6 @@ export const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState 
   cardSwipeRight: "GoToNextCard",
   darkMode: false,
   selectedTags: [],
-  githubAccessToken: "",
   ...overrides,
 });
 
