@@ -2,10 +2,10 @@
  * @file Verifies the "DeckImportContainer" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "selects a CSV without
  * importing or navigating automatically", "adds the bundled sample without navigating
- * automatically", "imports the preview explicitly and navigates only from Back to decks".
+ * automatically", "navigates to the Deck list after importing the preview".
  */
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -134,18 +134,13 @@ describe("DeckImportContainer", () => {
     expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
-  it("imports the preview explicitly and navigates only from Back to decks", async () => {
+  it("navigates to the Deck list after importing the preview", async () => {
     mocks.preview = preview;
-    mocks.data = { created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" };
     const view = render(<DeckImportContainer />);
 
     await userEvent.click(view.getByRole("button", { name: "Import" }));
 
     expect(mocks.importPreview).toHaveBeenCalledOnce();
-    expect(mocks.navigate).not.toHaveBeenCalled();
-
-    await userEvent.click(view.getByRole("button", { name: "Back to decks" }));
-
-    expect(mocks.navigate).toHaveBeenCalledWith(-1);
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/"));
   });
 });

@@ -36,7 +36,10 @@ export const DeckImportContainer: React.FC = () => {
         void deckImport.addSample().catch(() => undefined);
       }}
       onImport={() => {
-        void deckImport.importPreview().catch(() => undefined);
+        void deckImport
+          .importPreview()
+          .then(() => navigate("/"))
+          .catch(() => undefined);
       }}
       onRetry={deckImport.retry}
       onBack={() => navigate(-1)}
