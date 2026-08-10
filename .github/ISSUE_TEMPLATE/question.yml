@@ -1,19 +1,19 @@
-name: 質問
-description: プロジェクトに関する質問をします。
+name: Question
+description: Ask a question about the project.
 title: "[Question]: "
 labels: ["question"]
 body:
   - type: textarea
     id: question
     attributes:
-      label: 質問
-      description: 知りたいことを具体的に記載してください。
+      label: Question
+      description: Describe specifically what you would like to know.
     validations:
       required: true
   - type: textarea
     id: context
     attributes:
-      label: 背景
-      description: 質問に至った背景や試したことを記載してください。
+      label: Context
+      description: Describe the context and anything you have already tried.
     validations:
       required: true

@@ -1,34 +1,34 @@
-name: 改善提案
-description: 機能や開発体験の改善を提案します。
+name: Improvement proposal
+description: Propose an improvement to the product or developer experience.
 title: "[Improvement]: "
-labels: ["enhancement"]
+labels: ["enhancement", "needs-triage"]
 body:
   - type: textarea
     id: goal
     attributes:
-      label: 目的
-      description: この改善で達成したいことを説明してください。
+      label: Goal
+      description: Describe what this improvement should achieve.
     validations:
       required: true
   - type: textarea
     id: background
     attributes:
-      label: 背景
-      description: この改善が必要な背景を説明してください。
+      label: Background
+      description: Explain why this improvement is needed.
     validations:
       required: true
   - type: textarea
     id: scope
     attributes:
-      label: 対象範囲
-      description: 変更する範囲と変更しない範囲を記載してください。
+      label: Scope
+      description: Describe what should and should not change.
     validations:
       required: true
   - type: textarea
     id: acceptance-criteria
     attributes:
-      label: 受け入れ条件
-      description: 完了と判断できる条件を記載してください。
+      label: Acceptance criteria
+      description: Describe the conditions required for completion.
     validations:
       required: true
   - type: dropdown
