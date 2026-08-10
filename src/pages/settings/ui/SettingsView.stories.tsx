@@ -7,8 +7,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import type { ConfigFormFields } from "@/features/settings";
-import * as fixture from "@/storybook/fixture";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+import * as fixture from "@/app/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/app/storybook/storybookViewports";
 
 import { SettingsView as Template } from "./SettingsView";
 

@@ -3,12 +3,16 @@
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
+import type { Card } from "@/entities/card";
 
 import type * as React from "react";
 import { useId } from "react";
 
-import { Button, Form, FormItem, Tag, TagList, Textarea } from "@/components";
-import type { Option } from "@/components/forms/Select";
+import type { Option } from "@/shared/ui/form-controls";
+import { Button } from "@/shared/ui/button";
+import { Form, FormItem } from "@/shared/ui/form";
+import { Textarea } from "@/shared/ui/form-controls";
+import { Tag, TagList } from "@/shared/ui/tag";
 
 interface CardFormTagField extends Option {
   input: React.ComponentProps<typeof Tag>;

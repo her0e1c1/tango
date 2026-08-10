@@ -8,7 +8,7 @@ import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";
 import { CardOverlay } from "@/features/card/components/CardOverlay";
-import { createCard } from "@/test/factories";
+import { createCard } from "@/entities/card";
 
 describe("CardOverlay", () => {
   afterEach(cleanup);

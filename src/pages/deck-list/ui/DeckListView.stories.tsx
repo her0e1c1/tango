@@ -8,8 +8,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import type { Deck } from "@/entities/deck";
 import { type DeckListItem, type DeckListSections, DeckListView as Template } from "./DeckListView";
-import * as fixture from "@/storybook/fixture";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+import * as fixture from "@/app/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/app/storybook/storybookViewports";
 
 /**
  * Prepares other items data for the Storybook examples in this file.

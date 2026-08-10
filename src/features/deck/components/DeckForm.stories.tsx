@@ -3,14 +3,15 @@
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
+import type { Deck } from "@/entities/deck";
 
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
 
 import { DeckForm as Template, type DeckFormFields } from "@/features/deck/components/DeckForm";
-import * as fixture from "@/storybook/fixture";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+import * as fixture from "@/app/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/app/storybook/storybookViewports";
 
 /**
  * Prepares fields for data for the Storybook examples in this file.

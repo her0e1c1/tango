@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createConfig } from "@/test/factories";
+import { createConfig } from "@/entities/config";
 
 const mocks = vi.hoisted(() => ({
   login: vi.fn(),
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   goToTop: vi.fn(),
 }));
 
-vi.mock("@/auth/AuthContext", () => ({ useAuth: () => ({ status: "unauthenticated" as const }) }));
+vi.mock("@/shared/auth", () => ({ useAuth: () => ({ status: "unauthenticated" as const }) }));
 vi.mock("@/features/settings", async () => {
   const [{ ConfigForm }, { useConfigFormState }] = await Promise.all([
     vi.importActual<typeof import("@/features/settings/components/ConfigForm")>(
@@ -35,8 +35,12 @@ vi.mock("@/features/settings", async () => {
     }),
   };
 });
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => createConfig() }));
-vi.mock("@/hooks/useActions", () => ({
+vi.mock("@/entities/config", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/config")>()),
+  useConfig: () => createConfig(),
+}));
+vi.mock("../model/accountCommands", () => ({ loginGoogle: vi.fn(), logout: vi.fn() }));
+vi.mock("@/features/app-controls", () => ({
   useActions: () => ({
     login: vi.fn(),
     logout: vi.fn(),

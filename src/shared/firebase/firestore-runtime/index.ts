@@ -25,7 +25,7 @@ export const createFirestoreRuntime = () => {
    * succeeds or is blocked.
    */
   let resolveInitialization: (state: FirestoreInitializationState) => void = () => undefined;
-  const listeners = new Set<Callback>();
+  const listeners = new Set<() => void>();
   const initialization = new Promise<FirestoreInitializationState>((resolve) => {
     resolveInitialization = resolve;
   });
@@ -57,7 +57,7 @@ export const createFirestoreRuntime = () => {
     },
     getState: () => state,
     waitForInitialization: () => initialization,
-    subscribe: (listener: Callback) => {
+    subscribe: (listener: () => void) => {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },

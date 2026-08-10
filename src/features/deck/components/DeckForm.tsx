@@ -7,8 +7,10 @@
 import type * as React from "react";
 import { useId } from "react";
 
-import { Button, Form, FormItem, Input, Select, Switch } from "@/components";
 import type { Deck } from "@/entities/deck";
+import { Button } from "@/shared/ui/button";
+import { Form, FormItem } from "@/shared/ui/form";
+import { Input, Select, Switch } from "@/shared/ui/form-controls";
 
 export interface DeckFormFields {
   name: React.ComponentProps<typeof Input>;

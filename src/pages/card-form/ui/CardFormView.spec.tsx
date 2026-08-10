@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createCard } from "@/test/factories";
+import { createCard } from "@/entities/card";
 
 vi.mock("@/features/card", async () => {
   const { CardForm } = await vi.importActual<typeof import("@/features/card/components/CardForm")>(

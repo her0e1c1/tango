@@ -4,6 +4,7 @@
  * in recent order and inactive decks by name" and "touches only the selected session before
  * continuing".
  */
+import type { ConfigState } from "@/entities/config";
 
 import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -12,7 +13,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Card, CardId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 import type { StudySession } from "@/features/study";
-import { createCard, createConfig, createDeck } from "@/test/factories";
+import { createCard } from "@/entities/card";
+import { createConfig } from "@/entities/config";
+import { createDeck } from "@/entities/deck";
 
 const mocks = vi.hoisted(() => ({
   config: {} as ConfigState,
@@ -44,7 +47,11 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/entities/config", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/config")>()),
+  useConfig: () => mocks.config,
+}));
+vi.mock("@/shared/auth", () => ({ useAuth: () => ({ status: "authenticated", uid: "uid-a" }) }));
 vi.mock("@/features/study", () => ({
   discardStudySessionsMissingDecks: mocks.discardStudySessionsMissingDecks,
   removeStudySession: mocks.removeStudySession,
@@ -52,8 +59,7 @@ vi.mock("@/features/study", () => ({
   useStudyHydrated: () => mocks.hydrated,
   useStudySessions: () => mocks.sessionsByDeckId,
 }));
-vi.mock("@/action", () => ({ deck: { downloadData: mocks.downloadData } }));
-vi.mock("@/hooks/useRemoteCollections", () => ({
+vi.mock("@/features/remote-collections", () => ({
   useRemoteCollections: () => {
     const decks = Object.values(mocks.decksById);
     const cards = Object.values(mocks.cardsById);
@@ -64,16 +70,18 @@ vi.mock("@/hooks/useRemoteCollections", () => ({
       decks,
       cards,
       deckById: (id: DeckId) => mocks.decksById[id],
+      cardById: (id: CardId) => mocks.cardsById[id],
       cardsByDeckId: (id: DeckId) => cards.filter((card) => card.deckId === id),
     };
   },
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
-vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.actions }));
+vi.mock("@/features/app-controls", () => ({ useActions: () => mocks.actions }));
 vi.mock("@/features/deck", () => ({
   useDeckMutations: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
     mocks.onRemoveSuccess = options?.onRemoveSuccess;
     return {
+      create: vi.fn(),
       remove: (deck: Deck) => mocks.remove(deck).then(() => mocks.onRemoveSuccess?.(deck)),
       pending: mocks.pending,
       isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),
@@ -82,7 +90,12 @@ vi.mock("@/features/deck", () => ({
     };
   },
 }));
-vi.mock("@/features/import", () => ({ useSampleDeckBootstrap: vi.fn() }));
+vi.mock("@/features/card", () => ({ useCardMutations: () => ({ bulkUpsert: vi.fn() }) }));
+vi.mock("@/features/import", () => ({
+  downloadDeckData: mocks.downloadData,
+  useDeckImport: () => ({ addSample: vi.fn() }),
+  useSampleDeckBootstrap: vi.fn(),
+}));
 
 import { DeckListPage } from "./DeckListPage";
 

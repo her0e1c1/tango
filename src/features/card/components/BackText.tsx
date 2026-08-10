@@ -5,7 +5,9 @@
  */
 
 import type * as React from "react";
-import { MathContent, Code, Style } from "@/components";
+import { MathContent } from "@/shared/ui/math-content";
+import { Code } from "@/shared/ui/rich-code";
+import { Style } from "@/shared/ui/rich-content-style";
 
 export interface BackTextProps {
   text: string;

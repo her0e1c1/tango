@@ -3,20 +3,19 @@
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */
+import type { Deck } from "@/entities/deck";
 
 import { useNavigate } from "react-router-dom";
 
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 
 /**
  * Provides the deck actions values and operations needed by React components.
  * Callers receive one focused interface without coordinating the deck feature's stores and
  * services themselves.
  */
-export const useDeckActions = (id: DeckId) => {
+export const useDeckActions = (deck: Deck | undefined) => {
   const navigate = useNavigate();
-  const remote = useRemoteCollections();
   const mutations = useDeckMutations();
   return {
     update: mutations.update,
@@ -29,10 +28,7 @@ export const useDeckActions = (id: DeckId) => {
       }
     },
     goToList: () => void navigate("/", { replace: true }),
-    remove: () => {
-      const deck = remote.deckById(id);
-      return deck == null ? Promise.reject(new Error(`Deck ${id} is not available`)) : mutations.remove(deck);
-    },
+    remove: () => (deck == null ? Promise.reject(new Error("Deck is not available")) : mutations.remove(deck)),
     pending: mutations.pending,
     error: mutations.error,
     retry: mutations.retry,

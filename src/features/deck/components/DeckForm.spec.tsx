@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { DeckForm, type DeckFormProps } from "@/features/deck/components/DeckForm";
-import { createDeck } from "@/test/factories";
+import { createDeck } from "@/entities/deck";
 
 /**
  * Provides the create props test helper used by this file.

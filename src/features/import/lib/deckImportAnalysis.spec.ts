@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
-import { createCard } from "@/test/factories";
+import { createCard } from "@/entities/card";
 
 describe("parseDeckImportCsv", () => {
   it("separates valid, skipped, and invalid rows with context", async () => {

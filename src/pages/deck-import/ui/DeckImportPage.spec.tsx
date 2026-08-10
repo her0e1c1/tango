@@ -32,7 +32,21 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
+vi.mock("@/shared/auth", () => ({ useAuth: () => ({ status: "authenticated", uid: "uid-a" }) }));
+vi.mock("@/features/remote-collections", () => ({
+  useRemoteCollections: () => ({
+    status: "ready",
+    syncStatus: "synced",
+    decks: [],
+    cardById: vi.fn(),
+    cardsByDeckId: () => [],
+  }),
+}));
+vi.mock("@/features/card", () => ({ useCardMutations: () => ({ bulkUpsert: vi.fn() }) }));
+vi.mock("@/features/deck", () => ({ useDeckMutations: () => ({ create: vi.fn() }) }));
 vi.mock("@/features/import", () => ({
+  CSV_SAMPLE_TEXT: "front,back,tags,uniqueKey",
+  downloadCsvSample: mocks.deckDownloadCsvSampleText,
   useDeckImport: () => ({
     selectFile: mocks.selectFile,
     importPreview: mocks.importPreview,
@@ -47,13 +61,13 @@ vi.mock("@/features/import", () => ({
   }),
 }));
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
+vi.mock("@/entities/config", () => ({ useConfig: () => ({ darkMode: false }) }));
 
 vi.mock("react-use", () => ({
   useKey: mocks.useKey,
 }));
 
-vi.mock("@/hooks/useActions", () => ({
+vi.mock("@/features/app-controls", () => ({
   useActions: () => ({
     deckDownloadCsvSampleText: mocks.deckDownloadCsvSampleText,
     goToTop: mocks.goToTop,

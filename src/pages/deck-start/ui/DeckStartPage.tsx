@@ -1,14 +1,16 @@
+import type { ConfigState } from "@/entities/config";
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
+import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
-import { useStudyActions } from "@/features/study";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { filterCardsForDeck, useStudyActions } from "@/features/study";
+import { useActions } from "@/features/app-controls";
+import { useConfig } from "@/entities/config";
+import { useRemoteCollections } from "@/features/remote-collections";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -19,8 +21,15 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
 
 export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
   const { deck, cards, config, tags } = props;
-  const deckActions = useDeckActions(deck.id);
-  const studyActions = useStudyActions(deck.id);
+  const deckActions = useDeckActions(deck);
+  const cardMutations = useCardMutations({ cardById: (id) => cards.find((card) => card.id === id) });
+  const studyActions = useStudyActions({
+    deckId: deck.id,
+    config,
+    cards,
+    cardsById: Object.fromEntries(cards.map((card) => [card.id, card])),
+    cardMutations,
+  });
   const startStudy = studyActions.start;
   const actions = useActions();
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
@@ -58,7 +67,7 @@ export const DeckStartPage: React.FC = () => {
   const config = useConfig();
   const remote = useRemoteCollections();
   const deck = remote.deckById(deckId);
-  const cards = remote.filteredCardsByDeckId(deckId, config);
+  const cards = deck == null ? [] : filterCardsForDeck(remote.cardsByDeckId(deckId), deck, config, remote.now);
   const tags = remote.tagsByDeckId(deckId);
 
   return (

@@ -3,6 +3,7 @@
  * The examples make the expected behavior concrete with cases such as "auto-submits boolean and
  * numeric field changes", "synchronizes dark mode when the config prop changes".
  */
+import type { ConfigState } from "@/entities/config";
 
 import type React from "react";
 

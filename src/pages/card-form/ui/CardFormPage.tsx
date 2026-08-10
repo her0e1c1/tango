@@ -1,12 +1,12 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import * as C from "@/constant";
 import type { Card } from "@/entities/card";
 import { useCardFormState, useCardMutations } from "@/features/card";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { useActions } from "@/features/app-controls";
+import { useConfig } from "@/entities/config";
+import { useRemoteCollections } from "@/features/remote-collections";
+import { CATEGORIES } from "@/shared/lib/content-category";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -17,8 +17,8 @@ const CardFormContent = ({ card }: { card: Card }) => {
   const config = useConfig();
   const actions = useActions();
   const navigate = useNavigate();
-  const mutations = useCardMutations();
-  const categoryOptions = C.CATEGORY.map((category) => ({ label: category, value: category }));
+  const mutations = useCardMutations({ cardById: (id) => (id === card.id ? card : undefined) });
+  const categoryOptions = CATEGORIES.map((category) => ({ label: category, value: category }));
   const goBack = () => void navigate(-1);
   const cardForm = useCardFormState({
     card,

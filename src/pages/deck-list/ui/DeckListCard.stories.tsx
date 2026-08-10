@@ -6,9 +6,9 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+import { INITIAL_VIEWPORTS } from "@/app/storybook/storybookViewports";
 import { DeckListCard as Template } from "./DeckListCard";
-import * as fixture from "@/storybook/fixture";
+import * as fixture from "@/app/storybook/fixture";
 
 const meta = {
   title: "Pages/DeckList/DeckListCard",

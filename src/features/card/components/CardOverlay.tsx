@@ -3,9 +3,12 @@
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
+import type { Card } from "@/entities/card";
 
 import type * as React from "react";
-import { Description, Overlay, Score } from "@/components";
+import { Description } from "@/shared/ui/description";
+import { Overlay } from "@/shared/ui/overlay";
+import { Score } from "@/shared/ui/score";
 
 /**
  * Renders the Card Overlay user interface.

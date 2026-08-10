@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { CardForm, type CardFormProps } from "@/features/card/components/CardForm";
-import { createCard } from "@/test/factories";
+import { createCard } from "@/entities/card";
 
 const createdAt = Date.UTC(2026, 0, 2);
 const lastSeenAt = Date.UTC(2026, 1, 3);

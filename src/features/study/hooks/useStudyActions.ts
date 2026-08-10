@@ -3,16 +3,21 @@
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */
+import type { DeckId } from "@/entities/deck";
+import type { ConfigState, SwipeDirection } from "@/entities/config";
+import type { Card, CardEdit, CardId } from "@/entities/card";
 
 import React from "react";
 
 import { useNavigate } from "react-router-dom";
 
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { studyStore } from "@/features/study/state/studyStore";
-import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
-import { useCardMutations } from "@/features/card/hooks/useCardMutations";
-import { useConfig } from "@/hooks/useConfig";
+import {
+  buildStudyPatch,
+  buildStudySession,
+  calculateNextIndex,
+  resolveSwipeAction,
+} from "@/features/study/rules/study";
 
 export interface StudyActions {
   start: () => void;
@@ -27,6 +32,22 @@ export interface StudyActions {
   pending: boolean;
   error: unknown;
   retry: () => void;
+}
+
+interface StudyCardMutations {
+  update: (card: CardEdit) => Promise<void>;
+  isPending: (id: CardId) => boolean;
+  pending: boolean;
+  error: unknown;
+  retry: () => void;
+}
+
+interface UseStudyActionsOptions {
+  deckId: DeckId;
+  config: ConfigState;
+  cards: Card[];
+  cardsById: Partial<Record<CardId, Card>>;
+  cardMutations: StudyCardMutations;
 }
 
 interface StudySwipeDependencies {
@@ -107,13 +128,14 @@ const runStudySwipe = async (
  * Callers receive one focused interface without coordinating the study feature's stores and
  * services themselves.
  */
-export const useStudyActions = (deckId: DeckId): StudyActions => {
+export const useStudyActions = ({
+  deckId,
+  config,
+  cards,
+  cardsById,
+  cardMutations,
+}: UseStudyActionsOptions): StudyActions => {
   const navigate = useNavigate();
-  const config = useConfig();
-  const remote = useRemoteCollections();
-  const cards = remote.filteredCardsByDeckId(deckId, config);
-  const cardsById = remote.cardsById;
-  const cardMutations = useCardMutations();
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
   /**

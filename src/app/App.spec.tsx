@@ -10,11 +10,10 @@ import "@testing-library/jest-dom/vitest";
 import type { User } from "firebase/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AuthState } from "@/auth/AuthContext";
+import type { AuthState } from "@/shared/auth";
 
 const mocks = vi.hoisted(() => ({
   darkMode: false,
-  init: vi.fn(),
   authState: { status: "initializing" } as AuthState,
 }));
 
@@ -24,9 +23,8 @@ vi.mock("zustand", () => ({
       config: { darkMode: mocks.darkMode },
     }),
 }));
-vi.mock("@/store/configStore", () => ({ configStore: {} }));
-vi.mock("@/action", () => ({ event: { init: mocks.init } }));
-vi.mock("@/auth/AuthContext", () => ({ useAuth: () => mocks.authState }));
+vi.mock("@/entities/config", () => ({ configStore: {} }));
+vi.mock("@/shared/auth", () => ({ useAuth: () => mocks.authState }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));
@@ -42,7 +40,6 @@ import App from "./App";
 describe("App", () => {
   beforeEach(() => {
     mocks.darkMode = false;
-    mocks.init.mockReset();
     mocks.authState = { status: "authenticated", user: {} as User, uid: "test-user" };
     document.documentElement.classList.remove("dark");
     window.history.replaceState({}, "", "/");
@@ -56,7 +53,6 @@ describe("App", () => {
     view.rerender(<App />);
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
-    expect(mocks.init).not.toHaveBeenCalled();
   });
 
   it("shows startup feedback for initializing and signed-out authentication", () => {

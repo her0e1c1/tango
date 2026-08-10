@@ -3,13 +3,15 @@
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
+import type { ConfigState } from "@/entities/config";
 
 import type * as React from "react";
 import { useId } from "react";
 import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool, AiOutlineUser } from "react-icons/ai";
 
 import { SettingsRow, SettingsSection } from "@/features/settings/components/SettingsSection";
-import { Button, Slider, Switch } from "@/components";
+import { Button } from "@/shared/ui/button";
+import { Slider, Switch } from "@/shared/ui/form-controls";
 
 export interface ConfigFormFields {
   showHeader: React.ComponentProps<typeof Switch>;

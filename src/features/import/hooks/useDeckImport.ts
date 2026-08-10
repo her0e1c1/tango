@@ -3,19 +3,17 @@
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */
+import { CardBulkMutationError, prepare, type Card, type CardId, type CardRaw } from "@/entities/card";
+import { prepareDeck, type Deck, type DeckId } from "@/entities/deck";
 
 import { useEffect, useRef, useState } from "react";
 
-import * as action from "@/action";
-import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
-import { useAuth } from "@/auth/AuthContext";
-import { useCardMutations } from "@/features/card/hooks/useCardMutations";
-import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { generateCardId, generateDeckId } from "@/shared/firebase/document-metadata";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
-import { CardBulkMutationError } from "@/services/cardCommands";
 import sampleCards from "../../../../sample/build/output.json";
+
+import { parseCardCsv } from "../lib/cardCsv";
 
 interface DeckImportAttempt {
   uid: string;
@@ -78,6 +76,16 @@ interface DeckImportDependencies {
   bulkUpsert: (cards: Card[]) => Promise<unknown>;
 }
 
+interface UseDeckImportOptions {
+  uid: string;
+  status: "idle" | "loading" | "ready" | "blocked" | "error";
+  syncStatus: "cached" | "pending" | "synced" | undefined;
+  decks: Deck[];
+  cardsByDeckId: (id: DeckId) => Card[];
+  createDeck: (deck: Deck) => Promise<unknown>;
+  bulkUpsert: (cards: Card[]) => Promise<unknown>;
+}
+
 type DeckImportPreparationDependencies = Pick<DeckImportDependencies, "uid" | "decks" | "cardsByDeckId">;
 
 const prepareDeckImportAttempt = (
@@ -92,7 +100,7 @@ const prepareDeckImportAttempt = (
   );
   const createDeckPending = deck == null;
   if (deck == null) {
-    deck = action.deck.prepare({ name }, uid, firestoreMetadata.generateDeckId);
+    deck = prepareDeck({ name }, uid, generateDeckId);
     if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
   }
 
@@ -105,7 +113,7 @@ const prepareDeckImportAttempt = (
   plan.rows.forEach((row) => {
     const current = byUniqueKey.get(row.card.uniqueKey);
     if (row.action === "create") {
-      const card = action.card.prepare(row.card, deck, firestoreMetadata.generateCardId);
+      const card = prepare(row.card, deck, generateCardId);
       remainingUpserts.push(card);
       createdIds.push(card.id);
     } else if (row.action === "update" && current != null) {
@@ -263,14 +271,20 @@ const previewDeckImportFile = async (
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useDeckImport = () => {
-  const auth = useAuth();
-  const remote = useRemoteCollections();
-  const deckMutations = useDeckMutations();
-  const cardMutations = useCardMutations();
-  const uid = auth.status === "authenticated" ? auth.uid : "";
+export const useDeckImport = ({
+  uid,
+  status,
+  syncStatus,
+  decks,
+  cardsByDeckId,
+  createDeck,
+  bulkUpsert,
+}: UseDeckImportOptions) => {
   const generation = useRef(0);
   const generationUid = useRef(uid);
+  const lastRequest = useRef<ImportRequest>(undefined);
+  const dependenciesRef = useRef<DeckImportDependencies>(undefined);
+  const runRef = useRef<(request: ImportRequest) => Promise<DeckImportResult>>(undefined);
   const [stateUid, setStateUid] = useState(uid);
   const runningRef = useRef(false);
   const [runningState, setRunningState] = useState(() => ({ uid, value: false }));
@@ -295,9 +309,6 @@ export const useDeckImport = () => {
     setErrorState({ uid, value: null });
     setDataState({ uid, value: undefined });
   }
-  const lastRequest = useRef<ImportRequest>(undefined);
-  const dependenciesRef = useRef<DeckImportDependencies>(undefined);
-  const runRef = useRef<(request: ImportRequest) => Promise<DeckImportResult>>(undefined);
   const [retry] = useState(() => () => {
     const request = lastRequest.current;
     const currentRun = runRef.current;
@@ -314,21 +325,13 @@ export const useDeckImport = () => {
   useEffect(() => {
     dependenciesRef.current = {
       uid,
-      synchronized: remote.status === "ready" && remote.syncStatus === "synced",
-      decks: remote.decks,
-      cardsByDeckId: remote.cardsByDeckId,
-      createDeck: deckMutations.create,
-      bulkUpsert: cardMutations.bulkUpsert,
+      synchronized: status === "ready" && syncStatus === "synced",
+      decks,
+      cardsByDeckId,
+      createDeck,
+      bulkUpsert,
     };
-  }, [
-    cardMutations.bulkUpsert,
-    deckMutations.create,
-    remote.cardsByDeckId,
-    remote.decks,
-    remote.status,
-    remote.syncStatus,
-    uid,
-  ]);
+  }, [bulkUpsert, cardsByDeckId, createDeck, decks, status, syncStatus, uid]);
   const setRunning = (value: boolean) => setRunningState({ uid, value });
   const setValidating = (value: boolean) => setValidatingState({ uid, value });
   const setPreview = (value: DeckImportPreview | undefined) => setPreviewState({ uid, value });
@@ -393,8 +396,8 @@ export const useDeckImport = () => {
       setValidating,
       setPreview,
       reset: resetOperation,
-      decks: remote.decks,
-      cardsByDeckId: remote.cardsByDeckId,
+      decks,
+      cardsByDeckId,
       uid,
       currentUid: generationUid,
       generation: generation.current,
@@ -426,7 +429,7 @@ export const useDeckImport = () => {
     const parsedUrl = new URL(url);
     const response = await fetch(parsedUrl);
     if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
-    const cards = await action.deck.parseCsv(await response.text());
+    const cards = await parseCardCsv(await response.text());
     if (generation.current !== operationGeneration || dependenciesRef.current?.uid !== operationUid) {
       throw new Error("Deck import user changed before the import could start");
     }

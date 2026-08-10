@@ -13,7 +13,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { ConfigForm, type ConfigFormFields, type ConfigFormProps } from "@/features/settings/components/ConfigForm";
-import { createConfig } from "@/test/factories";
+import { createConfig } from "@/entities/config";
 
 /**
  * Provides the create fields test helper used by this file.

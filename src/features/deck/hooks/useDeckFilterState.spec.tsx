@@ -4,6 +4,7 @@
  * filter changes", "auto-submits score toggle and slider changes", "auto-submits individual tag,
  * all, and clear changes".
  */
+import type { Deck } from "@/entities/deck";
 
 import type React from "react";
 
@@ -14,7 +15,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
-import { createDeck } from "@/test/factories";
+import { createDeck } from "@/entities/deck";
 
 /**
  * Renders the test-only Deck Filter Harness component with controlled state or providers.

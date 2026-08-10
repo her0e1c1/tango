@@ -5,7 +5,8 @@ import "@testing-library/jest-dom/vitest";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { createCard, createDeck } from "@/test/factories";
+import { createCard } from "@/entities/card";
+import { createDeck } from "@/entities/deck";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
@@ -20,8 +21,8 @@ vi.mock("@/features/card", async () => {
   );
   return { BackText };
 });
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
-vi.mock("@/hooks/useActions", () => ({
+vi.mock("@/entities/config", () => ({ useConfig: () => ({ darkMode: false }) }));
+vi.mock("@/features/app-controls", () => ({
   useActions: () => ({
     setDarkMode: vi.fn(),
     goToTop: vi.fn(),
@@ -29,7 +30,7 @@ vi.mock("@/hooks/useActions", () => ({
     goToSettings: vi.fn(),
   }),
 }));
-vi.mock("@/hooks/useRemoteCollections", () => ({
+vi.mock("@/features/remote-collections", () => ({
   useRemoteCollections: () => ({
     status: "ready" as const,
     retry: vi.fn(),

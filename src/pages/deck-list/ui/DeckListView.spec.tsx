@@ -4,6 +4,7 @@
  * feedback, and both compact sections", "omits empty sections", "opens one deck actions menu at a
  * time".
  */
+import type { DeckId } from "@/entities/deck";
 
 import * as React from "react";
 import { cleanup, fireEvent, render, within } from "@testing-library/react";
@@ -11,7 +12,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { DeckListView, type DeckListSections } from "./DeckListView";
-import { createDeck } from "@/test/factories";
+import { createDeck } from "@/entities/deck";
 
 const activeDeck = createDeck({ id: "active", name: "Active deck", category: "math" });
 const otherDeck = createDeck({ id: "other", name: "Other deck", category: "history" });

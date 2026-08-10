@@ -1,5 +1,8 @@
 export type DeckId = string;
 
+type Category = string;
+export type DeckEdit = Partial<Deck> & Pick<Deck, "id">;
+
 export interface Deck {
   name: string;
   url?: string;
@@ -13,6 +16,6 @@ export interface Deck {
   scoreMin: number | null;
   selectedTags: string[];
   tagAndFilter: boolean;
-  category: string;
+  category: Category;
   convertToBr: boolean;
 }

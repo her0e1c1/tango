@@ -11,7 +11,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ActionsMenu, type ActionsMenuItem } from "./ActionsMenu";
-import { actAsync } from "@/test/act";
+import { actAsync } from "@/shared/testing";
 
 /**
  * Provides the items test helper used by this file.

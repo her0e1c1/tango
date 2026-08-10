@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { fn } from "storybook/test";
 
 import { DestructiveActionDialog as Template } from "./DestructiveActionDialog";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+import { INITIAL_VIEWPORTS } from "@/app/storybook/storybookViewports";
 
 const meta = {
   title: "Shared/Feedback/DestructiveActionDialog",

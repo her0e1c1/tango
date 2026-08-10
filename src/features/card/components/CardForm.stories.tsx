@@ -3,13 +3,14 @@
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
+import type { Card } from "@/entities/card";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { CardForm as Template, type CardFormFields } from "@/features/card/components/CardForm";
-import type { Option } from "@/components/forms/Select";
-import * as fixture from "@/storybook/fixture";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+import type { Option } from "@/shared/ui/form-controls";
+import * as fixture from "@/app/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/app/storybook/storybookViewports";
 
 /**
  * Prepares fields for data for the Storybook examples in this file.

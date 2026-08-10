@@ -4,6 +4,7 @@
  * sessions for multiple decks", "updates only the requested session and its last studied time",
  * "touches only an existing requested session".
  */
+import type { DeckId } from "@/entities/deck";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 

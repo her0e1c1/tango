@@ -3,11 +3,12 @@
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */
+import type { Card } from "@/entities/card";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import type { Option } from "@/components/forms/Select";
+import type { Option } from "@/shared/ui/form-controls";
 import type { CardFormProps } from "@/features/card/components/CardForm";
 import { cardFormSchema, type CardFormValues } from "@/features/card/lib/cardFormSchema";
 

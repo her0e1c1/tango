@@ -1,21 +1,22 @@
+import type { ConfigState } from "@/entities/config";
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as C from "@/constant";
 import type { Card, CardId } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { useActions } from "@/features/app-controls";
+import { useConfig } from "@/entities/config";
+import { useRemoteCollections } from "@/features/remote-collections";
+import { filterCardsForDeck } from "@/features/study";
+import { getContentCategory, LANGUAGES } from "@/shared/lib/content-category";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
-import * as util from "@/util";
 
 import { CardListView } from "./CardListView";
 
@@ -27,16 +28,17 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const [successMessage, setSuccessMessage] = React.useState<string>();
   const actions = useActions();
   const mutations = useCardMutations({
+    cardById: (id) => cards.find((card) => card.id === id),
     onRemoveSuccess: (card) => {
       setDeletionTarget((target) => (target?.id === card.id ? undefined : target));
       setDeletionErrorCardId((id) => (id === card.id ? undefined : id));
       setSuccessMessage(`Deleted card “${card.frontText}”.`);
     },
   });
-  const deckActions = useDeckActions(deck.id);
+  const deckActions = useDeckActions(deck);
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
   const closeCard = () => setShowCard(undefined);
-  const category = showCard == null ? undefined : util.getCategory(deck.category, showCard.tags);
+  const category = showCard == null ? undefined : getContentCategory(deck.category, showCard.tags);
 
   useKey("t", actions.goToTop);
   useKey("s", actions.goToSettings);
@@ -121,7 +123,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
               backText: {
                 text: showCard.backText,
                 category,
-                code: C.LANGUAGES.includes(category),
+                code: LANGUAGES.includes(category),
                 dark: config.darkMode,
               },
               onClose: closeCard,
@@ -141,7 +143,7 @@ export const CardListPage: React.FC = () => {
   const config = useConfig();
   const remote = useRemoteCollections();
   const deck = remote.deckById(deckId);
-  const cards = remote.filteredCardsByDeckId(deckId, config);
+  const cards = deck == null ? [] : filterCardsForDeck(remote.cardsByDeckId(deckId), deck, config, remote.now);
   const tags = remote.tagsByDeckId(deckId);
 
   return (

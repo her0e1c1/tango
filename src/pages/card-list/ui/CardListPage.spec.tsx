@@ -4,6 +4,9 @@
  * and tag filters in the collapsed summary", "removes one selected tag through the existing filter
  * callback", and "cancels or confirms Card deletion with observable feedback".
  */
+import type { ConfigState } from "@/entities/config";
+import type { Deck } from "@/entities/deck";
+import type { Card, CardId } from "@/entities/card";
 
 import userEvent from "@testing-library/user-event";
 import { cleanup, render } from "@testing-library/react";
@@ -53,16 +56,17 @@ vi.mock("@/features/card", async () => {
   };
 });
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/entities/config", () => ({ useConfig: () => mocks.config }));
 
-vi.mock("@/hooks/useRemoteCollections", () => ({
+vi.mock("@/features/remote-collections", () => ({
   useRemoteCollections: () => {
     const cards = mocks.cards;
     return {
       status: "ready" as const,
       retry: vi.fn(),
       deckById: (id: string) => (mocks.deck?.id === id ? mocks.deck : undefined),
-      filteredCardsByDeckId: (id: string) => cards.filter((card) => card.deckId === id),
+      cardsByDeckId: (id: string) => cards.filter((card) => card.deckId === id),
+      now: 0,
       tagsByDeckId: (id: string) => [
         ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
       ],
@@ -79,7 +83,7 @@ vi.mock("react-use", () => ({
   useKey: vi.fn(),
 }));
 
-vi.mock("@/hooks/useActions", () => ({
+vi.mock("@/features/app-controls", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goToSettings: vi.fn(),

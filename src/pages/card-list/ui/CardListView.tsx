@@ -6,10 +6,11 @@
 import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
-import { Overlay, RemovableTag } from "@/components";
 import type { Card as CardEntity, CardId } from "@/entities/card";
 import { BackText, type BackTextProps, Card, type CardProps } from "@/features/card";
 import { Layout, type LayoutProps } from "@/shared/ui/layout";
+import { Overlay } from "@/shared/ui/overlay";
+import { RemovableTag } from "@/shared/ui/tag";
 
 interface CardListOverlayProps {
   backText: BackTextProps;

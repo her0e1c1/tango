@@ -3,6 +3,9 @@
  * The store validates saved browser data and exposes the actions that move an active session
  * forward.
  */
+import type { DeckId } from "@/entities/deck";
+import type { CardId } from "@/entities/card";
+import type { SwipeDirection } from "@/entities/config";
 
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";

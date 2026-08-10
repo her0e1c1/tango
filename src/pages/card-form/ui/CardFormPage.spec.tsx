@@ -4,6 +4,8 @@
  * "returns to the previous page without saving when cancelled", "submits edited front and back
  * text".
  */
+import type { ConfigState } from "@/entities/config";
+import type { Card } from "@/entities/card";
 
 import userEvent from "@testing-library/user-event";
 import { cleanup, render } from "@testing-library/react";
@@ -18,9 +20,9 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
 }));
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/entities/config", () => ({ useConfig: () => mocks.config }));
 
-vi.mock("@/hooks/useRemoteCollections", () => ({
+vi.mock("@/features/remote-collections", () => ({
   useRemoteCollections: () => ({
     status: "ready" as const,
     retry: vi.fn(),
@@ -50,7 +52,7 @@ vi.mock("@/features/card", async () => {
   };
 });
 
-vi.mock("@/hooks/useActions", () => ({
+vi.mock("@/features/app-controls", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goToImport: vi.fn(),

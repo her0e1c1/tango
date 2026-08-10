@@ -6,9 +6,8 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import * as C from "@/constant";
-import type { DeckImportPreview } from "@/features/import";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+import { CSV_SAMPLE_TEXT, type DeckImportPreview } from "@/features/import";
+import { INITIAL_VIEWPORTS } from "@/app/storybook/storybookViewports";
 
 import { DeckImportView as Template } from "./DeckImportView";
 
@@ -61,7 +60,7 @@ const meta = {
     },
   },
   args: {
-    sampleText: C.CSV_SAMPLE_TEXT,
+    sampleText: CSV_SAMPLE_TEXT,
   },
 } satisfies Meta<typeof Template>;
 

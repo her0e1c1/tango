@@ -10,4 +10,11 @@ export { useStudyActions } from "./hooks/useStudyActions";
 export { useStudyControllerState } from "./hooks/useStudyControllerState";
 export { useStudySessions } from "./hooks/useStudySessions";
 export { useStudyStore } from "./hooks/useStudyStore";
-export { selectStudySessionForRoute, studyStore, type StudySession } from "./state/studyStore";
+export { filterCardsForDeck } from "./rules/study";
+export {
+  clearStudyStore,
+  selectStudySessionForRoute,
+  studyStore,
+  type StudySession,
+  type StudyState,
+} from "./state/studyStore";

@@ -1,11 +1,12 @@
+import type { DeckId } from "@/entities/deck";
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as C from "@/constant";
-import { BackText, CardOverlay, FrontText } from "@/features/card";
+import { BackText, CardOverlay, FrontText, useCardMutations } from "@/features/card";
 import {
   selectStudySessionForRoute,
+  filterCardsForDeck,
   studyStore,
   type SwipeButtonListProps,
   useStudyActions,
@@ -13,12 +14,12 @@ import {
   useStudyHydrated,
   useStudyStore,
 } from "@/features/study";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { useActions } from "@/features/app-controls";
+import { useConfig } from "@/entities/config";
+import { useRemoteCollections } from "@/features/remote-collections";
+import { getContentCategory, LANGUAGES } from "@/shared/lib/content-category";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
-import * as util from "@/util";
 
 import { DeckSwiperView } from "./DeckSwiperView";
 
@@ -43,7 +44,15 @@ export const DeckSwiperPage: React.FC = () => {
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
   const card = cardId == null ? undefined : remote.cardById(cardId);
-  const studyActions = useStudyActions(deckId);
+  const filteredCards = deck == null ? [] : filterCardsForDeck(remote.cardsByDeckId(deckId), deck, config, remote.now);
+  const cardMutations = useCardMutations({ cardById: remote.cardById });
+  const studyActions = useStudyActions({
+    deckId,
+    config,
+    cards: filteredCards,
+    cardsById: remote.cardsById,
+    cardMutations,
+  });
   const actions = useActions();
 
   useKey("ArrowUp", studyActions.swipeUp);
@@ -127,7 +136,7 @@ export const DeckSwiperPage: React.FC = () => {
     );
   }
 
-  const category = util.getCategory(deck.category, card.tags);
+  const category = getContentCategory(deck.category, card.tags);
   const swipeActions: SwipeButtonListProps = {
     disabled: studyActions.pending,
     ...(studyActions.pending
@@ -166,7 +175,7 @@ export const DeckSwiperPage: React.FC = () => {
       }
       frontTextSlot={
         <FrontText
-          {...(category !== undefined ? { category } : {})}
+          category={category}
           text={card.frontText}
           {...(!studyActions.pending
             ? {
@@ -182,8 +191,8 @@ export const DeckSwiperPage: React.FC = () => {
       cardOverlaySlot={<CardOverlay card={card} />}
       backTextSlot={
         <BackText
-          {...(category !== undefined ? { category } : {})}
-          code={category !== undefined && C.LANGUAGES.includes(category)}
+          category={category}
+          code={LANGUAGES.includes(category)}
           dark={config.darkMode}
           text={card.backText}
           onClick={studyActions.toggleShowBackText}

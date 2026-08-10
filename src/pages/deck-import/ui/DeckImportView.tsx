@@ -6,9 +6,12 @@
 import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
 
-import { Button, Code, Description, Upload } from "@/components";
 import type { DeckImportPreview, DeckImportResult } from "@/features/import";
+import { Button } from "@/shared/ui/button";
+import { Description } from "@/shared/ui/description";
+import { Upload } from "@/shared/ui/form-controls";
 import { Layout, type LayoutProps } from "@/shared/ui/layout";
+import { Code } from "@/shared/ui/rich-code";
 
 interface DeckImportViewProps {
   onChange?: (file: File) => void;

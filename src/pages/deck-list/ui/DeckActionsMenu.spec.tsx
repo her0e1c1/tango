@@ -11,7 +11,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
-import { actAsync } from "@/test/act";
+import { actAsync } from "@/shared/testing";
 
 type ControlledMenuProps = Omit<React.ComponentProps<typeof DeckActionsMenu>, "open" | "onToggle" | "onClose">;
 

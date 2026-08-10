@@ -3,6 +3,8 @@
  * Keeping preview, result, and row shapes here lets each layer exchange import data without
  * depending on another layer's implementation.
  */
+import type { CardRaw } from "@/entities/card";
+import type { DeckId } from "@/entities/deck";
 
 export interface DeckImportRow {
   rowNumber: number;

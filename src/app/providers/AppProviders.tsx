@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 
-import { AuthBootstrap } from "@/auth/AuthBootstrap";
-import { AuthProvider } from "@/auth/AuthContext";
+import { AuthBootstrap } from "./AuthBootstrap";
+import { AuthProvider } from "@/shared/auth";
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
   <AuthProvider>

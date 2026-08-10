@@ -3,12 +3,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 
-import * as C from "@/constant";
 import type { Deck } from "@/entities/deck";
 import { deckFormSchema, type DeckFormValues, useDeckActions } from "@/features/deck";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { useActions } from "@/features/app-controls";
+import { useConfig } from "@/entities/config";
+import { useRemoteCollections } from "@/features/remote-collections";
+import { CATEGORIES } from "@/shared/lib/content-category";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -18,8 +18,8 @@ import { DeckFormView } from "./DeckFormView";
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const config = useConfig();
   const actions = useActions();
-  const deckActions = useDeckActions(deck.id);
-  const categoryOptions = C.CATEGORY.map((category) => ({ label: category, value: category }));
+  const deckActions = useDeckActions(deck);
+  const categoryOptions = CATEGORIES.map((category) => ({ label: category, value: category }));
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
     defaultValues: {
       name: deck.name,

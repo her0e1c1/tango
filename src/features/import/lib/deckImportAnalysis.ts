@@ -3,10 +3,10 @@
  * Keeping these calculations outside React makes their inputs, outputs, and edge cases easier to
  * understand and test.
  */
+import { fromRow, type Card, type CardRaw } from "@/entities/card";
 
 import * as Papa from "papaparse";
 
-import * as cardAction from "@/action/card";
 import type {
   DeckImportAnalysis,
   DeckImportIssue,
@@ -79,7 +79,7 @@ export const parseDeckImportCsv = async (content: string | File): Promise<DeckIm
       return;
     }
 
-    const card = cardAction.fromRow(columns);
+    const card = fromRow(columns);
     card.uniqueKey = card.uniqueKey.trim();
     if (card.uniqueKey === "") {
       invalidRows.add(rowNumber);

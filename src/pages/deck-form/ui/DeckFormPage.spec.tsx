@@ -3,6 +3,8 @@
  * The examples make the expected behavior concrete with cases such as "submits the current deck",
  * "submits an edited name", "submits an edited URL".
  */
+import type { ConfigState } from "@/entities/config";
+import type { Deck } from "@/entities/deck";
 
 import userEvent from "@testing-library/user-event";
 import { cleanup, render } from "@testing-library/react";
@@ -18,9 +20,9 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
 }));
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/entities/config", () => ({ useConfig: () => mocks.config }));
 
-vi.mock("@/hooks/useRemoteCollections", () => ({
+vi.mock("@/features/remote-collections", () => ({
   useRemoteCollections: () => ({
     status: "ready" as const,
     retry: vi.fn(),
@@ -33,7 +35,7 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
 }));
 
-vi.mock("@/hooks/useActions", () => ({
+vi.mock("@/features/app-controls", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goToImport: vi.fn(),

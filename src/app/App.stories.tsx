@@ -7,9 +7,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect } from "storybook/test";
 
-import { type PageStoryParameters, preparePageStory, withPageStory } from "@/storybook/PageDecorator";
-import { PAGE_STORY_CARD_ID, PAGE_STORY_DECK_ID, pageStoryState } from "@/storybook/pageFixture";
-import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";
+import { type PageStoryParameters, preparePageStory, withPageStory } from "@/app/storybook/PageDecorator";
+import { PAGE_STORY_CARD_ID, PAGE_STORY_DECK_ID, pageStoryState } from "@/app/storybook/pageFixture";
+import { STORYBOOK_DECK_IMPORT_URL } from "@/app/storybook/handlers";
 import { AppRoutes } from "./App";
 
 const page = (path: string, overrides: Partial<Omit<PageStoryParameters, "path">> = {}): PageStoryParameters => ({

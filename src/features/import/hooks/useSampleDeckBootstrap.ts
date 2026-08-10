@@ -6,10 +6,6 @@
 
 import { useEffect } from "react";
 
-import { useAuth } from "@/auth/AuthContext";
-import { useDeckImport } from "@/features/import/hooks/useDeckImport";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-
 type AddSample = () => Promise<unknown>;
 
 /**
@@ -48,16 +44,23 @@ const sampleDeckBootstrapController = createSampleDeckBootstrapController();
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useSampleDeckBootstrap = () => {
-  const auth = useAuth();
-  const remote = useRemoteCollections();
-  const deckImport = useDeckImport();
-  const uid = auth.status === "authenticated" ? auth.uid : "";
-
+export const useSampleDeckBootstrap = ({
+  uid,
+  status,
+  syncStatus,
+  deckCount,
+  addSample,
+}: {
+  uid: string;
+  status: "idle" | "loading" | "ready" | "blocked" | "error";
+  syncStatus: "cached" | "pending" | "synced" | undefined;
+  deckCount: number;
+  addSample: AddSample;
+}) => {
   useEffect(() => {
-    if (uid === "" || remote.status !== "ready" || remote.syncStatus !== "synced" || remote.decks.length > 0) {
+    if (uid === "" || status !== "ready" || syncStatus !== "synced" || deckCount > 0) {
       return;
     }
-    void sampleDeckBootstrapController.start(uid, deckImport.addSample)?.catch(() => undefined);
-  }, [deckImport.addSample, remote.decks.length, remote.status, remote.syncStatus, uid]);
+    void sampleDeckBootstrapController.start(uid, addSample)?.catch(() => undefined);
+  }, [addSample, deckCount, status, syncStatus, uid]);
 };

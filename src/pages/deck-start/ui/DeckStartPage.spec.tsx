@@ -4,12 +4,16 @@
  * context to the view", "starts from Enter when cards match and focus is not interactive",
  * "stops responding to Enter when a rerender has no matching cards".
  */
+import type { Card } from "@/entities/card";
+import type { ConfigState } from "@/entities/config";
 
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createCard, createConfig, createDeck } from "@/test/factories";
+import { createCard } from "@/entities/card";
+import { createConfig } from "@/entities/config";
+import { createDeck } from "@/entities/deck";
 
 const mocks = vi.hoisted(() => {
   const start = vi.fn();
@@ -19,9 +23,10 @@ const mocks = vi.hoisted(() => {
     update: vi.fn(),
   };
 });
-vi.mock("@/hooks/useRemoteCollections", () => ({
+vi.mock("@/features/remote-collections", () => ({
   useRemoteCollections: vi.fn(),
 }));
+vi.mock("@/features/card", () => ({ useCardMutations: () => ({}) }));
 vi.mock("@/features/deck", async () => {
   const { DeckStartForm } = await vi.importActual<typeof import("@/features/deck/components/DeckStartForm")>(
     "@/features/deck/components/DeckStartForm"
@@ -41,9 +46,10 @@ vi.mock("@/features/deck", async () => {
   };
 });
 vi.mock("@/features/study", () => ({
+  filterCardsForDeck: (cards: Card[]) => cards,
   useStudyActions: () => ({ start: mocks.currentStart }),
 }));
-vi.mock("@/hooks/useActions", () => ({
+vi.mock("@/features/app-controls", () => ({
   useActions: () => ({
     setDarkMode: vi.fn(),
     goToTop: vi.fn(),

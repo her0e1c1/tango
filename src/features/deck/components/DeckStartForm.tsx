@@ -6,7 +6,8 @@
 
 import { useId } from "react";
 import type * as React from "react";
-import { Form, Slider, Switch } from "@/components";
+import { Form } from "@/shared/ui/form";
+import { Slider, Switch } from "@/shared/ui/form-controls";
 import { TagFilter, type TagFilterProps } from "@/features/deck/components/TagFilter";
 
 export interface DeckStartFormProps {

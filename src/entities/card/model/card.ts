@@ -1,5 +1,9 @@
 export type CardId = string;
 
+export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
+export type CardEdit = Partial<Card> & Pick<Card, "id"> & { deckId: string };
+export type CardDeck = { id: string; uid: string };
+
 export interface Card {
   frontText: string;
   backText: string;

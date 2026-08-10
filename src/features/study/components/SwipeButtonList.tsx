@@ -3,6 +3,7 @@
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
+import type { SwipeDirection } from "@/entities/config";
 
 import type * as React from "react";
 import { AiOutlineArrowUp, AiOutlineArrowDown, AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";

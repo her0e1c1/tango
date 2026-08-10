@@ -17,7 +17,7 @@ vi.mock("@/features/deck", async () => {
 });
 
 import { DeckFormView } from "./DeckFormView";
-import { createDeck } from "@/test/factories";
+import { createDeck } from "@/entities/deck";
 
 describe("DeckFormView", () => {
   afterEach(cleanup);

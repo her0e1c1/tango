@@ -1,22 +1,22 @@
 /** @file Provides Card mutation state and actions to React features. */
+import type { Card, CardEdit, CardId } from "@/entities/card";
 
 import { useEffect, useRef } from "react";
 
-import { useAuth } from "@/auth/AuthContext";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { cardCommands } from "@/services/cardCommands";
+import { useAuth } from "@/shared/auth";
+import { useAsyncAction } from "@/shared/lib/async-action";
+import { cardCommands } from "@/entities/card";
 
 type CardPatch = Partial<Omit<Card, "id" | "deckId" | "uid">>;
 
 interface UseCardMutationsOptions {
+  cardById?: (id: CardId) => Card | undefined;
   onRemoveSuccess?: (card: Card) => void;
 }
 
-export const useCardMutations = ({ onRemoveSuccess }: UseCardMutationsOptions = {}) => {
+export const useCardMutations = ({ cardById = () => undefined, onRemoveSuccess }: UseCardMutationsOptions = {}) => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const { cardById } = useRemoteCollections();
   const mutation = useAsyncAction<CardId>(uid);
   const scope = useRef({ uid });
   const onRemoveSuccessRef = useRef(onRemoveSuccess);

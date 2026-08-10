@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import type { ConfigFormFields } from "@/features/settings";
-import { createConfig } from "@/test/factories";
+import { createConfig } from "@/entities/config";
 
 vi.mock("@/features/settings", async () => {
   const { ConfigForm } = await vi.importActual<typeof import("@/features/settings/components/ConfigForm")>(

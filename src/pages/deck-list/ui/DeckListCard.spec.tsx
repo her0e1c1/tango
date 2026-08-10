@@ -4,6 +4,7 @@
  * for an active deck", "renders the card count and Study action for an inactive deck", "passes the
  * deck id to navigation and management actions".
  */
+import type { DeckId } from "@/entities/deck";
 
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -12,7 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as React from "react";
 
 import { DeckListCard, type DeckListCardProps } from "./DeckListCard";
-import { createDeck } from "@/test/factories";
+import { createDeck } from "@/entities/deck";
 
 /**
  * Renders the test-only Controlled Deck Card component with controlled state or providers.

@@ -1,8 +1,9 @@
+import type { Card } from "@/entities/card";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard as createCardFixture } from "@/test/factories";
-import { actAsync } from "@/test/act";
+import { createCard as createCardFixture } from "@/entities/card";
+import { actAsync } from "@/shared/testing";
 
 const createCard = (overrides: Partial<Card> = {}) => createCardFixture({ uid: "uid-a", ...overrides });
 
@@ -16,16 +17,16 @@ const mocks = vi.hoisted(() => ({
   upsert: vi.fn(),
 }));
 
-vi.mock("@/auth/AuthContext", () => ({
+vi.mock("@/shared/auth", () => ({
   useAuth: () =>
     mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
-vi.mock("@/hooks/useRemoteCollections", () => ({
+vi.mock("@/features/remote-collections", () => ({
   useRemoteCollections: () => ({
     cardById: mocks.cardById,
   }),
 }));
-vi.mock("@/adapters/firestore/card", () => ({
+vi.mock("@/entities/card/api/firestoreCard", () => ({
   create: mocks.create,
   update: mocks.update,
   logicalRemove: mocks.logicalRemove,
@@ -49,7 +50,7 @@ describe("useCardMutations", () => {
   it("does not allow updateBy patches to redirect the target Card", async () => {
     const card = createCard({ id: "card", deckId: "deck" });
     mocks.card = card;
-    const { result } = renderHook(useCardMutations);
+    const { result } = renderHook(() => useCardMutations({ cardById: mocks.cardById }));
     const redirectingPatch = () => ({ id: "other-card", deckId: "other-deck", score: 2 });
 
     await actAsync(async () => result.current.updateBy(card.id, redirectingPatch));
@@ -58,7 +59,7 @@ describe("useCardMutations", () => {
   });
 
   it("rejects updateBy and remove when the Card is unavailable", async () => {
-    const { result } = renderHook(useCardMutations);
+    const { result } = renderHook(() => useCardMutations({ cardById: mocks.cardById }));
 
     await expect(result.current.updateBy("missing", () => ({ score: 2 }))).rejects.toThrow(
       "Card missing is not available"
@@ -70,7 +71,7 @@ describe("useCardMutations", () => {
     let finish!: () => void;
     mocks.update.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
     const card = createCard({ id: "card" });
-    const { result } = renderHook(useCardMutations);
+    const { result } = renderHook(() => useCardMutations({ cardById: mocks.cardById }));
 
     let operation!: Promise<void>;
     act(() => {
@@ -91,7 +92,7 @@ describe("useCardMutations", () => {
 
   it("rejects writes without a confirmed user and exposes the error", async () => {
     mocks.uid = "";
-    const { result } = renderHook(useCardMutations);
+    const { result } = renderHook(() => useCardMutations({ cardById: mocks.cardById }));
 
     await actAsync(async () => {
       await expect(result.current.create(createCard())).rejects.toThrow("confirmed user");
@@ -107,7 +108,7 @@ describe("useCardMutations", () => {
     const card = createCard({ id: "failed" });
     const error = new Error("update failed");
     mocks.update.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
-    const { result } = renderHook(useCardMutations);
+    const { result } = renderHook(() => useCardMutations({ cardById: mocks.cardById }));
 
     await actAsync(async () => {
       await expect(result.current.update(card)).rejects.toBe(error);
@@ -126,7 +127,7 @@ describe("useCardMutations", () => {
     const onRemoveSuccess = vi.fn();
     mocks.card = card;
     mocks.logicalRemove.mockRejectedValueOnce(new Error("remove failed")).mockResolvedValueOnce(undefined);
-    const { result } = renderHook(() => useCardMutations({ onRemoveSuccess }));
+    const { result } = renderHook(() => useCardMutations({ cardById: mocks.cardById, onRemoveSuccess }));
 
     await actAsync(async () => {
       await expect(result.current.remove(card.id)).rejects.toThrow("remove failed");
@@ -141,7 +142,7 @@ describe("useCardMutations", () => {
     let finish!: () => void;
     mocks.create.mockReturnValueOnce(new Promise<string>((resolve) => (finish = () => resolve("card"))));
     const card = createCard({ id: "card" });
-    const { result, rerender } = renderHook(useCardMutations);
+    const { result, rerender } = renderHook(() => useCardMutations({ cardById: mocks.cardById }));
 
     let operation!: Promise<void>;
     act(() => {

@@ -6,7 +6,9 @@
 
 import { useId } from "react";
 import type * as React from "react";
-import { Button, Switch, Tag, TagList } from "@/components";
+import { Button } from "@/shared/ui/button";
+import { Switch } from "@/shared/ui/form-controls";
+import { Tag, TagList } from "@/shared/ui/tag";
 
 /**
  * Toggles one tag in the current selection without mutating the original array.

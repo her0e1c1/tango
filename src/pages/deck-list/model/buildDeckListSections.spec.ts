@@ -4,11 +4,13 @@
  * order and inactive decks in name order", "uses deck name as a stable tie breaker for equally
  * recent sessions".
  */
+import type { DeckId } from "@/entities/deck";
 
 import { describe, expect, it } from "vitest";
 
 import type { StudySession } from "@/features/study";
-import { createCard, createDeck } from "@/test/factories";
+import { createCard } from "@/entities/card";
+import { createDeck } from "@/entities/deck";
 
 import { buildDeckListSections } from "./buildDeckListSections";
 

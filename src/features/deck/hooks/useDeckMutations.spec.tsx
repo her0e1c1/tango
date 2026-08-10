@@ -1,8 +1,9 @@
+import type { Deck } from "@/entities/deck";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createDeck as createDeckFixture } from "@/test/factories";
-import { actAsync } from "@/test/act";
+import { createDeck as createDeckFixture } from "@/entities/deck";
+import { actAsync } from "@/shared/testing";
 
 const createDeck = (overrides: Partial<Deck> = {}) => createDeckFixture({ uid: "uid-a", ...overrides });
 
@@ -13,11 +14,11 @@ const mocks = vi.hoisted(() => ({
   remove: vi.fn(),
 }));
 
-vi.mock("@/auth/AuthContext", () => ({
+vi.mock("@/shared/auth", () => ({
   useAuth: () =>
     mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
-vi.mock("@/adapters/firestore/deck", () => ({
+vi.mock("@/entities/deck/api/firestoreDeck", () => ({
   create: mocks.create,
   update: mocks.update,
   remove: mocks.remove,

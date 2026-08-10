@@ -1,28 +1,27 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import * as C from "@/constant";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { useActions } from "@/features/app-controls";
+import { useConfig } from "@/entities/config";
+import { useRemoteCollections } from "@/features/remote-collections";
+import { getContentCategory, LANGUAGES } from "@/shared/lib/content-category";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
-import * as util from "@/util";
 
 import { CardViewView } from "./CardViewView";
 
 const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
   const actions = useActions();
   const config = useConfig();
-  const category = util.getCategory(deck.category, card.tags);
+  const category = getContentCategory(deck.category, card.tags);
 
   return (
     <CardViewView
       backText={{
-        ...(category !== undefined ? { category } : {}),
-        code: category !== undefined && C.LANGUAGES.includes(category),
+        category,
+        code: LANGUAGES.includes(category),
         dark: config.darkMode,
         text: card.backText,
       }}

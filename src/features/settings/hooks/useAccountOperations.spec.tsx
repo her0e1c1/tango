@@ -10,7 +10,7 @@ import React, { type PropsWithChildren } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
-import { actAsync } from "@/test/act";
+import { actAsync } from "@/shared/testing";
 
 /**
  * Provides the deferred test helper used by this file.

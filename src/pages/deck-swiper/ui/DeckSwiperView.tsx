@@ -2,12 +2,13 @@
  * @file Composes the Deck Swiper Page's presentation.
  * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
+import type { SwipeDirection } from "@/entities/config";
 
 import cx from "classnames";
 import type * as React from "react";
-import * as Shared from "@/components";
 import { Controller, type ControllerProps, SwipeButtonList, type SwipeButtonListProps } from "@/features/study";
 import { Layout, type LayoutProps } from "@/shared/ui/layout";
+import { Overlay } from "@/shared/ui/overlay";
 
 const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
   cardSwipeUp: "Swiped up",
@@ -56,22 +57,22 @@ export const DeckSwiperView: React.FC<DeckSwiperViewProps> = (props) => {
       ) : null}
       {props.showBackText && props.backTextSlot != null ? (
         <>
-          <Shared.Overlay
+          <Overlay
             position="left"
             ariaLabel="Swipe left"
             {...(props.swipeOverlay?.onClickLeft !== undefined ? { onClick: props.swipeOverlay.onClickLeft } : {})}
           />
-          <Shared.Overlay
+          <Overlay
             position="right"
             ariaLabel="Swipe right"
             {...(props.swipeOverlay?.onClickRight !== undefined ? { onClick: props.swipeOverlay.onClickRight } : {})}
           />
-          <Shared.Overlay
+          <Overlay
             position="top"
             ariaLabel="Swipe up"
             {...(props.swipeOverlay?.onClickUp !== undefined ? { onClick: props.swipeOverlay.onClickUp } : {})}
           />
-          <Shared.Overlay
+          <Overlay
             position="bottom"
             ariaLabel="Swipe down"
             {...(props.swipeOverlay?.onClickDown !== undefined ? { onClick: props.swipeOverlay.onClickDown } : {})}

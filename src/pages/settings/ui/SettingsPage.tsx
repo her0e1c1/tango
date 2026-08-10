@@ -1,12 +1,13 @@
 import type * as React from "react";
 import { useKey } from "react-use";
 
-import { useAuth } from "@/auth/AuthContext";
+import { useAuth } from "@/shared/auth";
 import { useAccountOperations, useConfigFormState } from "@/features/settings";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
+import { useActions } from "@/features/app-controls";
+import { useConfig } from "@/entities/config";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 
+import { loginGoogle, logout } from "../model/accountCommands";
 import { SettingsView } from "./SettingsView";
 
 export const SettingsPage: React.FC = () => {
@@ -22,8 +23,8 @@ export const SettingsPage: React.FC = () => {
     generation: authenticated
       ? `authenticated:${authenticated.uid}:${authenticated.user.isAnonymous ? "anonymous" : "linked"}`
       : authState.status,
-    login: actions.login,
-    ...(authenticated ? { logout: () => actions.logout(authenticated.uid) } : {}),
+    login: loginGoogle,
+    ...(authenticated ? { logout: () => logout(authenticated.uid) } : {}),
   });
   const configForm = useConfigFormState({
     config,

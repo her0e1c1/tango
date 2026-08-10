@@ -9,7 +9,7 @@ import { cleanup, fireEvent, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { List } from "@/components/layout/List";
+import { List } from "@/shared/ui/list";
 import { Main } from "@/shared/ui/main";
 import { Outer } from "@/shared/ui/outer";
 

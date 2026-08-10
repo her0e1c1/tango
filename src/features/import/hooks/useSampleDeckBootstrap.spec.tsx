@@ -4,6 +4,7 @@
  * server-synced empty user under StrictMode", "waits for the server before treating an empty cache
  * as an empty user", "does not add the sample when the user already has a Deck".
  */
+import type { Deck } from "@/entities/deck";
 
 import { renderHook, waitFor } from "@testing-library/react";
 import React, { type ReactNode } from "react";
@@ -19,16 +20,19 @@ const mocks = vi.hoisted(() => ({
   addSample: vi.fn<() => Promise<unknown>>(),
 }));
 
-vi.mock("@/auth/AuthContext", () => ({ useAuth: () => mocks.auth }));
-vi.mock("@/hooks/useRemoteCollections", () => ({ useRemoteCollections: () => mocks.remote }));
-vi.mock("@/features/import/hooks/useDeckImport", () => ({
-  useDeckImport: () => ({ addSample: mocks.addSample }),
-}));
-
 import {
   createSampleDeckBootstrapController,
   useSampleDeckBootstrap,
 } from "@/features/import/hooks/useSampleDeckBootstrap";
+
+const useSubject = () =>
+  useSampleDeckBootstrap({
+    uid: mocks.auth.status === "authenticated" ? mocks.auth.uid : "",
+    status: mocks.remote.status,
+    syncStatus: mocks.remote.syncStatus,
+    deckCount: mocks.remote.decks.length,
+    addSample: mocks.addSample,
+  });
 
 /**
  * Provides the strict mode test helper used by this file.
@@ -45,18 +49,28 @@ describe("sample Deck bootstrap", () => {
   });
 
   it("adds the sample once for a server-synced empty user under StrictMode", async () => {
-    renderHook(useSampleDeckBootstrap, { wrapper: strictMode });
+    renderHook(useSubject, { wrapper: strictMode });
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
   });
 
   it("waits for the server before treating an empty cache as an empty user", async () => {
-    mocks.remote.syncStatus = "cached";
-    const { rerender } = renderHook(useSampleDeckBootstrap);
+    const uid = mocks.auth.status === "authenticated" ? mocks.auth.uid : "";
+    const initialProps: { syncStatus: "cached" | "synced" } = { syncStatus: "cached" };
+    const { rerender } = renderHook(
+      ({ syncStatus }: { syncStatus: "cached" | "synced" }) =>
+        useSampleDeckBootstrap({
+          uid,
+          status: "ready",
+          syncStatus,
+          deckCount: 0,
+          addSample: mocks.addSample,
+        }),
+      { initialProps }
+    );
 
     expect(mocks.addSample).not.toHaveBeenCalled();
-    mocks.remote.syncStatus = "synced";
-    rerender();
+    rerender({ syncStatus: "synced" });
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
   });
@@ -64,7 +78,7 @@ describe("sample Deck bootstrap", () => {
   it("does not add the sample when the user already has a Deck", () => {
     mocks.remote.decks = [{ id: "existing" } as Deck];
 
-    renderHook(useSampleDeckBootstrap);
+    renderHook(useSubject);
 
     expect(mocks.addSample).not.toHaveBeenCalled();
   });

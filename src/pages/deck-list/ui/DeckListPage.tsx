@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useKey } from "react-use";
 
-import * as action from "@/action";
 import type { Deck, DeckId } from "@/entities/deck";
+import { useCardMutations } from "@/features/card";
 import { useDeckMutations } from "@/features/deck";
-import { useSampleDeckBootstrap } from "@/features/import";
+import { downloadDeckData, useDeckImport, useSampleDeckBootstrap } from "@/features/import";
 import {
   discardStudySessionsMissingDecks,
   removeStudySession,
@@ -12,9 +12,10 @@ import {
   useStudyHydrated,
   useStudySessions,
 } from "@/features/study";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { useActions } from "@/features/app-controls";
+import { useConfig } from "@/entities/config";
+import { useRemoteCollections } from "@/features/remote-collections";
+import { useAuth } from "@/shared/auth";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
@@ -26,6 +27,7 @@ import { DeckListView } from "./DeckListView";
 export const DeckListPage: React.FC = () => {
   const actions = useActions();
   const config = useConfig();
+  const auth = useAuth();
   const remote = useRemoteCollections();
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
@@ -36,11 +38,28 @@ export const DeckListPage: React.FC = () => {
       setSuccessMessage(`Deleted deck “${deck.name}”.`);
     },
   });
+  const cardMutations = useCardMutations({ cardById: remote.cardById });
+  const uid = auth.status === "authenticated" ? auth.uid : "";
+  const deckImport = useDeckImport({
+    uid,
+    status: remote.status,
+    syncStatus: remote.syncStatus,
+    decks: remote.decks,
+    cardsByDeckId: remote.cardsByDeckId,
+    createDeck: mutations.create,
+    bulkUpsert: cardMutations.bulkUpsert,
+  });
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(remote.decks, remote.cards, sessionsByDeckId);
-  useSampleDeckBootstrap();
+  useSampleDeckBootstrap({
+    uid,
+    status: remote.status,
+    syncStatus: remote.syncStatus,
+    deckCount: remote.decks.length,
+    addSample: deckImport.addSample,
+  });
   useKey("s", actions.goToSettings);
   useKey("i", actions.goToImport);
 
@@ -121,7 +140,7 @@ export const DeckListPage: React.FC = () => {
             onClickStudy: actions.goToStart,
             onClickDownload: (id) => {
               const deck = remote.deckById(id);
-              if (deck != null) action.deck.downloadData(deck, remote.cardsByDeckId(id));
+              if (deck != null) downloadDeckData(deck, remote.cardsByDeckId(id));
             },
             onClickDelete: (id) => {
               const deck = remote.deckById(id);

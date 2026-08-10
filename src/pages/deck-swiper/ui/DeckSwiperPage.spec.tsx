@@ -5,6 +5,9 @@
  * card and forwards study callbacks", "keeps pending study saves silent while disabling swipe
  * controls", "installs one back-navigation guard when StrictMode replays the effect".
  */
+import type { Deck, DeckId } from "@/entities/deck";
+import type { Card, CardId } from "@/entities/card";
+import type { ConfigState } from "@/entities/config";
 
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -12,7 +15,7 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { studyStore } from "@/features/study/state/studyStore";
-import { createConfig } from "@/test/factories";
+import { createConfig } from "@/entities/config";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
@@ -35,19 +38,23 @@ const mocks = vi.hoisted(() => ({
   useKey: vi.fn(),
 }));
 
-vi.mock("@/hooks/useConfig", () => ({
+vi.mock("@/entities/config", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/config")>()),
   useConfig: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     return mocks.state.config;
   },
 }));
 
-vi.mock("@/hooks/useRemoteCollections", () => ({
+vi.mock("@/features/remote-collections", () => ({
   useRemoteCollections: () => ({
     status: "ready" as const,
     retry: vi.fn(),
     deckById: (id: string) => mocks.state?.deck[id],
     cardById: (id: string) => mocks.state?.card[id],
+    cardsById: mocks.state?.card ?? {},
+    cardsByDeckId: (id: string) => Object.values(mocks.state?.card ?? {}).filter((card) => card.deckId === id),
+    now: 0,
   }),
 }));
 
@@ -66,7 +73,7 @@ vi.mock("@/features/card", async () => {
     vi.importActual<typeof import("@/features/card/components/CardOverlay")>("@/features/card/components/CardOverlay"),
     vi.importActual<typeof import("@/features/card/components/FrontText")>("@/features/card/components/FrontText"),
   ]);
-  return { BackText, CardOverlay, FrontText };
+  return { BackText, CardOverlay, FrontText, useCardMutations: () => ({}) };
 });
 
 vi.mock("@/features/study", async () => {
@@ -90,6 +97,7 @@ vi.mock("@/features/study", async () => {
     useStudyControllerState,
     useStudyStore,
     selectStudySessionForRoute: studyState.selectStudySessionForRoute,
+    filterCardsForDeck: (cards: Card[]) => cards,
     studyStore: studyState.studyStore,
     useStudyActions: () => ({
       swipeUp: mocks.swipeUp,
@@ -108,7 +116,7 @@ vi.mock("@/features/study", async () => {
   };
 });
 
-vi.mock("@/hooks/useActions", () => ({
+vi.mock("@/features/app-controls", () => ({
   useActions: () => ({
     toggleShowHeader: mocks.toggleShowHeader,
     toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
