@@ -27,7 +27,7 @@
     "lint:check": "npm run lint",
     "lint:markdown": "markdownlint-cli2",
     "lint:react": "eslint --max-warnings=0 'src/**/*.{ts,tsx}'",
-    "lint:tsc": "tsc -p tsconfig.json --pretty false --noEmit && tsc -p tsconfig.node.json --pretty false --noEmit",
+    "lint:tsc": "tsc -p tsconfig.json --pretty false && tsc -p tsconfig.tools.json --pretty false",
     "storybook": "storybook dev",
     "build-storybook": "npm run build:storybook"
   },
