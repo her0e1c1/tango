@@ -14,7 +14,7 @@ import * as C from "@/constant";
 import { createBlobConstructor, createCard } from "@/test/factories";
 
 vi.mock("./firestore");
-vi.mock("@/firebase", () => ({ auth: { currentUser: null } }));
+vi.mock("@/shared/firebase", () => ({ auth: { currentUser: null } }));
 vi.mock("@/auth/AuthContext", () => ({ publishAuthenticatedUser: vi.fn() }));
 vi.mock("file-saver", () => ({
   saveAs: vi.fn(),

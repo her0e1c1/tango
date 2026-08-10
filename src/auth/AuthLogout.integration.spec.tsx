@@ -36,7 +36,7 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/firebase", () => ({ auth: mocks.auth }));
+vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth", () => ({
   GoogleAuthProvider: Object.assign(vi.fn(), { credentialFromError: vi.fn() }),
   linkWithPopup: vi.fn(),

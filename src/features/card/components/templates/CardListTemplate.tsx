@@ -10,7 +10,7 @@ import { AiOutlineDown } from "react-icons/ai";
 import { BackText, type BackTextProps } from "@/features/card/components/BackText";
 import { Card, type CardProps } from "@/features/card/components/Card";
 import { Overlay, RemovableTag } from "@/components";
-import { Layout, type LayoutProps } from "@/components/layout/Layout";
+import { Layout, type LayoutProps } from "@/shared/ui/layout";
 
 interface CardListOverlayProps {
   backText: BackTextProps;

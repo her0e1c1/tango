@@ -6,7 +6,7 @@
 
 import type * as React from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
-import { ActionsMenu, type ActionsMenuItem } from "@/components/forms/ActionsMenu";
+import { ActionsMenu, type ActionsMenuItem } from "@/shared/ui/actions-menu";
 
 export interface CardActionsMenuProps {
   cardText: string;

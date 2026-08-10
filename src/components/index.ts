@@ -3,28 +3,23 @@
  * Callers can import from this boundary without depending on the area's internal folder layout.
  */
 
-export * from "@/components/forms/Button";
-export * from "@/components/forms/ActionsMenu";
+export { Button } from "@/shared/ui/button";
 export * from "@/components/content/Card";
 export * from "@/components/content/Code";
 export * from "@/components/content/Description";
-export * from "@/components/feedback/Feedback";
-export * from "@/components/feedback/DestructiveActionDialog";
-export * from "@/components/feedback/RouteFeedback";
-export * from "@/components/feedback/RemoteReadBoundary";
-export * from "@/components/feedback/RemoteMutationNotice";
-export * from "@/components/feedback/buttonInteraction";
+export { Feedback } from "@/shared/ui/feedback";
+export { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
+export { RouteFeedback } from "@/shared/ui/route-feedback";
+export { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
+export { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
+export { useButtonInteraction } from "@/shared/ui/button-interaction";
 export * from "@/components/forms/Form";
 export * from "@/components/forms/FormItem";
-export * from "@/components/layout/FullScreen";
-export * from "@/components/layout/Header";
+export { FullScreen } from "@/shared/ui/full-screen";
 export * from "@/components/forms/Input";
-export * from "@/components/layout/Layout";
 export * from "@/components/layout/List";
-export * from "@/components/content/Logo";
-export * from "@/components/layout/Main";
+export { Logo } from "@/shared/ui/logo";
 export * from "@/components/content/Math";
-export * from "@/components/layout/Outer";
 export * from "@/components/feedback/Overlay";
 export * from "@/components/content/Score";
 export * from "@/components/content/Section";

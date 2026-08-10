@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
   stop: vi.fn(),
 }));
 
-vi.mock("@/firebase", () => ({ auth: mocks.auth }));
+vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth", () => ({
   onAuthStateChanged: mocks.onAuthStateChanged,
   signInAnonymously: mocks.signInAnonymously,

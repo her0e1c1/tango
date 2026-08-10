@@ -17,7 +17,7 @@ const singletonMocks = vi.hoisted(() => ({
   signInAnonymously: vi.fn(),
 }));
 
-vi.mock("@/firebase", () => ({ auth: singletonMocks.auth }));
+vi.mock("@/shared/firebase", () => ({ auth: singletonMocks.auth }));
 vi.mock("firebase/auth", () => ({
   onAuthStateChanged: singletonMocks.onAuthStateChanged,
   signInAnonymously: singletonMocks.signInAnonymously,

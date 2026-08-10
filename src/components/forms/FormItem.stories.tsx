@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Button } from "@/components/forms/Button";
+import { Button } from "@/shared/ui/button";
 import { FormItem as Template } from "@/components/forms/FormItem";
 import { Input } from "@/components/forms/Input";
 import { Select } from "@/components/forms/Select";

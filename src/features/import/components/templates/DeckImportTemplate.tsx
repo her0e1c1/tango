@@ -8,7 +8,7 @@ import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
 
 import { Button, Code, Description, Upload } from "@/components";
-import { Layout, type LayoutProps } from "@/components/layout/Layout";
+import { Layout, type LayoutProps } from "@/shared/ui/layout";
 import type { DeckImportPreview, DeckImportResult } from "@/features/import/components/deckImportTypes";
 
 interface DeckImportTemplateProps {

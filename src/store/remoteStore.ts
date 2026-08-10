@@ -2,7 +2,7 @@ import type { StoreApi } from "zustand";
 import { createStore } from "zustand/vanilla";
 
 import { subscribeCardReads, subscribeDeckReads } from "@/adapters/firestore/event";
-import { type FirestoreInitializationState, waitForFirestoreInitialization } from "@/adapters/firestore/runtime";
+import { type FirestoreInitializationState, waitForFirestoreInitialization } from "@/shared/firebase/firestore-runtime";
 import {
   type RemoteById,
   type RemoteSnapshot,

@@ -57,7 +57,8 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
           dark: config.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
-          onClickMenuItem: actions.goByMenu,
+          onClickImport: actions.goToImport,
+          onClickSettings: actions.goToSettings,
         },
       }}
       deckName={deck.name}
