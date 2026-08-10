@@ -59,6 +59,29 @@ describe("useAccountOperations", () => {
     expect(result.current.pending).toBe(false);
   });
 
+  it("shares a pending login promise when logout is unavailable", async () => {
+    const request = deferred<void>();
+    const login = vi.fn(() => request.promise);
+    const { result } = renderHook(() => useAccountOperations({ login }), { wrapper: StrictModeWrapper });
+
+    let loginPromise!: Promise<void>;
+    let logoutPromise!: Promise<void>;
+    act(() => {
+      loginPromise = result.current.login();
+      logoutPromise = result.current.logout();
+    });
+
+    expect(logoutPromise).toBe(loginPromise);
+    expect(result.current).toMatchObject({ kind: "login", pending: true, error: null });
+
+    await act(async () => {
+      request.resolve();
+      await logoutPromise;
+    });
+
+    expect(result.current.pending).toBe(false);
+  });
+
   it("shares the logout promise while logout is pending", async () => {
     const request = deferred<void>();
     const logout = vi.fn(() => request.promise);

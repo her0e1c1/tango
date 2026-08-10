@@ -205,6 +205,7 @@ const createAccountOperationController = () => {
     },
     login: () => run("login", dependencies.login, false, false),
     logout: () => {
+      if (inFlight != null) return inFlight.promise;
       const operation = dependencies.logout;
       return operation == null ? Promise.resolve() : run("logout", operation, true, true);
     },
