@@ -14,11 +14,25 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: jdx/mise-action@v4
-        with:
-          install_args: hadolint
+      - name: Install Hadolint
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HADOLINT_VERSION: 2.15.1
+        run: |
+          gh release download "v${HADOLINT_VERSION}" \
+            --repo hadolint/hadolint \
+            --pattern checksums.sha256 \
+            --pattern hadolint-linux-x86_64 \
+            --dir "$RUNNER_TEMP"
+          (
+            cd "$RUNNER_TEMP"
+            grep 'hadolint-linux-x86_64$' checksums.sha256 | sha256sum --check
+          )
+          chmod +x "$RUNNER_TEMP/hadolint-linux-x86_64"
+          mv "$RUNNER_TEMP/hadolint-linux-x86_64" "$RUNNER_TEMP/hadolint"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
 
-      - run: mise run lint-docker
+      - run: hadolint --failure-threshold warning Dockerfile sample/Dockerfile
 
   changes:
     name: Check Docker Image Changes
