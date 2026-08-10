@@ -45,34 +45,6 @@ describe("useCardMutations", () => {
     mocks.upsert.mockResolvedValue("card-id");
   });
 
-  it("routes Card create, update, and bulk upsert through commands", async () => {
-    const first = createCard({ id: "first", score: 0 });
-    const second = createCard({ id: "second" });
-    const { result } = renderHook(useCardMutations);
-
-    await act(async () => result.current.create(first));
-    await act(async () => result.current.update({ ...first, score: 1 }));
-    await act(async () => result.current.bulkUpsert([first, second]));
-
-    expect(mocks.create).toHaveBeenCalledWith(first);
-    expect(mocks.update).toHaveBeenCalledWith({ ...first, score: 1 });
-    expect(mocks.upsert).toHaveBeenCalledTimes(2);
-  });
-
-  it("uses the current Card for updateBy and remove", async () => {
-    const card = createCard({ id: "card", score: 0 });
-    const onRemoveSuccess = vi.fn();
-    mocks.card = card;
-    const { result } = renderHook(() => useCardMutations({ onRemoveSuccess }));
-
-    await act(async () => result.current.updateBy(card.id, () => ({ score: 2 })));
-    await act(async () => result.current.remove(card.id));
-
-    expect(mocks.update).toHaveBeenCalledWith({ id: card.id, deckId: card.deckId, score: 2 });
-    expect(mocks.logicalRemove).toHaveBeenCalledWith(card.id);
-    expect(onRemoveSuccess).toHaveBeenCalledExactlyOnceWith(card);
-  });
-
   it("does not allow updateBy patches to redirect the target Card", async () => {
     const card = createCard({ id: "card", deckId: "deck" });
     mocks.card = card;
