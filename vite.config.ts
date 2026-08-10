@@ -1,12 +1,16 @@
+import babel from "@rolldown/plugin-babel";
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import { pwaOptions } from "./pwaConfig";
-import { createReactCompilerPlugin } from "./reactCompiler";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), createReactCompilerPlugin(), VitePWA(pwaOptions)],
+  plugins: [
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
+    VitePWA(pwaOptions),
+  ],
   resolve: {
     tsconfigPaths: true,
   },
