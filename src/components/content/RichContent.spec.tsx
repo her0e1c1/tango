@@ -50,6 +50,7 @@ describe("shared rich content", () => {
     const wrapper = view.container.firstElementChild;
 
     expect(wrapper).toHaveClass("markdown-body", "max-w-full", "overflow-x-auto", "bg-surface");
+    expect(wrapper).toBeInstanceOf(HTMLDivElement);
     expect(view.container.querySelector("table")).toBeInTheDocument();
     expect(view.container.querySelector(".katex")).toBeInTheDocument();
   });
