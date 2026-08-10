@@ -24,7 +24,7 @@ const preview: Preview = {
       await worker.start({
         onUnhandledRequest: "bypass",
         serviceWorker: {
-          url: "./mockServiceWorker.js",
+          url: "./storybookServiceWorker.js",
         },
       });
       return worker;
