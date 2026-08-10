@@ -1,19 +1,9 @@
 import type { VitePWAOptions } from "vite-plugin-pwa";
 
 export const pwaOptions = {
-  strategies: "generateSW",
-  registerType: "prompt",
   injectRegister: "script-defer",
   manifestFilename: "manifest.json",
-  includeAssets: [
-    "favicon.ico",
-    "tango-mark.svg",
-    "logo192.png",
-    "logo512.png",
-    "logo192-maskable.png",
-    "logo512-maskable.png",
-    "apple-touch-icon.png",
-  ],
+  includeAssets: ["favicon.ico", "apple-touch-icon.png"],
   manifest: {
     id: "/",
     scope: "/",
@@ -33,10 +23,7 @@ export const pwaOptions = {
     ],
   },
   workbox: {
-    globPatterns: ["**/*.{js,css,html}"],
     cleanupOutdatedCaches: true,
-    clientsClaim: false,
-    skipWaiting: false,
     maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
     navigateFallback: "index.html",
     navigateFallbackDenylist: [/^\/__\//],
