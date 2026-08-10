@@ -40,7 +40,7 @@ export const prepare = (deck: DeckRaw, uid: string, generateId: () => string): D
  * separately.
  */
 export const downloadData = (deck: Deck, cards: Card[]) => {
-  const csv = Papa.unparse(cards.map(action.card.toRow));
+  const csv = Papa.unparse(cards.map(action.card.toRow), { escapeFormulae: true });
   _saveAs(csv, deck.name);
 };
 

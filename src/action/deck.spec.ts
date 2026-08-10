@@ -84,6 +84,26 @@ describe("deck action", () => {
       });
       expect(fileSaver.saveAs).toHaveBeenCalledWith(blob, "Remote deck.csv");
     });
+
+    it("escapes spreadsheet formulae in exported card data", () => {
+      const blob = new Blob();
+      const blobConstructor = vi.spyOn(global, "Blob");
+      blobConstructor.mockImplementation(createBlobConstructor(blob));
+      const deck = action.deck.prepare({ name: "Formula deck" }, "uid", () => "deck-id");
+      const card = createCard({
+        frontText: "=1+1",
+        backText: "+1+1",
+        tags: ["@tag"],
+        uniqueKey: "-1+1",
+      });
+
+      action.deck.downloadData(deck, [card]);
+
+      expect(blobConstructor).toHaveBeenCalledWith(['"\'=1+1","\'+1+1","\'@tag","\'-1+1"'], {
+        type: "text/plain;charset=utf-8",
+      });
+      expect(fileSaver.saveAs).toHaveBeenCalledWith(blob, "Formula deck.csv");
+    });
   });
 
   describe("downloadCsvSampleText", () => {
