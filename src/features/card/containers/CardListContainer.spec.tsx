@@ -1,8 +1,8 @@
 /**
  * @file Verifies the "CardListContainer" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders the current score
- * and tag filters in the collapsed summary" and "removes one selected tag through the existing
- * filter callback".
+ * and tag filters in the collapsed summary", "removes one selected tag through the existing filter
+ * callback", and "cancels or confirms Card deletion with observable feedback".
  */
 
 import userEvent from "@testing-library/user-event";
@@ -180,6 +180,29 @@ describe("CardListContainer", () => {
 
     await userEvent.click(view.getByRole("button", { name: "Remove typescript filter" }));
     expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);
+  });
+
+  it("cancels or confirms Card deletion with observable feedback", async () => {
+    const view = render(<CardListContainer />);
+    const trigger = view.getByRole("button", { name: `Open actions for ${card.frontText}` });
+
+    await userEvent.click(trigger);
+    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+    const dialog = view.getByRole("alertdialog", { name: "Delete card?" });
+    expect(dialog).toHaveTextContent(card.frontText);
+    expect(dialog).toHaveTextContent("cannot be undone");
+
+    await userEvent.click(view.getByRole("button", { name: "Cancel" }));
+    expect(view.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
+    expect(view.queryByText(`Deleted card “${card.frontText}”.`)).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+
+    await userEvent.click(trigger);
+    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(view.getByRole("button", { name: "Delete card" }));
+
+    expect(view.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
+    expect(view.getByText(`Deleted card “${card.frontText}”.`).closest('[role="status"]')).toBeInTheDocument();
   });
 
   it("forwards pending, error, and retry state", async () => {
