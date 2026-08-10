@@ -14,25 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install Hadolint
-        env:
-          GH_TOKEN: ${{ github.token }}
-          HADOLINT_VERSION: 2.15.1
-        run: |
-          gh release download "v${HADOLINT_VERSION}" \
-            --repo hadolint/hadolint \
-            --pattern checksums.sha256 \
-            --pattern hadolint-linux-x86_64 \
-            --dir "$RUNNER_TEMP"
-          (
-            cd "$RUNNER_TEMP"
-            grep 'hadolint-linux-x86_64$' checksums.sha256 | sha256sum --check
-          )
-          chmod +x "$RUNNER_TEMP/hadolint-linux-x86_64"
-          mv "$RUNNER_TEMP/hadolint-linux-x86_64" "$RUNNER_TEMP/hadolint"
-          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
-
-      - run: hadolint --failure-threshold warning Dockerfile sample/Dockerfile
+      - uses: hadolint/hadolint-action@2a66e89f53d0771bb131a7fa31f3136336094aa6 # v3.4.0
+        with:
+          dockerfile: Dockerfile
+          recursive: true
+          failure-threshold: warning
 
   changes:
     name: Check Docker Image Changes
