@@ -1,16 +1,17 @@
 /**
- * @file Defines Storybook examples for Card Form Template.
+ * @file Defines Storybook examples for the Card Form Page view.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import type { CardFormFields } from "@/features/card/components/CardForm";
-import { CardFormTemplate as Template } from "@/features/card/components/templates/CardFormTemplate";
 import type { Option } from "@/components/forms/Select";
+import type { CardFormFields } from "@/features/card";
 import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+
+import { CardFormView as Template } from "./CardFormView";
 
 /**
  * Prepares fields for data for the Storybook examples in this file.
@@ -34,7 +35,7 @@ const longCard: Card = {
 const longTagOptions = fixture.tags.toolong.map((tag) => ({ label: tag, value: tag }));
 
 const meta = {
-  title: "Card/CardFormTemplate",
+  title: "Pages/Card Form",
   component: Template,
   tags: ["autodocs"],
   parameters: {

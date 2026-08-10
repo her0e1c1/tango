@@ -1,27 +1,26 @@
 /**
- * @file Composes the card feature's complete Card Form Template screen.
- * Data and callbacks arrive through props, which keeps this presentation usable in both a live
- * container and Storybook.
+ * @file Composes the Card Form Page's presentation.
+ * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 
+import { CardForm, type CardFormProps } from "@/features/card";
 import { Layout, type LayoutProps } from "@/shared/ui/layout";
-import { CardForm, type CardFormProps } from "@/features/card/components/CardForm";
 
-export interface CardFormTemplateProps {
+export interface CardFormViewProps {
   layout?: LayoutProps;
   cardForm?: CardFormProps;
   feedbackSlot?: React.ReactNode;
 }
 
 /**
- * Composes the complete Card Form Template screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * Composes the Card Form screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
-export const CardFormTemplate: React.FC<CardFormTemplateProps> = (props) => {
+export const CardFormView: React.FC<CardFormViewProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
