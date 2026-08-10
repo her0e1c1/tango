@@ -9,7 +9,7 @@ import { useId } from "react";
 import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool, AiOutlineUser } from "react-icons/ai";
 
 import { SettingsRow, SettingsSection } from "@/features/settings/components/SettingsSection";
-import { Button, Input, Slider, Switch } from "@/components";
+import { Button, Slider, Switch } from "@/components";
 
 export interface ConfigFormFields {
   showHeader: React.ComponentProps<typeof Switch>;
@@ -21,7 +21,6 @@ export interface ConfigFormFields {
   maxNumberOfCardsToLearn: React.ComponentProps<typeof Slider>;
   defaultAutoPlay: React.ComponentProps<typeof Switch>;
   cardInterval: React.ComponentProps<typeof Slider>;
-  githubAccessToken: React.ComponentProps<typeof Input>;
 }
 
 export interface ConfigFormProps {
@@ -55,7 +54,6 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
     useCardInterval: `${idPrefix}-use-card-interval`,
     defaultAutoPlay: `${idPrefix}-start-autoplay`,
     cardInterval: `${idPrefix}-autoplay-interval`,
-    githubAccessToken: `${idPrefix}-github-access-token`,
   };
   const advancedHeadingId = `${idPrefix}-advanced-heading`;
   /**
@@ -228,7 +226,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
             <h2 id={advancedHeadingId} className="text-body font-bold text-ink">
               Advanced
             </h2>
-            <span className="block text-caption text-ink-muted">Version, token, and user ID</span>
+            <span className="block text-caption text-ink-muted">Version and user ID</span>
           </span>
           <AiOutlineDown
             aria-hidden="true"
@@ -239,18 +237,6 @@ export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
           <div className="flex min-h-touch items-center justify-between gap-4 px-4 py-3">
             <span className="text-body font-medium text-ink">Version</span>
             <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.version}</span>
-          </div>
-          <div className="px-4 py-3">
-            <label htmlFor={inputIds.githubAccessToken} className="text-body font-medium text-ink">
-              Github Access Token
-            </label>
-            <span className="block text-caption text-ink-muted">Used when importing private GitHub content</span>
-            <Input
-              className="mt-2"
-              {...props.fields.githubAccessToken}
-              id={inputIds.githubAccessToken}
-              type="password"
-            />
           </div>
           <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
             <span className="shrink-0 text-body font-medium text-ink">User ID</span>

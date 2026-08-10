@@ -1,8 +1,8 @@
 /**
  * @file Verifies the "ConfigForm" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "groups every auto-saved
- * setting in the unified settings list", "preserves all switch, slider, token, and metadata
- * values", "forwards switch, slider, and token changes to their field callbacks".
+ * setting in the unified settings list", "preserves all switch, slider, and metadata values",
+ * "forwards switch and slider changes to their field callbacks".
  */
 
 import type React from "react";
@@ -30,7 +30,6 @@ function createFields(): ConfigFormFields {
     maxNumberOfCardsToLearn: { name: "maxNumberOfCardsToLearn", value: "24", min: 1, max: 100, onChange: vi.fn() },
     defaultAutoPlay: { name: "defaultAutoPlay", checked: false, onChange: vi.fn() },
     cardInterval: { name: "cardInterval", value: "7", min: 1, max: 60, onChange: vi.fn() },
-    githubAccessToken: { name: "githubAccessToken", value: "github-token", onChange: vi.fn() },
   };
 }
 
@@ -74,7 +73,7 @@ describe("ConfigForm", () => {
     expect(view.queryByText("Show Heaer")).not.toBeInTheDocument();
   });
 
-  it("preserves all switch, slider, token, and metadata values", () => {
+  it("preserves all switch, slider, and metadata values", () => {
     const view = render(
       <ConfigForm {...createProps({ identity: { uid: "user-123", displayName: "Settings User" }, isLoggedIn: true })} />
     );
@@ -85,13 +84,12 @@ describe("ConfigForm", () => {
     expect(view.getByRole("slider", { name: "Maximum cards" })).toHaveValue("24");
     expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("7");
     expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveAttribute("aria-valuetext", "7 seconds");
-    expect(view.container.querySelector("input[name='githubAccessToken']")).toHaveValue("github-token");
     expect(view.getByText("24")).toBeInTheDocument();
     expect(view.getByText("7s")).toBeInTheDocument();
 
     const details = view.getByRole("heading", { level: 2, name: "Advanced" }).closest("details");
     expect(details).not.toHaveAttribute("open");
-    expect(details).toContainElement(view.getByDisplayValue("github-token"));
+    expect(details).not.toHaveTextContent("Github Access Token");
     expect(details).toHaveTextContent("1.2.3");
     expect(details).toHaveTextContent("user-123");
   });
@@ -105,39 +103,29 @@ describe("ConfigForm", () => {
     expect(view.queryByText("Wait between automatic card changes")).not.toBeInTheDocument();
   });
 
-  it("forwards switch, slider, and token changes to their field callbacks", async () => {
+  it("forwards switch and slider changes to their field callbacks", async () => {
     let switchArguments: { name: string; checked: boolean } | undefined;
     let sliderArguments: { name: string; value: string } | undefined;
-    let tokenArguments: { name: string; value: string } | undefined;
     const showHeader = vi.fn((event: React.ChangeEvent<HTMLInputElement>) => {
       switchArguments = { name: event.target.name, checked: event.target.checked };
     });
     const maxNumberOfCardsToLearn = vi.fn((event: React.ChangeEvent<HTMLInputElement>) => {
       sliderArguments = { name: event.target.name, value: event.target.value };
     });
-    const githubAccessToken = vi.fn((event: React.ChangeEvent<HTMLInputElement>) => {
-      tokenArguments = { name: event.target.name, value: event.target.value };
-    });
     const fields = createFields();
     fields.showHeader.onChange = showHeader;
     fields.maxNumberOfCardsToLearn.onChange = maxNumberOfCardsToLearn;
-    fields.githubAccessToken.onChange = githubAccessToken;
     const view = render(<ConfigForm {...createProps({ fields })} />);
 
     await userEvent.click(view.container.querySelector("input[name='showHeader']") as HTMLInputElement);
     fireEvent.change(view.container.querySelector("input[name='maxNumberOfCardsToLearn']") as HTMLInputElement, {
       target: { value: "31" },
     });
-    fireEvent.change(view.container.querySelector("input[name='githubAccessToken']") as HTMLInputElement, {
-      target: { value: "updated-token" },
-    });
 
     expect(showHeader).toHaveBeenCalledOnce();
     expect(switchArguments).toEqual({ name: "showHeader", checked: false });
     expect(maxNumberOfCardsToLearn).toHaveBeenCalledOnce();
     expect(sliderArguments).toEqual({ name: "maxNumberOfCardsToLearn", value: "31" });
-    expect(githubAccessToken).toHaveBeenCalledOnce();
-    expect(tokenArguments).toEqual({ name: "githubAccessToken", value: "updated-token" });
   });
 
   it("keeps section heading relationships unique across multiple instances", () => {
