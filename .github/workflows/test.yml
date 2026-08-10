@@ -12,6 +12,17 @@ env:
   VITE_DB_HOST: localhost
 
 jobs:
+  actionlint:
+    name: Lint GitHub Actions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run actionlint
+        run: |
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
+          ./actionlint -color
+
   e2e:
     name: E2E
     uses: ./.github/workflows/e2e.yaml
