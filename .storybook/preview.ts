@@ -2,6 +2,9 @@
 
 import { withThemeByClassName } from "@storybook/addon-themes";
 import type { Preview } from "@storybook/react";
+import { setupWorker } from "msw/browser";
+import { mswLoader } from "msw-storybook-addon/csf3";
+import { storybookHandlers } from "../src/storybook/handlers";
 import { INITIAL_VIEWPORTS } from "../src/storybook/storybookViewports";
 import "../src/index.css";
 
@@ -15,6 +18,18 @@ const preview: Preview = {
       defaultTheme: "light",
     }),
   ],
+  loaders: [
+    mswLoader(async () => {
+      const worker = setupWorker();
+      await worker.start({
+        onUnhandledRequest: "bypass",
+        serviceWorker: {
+          url: "./mockServiceWorker.js",
+        },
+      });
+      return worker;
+    }),
+  ],
   parameters: {
     controls: {
       matchers: {
@@ -22,6 +37,7 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
+    msw: storybookHandlers,
     viewport: {
       options: INITIAL_VIEWPORTS,
     },

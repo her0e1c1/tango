@@ -1,6 +1,7 @@
 /** @file Defines deterministic application data shared by route-level Storybook stories. */
 
 import { createCard, createConfig, createDeck } from "@/test/factories";
+import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";
 import { PAGE_STORY_UID, type PageStoryParameters } from "@/storybook/PageDecorator";
 
 export const PAGE_STORY_DECK_ID: DeckId = "storybook-japanese";
@@ -8,11 +9,6 @@ export const PAGE_STORY_SECONDARY_DECK_ID: DeckId = "storybook-math";
 export const PAGE_STORY_CARD_ID: CardId = "storybook-hello";
 
 const timestamp = Date.UTC(2026, 6, 1, 9, 0, 0);
-const storybookDeckImportCsv = `\
-"Write a question in front text","Write the answer for it in back text","","question-answer-example"
-"hello word in python","print('hello world')","python","hello-world-python"
-"What is the area of a circle with a radius of r?","$\\pi r^2$","math","circle-area"`;
-const storybookDeckImportUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(storybookDeckImportCsv)}`;
 
 export const pageStoryDecks: Deck[] = [
   createDeck({
@@ -21,7 +17,7 @@ export const pageStoryDecks: Deck[] = [
     name: "Japanese starter",
     category: "markdown",
     selectedTags: ["greeting"],
-    url: storybookDeckImportUrl,
+    url: STORYBOOK_DECK_IMPORT_URL,
     createdAt: timestamp - 14 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp,
   }),
