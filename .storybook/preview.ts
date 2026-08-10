@@ -6,7 +6,7 @@ import { setupWorker } from "msw/browser";
 import { mswLoader } from "msw-storybook-addon/csf3";
 import { storybookHandlers } from "../src/storybook/handlers";
 import { INITIAL_VIEWPORTS } from "../src/storybook/storybookViewports";
-import "../src/index.css";
+import "../src/app/styles/index.css";
 
 const preview: Preview = {
   decorators: [
