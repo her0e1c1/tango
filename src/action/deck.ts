@@ -4,7 +4,6 @@
  * depending on React components.
  */
 
-// import moment from "moment";
 import * as FileSaver from "file-saver";
 import * as Papa from "papaparse";
 
@@ -41,7 +40,7 @@ export const prepare = (deck: DeckRaw, uid: string, generateId: () => string): D
  */
 export const downloadData = (deck: Deck, cards: Card[]) => {
   const csv = Papa.unparse(cards.map(cardAction.toRow), { escapeFormulae: true });
-  _saveAs(csv, deck.name);
+  saveAs(csv, deck.name);
 };
 
 /**
@@ -49,7 +48,7 @@ export const downloadData = (deck: Deck, cards: Card[]) => {
  * Browser file handling remains behind this function so domain preparation can be understood
  * separately.
  */
-export const _saveAs = (content: string, name: string) => {
+const saveAs = (content: string, name: string) => {
   if (!name.endsWith(".csv")) {
     name += ".csv";
   }
@@ -63,7 +62,7 @@ export const _saveAs = (content: string, name: string) => {
  * separately.
  */
 export const downloadCsvSampleText = () => {
-  _saveAs(C.CSV_SAMPLE_TEXT, "sample.csv");
+  saveAs(C.CSV_SAMPLE_TEXT, "sample.csv");
 };
 
 /**

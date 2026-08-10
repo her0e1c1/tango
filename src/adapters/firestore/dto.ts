@@ -31,7 +31,7 @@ const timestampOrDateSchema = z.union([validDateSchema, timestampSchema]).transf
   return z.NEVER;
 });
 
-export const deckDocumentSchema = z.object({
+const deckDocumentSchema = z.object({
   id: z.string().optional(),
   name: z.string(),
   url: z.string().optional(),
@@ -48,15 +48,15 @@ export const deckDocumentSchema = z.object({
   convertToBr: z.boolean(),
 });
 
-export const deckCreateDtoSchema = deckDocumentSchema.extend({
+const deckCreateDtoSchema = deckDocumentSchema.extend({
   id: z.string(),
 });
 
-export const deckUpdateDtoSchema = deckDocumentSchema.omit({ id: true }).partial().extend({
+const deckUpdateDtoSchema = deckDocumentSchema.omit({ id: true }).partial().extend({
   updatedAt: z.number(),
 });
 
-export type DeckDocument = z.infer<typeof deckDocumentSchema>;
+type DeckDocument = z.infer<typeof deckDocumentSchema>;
 export type DeckCreateDto = z.infer<typeof deckCreateDtoSchema>;
 export type DeckUpdateDto = z.infer<typeof deckUpdateDtoSchema>;
 
@@ -82,7 +82,7 @@ const parseDocument = <T>(schema: z.ZodType<T>, collectionName: "deck" | "card",
   return result.data;
 };
 
-export const parseDeckDocument = (id: DeckId, value: unknown): DeckDocument =>
+const parseDeckDocument = (id: DeckId, value: unknown): DeckDocument =>
   parseDocument(deckDocumentSchema, "deck", id, value);
 
 /**
@@ -111,7 +111,7 @@ export const mapDeckDocument = (id: DeckId, value: unknown): Deck => {
   return deck;
 };
 
-export const cardDocumentSchema = z.object({
+const cardDocumentSchema = z.object({
   id: z.string().optional(),
   frontText: z.string(),
   backText: z.string(),
@@ -132,19 +132,19 @@ export const cardDocumentSchema = z.object({
   endLine: z.number().optional(),
 });
 
-export const cardCreateDtoSchema = cardDocumentSchema.extend({
+const cardCreateDtoSchema = cardDocumentSchema.extend({
   id: z.string(),
 });
 
-export const cardUpdateDtoSchema = cardDocumentSchema.omit({ id: true }).partial().extend({
+const cardUpdateDtoSchema = cardDocumentSchema.omit({ id: true }).partial().extend({
   updatedAt: z.number(),
 });
 
-export type CardDocument = z.infer<typeof cardDocumentSchema>;
+type CardDocument = z.infer<typeof cardDocumentSchema>;
 export type CardCreateDto = z.infer<typeof cardCreateDtoSchema>;
 export type CardUpdateDto = z.infer<typeof cardUpdateDtoSchema>;
 
-export const parseCardDocument = (id: CardId, value: unknown): CardDocument =>
+const parseCardDocument = (id: CardId, value: unknown): CardDocument =>
   parseDocument(cardDocumentSchema, "card", id, value);
 
 /**

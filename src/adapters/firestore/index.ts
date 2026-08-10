@@ -8,6 +8,5 @@ export { initializeFirestoreAdapter } from "@/adapters/firestore/initialize";
 export {
   getDb,
   getFirestoreInitializationState,
-  subscribeFirestoreInitialization,
   waitForFirestoreInitialization,
 } from "@/adapters/firestore/runtime";

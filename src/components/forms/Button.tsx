@@ -8,7 +8,7 @@ import cx from "classnames";
 import type * as React from "react";
 
 export type ButtonVariant = "primary" | "secondary" | "quiet" | "destructive";
-export type ButtonSize = "sm" | "md" | "lg";
+type ButtonSize = "sm" | "md" | "lg";
 
 export type ButtonProps = {
   label?: string;

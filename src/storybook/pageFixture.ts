@@ -5,12 +5,12 @@ import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";
 import { PAGE_STORY_UID, type PageStoryParameters } from "@/storybook/PageDecorator";
 
 export const PAGE_STORY_DECK_ID: DeckId = "storybook-japanese";
-export const PAGE_STORY_SECONDARY_DECK_ID: DeckId = "storybook-math";
+const PAGE_STORY_SECONDARY_DECK_ID: DeckId = "storybook-math";
 export const PAGE_STORY_CARD_ID: CardId = "storybook-hello";
 
 const timestamp = Date.UTC(2026, 6, 1, 9, 0, 0);
 
-export const pageStoryDecks: Deck[] = [
+const pageStoryDecks: Deck[] = [
   createDeck({
     id: PAGE_STORY_DECK_ID,
     uid: PAGE_STORY_UID,
@@ -31,7 +31,7 @@ export const pageStoryDecks: Deck[] = [
   }),
 ];
 
-export const pageStoryCards: Card[] = [
+const pageStoryCards: Card[] = [
   createCard({
     id: PAGE_STORY_CARD_ID,
     deckId: PAGE_STORY_DECK_ID,

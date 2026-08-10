@@ -92,7 +92,7 @@ const firestoreValue = (value: unknown): object => {
   throw new Error(`Unsupported Firestore fixture value: ${String(value)}`);
 };
 
-export const setDocument = async (collection: "deck" | "card", id: string, document: Record<string, unknown>) => {
+const setDocument = async (collection: "deck" | "card", id: string, document: Record<string, unknown>) => {
   const fields = Object.fromEntries(
     Object.entries(document).flatMap(([key, value]) => (value === undefined ? [] : [[key, firestoreValue(value)]]))
   );

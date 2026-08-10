@@ -204,7 +204,6 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
 };
 
 export { toRemoteById };
-export type { RemoteById, RemoteSnapshot, RemoteSubscriptionProps, RemoteSyncStatus };
 
 export const remoteStore = createRemoteStore({
   waitForInitialization: waitForFirestoreInitialization,

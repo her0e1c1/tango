@@ -12,12 +12,12 @@ import { Card, type CardProps } from "@/features/card/components/Card";
 import { Overlay, RemovableTag } from "@/components";
 import { Layout, type LayoutProps } from "@/components/layout/Layout";
 
-export interface CardListOverlayProps {
+interface CardListOverlayProps {
   backText: BackTextProps;
   onClose?: () => void;
 }
 
-export interface CardListFilterState {
+interface CardListFilterState {
   scoreMax: number | null;
   scoreMin: number | null;
   selectedTags: string[];

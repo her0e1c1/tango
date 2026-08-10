@@ -9,9 +9,9 @@ import type * as React from "react";
 import { Button, type ButtonVariant } from "@/components/forms/Button";
 import { Layout } from "@/components/layout/Layout";
 
-export type RouteFeedbackTone = "loading" | "error" | "not-found";
+type RouteFeedbackTone = "loading" | "error" | "not-found";
 
-export interface RouteFeedbackAction {
+interface RouteFeedbackAction {
   label: string;
   onClick: () => void;
   variant?: ButtonVariant;

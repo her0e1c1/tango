@@ -93,8 +93,3 @@ export const getFirestoreInitializationState = firestoreRuntime.getState;
  * Startup code can await one shared result instead of racing individual initialization steps.
  */
 export const waitForFirestoreInitialization = firestoreRuntime.waitForInitialization;
-/**
- * Subscribes to changes in Firestore initialization state.
- * The returned cleanup function removes the listener when its React or query consumer is disposed.
- */
-export const subscribeFirestoreInitialization = firestoreRuntime.subscribe;
