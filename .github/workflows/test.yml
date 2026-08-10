@@ -49,9 +49,37 @@ jobs:
         run: npm run test:storybook
 
       - name: Upload Vitest coverage report
+        id: coverage
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
           name: vitest-coverage
           path: coverage/
           if-no-files-found: warn
+
+      - name: Add coverage summary
+        if: ${{ always() }}
+        env:
+          ARTIFACT_URL: ${{ steps.coverage.outputs.artifact-url }}
+        run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            exit 0
+          fi
+
+          {
+            echo "## Test coverage"
+            echo
+            echo "| Metric | Coverage |"
+            echo "| --- | ---: |"
+            jq -r '
+              .total |
+              "| Lines | \(.lines.pct)% |",
+              "| Statements | \(.statements.pct)% |",
+              "| Branches | \(.branches.pct)% |",
+              "| Functions | \(.functions.pct)% |"
+            ' coverage/coverage-summary.json
+            echo
+            if [ -n "$ARTIFACT_URL" ]; then
+              echo "[Download full coverage report]($ARTIFACT_URL)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
