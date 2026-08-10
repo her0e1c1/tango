@@ -9,6 +9,5 @@ RUN \
   --mount=type=cache,target=/root/.cache \
   --mount=type=bind,source=Pipfile,target=Pipfile \
   --mount=type=bind,source=Pipfile.lock,target=Pipfile.lock \
-  pip install --upgrade pip \
-  && pip install pipenv \
+  pip install --no-cache-dir pipenv==2026.7.1 \
   && pipenv sync --dev

@@ -3,11 +3,26 @@ name: Update Docker Image
 on:
   workflow_dispatch:
   workflow_call:
+  pull_request:
+    branches:
+      - "**"
 
 jobs:
+  lint:
+    name: Lint Dockerfiles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: hadolint/hadolint-action@2a66e89f53d0771bb131a7fa31f3136336094aa6 # v3.4.0
+        with:
+          dockerfile: Dockerfile
+          recursive: true
+          failure-threshold: warning
+
   changes:
     name: Check Docker Image Changes
-    if: ${{ github.event_name != 'workflow_dispatch' }}
+    if: ${{ github.event_name != 'workflow_dispatch' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.changed.outputs.any_modified }}
@@ -27,8 +42,8 @@ jobs:
 
   push:
     name: Update Docker Image
-    needs: changes
-    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.image == 'true') }}
+    needs: [changes, lint]
+    if: ${{ !cancelled() && needs.lint.result == 'success' && github.event_name != 'pull_request' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.image == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

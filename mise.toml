@@ -1,4 +1,5 @@
 [tools]
+hadolint = "2.15.0"
 node = "24.15.0"
 npm = "12.0.1"
 watchexec = "2.5.1"
@@ -110,6 +111,9 @@ alias = "l"
 depends = ["build-sample"]
 run = "npm run lint:check"
 
+[tasks.lint-docker]
+run = "hadolint --failure-threshold warning Dockerfile sample/Dockerfile"
+
 [tasks.build-sample]
 sources = [
   "sample/generate.py",
@@ -147,7 +151,7 @@ docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 
 [tasks.check]
 depends = ["init"]
-run = [{ tasks = ["fmt-check", "lint", "test-unit"] }]
+run = [{ tasks = ["fmt-check", "lint", "lint-docker", "test-unit"] }]
 
 [tasks.ci]
 alias = "c"
