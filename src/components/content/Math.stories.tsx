@@ -9,21 +9,29 @@ import { expect } from "storybook/test";
 
 import { MathContent as Template } from "@/components/content/Math";
 import * as fixture from "@/storybook/fixture";
+import "@/components/content/Math.stories.css";
 
 const meta = {
   title: "Shared/Content/Math",
   component: Template,
   tags: ["autodocs"],
   args: {},
+  decorators: [
+    (Story) => (
+      <div className="math-story">
+        <Story />
+      </div>
+    ),
+  ],
 } satisfies Meta<typeof Template>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 const expectTheme = async (canvasElement: HTMLElement) => {
-  const content = canvasElement.querySelector(".math-content");
+  const content = canvasElement.querySelector(".markdown-body");
 
-  await expect(content).toBeInstanceOf(HTMLDivElement);
+  await expect(content).toBeInstanceOf(HTMLElement);
   const style = getComputedStyle(content as Element);
   const parentStyle = getComputedStyle((content as Element).parentElement as Element);
   await expect(style.colorScheme).toBe(parentStyle.colorScheme);

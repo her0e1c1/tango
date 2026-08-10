@@ -12,7 +12,6 @@ import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import "katex/dist/katex.min.css";
 import "github-markdown-css/github-markdown.css";
-import "@/components/content/Math.css";
 
 /**
  * Renders the Math Content user interface.
@@ -20,7 +19,7 @@ import "@/components/content/Math.css";
  * content.
  */
 export const MathContent: React.FC<{ text: string }> = (props) => (
-  <Style div className="math-content markdown-body max-w-full overflow-x-auto rounded-control bg-surface p-1 text-ink">
+  <Style className="markdown-body max-w-full overflow-x-auto rounded-control bg-surface p-1 text-ink">
     <Markdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
       {props.text}
     </Markdown>
