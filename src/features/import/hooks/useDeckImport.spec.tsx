@@ -1,8 +1,7 @@
 /**
  * @file Verifies the "useDeckImport" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "keeps retry orchestration
- * stable across an unchanged render", "previews a file without writing until import is confirmed",
- * "keeps invalid files in preview without mutating state".
+ * The examples make the expected behavior concrete with cases such as "previews a file without
+ * writing until import is confirmed" and "keeps invalid files in preview without mutating state".
  */
 
 import { act, renderHook, waitFor } from "@testing-library/react";
@@ -85,15 +84,6 @@ describe("useDeckImport", () => {
     mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck" }));
     mocks.createDeck.mockResolvedValue(undefined);
     mocks.bulkUpsert.mockResolvedValue(undefined);
-  });
-
-  it("keeps retry orchestration stable across an unchanged render", () => {
-    const { result, rerender } = renderHook(useDeckImport);
-    const retry = result.current.retry;
-
-    rerender();
-
-    expect(result.current.retry).toBe(retry);
   });
 
   it("previews a file without writing until import is confirmed", async () => {

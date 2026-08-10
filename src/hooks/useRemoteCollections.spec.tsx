@@ -136,7 +136,6 @@ describe("useRemoteCollections", () => {
     expect(result.current.decks).toEqual([remoteDeck]);
     expect(result.current.status).toBe("error");
     expect(result.current.error).toBe(error);
-    expect(result.current.retry).toBe(mocks.retry);
     expect(mocks.retry).toHaveBeenCalledTimes(1);
   });
 

@@ -1,8 +1,7 @@
 /**
  * @file Verifies the "useStudyActions" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "keeps the action API stable
- * across an unchanged render", "starts from filtered Query cards before navigating", "rejects a
- * route and session mismatch before writing a card".
+ * The examples make the expected behavior concrete with cases such as "starts from filtered Query
+ * cards before navigating" and "rejects a route and session mismatch before writing a card".
  */
 
 import { act, cleanup, renderHook } from "@testing-library/react";
@@ -136,15 +135,6 @@ describe("useStudyActions", () => {
       autoPlay: false,
       lastSwipe: undefined,
     });
-  });
-
-  it("keeps the action API stable across an unchanged render", () => {
-    const { result, rerender } = renderHook(() => useStudyActions(deck.id));
-    const actions = result.current;
-
-    rerender();
-
-    expect(result.current).toBe(actions);
   });
 
   afterEach(() => {

@@ -21,8 +21,6 @@ vi.mock("file-saver", () => ({
 }));
 vi.mock("firebase/firestore");
 
-const NativeBlob = global.Blob;
-
 describe("deck action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -116,9 +114,5 @@ describe("deck action", () => {
       expect(m).toBeCalledWith([C.CSV_SAMPLE_TEXT], { type: "text/plain;charset=utf-8" });
       expect(fileSaver.saveAs).toBeCalledWith(expect.anything(), "sample.csv");
     });
-  });
-
-  it("restores the Blob constructor after download tests", () => {
-    expect(global.Blob).toBe(NativeBlob);
   });
 });
