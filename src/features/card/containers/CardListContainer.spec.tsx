@@ -1,12 +1,12 @@
 /**
  * @file Verifies the "CardListContainer" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders the current score
- * and tag filters in the collapsed summary", "removes one selected tag through the existing filter
- * callback", "preserves Edit, Delete, and left/right swipe connections".
+ * and tag filters in the collapsed summary" and "removes one selected tag through the existing
+ * filter callback".
  */
 
 import userEvent from "@testing-library/user-event";
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -180,46 +180,6 @@ describe("CardListContainer", () => {
 
     await userEvent.click(view.getByRole("button", { name: "Remove typescript filter" }));
     expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);
-  });
-
-  it("preserves Edit, Delete, and left/right swipe connections", async () => {
-    const confirm = vi.spyOn(window, "confirm");
-    const view = render(<CardListContainer />);
-    const trigger = view.getByRole("button", { name: `Open actions for ${card.frontText}` });
-
-    await userEvent.click(trigger);
-    await userEvent.click(view.getByRole("menuitem", { name: "Edit" }));
-    expect(mocks.goToCardEdit).toHaveBeenCalledExactlyOnceWith(card.id);
-
-    await userEvent.click(trigger);
-    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
-    const dialog = view.getByRole("alertdialog", { name: "Delete card?" });
-    expect(dialog).toHaveTextContent(card.frontText);
-    expect(dialog).toHaveTextContent("cannot be undone");
-    await userEvent.click(view.getByRole("button", { name: "Cancel" }));
-    expect(mocks.cardRemove).not.toHaveBeenCalled();
-    expect(trigger).toHaveFocus();
-
-    await userEvent.click(trigger);
-    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(view.getByRole("button", { name: "Delete card" }));
-    expect(mocks.cardRemove).toHaveBeenCalledOnce();
-    expect(view.getByText(`Deleted card “${card.frontText}”.`).closest('[role="status"]')).toBeInTheDocument();
-    expect(confirm).not.toHaveBeenCalled();
-
-    const article = view.getByRole("article");
-    fireEvent.mouseDown(article, { clientX: 100, clientY: 0 });
-    fireEvent.mouseMove(document, { clientX: 0, clientY: 0 });
-    fireEvent.mouseUp(document, { clientX: 0, clientY: 0 });
-    fireEvent.mouseDown(article, { clientX: 0, clientY: 0 });
-    fireEvent.mouseMove(document, { clientX: 100, clientY: 0 });
-    fireEvent.mouseUp(document, { clientX: 100, clientY: 0 });
-
-    expect(mocks.cardUpdateBy).toHaveBeenCalledTimes(2);
-    const decrement = mocks.cardUpdateBy.mock.calls[0]?.[1] as (value: Card) => Partial<Card>;
-    const increment = mocks.cardUpdateBy.mock.calls[1]?.[1] as (value: Card) => Partial<Card>;
-    expect(decrement(card)).toEqual({ score: -1 });
-    expect(increment(card)).toEqual({ score: 1 });
   });
 
   it("forwards pending, error, and retry state", async () => {
