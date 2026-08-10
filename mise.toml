@@ -60,7 +60,25 @@ sources = [
   "package-lock.json",
   "vitest.config.ts",
 ]
-run = "npm test"
+run = [
+  "npm test",
+  "mise run test-sample",
+]
+
+[tasks.test-unit]
+depends = ["build-sample"]
+run = "npm run test:unit"
+
+[tasks.test-firestore]
+depends = ["up"]
+run = "npm run test:firestore"
+
+[tasks.test-sample]
+run = "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint py.test base"
+
+[tasks.test-storybook]
+depends = ["build-sample"]
+run = "npm run test:storybook"
 
 [tasks.coverage]
 depends = ["build-sample", "up"]
@@ -76,10 +94,16 @@ run = "npm run test:coverage"
 
 [tasks.fmt]
 alias = "f"
-run = "npm run fmt"
+run = [
+  "npm run fmt",
+  "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'ruff format' base",
+]
 
 [tasks.fmt-check]
-run = "npm run fmt:check"
+run = [
+  "npm run fmt:check",
+  "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'ruff format --check' base",
+]
 
 [tasks.lint]
 alias = "l"
@@ -102,12 +126,28 @@ run = [
   "npm run build:storybook",
 ]
 
+[tasks.build-storybook]
+depends = ["build-sample"]
+run = "npm run build:storybook"
+
+[tasks.e2e]
+run = """
+export COMPOSE_FILE=.devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
+docker compose up --wait --wait-timeout 120 --remove-orphans
+docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
+"""
+
+[tasks.check]
+depends = ["init"]
+run = [{ tasks = ["fmt-check", "lint", "test-unit"] }]
+
 [tasks.ci]
 alias = "c"
 depends = ["init"]
 run = [
   "mise run build",
-  { tasks = ["fmt-check", "lint", "coverage"] },
+  { tasks = ["fmt-check", "lint", "coverage", "test-sample"] },
+  "mise run e2e",
 ]
 
 [tasks.down]

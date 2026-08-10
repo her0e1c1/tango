@@ -18,7 +18,7 @@ Browse the latest Storybook at https://her0e1c1.github.io/tango/. Updates are pu
 Run Storybook locally with:
 
 ```bash
-npm run storybook
+mise run storybook
 ```
 
 The `Page` stories render every application route with deterministic authentication, remote collections, configuration,
@@ -31,51 +31,37 @@ Additional network states can be defined per story with `beforeEach(({ msw }) =>
 ### Setup for development
 
 ```bash
-make init
-```
-
-This runs the `.env`, `image`, and `npm-install` Makefile targets. It creates `.env` from `.env.example` if it does
-not already exist, builds the development container image, and installs npm packages into the container volume used by
-the Makefile targets.
-
-To start the development containers configured by Compose:
-
-```bash
-make up
-```
-
-If you want to run the app directly on your host machine instead of through Docker, install the local toolchain and
-packages:
-
-```bash
 mise install
-npm ci
+mise run init
 ```
+
+This installs the pinned Node.js and npm versions, creates `.env` from `.env.example` if it does not already exist,
+and installs npm packages.
 
 ### Start Server
 
 ```bash
-npm run db  # setup for firestore in local
-npm start  # start react web app
+mise run dev
 ```
 
 You can go to web UI and see data in firestore: http://localhost:4000/
 
 ## Test
 
-Some test cases need firestore as backend, so easy to test in docker container.
+The test task starts the Firestore emulator and runs the application and sample test suites:
 
 ```bash
-make test
+mise run test
 # You can also pass a specified file
-docker compose run --rm --entrypoint npm dev run test -- ./src/action/xxx.spec.ts
+mise run test-unit -- ./src/action/xxx.spec.ts
 ```
 
-If you use local emulator, run these commands
+Run a specific suite with:
 
 ```bash
-npm run test  # need to start firestore before running
-make test     # test in docker
+mise run test-unit
+mise run test-firestore
+mise run test-sample
 ```
 
 ### Vitest Coverage
@@ -84,8 +70,6 @@ Run every TypeScript and React spec, including the Firestore emulator specs, in 
 
 ```bash
 mise run coverage
-# Or run the same coverage command in Docker
-make coverage
 ```
 
 Coverage includes `src/**/*.{ts,tsx}`, including files that no test imports. Specs, stories, declaration files,
@@ -99,12 +83,12 @@ pytest, and browser behavior is tested separately with Playwright.
 
 ### E2E Test
 
-Playwright is used for browser-level smoke tests. `make e2e` starts the official Playwright Docker image as a
+Playwright is used for browser-level smoke tests. `mise run e2e` starts the official Playwright Docker image as a
 remote browser server, starts a healthy Vite dev server service from the project image, and runs the tests
 against it.
 
 ```bash
-make e2e
+mise run e2e
 ```
 
 For interactive debugging, run:
