@@ -4,6 +4,7 @@
  * outside the view.
  */
 
+import cx from "classnames";
 import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
@@ -78,7 +79,10 @@ export const DeckCard: React.FC<DeckCardProps> = (props) => {
   return (
     <article
       aria-busy={pending}
-      className="relative flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 last:border-b-0 dark:border-black"
+      className={cx(
+        "relative flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 transition-colors duration-fast ease-calm last:border-b-0 dark:border-black",
+        pending ? "bg-surface-muted" : "hover:bg-surface-muted"
+      )}
     >
       <div className="min-w-0 flex-1 px-1 py-1">
         <button
