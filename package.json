@@ -36,7 +36,7 @@
     "build-storybook": "npm run build:storybook"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.4.0",
+    "@hookform/resolvers": "^5.7.1",
     "@tailwindcss/postcss": "^4.3.2",
     "@types/file-saver": "^2.0.7",
     "@types/katex": "^0.16.8",
@@ -99,7 +99,7 @@
     "msw": "^2.15.0",
     "msw-storybook-addon": "^3.0.0",
     "postcss": "^8.5.23",
-    "storybook": "^10.4.6",
+    "storybook": "^10.5.7",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.9.3",
     "vite": "^8.1.3",

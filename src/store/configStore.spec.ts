@@ -42,9 +42,8 @@ describe("config store", () => {
     store.getState().updateConfig({ darkMode: true });
 
     const persisted = JSON.parse(storage.getItem(CONFIG_STORAGE_KEY) ?? "{}");
-    const { githubAccessToken: _githubAccessToken, ...persistedDefaultConfig } = defaultConfig;
     expect(persisted).toEqual({
-      state: { config: { ...persistedDefaultConfig, darkMode: true } },
+      state: { config: { ...defaultConfig, darkMode: true } },
       version: 2,
     });
     expect(persisted.state).not.toHaveProperty("deck");
@@ -57,24 +56,6 @@ describe("config store", () => {
     expect(restored.getState().config).toEqual({ ...defaultConfig, darkMode: true });
     expect(restored.getState().updateConfig).toBeTypeOf("function");
     expect(restored.getState().toggleConfig).toBeTypeOf("function");
-  });
-
-  it("never persists a GitHub access token and drops legacy persisted tokens", async () => {
-    const storage = createMemoryStorage();
-    const store = createConfigStore({ storage, skipHydration: true });
-
-    store.getState().updateConfig({ githubAccessToken: "secret" });
-    expect(storage.getItem(CONFIG_STORAGE_KEY)).not.toContain("secret");
-
-    storage.setItem(
-      CONFIG_STORAGE_KEY,
-      JSON.stringify({ state: { config: { ...defaultConfig, githubAccessToken: "legacy-secret" } }, version: 1 })
-    );
-    await store.persist.rehydrate();
-
-    expect(store.getState().config.githubAccessToken).toBe("");
-    expect(storage.getItem(CONFIG_STORAGE_KEY)).not.toContain("legacy-secret");
-    expect(JSON.parse(storage.getItem(CONFIG_STORAGE_KEY) ?? "{}")).toMatchObject({ version: 2 });
   });
 
   it("validates numeric ranges during updates", () => {
@@ -97,6 +78,7 @@ describe("config store", () => {
             cardInterval: 15,
             darkMode: "yes",
             removedSetting: true,
+            githubAccessToken: "legacy-secret",
           },
         },
         version: 1,
@@ -111,6 +93,7 @@ describe("config store", () => {
       cardInterval: 15,
     });
     expect(store.getState().config).not.toHaveProperty("removedSetting");
+    expect(store.getState().config).not.toHaveProperty("githubAccessToken");
   });
 
   it("uses current defaults when persisted config is not an object", async () => {

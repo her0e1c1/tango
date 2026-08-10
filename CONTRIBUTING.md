@@ -1,9 +1,23 @@
-# コントリビューションガイド
+# Contribution Guide
 
-## Issue のラベル
+## Development Workflow
 
-すべての Issue には、種類を表すラベルを 1 つ付けます。種類ラベルは `bug`、`enhancement`、`question` のいずれかです。
+- Refer to [README.md](README.md#development) for initial setup and running the dev server.
+- Always create a dedicated branch (or git worktree) from `origin/main` for your changes.
+- Do not commit directly to `main`.
+- Write comments, commit messages, PR titles, and PR descriptions in English.
+- Follow Conventional Commits format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `test:`).
 
-`bug` または `enhancement` の Issue には、変更対象の領域ラベルを少なくとも 1 つ付けます。使用できる領域ラベルは `ci`、`ui`、`test`、`dev`、`docs`、`dependencies` です。
+## Pull Request Guidelines
 
-種類または領域の分類が不足している Issue には、`needs-triage` ラベルを付けます。
+Before submitting a Pull Request, run the local verification task:
+
+```bash
+mise run check
+```
+
+For details on running specific test suites, see [README.md](README.md#test).
+
+## Issue Categorization
+
+When opening an issue, select the appropriate type and target area using the GitHub Issue templates. Unclassified issues will be marked for triage.

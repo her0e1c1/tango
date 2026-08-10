@@ -23,9 +23,8 @@ export interface ConfigStoreState {
   toggleConfig: (key: BooleanConfigKey) => void;
 }
 
-type PersistedConfig = Omit<ConfigState, "githubAccessToken">;
 interface PersistedConfigState {
-  config: PersistedConfig;
+  config: ConfigState;
 }
 
 interface CreateConfigStoreOptions {
@@ -59,14 +58,7 @@ export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreO
         version: CONFIG_STORAGE_VERSION,
         storage: persistStorage,
         ...(skipHydration !== undefined ? { skipHydration } : {}),
-        migrate: (persistedState) => {
-          const { githubAccessToken: _githubAccessToken, ...config } = parsePersistedConfig(persistedState);
-          return { config };
-        },
-        partialize: ({ config }) => {
-          const { githubAccessToken: _githubAccessToken, ...persistedConfig } = config;
-          return { config: persistedConfig };
-        },
+        migrate: (persistedState) => ({ config: parsePersistedConfig(persistedState) }),
         merge: (persistedState, currentState) => ({
           ...currentState,
           config: parsePersistedConfig(persistedState),

@@ -26,7 +26,6 @@ export const defaultConfig: ConfigState = Object.freeze({
   cardSwipeRight: "GoToNextCard",
   darkMode: false,
   selectedTags: Object.freeze([]) as unknown as string[],
-  githubAccessToken: "",
 });
 
 const cardSwipeSchema = z.enum([
@@ -60,7 +59,6 @@ export const configSchema: z.ZodType<ConfigState> = z
     cardSwipeRight: cardSwipeSchema.catch(defaultConfig.cardSwipeRight),
     darkMode: z.boolean().catch(defaultConfig.darkMode),
     selectedTags: z.array(z.string()).catch([...defaultConfig.selectedTags]),
-    githubAccessToken: z.string().catch(defaultConfig.githubAccessToken),
   })
   .catch(defaultConfig);
 
@@ -71,7 +69,4 @@ const persistedConfigStateSchema = z.object({ config: configSchema }).catch({ co
  * Malformed input is reported before downstream code relies on the result.
  */
 export const parsePersistedConfig = (persistedState: unknown): ConfigState =>
-  configSchema.parse({
-    ...persistedConfigStateSchema.parse(persistedState).config,
-    githubAccessToken: "",
-  });
+  configSchema.parse(persistedConfigStateSchema.parse(persistedState).config);
