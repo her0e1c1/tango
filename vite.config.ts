@@ -7,6 +7,7 @@ import { pwaOptions } from "./pwaConfig";
 // https://vitejs.dev/config/
 export default defineConfig({
   root: "public",
+  envDir: import.meta.dirname,
   publicDir: ".",
   plugins: [
     react(),
