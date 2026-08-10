@@ -8,6 +8,7 @@ import { pwaOptions } from "./pwaConfig";
 export default defineConfig({
   root: "public",
   envDir: import.meta.dirname,
+  cacheDir: `${import.meta.dirname}/node_modules/.vite`,
   publicDir: ".",
   plugins: [
     react(),
