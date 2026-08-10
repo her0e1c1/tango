@@ -45,7 +45,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run Storybook tests
-        run: npm run test:storybook
+        run: mise run test-storybook
 
       - name: Upload Vitest coverage report
         if: ${{ always() }}
@@ -54,8 +54,6 @@ jobs:
           name: vitest-coverage
           path: coverage/
           if-no-files-found: warn
-
-      - run: make ci
 
       - name: Upload Playwright report
         if: ${{ always() }}
