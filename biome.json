@@ -39,10 +39,17 @@
         },
         "noUnresolvedImports": "error"
       },
+      "nursery": {
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "useAwaitThenable": "error",
+        "useExhaustiveSwitchCases": "error"
+      },
       "suspicious": {
         "noDeprecatedImports": "error",
         "noImportCycles": "error",
-        "noLeakedRender": "error"
+        "noLeakedRender": "error",
+        "noUnnecessaryConditions": "error"
       }
     }
   },

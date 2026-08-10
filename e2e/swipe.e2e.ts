@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { getDocument, routeAnonymousAuth, seedConfig, seedDeckAndCards } from "./fixtures";
 
+type SeedCard = Record<string, unknown> & { id: string };
+
 const e2eDeck = {
   id: "swipe-e2e-deck",
   name: "E2E Deck",
@@ -48,7 +50,7 @@ const e2eCards = [
     updatedAt: 0,
     deletedAt: null,
   },
-];
+] satisfies [SeedCard, SeedCard];
 
 const persistedStudy = {
   state: {
@@ -126,7 +128,7 @@ test("updates study progress with a mastered deck swipe", async ({ page }) => {
   await page.getByRole("button", { name: "Swipe up" }).click();
 
   await expect(page.getByText("banana")).toBeVisible();
-  await expect.poll(async () => persistedCard(e2eCards[0]?.id ?? "")).toMatchObject({ score: 1, numberOfSeen: 1 });
+  await expect.poll(async () => persistedCard(e2eCards[0].id)).toMatchObject({ score: 1, numberOfSeen: 1 });
   await expect.poll(async () => persistedStudyEnvelope(page)).toMatchObject({
     state: {
       sessionsByDeckId: {
