@@ -26,6 +26,15 @@ describe("shared status content", () => {
   });
 
   it.each([
+    [100, ">99", "positive"],
+    [-100, "<-99", "negative"],
+  ] as const)("bounds score %s visually while preserving its accessible value", (score, displayScore, cue) => {
+    render(<Score score={score} />);
+    const status = screen.getByLabelText(`Score ${score}, ${cue}`);
+    expect(status).toHaveTextContent(displayScore);
+  });
+
+  it.each([
     ["neutral", "Information", "bg-info"],
     ["success", "Success", "bg-success"],
     ["warning", "Warning", "bg-warning"],
