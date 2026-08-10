@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "CardFormContainer" contract with automated examples.
+ * @file Verifies the "CardFormPage" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "submits the current card",
  * "returns to the previous page without saving when cancelled", "submits edited front and back
  * text".
@@ -33,26 +33,35 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
 }));
 
-vi.mock("@/features/card/hooks/useCardMutations", () => ({
-  useCardMutations: () => ({
-    update: mocks.cardUpdate,
-    pending: false,
-    error: null,
-    retry: vi.fn(),
-  }),
-}));
+vi.mock("@/features/card", async () => {
+  const [{ CardForm }, { useCardFormState }] = await Promise.all([
+    vi.importActual<typeof import("@/features/card/components/CardForm")>("@/features/card/components/CardForm"),
+    vi.importActual<typeof import("@/features/card/hooks/useCardFormState")>("@/features/card/hooks/useCardFormState"),
+  ]);
+  return {
+    CardForm,
+    useCardFormState,
+    useCardMutations: () => ({
+      update: mocks.cardUpdate,
+      pending: false,
+      error: null,
+      retry: vi.fn(),
+    }),
+  };
+});
 
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
-    goByMenu: vi.fn(),
+    goToImport: vi.fn(),
+    goToSettings: vi.fn(),
     setDarkMode: vi.fn(),
   }),
 }));
 
-import { CardFormContainer } from "@/features/card/containers/CardFormContainer";
+import { CardFormPage } from "./CardFormPage";
 
-describe("CardFormContainer", () => {
+describe("CardFormPage", () => {
   const card: Card = {
     id: "card-id",
     deckId: "deck-id",
@@ -83,7 +92,7 @@ describe("CardFormContainer", () => {
   });
 
   it("submits the current card", async () => {
-    const view = render(<CardFormContainer />);
+    const view = render(<CardFormPage />);
 
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
@@ -92,7 +101,7 @@ describe("CardFormContainer", () => {
   });
 
   it("returns to the previous page without saving when cancelled", async () => {
-    const view = render(<CardFormContainer />);
+    const view = render(<CardFormPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Cancel" }));
 
@@ -101,7 +110,7 @@ describe("CardFormContainer", () => {
   });
 
   it("submits edited front and back text", async () => {
-    const view = render(<CardFormContainer />);
+    const view = render(<CardFormPage />);
     const frontText = view.container.querySelector("textarea[name='frontText']") as Element;
     const backText = view.container.querySelector("textarea[name='backText']") as Element;
 
@@ -119,7 +128,7 @@ describe("CardFormContainer", () => {
   });
 
   it("submits edited tags", async () => {
-    const view = render(<CardFormContainer />);
+    const view = render(<CardFormPage />);
 
     await userEvent.click(view.container.querySelector("input[name='tags'][value='math']") as Element);
     await userEvent.click(view.getByRole("button", { name: /save/i }));
@@ -128,7 +137,7 @@ describe("CardFormContainer", () => {
   });
 
   it("blocks blank front and back text", async () => {
-    const view = render(<CardFormContainer />);
+    const view = render(<CardFormPage />);
     const frontText = view.container.querySelector("textarea[name='frontText']") as Element;
     const backText = view.container.querySelector("textarea[name='backText']") as Element;
 
@@ -148,7 +157,7 @@ describe("CardFormContainer", () => {
 
   it("does not navigate when the Card write fails", async () => {
     mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
-    const view = render(<CardFormContainer />);
+    const view = render(<CardFormPage />);
 
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
@@ -158,7 +167,7 @@ describe("CardFormContainer", () => {
 
   it("shows recovery actions when the card is unavailable", () => {
     mocks.card = null;
-    const view = render(<CardFormContainer />);
+    const view = render(<CardFormPage />);
 
     expect(view.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
     expect(view.getByRole("button", { name: "Go home" })).toBeInTheDocument();
@@ -167,7 +176,7 @@ describe("CardFormContainer", () => {
 
   it("goes home when card recovery is requested", async () => {
     mocks.card = null;
-    const view = render(<CardFormContainer />);
+    const view = render(<CardFormPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Go home" }));
 
@@ -176,7 +185,7 @@ describe("CardFormContainer", () => {
 
   it("goes back when card recovery is requested", async () => {
     mocks.card = null;
-    const view = render(<CardFormContainer />);
+    const view = render(<CardFormPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Go back" }));
 
@@ -186,6 +195,6 @@ describe("CardFormContainer", () => {
   it("preserves the invalid route error", () => {
     mocks.params.id = undefined;
 
-    expect(() => render(<CardFormContainer />)).toThrowError("invalid card id");
+    expect(() => render(<CardFormPage />)).toThrowError("invalid card id");
   });
 });

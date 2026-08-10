@@ -9,7 +9,6 @@ export * from "@/components/content/Code";
 export * from "@/components/content/Description";
 export { RouteFeedback } from "@/shared/ui/route-feedback";
 export { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
-export { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 export { useButtonInteraction } from "@/shared/ui/button-interaction";
 export * from "@/components/forms/Form";
 export * from "@/components/forms/FormItem";
