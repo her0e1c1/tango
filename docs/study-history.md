@@ -26,8 +26,8 @@ Only actions with a mastery outcome create an attempt.
 | `GoToNextCardMastered` | `mastered` | Yes | Yes |
 | `GoToNextCardNotMastered` | `notMastered` | Yes | Yes |
 | `GoToNextCardToggleMastered` | `notMastered` | Yes | Yes |
-| `GoToNextCard` | None | No | No |
-| `GoToPrevCard` | None | No | No |
+| `GoToNextCard` | None | No | Yes |
+| `GoToPrevCard` | None | No | Yes |
 | `GoBack` | None | No | No |
 | `DoNothing` | None | No | No |
 
@@ -36,8 +36,9 @@ Only actions with a mastery outcome create an attempt.
 `GoToNextCardNotMastered`. Renaming or changing that action requires changing the outcome contract
 and its tests together.
 
-Navigation may still change the active browser session. It does not change Card learning fields and
-does not create historical evidence.
+`GoToNextCard` and `GoToPrevCard` preserve the existing Card-state behavior: they increment
+`numberOfSeen`, set `lastSeenAt`, and leave `score` unchanged. They do not create historical
+evidence. `GoBack` and `DoNothing` write neither a Card nor an attempt.
 
 ## Domain types
 
@@ -156,12 +157,30 @@ export interface StudySession {
   currentIndex: number;
   lastStudiedAt: number;
 }
+
+export interface StudyAnswerCommandV1 {
+  version: 1;
+  attempt: StudyAttempt;
+  cardPatch: CardEdit;
+  previousSession: StudySession;
+  nextCurrentIndex: number | null;
+}
+
+export interface PersistedStudyStateV4 {
+  sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
+  inFlightAnswersByDeckId: Partial<Record<DeckId, StudyAnswerCommandV1>>;
+}
 ```
 
 `sessionId` and attempt `id` are opaque UUIDs generated once at the start of their respective user
 operations. A resumed session keeps its ID. Explicit restart creates a new ID. Persisted sessions
 from the schema without `sessionId` and `startedAt` are discarded during migration because a stable
 historical identity cannot be reconstructed safely.
+
+Each Deck has at most one persisted in-flight answer. The command contains the exact Firestore
+payload and the previous session needed for post-reload reconciliation. `nextCurrentIndex` is
+`null` when the optimistic transition completes the session. Transient swipe feedback is reset on
+reload and is not part of rollback state.
 
 Version 1 does not persist a separate session document. `sessionId` groups attempts, while
 `firstAnsweredAt` and `lastAnsweredAt` are derived from the grouped attempts. The browser-only
@@ -288,15 +307,23 @@ document writes: one Card update and one attempt create or exact replay.
 The UI distinguishes these moments:
 
 1. The command and rollback snapshot are created once.
-2. The active study session advances optimistically once.
-3. Firestore exposes the batch through local snapshots with pending writes.
-4. The backend acknowledges it, or reports a definitive rejection.
-5. Only a definitive rejection may roll back the still-current optimistic operation.
+2. The in-flight command is persisted before the session changes or the batch is enqueued.
+3. The active study session advances optimistically once.
+4. Firestore exposes the batch through local snapshots with pending writes.
+5. The backend acknowledges it, or reports a definitive rejection.
+6. Acknowledgement clears the command; only a definitive rejection restores `previousSession`.
 
-A timeout is not a definitive failure and must not enqueue another batch. App reload relies on
-Firestore persistence to resume queued writes; Tango does not add a durable outbox. Retry reuses the
-same attempt ID, Card patch, timestamps, session transition, and rollback snapshot. It does not
-recalculate score, increment `numberOfSeen` again, or advance the session a second time.
+A timeout is not a definitive failure. Retry and post-reload recovery reissue the persisted command
+as the same idempotent batch; they do not create a new command. On reload, each in-flight command is
+reconciled before another action for its Deck is accepted. A successful exact replay keeps the
+optimistic session and clears the command. A definitive rejection restores `previousSession` and
+clears the command. This deliberately persisted, per-Deck in-flight command is the recovery record;
+version 1 does not add an unbounded or independently dispatched outbox.
+
+Every replay uses the same attempt ID, Card patch, timestamps, session transition, and rollback
+snapshot. It does not recalculate score, increment `numberOfSeen` again, or advance the session a
+second time. Persisting the command before enqueue also covers a reload between those two steps:
+recovery submits the exact batch that had not yet reached Firestore.
 
 The existing per-Card mutation lock prevents a second local study action while one for that Card is
 pending. Firestore offline conflict resolution is last-write-wins for the same Card document; the
@@ -305,8 +332,9 @@ the same Card.
 
 ## Query and index contract
 
-The Dashboard performs a one-shot query only while `/` is mounted. It is separate from the Deck and
-Card listeners in `remoteStore`.
+The Dashboard starts with a one-shot query only while `/` is mounted. It is separate from the Deck
+and Card listeners in `remoteStore`. A cached or pending result temporarily enables the bounded
+listener described below so the same mounted read can reach `synced` after reconnect.
 
 The query always fetches the 30 local days ending today. Both 7-day and 30-day views are derived
 from that one result, so period switching performs no additional read and streak does not change
@@ -335,14 +363,22 @@ query scope: COLLECTION
 fields: uid ASC, answeredAt DESC, __name__ DESC
 ```
 
-No session index or listener is added in version 1. Recent Decks and sessions come from the same
-bounded result. Queries are ordered by `answeredAt DESC, __name__ DESC`, which gives deterministic
-ordering when timestamps match. The document-name ordering is the index's implicit final ordering;
-the query does not add `documentId()` as a second explicit range field.
+No session index or persistent listener is added in version 1. Recent Decks and sessions come from
+the same bounded result. Queries are ordered by `answeredAt DESC, __name__ DESC`, which gives
+deterministic ordering when timestamps match. The document-name ordering is the index's implicit
+final ordering; the query does not add `documentId()` as a second explicit range field.
 
 The read boundary increments a generation for mount, UID change, retry, and unmount. A result is
 published only when its UID and generation are still current. Runtime query data is cleared on UID
 change and logout and is not copied to Zustand or local storage.
+
+If the one-shot result has `fromCache == true` or `hasPendingWrites == true`, the read boundary
+starts `onSnapshot()` for the same query and limit with `includeMetadataChanges: true`. It replaces
+the metrics and sync status on data or metadata snapshots, then unsubscribes immediately after the
+first snapshot with `fromCache == false` and `hasPendingWrites == false`. It also unsubscribes on
+error, retry, UID change, and unmount. Only one reconciliation listener exists for the current UID
+and generation. This bounded listener is required because metadata on a completed one-shot snapshot
+cannot change after Firestore acknowledges a queued write.
 
 Snapshot metadata maps as follows:
 
@@ -461,19 +497,26 @@ inside a batch separately, each returned query document as a read, at least one 
 query, and dependent reads used by Security Rules. Pricing and product behavior remain governed by
 the Firebase documentation.
 
-Each qualifying answer uses:
+Each mastery answer uses:
 
 - two document writes: one Card and one `studyAttempt`;
-- up to two dependent document reads during Rules evaluation: the referenced Card and Deck; and
-- no write for non-qualifying navigation.
+- up to two dependent document reads during Rules evaluation: the referenced Card and Deck.
 
-The one-shot dashboard query reads the latest 30 days and stops at the sentinel:
+`GoToNextCard` and `GoToPrevCard` use one Card write and no attempt. `GoBack` and `DoNothing` use no
+document writes.
+
+The initial dashboard query reads the latest 30 days and stops at the sentinel:
 
 | Attempts per day | Documents in 7 days | Documents in 30 days | Maximum dashboard document reads | Completeness |
 | ---: | ---: | ---: | ---: | --- |
 | 50 | 350 | 1,500 | 1,500 | Complete |
 | 200 | 1,400 | 6,000 | 6,000 | Complete at exactly the data limit |
 | 1,000 | 7,000 | 30,000 | 6,001 | Truncated |
+
+A normal server-backed load uses only the initial reads above. When the initial result is cached or
+pending, reconciliation can read up to the same limit again when its temporary listener obtains a
+server snapshot. The listener is removed at `synced`, so it does not remain attached for later
+changes. Reconnect behavior and this recovery read must be included in operational cost checks.
 
 An empty query has Firestore's minimum one-read charge. The query uses one range field
 (`answeredAt`), so the Standard edition does not add index-entry read charges under the current
@@ -533,8 +576,10 @@ At minimum, later phases preserve these examples:
 - same attempt ID plus same payload is accepted, while different payload is rejected;
 - Card and attempt either both succeed or both fail;
 - offline reconnect produces one attempt and one Card transition;
+- reload with an in-flight answer replays its exact batch, then acknowledges or rolls back once;
 - today, year boundary, leap day, DST start, and DST end produce calendar-day ranges;
 - zero, empty, unavailable, truncated, cached, pending, synced, and error remain distinct;
+- cached and pending dashboard reads reach synced without remount and release their listener;
 - query results are UID-scoped, descending, bounded, and stale UID results are ignored;
 - deleted Decks retain metrics and use the fallback without a broken link; and
 - 7-day and 30-day trends contain exactly 7 and 30 ordered buckets.
