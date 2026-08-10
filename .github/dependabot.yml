@@ -5,6 +5,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "@playwright/test"
     groups:
       production-dependencies:
         dependency-type: "production"
@@ -44,3 +46,5 @@ updates:
       - "/sample"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "mcr.microsoft.com/playwright"
