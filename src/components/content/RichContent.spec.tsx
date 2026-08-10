@@ -21,7 +21,7 @@ describe("shared rich content", () => {
     const pre = view.container.querySelector("pre");
     const code = view.container.querySelector("code");
 
-    expect(pre).toHaveClass("typescript", "max-w-full", "overflow-x-auto", "bg-surface-muted");
+    expect(pre).toHaveClass("typescript", "max-w-full", "overflow-x-auto", "bg-surface-muted", "dark:bg-black");
     expect(code).toHaveTextContent(text);
     expect(code).toHaveAttribute("data-theme", "light");
     await waitFor(() => expect(code).toHaveClass("hljs"));

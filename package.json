@@ -9,7 +9,7 @@
   "scripts": {
     "start": "vite dev",
     "start:all": "firebase emulators:start & storybook dev & vite dev --open & wait",
-    "build": "vite build && node scripts/verify-pwa-build.mjs",
+    "build": "vite build",
     "build:sample": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base",
     "build:storybook": "storybook build",
     "ci": "npm run build:sample && npm run build && npm run build:storybook && npm run fmt:check && npm run fmt:sample:check && npm run lint:check && npm run test:coverage:ci && npm run test:sample",

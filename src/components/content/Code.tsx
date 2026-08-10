@@ -37,7 +37,7 @@ const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = (
   return (
     <pre
       className={cx(
-        "max-w-full overflow-x-auto rounded-control border border-border bg-surface-muted p-3 text-ink",
+        "max-w-full overflow-x-auto rounded-control border border-border bg-surface-muted p-3 text-ink dark:bg-black",
         category
       )}
     >
