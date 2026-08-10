@@ -131,8 +131,16 @@ depends = ["build-sample"]
 run = "npm run build:storybook"
 
 [tasks.e2e]
+depends = ["build-sample"]
 run = """
 export COMPOSE_FILE=.devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
+export COMPOSE_PROJECT_NAME="tango-e2e-$$"
+
+cleanup() {
+  docker compose down --volumes --remove-orphans
+}
+trap cleanup EXIT
+
 docker compose up --wait --wait-timeout 120 --remove-orphans
 docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 """
