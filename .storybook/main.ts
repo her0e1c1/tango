@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import type { StorybookConfig } from "@storybook/react-vite";
 import { mergeConfig } from "vite";
-import { withoutPwaPlugins } from "./vitePlugins.ts";
+import { withoutPwaPlugins } from "./vitePlugins";
 
 const storybookFirebase = fileURLToPath(new URL("../src/storybook/firebase.ts", import.meta.url));
 const storybookFirestoreRuntime = fileURLToPath(
