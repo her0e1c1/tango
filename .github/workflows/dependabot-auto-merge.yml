@@ -1,0 +1,60 @@
+name: Dependabot Auto-merge
+
+on:
+  workflow_run:
+    workflows:
+      - Test
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    name: Merge Dependabot update
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.pull_requests[0] != null
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge patch or minor update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          REPOSITORY: ${{ github.repository }}
+          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          pr="$(gh api "repos/$REPOSITORY/pulls/$PR_NUMBER")"
+
+          if [ "$(jq -r '.user.login' <<< "$pr")" != "dependabot[bot]" ]; then
+            exit 0
+          fi
+
+          if [ "$(jq -r '.head.sha' <<< "$pr")" != "$TESTED_SHA" ]; then
+            echo "PR head changed after CI; skipping merge."
+            exit 0
+          fi
+
+          title="$(jq -r '.title' <<< "$pr")"
+
+          if [[ ! "$title" =~ [[:space:]]from[[:space:]]v?([0-9]+)(\.[^[:space:]]+)?[[:space:]]to[[:space:]]v?([0-9]+)(\.[^[:space:]]+)?([[:space:]]|$) ]]; then
+            echo "Could not determine update type from Dependabot PR title; skipping merge."
+            exit 0
+          fi
+
+          old_major="${BASH_REMATCH[1]}"
+          new_major="${BASH_REMATCH[3]}"
+
+          if [ "$old_major" != "$new_major" ]; then
+            echo "Major update detected; leaving PR for manual review."
+            exit 0
+          fi
+
+          gh api \
+            --method PUT \
+            "repos/$REPOSITORY/pulls/$PR_NUMBER/merge" \
+            -f merge_method=squash \
+            -f sha="$TESTED_SHA"
