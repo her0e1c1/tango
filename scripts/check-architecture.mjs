@@ -8,6 +8,27 @@ import ts from "typescript";
 const SOURCE_LAYERS = ["shared", "entities", "features", "pages", "app"];
 const SLICED_LAYERS = new Set(["pages", "features", "entities"]);
 const ALLOWED_TOP_LEVEL_ENTRIES = new Set([...SOURCE_LAYERS, "vite-env.d.ts"]);
+const LEGACY_IMPORT_ROOTS = new Set([
+  "App",
+  "action",
+  "adapters",
+  "auth",
+  "components",
+  "constant",
+  "domain",
+  "firebase",
+  "hooks",
+  "index.css",
+  "lib",
+  "main",
+  "page",
+  "services",
+  "store",
+  "storybook",
+  "styles",
+  "test",
+  "util",
+]);
 const FORBIDDEN_DIRECTORY_NAMES = new Set([
   "common",
   "core",
@@ -117,6 +138,11 @@ const errorAt = (source, location, rule, message) => ({
   message,
 });
 
+const isLegacyImport = (specifier) => {
+  if (!specifier.startsWith("@/")) return false;
+  return LEGACY_IMPORT_ROOTS.has(specifier.slice(2).split("/")[0]);
+};
+
 export const validateArchitecture = (rootDirectory = process.cwd()) => {
   const sourceDirectory = path.join(rootDirectory, "src");
   const errors = [];
@@ -198,6 +224,13 @@ export const validateArchitecture = (rootDirectory = process.cwd()) => {
         ts.forEachChild(node, visit);
       };
       visit(sourceFile);
+    }
+    for (const dependency of imports) {
+      if (isLegacyImport(dependency.specifier)) {
+        errors.push(
+          errorAt(source, dependency, "legacy-import", `legacy import "${dependency.specifier}" is forbidden`)
+        );
+      }
     }
     if (VERIFICATION_FILE.test(filePath)) continue;
 

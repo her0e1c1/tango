@@ -105,3 +105,17 @@ test("requires focused public APIs between Shared modules", () =>
       assert.match(errors[0].message, /focused public API/);
     }
   ));
+
+test("rejects removed legacy aliases, including in verification files", () =>
+  withFixture(
+    {
+      ...validTree,
+      "src/features/study/components/StudyButton.spec.tsx":
+        'import { Button } from "@/components";\nexport const subject = Button;\n',
+    },
+    (root) => {
+      const errors = validateArchitecture(root).filter(({ rule }) => rule === "legacy-import");
+      assert.equal(errors.length, 1);
+      assert.match(errors[0].message, /@\/components/);
+    }
+  ));
