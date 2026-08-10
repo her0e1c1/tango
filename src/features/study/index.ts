@@ -1,4 +1,5 @@
-export { DeckSwiperContainer } from "./containers/DeckSwiperContainer";
+export { Controller, type ControllerProps } from "./components/Controller";
+export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";
 export {
   discardStudySessionsMissingDecks,
   removeStudySession,
@@ -6,5 +7,7 @@ export {
 } from "./commands/studySessionCommands";
 export { useStudyHydrated } from "./hooks/useStudyHydrated";
 export { useStudyActions } from "./hooks/useStudyActions";
+export { useStudyControllerState } from "./hooks/useStudyControllerState";
 export { useStudySessions } from "./hooks/useStudySessions";
-export type { StudySession } from "./state/studyStore";
+export { useStudyStore } from "./hooks/useStudyStore";
+export { selectStudySessionForRoute, studyStore, type StudySession } from "./state/studyStore";

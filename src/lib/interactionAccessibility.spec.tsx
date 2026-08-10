@@ -9,11 +9,21 @@ import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/features/study", async () => {
+  const [{ Controller }, { SwipeButtonList }] = await Promise.all([
+    vi.importActual<typeof import("@/features/study/components/Controller")>("@/features/study/components/Controller"),
+    vi.importActual<typeof import("@/features/study/components/SwipeButtonList")>(
+      "@/features/study/components/SwipeButtonList"
+    ),
+  ]);
+  return { Controller, SwipeButtonList };
+});
+
 import { FrontText } from "@/features/card/components/FrontText";
 import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
-import { DeckSwiperTemplate } from "@/features/study/components/templates/DeckSwiperTemplate";
 import { SwipeButtonList } from "@/features/study/components/SwipeButtonList";
 import { DeckImportView } from "@/pages/deck-import/ui/DeckImportView";
+import { DeckSwiperView } from "@/pages/deck-swiper/ui/DeckSwiperView";
 import { FullScreen, Logo, Overlay, Title } from "@/components";
 
 afterEach(cleanup);
@@ -184,9 +194,9 @@ describe("keyboard-accessible interactions", () => {
     }
   });
 
-  it("gives DeckSwiperTemplate swipe overlays accessible names", () => {
+  it("gives DeckSwiperView swipe overlays accessible names", () => {
     const view = render(
-      <DeckSwiperTemplate
+      <DeckSwiperView
         showBackText
         backTextSlot={<div>Back</div>}
         swipeOverlay={{

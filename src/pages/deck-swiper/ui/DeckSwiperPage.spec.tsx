@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckSwiperContainer with DeckSwiperTemplate" contract with automated
+ * @file Verifies the "DeckSwiperPage with DeckSwiperView" contract with automated
  * examples.
  * The examples make the expected behavior concrete with cases such as "renders the active session
  * card and forwards study callbacks", "keeps pending study saves silent while disabling swipe
@@ -60,25 +60,53 @@ vi.mock("react-use", () => ({
   useKey: mocks.useKey,
 }));
 
-vi.mock("@/features/study/hooks/useStudyActions", () => ({
-  useStudyActions: () => ({
-    swipeUp: mocks.swipeUp,
-    swipeDown: mocks.swipeDown,
-    swipeLeft: mocks.swipeLeft,
-    swipeRight: mocks.swipeRight,
-    updateIndex: mocks.updateIndex,
-    toggleShowBackText: mocks.toggleShowBackText,
-    toggleAutoPlay: mocks.toggleAutoPlay,
-    resetStudy: mocks.resetStudy,
-    pending: mocks.pending,
-    error: mocks.error,
-    retry: mocks.retry,
-  }),
-}));
+vi.mock("@/features/card", async () => {
+  const [{ BackText }, { CardOverlay }, { FrontText }] = await Promise.all([
+    vi.importActual<typeof import("@/features/card/components/BackText")>("@/features/card/components/BackText"),
+    vi.importActual<typeof import("@/features/card/components/CardOverlay")>("@/features/card/components/CardOverlay"),
+    vi.importActual<typeof import("@/features/card/components/FrontText")>("@/features/card/components/FrontText"),
+  ]);
+  return { BackText, CardOverlay, FrontText };
+});
 
-vi.mock("@/features/study/hooks/useStudyHydrated", () => ({
-  useStudyHydrated: () => mocks.hydrated,
-}));
+vi.mock("@/features/study", async () => {
+  const [{ Controller }, { SwipeButtonList }, { useStudyControllerState }, { useStudyStore }, studyState] =
+    await Promise.all([
+      vi.importActual<typeof import("@/features/study/components/Controller")>(
+        "@/features/study/components/Controller"
+      ),
+      vi.importActual<typeof import("@/features/study/components/SwipeButtonList")>(
+        "@/features/study/components/SwipeButtonList"
+      ),
+      vi.importActual<typeof import("@/features/study/hooks/useStudyControllerState")>(
+        "@/features/study/hooks/useStudyControllerState"
+      ),
+      vi.importActual<typeof import("@/features/study/hooks/useStudyStore")>("@/features/study/hooks/useStudyStore"),
+      vi.importActual<typeof import("@/features/study/state/studyStore")>("@/features/study/state/studyStore"),
+    ]);
+  return {
+    Controller,
+    SwipeButtonList,
+    useStudyControllerState,
+    useStudyStore,
+    selectStudySessionForRoute: studyState.selectStudySessionForRoute,
+    studyStore: studyState.studyStore,
+    useStudyActions: () => ({
+      swipeUp: mocks.swipeUp,
+      swipeDown: mocks.swipeDown,
+      swipeLeft: mocks.swipeLeft,
+      swipeRight: mocks.swipeRight,
+      updateIndex: mocks.updateIndex,
+      toggleShowBackText: mocks.toggleShowBackText,
+      toggleAutoPlay: mocks.toggleAutoPlay,
+      resetStudy: mocks.resetStudy,
+      pending: mocks.pending,
+      error: mocks.error,
+      retry: mocks.retry,
+    }),
+    useStudyHydrated: () => mocks.hydrated,
+  };
+});
 
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
@@ -86,13 +114,14 @@ vi.mock("@/hooks/useActions", () => ({
     toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
     setDarkMode: vi.fn(),
     goToTop: vi.fn(),
-    goByMenu: vi.fn(),
+    goToImport: vi.fn(),
+    goToSettings: vi.fn(),
   }),
 }));
 
-import { DeckSwiperContainer } from "@/features/study/containers/DeckSwiperContainer";
+import { DeckSwiperPage } from "./DeckSwiperPage";
 
-describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
+describe("DeckSwiperPage with DeckSwiperView", () => {
   const deck: Deck = {
     id: "deck-id",
     uid: "user-id",
@@ -166,7 +195,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   });
 
   it("renders the active session card and forwards study callbacks", () => {
-    const view = render(<DeckSwiperContainer />);
+    const view = render(<DeckSwiperPage />);
 
     expect(view.getByText(card.frontText)).toBeVisible();
     expect(view.queryByText(legacyCard.frontText)).not.toBeInTheDocument();
@@ -185,7 +214,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   it("keeps pending study saves silent while disabling swipe controls", () => {
     mocks.pending = true;
 
-    const view = render(<DeckSwiperContainer />);
+    const view = render(<DeckSwiperPage />);
 
     expect(view.queryByText("Saving…")).not.toBeInTheDocument();
     for (const name of ["Swipe up", "Swipe down", "Swipe left", "Swipe right"]) {
@@ -197,7 +226,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     vi.useFakeTimers();
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: true });
-    const view = render(<DeckSwiperContainer />);
+    const view = render(<DeckSwiperPage />);
 
     act(() => studyStore.getState().setLastSwipe("cardSwipeLeft"));
     expect(view.getByText("Swiped left")).toHaveAttribute("role", "status");
@@ -209,7 +238,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(view.queryByText("Swiped left")).not.toBeInTheDocument();
 
     mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: false });
-    view.rerender(<DeckSwiperContainer />);
+    view.rerender(<DeckSwiperPage />);
     act(() => studyStore.getState().setLastSwipe("cardSwipeRight"));
     expect(view.queryByText("Swiped right")).not.toBeInTheDocument();
   });
@@ -218,7 +247,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     vi.useFakeTimers();
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: true });
-    const view = render(<DeckSwiperContainer />);
+    const view = render(<DeckSwiperPage />);
 
     act(() => studyStore.getState().setLastSwipe("cardSwipeLeft"));
     act(() => vi.advanceTimersByTime(500));
@@ -235,7 +264,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     const pushState = vi.spyOn(window.history, "pushState");
     const view = render(
       <React.StrictMode>
-        <DeckSwiperContainer />
+        <DeckSwiperPage />
       </React.StrictMode>
     );
 
@@ -263,7 +292,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     studyStore.setState({ showBackText: true, autoPlay: true, lastSwipe: { direction: "cardSwipeLeft", eventId: 1 } });
     const now = vi.spyOn(Date, "now").mockReturnValue(9000);
 
-    render(<DeckSwiperContainer />);
+    render(<DeckSwiperPage />);
 
     expect(studyStore.getState().sessionsByDeckId[deck.id]?.lastStudiedAt).toBe(9000);
     expect(studyStore.getState()).toMatchObject({ showBackText: false, autoPlay: false, lastSwipe: undefined });
@@ -271,7 +300,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   });
 
   it("renders Zustand back text and controlled auto-play", () => {
-    const view = render(<DeckSwiperContainer />);
+    const view = render(<DeckSwiperPage />);
     act(() => studyStore.setState({ showBackText: true, autoPlay: true }));
 
     const code = view.container.querySelector("pre.typescript") as HTMLElement;
@@ -298,7 +327,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     studyStore.getState().removeStudy(deck.id);
     mocks.hydrated = false;
 
-    const view = render(<DeckSwiperContainer />);
+    const view = render(<DeckSwiperPage />);
 
     expect(view.getByRole("status")).toHaveTextContent("Study session unavailable.");
     expect(mocks.resetStudy).not.toHaveBeenCalled();
@@ -306,7 +335,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
 
     mocks.hydrated = true;
-    view.rerender(<DeckSwiperContainer />);
+    view.rerender(<DeckSwiperPage />);
 
     await waitFor(() => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
@@ -319,7 +348,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
     studyStore.getState().removeStudy(deck.id);
     studyStore.getState().startStudy("other-deck", [card.id]);
 
-    render(<DeckSwiperContainer />);
+    render(<DeckSwiperPage />);
 
     await waitFor(() => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
@@ -331,7 +360,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   it("resets and exits when no session or legacy candidate exists", async () => {
     studyStore.getState().removeStudy(deck.id);
 
-    render(<DeckSwiperContainer />);
+    render(<DeckSwiperPage />);
 
     await waitFor(() => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
@@ -349,7 +378,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
       },
     }));
 
-    render(<DeckSwiperContainer />);
+    render(<DeckSwiperPage />);
 
     await waitFor(() => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
@@ -360,7 +389,7 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   it("resets and exits when the session card is missing", async () => {
     studyStore.getState().startStudy(deck.id, ["missing-card"]);
 
-    render(<DeckSwiperContainer />);
+    render(<DeckSwiperPage />);
 
     await waitFor(() => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });

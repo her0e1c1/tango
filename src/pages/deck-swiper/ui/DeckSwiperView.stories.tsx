@@ -1,19 +1,18 @@
 /**
- * @file Defines Storybook examples for Deck Swiper Template.
+ * @file Defines Storybook examples for the Deck Swiper Page view.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { BackText as BackTextComponent } from "@/features/card/components/BackText";
-import { CardOverlay } from "@/features/card/components/CardOverlay";
-import { FrontText as FrontTextComponent } from "@/features/card/components/FrontText";
-import { DeckSwiperTemplate as Template } from "@/features/study/components/templates/DeckSwiperTemplate";
+import { BackText as BackTextComponent, CardOverlay, FrontText as FrontTextComponent } from "@/features/card";
 import * as fixture from "@/storybook/fixture";
 
+import { DeckSwiperView as Template } from "./DeckSwiperView";
+
 const meta = {
-  title: "Study/DeckSwiperTemplate",
+  title: "Pages/Deck Swiper",
   component: Template,
   tags: ["autodocs"],
   parameters: {
