@@ -23,6 +23,7 @@ export const pwaOptions = {
     ],
   },
   workbox: {
+    globPatterns: ["**/*.{js,css,html}"],
     cleanupOutdatedCaches: true,
     maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
     navigateFallback: "index.html",
