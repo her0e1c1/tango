@@ -1,39 +1,22 @@
 # Contribution Guide
 
-## Getting Started
-
-1. Set up the development environment:
-
-   ```bash
-   mise run init
-   ```
-
-2. Start the local dev server:
-
-   ```bash
-   mise run dev
-   ```
-
 ## Development Workflow
 
+- Refer to [README.md](README.md#development) for initial setup and running the dev server.
 - Always create a dedicated branch (or git worktree) from `origin/main` for your changes.
 - Do not commit directly to `main`.
 - Write comments, commit messages, PR titles, and PR descriptions in English.
 - Follow Conventional Commits format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `test:`).
 
-## Code Quality & Verification
+## Pull Request Guidelines
 
-Before submitting a Pull Request, run local verification checks:
+Before submitting a Pull Request, run the local verification task:
 
 ```bash
 mise run check
 ```
 
-You can also run tests with:
-
-```bash
-mise run test
-```
+For details on running specific test suites, see [README.md](README.md#test).
 
 ## Issue Labels
 
