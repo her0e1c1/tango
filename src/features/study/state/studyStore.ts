@@ -16,7 +16,7 @@ export interface StudySession {
   lastStudiedAt: number;
 }
 
-export interface StudySwipeFeedback {
+interface StudySwipeFeedback {
   direction: SwipeDirection;
   eventId: number;
 }

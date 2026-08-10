@@ -102,20 +102,3 @@ export const exists = async (id: string): Promise<boolean> => {
   const snapshot = await getDoc(ref);
   return snapshot.exists();
 };
-
-// for test
-/**
- * Permanently removes all deck documents handled by this test-only cleanup.
- * Documents are split into Firestore-sized batches so cleanup does not exceed a single commit
- * limit.
- */
-export const removeAll = async () => {
-  const db = getDb();
-  const q = query(collection(db, "deck"));
-  const snapshot = await getDocs(q);
-  for (const doc of snapshot.docs) await deleteDoc(doc.ref);
-
-  const q2 = query(collection(db, "card"));
-  const snapshot2 = await getDocs(q2);
-  for (const doc of snapshot2.docs) await deleteDoc(doc.ref);
-};

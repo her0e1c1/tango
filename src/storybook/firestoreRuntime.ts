@@ -18,7 +18,3 @@ export const getDb = (): never => {
 };
 export const getFirestoreInitializationState = (): FirestoreInitializationState => ready;
 export const waitForFirestoreInitialization = async (): Promise<FirestoreInitializationState> => ready;
-export const subscribeFirestoreInitialization =
-  (_listener: Callback): Callback =>
-  () =>
-    undefined;
