@@ -111,6 +111,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const HoverHighlight: Story = {
+  play: async ({ canvas, userEvent }) => {
+    const firstCard = canvas.getAllByRole("button", { name: /^View / })[0];
+    if (firstCard == null) throw new Error("HoverHighlight requires at least one card");
+    await userEvent.hover(firstCard);
+  },
+};
+
 export const RemovableSelectedTags: Story = {
   args: { onRemoveTag: fn() },
   render: (args) => <RemovableSelectedTagsExample onRemoveTag={args.onRemoveTag} />,
