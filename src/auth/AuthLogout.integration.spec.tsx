@@ -9,7 +9,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import type { Auth, User, UserCredential } from "firebase/auth";
-import { StrictMode, type ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -140,11 +140,11 @@ it("waits for logout cleanup before bootstrapping the next anonymous UID", async
   });
 
   render(
-    <StrictMode>
+    <React.StrictMode>
       <AuthProvider>
         <AuthBootstrap />
       </AuthProvider>
-    </StrictMode>
+    </React.StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
   await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledWith("uid-a"));
@@ -313,11 +313,11 @@ it("does not erase a new anonymous study when obsolete logout cleanup is retried
     signInAnonymously: mocks.signInAnonymously,
   });
   render(
-    <StrictMode>
+    <React.StrictMode>
       <AuthProvider store={store}>
         <AuthenticatedSettings />
       </AuthProvider>
-    </StrictMode>
+    </React.StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
   studyStore.getState().startStudy("old-deck", ["old-card"]);

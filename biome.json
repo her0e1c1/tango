@@ -7,7 +7,16 @@
     "defaultBranch": "main"
   },
   "files": {
-    "includes": ["**/*.ts", "**/*.tsx", "src/**/*.js", "src/**/*.jsx"]
+    "includes": [
+      "**/*.ts",
+      "**/*.tsx",
+      "src/**/*.js",
+      "src/**/*.jsx",
+      "src/**/*.css",
+      "scripts/**/*.mjs",
+      "*.js",
+      "*.mjs"
+    ]
   },
   "formatter": {
     "includes": ["src/**"],
@@ -17,6 +26,45 @@
   "javascript": {
     "formatter": {
       "trailingCommas": "es5"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "linter": {
+    "rules": {
+      "correctness": {
+        "noUndeclaredDependencies": {
+          "level": "error",
+          "options": {
+            "devDependencies": [
+              "**/*.spec.ts",
+              "**/*.spec.tsx",
+              "**/*.stories.tsx",
+              "**/.storybook/**/*.ts",
+              "**/e2e/**/*.ts",
+              "**/scripts/**/*.mjs",
+              "**/src/storybook/**/*.ts",
+              "**/src/storybook/**/*.tsx",
+              "**/*.config.js",
+              "**/*.config.mjs",
+              "**/*.config.ts",
+              "**/pwaConfig.ts"
+            ],
+            "peerDependencies": false,
+            "optionalDependencies": false,
+            "bundleDependencies": false
+          }
+        },
+        "noUnresolvedImports": "error"
+      },
+      "suspicious": {
+        "noDeprecatedImports": "error",
+        "noImportCycles": "error",
+        "noLeakedRender": "error"
+      }
     }
   },
   "assist": {

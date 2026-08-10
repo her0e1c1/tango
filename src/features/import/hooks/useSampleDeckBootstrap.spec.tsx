@@ -6,7 +6,7 @@
  */
 
 import { renderHook, waitFor } from "@testing-library/react";
-import { StrictMode, type ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -34,7 +34,7 @@ import {
  * Provides the strict mode test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const strictMode = ({ children }: { children: ReactNode }) => <StrictMode>{children}</StrictMode>;
+const strictMode = ({ children }: { children: ReactNode }) => <React.StrictMode>{children}</React.StrictMode>;
 
 describe("sample Deck bootstrap", () => {
   beforeEach(() => {

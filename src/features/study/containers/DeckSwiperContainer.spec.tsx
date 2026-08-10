@@ -8,7 +8,7 @@
 
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { StrictMode } from "react";
+import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { studyStore } from "@/features/study/state/studyStore";
@@ -234,9 +234,9 @@ describe("DeckSwiperContainer with DeckSwiperTemplate", () => {
   it("installs one back-navigation guard when StrictMode replays the effect", () => {
     const pushState = vi.spyOn(window.history, "pushState");
     const view = render(
-      <StrictMode>
+      <React.StrictMode>
         <DeckSwiperContainer />
-      </StrictMode>
+      </React.StrictMode>
     );
 
     expect(pushState).toHaveBeenCalledOnce();
