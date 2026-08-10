@@ -1,15 +1,16 @@
 /**
- * @file Defines Storybook examples for Card View Template.
+ * @file Defines Storybook examples for the Card View Page view.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
-import { CardViewTemplate as Template } from "@/features/card/components/templates/CardViewTemplate";
 import * as fixture from "@/storybook/fixture";
 
+import { CardViewView as Template } from "./CardViewView";
+
 const meta = {
-  title: "Card/CardViewTemplate",
+  title: "Pages/Card View",
   component: Template,
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
