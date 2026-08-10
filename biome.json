@@ -31,18 +31,9 @@
           "level": "error",
           "options": {
             "devDependencies": [
-              "**/*.spec.ts",
-              "**/*.spec.tsx",
-              "**/*.stories.tsx",
-              "**/.storybook/**/*.ts",
-              "**/e2e/**/*.ts",
-              "**/scripts/**/*.mjs",
-              "**/src/storybook/**/*.ts",
-              "**/src/storybook/**/*.tsx",
-              "**/*.config.js",
-              "**/*.config.mjs",
-              "**/*.config.ts",
-              "**/pwaConfig.ts"
+              "**/*.{spec,stories}.{ts,tsx}",
+              "**/{.storybook,e2e,scripts,src/storybook}/**",
+              "**/*{.config,Config}.{js,mjs,ts}"
             ],
             "peerDependencies": false,
             "optionalDependencies": false,
