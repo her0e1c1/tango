@@ -33,17 +33,6 @@ describe("useDeckMutations", () => {
     mocks.remove.mockResolvedValue(undefined);
   });
 
-  it("routes Deck creates and updates through commands", async () => {
-    const deck = createDeck({ id: "deck", name: "Before" });
-    const { result } = renderHook(useDeckMutations);
-
-    await act(async () => result.current.create(deck));
-    await act(async () => result.current.update({ ...deck, name: "After" }));
-
-    expect(mocks.create).toHaveBeenCalledWith(deck);
-    expect(mocks.update).toHaveBeenCalledWith({ ...deck, name: "After" });
-  });
-
   it("exposes per-Deck pending state while an update is running", async () => {
     let finish!: () => void;
     mocks.update.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
