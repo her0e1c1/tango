@@ -106,7 +106,8 @@ export const mapDeckDocument = (id: DeckId, value: unknown): Deck => {
     category: document.category,
     convertToBr: document.convertToBr,
   };
-  if (document.url !== undefined) deck.url = document.url;
+  const documentUrl = document.url;
+  if (documentUrl !== undefined) deck.url = documentUrl;
   return deck;
 };
 
@@ -169,7 +170,8 @@ export const mapCardDocument = (id: CardId, value: unknown): Card => {
   if (document.lastSeenAt !== undefined) card.lastSeenAt = document.lastSeenAt;
   if (document.nextSeeingAt !== undefined) card.nextSeeingAt = document.nextSeeingAt;
   if (document.interval !== undefined) card.interval = document.interval;
-  if (document.url !== undefined) card.url = document.url;
+  const documentUrl = document.url;
+  if (documentUrl !== undefined) card.url = documentUrl;
   if (document.startLine !== undefined) card.startLine = document.startLine;
   if (document.endLine !== undefined) card.endLine = document.endLine;
   return card;

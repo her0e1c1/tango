@@ -82,7 +82,7 @@ describe("CardForm", () => {
 
     expect(props.fields.frontText.onChange).toHaveBeenCalledOnce();
     expect(props.fields.backText.onChange).toHaveBeenCalledOnce();
-    expect(props.fields.tags[1]?.input.onChange).toHaveBeenCalledOnce();
+    expect(props.fields.tags.find((field) => field.value === "travel")?.input.onChange).toHaveBeenCalledOnce();
   });
 
   it("uses unique section heading relationships for each form instance", () => {

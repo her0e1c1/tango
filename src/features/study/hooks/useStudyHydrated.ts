@@ -8,19 +8,21 @@ import { useSyncExternalStore } from "react";
 
 import { studyStore } from "@/features/study/state/studyStore";
 
+const { persist } = studyStore;
+
 /**
  * Reports whether the persisted study store has finished loading from browser storage.
  * React uses this value to avoid rendering a session from incomplete state.
  */
-const getStudyHydrationSnapshot = () => studyStore.persist.hasHydrated();
+const getStudyHydrationSnapshot = () => persist.hasHydrated();
 
 /**
  * Subscribes to the start and finish of study-store hydration.
  * The returned cleanup function removes both persistence listeners together.
  */
 const subscribeToStudyHydration = (onStoreChange: () => void) => {
-  const unsubscribeStart = studyStore.persist.onHydrate(onStoreChange);
-  const unsubscribeFinish = studyStore.persist.onFinishHydration(onStoreChange);
+  const unsubscribeStart = persist.onHydrate(onStoreChange);
+  const unsubscribeFinish = persist.onFinishHydration(onStoreChange);
   return () => {
     unsubscribeStart();
     unsubscribeFinish();

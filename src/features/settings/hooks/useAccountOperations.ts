@@ -125,16 +125,17 @@ const createAccountOperationController = () => {
    * Concurrent callers share the in-flight promise, and late results cannot update a newer screen
    * generation.
    */
-  const run = (kind: AccountOperationKind, retryOperation?: FailedOperation): Promise<void> => {
+  const run = (
+    kind: AccountOperationKind,
+    operation: () => Promise<void>,
+    maySignOut: boolean,
+    handoffAvailable: boolean
+  ): Promise<void> => {
     if (inFlight != null) return inFlight.promise;
-
-    const operation = retryOperation?.operation ?? (kind === "login" ? dependencies.login : dependencies.logout);
-    if (operation == null) return Promise.resolve();
 
     failedOperation = null;
     logoutHandoffAvailable = false;
     const operationGeneration = generation;
-    const maySignOut = retryOperation?.maySignOut ?? kind === "logout";
     const operationEpoch = scopeEpoch;
     let currentOperation!: InFlightOperation;
     setState({ kind, pending: true, error: null });
@@ -163,7 +164,7 @@ const createAccountOperationController = () => {
     );
     currentOperation = {
       promise,
-      handoffAvailable: retryOperation?.handoffAvailable ?? maySignOut,
+      handoffAvailable,
     };
     inFlight = currentOperation;
     void promise.then(
@@ -202,9 +203,16 @@ const createAccountOperationController = () => {
     setDependencies: (nextDependencies: AccountOperationDependencies) => {
       dependencies = nextDependencies;
     },
-    login: () => run("login"),
-    logout: () => run("logout"),
-    retry: () => (failedOperation == null || state.kind == null ? Promise.resolve() : run(state.kind, failedOperation)),
+    login: () => run("login", dependencies.login, false, false),
+    logout: () => {
+      if (inFlight != null) return inFlight.promise;
+      const operation = dependencies.logout;
+      return operation == null ? Promise.resolve() : run("logout", operation, true, true);
+    },
+    retry: () =>
+      failedOperation == null || state.kind == null
+        ? Promise.resolve()
+        : run(state.kind, failedOperation.operation, failedOperation.maySignOut, failedOperation.handoffAvailable),
   };
 };
 
