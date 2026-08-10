@@ -1,7 +1,7 @@
 name: 改善提案
 description: 機能や開発体験の改善を提案します。
 title: "[Improvement]: "
-labels: ["enhancement"]
+labels: ["enhancement", "needs-triage"]
 body:
   - type: textarea
     id: goal
