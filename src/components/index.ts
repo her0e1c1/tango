@@ -7,8 +7,6 @@ export { Button } from "@/shared/ui/button";
 export * from "@/components/content/Card";
 export * from "@/components/content/Code";
 export * from "@/components/content/Description";
-export { Feedback } from "@/shared/ui/feedback";
-export { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 export { RouteFeedback } from "@/shared/ui/route-feedback";
 export { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 export { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";

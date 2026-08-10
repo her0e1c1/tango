@@ -1,5 +1,5 @@
 /**
- * @file Defines Storybook examples for Card List Template.
+ * @file Defines Storybook examples for the Card List Page view.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
@@ -7,10 +7,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import { CardListTemplate as Template } from "@/features/card/components/templates/CardListTemplate";
-import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
+import { DeckStartForm, type DeckStartFormProps } from "@/features/deck";
 import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+
+import { CardListView as Template } from "./CardListView";
 
 const deckStartForm: DeckStartFormProps = {
   scoreMax: 1,
@@ -89,7 +90,7 @@ const ClosableCardViewExample: React.FC<React.ComponentProps<typeof Template>> =
 };
 
 const meta = {
-  title: "Card/CardListTemplate",
+  title: "Pages/Card List",
   component: Template,
   tags: ["autodocs"],
   parameters: {

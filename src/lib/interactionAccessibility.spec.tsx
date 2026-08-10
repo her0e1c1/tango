@@ -9,9 +9,11 @@ import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/shared/firebase", () => ({ auth: {} }));
+
 import { FrontText } from "@/features/card/components/FrontText";
-import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
 import { SwipeButtonList } from "@/features/study/components/SwipeButtonList";
+import { CardListView } from "@/pages/card-list/ui/CardListView";
 import { FullScreen, Logo, Overlay, Title } from "@/components";
 
 afterEach(cleanup);
@@ -171,8 +173,8 @@ describe("keyboard-accessible interactions", () => {
     }
   });
 
-  it("names the interactive CardListTemplate close overlay", () => {
-    const view = render(<CardListTemplate cards={[]} overlay={{ backText: { text: "Back" }, onClose: vi.fn() }} />);
+  it("names the interactive CardListView close overlay", () => {
+    const view = render(<CardListView cards={[]} overlay={{ backText: { text: "Back" }, onClose: vi.fn() }} />);
 
     expect(view.getByRole("button", { name: "Close card" })).toBeInTheDocument();
   });

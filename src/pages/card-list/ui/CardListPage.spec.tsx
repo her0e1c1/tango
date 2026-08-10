@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "CardListContainer" contract with automated examples.
+ * @file Verifies the "CardListPage" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders the current score
  * and tag filters in the collapsed summary", "removes one selected tag through the existing filter
  * callback", and "cancels or confirms Card deletion with observable feedback".
@@ -28,22 +28,28 @@ const mocks = vi.hoisted(() => ({
   onRemoveSuccess: undefined as ((card: Card) => void) | undefined,
 }));
 
-vi.mock("@/features/card/hooks/useCardMutations", () => ({
-  useCardMutations: (options?: { onRemoveSuccess?: (card: Card) => void }) => ({
-    updateBy: mocks.cardUpdateBy,
-    remove: (id: CardId) => {
-      mocks.onRemoveSuccess = options?.onRemoveSuccess;
-      return mocks.cardRemove(id).then(() => {
-        const card = mocks.cards.find((candidate) => candidate.id === id);
-        if (card != null) mocks.onRemoveSuccess?.(card);
-      });
-    },
-    isPending: (id: CardId) => id === mocks.pendingCardId,
-    pending: mocks.pending,
-    error: mocks.error,
-    retry: mocks.retry,
-  }),
-}));
+vi.mock("@/shared/firebase", () => ({ auth: {} }));
+
+vi.mock("@/features/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/card")>();
+  return {
+    ...actual,
+    useCardMutations: (options?: { onRemoveSuccess?: (card: Card) => void }) => ({
+      updateBy: mocks.cardUpdateBy,
+      remove: (id: CardId) => {
+        mocks.onRemoveSuccess = options?.onRemoveSuccess;
+        return mocks.cardRemove(id).then(() => {
+          const card = mocks.cards.find((candidate) => candidate.id === id);
+          if (card != null) mocks.onRemoveSuccess?.(card);
+        });
+      },
+      isPending: (id: CardId) => id === mocks.pendingCardId,
+      pending: mocks.pending,
+      error: mocks.error,
+      retry: mocks.retry,
+    }),
+  };
+});
 
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
 
@@ -75,7 +81,7 @@ vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
     goToSettings: vi.fn(),
-    goByMenu: vi.fn(),
+    goToImport: vi.fn(),
     setDarkMode: vi.fn(),
     cardUpdateBy: vi.fn(() => vi.fn()),
     goToCardEdit: mocks.goToCardEdit,
@@ -83,33 +89,34 @@ vi.mock("@/hooks/useActions", () => ({
   }),
 }));
 
-vi.mock("@/features/deck/hooks/useDeckActions", () => ({
-  useDeckActions: () => ({ update: vi.fn() }),
-}));
+vi.mock("@/features/deck", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/deck")>();
+  return {
+    ...actual,
+    useDeckActions: () => ({ update: vi.fn() }),
+    useDeckFilterState: () => ({
+      scoreMax: mocks.filter.scoreMax,
+      scoreMin: mocks.filter.scoreMin,
+      scoreMaxSwitchProps: { name: "scoreMaxSwitch" },
+      scoreMinSwitchProps: { name: "scoreMinSwitch" },
+      scoreMaxSliderProps: { name: "scoreMax" },
+      scoreMinSliderProps: { name: "scoreMin" },
+      tagFilterProps: {
+        tags: [],
+        selectedTags: mocks.filter.selectedTags,
+        tagAndFilter: false,
+        onClickFilter: vi.fn(),
+        onClickAll: vi.fn(),
+        onClickClear: vi.fn(),
+        onClickTag: mocks.onClickTag,
+      },
+    }),
+  };
+});
 
-vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
-  useDeckFilterState: () => ({
-    scoreMax: mocks.filter.scoreMax,
-    scoreMin: mocks.filter.scoreMin,
-    scoreMaxSwitchProps: { name: "scoreMaxSwitch" },
-    scoreMinSwitchProps: { name: "scoreMinSwitch" },
-    scoreMaxSliderProps: { name: "scoreMax" },
-    scoreMinSliderProps: { name: "scoreMin" },
-    tagFilterProps: {
-      tags: [],
-      selectedTags: mocks.filter.selectedTags,
-      tagAndFilter: false,
-      onClickFilter: vi.fn(),
-      onClickAll: vi.fn(),
-      onClickClear: vi.fn(),
-      onClickTag: mocks.onClickTag,
-    },
-  }),
-}));
+import { CardListPage } from "./CardListPage";
 
-import { CardListContainer } from "@/features/card/containers/CardListContainer";
-
-describe("CardListContainer", () => {
+describe("CardListPage", () => {
   const deck: Deck = {
     id: "deck-id",
     uid: "user-id",
@@ -165,7 +172,7 @@ describe("CardListContainer", () => {
 
   it("renders the current score and tag filters in the collapsed summary", () => {
     mocks.filter = { scoreMin: -2, scoreMax: 4, selectedTags: ["typescript"] };
-    const view = render(<CardListContainer />);
+    const view = render(<CardListPage />);
 
     expect(view.getByRole("heading", { level: 1, name: "Cards" })).toBeInTheDocument();
     expect(view.getByText("1 card")).toBeInTheDocument();
@@ -176,14 +183,14 @@ describe("CardListContainer", () => {
 
   it("removes one selected tag through the existing filter callback", async () => {
     mocks.filter = { scoreMin: null, scoreMax: null, selectedTags: ["typescript", "react"] };
-    const view = render(<CardListContainer />);
+    const view = render(<CardListPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Remove typescript filter" }));
     expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);
   });
 
   it("cancels or confirms Card deletion with observable feedback", async () => {
-    const view = render(<CardListContainer />);
+    const view = render(<CardListPage />);
     const trigger = view.getByRole("button", { name: `Open actions for ${card.frontText}` });
 
     await userEvent.click(trigger);
@@ -208,7 +215,7 @@ describe("CardListContainer", () => {
   it("forwards pending, error, and retry state", async () => {
     mocks.pending = true;
     mocks.pendingCardId = card.id;
-    const view = render(<CardListContainer />);
+    const view = render(<CardListPage />);
 
     expect(view.getByText("Saving…").closest('[role="status"]')).toHaveTextContent("Saving…");
     expect(view.getByRole("button", { name: `View ${card.frontText}` })).toBeDisabled();
@@ -217,7 +224,7 @@ describe("CardListContainer", () => {
     mocks.pending = false;
     mocks.pendingCardId = undefined;
     mocks.error = new Error("write failed");
-    view.rerender(<CardListContainer />);
+    view.rerender(<CardListPage />);
     expect(view.getByRole("alert")).toHaveTextContent("Unable to save changes.");
     await userEvent.click(view.getByRole("button", { name: "Retry" }));
     expect(mocks.retry).toHaveBeenCalledOnce();
@@ -225,7 +232,7 @@ describe("CardListContainer", () => {
 
   it("keeps a failed Card deletion explainable and retryable", async () => {
     mocks.cardRemove.mockRejectedValueOnce(new Error("delete failed"));
-    const view = render(<CardListContainer />);
+    const view = render(<CardListPage />);
 
     await userEvent.click(view.getByRole("button", { name: `Open actions for ${card.frontText}` }));
     await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
@@ -234,13 +241,13 @@ describe("CardListContainer", () => {
     expect(view.getByRole("alertdialog", { name: "Delete card?" })).toBeInTheDocument();
     expect(view.getByText("Unable to delete this card. Check your connection and try again.")).toBeInTheDocument();
     mocks.error = new Error("delete failed");
-    view.rerender(<CardListContainer />);
+    view.rerender(<CardListPage />);
     await userEvent.click(view.getByRole("button", { name: "Retry" }));
     expect(mocks.retry).toHaveBeenCalledOnce();
   });
 
   it("opens a selected card's back text and closes it through the overlay callback", async () => {
-    const view = render(<CardListContainer />);
+    const view = render(<CardListPage />);
 
     expect(view.queryByText(card.backText)).not.toBeInTheDocument();
 
@@ -254,7 +261,7 @@ describe("CardListContainer", () => {
   it("renders a language card as code and closes it through the overlay callback", async () => {
     const languageCard = { ...card, tags: ["typescript"], backText: "const answer = 42;" };
     mocks.cards = [languageCard];
-    const view = render(<CardListContainer />);
+    const view = render(<CardListPage />);
 
     await userEvent.click(view.getByRole("button", { name: `View ${languageCard.frontText}` }));
 
