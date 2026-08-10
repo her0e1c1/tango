@@ -34,10 +34,7 @@
               "**/*.{spec,stories}.{ts,tsx}",
               "**/{.storybook,e2e,scripts,src/storybook}/**",
               "**/*{.config,Config}.{js,mjs,ts}"
-            ],
-            "peerDependencies": false,
-            "optionalDependencies": false,
-            "bundleDependencies": false
+            ]
           }
         },
         "noUnresolvedImports": "error"
