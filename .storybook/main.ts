@@ -16,7 +16,6 @@ const config: StorybookConfig = {
     "@storybook/addon-docs",
     "@storybook/addon-themes",
     "@storybook/addon-vitest",
-    "msw-storybook-addon",
   ],
   framework: {
     name: "@storybook/react-vite",
