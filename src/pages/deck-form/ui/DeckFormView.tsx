@@ -1,5 +1,5 @@
 /**
- * @file Composes the deck feature's complete Deck Form Template screen.
+ * @file Composes the Deck Form Page's presentation.
  * Data and callbacks arrive through props, which keeps this presentation usable in both a live
  * container and Storybook.
  */
@@ -7,21 +7,21 @@
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 
+import { DeckForm, type DeckFormProps } from "@/features/deck";
 import { Layout } from "@/shared/ui/layout";
-import { DeckForm, type DeckFormProps } from "@/features/deck/components/DeckForm";
 
-export interface DeckFormTemplateProps {
+export interface DeckFormViewProps {
   layout?: React.ComponentProps<typeof Layout>;
   deckForm?: DeckFormProps;
   feedbackSlot?: React.ReactNode;
 }
 
 /**
- * Composes the complete Deck Form Template screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * Composes the Deck Form screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
-export const DeckFormTemplate: React.FC<DeckFormTemplateProps> = (props) => {
+export const DeckFormView: React.FC<DeckFormViewProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       <section className="mx-auto w-full max-w-reading overflow-hidden rounded-surface border border-border bg-surface p-4 md:p-6">
