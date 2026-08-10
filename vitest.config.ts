@@ -1,15 +1,16 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import babel from '@rolldown/plugin-babel'
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
+import { reactCompilerPreset } from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
-import { createReactCompilerPlugin } from './reactCompiler'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [createReactCompilerPlugin()],
+  plugins: [babel({ presets: [reactCompilerPreset()] })],
   resolve: {
     tsconfigPaths: true,
   },
