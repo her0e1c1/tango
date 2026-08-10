@@ -11,9 +11,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FrontText } from "@/features/card/components/FrontText";
 import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
-import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
 import { DeckSwiperTemplate } from "@/features/study/components/templates/DeckSwiperTemplate";
 import { SwipeButtonList } from "@/features/study/components/SwipeButtonList";
+import { DeckImportView } from "@/pages/deck-import/ui/DeckImportView";
 import { FullScreen, Logo, Overlay, Title } from "@/components";
 
 afterEach(cleanup);
@@ -31,7 +31,7 @@ describe("keyboard-accessible interactions", () => {
   it("activates the CSV sample download with Enter", async () => {
     const onDownloadSample = vi.fn();
     const user = userEvent.setup();
-    const view = render(<DeckImportTemplate sampleText="front,back" onDownloadSample={onDownloadSample} />);
+    const view = render(<DeckImportView sampleText="front,back" onDownloadSample={onDownloadSample} />);
 
     view.getByRole("button", { name: "Download CSV sample" }).focus();
     await user.keyboard("{Enter}");
