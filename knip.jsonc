@@ -1,5 +1,5 @@
 {
-  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
   "includeEntryExports": true,
   "ignoreBinaries": [
     // `wait` is a POSIX shell builtin used by start:all, not a package binary.
