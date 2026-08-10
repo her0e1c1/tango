@@ -1,15 +1,16 @@
 /**
- * @file Defines Storybook examples for Config Form Template.
+ * @file Defines Storybook examples for the Settings Page view.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import { ConfigFormTemplate as Template } from "@/features/settings/components/templates/ConfigFormTemplate";
-import type { ConfigFormFields } from "@/features/settings/components/ConfigForm";
+import type { ConfigFormFields } from "@/features/settings";
 import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+
+import { SettingsView as Template } from "./SettingsView";
 
 const fields: ConfigFormFields = {
   showHeader: { checked: fixture.config.default.showHeader, onChange: () => undefined },
@@ -34,7 +35,7 @@ const fields: ConfigFormFields = {
 };
 
 const meta = {
-  title: "Settings/ConfigFormTemplate",
+  title: "Pages/Settings",
   component: Template,
   tags: ["autodocs"],
   parameters: {

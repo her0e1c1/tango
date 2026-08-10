@@ -1,16 +1,24 @@
 /**
- * @file Verifies the "ConfigFormTemplate" contract with automated examples.
+ * @file Verifies the "SettingsView" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "composes the config form
  * under a compact page heading without a redundant surface".
  */
 
 import { cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import type { ConfigFormFields } from "@/features/settings/components/ConfigForm";
-import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
+import type { ConfigFormFields } from "@/features/settings";
 import { createConfig } from "@/test/factories";
+
+vi.mock("@/features/settings", async () => {
+  const { ConfigForm } = await vi.importActual<typeof import("@/features/settings/components/ConfigForm")>(
+    "@/features/settings/components/ConfigForm"
+  );
+  return { ConfigForm };
+});
+
+import { SettingsView } from "./SettingsView";
 
 const fields: ConfigFormFields = {
   showHeader: { name: "showHeader" },
@@ -24,12 +32,12 @@ const fields: ConfigFormFields = {
   cardInterval: { name: "cardInterval", value: "5", onChange: () => undefined },
 };
 
-describe("ConfigFormTemplate", () => {
+describe("SettingsView", () => {
   afterEach(cleanup);
 
   it("composes the config form under a compact page heading without a redundant surface", () => {
     const view = render(
-      <ConfigFormTemplate
+      <SettingsView
         configForm={{
           config: createConfig(),
           fields,

@@ -32,7 +32,8 @@ const mocks = vi.hoisted(() => ({
     configUpdate: vi.fn(),
     goToTop: vi.fn(),
     setDarkMode: vi.fn(),
-    goByMenu: vi.fn(),
+    goToImport: vi.fn(),
+    goToSettings: vi.fn(),
   },
 }));
 
@@ -58,11 +59,17 @@ vi.mock("@/features/study/state/studyStore", async (importOriginal) => {
 });
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
 vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.accountActions }));
-vi.mock("@/features/settings/hooks/useConfigFormState", () => ({
-  useConfigFormState: (options: Record<string, unknown>) => options,
-}));
-vi.mock("@/features/settings/components/templates/ConfigFormTemplate", () => ({
-  ConfigFormTemplate: ({ configForm }: { configForm: Record<string, unknown> }) => (
+vi.mock("@/features/settings", async () => {
+  const { useAccountOperations } = await vi.importActual<
+    typeof import("@/features/settings/hooks/useAccountOperations")
+  >("@/features/settings/hooks/useAccountOperations");
+  return {
+    useAccountOperations,
+    useConfigFormState: (options: Record<string, unknown>) => options,
+  };
+});
+vi.mock("@/pages/settings/ui/SettingsView", () => ({
+  SettingsView: ({ configForm }: { configForm: Record<string, unknown> }) => (
     <>
       {configForm.accountFeedback as ReactNode}
       {typeof configForm.onLogout === "function" && (
@@ -78,8 +85,8 @@ vi.mock("react-use", () => ({ useKey: vi.fn() }));
 import { logout } from "@/action/event";
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
 import { AuthProvider, createAuthStore, useAuth } from "@/auth/AuthContext";
-import { ConfigContainer } from "@/features/settings";
 import { studyStore } from "@/features/study/state/studyStore";
+import { SettingsPage } from "@/pages/settings";
 
 afterEach(() => {
   cleanup();
@@ -105,7 +112,7 @@ beforeEach(() => {
  * Renders the test-only Authenticated Settings component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const AuthenticatedSettings = () => (useAuth().status === "authenticated" ? <ConfigContainer /> : null);
+const AuthenticatedSettings = () => (useAuth().status === "authenticated" ? <SettingsPage /> : null);
 
 it("waits for logout cleanup before bootstrapping the next anonymous UID", async () => {
   let resolveCleanup: () => void = () => undefined;

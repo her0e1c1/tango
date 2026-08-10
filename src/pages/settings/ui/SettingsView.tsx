@@ -1,24 +1,23 @@
 /**
- * @file Composes the settings feature's complete Config Form Template screen.
- * Data and callbacks arrive through props, which keeps this presentation usable in both a live
- * container and Storybook.
+ * @file Composes the Settings Page's presentation.
+ * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
 import type * as React from "react";
+import { ConfigForm, type ConfigFormProps } from "@/features/settings";
 import { Layout } from "@/shared/ui/layout";
-import { ConfigForm, type ConfigFormProps } from "@/features/settings/components/ConfigForm";
 
-export interface ConfigFormTemplateProps {
+export interface SettingsViewProps {
   layout?: React.ComponentProps<typeof Layout>;
   configForm?: ConfigFormProps;
 }
 
 /**
- * Composes the complete Config Form Template screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * Composes the Settings screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
-export const ConfigFormTemplate: React.FC<ConfigFormTemplateProps> = (props) => {
+export const SettingsView: React.FC<SettingsViewProps> = (props) => {
   return (
     <Layout showHeader {...props.layout}>
       <section className="mx-auto flex w-full max-w-reading flex-col gap-4">
