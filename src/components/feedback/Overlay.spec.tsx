@@ -23,7 +23,8 @@ describe("shared overlay surface", () => {
       "overflow-y-auto",
       "bg-surface-elevated",
       "text-ink",
-      "shadow-elevated"
+      "shadow-elevated",
+      "z-30"
     );
     expect(overlay).toHaveClass("before:bg-canvas/70");
   });

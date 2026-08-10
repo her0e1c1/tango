@@ -26,7 +26,7 @@ export const Overlay: React.FC<{
       {...clickInteraction}
       {...(props.onClick !== undefined && props.ariaLabel !== undefined ? { "aria-label": props.ariaLabel } : {})}
       className={cx(
-        "absolute z-10 max-h-full max-w-full overflow-x-hidden overflow-y-auto rounded-control bg-surface-elevated text-ink shadow-elevated",
+        "absolute z-30 max-h-full max-w-full overflow-x-hidden overflow-y-auto rounded-control bg-surface-elevated text-ink shadow-elevated",
         props.position === "center" &&
           "before:pointer-events-none before:fixed before:inset-0 before:-z-10 before:bg-canvas/70",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2",
