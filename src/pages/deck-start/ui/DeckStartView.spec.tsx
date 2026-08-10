@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckStartTemplate" contract with automated examples.
+ * @file Verifies the "DeckStartView" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "shows Deck context, capped
  * session size, matching count, and filters", "uses singular card wording", "explains and disables
  * an empty session".
@@ -11,16 +11,16 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
+import { DeckStartView } from "./DeckStartView";
 
 /**
  * Provides the render template test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const renderTemplate = (overrides: Partial<React.ComponentProps<typeof DeckStartTemplate>> = {}) => {
+const renderTemplate = (overrides: Partial<React.ComponentProps<typeof DeckStartView>> = {}) => {
   const onClickStart = vi.fn();
   const view = render(
-    <DeckStartTemplate
+    <DeckStartView
       deckName="Japanese vocabulary"
       maxNumberOfCardsToLearn={24}
       cardsLength={123}
@@ -32,7 +32,7 @@ const renderTemplate = (overrides: Partial<React.ComponentProps<typeof DeckStart
   return { ...view, onClickStart };
 };
 
-describe("DeckStartTemplate", () => {
+describe("DeckStartView", () => {
   afterEach(cleanup);
 
   it("shows Deck context, capped session size, matching count, and filters", async () => {

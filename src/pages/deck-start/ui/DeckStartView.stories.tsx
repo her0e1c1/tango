@@ -1,15 +1,16 @@
 /**
- * @file Defines Storybook examples for Deck Start Template.
+ * @file Defines Storybook examples for the Deck Start Page view.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
-import { DeckStartTemplate as Template } from "@/features/study/components/templates/DeckStartTemplate";
+import { DeckStartForm, type DeckStartFormProps } from "@/features/deck";
 import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+
+import { DeckStartView as Template } from "./DeckStartView";
 
 const deckStartForm: DeckStartFormProps = {
   scoreMax: 1,
@@ -35,7 +36,7 @@ const longDeckStartForm: DeckStartFormProps = {
 };
 
 const meta = {
-  title: "Study/DeckStartTemplate",
+  title: "Pages/Deck Start",
   component: Template,
   tags: ["autodocs"],
   parameters: {

@@ -1,7 +1,7 @@
 /**
  * @file Verifies the "DeckStartContent" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "passes Deck and session
- * context to the template", "starts from Enter when cards match and focus is not interactive",
+ * context to the view", "starts from Enter when cards match and focus is not interactive",
  * "stops responding to Enter when a rerender has no matching cards".
  */
 
@@ -9,7 +9,6 @@ import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartContent } from "@/features/study/containers/DeckStartContainer";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => {
@@ -23,26 +22,37 @@ const mocks = vi.hoisted(() => {
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: vi.fn(),
 }));
-vi.mock("@/features/deck/hooks/useDeckActions", () => ({
-  useDeckActions: () => ({ update: mocks.update }),
-}));
-vi.mock("@/features/study/hooks/useStudyActions", () => ({
+vi.mock("@/features/deck", async () => {
+  const { DeckStartForm } = await vi.importActual<typeof import("@/features/deck/components/DeckStartForm")>(
+    "@/features/deck/components/DeckStartForm"
+  );
+  return {
+    DeckStartForm,
+    useDeckActions: () => ({ update: mocks.update }),
+    useDeckFilterState: () => ({
+      scoreMax: 4,
+      scoreMin: -2,
+      scoreMaxSwitchProps: { name: "maximum-enabled", checked: true, onChange: vi.fn() },
+      scoreMinSwitchProps: { name: "minimum-enabled", checked: true, onChange: vi.fn() },
+      scoreMaxSliderProps: { name: "maximum", value: "4", min: -10, max: 10, onChange: vi.fn() },
+      scoreMinSliderProps: { name: "minimum", value: "-2", min: -10, max: 10, onChange: vi.fn() },
+      tagFilterProps: { tags: [], selectedTags: [], tagAndFilter: false },
+    }),
+  };
+});
+vi.mock("@/features/study", () => ({
   useStudyActions: () => ({ start: mocks.currentStart }),
 }));
 vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({ setDarkMode: vi.fn(), goToTop: vi.fn(), goByMenu: vi.fn() }),
-}));
-vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
-  useDeckFilterState: () => ({
-    scoreMax: 4,
-    scoreMin: -2,
-    scoreMaxSwitchProps: { name: "maximum-enabled", checked: true, onChange: vi.fn() },
-    scoreMinSwitchProps: { name: "minimum-enabled", checked: true, onChange: vi.fn() },
-    scoreMaxSliderProps: { name: "maximum", value: "4", min: -10, max: 10, onChange: vi.fn() },
-    scoreMinSliderProps: { name: "minimum", value: "-2", min: -10, max: 10, onChange: vi.fn() },
-    tagFilterProps: { tags: [], selectedTags: [], tagAndFilter: false },
+  useActions: () => ({
+    setDarkMode: vi.fn(),
+    goToTop: vi.fn(),
+    goToImport: vi.fn(),
+    goToSettings: vi.fn(),
   }),
 }));
+
+import { DeckStartContent } from "./DeckStartPage";
 
 /**
  * Provides the render content test helper used by this file.

@@ -1,14 +1,13 @@
 /**
- * @file Composes the study feature's complete Deck Start Template screen.
- * Data and callbacks arrive through props, which keeps this presentation usable in both a live
- * container and Storybook.
+ * @file Composes the Deck Start Page's presentation.
+ * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
 import type React from "react";
-import { Button } from "@/components";
+import { Button } from "@/shared/ui/button";
 import { Layout, type LayoutProps } from "@/shared/ui/layout";
 
-export interface DeckStartTemplateProps {
+export interface DeckStartViewProps {
   layout?: LayoutProps;
   deckName: string;
   maxNumberOfCardsToLearn: number;
@@ -24,11 +23,11 @@ export interface DeckStartTemplateProps {
 const cardsLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
 
 /**
- * Composes the complete Deck Start Template screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * Composes the Deck Start screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
-export const DeckStartTemplate: React.FC<DeckStartTemplateProps> = (props) => {
+export const DeckStartView: React.FC<DeckStartViewProps> = (props) => {
   const sessionCardsLength =
     props.maxNumberOfCardsToLearn <= 0 ? props.cardsLength : Math.min(props.cardsLength, props.maxNumberOfCardsToLearn);
   const hasCards = props.cardsLength > 0;
