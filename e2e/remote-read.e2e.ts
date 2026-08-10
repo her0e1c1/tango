@@ -98,7 +98,11 @@ const persistedConfig = {
   selectedTags: [],
 };
 
-const seedAuth = async (page: Page, uid: string, nextUid?: string) => {
+const seedAuth = async (
+  page: Page,
+  uid: string,
+  options: { linked?: boolean; nextUid?: string } = {}
+) => {
   let activeUid = uid;
   let signInCount = 0;
   await page.route("https://identitytoolkit.googleapis.com/**", async (route) => {
@@ -111,6 +115,17 @@ const seedAuth = async (page: Page, uid: string, nextUid?: string) => {
           users: [
             {
               localId: activeUid,
+              ...(options.linked
+                ? {
+                    providerUserInfo: [
+                      {
+                        providerId: "google.com",
+                        rawId: activeUid,
+                        displayName: "E2E User",
+                      },
+                    ],
+                  }
+                : {}),
               lastLoginAt: "1",
               createdAt: "1",
               lastRefreshAt: new Date().toISOString(),
@@ -120,7 +135,7 @@ const seedAuth = async (page: Page, uid: string, nextUid?: string) => {
       });
       return;
     }
-    activeUid = signInCount === 0 ? uid : (nextUid ?? uid);
+    activeUid = signInCount === 0 ? uid : (options.nextUid ?? uid);
     signInCount += 1;
     await route.fulfill({
       status: 200,
@@ -214,19 +229,22 @@ test("logout replaces the UID-scoped Query cache", async ({ page }) => {
   const uidB = "logout-user-b";
   await setDocument("deck", "logout-deck-a", deckFields(uidA, "Logout Deck A"));
   await setDocument("deck", "logout-deck-b", deckFields(uidB, "Logout Deck B"));
-  await seedAuth(page, uidA, uidB);
+  await seedAuth(page, uidA, { linked: true, nextUid: uidB });
 
   await page.goto("/");
   await expect(page.getByText("Logout Deck A")).toBeVisible();
   await expect(page.getByText("Logout Deck B")).not.toBeVisible();
 
-  await page.evaluate(async (uid) => {
-    // @ts-expect-error Vite serves source modules to the browser during E2E tests.
-    // biome-ignore lint/correctness/noUnresolvedImports: Vite serves this browser-only absolute module path.
-    const actions = (await import("/src/action/event.ts")) as { logout: (confirmedUid: string) => Promise<void> };
-    await actions.logout(uid);
-  }, uidA);
+  await page.goto("/settings");
+  await expect(page.getByText(uidA, { exact: true })).toHaveCount(1);
+  const nextSignIn = page.waitForResponse(
+    (response) => response.url().includes("accounts:signUp") && response.ok()
+  );
+  await page.getByRole("button", { name: "Logout" }).click();
+  await nextSignIn;
+  await expect(page.getByText(uidB, { exact: true })).toHaveCount(1);
 
+  await page.goto("/");
   await expect(page.getByText("Logout Deck B")).toBeVisible();
   await expect(page.getByText("Logout Deck A")).not.toBeVisible();
 });

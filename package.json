@@ -8,7 +8,6 @@
   },
   "scripts": {
     "start": "vite dev",
-    "start:all": "firebase emulators:start & storybook dev & vite dev --open & wait",
     "build": "vite build",
     "build:sample": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base",
     "build:storybook": "storybook build",
