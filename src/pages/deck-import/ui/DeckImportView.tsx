@@ -1,17 +1,16 @@
 /**
- * @file Composes the import feature's complete Deck Import Template screen.
- * Data and callbacks arrive through props, which keeps this presentation usable in both a live
- * container and Storybook.
+ * @file Composes the Deck Import Page's presentation.
+ * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
 import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
 
 import { Button, Code, Description, Upload } from "@/components";
+import type { DeckImportPreview, DeckImportResult } from "@/features/import";
 import { Layout, type LayoutProps } from "@/shared/ui/layout";
-import type { DeckImportPreview, DeckImportResult } from "@/features/import/components/deckImportTypes";
 
-interface DeckImportTemplateProps {
+interface DeckImportViewProps {
   onChange?: (file: File) => void;
   onAddSample?: () => void;
   onDownloadSample?: () => void;
@@ -52,8 +51,8 @@ interface ImportResultProps {
 
 /**
  * Composes the complete Import Result screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
 const ImportResult = (props: ImportResultProps) => {
   if (props.partialResult != null) {
@@ -113,8 +112,8 @@ interface ImportPreviewProps {
 
 /**
  * Composes the complete Import Preview screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
 const ImportPreview = (props: ImportPreviewProps) => {
   const preview = props.preview;
@@ -222,11 +221,11 @@ const ImportPreview = (props: ImportPreviewProps) => {
 };
 
 /**
- * Composes the complete Deck Import Template screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * Composes the Deck Import screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
-export const DeckImportTemplate: React.FC<DeckImportTemplateProps> = (props) => {
+export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
   const busy = props.pending === true || props.validating === true;
 
   return (

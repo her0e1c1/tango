@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckImportContainer" contract with automated examples.
+ * @file Verifies the "DeckImportPage" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "selects a CSV without
  * importing or navigating automatically", "adds the bundled sample without navigating
  * automatically", "navigates to the Deck list after importing the preview", "stays on the import
@@ -11,7 +11,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DeckImportPreview, DeckImportResult } from "@/features/import/components/deckImportTypes";
+import type { DeckImportPreview, DeckImportResult } from "@/features/import";
 
 const mocks = vi.hoisted(() => ({
   selectFile: vi.fn(),
@@ -32,7 +32,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/import/hooks/useDeckImport", () => ({
+vi.mock("@/features/import", () => ({
   useDeckImport: () => ({
     selectFile: mocks.selectFile,
     importPreview: mocks.importPreview,
@@ -58,12 +58,12 @@ vi.mock("@/hooks/useActions", () => ({
     deckDownloadCsvSampleText: mocks.deckDownloadCsvSampleText,
     goToTop: mocks.goToTop,
     goToSettings: mocks.goToSettings,
-    goByMenu: vi.fn(),
+    goToImport: vi.fn(),
     setDarkMode: vi.fn(),
   }),
 }));
 
-import { DeckImportContainer } from "@/features/import/containers/DeckImportContainer";
+import { DeckImportPage } from "./DeckImportPage";
 
 const preview = {
   fileName: "deck.csv",
@@ -93,7 +93,7 @@ const preview = {
   },
 } satisfies DeckImportPreview;
 
-describe("DeckImportContainer", () => {
+describe("DeckImportPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.selectFile.mockResolvedValue(preview);
@@ -110,7 +110,7 @@ describe("DeckImportContainer", () => {
   afterEach(cleanup);
 
   it("selects a CSV without importing or navigating automatically", async () => {
-    const view = render(<DeckImportContainer />);
+    const view = render(<DeckImportPage />);
     const file = new File(["front,back,,key"], "deck.csv", { type: "text/csv" });
 
     fireEvent.change(view.container.querySelector("input[type='file']") as Element, {
@@ -127,7 +127,7 @@ describe("DeckImportContainer", () => {
   });
 
   it("adds the bundled sample without navigating automatically", async () => {
-    const view = render(<DeckImportContainer />);
+    const view = render(<DeckImportPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Add sample deck" }));
 
@@ -137,7 +137,7 @@ describe("DeckImportContainer", () => {
 
   it("navigates to the Deck list after importing the preview", async () => {
     mocks.preview = preview;
-    const view = render(<DeckImportContainer />);
+    const view = render(<DeckImportPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Import" }));
 
@@ -148,7 +148,7 @@ describe("DeckImportContainer", () => {
   it("stays on the import page when importing fails", async () => {
     mocks.preview = preview;
     mocks.importPreview.mockRejectedValue(new Error("Import failed"));
-    const view = render(<DeckImportContainer />);
+    const view = render(<DeckImportPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Import" }));
     await new Promise((resolve) => setTimeout(resolve, 0));
