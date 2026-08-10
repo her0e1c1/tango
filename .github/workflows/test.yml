@@ -37,15 +37,23 @@ jobs:
           cache-from: type=gha,scope=tango-test
           cache-to: type=gha,mode=max,scope=tango-test
 
-      - uses: jdx/mise-action@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.15.0
+          cache: npm
 
-      - run: mise run ci
+      - name: Install npm
+        run: npm install --global npm@12.0.1
+
+      - run: npm ci
+
+      - run: npm run ci
 
       - name: Install Storybook Chromium
         run: npx playwright install --with-deps chromium
 
       - name: Run Storybook tests
-        run: mise run test-storybook
+        run: npm run test:storybook
 
       - name: Upload Vitest coverage report
         if: ${{ always() }}

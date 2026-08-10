@@ -152,11 +152,7 @@ run = [{ tasks = ["fmt-check", "lint", "test-unit"] }]
 [tasks.ci]
 alias = "c"
 depends = ["init"]
-run = [
-  "mise run build",
-  { tasks = ["fmt-check", "lint", "coverage", "test-sample"] },
-  "mise run e2e",
-]
+run = "npm run ci"
 
 [tasks.down]
 run = "docker compose down --remove-orphans"
