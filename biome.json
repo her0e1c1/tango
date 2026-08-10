@@ -1,55 +1,29 @@
 {
-	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true,
-		"defaultBranch": "main"
-	},
-	"files": {
-		"includes": ["**/*.ts", "**/*.tsx", "src/**/*.js", "src/**/*.jsx"]
-	},
-	"formatter": {
-		"enabled": true,
-		"includes": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx"],
-		"formatWithErrors": false,
-		"indentStyle": "space",
-		"indentWidth": 2,
-		"lineEnding": "lf",
-		"lineWidth": 120,
-		"attributePosition": "auto",
-		"bracketSameLine": false,
-		"bracketSpacing": true,
-		"expand": "auto",
-		"useEditorconfig": true
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"preset": "recommended"
-		}
-	},
-	"javascript": {
-		"formatter": {
-			"jsxQuoteStyle": "double",
-			"quoteProperties": "asNeeded",
-			"trailingCommas": "es5",
-			"semicolons": "always",
-			"arrowParentheses": "always",
-			"bracketSameLine": false,
-			"quoteStyle": "double",
-			"attributePosition": "auto",
-			"bracketSpacing": true
-		}
-	},
-	"html": {
-		"formatter": {
-			"indentScriptAndStyle": false,
-			"selfCloseVoidElements": "always"
-		}
-	},
-	"assist": {
-		"enabled": true,
-		"actions": { "source": { "organizeImports": "off" } }
-	}
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+  "files": {
+    "includes": ["**/*.ts", "**/*.tsx", "src/**/*.js", "src/**/*.jsx"]
+  },
+  "formatter": {
+    "includes": ["src/**"],
+    "indentStyle": "space",
+    "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": {
+      "trailingCommas": "es5"
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  }
 }
