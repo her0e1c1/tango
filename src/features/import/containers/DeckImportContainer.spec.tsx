@@ -2,7 +2,8 @@
  * @file Verifies the "DeckImportContainer" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "selects a CSV without
  * importing or navigating automatically", "adds the bundled sample without navigating
- * automatically", "navigates to the Deck list after importing the preview".
+ * automatically", "navigates to the Deck list after importing the preview", "stays on the import
+ * page when importing fails".
  */
 
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
@@ -142,5 +143,17 @@ describe("DeckImportContainer", () => {
 
     expect(mocks.importPreview).toHaveBeenCalledOnce();
     await waitFor(() => expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/"));
+  });
+
+  it("stays on the import page when importing fails", async () => {
+    mocks.preview = preview;
+    mocks.importPreview.mockRejectedValue(new Error("Import failed"));
+    const view = render(<DeckImportContainer />);
+
+    await userEvent.click(view.getByRole("button", { name: "Import" }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mocks.importPreview).toHaveBeenCalledOnce();
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 });
