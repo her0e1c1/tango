@@ -29,7 +29,7 @@ const mocks = vi.hoisted(() => ({
   onRemoveSuccess: undefined as ((deck: Deck) => void) | undefined,
   remove: vi.fn(async (_deck: Deck) => undefined),
   retry: vi.fn(),
-  downloadData: vi.fn(),
+  downloadDeckCsv: vi.fn(),
   discardStudySessionsMissingDecks: vi.fn<(deckIds: Iterable<DeckId>) => void>(),
   removeStudySession: vi.fn<(deckId: DeckId) => void>(),
   touchStudySession: vi.fn<(deckId: DeckId) => void>(),
@@ -49,7 +49,7 @@ vi.mock("@/features/study", () => ({
   useStudyHydrated: () => mocks.hydrated,
   useStudySessions: () => mocks.sessionsByDeckId,
 }));
-vi.mock("@/action", () => ({ deck: { downloadData: mocks.downloadData } }));
+vi.mock("@/features/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
 vi.mock("@/entities/card", () => ({
   selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
   useCards: () => {
@@ -175,6 +175,13 @@ describe("DeckListPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Study Alpha deck" }));
     expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${otherDeck.id}/start`);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Alpha deck" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Download" }));
+    expect(mocks.downloadDeckCsv).toHaveBeenCalledExactlyOnceWith(otherDeck, [
+      mocks.cardsById["other-1"],
+      mocks.cardsById["other-2"],
+    ]);
 
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Alpha deck" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
