@@ -109,6 +109,17 @@ describe("DeckImportView", () => {
     expect(onDownloadSample).toHaveBeenCalledOnce();
   });
 
+  it("activates the CSV sample download with Enter", async () => {
+    const onDownloadSample = vi.fn();
+    const user = userEvent.setup();
+    const view = render(<DeckImportView sampleText="front,back" onDownloadSample={onDownloadSample} />);
+
+    view.getByRole("button", { name: "Download CSV sample" }).focus();
+    await user.keyboard("{Enter}");
+
+    expect(onDownloadSample).toHaveBeenCalledOnce();
+  });
+
   it("shows validation, planned changes, row content, and waits for explicit import", async () => {
     const onImport = vi.fn();
     const view = render(<DeckImportView sampleText="front,back,,key" preview={preview} onImport={onImport} />);
