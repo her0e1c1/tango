@@ -4,6 +4,7 @@ node = "24.15.0"
 npm = "12.0.1"
 
 [env]
+_.path = ["{{config_root}}/node_modules/.bin"]
 COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.local.yaml"
 # Compose files live under .devcontainer, so use the project-root env file.
 COMPOSE_ENV_FILES = ".env"
