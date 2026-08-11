@@ -95,16 +95,32 @@ describe("Firebase singletons", () => {
     expect(persistentLocalCache).not.toHaveBeenCalled();
   });
 
-  it("exposes a blocking startup state instead of falling back when persistence initialization fails", async () => {
+  it("blocks startup when the Firestore emulator connection fails", async () => {
+    vi.stubEnv("PROD", false);
+    vi.stubEnv("DEV", true);
+    vi.stubEnv("VITE_DB_HOST", "127.0.0.1");
+    vi.stubEnv("VITE_DB_PORT", "8080");
+    const failure = new Error("emulator connection failed");
+    vi.mocked(connectFirestoreEmulator).mockImplementationOnce(() => {
+      throw failure;
+    });
+
+    const firebase = await import("@/shared/firebase");
+
+    await expect(firebase.waitForFirestoreInitialization()).resolves.toEqual({ status: "blocked", error: failure });
+    expect(() => firebase.getDb()).toThrow(failure);
+  });
+
+  it("exposes a blocking startup result instead of falling back when persistence initialization fails", async () => {
     vi.stubEnv("PROD", true);
     const failure = new Error("single-tab persistence unavailable");
     vi.mocked(initializeFirestore).mockImplementationOnce(() => {
       throw failure;
     });
 
-    const { getDb, getFirestoreInitializationState } = await import("@/shared/firebase");
+    const { getDb, waitForFirestoreInitialization } = await import("@/shared/firebase");
 
-    expect(getFirestoreInitializationState()).toEqual({ status: "blocked", error: failure });
+    await expect(waitForFirestoreInitialization()).resolves.toEqual({ status: "blocked", error: failure });
     expect(() => getDb()).toThrow(failure);
     expect(memoryLocalCache).not.toHaveBeenCalled();
   });
