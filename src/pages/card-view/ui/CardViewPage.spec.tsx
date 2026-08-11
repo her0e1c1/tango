@@ -23,12 +23,16 @@ vi.mock("@/shared/config", () => ({
   useConfig: () => mocks.config,
   setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("@/hooks/useRemoteCollections", () => ({
-  useRemoteCollections: () => ({
+vi.mock("@/entities/card", () => ({
+  useCards: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    cardById: (id: string) => (mocks.card?.id === id ? mocks.card : undefined),
-    deckById: (id: string) => (mocks.deck?.id === id ? mocks.deck : undefined),
+    cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
+  }),
+}));
+vi.mock("@/entities/deck", () => ({
+  useDecks: () => ({
+    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
   }),
 }));
 vi.mock("react-router-dom", () => ({

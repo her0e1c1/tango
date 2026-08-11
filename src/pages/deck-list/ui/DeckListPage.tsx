@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import * as action from "@/action";
+import { selectCardsForDeck, useCards } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
+import { useDecks } from "@/entities/deck";
 import { useDeckMutations } from "@/features/deck";
 import { useSampleDeckBootstrap } from "@/features/import";
 import {
@@ -14,7 +16,6 @@ import {
   useStudySessions,
 } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { Layout } from "@/shared/ui/layout";
@@ -27,7 +28,8 @@ import { DeckListView } from "./DeckListView";
 export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
   const config = useConfig();
-  const remote = useRemoteCollections();
+  const cardRemote = useCards();
+  const deckRemote = useDecks();
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
   const mutations = useDeckMutations({
@@ -40,22 +42,24 @@ export const DeckListPage: React.FC = () => {
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
-  const sections = buildDeckListSections(remote.decks, remote.cards, sessionsByDeckId);
+  const sections = buildDeckListSections(deckRemote.decks, cardRemote.cards, sessionsByDeckId);
   useSampleDeckBootstrap();
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
 
   React.useEffect(() => {
-    if (!hydrated || mutations.pending || remote.status !== "ready" || remote.syncStatus !== "synced") return;
-    discardStudySessionsMissingDecks(remote.decks.map((deck) => deck.id));
-  }, [hydrated, mutations.pending, remote.decks, remote.status, remote.syncStatus]);
+    if (!hydrated || mutations.pending || deckRemote.status !== "ready" || deckRemote.syncStatus !== "synced") {
+      return;
+    }
+    discardStudySessionsMissingDecks(deckRemote.decks.map((deck) => deck.id));
+  }, [deckRemote.decks, deckRemote.status, deckRemote.syncStatus, hydrated, mutations.pending]);
 
   return (
     <RemoteReadBoundary
-      status={remote.status}
-      hasData={remote.decks.length > 0}
+      status={deckRemote.status}
+      hasData={deckRemote.decks.length > 0}
       emptyLabel="No decks yet."
-      onRetry={remote.retry}
+      onRetry={deckRemote.retry}
     >
       {hydrated ? (
         <Layout
@@ -116,14 +120,14 @@ export const DeckListPage: React.FC = () => {
               onClickRestart: (id) => void navigate(`/deck/${id}/start`),
               onClickStudy: (id) => void navigate(`/deck/${id}/start`),
               onClickDownload: (id) => {
-                const deck = remote.deckById(id);
-                if (deck != null) action.deck.downloadData(deck, remote.cardsByDeckId(id));
+                const deck = deckRemote.decksById[id];
+                if (deck != null) action.deck.downloadData(deck, selectCardsForDeck(cardRemote.cards, id));
               },
               onClickDelete: (id) => {
-                const deck = remote.deckById(id);
+                const deck = deckRemote.decksById[id];
                 if (deck != null) {
                   setSuccessMessage(undefined);
-                  setDeletionTarget({ deck, cardCount: remote.cardsByDeckId(id).length });
+                  setDeletionTarget({ deck, cardCount: selectCardsForDeck(cardRemote.cards, id).length });
                 }
               },
             }}
