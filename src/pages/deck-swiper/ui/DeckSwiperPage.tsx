@@ -26,6 +26,8 @@ import { DeckSwiperView } from "./DeckSwiperView";
 
 const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
 const SWIPE_FEEDBACK_DURATION_MS = 900;
+const isHistoryState = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value != null && !Array.isArray(value);
 
 export const DeckSwiperPage: React.FC = () => {
   const params = useParams();
@@ -108,8 +110,8 @@ export const DeckSwiperPage: React.FC = () => {
 
   // Keep the active study session on the route when browser history moves backward.
   React.useEffect(() => {
-    const currentState = window.history.state;
-    const state = typeof currentState === "object" && currentState != null ? currentState : {};
+    const currentState: unknown = window.history.state;
+    const state = isHistoryState(currentState) ? currentState : {};
     if (state[STUDY_HISTORY_GUARD] !== deckId) {
       window.history.pushState({ ...state, [STUDY_HISTORY_GUARD]: deckId }, document.title, document.location.href);
     }
