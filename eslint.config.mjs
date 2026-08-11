@@ -3,10 +3,12 @@ import * as tsParser from "@typescript-eslint/parser";
 import reactHooks from "eslint-plugin-react-hooks";
 import testingLibrary from "eslint-plugin-testing-library";
 
+const sourceFiles = ["src/**/*.{ts,tsx}"];
+const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
+
 export default [
   {
-    ...reactHooks.configs.flat["recommended-latest"],
-    files: ["src/**/*.{ts,tsx}"],
+    files: sourceFiles,
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -16,12 +18,18 @@ export default [
         tsconfigRootDir: import.meta.dirname,
       },
     },
+  },
+  {
+    ...reactHooks.configs.flat["recommended-latest"],
+    files: sourceFiles,
+  },
+  {
+    files: sourceFiles,
+    ignores: testFiles,
     plugins: {
-      ...reactHooks.configs.flat["recommended-latest"].plugins,
       "@typescript-eslint": tseslint,
     },
     rules: {
-      ...reactHooks.configs.flat["recommended-latest"].rules,
       "@typescript-eslint/no-unsafe-argument": "error",
       "@typescript-eslint/no-unsafe-assignment": "error",
       "@typescript-eslint/no-unsafe-call": "error",
@@ -30,17 +38,7 @@ export default [
     },
   },
   {
-    files: ["src/**/*.{spec,test,stories}.{ts,tsx}"],
-    rules: {
-      "@typescript-eslint/no-unsafe-argument": "off",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
-    },
-  },
-  {
-    files: ["src/**/*.spec.{ts,tsx}"],
     ...testingLibrary.configs["flat/react"],
+    files: ["src/**/*.spec.{ts,tsx}"],
   },
 ];
