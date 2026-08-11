@@ -18,7 +18,7 @@ import { useActions } from "@/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { deckFormSchema, type DeckFormValues } from "@/features/deck/lib/deckFormSchema";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/shared/config/useConfig";
 
 /**
  * Connects the Deck Form Content view to stores, remote data, route parameters, and mutations.

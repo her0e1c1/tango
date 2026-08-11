@@ -44,7 +44,7 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/features/study", () => ({
   discardStudySessionsMissingDecks: mocks.discardStudySessionsMissingDecks,
   removeStudySession: mocks.removeStudySession,

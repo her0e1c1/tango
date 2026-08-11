@@ -18,7 +18,7 @@ import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/shared/config/useConfig";
 
 /**
  * Checks whether the supplied value satisfies the interactive shortcut target condition.
