@@ -4,6 +4,9 @@
  * "submits an edited name", "submits an edited URL".
  */
 
+import type { Deck } from "@/entities/deck";
+import type { ConfigState } from "@/shared/config/configTypes";
+
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";

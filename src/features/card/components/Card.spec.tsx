@@ -10,6 +10,7 @@ import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
+import type { Card as CardEntity } from "@/entities/card";
 import { Card } from "@/features/card/components/Card";
 
 const card = {
@@ -19,7 +20,7 @@ const card = {
   score: 3,
   numberOfSeen: 7,
   tags: ["one", "two"],
-} as Card;
+} as CardEntity;
 
 /**
  * Renders the test-only Controlled Card component with controlled state or providers.

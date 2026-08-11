@@ -4,6 +4,8 @@
  * how it responds to interaction.
  */
 
+import type { Deck } from "@/entities/deck";
+
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";

@@ -1,3 +1,5 @@
+import type { Deck, DeckEdit } from "@/entities/deck";
+
 import {
   create as createRemoteDeck,
   remove as removeRemoteDeck,

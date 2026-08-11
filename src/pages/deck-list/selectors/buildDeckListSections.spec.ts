@@ -5,6 +5,8 @@
  * recent sessions".
  */
 
+import type { DeckId } from "@/entities/deck";
+
 import { describe, expect, it } from "vitest";
 
 import type { StudySession } from "@/features/study";

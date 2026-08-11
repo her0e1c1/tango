@@ -4,6 +4,9 @@
  * and delete snapshots without a cursor".
  */
 
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+
 import "@/shared/firebase/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";

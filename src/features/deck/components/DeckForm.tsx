@@ -4,6 +4,8 @@
  * outside the view.
  */
 
+import type { Deck } from "@/entities/deck";
+
 import type * as React from "react";
 import { useId } from "react";
 

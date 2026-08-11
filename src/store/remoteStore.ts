@@ -1,3 +1,6 @@
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+
 import type { StoreApi } from "zustand";
 import { createStore } from "zustand/vanilla";
 

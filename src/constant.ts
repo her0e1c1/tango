@@ -3,6 +3,8 @@
  * Centralizing these values keeps forms, study behavior, and persistence code consistent.
  */
 
+import type { Category } from "@/entities/deck";
+
 export const LANGUAGES = [
   "c",
   "cpp",

@@ -4,6 +4,8 @@
  * outside the view.
  */
 
+import type { Card } from "@/entities/card";
+
 import type * as React from "react";
 import { useId } from "react";
 

@@ -1,3 +1,5 @@
+import type { ConfigState } from "@/shared/config/configTypes";
+
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";

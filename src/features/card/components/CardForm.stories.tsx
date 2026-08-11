@@ -4,6 +4,8 @@
  * how it responds to interaction.
  */
 
+import type { Card } from "@/entities/card";
+
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { CardForm as Template, type CardFormFields } from "@/features/card/components/CardForm";

@@ -1,3 +1,6 @@
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { FirestoreInitializationResult } from "@/shared/firebase/firestore-runtime";

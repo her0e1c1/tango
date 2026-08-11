@@ -2,6 +2,10 @@
  * @file Provides pure selection helpers for remote store data.
  */
 
+import type { Card } from "@/entities/card";
+import type { Deck, DeckId } from "@/entities/deck";
+import type { ConfigState } from "@/shared/config/configTypes";
+
 import * as lodash from "lodash";
 
 import { selectCardsForDeck } from "@/entities/card";

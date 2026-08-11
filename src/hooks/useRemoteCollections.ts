@@ -2,6 +2,10 @@
  * @file Provides shared remote collection data and lookup behavior to React consumers.
  */
 
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+import type { ConfigState } from "@/shared/config/configTypes";
+
 import { useEffect, useState } from "react";
 import { useStore } from "zustand";
 

@@ -6,7 +6,11 @@
 
 import { useNavigate } from "react-router-dom";
 import * as action from "@/action";
+import type { PageKey } from "@/app/routes";
+import type { CardId } from "@/entities/card";
+import type { DeckId } from "@/entities/deck";
 import { configStore } from "@/shared/config/configStore";
+import type { ConfigState } from "@/shared/config/configTypes";
 
 /**
  * Provides application navigation and cross-feature actions to React components.

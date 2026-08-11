@@ -4,6 +4,8 @@
  * "parses string content as raw cards", "rejects unsupported input at the parser boundary".
  */
 
+import type { CardRaw } from "@/entities/card";
+
 import { expect, expectTypeOf, it, describe, vi, beforeEach, afterEach } from "vitest";
 
 // import moment from "moment";

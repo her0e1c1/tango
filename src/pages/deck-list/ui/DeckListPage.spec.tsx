@@ -5,6 +5,8 @@
  * continuing".
  */
 
+import type { ConfigState } from "@/shared/config/configTypes";
+
 import { fireEvent, render, waitFor, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

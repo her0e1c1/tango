@@ -5,6 +5,10 @@
  * components.
  */
 
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+import type { ConfigState } from "@/shared/config/configTypes";
+
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";

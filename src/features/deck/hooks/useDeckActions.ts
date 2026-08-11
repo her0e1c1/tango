@@ -4,6 +4,8 @@
  * coordinate services themselves.
  */
 
+import type { Deck, DeckId } from "@/entities/deck";
+
 import { useNavigate } from "react-router-dom";
 
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";

@@ -1,3 +1,5 @@
+import type { Deck, DeckId } from "@/entities/deck";
+
 export type CardId = string;
 
 export interface Card {
@@ -6,7 +8,7 @@ export interface Card {
   tags: string[];
   uniqueKey: string;
   id: CardId;
-  deckId: string;
+  deckId: DeckId;
   uid: string;
   createdAt: number;
   updatedAt: number;
@@ -20,3 +22,7 @@ export interface Card {
   startLine?: number;
   endLine?: number;
 }
+
+export type CardDeck = Pick<Deck, "id" | "uid">;
+export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
+export type CardEdit = Partial<Card> & Pick<Card, "id" | "deckId">;

@@ -6,17 +6,21 @@
 
 import * as lodash from "lodash";
 
+import type { Card, CardEdit } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+import type { StudyPreferences, SwipeAction, SwipeDirection, SwipeState } from "@/shared/config/configTypes";
+
 /**
  * Resolves the swipe action value from config for a given direction.
  */
-export const resolveSwipeAction = (controls: SwipeState, direction: SwipeDirection): cardSwipe => {
+export const resolveSwipeAction = (controls: SwipeState, direction: SwipeDirection): SwipeAction => {
   return controls[direction];
 };
 
 /**
  * Calculates the new card score based on the swipe action.
  */
-export const calculateCardScore = (card: Pick<Card, "score">, swipeAction: cardSwipe): number => {
+export const calculateCardScore = (card: Pick<Card, "score">, swipeAction: SwipeAction): number => {
   if (swipeAction === "GoToNextCardMastered") {
     return card.score >= 0 ? card.score + 1 : 0;
   } else if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {
@@ -30,7 +34,7 @@ export const calculateCardScore = (card: Pick<Card, "score">, swipeAction: cardS
  */
 export const buildStudyPatch = (
   card: Pick<Card, "id" | "deckId" | "score" | "numberOfSeen">,
-  swipeAction: cardSwipe,
+  swipeAction: SwipeAction,
   now: number
 ): CardEdit => {
   return {
@@ -46,7 +50,7 @@ export const buildStudyPatch = (
  * Calculates the next card index after a swipe.
  * Returns -1 when the study session is finished (index out of bounds).
  */
-export const calculateNextIndex = (currentIndex: number, cardCount: number, swipeAction: cardSwipe): number => {
+export const calculateNextIndex = (currentIndex: number, cardCount: number, swipeAction: SwipeAction): number => {
   let nextIndex = currentIndex;
   if (swipeAction === "GoToPrevCard") {
     nextIndex -= 1;

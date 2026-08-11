@@ -4,6 +4,8 @@
  * check if exists", "should update a deck", "should delete a deck".
  */
 
+import type { Deck } from "@/entities/deck";
+
 import "@/shared/firebase/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";

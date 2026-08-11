@@ -1,5 +1,7 @@
 /** @file Provides Deck mutation state and actions to React features. */
 
+import type { Deck, DeckEdit, DeckId } from "@/entities/deck";
+
 import { useEffect, useRef } from "react";
 
 import { useAuth } from "@/auth/AuthContext";

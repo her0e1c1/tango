@@ -4,6 +4,8 @@
  * understand and test.
  */
 
+import type { Card, CardRaw } from "@/entities/card";
+
 import * as Papa from "papaparse";
 
 import * as cardAction from "@/action/card";

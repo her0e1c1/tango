@@ -6,6 +6,13 @@
 
 import * as z from "zod";
 
+import type {
+  AppearancePreferences,
+  ConfigState,
+  ControlPreferences,
+  StudyPreferences,
+} from "@/shared/config/configTypes";
+
 export const defaultConfig: ConfigState = Object.freeze({
   appearance: Object.freeze({
     darkMode: false,

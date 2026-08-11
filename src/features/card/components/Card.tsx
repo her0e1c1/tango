@@ -8,6 +8,7 @@ import cx from "classnames";
 import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
+import type { Card as CardEntity, CardId } from "@/entities/card";
 import { CardActionsMenu } from "@/features/card/components/CardActionsMenu";
 import { Score, TagLabel } from "@/shared/ui/content";
 
@@ -41,7 +42,9 @@ const studiedText = (count: number) => {
  * Renders the Card user interface.
  * Presents one study card's front, back, score, and tags according to its current reveal state.
  */
-export const Card: React.FC<{ className?: string; card: Card } & CardActionsProps & CardRowMenuProps> = (props) => {
+export const Card: React.FC<{ className?: string; card: CardEntity } & CardActionsProps & CardRowMenuProps> = (
+  props
+) => {
   const id = props.card.id;
   const disabled = Boolean(props.disabled);
   const suppressViewClick = React.useRef(false);
