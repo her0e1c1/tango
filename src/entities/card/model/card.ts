@@ -25,4 +25,6 @@ export interface Card {
 
 export type CardDeck = Pick<Deck, "id" | "uid">;
 export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
+export type CardNew = Omit<Card, "id">;
 export type CardEdit = Partial<Card> & Pick<Card, "id" | "deckId">;
+export type CardTextKey = "frontText" | "backText" | "hint";
