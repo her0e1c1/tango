@@ -4,13 +4,13 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
+import type { RemoteById } from "@/shared/api/remoteSnapshot";
 import type { ConfigState } from "@/shared/config";
 
 import { useEffect, useState } from "react";
 import { useStore } from "zustand";
 
 import { useAuth } from "@/auth/AuthContext";
-import type { RemoteById } from "@/domain/remoteSnapshot";
 import { remoteValues, cardsForDeck, filteredCardsForDeck, tagsForDeck } from "@/store/remoteSelectors";
 import { remoteStore } from "@/store/remoteStore";
 
