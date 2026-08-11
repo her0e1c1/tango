@@ -33,8 +33,7 @@
     "lint:markdown": "markdownlint-cli2",
     "lint:react": "eslint --max-warnings=0 'src/**/*.{ts,tsx}'",
     "lint:tsc": "tsc",
-    "storybook": "storybook dev",
-    "build-storybook": "npm run build:storybook"
+    "storybook": "storybook dev"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
