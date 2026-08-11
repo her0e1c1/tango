@@ -56,7 +56,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
       }}
       layout={{
         headerProps: {
-          dark: config.darkMode,
+          dark: config.appearance.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
           onClickImport: actions.goToImport,
@@ -122,7 +122,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
                 text: showCard.backText,
                 category,
                 code: C.LANGUAGES.includes(category),
-                dark: config.darkMode,
+                dark: config.appearance.darkMode,
               },
               onClose: closeCard,
             },

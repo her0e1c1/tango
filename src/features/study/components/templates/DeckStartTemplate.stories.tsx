@@ -47,7 +47,7 @@ const meta = {
   },
   args: {
     deckName: fixture.deck.default.name,
-    maxNumberOfCardsToLearn: fixture.config.default.maxNumberOfCardsToLearn,
+    maxNumberOfCardsToLearn: fixture.config.default.study.maxNumberOfCardsToLearn,
     cardsLength: 123,
     filterSlot: <DeckStartForm {...deckStartForm} />,
   },

@@ -26,24 +26,24 @@ describe("config store", () => {
   it("updates and toggles long-lived settings", () => {
     const store = createConfigStore({ storage: createMemoryStorage(), skipHydration: true });
 
-    store.getState().updateConfig({ cardInterval: 15, darkMode: true });
-    store.getState().toggleConfig("darkMode");
+    store.getState().updateConfig({ study: { cardInterval: 15 }, appearance: { darkMode: true } });
+    store.getState().toggleConfig("appearance", "darkMode");
 
     expect(store.getState().config).toEqual({
       ...defaultConfig,
-      cardInterval: 15,
-      darkMode: false,
+      study: { ...defaultConfig.study, cardInterval: 15 },
+      appearance: { ...defaultConfig.appearance, darkMode: false },
     });
   });
 
   it("persists only config state and restores it with current defaults", async () => {
     const storage = createMemoryStorage();
     const store = createConfigStore({ storage, skipHydration: true });
-    store.getState().updateConfig({ darkMode: true });
+    store.getState().updateConfig({ appearance: { darkMode: true } });
 
     const persisted = JSON.parse(storage.getItem(CONFIG_STORAGE_KEY) ?? "{}");
     expect(persisted).toEqual({
-      state: { config: { ...defaultConfig, darkMode: true } },
+      state: { config: { ...defaultConfig, appearance: { ...defaultConfig.appearance, darkMode: true } } },
       version: 2,
     });
     expect(persisted.state).not.toHaveProperty("deck");
@@ -53,7 +53,10 @@ describe("config store", () => {
     const restored = createConfigStore({ storage, skipHydration: true });
     await restored.persist.rehydrate();
 
-    expect(restored.getState().config).toEqual({ ...defaultConfig, darkMode: true });
+    expect(restored.getState().config).toEqual({
+      ...defaultConfig,
+      appearance: { ...defaultConfig.appearance, darkMode: true },
+    });
     expect(restored.getState().updateConfig).toBeTypeOf("function");
     expect(restored.getState().toggleConfig).toBeTypeOf("function");
   });
@@ -61,13 +64,13 @@ describe("config store", () => {
   it("validates numeric ranges during updates", () => {
     const store = createConfigStore({ storage: createMemoryStorage(), skipHydration: true });
 
-    store.getState().updateConfig({ maxNumberOfCardsToLearn: 101, cardInterval: -1, sizeBackText: -1 });
+    store
+      .getState()
+      .updateConfig({ study: { maxNumberOfCardsToLearn: 101, cardInterval: -1 }, appearance: { sizeBackText: -1 } });
 
-    expect(store.getState().config).toMatchObject({
-      maxNumberOfCardsToLearn: defaultConfig.maxNumberOfCardsToLearn,
-      cardInterval: defaultConfig.cardInterval,
-      sizeBackText: defaultConfig.sizeBackText,
-    });
+    expect(store.getState().config.study.maxNumberOfCardsToLearn).toBe(defaultConfig.study.maxNumberOfCardsToLearn);
+    expect(store.getState().config.study.cardInterval).toBe(defaultConfig.study.cardInterval);
+    expect(store.getState().config.appearance.sizeBackText).toBe(defaultConfig.appearance.sizeBackText);
   });
 
   it("keeps valid persisted settings and replaces invalid values with current defaults", async () => {
@@ -90,10 +93,10 @@ describe("config store", () => {
 
     expect(store.getState().config).toEqual({
       ...defaultConfig,
-      cardInterval: 15,
+      study: { ...defaultConfig.study, cardInterval: 15 },
     });
-    expect(store.getState().config).not.toHaveProperty("removedSetting");
-    expect(store.getState().config).not.toHaveProperty("githubAccessToken");
+    expect(store.getState().config.appearance).not.toHaveProperty("removedSetting");
+    expect(store.getState().config.appearance).not.toHaveProperty("githubAccessToken");
   });
 
   it("uses current defaults when persisted config is not an object", async () => {

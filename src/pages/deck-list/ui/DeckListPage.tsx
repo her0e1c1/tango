@@ -61,7 +61,7 @@ export const DeckListPage: React.FC = () => {
         <Layout
           showHeader
           headerProps={{
-            dark: config.darkMode,
+            dark: config.appearance.darkMode,
             onClickDarkMode: actions.setDarkMode,
             onClickLogo: actions.goToTop,
             onClickImport: actions.goToImport,

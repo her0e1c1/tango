@@ -45,32 +45,65 @@ export const createCard = (overrides: Partial<Card> = {}): Card => ({
   ...overrides,
 });
 
+export type ConfigOverrides = {
+  appearance?: Partial<AppearancePreferences>;
+  study?: Partial<StudyPreferences>;
+  controls?: Partial<ControlPreferences>;
+  darkMode?: boolean;
+  showHeader?: boolean;
+  fullscreen?: boolean;
+  sizeBackText?: number;
+  hideBodyWhenCardChanged?: boolean;
+  showSwipeFeedback?: boolean;
+  maxNumberOfCardsToLearn?: number;
+  shuffled?: boolean;
+  useCardInterval?: boolean;
+  cardInterval?: number;
+  keepBackTextViewed?: boolean;
+  defaultAutoPlay?: boolean;
+  selectedTags?: string[];
+  showSwipeButtonList?: boolean;
+  showScoreSlider?: boolean;
+  cardSwipeUp?: cardSwipe;
+  cardSwipeDown?: cardSwipe;
+  cardSwipeLeft?: cardSwipe;
+  cardSwipeRight?: cardSwipe;
+};
+
 /**
  * Builds a complete test configuration with predictable defaults and optional overrides.
  * Tests can change one setting without repeating every required configuration field.
  */
-export const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState => ({
-  useCardInterval: false,
-  showSwipeButtonList: true,
-  showScoreSlider: false,
-  showHeader: true,
-  fullscreen: false,
-  shuffled: false,
-  sizeBackText: 0,
-  maxNumberOfCardsToLearn: 10,
-  hideBodyWhenCardChanged: true,
-  showSwipeFeedback: false,
-  keepBackTextViewed: false,
-  defaultAutoPlay: false,
-  cardInterval: 60,
-  cardSwipeUp: "GoToNextCardMastered",
-  cardSwipeDown: "GoToNextCardNotMastered",
-  cardSwipeLeft: "GoToPrevCard",
-  cardSwipeRight: "GoToNextCard",
-  darkMode: false,
-  selectedTags: [],
-  ...overrides,
-});
+export const createConfig = (overrides: ConfigOverrides = {}): ConfigState => {
+  const { appearance, study, controls, ...flat } = overrides;
+  return {
+    appearance: {
+      darkMode: appearance?.darkMode ?? flat.darkMode ?? false,
+      showHeader: appearance?.showHeader ?? flat.showHeader ?? true,
+      fullscreen: appearance?.fullscreen ?? flat.fullscreen ?? false,
+      sizeBackText: appearance?.sizeBackText ?? flat.sizeBackText ?? 0,
+      hideBodyWhenCardChanged: appearance?.hideBodyWhenCardChanged ?? flat.hideBodyWhenCardChanged ?? true,
+      showSwipeFeedback: appearance?.showSwipeFeedback ?? flat.showSwipeFeedback ?? false,
+    },
+    study: {
+      maxNumberOfCardsToLearn: study?.maxNumberOfCardsToLearn ?? flat.maxNumberOfCardsToLearn ?? 10,
+      shuffled: study?.shuffled ?? flat.shuffled ?? false,
+      useCardInterval: study?.useCardInterval ?? flat.useCardInterval ?? false,
+      cardInterval: study?.cardInterval ?? flat.cardInterval ?? 60,
+      keepBackTextViewed: study?.keepBackTextViewed ?? flat.keepBackTextViewed ?? false,
+      defaultAutoPlay: study?.defaultAutoPlay ?? flat.defaultAutoPlay ?? false,
+      selectedTags: study?.selectedTags ?? flat.selectedTags ?? [],
+    },
+    controls: {
+      showSwipeButtonList: controls?.showSwipeButtonList ?? flat.showSwipeButtonList ?? true,
+      showScoreSlider: controls?.showScoreSlider ?? flat.showScoreSlider ?? false,
+      cardSwipeUp: controls?.cardSwipeUp ?? flat.cardSwipeUp ?? "GoToNextCardMastered",
+      cardSwipeDown: controls?.cardSwipeDown ?? flat.cardSwipeDown ?? "GoToNextCardNotMastered",
+      cardSwipeLeft: controls?.cardSwipeLeft ?? flat.cardSwipeLeft ?? "GoToPrevCard",
+      cardSwipeRight: controls?.cardSwipeRight ?? flat.cardSwipeRight ?? "GoToNextCard",
+    },
+  };
+};
 
 const NativeBlob = Blob;
 

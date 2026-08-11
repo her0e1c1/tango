@@ -58,7 +58,7 @@ const runStudySwipe = async (
   const session = state.sessionsByDeckId[deckId];
   if (session == null) return;
 
-  const swipeAction = resolveSwipeAction(config, direction);
+  const swipeAction = resolveSwipeAction(config.controls, direction);
   if (swipeAction === "DoNothing") return;
 
   if (swipeAction === "GoBack") {
@@ -78,7 +78,7 @@ const runStudySwipe = async (
   };
 
   state.setLastSwipe(direction);
-  if (config.hideBodyWhenCardChanged) {
+  if (config.appearance.hideBodyWhenCardChanged) {
     state.hideBackText();
   }
 
@@ -128,10 +128,10 @@ export const useStudyActions = (deckId: DeckId, cardMutation?: StudyCardMutation
    * expected state.
    */
   const start = () => {
-    const cardOrderIds = buildStudySession(cards, config);
+    const cardOrderIds = buildStudySession(cards, config.study);
     const state = studyStore.getState();
     state.startStudy(deckId, cardOrderIds);
-    state.initializeStudyUi(config.defaultAutoPlay);
+    state.initializeStudyUi(config.study.defaultAutoPlay);
     void navigate(`/deck/${deckId}/study`, { replace: true });
   };
 

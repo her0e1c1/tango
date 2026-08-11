@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
+vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ appearance: { darkMode: false } }) }));
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     setDarkMode: vi.fn(),

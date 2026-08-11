@@ -124,20 +124,32 @@ type cardSwipe =
   | "GoToNextCardNotMastered"
   | "GoToNextCardToggleMastered";
 
-type ConfigState = SwipeState & {
-  useCardInterval: boolean;
-  showSwipeButtonList: boolean;
-  showScoreSlider: boolean;
+interface AppearancePreferences {
+  darkMode: boolean;
   showHeader: boolean;
   fullscreen: boolean;
-  shuffled: boolean;
   sizeBackText: number;
-  maxNumberOfCardsToLearn: number;
   hideBodyWhenCardChanged: boolean;
   showSwipeFeedback: boolean;
+}
+
+interface StudyPreferences {
+  maxNumberOfCardsToLearn: number;
+  shuffled: boolean;
+  useCardInterval: boolean;
+  cardInterval: number;
   keepBackTextViewed: boolean;
   defaultAutoPlay: boolean;
-  cardInterval: number;
-  darkMode: boolean;
   selectedTags: string[];
-};
+}
+
+interface ControlPreferences extends SwipeState {
+  showSwipeButtonList: boolean;
+  showScoreSlider: boolean;
+}
+
+interface ConfigState {
+  appearance: AppearancePreferences;
+  study: StudyPreferences;
+  controls: ControlPreferences;
+}

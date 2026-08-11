@@ -62,7 +62,7 @@ export const AppRoutes: React.FC = () => (
  * when startup fails.
  */
 const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location.reload() }) => {
-  const darkMode = useStore(configStore, (state) => state.config.darkMode);
+  const darkMode = useStore(configStore, (state) => state.config.appearance.darkMode);
   const authState = useAuth();
 
   React.useEffect(() => {

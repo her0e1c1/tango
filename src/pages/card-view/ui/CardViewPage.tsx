@@ -23,12 +23,12 @@ const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
       backText={{
         ...(category !== undefined ? { category } : {}),
         code: category !== undefined && C.LANGUAGES.includes(category),
-        dark: config.darkMode,
+        dark: config.appearance.darkMode,
         text: card.backText,
       }}
       layout={{
         headerProps: {
-          dark: config.darkMode,
+          dark: config.appearance.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
           onClickImport: actions.goToImport,

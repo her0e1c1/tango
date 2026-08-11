@@ -34,7 +34,7 @@ export const filteredCardsForDeck = (
   now: number
 ): Card[] => {
   const deck = decksById[deckId];
-  return deck == null ? [] : filterStudyCards(cardsForDeck(cards, deckId), deck, config, now);
+  return deck == null ? [] : filterStudyCards(cardsForDeck(cards, deckId), deck, config.study, now);
 };
 
 /**
