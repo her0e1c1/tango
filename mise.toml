@@ -2,68 +2,42 @@
 hadolint = "2.15.0"
 node = "24.15.0"
 npm = "12.0.1"
-watchexec = "2.5.1"
 
 [env]
-_.file = ".env"
-_.path = ["{{config_root}}/node_modules/.bin"]
 COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.local.yaml"
+# Compose files live under .devcontainer, so use the project-root env file.
+COMPOSE_ENV_FILES = ".env"
 
-[hooks]
-enter = "echo 'Run `mise run dev` to start local dependencies and the app.'"
-
-[tasks.default]
-depends = ["dev"]
+[tasks]
+up = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
+dev-up = "docker compose --env-file .env.dev up --wait --wait-timeout 120 --remove-orphans -d db auth"
+test-sample = "npm run test:sample"
+lint-docker = "hadolint --failure-threshold warning Dockerfile sample/Dockerfile"
+down = "docker compose down --remove-orphans"
+ps = "docker compose ps"
 
 [tasks.init]
-alias = "i"
-depends = ["init-env", "init-deps"]
-
-[tasks.init-env]
-# .env may contain local secrets such as API keys, so never overwrite it if it already exists.
-sources = [".env.example"]
-outputs = [".env"]
+depends = ["init-deps"]
 run = "test -f .env || cp .env.example .env"
 
 [tasks.init-deps]
-sources = [
-  "package.json",
-  "package-lock.json",
-]
+sources = ["package.json", "package-lock.json"]
 outputs = ["node_modules/.package-lock.json"]
 run = "npm ci"
 
-[tasks.up]
-alias = "u"
-run = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
-
-[tasks.dev-up]
-run = "env -u VITE_PROJECT_ID -u VITE_WEB_API_KEY -u VITE_DB_HOST -u VITE_DB_PORT -u VITE_AUTH_HOST -u VITE_AUTH_PORT docker compose --env-file .env.dev up --wait --wait-timeout 120 --remove-orphans -d db auth"
-
 [tasks.dev]
-alias = "d"
 depends = ["build-sample", "dev-up"]
-run = "env -u VITE_PROJECT_ID -u VITE_WEB_API_KEY -u VITE_DB_HOST -u VITE_DB_PORT -u VITE_AUTH_HOST -u VITE_AUTH_PORT npm start -- --open --mode dev"
+run = "npm start -- --open --mode dev"
 
 [tasks.storybook]
-alias = "s"
 depends = ["build-sample"]
 run = "npm run storybook"
 
 [tasks.test]
-alias = "t"
 depends = ["build-sample", "up"]
-sources = [
-  "src/**/*.{ts,tsx,js,jsx}",
-  "sample/generate.py",
-  "sample/test/**/*",
-  "package.json",
-  "package-lock.json",
-  "vitest.config.ts",
-]
 run = [
   "npm test",
-  "mise run test-sample",
+  { task = "test-sample" },
 ]
 
 [tasks.test-unit]
@@ -74,56 +48,36 @@ run = "npm run test:unit"
 depends = ["up"]
 run = "npm run test:firestore"
 
-[tasks.test-sample]
-run = "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint py.test base"
-
 [tasks.test-storybook]
 depends = ["build-sample"]
 run = "npm run test:storybook"
 
 [tasks.coverage]
 depends = ["build-sample", "up"]
-sources = [
-  "src/**/*.{ts,tsx,js,jsx}",
-  "sample/generate.py",
-  "sample/test/**/*",
-  "package.json",
-  "package-lock.json",
-  "vitest.config.ts",
-]
 run = "npm run test:coverage"
 
 [tasks.fmt]
-alias = "f"
 run = [
   "npm run fmt",
-  "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'ruff format' base",
+  "npm run fmt:sample",
 ]
 
 [tasks.fmt-check]
 run = [
   "npm run fmt:check",
-  "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'ruff format --check' base",
+  "npm run fmt:sample:check",
 ]
 
 [tasks.lint]
-alias = "l"
 depends = ["build-sample"]
-run = "npm run lint:check"
-
-[tasks.lint-docker]
-run = "hadolint --failure-threshold warning Dockerfile sample/Dockerfile"
+run = "npm run lint"
 
 [tasks.build-sample]
-sources = [
-  "sample/generate.py",
-  "sample/test/**/*",
-]
+sources = ["package.json", "sample/generate.py", "sample/test/**/*"]
 outputs = ["sample/build/output.json"]
-run = "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base"
+run = "npm run build:sample"
 
 [tasks.build]
-alias = "b"
 depends = ["build-sample"]
 run = [
   "npm run build",
@@ -154,15 +108,8 @@ depends = ["init"]
 run = [{ tasks = ["fmt-check", "lint", "lint-docker", "test-unit"] }]
 
 [tasks.ci]
-alias = "c"
 depends = ["init"]
 run = "npm run ci"
-
-[tasks.down]
-run = "docker compose down --remove-orphans"
-
-[tasks.ps]
-run = "docker compose ps"
 
 [tasks.clean]
 confirm = "削除してよいですか？"
