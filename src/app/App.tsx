@@ -7,7 +7,9 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
+import { logout } from "@/app/auth/logout";
 import { useSession } from "@/entities/session";
+import { loginGoogle } from "@/features/auth";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
@@ -50,7 +52,7 @@ export const AppRoutes: React.FC = () => (
     <Route path="/deck/:id/study" element={<DeckSwiperPage />} />
     <Route path="/card/:id" element={<CardViewPage />} />
     <Route path="/card/:id/edit" element={<CardFormPage />} />
-    <Route path="/settings" element={<SettingsPage />} />
+    <Route path="/settings" element={<SettingsPage login={loginGoogle} logout={logout} />} />
     <Route path="/import" element={<DeckImportPage />} />
     <Route path="*" element={<UnknownRoute />} />
   </Routes>

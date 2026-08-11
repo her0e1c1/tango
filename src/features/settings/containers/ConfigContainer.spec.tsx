@@ -19,7 +19,6 @@ const mocks = vi.hoisted(() => ({
   retry: vi.fn(async () => undefined),
 }));
 
-vi.mock("@/action", () => ({ event: { loginGoogle: vi.fn(), logout: vi.fn() } }));
 vi.mock("@/entities/session", () => ({ useSession: () => ({ status: "initializing" as const }) }));
 vi.mock("@/shared/config", () => ({
   useConfig: () => mocks.config,
@@ -51,7 +50,7 @@ describe("ConfigContainer", () => {
   });
 
   it("preserves the top shortcut and forwards header actions", () => {
-    render(<ConfigContainer />);
+    render(<ConfigContainer login={vi.fn()} logout={vi.fn()} />);
 
     const topShortcut = mocks.useKey.mock.calls.find(([key]) => key === "t")?.[1];
     topShortcut?.();

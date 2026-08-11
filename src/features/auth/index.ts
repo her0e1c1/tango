@@ -1,4 +1,4 @@
-export { loginGoogle } from "@/features/auth/model/authActions";
+export { loginGoogle, signOutCurrentUser } from "@/features/auth/model/authActions";
 export {
   authRuntime,
   createAuthRuntime,

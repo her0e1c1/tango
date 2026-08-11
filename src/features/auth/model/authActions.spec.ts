@@ -1,5 +1,5 @@
 import { FirebaseError } from "firebase/app";
-import { GoogleAuthProvider, linkWithPopup, signInWithCredential } from "firebase/auth";
+import { GoogleAuthProvider, linkWithPopup, signInWithCredential, signOut } from "firebase/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -13,7 +13,7 @@ vi.mock("@/features/auth/model/authController", () => ({
 }));
 vi.mock("firebase/auth");
 
-import { loginGoogle } from "@/features/auth/model/authActions";
+import { loginGoogle, signOutCurrentUser } from "@/features/auth/model/authActions";
 
 describe("loginGoogle", () => {
   beforeEach(() => {
@@ -84,5 +84,13 @@ describe("loginGoogle", () => {
 
     await expect(loginGoogle()).rejects.toBe(recoveryError);
     expect(mocks.publishAuthenticatedUser).not.toHaveBeenCalled();
+  });
+});
+
+describe("signOutCurrentUser", () => {
+  it("signs out through Firebase Auth", async () => {
+    await signOutCurrentUser();
+
+    expect(signOut).toHaveBeenCalledWith(mocks.auth);
   });
 });
