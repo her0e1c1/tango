@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("zustand", () => ({
   useStore: (_store: unknown, select: (state: unknown) => unknown) =>
     select({
-      config: { darkMode: mocks.darkMode },
+      config: { appearance: { darkMode: mocks.darkMode } },
     }),
 }));
 vi.mock("@/shared/config/configStore", () => ({ configStore: {} }));

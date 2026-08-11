@@ -9,7 +9,7 @@ import { createCard, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
-  config: { darkMode: false } as ConfigState,
+  config: { appearance: { darkMode: false } } as ConfigState,
   card: null as Card | null,
   deck: null as Deck | null,
   navigate: vi.fn(),
@@ -47,7 +47,7 @@ import { CardViewPage } from "./CardViewPage";
 describe("CardViewPage", () => {
   beforeEach(() => {
     mocks.params.id = "card-id";
-    mocks.config = { darkMode: false } as ConfigState;
+    mocks.config = { appearance: { darkMode: false } } as ConfigState;
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
     mocks.card = createCard({ id: "card-id", deckId: "deck-id", backText: "const answer = 42;", tags: ["typescript"] });
     mocks.navigate.mockReset();

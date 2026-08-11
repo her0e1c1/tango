@@ -38,7 +38,7 @@ const CardFormContent = ({ card }: { card: Card }) => {
     <Layout
       showHeader
       headerProps={{
-        dark: config.darkMode,
+        dark: config.appearance.darkMode,
         onClickDarkMode: actions.setDarkMode,
         onClickLogo: actions.goToTop,
         onClickImport: actions.goToImport,

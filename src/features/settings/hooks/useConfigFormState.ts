@@ -40,8 +40,8 @@ export const useConfigFormState = ({
   const { control, handleSubmit, register, setValue, subscribe } = useForm<ConfigState>({
     defaultValues: config,
   });
-  const maxNumberOfCardsToLearn = useWatch({ control, name: "maxNumberOfCardsToLearn" });
-  const cardInterval = useWatch({ control, name: "cardInterval" });
+  const maxNumberOfCardsToLearn = useWatch({ control, name: "study.maxNumberOfCardsToLearn" });
+  const cardInterval = useWatch({ control, name: "study.cardInterval" });
 
   React.useEffect(() => {
     return subscribe({
@@ -51,8 +51,8 @@ export const useConfigFormState = ({
   }, [handleSubmit, onSubmit, subscribe]);
 
   React.useEffect(() => {
-    setValue("darkMode", config.darkMode);
-  }, [config.darkMode, setValue]);
+    setValue("appearance.darkMode", config.appearance.darkMode);
+  }, [config.appearance.darkMode, setValue]);
 
   return {
     config,
@@ -66,20 +66,20 @@ export const useConfigFormState = ({
     maxNumberOfCardsToLearn,
     cardInterval,
     fields: {
-      showHeader: register("showHeader"),
-      showSwipeButtonList: register("showSwipeButtonList"),
-      showSwipeFeedback: register("showSwipeFeedback"),
-      darkMode: register("darkMode"),
-      shuffled: register("shuffled"),
-      useCardInterval: register("useCardInterval"),
+      showHeader: register("appearance.showHeader"),
+      showSwipeButtonList: register("controls.showSwipeButtonList"),
+      showSwipeFeedback: register("appearance.showSwipeFeedback"),
+      darkMode: register("appearance.darkMode"),
+      shuffled: register("study.shuffled"),
+      useCardInterval: register("study.useCardInterval"),
       maxNumberOfCardsToLearn: {
-        ...register("maxNumberOfCardsToLearn", { valueAsNumber: true }),
+        ...register("study.maxNumberOfCardsToLearn", { valueAsNumber: true }),
         min: 0,
         max: 100,
       },
-      defaultAutoPlay: register("defaultAutoPlay"),
+      defaultAutoPlay: register("study.defaultAutoPlay"),
       cardInterval: {
-        ...register("cardInterval", { valueAsNumber: true }),
+        ...register("study.cardInterval", { valueAsNumber: true }),
         min: 0,
         max: 60,
       },

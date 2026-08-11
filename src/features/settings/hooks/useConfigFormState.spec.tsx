@@ -26,8 +26,10 @@ const ConfigFormHarness: React.FC<{
   return <ConfigForm {...configForm} />;
 };
 
+import { createConfig } from "@/test/factories";
+
 describe("ConfigForm with useConfigFormState", () => {
-  const config = {
+  const config = createConfig({
     showHeader: false,
     showSwipeButtonList: false,
     showSwipeFeedback: false,
@@ -38,30 +40,37 @@ describe("ConfigForm with useConfigFormState", () => {
     defaultAutoPlay: false,
     maxNumberOfCardsToLearn: 0,
     cardInterval: 0,
-  } as ConfigState;
+  });
+
   it("auto-submits boolean and numeric field changes", async () => {
     const onSubmit = vi.fn();
     render(<ConfigFormHarness config={config} onSubmit={onSubmit} />);
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...config, showHeader: true });
+      expect(onSubmit).toHaveBeenLastCalledWith({
+        ...config,
+        appearance: { ...config.appearance, showHeader: true },
+      });
     });
 
     fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
       target: { value: 10 },
     });
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...config, showHeader: true, maxNumberOfCardsToLearn: 10 });
+      expect(onSubmit).toHaveBeenLastCalledWith({
+        ...config,
+        appearance: { ...config.appearance, showHeader: true },
+        study: { ...config.study, maxNumberOfCardsToLearn: 10 },
+      });
     });
 
     fireEvent.change(screen.getByRole("slider", { name: "Autoplay interval" }), { target: { value: 10 } });
     await waitFor(() => {
       expect(onSubmit).toHaveBeenLastCalledWith({
         ...config,
-        showHeader: true,
-        maxNumberOfCardsToLearn: 10,
-        cardInterval: 10,
+        appearance: { ...config.appearance, showHeader: true },
+        study: { ...config.study, maxNumberOfCardsToLearn: 10, cardInterval: 10 },
       });
     });
   });
@@ -72,11 +81,12 @@ describe("ConfigForm with useConfigFormState", () => {
     const darkModeInput = screen.getByRole("checkbox", { name: "Dark mode" });
     expect(darkModeInput).not.toBeChecked();
 
-    rerender(<ConfigFormHarness config={{ ...config, darkMode: true }} onSubmit={onSubmit} />);
+    const updatedConfig = { ...config, appearance: { ...config.appearance, darkMode: true } };
+    rerender(<ConfigFormHarness config={updatedConfig} onSubmit={onSubmit} />);
 
     await waitFor(() => {
       expect(darkModeInput).toBeChecked();
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...config, darkMode: true });
+      expect(onSubmit).toHaveBeenLastCalledWith(updatedConfig);
     });
   });
 });

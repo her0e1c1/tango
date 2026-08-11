@@ -58,8 +58,8 @@ export const useActions = () => {
     login: action.event.loginGoogle,
     logout: action.event.logout,
     configUpdate: (config: ConfigState) => configStore.getState().updateConfig(config),
-    setDarkMode: (darkMode: boolean) => configStore.getState().updateConfig({ darkMode }),
-    toggleShowHeader: () => configStore.getState().toggleConfig("showHeader"),
-    toggleShowSwipeButtonList: () => configStore.getState().toggleConfig("showSwipeButtonList"),
+    setDarkMode: (darkMode: boolean) => configStore.getState().updateConfig({ appearance: { darkMode } }),
+    toggleShowHeader: () => configStore.getState().toggleConfig("appearance", "showHeader"),
+    toggleShowSwipeButtonList: () => configStore.getState().toggleConfig("controls", "showSwipeButtonList"),
   };
 };

@@ -18,16 +18,16 @@ import { createDeck } from "@/test/factories";
 
 describe("resolveSwipeAction", () => {
   it("returns the swipe action for the given direction", () => {
-    const config = {
+    const controls = {
       cardSwipeLeft: "GoBack",
       cardSwipeRight: "GoToNextCardMastered",
       cardSwipeUp: "GoToNextCardNotMastered",
       cardSwipeDown: "DoNothing",
-    } as ConfigState;
-    expect(resolveSwipeAction(config, "cardSwipeRight")).toBe("GoToNextCardMastered");
-    expect(resolveSwipeAction(config, "cardSwipeLeft")).toBe("GoBack");
-    expect(resolveSwipeAction(config, "cardSwipeUp")).toBe("GoToNextCardNotMastered");
-    expect(resolveSwipeAction(config, "cardSwipeDown")).toBe("DoNothing");
+    } as SwipeState;
+    expect(resolveSwipeAction(controls, "cardSwipeRight")).toBe("GoToNextCardMastered");
+    expect(resolveSwipeAction(controls, "cardSwipeLeft")).toBe("GoBack");
+    expect(resolveSwipeAction(controls, "cardSwipeUp")).toBe("GoToNextCardNotMastered");
+    expect(resolveSwipeAction(controls, "cardSwipeDown")).toBe("DoNothing");
   });
 });
 
@@ -108,25 +108,25 @@ describe("buildStudySession", () => {
   const cards = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }] as Card[];
 
   it("returns all card IDs in order when not shuffled and no max", () => {
-    const config = { shuffled: false, maxNumberOfCardsToLearn: 0 } as ConfigState;
-    expect(buildStudySession(cards, config)).toEqual(["a", "b", "c", "d"]);
+    const study = { shuffled: false, maxNumberOfCardsToLearn: 0 } as StudyPreferences;
+    expect(buildStudySession(cards, study)).toEqual(["a", "b", "c", "d"]);
   });
 
   it("respects maxNumberOfCardsToLearn", () => {
-    const config = { shuffled: false, maxNumberOfCardsToLearn: 2 } as ConfigState;
-    expect(buildStudySession(cards, config)).toEqual(["a", "b"]);
+    const study = { shuffled: false, maxNumberOfCardsToLearn: 2 } as StudyPreferences;
+    expect(buildStudySession(cards, study)).toEqual(["a", "b"]);
   });
 
   it("returns shuffled IDs when shuffled is true", () => {
-    const config = { shuffled: true, maxNumberOfCardsToLearn: 0 } as ConfigState;
-    const result = buildStudySession(cards, config);
+    const study = { shuffled: true, maxNumberOfCardsToLearn: 0 } as StudyPreferences;
+    const result = buildStudySession(cards, study);
     expect(result).toHaveLength(4);
     expect(result.sort()).toEqual(["a", "b", "c", "d"]);
   });
 
   it("applies max limit after shuffle", () => {
-    const config = { shuffled: true, maxNumberOfCardsToLearn: 2 } as ConfigState;
-    const result = buildStudySession(cards, config);
+    const study = { shuffled: true, maxNumberOfCardsToLearn: 2 } as StudyPreferences;
+    const result = buildStudySession(cards, study);
     expect(result).toHaveLength(2);
   });
 });
@@ -150,7 +150,7 @@ describe("filterCardsForDeck", () => {
     scoreMin: null,
   });
 
-  const baseConfig = { useCardInterval: false } as ConfigState;
+  const baseConfig = { useCardInterval: false } as StudyPreferences;
 
   it("returns all cards when no filters active", () => {
     const cards = [makeCard({ id: "a" }), makeCard({ id: "b" })];
@@ -184,7 +184,7 @@ describe("filterCardsForDeck", () => {
   it("filters by card interval when useCardInterval is true", () => {
     const future = new Date(now + 100_000);
     const cards = [makeCard({ id: "a", nextSeeingAt: future }), makeCard({ id: "b" })];
-    const config = { useCardInterval: true } as ConfigState;
+    const config = { useCardInterval: true } as StudyPreferences;
     expect(filterCardsForDeck(cards, baseDeck, config, now).map((c) => c.id)).toEqual(["b"]);
   });
 

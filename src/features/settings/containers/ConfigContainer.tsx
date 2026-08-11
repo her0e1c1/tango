@@ -61,7 +61,7 @@ export const ConfigContainer: React.FC = () => {
     <ConfigFormTemplate
       layout={{
         headerProps: {
-          dark: config.darkMode,
+          dark: config.appearance.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
           onClickImport: actions.goToImport,

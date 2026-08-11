@@ -56,7 +56,7 @@ vi.mock("@/features/study/state/studyStore", async (importOriginal) => {
   mocks.actualClearStudyStore = actual.clearStudyStore;
   return { ...actual, clearStudyStore: mocks.clearStudyStore };
 });
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
+vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ appearance: { darkMode: false } }) }));
 vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.accountActions }));
 vi.mock("@/features/settings/hooks/useConfigFormState", () => ({
   useConfigFormState: (options: Record<string, unknown>) => options,

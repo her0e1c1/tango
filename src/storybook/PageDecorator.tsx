@@ -10,7 +10,9 @@ import { MemoryRouter } from "react-router-dom";
 
 import { AuthProvider, type AuthState, type AuthStore } from "@/auth/AuthContext";
 import { studyStore, type StudySession } from "@/features/study/state/studyStore";
-import { configStore, defaultConfig } from "@/shared/config/configStore";
+import { configStore } from "@/shared/config/configStore";
+import { configSchema, normalizeConfigInput } from "@/shared/config/configSchema";
+import type { PartialConfigState } from "@/shared/config/configStore";
 import { remoteStore, toRemoteById } from "@/store/remoteStore";
 
 export const PAGE_STORY_UID = "storybook-user";
@@ -19,7 +21,7 @@ export interface PageStoryParameters {
   path: string;
   decks?: Deck[];
   cards?: Card[];
-  config?: Partial<ConfigState>;
+  config?: PartialConfigState;
   sessionsByDeckId?: Partial<Record<DeckId, StudySession>>;
   showBackText?: boolean;
   autoPlay?: boolean;
@@ -75,11 +77,14 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
 
   const decks = (parameters.decks ?? []).map(cloneDeck);
   const cards = (parameters.cards ?? []).map(cloneCard);
-  const config = { ...defaultConfig, ...parameters.config };
+  const config = configSchema.parse(normalizeConfigInput(parameters.config));
   configStore.setState({
     config: {
       ...config,
-      selectedTags: [...config.selectedTags],
+      study: {
+        ...config.study,
+        selectedTags: [...config.study.selectedTags],
+      },
     },
   });
   studyStore.setState({

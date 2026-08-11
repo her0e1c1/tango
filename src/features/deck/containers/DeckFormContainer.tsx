@@ -44,7 +44,7 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
     <DeckFormTemplate
       layout={{
         headerProps: {
-          dark: config.darkMode,
+          dark: config.appearance.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
           onClickImport: actions.goToImport,
