@@ -9,7 +9,6 @@ import { AiOutlineDown } from "react-icons/ai";
 import { Overlay, RemovableTag } from "@/components";
 import type { Card as CardEntity, CardId } from "@/entities/card";
 import { BackText, type BackTextProps, Card, type CardProps } from "@/features/card";
-import { Layout, type LayoutProps } from "@/shared/ui/layout";
 
 interface CardListOverlayProps {
   backText: BackTextProps;
@@ -24,7 +23,6 @@ interface CardListFilterState {
 
 export interface CardListViewProps {
   cards: CardEntity[];
-  layout?: LayoutProps;
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
   card?: CardProps;
@@ -110,7 +108,7 @@ export const CardListView: React.FC<CardListViewProps> = (props) => {
   const filter = props.filter ?? emptyFilter;
 
   return (
-    <Layout showHeader {...props.layout}>
+    <>
       {props.feedbackSlot}
       {props.dialogSlot}
       {props.overlay != null && (
@@ -164,6 +162,6 @@ export const CardListView: React.FC<CardListViewProps> = (props) => {
           {...(props.isCardPending !== undefined ? { isCardPending: props.isCardPending } : {})}
         />
       )}
-    </Layout>
+    </>
   );
 };

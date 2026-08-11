@@ -19,7 +19,6 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
-    showHeader: true,
     showSwipeButtonList: true,
     frontTextSlot: <FrontTextComponent text="front text" />,
     cardOverlaySlot: <CardOverlay card={fixture.card.default} />,
@@ -33,7 +32,6 @@ export const Default: Story = {};
 
 export const FrontText: Story = {
   args: {
-    showHeader: false,
     showSwipeButtonList: false,
     showController: true,
   },
@@ -41,7 +39,6 @@ export const FrontText: Story = {
 
 export const FrontTextAll: Story = {
   args: {
-    showHeader: true,
     showSwipeButtonList: true,
     showController: true,
   },

@@ -17,6 +17,7 @@ describe("CardViewView", () => {
   it("preserves optional back content in a reading-width surface", () => {
     const view = render(<CardViewView backText={{ text: "Card answer" }} />);
     expect(view.getByText("Card answer").closest("section")).toHaveClass("max-w-reading");
+    expect(view.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
   it("renders without back content", () => {
     const view = render(<CardViewView />);

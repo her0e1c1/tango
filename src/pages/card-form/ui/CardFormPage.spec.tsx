@@ -16,6 +16,10 @@ const mocks = vi.hoisted(() => ({
   card: null as Card | null,
   cardUpdate: vi.fn(),
   navigate: vi.fn(),
+  goToTop: vi.fn(),
+  goToImport: vi.fn(),
+  goToSettings: vi.fn(),
+  setDarkMode: vi.fn(),
 }));
 
 vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
@@ -50,10 +54,10 @@ vi.mock("@/features/card", async (importOriginal) => {
 
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
-    goToTop: vi.fn(),
-    goToImport: vi.fn(),
-    goToSettings: vi.fn(),
-    setDarkMode: vi.fn(),
+    goToTop: mocks.goToTop,
+    goToImport: mocks.goToImport,
+    goToSettings: mocks.goToSettings,
+    setDarkMode: mocks.setDarkMode,
   }),
 }));
 
@@ -83,6 +87,10 @@ describe("CardFormPage", () => {
     mocks.cardUpdate.mockReset();
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.navigate.mockReset();
+    mocks.goToTop.mockReset();
+    mocks.goToImport.mockReset();
+    mocks.goToSettings.mockReset();
+    mocks.setDarkMode.mockReset();
   });
 
   afterEach(() => {
@@ -96,6 +104,30 @@ describe("CardFormPage", () => {
 
     expect(mocks.cardUpdate).toHaveBeenCalledWith(card);
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
+  });
+
+  it("renders the ready screen in the application shell and forwards header actions", async () => {
+    const view = render(<CardFormPage />);
+    const logo = view.getByRole("button", { name: "tango" });
+    const headerActions = logo.parentElement?.querySelectorAll("svg");
+
+    expect(headerActions).toHaveLength(3);
+    await userEvent.click(logo);
+    await userEvent.click(headerActions?.[0] as SVGElement);
+    await userEvent.click(headerActions?.[1] as SVGElement);
+    await userEvent.click(headerActions?.[2] as SVGElement);
+
+    expect(mocks.goToTop).toHaveBeenCalledOnce();
+    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    expect(mocks.goToImport).toHaveBeenCalledOnce();
+    expect(mocks.goToSettings).toHaveBeenCalledOnce();
+
+    view.unmount();
+    mocks.config = { darkMode: true } as ConfigState;
+    const darkView = render(<CardFormPage />);
+    const darkModeAction = darkView.getByRole("button", { name: "tango" }).parentElement?.querySelector("svg");
+    await userEvent.click(darkModeAction as SVGElement);
+    expect(mocks.setDarkMode).toHaveBeenNthCalledWith(2, false);
   });
 
   it("returns to the previous page without saving when cancelled", async () => {
@@ -170,6 +202,7 @@ describe("CardFormPage", () => {
     expect(view.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
     expect(view.getByRole("button", { name: "Go home" })).toBeInTheDocument();
     expect(view.getByRole("button", { name: "Go back" })).toBeInTheDocument();
+    expect(view.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
 
   it("goes home when card recovery is requested", async () => {

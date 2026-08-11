@@ -63,6 +63,7 @@ describe("DeckImportView", () => {
       "p-4",
       "md:p-6"
     );
+    expect(view.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(surface).toContainElement(upload);
     expect(view.getByRole("heading", { level: 2, name: "Choose a CSV file" })).toBeInTheDocument();
     expect(view.getByRole("heading", { level: 2, name: "CSV format" })).toBeInTheDocument();

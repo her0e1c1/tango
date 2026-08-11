@@ -7,6 +7,7 @@ import { useCardFormState, useCardMutations } from "@/features/card";
 import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/hooks/useConfig";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -34,21 +35,23 @@ const CardFormContent = ({ card }: { card: Card }) => {
   });
 
   return (
-    <CardFormView
-      layout={{
-        headerProps: {
-          dark: config.darkMode,
-          onClickDarkMode: actions.setDarkMode,
-          onClickLogo: actions.goToTop,
-          onClickImport: actions.goToImport,
-          onClickSettings: actions.goToSettings,
-        },
+    <Layout
+      showHeader
+      headerProps={{
+        dark: config.darkMode,
+        onClickDarkMode: actions.setDarkMode,
+        onClickLogo: actions.goToTop,
+        onClickImport: actions.goToImport,
+        onClickSettings: actions.goToSettings,
       }}
-      feedbackSlot={
-        <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
-      }
-      cardForm={{ ...cardForm, onCancel: goBack }}
-    />
+    >
+      <CardFormView
+        feedbackSlot={
+          <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
+        }
+        cardForm={{ ...cardForm, onCancel: goBack }}
+      />
+    </Layout>
   );
 };
 

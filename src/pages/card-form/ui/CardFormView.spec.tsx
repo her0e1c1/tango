@@ -42,6 +42,7 @@ describe("CardFormView", () => {
 
     expect(view.getByText("Card editor")).toBeVisible();
     expect(view.getByText("Update the prompt, answer, and organization for this card.")).toBeVisible();
+    expect(view.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(surface).toHaveClass(
       "mx-auto",
       "w-full",

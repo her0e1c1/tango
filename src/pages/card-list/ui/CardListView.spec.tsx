@@ -29,6 +29,7 @@ describe("CardListView", () => {
     );
 
     expect(view.getByRole("heading", { level: 1, name: "Cards" })).toBeInTheDocument();
+    expect(view.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(view.getByText("0 cards")).toBeInTheDocument();
     expect(view.getByText("No filters")).toBeInTheDocument();
     expect(view.getByText("Filters").closest("details")).not.toHaveAttribute("open");
