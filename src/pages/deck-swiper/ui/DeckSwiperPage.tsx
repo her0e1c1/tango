@@ -17,6 +17,7 @@ import {
 import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/shared/config/useConfig";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import * as util from "@/util";
@@ -148,57 +149,60 @@ export const DeckSwiperPage: React.FC = () => {
   };
 
   return (
-    <DeckSwiperView
-      showController={config.cardInterval > 0}
-      showBackText={showBackText}
-      showHeader={config.showHeader}
-      showSwipeButtonList={config.showSwipeButtonList}
-      {...(config.showSwipeFeedback && lastSwipe !== undefined ? { swipeFeedback: lastSwipe.direction } : {})}
-      layout={{
-        headerProps: {
-          dark: config.darkMode,
-          onClickDarkMode: actions.setDarkMode,
-          onClickLogo: actions.goToTop,
-          onClickImport: actions.goToImport,
-          onClickSettings: actions.goToSettings,
-        },
+    <Layout
+      fullscreen
+      scroll={showBackText}
+      showHeader={config.showHeader && !showBackText}
+      headerProps={{
+        dark: config.darkMode,
+        onClickDarkMode: actions.setDarkMode,
+        onClickLogo: actions.goToTop,
+        onClickImport: actions.goToImport,
+        onClickSettings: actions.goToSettings,
       }}
-      feedbackSlot={
-        <RemoteMutationNotice
-          pending={studyActions.pending}
-          error={studyActions.error}
-          onRetry={studyActions.retry}
-          showPending={false}
-        />
-      }
-      frontTextSlot={
-        <FrontText
-          {...(category !== undefined ? { category } : {})}
-          text={card.frontText}
-          {...(!studyActions.pending
-            ? {
-                onSwipeUp: studyActions.swipeUp,
-                onSwipeDown: studyActions.swipeDown,
-                onSwipeLeft: studyActions.swipeLeft,
-                onSwipeRight: studyActions.swipeRight,
-              }
-            : {})}
-          onClick={studyActions.toggleShowBackText}
-        />
-      }
-      cardOverlaySlot={<CardOverlay card={card} />}
-      backTextSlot={
-        <BackText
-          {...(category !== undefined ? { category } : {})}
-          code={category !== undefined && C.LANGUAGES.includes(category)}
-          dark={config.darkMode}
-          text={card.backText}
-          onClick={studyActions.toggleShowBackText}
-        />
-      }
-      controller={controller}
-      swipeButtonList={swipeActions}
-      swipeOverlay={swipeActions}
-    />
+    >
+      <DeckSwiperView
+        showController={config.cardInterval > 0}
+        showBackText={showBackText}
+        showSwipeButtonList={config.showSwipeButtonList}
+        {...(config.showSwipeFeedback && lastSwipe !== undefined ? { swipeFeedback: lastSwipe.direction } : {})}
+        feedbackSlot={
+          <RemoteMutationNotice
+            pending={studyActions.pending}
+            error={studyActions.error}
+            onRetry={studyActions.retry}
+            showPending={false}
+          />
+        }
+        frontTextSlot={
+          <FrontText
+            {...(category !== undefined ? { category } : {})}
+            text={card.frontText}
+            {...(!studyActions.pending
+              ? {
+                  onSwipeUp: studyActions.swipeUp,
+                  onSwipeDown: studyActions.swipeDown,
+                  onSwipeLeft: studyActions.swipeLeft,
+                  onSwipeRight: studyActions.swipeRight,
+                }
+              : {})}
+            onClick={studyActions.toggleShowBackText}
+          />
+        }
+        cardOverlaySlot={<CardOverlay card={card} />}
+        backTextSlot={
+          <BackText
+            {...(category !== undefined ? { category } : {})}
+            code={category !== undefined && C.LANGUAGES.includes(category)}
+            dark={config.darkMode}
+            text={card.backText}
+            onClick={studyActions.toggleShowBackText}
+          />
+        }
+        controller={controller}
+        swipeButtonList={swipeActions}
+        swipeOverlay={swipeActions}
+      />
+    </Layout>
   );
 };

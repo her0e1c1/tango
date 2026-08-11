@@ -21,7 +21,9 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   deckDownloadCsvSampleText: vi.fn(),
   goToTop: vi.fn(),
+  goToImport: vi.fn(),
   goToSettings: vi.fn(),
+  setDarkMode: vi.fn(),
   useKey: vi.fn(),
   preview: undefined as DeckImportPreview | undefined,
   data: undefined as DeckImportResult | undefined,
@@ -58,8 +60,8 @@ vi.mock("@/hooks/useActions", () => ({
     deckDownloadCsvSampleText: mocks.deckDownloadCsvSampleText,
     goToTop: mocks.goToTop,
     goToSettings: mocks.goToSettings,
-    goToImport: vi.fn(),
-    setDarkMode: vi.fn(),
+    goToImport: mocks.goToImport,
+    setDarkMode: mocks.setDarkMode,
   }),
 }));
 
@@ -122,6 +124,20 @@ describe("DeckImportPage", () => {
     expect(mocks.deckDownloadCsvSampleText).toHaveBeenCalledOnce();
     expect(mocks.useKey).toHaveBeenCalledWith("t", mocks.goToTop);
     expect(mocks.useKey).toHaveBeenCalledWith("s", mocks.goToSettings);
+  });
+
+  it("renders the import screen in the application shell and forwards header actions", async () => {
+    render(<DeckImportPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "tango" }));
+    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
+
+    expect(mocks.goToTop).toHaveBeenCalledOnce();
+    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    expect(mocks.goToImport).toHaveBeenCalledOnce();
+    expect(mocks.goToSettings).toHaveBeenCalledOnce();
   });
 
   it("adds the bundled sample without navigating automatically", async () => {

@@ -49,6 +49,7 @@ describe("DeckImportView", () => {
     const heading = screen.getByRole("heading", { level: 1, name: "Import decks" });
 
     expect(heading).toBeVisible();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(screen.getByLabelText("Upload a csv file")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "Choose a CSV file" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "CSV format" })).toBeInTheDocument();

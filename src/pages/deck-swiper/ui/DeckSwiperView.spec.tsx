@@ -25,5 +25,6 @@ describe("DeckSwiperView", () => {
     expect(screen.getByRole("button", { name: "Swipe right" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Swipe up" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Swipe down" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
 });

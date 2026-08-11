@@ -48,6 +48,10 @@ const mocks = vi.hoisted(() => ({
   hydrated: true,
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
+  goToTop: vi.fn(),
+  goToImport: vi.fn(),
+  goToSettings: vi.fn(),
+  setDarkMode: vi.fn(),
   useKey: vi.fn(),
 }));
 
@@ -111,10 +115,10 @@ vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     toggleShowHeader: mocks.toggleShowHeader,
     toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
-    setDarkMode: vi.fn(),
-    goToTop: vi.fn(),
-    goToImport: vi.fn(),
-    goToSettings: vi.fn(),
+    setDarkMode: mocks.setDarkMode,
+    goToTop: mocks.goToTop,
+    goToImport: mocks.goToImport,
+    goToSettings: mocks.goToSettings,
   }),
 }));
 
@@ -230,6 +234,38 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     expect(mocks.useKey).toHaveBeenCalledWith("ArrowRight", mocks.swipeRight);
     expect(mocks.useKey).toHaveBeenCalledWith("Enter", mocks.toggleShowBackText);
     expect(mocks.useKey).toHaveBeenCalledWith(" ", mocks.toggleAutoPlay);
+  });
+
+  it("owns header visibility across front and back content", () => {
+    const view = render(<DeckSwiperPage />);
+
+    expect(screen.getByRole("button", { name: "tango" })).toBeInTheDocument();
+
+    mocks.studyState.showBackText = true;
+    view.rerender(<DeckSwiperPage />);
+
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+
+    mocks.studyState.showBackText = false;
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    mocks.state.config = createConfig({ ...mocks.state.config, showHeader: false });
+    view.rerender(<DeckSwiperPage />);
+
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+  });
+
+  it("forwards header actions from the ready study screen", () => {
+    render(<DeckSwiperPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "tango" }));
+    fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
+
+    expect(mocks.goToTop).toHaveBeenCalledOnce();
+    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    expect(mocks.goToImport).toHaveBeenCalledOnce();
+    expect(mocks.goToSettings).toHaveBeenCalledOnce();
   });
 
   it("keeps pending study saves silent while disabling swipe controls", () => {
@@ -358,6 +394,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     const view = render(<DeckSwiperPage />);
 
     expect(screen.getByRole("status")).toHaveTextContent("Study session unavailable.");
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(mocks.resetStudy).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
     expect(mocks.studyState.sessionsByDeckId[deck.id]).toBeUndefined();

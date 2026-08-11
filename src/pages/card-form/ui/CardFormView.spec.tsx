@@ -41,6 +41,7 @@ describe("CardFormView", () => {
     expect(heading).toBeVisible();
     expect(feedback).toBeVisible();
     expect(screen.getByRole("button", { name: "Save changes" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Back to cards" }));
 

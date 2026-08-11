@@ -5,6 +5,7 @@ import { useKey } from "react-use";
 import * as C from "@/constant";
 import { useDeckImport } from "@/features/import";
 import { useActions } from "@/hooks/useActions";
+import { Layout } from "@/shared/ui/layout";
 import { useConfig } from "@/shared/config/useConfig";
 
 import { DeckImportView } from "./DeckImportView";
@@ -18,39 +19,41 @@ export const DeckImportPage: React.FC = () => {
   useKey("s", actions.goToSettings);
 
   return (
-    <DeckImportView
-      onChange={(file) => {
-        void deckImport.selectFile(file).catch(() => undefined);
+    <Layout
+      showHeader
+      headerProps={{
+        dark: config.darkMode,
+        onClickDarkMode: actions.setDarkMode,
+        onClickLogo: actions.goToTop,
+        onClickImport: actions.goToImport,
+        onClickSettings: actions.goToSettings,
       }}
-      onAddSample={() => {
-        void deckImport.addSample().catch(() => undefined);
-      }}
-      onImport={() => {
-        void deckImport
-          .importPreview()
-          .then(() => navigate("/"))
-          .catch(() => undefined);
-      }}
-      onRetry={deckImport.retry}
-      onBack={() => navigate(-1)}
-      onDownloadSample={actions.deckDownloadCsvSampleText}
-      validating={deckImport.validating}
-      pending={deckImport.pending}
-      {...(deckImport.preview !== undefined ? { preview: deckImport.preview } : {})}
-      {...(deckImport.data !== undefined ? { result: deckImport.data } : {})}
-      {...(deckImport.partialResult !== undefined ? { partialResult: deckImport.partialResult } : {})}
-      error={deckImport.error}
-      dark={config.darkMode}
-      sampleText={C.CSV_SAMPLE_TEXT}
-      layout={{
-        headerProps: {
-          dark: config.darkMode,
-          onClickDarkMode: actions.setDarkMode,
-          onClickLogo: actions.goToTop,
-          onClickImport: actions.goToImport,
-          onClickSettings: actions.goToSettings,
-        },
-      }}
-    />
+    >
+      <DeckImportView
+        onChange={(file) => {
+          void deckImport.selectFile(file).catch(() => undefined);
+        }}
+        onAddSample={() => {
+          void deckImport.addSample().catch(() => undefined);
+        }}
+        onImport={() => {
+          void deckImport
+            .importPreview()
+            .then(() => navigate("/"))
+            .catch(() => undefined);
+        }}
+        onRetry={deckImport.retry}
+        onBack={() => navigate(-1)}
+        onDownloadSample={actions.deckDownloadCsvSampleText}
+        validating={deckImport.validating}
+        pending={deckImport.pending}
+        {...(deckImport.preview !== undefined ? { preview: deckImport.preview } : {})}
+        {...(deckImport.data !== undefined ? { result: deckImport.data } : {})}
+        {...(deckImport.partialResult !== undefined ? { partialResult: deckImport.partialResult } : {})}
+        error={deckImport.error}
+        dark={config.darkMode}
+        sampleText={C.CSV_SAMPLE_TEXT}
+      />
+    </Layout>
   );
 };

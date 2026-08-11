@@ -21,6 +21,10 @@ const mocks = vi.hoisted(() => ({
   error: null as unknown,
   retry: vi.fn(),
   goToCardEdit: vi.fn(),
+  goToTop: vi.fn(),
+  goToImport: vi.fn(),
+  goToSettings: vi.fn(),
+  setDarkMode: vi.fn(),
   cardUpdateBy: vi.fn(),
   cardRemove: vi.fn(),
   onClickTag: vi.fn(),
@@ -79,10 +83,10 @@ vi.mock("react-use", () => ({
 
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
-    goToTop: vi.fn(),
-    goToSettings: vi.fn(),
-    goToImport: vi.fn(),
-    setDarkMode: vi.fn(),
+    goToTop: mocks.goToTop,
+    goToSettings: mocks.goToSettings,
+    goToImport: mocks.goToImport,
+    setDarkMode: mocks.setDarkMode,
     cardUpdateBy: vi.fn(() => vi.fn()),
     goToCardEdit: mocks.goToCardEdit,
     cardRemove: vi.fn(),
@@ -158,6 +162,10 @@ describe("CardListPage", () => {
     mocks.error = null;
     mocks.retry.mockReset();
     mocks.goToCardEdit.mockReset();
+    mocks.goToTop.mockReset();
+    mocks.goToImport.mockReset();
+    mocks.goToSettings.mockReset();
+    mocks.setDarkMode.mockReset();
     mocks.cardUpdateBy.mockReset().mockResolvedValue(undefined);
     mocks.cardRemove.mockReset().mockResolvedValue(undefined);
     mocks.onClickTag.mockReset();
@@ -178,6 +186,28 @@ describe("CardListPage", () => {
     expect(screen.getByText("score -2–4 · 1 tag")).toBeInTheDocument();
     expect(screen.getByLabelText("Selected tags")).toHaveTextContent("typescript");
     expect(screen.getByText("Filters")).toBeVisible();
+  });
+
+  it("renders the ready screen in the application shell and forwards header actions", async () => {
+    render(<CardListPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "tango" }));
+    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
+
+    expect(mocks.goToTop).toHaveBeenCalledOnce();
+    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    expect(mocks.goToImport).toHaveBeenCalledOnce();
+    expect(mocks.goToSettings).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the unavailable route feedback outside the application shell", () => {
+    mocks.deck = null;
+    render(<CardListPage />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
 
   it("removes one selected tag through the existing filter callback", async () => {

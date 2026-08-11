@@ -16,6 +16,7 @@ describe("CardViewView", () => {
   it("preserves optional back content in a reading-width surface", () => {
     render(<CardViewView backText={{ text: "Card answer" }} />);
     expect(screen.getByText("Card answer")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
   it("renders without back content", () => {
     render(<CardViewView />);

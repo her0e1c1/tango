@@ -25,6 +25,7 @@ describe("CardListView", () => {
     render(<CardListView cards={[]} feedbackSlot={<div role="status">Saved</div>} filterSlot={<div>Controls</div>} />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Cards" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(screen.getByText("0 cards")).toBeInTheDocument();
     expect(screen.getByText("No filters")).toBeInTheDocument();
     expect(screen.getByText("Filters")).toBeVisible();

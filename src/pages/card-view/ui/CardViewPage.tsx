@@ -7,6 +7,7 @@ import type { Deck } from "@/entities/deck";
 import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/shared/config/useConfig";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { Layout } from "@/shared/ui/layout";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import * as util from "@/util";
@@ -19,23 +20,25 @@ const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
   const category = util.getCategory(deck.category, card.tags);
 
   return (
-    <CardViewView
-      backText={{
-        ...(category !== undefined ? { category } : {}),
-        code: category !== undefined && C.LANGUAGES.includes(category),
+    <Layout
+      showHeader
+      headerProps={{
         dark: config.darkMode,
-        text: card.backText,
+        onClickDarkMode: actions.setDarkMode,
+        onClickLogo: actions.goToTop,
+        onClickImport: actions.goToImport,
+        onClickSettings: actions.goToSettings,
       }}
-      layout={{
-        headerProps: {
+    >
+      <CardViewView
+        backText={{
+          ...(category !== undefined ? { category } : {}),
+          code: category !== undefined && C.LANGUAGES.includes(category),
           dark: config.darkMode,
-          onClickDarkMode: actions.setDarkMode,
-          onClickLogo: actions.goToTop,
-          onClickImport: actions.goToImport,
-          onClickSettings: actions.goToSettings,
-        },
-      }}
-    />
+          text: card.backText,
+        }}
+      />
+    </Layout>
   );
 };
 

@@ -9,19 +9,24 @@ import { createCard, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
+  config: { darkMode: false } as ConfigState,
   card: null as Card | null,
   deck: null as Deck | null,
   navigate: vi.fn(),
+  goToTop: vi.fn(),
+  goToImport: vi.fn(),
+  goToSettings: vi.fn(),
+  setDarkMode: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
+vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
-    setDarkMode: vi.fn(),
-    goToTop: vi.fn(),
-    goToImport: vi.fn(),
-    goToSettings: vi.fn(),
+    setDarkMode: mocks.setDarkMode,
+    goToTop: mocks.goToTop,
+    goToImport: mocks.goToImport,
+    goToSettings: mocks.goToSettings,
   }),
 }));
 vi.mock("@/hooks/useRemoteCollections", () => ({
@@ -42,9 +47,14 @@ import { CardViewPage } from "./CardViewPage";
 describe("CardViewPage", () => {
   beforeEach(() => {
     mocks.params.id = "card-id";
+    mocks.config = { darkMode: false } as ConfigState;
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
     mocks.card = createCard({ id: "card-id", deckId: "deck-id", backText: "const answer = 42;", tags: ["typescript"] });
     mocks.navigate.mockReset();
+    mocks.goToTop.mockReset();
+    mocks.goToImport.mockReset();
+    mocks.goToSettings.mockReset();
+    mocks.setDarkMode.mockReset();
   });
 
   it("renders the card answer using its resolved category", () => {
@@ -53,11 +63,26 @@ describe("CardViewPage", () => {
     expect(screen.getByText(/answer =/)).toHaveTextContent("const answer = 42;");
   });
 
+  it("renders the ready screen in the application shell and forwards header actions", async () => {
+    render(<CardViewPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: "tango" }));
+    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
+
+    expect(mocks.goToTop).toHaveBeenCalledOnce();
+    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    expect(mocks.goToImport).toHaveBeenCalledOnce();
+    expect(mocks.goToSettings).toHaveBeenCalledOnce();
+  });
+
   it("shows recovery actions when the card is unavailable", async () => {
     mocks.card = null;
     render(<CardViewPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");

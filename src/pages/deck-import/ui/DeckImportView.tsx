@@ -10,7 +10,6 @@ import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
 import { Upload } from "@/shared/ui/forms";
 import type { DeckImportPreview, DeckImportResult } from "@/features/import";
-import { Layout, type LayoutProps } from "@/shared/ui/layout";
 
 interface DeckImportViewProps {
   onChange?: (file: File) => void;
@@ -21,7 +20,6 @@ interface DeckImportViewProps {
   onBack?: () => void;
   sampleText: string;
   dark?: boolean;
-  layout?: LayoutProps;
   validating?: boolean;
   pending?: boolean;
   preview?: DeckImportPreview;
@@ -231,84 +229,79 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
   const busy = props.pending === true || props.validating === true;
 
   return (
-    <Layout showHeader {...props.layout}>
-      <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
-        <h1 className="mb-section-gap break-words text-display font-bold text-ink">Import decks</h1>
-        <div className="space-y-section-gap">
-          {props.validating ? (
-            <p role="status" className="text-caption text-ink-muted">
-              Validating CSV…
-            </p>
-          ) : props.pending ? (
-            <p role="status" className="text-caption text-ink-muted">
-              Importing…
-            </p>
-          ) : null}
-          <ImportResult
-            result={props.result}
-            partialResult={props.partialResult}
-            error={props.error}
-            onRetry={props.onRetry}
-            onBack={props.onBack}
+    <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
+      <h1 className="mb-section-gap break-words text-display font-bold text-ink">Import decks</h1>
+      <div className="space-y-section-gap">
+        {props.validating ? (
+          <p role="status" className="text-caption text-ink-muted">
+            Validating CSV…
+          </p>
+        ) : props.pending ? (
+          <p role="status" className="text-caption text-ink-muted">
+            Importing…
+          </p>
+        ) : null}
+        <ImportResult
+          result={props.result}
+          partialResult={props.partialResult}
+          error={props.error}
+          onRetry={props.onRetry}
+          onBack={props.onBack}
+        />
+        <section>
+          <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>
+          <Upload
+            disabled={busy}
+            {...(props.preview !== undefined ? { fileName: props.preview.fileName } : {})}
+            {...(props.onChange !== undefined ? { onChange: props.onChange } : {})}
           />
-          <section>
-            <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>
-            <Upload
-              disabled={busy}
-              {...(props.preview !== undefined ? { fileName: props.preview.fileName } : {})}
-              {...(props.onChange !== undefined ? { onChange: props.onChange } : {})}
-            />
-          </section>
-          <ImportPreview
-            preview={props.preview}
-            pending={props.pending}
-            validating={props.validating}
-            onImport={props.onImport}
-          />
-          <section>
-            <h2 className="mb-2 break-words text-title font-bold text-ink">CSV format</h2>
-            <div className="space-y-2">
-              <Description>
-                Four columns without a header: front text, back text, tags (optional), and uniqueKey.
-              </Description>
-              <Description>
-                uniqueKey is required. Keep it stable to update the same card and avoid duplicates when importing again.
-              </Description>
+        </section>
+        <ImportPreview
+          preview={props.preview}
+          pending={props.pending}
+          validating={props.validating}
+          onImport={props.onImport}
+        />
+        <section>
+          <h2 className="mb-2 break-words text-title font-bold text-ink">CSV format</h2>
+          <div className="space-y-2">
+            <Description>
+              Four columns without a header: front text, back text, tags (optional), and uniqueKey.
+            </Description>
+            <Description>
+              uniqueKey is required. Keep it stable to update the same card and avoid duplicates when importing again.
+            </Description>
+          </div>
+        </section>
+        <section>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="break-words text-title font-bold text-ink">Sample</h2>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                disabled={busy}
+                {...(props.onAddSample !== undefined ? { onClick: props.onAddSample } : {})}
+              >
+                Add sample deck
+              </Button>
+              <Button
+                variant="quiet"
+                size="sm"
+                {...(props.onDownloadSample !== undefined ? { onClick: props.onDownloadSample } : {})}
+              >
+                <AiOutlineCloudDownload aria-hidden="true" className="text-xl" size={24} />
+                <span aria-hidden="true" className="text-caption text-ink-muted underline">
+                  download
+                </span>
+                <span className="sr-only">Download CSV sample</span>
+              </Button>
             </div>
-          </section>
-          <section>
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="break-words text-title font-bold text-ink">Sample</h2>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  disabled={busy}
-                  {...(props.onAddSample !== undefined ? { onClick: props.onAddSample } : {})}
-                >
-                  Add sample deck
-                </Button>
-                <Button
-                  variant="quiet"
-                  size="sm"
-                  {...(props.onDownloadSample !== undefined ? { onClick: props.onDownloadSample } : {})}
-                >
-                  <AiOutlineCloudDownload aria-hidden="true" className="text-xl" size={24} />
-                  <span aria-hidden="true" className="text-caption text-ink-muted underline">
-                    download
-                  </span>
-                  <span className="sr-only">Download CSV sample</span>
-                </Button>
-              </div>
-            </div>
-            <div
-              data-import-sample
-              className="overflow-x-auto rounded-surface border border-border bg-surface-muted p-2"
-            >
-              <Code text={props.sampleText} category="csv" dark={props.dark ?? false} />
-            </div>
-          </section>
-        </div>
-      </section>
-    </Layout>
+          </div>
+          <div data-import-sample className="overflow-x-auto rounded-surface border border-border bg-surface-muted p-2">
+            <Code text={props.sampleText} category="csv" dark={props.dark ?? false} />
+          </div>
+        </section>
+      </div>
+    </section>
   );
 };

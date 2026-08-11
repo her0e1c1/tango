@@ -7,7 +7,6 @@ import cx from "classnames";
 import type * as React from "react";
 import { Overlay } from "@/shared/ui/feedback";
 import { Controller, type ControllerProps, SwipeButtonList, type SwipeButtonListProps } from "@/features/study";
-import { Layout, type LayoutProps } from "@/shared/ui/layout";
 
 const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
   cardSwipeUp: "Swiped up",
@@ -17,12 +16,10 @@ const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
 };
 
 export interface DeckSwiperViewProps {
-  showHeader?: boolean;
   showBackText?: boolean;
   showSwipeButtonList?: boolean;
   showController?: boolean;
   swipeFeedback?: SwipeDirection;
-  layout?: LayoutProps;
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
   frontTextSlot?: React.ReactNode;
@@ -39,12 +36,7 @@ export interface DeckSwiperViewProps {
  */
 export const DeckSwiperView: React.FC<DeckSwiperViewProps> = (props) => {
   return (
-    <Layout
-      fullscreen
-      {...(props.showHeader !== undefined ? { showHeader: props.showHeader && !props.showBackText } : {})}
-      {...(props.showBackText !== undefined ? { scroll: props.showBackText } : {})}
-      {...props.layout}
-    >
+    <>
       {props.feedbackSlot}
       {props.swipeFeedback !== undefined ? (
         <div
@@ -90,6 +82,6 @@ export const DeckSwiperView: React.FC<DeckSwiperViewProps> = (props) => {
           {props.showController ? <Controller {...props.controller} /> : null}
         </div>
       ) : null}
-    </Layout>
+    </>
   );
 };

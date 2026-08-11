@@ -12,6 +12,7 @@ import { useConfig } from "@/shared/config/useConfig";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
+import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -42,94 +43,97 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   useKey("s", actions.goToSettings);
 
   return (
-    <CardListView
-      cards={cards}
-      filter={{
-        scoreMax: deckStartForm.scoreMax,
-        scoreMin: deckStartForm.scoreMin,
-        selectedTags: deckStartForm.tagFilterProps.selectedTags ?? [],
+    <Layout
+      showHeader
+      headerProps={{
+        dark: config.darkMode,
+        onClickDarkMode: actions.setDarkMode,
+        onClickLogo: actions.goToTop,
+        onClickImport: actions.goToImport,
+        onClickSettings: actions.goToSettings,
       }}
-      filterSlot={<DeckStartForm {...deckStartForm} />}
-      onRemoveTag={(tag) => {
-        const selectedTags = deckStartForm.tagFilterProps.selectedTags ?? [];
-        deckStartForm.tagFilterProps.onClickTag?.(selectedTags.filter((value) => value !== tag));
-      }}
-      layout={{
-        headerProps: {
-          dark: config.darkMode,
-          onClickDarkMode: actions.setDarkMode,
-          onClickLogo: actions.goToTop,
-          onClickImport: actions.goToImport,
-          onClickSettings: actions.goToSettings,
-        },
-      }}
-      card={{
-        onSwipedLeft: (id) => void mutations.updateBy(id, (card) => ({ score: card.score - 1 })).catch(() => undefined),
-        onSwipedRight: (id) =>
-          void mutations.updateBy(id, (card) => ({ score: card.score + 1 })).catch(() => undefined),
-        goToEdit: actions.goToCardEdit,
-        onDelete: (id) => {
-          const card = cards.find((candidate) => candidate.id === id);
-          if (card != null) {
-            setSuccessMessage(undefined);
-            setDeletionErrorCardId(undefined);
-            setDeletionTarget(card);
-          }
-        },
-      }}
-      feedbackSlot={
-        <>
-          <RemoteMutationNotice
-            pending={mutations.pending}
-            error={mutations.error}
-            onRetry={mutations.retry}
-            {...(deletionTarget != null ? { pendingLabel: "Deleting card…" } : {})}
-          />
-          <Feedback tone="success">{successMessage}</Feedback>
-        </>
-      }
-      dialogSlot={
-        deletionTarget != null ? (
-          <DestructiveActionDialog
-            title="Delete card?"
-            targetLabel="Card front"
-            targetName={deletionTarget.frontText}
-            description={
-              <>
-                <p>This permanently deletes this card.</p>
-                <p>This action cannot be undone.</p>
-              </>
+    >
+      <CardListView
+        cards={cards}
+        filter={{
+          scoreMax: deckStartForm.scoreMax,
+          scoreMin: deckStartForm.scoreMin,
+          selectedTags: deckStartForm.tagFilterProps.selectedTags ?? [],
+        }}
+        filterSlot={<DeckStartForm {...deckStartForm} />}
+        onRemoveTag={(tag) => {
+          const selectedTags = deckStartForm.tagFilterProps.selectedTags ?? [];
+          deckStartForm.tagFilterProps.onClickTag?.(selectedTags.filter((value) => value !== tag));
+        }}
+        card={{
+          onSwipedLeft: (id) =>
+            void mutations.updateBy(id, (card) => ({ score: card.score - 1 })).catch(() => undefined),
+          onSwipedRight: (id) =>
+            void mutations.updateBy(id, (card) => ({ score: card.score + 1 })).catch(() => undefined),
+          goToEdit: actions.goToCardEdit,
+          onDelete: (id) => {
+            const card = cards.find((candidate) => candidate.id === id);
+            if (card != null) {
+              setSuccessMessage(undefined);
+              setDeletionErrorCardId(undefined);
+              setDeletionTarget(card);
             }
-            confirmLabel="Delete card"
-            pending={mutations.isPending(deletionTarget.id)}
-            {...(deletionErrorCardId === deletionTarget.id
-              ? { errorMessage: "Unable to delete this card. Check your connection and try again." }
-              : {})}
-            onCancel={() => setDeletionTarget(undefined)}
-            onConfirm={() =>
-              mutations.remove(deletionTarget.id).catch(() => {
-                setDeletionErrorCardId(deletionTarget.id);
-              })
-            }
-          />
-        ) : null
-      }
-      isCardPending={mutations.isPending}
-      {...(showCard != null && category != null
-        ? {
-            overlay: {
-              backText: {
-                text: showCard.backText,
-                category,
-                code: C.LANGUAGES.includes(category),
-                dark: config.darkMode,
+          },
+        }}
+        feedbackSlot={
+          <>
+            <RemoteMutationNotice
+              pending={mutations.pending}
+              error={mutations.error}
+              onRetry={mutations.retry}
+              {...(deletionTarget != null ? { pendingLabel: "Deleting card…" } : {})}
+            />
+            <Feedback tone="success">{successMessage}</Feedback>
+          </>
+        }
+        dialogSlot={
+          deletionTarget != null ? (
+            <DestructiveActionDialog
+              title="Delete card?"
+              targetLabel="Card front"
+              targetName={deletionTarget.frontText}
+              description={
+                <>
+                  <p>This permanently deletes this card.</p>
+                  <p>This action cannot be undone.</p>
+                </>
+              }
+              confirmLabel="Delete card"
+              pending={mutations.isPending(deletionTarget.id)}
+              {...(deletionErrorCardId === deletionTarget.id
+                ? { errorMessage: "Unable to delete this card. Check your connection and try again." }
+                : {})}
+              onCancel={() => setDeletionTarget(undefined)}
+              onConfirm={() =>
+                mutations.remove(deletionTarget.id).catch(() => {
+                  setDeletionErrorCardId(deletionTarget.id);
+                })
+              }
+            />
+          ) : null
+        }
+        isCardPending={mutations.isPending}
+        {...(showCard != null && category != null
+          ? {
+              overlay: {
+                backText: {
+                  text: showCard.backText,
+                  category,
+                  code: C.LANGUAGES.includes(category),
+                  dark: config.darkMode,
+                },
+                onClose: closeCard,
               },
-              onClose: closeCard,
-            },
-          }
-        : {})}
-      onShowCard={setShowCard}
-    />
+            }
+          : {})}
+        onShowCard={setShowCard}
+      />
+    </Layout>
   );
 };
 
