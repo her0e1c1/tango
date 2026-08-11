@@ -1,15 +1,13 @@
 /**
- * @file Composes the study feature's complete Deck Swiper Template screen.
- * Data and callbacks arrive through props, which keeps this presentation usable in both a live
- * container and Storybook.
+ * @file Composes the Deck Swiper Page's presentation.
+ * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
 import cx from "classnames";
 import type * as React from "react";
 import * as Shared from "@/components";
+import { Controller, type ControllerProps, SwipeButtonList, type SwipeButtonListProps } from "@/features/study";
 import { Layout, type LayoutProps } from "@/shared/ui/layout";
-import { Controller, type ControllerProps } from "@/features/study/components/Controller";
-import { SwipeButtonList, type SwipeButtonListProps } from "@/features/study/components/SwipeButtonList";
 
 const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
   cardSwipeUp: "Swiped up",
@@ -18,7 +16,7 @@ const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
   cardSwipeRight: "Swiped right",
 };
 
-export interface DeckSwiperTemplateProps {
+export interface DeckSwiperViewProps {
   showHeader?: boolean;
   showBackText?: boolean;
   showSwipeButtonList?: boolean;
@@ -35,11 +33,11 @@ export interface DeckSwiperTemplateProps {
 }
 
 /**
- * Composes the complete Deck Swiper Template screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * Composes the Deck Swiper screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
-export const DeckSwiperTemplate: React.FC<DeckSwiperTemplateProps> = (props) => {
+export const DeckSwiperView: React.FC<DeckSwiperViewProps> = (props) => {
   return (
     <Layout
       fullscreen

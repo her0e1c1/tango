@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { studyStore } from "../state/studyStore";
-import { discardStudySessionsMissingDecks, removeStudySession, touchStudySession } from "./studySessionCommands";
+import {
+  discardStudySessionsMissingDecks,
+  initializeStudySessionUi,
+  removeStudySession,
+  touchStudySession,
+} from "./studySessionCommands";
 
 describe("study session commands", () => {
   beforeEach(() => {
@@ -26,6 +31,22 @@ describe("study session commands", () => {
 
     expect(studyStore.getState().sessionsByDeckId).toEqual({
       first: { deckId: "first", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 900 },
+    });
+  });
+
+  it("initializes transient study controls", () => {
+    studyStore.setState({
+      showBackText: true,
+      autoPlay: false,
+      lastSwipe: { direction: "cardSwipeLeft", eventId: 1 },
+    });
+
+    initializeStudySessionUi(true);
+
+    expect(studyStore.getState()).toMatchObject({
+      showBackText: false,
+      autoPlay: true,
+      lastSwipe: undefined,
     });
   });
 

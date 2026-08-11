@@ -11,7 +11,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FrontText } from "@/features/card/components/FrontText";
 import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
-import { DeckSwiperTemplate } from "@/features/study/components/templates/DeckSwiperTemplate";
 import { SwipeButtonList } from "@/features/study/components/SwipeButtonList";
 import { FullScreen, Logo, Overlay, Title } from "@/components";
 
@@ -170,26 +169,6 @@ describe("keyboard-accessible interactions", () => {
     for (const element of view.container.querySelectorAll("[tabindex]")) {
       expect(element).not.toHaveAttribute("tabindex", "0");
     }
-  });
-
-  it("gives DeckSwiperTemplate swipe overlays accessible names", () => {
-    const view = render(
-      <DeckSwiperTemplate
-        showBackText
-        backTextSlot={<div>Back</div>}
-        swipeOverlay={{
-          onClickLeft: vi.fn(),
-          onClickRight: vi.fn(),
-          onClickUp: vi.fn(),
-          onClickDown: vi.fn(),
-        }}
-      />
-    );
-
-    expect(view.getByRole("button", { name: "Swipe left" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Swipe right" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Swipe up" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Swipe down" })).toBeInTheDocument();
   });
 
   it("names the interactive CardListTemplate close overlay", () => {
