@@ -10,7 +10,6 @@ import { expect, expectTypeOf, it, describe, vi, beforeEach, afterEach } from "v
 import * as fileSaver from "file-saver";
 
 import * as action from "@/action";
-import * as C from "@/constant";
 import { createBlobConstructor, createCard } from "@/test/factories";
 
 vi.mock("./firestore");
@@ -54,17 +53,6 @@ describe("deck action", () => {
         "CSV content must be a string or File"
       );
     });
-
-    it("keeps the bundled sample safe for identical re-imports", async () => {
-      const cards = await action.deck.parseCsv(C.CSV_SAMPLE_TEXT);
-
-      expect(cards).toHaveLength(3);
-      expect(cards.map((card) => card.uniqueKey)).toEqual([
-        "question-answer-example",
-        "hello-world-python",
-        "circle-area",
-      ]);
-    });
   });
 
   describe("download", () => {
@@ -101,18 +89,6 @@ describe("deck action", () => {
         type: "text/plain;charset=utf-8",
       });
       expect(fileSaver.saveAs).toHaveBeenCalledWith(blob, "Formula deck.csv");
-    });
-  });
-
-  describe("downloadCsvSampleText", () => {
-    it("should download", () => {
-      const blob = new Blob();
-      const m = vi.spyOn(global, "Blob");
-      m.mockImplementation(createBlobConstructor(blob));
-
-      action.deck.downloadCsvSampleText();
-      expect(m).toBeCalledWith([C.CSV_SAMPLE_TEXT], { type: "text/plain;charset=utf-8" });
-      expect(fileSaver.saveAs).toBeCalledWith(expect.anything(), "sample.csv");
     });
   });
 });

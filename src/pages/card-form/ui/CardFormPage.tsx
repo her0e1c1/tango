@@ -4,8 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import * as C from "@/constant";
 import type { Card } from "@/entities/card";
 import { useCardFormState, useCardMutations } from "@/features/card";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/shared/config/useConfig";
+import { setDarkMode, useConfig } from "@/shared/config";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
@@ -16,7 +15,6 @@ import { CardFormView } from "./CardFormView";
 
 const CardFormContent = ({ card }: { card: Card }) => {
   const config = useConfig();
-  const actions = useActions();
   const navigate = useNavigate();
   const mutations = useCardMutations();
   const categoryOptions = C.CATEGORY.map((category) => ({ label: category, value: category }));
@@ -39,10 +37,10 @@ const CardFormContent = ({ card }: { card: Card }) => {
       showHeader
       headerProps={{
         dark: config.appearance.darkMode,
-        onClickDarkMode: actions.setDarkMode,
-        onClickLogo: actions.goToTop,
-        onClickImport: actions.goToImport,
-        onClickSettings: actions.goToSettings,
+        onClickDarkMode: setDarkMode,
+        onClickLogo: () => void navigate("/"),
+        onClickImport: () => void navigate("/import"),
+        onClickSettings: () => void navigate("/settings"),
       }}
     >
       <CardFormView

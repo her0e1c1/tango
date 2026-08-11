@@ -18,6 +18,8 @@ const mocks = vi.hoisted(() => {
     start,
     currentStart: start,
     update: vi.fn(),
+    navigate: vi.fn(),
+    setDarkMode: vi.fn(),
   };
 });
 vi.mock("@/hooks/useRemoteCollections", () => ({
@@ -29,8 +31,13 @@ vi.mock("@/features/deck/hooks/useDeckActions", () => ({
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({ start: mocks.currentStart }),
 }));
-vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({ setDarkMode: vi.fn(), goToTop: vi.fn(), goByMenu: vi.fn() }),
+vi.mock("react-router-dom", () => ({
+  useNavigate: () => mocks.navigate,
+  useParams: () => ({ id: "deck-id" }),
+}));
+vi.mock("@/shared/config", () => ({
+  useConfig: () => ({}),
+  setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
   useDeckFilterState: () => ({

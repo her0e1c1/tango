@@ -18,9 +18,13 @@ const mocks = vi.hoisted(() => ({
   updateAndGoToList: vi.fn(),
   goToList: vi.fn(),
   navigate: vi.fn(),
+  setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/shared/config", () => ({
+  useConfig: () => mocks.config,
+  setDarkMode: mocks.setDarkMode,
+}));
 
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
@@ -33,14 +37,6 @@ vi.mock("@/hooks/useRemoteCollections", () => ({
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
-}));
-
-vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({
-    goToTop: vi.fn(),
-    goByMenu: vi.fn(),
-    setDarkMode: vi.fn(),
-  }),
 }));
 
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({

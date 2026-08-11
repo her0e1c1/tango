@@ -14,11 +14,10 @@ import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
-import { useActions } from "@/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { deckFormSchema, type DeckFormValues } from "@/features/deck/lib/deckFormSchema";
-import { useConfig } from "@/shared/config/useConfig";
+import { setDarkMode, useConfig } from "@/shared/config";
 
 /**
  * Connects the Deck Form Content view to stores, remote data, route parameters, and mutations.
@@ -27,7 +26,7 @@ import { useConfig } from "@/shared/config/useConfig";
  */
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const config = useConfig();
-  const actions = useActions();
+  const navigate = useNavigate();
   const deckActions = useDeckActions(deck.id);
   const categoryOptions = C.CATEGORY.map((category) => ({ label: category, value: category }));
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
@@ -45,10 +44,10 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
       layout={{
         headerProps: {
           dark: config.appearance.darkMode,
-          onClickDarkMode: actions.setDarkMode,
-          onClickLogo: actions.goToTop,
-          onClickImport: actions.goToImport,
-          onClickSettings: actions.goToSettings,
+          onClickDarkMode: setDarkMode,
+          onClickLogo: () => void navigate("/"),
+          onClickImport: () => void navigate("/import"),
+          onClickSettings: () => void navigate("/settings"),
         },
       }}
       feedbackSlot={

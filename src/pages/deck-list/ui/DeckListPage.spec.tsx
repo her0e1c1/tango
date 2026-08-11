@@ -31,20 +31,15 @@ const mocks = vi.hoisted(() => ({
   discardStudySessionsMissingDecks: vi.fn<(deckIds: Iterable<DeckId>) => void>(),
   removeStudySession: vi.fn<(deckId: DeckId) => void>(),
   touchStudySession: vi.fn<(deckId: DeckId) => void>(),
-  actions: {
-    goToSettings: vi.fn(),
-    goToImport: vi.fn(),
-    setDarkMode: vi.fn(),
-    goToTop: vi.fn(),
-    goByMenu: vi.fn(),
-    goToEdit: vi.fn(),
-    goToView: vi.fn(),
-    goToStudy: vi.fn(),
-    goToStart: vi.fn(),
-  },
+  navigate: vi.fn(),
+  setDarkMode: vi.fn(),
+  useKey: vi.fn(),
 }));
 
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/shared/config", () => ({
+  useConfig: () => mocks.config,
+  setDarkMode: mocks.setDarkMode,
+}));
 vi.mock("@/features/study", () => ({
   discardStudySessionsMissingDecks: mocks.discardStudySessionsMissingDecks,
   removeStudySession: mocks.removeStudySession,
@@ -68,8 +63,8 @@ vi.mock("@/hooks/useRemoteCollections", () => ({
     };
   },
 }));
-vi.mock("react-use", () => ({ useKey: vi.fn() }));
-vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.actions }));
+vi.mock("react-use", () => ({ useKey: mocks.useKey }));
+vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/deck", () => ({
   useDeckMutations: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
     mocks.onRemoveSuccess = options?.onRemoveSuccess;
@@ -163,10 +158,40 @@ describe("DeckListPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Continue Recent deck" }));
 
-    expect(mocks.actions.goToStudy).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
+    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith(`/deck/${recentDeck.id}/study`);
     expect(mocks.touchStudySession).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
     expect(mocks.sessionsByDeckId[recentDeck.id]?.lastStudiedAt).toBe(9000);
     expect(mocks.sessionsByDeckId[oldDeck.id]?.lastStudiedAt).toBe(1000);
+  });
+
+  it("navigates through deck interactions", () => {
+    render(<DeckListPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "View Alpha deck" }));
+    expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${otherDeck.id}`);
+
+    fireEvent.click(screen.getByRole("button", { name: "Study Alpha deck" }));
+    expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${otherDeck.id}/start`);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Alpha deck" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${otherDeck.id}/edit`);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Recent deck" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Restart" }));
+    expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${recentDeck.id}/start`);
+  });
+
+  it("preserves settings and import keyboard shortcuts", () => {
+    render(<DeckListPage />);
+
+    const settingsShortcut = mocks.useKey.mock.calls.find(([key]) => key === "s")?.[1];
+    const importShortcut = mocks.useKey.mock.calls.find(([key]) => key === "i")?.[1];
+    settingsShortcut?.();
+    importShortcut?.();
+
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
   });
 
   it("removes only the deleted deck session after the remote delete succeeds", async () => {

@@ -5,15 +5,16 @@
  */
 
 import type * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
+import * as action from "@/action";
 import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
 import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
-import { useActions } from "@/hooks/useActions";
 import { useAuth } from "@/auth/AuthContext";
-import { useConfig } from "@/shared/config/useConfig";
+import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
 
 /**
  * Connects the Config Container view to stores, remote data, route parameters, and mutations.
@@ -23,7 +24,7 @@ import { useConfig } from "@/shared/config/useConfig";
 export const ConfigContainer: React.FC = () => {
   const config = useConfig();
   const authState = useAuth();
-  const actions = useActions();
+  const navigate = useNavigate();
   const authenticated = authState.status === "authenticated" ? authState : undefined;
   const identity = {
     uid: authenticated?.uid ?? "",
@@ -33,8 +34,8 @@ export const ConfigContainer: React.FC = () => {
     generation: authenticated
       ? `authenticated:${authenticated.uid}:${authenticated.user.isAnonymous ? "anonymous" : "linked"}`
       : authState.status,
-    login: actions.login,
-    ...(authenticated ? { logout: () => actions.logout(authenticated.uid) } : {}),
+    login: action.event.loginGoogle,
+    ...(authenticated ? { logout: () => action.event.logout(authenticated.uid) } : {}),
   });
   const configForm = useConfigFormState({
     config,
@@ -53,19 +54,19 @@ export const ConfigContainer: React.FC = () => {
         errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
       />
     ),
-    onSubmit: actions.configUpdate,
+    onSubmit: updateConfig,
   });
-  useKey("t", actions.goToTop);
+  useKey("t", () => void navigate("/"));
 
   return (
     <ConfigFormTemplate
       layout={{
         headerProps: {
           dark: config.appearance.darkMode,
-          onClickDarkMode: actions.setDarkMode,
-          onClickLogo: actions.goToTop,
-          onClickImport: actions.goToImport,
-          onClickSettings: actions.goToSettings,
+          onClickDarkMode: setDarkMode,
+          onClickLogo: () => void navigate("/"),
+          onClickImport: () => void navigate("/import"),
+          onClickSettings: () => void navigate("/settings"),
         },
       }}
       configForm={configForm}
