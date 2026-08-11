@@ -1,0 +1,1 @@
+export { downloadTextFile } from "./downloadTextFile";

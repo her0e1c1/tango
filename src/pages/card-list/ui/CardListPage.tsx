@@ -7,8 +7,7 @@ import type { Card, CardId } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/shared/config/useConfig";
+import { setDarkMode, useConfig } from "@/shared/config";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
@@ -26,7 +25,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
-  const actions = useActions();
+  const navigate = useNavigate();
   const mutations = useCardMutations({
     onRemoveSuccess: (card) => {
       setDeletionTarget((target) => (target?.id === card.id ? undefined : target));
@@ -39,18 +38,18 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : util.getCategory(deck.category, showCard.tags);
 
-  useKey("t", actions.goToTop);
-  useKey("s", actions.goToSettings);
+  useKey("t", () => void navigate("/"));
+  useKey("s", () => void navigate("/settings"));
 
   return (
     <Layout
       showHeader
       headerProps={{
         dark: config.appearance.darkMode,
-        onClickDarkMode: actions.setDarkMode,
-        onClickLogo: actions.goToTop,
-        onClickImport: actions.goToImport,
-        onClickSettings: actions.goToSettings,
+        onClickDarkMode: setDarkMode,
+        onClickLogo: () => void navigate("/"),
+        onClickImport: () => void navigate("/import"),
+        onClickSettings: () => void navigate("/settings"),
       }}
     >
       <CardListView
@@ -70,7 +69,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
             void mutations.updateBy(id, (card) => ({ score: card.score - 1 })).catch(() => undefined),
           onSwipedRight: (id) =>
             void mutations.updateBy(id, (card) => ({ score: card.score + 1 })).catch(() => undefined),
-          goToEdit: actions.goToCardEdit,
+          goToEdit: (id) => void navigate(`/card/${id}/edit`),
           onDelete: (id) => {
             const card = cards.find((candidate) => candidate.id === id);
             if (card != null) {

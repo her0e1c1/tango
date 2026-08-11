@@ -4,11 +4,12 @@
  * depending on React components.
  */
 
-import * as FileSaver from "file-saver";
 import * as Papa from "papaparse";
 
 import * as cardAction from "@/action/card";
-import * as C from "@/constant";
+import { downloadTextFile } from "@/shared/files";
+
+const CSV_MIME_TYPE = "text/plain;charset=utf-8";
 
 /**
  * Creates a complete deck from raw input, defaults, and generated identifiers.
@@ -40,29 +41,8 @@ export const prepare = (deck: DeckRaw, uid: string, generateId: () => string): D
  */
 export const downloadData = (deck: Deck, cards: Card[]) => {
   const csv = Papa.unparse(cards.map(cardAction.toRow), { escapeFormulae: true });
-  saveAs(csv, deck.name);
-};
-
-/**
- * Prepares and downloads as for the user.
- * Browser file handling remains behind this function so domain preparation can be understood
- * separately.
- */
-const saveAs = (content: string, name: string) => {
-  if (!name.endsWith(".csv")) {
-    name += ".csv";
-  }
-  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-  FileSaver.saveAs(blob, name);
-};
-
-/**
- * Prepares and downloads csv sample text for the user.
- * Browser file handling remains behind this function so domain preparation can be understood
- * separately.
- */
-export const downloadCsvSampleText = () => {
-  saveAs(C.CSV_SAMPLE_TEXT, "sample.csv");
+  const fileName = deck.name.endsWith(".csv") ? deck.name : `${deck.name}.csv`;
+  downloadTextFile(csv, fileName, CSV_MIME_TYPE);
 };
 
 /**

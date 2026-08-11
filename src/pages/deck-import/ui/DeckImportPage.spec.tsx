@@ -19,10 +19,7 @@ const mocks = vi.hoisted(() => ({
   addSample: vi.fn(),
   retry: vi.fn(),
   navigate: vi.fn(),
-  deckDownloadCsvSampleText: vi.fn(),
-  goToTop: vi.fn(),
-  goToImport: vi.fn(),
-  goToSettings: vi.fn(),
+  downloadSampleCsv: vi.fn(),
   setDarkMode: vi.fn(),
   useKey: vi.fn(),
   preview: undefined as DeckImportPreview | undefined,
@@ -35,6 +32,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/import", () => ({
+  SAMPLE_CSV_TEXT: "sample csv",
+  downloadSampleCsv: mocks.downloadSampleCsv,
   useDeckImport: () => ({
     selectFile: mocks.selectFile,
     importPreview: mocks.importPreview,
@@ -49,20 +48,13 @@ vi.mock("@/features/import", () => ({
   }),
 }));
 
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ appearance: { darkMode: false } }) }));
+vi.mock("@/shared/config", () => ({
+  useConfig: () => ({ appearance: { darkMode: false } }),
+  setDarkMode: mocks.setDarkMode,
+}));
 
 vi.mock("react-use", () => ({
   useKey: mocks.useKey,
-}));
-
-vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({
-    deckDownloadCsvSampleText: mocks.deckDownloadCsvSampleText,
-    goToTop: mocks.goToTop,
-    goToSettings: mocks.goToSettings,
-    goToImport: mocks.goToImport,
-    setDarkMode: mocks.setDarkMode,
-  }),
 }));
 
 import { DeckImportPage } from "./DeckImportPage";
@@ -121,9 +113,9 @@ describe("DeckImportPage", () => {
     expect(mocks.selectFile).toHaveBeenCalledWith(file);
     expect(mocks.importPreview).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
-    expect(mocks.deckDownloadCsvSampleText).toHaveBeenCalledOnce();
-    expect(mocks.useKey).toHaveBeenCalledWith("t", mocks.goToTop);
-    expect(mocks.useKey).toHaveBeenCalledWith("s", mocks.goToSettings);
+    expect(mocks.downloadSampleCsv).toHaveBeenCalledOnce();
+    expect(mocks.useKey).toHaveBeenCalledWith("t", expect.any(Function));
+    expect(mocks.useKey).toHaveBeenCalledWith("s", expect.any(Function));
   });
 
   it("renders the import screen in the application shell and forwards header actions", async () => {
@@ -134,10 +126,22 @@ describe("DeckImportPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
     await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
-    expect(mocks.goToTop).toHaveBeenCalledOnce();
     expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.goToImport).toHaveBeenCalledOnce();
-    expect(mocks.goToSettings).toHaveBeenCalledOnce();
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
+  });
+
+  it("preserves top and settings keyboard shortcuts", () => {
+    render(<DeckImportPage />);
+
+    const topShortcut = mocks.useKey.mock.calls.find(([key]) => key === "t")?.[1];
+    const settingsShortcut = mocks.useKey.mock.calls.find(([key]) => key === "s")?.[1];
+    topShortcut?.();
+    settingsShortcut?.();
+
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
   });
 
   it("adds the bundled sample without navigating automatically", async () => {

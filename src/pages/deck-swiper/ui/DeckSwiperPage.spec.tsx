@@ -48,20 +48,20 @@ const mocks = vi.hoisted(() => ({
   hydrated: true,
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
-  goToTop: vi.fn(),
-  goToImport: vi.fn(),
-  goToSettings: vi.fn(),
   setDarkMode: vi.fn(),
   useKey: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
-vi.mock("@/shared/config/useConfig", () => ({
+vi.mock("@/shared/config", () => ({
   useConfig: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     return mocks.state.config;
   },
+  toggleShowHeader: mocks.toggleShowHeader,
+  toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
+  setDarkMode: mocks.setDarkMode,
 }));
 
 vi.mock("@/hooks/useRemoteCollections", () => ({
@@ -110,17 +110,6 @@ vi.mock("@/features/study", async (importOriginal) => {
     useStudyStore: (selector: (state: typeof mocks.studyState) => unknown) => selector(mocks.studyState),
   };
 });
-
-vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({
-    toggleShowHeader: mocks.toggleShowHeader,
-    toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
-    setDarkMode: mocks.setDarkMode,
-    goToTop: mocks.goToTop,
-    goToImport: mocks.goToImport,
-    goToSettings: mocks.goToSettings,
-  }),
-}));
 
 import { DeckSwiperPage } from "./DeckSwiperPage";
 
@@ -233,6 +222,8 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     expect(mocks.useKey).toHaveBeenCalledWith("ArrowLeft", mocks.swipeLeft);
     expect(mocks.useKey).toHaveBeenCalledWith("ArrowRight", mocks.swipeRight);
     expect(mocks.useKey).toHaveBeenCalledWith("Enter", mocks.toggleShowBackText);
+    expect(mocks.useKey).toHaveBeenCalledWith("h", mocks.toggleShowHeader);
+    expect(mocks.useKey).toHaveBeenCalledWith("b", mocks.toggleShowSwipeButtonList);
     expect(mocks.useKey).toHaveBeenCalledWith(" ", mocks.toggleAutoPlay);
   });
 
@@ -265,10 +256,10 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
     fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
-    expect(mocks.goToTop).toHaveBeenCalledOnce();
     expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.goToImport).toHaveBeenCalledOnce();
-    expect(mocks.goToSettings).toHaveBeenCalledOnce();
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
   });
 
   it("keeps pending study saves silent while disabling swipe controls", () => {

@@ -2,31 +2,28 @@ import type React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as C from "@/constant";
-import { useDeckImport } from "@/features/import";
-import { useActions } from "@/hooks/useActions";
+import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/import";
+import { setDarkMode, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
-import { useConfig } from "@/shared/config/useConfig";
 
 import { DeckImportView } from "./DeckImportView";
 
 export const DeckImportPage: React.FC = () => {
-  const actions = useActions();
   const config = useConfig();
   const navigate = useNavigate();
   const deckImport = useDeckImport();
-  useKey("t", actions.goToTop);
-  useKey("s", actions.goToSettings);
+  useKey("t", () => void navigate("/"));
+  useKey("s", () => void navigate("/settings"));
 
   return (
     <Layout
       showHeader
       headerProps={{
         dark: config.appearance.darkMode,
-        onClickDarkMode: actions.setDarkMode,
-        onClickLogo: actions.goToTop,
-        onClickImport: actions.goToImport,
-        onClickSettings: actions.goToSettings,
+        onClickDarkMode: setDarkMode,
+        onClickLogo: () => void navigate("/"),
+        onClickImport: () => void navigate("/import"),
+        onClickSettings: () => void navigate("/settings"),
       }}
     >
       <DeckImportView
@@ -44,7 +41,7 @@ export const DeckImportPage: React.FC = () => {
         }}
         onRetry={deckImport.retry}
         onBack={() => navigate(-1)}
-        onDownloadSample={actions.deckDownloadCsvSampleText}
+        onDownloadSample={downloadSampleCsv}
         validating={deckImport.validating}
         pending={deckImport.pending}
         {...(deckImport.preview !== undefined ? { preview: deckImport.preview } : {})}
@@ -52,7 +49,7 @@ export const DeckImportPage: React.FC = () => {
         {...(deckImport.partialResult !== undefined ? { partialResult: deckImport.partialResult } : {})}
         error={deckImport.error}
         dark={config.appearance.darkMode}
-        sampleText={C.CSV_SAMPLE_TEXT}
+        sampleText={SAMPLE_CSV_TEXT}
       />
     </Layout>
   );

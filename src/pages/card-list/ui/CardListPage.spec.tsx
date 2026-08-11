@@ -22,16 +22,13 @@ const mocks = vi.hoisted(() => ({
   pending: false,
   error: null as unknown,
   retry: vi.fn(),
-  goToCardEdit: vi.fn(),
-  goToTop: vi.fn(),
-  goToImport: vi.fn(),
-  goToSettings: vi.fn(),
   setDarkMode: vi.fn(),
   cardUpdateBy: vi.fn(),
   cardRemove: vi.fn(),
   onClickTag: vi.fn(),
   navigate: vi.fn(),
   onRemoveSuccess: undefined as ((card: Card) => void) | undefined,
+  useKey: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -57,7 +54,10 @@ vi.mock("@/features/card", async (importOriginal) => {
   };
 });
 
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/shared/config", () => ({
+  useConfig: () => mocks.config,
+  setDarkMode: mocks.setDarkMode,
+}));
 
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => {
@@ -80,19 +80,7 @@ vi.mock("react-router-dom", () => ({
 }));
 
 vi.mock("react-use", () => ({
-  useKey: vi.fn(),
-}));
-
-vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({
-    goToTop: mocks.goToTop,
-    goToSettings: mocks.goToSettings,
-    goToImport: mocks.goToImport,
-    setDarkMode: mocks.setDarkMode,
-    cardUpdateBy: vi.fn(() => vi.fn()),
-    goToCardEdit: mocks.goToCardEdit,
-    cardRemove: vi.fn(),
-  }),
+  useKey: mocks.useKey,
 }));
 
 vi.mock("@/features/deck", async (importOriginal) => {
@@ -163,10 +151,6 @@ describe("CardListPage", () => {
     mocks.pending = false;
     mocks.error = null;
     mocks.retry.mockReset();
-    mocks.goToCardEdit.mockReset();
-    mocks.goToTop.mockReset();
-    mocks.goToImport.mockReset();
-    mocks.goToSettings.mockReset();
     mocks.setDarkMode.mockReset();
     mocks.cardUpdateBy.mockReset().mockResolvedValue(undefined);
     mocks.cardRemove.mockReset().mockResolvedValue(undefined);
@@ -198,10 +182,26 @@ describe("CardListPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
     await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
-    expect(mocks.goToTop).toHaveBeenCalledOnce();
     expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.goToImport).toHaveBeenCalledOnce();
-    expect(mocks.goToSettings).toHaveBeenCalledOnce();
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
+  });
+
+  it("navigates to Card edit and preserves top and settings shortcuts", async () => {
+    render(<CardListPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: `Open actions for ${card.frontText}` }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(mocks.navigate).toHaveBeenLastCalledWith(`/card/${card.id}/edit`);
+
+    mocks.navigate.mockClear();
+    const topShortcut = mocks.useKey.mock.calls.find(([key]) => key === "t")?.[1];
+    const settingsShortcut = mocks.useKey.mock.calls.find(([key]) => key === "s")?.[1];
+    topShortcut?.();
+    settingsShortcut?.();
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
   });
 
   it("keeps the unavailable route feedback outside the application shell", () => {
