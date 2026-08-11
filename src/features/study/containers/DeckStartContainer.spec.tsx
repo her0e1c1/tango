@@ -78,6 +78,20 @@ describe("DeckStartContent", () => {
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeInTheDocument();
   });
 
+  it("forwards header actions", () => {
+    renderContent();
+
+    fireEvent.click(screen.getByRole("button", { name: "tango" }));
+    fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
+
+    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
+  });
+
   it("starts from Enter when cards match and focus is not interactive", () => {
     renderContent({ cards: [createCard()] });
     fireEvent.keyDown(document.body, { key: "Enter" });

@@ -76,6 +76,7 @@ describe("DeckFormContainer", () => {
     mocks.updateAndGoToList.mockReset();
     mocks.goToList.mockReset();
     mocks.navigate.mockReset();
+    mocks.setDarkMode.mockReset();
   });
 
   it("submits the current deck", async () => {
@@ -84,6 +85,20 @@ describe("DeckFormContainer", () => {
     await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith(deck);
+  });
+
+  it("forwards header actions", async () => {
+    render(<DeckFormContainer />);
+
+    await userEvent.click(screen.getByRole("button", { name: "tango" }));
+    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
+
+    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
   });
 
   it("submits an edited name", async () => {
