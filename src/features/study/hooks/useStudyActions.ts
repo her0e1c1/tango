@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { studyStore } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/shared/config/useConfig";
 
 export interface StudyActions {
   start: () => void;

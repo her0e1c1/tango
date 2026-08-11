@@ -6,7 +6,7 @@
 
 import { useNavigate } from "react-router-dom";
 import * as action from "@/action";
-import { configStore } from "@/store/configStore";
+import { configStore } from "@/shared/config/configStore";
 
 /**
  * Provides application navigation and cross-feature actions to React components.

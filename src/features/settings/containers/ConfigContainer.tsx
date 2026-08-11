@@ -13,7 +13,7 @@ import { useAccountOperations } from "@/features/settings/hooks/useAccountOperat
 import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
 import { useActions } from "@/hooks/useActions";
 import { useAuth } from "@/auth/AuthContext";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/shared/config/useConfig";
 
 /**
  * Connects the Config Container view to stores, remote data, route parameters, and mutations.

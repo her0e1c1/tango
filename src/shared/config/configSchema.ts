@@ -1,5 +1,5 @@
 /**
- * @file Defines application configuration behavior for Config Schema.
+ * @file Defines shared application configuration behavior for Config Schema.
  * It validates persisted settings and exposes a predictable store interface to the rest of the
  * application.
  */

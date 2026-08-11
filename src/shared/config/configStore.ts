@@ -6,9 +6,9 @@
 
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
-import { configSchema, defaultConfig, parsePersistedConfig } from "@/store/configSchema";
+import { configSchema, defaultConfig, parsePersistedConfig } from "@/shared/config/configSchema";
 
-export { defaultConfig } from "@/store/configSchema";
+export { defaultConfig } from "@/shared/config/configSchema";
 
 export const CONFIG_STORAGE_KEY = "tango-config";
 const CONFIG_STORAGE_VERSION = 2;

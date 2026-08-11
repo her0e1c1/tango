@@ -5,7 +5,7 @@ import { useKey } from "react-use";
 import * as C from "@/constant";
 import { useDeckImport } from "@/features/import";
 import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/shared/config/useConfig";
 
 import { DeckImportView } from "./DeckImportView";
 

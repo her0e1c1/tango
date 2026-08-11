@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { CONFIG_STORAGE_KEY, createConfigStore, defaultConfig } from "@/store/configStore";
+import { CONFIG_STORAGE_KEY, createConfigStore, defaultConfig } from "@/shared/config/configStore";
 
 /**
  * Provides the create memory storage test helper used by this file.

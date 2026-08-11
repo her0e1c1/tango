@@ -51,7 +51,7 @@ vi.mock("@/features/card", async (importOriginal) => {
   };
 });
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
 
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => {

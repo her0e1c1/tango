@@ -18,7 +18,7 @@ import { DeckListPage } from "@/pages/deck-list";
 import { DeckStartPage } from "@/pages/deck-start";
 import { DeckSwiperPage } from "@/pages/deck-swiper";
 import { SettingsPage } from "@/pages/settings";
-import { configStore } from "@/store/configStore";
+import { configStore } from "@/shared/config/configStore";
 
 /**
  * Renders the Unknown Route user interface.
