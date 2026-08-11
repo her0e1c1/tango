@@ -9,12 +9,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { Card } from "@/shared/ui/content/Card";
-import { Description } from "@/shared/ui/content/Description";
-import { Section } from "@/shared/ui/content/Section";
-import { Style } from "@/shared/ui/content/Style";
-import { TagList } from "@/shared/ui/content/TagList";
-import { Title } from "@/shared/ui/content/Title";
+import { Card, Description, Section, Style, TagList, Title } from "@/shared/ui/content";
 
 afterEach(cleanup);
 
