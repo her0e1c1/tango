@@ -1,3 +1,8 @@
 import { ConfigContainer } from "@/features/settings";
 
-export const SettingsPage = () => <ConfigContainer />;
+interface SettingsPageProps {
+  login: () => Promise<void>;
+  logout: (uid: string) => Promise<void>;
+}
+
+export const SettingsPage = (props: SettingsPageProps) => <ConfigContainer {...props} />;

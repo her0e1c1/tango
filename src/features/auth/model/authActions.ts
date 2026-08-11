@@ -1,5 +1,5 @@
 import { FirebaseError } from "firebase/app";
-import { GoogleAuthProvider, linkWithPopup, signInWithCredential, type UserCredential } from "firebase/auth";
+import { GoogleAuthProvider, linkWithPopup, signInWithCredential, signOut, type UserCredential } from "firebase/auth";
 
 import { publishAuthenticatedUser } from "@/features/auth/model/authController";
 import { auth } from "@/shared/firebase";
@@ -23,3 +23,5 @@ export const loginGoogle = async (): Promise<void> => {
   process.env.NODE_ENV !== "production" && console.log("LOGIN GOOGLE", result);
   publishAuthenticatedUser(result.user);
 };
+
+export const signOutCurrentUser = (): Promise<void> => signOut(auth);

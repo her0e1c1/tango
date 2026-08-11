@@ -72,7 +72,7 @@ vi.mock("@/features/settings/components/templates/ConfigFormTemplate", () => ({
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
-import { logout } from "@/action/event";
+import { logout } from "@/app/auth/logout";
 import { AuthBootstrap, AuthProvider } from "@/app/providers/auth";
 import { useSession } from "@/entities/session";
 import { createAuthRuntime } from "@/features/auth";
@@ -100,7 +100,8 @@ beforeEach(() => {
  * Renders the test-only Authenticated Settings component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const AuthenticatedSettings = () => (useSession().status === "authenticated" ? <ConfigContainer /> : null);
+const AuthenticatedSettings = () =>
+  useSession().status === "authenticated" ? <ConfigContainer login={vi.fn()} logout={logout} /> : null;
 
 const createTestRuntime = () =>
   createAuthRuntime({

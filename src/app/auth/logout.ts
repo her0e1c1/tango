@@ -1,17 +1,6 @@
-/**
- * @file Implements application-level Event operations.
- * The functions turn user intent into domain data or coordinated authentication work without
- * depending on React components.
- */
-
-import { signOut } from "firebase/auth";
-
-import { clearStudyStore, studyStore, type StudyState } from "@/features/study/state/studyStore";
-import { suspendAnonymousBootstrap } from "@/features/auth";
-import { auth } from "@/shared/firebase";
+import { signOutCurrentUser, suspendAnonymousBootstrap } from "@/features/auth";
+import { clearStudyStore, studyStore, type StudyState } from "@/features/study";
 import { remoteStore } from "@/store/remoteStore";
-
-export { loginGoogle } from "@/features/auth";
 
 const { getState: getRemoteState } = remoteStore;
 const { getState: getStudyState } = studyStore;
@@ -24,11 +13,6 @@ interface LogoutCleanupProgress {
 
 type LogoutCleanupStep = "remote" | "study";
 
-/**
- * Represents the logout cleanup error condition used by the application.
- * The class keeps related error details or behavior together so callers can recognize and handle
- * this specific case.
- */
 class LogoutCleanupError extends Error {
   constructor(
     readonly originalError: unknown,
@@ -39,10 +23,6 @@ class LogoutCleanupError extends Error {
   }
 }
 
-/**
- * Runs logout and local-data cleanup as a resumable sequence.
- * Completed cleanup steps are remembered so a retry does not repeat work that already succeeded.
- */
 const runLogout = async (
   confirmedUid: string,
   progress: LogoutCleanupProgress,
@@ -50,14 +30,9 @@ const runLogout = async (
 ): Promise<void> => {
   const resumeAnonymousBootstrap = suspendAnonymousBootstrap();
   try {
-    if (signOutRequired) await signOut(auth);
+    if (signOutRequired) await signOutCurrentUser();
 
     const errors: unknown[] = [];
-    /**
-     * Runs one logout cleanup step unless that step already succeeded.
-     * Failures are collected instead of stopping the next cleanup, allowing a retry to resume only
-     * unfinished work.
-     */
     const run = async (step: LogoutCleanupStep, cleanup: () => unknown | Promise<unknown>) => {
       if (progress[step]) return;
       try {
@@ -83,9 +58,5 @@ const runLogout = async (
   }
 };
 
-/**
- * Signs out the confirmed user and removes that user's remote and study state.
- * If local cleanup fails, the returned error carries a retry that resumes the unfinished steps.
- */
 export const logout = (confirmedUid: string): Promise<void> =>
   runLogout(confirmedUid, { remote: false, study: false }, true);

@@ -13,7 +13,6 @@ import type { SessionState } from "@/entities/session";
 
 const mocks = vi.hoisted(() => ({
   darkMode: false,
-  init: vi.fn(),
   authState: { status: "initializing" } as SessionState,
 }));
 
@@ -24,8 +23,9 @@ vi.mock("zustand", () => ({
     }),
 }));
 vi.mock("@/shared/config/configStore", () => ({ configStore: {} }));
-vi.mock("@/action", () => ({ event: { init: mocks.init } }));
+vi.mock("@/app/auth/logout", () => ({ logout: vi.fn() }));
 vi.mock("@/entities/session", () => ({ useSession: () => mocks.authState }));
+vi.mock("@/features/auth", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));
@@ -41,7 +41,6 @@ import App from "./App";
 describe("App", () => {
   beforeEach(() => {
     mocks.darkMode = false;
-    mocks.init.mockReset();
     mocks.authState = { status: "authenticated", uid: "test-user", isAnonymous: true, displayName: null };
     document.documentElement.classList.remove("dark");
     window.history.replaceState({}, "", "/");
@@ -55,7 +54,6 @@ describe("App", () => {
     view.rerender(<App />);
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
-    expect(mocks.init).not.toHaveBeenCalled();
   });
 
   it("shows startup feedback for initializing and signed-out authentication", () => {

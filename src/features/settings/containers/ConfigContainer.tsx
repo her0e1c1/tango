@@ -8,7 +8,6 @@ import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as action from "@/action";
 import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
@@ -21,7 +20,12 @@ import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
  * It prepares plain props for presentation components so those components remain independent of
  * application services.
  */
-export const ConfigContainer: React.FC = () => {
+interface ConfigContainerProps {
+  login: () => Promise<void>;
+  logout: (uid: string) => Promise<void>;
+}
+
+export const ConfigContainer: React.FC<ConfigContainerProps> = ({ login, logout }) => {
   const config = useConfig();
   const authState = useSession();
   const navigate = useNavigate();
@@ -34,8 +38,8 @@ export const ConfigContainer: React.FC = () => {
     generation: authenticated
       ? `authenticated:${authenticated.uid}:${authenticated.isAnonymous ? "anonymous" : "linked"}`
       : authState.status,
-    login: action.event.loginGoogle,
-    ...(authenticated ? { logout: () => action.event.logout(authenticated.uid) } : {}),
+    login,
+    ...(authenticated ? { logout: () => logout(authenticated.uid) } : {}),
   });
   const configForm = useConfigFormState({
     config,
