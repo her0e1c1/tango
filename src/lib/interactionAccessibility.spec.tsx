@@ -1,7 +1,7 @@
 /**
  * @file Verifies the "keyboard-accessible interactions" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "activates FrontText with
- * Enter", "activates the CSV sample download with Enter", "activates swipe actions with Enter".
+ * Enter", "activates swipe actions with Enter".
  */
 
 import { cleanup, fireEvent, render } from "@testing-library/react";
@@ -11,7 +11,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FrontText } from "@/features/card/components/FrontText";
 import { CardListTemplate } from "@/features/card/components/templates/CardListTemplate";
-import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
 import { DeckSwiperTemplate } from "@/features/study/components/templates/DeckSwiperTemplate";
 import { SwipeButtonList } from "@/features/study/components/SwipeButtonList";
 import { FullScreen, Logo, Overlay, Title } from "@/components";
@@ -26,17 +25,6 @@ describe("keyboard-accessible interactions", () => {
     fireEvent.keyDown(view.getByRole("button", { name: "Front" }), { key: "Enter" });
 
     expect(onClick).toHaveBeenCalledOnce();
-  });
-
-  it("activates the CSV sample download with Enter", async () => {
-    const onDownloadSample = vi.fn();
-    const user = userEvent.setup();
-    const view = render(<DeckImportTemplate sampleText="front,back" onDownloadSample={onDownloadSample} />);
-
-    view.getByRole("button", { name: "Download CSV sample" }).focus();
-    await user.keyboard("{Enter}");
-
-    expect(onDownloadSample).toHaveBeenCalledOnce();
   });
 
   it("activates swipe actions with Enter", async () => {

@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckImportTemplate" contract with automated examples.
+ * @file Verifies the "DeckImportView" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "composes a bounded semantic
  * import route surface", "passes a real file to the upload callback and disables upload while
  * busy", "documents uniqueKey and exposes sample add, download, and code controls".
@@ -10,8 +10,9 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { DeckImportTemplate } from "@/features/import/components/templates/DeckImportTemplate";
-import type { DeckImportPreview, DeckImportResult } from "@/features/import/components/deckImportTypes";
+import type { DeckImportPreview, DeckImportResult } from "@/features/import";
+
+import { DeckImportView } from "./DeckImportView";
 
 const preview = {
   fileName: "deck.csv",
@@ -41,11 +42,11 @@ const preview = {
   },
 } satisfies DeckImportPreview;
 
-describe("DeckImportTemplate", () => {
+describe("DeckImportView", () => {
   afterEach(cleanup);
 
   it("composes a bounded semantic import route surface", () => {
-    const view = render(<DeckImportTemplate sampleText="front,back,,key" />);
+    const view = render(<DeckImportView sampleText="front,back,,key" />);
 
     const heading = view.getByRole("heading", { level: 1, name: "Import decks" });
     const surface = heading.parentElement;
@@ -71,13 +72,13 @@ describe("DeckImportTemplate", () => {
   it("passes a real file to the upload callback and disables upload while busy", () => {
     const onChange = vi.fn();
     const file = new File(["front,back,,key"], "deck.csv", { type: "text/csv" });
-    const view = render(<DeckImportTemplate sampleText="front,back,,key" onChange={onChange} />);
+    const view = render(<DeckImportView sampleText="front,back,,key" onChange={onChange} />);
     const input = view.container.querySelector("input[type='file']") as HTMLInputElement;
 
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(onChange).toHaveBeenCalledWith(file);
-    view.rerender(<DeckImportTemplate sampleText="front,back,,key" onChange={onChange} pending />);
+    view.rerender(<DeckImportView sampleText="front,back,,key" onChange={onChange} pending />);
     expect(view.container.querySelector("input[type='file']")).toBeDisabled();
   });
 
@@ -86,7 +87,7 @@ describe("DeckImportTemplate", () => {
     const onDownloadSample = vi.fn();
     const sampleText = "front,back,tag,key";
     const view = render(
-      <DeckImportTemplate sampleText={sampleText} onAddSample={onAddSample} onDownloadSample={onDownloadSample} />
+      <DeckImportView sampleText={sampleText} onAddSample={onAddSample} onDownloadSample={onDownloadSample} />
     );
 
     expect(view.getByText(/Four columns without a header/)).toHaveTextContent("uniqueKey");
@@ -108,9 +109,20 @@ describe("DeckImportTemplate", () => {
     expect(onDownloadSample).toHaveBeenCalledOnce();
   });
 
+  it("activates the CSV sample download with Enter", async () => {
+    const onDownloadSample = vi.fn();
+    const user = userEvent.setup();
+    const view = render(<DeckImportView sampleText="front,back" onDownloadSample={onDownloadSample} />);
+
+    view.getByRole("button", { name: "Download CSV sample" }).focus();
+    await user.keyboard("{Enter}");
+
+    expect(onDownloadSample).toHaveBeenCalledOnce();
+  });
+
   it("shows validation, planned changes, row content, and waits for explicit import", async () => {
     const onImport = vi.fn();
-    const view = render(<DeckImportTemplate sampleText="front,back,,key" preview={preview} onImport={onImport} />);
+    const view = render(<DeckImportView sampleText="front,back,,key" preview={preview} onImport={onImport} />);
 
     expect(view.getAllByText("deck.csv")).toHaveLength(2);
     expect(view.getByText("1 valid")).toBeVisible();
@@ -145,7 +157,7 @@ describe("DeckImportTemplate", () => {
       },
       plan: { rows: [], created: 0, updated: 0, unchanged: 0 },
     };
-    const view = render(<DeckImportTemplate sampleText="front,back,,key" preview={invalidPreview} />);
+    const view = render(<DeckImportView sampleText="front,back,,key" preview={invalidPreview} />);
 
     const alert = view.getByRole("alert");
     expect(alert).toHaveTextContent("Row 3");
@@ -166,7 +178,7 @@ describe("DeckImportTemplate", () => {
       deckId: "deck",
     } satisfies DeckImportResult;
     const view = render(
-      <DeckImportTemplate sampleText="front,back,,key" result={success} onBack={onBack} onRetry={onRetry} />
+      <DeckImportView sampleText="front,back,,key" result={success} onBack={onBack} onRetry={onRetry} />
     );
 
     expect(view.getByRole("status")).toHaveTextContent("Import complete");
@@ -177,7 +189,7 @@ describe("DeckImportTemplate", () => {
     expect(onBack).toHaveBeenCalledOnce();
 
     view.rerender(
-      <DeckImportTemplate
+      <DeckImportView
         sampleText="front,back,,key"
         error={new Error("Card writes failed")}
         partialResult={{ ...success, created: 1, failed: 1 }}
