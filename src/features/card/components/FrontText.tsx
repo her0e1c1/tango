@@ -6,7 +6,8 @@
 
 import cx from "classnames";
 import type * as React from "react";
-import { MathContent, Title, useButtonInteraction } from "@/components";
+import { useButtonInteraction } from "@/shared/ui/button-interaction";
+import { MathContent, Title } from "@/shared/ui/content";
 import { useSwipeable } from "react-swipeable";
 
 export interface FrontTextProps {

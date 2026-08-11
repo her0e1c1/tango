@@ -45,8 +45,8 @@ const sampleDeckBootstrapController = createSampleDeckBootstrapController();
 
 /**
  * Provides the sample deck bootstrap values and operations needed by React components.
- * Callers receive one focused interface without coordinating the import feature's stores and
- * services themselves.
+ * Callers inject the mutations required by deck import so feature-to-feature composition stays in
+ * the page layer.
  */
 export const useSampleDeckBootstrap = (mutations: DeckImportMutationDependencies) => {
   const auth = useAuth();

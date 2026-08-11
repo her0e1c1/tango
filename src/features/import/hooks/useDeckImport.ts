@@ -263,8 +263,8 @@ const previewDeckImportFile = async (
 
 /**
  * Provides the deck import values and operations needed by React components.
- * Callers receive one focused interface without coordinating the import feature's stores and
- * services themselves.
+ * Callers inject deck creation and card upsert operations so the import feature remains independent
+ * of sibling feature implementations.
  */
 export const useDeckImport = ({ createDeck, bulkUpsert }: DeckImportMutationDependencies) => {
   const auth = useAuth();

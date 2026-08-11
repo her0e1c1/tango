@@ -11,7 +11,9 @@ import { useForm } from "react-hook-form";
 
 import * as C from "@/constant";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
+import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
+import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
+import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { useActions } from "@/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";

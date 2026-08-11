@@ -4,7 +4,7 @@
  * settings.
  */
 
-import type { Option } from "@/components/forms/Select";
+import type { Option } from "@/shared/ui/forms/Select";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
 export const form = {

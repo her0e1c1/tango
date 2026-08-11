@@ -4,12 +4,13 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { RemoteReadBoundary, RouteFeedback } from "@/components";
 import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
 import { DeckStartTemplate, useStudyActions } from "@/features/study";
 import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/hooks/useConfig";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
+import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;

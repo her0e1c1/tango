@@ -5,7 +5,8 @@
  */
 
 import type * as React from "react";
-import { Description, Overlay, Score } from "@/components";
+import { Description, Score } from "@/shared/ui/content";
+import { Overlay } from "@/shared/ui/feedback";
 
 /**
  * Renders the Card Overlay user interface.
