@@ -4,9 +4,8 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as C from "@/constant";
 import type { Card, CardId } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import { getCategory, LANGUAGES, type Deck } from "@/entities/deck";
 import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
 import { setDarkMode, useConfig } from "@/shared/config";
@@ -17,7 +16,6 @@ import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
-import * as util from "@/util";
 
 import { CardListView } from "./CardListView";
 
@@ -38,7 +36,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const deckActions = useDeckActions(deck.id);
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
   const closeCard = () => setShowCard(undefined);
-  const category = showCard == null ? undefined : util.getCategory(deck.category, showCard.tags);
+  const category = showCard == null ? undefined : getCategory(deck.category, showCard.tags);
 
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
@@ -125,7 +123,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
                 backText: {
                   text: showCard.backText,
                   category,
-                  code: C.LANGUAGES.includes(category),
+                  code: LANGUAGES.includes(category),
                   dark: config.appearance.darkMode,
                 },
                 onClose: closeCard,
