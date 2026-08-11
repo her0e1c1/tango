@@ -6,6 +6,7 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
+import type { RemoteSnapshot } from "@/shared/api/remoteSnapshot";
 
 import "@/shared/firebase/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
@@ -14,7 +15,6 @@ import { deleteApp, getApps } from "firebase/app";
 import * as cardAdapter from "@/adapters/firestore/card";
 import * as deckAdapter from "@/adapters/firestore/deck";
 import * as eventAdapter from "@/adapters/firestore/event";
-import type { RemoteSnapshot } from "@/domain/remoteSnapshot";
 import { createCard, createDeck } from "@/test/factories";
 
 vi.mock("./documentMetadata", () => ({
