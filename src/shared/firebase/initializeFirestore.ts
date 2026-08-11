@@ -1,8 +1,4 @@
-/**
- * @file Implements the Firestore adapter responsibility for Initialize.
- * This boundary translates between Tango's application models and Firebase so feature code does
- * not handle database details directly.
- */
+/** Initializes the shared Firestore instance and verifies production persistence before exposing it. */
 
 import type { FirebaseApp } from "firebase/app";
 import {
@@ -18,11 +14,8 @@ import {
 import { verifyFirestorePersistence } from "./firestorePersistence";
 import { blockFirestoreRuntime, initializeFirestoreRuntime } from "./firestore-runtime";
 
-/**
- * Initializes Firestore persistence and connects the database to Tango's runtime adapter.
- * If persistent storage cannot be trusted, the adapter is blocked instead of silently using a
- * different storage mode.
- */
+const toError = (value: unknown): Error => (value instanceof Error ? value : new Error(String(value)));
+
 export const initializeFirestoreAdapter = (app: FirebaseApp): Firestore | undefined => {
   let db: Firestore | undefined;
 
@@ -31,31 +24,33 @@ export const initializeFirestoreAdapter = (app: FirebaseApp): Firestore | undefi
       ? persistentLocalCache({ tabManager: persistentSingleTabManager({}) })
       : memoryLocalCache();
     db = initializeFirestore(app, { localCache });
+
+    if (import.meta.env.DEV) {
+      const host = import.meta.env.VITE_DB_HOST;
+      const port = import.meta.env.VITE_DB_PORT;
+      connectFirestoreEmulator(db, host, parseInt(port, 10));
+    }
+
     if (import.meta.env.PROD) {
       const initializedDb = db;
-      void verifyFirestorePersistence(initializedDb)
-        .then(() => {
+      void verifyFirestorePersistence(initializedDb).then(
+        () => {
           initializeFirestoreRuntime(initializedDb);
-        })
-        .catch(async (error) => {
+        },
+        async (error) => {
           try {
             await terminate(initializedDb);
           } catch {
             // Preserve the persistence failure while terminating best-effort.
           }
-          blockFirestoreRuntime(error instanceof Error ? error : new Error(String(error)));
-        });
+          blockFirestoreRuntime(toError(error));
+        }
+      );
     } else {
       initializeFirestoreRuntime(db);
     }
   } catch (error) {
-    blockFirestoreRuntime(error instanceof Error ? error : new Error(String(error)));
-  }
-
-  if (import.meta.env.DEV && db) {
-    const host = import.meta.env.VITE_DB_HOST;
-    const port = import.meta.env.VITE_DB_PORT;
-    connectFirestoreEmulator(db, host, parseInt(port, 10));
+    blockFirestoreRuntime(toError(error));
   }
 
   return db;

@@ -8,7 +8,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
 import { useAuth } from "@/auth/AuthContext";
-import { RouteFeedback } from "@/components";
+import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
@@ -18,7 +18,7 @@ import { DeckListPage } from "@/pages/deck-list";
 import { DeckStartPage } from "@/pages/deck-start";
 import { DeckSwiperPage } from "@/pages/deck-swiper";
 import { SettingsPage } from "@/pages/settings";
-import { configStore } from "@/store/configStore";
+import { configStore } from "@/shared/config/configStore";
 
 /**
  * Renders the Unknown Route user interface.

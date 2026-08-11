@@ -1,8 +1,4 @@
-/**
- * @file Initializes the Firestore emulator runtime for adapter integration tests.
- * This boundary translates between Tango's application models and Firebase so feature code does
- * not handle database details directly.
- */
+/** Initializes the Firestore emulator before exposing it to adapter integration tests. */
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
@@ -13,7 +9,7 @@ initializeApp({
 });
 
 const db = getFirestore();
-initializeFirestoreRuntime(db);
 connectFirestoreEmulator(db, import.meta.env.VITE_DB_HOST, parseInt(import.meta.env.VITE_DB_PORT, 10), {
   mockUserToken: { user_id: "uid" },
 });
+initializeFirestoreRuntime(db);

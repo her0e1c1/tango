@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { FirestoreInitializationState } from "@/shared/firebase/firestore-runtime";
+import type { FirestoreInitializationResult } from "@/shared/firebase/firestore-runtime";
 import type { RemoteSubscriptionProps } from "@/domain/remoteSnapshot";
 import { createRemoteStore, type RemoteReadDependencies } from "@/store/remoteStore";
 import { createCard, createDeck } from "@/test/factories";
@@ -221,8 +221,8 @@ describe("remote store reads", () => {
   });
 
   it("lets the latest start own subscriptions", async () => {
-    let resolveInitialization!: (state: FirestoreInitializationState) => void;
-    const initialization = new Promise<FirestoreInitializationState>((resolve) => {
+    let resolveInitialization!: (result: FirestoreInitializationResult) => void;
+    const initialization = new Promise<FirestoreInitializationResult>((resolve) => {
       resolveInitialization = resolve;
     });
     const harness = createHarness(vi.fn(() => initialization));

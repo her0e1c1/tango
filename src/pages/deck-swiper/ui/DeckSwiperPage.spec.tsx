@@ -53,7 +53,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
-vi.mock("@/hooks/useConfig", () => ({
+vi.mock("@/shared/config/useConfig", () => ({
   useConfig: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     return mocks.state.config;

@@ -7,7 +7,8 @@
 import type * as React from "react";
 import { IconContext } from "react-icons";
 import { AiOutlinePause, AiOutlineCaretRight } from "react-icons/ai";
-import { Slider, Title } from "@/components";
+import { Title } from "@/shared/ui/content";
+import { Slider } from "@/shared/ui/forms";
 
 export interface ControllerProps {
   autoPlay?: boolean;

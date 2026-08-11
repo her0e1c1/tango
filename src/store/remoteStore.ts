@@ -2,7 +2,10 @@ import type { StoreApi } from "zustand";
 import { createStore } from "zustand/vanilla";
 
 import { subscribeCardReads, subscribeDeckReads } from "@/adapters/firestore/event";
-import { type FirestoreInitializationState, waitForFirestoreInitialization } from "@/shared/firebase/firestore-runtime";
+import {
+  type FirestoreInitializationResult,
+  waitForFirestoreInitialization,
+} from "@/shared/firebase/firestore-runtime";
 import {
   type RemoteById,
   type RemoteSnapshot,
@@ -11,12 +14,12 @@ import {
   type RemoteSyncStatus,
   toRemoteById,
 } from "@/domain/remoteSnapshot";
-import { applyRealtimeChange } from "@/lib/realtimeChange";
+import { applyRealtimeChange } from "@/shared/lib/realtimeChange";
 
 type Unsubscribe = () => void;
 
 export interface RemoteReadDependencies {
-  waitForInitialization: () => Promise<FirestoreInitializationState>;
+  waitForInitialization: () => Promise<FirestoreInitializationResult>;
   subscribeDecks: (props: RemoteSubscriptionProps<Deck>) => Unsubscribe;
   subscribeCards: (props: RemoteSubscriptionProps<Card>) => Unsubscribe;
 }
@@ -112,7 +115,7 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
         error: undefined,
       });
 
-      let initialization: FirestoreInitializationState;
+      let initialization: FirestoreInitializationResult;
       try {
         initialization = await dependencies.waitForInitialization();
       } catch (cause) {

@@ -9,7 +9,7 @@ import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
 import { CardActionsMenu } from "@/features/card/components/CardActionsMenu";
-import { Score, TagLabel } from "@/components";
+import { Score, TagLabel } from "@/shared/ui/content";
 
 export interface CardActionsProps {
   disabled?: boolean;
