@@ -1,4 +1,2 @@
-export { DeckForm, type DeckFormFields, type DeckFormProps } from "./components/DeckForm";
-export { useDeckActions } from "./hooks/useDeckActions";
+export { DeckFormContainer } from "./containers/DeckFormContainer";
 export { useDeckMutations } from "./hooks/useDeckMutations";
-export { deckFormSchema, type DeckFormValues } from "./lib/deckFormSchema";

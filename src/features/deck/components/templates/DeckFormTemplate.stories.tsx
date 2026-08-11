@@ -1,5 +1,5 @@
 /**
- * @file Defines Storybook examples for the Deck Form Page view.
+ * @file Defines Storybook examples for Deck Form Template.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
@@ -7,10 +7,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import type { DeckFormFields } from "@/features/deck";
+import { DeckFormTemplate as Template } from "@/features/deck/components/templates/DeckFormTemplate";
+import type { DeckFormFields } from "@/features/deck/components/DeckForm";
 import * as fixture from "@/storybook/fixture";
-
-import { DeckFormView as Template } from "./DeckFormView";
 
 /**
  * Prepares fields for data for the Storybook examples in this file.
@@ -35,7 +34,7 @@ const longDeck: Deck = {
 };
 
 const meta = {
-  title: "Pages/Deck Form",
+  title: "Deck/DeckFormTemplate",
   component: Template,
   tags: ["autodocs"],
   parameters: {
