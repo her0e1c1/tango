@@ -9,10 +9,9 @@ import hljs from "highlight.js";
 export type Category = string;
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
+const HIGHLIGHT_LANGUAGES = hljs.listLanguages();
 
-export const LANGUAGES: Category[] = hljs.listLanguages();
-
-export const CATEGORY: Category[] = [...APPLICATION_CATEGORIES, ...LANGUAGES];
+export const CATEGORY: Category[] = [...APPLICATION_CATEGORIES, ...HIGHLIGHT_LANGUAGES];
 
 export const isHighlightLanguage = (category: Category): boolean => hljs.getLanguage(category) !== undefined;
 
