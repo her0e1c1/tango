@@ -38,6 +38,22 @@ export default [
     },
   },
   {
+    files: ["src/shared/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/app/**", "@/entities/**", "@/features/**", "@/pages/**"],
+              message: "Shared modules cannot import from higher FSD layers.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     ...testingLibrary.configs["flat/react"],
     files: ["src/**/*.spec.{ts,tsx}"],
   },
