@@ -4,14 +4,14 @@
  * depending on React components.
  */
 
-import { signOut, linkWithPopup, signInWithCredential, GoogleAuthProvider } from "firebase/auth";
-import type { UserCredential } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
+import { signOut } from "firebase/auth";
 
 import { clearStudyStore, studyStore, type StudyState } from "@/features/study/state/studyStore";
-import { publishAuthenticatedUser, suspendAnonymousBootstrap } from "@/auth/AuthContext";
+import { suspendAnonymousBootstrap } from "@/features/auth";
 import { auth } from "@/shared/firebase";
 import { remoteStore } from "@/store/remoteStore";
+
+export { loginGoogle } from "@/features/auth";
 
 const { getState: getRemoteState } = remoteStore;
 const { getState: getStudyState } = studyStore;
@@ -89,32 +89,3 @@ const runLogout = async (
  */
 export const logout = (confirmedUid: string): Promise<void> =>
   runLogout(confirmedUid, { remote: false, study: false }, true);
-
-/**
- * Upgrades the current anonymous Firebase user to a Google-authenticated account.
- * Existing credentials are recovered when Firebase reports that the Google account is already
- * linked elsewhere.
- */
-export const loginGoogle = async (): Promise<void> => {
-  const currentUser = auth.currentUser;
-  if (!currentUser) {
-    console.error("must sign in anonymously in advance");
-    return;
-  }
-  let result: UserCredential | null = null;
-  try {
-    result = await linkWithPopup(currentUser, new GoogleAuthProvider());
-  } catch (e) {
-    if (e instanceof FirebaseError) {
-      const credential = GoogleAuthProvider.credentialFromError(e);
-      if (credential) {
-        result = await signInWithCredential(auth, credential);
-      }
-    }
-  }
-  if (!result) {
-    throw Error("failed to login");
-  }
-  process.env.NODE_ENV !== "production" && console.log("LOGIN GOOGLE", result);
-  publishAuthenticatedUser(result.user);
-};

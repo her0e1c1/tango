@@ -27,8 +27,8 @@ vi.mock("@/store/remoteStore", () => ({
   remoteStore: { getState: () => ({ start: mocks.start, stop: mocks.stop }) },
 }));
 
-import { AuthBootstrap } from "@/auth/AuthBootstrap";
-import { AuthProvider, createAuthStore } from "@/auth/AuthContext";
+import { AuthBootstrap, AuthProvider } from "@/app/providers/auth";
+import { createAuthRuntime } from "@/features/auth/model/authController";
 
 /**
  * Provides the create harness test helper used by this file.
@@ -36,7 +36,7 @@ import { AuthProvider, createAuthStore } from "@/auth/AuthContext";
  */
 const createHarness = () => {
   let publishUser: (user: User | null) => void = () => undefined;
-  const store = createAuthStore({
+  const runtime = createAuthRuntime({
     auth: {} as Auth,
     onAuthStateChanged: vi.fn((_auth, onUser) => {
       publishUser = onUser;
@@ -46,12 +46,12 @@ const createHarness = () => {
   });
   render(
     <React.StrictMode>
-      <AuthProvider store={store}>
+      <AuthProvider runtime={runtime}>
         <AuthBootstrap />
       </AuthProvider>
     </React.StrictMode>
   );
-  return { publishUser, store };
+  return { publishUser, runtime };
 };
 
 describe("AuthBootstrap integration", () => {
@@ -66,19 +66,19 @@ describe("AuthBootstrap integration", () => {
   });
 
   it("starts remote reads once for one confirmed state under StrictMode and AuthProvider", async () => {
-    const { publishUser, store } = createHarness();
+    const { publishUser, runtime } = createHarness();
 
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
     await waitFor(() => expect(mocks.start).toHaveBeenCalledTimes(1));
     expect(mocks.start).toHaveBeenCalledWith("uid-a");
-    store.dispose();
+    runtime.controller.dispose();
   });
 
   it("automatically retries a failed unchanged auth request only once", async () => {
     const subscribeError = new Error("subscribe failed");
     mocks.start.mockRejectedValue(subscribeError);
-    const { publishUser, store } = createHarness();
+    const { publishUser, runtime } = createHarness();
 
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
@@ -86,6 +86,6 @@ describe("AuthBootstrap integration", () => {
     await Promise.resolve();
     expect(mocks.start).toHaveBeenCalledTimes(2);
     expect(console.error).toHaveBeenCalledWith("Auth transition failed", subscribeError);
-    store.dispose();
+    runtime.controller.dispose();
   });
 });

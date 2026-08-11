@@ -73,8 +73,9 @@ vi.mock("@/features/settings/components/templates/ConfigFormTemplate", () => ({
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
 import { logout } from "@/action/event";
-import { AuthBootstrap } from "@/auth/AuthBootstrap";
-import { AuthProvider, createAuthStore, useAuth } from "@/auth/AuthContext";
+import { AuthBootstrap, AuthProvider } from "@/app/providers/auth";
+import { useSession } from "@/entities/session";
+import { createAuthRuntime } from "@/features/auth/model/authController";
 import { ConfigContainer } from "@/features/settings";
 import { studyStore } from "@/features/study/state/studyStore";
 
@@ -99,7 +100,14 @@ beforeEach(() => {
  * Renders the test-only Authenticated Settings component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const AuthenticatedSettings = () => (useAuth().status === "authenticated" ? <ConfigContainer /> : null);
+const AuthenticatedSettings = () => (useSession().status === "authenticated" ? <ConfigContainer /> : null);
+
+const createTestRuntime = () =>
+  createAuthRuntime({
+    auth: mocks.auth as unknown as Auth,
+    onAuthStateChanged: mocks.onAuthStateChanged,
+    signInAnonymously: mocks.signInAnonymously,
+  });
 
 it("waits for logout cleanup before bootstrapping the next anonymous UID", async () => {
   let resolveCleanup: () => void = () => undefined;
@@ -200,13 +208,9 @@ it("keeps post-sign-out cleanup failures visible and retries only unfinished cle
     .mockResolvedValueOnce(undefined);
   mocks.clearStudyStore.mockResolvedValue(undefined);
 
-  const store = createAuthStore({
-    auth: mocks.auth as unknown as Auth,
-    onAuthStateChanged: mocks.onAuthStateChanged,
-    signInAnonymously: mocks.signInAnonymously,
-  });
+  const runtime = createTestRuntime();
   render(
-    <AuthProvider store={store}>
+    <AuthProvider runtime={runtime}>
       <AuthenticatedSettings />
     </AuthProvider>
   );
@@ -250,13 +254,9 @@ it("hands cleanup feedback across auth after retrying a failed sign-out", async 
   mocks.cleanupUid.mockRejectedValueOnce(cleanupError).mockResolvedValueOnce(undefined);
   mocks.clearStudyStore.mockResolvedValue(undefined);
 
-  const store = createAuthStore({
-    auth: mocks.auth as unknown as Auth,
-    onAuthStateChanged: mocks.onAuthStateChanged,
-    signInAnonymously: mocks.signInAnonymously,
-  });
+  const runtime = createTestRuntime();
   render(
-    <AuthProvider store={store}>
+    <AuthProvider runtime={runtime}>
       <AuthenticatedSettings />
     </AuthProvider>
   );
@@ -303,14 +303,10 @@ it("does not erase a new anonymous study when obsolete logout cleanup is retried
     throw cleanupError;
   });
 
-  const store = createAuthStore({
-    auth: mocks.auth as unknown as Auth,
-    onAuthStateChanged: mocks.onAuthStateChanged,
-    signInAnonymously: mocks.signInAnonymously,
-  });
+  const runtime = createTestRuntime();
   render(
     <React.StrictMode>
-      <AuthProvider store={store}>
+      <AuthProvider runtime={runtime}>
         <AuthenticatedSettings />
       </AuthProvider>
     </React.StrictMode>

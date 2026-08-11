@@ -6,7 +6,7 @@
 
 import { useEffect } from "react";
 
-import { useAuth } from "@/auth/AuthContext";
+import { useSession } from "@/entities/session";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 
@@ -49,7 +49,7 @@ const sampleDeckBootstrapController = createSampleDeckBootstrapController();
  * services themselves.
  */
 export const useSampleDeckBootstrap = () => {
-  const auth = useAuth();
+  const auth = useSession();
   const remote = useRemoteCollections();
   const deckImport = useDeckImport();
   const uid = auth.status === "authenticated" ? auth.uid : "";

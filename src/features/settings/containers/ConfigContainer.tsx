@@ -13,7 +13,7 @@ import { ConfigFormTemplate } from "@/features/settings/components/templates/Con
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
 import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
-import { useAuth } from "@/auth/AuthContext";
+import { useSession } from "@/entities/session";
 import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
 
 /**
@@ -23,16 +23,16 @@ import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
  */
 export const ConfigContainer: React.FC = () => {
   const config = useConfig();
-  const authState = useAuth();
+  const authState = useSession();
   const navigate = useNavigate();
   const authenticated = authState.status === "authenticated" ? authState : undefined;
   const identity = {
     uid: authenticated?.uid ?? "",
-    displayName: authenticated?.user.providerData[0]?.displayName ?? null,
+    displayName: authenticated?.displayName ?? null,
   };
   const account = useAccountOperations({
     generation: authenticated
-      ? `authenticated:${authenticated.uid}:${authenticated.user.isAnonymous ? "anonymous" : "linked"}`
+      ? `authenticated:${authenticated.uid}:${authenticated.isAnonymous ? "anonymous" : "linked"}`
       : authState.status,
     login: action.event.loginGoogle,
     ...(authenticated ? { logout: () => action.event.logout(authenticated.uid) } : {}),
@@ -41,7 +41,7 @@ export const ConfigContainer: React.FC = () => {
     config,
     identity,
     version: __APP_VERSION__,
-    isLoggedIn: authenticated != null && !authenticated.user.isAnonymous,
+    isLoggedIn: authenticated != null && !authenticated.isAnonymous,
     onLogin: () => void account.login().catch(() => undefined),
     ...(authenticated ? { onLogout: () => void account.logout().catch(() => undefined) } : {}),
     accountPending: account.pending,

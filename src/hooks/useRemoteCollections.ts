@@ -10,7 +10,7 @@ import type { ConfigState } from "@/shared/config";
 import { useEffect, useState } from "react";
 import { useStore } from "zustand";
 
-import { useAuth } from "@/auth/AuthContext";
+import { useSession } from "@/entities/session";
 import { remoteValues, cardsForDeck, filteredCardsForDeck, tagsForDeck } from "@/store/remoteSelectors";
 import { remoteStore } from "@/store/remoteStore";
 
@@ -37,7 +37,7 @@ export const nextCardAvailabilityAt = (cards: Card[], now: number): number | und
  * services themselves.
  */
 export const useRemoteCollections = () => {
-  const authState = useAuth();
+  const authState = useSession();
   const uid = authState.status === "authenticated" ? authState.uid : "";
   const remoteState = useStore(remoteStore);
   const hasActiveUid = uid !== "" && remoteState.uid === uid;

@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 
 import * as action from "@/action";
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
-import { useAuth } from "@/auth/AuthContext";
+import { useSession } from "@/entities/session";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
@@ -267,7 +267,7 @@ const previewDeckImportFile = async (
  * services themselves.
  */
 export const useDeckImport = () => {
-  const auth = useAuth();
+  const auth = useSession();
   const remote = useRemoteCollections();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();

@@ -31,9 +31,11 @@ const mocks = vi.hoisted(() => ({
   bulkUpsert: vi.fn(),
 }));
 
-vi.mock("@/auth/AuthContext", () => ({
-  useAuth: () =>
-    mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
+vi.mock("@/entities/session", () => ({
+  useSession: () =>
+    mocks.uid === ""
+      ? { status: "signedOut" }
+      : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
 }));
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({

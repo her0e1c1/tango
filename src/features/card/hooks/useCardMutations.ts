@@ -4,7 +4,7 @@ import type { Card, CardEdit, CardId } from "@/entities/card";
 
 import { useEffect, useRef } from "react";
 
-import { useAuth } from "@/auth/AuthContext";
+import { useSession } from "@/entities/session";
 import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { cardCommands } from "@/services/cardCommands";
@@ -16,7 +16,7 @@ interface UseCardMutationsOptions {
 }
 
 export const useCardMutations = ({ onRemoveSuccess }: UseCardMutationsOptions = {}) => {
-  const auth = useAuth();
+  const auth = useSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const { cardById } = useRemoteCollections();
   const mutation = useAsyncAction<CardId>(uid);
