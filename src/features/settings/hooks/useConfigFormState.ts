@@ -4,7 +4,7 @@
  * coordinate services themselves.
  */
 
-import type { ConfigState } from "@/shared/config/configTypes";
+import type { ConfigState } from "@/shared/config";
 
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";

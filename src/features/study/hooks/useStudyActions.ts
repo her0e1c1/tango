@@ -6,7 +6,7 @@
 
 import type { Card, CardEdit, CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import type { ConfigState, SwipeDirection } from "@/shared/config/configTypes";
+import type { ConfigState, SwipeDirection } from "@/shared/config";
 
 import React from "react";
 

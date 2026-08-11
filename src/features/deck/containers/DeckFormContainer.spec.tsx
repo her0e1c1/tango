@@ -5,7 +5,7 @@
  */
 
 import type { Deck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config/configTypes";
+import type { ConfigState } from "@/shared/config";
 
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
@@ -21,9 +21,13 @@ const mocks = vi.hoisted(() => ({
   updateAndGoToList: vi.fn(),
   goToList: vi.fn(),
   navigate: vi.fn(),
+  setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/shared/config", () => ({
+  useConfig: () => mocks.config,
+  setDarkMode: mocks.setDarkMode,
+}));
 
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
@@ -36,14 +40,6 @@ vi.mock("@/hooks/useRemoteCollections", () => ({
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
-}));
-
-vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({
-    goToTop: vi.fn(),
-    goByMenu: vi.fn(),
-    setDarkMode: vi.fn(),
-  }),
 }));
 
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({
@@ -83,6 +79,7 @@ describe("DeckFormContainer", () => {
     mocks.updateAndGoToList.mockReset();
     mocks.goToList.mockReset();
     mocks.navigate.mockReset();
+    mocks.setDarkMode.mockReset();
   });
 
   it("submits the current deck", async () => {
@@ -91,6 +88,20 @@ describe("DeckFormContainer", () => {
     await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith(deck);
+  });
+
+  it("forwards header actions", async () => {
+    render(<DeckFormContainer />);
+
+    await userEvent.click(screen.getByRole("button", { name: "tango" }));
+    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
+
+    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
   });
 
   it("submits an edited name", async () => {

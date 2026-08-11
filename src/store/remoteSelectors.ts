@@ -4,7 +4,7 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config/configTypes";
+import type { ConfigState } from "@/shared/config";
 
 import * as lodash from "lodash";
 

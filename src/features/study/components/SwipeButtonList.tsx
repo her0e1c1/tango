@@ -4,7 +4,7 @@
  * outside the view.
  */
 
-import type { SwipeDirection } from "@/shared/config/configTypes";
+import type { SwipeDirection } from "@/shared/config";
 
 import type * as React from "react";
 import { AiOutlineArrowUp, AiOutlineArrowDown, AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";

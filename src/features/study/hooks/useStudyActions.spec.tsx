@@ -6,7 +6,7 @@
 
 import type { Card, CardId } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config/configTypes";
+import type { ConfigState } from "@/shared/config";
 
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

@@ -6,7 +6,7 @@
  */
 
 import type { Card } from "@/entities/card";
-import type { ConfigState } from "@/shared/config/configTypes";
+import type { ConfigState } from "@/shared/config";
 
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
@@ -21,13 +21,13 @@ const mocks = vi.hoisted(() => ({
   card: null as Card | null,
   cardUpdate: vi.fn(),
   navigate: vi.fn(),
-  goToTop: vi.fn(),
-  goToImport: vi.fn(),
-  goToSettings: vi.fn(),
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/shared/config", () => ({
+  useConfig: () => mocks.config,
+  setDarkMode: mocks.setDarkMode,
+}));
 
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
@@ -57,15 +57,6 @@ vi.mock("@/features/card", async (importOriginal) => {
   };
 });
 
-vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({
-    goToTop: mocks.goToTop,
-    goToImport: mocks.goToImport,
-    goToSettings: mocks.goToSettings,
-    setDarkMode: mocks.setDarkMode,
-  }),
-}));
-
 import { CardFormPage } from "./CardFormPage";
 
 describe("CardFormPage", () => {
@@ -92,9 +83,6 @@ describe("CardFormPage", () => {
     mocks.cardUpdate.mockReset();
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.navigate.mockReset();
-    mocks.goToTop.mockReset();
-    mocks.goToImport.mockReset();
-    mocks.goToSettings.mockReset();
     mocks.setDarkMode.mockReset();
   });
 
@@ -115,10 +103,10 @@ describe("CardFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
     await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
-    expect(mocks.goToTop).toHaveBeenCalledOnce();
     expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.goToImport).toHaveBeenCalledOnce();
-    expect(mocks.goToSettings).toHaveBeenCalledOnce();
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
 
     view.unmount();
     mocks.config = createConfig({ appearance: { darkMode: true } });

@@ -26,14 +26,7 @@ const mocks = vi.hoisted(() => ({
   clearStudyStore: vi.fn(),
   actualClearStudyStore: undefined as undefined | (() => Promise<void>),
   operations: [] as string[],
-  accountActions: {
-    login: vi.fn(),
-    logout: vi.fn(),
-    configUpdate: vi.fn(),
-    goToTop: vi.fn(),
-    setDarkMode: vi.fn(),
-    goByMenu: vi.fn(),
-  },
+  navigate: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
@@ -56,8 +49,12 @@ vi.mock("@/features/study/state/studyStore", async (importOriginal) => {
   mocks.actualClearStudyStore = actual.clearStudyStore;
   return { ...actual, clearStudyStore: mocks.clearStudyStore };
 });
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ appearance: { darkMode: false } }) }));
-vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.accountActions }));
+vi.mock("@/shared/config", () => ({
+  useConfig: () => ({ appearance: { darkMode: false } }),
+  setDarkMode: vi.fn(),
+  updateConfig: vi.fn(),
+}));
+vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/settings/hooks/useConfigFormState", () => ({
   useConfigFormState: (options: Record<string, unknown>) => options,
 }));
@@ -90,8 +87,6 @@ beforeEach(() => {
   mocks.auth.currentUser = null;
   mocks.publishUser = undefined;
   mocks.operations.length = 0;
-  mocks.accountActions.login.mockResolvedValue(undefined);
-  mocks.accountActions.logout.mockImplementation(logout);
   mocks.clearStudyStore.mockImplementation(() => {
     if (!mocks.actualClearStudyStore) throw new Error("Actual study cleanup was not initialized");
     return mocks.actualClearStudyStore();

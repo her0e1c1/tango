@@ -16,8 +16,7 @@ import {
   useStudyHydrated,
   useStudyStore,
 } from "@/features/study";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/shared/config/useConfig";
+import { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
@@ -33,6 +32,7 @@ const isHistoryState = (value: unknown): value is Record<string, unknown> =>
 
 export const DeckSwiperPage: React.FC = () => {
   const params = useParams();
+  const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
 
@@ -57,15 +57,13 @@ export const DeckSwiperPage: React.FC = () => {
     error: cardMutation.error,
     retry: cardMutation.retry,
   });
-  const actions = useActions();
-
   useKey("ArrowUp", studyActions.swipeUp);
   useKey("ArrowDown", studyActions.swipeDown);
   useKey("ArrowLeft", studyActions.swipeLeft);
   useKey("ArrowRight", studyActions.swipeRight);
   useKey("Enter", studyActions.toggleShowBackText);
-  useKey("h", actions.toggleShowHeader);
-  useKey("b", actions.toggleShowSwipeButtonList);
+  useKey("h", toggleShowHeader);
+  useKey("b", toggleShowSwipeButtonList);
   useKey(" ", studyActions.toggleAutoPlay);
 
   React.useEffect(() => {
@@ -79,7 +77,6 @@ export const DeckSwiperPage: React.FC = () => {
     return () => window.clearTimeout(timeout);
   }, [clearLastSwipe, config.appearance.showSwipeFeedback, lastSwipe]);
 
-  const navigate = useNavigate();
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
   const controller = useStudyControllerState({
     autoPlay,
@@ -159,10 +156,10 @@ export const DeckSwiperPage: React.FC = () => {
       showHeader={config.appearance.showHeader && !showBackText}
       headerProps={{
         dark: config.appearance.darkMode,
-        onClickDarkMode: actions.setDarkMode,
-        onClickLogo: actions.goToTop,
-        onClickImport: actions.goToImport,
-        onClickSettings: actions.goToSettings,
+        onClickDarkMode: setDarkMode,
+        onClickLogo: () => void navigate("/"),
+        onClickImport: () => void navigate("/import"),
+        onClickSettings: () => void navigate("/settings"),
       }}
     >
       <DeckSwiperView

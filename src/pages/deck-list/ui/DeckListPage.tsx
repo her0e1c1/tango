@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import * as action from "@/action";
@@ -12,8 +13,7 @@ import {
   useStudyHydrated,
   useStudySessions,
 } from "@/features/study";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/shared/config/useConfig";
+import { setDarkMode, useConfig } from "@/shared/config";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
@@ -25,7 +25,7 @@ import { buildDeckListSections } from "../selectors/buildDeckListSections";
 import { DeckListView } from "./DeckListView";
 
 export const DeckListPage: React.FC = () => {
-  const actions = useActions();
+  const navigate = useNavigate();
   const config = useConfig();
   const remote = useRemoteCollections();
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
@@ -42,8 +42,8 @@ export const DeckListPage: React.FC = () => {
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(remote.decks, remote.cards, sessionsByDeckId);
   useSampleDeckBootstrap();
-  useKey("s", actions.goToSettings);
-  useKey("i", actions.goToImport);
+  useKey("s", () => void navigate("/settings"));
+  useKey("i", () => void navigate("/import"));
 
   React.useEffect(() => {
     if (!hydrated || mutations.pending || remote.status !== "ready" || remote.syncStatus !== "synced") return;
@@ -62,10 +62,10 @@ export const DeckListPage: React.FC = () => {
           showHeader
           headerProps={{
             dark: config.appearance.darkMode,
-            onClickDarkMode: actions.setDarkMode,
-            onClickLogo: actions.goToTop,
-            onClickImport: actions.goToImport,
-            onClickSettings: actions.goToSettings,
+            onClickDarkMode: setDarkMode,
+            onClickLogo: () => void navigate("/"),
+            onClickImport: () => void navigate("/import"),
+            onClickSettings: () => void navigate("/settings"),
           }}
         >
           <RemoteMutationNotice
@@ -107,14 +107,14 @@ export const DeckListPage: React.FC = () => {
               openMenuDeckId,
               onToggleMenu: (id) => setOpenMenuDeckId((value) => (value === id ? undefined : id)),
               onCloseMenu: () => setOpenMenuDeckId(undefined),
-              onClickEdit: actions.goToEdit,
-              onClickName: actions.goToView,
+              onClickEdit: (id) => void navigate(`/deck/${id}/edit`),
+              onClickName: (id) => void navigate(`/deck/${id}`),
               onClickContinue: (id) => {
                 touchStudySession(id);
-                actions.goToStudy(id);
+                void navigate(`/deck/${id}/study`);
               },
-              onClickRestart: actions.goToStart,
-              onClickStudy: actions.goToStart,
+              onClickRestart: (id) => void navigate(`/deck/${id}/start`),
+              onClickStudy: (id) => void navigate(`/deck/${id}/start`),
               onClickDownload: (id) => {
                 const deck = remote.deckById(id);
                 if (deck != null) action.deck.downloadData(deck, remote.cardsByDeckId(id));

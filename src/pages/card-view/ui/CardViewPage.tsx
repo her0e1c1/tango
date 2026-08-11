@@ -4,8 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import * as C from "@/constant";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/shared/config/useConfig";
+import { setDarkMode, useConfig } from "@/shared/config";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -15,7 +14,7 @@ import * as util from "@/util";
 import { CardViewView } from "./CardViewView";
 
 const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
-  const actions = useActions();
+  const navigate = useNavigate();
   const config = useConfig();
   const category = util.getCategory(deck.category, card.tags);
 
@@ -24,10 +23,10 @@ const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
       showHeader
       headerProps={{
         dark: config.appearance.darkMode,
-        onClickDarkMode: actions.setDarkMode,
-        onClickLogo: actions.goToTop,
-        onClickImport: actions.goToImport,
-        onClickSettings: actions.goToSettings,
+        onClickDarkMode: setDarkMode,
+        onClickLogo: () => void navigate("/"),
+        onClickImport: () => void navigate("/import"),
+        onClickSettings: () => void navigate("/settings"),
       }}
     >
       <CardViewView

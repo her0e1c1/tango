@@ -1,4 +1,4 @@
-import type { ConfigState } from "@/shared/config/configTypes";
+import type { ConfigState } from "@/shared/config";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -15,21 +15,13 @@ const mocks = vi.hoisted(() => ({
   card: null as Card | null,
   deck: null as Deck | null,
   navigate: vi.fn(),
-  goToTop: vi.fn(),
-  goToImport: vi.fn(),
-  goToSettings: vi.fn(),
   setDarkMode: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
-vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({
-    setDarkMode: mocks.setDarkMode,
-    goToTop: mocks.goToTop,
-    goToImport: mocks.goToImport,
-    goToSettings: mocks.goToSettings,
-  }),
+vi.mock("@/shared/config", () => ({
+  useConfig: () => mocks.config,
+  setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: () => ({
@@ -53,9 +45,6 @@ describe("CardViewPage", () => {
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
     mocks.card = createCard({ id: "card-id", deckId: "deck-id", backText: "const answer = 42;", tags: ["typescript"] });
     mocks.navigate.mockReset();
-    mocks.goToTop.mockReset();
-    mocks.goToImport.mockReset();
-    mocks.goToSettings.mockReset();
     mocks.setDarkMode.mockReset();
   });
 
@@ -73,10 +62,10 @@ describe("CardViewPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
     await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
-    expect(mocks.goToTop).toHaveBeenCalledOnce();
     expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.goToImport).toHaveBeenCalledOnce();
-    expect(mocks.goToSettings).toHaveBeenCalledOnce();
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
   });
 
   it("shows recovery actions when the card is unavailable", async () => {

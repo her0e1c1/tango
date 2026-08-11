@@ -7,7 +7,7 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config/configTypes";
+import type { ConfigState } from "@/shared/config";
 
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -21,8 +21,7 @@ import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
-import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/shared/config/useConfig";
+import { setDarkMode, useConfig } from "@/shared/config";
 
 /**
  * Checks whether the supplied value satisfies the interactive shortcut target condition.
@@ -42,7 +41,7 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
   const deckActions = useDeckActions(deckId);
   const studyActions = useStudyActions(deckId);
   const startStudy = studyActions.start;
-  const actions = useActions();
+  const navigate = useNavigate();
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
   /**
    * Starts the study session when Enter is pressed outside an interactive control.
@@ -60,10 +59,10 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
       layout={{
         headerProps: {
           dark: config.appearance.darkMode,
-          onClickDarkMode: actions.setDarkMode,
-          onClickLogo: actions.goToTop,
-          onClickImport: actions.goToImport,
-          onClickSettings: actions.goToSettings,
+          onClickDarkMode: setDarkMode,
+          onClickLogo: () => void navigate("/"),
+          onClickImport: () => void navigate("/import"),
+          onClickSettings: () => void navigate("/settings"),
         },
       }}
       deckName={deck.name}

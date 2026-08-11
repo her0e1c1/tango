@@ -3,7 +3,7 @@
  * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
-import type { SwipeDirection } from "@/shared/config/configTypes";
+import type { SwipeDirection } from "@/shared/config";
 
 import cx from "classnames";
 import type * as React from "react";

@@ -8,7 +8,7 @@ import * as lodash from "lodash";
 
 import type { Card, CardEdit } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { StudyPreferences, SwipeAction, SwipeDirection, SwipeState } from "@/shared/config/configTypes";
+import type { StudyPreferences, SwipeAction, SwipeDirection, SwipeState } from "@/shared/config";
 
 /**
  * Resolves the swipe action value from config for a given direction.

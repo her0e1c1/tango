@@ -6,7 +6,7 @@
  */
 
 import type { Card } from "@/entities/card";
-import type { ConfigState } from "@/shared/config/configTypes";
+import type { ConfigState } from "@/shared/config";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -21,6 +21,8 @@ const mocks = vi.hoisted(() => {
     start,
     currentStart: start,
     update: vi.fn(),
+    navigate: vi.fn(),
+    setDarkMode: vi.fn(),
   };
 });
 vi.mock("@/hooks/useRemoteCollections", () => ({
@@ -32,8 +34,13 @@ vi.mock("@/features/deck/hooks/useDeckActions", () => ({
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({ start: mocks.currentStart }),
 }));
-vi.mock("@/hooks/useActions", () => ({
-  useActions: () => ({ setDarkMode: vi.fn(), goToTop: vi.fn(), goByMenu: vi.fn() }),
+vi.mock("react-router-dom", () => ({
+  useNavigate: () => mocks.navigate,
+  useParams: () => ({ id: "deck-id" }),
+}));
+vi.mock("@/shared/config", () => ({
+  useConfig: () => ({}),
+  setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
@@ -72,6 +79,20 @@ describe("DeckStartContent", () => {
     renderContent({ cards: [createCard()], config: createConfig({ maxNumberOfCardsToLearn: 1 }) });
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeInTheDocument();
+  });
+
+  it("forwards header actions", () => {
+    renderContent();
+
+    fireEvent.click(screen.getByRole("button", { name: "tango" }));
+    fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
+
+    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
   });
 
   it("starts from Enter when cards match and focus is not interactive", () => {

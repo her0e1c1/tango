@@ -4,7 +4,7 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config/configTypes";
+import type { ConfigState } from "@/shared/config";
 
 import { useEffect, useState } from "react";
 import { useStore } from "zustand";

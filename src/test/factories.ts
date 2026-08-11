@@ -12,7 +12,7 @@ import type {
   ControlPreferences,
   StudyPreferences,
   SwipeAction,
-} from "@/shared/config/configTypes";
+} from "@/shared/config";
 
 /**
  * Builds a complete test deck with predictable defaults and optional field overrides.

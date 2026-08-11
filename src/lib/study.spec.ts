@@ -6,7 +6,7 @@
  */
 
 import type { Card } from "@/entities/card";
-import type { StudyPreferences, SwipeState } from "@/shared/config/configTypes";
+import type { StudyPreferences, SwipeState } from "@/shared/config";
 
 import { expect, it, describe } from "vitest";
 import {
