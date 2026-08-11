@@ -1,0 +1,13 @@
+[env]
+COMPOSE_FILE = "docker-compose.yml"
+COMPOSE_ENV_FILES = "../.env"
+
+[tasks]
+test = "docker compose run --rm --remove-orphans --entrypoint py.test base"
+fmt = "docker compose run --rm --remove-orphans --entrypoint 'ruff format' base"
+fmt-check = "docker compose run --rm --remove-orphans --entrypoint 'ruff format --check' base"
+
+[tasks.build]
+sources = ["generate.py", "test/**/*"]
+outputs = ["build/output.json"]
+run = "docker compose run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base"

@@ -1,3 +1,8 @@
+monorepo_root = true
+
+[monorepo]
+config_roots = ["sample"]
+
 [tools]
 hadolint = "2.15.0"
 node = "24.15.0"
@@ -12,7 +17,7 @@ COMPOSE_ENV_FILES = ".env"
 [tasks]
 up = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
 dev-up = "docker compose --env-file .env.dev up --wait --wait-timeout 120 --remove-orphans -d db auth"
-test-sample = "npm run test:sample"
+test-sample = "mise run //sample:test"
 lint-docker = "hadolint --failure-threshold warning Dockerfile sample/Dockerfile"
 down = "docker compose down --remove-orphans"
 ps = "docker compose ps"
@@ -60,13 +65,13 @@ run = "npm run test:coverage"
 [tasks.fmt]
 run = [
   "npm run fmt",
-  "npm run fmt:sample",
+  "mise run //sample:fmt",
 ]
 
 [tasks.fmt-check]
 run = [
   "npm run fmt:check",
-  "npm run fmt:sample:check",
+  "mise run //sample:fmt-check",
 ]
 
 [tasks.lint]
@@ -74,9 +79,7 @@ depends = ["build-sample"]
 run = "npm run lint"
 
 [tasks.build-sample]
-sources = ["package.json", "sample/generate.py", "sample/test/**/*"]
-outputs = ["sample/build/output.json"]
-run = "npm run build:sample"
+run = "mise run //sample:build"
 
 [tasks.build]
 depends = ["build-sample"]
