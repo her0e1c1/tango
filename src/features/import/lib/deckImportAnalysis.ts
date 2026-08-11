@@ -8,7 +8,6 @@ import type { Card, CardRaw } from "@/entities/card";
 
 import * as Papa from "papaparse";
 
-import * as cardAction from "@/action/card";
 import type {
   DeckImportAnalysis,
   DeckImportIssue,
@@ -16,6 +15,7 @@ import type {
   DeckImportPlanRow,
   DeckImportRow,
 } from "@/features/import/components/deckImportTypes";
+import { fromRow } from "@/features/import/lib/cardCsv";
 
 /**
  * Formats raw CSV columns for inclusion in a validation message.
@@ -81,7 +81,7 @@ export const parseDeckImportCsv = async (content: string | File): Promise<DeckIm
       return;
     }
 
-    const card = cardAction.fromRow(columns);
+    const card = fromRow(columns);
     card.uniqueKey = card.uniqueKey.trim();
     if (card.uniqueKey === "") {
       invalidRows.add(rowNumber);

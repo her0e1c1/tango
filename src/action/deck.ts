@@ -4,7 +4,7 @@
  * depending on React components.
  */
 
-import type { Card, CardRaw } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 
 import * as Papa from "papaparse";
@@ -23,22 +23,4 @@ export const downloadData = (deck: Deck, cards: Card[]) => {
   const csv = Papa.unparse(cards.map(cardAction.toRow), { escapeFormulae: true });
   const fileName = deck.name.endsWith(".csv") ? deck.name : `${deck.name}.csv`;
   downloadTextFile(csv, fileName, CSV_MIME_TYPE);
-};
-
-/**
- * Parses csv into validated application data.
- * Malformed input is reported before downstream code relies on the result.
- */
-export const parseCsv = async (content: unknown): Promise<CardRaw[]> => {
-  if (typeof content !== "string" && !(typeof File !== "undefined" && content instanceof File)) {
-    throw new TypeError("CSV content must be a string or File");
-  }
-  return await new Promise((resolve) =>
-    Papa.parse(content, {
-      complete: async (results: { data: string[][] }) => {
-        const cards = results.data.map(cardAction.fromRow).filter((c) => !cardAction.isEmpty(c));
-        resolve(cards);
-      },
-    })
-  );
 };
