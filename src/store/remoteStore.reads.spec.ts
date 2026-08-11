@@ -1,10 +1,10 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
+import type { RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { FirestoreInitializationResult } from "@/shared/firebase/firestore-runtime";
-import type { RemoteSubscriptionProps } from "@/domain/remoteSnapshot";
 import { createRemoteStore, type RemoteReadDependencies } from "@/store/remoteStore";
 import { createCard, createDeck } from "@/test/factories";
 
