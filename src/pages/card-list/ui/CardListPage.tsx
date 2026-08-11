@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import type { Card, CardId } from "@/entities/card";
-import { getCategory, LANGUAGES, type Deck } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
 import { setDarkMode, useConfig } from "@/shared/config";
@@ -123,7 +123,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
                 backText: {
                   text: showCard.backText,
                   category,
-                  code: LANGUAGES.includes(category),
+                  code: isHighlightLanguage(category),
                   dark: config.appearance.darkMode,
                 },
                 onClose: closeCard,
