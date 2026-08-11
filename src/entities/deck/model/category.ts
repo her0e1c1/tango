@@ -1,52 +1,27 @@
 /**
  * @file Owns deck category values and the rule for resolving a card's effective category.
- * Category aliases and supported languages live with the Deck domain instead of root-level helpers.
+ * Highlight.js is the source of truth for supported code-language categories.
  */
+
+// biome-ignore lint/correctness/noUnresolvedImports: highlight.js exposes this default through its ESM export map.
+import hljs from "highlight.js";
 
 export type Category = string;
 
-export const LANGUAGES: Category[] = [
-  "c",
-  "cpp",
-  "kotlin",
-  "python",
-  "golang",
-  "java",
-  "javascript",
-  "typescript",
-  "haskell",
-  "php",
-  "ruby",
-  "shell",
-  "sh",
-  "swift",
-];
+const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
-const LANGUAGE_MAPPING = {
-  hs: "haskell",
-  go: "golang",
-  js: "javascript",
-  jsx: "javascript",
-  ts: "typescript",
-  tsx: "typescript",
-  py: "python",
-  rb: "ruby",
-} as const;
+export const LANGUAGES: Category[] = hljs.listLanguages();
 
-type LanguageAlias = keyof typeof LANGUAGE_MAPPING;
+export const CATEGORY: Category[] = [...APPLICATION_CATEGORIES, ...LANGUAGES];
 
-const isLanguageAlias = (value: string): value is LanguageAlias => value in LANGUAGE_MAPPING;
-
-export const CATEGORY: Category[] = ["raw", "markdown", "math", ...LANGUAGES];
+export const isHighlightLanguage = (category: Category): boolean => hljs.getLanguage(category) !== undefined;
 
 /**
  * Resolves the category used to render a card.
- * The first supported tag overrides the deck's default category, including shorthand language tags.
+ * The first supported application category or Highlight.js language/alias overrides the deck default.
  */
 export const getCategory = (category: Category, tags: string[]): Category => {
-  const tagCategory = tags
-    .map((tag) => (isLanguageAlias(tag) ? LANGUAGE_MAPPING[tag] : tag))
-    .find((tag) => CATEGORY.includes(tag));
+  const tagCategory = tags.find((tag) => APPLICATION_CATEGORIES.includes(tag) || isHighlightLanguage(tag));
 
   return tagCategory ?? category;
 };
