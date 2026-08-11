@@ -1,11 +1,11 @@
 import { useStore } from "zustand";
 
-import { useAuth } from "@/auth/AuthContext";
+import { useSession } from "@/entities/session";
 import type { RemoteStoreState } from "@/store/remoteStore";
 import { remoteStore } from "@/store/remoteStore";
 
 export const useRemoteRead = <T>(select: (state: RemoteStoreState) => T, empty: T) => {
-  const auth = useAuth();
+  const auth = useSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const remoteState = useStore(remoteStore);
   const hasActiveUid = uid !== "" && remoteState.uid === uid;

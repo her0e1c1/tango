@@ -8,10 +8,9 @@ import type { Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 
 import type { Decorator } from "@storybook/react";
-import type { User } from "firebase/auth";
 import { MemoryRouter } from "react-router-dom";
 
-import { AuthProvider, type AuthState, type AuthStore } from "@/auth/AuthContext";
+import { createSessionStore, SessionProvider, type SessionState } from "@/entities/session";
 import { studyStore, type StudySession } from "@/features/study/state/studyStore";
 import { configStore } from "@/shared/config/configStore";
 import { configSchema, normalizeConfigInput } from "@/shared/config/configSchema";
@@ -30,25 +29,14 @@ export interface PageStoryParameters {
   autoPlay?: boolean;
 }
 
-const storybookUser = {
+const storybookSession: SessionState = {
+  status: "authenticated",
   uid: PAGE_STORY_UID,
   isAnonymous: true,
-  providerData: [],
-} as unknown as User;
-
-const storybookAuthState: AuthState = {
-  status: "authenticated",
-  user: storybookUser,
-  uid: PAGE_STORY_UID,
+  displayName: null,
 };
 
-const storybookAuthStore: AuthStore = {
-  getSnapshot: () => storybookAuthState,
-  subscribe: () => () => false,
-  publishAuthenticatedUser: () => undefined,
-  suspendAnonymousBootstrap: () => () => undefined,
-  dispose: () => undefined,
-};
+const storybookSessionStore = createSessionStore(storybookSession);
 
 const cloneDeck = (deck: Deck): Deck => ({
   ...deck,
@@ -111,10 +99,10 @@ export const withPageStory: Decorator = (Story, context) => {
   if (parameters == null) throw new Error("Page stories require parameters.page");
 
   return (
-    <AuthProvider store={storybookAuthStore}>
+    <SessionProvider store={storybookSessionStore}>
       <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
         <Story />
       </MemoryRouter>
-    </AuthProvider>
+    </SessionProvider>
   );
 };

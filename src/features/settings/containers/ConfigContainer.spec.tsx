@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/action", () => ({ event: { loginGoogle: vi.fn(), logout: vi.fn() } }));
-vi.mock("@/auth/AuthContext", () => ({ useAuth: () => ({ status: "initializing" as const }) }));
+vi.mock("@/entities/session", () => ({ useSession: () => ({ status: "initializing" as const }) }));
 vi.mock("@/shared/config", () => ({
   useConfig: () => mocks.config,
   setDarkMode: mocks.setDarkMode,
