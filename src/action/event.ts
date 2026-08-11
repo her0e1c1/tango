@@ -10,7 +10,7 @@ import { FirebaseError } from "firebase/app";
 
 import { clearStudyStore, studyStore, type StudyState } from "@/features/study/state/studyStore";
 import { publishAuthenticatedUser, suspendAnonymousBootstrap } from "@/auth/AuthContext";
-import { auth } from "@/firebase";
+import { auth } from "@/shared/firebase";
 import { remoteStore } from "@/store/remoteStore";
 
 const { getState: getRemoteState } = remoteStore;

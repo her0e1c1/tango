@@ -4,7 +4,7 @@
  * and delete snapshots without a cursor".
  */
 
-import "./init";
+import "@/shared/firebase/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 

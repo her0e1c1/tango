@@ -6,7 +6,7 @@
 
 import { onAuthStateChanged, signInAnonymously, type Auth, type User, type UserCredential } from "firebase/auth";
 import { createContext, useContext, useSyncExternalStore, type PropsWithChildren } from "react";
-import { auth } from "@/firebase";
+import { auth } from "@/shared/firebase";
 
 export type AuthState =
   | { status: "initializing" }

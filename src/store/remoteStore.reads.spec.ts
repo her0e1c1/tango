@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { FirestoreInitializationState } from "@/adapters/firestore/runtime";
+import type { FirestoreInitializationState } from "@/shared/firebase/firestore-runtime";
 import type { RemoteSubscriptionProps } from "@/domain/remoteSnapshot";
 import { createRemoteStore, type RemoteReadDependencies } from "@/store/remoteStore";
 import { createCard, createDeck } from "@/test/factories";

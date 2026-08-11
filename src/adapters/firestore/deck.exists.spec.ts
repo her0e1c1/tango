@@ -15,7 +15,7 @@ vi.mock("firebase/firestore", () => ({
   doc: mocks.doc,
   getDoc: mocks.getDoc,
 }));
-vi.mock("@/adapters/firestore/runtime", () => ({ getDb: () => "db" }));
+vi.mock("@/shared/firebase/firestore-runtime", () => ({ getDb: () => "db" }));
 
 import { exists } from "@/adapters/firestore/deck";
 

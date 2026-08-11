@@ -31,9 +31,9 @@ const config: StorybookConfig = {
       {
         resolve: {
           alias: [
-            { find: /^@\/firebase$/, replacement: storybookFirebase },
+            { find: /^@\/shared\/firebase$/, replacement: storybookFirebase },
             {
-              find: /^@\/adapters\/firestore\/runtime$/,
+              find: /^@\/shared\/firebase\/firestore-runtime$/,
               replacement: storybookFirestoreRuntime,
             },
           ],

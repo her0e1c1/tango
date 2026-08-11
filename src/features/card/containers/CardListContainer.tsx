@@ -76,7 +76,8 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
           dark: config.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
-          onClickMenuItem: actions.goByMenu,
+          onClickImport: actions.goToImport,
+          onClickSettings: actions.goToSettings,
         },
       }}
       card={{

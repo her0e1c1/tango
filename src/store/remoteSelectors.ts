@@ -4,6 +4,7 @@
 
 import * as lodash from "lodash";
 
+import { selectCardsForDeck } from "@/entities/card";
 import { filterCardsForDeck as filterStudyCards } from "@/lib/study";
 import type { RemoteById } from "@/domain/remoteSnapshot";
 
@@ -18,7 +19,7 @@ export const remoteValues = <T extends { id: string }>(items: RemoteById<T>): T[
  * Returns every card that belongs to the requested deck.
  * This basic selection is reused by tag, study, and filtered-card calculations.
  */
-export const cardsForDeck = (cards: Card[], deckId: DeckId): Card[] => cards.filter((card) => card.deckId === deckId);
+export const cardsForDeck = selectCardsForDeck;
 
 /**
  * Returns the requested deck's cards after applying score, tag, and study-schedule rules.

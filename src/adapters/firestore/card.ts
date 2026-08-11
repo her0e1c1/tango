@@ -18,7 +18,7 @@ import {
 } from "firebase/firestore";
 import { getTimestamp } from "@/adapters/firestore/documentMetadata";
 import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument } from "@/adapters/firestore/dto";
-import { getDb } from "@/adapters/firestore/runtime";
+import { getDb } from "@/shared/firebase/firestore-runtime";
 
 /**
  * Reads every active card owned by the requested user from Firestore.

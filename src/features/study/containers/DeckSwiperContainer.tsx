@@ -166,7 +166,8 @@ export const DeckSwiperContainer: React.FC = () => {
           dark: config.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
-          onClickMenuItem: actions.goByMenu,
+          onClickImport: actions.goToImport,
+          onClickSettings: actions.goToSettings,
         },
       }}
       feedbackSlot={

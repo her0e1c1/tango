@@ -1,2 +1,2 @@
 export { DeckFormContainer } from "./containers/DeckFormContainer";
-export { DeckListContainer } from "./containers/DeckListContainer";
+export { useDeckMutations } from "./hooks/useDeckMutations";

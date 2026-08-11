@@ -6,7 +6,7 @@
 
 import cx from "classnames";
 import type * as React from "react";
-import { useButtonInteraction } from "@/components/feedback/buttonInteraction";
+import { useButtonInteraction } from "@/shared/ui/button-interaction";
 
 /**
  * Renders the Overlay user interface.
