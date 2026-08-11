@@ -73,6 +73,86 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/entities/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/app/**", "@/features/**", "@/pages/**", "@/widgets/**"],
+                    "message": "Entity modules cannot import from higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/features/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/app/**", "@/pages/**", "@/widgets/**"],
+                    "message": "Feature modules cannot import from higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/widgets/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/app/**", "@/pages/**"],
+                    "message": "Widget modules cannot import from higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/pages/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/app/**"],
+                    "message": "Page modules cannot import from the app layer."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ],
   "assist": {
