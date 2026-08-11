@@ -5,7 +5,7 @@ import * as C from "@/constant";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/shared/config/useConfig";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";

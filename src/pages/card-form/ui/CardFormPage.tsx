@@ -5,7 +5,7 @@ import * as C from "@/constant";
 import type { Card } from "@/entities/card";
 import { useCardFormState, useCardMutations } from "@/features/card";
 import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/shared/config/useConfig";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";

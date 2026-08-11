@@ -1,6 +1,6 @@
-import { cleanup, render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import type { Card } from "@/entities/card";
@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     setDarkMode: mocks.setDarkMode,
@@ -57,24 +57,19 @@ describe("CardViewPage", () => {
     mocks.setDarkMode.mockReset();
   });
 
-  afterEach(cleanup);
-
   it("renders the card answer using its resolved category", () => {
-    const view = render(<CardViewPage />);
+    render(<CardViewPage />);
 
-    expect(view.container.querySelector("pre.typescript")).toHaveTextContent("const answer = 42;");
+    expect(screen.getByText(/answer =/)).toHaveTextContent("const answer = 42;");
   });
 
   it("renders the ready screen in the application shell and forwards header actions", async () => {
-    const view = render(<CardViewPage />);
-    const logo = view.getByRole("button", { name: "tango" });
-    const headerActions = logo.parentElement?.querySelectorAll("svg");
+    render(<CardViewPage />);
 
-    expect(headerActions).toHaveLength(3);
-    await userEvent.click(logo);
-    await userEvent.click(headerActions?.[0] as SVGElement);
-    await userEvent.click(headerActions?.[1] as SVGElement);
-    await userEvent.click(headerActions?.[2] as SVGElement);
+    await userEvent.click(screen.getByRole("button", { name: "tango" }));
+    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
     expect(mocks.goToTop).toHaveBeenCalledOnce();
     expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
@@ -84,12 +79,12 @@ describe("CardViewPage", () => {
 
   it("shows recovery actions when the card is unavailable", async () => {
     mocks.card = null;
-    const view = render(<CardViewPage />);
+    render(<CardViewPage />);
 
-    expect(view.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
-    expect(view.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-    await userEvent.click(view.getByRole("button", { name: "Go home" }));
-    await userEvent.click(view.getByRole("button", { name: "Go back" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, -1);
   });

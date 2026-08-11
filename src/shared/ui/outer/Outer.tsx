@@ -14,7 +14,8 @@ import type * as React from "react";
  */
 export const Outer: React.FC<{ children?: React.ReactNode; className?: string }> = (props) => {
   return (
-    <div
+    <section
+      aria-label="Application shell"
       className={cx(
         "bg-canvas",
         "text-ink",
@@ -31,6 +32,6 @@ export const Outer: React.FC<{ children?: React.ReactNode; className?: string }>
       )}
     >
       {props.children}
-    </div>
+    </section>
   );
 };

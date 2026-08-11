@@ -6,9 +6,9 @@
  */
 
 import * as React from "react";
-import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { ActionsMenu, type ActionsMenuItem } from "./ActionsMenu";
 import { actAsync } from "@/test/act";
@@ -67,24 +67,22 @@ const labels = {
 };
 
 describe("ActionsMenu", () => {
-  afterEach(cleanup);
-
   it("renders supplied labels and runs items before returning focus", async () => {
     const edit = vi.fn();
     const remove = vi.fn();
-    const view = render(<ControlledMenu {...labels} items={items(edit, remove)} />);
-    const trigger = view.getByRole("button", { name: labels.triggerLabel });
+    render(<ControlledMenu {...labels} items={items(edit, remove)} />);
+    const trigger = screen.getByRole("button", { name: labels.triggerLabel });
 
-    expect(view.getByRole("group", { name: labels.groupLabel })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: labels.groupLabel })).toBeInTheDocument();
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(trigger);
-    expect(view.getByRole("menu", { name: labels.menuLabel })).toBeInTheDocument();
-    fireEvent.click(view.getByRole("menuitem", { name: "Edit" }));
+    expect(screen.getByRole("menu", { name: labels.menuLabel })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(edit).toHaveBeenCalledOnce();
     await waitFor(() => expect(trigger).toHaveFocus());
 
     fireEvent.click(trigger);
-    const deleteItem = view.getByRole("menuitem", { name: "Delete" });
+    const deleteItem = screen.getByRole("menuitem", { name: "Delete" });
     expect(deleteItem).toHaveClass("text-danger");
     fireEvent.click(deleteItem);
     expect(remove).toHaveBeenCalledOnce();
@@ -92,11 +90,11 @@ describe("ActionsMenu", () => {
   });
 
   it("supports wrapping arrows, Home, End, and Escape", async () => {
-    const view = render(<ControlledMenu {...labels} items={items()} />);
-    const trigger = view.getByRole("button", { name: labels.triggerLabel });
+    render(<ControlledMenu {...labels} items={items()} />);
+    const trigger = screen.getByRole("button", { name: labels.triggerLabel });
     fireEvent.click(trigger);
-    const edit = view.getByRole("menuitem", { name: "Edit" });
-    const remove = view.getByRole("menuitem", { name: "Delete" });
+    const edit = screen.getByRole("menuitem", { name: "Edit" });
+    const remove = screen.getByRole("menuitem", { name: "Delete" });
 
     await waitFor(() => expect(edit).toHaveFocus());
     fireEvent.keyDown(edit, { key: "ArrowUp" });
@@ -108,54 +106,54 @@ describe("ActionsMenu", () => {
     fireEvent.keyDown(remove, { key: "ArrowDown" });
     expect(edit).toHaveFocus();
     fireEvent.keyDown(edit, { key: "Escape" });
-    expect(view.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
 
   it("keeps menu items out of the Tab sequence and moves Tab to the next external control", async () => {
-    const view = render(
+    render(
       <>
         <button type="button">Previous control</button>
         <ControlledMenu {...labels} items={items()} />
         <button type="button">Next control</button>
       </>
     );
-    fireEvent.click(view.getByRole("button", { name: labels.triggerLabel }));
-    const edit = view.getByRole("menuitem", { name: "Edit" });
-    const remove = view.getByRole("menuitem", { name: "Delete" });
+    fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
+    const edit = screen.getByRole("menuitem", { name: "Edit" });
+    const remove = screen.getByRole("menuitem", { name: "Delete" });
     await waitFor(() => expect(edit).toHaveFocus());
 
     expect(edit).toHaveAttribute("tabindex", "-1");
     expect(remove).toHaveAttribute("tabindex", "-1");
     await actAsync(async () => fireEvent.keyDown(edit, { key: "Tab" }));
 
-    expect(view.queryByRole("menu")).not.toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Next control" })).toHaveFocus();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next control" })).toHaveFocus();
   });
 
   it("moves Shift+Tab to the previous external control before the trigger", async () => {
-    const view = render(
+    render(
       <>
         <button type="button">Previous control</button>
         <ControlledMenu {...labels} items={items()} />
         <button type="button">Next control</button>
       </>
     );
-    fireEvent.click(view.getByRole("button", { name: labels.triggerLabel }));
-    const edit = view.getByRole("menuitem", { name: "Edit" });
+    fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
+    const edit = screen.getByRole("menuitem", { name: "Edit" });
     await waitFor(() => expect(edit).toHaveFocus());
 
     await actAsync(async () => fireEvent.keyDown(edit, { key: "Tab", shiftKey: true }));
 
-    expect(view.queryByRole("menu")).not.toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Previous control" })).toHaveFocus();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Previous control" })).toHaveFocus();
   });
 
   it("keeps the menu open when an ambiguous blur settles inside", async () => {
-    const view = render(<ControlledMenu {...labels} items={items()} />);
-    fireEvent.click(view.getByRole("button", { name: labels.triggerLabel }));
-    const edit = view.getByRole("menuitem", { name: "Edit" });
-    const remove = view.getByRole("menuitem", { name: "Delete" });
+    render(<ControlledMenu {...labels} items={items()} />);
+    fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
+    const edit = screen.getByRole("menuitem", { name: "Edit" });
+    const remove = screen.getByRole("menuitem", { name: "Delete" });
     await waitFor(() => expect(edit).toHaveFocus());
 
     await actAsync(async () => {
@@ -163,17 +161,17 @@ describe("ActionsMenu", () => {
       remove.focus();
     });
 
-    expect(view.getByRole("menu", { name: labels.menuLabel })).toBeInTheDocument();
+    expect(screen.getByRole("menu", { name: labels.menuLabel })).toBeInTheDocument();
     expect(remove).toHaveFocus();
   });
 
   it("keeps Edit active when an ambiguous blur microtask runs before the click", async () => {
     const editAction = vi.fn();
-    const view = render(<ControlledMenu {...labels} items={items(editAction)} />);
-    const trigger = view.getByRole("button", { name: labels.triggerLabel });
+    render(<ControlledMenu {...labels} items={items(editAction)} />);
+    const trigger = screen.getByRole("button", { name: labels.triggerLabel });
 
     fireEvent.click(trigger);
-    const edit = view.getByRole("menuitem", { name: "Edit" });
+    const edit = screen.getByRole("menuitem", { name: "Edit" });
     await waitFor(() => expect(edit).toHaveFocus());
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
@@ -194,19 +192,19 @@ describe("ActionsMenu", () => {
   });
 
   it("keeps a newly opened sibling menu open after a stale blur timer runs", async () => {
-    const view = render(<SharedOpenMenus />);
-    fireEvent.click(view.getByRole("button", { name: "Open first actions" }));
-    const firstEdit = view.getByRole("menuitem", { name: "Edit" });
+    render(<SharedOpenMenus />);
+    fireEvent.click(screen.getByRole("button", { name: "Open first actions" }));
+    const firstEdit = screen.getByRole("menuitem", { name: "Edit" });
     await waitFor(() => expect(firstEdit).toHaveFocus());
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
     try {
       await actAsync(async () => {
         firstEdit.blur();
-        fireEvent.click(view.getByRole("button", { name: "Open second actions" }));
+        fireEvent.click(screen.getByRole("button", { name: "Open second actions" }));
       });
 
-      const secondMenu = view.getByRole("menu", { name: `second ${labels.menuLabel}` });
+      const secondMenu = screen.getByRole("menu", { name: `second ${labels.menuLabel}` });
       expect(secondMenu).toBeInTheDocument();
       act(() => vi.runOnlyPendingTimers());
       expect(secondMenu).toBeInTheDocument();
@@ -218,7 +216,7 @@ describe("ActionsMenu", () => {
   it("does not close after its root unmounts during an ambiguous blur", async () => {
     const onClose = vi.fn();
     const view = render(<ActionsMenu {...labels} items={items()} open onToggle={vi.fn()} onClose={onClose} />);
-    const edit = view.getByRole("menuitem", { name: "Edit" });
+    const edit = screen.getByRole("menuitem", { name: "Edit" });
     edit.focus();
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
@@ -234,15 +232,15 @@ describe("ActionsMenu", () => {
   });
 
   it("closes when an ambiguous blur settles outside", async () => {
-    const view = render(
+    render(
       <>
         <button type="button">External target</button>
         <ControlledMenu {...labels} items={items()} />
       </>
     );
-    fireEvent.click(view.getByRole("button", { name: labels.triggerLabel }));
-    const edit = view.getByRole("menuitem", { name: "Edit" });
-    const external = view.getByRole("button", { name: "External target" });
+    fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
+    const edit = screen.getByRole("menuitem", { name: "Edit" });
+    const external = screen.getByRole("button", { name: "External target" });
     await waitFor(() => expect(edit).toHaveFocus());
 
     await actAsync(async () => {
@@ -250,14 +248,14 @@ describe("ActionsMenu", () => {
       external.focus();
     });
 
-    await waitFor(() => expect(view.queryByRole("menu")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
     expect(external).toHaveFocus();
   });
 
   it("disables the trigger and hides an open menu", () => {
-    const view = render(<ActionsMenu {...labels} items={items()} open disabled onToggle={vi.fn()} onClose={vi.fn()} />);
+    render(<ActionsMenu {...labels} items={items()} open disabled onToggle={vi.fn()} onClose={vi.fn()} />);
 
-    expect(view.getByRole("button", { name: labels.triggerLabel })).toBeDisabled();
-    expect(view.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: labels.triggerLabel })).toBeDisabled();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 });

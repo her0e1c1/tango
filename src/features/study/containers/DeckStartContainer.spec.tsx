@@ -5,7 +5,7 @@
  * "stops responding to Enter when a rerender has no matching cards".
  */
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -61,24 +61,23 @@ const renderContent = ({
 
 describe("DeckStartContent", () => {
   afterEach(() => {
-    cleanup();
     vi.clearAllMocks();
     mocks.currentStart = mocks.start;
   });
 
   it("passes Deck and session context to the template", () => {
-    const view = renderContent({ cards: [createCard()], config: createConfig({ maxNumberOfCardsToLearn: 1 }) });
-    expect(view.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Start 1 card" })).toBeInTheDocument();
+    renderContent({ cards: [createCard()], config: createConfig({ maxNumberOfCardsToLearn: 1 }) });
+    expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start 1 card" })).toBeInTheDocument();
   });
 
   it("starts from Enter when cards match and focus is not interactive", () => {
-    const view = renderContent({ cards: [createCard()] });
+    renderContent({ cards: [createCard()] });
     fireEvent.keyDown(document.body, { key: "Enter" });
     expect(mocks.start).toHaveBeenCalledOnce();
 
     mocks.start.mockClear();
-    const slider = view.getByRole("slider", { name: "Maximum score value" });
+    const slider = screen.getByRole("slider", { name: "Maximum score value" });
     fireEvent.keyDown(slider, { key: "Enter" });
     expect(mocks.start).not.toHaveBeenCalled();
   });

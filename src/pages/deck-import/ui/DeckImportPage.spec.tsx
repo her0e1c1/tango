@@ -6,10 +6,10 @@
  * page when importing fails".
  */
 
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { DeckImportPreview, DeckImportResult } from "@/features/import";
 
@@ -49,7 +49,7 @@ vi.mock("@/features/import", () => ({
   }),
 }));
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
+vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
 
 vi.mock("react-use", () => ({
   useKey: mocks.useKey,
@@ -109,16 +109,14 @@ describe("DeckImportPage", () => {
     mocks.error = null;
   });
 
-  afterEach(cleanup);
-
   it("selects a CSV without importing or navigating automatically", async () => {
-    const view = render(<DeckImportPage />);
+    render(<DeckImportPage />);
     const file = new File(["front,back,,key"], "deck.csv", { type: "text/csv" });
 
-    fireEvent.change(view.container.querySelector("input[type='file']") as Element, {
+    fireEvent.change(screen.getByLabelText("Upload a csv file"), {
       target: { files: [file] },
     });
-    await userEvent.click(view.getByRole("button", { name: "Download CSV sample" }));
+    await userEvent.click(screen.getByRole("button", { name: "Download CSV sample" }));
 
     expect(mocks.selectFile).toHaveBeenCalledWith(file);
     expect(mocks.importPreview).not.toHaveBeenCalled();
@@ -129,15 +127,12 @@ describe("DeckImportPage", () => {
   });
 
   it("renders the import screen in the application shell and forwards header actions", async () => {
-    const view = render(<DeckImportPage />);
-    const logo = view.getByRole("button", { name: "tango" });
-    const headerActions = logo.parentElement?.querySelectorAll("svg");
+    render(<DeckImportPage />);
 
-    expect(headerActions).toHaveLength(3);
-    await userEvent.click(logo);
-    await userEvent.click(headerActions?.[0] as SVGElement);
-    await userEvent.click(headerActions?.[1] as SVGElement);
-    await userEvent.click(headerActions?.[2] as SVGElement);
+    await userEvent.click(screen.getByRole("button", { name: "tango" }));
+    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
     expect(mocks.goToTop).toHaveBeenCalledOnce();
     expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
@@ -146,9 +141,9 @@ describe("DeckImportPage", () => {
   });
 
   it("adds the bundled sample without navigating automatically", async () => {
-    const view = render(<DeckImportPage />);
+    render(<DeckImportPage />);
 
-    await userEvent.click(view.getByRole("button", { name: "Add sample deck" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add sample deck" }));
 
     expect(mocks.addSample).toHaveBeenCalledOnce();
     expect(mocks.navigate).not.toHaveBeenCalled();
@@ -156,9 +151,9 @@ describe("DeckImportPage", () => {
 
   it("navigates to the Deck list after importing the preview", async () => {
     mocks.preview = preview;
-    const view = render(<DeckImportPage />);
+    render(<DeckImportPage />);
 
-    await userEvent.click(view.getByRole("button", { name: "Import" }));
+    await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
     expect(mocks.importPreview).toHaveBeenCalledOnce();
     await waitFor(() => expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/"));
@@ -167,9 +162,9 @@ describe("DeckImportPage", () => {
   it("stays on the import page when importing fails", async () => {
     mocks.preview = preview;
     mocks.importPreview.mockRejectedValue(new Error("Import failed"));
-    const view = render(<DeckImportPage />);
+    render(<DeckImportPage />);
 
-    await userEvent.click(view.getByRole("button", { name: "Import" }));
+    await userEvent.click(screen.getByRole("button", { name: "Import" }));
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mocks.importPreview).toHaveBeenCalledOnce();

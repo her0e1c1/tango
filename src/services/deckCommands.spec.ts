@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { REMOTE_WRITE_TIMEOUT_MS } from "@/services/remoteWrite";
+import { REMOTE_WRITE_TIMEOUT_MS } from "@/shared/lib/remoteWrite";
 import { createCard as createCardFixture, createDeck as createDeckFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({

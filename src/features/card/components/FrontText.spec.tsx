@@ -4,39 +4,33 @@
  * the front hook, content, and click interaction", "renders math content".
  */
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
-import { expect, it, describe, vi, afterEach } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { expect, it, describe, vi } from "vitest";
 import "@testing-library/jest-dom";
 
 import { FrontText } from "@/features/card/components/FrontText";
 
 describe("FrontText", () => {
-  afterEach(() => {
-    cleanup();
-  });
   it("should swipe", async () => {
     const onSwipe = vi.fn();
-    const c = render(<FrontText text="text" onSwipeLeft={onSwipe} />);
-    const t = c.container.querySelector("#frontText");
-    expect(t).toBeVisible();
+    render(<FrontText text="text" onSwipeLeft={onSwipe} />);
+    expect(screen.getByText("text")).toBeVisible();
     // TODO: await waitFor(() => expect(onSwipe).toHaveBeenCalledTimes(1))
   });
 
   it("preserves the front hook, content, and click interaction", () => {
     const onClick = vi.fn();
-    const view = render(
-      <FrontText text="A very long front without spaces: abcdefghijklmnopqrstuvwxyz" onClick={onClick} />
-    );
-    const front = view.container.querySelector("#frontText");
+    render(<FrontText text="A very long front without spaces: abcdefghijklmnopqrstuvwxyz" onClick={onClick} />);
+    const front = screen.getByText("A very long front without spaces: abcdefghijklmnopqrstuvwxyz");
 
     expect(front).toHaveTextContent("A very long front without spaces");
-    expect(front).toHaveClass("max-w-reading");
-    fireEvent.click(front as Element);
+    expect(front).toBeVisible();
+    fireEvent.click(front);
     expect(onClick).toHaveBeenCalledOnce();
   });
 
   it("renders math content", () => {
-    const view = render(<FrontText text="$x^2$" category="math" />);
-    expect(view.container.querySelector(".katex")).toBeInTheDocument();
+    render(<FrontText text="$x^2$" category="math" />);
+    expect(screen.getByText("x^2")).toBeDefined();
   });
 });

@@ -5,7 +5,7 @@
 
 import cx from "classnames";
 import type * as React from "react";
-import * as Shared from "@/components";
+import { Overlay } from "@/shared/ui/feedback";
 import { Controller, type ControllerProps, SwipeButtonList, type SwipeButtonListProps } from "@/features/study";
 
 const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
@@ -48,22 +48,22 @@ export const DeckSwiperView: React.FC<DeckSwiperViewProps> = (props) => {
       ) : null}
       {props.showBackText && props.backTextSlot != null ? (
         <>
-          <Shared.Overlay
+          <Overlay
             position="left"
             ariaLabel="Swipe left"
             {...(props.swipeOverlay?.onClickLeft !== undefined ? { onClick: props.swipeOverlay.onClickLeft } : {})}
           />
-          <Shared.Overlay
+          <Overlay
             position="right"
             ariaLabel="Swipe right"
             {...(props.swipeOverlay?.onClickRight !== undefined ? { onClick: props.swipeOverlay.onClickRight } : {})}
           />
-          <Shared.Overlay
+          <Overlay
             position="top"
             ariaLabel="Swipe up"
             {...(props.swipeOverlay?.onClickUp !== undefined ? { onClick: props.swipeOverlay.onClickUp } : {})}
           />
-          <Shared.Overlay
+          <Overlay
             position="bottom"
             ariaLabel="Swipe down"
             {...(props.swipeOverlay?.onClickDown !== undefined ? { onClick: props.swipeOverlay.onClickDown } : {})}

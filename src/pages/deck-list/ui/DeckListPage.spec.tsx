@@ -5,7 +5,7 @@
  * continuing".
  */
 
-import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, waitFor, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -44,7 +44,7 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/hooks/useConfig", () => ({ useConfig: () => mocks.config }));
+vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => mocks.config }));
 vi.mock("@/features/study", () => ({
   discardStudySessionsMissingDecks: mocks.discardStudySessionsMissingDecks,
   removeStudySession: mocks.removeStudySession,
@@ -138,14 +138,13 @@ describe("DeckListPage", () => {
   });
 
   afterEach(() => {
-    cleanup();
     vi.restoreAllMocks();
   });
 
   it("renders every active deck in recent order and inactive decks by name", () => {
-    const view = render(<DeckListPage />);
+    render(<DeckListPage />);
 
-    const studying = view.getByRole("region", { name: "Studying" });
+    const studying = screen.getByRole("region", { name: "Studying" });
     expect(
       within(studying)
         .getAllByRole("button", { name: /^View / })
@@ -153,16 +152,16 @@ describe("DeckListPage", () => {
     ).toEqual(["View Recent deck", "View Old deck"]);
     expect(within(studying).getByText(/2 \/ 3/)).toBeInTheDocument();
 
-    const other = view.getByRole("region", { name: "Other decks" });
+    const other = screen.getByRole("region", { name: "Other decks" });
     expect(within(other).getByRole("button", { name: "View Alpha deck" })).toBeInTheDocument();
     expect(within(other).getByText("2 cards")).toBeInTheDocument();
   });
 
   it("touches only the selected session before continuing", () => {
     vi.spyOn(Date, "now").mockReturnValue(9000);
-    const view = render(<DeckListPage />);
+    render(<DeckListPage />);
 
-    fireEvent.click(view.getByRole("button", { name: "Continue Recent deck" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue Recent deck" }));
 
     expect(mocks.actions.goToStudy).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
     expect(mocks.touchStudySession).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
@@ -172,31 +171,31 @@ describe("DeckListPage", () => {
 
   it("removes only the deleted deck session after the remote delete succeeds", async () => {
     const confirm = vi.spyOn(window, "confirm");
-    const view = render(<DeckListPage />);
-    const trigger = view.getByRole("button", { name: "Open actions for Recent deck" });
+    render(<DeckListPage />);
+    const trigger = screen.getByRole("button", { name: "Open actions for Recent deck" });
 
     fireEvent.click(trigger);
-    fireEvent.click(view.getByRole("menuitem", { name: "Delete" }));
-    const dialog = view.getByRole("alertdialog", { name: "Delete deck?" });
+    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
     expect(dialog).toHaveTextContent("Recent deck");
     expect(dialog).toHaveTextContent("2 cards");
     expect(dialog).toHaveTextContent("in-progress study session");
     expect(dialog).toHaveTextContent("cannot be undone");
-    expect(view.getByRole("button", { name: "Cancel" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
 
-    fireEvent.click(view.getByRole("button", { name: "Cancel" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(mocks.remove).not.toHaveBeenCalled();
     expect(trigger).toHaveFocus();
 
     fireEvent.click(trigger);
-    fireEvent.click(view.getByRole("menuitem", { name: "Delete" }));
-    fireEvent.click(view.getByRole("button", { name: "Delete deck" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(recentDeck));
     await waitFor(() => expect(mocks.sessionsByDeckId[recentDeck.id]).toBeUndefined());
     expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
     expect(mocks.sessionsByDeckId[oldDeck.id]).toBeDefined();
-    expect(view.getByRole("status")).toHaveTextContent("Deleted deck “Recent deck”.");
+    expect(screen.getByRole("status")).toHaveTextContent("Deleted deck “Recent deck”.");
     expect(confirm).not.toHaveBeenCalled();
   });
 
@@ -204,12 +203,12 @@ describe("DeckListPage", () => {
     mocks.hydrated = false;
     const view = render(<DeckListPage />);
 
-    expect(view.getByRole("status")).toHaveTextContent("Loading study progress");
-    expect(view.queryByRole("region", { name: "Other decks" })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Loading study progress");
+    expect(screen.queryByRole("region", { name: "Other decks" })).not.toBeInTheDocument();
 
     mocks.hydrated = true;
     view.rerender(<DeckListPage />);
-    expect(view.getByRole("region", { name: "Studying" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Studying" })).toBeInTheDocument();
   });
 
   it("prunes sessions for decks that no longer exist", async () => {
@@ -256,14 +255,14 @@ describe("DeckListPage", () => {
     mocks.pending = true;
     mocks.pendingDeckIds = new Set([recentDeck.id]);
     mocks.error = new Error("delete failed");
-    const view = render(<DeckListPage />);
+    render(<DeckListPage />);
 
-    expect(view.getByRole("alert")).toHaveTextContent("Unable to delete deck.");
-    fireEvent.click(view.getByRole("button", { name: "Retry" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to delete deck.");
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(mocks.retry).toHaveBeenCalledOnce();
-    expect(view.getByRole("button", { name: "View Recent deck" })).toBeDisabled();
-    expect(view.getByRole("button", { name: "Continue Recent deck" })).toBeDisabled();
-    expect(view.getByRole("button", { name: "Open actions for Recent deck" })).toBeDisabled();
-    expect(view.getByRole("button", { name: "View Alpha deck" })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "View Recent deck" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Continue Recent deck" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Open actions for Recent deck" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "View Alpha deck" })).not.toBeDisabled();
   });
 });

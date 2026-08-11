@@ -11,12 +11,14 @@ import { useForm } from "react-hook-form";
 
 import * as C from "@/constant";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
+import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
+import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
+import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { useActions } from "@/hooks/useActions";
 import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { deckFormSchema, type DeckFormValues } from "@/features/deck/lib/deckFormSchema";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/shared/config/useConfig";
 
 /**
  * Connects the Deck Form Content view to stores, remote data, route parameters, and mutations.

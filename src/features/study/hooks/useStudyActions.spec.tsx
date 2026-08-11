@@ -4,7 +4,7 @@
  * cards before navigating" and "rejects a route and session mismatch before writing a card".
  */
 
-import { act, cleanup, renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
@@ -31,7 +31,7 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("@/hooks/useConfig", () => ({
+vi.mock("@/shared/config/useConfig", () => ({
   useConfig: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     return mocks.state.config;
@@ -135,7 +135,6 @@ describe("useStudyActions", () => {
   });
 
   afterEach(() => {
-    cleanup();
     vi.restoreAllMocks();
   });
 

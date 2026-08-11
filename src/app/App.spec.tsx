@@ -24,7 +24,7 @@ vi.mock("zustand", () => ({
       config: { darkMode: mocks.darkMode },
     }),
 }));
-vi.mock("@/store/configStore", () => ({ configStore: {} }));
+vi.mock("@/shared/config/configStore", () => ({ configStore: {} }));
 vi.mock("@/action", () => ({ event: { init: mocks.init } }));
 vi.mock("@/auth/AuthContext", () => ({ useAuth: () => mocks.authState }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));

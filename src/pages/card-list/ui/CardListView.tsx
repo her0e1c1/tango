@@ -6,7 +6,8 @@
 import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
-import { Overlay, RemovableTag } from "@/components";
+import { RemovableTag } from "@/shared/ui/content";
+import { Overlay } from "@/shared/ui/feedback";
 import type { Card as CardEntity, CardId } from "@/entities/card";
 import { BackText, type BackTextProps, Card, type CardProps } from "@/features/card";
 

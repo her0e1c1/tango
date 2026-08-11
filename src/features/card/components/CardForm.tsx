@@ -7,8 +7,9 @@
 import type * as React from "react";
 import { useId } from "react";
 
-import { Button, Form, FormItem, Tag, TagList, Textarea } from "@/components";
-import type { Option } from "@/components/forms/Select";
+import { Button } from "@/shared/ui/button";
+import { TagList } from "@/shared/ui/content";
+import { Form, FormItem, Tag, Textarea, type Option } from "@/shared/ui/forms";
 
 interface CardFormTagField extends Option {
   input: React.ComponentProps<typeof Tag>;

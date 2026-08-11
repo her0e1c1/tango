@@ -8,7 +8,7 @@ import type { Deck } from "@/entities/deck";
 import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
 import { useActions } from "@/hooks/useActions";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/shared/config/useConfig";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";

@@ -6,9 +6,9 @@
  */
 
 import * as React from "react";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
 import { actAsync } from "@/test/act";
@@ -55,8 +55,6 @@ const DisableableMenu: React.FC = () => {
 };
 
 describe("DeckActionsMenu", () => {
-  afterEach(cleanup);
-
   it("opens an accessible menu and routes each action", () => {
     const actions = {
       onRestart: vi.fn(),
@@ -64,55 +62,55 @@ describe("DeckActionsMenu", () => {
       onEdit: vi.fn(),
       onDelete: vi.fn(),
     };
-    const view = render(<ControlledMenu deckName="Algebra" {...actions} />);
+    render(<ControlledMenu deckName="Algebra" {...actions} />);
 
-    const trigger = view.getByRole("button", { name: "Open actions for Algebra" });
+    const trigger = screen.getByRole("button", { name: "Open actions for Algebra" });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(trigger);
 
     expect(trigger).toHaveAttribute("aria-expanded", "true");
-    expect(view.getByRole("menu", { name: "Actions for Algebra" })).toBeInTheDocument();
-    fireEvent.click(view.getByRole("menuitem", { name: "Restart" }));
+    expect(screen.getByRole("menu", { name: "Actions for Algebra" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("menuitem", { name: "Restart" }));
     expect(actions.onRestart).toHaveBeenCalledOnce();
 
     fireEvent.click(trigger);
-    fireEvent.click(view.getByRole("menuitem", { name: "Download" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Download" }));
     expect(actions.onDownload).toHaveBeenCalledOnce();
 
     fireEvent.click(trigger);
-    fireEvent.click(view.getByRole("menuitem", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(actions.onEdit).toHaveBeenCalledOnce();
 
     fireEvent.click(trigger);
-    const deleteItem = view.getByRole("menuitem", { name: "Delete" });
+    const deleteItem = screen.getByRole("menuitem", { name: "Delete" });
     expect(deleteItem).toHaveClass("text-danger");
     fireEvent.click(deleteItem);
     expect(actions.onDelete).toHaveBeenCalledOnce();
   });
 
   it("omits Restart for inactive decks", () => {
-    const view = render(<ControlledMenu deckName="History" />);
+    render(<ControlledMenu deckName="History" />);
 
-    fireEvent.click(view.getByRole("button", { name: "Open actions for History" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for History" }));
 
-    expect(view.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
-    expect(view.getAllByRole("menuitem").map((item) => item.textContent)).toEqual(["Download", "Edit", "Delete"]);
+    expect(screen.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("menuitem").map((item) => item.textContent)).toEqual(["Download", "Edit", "Delete"]);
   });
 
   it("supports arrow navigation and returns focus to the trigger on Escape", async () => {
-    const view = render(<ControlledMenu deckName="Design" onRestart={vi.fn()} />);
-    const trigger = view.getByRole("button", { name: "Open actions for Design" });
+    render(<ControlledMenu deckName="Design" onRestart={vi.fn()} />);
+    const trigger = screen.getByRole("button", { name: "Open actions for Design" });
 
     fireEvent.click(trigger);
-    const restart = view.getByRole("menuitem", { name: "Restart" });
-    const download = view.getByRole("menuitem", { name: "Download" });
+    const restart = screen.getByRole("menuitem", { name: "Restart" });
+    const download = screen.getByRole("menuitem", { name: "Download" });
     await waitFor(() => expect(restart).toHaveFocus());
 
     fireEvent.keyDown(restart, { key: "ArrowDown" });
     expect(download).toHaveFocus();
     fireEvent.keyDown(download, { key: "Escape" });
 
-    expect(view.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
 
@@ -122,8 +120,8 @@ describe("DeckActionsMenu", () => {
       onEdit: vi.fn(),
       onDelete: vi.fn(),
     };
-    const view = render(<ControlledMenu deckName="Biology" {...actions} />);
-    const trigger = view.getByRole("button", { name: "Open actions for Biology" });
+    render(<ControlledMenu deckName="Biology" {...actions} />);
+    const trigger = screen.getByRole("button", { name: "Open actions for Biology" });
 
     for (const [label, action] of [
       ["Download", actions.onDownload],
@@ -131,8 +129,8 @@ describe("DeckActionsMenu", () => {
       ["Delete", actions.onDelete],
     ] as const) {
       fireEvent.click(trigger);
-      const download = view.getByRole("menuitem", { name: "Download" });
-      const item = view.getByRole("menuitem", { name: label });
+      const download = screen.getByRole("menuitem", { name: "Download" });
+      const item = screen.getByRole("menuitem", { name: label });
       await waitFor(() => expect(download).toHaveFocus());
 
       await actAsync(async () => {
@@ -146,17 +144,17 @@ describe("DeckActionsMenu", () => {
   });
 
   it("closes when an ambiguous blur settles on an external element", async () => {
-    const view = render(
+    render(
       <>
         <button type="button">External focus target</button>
         <ControlledMenu deckName="Chemistry" />
       </>
     );
-    const trigger = view.getByRole("button", { name: "Open actions for Chemistry" });
-    const externalTarget = view.getByRole("button", { name: "External focus target" });
+    const trigger = screen.getByRole("button", { name: "Open actions for Chemistry" });
+    const externalTarget = screen.getByRole("button", { name: "External focus target" });
 
     fireEvent.click(trigger);
-    const download = view.getByRole("menuitem", { name: "Download" });
+    const download = screen.getByRole("menuitem", { name: "Download" });
     await waitFor(() => expect(download).toHaveFocus());
 
     await actAsync(async () => {
@@ -164,31 +162,31 @@ describe("DeckActionsMenu", () => {
       externalTarget.focus();
     });
 
-    await waitFor(() => expect(view.queryByRole("menu")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
     expect(externalTarget).toHaveFocus();
   });
 
   it("disables its trigger and hides a controlled open menu", () => {
-    const view = render(<DeckActionsMenu deckName="Physics" open disabled onToggle={vi.fn()} onClose={vi.fn()} />);
+    render(<DeckActionsMenu deckName="Physics" open disabled onToggle={vi.fn()} onClose={vi.fn()} />);
 
-    expect(view.getByRole("button", { name: "Open actions for Physics" })).toBeDisabled();
-    expect(view.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open actions for Physics" })).toBeDisabled();
+    expect(screen.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
   });
 
   it("closes controlled state when disabled so the menu stays closed when re-enabled", () => {
-    const view = render(<DisableableMenu />);
-    const trigger = view.getByRole("button", { name: "Open actions for Physics" });
-    const toggleDisabled = view.getByRole("button", { name: "Toggle disabled" });
+    render(<DisableableMenu />);
+    const trigger = screen.getByRole("button", { name: "Open actions for Physics" });
+    const toggleDisabled = screen.getByRole("button", { name: "Toggle disabled" });
 
     fireEvent.click(trigger);
-    expect(view.getByRole("menu", { name: "Actions for Physics" })).toBeInTheDocument();
+    expect(screen.getByRole("menu", { name: "Actions for Physics" })).toBeInTheDocument();
     fireEvent.click(toggleDisabled);
     expect(trigger).toBeDisabled();
-    expect(view.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
 
     fireEvent.click(toggleDisabled);
 
     expect(trigger).not.toBeDisabled();
-    expect(view.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
   });
 });

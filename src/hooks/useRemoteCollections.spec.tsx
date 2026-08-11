@@ -5,7 +5,7 @@
  * "does not expose Store data until authenticated and active UIDs match".
  */
 
-import { act, cleanup, renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RemoteStoreState } from "@/store/remoteStore";
@@ -49,7 +49,6 @@ describe("useRemoteCollections", () => {
   });
 
   afterEach(() => {
-    cleanup();
     vi.useRealTimers();
   });
 

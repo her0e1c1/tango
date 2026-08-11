@@ -5,9 +5,9 @@
  * relationships for each form instance", "associates validation errors with their named controls".
  */
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { DeckForm, type DeckFormProps } from "@/features/deck/components/DeckForm";
@@ -46,31 +46,29 @@ const createProps = (overrides: Partial<DeckFormProps> = {}): DeckFormProps => (
 });
 
 describe("DeckForm", () => {
-  afterEach(cleanup);
-
   it("groups editable settings and deck information while preserving field values and callbacks", async () => {
     const props = createProps();
-    const view = render(<DeckForm {...props} />);
-    const name = view.container.querySelector("input[name='name']") as HTMLInputElement;
-    const convertToBr = view.container.querySelector("input[name='convertToBr']") as HTMLInputElement;
-    const url = view.container.querySelector("input[name='url']") as HTMLInputElement;
-    const category = view.container.querySelector("select[name='category']") as HTMLSelectElement;
+    render(<DeckForm {...props} />);
+    const name = screen.getByRole("textbox", { name: "Name" });
+    const convertToBr = screen.getByRole("checkbox", { name: "Convert line breaks" });
+    const url = screen.getByRole("textbox", { name: "Source URL" });
+    const category = screen.getByRole("combobox");
 
-    expect(view.getByRole("heading", { level: 2, name: "Basic information" })).toBeVisible();
-    expect(view.getByRole("heading", { level: 2, name: "Import & formatting" })).toBeVisible();
-    const deckInformation = view.getByText("Deck information");
+    expect(screen.getByRole("heading", { level: 2, name: "Basic information" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 2, name: "Import & formatting" })).toBeVisible();
+    const deckInformation = screen.getByText("Deck information");
     expect(deckInformation).toBeVisible();
-    expect(view.queryByText("Public")).not.toBeInTheDocument();
-    expect(view.container.querySelector("input[name='isPublic']")).not.toBeInTheDocument();
+    expect(screen.queryByText("Public")).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "Public" })).not.toBeInTheDocument();
     expect(name).toHaveValue("Japanese vocabulary");
-    expect(view.getByRole("checkbox", { name: "Convert line breaks" })).toBe(convertToBr);
+    expect(screen.getByRole("checkbox", { name: "Convert line breaks" })).toBe(convertToBr);
     expect(convertToBr).toBeChecked();
     expect(url).toHaveValue("https://example.com/deck.csv");
     expect(category).toHaveValue("language");
     await userEvent.click(deckInformation);
-    expect(view.getByText("deck-123")).toBeVisible();
-    expect(view.getByText(new Date(Date.UTC(2026, 0, 2)).toLocaleDateString())).toBeVisible();
-    expect(view.getByText(new Date(Date.UTC(2026, 1, 3)).toLocaleDateString())).toBeVisible();
+    expect(screen.getByText("deck-123")).toBeVisible();
+    expect(screen.getByText(new Date(Date.UTC(2026, 0, 2)).toLocaleDateString())).toBeVisible();
+    expect(screen.getByText(new Date(Date.UTC(2026, 1, 3)).toLocaleDateString())).toBeVisible();
 
     fireEvent.change(name, { target: { value: "Updated deck" } });
     await userEvent.click(convertToBr);
@@ -84,39 +82,31 @@ describe("DeckForm", () => {
   });
 
   it("uses unique section heading relationships for each form instance", () => {
-    const view = render(
+    render(
       <>
         <DeckForm {...createProps()} />
         <DeckForm {...createProps()} />
       </>
     );
-    const sections = view.container.querySelectorAll("section[aria-labelledby]");
-    const labelledByIds = Array.from(sections, (section) => section.getAttribute("aria-labelledby"));
-
-    expect(sections).toHaveLength(4);
-    expect(new Set(labelledByIds).size).toBe(4);
-    for (const section of sections) {
-      const headingId = section.getAttribute("aria-labelledby");
-      expect(headingId).not.toBeNull();
-      expect(section.querySelector(`h2[id='${headingId}']`)).toBeInTheDocument();
+    for (const name of ["Basic information", "Import & formatting"]) {
+      expect(screen.getAllByRole("region", { name })).toHaveLength(2);
+      expect(screen.getAllByRole("heading", { level: 2, name })).toHaveLength(2);
     }
   });
 
   it("associates validation errors with their named controls", () => {
-    const view = render(
-      <DeckForm {...createProps({ errors: { name: "Deck name is required.", url: "Enter a valid URL." } })} />
-    );
+    render(<DeckForm {...createProps({ errors: { name: "Deck name is required.", url: "Enter a valid URL." } })} />);
 
-    expect(view.getByRole("textbox", { name: "Name" })).toHaveAccessibleDescription("Deck name is required.");
-    expect(view.getByRole("textbox", { name: "Source URL" })).toHaveAccessibleDescription("Enter a valid URL.");
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveAccessibleDescription("Deck name is required.");
+    expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveAccessibleDescription("Enter a valid URL.");
   });
 
   it("submits or cancels from the action row", async () => {
     const onSubmit = vi.fn((event?: React.FormEvent) => event?.preventDefault());
     const onCancel = vi.fn();
-    const view = render(<DeckForm {...createProps({ isSubmitting: false, onSubmit, onCancel })} />);
-    const cancel = view.getByRole("button", { name: "Cancel" });
-    const save = view.getByRole("button", { name: "Save changes" });
+    render(<DeckForm {...createProps({ isSubmitting: false, onSubmit, onCancel })} />);
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    const save = screen.getByRole("button", { name: "Save changes" });
 
     await userEvent.click(cancel);
     expect(onCancel).toHaveBeenCalledOnce();
@@ -128,9 +118,9 @@ describe("DeckForm", () => {
   });
 
   it("shows a disabled saving action while submitting", () => {
-    const view = render(<DeckForm {...createProps({ isSubmitting: true })} />);
+    render(<DeckForm {...createProps({ isSubmitting: true })} />);
 
-    expect(view.getByRole("button", { name: "Saving…" })).toBeDisabled();
-    expect(view.getByRole("button", { name: "Cancel" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeEnabled();
   });
 });

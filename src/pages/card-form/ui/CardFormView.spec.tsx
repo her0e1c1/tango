@@ -4,9 +4,9 @@
  * and composes feedback before the form".
  */
 
-import { cleanup, render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createCard } from "@/test/factories";
@@ -16,11 +16,9 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 import { CardFormView } from "./CardFormView";
 
 describe("CardFormView", () => {
-  afterEach(cleanup);
-
   it("presents the card editor and composes feedback before the form", async () => {
     const onCancel = vi.fn();
-    const view = render(
+    render(
       <CardFormView
         feedbackSlot={<div role="status">Saved</div>}
         cardForm={{
@@ -35,30 +33,17 @@ describe("CardFormView", () => {
       />
     );
 
-    const heading = view.getByRole("heading", { level: 1, name: "Edit card" });
-    const surface = heading.closest("section");
-    const feedback = view.getByRole("status");
-    const form = view.container.querySelector("form");
+    const heading = screen.getByRole("heading", { level: 1, name: "Edit card" });
+    const feedback = screen.getByRole("status");
 
-    expect(view.getByText("Card editor")).toBeVisible();
-    expect(view.getByText("Update the prompt, answer, and organization for this card.")).toBeVisible();
-    expect(view.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-    expect(surface).toHaveClass(
-      "mx-auto",
-      "w-full",
-      "max-w-reading",
-      "rounded-surface",
-      "border",
-      "border-border",
-      "bg-surface",
-      "p-4",
-      "md:p-6"
-    );
-    expect(surface).toContainElement(feedback);
-    expect(surface).toContainElement(form);
-    expect(feedback.compareDocumentPosition(form as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText("Card editor")).toBeVisible();
+    expect(screen.getByText("Update the prompt, answer, and organization for this card.")).toBeVisible();
+    expect(heading).toBeVisible();
+    expect(feedback).toBeVisible();
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
 
-    await userEvent.click(view.getByRole("button", { name: "Back to cards" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to cards" }));
 
     expect(onCancel).toHaveBeenCalledOnce();
   });

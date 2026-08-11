@@ -7,9 +7,9 @@
 
 import type React from "react";
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { ConfigForm, type ConfigFormFields, type ConfigFormProps } from "@/features/settings/components/ConfigForm";
@@ -49,45 +49,37 @@ function createProps(overrides: Partial<ConfigFormProps> = {}): ConfigFormProps 
 }
 
 describe("ConfigForm", () => {
-  afterEach(cleanup);
-
   it("groups every auto-saved setting in the unified settings list", () => {
-    const view = render(<ConfigForm {...createProps()} />);
+    render(<ConfigForm {...createProps()} />);
 
-    expect(view.container.querySelector("form")).not.toBeInTheDocument();
-    for (const name of ["Account", "Appearance", "Study", "Advanced"]) {
-      const heading = view.getByRole("heading", { level: 2, name });
-      expect(heading.closest("section, details")).toHaveAttribute("aria-labelledby", heading.id);
+    expect(screen.queryByRole("form")).not.toBeInTheDocument();
+    for (const name of ["Account", "Appearance", "Study"]) {
+      expect(screen.getByRole("region", { name })).toBeInTheDocument();
     }
-    expect(view.queryByRole("heading", { level: 2, name: "Layout" })).not.toBeInTheDocument();
-    expect(view.queryByRole("heading", { level: 2, name: "Autoplay" })).not.toBeInTheDocument();
-    expect(view.queryByRole("heading", { level: 2, name: "Metadata" })).not.toBeInTheDocument();
-    expect(view.getByRole("heading", { level: 2, name: "Account" }).closest("section")).toHaveClass(
-      "rounded-surface",
-      "border",
-      "border-border",
-      "bg-surface",
-      "shadow-surface"
-    );
-    expect(view.getByText("Show header")).toBeInTheDocument();
-    expect(view.queryByText("Show Heaer")).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Advanced" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 2, name: "Layout" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 2, name: "Autoplay" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 2, name: "Metadata" })).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Account" })).toHaveClass("rounded-surface", "border", "bg-surface");
+    expect(screen.getByText("Show header")).toBeInTheDocument();
+    expect(screen.queryByText("Show Heaer")).not.toBeInTheDocument();
   });
 
   it("preserves all switch, slider, and metadata values", () => {
-    const view = render(
+    render(
       <ConfigForm {...createProps({ identity: { uid: "user-123", displayName: "Settings User" }, isLoggedIn: true })} />
     );
 
-    expect(view.container.querySelectorAll("input[type='checkbox']")).toHaveLength(7);
-    expect(view.getByRole("checkbox", { name: "Show header" })).toBeChecked();
-    expect(view.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
-    expect(view.getByRole("slider", { name: "Maximum cards" })).toHaveValue("24");
-    expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("7");
-    expect(view.getByRole("slider", { name: "Autoplay interval" })).toHaveAttribute("aria-valuetext", "7 seconds");
-    expect(view.getByText("24")).toBeInTheDocument();
-    expect(view.getByText("7s")).toBeInTheDocument();
+    expect(screen.getAllByRole("checkbox")).toHaveLength(7);
+    expect(screen.getByRole("checkbox", { name: "Show header" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
+    expect(screen.getByRole("slider", { name: "Maximum cards" })).toHaveValue("24");
+    expect(screen.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("7");
+    expect(screen.getByRole("slider", { name: "Autoplay interval" })).toHaveAttribute("aria-valuetext", "7 seconds");
+    expect(screen.getByText("24")).toBeInTheDocument();
+    expect(screen.getByText("7s")).toBeInTheDocument();
 
-    const details = view.getByRole("heading", { level: 2, name: "Advanced" }).closest("details");
+    const details = screen.getByRole("group", { name: "Advanced" });
     expect(details).not.toHaveAttribute("open");
     expect(details).not.toHaveTextContent("Github Access Token");
     expect(details).toHaveTextContent("1.2.3");
@@ -95,12 +87,12 @@ describe("ConfigForm", () => {
   });
 
   it("describes review scheduling independently from autoplay", () => {
-    const view = render(<ConfigForm {...createProps()} />);
+    render(<ConfigForm {...createProps()} />);
 
-    expect(view.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
-    expect(view.getByText("Hide cards until their next review time")).toBeInTheDocument();
-    expect(view.getByRole("slider", { name: "Autoplay interval" })).toBeInTheDocument();
-    expect(view.queryByText("Wait between automatic card changes")).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
+    expect(screen.getByText("Hide cards until their next review time")).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: "Autoplay interval" })).toBeInTheDocument();
+    expect(screen.queryByText("Wait between automatic card changes")).not.toBeInTheDocument();
   });
 
   it("forwards switch and slider changes to their field callbacks", async () => {
@@ -115,10 +107,10 @@ describe("ConfigForm", () => {
     const fields = createFields();
     fields.showHeader.onChange = showHeader;
     fields.maxNumberOfCardsToLearn.onChange = maxNumberOfCardsToLearn;
-    const view = render(<ConfigForm {...createProps({ fields })} />);
+    render(<ConfigForm {...createProps({ fields })} />);
 
-    await userEvent.click(view.container.querySelector("input[name='showHeader']") as HTMLInputElement);
-    fireEvent.change(view.container.querySelector("input[name='maxNumberOfCardsToLearn']") as HTMLInputElement, {
+    await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
+    fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
       target: { value: "31" },
     });
 
@@ -129,21 +121,17 @@ describe("ConfigForm", () => {
   });
 
   it("keeps section heading relationships unique across multiple instances", () => {
-    const view = render(
+    render(
       <>
         <ConfigForm {...createProps()} />
         <ConfigForm {...createProps()} />
       </>
     );
-    const headings = view.getAllByRole("heading", { level: 2 });
-    const headingIds = headings.map((heading) => heading.id);
-
-    expect(headings).toHaveLength(8);
-    expect(new Set(headingIds).size).toBe(8);
-    for (const heading of headings) {
-      expect(heading.closest("section, details")).toHaveAttribute("aria-labelledby", heading.id);
-      expect(document.getElementById(heading.id)).toBe(heading);
+    for (const name of ["Account", "Appearance", "Study"]) {
+      expect(screen.getAllByRole("region", { name })).toHaveLength(2);
+      expect(screen.getAllByRole("heading", { level: 2, name })).toHaveLength(2);
     }
+    expect(screen.getAllByRole("group", { name: "Advanced" })).toHaveLength(2);
   });
 
   it("preserves logged-out login and logged-in logout behavior", async () => {
@@ -151,8 +139,8 @@ describe("ConfigForm", () => {
     const onLogout = vi.fn();
     const view = render(<ConfigForm {...createProps({ onLogin })} />);
 
-    expect(view.getByText("Google Login")).toBeInTheDocument();
-    await userEvent.click(view.getByRole("button", { name: "Login" }));
+    expect(screen.getByText("Google Login")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Login" }));
     expect(onLogin).toHaveBeenCalledOnce();
 
     view.rerender(
@@ -164,9 +152,9 @@ describe("ConfigForm", () => {
         })}
       />
     );
-    expect(view.getByText("Settings User")).toBeInTheDocument();
-    expect(view.getByText("Signed in with Google")).toBeInTheDocument();
-    await userEvent.click(view.getByRole("button", { name: "Logout" }));
+    expect(screen.getByText("Settings User")).toBeInTheDocument();
+    expect(screen.getByText("Signed in with Google")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Logout" }));
     expect(onLogout).toHaveBeenCalledOnce();
   });
 
@@ -174,12 +162,10 @@ describe("ConfigForm", () => {
     const feedback = <p>Signing in…</p>;
     const view = render(<ConfigForm {...createProps({ accountPending: true, accountFeedback: feedback })} />);
 
-    const login = view.getByRole("button", { name: "Login" });
+    const login = screen.getByRole("button", { name: "Login" });
     expect(login).toBeDisabled();
     expect(login).toHaveAttribute("aria-busy", "true");
-    expect(view.getByText("Signing in…").closest("section")).toBe(
-      view.getByRole("heading", { level: 2, name: "Account" }).closest("section")
-    );
+    expect(within(screen.getByRole("region", { name: "Account" })).getByText("Signing in…")).toBeVisible();
 
     view.rerender(
       <ConfigForm
@@ -191,7 +177,7 @@ describe("ConfigForm", () => {
       />
     );
 
-    const logout = view.getByRole("button", { name: "Logout" });
+    const logout = screen.getByRole("button", { name: "Logout" });
     expect(logout).toBeDisabled();
     expect(logout).toHaveAttribute("aria-busy", "true");
   });

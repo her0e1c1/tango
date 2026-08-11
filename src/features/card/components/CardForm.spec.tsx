@@ -5,9 +5,9 @@
  * relationships for each form instance", "associates validation errors with their named controls".
  */
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { CardForm, type CardFormProps } from "@/features/card/components/CardForm";
@@ -50,31 +50,29 @@ const createProps = (overrides: Partial<CardFormProps> = {}): CardFormProps => (
 });
 
 describe("CardForm", () => {
-  afterEach(cleanup);
-
   it("groups front, back, tags, and card information while preserving values and callbacks", async () => {
     const props = createProps();
-    const view = render(<CardForm {...props} />);
-    const frontText = view.container.querySelector("textarea[name='frontText']") as HTMLTextAreaElement;
-    const backText = view.container.querySelector("textarea[name='backText']") as HTMLTextAreaElement;
-    const geography = view.container.querySelector("input[name='tags'][value='geography']") as HTMLInputElement;
-    const travel = view.container.querySelector("input[name='tags'][value='travel']") as HTMLInputElement;
+    render(<CardForm {...props} />);
+    const frontText = screen.getByRole("textbox", { name: "Front text" });
+    const backText = screen.getByRole("textbox", { name: "Back text" });
+    const geography = screen.getByRole("checkbox", { name: "Geography" });
+    const travel = screen.getByRole("checkbox", { name: "Travel" });
 
-    expect(view.getByRole("heading", { level: 2, name: "Front" })).toBeVisible();
-    expect(view.getByText("The prompt shown during study.")).toBeVisible();
-    expect(view.getByRole("heading", { level: 2, name: "Back" })).toBeVisible();
-    expect(view.getByText("The answer revealed after the prompt.")).toBeVisible();
-    expect(view.getByRole("heading", { level: 2, name: "Tags" })).toBeVisible();
-    expect(view.getByText("Organize this card for filtering and study sessions.")).toBeVisible();
-    expect(view.getByText("Card information").closest("details")).not.toHaveAttribute("open");
+    expect(screen.getByRole("heading", { level: 2, name: "Front" })).toBeVisible();
+    expect(screen.getByText("The prompt shown during study.")).toBeVisible();
+    expect(screen.getByRole("heading", { level: 2, name: "Back" })).toBeVisible();
+    expect(screen.getByText("The answer revealed after the prompt.")).toBeVisible();
+    expect(screen.getByRole("heading", { level: 2, name: "Tags" })).toBeVisible();
+    expect(screen.getByText("Organize this card for filtering and study sessions.")).toBeVisible();
+    expect(screen.getByText("Card information")).toBeVisible();
     expect(frontText).toHaveValue("What is the capital of Japan?");
     expect(backText).toHaveValue("Tokyo");
     expect(geography).toBeChecked();
     expect(travel).not.toBeChecked();
-    expect(view.getByText("japan-capital")).toBeInTheDocument();
-    expect(view.getByText("card-123")).toBeInTheDocument();
-    expect(view.getByText(new Date(createdAt).toLocaleDateString())).toBeInTheDocument();
-    expect(view.getByText(new Date(lastSeenAt).toLocaleDateString())).toBeInTheDocument();
+    expect(screen.getByText("japan-capital")).toBeInTheDocument();
+    expect(screen.getByText("card-123")).toBeInTheDocument();
+    expect(screen.getByText(new Date(createdAt).toLocaleDateString())).toBeInTheDocument();
+    expect(screen.getByText(new Date(lastSeenAt).toLocaleDateString())).toBeInTheDocument();
 
     fireEvent.change(frontText, { target: { value: "Updated front" } });
     fireEvent.change(backText, { target: { value: "Updated back" } });
@@ -86,26 +84,20 @@ describe("CardForm", () => {
   });
 
   it("uses unique section heading relationships for each form instance", () => {
-    const view = render(
+    render(
       <>
         <CardForm {...createProps()} />
         <CardForm {...createProps()} />
       </>
     );
-    const sections = view.container.querySelectorAll("section[aria-labelledby]");
-    const labelledByIds = Array.from(sections, (section) => section.getAttribute("aria-labelledby"));
-
-    expect(sections).toHaveLength(6);
-    expect(new Set(labelledByIds).size).toBe(6);
-    for (const section of sections) {
-      const headingId = section.getAttribute("aria-labelledby");
-      expect(headingId).not.toBeNull();
-      expect(section.querySelector(`h2[id='${headingId}']`)).toBeInTheDocument();
+    for (const name of ["Front", "Back", "Tags"]) {
+      expect(screen.getAllByRole("region", { name })).toHaveLength(2);
+      expect(screen.getAllByRole("heading", { level: 2, name })).toHaveLength(2);
     }
   });
 
   it("associates validation errors with their named controls", () => {
-    const view = render(
+    render(
       <CardForm
         {...createProps({
           errors: { frontText: "Front text is required.", backText: "Back text is required." },
@@ -113,16 +105,16 @@ describe("CardForm", () => {
       />
     );
 
-    expect(view.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription("Front text is required.");
-    expect(view.getByRole("textbox", { name: "Back text" })).toHaveAccessibleDescription("Back text is required.");
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription("Front text is required.");
+    expect(screen.getByRole("textbox", { name: "Back text" })).toHaveAccessibleDescription("Back text is required.");
   });
 
   it("keeps cancel separate from submission while idle", async () => {
     const onCancel = vi.fn();
     const onSubmit = vi.fn((event?: React.FormEvent) => event?.preventDefault());
-    const view = render(<CardForm {...createProps({ isSubmitting: false, onCancel, onSubmit })} />);
-    const cancel = view.getByRole("button", { name: "Cancel" });
-    const save = view.getByRole("button", { name: "Save changes" });
+    render(<CardForm {...createProps({ isSubmitting: false, onCancel, onSubmit })} />);
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    const save = screen.getByRole("button", { name: "Save changes" });
 
     expect(save).toBeEnabled();
     await userEvent.click(cancel);
@@ -136,9 +128,9 @@ describe("CardForm", () => {
   });
 
   it("disables Save changes and shows pending copy only while submitting", () => {
-    const view = render(<CardForm {...createProps({ isSubmitting: true })} />);
+    render(<CardForm {...createProps({ isSubmitting: true })} />);
 
-    expect(view.getByRole("button", { name: "Saving…" })).toBeDisabled();
-    expect(view.queryByRole("button", { name: "Save changes" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Save changes" })).not.toBeInTheDocument();
   });
 });

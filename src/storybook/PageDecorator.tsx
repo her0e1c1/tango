@@ -10,7 +10,7 @@ import { MemoryRouter } from "react-router-dom";
 
 import { AuthProvider, type AuthState, type AuthStore } from "@/auth/AuthContext";
 import { studyStore, type StudySession } from "@/features/study/state/studyStore";
-import { configStore, defaultConfig } from "@/store/configStore";
+import { configStore, defaultConfig } from "@/shared/config/configStore";
 import { remoteStore, toRemoteById } from "@/store/remoteStore";
 
 export const PAGE_STORY_UID = "storybook-user";

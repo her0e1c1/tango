@@ -1,16 +1,14 @@
-import { cleanup, render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { DeckSwiperView } from "./DeckSwiperView";
 
 describe("DeckSwiperView", () => {
-  afterEach(cleanup);
-
   it("gives swipe overlays accessible names", () => {
-    const view = render(
+    render(
       <DeckSwiperView
         showBackText
         backTextSlot={<div>Back</div>}
@@ -23,10 +21,10 @@ describe("DeckSwiperView", () => {
       />
     );
 
-    expect(view.getByRole("button", { name: "Swipe left" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Swipe right" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Swipe up" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Swipe down" })).toBeInTheDocument();
-    expect(view.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Swipe left" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Swipe right" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Swipe up" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Swipe down" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
 });

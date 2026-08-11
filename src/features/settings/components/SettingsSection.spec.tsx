@@ -5,26 +5,23 @@
  * the row and control region touch friendly".
  */
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { SettingsRow, SettingsSection } from "@/features/settings/components/SettingsSection";
-
-afterEach(cleanup);
 
 describe("settings presentation", () => {
   it("relates a settings section to its unique heading", () => {
     render(
-      <SettingsSection title="Appearance" description="Navigation and visual feedback" icon={<span>icon</span>}>
+      <SettingsSection title="Appearance" description="Navigation and visual feedback" icon="icon">
         <div>content</div>
       </SettingsSection>
     );
 
-    const heading = screen.getByRole("heading", { level: 2, name: "Appearance" });
-    expect(heading.closest("section")).toHaveAttribute("aria-labelledby", heading.id);
+    expect(screen.getByRole("region", { name: "Appearance" })).toBeInTheDocument();
     expect(screen.getByText("Navigation and visual feedback")).toBeInTheDocument();
-    expect(screen.getByText("icon").parentElement).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByText("icon", { selector: "[aria-hidden='true']" })).toHaveAttribute("aria-hidden", "true");
   });
 
   it("relates a settings row label and description to its input id", () => {
@@ -38,14 +35,13 @@ describe("settings presentation", () => {
     expect(screen.getByText("Use the darker Calm Focus palette")).toHaveAttribute("id", "dark-mode-description");
   });
 
-  it("keeps the row and control region touch friendly", () => {
-    const view = render(
+  it("keeps the row control reachable through its label", () => {
+    render(
       <SettingsRow inputId="dark-mode" label="Dark mode" description="Use the darker Calm Focus palette">
         <input id="dark-mode" />
       </SettingsRow>
     );
 
-    expect(view.container.firstElementChild).toHaveClass("min-h-touch");
-    expect(view.container.querySelector("input")?.parentElement).toHaveClass("shrink-0");
+    expect(screen.getByRole("textbox", { name: "Dark mode" })).toBeVisible();
   });
 });

@@ -1,5 +1,6 @@
 import * as tsParser from "@typescript-eslint/parser";
 import reactHooks from "eslint-plugin-react-hooks";
+import testingLibrary from "eslint-plugin-testing-library";
 
 export default [
   {
@@ -12,5 +13,9 @@ export default [
         sourceType: "module",
       },
     },
+  },
+  {
+    files: ["src/**/*.spec.{ts,tsx}"],
+    ...testingLibrary.configs["flat/react"],
   },
 ];
