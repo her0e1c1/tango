@@ -36,10 +36,12 @@ vi.mock("@/auth/AuthContext", () => ({
     mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
 vi.mock("@/entities/card", () => ({
+  createCard: (...args: unknown[]) => mocks.prepareCard(...args),
   selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
   useCards: () => ({ cards: mocks.cards }),
 }));
 vi.mock("@/entities/deck", () => ({
+  createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
   useDecks: () => ({
     status: mocks.remoteStatus,
     syncStatus: mocks.syncStatus,
@@ -60,8 +62,7 @@ vi.mock("@/features/import/lib/deckImportAnalysis", async (importOriginal) => {
   };
 });
 vi.mock("@/action", () => ({
-  deck: { parseCsv: mocks.parseCsv, prepare: mocks.prepareDeck },
-  card: { prepare: mocks.prepareCard },
+  deck: { parseCsv: mocks.parseCsv },
 }));
 vi.mock("@/adapters/firestore", () => ({
   documentMetadata: { generateDeckId: mocks.generateDeckId, generateCardId: mocks.generateCardId },

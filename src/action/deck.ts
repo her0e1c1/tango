@@ -5,7 +5,7 @@
  */
 
 import type { Card, CardRaw } from "@/entities/card";
-import type { Deck, DeckRaw } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 
 import * as Papa from "papaparse";
 
@@ -13,29 +13,6 @@ import * as cardAction from "@/action/card";
 import { downloadTextFile } from "@/shared/files";
 
 const CSV_MIME_TYPE = "text/plain;charset=utf-8";
-
-/**
- * Creates a complete deck from raw input, defaults, and generated identifiers.
- * The returned domain object is ready to validate, display, or persist without extra setup from
- * the caller.
- */
-export const prepare = (deck: DeckRaw, uid: string, generateId: () => string): Deck => {
-  return {
-    ...deck,
-    uid,
-    id: generateId(),
-    createdAt: 0,
-    updatedAt: 0,
-    deletedAt: null,
-    scoreMax: null,
-    scoreMin: null,
-    isPublic: false,
-    selectedTags: [],
-    tagAndFilter: false,
-    convertToBr: false,
-    category: "",
-  };
-};
 
 /**
  * Prepares and downloads data for the user.
