@@ -2,11 +2,10 @@ import { describe, expect, it } from "vitest";
 // biome-ignore lint/correctness/noUnresolvedImports: highlight.js exposes this default through its ESM export map.
 import hljs from "highlight.js";
 
-import { CATEGORY, LANGUAGES, getCategory, isHighlightLanguage } from "./category";
+import { CATEGORY, getCategory, isHighlightLanguage } from "./category";
 
 describe("category", () => {
   it("uses Highlight.js as the source of truth for code languages", () => {
-    expect(LANGUAGES).toEqual(hljs.listLanguages());
     expect(CATEGORY).toEqual(["raw", "math", ...hljs.listLanguages()]);
   });
 
