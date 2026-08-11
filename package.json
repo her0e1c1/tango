@@ -32,7 +32,7 @@
     "lint:knip": "knip",
     "lint:markdown": "markdownlint-cli2",
     "lint:react": "eslint --max-warnings=0 'src/**/*.{ts,tsx}'",
-    "lint:tsc": "tsc -p tsconfig.json --pretty false",
+    "lint:tsc": "tsc",
     "storybook": "storybook dev",
     "build-storybook": "npm run build:storybook"
   },
