@@ -4,6 +4,8 @@
  * outside the view.
  */
 
+import type { ConfigState } from "@/shared/config";
+
 import type * as React from "react";
 import { useId } from "react";
 import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool, AiOutlineUser } from "react-icons/ai";

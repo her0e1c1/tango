@@ -1,3 +1,6 @@
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { REMOTE_WRITE_TIMEOUT_MS } from "@/shared/lib/remoteWrite";

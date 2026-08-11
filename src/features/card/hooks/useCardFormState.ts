@@ -4,6 +4,8 @@
  * coordinate services themselves.
  */
 
+import type { Card } from "@/entities/card";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 

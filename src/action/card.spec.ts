@@ -4,6 +4,8 @@
  * injected id", "should be fromRow", "should be empty".
  */
 
+import type { Card, CardRaw } from "@/entities/card";
+
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
 import * as card from "@/action/card";

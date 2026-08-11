@@ -4,6 +4,8 @@
  * both compact sections", "omits empty sections", "opens one deck actions menu at a time".
  */
 
+import type { DeckId } from "@/entities/deck";
+
 import * as React from "react";
 import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";

@@ -4,6 +4,8 @@
  * not handle database details directly.
  */
 
+import type { Card, CardEdit } from "@/entities/card";
+
 import {
   doc,
   updateDoc,

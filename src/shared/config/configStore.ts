@@ -7,6 +7,7 @@
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import { configSchema, defaultConfig, parsePersistedConfig } from "@/shared/config/configSchema";
+import type { ConfigState } from "@/shared/config/configTypes";
 
 export { defaultConfig } from "@/shared/config/configSchema";
 

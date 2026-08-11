@@ -4,6 +4,16 @@
  * objects.
  */
 
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+import type {
+  AppearancePreferences,
+  ConfigState,
+  ControlPreferences,
+  StudyPreferences,
+  SwipeAction,
+} from "@/shared/config";
+
 /**
  * Builds a complete test deck with predictable defaults and optional field overrides.
  * Tests can describe only the deck fields relevant to their scenario.
@@ -64,10 +74,10 @@ export type ConfigOverrides = {
   selectedTags?: string[];
   showSwipeButtonList?: boolean;
   showScoreSlider?: boolean;
-  cardSwipeUp?: cardSwipe;
-  cardSwipeDown?: cardSwipe;
-  cardSwipeLeft?: cardSwipe;
-  cardSwipeRight?: cardSwipe;
+  cardSwipeUp?: SwipeAction;
+  cardSwipeDown?: SwipeAction;
+  cardSwipeLeft?: SwipeAction;
+  cardSwipeRight?: SwipeAction;
 };
 
 /**

@@ -4,6 +4,8 @@
  * depending on React components.
  */
 
+import type { Card, CardDeck, CardRaw } from "@/entities/card";
+
 /**
  * Checks whether raw card input has neither front text nor back text.
  * CSV parsing uses this predicate to ignore blank rows while preserving cards that contain either

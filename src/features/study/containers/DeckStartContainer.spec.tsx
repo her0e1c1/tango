@@ -5,6 +5,9 @@
  * "stops responding to Enter when a rerender has no matching cards".
  */
 
+import type { Card } from "@/entities/card";
+import type { ConfigState } from "@/shared/config";
+
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";

@@ -4,6 +4,10 @@
  * cards before navigating" and "rejects a route and session mismatch before writing a card".
  */
 
+import type { Card, CardId } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+import type { ConfigState } from "@/shared/config";
+
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

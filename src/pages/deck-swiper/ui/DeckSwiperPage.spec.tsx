@@ -6,6 +6,10 @@
  * controls", "installs one back-navigation guard when StrictMode replays the effect".
  */
 
+import type { Card, CardId } from "@/entities/card";
+import type { Deck, DeckId } from "@/entities/deck";
+import type { ConfigState, SwipeDirection } from "@/shared/config";
+
 import { act, fireEvent, render, waitFor, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import React from "react";

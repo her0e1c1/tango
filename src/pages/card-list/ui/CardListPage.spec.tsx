@@ -5,6 +5,10 @@
  * callback", and "cancels or confirms Card deletion with observable feedback".
  */
 
+import type { Card, CardId } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+import type { ConfigState } from "@/shared/config";
+
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

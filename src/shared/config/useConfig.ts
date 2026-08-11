@@ -7,6 +7,7 @@
 import { useStore } from "zustand";
 
 import { configStore } from "@/shared/config/configStore";
+import type { ConfigState } from "@/shared/config/configTypes";
 
 /**
  * Returns the current validated application configuration from the shared store.

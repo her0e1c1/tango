@@ -7,6 +7,8 @@
 import { onSnapshot, where, collection, query } from "firebase/firestore";
 
 import { mapCardDocument, mapDeckDocument } from "@/adapters/firestore/dto";
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
 import { getDb } from "@/shared/firebase/firestore-runtime";
 import type { RemoteChange, RemoteSubscriptionProps } from "@/domain/remoteSnapshot";
 
@@ -21,7 +23,7 @@ const subscribeReads = <T extends RemoteEntity>(
   collectionName: "deck" | "card",
   props: RemoteSubscriptionProps<T>,
   mapDocument: (id: string, data: Record<string, unknown>) => T
-): Callback => {
+): (() => void) => {
   const q = query(collection(getDb(), collectionName), where("uid", "==", props.uid));
   let initial = true;
   return onSnapshot(
@@ -69,12 +71,12 @@ const subscribeReads = <T extends RemoteEntity>(
  * Subscribes to active deck documents for one user.
  * Deck-specific mapping is supplied to the shared Firestore subscription adapter.
  */
-export const subscribeDeckReads = (props: RemoteSubscriptionProps<Deck>): Callback =>
+export const subscribeDeckReads = (props: RemoteSubscriptionProps<Deck>): (() => void) =>
   subscribeReads("deck", props, mapDeckDocument);
 
 /**
  * Subscribes to active card documents for one user.
  * Card-specific mapping is supplied to the shared Firestore subscription adapter.
  */
-export const subscribeCardReads = (props: RemoteSubscriptionProps<Card>): Callback =>
+export const subscribeCardReads = (props: RemoteSubscriptionProps<Card>): (() => void) =>
   subscribeReads("card", props, mapCardDocument);

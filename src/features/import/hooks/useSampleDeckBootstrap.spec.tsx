@@ -5,6 +5,8 @@
  * as an empty user", "does not add the sample when the user already has a Deck".
  */
 
+import type { Deck } from "@/entities/deck";
+
 import { renderHook, waitFor } from "@testing-library/react";
 import React, { type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";

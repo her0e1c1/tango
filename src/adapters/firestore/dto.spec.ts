@@ -5,6 +5,9 @@
  * only remote card fields using the snapshot id".
  */
 
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+
 import { describe, expect, it } from "vitest";
 import { Timestamp } from "firebase/firestore";
 

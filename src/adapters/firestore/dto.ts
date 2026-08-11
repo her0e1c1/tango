@@ -4,6 +4,9 @@
  * not handle database details directly.
  */
 
+import type { Card, CardEdit, CardId } from "@/entities/card";
+import type { Deck, DeckEdit, DeckId } from "@/entities/deck";
+
 import type { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 

@@ -4,6 +4,9 @@
  * coordinate services themselves.
  */
 
+import type { Card, CardId, CardRaw } from "@/entities/card";
+import type { Deck, DeckId } from "@/entities/deck";
+
 import { useEffect, useRef, useState } from "react";
 
 import * as action from "@/action";

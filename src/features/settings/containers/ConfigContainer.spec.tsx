@@ -6,6 +6,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ConfigState } from "@/shared/config";
 import { createConfig } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({

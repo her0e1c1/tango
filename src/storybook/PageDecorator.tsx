@@ -4,6 +4,9 @@
  * normal containers, hooks, and route parameters.
  */
 
+import type { Card } from "@/entities/card";
+import type { Deck, DeckId } from "@/entities/deck";
+
 import type { Decorator } from "@storybook/react";
 import type { User } from "firebase/auth";
 import { MemoryRouter } from "react-router-dom";

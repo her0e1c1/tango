@@ -4,6 +4,8 @@
  * numeric field changes", "synchronizes dark mode when the config prop changes".
  */
 
+import type { ConfigState } from "@/shared/config";
+
 import type React from "react";
 
 import userEvent from "@testing-library/user-event";

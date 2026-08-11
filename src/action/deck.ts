@@ -4,6 +4,9 @@
  * depending on React components.
  */
 
+import type { Card, CardRaw } from "@/entities/card";
+import type { Deck, DeckRaw } from "@/entities/deck";
+
 import * as Papa from "papaparse";
 
 import * as cardAction from "@/action/card";

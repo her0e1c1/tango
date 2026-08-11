@@ -4,6 +4,8 @@
  * not handle database details directly.
  */
 
+import type { Deck, DeckEdit } from "@/entities/deck";
+
 import {
   where,
   doc,

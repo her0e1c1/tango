@@ -1,5 +1,7 @@
 /** @file Provides Card mutation state and actions to React features. */
 
+import type { Card, CardEdit, CardId } from "@/entities/card";
+
 import { useEffect, useRef } from "react";
 
 import { useAuth } from "@/auth/AuthContext";

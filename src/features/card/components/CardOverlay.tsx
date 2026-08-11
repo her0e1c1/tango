@@ -4,6 +4,8 @@
  * outside the view.
  */
 
+import type { Card } from "@/entities/card";
+
 import type * as React from "react";
 import { Description, Score } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";

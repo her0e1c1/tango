@@ -5,6 +5,8 @@
  * "touches only an existing requested session".
  */
 
+import type { DeckId } from "@/entities/deck";
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { STUDY_STORAGE_KEY, createStudyStore, selectStudySessionForRoute } from "@/features/study/state/studyStore";

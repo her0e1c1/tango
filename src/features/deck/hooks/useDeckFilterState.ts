@@ -4,6 +4,8 @@
  * coordinate services themselves.
  */
 
+import type { Deck } from "@/entities/deck";
+
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 

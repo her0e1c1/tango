@@ -5,6 +5,9 @@
  * text".
  */
 
+import type { Card } from "@/entities/card";
+import type { ConfigState } from "@/shared/config";
+
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";

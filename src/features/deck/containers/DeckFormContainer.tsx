@@ -4,6 +4,8 @@
  * components.
  */
 
+import type { Deck } from "@/entities/deck";
+
 import type * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";

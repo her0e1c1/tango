@@ -1,5 +1,8 @@
 /** @file Serializes conflicting remote mutations. */
 
+import type { CardId } from "@/entities/card";
+import type { DeckId } from "@/entities/deck";
+
 const tails = new Map<string, Promise<void>>();
 interface MembershipLockState {
   exclusive?: Promise<void>;

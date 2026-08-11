@@ -5,6 +5,8 @@
  * all, and clear changes".
  */
 
+import type { Deck } from "@/entities/deck";
+
 import type React from "react";
 
 import userEvent from "@testing-library/user-event";

@@ -5,6 +5,9 @@
  * non-negative", "resets to 0 for GoToNextCardMastered when score is negative".
  */
 
+import type { Card } from "@/entities/card";
+import type { StudyPreferences, SwipeState } from "@/shared/config";
+
 import { expect, it, describe } from "vitest";
 import {
   resolveSwipeAction,
