@@ -4,9 +4,7 @@
  * instead of opening a real Firestore connection or waiting for production initialization.
  */
 
-export type FirestoreInitializationResult =
-  | { status: "ready" }
-  | { status: "blocked"; error: Error };
+export type FirestoreInitializationResult = { status: "ready" } | { status: "blocked"; error: Error };
 
 const ready = { status: "ready" } as const satisfies FirestoreInitializationResult;
 

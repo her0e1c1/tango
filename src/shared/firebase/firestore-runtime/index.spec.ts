@@ -49,9 +49,7 @@ describe("Firestore runtime", () => {
 
     runtime.initialize(db);
 
-    expect(() => runtime.block(new Error("late failure"))).toThrow(
-      "Firestore runtime is already initialized"
-    );
+    expect(() => runtime.block(new Error("late failure"))).toThrow("Firestore runtime is already initialized");
     expect(runtime.getDb()).toBe(db);
     await expect(runtime.waitForInitialization()).resolves.toEqual({ status: "ready" });
   });
