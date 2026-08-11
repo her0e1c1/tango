@@ -10,13 +10,8 @@ import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
 import type { Deck, DeckId } from "@/entities/deck";
 
+import type { DeckListStudyProgress } from "../selectors/buildDeckListSections";
 import { DeckActionsMenu } from "./DeckActionsMenu";
-
-export interface DeckListStudyProgress {
-  currentIndex: number;
-  cardCount: number;
-  lastStudiedAt: number;
-}
 
 export interface DeckListCardActions {
   onClickName?: (id: DeckId) => void;

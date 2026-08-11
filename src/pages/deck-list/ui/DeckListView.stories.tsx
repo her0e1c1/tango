@@ -1,5 +1,5 @@
 /**
- * @file Defines Storybook examples for Deck List Template.
+ * @file Defines Storybook examples for the Deck List presentation.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
@@ -7,9 +7,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import type { Deck } from "@/entities/deck";
-import { type DeckListItem, type DeckListSections, DeckListView as Template } from "./DeckListView";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+
+import type { DeckListItem, DeckListSections } from "../selectors/buildDeckListSections";
+import { DeckListView as Template } from "./DeckListView";
 
 /**
  * Prepares other items data for the Storybook examples in this file.

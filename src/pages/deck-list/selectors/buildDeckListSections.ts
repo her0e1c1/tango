@@ -1,5 +1,5 @@
 /**
- * @file Provides deck feature rules for Build Deck List Sections.
+ * @file Builds the view model for the Deck List Page.
  * Keeping these calculations outside React makes their inputs, outputs, and edge cases easier to
  * understand and test.
  */
@@ -8,7 +8,22 @@ import type { Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 import type { StudySession } from "@/features/study";
 
-import type { DeckListItem, DeckListSections } from "../ui/DeckListView";
+export interface DeckListStudyProgress {
+  currentIndex: number;
+  cardCount: number;
+  lastStudiedAt: number;
+}
+
+export interface DeckListItem {
+  deck: Deck;
+  cardCount: number;
+  studyProgress?: DeckListStudyProgress;
+}
+
+export interface DeckListSections {
+  studying: DeckListItem[];
+  other: DeckListItem[];
+}
 
 /**
  * Orders two deck-list items alphabetically by deck name.

@@ -17,10 +17,11 @@ import { useConfig } from "@/hooks/useConfig";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
+import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 
-import { buildDeckListSections } from "../model/buildDeckListSections";
+import { buildDeckListSections } from "../selectors/buildDeckListSections";
 import { DeckListView } from "./DeckListView";
 
 export const DeckListPage: React.FC = () => {
@@ -57,81 +58,77 @@ export const DeckListPage: React.FC = () => {
       onRetry={remote.retry}
     >
       {hydrated ? (
-        <DeckListView
-          sections={sections}
-          feedbackSlot={
-            <>
-              <RemoteMutationNotice
-                pending={mutations.pending}
-                error={mutations.error}
-                onRetry={mutations.retry}
-                pendingLabel="Deleting deck…"
-                errorLabel="Unable to delete deck."
-              />
-              <Feedback tone="success">{successMessage}</Feedback>
-            </>
-          }
-          dialogSlot={
-            deletionTarget != null ? (
-              <DestructiveActionDialog
-                title="Delete deck?"
-                targetLabel="Deck"
-                targetName={deletionTarget.deck.name}
-                confirmLabel="Delete deck"
-                pending={mutations.isPending(deletionTarget.deck.id)}
-                {...(mutations.error != null
-                  ? { errorMessage: "Unable to delete this deck. Check your connection and try again." }
-                  : {})}
-                description={
-                  <>
-                    <p>
-                      This permanently deletes {deletionTarget.cardCount}{" "}
-                      {deletionTarget.cardCount === 1 ? "card" : "cards"} in this deck.
-                    </p>
-                    <p>Any in-progress study session for this deck will also end.</p>
-                    <p>This action cannot be undone.</p>
-                  </>
-                }
-                onCancel={() => setDeletionTarget(undefined)}
-                onConfirm={() => mutations.remove(deletionTarget.deck).catch(() => undefined)}
-              />
-            ) : null
-          }
-          layout={{
-            headerProps: {
-              dark: config.darkMode,
-              onClickDarkMode: actions.setDarkMode,
-              onClickLogo: actions.goToTop,
-              onClickImport: actions.goToImport,
-              onClickSettings: actions.goToSettings,
-            },
+        <Layout
+          showHeader
+          headerProps={{
+            dark: config.darkMode,
+            onClickDarkMode: actions.setDarkMode,
+            onClickLogo: actions.goToTop,
+            onClickImport: actions.goToImport,
+            onClickSettings: actions.goToSettings,
           }}
-          deckCard={{
-            isPending: mutations.isPending,
-            openMenuDeckId,
-            onToggleMenu: (id) => setOpenMenuDeckId((value) => (value === id ? undefined : id)),
-            onCloseMenu: () => setOpenMenuDeckId(undefined),
-            onClickEdit: actions.goToEdit,
-            onClickName: actions.goToView,
-            onClickContinue: (id) => {
-              touchStudySession(id);
-              actions.goToStudy(id);
-            },
-            onClickRestart: actions.goToStart,
-            onClickStudy: actions.goToStart,
-            onClickDownload: (id) => {
-              const deck = remote.deckById(id);
-              if (deck != null) action.deck.downloadData(deck, remote.cardsByDeckId(id));
-            },
-            onClickDelete: (id) => {
-              const deck = remote.deckById(id);
-              if (deck != null) {
-                setSuccessMessage(undefined);
-                setDeletionTarget({ deck, cardCount: remote.cardsByDeckId(id).length });
+        >
+          <RemoteMutationNotice
+            pending={mutations.pending}
+            error={mutations.error}
+            onRetry={mutations.retry}
+            pendingLabel="Deleting deck…"
+            errorLabel="Unable to delete deck."
+          />
+          <Feedback tone="success">{successMessage}</Feedback>
+          {deletionTarget != null ? (
+            <DestructiveActionDialog
+              title="Delete deck?"
+              targetLabel="Deck"
+              targetName={deletionTarget.deck.name}
+              confirmLabel="Delete deck"
+              pending={mutations.isPending(deletionTarget.deck.id)}
+              {...(mutations.error != null
+                ? { errorMessage: "Unable to delete this deck. Check your connection and try again." }
+                : {})}
+              description={
+                <>
+                  <p>
+                    This permanently deletes {deletionTarget.cardCount}{" "}
+                    {deletionTarget.cardCount === 1 ? "card" : "cards"} in this deck.
+                  </p>
+                  <p>Any in-progress study session for this deck will also end.</p>
+                  <p>This action cannot be undone.</p>
+                </>
               }
-            },
-          }}
-        />
+              onCancel={() => setDeletionTarget(undefined)}
+              onConfirm={() => mutations.remove(deletionTarget.deck).catch(() => undefined)}
+            />
+          ) : null}
+          <DeckListView
+            sections={sections}
+            deckCard={{
+              isPending: mutations.isPending,
+              openMenuDeckId,
+              onToggleMenu: (id) => setOpenMenuDeckId((value) => (value === id ? undefined : id)),
+              onCloseMenu: () => setOpenMenuDeckId(undefined),
+              onClickEdit: actions.goToEdit,
+              onClickName: actions.goToView,
+              onClickContinue: (id) => {
+                touchStudySession(id);
+                actions.goToStudy(id);
+              },
+              onClickRestart: actions.goToStart,
+              onClickStudy: actions.goToStart,
+              onClickDownload: (id) => {
+                const deck = remote.deckById(id);
+                if (deck != null) action.deck.downloadData(deck, remote.cardsByDeckId(id));
+              },
+              onClickDelete: (id) => {
+                const deck = remote.deckById(id);
+                if (deck != null) {
+                  setSuccessMessage(undefined);
+                  setDeletionTarget({ deck, cardCount: remote.cardsByDeckId(id).length });
+                }
+              },
+            }}
+          />
+        </Layout>
       ) : (
         <div role="status" className="py-10 text-center text-sm text-ink-muted">
           Loading study progress…

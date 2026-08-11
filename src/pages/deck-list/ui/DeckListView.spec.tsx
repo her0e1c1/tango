@@ -1,8 +1,7 @@
 /**
- * @file Verifies the "DeckListTemplate" contract with automated examples.
+ * @file Verifies the Deck List presentation contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders the page count,
- * feedback, and both compact sections", "omits empty sections", "opens one deck actions menu at a
- * time".
+ * both compact sections", "omits empty sections", "opens one deck actions menu at a time".
  */
 
 import * as React from "react";
@@ -10,8 +9,10 @@ import { cleanup, fireEvent, render, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { DeckListView, type DeckListSections } from "./DeckListView";
 import { createDeck } from "@/test/factories";
+
+import type { DeckListSections } from "../selectors/buildDeckListSections";
+import { DeckListView } from "./DeckListView";
 
 const activeDeck = createDeck({ id: "active", name: "Active deck", category: "math" });
 const otherDeck = createDeck({ id: "other", name: "Other deck", category: "history" });
@@ -48,12 +49,11 @@ const ControlledDeckList = () => {
 describe("DeckListView", () => {
   afterEach(cleanup);
 
-  it("renders the page count, feedback, and both compact sections", () => {
-    const view = render(<DeckListView sections={sections} feedbackSlot={<div role="status">Saved</div>} />);
+  it("renders the page count and both compact sections", () => {
+    const view = render(<DeckListView sections={sections} />);
 
     expect(view.getByRole("heading", { level: 1, name: "Decks" })).toBeInTheDocument();
     expect(view.getByText("2 decks")).toBeInTheDocument();
-    expect(view.getByRole("status")).toHaveTextContent("Saved");
 
     const studying = view.getByRole("region", { name: "Studying" });
     expect(within(studying).getByText("1 deck · recent first")).toBeInTheDocument();

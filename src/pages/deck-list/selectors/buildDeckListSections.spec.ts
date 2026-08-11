@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "buildDeckListSections" contract with automated examples.
+ * @file Verifies the Deck List selector contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "puts active decks in recent
  * order and inactive decks in name order", "uses deck name as a stable tie breaker for equally
  * recent sessions".
