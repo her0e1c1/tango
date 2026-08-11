@@ -1,2 +1,7 @@
 export { loginGoogle } from "@/features/auth/model/authActions";
-export { suspendAnonymousBootstrap } from "@/features/auth/model/authController";
+export {
+  authRuntime,
+  createAuthRuntime,
+  suspendAnonymousBootstrap,
+  type AuthRuntime,
+} from "@/features/auth/model/authController";

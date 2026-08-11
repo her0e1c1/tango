@@ -20,15 +20,18 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth", () => ({
+  GoogleAuthProvider: Object.assign(vi.fn(), { credentialFromError: vi.fn() }),
+  linkWithPopup: vi.fn(),
   onAuthStateChanged: mocks.onAuthStateChanged,
   signInAnonymously: mocks.signInAnonymously,
+  signInWithCredential: vi.fn(),
 }));
 vi.mock("@/store/remoteStore", () => ({
   remoteStore: { getState: () => ({ start: mocks.start, stop: mocks.stop }) },
 }));
 
 import { AuthBootstrap, AuthProvider } from "@/app/providers/auth";
-import { createAuthRuntime } from "@/features/auth/model/authController";
+import { createAuthRuntime } from "@/features/auth";
 
 /**
  * Provides the create harness test helper used by this file.
