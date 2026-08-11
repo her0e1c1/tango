@@ -5,11 +5,11 @@ import "@testing-library/jest-dom/vitest";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { createCard, createDeck } from "@/test/factories";
+import { createCard, createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
-  config: { appearance: { darkMode: false } } as ConfigState,
+  config: null as unknown as ConfigState,
   card: null as Card | null,
   deck: null as Deck | null,
   navigate: vi.fn(),
@@ -47,7 +47,7 @@ import { CardViewPage } from "./CardViewPage";
 describe("CardViewPage", () => {
   beforeEach(() => {
     mocks.params.id = "card-id";
-    mocks.config = { appearance: { darkMode: false } } as ConfigState;
+    mocks.config = createConfig({ appearance: { darkMode: false } });
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
     mocks.card = createCard({ id: "card-id", deckId: "deck-id", backText: "const answer = 42;", tags: ["typescript"] });
     mocks.navigate.mockReset();

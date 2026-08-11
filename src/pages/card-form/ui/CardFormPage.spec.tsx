@@ -118,7 +118,7 @@ describe("CardFormPage", () => {
     expect(mocks.goToSettings).toHaveBeenCalledOnce();
 
     view.unmount();
-    mocks.config = { darkMode: true } as ConfigState;
+    mocks.config = createConfig({ appearance: { darkMode: true } });
     render(<CardFormPage />);
     await userEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
     expect(mocks.setDarkMode).toHaveBeenNthCalledWith(2, false);

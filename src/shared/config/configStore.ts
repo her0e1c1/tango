@@ -6,7 +6,7 @@
 
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
-import { configSchema, defaultConfig, normalizeConfigInput, parsePersistedConfig } from "@/shared/config/configSchema";
+import { configSchema, defaultConfig, parsePersistedConfig } from "@/shared/config/configSchema";
 
 export { defaultConfig } from "@/shared/config/configSchema";
 
@@ -53,16 +53,17 @@ export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreO
         },
         updateConfig: (configInput) =>
           set((state) => {
-            const raw = normalizeConfigInput(configInput) as PartialConfigState;
             const merged = {
-              appearance: { ...state.config.appearance, ...raw.appearance },
+              appearance: { ...state.config.appearance, ...configInput.appearance },
               study: {
                 ...state.config.study,
-                ...raw.study,
+                ...configInput.study,
                 selectedTags:
-                  raw.study?.selectedTags == null ? state.config.study.selectedTags : [...raw.study.selectedTags],
+                  configInput.study?.selectedTags == null
+                    ? state.config.study.selectedTags
+                    : [...configInput.study.selectedTags],
               },
-              controls: { ...state.config.controls, ...raw.controls },
+              controls: { ...state.config.controls, ...configInput.controls },
             };
             return { config: configSchema.parse(merged) };
           }),

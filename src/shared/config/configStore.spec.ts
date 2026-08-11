@@ -23,16 +23,22 @@ const createMemoryStorage = (initial: Record<string, string> = {}) => {
 };
 
 describe("config store", () => {
-  it("updates and toggles long-lived settings", () => {
+  it("updates each preference group without resetting other settings", () => {
     const store = createConfigStore({ storage: createMemoryStorage(), skipHydration: true });
 
-    store.getState().updateConfig({ study: { cardInterval: 15 }, appearance: { darkMode: true } });
+    store.getState().updateConfig({
+      appearance: { darkMode: true },
+      study: { cardInterval: 15 },
+      controls: { showScoreSlider: true },
+    });
+    store.getState().updateConfig({ appearance: { showHeader: false } });
     store.getState().toggleConfig("appearance", "darkMode");
 
     expect(store.getState().config).toEqual({
       ...defaultConfig,
       study: { ...defaultConfig.study, cardInterval: 15 },
-      appearance: { ...defaultConfig.appearance, darkMode: false },
+      appearance: { ...defaultConfig.appearance, darkMode: false, showHeader: false },
+      controls: { ...defaultConfig.controls, showScoreSlider: true },
     });
   });
 
@@ -73,18 +79,22 @@ describe("config store", () => {
     expect(store.getState().config.appearance.sizeBackText).toBe(defaultConfig.appearance.sizeBackText);
   });
 
-  it("keeps valid persisted settings and replaces invalid values with current defaults", async () => {
+  it("migrates flat persisted settings without losing valid preferences", async () => {
     const storage = createMemoryStorage({
       [CONFIG_STORAGE_KEY]: JSON.stringify({
         state: {
           config: {
             cardInterval: 15,
+            cardSwipeLeft: "GoBack",
             darkMode: "yes",
+            selectedTags: ["typescript"],
+            showHeader: false,
+            showScoreSlider: true,
             removedSetting: true,
             githubAccessToken: "legacy-secret",
           },
         },
-        version: 1,
+        version: 2,
       }),
     });
     const store = createConfigStore({ storage, skipHydration: true });
@@ -93,7 +103,9 @@ describe("config store", () => {
 
     expect(store.getState().config).toEqual({
       ...defaultConfig,
-      study: { ...defaultConfig.study, cardInterval: 15 },
+      appearance: { ...defaultConfig.appearance, showHeader: false },
+      study: { ...defaultConfig.study, cardInterval: 15, selectedTags: ["typescript"] },
+      controls: { ...defaultConfig.controls, cardSwipeLeft: "GoBack", showScoreSlider: true },
     });
     expect(store.getState().config.appearance).not.toHaveProperty("removedSetting");
     expect(store.getState().config.appearance).not.toHaveProperty("githubAccessToken");

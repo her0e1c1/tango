@@ -248,7 +248,10 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
     mocks.studyState.showBackText = false;
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.config = createConfig({ ...mocks.state.config, showHeader: false });
+    mocks.state.config = createConfig({
+      ...mocks.state.config,
+      appearance: { ...mocks.state.config.appearance, showHeader: false },
+    });
     view.rerender(<DeckSwiperPage />);
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
