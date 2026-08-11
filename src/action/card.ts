@@ -4,31 +4,7 @@
  * depending on React components.
  */
 
-import type { Card, CardRaw } from "@/entities/card";
-
-/**
- * Checks whether raw card input has neither front text nor back text.
- * CSV parsing uses this predicate to ignore blank rows while preserving cards that contain either
- * side.
- */
-export const isEmpty = (c: CardRaw): boolean => {
-  return c.frontText === "" && c.backText === "";
-};
-
-/**
- * Converts one CSV row into raw card input.
- * Column parsing and tag splitting happen here before the card receives domain defaults and
- * identifiers.
- */
-export const fromRow = (row: string[]): CardRaw => {
-  const tags = typeof row[2] === "string" ? row[2].split(",") : [];
-  return {
-    frontText: row[0] || "",
-    backText: row[1] || "",
-    tags,
-    uniqueKey: row[3] || "",
-  };
-};
+import type { Card } from "@/entities/card";
 
 /**
  * Converts a card into the ordered text columns used by CSV export.

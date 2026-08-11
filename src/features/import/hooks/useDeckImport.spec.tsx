@@ -63,9 +63,10 @@ vi.mock("@/features/import/lib/deckImportAnalysis", async (importOriginal) => {
     parseDeckImportCsv: (...args: Parameters<typeof actual.parseDeckImportCsv>) => mocks.parseDeckImportCsv(...args),
   };
 });
-vi.mock("@/action", () => ({
-  deck: { parseCsv: mocks.parseCsv },
-}));
+vi.mock("@/features/import/lib/cardCsv", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/import/lib/cardCsv")>();
+  return { ...actual, parseCsv: mocks.parseCsv };
+});
 vi.mock("@/adapters/firestore", () => ({
   documentMetadata: { generateDeckId: mocks.generateDeckId, generateCardId: mocks.generateCardId },
 }));

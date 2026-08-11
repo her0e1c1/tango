@@ -1,12 +1,9 @@
 /**
  * @file Verifies the "deck action" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "parses string content as
- * raw cards" and "rejects unsupported input at the parser boundary".
+ * The examples make the expected CSV export and download behavior concrete.
  */
 
-import type { CardRaw } from "@/entities/card";
-
-import { expect, expectTypeOf, it, describe, vi, beforeEach, afterEach } from "vitest";
+import { expect, it, describe, vi, beforeEach, afterEach } from "vitest";
 
 // import moment from "moment";
 import * as fileSaver from "file-saver";
@@ -29,21 +26,6 @@ describe("deck action", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  describe("parseCsv", () => {
-    it("parses string content as raw cards", async () => {
-      const cards = await action.deck.parseCsv("front,back");
-
-      expectTypeOf(cards).toEqualTypeOf<CardRaw[]>();
-      expect(cards).toEqual([{ frontText: "front", backText: "back", uniqueKey: "", tags: [] }]);
-    });
-
-    it("rejects unsupported input at the parser boundary", async () => {
-      await expect(action.deck.parseCsv({ content: "front,back" })).rejects.toThrow(
-        "CSV content must be a string or File"
-      );
-    });
   });
 
   describe("download", () => {
