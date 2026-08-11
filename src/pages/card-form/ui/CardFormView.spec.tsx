@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "CardFormTemplate" contract with automated examples.
+ * @file Verifies the "CardFormView" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "presents the card editor
  * and composes feedback before the form".
  */
@@ -9,16 +9,19 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { CardFormTemplate } from "@/features/card/components/templates/CardFormTemplate";
 import { createCard } from "@/test/factories";
 
-describe("CardFormTemplate", () => {
+vi.mock("@/shared/firebase", () => ({ auth: {} }));
+
+import { CardFormView } from "./CardFormView";
+
+describe("CardFormView", () => {
   afterEach(cleanup);
 
   it("presents the card editor and composes feedback before the form", async () => {
     const onCancel = vi.fn();
     const view = render(
-      <CardFormTemplate
+      <CardFormView
         feedbackSlot={<div role="status">Saved</div>}
         cardForm={{
           card: createCard({ id: "card-123" }),
