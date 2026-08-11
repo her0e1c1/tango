@@ -1,12 +1,28 @@
 import babel from "@rolldown/plugin-babel";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import { pwaOptions } from "./pwa.config";
 
+const reactDevTools = (): Plugin => ({
+  name: "react-devtools",
+  apply: (_, { command, mode }) => command === "serve" && mode === "dev",
+  transformIndexHtml: {
+    order: "pre",
+    handler: () => [
+      {
+        tag: "script",
+        attrs: { src: "http://localhost:8097" },
+        injectTo: "head-prepend",
+      },
+    ],
+  },
+});
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    reactDevTools(),
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     VitePWA(pwaOptions),

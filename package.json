@@ -6,6 +6,9 @@
   "engines": {
     "node": ">=24.15.0 <25"
   },
+  "allowScripts": {
+    "electron@23.3.13": true
+  },
   "scripts": {
     "start": "vite dev",
     "build": "vite build",
@@ -13,6 +16,7 @@
     "build:storybook": "storybook build",
     "ci": "npm run build:sample && npm run build && npm run build:storybook && npm run fmt:check && npm run fmt:sample:check && npm run lint:check && npm run test:coverage:ci && npm run test:sample",
     "db": "firebase emulators:start",
+    "devtools": "react-devtools",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "test": "vitest run --project=unit --no-file-parallelism",
@@ -98,6 +102,7 @@
     "msw": "^2.15.0",
     "msw-storybook-addon": "^3.0.0",
     "postcss": "^8.5.26",
+    "react-devtools": "^7.0.1",
     "storybook": "^10.5.7",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",

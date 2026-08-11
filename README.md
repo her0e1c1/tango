@@ -46,6 +46,16 @@ mise run dev
 
 You can go to web UI and see data in firestore: http://localhost:4000/
 
+### React DevTools
+
+Start the standalone React DevTools in another terminal before starting the development server:
+
+```bash
+mise run react-devtools
+```
+
+`mise run dev` connects the development app to the standalone DevTools at `localhost:8097`.
+
 ## Test
 
 The test task starts the Firestore emulator and runs the application and sample test suites:

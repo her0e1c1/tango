@@ -45,6 +45,9 @@ alias = "d"
 depends = ["build-sample", "dev-up"]
 run = "env -u VITE_PROJECT_ID -u VITE_WEB_API_KEY -u VITE_DB_HOST -u VITE_DB_PORT -u VITE_AUTH_HOST -u VITE_AUTH_PORT npm start -- --open --mode dev"
 
+[tasks.react-devtools]
+run = "npm run devtools"
+
 [tasks.storybook]
 alias = "s"
 depends = ["build-sample"]
