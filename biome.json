@@ -32,7 +32,7 @@
           "options": {
             "devDependencies": [
               "**/*.{spec,stories}.{ts,tsx}",
-              "**/{.storybook,storybook,e2e,scripts}/**",
+              "**/{.storybook,e2e,scripts,test}/**",
               "**/*.config.{js,mjs,ts}"
             ]
           }
