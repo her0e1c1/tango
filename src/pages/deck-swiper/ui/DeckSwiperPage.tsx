@@ -5,8 +5,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import * as C from "@/constant";
-import { useCard } from "@/entities/card";
-import { useDeck } from "@/entities/deck";
+import { useCards } from "@/entities/card";
+import { useDecks } from "@/entities/deck";
 import { BackText, CardOverlay, FrontText, useCardMutations } from "@/features/card";
 import {
   initializeStudySessionUi,
@@ -38,8 +38,9 @@ export const DeckSwiperPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
 
   const config = useConfig();
-  const remote = useDeck(deckId);
-  const deck = remote.deck;
+  const remote = useDecks();
+  const cardRemote = useCards();
+  const deck = remote.decksById[deckId];
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
@@ -49,7 +50,7 @@ export const DeckSwiperPage: React.FC = () => {
 
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
-  const card = useCard(cardId ?? "").card;
+  const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
   const cardMutation = useCardMutations();
   const studyActions = useStudyActions(deckId, {
     isPending: cardMutation.isPending,

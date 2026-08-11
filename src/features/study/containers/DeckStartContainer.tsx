@@ -9,12 +9,12 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { ConfigState } from "@/shared/config";
 
-import type * as React from "react";
+import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useTagsByDeck } from "@/entities/card";
-import { useDeck } from "@/entities/deck";
+import { selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
+import { useDecks } from "@/entities/deck";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
@@ -87,10 +87,12 @@ export const DeckStartContainer: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deckId");
   const config = useConfig();
-  const remote = useDeck(deckId);
-  const deck = remote.deck;
-  const cards = useStudyCards(deckId, config).cards;
-  const tags = useTagsByDeck(deckId).tags;
+  const cardRemote = useCards();
+  const remote = useDecks();
+  const deck = remote.decksById[deckId];
+  const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
+  const cards = useStudyCards(deck, deckCards, config);
+  const tags = selectTagsForDeck(cardRemote.cards, deckId);
 
   return (
     <RemoteReadBoundary

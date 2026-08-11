@@ -51,12 +51,10 @@ vi.mock("@/features/study", () => ({
 }));
 vi.mock("@/action", () => ({ deck: { downloadData: mocks.downloadData } }));
 vi.mock("@/entities/card", () => ({
+  selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
   useCards: () => {
     const cards = Object.values(mocks.cardsById);
-    return {
-      cards,
-      cardsByDeckId: (id: DeckId) => cards.filter((card) => card.deckId === id),
-    };
+    return { cards };
   },
 }));
 vi.mock("@/entities/deck", () => ({
@@ -65,7 +63,7 @@ vi.mock("@/entities/deck", () => ({
     syncStatus: mocks.syncStatus,
     retry: vi.fn(),
     decks: Object.values(mocks.decksById),
-    deckById: (id: DeckId) => mocks.decksById[id],
+    decksById: mocks.decksById,
   }),
 }));
 vi.mock("react-use", () => ({ useKey: mocks.useKey }));

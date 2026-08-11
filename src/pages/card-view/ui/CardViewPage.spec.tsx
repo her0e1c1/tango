@@ -24,15 +24,15 @@ vi.mock("@/shared/config", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/entities/card", () => ({
-  useCard: (id: string) => ({
+  useCards: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    card: mocks.card?.id === id ? mocks.card : undefined,
+    cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
   }),
 }));
 vi.mock("@/entities/deck", () => ({
-  useDeck: (id: string) => ({
-    deck: mocks.deck?.id === id ? mocks.deck : undefined,
+  useDecks: () => ({
+    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
   }),
 }));
 vi.mock("react-router-dom", () => ({

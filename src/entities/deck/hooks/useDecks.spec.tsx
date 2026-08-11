@@ -27,7 +27,7 @@ vi.mock("@/store/remoteStore", () => ({
   },
 }));
 
-import { useDeck, useDecks } from "@/entities/deck";
+import { useDecks } from "@/entities/deck";
 
 describe("Deck remote hooks", () => {
   beforeEach(() => {
@@ -42,18 +42,17 @@ describe("Deck remote hooks", () => {
     };
   });
 
-  it("exposes Deck collection and lookup data", () => {
+  it("exposes Deck collection data", () => {
     const deck = createDeck({ id: "deck" });
     mocks.state = { ...mocks.state, decksById: { [deck.id]: deck, missing: undefined } };
 
-    const { result } = renderHook(() => ({ collection: useDecks(), item: useDeck(deck.id) }));
+    const { result } = renderHook(useDecks);
 
-    expect(result.current.collection.decksById).toEqual({ [deck.id]: deck, missing: undefined });
-    expect(result.current.collection.decks).toEqual([deck]);
-    expect(result.current.collection.deckById(deck.id)).toBe(deck);
-    expect(result.current.item.deck).toBe(deck);
-    expect(result.current.collection.status).toBe("ready");
-    expect(result.current.collection.syncStatus).toBe("synced");
+    expect(result.current.decksById).toEqual({ [deck.id]: deck, missing: undefined });
+    expect(result.current.decksById[deck.id]).toBe(deck);
+    expect(result.current.decks).toEqual([deck]);
+    expect(result.current.status).toBe("ready");
+    expect(result.current.syncStatus).toBe("synced");
   });
 
   it("preserves terminal state and retry without dropping Deck data", () => {
@@ -86,11 +85,11 @@ describe("Deck remote hooks", () => {
       cardsById: {},
     };
 
-    const { result } = renderHook(() => ({ collection: useDecks(), item: useDeck(deck.id) }));
+    const { result } = renderHook(useDecks);
 
-    expect(result.current.collection.decks).toEqual([]);
-    expect(result.current.item.deck).toBeUndefined();
-    expect(result.current.collection.status).toBe("loading");
+    expect(result.current.decks).toEqual([]);
+    expect(result.current.decksById[deck.id]).toBeUndefined();
+    expect(result.current.status).toBe("loading");
   });
 
   it("exposes persistent cache initialization failures as blocking state", () => {

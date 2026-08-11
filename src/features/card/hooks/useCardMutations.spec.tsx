@@ -11,7 +11,6 @@ const createCard = (overrides: Partial<Card> = {}) => createCardFixture({ uid: "
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
   card: null as Card | null,
-  cardById: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
   logicalRemove: vi.fn(),
@@ -24,7 +23,7 @@ vi.mock("@/auth/AuthContext", () => ({
 }));
 vi.mock("@/entities/card", () => ({
   useCards: () => ({
-    cardById: mocks.cardById,
+    cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
   }),
 }));
 vi.mock("@/adapters/firestore/card", () => ({
@@ -41,7 +40,6 @@ describe("useCardMutations", () => {
     vi.clearAllMocks();
     mocks.uid = "uid-a";
     mocks.card = null;
-    mocks.cardById.mockImplementation(() => mocks.card);
     mocks.create.mockResolvedValue("card-id");
     mocks.update.mockResolvedValue(undefined);
     mocks.logicalRemove.mockResolvedValue(undefined);

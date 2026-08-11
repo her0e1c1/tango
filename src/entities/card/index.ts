@@ -1,2 +1,3 @@
 export type { Card, CardDeck, CardEdit, CardId, CardNew, CardRaw, CardTextKey } from "./model/card";
-export { useCard, useCards, useCardsByDeck, useTagsByDeck } from "./hooks/useCards";
+export { useCards } from "./hooks/useCards";
+export { selectCardsForDeck, selectTagsForDeck } from "./model/selectCardsForDeck";

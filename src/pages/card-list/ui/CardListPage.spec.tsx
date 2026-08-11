@@ -64,21 +64,23 @@ vi.mock("@/shared/config", () => ({
 }));
 
 vi.mock("@/entities/card", () => ({
-  useTagsByDeck: (id: string) => ({
-    tags: [...new Set(mocks.cards.filter((card) => card.deckId === id).flatMap((card) => card.tags))],
-  }),
+  selectCardsForDeck: (cards: Card[], id: string) => cards.filter((card) => card.deckId === id),
+  selectTagsForDeck: (cards: Card[], id: string) => [
+    ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
+  ],
+  useCards: () => ({ cards: [...mocks.cards] }),
 }));
 
 vi.mock("@/entities/deck", () => ({
-  useDeck: (id: string) => ({
+  useDecks: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    deck: mocks.deck?.id === id ? mocks.deck : undefined,
+    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
   }),
 }));
 
 vi.mock("@/features/study", () => ({
-  useStudyCards: (id: string) => ({ cards: mocks.cards.filter((card) => card.deckId === id) }),
+  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
 }));
 
 vi.mock("react-router-dom", () => ({

@@ -12,7 +12,8 @@ import React from "react";
 
 import { useNavigate } from "react-router-dom";
 
-import { useCards } from "@/entities/card";
+import { selectCardsForDeck, useCards } from "@/entities/card";
+import { useDecks } from "@/entities/deck";
 import { useStudyCards } from "@/features/study/hooks/useStudyCards";
 import { studyStore } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
@@ -122,8 +123,11 @@ const runStudySwipe = async (
 export const useStudyActions = (deckId: DeckId, cardMutation?: StudyCardMutation): StudyActions => {
   const navigate = useNavigate();
   const config = useConfig();
-  const cards = useStudyCards(deckId, config).cards;
-  const cardsById = useCards().cardsById;
+  const cardRemote = useCards();
+  const deckRemote = useDecks();
+  const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
+  const cards = useStudyCards(deckRemote.decksById[deckId], deckCards, config);
+  const cardsById = cardRemote.cardsById;
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
   /**

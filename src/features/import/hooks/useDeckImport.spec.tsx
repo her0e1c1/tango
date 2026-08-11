@@ -36,9 +36,8 @@ vi.mock("@/auth/AuthContext", () => ({
     mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
 vi.mock("@/entities/card", () => ({
-  useCards: () => ({
-    cardsByDeckId: (id: DeckId) => mocks.cards.filter((card) => card.deckId === id),
-  }),
+  selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+  useCards: () => ({ cards: mocks.cards }),
 }));
 vi.mock("@/entities/deck", () => ({
   useDecks: () => ({

@@ -12,7 +12,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import * as C from "@/constant";
-import { useDeck } from "@/entities/deck";
+import { useDecks } from "@/entities/deck";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -90,8 +90,8 @@ export const DeckFormContainer: React.FC = () => {
   const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
-  const remote = useDeck(deckId);
-  const deck = remote.deck;
+  const remote = useDecks();
+  const deck = remote.decksById[deckId];
 
   return (
     <RemoteReadBoundary

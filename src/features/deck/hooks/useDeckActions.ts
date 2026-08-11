@@ -8,7 +8,7 @@ import type { Deck, DeckId } from "@/entities/deck";
 
 import { useNavigate } from "react-router-dom";
 
-import { useDeck } from "@/entities/deck";
+import { useDecks } from "@/entities/deck";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 
 /**
@@ -18,7 +18,7 @@ import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
  */
 export const useDeckActions = (id: DeckId) => {
   const navigate = useNavigate();
-  const remote = useDeck(id);
+  const remote = useDecks();
   const mutations = useDeckMutations();
   return {
     update: mutations.update,
@@ -32,7 +32,7 @@ export const useDeckActions = (id: DeckId) => {
     },
     goToList: () => void navigate("/", { replace: true }),
     remove: () => {
-      const deck = remote.deck;
+      const deck = remote.decksById[id];
       return deck == null ? Promise.reject(new Error(`Deck ${id} is not available`)) : mutations.remove(deck);
     },
     pending: mutations.pending,

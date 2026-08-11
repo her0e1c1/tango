@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import * as C from "@/constant";
-import { type Card, useCard } from "@/entities/card";
+import { type Card, useCards } from "@/entities/card";
 import { useCardFormState, useCardMutations } from "@/features/card";
 import { setDarkMode, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
@@ -57,8 +57,8 @@ export const CardFormPage: React.FC = () => {
   const navigate = useNavigate();
   const cardId = params.id;
   if (cardId == null) throw Error("invalid card id");
-  const remote = useCard(cardId);
-  const card = remote.card;
+  const remote = useCards();
+  const card = remote.cardsById[cardId];
 
   return (
     <RemoteReadBoundary

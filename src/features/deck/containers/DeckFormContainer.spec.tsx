@@ -30,10 +30,10 @@ vi.mock("@/shared/config", () => ({
 }));
 
 vi.mock("@/entities/deck", () => ({
-  useDeck: (id: string) => ({
+  useDecks: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    deck: mocks.deck?.id === id ? mocks.deck : undefined,
+    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
   }),
 }));
 

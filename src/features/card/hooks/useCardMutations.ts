@@ -18,7 +18,7 @@ interface UseCardMutationsOptions {
 export const useCardMutations = ({ onRemoveSuccess }: UseCardMutationsOptions = {}) => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const { cardById } = useCards();
+  const { cardsById } = useCards();
   const mutation = useAsyncAction<CardId>(uid);
   const scope = useRef({ uid });
   const onRemoveSuccessRef = useRef(onRemoveSuccess);
@@ -37,12 +37,12 @@ export const useCardMutations = ({ onRemoveSuccess }: UseCardMutationsOptions = 
   const create = (card: Card) => mutation.run([card.id], `create:${card.id}`, () => cardCommands.create(uid, card));
   const update = (card: CardEdit) => mutation.run([card.id], `update:${card.id}`, () => cardCommands.update(uid, card));
   const updateBy = (id: CardId, callback: (card: Card) => CardPatch) => {
-    const card = cardById(id);
+    const card = cardsById[id];
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
     return update({ ...callback(card), id: card.id, deckId: card.deckId });
   };
   const remove = (id: CardId) => {
-    const card = cardById(id);
+    const card = cardsById[id];
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
     const operationScope = scope.current;
     return mutation.run([id], `remove:${id}`, async () => {

@@ -25,15 +25,19 @@ const mocks = vi.hoisted(() => {
     setDarkMode: vi.fn(),
   };
 });
-vi.mock("@/entities/card", () => ({ useTagsByDeck: () => ({ tags: [] }) }));
-vi.mock("@/entities/deck", () => ({ useDeck: () => ({ deck: undefined }) }));
+vi.mock("@/entities/card", () => ({
+  selectCardsForDeck: () => [],
+  selectTagsForDeck: () => [],
+  useCards: () => ({ cards: [] }),
+}));
+vi.mock("@/entities/deck", () => ({ useDecks: () => ({ decksById: {} }) }));
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ update: mocks.update }),
 }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({ start: mocks.currentStart }),
 }));
-vi.mock("@/features/study/hooks/useStudyCards", () => ({ useStudyCards: () => ({ cards: [] }) }));
+vi.mock("@/features/study/hooks/useStudyCards", () => ({ useStudyCards: () => [] }));
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => ({ id: "deck-id" }),

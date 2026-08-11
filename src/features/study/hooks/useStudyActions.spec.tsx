@@ -43,11 +43,16 @@ vi.mock("@/shared/config/useConfig", () => ({
 }));
 
 vi.mock("@/entities/card", () => ({
-  useCards: () => ({ cardsById: mocks.state?.card ?? {} }),
+  selectCardsForDeck: (cards: Card[], deckId: string) => cards.filter((card) => card.deckId === deckId),
+  useCards: () => ({ cardsById: mocks.state?.card ?? {}, cards: Object.values(mocks.state?.card ?? {}) }),
+}));
+
+vi.mock("@/entities/deck", () => ({
+  useDecks: () => ({ decksById: {} }),
 }));
 
 vi.mock("@/features/study/hooks/useStudyCards", () => ({
-  useStudyCards: () => ({ cards: mocks.filteredCards }),
+  useStudyCards: () => mocks.filteredCards,
 }));
 
 vi.mock("react-router-dom", () => ({

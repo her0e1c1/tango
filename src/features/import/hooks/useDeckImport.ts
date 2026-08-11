@@ -7,12 +7,12 @@
 import type { Card, CardId, CardRaw } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import * as action from "@/action";
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
-import { useCards } from "@/entities/card";
+import { selectCardsForDeck, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
@@ -273,6 +273,10 @@ export const useDeckImport = () => {
   const deckRemote = useDecks();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();
+  const cardsByDeckId = useCallback(
+    (deckId: DeckId) => selectCardsForDeck(cardRemote.cards, deckId),
+    [cardRemote.cards]
+  );
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const generation = useRef(0);
   const generationUid = useRef(uid);
@@ -321,14 +325,14 @@ export const useDeckImport = () => {
       uid,
       synchronized: deckRemote.status === "ready" && deckRemote.syncStatus === "synced",
       decks: deckRemote.decks,
-      cardsByDeckId: cardRemote.cardsByDeckId,
+      cardsByDeckId,
       createDeck: deckMutations.create,
       bulkUpsert: cardMutations.bulkUpsert,
     };
   }, [
     cardMutations.bulkUpsert,
     deckMutations.create,
-    cardRemote.cardsByDeckId,
+    cardsByDeckId,
     deckRemote.decks,
     deckRemote.status,
     deckRemote.syncStatus,
@@ -399,7 +403,7 @@ export const useDeckImport = () => {
       setPreview,
       reset: resetOperation,
       decks: deckRemote.decks,
-      cardsByDeckId: cardRemote.cardsByDeckId,
+      cardsByDeckId,
       uid,
       currentUid: generationUid,
       generation: generation.current,

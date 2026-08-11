@@ -27,7 +27,7 @@ vi.mock("@/store/remoteStore", () => ({
   },
 }));
 
-import { useCard, useCards, useCardsByDeck, useTagsByDeck } from "@/entities/card";
+import { selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
 
 describe("Card remote hooks", () => {
   beforeEach(() => {
@@ -42,7 +42,7 @@ describe("Card remote hooks", () => {
     };
   });
 
-  it("exposes Card collection, lookup, Deck relation, and tag data", () => {
+  it("exposes Card collection data for pure selectors", () => {
     const first = createCard({ id: "first", deckId: "deck-a", tags: ["z", "a"] });
     const second = createCard({ id: "second", deckId: "deck-a", tags: ["a"] });
     const other = createCard({ id: "other", deckId: "deck-b", tags: ["other"] });
@@ -51,21 +51,14 @@ describe("Card remote hooks", () => {
       cardsById: { [first.id]: first, [second.id]: second, [other.id]: other, missing: undefined },
     };
 
-    const { result } = renderHook(() => ({
-      collection: useCards(),
-      item: useCard(first.id),
-      relation: useCardsByDeck("deck-a"),
-      tags: useTagsByDeck("deck-a"),
-    }));
+    const { result } = renderHook(useCards);
 
-    expect(result.current.collection.cards).toEqual([first, second, other]);
-    expect(result.current.collection.cardById(first.id)).toBe(first);
-    expect(result.current.collection.cardsByDeckId("deck-a")).toEqual([first, second]);
-    expect(result.current.item.card).toBe(first);
-    expect(result.current.relation.cards).toEqual([first, second]);
-    expect(result.current.tags.tags).toEqual(["a", "z"]);
-    expect(result.current.collection.status).toBe("ready");
-    expect(result.current.collection.syncStatus).toBe("synced");
+    expect(result.current.cardsById[first.id]).toBe(first);
+    expect(result.current.cards).toEqual([first, second, other]);
+    expect(selectCardsForDeck(result.current.cards, "deck-a")).toEqual([first, second]);
+    expect(selectTagsForDeck(result.current.cards, "deck-a")).toEqual(["a", "z"]);
+    expect(result.current.status).toBe("ready");
+    expect(result.current.syncStatus).toBe("synced");
   });
 
   it("hides Card data until the authenticated and active UIDs match", () => {
@@ -78,10 +71,10 @@ describe("Card remote hooks", () => {
       cardsById: { [card.id]: card },
     };
 
-    const { result } = renderHook(() => ({ collection: useCards(), item: useCard(card.id) }));
+    const { result } = renderHook(useCards);
 
-    expect(result.current.collection.cards).toEqual([]);
-    expect(result.current.item.card).toBeUndefined();
-    expect(result.current.collection.status).toBe("loading");
+    expect(result.current.cards).toEqual([]);
+    expect(result.current.cardsById[card.id]).toBeUndefined();
+    expect(result.current.status).toBe("loading");
   });
 });

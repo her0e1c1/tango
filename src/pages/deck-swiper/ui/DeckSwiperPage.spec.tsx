@@ -69,17 +69,15 @@ vi.mock("@/shared/config", () => ({
 }));
 
 vi.mock("@/entities/deck", () => ({
-  useDeck: (id: string) => ({
+  useDecks: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    deck: mocks.state?.deck[id],
+    decksById: mocks.state?.deck ?? {},
   }),
 }));
 
 vi.mock("@/entities/card", () => ({
-  useCard: (id: string) => ({
-    card: mocks.state?.card[id],
-  }),
+  useCards: () => ({ cardsById: mocks.state?.card ?? {} }),
 }));
 
 vi.mock("react-router-dom", () => ({
