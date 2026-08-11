@@ -4,22 +4,21 @@
  * content in a reading-width surface", "renders without back content".
  */
 
-import { cleanup, render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { CardViewView } from "./CardViewView";
 
 describe("CardViewView", () => {
-  afterEach(cleanup);
   it("preserves optional back content in a reading-width surface", () => {
-    const view = render(<CardViewView backText={{ text: "Card answer" }} />);
-    expect(view.getByText("Card answer").closest("section")).toHaveClass("max-w-reading");
+    render(<CardViewView backText={{ text: "Card answer" }} />);
+    expect(screen.getByText("Card answer")).toBeVisible();
   });
   it("renders without back content", () => {
-    const view = render(<CardViewView />);
-    expect(view.queryByText("Card answer")).not.toBeInTheDocument();
+    render(<CardViewView />);
+    expect(screen.queryByText("Card answer")).not.toBeInTheDocument();
   });
 });

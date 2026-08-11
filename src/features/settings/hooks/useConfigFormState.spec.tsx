@@ -7,8 +7,8 @@
 import type React from "react";
 
 import userEvent from "@testing-library/user-event";
-import { render, cleanup, fireEvent, waitFor } from "@testing-library/react";
-import { expect, it, describe, vi, afterEach } from "vitest";
+import { render, fireEvent, screen, waitFor } from "@testing-library/react";
+import { expect, it, describe, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { ConfigForm } from "@/features/settings/components/ConfigForm";
@@ -27,9 +27,6 @@ const ConfigFormHarness: React.FC<{
 };
 
 describe("ConfigForm with useConfigFormState", () => {
-  afterEach(() => {
-    cleanup();
-  });
   const config = {
     showHeader: false,
     showSwipeButtonList: false,
@@ -44,21 +41,21 @@ describe("ConfigForm with useConfigFormState", () => {
   } as ConfigState;
   it("auto-submits boolean and numeric field changes", async () => {
     const onSubmit = vi.fn();
-    const c = render(<ConfigFormHarness config={config} onSubmit={onSubmit} />);
+    render(<ConfigFormHarness config={config} onSubmit={onSubmit} />);
 
-    await userEvent.click(c.container.querySelector("input[name='showHeader']") as Element);
+    await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
     await waitFor(() => {
       expect(onSubmit).toHaveBeenLastCalledWith({ ...config, showHeader: true });
     });
 
-    fireEvent.change(c.container.querySelector("input[name='maxNumberOfCardsToLearn']") as Element, {
+    fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
       target: { value: 10 },
     });
     await waitFor(() => {
       expect(onSubmit).toHaveBeenLastCalledWith({ ...config, showHeader: true, maxNumberOfCardsToLearn: 10 });
     });
 
-    fireEvent.change(c.container.querySelector("input[name='cardInterval']") as Element, { target: { value: 10 } });
+    fireEvent.change(screen.getByRole("slider", { name: "Autoplay interval" }), { target: { value: 10 } });
     await waitFor(() => {
       expect(onSubmit).toHaveBeenLastCalledWith({
         ...config,
@@ -71,11 +68,11 @@ describe("ConfigForm with useConfigFormState", () => {
 
   it("synchronizes dark mode when the config prop changes", async () => {
     const onSubmit = vi.fn();
-    const c = render(<ConfigFormHarness config={config} onSubmit={onSubmit} />);
-    const darkModeInput = c.container.querySelector("input[name='darkMode']") as HTMLInputElement;
+    const { rerender } = render(<ConfigFormHarness config={config} onSubmit={onSubmit} />);
+    const darkModeInput = screen.getByRole("checkbox", { name: "Dark mode" });
     expect(darkModeInput).not.toBeChecked();
 
-    c.rerender(<ConfigFormHarness config={{ ...config, darkMode: true }} onSubmit={onSubmit} />);
+    rerender(<ConfigFormHarness config={{ ...config, darkMode: true }} onSubmit={onSubmit} />);
 
     await waitFor(() => {
       expect(darkModeInput).toBeChecked();

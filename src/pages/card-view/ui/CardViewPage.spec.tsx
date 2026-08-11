@@ -1,6 +1,6 @@
-import { cleanup, render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import type { Card } from "@/entities/card";
@@ -47,21 +47,19 @@ describe("CardViewPage", () => {
     mocks.navigate.mockReset();
   });
 
-  afterEach(cleanup);
-
   it("renders the card answer using its resolved category", () => {
-    const view = render(<CardViewPage />);
+    render(<CardViewPage />);
 
-    expect(view.container.querySelector("pre.typescript")).toHaveTextContent("const answer = 42;");
+    expect(screen.getByText(/answer =/)).toHaveTextContent("const answer = 42;");
   });
 
   it("shows recovery actions when the card is unavailable", async () => {
     mocks.card = null;
-    const view = render(<CardViewPage />);
+    render(<CardViewPage />);
 
-    expect(view.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
-    await userEvent.click(view.getByRole("button", { name: "Go home" }));
-    await userEvent.click(view.getByRole("button", { name: "Go back" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, -1);
   });

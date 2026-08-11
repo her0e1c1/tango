@@ -6,8 +6,8 @@
  */
 
 import userEvent from "@testing-library/user-event";
-import { cleanup, render } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -85,38 +85,34 @@ describe("CardFormPage", () => {
     mocks.navigate.mockReset();
   });
 
-  afterEach(() => {
-    cleanup();
-  });
-
   it("submits the current card", async () => {
-    const view = render(<CardFormPage />);
+    render(<CardFormPage />);
 
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.cardUpdate).toHaveBeenCalledWith(card);
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
 
   it("returns to the previous page without saving when cancelled", async () => {
-    const view = render(<CardFormPage />);
+    render(<CardFormPage />);
 
-    await userEvent.click(view.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
 
   it("submits edited front and back text", async () => {
-    const view = render(<CardFormPage />);
-    const frontText = view.container.querySelector("textarea[name='frontText']") as Element;
-    const backText = view.container.querySelector("textarea[name='backText']") as Element;
+    render(<CardFormPage />);
+    const frontText = screen.getByRole("textbox", { name: "Front text" });
+    const backText = screen.getByRole("textbox", { name: "Back text" });
 
     await userEvent.clear(frontText);
     await userEvent.type(frontText, " UPDATED FRONT ");
     await userEvent.clear(backText);
     await userEvent.type(backText, " UPDATED BACK ");
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.cardUpdate).toHaveBeenCalledWith({
       ...card,
@@ -126,27 +122,27 @@ describe("CardFormPage", () => {
   });
 
   it("submits edited tags", async () => {
-    const view = render(<CardFormPage />);
+    render(<CardFormPage />);
 
-    await userEvent.click(view.container.querySelector("input[name='tags'][value='math']") as Element);
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("checkbox", { name: /math/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.cardUpdate).toHaveBeenCalledWith({ ...card, tags: ["math"] });
   });
 
   it("blocks blank front and back text", async () => {
-    const view = render(<CardFormPage />);
-    const frontText = view.container.querySelector("textarea[name='frontText']") as Element;
-    const backText = view.container.querySelector("textarea[name='backText']") as Element;
+    render(<CardFormPage />);
+    const frontText = screen.getByRole("textbox", { name: "Front text" });
+    const backText = screen.getByRole("textbox", { name: "Back text" });
 
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "   ");
     await userEvent.clear(backText);
     await userEvent.type(backText, "   ");
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
-    expect(view.getByText("Front text is required.")).toBeInTheDocument();
-    expect(view.getByText("Back text is required.")).toBeInTheDocument();
+    expect(screen.getByText("Front text is required.")).toBeInTheDocument();
+    expect(screen.getByText("Back text is required.")).toBeInTheDocument();
     expect(frontText).toHaveAttribute("aria-invalid", "true");
     expect(backText).toHaveAttribute("aria-invalid", "true");
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
@@ -155,9 +151,9 @@ describe("CardFormPage", () => {
 
   it("does not navigate when the Card write fails", async () => {
     mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
-    const view = render(<CardFormPage />);
+    render(<CardFormPage />);
 
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.cardUpdate).toHaveBeenCalledWith(card);
     expect(mocks.navigate).not.toHaveBeenCalled();
@@ -165,27 +161,27 @@ describe("CardFormPage", () => {
 
   it("shows recovery actions when the card is unavailable", () => {
     mocks.card = null;
-    const view = render(<CardFormPage />);
+    render(<CardFormPage />);
 
-    expect(view.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Go home" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Go back" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Go home" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Go back" })).toBeInTheDocument();
   });
 
   it("goes home when card recovery is requested", async () => {
     mocks.card = null;
-    const view = render(<CardFormPage />);
+    render(<CardFormPage />);
 
-    await userEvent.click(view.getByRole("button", { name: "Go home" }));
+    await userEvent.click(screen.getByRole("button", { name: "Go home" }));
 
     expect(mocks.navigate).toHaveBeenCalledWith("/");
   });
 
   it("goes back when card recovery is requested", async () => {
     mocks.card = null;
-    const view = render(<CardFormPage />);
+    render(<CardFormPage />);
 
-    await userEvent.click(view.getByRole("button", { name: "Go back" }));
+    await userEvent.click(screen.getByRole("button", { name: "Go back" }));
 
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });

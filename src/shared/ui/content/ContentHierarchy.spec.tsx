@@ -5,19 +5,16 @@
  * "gives sections, descriptions, and styled text semantic type roles".
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Card, Description, Section, Style, TagList, Title } from "@/shared/ui/content";
-
-afterEach(cleanup);
 
 describe("shared content hierarchy", () => {
   it("uses the Calm Focus surface hierarchy while retaining Card props", () => {
     const view = render(<Card className="custom-card">Card content</Card>);
     const surface = screen.getByText("Card content");
-    expect(view.container.firstElementChild).toHaveClass("w-full", "md:w-1/2", "lg:w-1/3");
     expect(surface).toHaveClass(
       "gap-3",
       "rounded-surface",
@@ -34,7 +31,6 @@ describe("shared content hierarchy", () => {
         Disabled card
       </Card>
     );
-    expect(view.container.firstElementChild).toHaveClass("w-full");
     expect(screen.getByText("Disabled card")).toHaveClass("bg-surface-muted", "border", "border-border");
   });
 

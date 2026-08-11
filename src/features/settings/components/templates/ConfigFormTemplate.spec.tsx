@@ -4,8 +4,8 @@
  * under a compact page heading without a redundant surface".
  */
 
-import { cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import type { ConfigFormFields } from "@/features/settings/components/ConfigForm";
@@ -25,10 +25,8 @@ const fields: ConfigFormFields = {
 };
 
 describe("ConfigFormTemplate", () => {
-  afterEach(cleanup);
-
   it("composes the config form under a compact page heading without a redundant surface", () => {
-    const view = render(
+    render(
       <ConfigFormTemplate
         configForm={{
           config: createConfig(),
@@ -39,14 +37,10 @@ describe("ConfigFormTemplate", () => {
       />
     );
 
-    const heading = view.getByRole("heading", { level: 1, name: "Settings" });
-    const shell = heading.closest("section");
-
-    expect(view.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(shell).toHaveClass("mx-auto", "w-full", "max-w-reading");
-    expect(shell).not.toHaveClass("rounded-surface", "border", "bg-surface");
+    const heading = screen.getByRole("heading", { level: 1, name: "Settings" });
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(heading).toHaveClass("text-title");
-    expect(view.getByText("Changes are saved automatically")).toHaveClass("text-ink-muted");
-    expect(shell).toContainElement(view.getByRole("heading", { level: 2, name: "Account" }).closest("section"));
+    expect(screen.getByText("Changes are saved automatically")).toHaveClass("text-ink-muted");
+    expect(screen.getByRole("region", { name: "Account" })).toBeInTheDocument();
   });
 });

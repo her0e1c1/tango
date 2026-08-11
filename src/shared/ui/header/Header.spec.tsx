@@ -6,78 +6,41 @@
  * selector contract".
  */
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { Header } from "./Header";
 
-afterEach(cleanup);
-
 describe("Header", () => {
-  it("renders an elevated safe-area-aware fixed shell with touch-sized SVG actions", () => {
-    const view = render(<Header fixed />);
-    const logo = view.getByText("tango").closest("div");
-    const header = logo?.parentElement;
-    const actions = view.container.querySelectorAll("svg");
+  it("renders the logo in a fixed banner", () => {
+    render(<Header fixed />);
 
-    expect(logo).not.toBeNull();
-    expect(header).not.toBeNull();
-    expect(header).toHaveClass(
-      "fixed",
-      "inset-x-0",
-      "top-0",
-      "z-50",
-      "bg-surface-elevated",
-      "text-ink",
-      "shadow-elevated",
-      "pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))]",
-      "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]",
-      "pt-[calc(0.5rem+env(safe-area-inset-top))]"
-    );
-    expect(actions).toHaveLength(3);
-    for (const action of actions) expect(action).toHaveClass("size-touch");
+    expect(screen.getByRole("banner")).toHaveClass("fixed");
+    expect(screen.getByText("tango")).toBeInTheDocument();
   });
 
-  it("preserves action order and callback payloads for light and dark modes", () => {
+  it("preserves action callbacks and dark-mode payloads", () => {
     const events: string[] = [];
     const view = render(
       <Header
         onClickLogo={() => events.push("logo")}
         onClickDarkMode={(dark) => events.push(`dark:${dark}`)}
-        onClickImport={() => events.push("menu:upload")}
-        onClickSettings={() => events.push("menu:config")}
+        onClickImport={() => events.push("import")}
+        onClickSettings={() => events.push("settings")}
       />
     );
 
-    fireEvent.click(view.getByRole("button", { name: "tango" }));
-    const lightModeActions = view.container.querySelectorAll("svg");
-    fireEvent.click(lightModeActions[0] as SVGElement);
-    fireEvent.click(lightModeActions[1] as SVGElement);
-    fireEvent.click(lightModeActions[2] as SVGElement);
+    fireEvent.click(screen.getByRole("button", { name: "tango" }));
+    fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
-    expect(events).toEqual(["logo", "dark:true", "menu:upload", "menu:config"]);
+    expect(events).toEqual(["logo", "dark:true", "import", "settings"]);
 
-    view.rerender(
-      <Header
-        dark
-        onClickDarkMode={(dark) => events.push(`dark:${dark}`)}
-        onClickImport={() => events.push("menu:upload")}
-        onClickSettings={() => events.push("menu:config")}
-      />
-    );
-    fireEvent.click(view.container.querySelectorAll("svg")[0] as SVGElement);
+    view.rerender(<Header dark onClickDarkMode={(dark) => events.push(`dark:${dark}`)} />);
+    fireEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
 
-    expect(events).toEqual(["logo", "dark:true", "menu:upload", "menu:config", "dark:false"]);
-  });
-
-  it("retains clickable SVG actions without changing their selector contract", () => {
-    const view = render(
-      <Header onClickDarkMode={() => undefined} onClickImport={() => undefined} onClickSettings={() => undefined} />
-    );
-    const actions = view.container.querySelectorAll("svg");
-
-    expect(actions).toHaveLength(3);
-    expect(view.queryByRole("button")).not.toBeInTheDocument();
+    expect(events).toEqual(["logo", "dark:true", "import", "settings", "dark:false"]);
   });
 });

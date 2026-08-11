@@ -4,14 +4,12 @@
  * label for assistive technology.
  */
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { Score } from "@/shared/ui/content/Score";
 import { Feedback, type FeedbackTone } from "@/shared/ui/feedback";
-
-afterEach(cleanup);
 
 describe("shared status content", () => {
   it.each([
@@ -22,7 +20,7 @@ describe("shared status content", () => {
     render(<Score score={score} />);
     const status = screen.getByLabelText(`Score ${score}, ${cue}`);
     expect(status).toHaveClass(colorClass, "text-ink-inverse", "rounded-pill");
-    expect(status.querySelector("span")?.textContent).toBe(`${score}`);
+    expect(status).toHaveTextContent(`${score}`);
   });
 
   it.each([

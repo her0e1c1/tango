@@ -4,9 +4,9 @@
  * preserves values and callbacks", "shows unrestricted disabled limits".
  */
 
-import { cleanup, fireEvent, render, within } from "@testing-library/react";
+import { fireEvent, render, within, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
@@ -26,12 +26,10 @@ const createProps = (): DeckStartFormProps => ({
 });
 
 describe("DeckStartForm", () => {
-  afterEach(cleanup);
-
   it("labels score controls and preserves values and callbacks", async () => {
     const props = createProps();
-    const view = render(<DeckStartForm {...props} />);
-    const scoreRegion = view.getByRole("region", { name: "Score range" });
+    render(<DeckStartForm {...props} />);
+    const scoreRegion = screen.getByRole("region", { name: "Score range" });
     const maxSwitch = within(scoreRegion).getByRole("checkbox", { name: "Enable maximum score" });
     const minSwitch = within(scoreRegion).getByRole("checkbox", { name: "Enable minimum score" });
     const maxSlider = within(scoreRegion).getByRole("slider", { name: "Maximum score value" });
@@ -56,9 +54,9 @@ describe("DeckStartForm", () => {
   });
 
   it("shows unrestricted disabled limits", () => {
-    const view = render(<DeckStartForm {...createProps()} scoreMax={null} scoreMin={null} />);
-    expect(view.getByText("Any score")).toBeInTheDocument();
-    expect(view.getByText("No upper limit")).toBeInTheDocument();
-    expect(view.getByText("No lower limit")).toBeInTheDocument();
+    render(<DeckStartForm {...createProps()} scoreMax={null} scoreMin={null} />);
+    expect(screen.getByText("Any score")).toBeInTheDocument();
+    expect(screen.getByText("No upper limit")).toBeInTheDocument();
+    expect(screen.getByText("No lower limit")).toBeInTheDocument();
   });
 });

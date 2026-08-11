@@ -5,8 +5,8 @@
  */
 
 import userEvent from "@testing-library/user-event";
-import { cleanup, render } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -80,114 +80,110 @@ describe("DeckFormContainer", () => {
     mocks.navigate.mockReset();
   });
 
-  afterEach(() => {
-    cleanup();
-  });
-
   it("submits the current deck", async () => {
-    const view = render(<DeckFormContainer />);
+    render(<DeckFormContainer />);
 
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith(deck);
   });
 
   it("submits an edited name", async () => {
-    const view = render(<DeckFormContainer />);
-    const input = view.container.querySelector("input[name='name']") as Element;
+    render(<DeckFormContainer />);
+    const input = screen.getByRole("textbox", { name: "Name" });
 
     await userEvent.clear(input);
     await userEvent.type(input, " UPDATED ");
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, name: "UPDATED" });
   });
 
   it("submits an edited URL", async () => {
-    const view = render(<DeckFormContainer />);
-    const input = view.container.querySelector("input[name='url']") as Element;
+    render(<DeckFormContainer />);
+    const input = screen.getByRole("textbox", { name: "Source URL" });
 
     await userEvent.type(input, "https://example.com/deck.csv");
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, url: "https://example.com/deck.csv" });
   });
 
   it("submits the convert setting", async () => {
-    const view = render(<DeckFormContainer />);
-    const input = view.container.querySelector("input[name='convertToBr']") as Element;
+    render(<DeckFormContainer />);
+    const input = screen.getByRole("checkbox", { name: "Convert line breaks" });
 
     await userEvent.click(input);
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, convertToBr: true });
   });
 
   it("submits an edited category", async () => {
-    const view = render(<DeckFormContainer />);
-    const select = view.container.querySelector("select[name='category']") as Element;
+    render(<DeckFormContainer />);
+    const select = screen.getByRole("combobox");
 
     await userEvent.selectOptions(select, "math");
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.updateAndGoToList).toHaveBeenCalledWith({ ...deck, category: "math" });
   });
 
   it("blocks a blank name and malformed URL", async () => {
-    const view = render(<DeckFormContainer />);
-    const name = view.container.querySelector("input[name='name']") as Element;
-    const url = view.container.querySelector("input[name='url']") as Element;
+    render(<DeckFormContainer />);
+    const name = screen.getByRole("textbox", { name: "Name" });
+    const url = screen.getByRole("textbox", { name: "Source URL" });
 
     await userEvent.clear(name);
     await userEvent.type(name, "   ");
     await userEvent.type(url, "not-a-url");
-    await userEvent.click(view.getByRole("button", { name: /save/i }));
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
-    expect(view.getByText("Deck name is required.")).toBeInTheDocument();
-    expect(view.getByText("Enter a valid URL.")).toBeInTheDocument();
+    expect(screen.getByText("Deck name is required.")).toBeInTheDocument();
+    expect(screen.getByText("Enter a valid URL.")).toBeInTheDocument();
     expect(name).toHaveAttribute("aria-invalid", "true");
     expect(url).toHaveAttribute("aria-invalid", "true");
     expect(mocks.updateAndGoToList).not.toHaveBeenCalled();
   });
 
   it("cancels without submitting", async () => {
-    const view = render(<DeckFormContainer />);
+    render(<DeckFormContainer />);
 
-    await userEvent.click(view.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(mocks.goToList).toHaveBeenCalledOnce();
     expect(mocks.updateAndGoToList).not.toHaveBeenCalled();
   });
 
   it("does not render the unavailable public setting", () => {
-    const view = render(<DeckFormContainer />);
+    render(<DeckFormContainer />);
 
-    expect(view.container.querySelector("input[name='isPublic']")).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "Public" })).not.toBeInTheDocument();
   });
 
   it("shows recovery actions when the deck is unavailable", () => {
     mocks.deck = null;
-    const view = render(<DeckFormContainer />);
+    render(<DeckFormContainer />);
 
-    expect(view.getByRole("heading", { level: 1, name: "Deck not found" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Go home" })).toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Go back" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Go home" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Go back" })).toBeInTheDocument();
   });
 
   it("goes home when deck recovery is requested", async () => {
     mocks.deck = null;
-    const view = render(<DeckFormContainer />);
+    render(<DeckFormContainer />);
 
-    await userEvent.click(view.getByRole("button", { name: "Go home" }));
+    await userEvent.click(screen.getByRole("button", { name: "Go home" }));
 
     expect(mocks.navigate).toHaveBeenCalledWith("/");
   });
 
   it("goes back when deck recovery is requested", async () => {
     mocks.deck = null;
-    const view = render(<DeckFormContainer />);
+    render(<DeckFormContainer />);
 
-    await userEvent.click(view.getByRole("button", { name: "Go back" }));
+    await userEvent.click(screen.getByRole("button", { name: "Go back" }));
 
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });

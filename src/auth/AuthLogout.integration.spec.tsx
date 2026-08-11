@@ -6,7 +6,7 @@
  * sign-out".
  */
 
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import type { Auth, User, UserCredential } from "firebase/auth";
 import React, { type ReactNode } from "react";
@@ -82,7 +82,6 @@ import { ConfigContainer } from "@/features/settings";
 import { studyStore } from "@/features/study/state/studyStore";
 
 afterEach(() => {
-  cleanup();
   vi.restoreAllMocks();
 });
 

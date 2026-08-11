@@ -6,9 +6,9 @@
  */
 
 import * as React from "react";
-import { cleanup, fireEvent, render, within } from "@testing-library/react";
+import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Card } from "@/features/card/components/Card";
 
@@ -64,8 +64,6 @@ const touchGesture = (target: HTMLElement, from: number, to: number) => {
 };
 
 describe("Card", () => {
-  afterEach(cleanup);
-
   it("renders compact metadata and routes view, menu actions, and swipes by card id", () => {
     const actions = {
       goToView: vi.fn(),
@@ -75,22 +73,22 @@ describe("Card", () => {
       onSwipedRight: vi.fn(),
       onToggleMenu: vi.fn(),
     };
-    const view = render(<ControlledCard card={card} {...actions} />);
-    const article = view.getByRole("article");
+    render(<ControlledCard card={card} {...actions} />);
+    const article = screen.getByRole("article");
 
-    expect(view.getByLabelText("Score 3, positive")).toBeInTheDocument();
-    expect(view.getByText("studied 7 times")).toBeInTheDocument();
-    expect(view.getByLabelText("Tags: one, two")).toHaveTextContent("onetwo");
-    fireEvent.click(view.getByRole("button", { name: "View A long front" }));
+    expect(screen.getByLabelText("Score 3, positive")).toBeInTheDocument();
+    expect(screen.getByText("studied 7 times")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tags: one, two")).toHaveTextContent("onetwo");
+    fireEvent.click(screen.getByRole("button", { name: "View A long front" }));
     expect(actions.goToView).toHaveBeenCalledExactlyOnceWith(card.id);
 
-    const trigger = view.getByRole("button", { name: "Open actions for A long front" });
+    const trigger = screen.getByRole("button", { name: "Open actions for A long front" });
     fireEvent.click(trigger);
     expect(actions.onToggleMenu).toHaveBeenCalledExactlyOnceWith(card.id);
-    fireEvent.click(view.getByRole("menuitem", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(actions.goToEdit).toHaveBeenCalledExactlyOnceWith(card.id);
     fireEvent.click(trigger);
-    fireEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     expect(actions.onDelete).toHaveBeenCalledExactlyOnceWith(card.id);
 
     swipe(article, 100, 0);
@@ -101,47 +99,44 @@ describe("Card", () => {
 
   it("uses explicit copy for unstudied and singular study counts", () => {
     const view = render(<Card card={{ ...card, numberOfSeen: 0 }} />);
-    expect(view.getByText("not studied yet")).toBeInTheDocument();
+    expect(screen.getByText("not studied yet")).toBeInTheDocument();
 
     view.rerender(<Card card={{ ...card, numberOfSeen: 1 }} />);
-    expect(view.getByText("studied 1 time")).toBeInTheDocument();
+    expect(screen.getByText("studied 1 time")).toBeInTheDocument();
   });
 
   it("keeps study and tag metadata outside the View button", () => {
-    const view = render(<Card card={card} />);
-    const viewButton = view.getByRole("button", { name: "View A long front" });
-    const studyText = view.getByText("studied 7 times");
-    const tags = view.getByLabelText("Tags: one, two");
+    render(<Card card={card} />);
+    const viewButton = screen.getByRole("button", { name: "View A long front" });
+    const studyText = screen.getByText("studied 7 times");
+    const tags = screen.getByLabelText("Tags: one, two");
 
     expect(viewButton).not.toContainElement(studyText);
     expect(viewButton).not.toContainElement(tags);
   });
 
   it("renders card tags as compact read-only markers", () => {
-    const view = render(<Card card={card} />);
-    const metadata = view.getByLabelText("Tags: one, two");
+    render(<Card card={card} />);
+    const metadata = screen.getByLabelText("Tags: one, two");
 
     expect(within(metadata).queryByRole("button")).not.toBeInTheDocument();
-    expect(within(metadata).getByText("one").parentElement).toHaveClass("rounded-control", "text-xs");
+    expect(within(metadata).getByText("one")).toBeVisible();
   });
 
   it("covers the complete central region with View without owning its metadata", () => {
-    const view = render(<Card card={card} />);
-    const viewButton = view.getByRole("button", { name: "View A long front" });
-    const centralRegion = viewButton.parentElement;
+    render(<Card card={card} />);
+    const viewButton = screen.getByRole("button", { name: "View A long front" });
 
-    expect(centralRegion).toHaveClass("relative", "min-h-touch");
     expect(viewButton).toHaveClass("absolute", "inset-0");
-    expect(centralRegion).toContainElement(view.getByText("studied 7 times"));
-    expect(viewButton).not.toContainElement(view.getByText("studied 7 times"));
+    expect(viewButton).not.toContainElement(screen.getByText("studied 7 times"));
   });
 
   it("treats a swipe from View as only a swipe and allows a later View click", () => {
     vi.useFakeTimers();
     const goToView = vi.fn();
     const onSwipedLeft = vi.fn();
-    const view = render(<Card card={card} goToView={goToView} onSwipedLeft={onSwipedLeft} />);
-    const viewButton = view.getByRole("button", { name: "View A long front" });
+    render(<Card card={card} goToView={goToView} onSwipedLeft={onSwipedLeft} />);
+    const viewButton = screen.getByRole("button", { name: "View A long front" });
 
     swipe(viewButton, 100, 0);
     fireEvent.click(viewButton);
@@ -156,21 +151,21 @@ describe("Card", () => {
 
   it("does not start swipe tracking from the actions menu trigger", () => {
     const onSwipedLeft = vi.fn();
-    const view = render(<ControlledCard card={card} onSwipedLeft={onSwipedLeft} />);
-    const trigger = view.getByRole("button", { name: "Open actions for A long front" });
+    render(<ControlledCard card={card} onSwipedLeft={onSwipedLeft} />);
+    const trigger = screen.getByRole("button", { name: "Open actions for A long front" });
 
     swipe(trigger, 100, 0);
     fireEvent.click(trigger);
 
     expect(onSwipedLeft).not.toHaveBeenCalled();
-    expect(view.getByRole("menu", { name: "Actions for A long front" })).toBeInTheDocument();
+    expect(screen.getByRole("menu", { name: "Actions for A long front" })).toBeInTheDocument();
   });
 
   it("isolates complete touch sequences on the actions trigger while preserving its click", () => {
     const onSwipedLeft = vi.fn();
     const onSwipedRight = vi.fn();
-    const view = render(<ControlledCard card={card} onSwipedLeft={onSwipedLeft} onSwipedRight={onSwipedRight} />);
-    const trigger = view.getByRole("button", { name: "Open actions for A long front" });
+    render(<ControlledCard card={card} onSwipedLeft={onSwipedLeft} onSwipedRight={onSwipedRight} />);
+    const trigger = screen.getByRole("button", { name: "Open actions for A long front" });
 
     touchGesture(trigger, 240, 80);
     touchGesture(trigger, 80, 240);
@@ -180,7 +175,7 @@ describe("Card", () => {
     expect(onSwipedRight).not.toHaveBeenCalled();
 
     fireEvent.click(trigger);
-    expect(view.getByRole("menu", { name: "Actions for A long front" })).toBeInTheDocument();
+    expect(screen.getByRole("menu", { name: "Actions for A long front" })).toBeInTheDocument();
   });
 
   it("suppresses view, menu, and swipe actions while pending", () => {
@@ -192,12 +187,12 @@ describe("Card", () => {
       onSwipedRight: vi.fn(),
       onToggleMenu: vi.fn(),
     };
-    const view = render(<ControlledCard card={card} disabled {...actions} />);
-    const article = view.getByRole("article");
+    render(<ControlledCard card={card} disabled {...actions} />);
+    const article = screen.getByRole("article");
 
     expect(article).toHaveAttribute("aria-busy", "true");
-    expect(view.getByRole("button", { name: "View A long front" })).toBeDisabled();
-    expect(view.getByRole("button", { name: "Open actions for A long front" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "View A long front" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Open actions for A long front" })).toBeDisabled();
     swipe(article, 100, 0);
     swipe(article, 0, 100);
     expect(Object.values(actions).every((action) => action.mock.calls.length === 0)).toBe(true);

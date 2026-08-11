@@ -5,13 +5,11 @@
  * shared focus appearance".
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Overlay } from "@/shared/ui/feedback/Overlay";
-
-afterEach(cleanup);
 
 describe("shared overlay surface", () => {
   it("uses a shared backdrop and constrained scrolling for center content", () => {
