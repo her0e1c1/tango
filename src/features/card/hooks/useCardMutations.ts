@@ -4,8 +4,8 @@ import type { Card, CardEdit, CardId } from "@/entities/card";
 
 import { useEffect, useRef } from "react";
 
-import { useAuth } from "@/auth/AuthContext";
 import { useCards } from "@/entities/card";
+import { useSession } from "@/entities/session";
 import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
 import { cardCommands } from "@/services/cardCommands";
 
@@ -16,7 +16,7 @@ interface UseCardMutationsOptions {
 }
 
 export const useCardMutations = ({ onRemoveSuccess }: UseCardMutationsOptions = {}) => {
-  const auth = useAuth();
+  const auth = useSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const { cardsById } = useCards();
   const mutation = useAsyncAction<CardId>(uid);

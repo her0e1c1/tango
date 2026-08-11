@@ -5,37 +5,25 @@
  * not duplicate work when StrictMode replays the same auth effect".
  */
 
-import type { User } from "firebase/auth";
 import { describe, expect, it, vi } from "vitest";
 
-import type { AuthState } from "@/auth/AuthContext";
-
-vi.mock("@/store/remoteStore", () => ({
-  remoteStore: { getState: () => ({ start: vi.fn(), stop: vi.fn() }) },
-}));
-vi.mock("@/auth/AuthContext", () => ({ useAuth: vi.fn() }));
-
-import { createAuthTransitionController } from "@/auth/AuthBootstrap";
+import type { AuthenticatedSession, SessionState } from "@/entities/session";
+import { createAuthTransitionController } from "@/app/providers/auth/authTransitionController";
 
 /**
  * Provides the create user test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const createUser = (
+const createSession = (
   uid: string,
   { isAnonymous = true, displayName = null }: { isAnonymous?: boolean; displayName?: string | null } = {}
-) =>
-  ({
-    uid,
-    isAnonymous,
-    providerData: displayName == null ? [] : [{ displayName }],
-  }) as User;
+) => ({ uid, isAnonymous, displayName });
 
 /**
  * Provides the authenticated test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const authenticated = (user: User): AuthState => ({ status: "authenticated", user, uid: user.uid });
+const authenticated = (session: AuthenticatedSession): SessionState => ({ status: "authenticated", ...session });
 
 /**
  * Provides the create dependencies test helper used by this file.
@@ -61,7 +49,7 @@ describe("Auth transition controller", () => {
 
   it("starts remote reads from the confirmed Firebase UID", async () => {
     const dependencies = createDependencies();
-    const user = createUser("uid-a");
+    const user = createSession("uid-a");
     const controller = createAuthTransitionController(dependencies);
 
     await controller.transition(authenticated(user));
@@ -71,7 +59,7 @@ describe("Auth transition controller", () => {
 
   it("does not duplicate work when StrictMode replays the same auth effect", async () => {
     const dependencies = createDependencies();
-    const state = authenticated(createUser("uid-a"));
+    const state = authenticated(createSession("uid-a"));
     const controller = createAuthTransitionController(dependencies);
 
     const first = controller.transition(state);
@@ -87,10 +75,10 @@ describe("Auth transition controller", () => {
     dependencies.cleanupUid.mockImplementation((uid) => operations.push(`cleanup:${uid}`));
     dependencies.subscribeUid.mockImplementation((uid) => operations.push(`subscribe:${uid}`));
     const controller = createAuthTransitionController(dependencies);
-    await controller.transition(authenticated(createUser("uid-a")));
+    await controller.transition(authenticated(createSession("uid-a")));
     operations.length = 0;
 
-    await controller.transition(authenticated(createUser("uid-b")));
+    await controller.transition(authenticated(createSession("uid-b")));
 
     expect(operations).toEqual(["cleanup:uid-a", "subscribe:uid-b"]);
     expect(dependencies.cleanupUid).toHaveBeenCalledWith("uid-a");
@@ -101,7 +89,7 @@ describe("Auth transition controller", () => {
     async (state) => {
       const dependencies = createDependencies();
       const controller = createAuthTransitionController(dependencies);
-      await controller.transition(authenticated(createUser("uid-a")));
+      await controller.transition(authenticated(createSession("uid-a")));
       dependencies.cleanupUid.mockClear();
       dependencies.subscribeUid.mockClear();
 
@@ -127,12 +115,12 @@ describe("Auth transition controller", () => {
       return cleanup;
     });
     const controller = createAuthTransitionController(dependencies);
-    await controller.transition(authenticated(createUser("uid-a")));
+    await controller.transition(authenticated(createSession("uid-a")));
     dependencies.subscribeUid.mockClear();
 
-    const transitionB = controller.transition(authenticated(createUser("uid-b")));
+    const transitionB = controller.transition(authenticated(createSession("uid-b")));
     await started;
-    const transitionC = controller.transition(authenticated(createUser("uid-c")));
+    const transitionC = controller.transition(authenticated(createSession("uid-c")));
     finishCleanup();
     await Promise.all([transitionB, transitionC]);
 
@@ -141,13 +129,13 @@ describe("Auth transition controller", () => {
     expect(dependencies.subscribeUid).toHaveBeenCalledWith("uid-c");
   });
 
-  it("keeps same-UID metadata in Auth Context without cleanup or resubscription", async () => {
+  it("keeps same-UID metadata without cleanup or resubscription", async () => {
     const dependencies = createDependencies();
     const controller = createAuthTransitionController(dependencies);
-    await controller.transition(authenticated(createUser("uid-a")));
+    await controller.transition(authenticated(createSession("uid-a")));
     dependencies.cleanupUid.mockClear();
     dependencies.subscribeUid.mockClear();
-    const linkedUser = createUser("uid-a", { isAnonymous: false, displayName: "Ada" });
+    const linkedUser = createSession("uid-a", { isAnonymous: false, displayName: "Ada" });
 
     await controller.transition(authenticated(linkedUser));
 
@@ -155,21 +143,14 @@ describe("Auth transition controller", () => {
     expect(dependencies.subscribeUid).not.toHaveBeenCalled();
   });
 
-  it("detects metadata changed in place on the Firebase User object", async () => {
+  it("recognizes a new same-UID metadata snapshot", async () => {
     const dependencies = createDependencies();
     const controller = createAuthTransitionController(dependencies);
-    const user = createUser("uid-a");
-    const mutableUser = user as unknown as {
-      isAnonymous: boolean;
-      providerData: Array<{ displayName: string | null }>;
-    };
-    await controller.transition(authenticated(user));
+    await controller.transition(authenticated(createSession("uid-a")));
     dependencies.cleanupUid.mockClear();
     dependencies.subscribeUid.mockClear();
 
-    mutableUser.isAnonymous = false;
-    mutableUser.providerData = [{ displayName: "Ada" }];
-    await controller.transition(authenticated(user));
+    await controller.transition(authenticated(createSession("uid-a", { isAnonymous: false, displayName: "Ada" })));
 
     expect(dependencies.cleanupUid).not.toHaveBeenCalled();
     expect(dependencies.subscribeUid).not.toHaveBeenCalled();
@@ -180,9 +161,9 @@ describe("Auth transition controller", () => {
     const dependencies = createDependencies();
     dependencies.cleanupUid.mockRejectedValueOnce(cleanupError).mockResolvedValueOnce(undefined);
     const controller = createAuthTransitionController(dependencies);
-    await controller.transition(authenticated(createUser("uid-a")));
+    await controller.transition(authenticated(createSession("uid-a")));
     dependencies.subscribeUid.mockClear();
-    const stateB = authenticated(createUser("uid-b"));
+    const stateB = authenticated(createSession("uid-b"));
 
     const first = await controller.transition(stateB);
     const retry = await controller.transition(stateB);
@@ -200,7 +181,7 @@ describe("Auth transition controller", () => {
     const dependencies = createDependencies();
     dependencies.subscribeUid.mockRejectedValueOnce(subscribeError).mockResolvedValueOnce(undefined);
     const controller = createAuthTransitionController(dependencies);
-    const state = authenticated(createUser("uid-a"));
+    const state = authenticated(createSession("uid-a"));
 
     const first = await controller.transition(state);
     const retry = await controller.transition(state);
@@ -230,12 +211,12 @@ describe("Auth transition controller", () => {
       })
       .mockResolvedValueOnce(undefined);
     const controller = createAuthTransitionController(dependencies);
-    await controller.transition(authenticated(createUser("uid-a")));
+    await controller.transition(authenticated(createSession("uid-a")));
     dependencies.subscribeUid.mockClear();
 
-    const transitionB = controller.transition(authenticated(createUser("uid-b")));
+    const transitionB = controller.transition(authenticated(createSession("uid-b")));
     await started;
-    const transitionC = controller.transition(authenticated(createUser("uid-c")));
+    const transitionC = controller.transition(authenticated(createSession("uid-c")));
     rejectCleanup(cleanupError);
     await Promise.all([transitionB, transitionC]);
 

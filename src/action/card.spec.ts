@@ -13,7 +13,6 @@ import { createCard, createDeck } from "@/test/factories";
 
 vi.mock("./firestore");
 vi.mock("@/shared/firebase", () => ({ auth: { currentUser: null } }));
-vi.mock("@/auth/AuthContext", () => ({ publishAuthenticatedUser: vi.fn() }));
 vi.mock("firebase/firestore", () => ({
   ...Object.fromEntries(Object.keys(vi.importActual("firebase/firestore")).map((key) => [key, vi.fn()])),
   getFirestore: vi.fn(() => "db"),

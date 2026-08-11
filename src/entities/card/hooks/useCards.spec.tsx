@@ -16,8 +16,8 @@ const mocks = vi.hoisted(() => ({
   retry: vi.fn(),
 }));
 
-vi.mock("@/auth/AuthContext", () => ({
-  useAuth: () => ({ status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } }),
+vi.mock("@/entities/session", () => ({
+  useSession: () => ({ status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null }),
 }));
 vi.mock("@/store/remoteStore", () => ({
   remoteStore: {
