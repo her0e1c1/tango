@@ -7,14 +7,15 @@
 import type { Card, CardId, CardRaw } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import * as action from "@/action";
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
-import { useAuth } from "@/auth/AuthContext";
+import { createCard, selectCardsForDeck, useCards } from "@/entities/card";
+import { createDeck, useDecks } from "@/entities/deck";
+import { useSession } from "@/entities/session";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
 import { CardBulkMutationError } from "@/services/cardCommands";
@@ -95,7 +96,7 @@ const prepareDeckImportAttempt = (
   );
   const createDeckPending = deck == null;
   if (deck == null) {
-    deck = action.deck.prepare({ name }, uid, firestoreMetadata.generateDeckId);
+    deck = createDeck({ name }, uid, firestoreMetadata.generateDeckId);
     if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
   }
 
@@ -108,7 +109,7 @@ const prepareDeckImportAttempt = (
   plan.rows.forEach((row) => {
     const current = byUniqueKey.get(row.card.uniqueKey);
     if (row.action === "create") {
-      const card = action.card.prepare(row.card, deck, firestoreMetadata.generateCardId);
+      const card = createCard(row.card, deck, firestoreMetadata.generateCardId);
       remainingUpserts.push(card);
       createdIds.push(card.id);
     } else if (row.action === "update" && current != null) {
@@ -267,10 +268,15 @@ const previewDeckImportFile = async (
  * services themselves.
  */
 export const useDeckImport = () => {
-  const auth = useAuth();
-  const remote = useRemoteCollections();
+  const auth = useSession();
+  const cardRemote = useCards();
+  const deckRemote = useDecks();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();
+  const cardsByDeckId = useCallback(
+    (deckId: DeckId) => selectCardsForDeck(cardRemote.cards, deckId),
+    [cardRemote.cards]
+  );
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const generation = useRef(0);
   const generationUid = useRef(uid);
@@ -317,19 +323,19 @@ export const useDeckImport = () => {
   useEffect(() => {
     dependenciesRef.current = {
       uid,
-      synchronized: remote.status === "ready" && remote.syncStatus === "synced",
-      decks: remote.decks,
-      cardsByDeckId: remote.cardsByDeckId,
+      synchronized: deckRemote.status === "ready" && deckRemote.syncStatus === "synced",
+      decks: deckRemote.decks,
+      cardsByDeckId,
       createDeck: deckMutations.create,
       bulkUpsert: cardMutations.bulkUpsert,
     };
   }, [
     cardMutations.bulkUpsert,
     deckMutations.create,
-    remote.cardsByDeckId,
-    remote.decks,
-    remote.status,
-    remote.syncStatus,
+    cardsByDeckId,
+    deckRemote.decks,
+    deckRemote.status,
+    deckRemote.syncStatus,
     uid,
   ]);
   const setRunning = (value: boolean) => setRunningState({ uid, value });
@@ -396,8 +402,8 @@ export const useDeckImport = () => {
       setValidating,
       setPreview,
       reset: resetOperation,
-      decks: remote.decks,
-      cardsByDeckId: remote.cardsByDeckId,
+      decks: deckRemote.decks,
+      cardsByDeckId,
       uid,
       currentUid: generationUid,
       generation: generation.current,

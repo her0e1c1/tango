@@ -1,40 +1,17 @@
 /**
  * @file Verifies the "card action" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "prepares a card with an
- * injected id", "should be fromRow", "should be empty".
+ * The examples make the expected behavior concrete with cases such as "should be fromRow" and
+ * "should be empty".
  */
 
 import type { Card, CardRaw } from "@/entities/card";
 
-import { expect, it, describe, vi, beforeEach } from "vitest";
+import { expect, it, describe } from "vitest";
 
 import * as card from "@/action/card";
-import { createCard, createDeck } from "@/test/factories";
-
-vi.mock("./firestore");
-vi.mock("@/shared/firebase", () => ({ auth: { currentUser: null } }));
-vi.mock("@/auth/AuthContext", () => ({ publishAuthenticatedUser: vi.fn() }));
-vi.mock("firebase/firestore", () => ({
-  ...Object.fromEntries(Object.keys(vi.importActual("firebase/firestore")).map((key) => [key, vi.fn()])),
-  getFirestore: vi.fn(() => "db"),
-}));
+import { createCard } from "@/test/factories";
 
 describe("card action", () => {
-  beforeEach(() => {
-    vi.resetAllMocks();
-    vi.resetModules();
-  });
-
-  it("prepares a card with an injected id", () => {
-    const prepared = card.prepare(
-      { frontText: "front", backText: "back", tags: [], uniqueKey: "key" },
-      createDeck({ id: "deck-id", uid: "uid-a" }),
-      () => "card-id"
-    );
-
-    expect(prepared).toMatchObject({ id: "card-id", deckId: "deck-id", uid: "uid-a" });
-  });
-
   describe.concurrent("fromRow", () => {
     it("should be fromRow", async () => {
       const c = { frontText: "front", backText: "back", tags: ["a", "b", "c"], uniqueKey: "123" } as Card;

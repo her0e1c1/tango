@@ -28,3 +28,18 @@ export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags"
 export type CardNew = Omit<Card, "id">;
 export type CardEdit = Partial<Card> & Pick<Card, "id" | "deckId">;
 export type CardTextKey = "frontText" | "backText" | "hint";
+
+export const createCard = (card: CardRaw, deck: CardDeck, generateId: () => string): Card => {
+  const { uid, id: deckId } = deck;
+  return {
+    ...card,
+    uid,
+    deckId,
+    id: generateId(),
+    score: 0,
+    numberOfSeen: 0,
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+  };
+};

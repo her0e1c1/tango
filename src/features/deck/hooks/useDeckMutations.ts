@@ -4,7 +4,7 @@ import type { Deck, DeckEdit, DeckId } from "@/entities/deck";
 
 import { useEffect, useRef } from "react";
 
-import { useAuth } from "@/auth/AuthContext";
+import { useSession } from "@/entities/session";
 import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
 import { deckCommands } from "@/services/deckCommands";
 
@@ -13,7 +13,7 @@ interface UseDeckMutationsOptions {
 }
 
 export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = {}) => {
-  const auth = useAuth();
+  const auth = useSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const mutation = useAsyncAction<DeckId>(uid);
   const scope = useRef({ uid });

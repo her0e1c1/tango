@@ -3,9 +3,9 @@ import type { StorybookConfig } from "@storybook/react-vite";
 import { mergeConfig } from "vite";
 import { withoutPwaPlugins } from "./vitePlugins";
 
-const storybookFirebase = fileURLToPath(new URL("../src/storybook/firebase.ts", import.meta.url));
+const storybookFirebase = fileURLToPath(new URL("./support/firebase.ts", import.meta.url));
 const storybookFirestoreRuntime = fileURLToPath(
-  new URL("../src/storybook/firestoreRuntime.ts", import.meta.url),
+  new URL("./support/firestoreRuntime.ts", import.meta.url),
 );
 
 const config: StorybookConfig = {

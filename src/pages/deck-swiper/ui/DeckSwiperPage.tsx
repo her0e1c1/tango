@@ -1,9 +1,10 @@
-import { getCategory, isHighlightLanguage, type DeckId } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type DeckId, useDecks } from "@/entities/deck";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
+import { useCards } from "@/entities/card";
 import { BackText, CardOverlay, FrontText, useCardMutations } from "@/features/card";
 import {
   initializeStudySessionUi,
@@ -16,7 +17,6 @@ import {
   useStudyStore,
 } from "@/features/study";
 import { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -35,8 +35,9 @@ export const DeckSwiperPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
 
   const config = useConfig();
-  const remote = useRemoteCollections();
-  const deck = remote.deckById(deckId);
+  const remote = useDecks();
+  const cardRemote = useCards();
+  const deck = remote.decksById[deckId];
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
@@ -46,7 +47,7 @@ export const DeckSwiperPage: React.FC = () => {
 
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
-  const card = cardId == null ? undefined : remote.cardById(cardId);
+  const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
   const cardMutation = useCardMutations();
   const studyActions = useStudyActions(deckId, {
     isPending: cardMutation.isPending,

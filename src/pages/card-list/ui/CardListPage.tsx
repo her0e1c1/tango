@@ -4,12 +4,12 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import type { Card, CardId } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
+import { type Card, type CardId, selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
+import { getCategory, isHighlightLanguage, type Deck, useDecks } from "@/entities/deck";
 import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
+import { useStudyCards } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { Layout } from "@/shared/ui/layout";
@@ -142,10 +142,12 @@ export const CardListPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
   const config = useConfig();
-  const remote = useRemoteCollections();
-  const deck = remote.deckById(deckId);
-  const cards = remote.filteredCardsByDeckId(deckId, config);
-  const tags = remote.tagsByDeckId(deckId);
+  const cardRemote = useCards();
+  const remote = useDecks();
+  const deck = remote.decksById[deckId];
+  const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
+  const cards = useStudyCards(deck, deckCards, config);
+  const tags = selectTagsForDeck(cardRemote.cards, deckId);
 
   return (
     <RemoteReadBoundary

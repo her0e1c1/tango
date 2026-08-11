@@ -21,8 +21,8 @@ const mocks = vi.hoisted(() => ({
   addSample: vi.fn<() => Promise<unknown>>(),
 }));
 
-vi.mock("@/auth/AuthContext", () => ({ useAuth: () => mocks.auth }));
-vi.mock("@/hooks/useRemoteCollections", () => ({ useRemoteCollections: () => mocks.remote }));
+vi.mock("@/entities/session", () => ({ useSession: () => mocks.auth }));
+vi.mock("@/entities/deck", () => ({ useDecks: () => mocks.remote }));
 vi.mock("@/features/import/hooks/useDeckImport", () => ({
   useDeckImport: () => ({ addSample: mocks.addSample }),
 }));

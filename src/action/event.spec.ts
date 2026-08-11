@@ -6,14 +6,13 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { linkWithPopup, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
 
 import * as action from "@/action";
 import { STUDY_STORAGE_KEY, studyStore } from "@/features/study/state/studyStore";
 
 const mocks = vi.hoisted(() => ({
   auth: { currentUser: null as object | null },
-  publishAuthenticatedUser: vi.fn(),
   suspendAnonymousBootstrap: vi.fn(),
   resumeAnonymousBootstrap: vi.fn(),
   stopRemoteReads: vi.fn(),
@@ -23,8 +22,8 @@ vi.mock("firebase/auth");
 vi.mock("firebase/firestore");
 vi.mock("./firestore");
 vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
-vi.mock("@/auth/AuthContext", () => ({
-  publishAuthenticatedUser: mocks.publishAuthenticatedUser,
+vi.mock("@/features/auth", () => ({
+  loginGoogle: vi.fn(),
   suspendAnonymousBootstrap: mocks.suspendAnonymousBootstrap,
 }));
 vi.mock("@/store/remoteStore", () => ({
@@ -77,14 +76,5 @@ describe("event action", () => {
     await expect(action.event.logout("uid-a")).rejects.toThrow("cleanup failed");
 
     expect(studyStore.getState().sessionsByDeckId).toEqual({});
-  });
-
-  it("publishes a linked Firebase user without persisting identity", async () => {
-    const user = { uid: "uid-a", isAnonymous: false, providerData: [] };
-    mocks.auth.currentUser = {};
-    vi.mocked(linkWithPopup).mockResolvedValue({ user } as never);
-    await action.event.loginGoogle();
-
-    expect(mocks.publishAuthenticatedUser).toHaveBeenCalledWith(user);
   });
 });

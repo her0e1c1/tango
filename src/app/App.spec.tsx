@@ -7,15 +7,14 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import type { User } from "firebase/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AuthState } from "@/auth/AuthContext";
+import type { SessionState } from "@/entities/session";
 
 const mocks = vi.hoisted(() => ({
   darkMode: false,
   init: vi.fn(),
-  authState: { status: "initializing" } as AuthState,
+  authState: { status: "initializing" } as SessionState,
 }));
 
 vi.mock("zustand", () => ({
@@ -26,7 +25,7 @@ vi.mock("zustand", () => ({
 }));
 vi.mock("@/shared/config/configStore", () => ({ configStore: {} }));
 vi.mock("@/action", () => ({ event: { init: mocks.init } }));
-vi.mock("@/auth/AuthContext", () => ({ useAuth: () => mocks.authState }));
+vi.mock("@/entities/session", () => ({ useSession: () => mocks.authState }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));
@@ -43,7 +42,7 @@ describe("App", () => {
   beforeEach(() => {
     mocks.darkMode = false;
     mocks.init.mockReset();
-    mocks.authState = { status: "authenticated", user: {} as User, uid: "test-user" };
+    mocks.authState = { status: "authenticated", uid: "test-user", isAnonymous: true, displayName: null };
     document.documentElement.classList.remove("dark");
     window.history.replaceState({}, "", "/");
   });

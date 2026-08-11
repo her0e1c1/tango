@@ -4,14 +4,13 @@
  * components.
  */
 
-import { CATEGORY, type Deck } from "@/entities/deck";
+import { CATEGORY, type Deck, useDecks } from "@/entities/deck";
 
 import type * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -89,8 +88,8 @@ export const DeckFormContainer: React.FC = () => {
   const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
-  const remote = useRemoteCollections();
-  const deck = remote.deckById(deckId);
+  const remote = useDecks();
+  const deck = remote.decksById[deckId];
 
   return (
     <RemoteReadBoundary

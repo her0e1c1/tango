@@ -7,7 +7,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
-import { useAuth } from "@/auth/AuthContext";
+import { useSession } from "@/entities/session";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
@@ -63,7 +63,7 @@ export const AppRoutes: React.FC = () => (
  */
 const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location.reload() }) => {
   const darkMode = useStore(configStore, (state) => state.config.appearance.darkMode);
-  const authState = useAuth();
+  const authState = useSession();
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);

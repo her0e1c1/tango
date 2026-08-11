@@ -1,7 +1,7 @@
 /**
  * @file Verifies the "deck action" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "should prepare deck",
- * "parses string content as raw cards", "rejects unsupported input at the parser boundary".
+ * The examples make the expected behavior concrete with cases such as "parses string content as
+ * raw cards" and "rejects unsupported input at the parser boundary".
  */
 
 import type { CardRaw } from "@/entities/card";
@@ -12,11 +12,10 @@ import { expect, expectTypeOf, it, describe, vi, beforeEach, afterEach } from "v
 import * as fileSaver from "file-saver";
 
 import * as action from "@/action";
-import { createBlobConstructor, createCard } from "@/test/factories";
+import { createBlobConstructor, createCard, createDeck } from "@/test/factories";
 
 vi.mock("./firestore");
 vi.mock("@/shared/firebase", () => ({ auth: { currentUser: null } }));
-vi.mock("@/auth/AuthContext", () => ({ publishAuthenticatedUser: vi.fn() }));
 vi.mock("file-saver", () => ({
   saveAs: vi.fn(),
 }));
@@ -30,16 +29,6 @@ describe("deck action", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  describe("prepareDeck", () => {
-    it("should prepare deck", async () => {
-      expect(action.deck.prepare({ name: "name" }, "uid", () => "deck-id")).toMatchObject({
-        id: "deck-id",
-        name: "name",
-        uid: "uid",
-      });
-    });
   });
 
   describe("parseCsv", () => {
@@ -62,7 +51,7 @@ describe("deck action", () => {
       const blob = new Blob();
       const blobConstructor = vi.spyOn(global, "Blob");
       blobConstructor.mockImplementation(createBlobConstructor(blob));
-      const deck = action.deck.prepare({ name: "Remote deck" }, "uid", () => "deck-id");
+      const deck = createDeck({ name: "Remote deck" });
       const card = createCard({ frontText: "remote front", backText: "remote back", uniqueKey: "remote-key" });
 
       action.deck.downloadData(deck, [card]);
@@ -77,7 +66,7 @@ describe("deck action", () => {
       const blob = new Blob();
       const blobConstructor = vi.spyOn(global, "Blob");
       blobConstructor.mockImplementation(createBlobConstructor(blob));
-      const deck = action.deck.prepare({ name: "Formula deck" }, "uid", () => "deck-id");
+      const deck = createDeck({ name: "Formula deck" });
       const card = createCard({
         frontText: "=1+1",
         backText: "+1+1",

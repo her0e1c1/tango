@@ -63,19 +63,24 @@ vi.mock("@/shared/config", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 
-vi.mock("@/hooks/useRemoteCollections", () => ({
-  useRemoteCollections: () => {
-    const cards = mocks.cards;
-    return {
-      status: "ready" as const,
-      retry: vi.fn(),
-      deckById: (id: string) => (mocks.deck?.id === id ? mocks.deck : undefined),
-      filteredCardsByDeckId: (id: string) => cards.filter((card) => card.deckId === id),
-      tagsByDeckId: (id: string) => [
-        ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
-      ],
-    };
-  },
+vi.mock("@/entities/card", () => ({
+  selectCardsForDeck: (cards: Card[], id: string) => cards.filter((card) => card.deckId === id),
+  selectTagsForDeck: (cards: Card[], id: string) => [
+    ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
+  ],
+  useCards: () => ({ cards: [...mocks.cards] }),
+}));
+
+vi.mock("@/entities/deck", () => ({
+  useDecks: () => ({
+    status: "ready" as const,
+    retry: vi.fn(),
+    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
+  }),
+}));
+
+vi.mock("@/features/study", () => ({
+  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
 }));
 
 vi.mock("react-router-dom", () => ({
