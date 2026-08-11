@@ -1,10 +1,9 @@
-import type { DeckId } from "@/entities/deck";
+import { getCategory, LANGUAGES, type DeckId } from "@/entities/deck";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as C from "@/constant";
 import { BackText, CardOverlay, FrontText, useCardMutations } from "@/features/card";
 import {
   initializeStudySessionUi,
@@ -21,7 +20,6 @@ import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
-import * as util from "@/util";
 
 import { DeckSwiperView } from "./DeckSwiperView";
 
@@ -136,7 +134,7 @@ export const DeckSwiperPage: React.FC = () => {
     );
   }
 
-  const category = util.getCategory(deck.category, card.tags);
+  const category = getCategory(deck.category, card.tags);
   const swipeActions: SwipeButtonListProps = {
     disabled: studyActions.pending,
     ...(studyActions.pending
@@ -196,7 +194,7 @@ export const DeckSwiperPage: React.FC = () => {
         backTextSlot={
           <BackText
             {...(category !== undefined ? { category } : {})}
-            code={category !== undefined && C.LANGUAGES.includes(category)}
+            code={category !== undefined && LANGUAGES.includes(category)}
             dark={config.appearance.darkMode}
             text={card.backText}
             onClick={studyActions.toggleShowBackText}
