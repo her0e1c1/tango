@@ -30,9 +30,11 @@ describe("shared rich content", () => {
       </>
     );
     const outside = screen.getByText("const outside = true;");
+    const code = screen.getAllByRole("code")[1];
 
     await waitFor(() => expect(screen.getByText("const")).toHaveClass("hljs-keyword"));
     expect(outside).not.toHaveClass("hljs");
+    expect(code).toHaveAttribute("data-theme", "light");
 
     view.rerender(
       <>
@@ -42,6 +44,7 @@ describe("shared rich content", () => {
     );
 
     await waitFor(() => expect(screen.getByText("2")).toHaveClass("hljs-number"));
+    expect(code).toHaveAttribute("data-theme", "dark");
     expect(outside).not.toHaveClass("hljs");
   });
 

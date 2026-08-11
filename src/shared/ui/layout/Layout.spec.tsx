@@ -81,16 +81,21 @@ describe("shared app shell", () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 
-  it("keeps standard content visible below a fixed Header", () => {
-    render(
+  it("reserves the fixed Header height and lets headerProps override it", () => {
+    const view = render(
       <Layout showHeader fixedHeader>
         <span>Standard fixed content</span>
       </Layout>
     );
-    const content = screen.getByText("Standard fixed content");
+    const shell = screen.getByRole("region", { name: "Application shell" });
 
-    expect(screen.getByText("tango")).toBeInTheDocument();
-    expect(content).toBeVisible();
+    expect(screen.getByRole("banner")).toHaveClass("fixed");
+    expect(shell).toHaveClass(fixedHeaderOffsetClass);
+
+    view.rerender(<Layout showHeader fixedHeader headerProps={{ fixed: false }} />);
+
+    expect(screen.getByRole("banner")).not.toHaveClass("fixed");
+    expect(screen.getByRole("region", { name: "Application shell" })).not.toHaveClass(fixedHeaderOffsetClass);
   });
 
   it("bounds an h-full child below the fixed Header without adding a fullscreen sibling", () => {

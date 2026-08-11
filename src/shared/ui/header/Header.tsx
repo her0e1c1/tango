@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = (props) => {
           "size-touch shrink-0 cursor-pointer rounded-control p-2 text-ink transition-colors duration-fast ease-calm hover:bg-surface-muted",
       }}
     >
-      <div
+      <header
         className={cx(
           "flex",
           "w-full",
@@ -54,13 +54,21 @@ export const Header: React.FC<HeaderProps> = (props) => {
           {...(props.onClickLogo !== undefined ? { onClick: props.onClickLogo } : {})}
         />
         {props.dark ? (
-          <AiOutlineSun onClick={() => props.onClickDarkMode?.(false)} />
+          <button type="button" aria-label="Switch to light mode" onClick={() => props.onClickDarkMode?.(false)}>
+            <AiOutlineSun />
+          </button>
         ) : (
-          <AiFillMoon onClick={() => props.onClickDarkMode?.(true)} />
+          <button type="button" aria-label="Switch to dark mode" onClick={() => props.onClickDarkMode?.(true)}>
+            <AiFillMoon />
+          </button>
         )}
-        <AiOutlineUpload onClick={props.onClickImport} />
-        <AiFillSetting onClick={props.onClickSettings} />
-      </div>
+        <button type="button" aria-label="Import decks" onClick={props.onClickImport}>
+          <AiOutlineUpload />
+        </button>
+        <button type="button" aria-label="Open settings" onClick={props.onClickSettings}>
+          <AiFillSetting />
+        </button>
+      </header>
     </IconContext.Provider>
   );
 };
