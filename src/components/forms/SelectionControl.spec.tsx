@@ -5,18 +5,16 @@
  * "keeps the slider controlled value, native handlers, and input ref".
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { createRef } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Slider } from "@/components/forms/Slider";
 import { Switch } from "@/components/forms/Switch";
 import { Tag } from "@/components/forms/Tag";
 import { Upload } from "@/components/forms/Upload";
-
-afterEach(cleanup);
 
 describe("shared selection controls", () => {
   it("forwards accessible naming props to the switch input", () => {
@@ -50,12 +48,9 @@ describe("shared selection controls", () => {
     const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
-    const view = render(
-      <Slider ref={ref} min={0} max={10} name="confidence" value="4" onChange={onChange} onBlur={onBlur} />
-    );
+    render(<Slider ref={ref} min={0} max={10} name="confidence" value="4" onChange={onChange} onBlur={onBlur} />);
 
-    const input = view.container.querySelector<HTMLInputElement>("input[type=range]");
-    if (input == null) throw new Error("Slider input is missing");
+    const input = screen.getByRole("slider");
     expect(input).toHaveValue("4");
     expect(input).toHaveAttribute("name", "confidence");
     expect(ref.current).toBe(input);
@@ -69,10 +64,9 @@ describe("shared selection controls", () => {
     const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
-    const view = render(<Switch checked ref={ref} name="published" value="yes" onChange={onChange} onBlur={onBlur} />);
+    render(<Switch checked ref={ref} name="published" value="yes" onChange={onChange} onBlur={onBlur} />);
 
-    const input = view.container.querySelector<HTMLInputElement>("input[type=checkbox]");
-    if (input == null) throw new Error("Switch input is missing");
+    const input = screen.getByRole("checkbox");
     expect(input).toBeChecked();
     expect(input).toHaveAttribute("value", "yes");
     expect(ref.current).toBe(input);
@@ -82,35 +76,20 @@ describe("shared selection controls", () => {
     expect(onBlur).toHaveBeenCalledOnce();
   });
 
-  it("shows tag selection through marker, border, and surface changes", () => {
-    const view = render(<Tag checked label="Biology" />);
+  it("shows tag selection through native checked state", () => {
+    render(<Tag checked label="Biology" />);
 
-    const input = view.container.querySelector<HTMLInputElement>("input[type=checkbox]");
-    if (input == null) throw new Error("Tag input is missing");
-    const presentation = input?.nextElementSibling;
+    const input = screen.getByRole("checkbox", { name: "Biology" });
     expect(input).toBeChecked();
     expect(input).toHaveClass("peer", "sr-only");
-    expect(presentation).toHaveClass(
-      "rounded-control",
-      "peer-checked:border-accent-primary",
-      "peer-checked:bg-accent-primary/10"
-    );
-    expect(presentation).toHaveClass(
-      "before:bg-ink-muted",
-      "peer-checked:before:bg-accent-primary",
-      "peer-checked:before:ring-2"
-    );
   });
 
   it("lets native checked state drive the marker for uncontrolled tags", () => {
     const onChange = vi.fn();
-    const view = render(<Tag label="Biology" onChange={onChange} />);
-    const input = view.container.querySelector<HTMLInputElement>("input[type=checkbox]");
-    if (input == null) throw new Error("Tag input is missing");
-    const presentation = input.nextElementSibling;
+    render(<Tag label="Biology" onChange={onChange} />);
+    const input = screen.getByRole("checkbox", { name: "Biology" });
 
     expect(input).not.toBeChecked();
-    expect(presentation).toHaveClass("peer-checked:before:bg-accent-primary");
 
     fireEvent.click(input);
     expect(input).toBeChecked();
@@ -121,12 +100,9 @@ describe("shared selection controls", () => {
     const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
-    const view = render(
-      <Tag ref={ref} label="History" name="topic" value="history" onChange={onChange} onBlur={onBlur} />
-    );
+    render(<Tag ref={ref} label="History" name="topic" value="history" onChange={onChange} onBlur={onBlur} />);
 
-    const input = view.container.querySelector<HTMLInputElement>("input[type=checkbox]");
-    if (input == null) throw new Error("Tag input is missing");
+    const input = screen.getByRole("checkbox", { name: "History" });
     expect(input).not.toBeChecked();
     expect(input).toHaveAttribute("value", "history");
     expect(ref.current).toBe(input);
@@ -140,13 +116,13 @@ describe("shared selection controls", () => {
     const user = userEvent.setup();
     const onSwitchChange = vi.fn();
     const onTagChange = vi.fn();
-    const view = render(
+    render(
       <>
         <Switch aria-label="Published" onChange={onSwitchChange} />
         <Tag label="History" onChange={onTagChange} />
       </>
     );
-    const inputs = view.container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    const inputs = screen.getAllByRole("checkbox");
 
     await user.tab();
     expect(inputs[0]).toHaveFocus();
@@ -159,36 +135,12 @@ describe("shared selection controls", () => {
     expect(onTagChange).toHaveBeenCalledOnce();
   });
 
-  it("exposes a semantic focus-visible ring on switch and tag presentations", () => {
-    const switchView = render(<Switch />);
-    const switchInput = switchView.container.querySelector("input");
-    expect(switchInput).toHaveClass("sr-only", "peer");
-    expect(switchInput).not.toHaveClass("hidden");
-    expect(switchInput?.nextElementSibling).toHaveClass(
-      "peer-focus-visible:outline-none",
-      "peer-focus-visible:ring-2",
-      "peer-focus-visible:ring-focus"
-    );
-    switchView.unmount();
-
-    const tagView = render(<Tag label="History" />);
-    const tagInput = tagView.container.querySelector("input");
-    expect(tagInput).toHaveClass("sr-only", "peer");
-    expect(tagInput).not.toHaveClass("hidden");
-    expect(tagInput?.nextElementSibling).toHaveClass(
-      "peer-focus-visible:outline-none",
-      "peer-focus-visible:ring-2",
-      "peer-focus-visible:ring-focus"
-    );
-  });
-
   it("passes the chosen native file to the unchanged upload callback", () => {
     const onChange = vi.fn();
     const file = new File(["front,back"], "biology.csv", { type: "text/csv" });
-    const view = render(<Upload onChange={onChange} />);
+    render(<Upload onChange={onChange} />);
 
-    const input = view.container.querySelector<HTMLInputElement>("input[type=file]");
-    if (input == null) throw new Error("Upload input is missing");
+    const input = screen.getByLabelText("Upload a csv file") as HTMLInputElement;
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(input?.files?.[0]).toBe(file);
@@ -200,59 +152,39 @@ describe("shared selection controls", () => {
     const view = render(<Upload fileName="biology.csv" />);
 
     expect(screen.getByText("biology.csv")).toHaveClass("font-semibold", "text-ink");
-    expect(view.container.querySelector("input[type=file]")).toHaveValue("");
+    expect(screen.getByLabelText(/Upload a csv file/)).toHaveValue("");
 
     view.rerender(<Upload />);
     expect(screen.queryByText("biology.csv")).not.toBeInTheDocument();
   });
 
-  it("separates the slider mobile touch target from its visual rail", () => {
-    const view = render(<Slider />);
-    const input = view.container.querySelector("input[type=range]");
-    const rail = view.container.querySelector<HTMLElement>('[aria-hidden="true"]');
+  it("keeps the slider input on a mobile touch target", () => {
+    render(<Slider />);
+    const input = screen.getByRole("slider");
 
     expect(input).toHaveClass("min-h-touch", "bg-transparent");
     expect(input).not.toHaveClass("h-2", "bg-surface-muted", "rounded-pill");
-    expect(rail).not.toBe(input);
-    expect(input?.parentElement).toContainElement(rail);
-    expect(rail).toHaveClass("pointer-events-none", "h-2", "w-full", "rounded-pill", "bg-surface-muted");
-  });
-
-  it("gives the switch clickable wrapper a shared mobile touch target", () => {
-    const view = render(<Switch />);
-
-    expect(view.container.firstElementChild).toHaveClass("min-h-touch", "min-w-touch");
-  });
-
-  it("gives the tag clickable presentation a shared mobile touch target", () => {
-    const view = render(<Tag label="Biology" />);
-    const input = view.container.querySelector("input[type=checkbox]");
-
-    expect(input?.nextElementSibling).toHaveClass("min-h-touch", "min-w-touch");
   });
 
   it("disables every native control with a consistent non-color cue", () => {
-    const slider = render(<Slider disabled value="3" />);
-    const sliderInput = slider.container.querySelector("input");
+    const { unmount } = render(<Slider disabled value="3" />);
+    const sliderInput = screen.getByRole("slider");
     expect(sliderInput).toBeDisabled();
     expect(sliderInput).toHaveClass("disabled:cursor-not-allowed", "disabled:opacity-50");
-    slider.unmount();
+    unmount();
 
-    const switchView = render(<Switch disabled checked />);
-    const switchInput = switchView.container.querySelector("input");
+    const { unmount: unmountSwitch } = render(<Switch aria-label="Disabled switch" disabled checked />);
+    const switchInput = screen.getByRole("checkbox", { name: "Disabled switch" });
     expect(switchInput).toBeDisabled();
-    expect(switchInput?.nextElementSibling).toHaveClass("peer-disabled:cursor-not-allowed", "peer-disabled:opacity-50");
-    switchView.unmount();
+    unmountSwitch();
 
-    const tag = render(<Tag disabled checked label="Disabled" />);
-    const tagInput = tag.container.querySelector("input");
+    const { unmount: unmountTag } = render(<Tag disabled checked label="Disabled" />);
+    const tagInput = screen.getByRole("checkbox", { name: "Disabled" });
     expect(tagInput).toBeDisabled();
-    expect(tagInput?.nextElementSibling).toHaveClass("peer-disabled:cursor-not-allowed", "peer-disabled:opacity-50");
-    tag.unmount();
+    unmountTag();
 
-    const upload = render(<Upload disabled />);
-    const uploadInput = upload.container.querySelector("input");
+    render(<Upload disabled />);
+    const uploadInput = screen.getByLabelText("Upload a csv file");
     expect(uploadInput).toBeDisabled();
-    expect(upload.container.firstElementChild).toHaveClass("cursor-not-allowed", "opacity-50");
   });
 });

@@ -6,7 +6,7 @@
  * controls", "installs one back-navigation guard when StrictMode replays the effect".
  */
 
-import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -212,18 +212,17 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   });
 
   afterEach(() => {
-    cleanup();
     vi.useRealTimers();
   });
 
   it("renders the active session card and forwards study callbacks", () => {
-    const view = render(<DeckSwiperPage />);
+    render(<DeckSwiperPage />);
 
-    expect(view.getByText(card.frontText)).toBeVisible();
-    expect(view.queryByText(legacyCard.frontText)).not.toBeInTheDocument();
-    expect(view.getByText(/3 times/)).toBeVisible();
-    fireEvent.click(view.getByText(card.frontText));
-    fireEvent.change(view.getByRole("slider"), { target: { value: 1 } });
+    expect(screen.getByText(card.frontText)).toBeVisible();
+    expect(screen.queryByText(legacyCard.frontText)).not.toBeInTheDocument();
+    expect(screen.getByText(/3 times/)).toBeVisible();
+    fireEvent.click(screen.getByText(card.frontText));
+    fireEvent.change(screen.getByRole("slider"), { target: { value: 1 } });
 
     expect(mocks.toggleShowBackText).toHaveBeenCalledOnce();
     expect(mocks.updateIndex).toHaveBeenCalledWith(1);
@@ -236,11 +235,11 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   it("keeps pending study saves silent while disabling swipe controls", () => {
     mocks.pending = true;
 
-    const view = render(<DeckSwiperPage />);
+    render(<DeckSwiperPage />);
 
-    expect(view.queryByText("Saving…")).not.toBeInTheDocument();
+    expect(screen.queryByText("Saving…")).not.toBeInTheDocument();
     for (const name of ["Swipe up", "Swipe down", "Swipe left", "Swipe right"]) {
-      expect(view.getByRole("button", { name })).toBeDisabled();
+      expect(screen.getByRole("button", { name })).toBeDisabled();
     }
   });
 
@@ -252,19 +251,19 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
     mocks.studyState.lastSwipe = { direction: "cardSwipeLeft", eventId: 1 };
     view.rerender(<DeckSwiperPage />);
-    expect(view.getByText("Swiped left")).toHaveAttribute("role", "status");
+    expect(screen.getByText("Swiped left")).toHaveAttribute("role", "status");
 
     act(() => vi.advanceTimersByTime(899));
-    expect(view.getByText("Swiped left")).toBeInTheDocument();
+    expect(screen.getByText("Swiped left")).toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(1));
     view.rerender(<DeckSwiperPage />);
-    expect(view.queryByText("Swiped left")).not.toBeInTheDocument();
+    expect(screen.queryByText("Swiped left")).not.toBeInTheDocument();
 
     mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: false });
     mocks.studyState.lastSwipe = { direction: "cardSwipeRight", eventId: 2 };
     view.rerender(<DeckSwiperPage />);
-    expect(view.queryByText("Swiped right")).not.toBeInTheDocument();
+    expect(screen.queryByText("Swiped right")).not.toBeInTheDocument();
   });
 
   it("restarts swipe feedback timing for repeated identical swipes", () => {
@@ -280,11 +279,11 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     view.rerender(<DeckSwiperPage />);
 
     act(() => vi.advanceTimersByTime(899));
-    expect(view.getByText("Swiped left")).toBeInTheDocument();
+    expect(screen.getByText("Swiped left")).toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(1));
     view.rerender(<DeckSwiperPage />);
-    expect(view.queryByText("Swiped left")).not.toBeInTheDocument();
+    expect(screen.queryByText("Swiped left")).not.toBeInTheDocument();
   });
 
   it("installs one back-navigation guard when StrictMode replays the effect", () => {
@@ -329,13 +328,16 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     mocks.studyState.autoPlay = true;
     view.rerender(<DeckSwiperPage />);
 
-    const code = view.container.querySelector("pre.typescript") as HTMLElement;
+    const code = screen.getByText(/answer =/);
     expect(code).toHaveTextContent(card.backText);
-    expect(view.getByTestId("pause")).toBeInTheDocument();
+    expect(screen.getByTestId("pause")).toBeInTheDocument();
     fireEvent.click(code);
-    fireEvent.click(view.getByTestId("pause"));
-    fireEvent.click(view.container.querySelector(".left-0.w-20") as Element);
-    fireEvent.click(view.container.querySelector(".right-0.w-20") as Element);
+    fireEvent.click(screen.getByTestId("pause"));
+    const swipeLeftButton = screen.getAllByRole("button", { name: "Swipe left" })[0];
+    const swipeRightButton = screen.getAllByRole("button", { name: "Swipe right" })[0];
+    if (swipeLeftButton == null || swipeRightButton == null) throw new Error("Expected swipe controls");
+    fireEvent.click(swipeLeftButton);
+    fireEvent.click(swipeRightButton);
 
     expect(mocks.toggleShowBackText).toHaveBeenCalledOnce();
     expect(mocks.toggleAutoPlay).toHaveBeenCalledOnce();
@@ -355,7 +357,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
     const view = render(<DeckSwiperPage />);
 
-    expect(view.getByRole("status")).toHaveTextContent("Study session unavailable.");
+    expect(screen.getByRole("status")).toHaveTextContent("Study session unavailable.");
     expect(mocks.resetStudy).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
     expect(mocks.studyState.sessionsByDeckId[deck.id]).toBeUndefined();

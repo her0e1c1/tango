@@ -5,9 +5,9 @@
  * failed operation".
  */
 
-import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import React, { type PropsWithChildren } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
 import { actAsync } from "@/test/act";
@@ -32,8 +32,6 @@ const deferred = <T,>() => {
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
 const StrictModeWrapper = ({ children }: PropsWithChildren) => <React.StrictMode>{children}</React.StrictMode>;
-
-afterEach(() => cleanup());
 
 describe("useAccountOperations", () => {
   it("shares the login promise while login is pending", async () => {
@@ -157,21 +155,24 @@ describe("useAccountOperations", () => {
   it("discards a settled failure after Settings is left", async () => {
     const error = new Error("sign in failed");
     const login = vi.fn().mockRejectedValue(error);
-    const first = renderHook(() => useAccountOperations({ login, generation: "user-a" }), {
-      wrapper: StrictModeWrapper,
-    });
+    const { result: firstResult, unmount: unmountFirst } = renderHook(
+      () => useAccountOperations({ login, generation: "user-a" }),
+      {
+        wrapper: StrictModeWrapper,
+      }
+    );
 
     await actAsync(async () => {
-      await expect(first.result.current.login()).rejects.toBe(error);
+      await expect(firstResult.current.login()).rejects.toBe(error);
     });
-    first.unmount();
+    unmountFirst();
     await actAsync(async () => Promise.resolve());
 
-    const next = renderHook(() => useAccountOperations({ login, generation: "user-a" }), {
+    const { result: nextResult } = renderHook(() => useAccountOperations({ login, generation: "user-a" }), {
       wrapper: StrictModeWrapper,
     });
-    expect(next.result.current).toMatchObject({ kind: null, pending: false, error: null });
-    await expect(next.result.current.retry()).resolves.toBeUndefined();
+    expect(nextResult.current).toMatchObject({ kind: null, pending: false, error: null });
+    await expect(nextResult.current.retry()).resolves.toBeUndefined();
     expect(login).toHaveBeenCalledOnce();
   });
 
@@ -197,29 +198,32 @@ describe("useAccountOperations", () => {
     const retry = vi.fn().mockResolvedValue(undefined);
     const error = Object.assign(new Error("logout cleanup failed"), { retry });
     const logout = vi.fn().mockRejectedValue(error);
-    const first = renderHook(() => useAccountOperations({ login: vi.fn(), logout, generation: "authenticated-user" }), {
-      wrapper: StrictModeWrapper,
-    });
+    const { result: firstResult, unmount: unmountFirst } = renderHook(
+      () => useAccountOperations({ login: vi.fn(), logout, generation: "authenticated-user" }),
+      {
+        wrapper: StrictModeWrapper,
+      }
+    );
 
     await actAsync(async () => {
-      await expect(first.result.current.logout()).rejects.toBe(error);
+      await expect(firstResult.current.logout()).rejects.toBe(error);
     });
-    first.unmount();
+    unmountFirst();
     await actAsync(async () => Promise.resolve());
 
-    const anonymous = renderHook(
+    const { result: anonymousResult, unmount: unmountAnonymous } = renderHook(
       () => useAccountOperations({ login: vi.fn(), logout: vi.fn(), generation: "anonymous-user" }),
       { wrapper: StrictModeWrapper }
     );
-    expect(anonymous.result.current).toMatchObject({ kind: "logout", pending: false, error });
+    expect(anonymousResult.current).toMatchObject({ kind: "logout", pending: false, error });
 
-    anonymous.unmount();
+    unmountAnonymous();
     await actAsync(async () => Promise.resolve());
-    const later = renderHook(
+    const { result: laterResult } = renderHook(
       () => useAccountOperations({ login: vi.fn(), logout: vi.fn(), generation: "anonymous-user" }),
       { wrapper: StrictModeWrapper }
     );
-    expect(later.result.current).toMatchObject({ kind: null, pending: false, error: null });
+    expect(laterResult.current).toMatchObject({ kind: null, pending: false, error: null });
     expect(retry).not.toHaveBeenCalled();
   });
 
@@ -228,7 +232,7 @@ describe("useAccountOperations", () => {
     const cleanupFailure = new Error("cleanup retry failed");
     const retryCleanup = vi.fn(() => cleanupRequest.promise);
     const initialFailure = Object.assign(new Error("logout cleanup failed"), { retry: retryCleanup });
-    const first = renderHook(
+    const { result: firstResult, unmount: unmountFirst } = renderHook(
       () =>
         useAccountOperations({
           generation: "authenticated-user",
@@ -239,51 +243,51 @@ describe("useAccountOperations", () => {
     );
 
     await actAsync(async () => {
-      await expect(first.result.current.logout()).rejects.toBe(initialFailure);
+      await expect(firstResult.current.logout()).rejects.toBe(initialFailure);
     });
-    first.unmount();
+    unmountFirst();
     await actAsync(async () => Promise.resolve());
 
     const nextLoginRequest = deferred<void>();
     const nextLogin = vi.fn(() => nextLoginRequest.promise);
-    const anonymous = renderHook(
+    const { result, rerender } = renderHook(
       ({ generation }) => useAccountOperations({ generation, login: nextLogin, logout: vi.fn() }),
       { initialProps: { generation: "anonymous-user" }, wrapper: StrictModeWrapper }
     );
-    expect(anonymous.result.current).toMatchObject({ kind: "logout", pending: false, error: initialFailure });
+    expect(result.current).toMatchObject({ kind: "logout", pending: false, error: initialFailure });
 
     let staleRetry!: Promise<void>;
     act(() => {
-      staleRetry = anonymous.result.current.retry();
+      staleRetry = result.current.retry();
     });
     expect(retryCleanup).toHaveBeenCalledOnce();
-    expect(anonymous.result.current).toMatchObject({ kind: "logout", pending: true, error: null });
+    expect(result.current).toMatchObject({ kind: "logout", pending: true, error: null });
 
-    anonymous.rerender({ generation: "later-user" });
-    await waitFor(() => expect(anonymous.result.current).toMatchObject({ kind: null, pending: false, error: null }));
-    const retryAfterReset = anonymous.result.current.retry();
+    rerender({ generation: "later-user" });
+    await waitFor(() => expect(result.current).toMatchObject({ kind: null, pending: false, error: null }));
+    const retryAfterReset = result.current.retry();
     expect(retryAfterReset).not.toBe(staleRetry);
     await expect(retryAfterReset).resolves.toBeUndefined();
     expect(retryCleanup).toHaveBeenCalledOnce();
 
     let nextOperation!: Promise<void>;
     act(() => {
-      nextOperation = anonymous.result.current.login();
+      nextOperation = result.current.login();
     });
     expect(nextOperation).not.toBe(staleRetry);
     expect(nextLogin).toHaveBeenCalledOnce();
-    expect(anonymous.result.current).toMatchObject({ kind: "login", pending: true, error: null });
+    expect(result.current).toMatchObject({ kind: "login", pending: true, error: null });
 
     await actAsync(async () => {
       cleanupRequest.reject(cleanupFailure);
       await expect(staleRetry).rejects.toBe(cleanupFailure);
     });
-    expect(anonymous.result.current).toMatchObject({ kind: "login", pending: true, error: null });
+    expect(result.current).toMatchObject({ kind: "login", pending: true, error: null });
 
     await actAsync(async () => {
       nextLoginRequest.resolve();
       await nextOperation;
     });
-    expect(anonymous.result.current).toMatchObject({ kind: "login", pending: false, error: null });
+    expect(result.current).toMatchObject({ kind: "login", pending: false, error: null });
   });
 });

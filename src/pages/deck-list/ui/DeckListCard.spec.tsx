@@ -5,7 +5,7 @@
  * deck id to navigation and management actions".
  */
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -44,12 +44,11 @@ describe("DeckListCard", () => {
   });
 
   afterEach(() => {
-    cleanup();
     vi.useRealTimers();
   });
 
   it("renders compact progress for an active deck", () => {
-    const view = render(
+    render(
       <DeckListCard
         deck={deck}
         cardCount={8}
@@ -61,28 +60,26 @@ describe("DeckListCard", () => {
       />
     );
 
-    expect(view.getByText(deck.name)).toHaveClass("truncate");
-    expect(view.getByText("math")).toBeInTheDocument();
-    expect(view.getByLabelText("Public deck")).toBeInTheDocument();
-    const status = view.getByText("2 / 3 · 5m ago").parentElement;
-    const viewButton = view.getByRole("button", { name: "View Deck name" });
-    const progressbar = view.getByRole("progressbar", { name: "Progress for Deck name" });
-    expect(status).toHaveAttribute("id");
-    expect(viewButton).toHaveAttribute("aria-describedby", status?.id);
+    expect(screen.getByText(deck.name)).toHaveClass("truncate");
+    expect(screen.getByText("math")).toBeInTheDocument();
+    expect(screen.getByLabelText("Public deck")).toBeInTheDocument();
+    const viewButton = screen.getByRole("button", { name: "View Deck name" });
+    const progressbar = screen.getByRole("progressbar", { name: "Progress for Deck name" });
+    expect(viewButton).toHaveAccessibleDescription("math2 / 3 · 5m ago");
     expect(viewButton).not.toContainElement(progressbar);
     expect(progressbar).toHaveAttribute("aria-valuenow", "2");
-    expect(view.getByRole("button", { name: "Continue Deck name" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continue Deck name" })).toBeInTheDocument();
   });
 
   it("renders the card count and Study action for an inactive deck", () => {
-    const view = render(<ControlledDeckListCard deck={deck} cardCount={8} />);
+    render(<ControlledDeckListCard deck={deck} cardCount={8} />);
 
-    expect(view.getByText("8 cards")).toBeInTheDocument();
-    expect(view.queryByRole("progressbar")).not.toBeInTheDocument();
-    expect(view.getByRole("button", { name: "Study Deck name" })).toBeInTheDocument();
+    expect(screen.getByText("8 cards")).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Study Deck name" })).toBeInTheDocument();
 
-    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
-    expect(view.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
+    expect(screen.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
   });
 
   it("passes the deck id to navigation and management actions", () => {
@@ -95,7 +92,7 @@ describe("DeckListCard", () => {
       onClickEdit: vi.fn(),
       onClickDelete: vi.fn(),
     };
-    const view = render(
+    render(
       <ControlledDeckListCard
         deck={deck}
         cardCount={8}
@@ -104,16 +101,16 @@ describe("DeckListCard", () => {
       />
     );
 
-    fireEvent.click(view.getByRole("button", { name: "View Deck name" }));
-    fireEvent.click(view.getByRole("button", { name: "Continue Deck name" }));
-    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
-    fireEvent.click(view.getByRole("menuitem", { name: "Restart" }));
-    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
-    fireEvent.click(view.getByRole("menuitem", { name: "Download" }));
-    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
-    fireEvent.click(view.getByRole("menuitem", { name: "Edit" }));
-    fireEvent.click(view.getByRole("button", { name: "Open actions for Deck name" }));
-    fireEvent.click(view.getByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(screen.getByRole("button", { name: "View Deck name" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue Deck name" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Restart" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Download" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
 
     expect(actions.onClickName).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(actions.onClickContinue).toHaveBeenCalledExactlyOnceWith(deck.id);
@@ -127,11 +124,9 @@ describe("DeckListCard", () => {
   it("routes inactive Study without opening the row", () => {
     const onClickName = vi.fn();
     const onClickStudy = vi.fn();
-    const view = render(
-      <DeckListCard deck={deck} cardCount={1} onClickName={onClickName} onClickStudy={onClickStudy} />
-    );
+    render(<DeckListCard deck={deck} cardCount={1} onClickName={onClickName} onClickStudy={onClickStudy} />);
 
-    fireEvent.click(view.getByRole("button", { name: "Study Deck name" }));
+    fireEvent.click(screen.getByRole("button", { name: "Study Deck name" }));
 
     expect(onClickStudy).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(onClickName).not.toHaveBeenCalled();
@@ -139,22 +134,19 @@ describe("DeckListCard", () => {
 
   it("makes only the pending Deck row unavailable", () => {
     const otherDeck = createDeck({ id: "other-deck", name: "Other deck" });
-    const view = render(
+    render(
       <>
         <ControlledDeckListCard deck={deck} cardCount={8} isPending={(id) => id === deck.id} />
         <ControlledDeckListCard deck={otherDeck} cardCount={2} isPending={(id) => id === deck.id} />
       </>
     );
 
-    expect(view.getByRole("button", { name: "View Deck name" })).toBeDisabled();
-    expect(view.getByRole("button", { name: "Study Deck name" })).toBeDisabled();
-    expect(view.getByRole("button", { name: "Open actions for Deck name" })).toBeDisabled();
-    expect(view.getByRole("button", { name: "View Deck name" }).closest("article")).toHaveAttribute(
-      "aria-busy",
-      "true"
-    );
-    expect(view.getByRole("button", { name: "View Other deck" })).not.toBeDisabled();
-    expect(view.getByRole("button", { name: "Study Other deck" })).not.toBeDisabled();
-    expect(view.getByRole("button", { name: "Open actions for Other deck" })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "View Deck name" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Study Deck name" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Open actions for Deck name" })).toBeDisabled();
+    expect(screen.getAllByRole("article")[0]).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "View Other deck" })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "Study Other deck" })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "Open actions for Other deck" })).not.toBeDisabled();
   });
 });

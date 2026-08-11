@@ -5,7 +5,7 @@
  * unchanged auth request only once".
  */
 
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import { act, render, waitFor } from "@testing-library/react";
 import type { Auth, User, UserCredential } from "firebase/auth";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -62,7 +62,6 @@ describe("AuthBootstrap integration", () => {
   });
 
   afterEach(() => {
-    cleanup();
     vi.restoreAllMocks();
   });
 

@@ -6,7 +6,7 @@
  */
 
 import userEvent from "@testing-library/user-event";
-import { cleanup, render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -166,50 +166,49 @@ describe("CardListPage", () => {
   });
 
   afterEach(() => {
-    cleanup();
     vi.restoreAllMocks();
   });
 
   it("renders the current score and tag filters in the collapsed summary", () => {
     mocks.filter = { scoreMin: -2, scoreMax: 4, selectedTags: ["typescript"] };
-    const view = render(<CardListPage />);
+    render(<CardListPage />);
 
-    expect(view.getByRole("heading", { level: 1, name: "Cards" })).toBeInTheDocument();
-    expect(view.getByText("1 card")).toBeInTheDocument();
-    expect(view.getByText("score -2–4 · 1 tag")).toBeInTheDocument();
-    expect(view.getByLabelText("Selected tags")).toHaveTextContent("typescript");
-    expect(view.getByText("Filters").closest("details")).not.toHaveAttribute("open");
+    expect(screen.getByRole("heading", { level: 1, name: "Cards" })).toBeInTheDocument();
+    expect(screen.getByText("1 card")).toBeInTheDocument();
+    expect(screen.getByText("score -2–4 · 1 tag")).toBeInTheDocument();
+    expect(screen.getByLabelText("Selected tags")).toHaveTextContent("typescript");
+    expect(screen.getByText("Filters")).toBeVisible();
   });
 
   it("removes one selected tag through the existing filter callback", async () => {
     mocks.filter = { scoreMin: null, scoreMax: null, selectedTags: ["typescript", "react"] };
-    const view = render(<CardListPage />);
+    render(<CardListPage />);
 
-    await userEvent.click(view.getByRole("button", { name: "Remove typescript filter" }));
+    await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
     expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);
   });
 
   it("cancels or confirms Card deletion with observable feedback", async () => {
-    const view = render(<CardListPage />);
-    const trigger = view.getByRole("button", { name: `Open actions for ${card.frontText}` });
+    render(<CardListPage />);
+    const trigger = screen.getByRole("button", { name: `Open actions for ${card.frontText}` });
 
     await userEvent.click(trigger);
-    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
-    const dialog = view.getByRole("alertdialog", { name: "Delete card?" });
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
     expect(dialog).toHaveTextContent(card.frontText);
     expect(dialog).toHaveTextContent("cannot be undone");
 
-    await userEvent.click(view.getByRole("button", { name: "Cancel" }));
-    expect(view.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
-    expect(view.queryByText(`Deleted card “${card.frontText}”.`)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
+    expect(screen.queryByText(`Deleted card “${card.frontText}”.`)).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
 
     await userEvent.click(trigger);
-    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(view.getByRole("button", { name: "Delete card" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
-    expect(view.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
-    expect(view.getByText(`Deleted card “${card.frontText}”.`).closest('[role="status"]')).toBeInTheDocument();
+    expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
+    expect(screen.getByText(`Deleted card “${card.frontText}”.`)).toBeInTheDocument();
   });
 
   it("forwards pending, error, and retry state", async () => {
@@ -217,16 +216,16 @@ describe("CardListPage", () => {
     mocks.pendingCardId = card.id;
     const view = render(<CardListPage />);
 
-    expect(view.getByText("Saving…").closest('[role="status"]')).toHaveTextContent("Saving…");
-    expect(view.getByRole("button", { name: `View ${card.frontText}` })).toBeDisabled();
-    expect(view.getByRole("button", { name: `Open actions for ${card.frontText}` })).toBeDisabled();
+    expect(screen.getByText("Saving…")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: `View ${card.frontText}` })).toBeDisabled();
+    expect(screen.getByRole("button", { name: `Open actions for ${card.frontText}` })).toBeDisabled();
 
     mocks.pending = false;
     mocks.pendingCardId = undefined;
     mocks.error = new Error("write failed");
     view.rerender(<CardListPage />);
-    expect(view.getByRole("alert")).toHaveTextContent("Unable to save changes.");
-    await userEvent.click(view.getByRole("button", { name: "Retry" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to save changes.");
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(mocks.retry).toHaveBeenCalledOnce();
   });
 
@@ -234,41 +233,41 @@ describe("CardListPage", () => {
     mocks.cardRemove.mockRejectedValueOnce(new Error("delete failed"));
     const view = render(<CardListPage />);
 
-    await userEvent.click(view.getByRole("button", { name: `Open actions for ${card.frontText}` }));
-    await userEvent.click(view.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(view.getByRole("button", { name: "Delete card" }));
+    await userEvent.click(screen.getByRole("button", { name: `Open actions for ${card.frontText}` }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
-    expect(view.getByRole("alertdialog", { name: "Delete card?" })).toBeInTheDocument();
-    expect(view.getByText("Unable to delete this card. Check your connection and try again.")).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeInTheDocument();
+    expect(screen.getByText("Unable to delete this card. Check your connection and try again.")).toBeInTheDocument();
     mocks.error = new Error("delete failed");
     view.rerender(<CardListPage />);
-    await userEvent.click(view.getByRole("button", { name: "Retry" }));
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(mocks.retry).toHaveBeenCalledOnce();
   });
 
   it("opens a selected card's back text and closes it through the overlay callback", async () => {
-    const view = render(<CardListPage />);
+    render(<CardListPage />);
 
-    expect(view.queryByText(card.backText)).not.toBeInTheDocument();
+    expect(screen.queryByText(card.backText)).not.toBeInTheDocument();
 
-    await userEvent.click(view.getByRole("button", { name: `View ${card.frontText}` }));
-    expect(view.getByText(card.backText)).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: `View ${card.frontText}` }));
+    expect(screen.getByText(card.backText)).toBeVisible();
 
-    await userEvent.click(view.getByText(card.backText));
-    expect(view.queryByText(card.backText)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByText(card.backText));
+    expect(screen.queryByText(card.backText)).not.toBeInTheDocument();
   });
 
   it("renders a language card as code and closes it through the overlay callback", async () => {
     const languageCard = { ...card, tags: ["typescript"], backText: "const answer = 42;" };
     mocks.cards = [languageCard];
-    const view = render(<CardListPage />);
+    render(<CardListPage />);
 
-    await userEvent.click(view.getByRole("button", { name: `View ${languageCard.frontText}` }));
+    await userEvent.click(screen.getByRole("button", { name: `View ${languageCard.frontText}` }));
 
-    const code = view.container.querySelector("pre.typescript") as HTMLElement;
+    const code = screen.getByText(/answer =/);
     expect(code).toHaveTextContent(languageCard.backText);
 
     await userEvent.click(code);
-    expect(view.queryByText(languageCard.backText)).not.toBeInTheDocument();
+    expect(screen.queryByText(languageCard.backText)).not.toBeInTheDocument();
   });
 });

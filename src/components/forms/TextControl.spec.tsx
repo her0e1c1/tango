@@ -5,16 +5,14 @@
  * select values, refs, and handlers".
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { createRef } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Input } from "@/components/forms/Input";
 import { Select } from "@/components/forms/Select";
 import { Textarea } from "@/components/forms/Textarea";
-
-afterEach(cleanup);
 
 const sharedVisualClasses = [
   "border-border",
@@ -102,14 +100,14 @@ describe("shared text controls", () => {
   });
 
   it("forwards invalid state to native text controls", () => {
-    const view = render(
+    render(
       <>
         <Input aria-invalid />
         <Textarea aria-invalid />
       </>
     );
 
-    for (const control of view.container.querySelectorAll("input, textarea")) {
+    for (const control of screen.getAllByRole("textbox")) {
       expect(control).toHaveAttribute("aria-invalid", "true");
     }
   });
@@ -179,7 +177,7 @@ describe("shared text controls", () => {
   });
 
   it("keeps each focusable control on the native focus path", () => {
-    const view = render(
+    render(
       <>
         <Input />
         <Select options={[{ label: "Primary", value: "primary" }]} />
@@ -187,7 +185,8 @@ describe("shared text controls", () => {
       </>
     );
 
-    for (const control of view.container.querySelectorAll<HTMLElement>("input, select, textarea")) {
+    const controls = [...screen.getAllByRole("textbox"), screen.getByRole("combobox")];
+    for (const control of controls) {
       control.focus();
       expect(control).toHaveFocus();
       expect(control).toHaveClass("focus-visible:border-focus");
@@ -195,25 +194,26 @@ describe("shared text controls", () => {
   });
 
   it.each([
-    ["input", () => render(<Input />)],
-    ["select", () => render(<Select options={[{ label: "Primary", value: "primary" }]} />)],
-    ["textarea", () => render(<Textarea />)],
-  ])("gives the native %s a shared mobile touch target", (_name, renderControl) => {
-    const view = renderControl();
+    ["input", "textbox", () => render(<Input />)],
+    ["select", "combobox", () => render(<Select options={[{ label: "Primary", value: "primary" }]} />)],
+    ["textarea", "textbox", () => render(<Textarea />)],
+  ])("gives the native %s a shared mobile touch target", (_name, role, renderControl) => {
+    renderControl();
 
-    expect(view.container.firstElementChild).toHaveClass("min-h-touch");
+    expect(screen.getByRole(role)).toHaveClass("min-h-touch");
   });
 
   it.each([
-    ["input", () => render(<Input required defaultValue="" />)],
+    ["input", "textbox", () => render(<Input required defaultValue="" />)],
     [
       "select",
+      "combobox",
       () => render(<Select empty required defaultValue="" options={[{ label: "Primary", value: "primary" }]} />),
     ],
-    ["textarea", () => render(<Textarea required />)],
-  ])("makes invalid styling reachable on the native %s", (_name, renderControl) => {
-    const view = renderControl();
-    const element = view.container.firstElementChild;
+    ["textarea", "textbox", () => render(<Textarea required />)],
+  ])("makes invalid styling reachable on the native %s", (_name, role, renderControl) => {
+    renderControl();
+    const element = screen.getByRole(role);
 
     expect(element).toBeInvalid();
     expect(element).toHaveClass("invalid:border-danger");

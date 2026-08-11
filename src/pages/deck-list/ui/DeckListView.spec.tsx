@@ -5,9 +5,9 @@
  */
 
 import * as React from "react";
-import { cleanup, fireEvent, render, within } from "@testing-library/react";
+import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createDeck } from "@/test/factories";
 
@@ -47,46 +47,44 @@ const ControlledDeckList = () => {
 };
 
 describe("DeckListView", () => {
-  afterEach(cleanup);
-
   it("renders the page count and both compact sections", () => {
-    const view = render(<DeckListView sections={sections} />);
+    render(<DeckListView sections={sections} />);
 
-    expect(view.getByRole("heading", { level: 1, name: "Decks" })).toBeInTheDocument();
-    expect(view.getByText("2 decks")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Decks" })).toBeInTheDocument();
+    expect(screen.getByText("2 decks")).toBeInTheDocument();
 
-    const studying = view.getByRole("region", { name: "Studying" });
+    const studying = screen.getByRole("region", { name: "Studying" });
     expect(within(studying).getByText("1 deck · recent first")).toBeInTheDocument();
     expect(within(studying).getByText(activeDeck.name)).toBeInTheDocument();
 
-    const other = view.getByRole("region", { name: "Other decks" });
+    const other = screen.getByRole("region", { name: "Other decks" });
     expect(within(other).getByText("1 deck · A–Z")).toBeInTheDocument();
     expect(within(other).getByText(otherDeck.name)).toBeInTheDocument();
   });
 
   it("omits empty sections", () => {
-    const view = render(<DeckListView sections={{ studying: [], other: sections.other }} />);
+    render(<DeckListView sections={{ studying: [], other: sections.other }} />);
 
-    expect(view.queryByRole("region", { name: "Studying" })).not.toBeInTheDocument();
-    expect(view.getByRole("region", { name: "Other decks" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Studying" })).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Other decks" })).toBeInTheDocument();
   });
 
   it("opens one deck actions menu at a time", () => {
-    const view = render(<ControlledDeckList />);
+    render(<ControlledDeckList />);
 
-    fireEvent.click(view.getByRole("button", { name: "Open actions for Active deck" }));
-    expect(view.getByRole("menu", { name: "Actions for Active deck" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Active deck" }));
+    expect(screen.getByRole("menu", { name: "Actions for Active deck" })).toBeInTheDocument();
 
-    fireEvent.click(view.getByRole("button", { name: "Open actions for Other deck" }));
-    expect(view.queryByRole("menu", { name: "Actions for Active deck" })).not.toBeInTheDocument();
-    expect(view.getByRole("menu", { name: "Actions for Other deck" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Other deck" }));
+    expect(screen.queryByRole("menu", { name: "Actions for Active deck" })).not.toBeInTheDocument();
+    expect(screen.getByRole("menu", { name: "Actions for Other deck" })).toBeInTheDocument();
   });
 
   it("does not introduce an empty-state message", () => {
-    const view = render(<DeckListView sections={{ studying: [], other: [] }} />);
+    render(<DeckListView sections={{ studying: [], other: [] }} />);
 
-    expect(view.getByText("0 decks")).toBeInTheDocument();
-    expect(view.queryByRole("region")).not.toBeInTheDocument();
-    expect(view.queryByText(/no decks/i)).not.toBeInTheDocument();
+    expect(screen.getByText("0 decks")).toBeInTheDocument();
+    expect(screen.queryByRole("region")).not.toBeInTheDocument();
+    expect(screen.queryByText(/no decks/i)).not.toBeInTheDocument();
   });
 });

@@ -5,13 +5,11 @@
  * behavior".
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Button } from "@/shared/ui/button";
-
-afterEach(cleanup);
 
 describe("Button action control", () => {
   it.each([
