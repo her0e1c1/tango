@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckFormTemplate" contract with automated examples.
+ * @file Verifies the "DeckFormView" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "composes deck context,
  * feedback, and form in a bounded semantic editing surface".
  */
@@ -9,16 +9,23 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
+vi.mock("@/features/deck", async () => {
+  const { DeckForm } = await vi.importActual<typeof import("@/features/deck/components/DeckForm")>(
+    "@/features/deck/components/DeckForm"
+  );
+  return { DeckForm };
+});
+
+import { DeckFormView } from "./DeckFormView";
 import { createDeck } from "@/test/factories";
 
-describe("DeckFormTemplate", () => {
+describe("DeckFormView", () => {
   afterEach(cleanup);
 
   it("composes deck context, feedback, and form in a bounded semantic editing surface", async () => {
     const onCancel = vi.fn();
     const view = render(
-      <DeckFormTemplate
+      <DeckFormView
         feedbackSlot={<div role="status">Saved</div>}
         deckForm={{
           deck: createDeck({ id: "deck-123", name: "Deck name" }),

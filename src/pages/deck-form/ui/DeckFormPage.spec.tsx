@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckFormContainer" contract with automated examples.
+ * @file Verifies the "DeckFormPage" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "submits the current deck",
  * "submits an edited name", "submits an edited URL".
  */
@@ -36,24 +36,33 @@ vi.mock("react-router-dom", () => ({
 vi.mock("@/hooks/useActions", () => ({
   useActions: () => ({
     goToTop: vi.fn(),
-    goByMenu: vi.fn(),
+    goToImport: vi.fn(),
+    goToSettings: vi.fn(),
     setDarkMode: vi.fn(),
   }),
 }));
 
-vi.mock("@/features/deck/hooks/useDeckActions", () => ({
-  useDeckActions: () => ({
-    updateAndGoToList: mocks.updateAndGoToList,
-    goToList: mocks.goToList,
-    pending: false,
-    error: null,
-    retry: vi.fn(),
-  }),
-}));
+vi.mock("@/features/deck", async () => {
+  const [{ DeckForm }, { deckFormSchema }] = await Promise.all([
+    vi.importActual<typeof import("@/features/deck/components/DeckForm")>("@/features/deck/components/DeckForm"),
+    vi.importActual<typeof import("@/features/deck/lib/deckFormSchema")>("@/features/deck/lib/deckFormSchema"),
+  ]);
+  return {
+    DeckForm,
+    deckFormSchema,
+    useDeckActions: () => ({
+      updateAndGoToList: mocks.updateAndGoToList,
+      goToList: mocks.goToList,
+      pending: false,
+      error: null,
+      retry: vi.fn(),
+    }),
+  };
+});
 
-import { DeckFormContainer } from "@/features/deck/containers/DeckFormContainer";
+import { DeckFormPage } from "./DeckFormPage";
 
-describe("DeckFormContainer", () => {
+describe("DeckFormPage", () => {
   const deck: Deck = {
     id: "deck-id",
     uid: "user-id",
@@ -85,7 +94,7 @@ describe("DeckFormContainer", () => {
   });
 
   it("submits the current deck", async () => {
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
 
     await userEvent.click(view.getByRole("button", { name: /save/i }));
 
@@ -93,7 +102,7 @@ describe("DeckFormContainer", () => {
   });
 
   it("submits an edited name", async () => {
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
     const input = view.container.querySelector("input[name='name']") as Element;
 
     await userEvent.clear(input);
@@ -104,7 +113,7 @@ describe("DeckFormContainer", () => {
   });
 
   it("submits an edited URL", async () => {
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
     const input = view.container.querySelector("input[name='url']") as Element;
 
     await userEvent.type(input, "https://example.com/deck.csv");
@@ -114,7 +123,7 @@ describe("DeckFormContainer", () => {
   });
 
   it("submits the convert setting", async () => {
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
     const input = view.container.querySelector("input[name='convertToBr']") as Element;
 
     await userEvent.click(input);
@@ -124,7 +133,7 @@ describe("DeckFormContainer", () => {
   });
 
   it("submits an edited category", async () => {
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
     const select = view.container.querySelector("select[name='category']") as Element;
 
     await userEvent.selectOptions(select, "math");
@@ -134,7 +143,7 @@ describe("DeckFormContainer", () => {
   });
 
   it("blocks a blank name and malformed URL", async () => {
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
     const name = view.container.querySelector("input[name='name']") as Element;
     const url = view.container.querySelector("input[name='url']") as Element;
 
@@ -151,7 +160,7 @@ describe("DeckFormContainer", () => {
   });
 
   it("cancels without submitting", async () => {
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Cancel" }));
 
@@ -160,14 +169,14 @@ describe("DeckFormContainer", () => {
   });
 
   it("does not render the unavailable public setting", () => {
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
 
     expect(view.container.querySelector("input[name='isPublic']")).not.toBeInTheDocument();
   });
 
   it("shows recovery actions when the deck is unavailable", () => {
     mocks.deck = null;
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
 
     expect(view.getByRole("heading", { level: 1, name: "Deck not found" })).toBeInTheDocument();
     expect(view.getByRole("button", { name: "Go home" })).toBeInTheDocument();
@@ -176,7 +185,7 @@ describe("DeckFormContainer", () => {
 
   it("goes home when deck recovery is requested", async () => {
     mocks.deck = null;
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Go home" }));
 
@@ -185,7 +194,7 @@ describe("DeckFormContainer", () => {
 
   it("goes back when deck recovery is requested", async () => {
     mocks.deck = null;
-    const view = render(<DeckFormContainer />);
+    const view = render(<DeckFormPage />);
 
     await userEvent.click(view.getByRole("button", { name: "Go back" }));
 
@@ -195,6 +204,6 @@ describe("DeckFormContainer", () => {
   it("preserves the invalid route error", () => {
     mocks.params.id = undefined;
 
-    expect(() => render(<DeckFormContainer />)).toThrowError("invalid deck id");
+    expect(() => render(<DeckFormPage />)).toThrowError("invalid deck id");
   });
 });
