@@ -1,0 +1,10 @@
+/*
+ * @file Loads the global style layers used by the application.
+ * Tailwind, third-party content styles, and Tango's visual theme are combined here before React
+ * renders the page.
+ */
+
+@import "tailwindcss";
+@import "./calm-focus.css";
+
+@custom-variant dark (&:where(.dark, .dark *));

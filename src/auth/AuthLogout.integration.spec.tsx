@@ -78,7 +78,7 @@ vi.mock("react-use", () => ({ useKey: vi.fn() }));
 import { logout } from "@/action/event";
 import { AuthBootstrap } from "@/auth/AuthBootstrap";
 import { AuthProvider, createAuthStore, useAuth } from "@/auth/AuthContext";
-import { ConfigContainer } from "@/features/settings/containers/ConfigContainer";
+import { ConfigContainer } from "@/features/settings";
 import { studyStore } from "@/features/study/state/studyStore";
 
 afterEach(() => {
