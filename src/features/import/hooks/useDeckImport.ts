@@ -11,8 +11,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import * as action from "@/action";
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
-import { selectCardsForDeck, useCards } from "@/entities/card";
-import { useDecks } from "@/entities/deck";
+import { createCard, selectCardsForDeck, useCards } from "@/entities/card";
+import { createDeck, useDecks } from "@/entities/deck";
 import { useSession } from "@/entities/session";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
@@ -96,7 +96,7 @@ const prepareDeckImportAttempt = (
   );
   const createDeckPending = deck == null;
   if (deck == null) {
-    deck = action.deck.prepare({ name }, uid, firestoreMetadata.generateDeckId);
+    deck = createDeck({ name }, uid, firestoreMetadata.generateDeckId);
     if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
   }
 
@@ -109,7 +109,7 @@ const prepareDeckImportAttempt = (
   plan.rows.forEach((row) => {
     const current = byUniqueKey.get(row.card.uniqueKey);
     if (row.action === "create") {
-      const card = action.card.prepare(row.card, deck, firestoreMetadata.generateCardId);
+      const card = createCard(row.card, deck, firestoreMetadata.generateCardId);
       remainingUpserts.push(card);
       createdIds.push(card.id);
     } else if (row.action === "update" && current != null) {

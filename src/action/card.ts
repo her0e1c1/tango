@@ -4,7 +4,7 @@
  * depending on React components.
  */
 
-import type { Card, CardDeck, CardRaw } from "@/entities/card";
+import type { Card, CardRaw } from "@/entities/card";
 
 /**
  * Checks whether raw card input has neither front text nor back text.
@@ -35,23 +35,3 @@ export const fromRow = (row: string[]): CardRaw => {
  * The reverse mapping keeps exported files compatible with the import parser.
  */
 export const toRow = (card: Card): string[] => [card.frontText, card.backText, card.tags.join(","), card.uniqueKey];
-
-/**
- * Creates a complete card from raw input, defaults, and generated identifiers.
- * The returned domain object is ready to validate, display, or persist without extra setup from
- * the caller.
- */
-export const prepare = (card: CardRaw, deck: CardDeck, generateId: () => string): Card => {
-  const { uid, id: deckId } = deck;
-  return {
-    ...card,
-    uid,
-    deckId,
-    id: generateId(),
-    score: 0,
-    numberOfSeen: 0,
-    createdAt: 0,
-    updatedAt: 0,
-    deletedAt: null,
-  };
-};
