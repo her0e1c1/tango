@@ -53,6 +53,28 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["src/shared/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/app/**", "@/entities/**", "@/features/**", "@/pages/**", "@/widgets/**"],
+                    "message": "Shared modules cannot import from higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "assist": {
     "actions": {
       "source": {
