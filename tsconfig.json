@@ -18,8 +18,10 @@
     "skipLibCheck": true,
     "noEmit": true,
     "paths": {
+      "@/storybook/*": ["./.storybook/support/*"],
+      "@/test/*": ["./test/*"],
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "*.ts", ".storybook/**/*", "e2e/**/*"]
+  "include": ["src", "test", "*.ts", ".storybook/**/*", "e2e/**/*"]
 }
