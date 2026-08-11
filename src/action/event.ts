@@ -98,23 +98,22 @@ export const logout = (confirmedUid: string): Promise<void> =>
 export const loginGoogle = async (): Promise<void> => {
   const currentUser = auth.currentUser;
   if (!currentUser) {
-    console.error("must sign in anonymously in advance");
-    return;
+    throw new Error("Anonymous user is required before Google sign-in");
   }
-  let result: UserCredential | null = null;
+
+  const provider = new GoogleAuthProvider();
+  let result: UserCredential;
+
   try {
-    result = await linkWithPopup(currentUser, new GoogleAuthProvider());
-  } catch (e) {
-    if (e instanceof FirebaseError) {
-      const credential = GoogleAuthProvider.credentialFromError(e);
-      if (credential) {
-        result = await signInWithCredential(auth, credential);
-      }
-    }
+    result = await linkWithPopup(currentUser, provider);
+  } catch (error) {
+    if (!(error instanceof FirebaseError)) throw error;
+
+    const credential = GoogleAuthProvider.credentialFromError(error);
+    if (credential == null) throw error;
+
+    result = await signInWithCredential(auth, credential);
   }
-  if (!result) {
-    throw Error("failed to login");
-  }
-  process.env.NODE_ENV !== "production" && console.log("LOGIN GOOGLE", result);
+
   publishAuthenticatedUser(result.user);
 };

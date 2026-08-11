@@ -6,7 +6,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { linkWithPopup, signOut } from "firebase/auth";
+import { GoogleAuthProvider, linkWithPopup, signInWithCredential, signOut } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 
 import * as action from "@/action";
 import { STUDY_STORAGE_KEY, studyStore } from "@/features/study/state/studyStore";
@@ -79,6 +80,11 @@ describe("event action", () => {
     expect(studyStore.getState().sessionsByDeckId).toEqual({});
   });
 
+  it("rejects when no currentUser is present", async () => {
+    mocks.auth.currentUser = null;
+    await expect(action.event.loginGoogle()).rejects.toThrow("Anonymous user is required before Google sign-in");
+  });
+
   it("publishes a linked Firebase user without persisting identity", async () => {
     const user = { uid: "uid-a", isAnonymous: false, providerData: [] };
     mocks.auth.currentUser = {};
@@ -86,5 +92,51 @@ describe("event action", () => {
     await action.event.loginGoogle();
 
     expect(mocks.publishAuthenticatedUser).toHaveBeenCalledWith(user);
+  });
+
+  it("propagates non-Firebase errors during Google sign-in", async () => {
+    mocks.auth.currentUser = {};
+    const nonFirebaseError = new Error("Network error");
+    vi.mocked(linkWithPopup).mockRejectedValue(nonFirebaseError);
+
+    await expect(action.event.loginGoogle()).rejects.toThrow("Network error");
+  });
+
+  it("propagates Firebase errors when no credential can be recovered", async () => {
+    mocks.auth.currentUser = {};
+    const firebaseError = new FirebaseError("auth/popup-closed-by-user", "Popup closed");
+    vi.mocked(linkWithPopup).mockRejectedValue(firebaseError);
+    vi.mocked(GoogleAuthProvider.credentialFromError).mockReturnValue(null);
+
+    await expect(action.event.loginGoogle()).rejects.toThrow(firebaseError);
+  });
+
+  it("recovers credentials and publishes user when linkWithPopup fails with recoverable Firebase error", async () => {
+    mocks.auth.currentUser = {};
+    const firebaseError = new FirebaseError("auth/credential-already-in-use", "Credential already in use");
+    const credential = { providerId: "google.com" };
+    const user = { uid: "uid-b", isAnonymous: false, providerData: [] };
+
+    vi.mocked(linkWithPopup).mockRejectedValue(firebaseError);
+    vi.mocked(GoogleAuthProvider.credentialFromError).mockReturnValue(credential as never);
+    vi.mocked(signInWithCredential).mockResolvedValue({ user } as never);
+
+    await action.event.loginGoogle();
+
+    expect(signInWithCredential).toHaveBeenCalledWith(mocks.auth, credential);
+    expect(mocks.publishAuthenticatedUser).toHaveBeenCalledWith(user);
+  });
+
+  it("propagates failure when credential recovery fails", async () => {
+    mocks.auth.currentUser = {};
+    const firebaseError = new FirebaseError("auth/credential-already-in-use", "Credential already in use");
+    const credential = { providerId: "google.com" };
+    const recoveryError = new Error("SignInWithCredential failed");
+
+    vi.mocked(linkWithPopup).mockRejectedValue(firebaseError);
+    vi.mocked(GoogleAuthProvider.credentialFromError).mockReturnValue(credential as never);
+    vi.mocked(signInWithCredential).mockRejectedValue(recoveryError);
+
+    await expect(action.event.loginGoogle()).rejects.toThrow("SignInWithCredential failed");
   });
 });
