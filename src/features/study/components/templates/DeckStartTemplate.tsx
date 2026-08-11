@@ -13,6 +13,7 @@ export interface DeckStartTemplateProps {
   deckName: string;
   maxNumberOfCardsToLearn: number;
   cardsLength: number;
+  feedbackSlot?: React.ReactNode;
   filterSlot?: React.ReactNode;
   onClickStart?: () => void;
 }
@@ -38,6 +39,7 @@ export const DeckStartTemplate: React.FC<DeckStartTemplateProps> = (props) => {
 
   return (
     <Layout showHeader {...props.layout}>
+      {props.feedbackSlot}
       <div className="mx-auto w-full max-w-reading space-y-section-gap">
         <header>
           <p className="text-caption font-bold uppercase tracking-wider text-accent-primary">Study setup</p>

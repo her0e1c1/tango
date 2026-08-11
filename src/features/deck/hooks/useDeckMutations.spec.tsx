@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   uid: "uid-a",
   create: vi.fn(),
   update: vi.fn(),
+  updateFilter: vi.fn(),
   remove: vi.fn(),
 }));
 
@@ -20,6 +21,7 @@ vi.mock("@/auth/AuthContext", () => ({
 vi.mock("@/adapters/firestore/deck", () => ({
   create: mocks.create,
   update: mocks.update,
+  updateFilter: mocks.updateFilter,
   remove: mocks.remove,
 }));
 
@@ -31,6 +33,7 @@ describe("useDeckMutations", () => {
     mocks.uid = "uid-a";
     mocks.create.mockResolvedValue("deck-id");
     mocks.update.mockResolvedValue(undefined);
+    mocks.updateFilter.mockResolvedValue(undefined);
     mocks.remove.mockResolvedValue(undefined);
   });
 
@@ -117,6 +120,25 @@ describe("useDeckMutations", () => {
       expect(result.current.error).toBeNull();
     });
     expect(onRemoveSuccess).not.toHaveBeenCalled();
+  });
+
+  it("exposes and retries a failed Deck filter update", async () => {
+    const failure = new Error("filter update failed");
+    mocks.updateFilter.mockRejectedValueOnce(failure).mockResolvedValueOnce(undefined);
+    const { result } = renderHook(useDeckMutations);
+
+    await actAsync(async () => {
+      await expect(result.current.updateFilter("deck", { tagAndFilter: true })).rejects.toBe(failure);
+    });
+    expect(result.current.error).toBe(failure);
+
+    act(() => result.current.retry());
+
+    await waitFor(() => {
+      expect(mocks.updateFilter).toHaveBeenCalledTimes(2);
+      expect(result.current.error).toBeNull();
+    });
+    expect(mocks.updateFilter).toHaveBeenLastCalledWith("deck", { tagAndFilter: true });
   });
 
   it("rejects writes without a confirmed user and exposes the error", async () => {

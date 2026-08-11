@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
+import type { DeckFilterPatch } from "@/entities/deck";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { deckCommands } from "@/services/deckCommands";
 
@@ -30,6 +31,8 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
 
   const create = (deck: Deck) => mutation.run([deck.id], `create:${deck.id}`, () => deckCommands.create(uid, deck));
   const update = (deck: DeckEdit) => mutation.run([deck.id], `update:${deck.id}`, () => deckCommands.update(uid, deck));
+  const updateFilter = (deckId: DeckId, patch: DeckFilterPatch) =>
+    mutation.run([deckId], `updateFilter:${deckId}`, () => deckCommands.updateFilter(uid, deckId, patch));
   const remove = (deck: Deck) => {
     const operationScope = scope.current;
     return mutation.run([deck.id], `remove:${deck.id}`, async () => {
@@ -41,6 +44,7 @@ export const useDeckMutations = ({ onRemoveSuccess }: UseDeckMutationsOptions = 
   return {
     create,
     update,
+    updateFilter,
     remove,
     pending: mutation.pending,
     isPending: mutation.isPending,

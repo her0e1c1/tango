@@ -5,6 +5,7 @@
  * "stops responding to Enter when a rerender has no matching cards".
  */
 
+import userEvent from "@testing-library/user-event";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -17,14 +18,22 @@ const mocks = vi.hoisted(() => {
   return {
     start,
     currentStart: start,
-    update: vi.fn(),
+    updateFilter: vi.fn(),
+    pending: false,
+    error: null as unknown,
+    retry: vi.fn(),
   };
 });
 vi.mock("@/hooks/useRemoteCollections", () => ({
   useRemoteCollections: vi.fn(),
 }));
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({
-  useDeckActions: () => ({ update: mocks.update }),
+  useDeckActions: () => ({
+    updateFilter: mocks.updateFilter,
+    pending: mocks.pending,
+    error: mocks.error,
+    retry: mocks.retry,
+  }),
 }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({ start: mocks.currentStart }),
@@ -64,12 +73,23 @@ describe("DeckStartContent", () => {
     cleanup();
     vi.clearAllMocks();
     mocks.currentStart = mocks.start;
+    mocks.pending = false;
+    mocks.error = null;
   });
 
   it("passes Deck and session context to the template", () => {
     const view = renderContent({ cards: [createCard()], config: createConfig({ maxNumberOfCardsToLearn: 1 }) });
     expect(view.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeInTheDocument();
     expect(view.getByRole("button", { name: "Start 1 card" })).toBeInTheDocument();
+  });
+
+  it("shows filter save failures and retries them", async () => {
+    mocks.error = new Error("filter write failed");
+    const view = renderContent();
+
+    expect(view.getByRole("alert")).toHaveTextContent("Unable to save filters.");
+    await userEvent.click(view.getByRole("button", { name: "Retry" }));
+    expect(mocks.retry).toHaveBeenCalledOnce();
   });
 
   it("starts from Enter when cards match and focus is not interactive", () => {

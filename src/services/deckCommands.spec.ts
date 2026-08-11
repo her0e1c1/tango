@@ -6,6 +6,7 @@ import { createCard as createCardFixture, createDeck as createDeckFixture } from
 const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   update: vi.fn(),
+  updateFilter: vi.fn(),
   remove: vi.fn(),
 }));
 
@@ -19,6 +20,7 @@ const cardMocks = vi.hoisted(() => ({
 vi.mock("@/adapters/firestore/deck", () => ({
   create: mocks.create,
   update: mocks.update,
+  updateFilter: mocks.updateFilter,
   remove: mocks.remove,
 }));
 
@@ -40,6 +42,7 @@ describe("deck commands", () => {
     vi.clearAllMocks();
     mocks.create.mockResolvedValue("created");
     mocks.update.mockResolvedValue(undefined);
+    mocks.updateFilter.mockResolvedValue(undefined);
     mocks.remove.mockResolvedValue(undefined);
     cardMocks.create.mockResolvedValue("created");
     cardMocks.update.mockResolvedValue(undefined);
@@ -57,6 +60,12 @@ describe("deck commands", () => {
 
     expect(mocks.create).not.toHaveBeenCalled();
     expect(mocks.remove).not.toHaveBeenCalled();
+  });
+
+  it("writes only the requested Deck filter field", async () => {
+    await deckCommands.updateFilter("uid-a", "deck", { selectedTags: ["tag"] });
+
+    expect(mocks.updateFilter).toHaveBeenCalledExactlyOnceWith("deck", { selectedTags: ["tag"] });
   });
 
   it("serializes writes to the same Deck", async () => {

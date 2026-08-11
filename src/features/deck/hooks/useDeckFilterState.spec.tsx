@@ -12,6 +12,7 @@ import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
+import type { DeckFilterPatch } from "@/entities/deck";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { createDeck } from "@/test/factories";
@@ -23,7 +24,7 @@ import { createDeck } from "@/test/factories";
 const DeckFilterHarness: React.FC<{
   deck: Deck;
   tags: string[];
-  onSubmit: (deck: Deck) => void;
+  onSubmit: (patch: DeckFilterPatch) => unknown;
 }> = ({ deck, tags, onSubmit }) => {
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit });
   return <DeckStartForm {...deckStartForm} />;
@@ -42,7 +43,7 @@ describe("DeckStartForm with useDeckFilterState", () => {
     cleanup();
   });
 
-  it("auto-submits score and tag filter changes", async () => {
+  it("auto-submits only the filter field changed by each control", async () => {
     const onSubmit = vi.fn();
     const view = render(<DeckFilterHarness onSubmit={onSubmit} deck={deck} tags={tags} />);
 
@@ -52,18 +53,21 @@ describe("DeckStartForm with useDeckFilterState", () => {
     fireEvent.change(view.container.querySelector("input[name='scoreMin']") as Element, {
       target: { value: -2 },
     });
-    await userEvent.click(view.container.querySelector("input[name='tag-filter-click-filter']") as Element);
-    await userEvent.click(view.getByRole("button", { name: /all/i }));
+    fireEvent.click(view.container.querySelector("input[name='tag-filter-click-filter']") as Element);
+    fireEvent.click(view.getByRole("button", { name: /all/i }));
 
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({
-        ...deck,
-        scoreMax: 2,
-        scoreMin: -2,
-        tagAndFilter: true,
-        selectedTags: tags,
-      });
+      expect(onSubmit).toHaveBeenCalledWith({ scoreMax: 2 });
+      expect(onSubmit).toHaveBeenCalledWith({ scoreMin: -2 });
+      expect(onSubmit).toHaveBeenCalledWith({ tagAndFilter: true });
+      expect(onSubmit).toHaveBeenLastCalledWith({ selectedTags: tags });
     });
+    expect(onSubmit.mock.calls.flatMap(([patch]) => Object.keys(patch))).toEqual([
+      "scoreMax",
+      "scoreMin",
+      "tagAndFilter",
+      "selectedTags",
+    ]);
   });
 
   it("auto-submits score toggle and slider changes", async () => {
@@ -74,11 +78,11 @@ describe("DeckStartForm with useDeckFilterState", () => {
 
     await userEvent.click(view.container.querySelector("input[name='scoreMaxSwitch']") as Element);
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, scoreMax: 0, scoreMin: null });
+      expect(onSubmit).toHaveBeenLastCalledWith({ scoreMax: 0 });
     });
     await userEvent.click(view.container.querySelector("input[name='scoreMinSwitch']") as Element);
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, scoreMax: 0, scoreMin: 0 });
+      expect(onSubmit).toHaveBeenLastCalledWith({ scoreMin: 0 });
     });
 
     fireEvent.change(view.container.querySelector("input[name='scoreMax']") as Element, {
@@ -88,13 +92,15 @@ describe("DeckStartForm with useDeckFilterState", () => {
       target: { value: -2 },
     });
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, scoreMax: 2, scoreMin: -2 });
+      expect(onSubmit).toHaveBeenCalledWith({ scoreMax: 2 });
+      expect(onSubmit).toHaveBeenLastCalledWith({ scoreMin: -2 });
     });
 
     await userEvent.click(view.container.querySelector("input[name='scoreMaxSwitch']") as Element);
     await userEvent.click(view.container.querySelector("input[name='scoreMinSwitch']") as Element);
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, scoreMax: null, scoreMin: null });
+      expect(onSubmit).toHaveBeenCalledWith({ scoreMax: null });
+      expect(onSubmit).toHaveBeenLastCalledWith({ scoreMin: null });
     });
   });
 
@@ -104,17 +110,45 @@ describe("DeckStartForm with useDeckFilterState", () => {
 
     await userEvent.click(view.getByText("tag2"));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, selectedTags: ["tag2"] });
+      expect(onSubmit).toHaveBeenLastCalledWith({ selectedTags: ["tag2"] });
     });
 
     await userEvent.click(view.getByRole("button", { name: /all/i }));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, selectedTags: tags });
+      expect(onSubmit).toHaveBeenLastCalledWith({ selectedTags: tags });
     });
 
     await userEvent.click(view.getByRole("button", { name: /clear/i }));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, selectedTags: [] });
+      expect(onSubmit).toHaveBeenLastCalledWith({ selectedTags: [] });
     });
+  });
+
+  it("syncs remote filter changes without submitting them again", async () => {
+    const onSubmit = vi.fn();
+    const view = render(<DeckFilterHarness onSubmit={onSubmit} deck={deck} tags={tags} />);
+
+    view.rerender(
+      <DeckFilterHarness
+        onSubmit={onSubmit}
+        deck={{ ...deck, selectedTags: ["tag2"], tagAndFilter: true }}
+        tags={tags}
+      />
+    );
+
+    await waitFor(() => {
+      expect(view.getByRole("checkbox", { name: "tag2" })).toBeChecked();
+      expect(view.getByRole("checkbox", { name: "Match all selected tags" })).toBeChecked();
+    });
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("handles a rejected auto-save without leaving an unhandled rejection", async () => {
+    const onSubmit = vi.fn().mockRejectedValue(new Error("save failed"));
+    const view = render(<DeckFilterHarness onSubmit={onSubmit} deck={deck} tags={tags} />);
+
+    await userEvent.click(view.getByText("tag2"));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledExactlyOnceWith({ selectedTags: ["tag2"] }));
   });
 });

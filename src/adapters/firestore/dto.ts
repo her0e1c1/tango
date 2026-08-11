@@ -7,6 +7,8 @@
 import type { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 
+import type { DeckFilterPatch } from "@/entities/deck";
+
 const validDateSchema = z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date");
 const timestampSchema = z.custom<Timestamp>(
   (value) =>
@@ -56,9 +58,27 @@ const deckUpdateDtoSchema = deckDocumentSchema.omit({ id: true }).partial().exte
   updatedAt: z.number(),
 });
 
+const deckFilterUpdateDtoSchema = z
+  .object({
+    selectedTags: z.array(z.string()).optional(),
+    tagAndFilter: z.boolean().optional(),
+    scoreMax: z.number().nullable().optional(),
+    scoreMin: z.number().nullable().optional(),
+    updatedAt: z.number(),
+  })
+  .refine(
+    (value) =>
+      value.selectedTags !== undefined ||
+      value.tagAndFilter !== undefined ||
+      value.scoreMax !== undefined ||
+      value.scoreMin !== undefined,
+    "A Deck filter update must include a filter field"
+  );
+
 type DeckDocument = z.infer<typeof deckDocumentSchema>;
 export type DeckCreateDto = z.infer<typeof deckCreateDtoSchema>;
 export type DeckUpdateDto = z.infer<typeof deckUpdateDtoSchema>;
+export type DeckFilterUpdateDto = z.infer<typeof deckFilterUpdateDtoSchema>;
 
 export class FirestoreDocumentValidationError extends Error {
   constructor(
@@ -239,6 +259,14 @@ export const buildDeckUpdateDto = (deck: DeckEdit, updatedAt: number): DeckUpdat
       convertToBr: deck.convertToBr,
     })
   );
+
+/** Builds a narrow update containing only the filter field changed by an auto-save action. */
+export const buildDeckFilterUpdateDto = (patch: DeckFilterPatch, updatedAt: number): DeckFilterUpdateDto =>
+  deckFilterUpdateDtoSchema.parse({
+    ...patch,
+    ...("selectedTags" in patch ? { selectedTags: [...patch.selectedTags] } : {}),
+    updatedAt,
+  });
 
 /**
  * Builds card create dto from the supplied application values.

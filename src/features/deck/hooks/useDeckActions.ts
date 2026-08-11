@@ -6,6 +6,7 @@
 
 import { useNavigate } from "react-router-dom";
 
+import type { DeckFilterPatch } from "@/entities/deck";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 
@@ -20,6 +21,7 @@ export const useDeckActions = (id: DeckId) => {
   const mutations = useDeckMutations();
   return {
     update: mutations.update,
+    updateFilter: (patch: DeckFilterPatch) => mutations.updateFilter(id, patch),
     updateAndGoToList: async (deck: Deck) => {
       try {
         await mutations.update(deck);

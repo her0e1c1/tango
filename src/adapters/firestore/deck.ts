@@ -17,7 +17,13 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import { getTimestamp } from "@/adapters/firestore/documentMetadata";
-import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument } from "@/adapters/firestore/dto";
+import {
+  buildDeckCreateDto,
+  buildDeckFilterUpdateDto,
+  buildDeckUpdateDto,
+  mapDeckDocument,
+} from "@/adapters/firestore/dto";
+import type { DeckFilterPatch } from "@/entities/deck";
 import { getDb } from "@/shared/firebase/firestore-runtime";
 
 /**
@@ -74,6 +80,13 @@ export const update = async (deck: DeckEdit) => {
   const ref = doc(db, "deck", deck.id);
   const updatedAt = getTimestamp();
   await updateDoc(ref, buildDeckUpdateDto(deck, updatedAt));
+};
+
+/** Updates one Deck filter field without overwriting concurrent changes to the rest of the Deck. */
+export const updateFilter = async (deckId: DeckId, patch: DeckFilterPatch) => {
+  const db = getDb();
+  const ref = doc(db, "deck", deckId);
+  await updateDoc(ref, buildDeckFilterUpdateDto(patch, getTimestamp()));
 };
 
 /**

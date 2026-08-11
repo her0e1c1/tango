@@ -25,6 +25,7 @@ const renderTemplate = (overrides: Partial<React.ComponentProps<typeof DeckStart
       maxNumberOfCardsToLearn={24}
       cardsLength={123}
       onClickStart={onClickStart}
+      feedbackSlot={<div>Filter feedback</div>}
       filterSlot={<div>Filter controls</div>}
       {...overrides}
     />
@@ -41,6 +42,7 @@ describe("DeckStartTemplate", () => {
     expect(view.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeInTheDocument();
     expect(view.getByRole("heading", { level: 2, name: "24 cards in this session" })).toBeInTheDocument();
     expect(view.getByText("123 cards match your filters.")).toBeInTheDocument();
+    expect(view.getByText("Filter feedback")).toBeInTheDocument();
     expect(view.getByText("Filter controls")).toBeInTheDocument();
 
     await userEvent.click(view.getByRole("button", { name: "Start 24 cards" }));

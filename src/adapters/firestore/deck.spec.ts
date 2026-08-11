@@ -65,6 +65,18 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
+  it("updates one filter field without overwriting concurrent Deck changes", async () => {
+    const deck = { ...newDeck, id: uuid(), name: "latest name", category: "latest category", scoreMax: 4 };
+    await deckAdapter.create(deck);
+
+    await deckAdapter.updateFilter(deck.id, { selectedTags: ["math"] });
+
+    expect((await getDoc(doc(db, "deck", deck.id))).data()).toEqual({
+      ...deck,
+      selectedTags: ["math"],
+    });
+  });
+
   it("should delete a deck", async () => {
     const d = { ...newDeck, id: uuid() };
     await deckAdapter.create(d);

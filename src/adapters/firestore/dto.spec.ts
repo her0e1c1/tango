@@ -12,6 +12,7 @@ import {
   buildCardCreateDto,
   buildCardUpdateDto,
   buildDeckCreateDto,
+  buildDeckFilterUpdateDto,
   buildDeckUpdateDto,
   FirestoreDocumentValidationError,
   mapCardDocument,
@@ -233,6 +234,27 @@ describe("Firestore DTO builders", () => {
       category: "category",
       convertToBr: true,
     });
+  });
+
+  it("builds a Deck filter update from only the changed field and timestamp", () => {
+    expect(
+      buildDeckFilterUpdateDto(
+        { selectedTags: ["science"], name: "stale name" } as unknown as Parameters<typeof buildDeckFilterUpdateDto>[0],
+        102
+      )
+    ).toEqual({ selectedTags: ["science"], updatedAt: 102 });
+    expect(buildDeckFilterUpdateDto({ tagAndFilter: false }, 103)).toEqual({
+      tagAndFilter: false,
+      updatedAt: 103,
+    });
+    expect(buildDeckFilterUpdateDto({ scoreMin: null }, 104)).toEqual({ scoreMin: null, updatedAt: 104 });
+    expect(buildDeckFilterUpdateDto({ scoreMax: 5 }, 105)).toEqual({ scoreMax: 5, updatedAt: 105 });
+  });
+
+  it("rejects an empty Deck filter update", () => {
+    expect(() => buildDeckFilterUpdateDto({} as Parameters<typeof buildDeckFilterUpdateDto>[0], 106)).toThrow(
+      "must include a filter field"
+    );
   });
 
   it("allows only server card fields when creating", () => {

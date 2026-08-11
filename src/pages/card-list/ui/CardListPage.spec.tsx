@@ -20,6 +20,10 @@ const mocks = vi.hoisted(() => ({
   pending: false,
   error: null as unknown,
   retry: vi.fn(),
+  deckPending: false,
+  deckError: null as unknown,
+  deckRetry: vi.fn(),
+  deckUpdateFilter: vi.fn(),
   goToCardEdit: vi.fn(),
   cardUpdateBy: vi.fn(),
   cardRemove: vi.fn(),
@@ -93,7 +97,12 @@ vi.mock("@/features/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/deck")>();
   return {
     ...actual,
-    useDeckActions: () => ({ update: vi.fn() }),
+    useDeckActions: () => ({
+      updateFilter: mocks.deckUpdateFilter,
+      pending: mocks.deckPending,
+      error: mocks.deckError,
+      retry: mocks.deckRetry,
+    }),
     useDeckFilterState: () => ({
       scoreMax: mocks.filter.scoreMax,
       scoreMin: mocks.filter.scoreMin,
@@ -157,6 +166,10 @@ describe("CardListPage", () => {
     mocks.pending = false;
     mocks.error = null;
     mocks.retry.mockReset();
+    mocks.deckPending = false;
+    mocks.deckError = null;
+    mocks.deckRetry.mockReset();
+    mocks.deckUpdateFilter.mockReset();
     mocks.goToCardEdit.mockReset();
     mocks.cardUpdateBy.mockReset().mockResolvedValue(undefined);
     mocks.cardRemove.mockReset().mockResolvedValue(undefined);
@@ -228,6 +241,21 @@ describe("CardListPage", () => {
     expect(view.getByRole("alert")).toHaveTextContent("Unable to save changes.");
     await userEvent.click(view.getByRole("button", { name: "Retry" }));
     expect(mocks.retry).toHaveBeenCalledOnce();
+  });
+
+  it("shows Deck filter save progress and retry feedback", async () => {
+    mocks.deckPending = true;
+    const view = render(<CardListPage />);
+
+    expect(view.getByText("Saving filters…").closest('[role="status"]')).toBeInTheDocument();
+
+    mocks.deckPending = false;
+    mocks.deckError = new Error("filter write failed");
+    view.rerender(<CardListPage />);
+    expect(view.getByRole("alert")).toHaveTextContent("Unable to save filters.");
+
+    await userEvent.click(view.getByRole("button", { name: "Retry" }));
+    expect(mocks.deckRetry).toHaveBeenCalledOnce();
   });
 
   it("keeps a failed Card deletion explainable and retryable", async () => {

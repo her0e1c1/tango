@@ -10,7 +10,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { RemoteReadBoundary, RouteFeedback } from "@/components";
+import { RemoteMutationNotice, RemoteReadBoundary, RouteFeedback } from "@/components";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
@@ -38,7 +38,7 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
   const studyActions = useStudyActions(deckId);
   const startStudy = studyActions.start;
   const actions = useActions();
-  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
+  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.updateFilter });
   /**
    * Starts the study session when Enter is pressed outside an interactive control.
    * The guard prevents the shortcut from stealing Enter presses intended for buttons or form
@@ -65,6 +65,15 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
       maxNumberOfCardsToLearn={config.maxNumberOfCardsToLearn}
       cardsLength={cards.length}
       onClickStart={startStudy}
+      feedbackSlot={
+        <RemoteMutationNotice
+          pending={deckActions.pending}
+          error={deckActions.error}
+          onRetry={deckActions.retry}
+          pendingLabel="Saving filters…"
+          errorLabel="Unable to save filters."
+        />
+      }
       filterSlot={<DeckStartForm {...deckStartForm} />}
     />
   );

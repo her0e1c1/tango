@@ -34,7 +34,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
     },
   });
   const deckActions = useDeckActions(deck.id);
-  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
+  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.updateFilter });
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : util.getCategory(deck.category, showCard.tags);
 
@@ -79,6 +79,13 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
       }}
       feedbackSlot={
         <>
+          <RemoteMutationNotice
+            pending={deckActions.pending}
+            error={deckActions.error}
+            onRetry={deckActions.retry}
+            pendingLabel="Saving filters…"
+            errorLabel="Unable to save filters."
+          />
           <RemoteMutationNotice
             pending={mutations.pending}
             error={mutations.error}
