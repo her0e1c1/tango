@@ -1,4 +1,4 @@
-import { getCategory, LANGUAGES, type DeckId } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type DeckId } from "@/entities/deck";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -194,7 +194,7 @@ export const DeckSwiperPage: React.FC = () => {
         backTextSlot={
           <BackText
             {...(category !== undefined ? { category } : {})}
-            code={category !== undefined && LANGUAGES.includes(category)}
+            code={category !== undefined && isHighlightLanguage(category)}
             dark={config.appearance.darkMode}
             text={card.backText}
             onClick={studyActions.toggleShowBackText}
