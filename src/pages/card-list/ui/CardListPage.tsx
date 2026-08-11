@@ -5,12 +5,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import * as C from "@/constant";
-import type { Card, CardId } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import { type Card, type CardId, useTagsByDeck } from "@/entities/card";
+import { type Deck, useDeck } from "@/entities/deck";
 import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
+import { useStudyCards } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { Layout } from "@/shared/ui/layout";
@@ -144,10 +144,10 @@ export const CardListPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
   const config = useConfig();
-  const remote = useRemoteCollections();
-  const deck = remote.deckById(deckId);
-  const cards = remote.filteredCardsByDeckId(deckId, config);
-  const tags = remote.tagsByDeckId(deckId);
+  const remote = useDeck(deckId);
+  const deck = remote.deck;
+  const cards = useStudyCards(deckId, config).cards;
+  const tags = useTagsByDeck(deckId).tags;
 
   return (
     <RemoteReadBoundary

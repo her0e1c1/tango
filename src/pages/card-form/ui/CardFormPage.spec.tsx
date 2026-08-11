@@ -29,11 +29,11 @@ vi.mock("@/shared/config", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 
-vi.mock("@/hooks/useRemoteCollections", () => ({
-  useRemoteCollections: () => ({
+vi.mock("@/entities/card", () => ({
+  useCard: (id: string) => ({
     status: "ready" as const,
     retry: vi.fn(),
-    cardById: (id: string) => (mocks.card?.id === id ? mocks.card : undefined),
+    card: mocks.card?.id === id ? mocks.card : undefined,
   }),
 }));
 

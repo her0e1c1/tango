@@ -5,8 +5,8 @@ import type { Card, CardEdit, CardId } from "@/entities/card";
 import { useEffect, useRef } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
+import { useCards } from "@/entities/card";
 import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { cardCommands } from "@/services/cardCommands";
 
 type CardPatch = Partial<Omit<Card, "id" | "deckId" | "uid">>;
@@ -18,7 +18,7 @@ interface UseCardMutationsOptions {
 export const useCardMutations = ({ onRemoveSuccess }: UseCardMutationsOptions = {}) => {
   const auth = useAuth();
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const { cardById } = useRemoteCollections();
+  const { cardById } = useCards();
   const mutation = useAsyncAction<CardId>(uid);
   const scope = useRef({ uid });
   const onRemoveSuccessRef = useRef(onRemoveSuccess);

@@ -9,6 +9,7 @@ export {
 } from "./commands/studySessionCommands";
 export { useStudyHydrated } from "./hooks/useStudyHydrated";
 export { useStudyActions } from "./hooks/useStudyActions";
+export { useStudyCards } from "./hooks/useStudyCards";
 export { useStudyControllerState } from "./hooks/useStudyControllerState";
 export { useStudySessions } from "./hooks/useStudySessions";
 export { useStudyStore } from "./hooks/useStudyStore";

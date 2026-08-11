@@ -12,9 +12,10 @@ import { useEffect, useRef, useState } from "react";
 import * as action from "@/action";
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
+import { useCards } from "@/entities/card";
+import { useDecks } from "@/entities/deck";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
 import { CardBulkMutationError } from "@/services/cardCommands";
@@ -268,7 +269,8 @@ const previewDeckImportFile = async (
  */
 export const useDeckImport = () => {
   const auth = useAuth();
-  const remote = useRemoteCollections();
+  const cardRemote = useCards();
+  const deckRemote = useDecks();
   const deckMutations = useDeckMutations();
   const cardMutations = useCardMutations();
   const uid = auth.status === "authenticated" ? auth.uid : "";
@@ -317,19 +319,19 @@ export const useDeckImport = () => {
   useEffect(() => {
     dependenciesRef.current = {
       uid,
-      synchronized: remote.status === "ready" && remote.syncStatus === "synced",
-      decks: remote.decks,
-      cardsByDeckId: remote.cardsByDeckId,
+      synchronized: deckRemote.status === "ready" && deckRemote.syncStatus === "synced",
+      decks: deckRemote.decks,
+      cardsByDeckId: cardRemote.cardsByDeckId,
       createDeck: deckMutations.create,
       bulkUpsert: cardMutations.bulkUpsert,
     };
   }, [
     cardMutations.bulkUpsert,
     deckMutations.create,
-    remote.cardsByDeckId,
-    remote.decks,
-    remote.status,
-    remote.syncStatus,
+    cardRemote.cardsByDeckId,
+    deckRemote.decks,
+    deckRemote.status,
+    deckRemote.syncStatus,
     uid,
   ]);
   const setRunning = (value: boolean) => setRunningState({ uid, value });
@@ -396,8 +398,8 @@ export const useDeckImport = () => {
       setValidating,
       setPreview,
       reset: resetOperation,
-      decks: remote.decks,
-      cardsByDeckId: remote.cardsByDeckId,
+      decks: deckRemote.decks,
+      cardsByDeckId: cardRemote.cardsByDeckId,
       uid,
       currentUid: generationUid,
       generation: generation.current,

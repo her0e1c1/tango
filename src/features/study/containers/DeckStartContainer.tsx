@@ -13,7 +13,8 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
+import { useTagsByDeck } from "@/entities/card";
+import { useDeck } from "@/entities/deck";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
@@ -21,6 +22,7 @@ import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
 import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
+import { useStudyCards } from "@/features/study/hooks/useStudyCards";
 import { setDarkMode, useConfig } from "@/shared/config";
 
 /**
@@ -85,10 +87,10 @@ export const DeckStartContainer: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deckId");
   const config = useConfig();
-  const remote = useRemoteCollections();
-  const deck = remote.deckById(deckId);
-  const cards = remote.filteredCardsByDeckId(deckId, config);
-  const tags = remote.tagsByDeckId(deckId);
+  const remote = useDeck(deckId);
+  const deck = remote.deck;
+  const cards = useStudyCards(deckId, config).cards;
+  const tags = useTagsByDeck(deckId).tags;
 
   return (
     <RemoteReadBoundary

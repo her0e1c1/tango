@@ -42,14 +42,12 @@ vi.mock("@/shared/config/useConfig", () => ({
   },
 }));
 
-vi.mock("@/hooks/useRemoteCollections", () => ({
-  useRemoteCollections: () => {
-    const cardsById = mocks.state?.card ?? {};
-    return {
-      cardsById,
-      filteredCardsByDeckId: () => mocks.filteredCards,
-    };
-  },
+vi.mock("@/entities/card", () => ({
+  useCards: () => ({ cardsById: mocks.state?.card ?? {} }),
+}));
+
+vi.mock("@/features/study/hooks/useStudyCards", () => ({
+  useStudyCards: () => ({ cards: mocks.filteredCards }),
 }));
 
 vi.mock("react-router-dom", () => ({

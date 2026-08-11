@@ -22,8 +22,8 @@ vi.mock("@/auth/AuthContext", () => ({
   useAuth: () =>
     mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
-vi.mock("@/hooks/useRemoteCollections", () => ({
-  useRemoteCollections: () => ({
+vi.mock("@/entities/card", () => ({
+  useCards: () => ({
     cardById: mocks.cardById,
   }),
 }));
