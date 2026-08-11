@@ -67,7 +67,7 @@ export const DeckSwiperPage: React.FC = () => {
   useKey(" ", studyActions.toggleAutoPlay);
 
   React.useEffect(() => {
-    if (!config.showSwipeFeedback) {
+    if (!config.appearance.showSwipeFeedback) {
       if (lastSwipe !== undefined) clearLastSwipe();
       return;
     }
@@ -75,14 +75,14 @@ export const DeckSwiperPage: React.FC = () => {
 
     const timeout = window.setTimeout(clearLastSwipe, SWIPE_FEEDBACK_DURATION_MS);
     return () => window.clearTimeout(timeout);
-  }, [clearLastSwipe, config.showSwipeFeedback, lastSwipe]);
+  }, [clearLastSwipe, config.appearance.showSwipeFeedback, lastSwipe]);
 
   const navigate = useNavigate();
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
   const controller = useStudyControllerState({
     autoPlay,
-    cardInterval: config.cardInterval,
-    enabled: card != null && config.cardInterval > 0,
+    cardInterval: config.study.cardInterval,
+    enabled: card != null && config.study.cardInterval > 0,
     index,
     numberOfCards: session?.cardOrderIds.length ?? 0,
     onChange: studyActions.updateIndex,
@@ -92,9 +92,9 @@ export const DeckSwiperPage: React.FC = () => {
   const exitingDeck = React.useRef<DeckId>(undefined);
   React.useEffect(() => {
     if (!valid) return;
-    initializeStudySessionUi(config.defaultAutoPlay);
+    initializeStudySessionUi(config.study.defaultAutoPlay);
     touchStudySession(deckId);
-  }, [config.defaultAutoPlay, deckId, valid]);
+  }, [config.study.defaultAutoPlay, deckId, valid]);
 
   React.useEffect(() => {
     if (valid) {
@@ -154,9 +154,9 @@ export const DeckSwiperPage: React.FC = () => {
     <Layout
       fullscreen
       scroll={showBackText}
-      showHeader={config.showHeader && !showBackText}
+      showHeader={config.appearance.showHeader && !showBackText}
       headerProps={{
-        dark: config.darkMode,
+        dark: config.appearance.darkMode,
         onClickDarkMode: actions.setDarkMode,
         onClickLogo: actions.goToTop,
         onClickImport: actions.goToImport,
@@ -164,10 +164,12 @@ export const DeckSwiperPage: React.FC = () => {
       }}
     >
       <DeckSwiperView
-        showController={config.cardInterval > 0}
+        showController={config.study.cardInterval > 0}
         showBackText={showBackText}
-        showSwipeButtonList={config.showSwipeButtonList}
-        {...(config.showSwipeFeedback && lastSwipe !== undefined ? { swipeFeedback: lastSwipe.direction } : {})}
+        showSwipeButtonList={config.controls.showSwipeButtonList}
+        {...(config.appearance.showSwipeFeedback && lastSwipe !== undefined
+          ? { swipeFeedback: lastSwipe.direction }
+          : {})}
         feedbackSlot={
           <RemoteMutationNotice
             pending={studyActions.pending}
@@ -196,7 +198,7 @@ export const DeckSwiperPage: React.FC = () => {
           <BackText
             {...(category !== undefined ? { category } : {})}
             code={category !== undefined && C.LANGUAGES.includes(category)}
-            dark={config.darkMode}
+            dark={config.appearance.darkMode}
             text={card.backText}
             onClick={studyActions.toggleShowBackText}
           />

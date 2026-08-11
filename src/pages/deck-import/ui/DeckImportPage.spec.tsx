@@ -49,7 +49,7 @@ vi.mock("@/features/import", () => ({
   }),
 }));
 
-vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ darkMode: false }) }));
+vi.mock("@/shared/config/useConfig", () => ({ useConfig: () => ({ appearance: { darkMode: false } }) }));
 
 vi.mock("react-use", () => ({
   useKey: mocks.useKey,

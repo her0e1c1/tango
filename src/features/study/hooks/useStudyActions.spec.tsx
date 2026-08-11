@@ -90,12 +90,14 @@ const createCard = (id: CardId, numberOfSeen: number): Card => ({
 const card1 = createCard("card-1", 0);
 const card2 = createCard("card-2", 1);
 
+import { createConfig as factoryCreateConfig, type ConfigOverrides } from "@/test/factories";
+
 /**
  * Provides the create config test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState =>
-  ({
+const createConfig = (overrides: ConfigOverrides = {}): ConfigState =>
+  factoryCreateConfig({
     shuffled: false,
     maxNumberOfCardsToLearn: 1,
     useCardInterval: false,
@@ -106,7 +108,7 @@ const createConfig = (overrides: Partial<ConfigState> = {}): ConfigState =>
     cardSwipeLeft: "GoBack",
     cardSwipeRight: "GoToNextCardMastered",
     ...overrides,
-  }) as ConfigState;
+  });
 
 /**
  * Provides the create state test helper used by this file.
@@ -287,7 +289,7 @@ describe("useStudyActions", () => {
   });
 
   it("keeps back text visible when the long-lived config allows it", async () => {
-    mocks.state = createState(createConfig({ hideBodyWhenCardChanged: false }));
+    mocks.state = createState(createConfig({ appearance: { hideBodyWhenCardChanged: false } }));
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() => useStudyActions(deck.id, mocks.cardMutations));

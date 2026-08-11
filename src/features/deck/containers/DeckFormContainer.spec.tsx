@@ -9,9 +9,11 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
+import { createConfig } from "@/test/factories";
+
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  config: { darkMode: false } as ConfigState,
+  config: null as unknown as ConfigState,
   deck: null as Deck | null,
   updateAndGoToList: vi.fn(),
   goToList: vi.fn(),
@@ -74,7 +76,7 @@ describe("DeckFormContainer", () => {
   beforeEach(() => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
-    mocks.config = { darkMode: false } as ConfigState;
+    mocks.config = createConfig({ appearance: { darkMode: false } });
     mocks.updateAndGoToList.mockReset();
     mocks.goToList.mockReset();
     mocks.navigate.mockReset();

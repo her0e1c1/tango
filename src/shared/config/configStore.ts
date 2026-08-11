@@ -13,14 +13,20 @@ export { defaultConfig } from "@/shared/config/configSchema";
 export const CONFIG_STORAGE_KEY = "tango-config";
 const CONFIG_STORAGE_VERSION = 2;
 
-type BooleanConfigKey = {
-  [Key in keyof ConfigState]: ConfigState[Key] extends boolean ? Key : never;
-}[keyof ConfigState];
+type ConfigSection = keyof ConfigState;
+
+type BooleanConfigKey<S extends ConfigSection> = {
+  [Key in keyof ConfigState[S]]: ConfigState[S][Key] extends boolean ? Key : never;
+}[keyof ConfigState[S]];
+
+export type PartialConfigState = {
+  [K in keyof ConfigState]?: Partial<ConfigState[K]>;
+};
 
 export interface ConfigStoreState {
   config: ConfigState;
-  updateConfig: (config: Partial<ConfigState>) => void;
-  toggleConfig: (key: BooleanConfigKey) => void;
+  updateConfig: (config: PartialConfigState) => void;
+  toggleConfig: <S extends ConfigSection>(section: S, key: BooleanConfigKey<S>) => void;
 }
 
 interface PersistedConfigState {
@@ -41,17 +47,36 @@ export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreO
   return createStore<ConfigStoreState>()(
     persist<ConfigStoreState, [], [], PersistedConfigState>(
       (set) => ({
-        config: { ...defaultConfig, selectedTags: [...defaultConfig.selectedTags] },
-        updateConfig: (config) =>
+        config: {
+          ...defaultConfig,
+          study: { ...defaultConfig.study, selectedTags: [...defaultConfig.study.selectedTags] },
+        },
+        updateConfig: (configInput) =>
+          set((state) => {
+            const merged = {
+              appearance: { ...state.config.appearance, ...configInput.appearance },
+              study: {
+                ...state.config.study,
+                ...configInput.study,
+                selectedTags:
+                  configInput.study?.selectedTags == null
+                    ? state.config.study.selectedTags
+                    : [...configInput.study.selectedTags],
+              },
+              controls: { ...state.config.controls, ...configInput.controls },
+            };
+            return { config: configSchema.parse(merged) };
+          }),
+        toggleConfig: (section, key) =>
           set((state) => ({
-            config: configSchema.parse({
+            config: {
               ...state.config,
-              ...config,
-              selectedTags: config.selectedTags == null ? state.config.selectedTags : [...config.selectedTags],
-            }),
+              [section]: {
+                ...state.config[section],
+                [key]: !state.config[section][key],
+              },
+            },
           })),
-        toggleConfig: (key) =>
-          set((state) => ({ config: { ...state.config, [key]: !state.config[key] } as ConfigState })),
       }),
       {
         name: CONFIG_STORAGE_KEY,

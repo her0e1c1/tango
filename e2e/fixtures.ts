@@ -23,30 +23,36 @@ const emulatorToken = (uid: string) => {
 };
 
 export const e2eConfig = {
-  useCardInterval: false,
-  showSwipeButtonList: true,
-  showScoreSlider: false,
-  showHeader: true,
-  fullscreen: false,
-  maxNumberOfCardsToLearn: 10,
-  hideBodyWhenCardChanged: true,
-  sizeBackText: 0,
-  shuffled: false,
-  defaultAutoPlay: false,
-  cardInterval: 60,
-  keepBackTextViewed: false,
-  showSwipeFeedback: false,
-  cardSwipeUp: "GoToNextCardMastered",
-  cardSwipeDown: "GoToNextCardNotMastered",
-  cardSwipeLeft: "GoToPrevCard",
-  cardSwipeRight: "GoToNextCard",
-  darkMode: false,
-  selectedTags: [],
+  appearance: {
+    darkMode: false,
+    showHeader: true,
+    fullscreen: false,
+    sizeBackText: 0,
+    hideBodyWhenCardChanged: true,
+    showSwipeFeedback: false,
+  },
+  study: {
+    maxNumberOfCardsToLearn: 10,
+    shuffled: false,
+    useCardInterval: false,
+    cardInterval: 60,
+    keepBackTextViewed: false,
+    defaultAutoPlay: false,
+    selectedTags: [],
+  },
+  controls: {
+    showSwipeButtonList: true,
+    showScoreSlider: false,
+    cardSwipeUp: "GoToNextCardMastered",
+    cardSwipeDown: "GoToNextCardNotMastered",
+    cardSwipeLeft: "GoToPrevCard",
+    cardSwipeRight: "GoToNextCard",
+  },
 };
 
 export const seedConfig = async (page: Page, config: typeof e2eConfig = e2eConfig) => {
   await page.addInitScript((value) => {
-    window.localStorage.setItem("tango-config", JSON.stringify({ state: { config: value }, version: 1 }));
+    window.localStorage.setItem("tango-config", JSON.stringify({ state: { config: value }, version: 2 }));
   }, config);
 };
 

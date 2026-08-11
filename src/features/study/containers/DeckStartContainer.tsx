@@ -55,7 +55,7 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
     <DeckStartTemplate
       layout={{
         headerProps: {
-          dark: config.darkMode,
+          dark: config.appearance.darkMode,
           onClickDarkMode: actions.setDarkMode,
           onClickLogo: actions.goToTop,
           onClickImport: actions.goToImport,
@@ -63,7 +63,7 @@ export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: Con
         },
       }}
       deckName={deck.name}
-      maxNumberOfCardsToLearn={config.maxNumberOfCardsToLearn}
+      maxNumberOfCardsToLearn={config.study.maxNumberOfCardsToLearn}
       cardsLength={cards.length}
       onClickStart={startStudy}
       filterSlot={<DeckStartForm {...deckStartForm} />}

@@ -9,8 +9,8 @@ import * as lodash from "lodash";
 /**
  * Resolves the swipe action value from config for a given direction.
  */
-export const resolveSwipeAction = (config: Pick<ConfigState, SwipeDirection>, direction: SwipeDirection): cardSwipe => {
-  return config[direction];
+export const resolveSwipeAction = (controls: SwipeState, direction: SwipeDirection): cardSwipe => {
+  return controls[direction];
 };
 
 /**
@@ -65,14 +65,14 @@ export const calculateNextIndex = (currentIndex: number, cardCount: number, swip
  */
 export const buildStudySession = (
   cards: Pick<Card, "id">[],
-  config: Pick<ConfigState, "shuffled" | "maxNumberOfCardsToLearn">
+  study: Pick<StudyPreferences, "shuffled" | "maxNumberOfCardsToLearn">
 ): string[] => {
   let cardOrderIds = cards.map((c) => c.id);
-  if (config.shuffled) {
+  if (study.shuffled) {
     cardOrderIds = lodash.shuffle(cardOrderIds);
   }
-  if (config.maxNumberOfCardsToLearn > 0) {
-    cardOrderIds = cardOrderIds.slice(0, config.maxNumberOfCardsToLearn);
+  if (study.maxNumberOfCardsToLearn > 0) {
+    cardOrderIds = cardOrderIds.slice(0, study.maxNumberOfCardsToLearn);
   }
   return cardOrderIds;
 };
@@ -83,7 +83,7 @@ export const buildStudySession = (
 export const filterCardsForDeck = (
   cards: Card[],
   deck: Pick<Deck, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
-  config: Pick<ConfigState, "useCardInterval">,
+  study: Pick<StudyPreferences, "useCardInterval">,
   now: number
 ): Card[] => {
   const filtered = cards.filter((c) => {
@@ -102,7 +102,7 @@ export const filterCardsForDeck = (
     if (deck.scoreMin != null && c.score < deck.scoreMin) {
       return false;
     }
-    if (config.useCardInterval && c.nextSeeingAt && c.nextSeeingAt.getTime() > now) {
+    if (study.useCardInterval && c.nextSeeingAt && c.nextSeeingAt.getTime() > now) {
       return false;
     }
     return true;

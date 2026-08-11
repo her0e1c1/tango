@@ -10,9 +10,11 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
+import { createConfig } from "@/test/factories";
+
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
-  config: { darkMode: false } as ConfigState,
+  config: null as unknown as ConfigState,
   card: null as Card | null,
   cardUpdate: vi.fn(),
   navigate: vi.fn(),
@@ -83,7 +85,7 @@ describe("CardFormPage", () => {
   beforeEach(() => {
     mocks.params.id = card.id;
     mocks.card = card;
-    mocks.config = { darkMode: false } as ConfigState;
+    mocks.config = createConfig({ appearance: { darkMode: false } });
     mocks.cardUpdate.mockReset();
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.navigate.mockReset();
@@ -116,7 +118,7 @@ describe("CardFormPage", () => {
     expect(mocks.goToSettings).toHaveBeenCalledOnce();
 
     view.unmount();
-    mocks.config = { darkMode: true } as ConfigState;
+    mocks.config = createConfig({ appearance: { darkMode: true } });
     render(<CardFormPage />);
     await userEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
     expect(mocks.setDarkMode).toHaveBeenNthCalledWith(2, false);

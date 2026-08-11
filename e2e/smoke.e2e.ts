@@ -31,13 +31,13 @@ test("shows settings and persists a device setting", async ({ page }) => {
   await page.goto("/settings");
 
   await expect(page.getByText("Settings")).toBeVisible();
-  const darkMode = page.locator('input[name="darkMode"]');
+  const darkMode = page.locator('input[name="appearance.darkMode"]');
   await expect(darkMode).not.toBeChecked();
-  await page.locator('input[name="darkMode"] + span').click();
+  await page.locator('input[name="appearance.darkMode"] + span').click();
   await expect(darkMode).toBeChecked();
   await expect
     .poll(() =>
-      page.evaluate(() => JSON.parse(window.localStorage.getItem("tango-config") ?? "{}").state?.config?.darkMode)
+      page.evaluate(() => JSON.parse(window.localStorage.getItem("tango-config") ?? "{}").state?.config?.appearance?.darkMode)
     )
     .toBe(true);
   await page.evaluate(() => window.assertNoBrowserErrors());

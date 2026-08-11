@@ -23,27 +23,33 @@ const createMemoryStorage = (initial: Record<string, string> = {}) => {
 };
 
 describe("config store", () => {
-  it("updates and toggles long-lived settings", () => {
+  it("updates each preference group without resetting other settings", () => {
     const store = createConfigStore({ storage: createMemoryStorage(), skipHydration: true });
 
-    store.getState().updateConfig({ cardInterval: 15, darkMode: true });
-    store.getState().toggleConfig("darkMode");
+    store.getState().updateConfig({
+      appearance: { darkMode: true },
+      study: { cardInterval: 15 },
+      controls: { showScoreSlider: true },
+    });
+    store.getState().updateConfig({ appearance: { showHeader: false } });
+    store.getState().toggleConfig("appearance", "darkMode");
 
     expect(store.getState().config).toEqual({
       ...defaultConfig,
-      cardInterval: 15,
-      darkMode: false,
+      study: { ...defaultConfig.study, cardInterval: 15 },
+      appearance: { ...defaultConfig.appearance, darkMode: false, showHeader: false },
+      controls: { ...defaultConfig.controls, showScoreSlider: true },
     });
   });
 
   it("persists only config state and restores it with current defaults", async () => {
     const storage = createMemoryStorage();
     const store = createConfigStore({ storage, skipHydration: true });
-    store.getState().updateConfig({ darkMode: true });
+    store.getState().updateConfig({ appearance: { darkMode: true } });
 
     const persisted = JSON.parse(storage.getItem(CONFIG_STORAGE_KEY) ?? "{}");
     expect(persisted).toEqual({
-      state: { config: { ...defaultConfig, darkMode: true } },
+      state: { config: { ...defaultConfig, appearance: { ...defaultConfig.appearance, darkMode: true } } },
       version: 2,
     });
     expect(persisted.state).not.toHaveProperty("deck");
@@ -53,7 +59,10 @@ describe("config store", () => {
     const restored = createConfigStore({ storage, skipHydration: true });
     await restored.persist.rehydrate();
 
-    expect(restored.getState().config).toEqual({ ...defaultConfig, darkMode: true });
+    expect(restored.getState().config).toEqual({
+      ...defaultConfig,
+      appearance: { ...defaultConfig.appearance, darkMode: true },
+    });
     expect(restored.getState().updateConfig).toBeTypeOf("function");
     expect(restored.getState().toggleConfig).toBeTypeOf("function");
   });
@@ -61,27 +70,31 @@ describe("config store", () => {
   it("validates numeric ranges during updates", () => {
     const store = createConfigStore({ storage: createMemoryStorage(), skipHydration: true });
 
-    store.getState().updateConfig({ maxNumberOfCardsToLearn: 101, cardInterval: -1, sizeBackText: -1 });
+    store
+      .getState()
+      .updateConfig({ study: { maxNumberOfCardsToLearn: 101, cardInterval: -1 }, appearance: { sizeBackText: -1 } });
 
-    expect(store.getState().config).toMatchObject({
-      maxNumberOfCardsToLearn: defaultConfig.maxNumberOfCardsToLearn,
-      cardInterval: defaultConfig.cardInterval,
-      sizeBackText: defaultConfig.sizeBackText,
-    });
+    expect(store.getState().config.study.maxNumberOfCardsToLearn).toBe(defaultConfig.study.maxNumberOfCardsToLearn);
+    expect(store.getState().config.study.cardInterval).toBe(defaultConfig.study.cardInterval);
+    expect(store.getState().config.appearance.sizeBackText).toBe(defaultConfig.appearance.sizeBackText);
   });
 
-  it("keeps valid persisted settings and replaces invalid values with current defaults", async () => {
+  it("migrates flat persisted settings without losing valid preferences", async () => {
     const storage = createMemoryStorage({
       [CONFIG_STORAGE_KEY]: JSON.stringify({
         state: {
           config: {
             cardInterval: 15,
+            cardSwipeLeft: "GoBack",
             darkMode: "yes",
+            selectedTags: ["typescript"],
+            showHeader: false,
+            showScoreSlider: true,
             removedSetting: true,
             githubAccessToken: "legacy-secret",
           },
         },
-        version: 1,
+        version: 2,
       }),
     });
     const store = createConfigStore({ storage, skipHydration: true });
@@ -90,10 +103,12 @@ describe("config store", () => {
 
     expect(store.getState().config).toEqual({
       ...defaultConfig,
-      cardInterval: 15,
+      appearance: { ...defaultConfig.appearance, showHeader: false },
+      study: { ...defaultConfig.study, cardInterval: 15, selectedTags: ["typescript"] },
+      controls: { ...defaultConfig.controls, cardSwipeLeft: "GoBack", showScoreSlider: true },
     });
-    expect(store.getState().config).not.toHaveProperty("removedSetting");
-    expect(store.getState().config).not.toHaveProperty("githubAccessToken");
+    expect(store.getState().config.appearance).not.toHaveProperty("removedSetting");
+    expect(store.getState().config.appearance).not.toHaveProperty("githubAccessToken");
   });
 
   it("uses current defaults when persisted config is not an object", async () => {

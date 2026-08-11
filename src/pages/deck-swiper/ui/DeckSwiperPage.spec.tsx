@@ -248,7 +248,10 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
     mocks.studyState.showBackText = false;
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.config = createConfig({ ...mocks.state.config, showHeader: false });
+    mocks.state.config = createConfig({
+      ...mocks.state.config,
+      appearance: { ...mocks.state.config.appearance, showHeader: false },
+    });
     view.rerender(<DeckSwiperPage />);
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
@@ -282,7 +285,10 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   it("shows the last swipe briefly only when feedback is enabled", () => {
     vi.useFakeTimers();
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: true });
+    mocks.state.config = createConfig({
+      ...mocks.state.config,
+      appearance: { ...mocks.state.config.appearance, showSwipeFeedback: true },
+    });
     const view = render(<DeckSwiperPage />);
 
     mocks.studyState.lastSwipe = { direction: "cardSwipeLeft", eventId: 1 };
@@ -296,7 +302,10 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     view.rerender(<DeckSwiperPage />);
     expect(screen.queryByText("Swiped left")).not.toBeInTheDocument();
 
-    mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: false });
+    mocks.state.config = createConfig({
+      ...mocks.state.config,
+      appearance: { ...mocks.state.config.appearance, showSwipeFeedback: false },
+    });
     mocks.studyState.lastSwipe = { direction: "cardSwipeRight", eventId: 2 };
     view.rerender(<DeckSwiperPage />);
     expect(screen.queryByText("Swiped right")).not.toBeInTheDocument();
@@ -305,7 +314,10 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   it("restarts swipe feedback timing for repeated identical swipes", () => {
     vi.useFakeTimers();
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.config = createConfig({ ...mocks.state.config, showSwipeFeedback: true });
+    mocks.state.config = createConfig({
+      ...mocks.state.config,
+      appearance: { ...mocks.state.config.appearance, showSwipeFeedback: true },
+    });
     const view = render(<DeckSwiperPage />);
 
     mocks.studyState.lastSwipe = { direction: "cardSwipeLeft", eventId: 1 };

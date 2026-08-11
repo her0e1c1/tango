@@ -10,9 +10,11 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
+import { createConfig } from "@/test/factories";
+
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  config: { darkMode: false, useCardInterval: false } as ConfigState,
+  config: null as unknown as ConfigState,
   deck: null as Deck | null,
   cards: [] as Card[],
   filter: { scoreMax: null as number | null, scoreMin: null as number | null, selectedTags: [] as string[] },
@@ -155,7 +157,7 @@ describe("CardListPage", () => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
     mocks.cards = [card];
-    mocks.config = { darkMode: false, useCardInterval: false } as ConfigState;
+    mocks.config = createConfig({ appearance: { darkMode: false }, study: { useCardInterval: false } });
     mocks.filter = { scoreMax: null, scoreMin: null, selectedTags: [] };
     mocks.pendingCardId = undefined;
     mocks.pending = false;

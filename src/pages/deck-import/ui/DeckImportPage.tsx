@@ -22,7 +22,7 @@ export const DeckImportPage: React.FC = () => {
     <Layout
       showHeader
       headerProps={{
-        dark: config.darkMode,
+        dark: config.appearance.darkMode,
         onClickDarkMode: actions.setDarkMode,
         onClickLogo: actions.goToTop,
         onClickImport: actions.goToImport,
@@ -51,7 +51,7 @@ export const DeckImportPage: React.FC = () => {
         {...(deckImport.data !== undefined ? { result: deckImport.data } : {})}
         {...(deckImport.partialResult !== undefined ? { partialResult: deckImport.partialResult } : {})}
         error={deckImport.error}
-        dark={config.darkMode}
+        dark={config.appearance.darkMode}
         sampleText={C.CSV_SAMPLE_TEXT}
       />
     </Layout>
