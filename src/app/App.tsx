@@ -8,7 +8,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
 import { useAuth } from "@/auth/AuthContext";
-import { RouteFeedback } from "@/components";
+import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";

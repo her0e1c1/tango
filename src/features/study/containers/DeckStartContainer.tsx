@@ -10,7 +10,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
-import { RemoteReadBoundary, RouteFeedback } from "@/components";
+import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
+import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
 import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
 import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
