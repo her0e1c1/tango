@@ -53,7 +53,7 @@ The test task starts the Firestore emulator and runs the application and sample 
 ```bash
 mise run test
 # You can also pass a specified file
-mise run test-unit -- ./src/action/xxx.spec.ts
+mise run test-unit -- ./src/entities/card/model/card.spec.ts
 ```
 
 Run a specific suite with:
