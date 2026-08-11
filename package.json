@@ -26,7 +26,6 @@
     "fmt:check": "biome format ./src && biome lint --error-on-warnings . && npm run lint:markdown",
     "fmt:markdown": "markdownlint-cli2 --fix",
     "fmt:sample:check": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'ruff format --check' base",
-    "generate:pwa-icons": "node scripts/generate-pwa-icons.mjs",
     "lint": "npm run lint:tsc && npm run lint:react && npm run lint:knip && biome lint --error-on-warnings . && npm run lint:markdown",
     "lint:check": "npm run lint",
     "lint:knip": "knip",
