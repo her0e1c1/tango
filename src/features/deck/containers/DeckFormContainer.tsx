@@ -4,14 +4,13 @@
  * components.
  */
 
-import type { Deck } from "@/entities/deck";
+import { CATEGORY, type Deck } from "@/entities/deck";
 
 import type * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
-import * as C from "@/constant";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -30,7 +29,7 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const config = useConfig();
   const navigate = useNavigate();
   const deckActions = useDeckActions(deck.id);
-  const categoryOptions = C.CATEGORY.map((category) => ({ label: category, value: category }));
+  const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
     defaultValues: {
       name: deck.name,
