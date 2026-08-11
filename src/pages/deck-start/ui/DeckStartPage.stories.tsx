@@ -6,9 +6,9 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
+import { DeckStartForm, type DeckStartFormProps } from "@/features/deck";
+import { DeckStartTemplate as Template } from "@/features/study";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
-import { DeckStartTemplate as Template } from "@/features/study/components/templates/DeckStartTemplate";
 import * as fixture from "@/storybook/fixture";
 
 const deckStartForm: DeckStartFormProps = {

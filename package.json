@@ -89,6 +89,8 @@
     "@vitest/coverage-v8": "4.1.10",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^10.7.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^7.2.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "firebase-tools": "^15.22.4",
     "jsdom": "^29.1.1",

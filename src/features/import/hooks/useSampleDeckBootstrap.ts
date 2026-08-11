@@ -7,7 +7,7 @@
 import { useEffect } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
-import { useDeckImport } from "@/features/import/hooks/useDeckImport";
+import { type DeckImportMutationDependencies, useDeckImport } from "@/features/import/hooks/useDeckImport";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 
 type AddSample = () => Promise<unknown>;
@@ -48,10 +48,10 @@ const sampleDeckBootstrapController = createSampleDeckBootstrapController();
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useSampleDeckBootstrap = () => {
+export const useSampleDeckBootstrap = (mutations: DeckImportMutationDependencies) => {
   const auth = useAuth();
   const remote = useRemoteCollections();
-  const deckImport = useDeckImport();
+  const deckImport = useDeckImport(mutations);
   const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useEffect(() => {

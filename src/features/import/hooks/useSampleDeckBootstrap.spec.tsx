@@ -35,6 +35,7 @@ import {
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
 const strictMode = ({ children }: { children: ReactNode }) => <React.StrictMode>{children}</React.StrictMode>;
+const mutations = { createDeck: vi.fn(), bulkUpsert: vi.fn() };
 
 describe("sample Deck bootstrap", () => {
   beforeEach(() => {
@@ -45,14 +46,14 @@ describe("sample Deck bootstrap", () => {
   });
 
   it("adds the sample once for a server-synced empty user under StrictMode", async () => {
-    renderHook(useSampleDeckBootstrap, { wrapper: strictMode });
+    renderHook(() => useSampleDeckBootstrap(mutations), { wrapper: strictMode });
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
   });
 
   it("waits for the server before treating an empty cache as an empty user", async () => {
     mocks.remote.syncStatus = "cached";
-    const { rerender } = renderHook(useSampleDeckBootstrap);
+    const { rerender } = renderHook(() => useSampleDeckBootstrap(mutations));
 
     expect(mocks.addSample).not.toHaveBeenCalled();
     mocks.remote.syncStatus = "synced";
@@ -64,7 +65,7 @@ describe("sample Deck bootstrap", () => {
   it("does not add the sample when the user already has a Deck", () => {
     mocks.remote.decks = [{ id: "existing" } as Deck];
 
-    renderHook(useSampleDeckBootstrap);
+    renderHook(() => useSampleDeckBootstrap(mutations));
 
     expect(mocks.addSample).not.toHaveBeenCalled();
   });

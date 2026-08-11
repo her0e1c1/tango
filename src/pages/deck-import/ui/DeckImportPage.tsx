@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import * as C from "@/constant";
+import { useCardMutations } from "@/features/card";
+import { useDeckMutations } from "@/features/deck";
 import { useDeckImport } from "@/features/import";
 import { useActions } from "@/hooks/useActions";
 import { useConfig } from "@/hooks/useConfig";
@@ -13,7 +15,9 @@ export const DeckImportPage: React.FC = () => {
   const actions = useActions();
   const config = useConfig();
   const navigate = useNavigate();
-  const deckImport = useDeckImport();
+  const cardMutations = useCardMutations();
+  const deckMutations = useDeckMutations();
+  const deckImport = useDeckImport({ createDeck: deckMutations.create, bulkUpsert: cardMutations.bulkUpsert });
   useKey("t", actions.goToTop);
   useKey("s", actions.goToSettings);
 

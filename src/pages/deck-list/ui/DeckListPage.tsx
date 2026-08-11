@@ -3,6 +3,7 @@ import { useKey } from "react-use";
 
 import * as action from "@/action";
 import type { Deck, DeckId } from "@/entities/deck";
+import { useCardMutations } from "@/features/card";
 import { useDeckMutations } from "@/features/deck";
 import { useSampleDeckBootstrap } from "@/features/import";
 import {
@@ -37,11 +38,12 @@ export const DeckListPage: React.FC = () => {
       setSuccessMessage(`Deleted deck “${deck.name}”.`);
     },
   });
+  const cardMutations = useCardMutations();
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(remote.decks, remote.cards, sessionsByDeckId);
-  useSampleDeckBootstrap();
+  useSampleDeckBootstrap({ createDeck: mutations.create, bulkUpsert: cardMutations.bulkUpsert });
   useKey("s", actions.goToSettings);
   useKey("i", actions.goToImport);
 

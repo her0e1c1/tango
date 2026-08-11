@@ -32,6 +32,8 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
+vi.mock("@/features/card", () => ({ useCardMutations: () => ({ bulkUpsert: vi.fn() }) }));
+vi.mock("@/features/deck", () => ({ useDeckMutations: () => ({ create: vi.fn() }) }));
 vi.mock("@/features/import", () => ({
   useDeckImport: () => ({
     selectFile: mocks.selectFile,

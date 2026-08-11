@@ -70,10 +70,12 @@ vi.mock("@/hooks/useRemoteCollections", () => ({
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 vi.mock("@/hooks/useActions", () => ({ useActions: () => mocks.actions }));
+vi.mock("@/features/card", () => ({ useCardMutations: () => ({ bulkUpsert: vi.fn() }) }));
 vi.mock("@/features/deck", () => ({
   useDeckMutations: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
     mocks.onRemoveSuccess = options?.onRemoveSuccess;
     return {
+      create: vi.fn(),
       remove: (deck: Deck) => mocks.remove(deck).then(() => mocks.onRemoveSuccess?.(deck)),
       pending: mocks.pending,
       isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),

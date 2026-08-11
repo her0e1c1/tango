@@ -9,8 +9,6 @@ import { useEffect, useRef, useState } from "react";
 import * as action from "@/action";
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
 import { useAuth } from "@/auth/AuthContext";
-import { useCardMutations } from "@/features/card/hooks/useCardMutations";
-import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
@@ -79,6 +77,11 @@ interface DeckImportDependencies {
 }
 
 type DeckImportPreparationDependencies = Pick<DeckImportDependencies, "uid" | "decks" | "cardsByDeckId">;
+
+export interface DeckImportMutationDependencies {
+  createDeck: DeckImportDependencies["createDeck"];
+  bulkUpsert: DeckImportDependencies["bulkUpsert"];
+}
 
 const prepareDeckImportAttempt = (
   request: ImportRequest,
@@ -263,11 +266,9 @@ const previewDeckImportFile = async (
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useDeckImport = () => {
+export const useDeckImport = ({ createDeck, bulkUpsert }: DeckImportMutationDependencies) => {
   const auth = useAuth();
   const remote = useRemoteCollections();
-  const deckMutations = useDeckMutations();
-  const cardMutations = useCardMutations();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const generation = useRef(0);
   const generationUid = useRef(uid);
@@ -317,18 +318,10 @@ export const useDeckImport = () => {
       synchronized: remote.status === "ready" && remote.syncStatus === "synced",
       decks: remote.decks,
       cardsByDeckId: remote.cardsByDeckId,
-      createDeck: deckMutations.create,
-      bulkUpsert: cardMutations.bulkUpsert,
+      createDeck,
+      bulkUpsert,
     };
-  }, [
-    cardMutations.bulkUpsert,
-    deckMutations.create,
-    remote.cardsByDeckId,
-    remote.decks,
-    remote.status,
-    remote.syncStatus,
-    uid,
-  ]);
+  }, [bulkUpsert, createDeck, remote.cardsByDeckId, remote.decks, remote.status, remote.syncStatus, uid]);
   const setRunning = (value: boolean) => setRunningState({ uid, value });
   const setValidating = (value: boolean) => setValidatingState({ uid, value });
   const setPreview = (value: DeckImportPreview | undefined) => setPreviewState({ uid, value });
