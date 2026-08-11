@@ -1,15 +1,14 @@
 /**
- * @file Composes the card feature's complete Card List Template screen.
- * Data and callbacks arrive through props, which keeps this presentation usable in both a live
- * container and Storybook.
+ * @file Composes the Card List Page's presentation.
+ * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
 import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
-import { BackText, type BackTextProps } from "@/features/card/components/BackText";
-import { Card, type CardProps } from "@/features/card/components/Card";
 import { Overlay, RemovableTag } from "@/components";
+import type { Card as CardEntity, CardId } from "@/entities/card";
+import { BackText, type BackTextProps, Card, type CardProps } from "@/features/card";
 import { Layout, type LayoutProps } from "@/shared/ui/layout";
 
 interface CardListOverlayProps {
@@ -23,14 +22,14 @@ interface CardListFilterState {
   selectedTags: string[];
 }
 
-export interface CardListTemplateProps {
-  cards: Card[];
+export interface CardListViewProps {
+  cards: CardEntity[];
   layout?: LayoutProps;
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
   card?: CardProps;
   overlay?: CardListOverlayProps;
-  onShowCard?: (card: Card) => void;
+  onShowCard?: (card: CardEntity) => void;
   onRemoveTag?: (tag: string) => void;
   feedbackSlot?: React.ReactNode;
   dialogSlot?: React.ReactNode;
@@ -72,12 +71,10 @@ const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selec
 
 /**
  * Composes the complete Card List Rows screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
-const CardListRows: React.FC<Pick<CardListTemplateProps, "cards" | "card" | "onShowCard" | "isCardPending">> = (
-  props
-) => {
+const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowCard" | "isCardPending">> = (props) => {
   const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
 
   return (
@@ -105,11 +102,11 @@ const CardListRows: React.FC<Pick<CardListTemplateProps, "cards" | "card" | "onS
 };
 
 /**
- * Composes the complete Card List Template screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in containers,
- * tests, and Storybook.
+ * Composes the Card List screen from reusable UI components.
+ * All data and callbacks arrive through props, allowing the same screen to run in tests and
+ * Storybook.
  */
-export const CardListTemplate: React.FC<CardListTemplateProps> = (props) => {
+export const CardListView: React.FC<CardListViewProps> = (props) => {
   const filter = props.filter ?? emptyFilter;
 
   return (
