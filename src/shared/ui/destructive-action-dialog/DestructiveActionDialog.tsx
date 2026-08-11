@@ -78,18 +78,13 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     if (props.pending || confirmingRef.current) return;
     confirmingRef.current = true;
     try {
-      const result = props.onConfirm();
-      if (result instanceof Promise || (result != null && typeof (result as { then?: unknown }).then === "function")) {
-        void Promise.resolve(result)
-          .catch(() => {
-            // Prevent unhandled floating promise rejections. Callers manage error state via props.
-          })
-          .finally(() => {
-            confirmingRef.current = false;
-          });
-      } else {
-        confirmingRef.current = false;
-      }
+      void Promise.resolve(props.onConfirm())
+        .catch(() => {
+          // Prevent unhandled floating promise rejections. Callers manage error state via props.
+        })
+        .finally(() => {
+          confirmingRef.current = false;
+        });
     } catch (error) {
       confirmingRef.current = false;
       throw error;
