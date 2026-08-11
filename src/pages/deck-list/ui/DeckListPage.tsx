@@ -2,11 +2,11 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as action from "@/action";
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 import { useDecks } from "@/entities/deck";
 import { useDeckMutations } from "@/features/deck";
+import { downloadDeckCsv } from "@/features/export";
 import { useSampleDeckBootstrap } from "@/features/import";
 import {
   discardStudySessionsMissingDecks,
@@ -121,7 +121,7 @@ export const DeckListPage: React.FC = () => {
               onClickStudy: (id) => void navigate(`/deck/${id}/start`),
               onClickDownload: (id) => {
                 const deck = deckRemote.decksById[id];
-                if (deck != null) action.deck.downloadData(deck, selectCardsForDeck(cardRemote.cards, id));
+                if (deck != null) downloadDeckCsv(deck, selectCardsForDeck(cardRemote.cards, id));
               },
               onClickDelete: (id) => {
                 const deck = deckRemote.decksById[id];
