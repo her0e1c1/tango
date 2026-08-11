@@ -3,6 +3,7 @@ export { Controller, type ControllerProps } from "./components/Controller";
 export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";
 export {
   discardStudySessionsMissingDecks,
+  initializeStudySessionUi,
   removeStudySession,
   touchStudySession,
 } from "./commands/studySessionCommands";
@@ -11,4 +12,4 @@ export { useStudyActions } from "./hooks/useStudyActions";
 export { useStudyControllerState } from "./hooks/useStudyControllerState";
 export { useStudySessions } from "./hooks/useStudySessions";
 export { useStudyStore } from "./hooks/useStudyStore";
-export { selectStudySessionForRoute, studyStore, type StudySession } from "./state/studyStore";
+export { selectStudySessionForRoute, type StudySession } from "./state/studyStore";

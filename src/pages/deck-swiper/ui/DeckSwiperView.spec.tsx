@@ -2,15 +2,7 @@ import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/features/study", async () => {
-  const [{ Controller }, { SwipeButtonList }] = await Promise.all([
-    vi.importActual<typeof import("@/features/study/components/Controller")>("@/features/study/components/Controller"),
-    vi.importActual<typeof import("@/features/study/components/SwipeButtonList")>(
-      "@/features/study/components/SwipeButtonList"
-    ),
-  ]);
-  return { Controller, SwipeButtonList };
-});
+vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { DeckSwiperView } from "./DeckSwiperView";
 

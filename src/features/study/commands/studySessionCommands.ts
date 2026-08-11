@@ -2,6 +2,10 @@ import type { DeckId } from "@/entities/deck";
 
 import { studyStore } from "../state/studyStore";
 
+export const initializeStudySessionUi = (defaultAutoPlay: boolean) => {
+  studyStore.getState().initializeStudyUi(defaultAutoPlay);
+};
+
 export const removeStudySession = (deckId: DeckId) => {
   studyStore.getState().removeStudy(deckId);
 };

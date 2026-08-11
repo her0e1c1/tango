@@ -3,11 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import * as C from "@/constant";
-import { BackText, CardOverlay, FrontText } from "@/features/card";
+import { BackText, CardOverlay, FrontText, useCardMutations } from "@/features/card";
 import {
+  initializeStudySessionUi,
   selectStudySessionForRoute,
-  studyStore,
   type SwipeButtonListProps,
+  touchStudySession,
   useStudyActions,
   useStudyControllerState,
   useStudyHydrated,
@@ -43,7 +44,14 @@ export const DeckSwiperPage: React.FC = () => {
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
   const card = cardId == null ? undefined : remote.cardById(cardId);
-  const studyActions = useStudyActions(deckId);
+  const cardMutation = useCardMutations();
+  const studyActions = useStudyActions(deckId, {
+    isPending: cardMutation.isPending,
+    update: cardMutation.update,
+    pending: cardMutation.pending,
+    error: cardMutation.error,
+    retry: cardMutation.retry,
+  });
   const actions = useActions();
 
   useKey("ArrowUp", studyActions.swipeUp);
@@ -81,9 +89,8 @@ export const DeckSwiperPage: React.FC = () => {
   const exitingDeck = React.useRef<DeckId>(undefined);
   React.useEffect(() => {
     if (!valid) return;
-    const state = studyStore.getState();
-    state.initializeStudyUi(config.defaultAutoPlay);
-    state.touchStudy(deckId);
+    initializeStudySessionUi(config.defaultAutoPlay);
+    touchStudySession(deckId);
   }, [config.defaultAutoPlay, deckId, valid]);
 
   React.useEffect(() => {

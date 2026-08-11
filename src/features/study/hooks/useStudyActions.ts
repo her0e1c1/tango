@@ -11,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { studyStore } from "@/features/study/state/studyStore";
 import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
-import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 import { useConfig } from "@/hooks/useConfig";
 
 export interface StudyActions {
@@ -24,6 +23,14 @@ export interface StudyActions {
   toggleShowBackText: () => void;
   toggleAutoPlay: () => void;
   resetStudy: () => void;
+  pending: boolean;
+  error: unknown;
+  retry: () => void;
+}
+
+interface StudyCardMutation {
+  isPending: (id: CardId) => boolean;
+  update: (card: CardEdit) => Promise<void>;
   pending: boolean;
   error: unknown;
   retry: () => void;
@@ -107,13 +114,12 @@ const runStudySwipe = async (
  * Callers receive one focused interface without coordinating the study feature's stores and
  * services themselves.
  */
-export const useStudyActions = (deckId: DeckId): StudyActions => {
+export const useStudyActions = (deckId: DeckId, cardMutation?: StudyCardMutation): StudyActions => {
   const navigate = useNavigate();
   const config = useConfig();
   const remote = useRemoteCollections();
   const cards = remote.filteredCardsByDeckId(deckId, config);
   const cardsById = remote.cardsById;
-  const cardMutations = useCardMutations();
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
   /**
@@ -134,15 +140,17 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
    * Direction-specific callbacks reuse this function so pending checks, optimistic state, and
    * persistence stay identical.
    */
-  const swipe = (direction: SwipeDirection) =>
-    runStudySwipe(direction, {
+  const swipe = (direction: SwipeDirection) => {
+    if (cardMutation == null) return Promise.resolve();
+    return runStudySwipe(direction, {
       mutationTokenRef,
       deckId,
       config,
       cardsById,
-      isPending: cardMutations.isPending,
-      update: cardMutations.update,
+      isPending: cardMutation.isPending,
+      update: cardMutation.update,
     });
+  };
 
   return {
     start,
@@ -159,8 +167,8 @@ export const useStudyActions = (deckId: DeckId): StudyActions => {
     toggleShowBackText: () => studyStore.getState().toggleShowBackText(),
     toggleAutoPlay: () => studyStore.getState().toggleAutoPlay(),
     resetStudy: () => studyStore.getState().removeStudy(deckId),
-    pending: cardMutations.pending,
-    error: cardMutations.error,
-    retry: cardMutations.retry,
+    pending: cardMutation?.pending ?? false,
+    error: cardMutation?.error,
+    retry: cardMutation?.retry ?? (() => undefined),
   };
 };
