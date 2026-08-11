@@ -97,7 +97,7 @@ export const logout = (confirmedUid: string): Promise<void> =>
  */
 export const loginGoogle = async (): Promise<void> => {
   const currentUser = auth.currentUser;
-  if (!currentUser) {
+  if (!currentUser?.isAnonymous) {
     throw new Error("Anonymous user is required before Google sign-in");
   }
   let result: UserCredential;
