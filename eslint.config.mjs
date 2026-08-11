@@ -45,7 +45,13 @@ export default [
         {
           patterns: [
             {
-              group: ["@/app/**", "@/entities/**", "@/features/**", "@/pages/**"],
+              group: [
+                "@/app/**",
+                "@/entities/**",
+                "@/features/**",
+                "@/pages/**",
+                "@/widgets/**",
+              ],
               message: "Shared modules cannot import from higher FSD layers.",
             },
           ],
