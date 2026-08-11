@@ -1,0 +1,90 @@
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { createCard, createConfig, createDeck } from "@/test/factories";
+
+import { nextCardAvailabilityAt, useStudyCards } from "@/features/study/hooks/useStudyCards";
+
+describe("useStudyCards", () => {
+  beforeEach(() => vi.restoreAllMocks());
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("composes Deck, Card, config, and scheduling rules", () => {
+    const now = Date.UTC(2026, 6, 19);
+    vi.spyOn(Date, "now").mockReturnValue(now);
+    const deck = createDeck({ id: "deck" });
+    const available = createCard({ id: "available", deckId: deck.id, nextSeeingAt: new Date(now) });
+    const future = createCard({ id: "future", deckId: deck.id, nextSeeingAt: new Date(now + 1) });
+    const cards = [available, future];
+
+    const { result } = renderHook(() => useStudyCards(deck, cards, createConfig({ useCardInterval: true })));
+
+    expect(result.current).toEqual([available]);
+  });
+
+  it("returns no Cards when the Deck is unavailable", () => {
+    const cards = [createCard({ deckId: "missing" })];
+
+    const { result } = renderHook(() => useStudyCards(undefined, cards, createConfig()));
+
+    expect(result.current).toEqual([]);
+  });
+
+  it("re-evaluates scheduled Cards when their next review time arrives", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+    const deck = createDeck({ id: "scheduled" });
+    const card = createCard({ id: "scheduled-card", deckId: deck.id, nextSeeingAt: new Date(1_500) });
+    const cards = [card];
+    const enabled = createConfig({ useCardInterval: true });
+    const disabled = createConfig({ useCardInterval: false });
+    const { result } = renderHook(() => ({
+      enabled: useStudyCards(deck, cards, enabled),
+      disabled: useStudyCards(deck, cards, disabled),
+    }));
+
+    expect(result.current.enabled).toEqual([]);
+    expect(result.current.disabled).toEqual([card]);
+
+    act(() => vi.advanceTimersByTime(499));
+    expect(result.current.enabled).toEqual([]);
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current.enabled).toEqual([card]);
+  });
+
+  it("reschedules review times beyond the browser timeout limit", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+    const maxTimeout = 2_147_483_647;
+    const deck = createDeck({ id: "scheduled" });
+    const card = createCard({
+      id: "scheduled-card",
+      deckId: deck.id,
+      nextSeeingAt: new Date(1_000 + maxTimeout + 500),
+    });
+    const config = createConfig({ useCardInterval: true });
+    const { result } = renderHook(() => useStudyCards(deck, [card], config));
+
+    expect(result.current).toEqual([]);
+
+    act(() => vi.advanceTimersByTime(maxTimeout));
+    expect(result.current).toEqual([]);
+
+    act(() => vi.advanceTimersByTime(500));
+    expect(result.current).toEqual([card]);
+  });
+
+  it("selects the nearest future review time", () => {
+    const cards = [
+      createCard({ id: "past", nextSeeingAt: new Date(900) }),
+      createCard({ id: "later", nextSeeingAt: new Date(2_000) }),
+      createCard({ id: "next", nextSeeingAt: new Date(1_500) }),
+    ];
+
+    expect(nextCardAvailabilityAt(cards, 1_000)).toBe(1_500);
+  });
+});

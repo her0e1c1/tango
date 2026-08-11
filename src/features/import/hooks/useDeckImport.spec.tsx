@@ -35,12 +35,15 @@ vi.mock("@/auth/AuthContext", () => ({
   useAuth: () =>
     mocks.uid === "" ? { status: "anonymous" } : { status: "authenticated", uid: mocks.uid, user: { uid: mocks.uid } },
 }));
-vi.mock("@/hooks/useRemoteCollections", () => ({
-  useRemoteCollections: () => ({
+vi.mock("@/entities/card", () => ({
+  selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+  useCards: () => ({ cards: mocks.cards }),
+}));
+vi.mock("@/entities/deck", () => ({
+  useDecks: () => ({
     status: mocks.remoteStatus,
     syncStatus: mocks.syncStatus,
     decks: mocks.decks,
-    cardsByDeckId: (id: DeckId) => mocks.cards.filter((card) => card.deckId === id),
   }),
 }));
 vi.mock("@/features/deck/hooks/useDeckMutations", () => ({

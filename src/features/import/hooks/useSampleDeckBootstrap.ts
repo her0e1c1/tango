@@ -7,8 +7,8 @@
 import { useEffect } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
+import { useDecks } from "@/entities/deck";
 import { useDeckImport } from "@/features/import/hooks/useDeckImport";
-import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 
 type AddSample = () => Promise<unknown>;
 
@@ -50,7 +50,7 @@ const sampleDeckBootstrapController = createSampleDeckBootstrapController();
  */
 export const useSampleDeckBootstrap = () => {
   const auth = useAuth();
-  const remote = useRemoteCollections();
+  const remote = useDecks();
   const deckImport = useDeckImport();
   const uid = auth.status === "authenticated" ? auth.uid : "";
 

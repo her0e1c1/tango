@@ -50,20 +50,21 @@ vi.mock("@/features/study", () => ({
   useStudySessions: () => mocks.sessionsByDeckId,
 }));
 vi.mock("@/action", () => ({ deck: { downloadData: mocks.downloadData } }));
-vi.mock("@/hooks/useRemoteCollections", () => ({
-  useRemoteCollections: () => {
-    const decks = Object.values(mocks.decksById);
+vi.mock("@/entities/card", () => ({
+  selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+  useCards: () => {
     const cards = Object.values(mocks.cardsById);
-    return {
-      status: "ready" as const,
-      syncStatus: mocks.syncStatus,
-      retry: vi.fn(),
-      decks,
-      cards,
-      deckById: (id: DeckId) => mocks.decksById[id],
-      cardsByDeckId: (id: DeckId) => cards.filter((card) => card.deckId === id),
-    };
+    return { cards };
   },
+}));
+vi.mock("@/entities/deck", () => ({
+  useDecks: () => ({
+    status: "ready" as const,
+    syncStatus: mocks.syncStatus,
+    retry: vi.fn(),
+    decks: Object.values(mocks.decksById),
+    decksById: mocks.decksById,
+  }),
 }));
 vi.mock("react-use", () => ({ useKey: mocks.useKey }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
