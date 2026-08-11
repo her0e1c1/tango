@@ -75,6 +75,63 @@
       }
     },
     {
+      "includes": ["src/entities/card/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/app/**",
+                      "@/entities/**",
+                      "!@/entities/card",
+                      "!@/entities/card/**",
+                      "!@/entities/deck",
+                      "@/features/**",
+                      "@/pages/**",
+                      "@/widgets/**"
+                    ],
+                    "message": "Entity slices cannot import from other entity slices or higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/entities/deck/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/app/**",
+                      "@/entities/**",
+                      "!@/entities/deck",
+                      "!@/entities/deck/**",
+                      "@/features/**",
+                      "@/pages/**",
+                      "@/widgets/**"
+                    ],
+                    "message": "Entity slices cannot import from other entity slices or higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["src/entities/**/*.{ts,tsx}"],
       "linter": {
         "rules": {
@@ -84,8 +141,146 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@/app/**", "@/features/**", "@/pages/**", "@/widgets/**"],
-                    "message": "Entity modules cannot import from higher FSD layers."
+                    "group": ["@/app/**", "@/entities/**", "@/features/**", "@/pages/**", "@/widgets/**"],
+                    "message": "Entity slices cannot import from other entity slices or higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/features/card/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/app/**",
+                      "@/features/**",
+                      "!@/features/card",
+                      "!@/features/card/**",
+                      "@/pages/**",
+                      "@/widgets/**"
+                    ],
+                    "message": "Feature slices cannot import from other feature slices or higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/features/deck/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/app/**",
+                      "@/features/**",
+                      "!@/features/deck",
+                      "!@/features/deck/**",
+                      "@/pages/**",
+                      "@/widgets/**"
+                    ],
+                    "message": "Feature slices cannot import from other feature slices or higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/features/import/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/app/**",
+                      "@/features/**",
+                      "!@/features/import",
+                      "!@/features/import/**",
+                      "@/pages/**",
+                      "@/widgets/**"
+                    ],
+                    "message": "Feature slices cannot import from other feature slices or higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/features/settings/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/app/**",
+                      "@/features/**",
+                      "!@/features/settings",
+                      "!@/features/settings/**",
+                      "@/pages/**",
+                      "@/widgets/**"
+                    ],
+                    "message": "Feature slices cannot import from other feature slices or higher FSD layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/features/study/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/app/**",
+                      "@/features/**",
+                      "!@/features/study",
+                      "!@/features/study/**",
+                      "!@/features/deck/components/DeckStartForm",
+                      "!@/features/deck/hooks/useDeckActions",
+                      "!@/features/deck/hooks/useDeckFilterState",
+                      "@/pages/**",
+                      "@/widgets/**"
+                    ],
+                    "message": "Feature slices cannot import from other feature slices or higher FSD layers."
                   }
                 ]
               }
@@ -104,8 +299,8 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@/app/**", "@/pages/**", "@/widgets/**"],
-                    "message": "Feature modules cannot import from higher FSD layers."
+                    "group": ["@/app/**", "@/features/**", "@/pages/**", "@/widgets/**"],
+                    "message": "Feature slices cannot import from other feature slices or higher FSD layers."
                   }
                 ]
               }
@@ -124,8 +319,8 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@/app/**", "@/pages/**"],
-                    "message": "Widget modules cannot import from higher FSD layers."
+                    "group": ["@/app/**", "@/pages/**", "@/widgets/**"],
+                    "message": "Widget slices cannot import from other widget slices or higher FSD layers."
                   }
                 ]
               }
@@ -144,8 +339,8 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@/app/**"],
-                    "message": "Page modules cannot import from the app layer."
+                    "group": ["@/app/**", "@/pages/**"],
+                    "message": "Page slices cannot import from other page slices or the app layer."
                   }
                 ]
               }
