@@ -1,22 +1,20 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import * as C from "@/constant";
 import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import { getCategory, LANGUAGES, type Deck } from "@/entities/deck";
 import { setDarkMode, useConfig } from "@/shared/config";
 import { useRemoteCollections } from "@/hooks/useRemoteCollections";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
-import * as util from "@/util";
 
 import { CardViewView } from "./CardViewView";
 
 const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
   const navigate = useNavigate();
   const config = useConfig();
-  const category = util.getCategory(deck.category, card.tags);
+  const category = getCategory(deck.category, card.tags);
 
   return (
     <Layout
@@ -32,7 +30,7 @@ const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
       <CardViewView
         backText={{
           ...(category !== undefined ? { category } : {}),
-          code: category !== undefined && C.LANGUAGES.includes(category),
+          code: category !== undefined && LANGUAGES.includes(category),
           dark: config.appearance.darkMode,
           text: card.backText,
         }}
