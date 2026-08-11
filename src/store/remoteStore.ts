@@ -14,7 +14,7 @@ import {
   type RemoteSyncStatus,
   toRemoteById,
 } from "@/domain/remoteSnapshot";
-import { applyRealtimeChange } from "@/lib/realtimeChange";
+import { applyRealtimeChange } from "@/shared/lib/realtimeChange";
 
 type Unsubscribe = () => void;
 

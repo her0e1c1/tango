@@ -9,7 +9,7 @@ import {
   withDeckMembershipLocks,
   withMutationLocks,
 } from "@/store/remoteMutationLocks";
-import { waitForRemoteWrite } from "@/services/remoteWrite";
+import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 
 const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Deck writes");

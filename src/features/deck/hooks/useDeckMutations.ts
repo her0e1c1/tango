@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
 import { deckCommands } from "@/services/deckCommands";
 
 interface UseDeckMutationsOptions {

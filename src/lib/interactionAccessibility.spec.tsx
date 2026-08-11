@@ -11,7 +11,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FrontText } from "@/features/card/components/FrontText";
 import { SwipeButtonList } from "@/features/study/components/SwipeButtonList";
-import { FullScreen, Logo, Overlay, Title } from "@/components";
+import { Title } from "@/shared/ui/content";
+import { Overlay } from "@/shared/ui/feedback";
+import { FullScreen } from "@/shared/ui/full-screen";
+import { Logo } from "@/shared/ui/logo";
 
 afterEach(cleanup);
 
