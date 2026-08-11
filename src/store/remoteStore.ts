@@ -16,7 +16,7 @@ import {
   type RemoteSubscriptionProps,
   type RemoteSyncStatus,
   toRemoteById,
-} from "@/domain/remoteSnapshot";
+} from "@/shared/api/remoteSnapshot";
 import { applyRealtimeChange } from "@/shared/lib/realtimeChange";
 
 type Unsubscribe = () => void;

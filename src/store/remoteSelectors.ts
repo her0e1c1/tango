@@ -10,7 +10,7 @@ import * as lodash from "lodash";
 
 import { selectCardsForDeck } from "@/entities/card";
 import { filterCardsForDeck as filterStudyCards } from "@/lib/study";
-import type { RemoteById } from "@/domain/remoteSnapshot";
+import type { RemoteById } from "@/shared/api/remoteSnapshot";
 
 /**
  * Returns the concrete values stored in an identifier-indexed remote collection.
