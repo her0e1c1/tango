@@ -4,8 +4,8 @@ import { withThemeByClassName } from "@storybook/addon-themes";
 import type { Preview } from "@storybook/react";
 import { setupWorker } from "msw/browser";
 import { mswLoader } from "msw-storybook-addon/csf3";
-import { storybookHandlers } from "../src/storybook/handlers";
-import { INITIAL_VIEWPORTS } from "../src/storybook/storybookViewports";
+import { storybookHandlers } from "./support/handlers";
+import { INITIAL_VIEWPORTS } from "./support/storybookViewports";
 import "../src/app/styles/index.css";
 
 const preview: Preview = {
