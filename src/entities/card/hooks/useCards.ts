@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
-import type { RemoteById } from "@/domain/remoteSnapshot";
 import type { Card } from "@/entities/card/model/card";
+import type { RemoteById } from "@/shared/api/remoteSnapshot";
 import { useRemoteRead } from "@/store/useRemoteRead";
 
 const EMPTY_CARDS: RemoteById<Card> = {};

@@ -86,4 +86,35 @@ describe("DestructiveActionDialog", () => {
 
     expect(onConfirm).toHaveBeenCalledOnce();
   });
+
+  it("supports synchronous onConfirm callbacks", () => {
+    const onConfirm = vi.fn();
+    render(<DestructiveActionDialog {...defaultProps} onConfirm={onConfirm} />);
+    const confirm = screen.getByRole("button", { name: "Delete deck" });
+
+    fireEvent.click(confirm);
+    expect(onConfirm).toHaveBeenCalledOnce();
+  });
+
+  it("handles rejected onConfirm promises without unhandled promise rejections", async () => {
+    let unhandledRejection: unknown;
+    const listener = (event: PromiseRejectionEvent) => {
+      unhandledRejection = event.reason;
+    };
+    window.addEventListener("unhandledrejection", listener);
+
+    const rejectionReason = new Error("Async failure");
+    const onConfirm = vi.fn(() => Promise.reject(rejectionReason));
+
+    render(<DestructiveActionDialog {...defaultProps} onConfirm={onConfirm} />);
+    const confirm = screen.getByRole("button", { name: "Delete deck" });
+
+    fireEvent.click(confirm);
+    expect(onConfirm).toHaveBeenCalledOnce();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    window.removeEventListener("unhandledrejection", listener);
+    expect(unhandledRejection).toBeUndefined();
+  });
 });

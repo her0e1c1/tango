@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
-import type { RemoteById } from "@/domain/remoteSnapshot";
 import type { Deck } from "@/entities/deck/model/deck";
+import type { RemoteById } from "@/shared/api/remoteSnapshot";
 import { useRemoteRead } from "@/store/useRemoteRead";
 
 const EMPTY_DECKS: RemoteById<Deck> = {};
