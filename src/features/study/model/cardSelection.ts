@@ -2,6 +2,15 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { StudyPreferences } from "@/shared/config";
 
+const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
+  const tags = deck.selectedTags;
+  if (tags.length === 0) return true;
+  if (deck.tagAndFilter) {
+    return tags.every((tag) => card.tags.includes(tag));
+  }
+  return tags.some((tag) => card.tags.includes(tag));
+};
+
 export const filterCardsForDeck = (
   cards: Card[],
   deck: Pick<Deck, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
@@ -9,15 +18,7 @@ export const filterCardsForDeck = (
   now: number
 ): Card[] => {
   const filtered = cards.filter((card) => {
-    const tags = deck.selectedTags;
-    if (tags.length > 0) {
-      if (deck.tagAndFilter && !tags.every((tag) => card.tags.includes(tag))) {
-        return false;
-      }
-      if (!deck.tagAndFilter && !tags.some((tag) => card.tags.includes(tag))) {
-        return false;
-      }
-    }
+    if (!isCardMatchingTags(card, deck)) return false;
     if (deck.scoreMax != null && card.score > deck.scoreMax) {
       return false;
     }

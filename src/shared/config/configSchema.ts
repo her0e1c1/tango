@@ -93,48 +93,48 @@ export const configSchema: z.ZodType<ConfigState> = z
   })
   .catch(defaultConfig);
 
+const getRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
+
+const normalizeAppearance = (appObj: Record<string, unknown>, obj: Record<string, unknown>) => ({
+  darkMode: appObj.darkMode ?? obj.darkMode,
+  showHeader: appObj.showHeader ?? obj.showHeader,
+  fullscreen: appObj.fullscreen ?? obj.fullscreen,
+  sizeBackText: appObj.sizeBackText ?? obj.sizeBackText,
+  hideBodyWhenCardChanged: appObj.hideBodyWhenCardChanged ?? obj.hideBodyWhenCardChanged,
+  showSwipeFeedback: appObj.showSwipeFeedback ?? obj.showSwipeFeedback,
+});
+
+const normalizeStudy = (studyObj: Record<string, unknown>, obj: Record<string, unknown>) => ({
+  maxNumberOfCardsToLearn: studyObj.maxNumberOfCardsToLearn ?? obj.maxNumberOfCardsToLearn,
+  shuffled: studyObj.shuffled ?? obj.shuffled,
+  useCardInterval: studyObj.useCardInterval ?? obj.useCardInterval,
+  cardInterval: studyObj.cardInterval ?? obj.cardInterval,
+  keepBackTextViewed: studyObj.keepBackTextViewed ?? obj.keepBackTextViewed,
+  defaultAutoPlay: studyObj.defaultAutoPlay ?? obj.defaultAutoPlay,
+  selectedTags: studyObj.selectedTags ?? obj.selectedTags,
+});
+
+const normalizeControls = (ctrlObj: Record<string, unknown>, obj: Record<string, unknown>) => ({
+  showSwipeButtonList: ctrlObj.showSwipeButtonList ?? obj.showSwipeButtonList,
+  showScoreSlider: ctrlObj.showScoreSlider ?? obj.showScoreSlider,
+  cardSwipeUp: ctrlObj.cardSwipeUp ?? obj.cardSwipeUp,
+  cardSwipeDown: ctrlObj.cardSwipeDown ?? obj.cardSwipeDown,
+  cardSwipeLeft: ctrlObj.cardSwipeLeft ?? obj.cardSwipeLeft,
+  cardSwipeRight: ctrlObj.cardSwipeRight ?? obj.cardSwipeRight,
+});
+
 export const normalizeConfigInput = (input: unknown): unknown => {
   if (typeof input !== "object" || input === null) {
     return input;
   }
 
-  const obj = input as Record<string, Record<string, unknown> | unknown>;
-  const appObj = (typeof obj.appearance === "object" && obj.appearance !== null ? obj.appearance : {}) as Record<
-    string,
-    unknown
-  >;
-  const studyObj = (typeof obj.study === "object" && obj.study !== null ? obj.study : {}) as Record<string, unknown>;
-  const ctrlObj = (typeof obj.controls === "object" && obj.controls !== null ? obj.controls : {}) as Record<
-    string,
-    unknown
-  >;
+  const obj = input as Record<string, unknown>;
 
   return {
-    appearance: {
-      darkMode: appObj.darkMode ?? obj.darkMode,
-      showHeader: appObj.showHeader ?? obj.showHeader,
-      fullscreen: appObj.fullscreen ?? obj.fullscreen,
-      sizeBackText: appObj.sizeBackText ?? obj.sizeBackText,
-      hideBodyWhenCardChanged: appObj.hideBodyWhenCardChanged ?? obj.hideBodyWhenCardChanged,
-      showSwipeFeedback: appObj.showSwipeFeedback ?? obj.showSwipeFeedback,
-    },
-    study: {
-      maxNumberOfCardsToLearn: studyObj.maxNumberOfCardsToLearn ?? obj.maxNumberOfCardsToLearn,
-      shuffled: studyObj.shuffled ?? obj.shuffled,
-      useCardInterval: studyObj.useCardInterval ?? obj.useCardInterval,
-      cardInterval: studyObj.cardInterval ?? obj.cardInterval,
-      keepBackTextViewed: studyObj.keepBackTextViewed ?? obj.keepBackTextViewed,
-      defaultAutoPlay: studyObj.defaultAutoPlay ?? obj.defaultAutoPlay,
-      selectedTags: studyObj.selectedTags ?? obj.selectedTags,
-    },
-    controls: {
-      showSwipeButtonList: ctrlObj.showSwipeButtonList ?? obj.showSwipeButtonList,
-      showScoreSlider: ctrlObj.showScoreSlider ?? obj.showScoreSlider,
-      cardSwipeUp: ctrlObj.cardSwipeUp ?? obj.cardSwipeUp,
-      cardSwipeDown: ctrlObj.cardSwipeDown ?? obj.cardSwipeDown,
-      cardSwipeLeft: ctrlObj.cardSwipeLeft ?? obj.cardSwipeLeft,
-      cardSwipeRight: ctrlObj.cardSwipeRight ?? obj.cardSwipeRight,
-    },
+    appearance: normalizeAppearance(getRecord(obj.appearance), obj),
+    study: normalizeStudy(getRecord(obj.study), obj),
+    controls: normalizeControls(getRecord(obj.controls), obj),
   };
 };
 
