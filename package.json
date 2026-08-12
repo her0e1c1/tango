@@ -15,7 +15,7 @@
     "db": "firebase emulators:start",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "test": "vitest run --project=unit --no-file-parallelism",
+    "test": "npm run test:unit",
     "test:coverage": "vitest run --project=unit --coverage --no-file-parallelism",
     "test:coverage:ci": "docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.local.yaml up --wait --wait-timeout 120 --remove-orphans -d db && npm run test:coverage",
     "test:unit": "vitest run --project=unit --exclude '**/firestore/**/*.spec.ts'",
