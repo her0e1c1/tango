@@ -7,6 +7,7 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
+import type { CardCreateDto, CardUpdateDto } from "@/adapters/firestore/dto";
 
 import { describe, expect, it } from "vitest";
 import { Timestamp } from "firebase/firestore";
@@ -239,7 +240,9 @@ describe("Firestore DTO builders", () => {
   });
 
   it("allows only server card fields when creating", () => {
-    expect(buildCardCreateDto(card, 200)).toEqual({
+    const dto: CardCreateDto = buildCardCreateDto(card, 200);
+
+    expect(dto).toEqual({
       id: "card-1",
       deckId: "deck-1",
       uid: "user-1",
@@ -261,7 +264,9 @@ describe("Firestore DTO builders", () => {
   });
 
   it("omits the id and undefined values when updating a card", () => {
-    expect(buildCardUpdateDto(card, 201)).toEqual({
+    const dto: CardUpdateDto = buildCardUpdateDto(card, 201);
+
+    expect(dto).toEqual({
       deckId: "deck-1",
       uid: "user-1",
       frontText: "front",

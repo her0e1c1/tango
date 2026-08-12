@@ -12,6 +12,7 @@ export {
   buildCardUpdateDto,
   mapCardDocument,
 } from "@/entities/card/api/firestoreDocument";
+export type { CardCreateDto, CardUpdateDto } from "@/entities/card/api/firestoreDocument";
 
 import { z } from "zod";
 
