@@ -28,7 +28,7 @@ export const RemoteMutationNotice = (props: RemoteMutationNoticeProps) => {
     return (
       <div role="alert" className="my-2 flex items-center justify-between rounded border border-red-300 p-2 text-sm">
         <span>{errorLabel}</span>
-        <Button small onClick={props.onRetry}>
+        <Button size="sm" onClick={props.onRetry}>
           Retry
         </Button>
       </div>

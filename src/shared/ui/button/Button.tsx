@@ -19,14 +19,6 @@ export type ButtonProps = {
   hidden?: boolean;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** @deprecated Use size="sm". */
-  small?: boolean;
-  /** @deprecated Use size="lg". */
-  large?: boolean;
-  /** @deprecated The secondary variant is the default. */
-  default?: boolean;
-  /** @deprecated Use variant="primary". */
-  primary?: boolean;
   children?: React.ReactNode;
   onClick?: () => void;
 };
@@ -44,9 +36,8 @@ const sizeClasses: Record<ButtonSize, string> = {
   lg: "min-h-touch min-w-touch px-6 py-3 font-bold text-lg",
 };
 
-const resolveVariant = (props: ButtonProps): ButtonVariant =>
-  props.variant ?? (props.primary ? "primary" : "secondary");
-const resolveSize = (props: ButtonProps): ButtonSize => props.size ?? (props.small ? "sm" : props.large ? "lg" : "md");
+const resolveVariant = (props: ButtonProps): ButtonVariant => props.variant ?? "secondary";
+const resolveSize = (props: ButtonProps): ButtonSize => props.size ?? "md";
 const getLoadingAnnouncement = (content: React.ReactNode) =>
   typeof content === "string" || typeof content === "number" ? `Loading ${content}` : "Loading";
 
