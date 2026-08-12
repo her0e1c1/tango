@@ -1,4 +1,3 @@
-export { DeckStartContainer } from "./containers/DeckStartContainer";
 export { DeckStartForm, type DeckStartFormProps } from "./components/DeckStartForm";
 export { Controller, type ControllerProps } from "./components/Controller";
 export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";

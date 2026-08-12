@@ -59,8 +59,8 @@ vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/settings/hooks/useConfigFormState", () => ({
   useConfigFormState: (options: Record<string, unknown>) => options,
 }));
-vi.mock("@/features/settings/components/templates/ConfigFormTemplate", () => ({
-  ConfigFormTemplate: ({ configForm }: { configForm: Record<string, unknown> }) => (
+vi.mock("@/pages/settings/ui/SettingsView", () => ({
+  SettingsView: ({ configForm }: { configForm: Record<string, unknown> }) => (
     <>
       {configForm.accountFeedback as ReactNode}
       {typeof configForm.onLogout === "function" && (
@@ -78,7 +78,7 @@ import { AuthProvider } from "@/app/providers/auth";
 import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 import { useSession } from "@/entities/session";
 import { createAuthRuntime } from "@/features/auth";
-import { ConfigContainer } from "@/features/settings";
+import { SettingsPage } from "@/pages/settings";
 import { studyStore } from "@/features/study";
 
 afterEach(() => {
@@ -103,7 +103,7 @@ beforeEach(() => {
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
 const AuthenticatedSettings = () =>
-  useSession().status === "authenticated" ? <ConfigContainer login={vi.fn()} logout={logout} /> : null;
+  useSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={logout} /> : null;
 
 const createTestRuntime = () =>
   createAuthRuntime({
