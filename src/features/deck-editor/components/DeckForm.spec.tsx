@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckForm, type DeckFormProps } from "@/features/deck/components/DeckForm";
+import { DeckForm, type DeckFormProps } from "./DeckForm";
 import { createDeck } from "@/test/factories";
 
 /**

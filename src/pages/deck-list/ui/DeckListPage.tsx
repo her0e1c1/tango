@@ -4,8 +4,7 @@ import { useKey } from "react-use";
 
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import { useDecks } from "@/entities/deck";
-import { useDeckMutations } from "@/features/deck";
+import { useDeckMutations, useDecks } from "@/entities/deck";
 import { downloadDeckCsv } from "@/features/export";
 import { useSampleDeckBootstrap } from "@/features/import";
 import {

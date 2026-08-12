@@ -9,8 +9,8 @@ import type { Deck } from "@/entities/deck";
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import { DeckFormTemplate as Template } from "@/features/deck/components/templates/DeckFormTemplate";
-import type { DeckFormFields } from "@/features/deck/components/DeckForm";
+import { DeckFormTemplate as Template } from "./DeckFormTemplate";
+import type { DeckFormFields } from "../DeckForm";
 import * as fixture from "@/storybook/fixture";
 
 /**
@@ -36,7 +36,7 @@ const longDeck: Deck = {
 };
 
 const meta = {
-  title: "Deck/DeckFormTemplate",
+  title: "Deck Editor/DeckFormTemplate",
   component: Template,
   tags: ["autodocs"],
   parameters: {

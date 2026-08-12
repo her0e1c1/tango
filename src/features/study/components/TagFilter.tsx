@@ -1,5 +1,5 @@
 /**
- * @file Defines the deck feature's Tag Filter presentation component.
+ * @file Defines the study feature's Tag Filter presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */

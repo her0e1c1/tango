@@ -8,10 +8,10 @@ import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
 
-import { TagFilter as Template } from "@/features/deck/components/TagFilter";
+import { TagFilter as Template } from "./TagFilter";
 
 const meta = {
-  title: "Deck/TagFilter",
+  title: "Study/TagFilter",
   component: Template,
   tags: ["autodocs"],
   args: {

@@ -53,6 +53,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...actual,
     createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
+    useDeckMutations: () => ({ create: mocks.createDeck }),
     useDecks: () => ({
       status: mocks.deckRemoteStatus,
       syncStatus: mocks.deckSyncStatus,
@@ -60,9 +61,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     }),
   };
 });
-vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
-  useDeckMutations: () => ({ create: mocks.createDeck }),
-}));
 vi.mock("@/features/card/hooks/useCardMutations", () => ({
   useCardMutations: () => ({ bulkUpsert: mocks.bulkUpsert }),
 }));

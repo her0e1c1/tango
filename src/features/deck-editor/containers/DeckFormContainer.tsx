@@ -1,5 +1,5 @@
 /**
- * @file Connects application state and operations to the deck feature's Deck Form Container view.
+ * @file Connects application state and operations to the deck editor view.
  * The container prepares route data and callbacks, then delegates visual rendering to presentation
  * components.
  */
@@ -14,9 +14,9 @@ import { useForm } from "react-hook-form";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
-import { DeckFormTemplate } from "@/features/deck/components/templates/DeckFormTemplate";
-import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
-import { deckFormSchema, type DeckFormValues } from "@/features/deck/lib/deckFormSchema";
+import { DeckFormTemplate } from "../components/templates/DeckFormTemplate";
+import { useDeckEditorActions } from "../hooks/useDeckEditorActions";
+import { deckFormSchema, type DeckFormValues } from "../lib/deckFormSchema";
 import { setDarkMode, useConfig } from "@/shared/config";
 
 /**
@@ -27,7 +27,7 @@ import { setDarkMode, useConfig } from "@/shared/config";
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const config = useConfig();
   const navigate = useNavigate();
-  const deckActions = useDeckActions(deck.id);
+  const deckActions = useDeckEditorActions();
   const categoryOptions: { label: Category; value: Category }[] = CATEGORY.map((category) => ({
     label: category,
     value: category,

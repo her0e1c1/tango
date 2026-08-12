@@ -46,8 +46,8 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
 }));
 
-vi.mock("@/features/deck/hooks/useDeckActions", () => ({
-  useDeckActions: () => ({
+vi.mock("../hooks/useDeckEditorActions", () => ({
+  useDeckEditorActions: () => ({
     updateAndGoToList: mocks.updateAndGoToList,
     goToList: mocks.goToList,
     pending: false,
@@ -56,7 +56,7 @@ vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   }),
 }));
 
-import { DeckFormContainer } from "@/features/deck/containers/DeckFormContainer";
+import { DeckFormContainer } from "./DeckFormContainer";
 
 describe("DeckFormContainer", () => {
   const deck: Deck = {

@@ -1,4 +1,5 @@
 export { DeckStartContainer } from "./containers/DeckStartContainer";
+export { DeckStartForm, type DeckStartFormProps } from "./components/DeckStartForm";
 export { Controller, type ControllerProps } from "./components/Controller";
 export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";
 export {
@@ -8,6 +9,7 @@ export {
   touchStudySession,
 } from "./commands/studySessionCommands";
 export { useStudyHydrated } from "./hooks/useStudyHydrated";
+export { useDeckFilterState } from "./hooks/useDeckFilterState";
 export { useStudyActions } from "./hooks/useStudyActions";
 export { useStudyCards } from "./hooks/useStudyCards";
 export { useStudyControllerState } from "./hooks/useStudyControllerState";

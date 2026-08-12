@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { TagFilter } from "@/features/deck/components/TagFilter";
+import { TagFilter } from "./TagFilter";
 
 describe("TagFilter", () => {
   it("groups tag controls and exposes the active mode and selected tags", () => {

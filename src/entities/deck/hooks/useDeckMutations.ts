@@ -1,10 +1,10 @@
-/** @file Provides Deck mutation state and actions to React features. */
+/** @file Provides Deck entity mutation state and actions. */
 
-import type { Deck, DeckEdit, DeckId } from "@/entities/deck";
+import type { Deck, DeckEdit, DeckId } from "../model/deck";
 
 import { useEffect, useRef } from "react";
 
-import { deckCommands } from "@/entities/deck";
+import { deckCommands } from "../api/commands";
 import { useSession } from "@/entities/session";
 import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
 

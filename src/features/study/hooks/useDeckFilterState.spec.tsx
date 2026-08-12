@@ -14,8 +14,8 @@ import { fireEvent, render, waitFor, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
-import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
+import { DeckStartForm } from "../components/DeckStartForm";
+import { useDeckFilterState } from "./useDeckFilterState";
 import { createDeck } from "@/test/factories";
 
 /**

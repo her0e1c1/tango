@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { DeckStartForm as Template, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
+import { DeckStartForm as Template, type DeckStartFormProps } from "./DeckStartForm";
 import * as fixture from "@/storybook/fixture";
 
 const args: DeckStartFormProps = {
@@ -28,7 +28,7 @@ const args: DeckStartFormProps = {
 };
 
 const meta = {
-  title: "Deck/DeckStartForm",
+  title: "Study/DeckStartForm",
   component: Template,
   tags: ["autodocs"],
   args,

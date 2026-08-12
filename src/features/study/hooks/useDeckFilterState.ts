@@ -1,5 +1,5 @@
 /**
- * @file Provides the deck feature's Use Deck Filter State React hook.
+ * @file Provides the study feature's Deck filter state hook.
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */
@@ -9,7 +9,7 @@ import type { Deck } from "@/entities/deck";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import type { DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
+import type { DeckStartFormProps } from "../components/DeckStartForm";
 
 export interface UseDeckFilterStateOptions {
   deck: Deck;
@@ -18,9 +18,7 @@ export interface UseDeckFilterStateOptions {
 }
 
 /**
- * Provides the deck filter state values and operations needed by React components.
- * Callers receive one focused interface without coordinating the deck feature's stores and
- * services themselves.
+ * Provides the filter state and persistence callback used to configure a study session.
  */
 export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateOptions): DeckStartFormProps => {
   const [scoreMaxEnabled, setScoreMaxEnabled] = React.useState(deck.scoreMax != null);
@@ -38,35 +36,15 @@ export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateO
     });
   }, [handleSubmit, onSubmit, subscribe]);
 
-  /**
-   * Handles the click filter callback for the deck feature.
-   * The handler translates the event or asynchronous result into the next state change or
-   * operation.
-   */
   const onClickFilter = (value: boolean) => {
     setValue("tagAndFilter", value);
   };
-  /**
-   * Handles the click all callback for the deck feature.
-   * The handler translates the event or asynchronous result into the next state change or
-   * operation.
-   */
   const onClickAll = () => {
     setValue("selectedTags", tags);
   };
-  /**
-   * Handles the click clear callback for the deck feature.
-   * The handler translates the event or asynchronous result into the next state change or
-   * operation.
-   */
   const onClickClear = () => {
     setValue("selectedTags", []);
   };
-  /**
-   * Handles the click tag callback for the deck feature.
-   * The handler translates the event or asynchronous result into the next state change or
-   * operation.
-   */
   const onClickTag = (value: string[]) => {
     setValue("selectedTags", value);
   };

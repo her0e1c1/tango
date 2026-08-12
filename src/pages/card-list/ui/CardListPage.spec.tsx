@@ -80,27 +80,15 @@ vi.mock("@/entities/deck", async (importOriginal) => {
       retry: vi.fn(),
       decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
     }),
+    useDeckMutations: () => ({ update: vi.fn() }),
   };
 });
 
-vi.mock("@/features/study", () => ({
-  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
-}));
-
-vi.mock("react-router-dom", () => ({
-  useParams: () => mocks.params,
-  useNavigate: () => mocks.navigate,
-}));
-
-vi.mock("react-use", () => ({
-  useKey: mocks.useKey,
-}));
-
-vi.mock("@/features/deck", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/deck")>();
+vi.mock("@/features/study", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
-    useDeckActions: () => ({ update: vi.fn() }),
+    useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
     useDeckFilterState: () => ({
       scoreMax: mocks.filter.scoreMax,
       scoreMin: mocks.filter.scoreMin,
@@ -120,6 +108,15 @@ vi.mock("@/features/deck", async (importOriginal) => {
     }),
   };
 });
+
+vi.mock("react-router-dom", () => ({
+  useParams: () => mocks.params,
+  useNavigate: () => mocks.navigate,
+}));
+
+vi.mock("react-use", () => ({
+  useKey: mocks.useKey,
+}));
 
 import { CardListPage } from "./CardListPage";
 
