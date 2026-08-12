@@ -13,7 +13,7 @@ import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
 import { CardBulkMutationError, createCard, selectCardsForDeck, useCards } from "@/entities/card";
 import { createDeck, useDeckMutations, useDecks } from "@/entities/deck";
 import { useSession } from "@/entities/session";
-import { useCardMutations } from "@/features/card/hooks/useCardMutations";
+import { useCardMutations } from "@/features/card";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { parseCsv } from "@/features/import/lib/cardCsv";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";

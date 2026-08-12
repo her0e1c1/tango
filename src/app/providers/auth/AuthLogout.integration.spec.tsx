@@ -45,8 +45,8 @@ vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
   startRemoteReads: mocks.startRemoteReads,
   stopRemoteReads: mocks.cleanupUid,
 }));
-vi.mock("@/features/study/state/studyStore", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/study/state/studyStore")>();
+vi.mock("@/features/study", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/study")>();
   mocks.actualClearStudyStore = actual.clearStudyStore;
   return { ...actual, clearStudyStore: mocks.clearStudyStore };
 });
@@ -79,7 +79,7 @@ import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 import { useSession } from "@/entities/session";
 import { createAuthRuntime } from "@/features/auth";
 import { ConfigContainer } from "@/features/settings";
-import { studyStore } from "@/features/study/state/studyStore";
+import { studyStore } from "@/features/study";
 
 afterEach(() => {
   vi.restoreAllMocks();
