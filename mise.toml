@@ -115,6 +115,10 @@ docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 depends = ["init"]
 run = [{ tasks = ["fmt", "lint", "lint-docker", "test-unit"] }]
 
+[tasks.fix]
+depends = ["init"]
+run = [{ tasks = ["fmt-fix", "lint-fix"] }]
+
 [tasks.ci]
 depends = ["init"]
 run = "npm run ci"

@@ -22,6 +22,7 @@
     "test:firestore": "vitest run --project=unit src/adapters/firestore --no-file-parallelism",
     "test:sample": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint py.test base",
     "test:storybook": "vitest run --project=storybook",
+    "fix": "npm run fmt:fix && npm run lint:fix",
     "fmt": "biome format ./src && biome lint --error-on-warnings . && npm run lint:markdown",
     "fmt:fix": "biome format --write ./src && biome lint --write . && npm run fmt:markdown",
     "fmt:markdown": "markdownlint-cli2 --fix",
