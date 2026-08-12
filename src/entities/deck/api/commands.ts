@@ -14,8 +14,8 @@ const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Deck writes");
 };
 
-const requireOwner = (uid: string, entityUid: string | undefined) => {
-  if (entityUid != null && entityUid !== uid) {
+const requireOwner = (uid: string, entityUid: string) => {
+  if (entityUid !== uid) {
     throw new Error("Deck owner does not match the authenticated user");
   }
 };
@@ -31,7 +31,6 @@ export const deckCommands = {
 
   update: async (uid: string, deck: DeckEdit): Promise<void> => {
     requireUid(uid);
-    requireOwner(uid, deck.uid);
     await withMutationLocks([deckMutationLock(uid, deck.id)], () =>
       waitForRemoteWrite(updateRemoteDeck(deck), "Deck update")
     );
