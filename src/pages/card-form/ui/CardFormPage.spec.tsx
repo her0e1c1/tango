@@ -145,7 +145,7 @@ describe("CardFormPage", () => {
   it("submits edited tags", async () => {
     render(<CardFormPage />);
 
-    await userEvent.click(screen.getByRole("checkbox", { name: /math/i }));
+    await userEvent.click(screen.getByRole("checkbox", { name: /^math$/i }));
     await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
     expect(mocks.cardUpdate).toHaveBeenCalledWith({ ...card, tags: ["math"] });
