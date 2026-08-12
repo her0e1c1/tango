@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
 import { Button } from "@/shared/ui/button";
 
 export interface DestructiveActionDialogProps {
@@ -13,15 +14,6 @@ export interface DestructiveActionDialogProps {
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
 }
-
-const focusableSelector = [
-  "button:not([disabled])",
-  "a[href]",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "textarea:not([disabled])",
-  '[tabindex]:not([tabindex="-1"])',
-].join(",");
 
 export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (props) => {
   const dialogRef = React.useRef<HTMLDivElement>(null);
@@ -45,7 +37,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   }, []);
 
   const handleDialogTabKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? []);
+    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
     if (focusable.length === 0) {
       event.preventDefault();
       return;
