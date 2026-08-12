@@ -18,6 +18,7 @@ export { useStudyStore } from "./hooks/useStudyStore";
 export {
   clearStudyStore,
   selectStudySessionForRoute,
+  STUDY_STORAGE_KEY,
   studyStore,
   type StudySession,
   type StudyState,

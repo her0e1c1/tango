@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { logout } from "@/app/auth/logout";
-import { STUDY_STORAGE_KEY, studyStore } from "@/features/study/state/studyStore";
+import { STUDY_STORAGE_KEY, studyStore } from "@/features/study";
 
 const mocks = vi.hoisted(() => ({
   signOutCurrentUser: vi.fn(),
