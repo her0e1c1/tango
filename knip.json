@@ -1,5 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["public/storybookServiceWorker.js"],
+  "entry": ["public/storybookServiceWorker.js", "steiger.config.ts"],
   "includeEntryExports": true
 }

@@ -13,8 +13,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 
-import { getDb } from "@/shared/firebase/firestore-runtime";
-import { getTimestamp } from "@/shared/firebase/firestoreDocument";
+import { getDb, getTimestamp } from "@/shared/firestore";
 import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument } from "./firestoreDocument";
 
 const CARD_COLLECTION = "card";

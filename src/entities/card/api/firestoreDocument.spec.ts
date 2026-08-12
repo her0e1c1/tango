@@ -3,7 +3,7 @@ import type { Card } from "../model/card";
 import { Timestamp } from "firebase/firestore";
 import { describe, expect, it } from "vitest";
 
-import { FirestoreDocumentValidationError } from "@/shared/firebase/firestoreDocument";
+import { FirestoreDocumentValidationError } from "@/shared/firestore";
 import { createCard } from "@/test/factories";
 import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument } from "./firestoreDocument";
 

@@ -10,10 +10,16 @@ import type { Deck, DeckId } from "@/entities/deck";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
-import { CardBulkMutationError, createCard, generateCardId, selectCardsForDeck, useCards } from "@/entities/card";
+import {
+  CardBulkMutationError,
+  cardCommands,
+  createCard,
+  generateCardId,
+  selectCardsForDeck,
+  useCards,
+} from "@/entities/card";
 import { createDeck, useDeckMutations, useDecks } from "@/entities/deck";
 import { useSession } from "@/entities/session";
-import { useCardMutations } from "@/features/card";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { parseCsv } from "@/features/import/lib/cardCsv";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
@@ -280,7 +286,6 @@ export const useDeckImport = () => {
   const cardRemote = useCards();
   const deckRemote = useDecks();
   const deckMutations = useDeckMutations();
-  const cardMutations = useCardMutations();
   const cardsByDeckId = useCallback(
     (deckId: DeckId) => selectCardsForDeck(cardRemote.cards, deckId),
     [cardRemote.cards]
@@ -339,10 +344,9 @@ export const useDeckImport = () => {
       decks: deckRemote.decks,
       cardsByDeckId,
       createDeck: deckMutations.create,
-      bulkUpsert: cardMutations.bulkUpsert,
+      bulkUpsert: (cards) => cardCommands.bulkUpsert(uid, cards),
     };
   }, [
-    cardMutations.bulkUpsert,
     cardRemote.status,
     cardRemote.syncStatus,
     deckMutations.create,
