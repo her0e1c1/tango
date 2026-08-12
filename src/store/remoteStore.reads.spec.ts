@@ -328,6 +328,7 @@ describe("remote store reads", () => {
       await harness.store.getState().start("uid-a");
       await latestStart;
 
+      if (listener === "card") expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
       expect(staleUnsubscribe).toHaveBeenCalledOnce();
       expect(harness.dependencies.subscribeDecks).toHaveBeenLastCalledWith(expect.objectContaining({ uid: "uid-b" }));
       expect(harness.dependencies.subscribeCards).toHaveBeenLastCalledWith(expect.objectContaining({ uid: "uid-b" }));
