@@ -1,9 +1,11 @@
-import type { Card } from "@/entities/card";
 import type { SwipeState } from "@/shared/config";
 
 import { describe, expect, it } from "vitest";
 
-import { buildStudyPatch, calculateCardScore, resolveSwipeAction } from "@/features/study/model/swipe";
+import { createStudyProgress } from "@/entities/study-progress";
+import type { StudyCard } from "@/features/study/model/studyCard";
+import { buildStudyPatch, resolveSwipeAction } from "@/features/study/model/swipe";
+import { createCard } from "@/test/factories";
 
 describe("resolveSwipeAction", () => {
   it("returns the swipe action for the given direction", () => {
@@ -20,41 +22,12 @@ describe("resolveSwipeAction", () => {
   });
 });
 
-describe("calculateCardScore", () => {
-  it("increments score for GoToNextCardMastered when score is non-negative", () => {
-    expect(calculateCardScore({ score: 0 } as Card, "GoToNextCardMastered")).toBe(1);
-    expect(calculateCardScore({ score: 3 } as Card, "GoToNextCardMastered")).toBe(4);
-  });
-
-  it("resets to 0 for GoToNextCardMastered when score is negative", () => {
-    expect(calculateCardScore({ score: -1 } as Card, "GoToNextCardMastered")).toBe(0);
-  });
-
-  it("decrements score for GoToNextCardNotMastered when score is non-positive", () => {
-    expect(calculateCardScore({ score: 0 } as Card, "GoToNextCardNotMastered")).toBe(-1);
-    expect(calculateCardScore({ score: -2 } as Card, "GoToNextCardNotMastered")).toBe(-3);
-  });
-
-  it("resets to 0 for GoToNextCardNotMastered when score is positive", () => {
-    expect(calculateCardScore({ score: 2 } as Card, "GoToNextCardNotMastered")).toBe(0);
-  });
-
-  it("applies same logic as NotMastered for GoToNextCardToggleMastered", () => {
-    expect(calculateCardScore({ score: 0 } as Card, "GoToNextCardToggleMastered")).toBe(-1);
-    expect(calculateCardScore({ score: 2 } as Card, "GoToNextCardToggleMastered")).toBe(0);
-  });
-
-  it("leaves score unchanged for navigation-only actions", () => {
-    expect(calculateCardScore({ score: 3 } as Card, "GoToNextCard")).toBe(3);
-    expect(calculateCardScore({ score: 3 } as Card, "GoToPrevCard")).toBe(3);
-    expect(calculateCardScore({ score: 3 } as Card, "GoBack")).toBe(3);
-    expect(calculateCardScore({ score: 3 } as Card, "DoNothing")).toBe(3);
-  });
-});
-
 describe("buildStudyPatch", () => {
   const now = new Date(1999, 10, 1).getTime();
-  const card = { id: "c1", deckId: "d1", score: 0, numberOfSeen: 2 } as Card;
+  const card: StudyCard = {
+    card: createCard({ id: "c1", deckId: "d1" }),
+    progress: { ...createStudyProgress("c1"), numberOfSeen: 2 },
+  };
 
   it("builds a patch with incremented numberOfSeen and computed score", () => {
     const patch = buildStudyPatch(card, "GoToNextCardMastered", now);
@@ -72,4 +45,11 @@ describe("buildStudyPatch", () => {
     expect(patch.score).toBe(0);
     expect(patch.numberOfSeen).toBe(3);
   });
+
+  it.each(["GoToNextCardNotMastered", "GoToNextCardToggleMastered"] as const)(
+    "records %s as not mastered",
+    (action) => {
+      expect(buildStudyPatch(card, action, now)).toMatchObject({ score: -1 });
+    }
+  );
 });

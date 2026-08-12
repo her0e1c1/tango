@@ -16,6 +16,7 @@ import { selectCardsForDeck, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { useStudyCards } from "@/features/study/hooks/useStudyCards";
 import { buildStudySession, calculateNextIndex } from "@/features/study/model/session";
+import { createStudyCard } from "@/features/study/model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "@/features/study/model/swipe";
 import { studyStore } from "@/features/study/state/studyStore";
 import { useConfig } from "@/shared/config";
@@ -121,7 +122,7 @@ const runStudySwipe = async (
     state.hideBackText();
   }
 
-  const patch = buildStudyPatch(card, swipeAction, Date.now());
+  const patch = buildStudyPatch(createStudyCard(card), swipeAction, Date.now());
   const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
   const mutationToken = Symbol();
   mutationTokenRef.current = mutationToken;

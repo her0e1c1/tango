@@ -1,2 +1,9 @@
-export { createStudyProgress } from "./model/studyProgress";
-export type { StudyProgress, StudyProgressEdit } from "./model/studyProgress";
+export {
+  compareStudyProgress,
+  createStudyProgress,
+  createStudyProgressFromCard,
+  getNextStudyAvailabilityAt,
+  isStudyProgressEligible,
+  recordStudyProgress,
+} from "./model/studyProgress";
+export type { StudyProgress, StudyProgressEdit, StudyRating } from "./model/studyProgress";

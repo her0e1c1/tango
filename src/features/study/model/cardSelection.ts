@@ -1,8 +1,9 @@
-import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
+import { compareStudyProgress, isStudyProgressEligible } from "@/entities/study-progress";
+import type { StudyCard } from "@/features/study/model/studyCard";
 import type { StudyPreferences } from "@/shared/config";
 
-const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
+const isCardMatchingTags = (card: StudyCard["card"], deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
   const tags = deck.selectedTags;
   if (tags.length === 0) return true;
   if (deck.tagAndFilter) {
@@ -11,25 +12,24 @@ const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAn
   return tags.some((tag) => card.tags.includes(tag));
 };
 
-export const filterCardsForDeck = (
-  cards: Card[],
+export const filterCardsForDeck = <TCard extends StudyCard["card"]>(
+  cards: StudyCard<TCard>[],
   deck: Pick<Deck, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
   study: Pick<StudyPreferences, "useCardInterval">,
   now: number
-): Card[] => {
-  const filtered = cards.filter((card) => {
+): StudyCard<TCard>[] => {
+  const filtered = cards.filter(({ card, progress }) => {
     if (!isCardMatchingTags(card, deck)) return false;
-    if (deck.scoreMax != null && card.score > deck.scoreMax) {
-      return false;
-    }
-    if (deck.scoreMin != null && card.score < deck.scoreMin) {
-      return false;
-    }
-    if (study.useCardInterval && card.nextSeeingAt && card.nextSeeingAt.getTime() > now) {
-      return false;
-    }
-    return true;
+    return isStudyProgressEligible(
+      progress,
+      {
+        maximumScore: deck.scoreMax,
+        minimumScore: deck.scoreMin,
+        respectNextSeeingAt: study.useCardInterval,
+      },
+      now
+    );
   });
-  filtered.sort((first, second) => first.numberOfSeen - second.numberOfSeen);
+  filtered.sort((first, second) => compareStudyProgress(first.progress, second.progress));
   return filtered;
 };

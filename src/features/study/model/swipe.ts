@@ -1,29 +1,21 @@
-import type { Card, CardEdit } from "@/entities/card";
+import type { CardEdit } from "@/entities/card";
+import { recordStudyProgress, type StudyRating } from "@/entities/study-progress";
+import { createCardProgressEdit, type StudyCard } from "@/features/study/model/studyCard";
 import type { SwipeAction, SwipeDirection, SwipeState } from "@/shared/config";
 
 export const resolveSwipeAction = (controls: SwipeState, direction: SwipeDirection): SwipeAction => {
   return controls[direction];
 };
 
-export const calculateCardScore = (card: Pick<Card, "score">, swipeAction: SwipeAction): number => {
-  if (swipeAction === "GoToNextCardMastered") {
-    return card.score >= 0 ? card.score + 1 : 0;
-  } else if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {
-    return card.score <= 0 ? card.score - 1 : 0;
+const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
+  if (swipeAction === "GoToNextCardMastered") return "mastered";
+  if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {
+    return "not-mastered";
   }
-  return card.score;
+  return "unrated";
 };
 
-export const buildStudyPatch = (
-  card: Pick<Card, "id" | "deckId" | "score" | "numberOfSeen">,
-  swipeAction: SwipeAction,
-  now: number
-): CardEdit => {
-  return {
-    id: card.id,
-    deckId: card.deckId,
-    score: calculateCardScore(card, swipeAction),
-    numberOfSeen: card.numberOfSeen + 1,
-    lastSeenAt: now,
-  };
+export const buildStudyPatch = (studyCard: StudyCard, swipeAction: SwipeAction, now: number): CardEdit => {
+  const progress = recordStudyProgress(studyCard.progress, resolveStudyRating(swipeAction), now);
+  return createCardProgressEdit(studyCard.card.deckId, progress);
 };
