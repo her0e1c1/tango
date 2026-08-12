@@ -15,3 +15,4 @@ export {
   buildDeckUpdateDto,
   mapDeckDocument,
 } from "@/entities/deck/api/firestoreDocument";
+export type { DeckCreateDto, DeckUpdateDto } from "@/entities/deck/api/firestoreDocument";
