@@ -1,4 +1,4 @@
-import type { Deck, DeckEdit } from "@/entities/deck";
+import type { Deck, DeckEdit } from "../model/deck";
 
 import {
   create as createRemoteDeck,

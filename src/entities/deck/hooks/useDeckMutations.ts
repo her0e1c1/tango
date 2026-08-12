@@ -1,12 +1,12 @@
 /** @file Provides Deck entity mutation state and actions. */
 
-import type { Deck, DeckEdit, DeckId } from "@/entities/deck";
+import type { Deck, DeckEdit, DeckId } from "../model/deck";
 
 import { useEffect, useRef } from "react";
 
+import { deckCommands } from "../api/commands";
 import { useSession } from "@/entities/session";
 import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
-import { deckCommands } from "@/services/deckCommands";
 
 interface UseDeckMutationsOptions {
   onRemoveSuccess?: (deck: Deck) => void;
