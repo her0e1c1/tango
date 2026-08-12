@@ -5,7 +5,9 @@
  */
 
 import type { Card } from "@/entities/card";
+import { cardRemoteReadStore } from "@/entities/card/model/remoteReadStore";
 import type { Deck, DeckId } from "@/entities/deck";
+import { deckRemoteReadStore } from "@/entities/deck/model/remoteReadStore";
 
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
@@ -15,7 +17,7 @@ import { studyStore, type StudySession } from "@/features/study/state/studyStore
 import { configStore } from "@/shared/config/configStore";
 import { configSchema, normalizeConfigInput } from "@/shared/config/configSchema";
 import type { PartialConfigState } from "@/shared/config/configStore";
-import { remoteStore, toRemoteById } from "@/store/remoteStore";
+import { toRemoteById } from "@/shared/api/remoteSnapshot";
 
 export const PAGE_STORY_UID = "storybook-user";
 
@@ -84,11 +86,16 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
     autoPlay: parameters.autoPlay ?? false,
     lastSwipe: undefined,
   });
-  remoteStore.setState({
+  deckRemoteReadStore.setState({
     uid: PAGE_STORY_UID,
     status: "ready",
-    decksById: toRemoteById(decks),
-    cardsById: toRemoteById(cards),
+    itemsById: toRemoteById(decks),
+    syncStatus: "synced",
+  });
+  cardRemoteReadStore.setState({
+    uid: PAGE_STORY_UID,
+    status: "ready",
+    itemsById: toRemoteById(cards),
     syncStatus: "synced",
   });
 };

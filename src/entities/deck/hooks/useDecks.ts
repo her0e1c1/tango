@@ -1,14 +1,12 @@
 import { useMemo } from "react";
+import { useStore } from "zustand";
 
 import type { Deck } from "@/entities/deck/model/deck";
-import type { RemoteById } from "@/shared/api/remoteSnapshot";
-import { useRemoteRead } from "@/store/useRemoteRead";
-
-const EMPTY_DECKS: RemoteById<Deck> = {};
+import { deckRemoteReadStore } from "@/entities/deck/model/remoteReadStore";
 
 export const useDecks = () => {
-  const remote = useRemoteRead((state) => state.decksById, EMPTY_DECKS);
-  const decksById = remote.data;
+  const remote = useStore(deckRemoteReadStore);
+  const decksById = remote.itemsById;
   const decks = useMemo(() => Object.values(decksById).filter((deck): deck is Deck => deck != null), [decksById]);
 
   return {

@@ -1,8 +1,7 @@
+import { stopRemoteReads } from "@/app/providers/remote-read/remoteReadLifecycle";
 import { signOutCurrentUser, suspendAnonymousBootstrap } from "@/features/auth";
 import { clearStudyStore, studyStore, type StudyState } from "@/features/study";
-import { remoteStore } from "@/store/remoteStore";
 
-const { getState: getRemoteState } = remoteStore;
 const { getState: getStudyState } = studyStore;
 
 interface LogoutCleanupProgress {
@@ -43,7 +42,7 @@ const runLogout = async (
       }
     };
 
-    await run("remote", () => getRemoteState().stop(confirmedUid));
+    await run("remote", () => stopRemoteReads(confirmedUid));
     await run("study", async () => {
       if (progress.studyStateAfterClear && getStudyState() !== progress.studyStateAfterClear) return;
       const cleanup = clearStudyStore();

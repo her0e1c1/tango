@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 
 import { createAuthTransitionController } from "@/app/providers/auth/authTransitionController";
+import { startRemoteReads, stopRemoteReads } from "@/app/providers/remote-read/remoteReadLifecycle";
 import { useSession } from "@/entities/session";
-import { remoteStore } from "@/store/remoteStore";
 
-export const AuthBootstrap = () => {
+export const RemoteReadBootstrap = () => {
   const session = useSession();
   const [controller] = useState(() =>
     createAuthTransitionController({
-      cleanupUid: (uid) => remoteStore.getState().stop(uid),
-      subscribeUid: (uid) => remoteStore.getState().start(uid),
-      reportError: (error) => console.error("Auth transition failed", error),
+      cleanupUid: stopRemoteReads,
+      subscribeUid: startRemoteReads,
+      reportError: (error) => console.error("Remote read transition failed", error),
     })
   );
 

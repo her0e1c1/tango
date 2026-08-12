@@ -7,8 +7,8 @@
 import { onSnapshot, where, collection, query } from "firebase/firestore";
 
 import { mapCardDocument, mapDeckDocument } from "@/adapters/firestore/dto";
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import type { Card } from "@/entities/card/model/card";
+import type { Deck } from "@/entities/deck/model/deck";
 import type { RemoteChange, RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
 import { getDb } from "@/shared/firebase/firestore-runtime";
 

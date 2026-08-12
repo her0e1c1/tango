@@ -1,10 +1,11 @@
 import type { PropsWithChildren } from "react";
 
-import { AuthBootstrap, AuthProvider } from "@/app/providers/auth";
+import { AuthProvider } from "@/app/providers/auth";
+import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
   <AuthProvider>
-    <AuthBootstrap />
+    <RemoteReadBootstrap />
     {children}
   </AuthProvider>
 );

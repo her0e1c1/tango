@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "AuthBootstrap integration" contract with automated examples.
+ * @file Verifies the "RemoteReadBootstrap integration" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "starts remote reads once
  * for one confirmed state under StrictMode and AuthProvider", "automatically retries a failed
  * unchanged auth request only once".
@@ -26,11 +26,13 @@ vi.mock("firebase/auth", () => ({
   signInAnonymously: mocks.signInAnonymously,
   signInWithCredential: vi.fn(),
 }));
-vi.mock("@/store/remoteStore", () => ({
-  remoteStore: { getState: () => ({ start: mocks.start, stop: mocks.stop }) },
+vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
+  startRemoteReads: mocks.start,
+  stopRemoteReads: mocks.stop,
 }));
 
-import { AuthBootstrap, AuthProvider } from "@/app/providers/auth";
+import { AuthProvider } from "@/app/providers/auth";
+import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 import { createAuthRuntime } from "@/features/auth";
 
 /**
@@ -50,14 +52,14 @@ const createHarness = () => {
   render(
     <React.StrictMode>
       <AuthProvider runtime={runtime}>
-        <AuthBootstrap />
+        <RemoteReadBootstrap />
       </AuthProvider>
     </React.StrictMode>
   );
   return { publishUser, runtime };
 };
 
-describe("AuthBootstrap integration", () => {
+describe("RemoteReadBootstrap integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.start.mockResolvedValue(undefined);
@@ -88,7 +90,7 @@ describe("AuthBootstrap integration", () => {
     await waitFor(() => expect(mocks.start).toHaveBeenCalledTimes(2));
     await Promise.resolve();
     expect(mocks.start).toHaveBeenCalledTimes(2);
-    expect(console.error).toHaveBeenCalledWith("Auth transition failed", subscribeError);
+    expect(console.error).toHaveBeenCalledWith("Remote read transition failed", subscribeError);
     runtime.controller.dispose();
   });
 });
