@@ -7,7 +7,7 @@ import {
   logicalRemove as removeRemoteCard,
   update as updateRemoteCard,
   upsert as upsertRemoteCard,
-} from "@/adapters/firestore/card";
+} from "./firestore";
 import {
   cardMutationLock,
   deckMembershipMutationLock,

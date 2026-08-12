@@ -12,9 +12,3 @@ import { getDb } from "@/shared/firebase/firestore-runtime";
  * Only the identifier is returned; the deck document is written later by the deck adapter.
  */
 export const generateDeckId = (): string => doc(collection(getDb(), "deck")).id;
-
-/**
- * Asks Firestore to generate a unique identifier for a new card.
- * Only the identifier is returned; the card document is written later by the card adapter.
- */
-export const generateCardId = (): string => doc(collection(getDb(), "card")).id;

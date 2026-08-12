@@ -27,17 +27,26 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
+    cardCommands: {
+      create: async (uid: string, card: Card) => {
+        if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
+        await mocks.create(card);
+      },
+      update: async (_uid: string, card: Partial<Card>) => {
+        await mocks.update(card);
+      },
+      remove: async (_uid: string, id: string) => {
+        await mocks.logicalRemove(id);
+      },
+      bulkUpsert: async (_uid: string, cards: Card[]) => {
+        await Promise.all(cards.map(mocks.upsert));
+      },
+    },
     useCards: () => ({
       cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
     }),
   };
 });
-vi.mock("@/adapters/firestore/card", () => ({
-  create: mocks.create,
-  update: mocks.update,
-  logicalRemove: mocks.logicalRemove,
-  upsert: mocks.upsert,
-}));
 
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
 
