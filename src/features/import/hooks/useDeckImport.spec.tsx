@@ -254,24 +254,19 @@ describe("useDeckImport", () => {
 
   it("uses the same CSV analysis pipeline for File and URL input", async () => {
     const csv = '"front","back"," foo,foo "," key "';
+    const normalizedCard = { frontText: "front", backText: "back", tags: ["foo"], uniqueKey: "key" };
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(csv));
     const { result } = renderHook(useDeckImport);
 
     await actAsync(async () => result.current.selectFile(new File([csv], "deck.csv")));
-    await actAsync(async () => result.current.importUrl("https://example.test/deck.csv"));
+    expect(result.current.preview?.analysis.rows).toEqual([{ rowNumber: 1, card: normalizedCard }]);
 
-    expect(mocks.parseCsv).toHaveBeenNthCalledWith(1, csv);
-    expect(mocks.parseCsv).toHaveBeenNthCalledWith(2, csv);
+    await actAsync(async () => result.current.importUrl("https://example.test/deck.csv"));
+    expect(mocks.prepareCard).toHaveBeenCalledWith(normalizedCard, expect.anything(), mocks.generateCardId);
   });
 
   it("does not write when URL CSV validation fails", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"","back","","key"'));
-    mocks.parseCsv.mockResolvedValueOnce({
-      rows: [],
-      skippedRows: [],
-      issues: [{ rowNumber: 1, message: "frontText is required.", context: '["","back","","key"]' }],
-      invalidCount: 1,
-    });
     const { result } = renderHook(useDeckImport);
 
     await expect(result.current.importUrl("https://example.test/invalid.csv")).rejects.toThrow("Fix invalid CSV rows");
