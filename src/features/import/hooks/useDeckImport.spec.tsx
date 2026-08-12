@@ -62,7 +62,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     }),
   };
 });
-vi.mock("@/features/card/hooks/useCardMutations", () => ({
+vi.mock("@/features/card", () => ({
   useCardMutations: () => ({ bulkUpsert: mocks.bulkUpsert }),
 }));
 vi.mock("@/features/import/lib/deckImportAnalysis", async (importOriginal) => {

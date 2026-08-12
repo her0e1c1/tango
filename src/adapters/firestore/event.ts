@@ -7,7 +7,7 @@
 import { collection, query, where } from "firebase/firestore";
 
 import { mapDeckDocument } from "@/adapters/firestore/dto";
-import type { Deck } from "@/entities/deck/model/deck";
+import type { Deck } from "@/entities/deck";
 import type { RemoteSubscriptionProps } from "@/shared/api";
 import { getDb } from "@/shared/firebase/firestore-runtime";
 import { subscribeReads } from "@/shared/firebase/subscribeReads";
