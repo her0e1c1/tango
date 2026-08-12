@@ -59,6 +59,23 @@ const focusAdjacentToTrigger = (menu: HTMLElement, direction: -1 | 1) => {
   focusable[triggerIndex + direction]?.focus();
 };
 
+const handleNavigationKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+
+  event.preventDefault();
+  const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'));
+  const currentIndex = items.indexOf(document.activeElement as HTMLButtonElement);
+  let nextIndex = 0;
+  if (event.key === "End") {
+    nextIndex = items.length - 1;
+  } else if (event.key === "ArrowDown") {
+    nextIndex = (currentIndex + 1) % items.length;
+  } else if (event.key === "ArrowUp") {
+    nextIndex = (currentIndex - 1 + items.length) % items.length;
+  }
+  items[nextIndex]?.focus();
+};
+
 /**
  * Renders the Actions Menu user interface.
  * Displays available actions in an accessible menu, manages keyboard focus, and reports selection
@@ -115,20 +132,7 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
       focusAdjacentToTrigger(menu, event.shiftKey ? -1 : 1);
       return;
     }
-    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
-
-    event.preventDefault();
-    const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'));
-    const currentIndex = items.indexOf(document.activeElement as HTMLButtonElement);
-    const nextIndex =
-      event.key === "Home"
-        ? 0
-        : event.key === "End"
-          ? items.length - 1
-          : event.key === "ArrowDown"
-            ? (currentIndex + 1) % items.length
-            : (currentIndex - 1 + items.length) % items.length;
-    items[nextIndex]?.focus();
+    handleNavigationKey(event);
   };
 
   /**

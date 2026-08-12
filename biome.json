@@ -26,6 +26,9 @@
   },
   "linter": {
     "rules": {
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "error"
+      },
       "correctness": {
         "noUndeclaredDependencies": {
           "level": "error",
