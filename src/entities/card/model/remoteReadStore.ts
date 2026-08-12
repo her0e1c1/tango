@@ -1,5 +1,5 @@
 import type { Card } from "@/entities/card/model/card";
-import { waitForFirestoreInitialization } from "@/shared/firebase/firestore-runtime";
+import { waitForFirestoreInitialization } from "@/shared/firestore";
 import { createRemoteReadStore } from "@/shared/lib/remote-read";
 import { subscribeCardReads } from "../api/subscribeCardReads";
 

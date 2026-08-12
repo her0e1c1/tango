@@ -43,6 +43,10 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
+    cardCommands: {
+      ...actual.cardCommands,
+      bulkUpsert: (_uid: string, cards: Card[]) => mocks.bulkUpsert(cards),
+    },
     createCard: (...args: unknown[]) => mocks.prepareCard(...args),
     generateCardId: mocks.generateCardId,
     selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
@@ -62,9 +66,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     }),
   };
 });
-vi.mock("@/features/card", () => ({
-  useCardMutations: () => ({ bulkUpsert: mocks.bulkUpsert }),
-}));
 vi.mock("@/features/import/lib/deckImportAnalysis", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/import/lib/deckImportAnalysis")>();
   return {

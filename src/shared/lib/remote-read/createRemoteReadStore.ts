@@ -9,7 +9,7 @@ import {
   type RemoteSubscriptionProps,
   type RemoteSyncStatus,
 } from "@/shared/api";
-import type { FirestoreInitializationResult } from "@/shared/firebase/firestore-runtime";
+import type { FirestoreInitializationResult } from "@/shared/firestore";
 import { applyRealtimeChange } from "@/shared/lib/realtimeChange";
 
 type Unsubscribe = () => void;

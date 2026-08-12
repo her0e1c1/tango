@@ -35,7 +35,10 @@ vi.mock("firebase/firestore", () => ({
     }
   ),
 }));
-vi.mock("@/shared/firebase/firestore-runtime", () => ({ getDb: () => "db" }));
+vi.mock("@/shared/firestore", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/firestore")>()),
+  getDb: () => "db",
+}));
 
 import { subscribeCardReads, subscribeDeckReads } from "@/adapters/firestore/event";
 

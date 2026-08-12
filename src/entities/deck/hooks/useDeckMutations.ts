@@ -5,7 +5,7 @@ import type { Deck, DeckEdit, DeckId } from "../model/deck";
 import { useEffect, useRef } from "react";
 
 import { deckCommands } from "../api/commands";
-import { useSession } from "@/entities/session";
+import { useSession } from "@/entities/session/@x/deck";
 import { useAsyncAction } from "@/shared/hooks";
 
 interface UseDeckMutationsOptions {

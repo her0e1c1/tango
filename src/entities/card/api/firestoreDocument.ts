@@ -2,7 +2,7 @@ import type { Card, CardEdit, CardId } from "../model/card";
 
 import { z } from "zod";
 
-import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/firebase/firestoreDocument";
+import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/firestore";
 
 const cardDocumentSchema = z.object({
   id: z.string().optional(),

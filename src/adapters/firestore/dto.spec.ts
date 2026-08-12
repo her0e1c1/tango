@@ -20,7 +20,7 @@ import {
   mapCardDocument,
   mapDeckDocument,
 } from "@/adapters/firestore/dto";
-import { FirestoreDocumentValidationError } from "@/shared/firebase/firestoreDocument";
+import { FirestoreDocumentValidationError } from "@/shared/firestore";
 import { createCard, createDeck } from "@/test/factories";
 
 describe("Firestore DTO builders", () => {

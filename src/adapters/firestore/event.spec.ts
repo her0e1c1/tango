@@ -17,8 +17,8 @@ import * as deckAdapter from "@/adapters/firestore/deck";
 import * as eventAdapter from "@/adapters/firestore/event";
 import { createCard, createDeck } from "@/test/factories";
 
-vi.mock("@/shared/firebase/firestoreDocument", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/shared/firebase/firestoreDocument")>()),
+vi.mock("@/shared/firestore", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/firestore")>()),
   getTimestamp: vi.fn(() => 100),
 }));
 

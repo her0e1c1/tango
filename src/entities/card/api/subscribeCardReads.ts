@@ -3,8 +3,7 @@ import type { Card } from "../model/card";
 import { collection, query, where } from "firebase/firestore";
 
 import type { RemoteSubscriptionProps } from "@/shared/api";
-import { getDb } from "@/shared/firebase/firestore-runtime";
-import { subscribeReads } from "@/shared/firebase/subscribeReads";
+import { getDb, subscribeReads } from "@/shared/firestore";
 import { mapCardDocument } from "./firestoreDocument";
 
 export const subscribeCardReads = (props: RemoteSubscriptionProps<Card>): (() => void) =>
