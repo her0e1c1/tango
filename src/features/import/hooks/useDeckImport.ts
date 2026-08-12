@@ -22,7 +22,7 @@ import { createDeck, useDeckMutations, useDecks } from "@/entities/deck";
 import { useSession } from "@/entities/session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { parseCsv } from "@/features/import/lib/cardCsv";
-import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
+import { buildDeckImportPlan } from "@/features/import/lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
 
 interface DeckImportAttempt {
@@ -259,7 +259,7 @@ const previewDeckImportFile = async (
   setPreview(undefined);
   reset();
   try {
-    const analysis = await parseDeckImportCsv(file);
+    const analysis = await parseCsv(await file.text());
     if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
     const deck = decks.find((candidate) => candidate.name === file.name);
     const existing = deck == null ? [] : cardsByDeckId(deck.id);
@@ -459,14 +459,16 @@ export const useDeckImport = () => {
     const parsedUrl = new URL(url);
     const response = await fetch(parsedUrl);
     if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
-    const cards = await parseCsv(await response.text());
+    const analysis = await parseCsv(await response.text());
     if (generation.current !== operationGeneration || dependenciesRef.current?.uid !== operationUid) {
       throw new Error("Deck import user changed before the import could start");
     }
+    if (analysis.invalidCount > 0) throw new Error("Fix invalid CSV rows before importing");
+    if (analysis.rows.length === 0) throw new Error("The CSV file has no valid rows");
     return await run({
       kind: "content",
       name: name ?? url.split("/").pop() ?? "no name",
-      rows: rowsFromCards(cards),
+      rows: analysis.rows,
     });
   };
 
