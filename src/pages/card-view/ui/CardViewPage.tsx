@@ -28,8 +28,8 @@ const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
     >
       <CardViewView
         backText={{
-          ...(category !== undefined ? { category } : {}),
-          code: category !== undefined && isHighlightLanguage(category),
+          category,
+          code: isHighlightLanguage(category),
           dark: config.appearance.darkMode,
           text: card.backText,
         }}
