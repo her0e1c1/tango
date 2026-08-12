@@ -17,11 +17,13 @@ import {
   persistentSingleTabManager,
   terminate,
 } from "firebase/firestore";
+import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 
 const singletons = vi.hoisted(() => ({
   app: { name: "app" },
   auth: { currentUser: null },
   db: { type: "firestore", _firestoreClient: { _offlineComponents: { kind: "persistent" } } },
+  functions: { type: "functions" },
 }));
 
 vi.mock("firebase/app", () => ({
@@ -45,6 +47,11 @@ vi.mock("firebase/firestore", () => ({
   terminate: vi.fn(async () => undefined),
 }));
 
+vi.mock("firebase/functions", () => ({
+  connectFunctionsEmulator: vi.fn(),
+  getFunctions: vi.fn(() => singletons.functions),
+}));
+
 afterEach(() => {
   vi.clearAllMocks();
   vi.unstubAllEnvs();
@@ -59,11 +66,13 @@ describe("Firebase singletons", () => {
 
     expect(first.app).toBe(singletons.app);
     expect(first.auth).toBe(singletons.auth);
+    expect(first.functions).toBe(singletons.functions);
     expect(first.getDb()).toBe(singletons.db);
     expect(second.getDb()).toBe(first.getDb());
     expect(initializeApp).toHaveBeenCalledTimes(1);
     expect(getAuth).toHaveBeenCalledWith(singletons.app);
     expect(getAuth).toHaveBeenCalledTimes(1);
+    expect(getFunctions).toHaveBeenCalledExactlyOnceWith(singletons.app);
     expect(initializeFirestore).toHaveBeenCalledTimes(1);
   });
 
@@ -162,6 +171,16 @@ describe("Firebase singletons", () => {
     const { auth } = await import("@/shared/firebase");
 
     expect(connectAuthEmulator).toHaveBeenCalledWith(auth, "http://127.0.0.1:9099");
+  });
+
+  it("connects Functions to the configured emulator in development", async () => {
+    vi.stubEnv("DEV", true);
+    vi.stubEnv("VITE_FUNCTIONS_HOST", "127.0.0.1");
+    vi.stubEnv("VITE_FUNCTIONS_PORT", "5001");
+
+    const { functions } = await import("@/shared/firebase");
+
+    expect(connectFunctionsEmulator).toHaveBeenCalledExactlyOnceWith(functions, "127.0.0.1", 5001);
   });
 
   it.each([

@@ -3,7 +3,6 @@ import type { Card } from "../model/card";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { REMOTE_WRITE_TIMEOUT_MS } from "@/shared/lib/remoteWrite";
-import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/store/remoteMutationLocks";
 import { createCard as createCardFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -88,80 +87,5 @@ describe("card commands", () => {
     await vi.advanceTimersByTimeAsync(REMOTE_WRITE_TIMEOUT_MS);
 
     await assertion;
-  });
-
-  it("waits to write a Card while its Deck membership is exclusively locked", async () => {
-    let finishExclusive!: () => void;
-    const exclusive = withDeckMembershipLocks(
-      [deckMembershipMutationLock("uid-a", "deck")],
-      "exclusive",
-      () =>
-        new Promise<void>((resolve) => {
-          finishExclusive = resolve;
-        })
-    );
-    const card = createCard({ id: "card", deckId: "deck" });
-    const cardWrite = cardCommands.create("uid-a", card);
-
-    await Promise.resolve();
-    expect(mocks.create).not.toHaveBeenCalled();
-
-    finishExclusive();
-    await Promise.all([exclusive, cardWrite]);
-    expect(mocks.create).toHaveBeenCalledExactlyOnceWith(card);
-  });
-
-  it("keeps an exclusive Deck membership mutation waiting for a Card write", async () => {
-    let finishCardWrite!: () => void;
-    mocks.update.mockReturnValueOnce(
-      new Promise<void>((resolve) => {
-        finishCardWrite = resolve;
-      })
-    );
-    const card = createCard({ id: "card", deckId: "deck" });
-    const cardWrite = cardCommands.update("uid-a", card);
-    await vi.waitFor(() => expect(mocks.update).toHaveBeenCalledOnce());
-
-    const exclusiveTask = vi.fn();
-    const exclusive = withDeckMembershipLocks([deckMembershipMutationLock("uid-a", "deck")], "exclusive", async () =>
-      exclusiveTask()
-    );
-    await Promise.resolve();
-    expect(exclusiveTask).not.toHaveBeenCalled();
-
-    finishCardWrite();
-    await Promise.all([cardWrite, exclusive]);
-    expect(exclusiveTask).toHaveBeenCalledOnce();
-  });
-
-  it("does not block Card writes or exclusive mutations for other memberships", async () => {
-    let finishExclusive!: () => void;
-    const blockedExclusive = withDeckMembershipLocks(
-      [deckMembershipMutationLock("uid-a", "blocked")],
-      "exclusive",
-      () =>
-        new Promise<void>((resolve) => {
-          finishExclusive = resolve;
-        })
-    );
-    const otherDeckCard = createCard({ id: "other-deck-card", deckId: "other" });
-    const otherUidCard = createCard({ id: "other-uid-card", uid: "uid-b", deckId: "blocked" });
-    const otherExclusiveTask = vi.fn();
-
-    const otherDeckWrite = cardCommands.create("uid-a", otherDeckCard);
-    const otherUidWrite = cardCommands.create("uid-b", otherUidCard);
-    const otherExclusive = withDeckMembershipLocks(
-      [deckMembershipMutationLock("uid-a", "other")],
-      "exclusive",
-      async () => otherExclusiveTask()
-    );
-
-    await vi.waitFor(() => {
-      expect(mocks.create).toHaveBeenCalledTimes(2);
-      expect(otherExclusiveTask).toHaveBeenCalledOnce();
-    });
-
-    finishExclusive();
-    await Promise.all([blockedExclusive, otherDeckWrite, otherUidWrite, otherExclusive]);
   });
 });

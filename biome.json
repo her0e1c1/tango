@@ -7,10 +7,10 @@
     "defaultBranch": "main"
   },
   "files": {
-    "includes": ["**/*.{ts,tsx}", "src/**/*.{js,jsx,css}", "scripts/**/*.mjs", "*.{js,mjs}"]
+    "includes": ["**/*.{ts,tsx}", "src/**/*.{js,jsx,css}", "functions/**/*.js", "scripts/**/*.mjs", "*.{js,mjs}"]
   },
   "formatter": {
-    "includes": ["src/**"],
+    "includes": ["src/**", "functions/**"],
     "indentStyle": "space",
     "lineWidth": 120
   },

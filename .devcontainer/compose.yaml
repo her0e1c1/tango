@@ -7,10 +7,13 @@ x-dev: &dev
   environment:
     VITE_DB_HOST: db
     VITE_DB_PORT: ${VITE_DB_PORT:-8080}
+    VITE_FUNCTIONS_HOST: functions
+    VITE_FUNCTIONS_PORT: ${VITE_FUNCTIONS_PORT:-5001}
   working_dir: /workspace
   volumes:
     - ..:/workspace:cached
     - node_modules:/workspace/node_modules
+    - functions_node_modules:/workspace/functions/node_modules
   entrypoint: bash
 
 services:
@@ -54,6 +57,37 @@ services:
       interval: 1s
       retries: 60
 
+  functions:
+    <<: *dev
+    init: true
+    entrypoint: []
+    command:
+      - firebase
+      - emulators:start
+      - --only
+      - functions
+      - --project
+      - demo-tango
+      - --config
+      - firebase.json
+    environment:
+      FIRESTORE_EMULATOR_HOST: db:${VITE_DB_PORT:-8080}
+      GCLOUD_PROJECT: demo-tango
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:5001', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      start_period: 10s
+      interval: 1s
+      retries: 60
+
   dev:
     <<: *dev
     profiles:
@@ -86,3 +120,4 @@ services:
 
 volumes:
   node_modules:
+  functions_node_modules:

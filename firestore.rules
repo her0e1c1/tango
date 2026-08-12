@@ -1,23 +1,34 @@
+rules_version = '2';
+
 service cloud.firestore {
   function isOwner() {
-    return request.auth.uid == resource.data.uid;
+    return request.auth != null && request.auth.uid == resource.data.uid;
   }
   function isValidOwner() {
-    return request.auth.uid == resource.data.uid &&
+    return request.auth != null &&
+           request.auth.uid == resource.data.uid &&
            request.auth.uid == request.resource.data.uid;
   }
   function isValid() {
-    return request.auth.uid == request.resource.data.uid;
+    return request.auth != null && request.auth.uid == request.resource.data.uid;
   }
   match /databases/{database}/documents {
     match /deck/{deckId} {
       function isPublic() {
         return resource.data.isPublic == true;
       }
+      function isActiveDeck(data) {
+        return data.get("deletedAt", null) == null &&
+               data.get("deletionState", "active") == "active";
+      }
+      function keepsServerDeletionState() {
+        return !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(["deletedAt", "deletionState"]);
+      }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid();
-      allow update: if isValidOwner();
-      allow delete: if isOwner();
+      allow create: if isValid() && isActiveDeck(request.resource.data);
+      allow update: if isValidOwner() && keepsServerDeletionState();
+      allow delete: if false;
     }
     match /card/{cardId} {
       function getDeck(deckId) {
@@ -26,12 +37,15 @@ service cloud.firestore {
       function isPublic() {
         return getDeck(resource.data.deckId).data.isPublic == true;
       }
-      function belongsToDeck() {
-        return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
+      function belongsToActiveDeck() {
+        let deck = getDeck(request.resource.data.deckId);
+        return deck.data.uid == request.auth.uid &&
+               deck.data.get("deletedAt", null) == null &&
+               deck.data.get("deletionState", "active") == "active";
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid() && belongsToDeck();
-      allow update: if isValidOwner() && belongsToDeck();
+      allow create: if isValid() && belongsToActiveDeck();
+      allow update: if isValidOwner() && belongsToActiveDeck();
       allow delete: if isOwner();
     }
   }

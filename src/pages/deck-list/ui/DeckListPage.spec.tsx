@@ -64,7 +64,9 @@ vi.mock("@/entities/deck", () => ({
     decks: Object.values(mocks.decksById),
     decksById: mocks.decksById,
   }),
-  useDeckMutations: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
+}));
+vi.mock("@/features/deck-deletion", () => ({
+  useDeckDeletion: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
     mocks.onRemoveSuccess = options?.onRemoveSuccess;
     return {
       remove: (deck: Deck) => mocks.remove(deck).then(() => mocks.onRemoveSuccess?.(deck)),

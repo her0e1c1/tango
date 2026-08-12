@@ -12,7 +12,6 @@ const mocks = vi.hoisted(() => ({
   uid: "uid-a",
   create: vi.fn(),
   update: vi.fn(),
-  remove: vi.fn(),
 }));
 
 vi.mock("@/entities/session/@x/deck", () => ({
@@ -25,10 +24,6 @@ vi.mock("@/entities/deck/api/firestore", () => ({
   create: mocks.create,
   update: mocks.update,
 }));
-vi.mock("@/adapters/firestore/deck", () => ({
-  remove: mocks.remove,
-}));
-
 import { useDeckMutations } from "./useDeckMutations";
 
 describe("useDeckMutations", () => {
@@ -37,7 +32,6 @@ describe("useDeckMutations", () => {
     mocks.uid = "uid-a";
     mocks.create.mockResolvedValue("deck-id");
     mocks.update.mockResolvedValue(undefined);
-    mocks.remove.mockResolvedValue(undefined);
   });
 
   it("exposes per-Deck pending state while an update is running", async () => {
@@ -63,54 +57,11 @@ describe("useDeckMutations", () => {
     expect(result.current.pending).toBe(false);
   });
 
-  it("invokes remove success after a removal", async () => {
-    let finish!: () => void;
-    mocks.remove.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
-    const deck = createDeck({ id: "deck" });
-    const onRemoveSuccess = vi.fn();
-    const { result } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
-
-    let operation!: Promise<void>;
-    act(() => {
-      operation = result.current.remove(deck);
-    });
-    await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck.id, "uid-a"));
-    await actAsync(async () => {
-      finish();
-      await operation;
-    });
-
-    expect(onRemoveSuccess).toHaveBeenCalledExactlyOnceWith(deck);
-    expect(result.current.pending).toBe(false);
-  });
-
-  it("does not invoke a removal callback after the hook unmounts", async () => {
-    const deck = createDeck({ id: "deck" });
-    const failure = new Error("remove failed");
-    let finishRetry!: () => void;
-    mocks.remove
-      .mockRejectedValueOnce(failure)
-      .mockReturnValueOnce(new Promise<void>((resolve) => (finishRetry = resolve)));
-    const onRemoveSuccess = vi.fn();
-    const { result, unmount } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
-    await actAsync(async () => {
-      await expect(result.current.remove(deck)).rejects.toBe(failure);
-    });
-
-    act(() => result.current.retry());
-    await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
-    unmount();
-    finishRetry();
-
-    await waitFor(() => expect(onRemoveSuccess).not.toHaveBeenCalled());
-  });
-
-  it("retries the latest failed update without invoking remove success", async () => {
+  it("retries the latest failed update", async () => {
     const deck = createDeck({ id: "deck" });
     const failure = new Error("update failed");
     mocks.update.mockRejectedValueOnce(failure).mockResolvedValueOnce(undefined);
-    const onRemoveSuccess = vi.fn();
-    const { result } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
+    const { result } = renderHook(useDeckMutations);
 
     await actAsync(async () => {
       await expect(result.current.update(deck)).rejects.toBe(failure);
@@ -122,7 +73,6 @@ describe("useDeckMutations", () => {
       expect(mocks.update).toHaveBeenCalledTimes(2);
       expect(result.current.error).toBeNull();
     });
-    expect(onRemoveSuccess).not.toHaveBeenCalled();
   });
 
   it("rejects writes without a confirmed user and exposes the error", async () => {
@@ -137,27 +87,5 @@ describe("useDeckMutations", () => {
     expect(result.current.error).toEqual(
       expect.objectContaining({ message: expect.stringContaining("confirmed user") })
     );
-  });
-
-  it("does not invoke remove success for an operation started before the UID changes", async () => {
-    let finish!: () => void;
-    mocks.remove.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
-    const deck = createDeck({ id: "deck" });
-    const onRemoveSuccess = vi.fn();
-    const { result, rerender } = renderHook(() => useDeckMutations({ onRemoveSuccess }));
-
-    let operation!: Promise<void>;
-    act(() => {
-      operation = result.current.remove(deck);
-    });
-    await waitFor(() => expect(result.current.pending).toBe(true));
-    mocks.uid = "uid-b";
-    rerender();
-    finish();
-    await operation;
-
-    expect(result.current.pending).toBe(false);
-    expect(result.current.error).toBeNull();
-    expect(onRemoveSuccess).not.toHaveBeenCalled();
   });
 });

@@ -45,7 +45,7 @@ export const useCardMutations = ({ onRemoveSuccess }: UseCardMutationsOptions = 
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
     const operationScope = scope.current;
     return mutation.run([id], `remove:${id}`, async () => {
-      await cardCommands.remove(uid, id, card.deckId);
+      await cardCommands.remove(uid, id);
       if (scope.current === operationScope) onRemoveSuccessRef.current?.(card);
     });
   };

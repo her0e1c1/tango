@@ -1,12 +1,6 @@
 import type { Deck, DeckEdit } from "../model/deck";
 
-import { remove as removeRemoteDeck } from "@/adapters/firestore/deck";
-import {
-  deckMembershipMutationLock,
-  deckMutationLock,
-  withDeckMembershipLocks,
-  withMutationLocks,
-} from "@/store/remoteMutationLocks";
+import { deckMutationLock, withMutationLocks } from "@/store/remoteMutationLocks";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 import { create as createRemoteDeck, update as updateRemoteDeck } from "./firestore";
 
@@ -34,16 +28,6 @@ export const deckCommands = {
     requireOwner(uid, deck.uid);
     await withMutationLocks([deckMutationLock(uid, deck.id)], () =>
       waitForRemoteWrite(updateRemoteDeck(deck), "Deck update")
-    );
-  },
-
-  remove: async (uid: string, deck: Deck): Promise<void> => {
-    requireUid(uid);
-    requireOwner(uid, deck.uid);
-    await withMutationLocks([deckMutationLock(uid, deck.id)], () =>
-      withDeckMembershipLocks([deckMembershipMutationLock(uid, deck.id)], "exclusive", () =>
-        waitForRemoteWrite(removeRemoteDeck(deck.id, uid), "Deck deletion")
-      )
     );
   },
 };

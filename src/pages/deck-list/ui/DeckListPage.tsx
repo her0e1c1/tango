@@ -4,7 +4,8 @@ import { useKey } from "react-use";
 
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import { useDeckMutations, useDecks } from "@/entities/deck";
+import { useDecks } from "@/entities/deck";
+import { useDeckDeletion } from "@/features/deck-deletion";
 import { downloadDeckCsv } from "@/features/export";
 import { useSampleDeckBootstrap } from "@/features/import";
 import {
@@ -33,7 +34,7 @@ export const DeckListPage: React.FC = () => {
   const readState = combineRemoteReadStates(cardRemote, deckRemote);
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
-  const mutations = useDeckMutations({
+  const deletion = useDeckDeletion({
     onRemoveSuccess: (deck) => {
       removeStudySession(deck.id);
       setDeletionTarget((target) => (target?.deck.id === deck.id ? undefined : target));
@@ -49,11 +50,11 @@ export const DeckListPage: React.FC = () => {
   useKey("i", () => void navigate("/import"));
 
   React.useEffect(() => {
-    if (!hydrated || mutations.pending || deckRemote.status !== "ready" || deckRemote.syncStatus !== "synced") {
+    if (!hydrated || deletion.pending || deckRemote.status !== "ready" || deckRemote.syncStatus !== "synced") {
       return;
     }
     discardStudySessionsMissingDecks(deckRemote.decks.map((deck) => deck.id));
-  }, [deckRemote.decks, deckRemote.status, deckRemote.syncStatus, hydrated, mutations.pending]);
+  }, [deckRemote.decks, deckRemote.status, deckRemote.syncStatus, hydrated, deletion.pending]);
 
   return (
     <RemoteReadBoundary
@@ -74,9 +75,9 @@ export const DeckListPage: React.FC = () => {
           }}
         >
           <RemoteMutationNotice
-            pending={mutations.pending}
-            error={mutations.error}
-            onRetry={mutations.retry}
+            pending={deletion.pending}
+            error={deletion.error}
+            onRetry={deletion.retry}
             pendingLabel="Deleting deck…"
             errorLabel="Unable to delete deck."
           />
@@ -87,8 +88,8 @@ export const DeckListPage: React.FC = () => {
               targetLabel="Deck"
               targetName={deletionTarget.deck.name}
               confirmLabel="Delete deck"
-              pending={mutations.isPending(deletionTarget.deck.id)}
-              {...(mutations.error != null
+              pending={deletion.isPending(deletionTarget.deck.id)}
+              {...(deletion.error != null
                 ? { errorMessage: "Unable to delete this deck. Check your connection and try again." }
                 : {})}
               description={
@@ -102,13 +103,13 @@ export const DeckListPage: React.FC = () => {
                 </>
               }
               onCancel={() => setDeletionTarget(undefined)}
-              onConfirm={() => mutations.remove(deletionTarget.deck).catch(() => undefined)}
+              onConfirm={() => deletion.remove(deletionTarget.deck).catch(() => undefined)}
             />
           ) : null}
           <DeckListView
             sections={sections}
             deckCard={{
-              isPending: mutations.isPending,
+              isPending: deletion.isPending,
               openMenuDeckId,
               onToggleMenu: (id) => setOpenMenuDeckId((value) => (value === id ? undefined : id)),
               onCloseMenu: () => setOpenMenuDeckId(undefined),

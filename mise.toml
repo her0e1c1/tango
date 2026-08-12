@@ -16,20 +16,25 @@ COMPOSE_ENV_FILES = ".env"
 
 [tasks]
 up = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
-dev-up = "docker compose --env-file .env.dev up --wait --wait-timeout 120 --remove-orphans -d db auth"
+dev-up = "docker compose --env-file .env.dev up --wait --wait-timeout 120 --remove-orphans -d db auth functions"
 test-sample = "mise run //sample:test"
 lint-docker = "hadolint --failure-threshold warning Dockerfile sample/Dockerfile"
 down = "docker compose down --remove-orphans"
 ps = "docker compose ps"
 
 [tasks.init]
-depends = ["init-deps"]
+depends = ["init-deps", "init-functions"]
 run = "test -f .env || cp .env.example .env"
 
 [tasks.init-deps]
 sources = ["package.json", "package-lock.json"]
 outputs = ["node_modules/.package-lock.json"]
 run = "npm ci"
+
+[tasks.init-functions]
+sources = ["functions/package.json", "functions/package-lock.json"]
+outputs = ["functions/node_modules/.package-lock.json"]
+run = "npm --prefix functions ci"
 
 [tasks.dev]
 depends = ["build-sample", "dev-up"]
@@ -48,11 +53,14 @@ run = [
 
 [tasks.test-unit]
 depends = ["build-sample"]
-run = "npm run test:unit"
+run = ["npm run test:unit", "npm --prefix functions run test:unit"]
 
 [tasks.test-firestore]
-depends = ["up"]
-run = "npm run test:firestore"
+depends = ["init-functions", "up"]
+run = [
+  "npm run test:firestore",
+  "FIRESTORE_EMULATOR_HOST=localhost:${VITE_DB_PORT:-8080} GCLOUD_PROJECT=test-deck-deletion npm --prefix functions run test:firestore",
+]
 
 [tasks.test-storybook]
 depends = ["build-sample"]

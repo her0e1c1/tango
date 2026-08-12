@@ -5,3 +5,6 @@ services:
   auth:
     ports:
       - "${VITE_AUTH_PORT:-9099}:9099"
+  functions:
+    ports:
+      - "${VITE_FUNCTIONS_PORT:-5001}:5001"

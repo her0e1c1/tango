@@ -3,10 +3,18 @@
     "rules": "firestore.rules",
     "indexes": "firebase.indexes.json"
   },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs22"
+  },
   "emulators": {
     "auth": {
       "host": "0.0.0.0",
       "port": 9099
+    },
+    "functions": {
+      "host": "0.0.0.0",
+      "port": 5001
     }
   },
   "hosting": {

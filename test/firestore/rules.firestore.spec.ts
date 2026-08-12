@@ -71,10 +71,17 @@ describe("firestore/rule", () => {
         await assertSucceeds(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
       });
 
-      it("should delete a deck", async () => {
+      it("should reserve physical deck deletion for the server", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid" });
-        await assertSucceeds(deleteDoc(doc(db, "deck", id)));
+        await assertFails(deleteDoc(doc(db, "deck", id)));
+      });
+
+      it("should reserve deck deletion state for the server", async () => {
+        const id = uuid();
+        await createData("deck", id, { uid: "uid", deletedAt: null });
+
+        await assertFails(updateDoc(doc(db, "deck", id), { deletionState: "deleting", deletedAt: 2 }));
       });
     });
 
@@ -103,7 +110,47 @@ describe("firestore/rule", () => {
         await createData("card", id, { uid: "uid" });
         await assertSucceeds(deleteDoc(doc(db, "card", id)));
       });
+
+      it("should reject card creation while its deck is deleting", async () => {
+        const [deckId, id] = [uuid(), uuid()];
+        await createData("deck", deckId, {
+          uid: "uid",
+          deletionState: "deleting",
+          deletedAt: 2,
+        });
+
+        await assertFails(setDoc(doc(db, "card", id), { uid: "uid", deckId }));
+      });
+
+      it("should reject card updates while its deck is deleting", async () => {
+        const [deckId, id] = [uuid(), uuid()];
+        await createData("deck", deckId, {
+          uid: "uid",
+          deletionState: "deleting",
+          deletedAt: 2,
+        });
+        await createData("card", id, { uid: "uid", deckId });
+
+        await assertFails(updateDoc(doc(db, "card", id), { name: "update" }));
+      });
     });
+  });
+
+  it("rejects independent clients racing card writes after deletion begins", async () => {
+    const [deckId, existingCardId, newCardId] = [uuid(), uuid(), uuid()];
+    await createData("deck", deckId, {
+      uid: "uid",
+      deletionState: "deleting",
+      deletedAt: 2,
+    });
+    await createData("card", existingCardId, { uid: "uid", deckId });
+    const firstClient = testEnv.authenticatedContext("uid").firestore();
+    const secondClient = testEnv.authenticatedContext("uid").firestore();
+
+    await Promise.all([
+      assertFails(setDoc(doc(firstClient, "card", newCardId), { uid: "uid", deckId })),
+      assertFails(updateDoc(doc(secondClient, "card", existingCardId), { name: "racing update" })),
+    ]);
   });
 
   describe("invalid authenticated context", () => {

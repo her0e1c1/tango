@@ -6,6 +6,7 @@
 
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
+import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 import { initializeFirestoreAdapter } from "./initializeFirestore";
 import { getDb, waitForFirestoreInitialization } from "./firestore-runtime";
 
@@ -20,6 +21,7 @@ export const app = initializeApp({
   storageBucket: `${projectId}.appspot.com`,
 });
 export const auth = getAuth(app);
+export const functions = getFunctions(app);
 initializeFirestoreAdapter(app);
 
 export { getDb, waitForFirestoreInitialization };
@@ -29,4 +31,10 @@ const authHost = import.meta.env.VITE_AUTH_HOST;
 const authPort = import.meta.env.VITE_AUTH_PORT;
 if (import.meta.env.DEV && authHost && authPort) {
   connectAuthEmulator(auth, `http://${authHost}:${authPort}`);
+}
+
+const functionsHost = import.meta.env.VITE_FUNCTIONS_HOST;
+const functionsPort = import.meta.env.VITE_FUNCTIONS_PORT;
+if (import.meta.env.DEV && functionsHost && functionsPort) {
+  connectFunctionsEmulator(functions, functionsHost, parseInt(functionsPort, 10));
 }

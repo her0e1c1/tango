@@ -1,5 +1,3 @@
-import type { DeckId } from "@/entities/deck/@x/card";
-
 import type { Card, CardEdit, CardId } from "../model/card";
 
 import {
@@ -8,12 +6,7 @@ import {
   update as updateRemoteCard,
   upsert as upsertRemoteCard,
 } from "./firestore";
-import {
-  cardMutationLock,
-  deckMembershipMutationLock,
-  withDeckMembershipLocks,
-  withMutationLocks,
-} from "@/store/remoteMutationLocks";
+import { cardMutationLock, withMutationLocks } from "@/store/remoteMutationLocks";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 
 const requireUid = (uid: string) => {
@@ -26,10 +19,8 @@ const requireOwner = (uid: string, entityUid: string | undefined) => {
   }
 };
 
-const withCardWriteLocks = <T>(uid: string, id: CardId, deckId: DeckId, task: () => Promise<T>): Promise<T> =>
-  withMutationLocks([cardMutationLock(uid, id)], () =>
-    withDeckMembershipLocks([deckMembershipMutationLock(uid, deckId)], "shared", task)
-  );
+const withCardWriteLock = <T>(uid: string, id: CardId, task: () => Promise<T>): Promise<T> =>
+  withMutationLocks([cardMutationLock(uid, id)], task);
 
 export class CardBulkMutationError extends Error {
   constructor(
@@ -45,22 +36,18 @@ export const cardCommands = {
   create: async (uid: string, card: Card): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await withCardWriteLocks(uid, card.id, card.deckId, () =>
-      waitForRemoteWrite(createRemoteCard(card), "Card creation")
-    );
+    await withCardWriteLock(uid, card.id, () => waitForRemoteWrite(createRemoteCard(card), "Card creation"));
   },
 
   update: async (uid: string, card: CardEdit): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await withCardWriteLocks(uid, card.id, card.deckId, () =>
-      waitForRemoteWrite(updateRemoteCard(card), "Card update")
-    );
+    await withCardWriteLock(uid, card.id, () => waitForRemoteWrite(updateRemoteCard(card), "Card update"));
   },
 
-  remove: async (uid: string, id: CardId, deckId: DeckId): Promise<void> => {
+  remove: async (uid: string, id: CardId): Promise<void> => {
     requireUid(uid);
-    await withCardWriteLocks(uid, id, deckId, () => waitForRemoteWrite(removeRemoteCard(id), "Card deletion"));
+    await withCardWriteLock(uid, id, () => waitForRemoteWrite(removeRemoteCard(id), "Card deletion"));
   },
 
   bulkUpsert: async (uid: string, cards: Card[]): Promise<void> => {
@@ -71,7 +58,7 @@ export const cardCommands = {
 
     const results = await Promise.allSettled(
       cards.map((card) =>
-        withCardWriteLocks(uid, card.id, card.deckId, () => waitForRemoteWrite(upsertRemoteCard(card), "Card import"))
+        withCardWriteLock(uid, card.id, () => waitForRemoteWrite(upsertRemoteCard(card), "Card import"))
       )
     );
     const failedIds = results.flatMap((result, index) => {

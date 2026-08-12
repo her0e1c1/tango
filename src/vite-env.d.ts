@@ -9,4 +9,6 @@ interface ImportMetaEnv {
   readonly VITE_AUTH_PORT: string;
   readonly VITE_DB_HOST: string;
   readonly VITE_DB_PORT: string;
+  readonly VITE_FUNCTIONS_HOST: string;
+  readonly VITE_FUNCTIONS_PORT: string;
 }
