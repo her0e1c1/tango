@@ -52,11 +52,13 @@ export const DeckSwiperPage: React.FC = () => {
   const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
   const cardMutation = useCardMutations();
   const studyActions = useStudyActions(deckId, {
-    isPending: cardMutation.isPending,
-    update: cardMutation.update,
-    pending: cardMutation.pending,
-    error: cardMutation.error,
-    retry: cardMutation.retry,
+    cardMutation: {
+      isPending: cardMutation.isPending,
+      update: cardMutation.update,
+      pending: cardMutation.pending,
+      error: cardMutation.error,
+      retry: cardMutation.retry,
+    },
   });
   useKey("ArrowUp", studyActions.swipeUp);
   useKey("ArrowDown", studyActions.swipeDown);

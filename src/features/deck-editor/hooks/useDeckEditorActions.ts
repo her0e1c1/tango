@@ -1,31 +1,32 @@
 /**
- * @file Provides navigation-aware Deck editor actions.
- * The hook combines state and operations behind one interface so components do not need to
- * coordinate services themselves.
+ * @file Provides Deck editor actions.
+ * The hook combines mutation state and operations while its Page owner supplies navigation.
  */
 
 import type { Deck } from "@/entities/deck";
 
-import { useNavigate } from "react-router-dom";
-
 import { useDeckMutations } from "@/entities/deck";
 
+interface DeckEditorActionsOptions {
+  onCancel: () => void;
+  onSaved: () => void;
+}
+
 /**
- * Provides the mutation and navigation actions used by the Deck editor.
+ * Provides the mutation actions used by the Deck editor.
  */
-export const useDeckEditorActions = () => {
-  const navigate = useNavigate();
+export const useDeckEditorActions = ({ onCancel, onSaved }: DeckEditorActionsOptions) => {
   const mutations = useDeckMutations();
   return {
-    updateAndGoToList: async (deck: Deck) => {
+    save: async (deck: Deck) => {
       try {
         await mutations.update(deck);
-        void navigate("/", { replace: true });
+        onSaved();
       } catch {
         // The mutation notice owns error feedback and retry.
       }
     },
-    goToList: () => void navigate("/", { replace: true }),
+    cancel: onCancel,
     pending: mutations.pending,
     error: mutations.error,
     retry: mutations.retry,

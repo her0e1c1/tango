@@ -1,32 +1,18 @@
-/**
- * @file Defines Storybook examples for Deck Form Template.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Deck } from "@/entities/deck";
+import type { DeckFormFields } from "@/features/deck-editor";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import { DeckFormTemplate as Template } from "./DeckFormTemplate";
-import type { DeckFormFields } from "../DeckForm";
 import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-/**
- * Prepares fields for data for the Storybook examples in this file.
- * The helper keeps sample setup separate from the component configuration readers are meant to
- * inspect.
- */
+import { DeckFormView as View } from "./DeckFormView";
+
 const fieldsFor = (deck: Deck): DeckFormFields => ({
   name: { value: deck.name, onChange: () => undefined },
   convertToBr: { checked: Boolean(deck.convertToBr), onChange: () => undefined },
   url: { value: deck.url ?? "", onChange: () => undefined },
-  category: {
-    value: deck.category,
-    options: fixture.form.options.default,
-    onChange: () => undefined,
-  },
+  category: { value: deck.category, options: fixture.form.options.default, onChange: () => undefined },
 });
 
 const longDeck: Deck = {
@@ -36,15 +22,11 @@ const longDeck: Deck = {
 };
 
 const meta = {
-  title: "Deck Editor/DeckFormTemplate",
-  component: Template,
+  title: "Pages/Deck Form",
+  component: View,
   tags: ["autodocs"],
   parameters: {
-    layout: "fullscreen",
-    viewport: {
-      viewports: INITIAL_VIEWPORTS,
-      defaultViewport: "desktop",
-    },
+    viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" },
   },
   args: {
     deckForm: {
@@ -53,17 +35,15 @@ const meta = {
       onCancel: () => undefined,
     },
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof View>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-
 export const LongValues: Story = {
   args: { deckForm: { deck: longDeck, fields: fieldsFor(longDeck), onCancel: () => undefined } },
 };
-
 export const Submitting: Story = {
   args: {
     deckForm: {
@@ -74,17 +54,8 @@ export const Submitting: Story = {
     },
   },
 };
-
-export const DarkReview: Story = {
+export const Dark: Story = { ...LongValues, globals: { theme: "dark" } };
+export const Mobile: Story = {
   ...LongValues,
-  globals: { theme: "dark" },
-};
-
-export const IphoneX: Story = {
-  ...LongValues,
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  parameters: { viewport: { defaultViewport: "iphonex" } },
 };

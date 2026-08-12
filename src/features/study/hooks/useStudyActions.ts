@@ -10,8 +10,6 @@ import type { ConfigState, SwipeDirection } from "@/shared/config";
 
 import React from "react";
 
-import { useNavigate } from "react-router-dom";
-
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { useStudyCards } from "@/features/study/hooks/useStudyCards";
@@ -42,6 +40,11 @@ interface StudyCardMutation {
   pending: boolean;
   error: unknown;
   retry: () => void;
+}
+
+interface UseStudyActionsOptions {
+  cardMutation?: StudyCardMutation;
+  onStarted?: () => void;
 }
 
 interface StudySwipeDependencies {
@@ -141,8 +144,10 @@ const runStudySwipe = async (
  * Callers receive one focused interface without coordinating the study feature's stores and
  * services themselves.
  */
-export const useStudyActions = (deckId: DeckId, cardMutation?: StudyCardMutation): StudyActions => {
-  const navigate = useNavigate();
+export const useStudyActions = (
+  deckId: DeckId,
+  { cardMutation, onStarted }: UseStudyActionsOptions = {}
+): StudyActions => {
   const config = useConfig();
   const cardRemote = useCards();
   const deckRemote = useDecks();
@@ -152,16 +157,15 @@ export const useStudyActions = (deckId: DeckId, cardMutation?: StudyCardMutation
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
   /**
-   * Creates a new study session from the currently filtered cards and opens the study route.
-   * The saved UI preferences are applied before navigation so the first card renders in the
-   * expected state.
+   * Creates a new study session from the currently filtered cards.
+   * The saved UI preferences are applied before the Page is notified that the session is ready.
    */
   const start = () => {
     const cardOrderIds = buildStudySession(cards, config.study);
     const state = studyStore.getState();
     state.startStudy(deckId, cardOrderIds);
     state.initializeStudyUi(config.study.defaultAutoPlay);
-    void navigate(`/deck/${deckId}/study`, { replace: true });
+    onStarted?.();
   };
 
   /**

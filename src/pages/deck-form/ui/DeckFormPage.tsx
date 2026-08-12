@@ -1,3 +1,77 @@
-import { DeckFormContainer } from "@/features/deck-editor";
+import type * as React from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-export const DeckFormPage = () => <DeckFormContainer />;
+import { CATEGORY, type Category, type Deck, useDecks } from "@/entities/deck";
+import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
+import { setDarkMode, useConfig } from "@/shared/config";
+import { Layout } from "@/shared/ui/layout";
+import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
+import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
+import { RouteFeedback } from "@/shared/ui/route-feedback";
+
+import { DeckFormView } from "./DeckFormView";
+
+const DeckFormContent = ({ deck }: { deck: Deck }) => {
+  const config = useConfig();
+  const navigate = useNavigate();
+  const goToList = () => void navigate("/", { replace: true });
+  const deckActions = useDeckEditorActions({ onCancel: goToList, onSaved: goToList });
+  const categoryOptions: { label: Category; value: Category }[] = CATEGORY.map((category) => ({
+    label: category,
+    value: category,
+  }));
+  const deckForm = useDeckFormState({
+    deck,
+    categoryOptions,
+    onCancel: deckActions.cancel,
+    onSubmit: deckActions.save,
+  });
+
+  return (
+    <Layout
+      showHeader
+      headerProps={{
+        dark: config.appearance.darkMode,
+        onClickDarkMode: setDarkMode,
+        onClickLogo: () => void navigate("/"),
+        onClickImport: () => void navigate("/import"),
+        onClickSettings: () => void navigate("/settings"),
+      }}
+    >
+      <DeckFormView
+        feedbackSlot={
+          <RemoteMutationNotice pending={deckActions.pending} error={deckActions.error} onRetry={deckActions.retry} />
+        }
+        deckForm={deckForm}
+      />
+    </Layout>
+  );
+};
+
+export const DeckFormPage: React.FC = () => {
+  const params = useParams();
+  const navigate = useNavigate();
+  const deckId = params.id;
+  if (deckId == null) throw Error("invalid deck id");
+  const remote = useDecks();
+  const deck = remote.decksById[deckId];
+
+  return (
+    <RemoteReadBoundary
+      status={remote.status}
+      hasData={deck != null}
+      emptyContent={
+        <RouteFeedback
+          title="Deck not found"
+          description="The requested deck is unavailable or has been removed."
+          tone="not-found"
+          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        />
+      }
+      onRetry={remote.retry}
+    >
+      {deck != null ? <DeckFormContent deck={deck} /> : null}
+    </RemoteReadBoundary>
+  );
+};
