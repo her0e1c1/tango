@@ -117,7 +117,7 @@ describe("Firestore remote-read subscriptions", () => {
     expect(onSnapshot).toHaveBeenCalledWith({
       type: "replace",
       items: [],
-      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+      metadata: { fromCache: false, hasPendingWrites: false },
     });
   });
 
@@ -132,7 +132,7 @@ describe("Firestore remote-read subscriptions", () => {
     expect(onSnapshot).toHaveBeenCalledWith({
       type: "replace",
       items: [expect.objectContaining({ id: "deck-a", name: "Remote Deck" })],
-      metadata: { size: 2, fromCache: false, hasPendingWrites: false },
+      metadata: { fromCache: false, hasPendingWrites: false },
     });
   });
 
@@ -162,7 +162,7 @@ describe("Firestore remote-read subscriptions", () => {
         modified: [expect.objectContaining({ id: "deck-modified" })],
         removed: ["deck-deleted", "deck-removed"],
       },
-      metadata: { size: 4, fromCache: true, hasPendingWrites: true },
+      metadata: { fromCache: true, hasPendingWrites: true },
     });
   });
 
@@ -181,7 +181,7 @@ describe("Firestore remote-read subscriptions", () => {
     expect(onSnapshot).toHaveBeenLastCalledWith({
       type: "replace",
       items: [expect.objectContaining({ id: "card-a", nextSeeingAt: new Date(50) })],
-      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+      metadata: { fromCache: false, hasPendingWrites: false },
     });
 
     mocks.next?.(snapshot([], [{ type: "modified", doc: document("card-a", cardDocument({ frontText: "Updated" })) }]));
@@ -192,7 +192,7 @@ describe("Firestore remote-read subscriptions", () => {
         modified: [expect.objectContaining({ id: "card-a", frontText: "Updated" })],
         removed: [],
       },
-      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+      metadata: { fromCache: false, hasPendingWrites: false },
     });
   });
 
@@ -260,7 +260,7 @@ describe("Firestore remote-read subscriptions", () => {
     expect(onSnapshot).toHaveBeenCalledWith({
       type: "change",
       event: { added: [], modified: [], removed: [] },
-      metadata: { size: 0, fromCache: false, hasPendingWrites: false },
+      metadata: { fromCache: false, hasPendingWrites: false },
     });
   });
 
