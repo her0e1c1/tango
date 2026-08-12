@@ -11,14 +11,14 @@ import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import * as cardAdapter from "@/adapters/firestore/card";
 import * as deckAdapter from "@/adapters/firestore/deck";
-import { getTimestamp } from "@/shared/firebase/firestoreDocument";
+import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
 import { createCard, createDeck } from "@/test/factories";
 
 const uuid = UUID.v4;
 
-vi.mock("@/shared/firebase/firestoreDocument", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/shared/firebase/firestoreDocument")>()),
+vi.mock("@/shared/firestore", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/firestore")>()),
   getTimestamp: vi.fn(),
 }));
 

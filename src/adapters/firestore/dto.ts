@@ -5,7 +5,7 @@
  */
 
 import type { Deck, DeckEdit, DeckId } from "@/entities/deck";
-import { parseFirestoreDocument } from "@/shared/firebase/firestoreDocument";
+import { parseFirestoreDocument } from "@/shared/firestore";
 
 export {
   buildCardCreateDto,
