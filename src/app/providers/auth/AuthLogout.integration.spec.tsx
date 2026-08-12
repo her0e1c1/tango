@@ -56,7 +56,7 @@ vi.mock("@/shared/config", () => ({
   updateConfig: vi.fn(),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/settings/hooks/useConfigFormState", () => ({
+vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({
   useConfigFormState: (options: Record<string, unknown>) => options,
 }));
 vi.mock("@/pages/settings/ui/SettingsView", () => ({

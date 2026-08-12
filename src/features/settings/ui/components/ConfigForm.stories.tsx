@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { ConfigForm as Template, type ConfigFormFields } from "@/features/settings/components/ConfigForm";
+import { ConfigForm as Template, type ConfigFormFields } from "@/features/settings/ui/components/ConfigForm";
 import * as fixture from "@/storybook/fixture";
 
 const fields: ConfigFormFields = {

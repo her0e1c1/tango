@@ -1,3 +1,3 @@
-export { ConfigForm, type ConfigFormFields, type ConfigFormProps } from "./components/ConfigForm";
-export { useAccountOperations } from "./hooks/useAccountOperations";
-export { useConfigFormState } from "./hooks/useConfigFormState";
+export { ConfigForm, type ConfigFormFields, type ConfigFormProps } from "./ui/components/ConfigForm";
+export { useAccountOperations } from "./model/hooks/useAccountOperations";
+export { useConfigFormState } from "./model/hooks/useConfigFormState";

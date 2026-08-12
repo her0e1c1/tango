@@ -1,1 +1,1 @@
-export { downloadDeckCsv } from "./deckCsv";
+export { downloadDeckCsv } from "./lib/deckCsv";

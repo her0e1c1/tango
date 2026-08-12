@@ -18,7 +18,7 @@ vi.mock("@/shared/config", () => ({
   updateConfig: vi.fn(),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/settings/hooks/useAccountOperations", () => ({
+vi.mock("@/features/settings/model/hooks/useAccountOperations", () => ({
   useAccountOperations: () => ({
     pending: false,
     error: null,
@@ -27,8 +27,10 @@ vi.mock("@/features/settings/hooks/useAccountOperations", () => ({
     retry: vi.fn(async () => undefined),
   }),
 }));
-vi.mock("@/features/settings/hooks/useConfigFormState", () => ({ useConfigFormState: () => ({}) }));
-vi.mock("@/features/settings/components/ConfigForm", () => ({ ConfigForm: () => null }));
+vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({
+  useConfigFormState: () => ({}),
+}));
+vi.mock("@/features/settings/ui/components/ConfigForm", () => ({ ConfigForm: () => null }));
 
 import { SettingsPage } from "./SettingsPage";
 

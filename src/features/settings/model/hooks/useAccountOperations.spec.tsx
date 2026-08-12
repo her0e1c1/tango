@@ -8,7 +8,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import React, { type PropsWithChildren } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
+import { useAccountOperations } from "@/features/settings/model/hooks/useAccountOperations";
 import { actAsync } from "@/test/act";
 
 /**
