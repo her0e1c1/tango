@@ -1,4 +1,4 @@
-import type { Deck, DeckId } from "@/entities/deck";
+import type { DeckForCard, DeckId } from "@/entities/deck/@x/card";
 
 export type CardId = string;
 
@@ -23,7 +23,7 @@ export interface Card {
   endLine?: number;
 }
 
-export type CardDeck = Pick<Deck, "id" | "uid">;
+export type CardDeck = DeckForCard;
 export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
 export type CardNew = Omit<Card, "id">;
 export type CardEdit = Partial<Card> & Pick<Card, "id" | "deckId">;
