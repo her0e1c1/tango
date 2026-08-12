@@ -178,7 +178,7 @@ export const DeckSwiperPage: React.FC = () => {
         }
         frontTextSlot={
           <FrontText
-            {...(category !== undefined ? { category } : {})}
+            category={category}
             text={card.frontText}
             {...(!studyActions.pending
               ? {
@@ -194,8 +194,8 @@ export const DeckSwiperPage: React.FC = () => {
         cardOverlaySlot={<CardOverlay card={card} />}
         backTextSlot={
           <BackText
-            {...(category !== undefined ? { category } : {})}
-            code={category !== undefined && isHighlightLanguage(category)}
+            category={category}
+            code={isHighlightLanguage(category)}
             dark={config.appearance.darkMode}
             text={card.backText}
             onClick={studyActions.toggleShowBackText}
