@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
-import { nextCardAvailabilityAt, useStudyCards } from "@/features/study/hooks/useStudyCards";
+import { useStudyCards } from "@/features/study/hooks/useStudyCards";
 
 describe("useStudyCards", () => {
   beforeEach(() => vi.restoreAllMocks());
@@ -76,15 +76,5 @@ describe("useStudyCards", () => {
 
     act(() => vi.advanceTimersByTime(500));
     expect(result.current).toEqual([card]);
-  });
-
-  it("selects the nearest future review time", () => {
-    const cards = [
-      createCard({ id: "past", nextSeeingAt: new Date(900) }),
-      createCard({ id: "later", nextSeeingAt: new Date(2_000) }),
-      createCard({ id: "next", nextSeeingAt: new Date(1_500) }),
-    ];
-
-    expect(nextCardAvailabilityAt(cards, 1_000)).toBe(1_500);
   });
 });

@@ -1,24 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
+import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
 import { filterCardsForDeck } from "@/features/study/model/cardSelection";
+import { createStudyCard } from "@/features/study/model/studyCard";
 import type { ConfigState } from "@/shared/config";
 
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
-export const nextCardAvailabilityAt = (cards: Card[], now: number): number | undefined => {
-  let next: number | undefined;
-  for (const card of cards) {
-    const candidate = card.nextSeeingAt?.getTime();
-    if (candidate === undefined || candidate <= now || (next !== undefined && candidate >= next)) continue;
-    next = candidate;
-  }
-  return next;
-};
-
 export const useStudyCards = (deck: Deck | undefined, cards: Card[], config: ConfigState): Card[] => {
   const [scheduleClock, setScheduleClock] = useState(() => Date.now());
+  const studyCards = useMemo(() => cards.map(createStudyCard), [cards]);
 
   useEffect(() => {
     const current = Date.now();
@@ -28,7 +21,10 @@ export const useStudyCards = (deck: Deck | undefined, cards: Card[], config: Con
 
   useEffect(() => {
     const current = Date.now();
-    const next = nextCardAvailabilityAt(cards, current);
+    const next = getNextStudyAvailabilityAt(
+      studyCards.map((card) => card.progress),
+      current
+    );
     const availability =
       next === undefined
         ? undefined
@@ -36,7 +32,7 @@ export const useStudyCards = (deck: Deck | undefined, cards: Card[], config: Con
     return () => {
       if (availability !== undefined) window.clearTimeout(availability);
     };
-  }, [cards, scheduleClock]);
+  }, [scheduleClock, studyCards]);
 
-  return deck == null ? [] : filterCardsForDeck(cards, deck, config.study, scheduleClock);
+  return deck == null ? [] : filterCardsForDeck(studyCards, deck, config.study, scheduleClock).map(({ card }) => card);
 };
