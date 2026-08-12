@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   upsert: vi.fn(),
 }));
 
-vi.mock("@/adapters/firestore/card", () => ({
+vi.mock("./firestore", () => ({
   create: mocks.create,
   update: mocks.update,
   logicalRemove: mocks.logicalRemove,

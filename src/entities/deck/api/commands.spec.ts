@@ -25,7 +25,7 @@ vi.mock("@/adapters/firestore/deck", () => ({
   remove: mocks.remove,
 }));
 
-vi.mock("@/adapters/firestore/card", () => ({
+vi.mock("@/entities/card/api/firestore", () => ({
   create: cardMocks.create,
   update: cardMocks.update,
   logicalRemove: cardMocks.logicalRemove,

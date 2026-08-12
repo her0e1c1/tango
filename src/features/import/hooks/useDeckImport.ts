@@ -10,7 +10,7 @@ import type { Deck, DeckId } from "@/entities/deck";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
-import { CardBulkMutationError, createCard, selectCardsForDeck, useCards } from "@/entities/card";
+import { CardBulkMutationError, createCard, generateCardId, selectCardsForDeck, useCards } from "@/entities/card";
 import { createDeck, useDeckMutations, useDecks } from "@/entities/deck";
 import { useSession } from "@/entities/session";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
@@ -109,7 +109,7 @@ const prepareDeckImportAttempt = (
   plan.rows.forEach((row) => {
     const current = byUniqueKey.get(row.card.uniqueKey);
     if (row.action === "create") {
-      const card = createCard(row.card, deck, firestoreMetadata.generateCardId);
+      const card = createCard(row.card, deck, generateCardId);
       remainingUpserts.push(card);
       createdIds.push(card.id);
     } else if (row.action === "update" && current != null) {
