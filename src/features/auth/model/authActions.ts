@@ -20,7 +20,6 @@ export const loginGoogle = async (): Promise<void> => {
     result = await signInWithCredential(auth, credential);
   }
 
-  process.env.NODE_ENV !== "production" && console.log("LOGIN GOOGLE", result);
   publishAuthenticatedUser(result.user);
 };
 

@@ -30,6 +30,16 @@ describe("loginGoogle", () => {
     expect(mocks.publishAuthenticatedUser).toHaveBeenCalledWith(user);
   });
 
+  it("does not log credential or user objects during sign-in", async () => {
+    const consoleLogSpy = vi.spyOn(console, "log");
+    const user = { uid: "uid-a" };
+    vi.mocked(linkWithPopup).mockResolvedValue({ user } as never);
+
+    await loginGoogle();
+
+    expect(consoleLogSpy).not.toHaveBeenCalled();
+  });
+
   it("recovers a credential from a Firebase linking error", async () => {
     const error = new FirebaseError("auth/credential-already-in-use", "already linked");
     const credential = { providerId: "google.com", signInMethod: "google.com" };
