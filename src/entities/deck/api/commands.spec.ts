@@ -3,6 +3,7 @@ import type { Deck } from "../model/deck";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { REMOTE_WRITE_TIMEOUT_MS } from "@/shared/lib/remoteWrite";
+import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/store/remoteMutationLocks";
 import { createDeck as createDeckFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -79,6 +80,30 @@ describe("deck commands", () => {
 
     finishFirst();
     await Promise.all([firstUpdate, secondUpdate]);
+  });
+
+  it("waits to remove a Deck while its membership is shared-locked", async () => {
+    let finishShared!: () => void;
+    const sharedStarted = vi.fn();
+    const blockedDeck = createDeck({ id: "blocked" });
+    const unrelatedDeck = createDeck({ id: "unrelated" });
+    const shared = withDeckMembershipLocks([deckMembershipMutationLock("uid-a", blockedDeck.id)], "shared", () => {
+      sharedStarted();
+      return new Promise<void>((resolve) => {
+        finishShared = resolve;
+      });
+    });
+    await vi.waitFor(() => expect(sharedStarted).toHaveBeenCalledOnce());
+
+    const blockedRemoval = deckCommands.remove("uid-a", blockedDeck);
+    const unrelatedRemoval = deckCommands.remove("uid-a", unrelatedDeck);
+
+    await vi.waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(unrelatedDeck.id, "uid-a"));
+    expect(mocks.remove).not.toHaveBeenCalledWith(blockedDeck.id, "uid-a");
+
+    finishShared();
+    await Promise.all([shared, blockedRemoval, unrelatedRemoval]);
+    expect(mocks.remove).toHaveBeenCalledWith(blockedDeck.id, "uid-a");
   });
 
   it.each([
