@@ -17,8 +17,10 @@ import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
-  remoteStatus: "ready" as "idle" | "loading" | "ready" | "error" | "blocked",
-  syncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
+  cardRemoteStatus: "ready" as "idle" | "loading" | "ready" | "error" | "blocked",
+  cardSyncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
+  deckRemoteStatus: "ready" as "idle" | "loading" | "ready" | "error" | "blocked",
+  deckSyncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
   decks: [] as Deck[],
   cards: [] as Card[],
   parseDeckImportCsv: vi.fn(),
@@ -40,13 +42,13 @@ vi.mock("@/entities/session", () => ({
 vi.mock("@/entities/card", () => ({
   createCard: (...args: unknown[]) => mocks.prepareCard(...args),
   selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
-  useCards: () => ({ cards: mocks.cards }),
+  useCards: () => ({ status: mocks.cardRemoteStatus, syncStatus: mocks.cardSyncStatus, cards: mocks.cards }),
 }));
 vi.mock("@/entities/deck", () => ({
   createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
   useDecks: () => ({
-    status: mocks.remoteStatus,
-    syncStatus: mocks.syncStatus,
+    status: mocks.deckRemoteStatus,
+    syncStatus: mocks.deckSyncStatus,
     decks: mocks.decks,
   }),
 }));
@@ -77,8 +79,10 @@ describe("useDeckImport", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.uid = "uid-a";
-    mocks.remoteStatus = "ready";
-    mocks.syncStatus = "synced";
+    mocks.cardRemoteStatus = "ready";
+    mocks.cardSyncStatus = "synced";
+    mocks.deckRemoteStatus = "ready";
+    mocks.deckSyncStatus = "synced";
     mocks.decks = [];
     mocks.cards = [];
     mocks.parseDeckImportCsv.mockImplementation(async (content: string | File) => {
@@ -122,16 +126,16 @@ describe("useDeckImport", () => {
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
   });
 
-  it("rejects an import before writing when Firestore is not synchronized", async () => {
-    mocks.syncStatus = "cached";
+  it("rejects a preview before planning when Card reads are not synchronized", async () => {
+    mocks.cardSyncStatus = "cached";
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
-    await actAsync(async () => result.current.selectFile(file));
     await actAsync(async () => {
-      await expect(result.current.importPreview()).rejects.toThrow("synchronized connection");
+      await expect(result.current.selectFile(file)).rejects.toThrow("synchronized connection");
     });
 
+    expect(result.current.preview).toBeUndefined();
     expect(result.current.pending).toBe(false);
     expect(result.current.error).toEqual(
       new Error("Deck import requires a synchronized connection. Check your connection and retry.")
@@ -141,22 +145,20 @@ describe("useDeckImport", () => {
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
   });
 
-  it("retries the rejected import after Firestore synchronizes", async () => {
-    mocks.syncStatus = "cached";
+  it("allows a new preview after Card reads synchronize", async () => {
+    mocks.cardSyncStatus = "cached";
     const { result, rerender } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
-    await actAsync(async () => result.current.selectFile(file));
     await actAsync(async () => {
-      await expect(result.current.importPreview()).rejects.toThrow("synchronized connection");
+      await expect(result.current.selectFile(file)).rejects.toThrow("synchronized connection");
     });
-    mocks.syncStatus = "synced";
+    mocks.cardSyncStatus = "synced";
     rerender();
-    act(() => result.current.retry());
+    await actAsync(async () => result.current.selectFile(file));
+    await actAsync(async () => result.current.importPreview());
 
-    await waitFor(() =>
-      expect(result.current.data).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" })
-    );
+    expect(result.current.data).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
     expect(mocks.createDeck).toHaveBeenCalledOnce();
     expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
   });

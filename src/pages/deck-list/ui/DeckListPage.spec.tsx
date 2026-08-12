@@ -54,7 +54,7 @@ vi.mock("@/entities/card", () => ({
   selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
   useCards: () => {
     const cards = Object.values(mocks.cardsById);
-    return { cards };
+    return { status: "ready" as const, retry: vi.fn(), cards };
   },
 }));
 vi.mock("@/entities/deck", () => ({

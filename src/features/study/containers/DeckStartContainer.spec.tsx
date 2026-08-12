@@ -28,9 +28,11 @@ const mocks = vi.hoisted(() => {
 vi.mock("@/entities/card", () => ({
   selectCardsForDeck: () => [],
   selectTagsForDeck: () => [],
-  useCards: () => ({ cards: [] }),
+  useCards: () => ({ status: "ready" as const, retry: vi.fn(), cards: [] }),
 }));
-vi.mock("@/entities/deck", () => ({ useDecks: () => ({ decksById: {} }) }));
+vi.mock("@/entities/deck", () => ({
+  useDecks: () => ({ status: "ready" as const, retry: vi.fn(), decksById: {} }),
+}));
 vi.mock("@/features/deck/hooks/useDeckActions", () => ({
   useDeckActions: () => ({ update: mocks.update }),
 }));

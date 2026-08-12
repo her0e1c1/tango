@@ -37,6 +37,8 @@ type ImportRequest =
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
+const synchronizationError = () =>
+  new Error("Deck import requires a synchronized connection. Check your connection and retry.");
 
 /**
  * Builds the stable sample deck id used by the import feature.
@@ -138,9 +140,7 @@ const executeDeckImport = async (
   { uid, synchronized, decks, cardsByDeckId, createDeck, bulkUpsert }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
-  if (!synchronized) {
-    throw new Error("Deck import requires a synchronized connection. Check your connection and retry.");
-  }
+  if (!synchronized) throw synchronizationError();
   let attempt = request.attempt;
   if (attempt == null || attempt.uid !== uid) {
     attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId });
@@ -210,7 +210,9 @@ interface FilePreviewDependencies {
   runningRef: { current: boolean };
   setValidating: (validating: boolean) => void;
   setPreview: (preview: DeckImportPreview | undefined) => void;
+  setError: (error: unknown) => void;
   reset: () => void;
+  synchronized: boolean;
   decks: Deck[];
   cardsByDeckId: (id: DeckId) => Card[];
   uid: string;
@@ -230,7 +232,9 @@ const previewDeckImportFile = async (
     runningRef,
     setValidating,
     setPreview,
+    setError,
     reset,
+    synchronized,
     decks,
     cardsByDeckId,
     uid,
@@ -241,6 +245,12 @@ const previewDeckImportFile = async (
 ) => {
   const isCurrent = () => currentGeneration.current === generation && currentUid.current === uid;
   if (runningRef.current) throw new Error("A Deck import is already running");
+  if (!synchronized) {
+    const error = synchronizationError();
+    reset();
+    setError(error);
+    throw error;
+  }
   setValidating(true);
   setPreview(undefined);
   reset();
@@ -323,7 +333,11 @@ export const useDeckImport = () => {
   useEffect(() => {
     dependenciesRef.current = {
       uid,
-      synchronized: deckRemote.status === "ready" && deckRemote.syncStatus === "synced",
+      synchronized:
+        cardRemote.status === "ready" &&
+        cardRemote.syncStatus === "synced" &&
+        deckRemote.status === "ready" &&
+        deckRemote.syncStatus === "synced",
       decks: deckRemote.decks,
       cardsByDeckId,
       createDeck: deckMutations.create,
@@ -331,6 +345,8 @@ export const useDeckImport = () => {
     };
   }, [
     cardMutations.bulkUpsert,
+    cardRemote.status,
+    cardRemote.syncStatus,
     deckMutations.create,
     cardsByDeckId,
     deckRemote.decks,
@@ -401,7 +417,13 @@ export const useDeckImport = () => {
       runningRef,
       setValidating,
       setPreview,
+      setError,
       reset: resetOperation,
+      synchronized:
+        cardRemote.status === "ready" &&
+        cardRemote.syncStatus === "synced" &&
+        deckRemote.status === "ready" &&
+        deckRemote.syncStatus === "synced",
       decks: deckRemote.decks,
       cardsByDeckId,
       uid,
