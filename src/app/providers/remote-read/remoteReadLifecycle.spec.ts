@@ -31,17 +31,19 @@ describe("remote read lifecycle", () => {
     expect(mocks.stopDecks).toHaveBeenCalledExactlyOnceWith("uid-a");
   });
 
-  it("rolls back both Entity stores before publishing a start failure", async () => {
+  it("preserves each Entity state when one lifecycle reports a start failure", async () => {
     const failure = new Error("Deck reads failed");
     mocks.startDecks.mockRejectedValue(failure);
-    mocks.stopCards.mockImplementation(() => {
-      throw new Error("Card cleanup failed");
-    });
 
-    await expect(startRemoteReads("uid-a")).rejects.toBe(failure);
+    await expect(startRemoteReads("uid-a")).resolves.toBeUndefined();
 
     expect(mocks.startCards).toHaveBeenCalledOnce();
     expect(mocks.startDecks).toHaveBeenCalledOnce();
+    expect(mocks.stopCards).not.toHaveBeenCalled();
+    expect(mocks.stopDecks).not.toHaveBeenCalled();
+
+    stopRemoteReads("uid-a");
+
     expect(mocks.stopCards).toHaveBeenCalledExactlyOnceWith("uid-a");
     expect(mocks.stopDecks).toHaveBeenCalledExactlyOnceWith("uid-a");
   });
