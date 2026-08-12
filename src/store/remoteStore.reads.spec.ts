@@ -250,6 +250,33 @@ describe("remote store reads", () => {
     );
   });
 
+  it.each(["blocked", "error"] as const)("resets %s state only when the stop UID matches", async (status) => {
+    const error = new Error(`${status} read`);
+    const harness =
+      status === "blocked"
+        ? createHarness(vi.fn<RemoteReadDependencies["waitForInitialization"]>(async () => ({ status, error })))
+        : createHarness();
+
+    await harness.store.getState().start("uid-a");
+    if (status === "error") harness.cardSubscriptions[0]?.onError(error);
+
+    const failedState = harness.store.getState();
+    expect(failedState).toMatchObject({ uid: "uid-a", status, error });
+
+    harness.store.getState().stop("uid-b");
+    expect(harness.store.getState()).toBe(failedState);
+
+    harness.store.getState().stop("uid-a");
+    expect(harness.store.getState()).toMatchObject({
+      uid: null,
+      status: "idle",
+      decksById: {},
+      cardsById: {},
+      syncStatus: undefined,
+      error: undefined,
+    });
+  });
+
   it("does not create listeners when stopped during initialization", async () => {
     let resolveInitialization!: (result: FirestoreInitializationResult) => void;
     const initialization = new Promise<FirestoreInitializationResult>((resolve) => {
@@ -282,29 +309,35 @@ describe("remote store reads", () => {
     expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
   });
 
-  it("cleans partial subscriptions when superseded during listener setup", async () => {
-    const harness = createHarness();
-    const staleCardUnsubscribe = vi.fn();
-    let latestStart: Promise<void> | undefined;
-    vi.mocked(harness.dependencies.subscribeCards).mockImplementationOnce(() => {
-      latestStart = harness.store.getState().start("uid-b");
-      return staleCardUnsubscribe;
-    });
+  it.each(["deck", "card"] as const)(
+    "cleans a subscription when superseded during %s listener setup",
+    async (listener) => {
+      const harness = createHarness();
+      const staleUnsubscribe = vi.fn();
+      let latestStart: Promise<void> | undefined;
+      const supersede = () => {
+        latestStart = harness.store.getState().start("uid-b");
+        return staleUnsubscribe;
+      };
+      if (listener === "deck") {
+        vi.mocked(harness.dependencies.subscribeDecks).mockImplementationOnce(supersede);
+      } else {
+        vi.mocked(harness.dependencies.subscribeCards).mockImplementationOnce(supersede);
+      }
 
-    await harness.store.getState().start("uid-a");
-    await latestStart;
+      await harness.store.getState().start("uid-a");
+      await latestStart;
 
-    expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
-    expect(staleCardUnsubscribe).toHaveBeenCalledOnce();
-    expect(harness.dependencies.subscribeDecks).toHaveBeenLastCalledWith(expect.objectContaining({ uid: "uid-b" }));
-    expect(harness.dependencies.subscribeCards).toHaveBeenLastCalledWith(expect.objectContaining({ uid: "uid-b" }));
+      if (listener === "card") expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
+      expect(staleUnsubscribe).toHaveBeenCalledOnce();
+      expect(harness.dependencies.subscribeDecks).toHaveBeenLastCalledWith(expect.objectContaining({ uid: "uid-b" }));
+      expect(harness.dependencies.subscribeCards).toHaveBeenLastCalledWith(expect.objectContaining({ uid: "uid-b" }));
 
-    harness.store.getState().stop("uid-b");
+      harness.store.getState().stop("uid-b");
 
-    expect(harness.deckUnsubscribes[1]).toHaveBeenCalledOnce();
-    expect(harness.cardUnsubscribes[0]).toHaveBeenCalledOnce();
-    expect(staleCardUnsubscribe).toHaveBeenCalledOnce();
-  });
+      expect(staleUnsubscribe).toHaveBeenCalledOnce();
+    }
+  );
 
   it("lets the latest start own subscriptions", async () => {
     let resolveInitialization!: (result: FirestoreInitializationResult) => void;

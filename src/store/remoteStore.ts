@@ -72,6 +72,15 @@ const deriveSyncStatus = (metadata: SnapshotMetadata): RemoteSyncStatus | undefi
   return "synced";
 };
 
+const readinessState = (metadata: SnapshotMetadata): Pick<RemoteStoreState, "status" | "syncStatus" | "error"> => {
+  const syncStatus = deriveSyncStatus(metadata);
+  return {
+    status: syncStatus == null ? "loading" : "ready",
+    syncStatus,
+    error: undefined,
+  };
+};
+
 const toError = (value: unknown): Error => (value instanceof Error ? value : new Error(String(value)));
 
 const closeAll = (subscriptions: readonly Unsubscribe[]) => {
@@ -87,15 +96,22 @@ const closeAll = (subscriptions: readonly Unsubscribe[]) => {
 export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreApi<RemoteStoreState> => {
   let activeSession: ReadSession | undefined;
 
+  const isCurrent = (session: ReadSession) => activeSession === session;
+
   const cleanupSession = (session: ReadSession | undefined) => {
     if (session == null) return;
     const subscriptions = session.subscriptions.splice(0);
     closeAll(subscriptions);
   };
 
-  return createStore<RemoteStoreState>()((set, get) => {
-    const isCurrent = (session: ReadSession) => activeSession === session;
+  const addSubscription = (session: ReadSession, unsubscribe: Unsubscribe) => {
+    session.subscriptions.push(unsubscribe);
+    if (isCurrent(session)) return true;
+    cleanupSession(session);
+    return false;
+  };
 
+  return createStore<RemoteStoreState>()((set, get) => {
     const fail = (session: ReadSession, status: "blocked" | "error", cause: unknown) => {
       if (!isCurrent(session)) return;
       activeSession = undefined;
@@ -135,54 +151,36 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
         return;
       }
 
-      const readiness = () => {
-        const syncStatus = deriveSyncStatus(session.metadata);
-        return {
-          status: syncStatus == null ? ("loading" as const) : ("ready" as const),
-          syncStatus,
-          error: undefined,
-        };
-      };
       const onError = (error: Error) => fail(session, "error", error);
 
       try {
-        session.subscriptions.push(
-          dependencies.subscribeDecks({
-            uid: session.uid,
-            onError,
-            onSnapshot: (snapshot) => {
-              if (!isCurrent(session)) return;
-              session.metadata.decks = { ...snapshot.metadata };
-              set({
-                decksById: applySnapshot(get().decksById, snapshot),
-                ...readiness(),
-              });
-            },
-          })
-        );
-        if (!isCurrent(session)) {
-          cleanupSession(session);
-          return;
-        }
+        const deckSubscription = dependencies.subscribeDecks({
+          uid: session.uid,
+          onError,
+          onSnapshot: (snapshot) => {
+            if (!isCurrent(session)) return;
+            session.metadata.decks = { ...snapshot.metadata };
+            set({
+              decksById: applySnapshot(get().decksById, snapshot),
+              ...readinessState(session.metadata),
+            });
+          },
+        });
+        if (!addSubscription(session, deckSubscription)) return;
 
-        session.subscriptions.push(
-          dependencies.subscribeCards({
-            uid: session.uid,
-            onError,
-            onSnapshot: (snapshot) => {
-              if (!isCurrent(session)) return;
-              session.metadata.cards = { ...snapshot.metadata };
-              set({
-                cardsById: applySnapshot(get().cardsById, snapshot),
-                ...readiness(),
-              });
-            },
-          })
-        );
-        if (!isCurrent(session)) {
-          cleanupSession(session);
-          return;
-        }
+        const cardSubscription = dependencies.subscribeCards({
+          uid: session.uid,
+          onError,
+          onSnapshot: (snapshot) => {
+            if (!isCurrent(session)) return;
+            session.metadata.cards = { ...snapshot.metadata };
+            set({
+              cardsById: applySnapshot(get().cardsById, snapshot),
+              ...readinessState(session.metadata),
+            });
+          },
+        });
+        if (!addSubscription(session, cardSubscription)) return;
       } catch (cause) {
         if (isCurrent(session)) {
           fail(session, "error", cause);
