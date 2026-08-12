@@ -17,7 +17,7 @@ import {
   useStudyStore,
 } from "@/features/study";
 import { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";

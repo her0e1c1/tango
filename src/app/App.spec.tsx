@@ -16,13 +16,9 @@ const mocks = vi.hoisted(() => ({
   authState: { status: "initializing" } as SessionState,
 }));
 
-vi.mock("zustand", () => ({
-  useStore: (_store: unknown, select: (state: unknown) => unknown) =>
-    select({
-      config: { appearance: { darkMode: mocks.darkMode } },
-    }),
+vi.mock("@/shared/config", () => ({
+  useConfig: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
-vi.mock("@/shared/config/configStore", () => ({ configStore: {} }));
 vi.mock("@/app/auth/logout", () => ({ logout: vi.fn() }));
 vi.mock("@/entities/session", () => ({ useSession: () => mocks.authState }));
 vi.mock("@/features/auth", () => ({ loginGoogle: vi.fn() }));

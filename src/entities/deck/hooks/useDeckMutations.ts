@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 
 import { deckCommands } from "../api/commands";
 import { useSession } from "@/entities/session";
-import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
+import { useAsyncAction } from "@/shared/hooks";
 
 interface UseDeckMutationsOptions {
   onRemoveSuccess?: (deck: Deck) => void;

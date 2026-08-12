@@ -1,7 +1,7 @@
 import { subscribeCardReads } from "@/adapters/firestore/event";
 import type { Card } from "@/entities/card/model/card";
 import { waitForFirestoreInitialization } from "@/shared/firebase/firestore-runtime";
-import { createRemoteReadStore } from "@/shared/lib/remote-read/createRemoteReadStore";
+import { createRemoteReadStore } from "@/shared/lib/remote-read";
 
 export const cardRemoteReadStore = createRemoteReadStore<Card>({
   waitForInitialization: waitForFirestoreInitialization,

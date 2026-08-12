@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { Card } from "@/entities/card/model/card";
-import type { RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
-import { createRemoteReadStore } from "@/shared/lib/remote-read/createRemoteReadStore";
+import type { RemoteSubscriptionProps } from "@/shared/api";
+import { createRemoteReadStore } from "@/shared/lib/remote-read";
 import { createCard } from "@/test/factories";
 
 const synced = { size: 0, fromCache: false, hasPendingWrites: false };

@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 
 import { cardCommands, useCards } from "@/entities/card";
 import { useSession } from "@/entities/session";
-import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
+import { useAsyncAction } from "@/shared/hooks";
 
 type CardPatch = Partial<Omit<Card, "id" | "deckId" | "uid">>;
 

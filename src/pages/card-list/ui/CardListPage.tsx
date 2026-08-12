@@ -9,7 +9,7 @@ import { getCategory, isHighlightLanguage, type Deck, useDeckMutations, useDecks
 import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { Layout } from "@/shared/ui/layout";

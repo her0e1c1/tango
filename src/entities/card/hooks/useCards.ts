@@ -3,8 +3,8 @@ import { useStore } from "zustand";
 
 import type { Card } from "@/entities/card/model/card";
 import { cardRemoteReadStore } from "@/entities/card/model/remoteReadStore";
-import type { RemoteById } from "@/shared/api/remoteSnapshot";
-import { useRemoteReadScopeUid } from "@/shared/lib/remote-read/RemoteReadScope";
+import type { RemoteById } from "@/shared/api";
+import { useRemoteReadScopeUid } from "@/shared/lib/remote-read";
 
 const EMPTY_CARDS: RemoteById<Card> = {};
 

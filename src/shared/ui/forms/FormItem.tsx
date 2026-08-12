@@ -6,7 +6,7 @@
 
 import cx from "classnames";
 import type React from "react";
-import { Description } from "@/shared/ui/content/Description";
+import { Description } from "@/shared/ui/content";
 
 /**
  * Renders the Form Item user interface.

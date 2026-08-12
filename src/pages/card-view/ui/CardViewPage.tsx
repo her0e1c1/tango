@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { type Card, useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, useDecks } from "@/entities/deck";
 import { setDarkMode, useConfig } from "@/shared/config";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
