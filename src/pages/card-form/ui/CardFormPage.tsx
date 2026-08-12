@@ -1,8 +1,8 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import * as C from "@/constant";
 import { type Card, useCards } from "@/entities/card";
+import { CATEGORY } from "@/entities/deck";
 import { useCardFormState, useCardMutations } from "@/features/card";
 import { setDarkMode, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
@@ -16,7 +16,7 @@ const CardFormContent = ({ card }: { card: Card }) => {
   const config = useConfig();
   const navigate = useNavigate();
   const mutations = useCardMutations();
-  const categoryOptions = C.CATEGORY.map((category) => ({ label: category, value: category }));
+  const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
   const goBack = () => void navigate(-1);
   const cardForm = useCardFormState({
     card,

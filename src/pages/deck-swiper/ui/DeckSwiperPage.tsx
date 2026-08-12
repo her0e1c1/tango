@@ -1,12 +1,10 @@
-import type { DeckId } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type DeckId, useDecks } from "@/entities/deck";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import * as C from "@/constant";
 import { useCards } from "@/entities/card";
-import { useDecks } from "@/entities/deck";
 import { BackText, CardOverlay, FrontText, useCardMutations } from "@/features/card";
 import {
   initializeStudySessionUi,
@@ -22,7 +20,6 @@ import { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, useConfig } f
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
-import * as util from "@/util";
 
 import { DeckSwiperView } from "./DeckSwiperView";
 
@@ -138,7 +135,7 @@ export const DeckSwiperPage: React.FC = () => {
     );
   }
 
-  const category = util.getCategory(deck.category, card.tags);
+  const category = getCategory(deck.category, card.tags);
   const swipeActions: SwipeButtonListProps = {
     disabled: studyActions.pending,
     ...(studyActions.pending
@@ -181,7 +178,7 @@ export const DeckSwiperPage: React.FC = () => {
         }
         frontTextSlot={
           <FrontText
-            {...(category !== undefined ? { category } : {})}
+            category={category}
             text={card.frontText}
             {...(!studyActions.pending
               ? {
@@ -197,8 +194,8 @@ export const DeckSwiperPage: React.FC = () => {
         cardOverlaySlot={<CardOverlay card={card} />}
         backTextSlot={
           <BackText
-            {...(category !== undefined ? { category } : {})}
-            code={category !== undefined && C.LANGUAGES.includes(category)}
+            category={category}
+            code={isHighlightLanguage(category)}
             dark={config.appearance.darkMode}
             text={card.backText}
             onClick={studyActions.toggleShowBackText}

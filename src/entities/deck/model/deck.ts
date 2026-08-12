@@ -1,5 +1,6 @@
+import type { Category } from "./category";
+
 export type DeckId = string;
-export type Category = string;
 
 export interface Deck {
   name: string;

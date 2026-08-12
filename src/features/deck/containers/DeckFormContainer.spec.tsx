@@ -29,13 +29,17 @@ vi.mock("@/shared/config", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 
-vi.mock("@/entities/deck", () => ({
-  useDecks: () => ({
-    status: "ready" as const,
-    retry: vi.fn(),
-    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
-  }),
-}));
+vi.mock("@/entities/deck", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/deck")>();
+  return {
+    ...actual,
+    useDecks: () => ({
+      status: "ready" as const,
+      retry: vi.fn(),
+      decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
+    }),
+  };
+});
 
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,

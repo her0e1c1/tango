@@ -30,11 +30,15 @@ vi.mock("@/entities/card", () => ({
     cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
   }),
 }));
-vi.mock("@/entities/deck", () => ({
-  useDecks: () => ({
-    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
-  }),
-}));
+vi.mock("@/entities/deck", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/deck")>();
+  return {
+    ...actual,
+    useDecks: () => ({
+      decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
+    }),
+  };
+});
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
