@@ -1,5 +1,5 @@
 import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import type { Deck } from "../model/deck";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -32,8 +32,8 @@ vi.mock("@/adapters/firestore/card", () => ({
   upsert: cardMocks.upsert,
 }));
 
-import { cardCommands } from "@/services/cardCommands";
-import { deckCommands } from "@/services/deckCommands";
+import { cardCommands } from "@/entities/card";
+import { deckCommands } from "./commands";
 
 const createDeck = (overrides: Partial<Deck> = {}) => createDeckFixture({ uid: "uid-a", ...overrides });
 const createCard = (overrides: Partial<Card> = {}) => createCardFixture({ uid: "uid-a", ...overrides });

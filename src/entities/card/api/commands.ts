@@ -1,5 +1,6 @@
-import type { Card, CardEdit, CardId } from "@/entities/card";
-import type { DeckId } from "@/entities/deck";
+import type { DeckId } from "@/entities/deck/@x/card";
+
+import type { Card, CardEdit, CardId } from "../model/card";
 
 import {
   create as createRemoteCard,

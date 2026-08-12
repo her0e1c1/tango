@@ -1,3 +1,4 @@
+export { deckCommands } from "./api/commands";
 export { CATEGORY, getCategory, isHighlightLanguage } from "./model/category";
 export type { Category } from "./model/category";
 export { createDeck } from "./model/deck";
