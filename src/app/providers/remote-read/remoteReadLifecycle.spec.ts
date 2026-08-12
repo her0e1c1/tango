@@ -19,7 +19,7 @@ vi.mock("@/entities/deck", () => ({
 import { startRemoteReads, stopRemoteReads } from "@/app/providers/remote-read/remoteReadLifecycle";
 
 describe("remote read lifecycle", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => vi.resetAllMocks());
 
   it("starts and stops both Entity read lifecycles", async () => {
     await startRemoteReads("uid-a");
@@ -31,13 +31,16 @@ describe("remote read lifecycle", () => {
     expect(mocks.stopDecks).toHaveBeenCalledExactlyOnceWith("uid-a");
   });
 
-  it("attempts both Entity actions before publishing a failure", async () => {
-    const failure = new Error("Card reads failed");
-    mocks.startCards.mockRejectedValue(failure);
+  it("rolls back both Entity stores before publishing a start failure", async () => {
+    const failure = new Error("Deck reads failed");
+    mocks.startDecks.mockRejectedValue(failure);
+    mocks.stopCards.mockRejectedValue(new Error("Card cleanup failed"));
 
     await expect(startRemoteReads("uid-a")).rejects.toBe(failure);
 
     expect(mocks.startCards).toHaveBeenCalledOnce();
     expect(mocks.startDecks).toHaveBeenCalledOnce();
+    expect(mocks.stopCards).toHaveBeenCalledExactlyOnceWith("uid-a");
+    expect(mocks.stopDecks).toHaveBeenCalledExactlyOnceWith("uid-a");
   });
 });

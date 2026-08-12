@@ -18,6 +18,7 @@ import { configStore } from "@/shared/config/configStore";
 import { configSchema, normalizeConfigInput } from "@/shared/config/configSchema";
 import type { PartialConfigState } from "@/shared/config/configStore";
 import { toRemoteById } from "@/shared/api/remoteSnapshot";
+import { RemoteReadScopeProvider } from "@/shared/lib/remote-read/RemoteReadScope";
 
 export const PAGE_STORY_UID = "storybook-user";
 
@@ -107,9 +108,11 @@ export const withPageStory: Decorator = (Story, context) => {
 
   return (
     <SessionProvider store={storybookSessionStore}>
-      <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
-        <Story />
-      </MemoryRouter>
+      <RemoteReadScopeProvider uid={PAGE_STORY_UID}>
+        <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
+          <Story />
+        </MemoryRouter>
+      </RemoteReadScopeProvider>
     </SessionProvider>
   );
 };

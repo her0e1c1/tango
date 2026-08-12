@@ -7,8 +7,18 @@ const runRemoteReadActions = async (actions: ReadonlyArray<() => unknown | Promi
   if (failure) throw failure.reason;
 };
 
-export const startRemoteReads = (uid: string) =>
-  runRemoteReadActions([() => startCardReads(uid), () => startDeckReads(uid)]);
-
 export const stopRemoteReads = (uid: string) =>
   runRemoteReadActions([() => stopCardReads(uid), () => stopDeckReads(uid)]);
+
+export const startRemoteReads = async (uid: string): Promise<void> => {
+  try {
+    await runRemoteReadActions([() => startCardReads(uid), () => startDeckReads(uid)]);
+  } catch (cause) {
+    try {
+      await stopRemoteReads(uid);
+    } catch {
+      // Preserve the start failure after attempting both compensating cleanups.
+    }
+    throw cause;
+  }
+};

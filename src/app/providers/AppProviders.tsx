@@ -5,7 +5,6 @@ import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
   <AuthProvider>
-    <RemoteReadBootstrap />
-    {children}
+    <RemoteReadBootstrap>{children}</RemoteReadBootstrap>
   </AuthProvider>
 );
