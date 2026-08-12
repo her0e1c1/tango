@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { Deck } from "@/entities/deck/model/deck";
-import type { RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
-import { createRemoteReadStore } from "@/shared/lib/remote-read/createRemoteReadStore";
+import type { RemoteSubscriptionProps } from "@/shared/api";
+import { createRemoteReadStore } from "@/shared/lib/remote-read";
 import { createDeck } from "@/test/factories";
 
 const synced = { size: 0, fromCache: false, hasPendingWrites: false };

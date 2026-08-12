@@ -35,7 +35,7 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("@/shared/config/useConfig", () => ({
+vi.mock("@/shared/config", () => ({
   useConfig: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     return mocks.state.config;

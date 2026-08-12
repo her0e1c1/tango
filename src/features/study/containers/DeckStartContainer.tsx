@@ -23,7 +23,7 @@ import { useDeckFilterState } from "../hooks/useDeckFilterState";
 import { useStudyActions } from "../hooks/useStudyActions";
 import { useStudyCards } from "../hooks/useStudyCards";
 import { setDarkMode, useConfig } from "@/shared/config";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 
 /**
  * Checks whether the supplied value satisfies the interactive shortcut target condition.

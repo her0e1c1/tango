@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Card } from "@/shared/ui/content/Card";
+import { Card } from "@/shared/ui/content";
 import { List as Template } from "@/shared/ui/layout/List";
 
 const meta = {

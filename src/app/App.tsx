@@ -6,11 +6,10 @@
 
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
-import { useStore } from "zustand";
 
 import { AppRoutes } from "@/app/routes";
 import { useSession } from "@/entities/session";
-import { configStore } from "@/shared/config/configStore";
+import { useConfig } from "@/shared/config";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 /**
@@ -19,7 +18,7 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
  * when startup fails.
  */
 const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location.reload() }) => {
-  const darkMode = useStore(configStore, (state) => state.config.appearance.darkMode);
+  const { darkMode } = useConfig().appearance;
   const authState = useSession();
 
   React.useEffect(() => {

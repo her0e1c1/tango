@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
+import type { RemoteSubscriptionProps } from "@/shared/api";
 import type { FirestoreInitializationResult } from "@/shared/firebase/firestore-runtime";
 import {
   createRemoteReadStore,
