@@ -33,4 +33,13 @@ describe("FrontText", () => {
     render(<FrontText text="$x^2$" category="math" />);
     expect(screen.getByText("x^2")).toBeDefined();
   });
+
+  it("activates FrontText with Enter", () => {
+    const onClick = vi.fn();
+    render(<FrontText text="Front" onClick={onClick} />);
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Front" }), { key: "Enter" });
+
+    expect(onClick).toHaveBeenCalledOnce();
+  });
 });
