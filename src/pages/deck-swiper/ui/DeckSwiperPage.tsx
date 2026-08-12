@@ -17,6 +17,7 @@ import {
   useStudyStore,
 } from "@/features/study";
 import { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -37,6 +38,7 @@ export const DeckSwiperPage: React.FC = () => {
   const config = useConfig();
   const remote = useDecks();
   const cardRemote = useCards();
+  const readState = combineRemoteReadStates(cardRemote, remote);
   const deck = remote.decksById[deckId];
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
@@ -99,12 +101,12 @@ export const DeckSwiperPage: React.FC = () => {
       exitingDeck.current = undefined;
       return;
     }
-    if (!hydrated || remote.status !== "ready" || exitingDeck.current === deckId) return;
+    if (!hydrated || readState.status !== "ready" || exitingDeck.current === deckId) return;
 
     exitingDeck.current = deckId;
     studyActions.resetStudy();
     void navigate("/", { replace: true });
-  }, [deckId, hydrated, navigate, remote.status, studyActions, valid]);
+  }, [deckId, hydrated, navigate, readState.status, studyActions, valid]);
 
   // Keep the active study session on the route when browser history moves backward.
   React.useEffect(() => {
@@ -125,10 +127,10 @@ export const DeckSwiperPage: React.FC = () => {
   if (card == null || deck == null) {
     return (
       <RemoteReadBoundary
-        status={remote.status}
+        status={readState.status}
         hasData={false}
         emptyLabel="Study session unavailable."
-        onRetry={remote.retry}
+        onRetry={readState.retry}
       >
         {null}
       </RemoteReadBoundary>

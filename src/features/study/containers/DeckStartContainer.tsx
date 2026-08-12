@@ -24,6 +24,7 @@ import { DeckStartTemplate } from "@/features/study/components/templates/DeckSta
 import { useStudyActions } from "@/features/study/hooks/useStudyActions";
 import { useStudyCards } from "@/features/study/hooks/useStudyCards";
 import { setDarkMode, useConfig } from "@/shared/config";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
 
 /**
  * Checks whether the supplied value satisfies the interactive shortcut target condition.
@@ -89,6 +90,7 @@ export const DeckStartContainer: React.FC = () => {
   const config = useConfig();
   const cardRemote = useCards();
   const remote = useDecks();
+  const readState = combineRemoteReadStates(cardRemote, remote);
   const deck = remote.decksById[deckId];
   const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
   const cards = useStudyCards(deck, deckCards, config);
@@ -96,8 +98,8 @@ export const DeckStartContainer: React.FC = () => {
 
   return (
     <RemoteReadBoundary
-      status={remote.status}
-      hasData={deck != null}
+      status={readState.status}
+      hasData={readState.status === "ready" && deck != null}
       emptyContent={
         <RouteFeedback
           title="Deck not found"
@@ -107,7 +109,7 @@ export const DeckStartContainer: React.FC = () => {
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={remote.retry}
+      onRetry={readState.retry}
     >
       {deck != null ? <DeckStartContent deck={deck} cards={cards} config={config} tags={tags} /> : null}
     </RemoteReadBoundary>

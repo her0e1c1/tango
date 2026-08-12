@@ -41,8 +41,9 @@ vi.mock("firebase/auth", () => ({
 vi.mock("firebase/app", () => ({
   FirebaseError: class FirebaseError extends Error {},
 }));
-vi.mock("@/store/remoteStore", () => ({
-  remoteStore: { getState: () => ({ start: mocks.startRemoteReads, stop: mocks.cleanupUid }) },
+vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
+  startRemoteReads: mocks.startRemoteReads,
+  stopRemoteReads: mocks.cleanupUid,
 }));
 vi.mock("@/features/study/state/studyStore", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study/state/studyStore")>();
@@ -73,7 +74,8 @@ vi.mock("@/features/settings/components/templates/ConfigFormTemplate", () => ({
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
 import { logout } from "@/app/auth/logout";
-import { AuthBootstrap, AuthProvider } from "@/app/providers/auth";
+import { AuthProvider } from "@/app/providers/auth";
+import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 import { useSession } from "@/entities/session";
 import { createAuthRuntime } from "@/features/auth";
 import { ConfigContainer } from "@/features/settings";
@@ -147,7 +149,7 @@ it("waits for logout cleanup before bootstrapping the next anonymous UID", async
   render(
     <React.StrictMode>
       <AuthProvider>
-        <AuthBootstrap />
+        <RemoteReadBootstrap />
       </AuthProvider>
     </React.StrictMode>
   );

@@ -14,8 +14,8 @@ vi.mock("@/features/auth", () => ({
   signOutCurrentUser: mocks.signOutCurrentUser,
   suspendAnonymousBootstrap: mocks.suspendAnonymousBootstrap,
 }));
-vi.mock("@/store/remoteStore", () => ({
-  remoteStore: { getState: () => ({ stop: mocks.stopRemoteReads }) },
+vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
+  stopRemoteReads: mocks.stopRemoteReads,
 }));
 
 describe("logout", () => {

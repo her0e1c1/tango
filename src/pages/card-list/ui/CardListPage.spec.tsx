@@ -68,7 +68,7 @@ vi.mock("@/entities/card", () => ({
   selectTagsForDeck: (cards: Card[], id: string) => [
     ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
   ],
-  useCards: () => ({ cards: [...mocks.cards] }),
+  useCards: () => ({ status: "ready" as const, retry: vi.fn(), cards: [...mocks.cards] }),
 }));
 
 vi.mock("@/entities/deck", async (importOriginal) => {

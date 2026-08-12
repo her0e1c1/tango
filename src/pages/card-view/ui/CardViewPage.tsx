@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { type Card, useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, useDecks } from "@/entities/deck";
 import { setDarkMode, useConfig } from "@/shared/config";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -45,13 +46,14 @@ export const CardViewPage: React.FC = () => {
   if (cardId == null) throw Error("invalid card id");
   const remote = useCards();
   const deckRemote = useDecks();
+  const readState = combineRemoteReadStates(remote, deckRemote);
   const card = remote.cardsById[cardId];
   const deck = card == null ? undefined : deckRemote.decksById[card.deckId];
   const available = card != null && deck != null;
 
   return (
     <RemoteReadBoundary
-      status={remote.status}
+      status={readState.status}
       hasData={available}
       emptyContent={
         <RouteFeedback
@@ -62,7 +64,7 @@ export const CardViewPage: React.FC = () => {
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={remote.retry}
+      onRetry={readState.retry}
     >
       {available ? <CardViewContent card={card} deck={deck} /> : null}
     </RemoteReadBoundary>

@@ -1,22 +1,26 @@
 import { useMemo } from "react";
+import { useStore } from "zustand";
 
 import type { Deck } from "@/entities/deck/model/deck";
+import { deckRemoteReadStore } from "@/entities/deck/model/remoteReadStore";
 import type { RemoteById } from "@/shared/api/remoteSnapshot";
-import { useRemoteRead } from "@/store/useRemoteRead";
+import { useRemoteReadScopeUid } from "@/shared/lib/remote-read/RemoteReadScope";
 
 const EMPTY_DECKS: RemoteById<Deck> = {};
 
 export const useDecks = () => {
-  const remote = useRemoteRead((state) => state.decksById, EMPTY_DECKS);
-  const decksById = remote.data;
+  const uid = useRemoteReadScopeUid();
+  const remote = useStore(deckRemoteReadStore);
+  const hasActiveUid = uid !== null && remote.uid === uid;
+  const decksById = hasActiveUid ? remote.itemsById : EMPTY_DECKS;
   const decks = useMemo(() => Object.values(decksById).filter((deck): deck is Deck => deck != null), [decksById]);
 
   return {
     decksById,
     decks,
-    status: remote.status,
-    syncStatus: remote.syncStatus,
-    error: remote.error,
+    status: uid === null ? ("idle" as const) : hasActiveUid ? remote.status : ("loading" as const),
+    syncStatus: hasActiveUid && remote.status === "ready" ? remote.syncStatus : undefined,
+    error: hasActiveUid && (remote.status === "error" || remote.status === "blocked") ? remote.error : undefined,
     retry: remote.retry,
   };
 };

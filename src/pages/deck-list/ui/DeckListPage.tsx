@@ -16,6 +16,7 @@ import {
   useStudySessions,
 } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { Layout } from "@/shared/ui/layout";
@@ -30,6 +31,7 @@ export const DeckListPage: React.FC = () => {
   const config = useConfig();
   const cardRemote = useCards();
   const deckRemote = useDecks();
+  const readState = combineRemoteReadStates(cardRemote, deckRemote);
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
   const mutations = useDeckMutations({
@@ -56,10 +58,10 @@ export const DeckListPage: React.FC = () => {
 
   return (
     <RemoteReadBoundary
-      status={deckRemote.status}
-      hasData={deckRemote.decks.length > 0}
+      status={readState.status}
+      hasData={readState.status === "ready" && deckRemote.decks.length > 0}
       emptyLabel="No decks yet."
-      onRetry={deckRemote.retry}
+      onRetry={readState.retry}
     >
       {hydrated ? (
         <Layout

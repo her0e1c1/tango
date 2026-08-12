@@ -50,6 +50,10 @@ const mocks = vi.hoisted(() => ({
   error: null as unknown,
   retry: vi.fn(),
   hydrated: true,
+  cardReadStatus: "ready" as "loading" | "ready" | "error" | "blocked",
+  deckReadStatus: "ready" as "loading" | "ready" | "error" | "blocked",
+  cardReadRetry: vi.fn(),
+  deckReadRetry: vi.fn(),
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
   setDarkMode: vi.fn(),
@@ -73,15 +77,19 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...actual,
     useDecks: () => ({
-      status: "ready" as const,
-      retry: vi.fn(),
+      status: mocks.deckReadStatus,
+      retry: mocks.deckReadRetry,
       decksById: mocks.state?.deck ?? {},
     }),
   };
 });
 
 vi.mock("@/entities/card", () => ({
-  useCards: () => ({ cardsById: mocks.state?.card ?? {} }),
+  useCards: () => ({
+    status: mocks.cardReadStatus,
+    retry: mocks.cardReadRetry,
+    cardsById: mocks.state?.card ?? {},
+  }),
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -179,6 +187,8 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     mocks.params.id = deck.id;
     mocks.state = createState();
     mocks.hydrated = true;
+    mocks.cardReadStatus = "ready";
+    mocks.deckReadStatus = "ready";
     mocks.pending = false;
     mocks.error = null;
     mocks.cardMutation.pending = false;
@@ -479,5 +489,18 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
     });
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the study session while Card reads are still loading", () => {
+    mocks.cardReadStatus = "loading";
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    mocks.state.card = {};
+
+    render(<DeckSwiperPage />);
+
+    expect(screen.getByRole("heading", { name: "Loading…" })).toBeInTheDocument();
+    expect(mocks.resetStudy).not.toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalledWith("/", { replace: true });
+    expect(mocks.studyState.sessionsByDeckId[deck.id]).toBeDefined();
   });
 });

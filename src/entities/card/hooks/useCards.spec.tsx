@@ -1,26 +1,24 @@
 import { renderHook } from "@testing-library/react";
+import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RemoteStoreState } from "@/store/remoteStore";
+import type { Card } from "@/entities/card/model/card";
+import type { RemoteReadStoreState } from "@/shared/lib/remote-read/createRemoteReadStore";
+import { RemoteReadScopeProvider } from "@/shared/lib/remote-read/RemoteReadScope";
 import { createCard } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  uid: "uid-a",
   state: {
     uid: "uid-a",
     status: "ready",
     syncStatus: "synced",
-    decksById: {},
-    cardsById: {},
-  } as Omit<RemoteStoreState, "start" | "stop" | "retry">,
+    itemsById: {},
+  } as Omit<RemoteReadStoreState<Card>, "start" | "stop" | "retry">,
   retry: vi.fn(),
 }));
 
-vi.mock("@/entities/session", () => ({
-  useSession: () => ({ status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null }),
-}));
-vi.mock("@/store/remoteStore", () => ({
-  remoteStore: {
+vi.mock("@/entities/card/model/remoteReadStore", () => ({
+  cardRemoteReadStore: {
     subscribe: () => () => undefined,
     getState: () => Object.assign(mocks.state, { retry: mocks.retry }),
     getInitialState: () => Object.assign(mocks.state, { retry: mocks.retry }),
@@ -29,29 +27,34 @@ vi.mock("@/store/remoteStore", () => ({
 
 import { selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
 
+const authenticatedWrapper = ({ children }: PropsWithChildren) => (
+  <RemoteReadScopeProvider uid="uid-a">{children}</RemoteReadScopeProvider>
+);
+const signedOutWrapper = ({ children }: PropsWithChildren) => (
+  <RemoteReadScopeProvider uid={null}>{children}</RemoteReadScopeProvider>
+);
+
 describe("Card remote hooks", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.uid = "uid-a";
     mocks.state = {
       uid: "uid-a",
       status: "ready",
       syncStatus: "synced",
-      decksById: {},
-      cardsById: {},
+      itemsById: {},
     };
   });
 
-  it("exposes Card collection data for pure selectors", () => {
+  it("exposes Card collection data without an auth or Deck dependency", () => {
     const first = createCard({ id: "first", deckId: "deck-a", tags: ["z", "a"] });
     const second = createCard({ id: "second", deckId: "deck-a", tags: ["a"] });
     const other = createCard({ id: "other", deckId: "deck-b", tags: ["other"] });
     mocks.state = {
       ...mocks.state,
-      cardsById: { [first.id]: first, [second.id]: second, [other.id]: other, missing: undefined },
+      itemsById: { [first.id]: first, [second.id]: second, [other.id]: other, missing: undefined },
     };
 
-    const { result } = renderHook(useCards);
+    const { result } = renderHook(useCards, { wrapper: authenticatedWrapper });
 
     expect(result.current.cardsById[first.id]).toBe(first);
     expect(result.current.cards).toEqual([first, second, other]);
@@ -61,20 +64,38 @@ describe("Card remote hooks", () => {
     expect(result.current.syncStatus).toBe("synced");
   });
 
-  it("hides Card data until the authenticated and active UIDs match", () => {
+  it("preserves Card data and retry in a terminal state", () => {
+    const error = new Error("terminal");
     const card = createCard({ id: "card" });
-    mocks.state = {
-      uid: "uid-b",
-      status: "ready",
-      syncStatus: "synced",
-      decksById: {},
-      cardsById: { [card.id]: card },
-    };
+    mocks.state = { uid: "uid-a", status: "error", error, itemsById: { [card.id]: card } };
 
-    const { result } = renderHook(useCards);
+    const { result } = renderHook(useCards, { wrapper: authenticatedWrapper });
+    void result.current.retry();
+
+    expect(result.current.cards).toEqual([card]);
+    expect(result.current.error).toBe(error);
+    expect(mocks.retry).toHaveBeenCalledOnce();
+  });
+
+  it("hides Card data while the App scope expects another UID", () => {
+    const card = createCard({ id: "card" });
+    mocks.state = { uid: "uid-b", status: "ready", syncStatus: "synced", itemsById: { [card.id]: card } };
+
+    const { result } = renderHook(useCards, { wrapper: authenticatedWrapper });
+
+    expect(result.current.cardsById).toEqual({});
+    expect(result.current.cards).toEqual([]);
+    expect(result.current.status).toBe("loading");
+    expect(result.current.syncStatus).toBeUndefined();
+  });
+
+  it("hides Card data immediately when the App scope is signed out", () => {
+    const card = createCard({ id: "card" });
+    mocks.state = { uid: "uid-a", status: "ready", syncStatus: "synced", itemsById: { [card.id]: card } };
+
+    const { result } = renderHook(useCards, { wrapper: signedOutWrapper });
 
     expect(result.current.cards).toEqual([]);
-    expect(result.current.cardsById[card.id]).toBeUndefined();
-    expect(result.current.status).toBe("loading");
+    expect(result.current.status).toBe("idle");
   });
 });

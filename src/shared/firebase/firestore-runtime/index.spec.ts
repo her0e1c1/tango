@@ -32,6 +32,12 @@ describe("Firestore runtime", () => {
     await expect(runtime.waitForInitialization()).resolves.toEqual({ status: "ready" });
   });
 
+  it("shares one initialization promise across readers", () => {
+    const runtime = createFirestoreRuntime();
+
+    expect(runtime.waitForInitialization()).toBe(runtime.waitForInitialization());
+  });
+
   it("preserves a blocking initialization error without allowing initialization", async () => {
     const runtime = createFirestoreRuntime();
     const error = new Error("persistent cache unavailable");
