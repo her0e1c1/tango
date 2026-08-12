@@ -1,7 +1,7 @@
 import { subscribeDeckReads } from "@/adapters/firestore/event";
 import type { Deck } from "@/entities/deck/model/deck";
 import { waitForFirestoreInitialization } from "@/shared/firebase/firestore-runtime";
-import { createRemoteReadStore } from "@/shared/lib/remote-read/createRemoteReadStore";
+import { createRemoteReadStore } from "@/shared/lib/remote-read";
 
 export const deckRemoteReadStore = createRemoteReadStore<Deck>({
   waitForInitialization: waitForFirestoreInitialization,

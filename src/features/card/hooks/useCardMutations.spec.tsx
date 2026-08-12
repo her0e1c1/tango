@@ -23,11 +23,15 @@ vi.mock("@/entities/session", () => ({
       ? { status: "signedOut" }
       : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
 }));
-vi.mock("@/entities/card", () => ({
-  useCards: () => ({
-    cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
-  }),
-}));
+vi.mock("@/entities/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/card")>();
+  return {
+    ...actual,
+    useCards: () => ({
+      cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
+    }),
+  };
+});
 vi.mock("@/adapters/firestore/card", () => ({
   create: mocks.create,
   update: mocks.update,

@@ -14,17 +14,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
-import { useDecks } from "@/entities/deck";
+import { useDeckMutations, useDecks } from "@/entities/deck";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
-import { DeckStartForm } from "@/features/deck/components/DeckStartForm";
-import { useDeckActions } from "@/features/deck/hooks/useDeckActions";
-import { useDeckFilterState } from "@/features/deck/hooks/useDeckFilterState";
-import { DeckStartTemplate } from "@/features/study/components/templates/DeckStartTemplate";
-import { useStudyActions } from "@/features/study/hooks/useStudyActions";
-import { useStudyCards } from "@/features/study/hooks/useStudyCards";
+import { DeckStartForm } from "../components/DeckStartForm";
+import { DeckStartTemplate } from "../components/templates/DeckStartTemplate";
+import { useDeckFilterState } from "../hooks/useDeckFilterState";
+import { useStudyActions } from "../hooks/useStudyActions";
+import { useStudyCards } from "../hooks/useStudyCards";
 import { setDarkMode, useConfig } from "@/shared/config";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 
 /**
  * Checks whether the supplied value satisfies the interactive shortcut target condition.
@@ -41,11 +40,11 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
 export const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
   const { deck, cards, config, tags } = props;
   const deckId = deck.id;
-  const deckActions = useDeckActions(deckId);
+  const deckMutations = useDeckMutations();
   const studyActions = useStudyActions(deckId);
   const startStudy = studyActions.start;
   const navigate = useNavigate();
-  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
+  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
   /**
    * Starts the study session when Enter is pressed outside an interactive control.
    * The guard prevents the shortcut from stealing Enter presses intended for buttons or form

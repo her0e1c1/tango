@@ -4,8 +4,7 @@ import { useKey } from "react-use";
 
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import { useDecks } from "@/entities/deck";
-import { useDeckMutations } from "@/features/deck";
+import { useDeckMutations, useDecks } from "@/entities/deck";
 import { downloadDeckCsv } from "@/features/export";
 import { useSampleDeckBootstrap } from "@/features/import";
 import {
@@ -16,7 +15,7 @@ import {
   useStudySessions,
 } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { Layout } from "@/shared/ui/layout";

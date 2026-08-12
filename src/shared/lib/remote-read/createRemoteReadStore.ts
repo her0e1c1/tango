@@ -1,14 +1,14 @@
 import type { StoreApi } from "zustand";
 import { createStore } from "zustand/vanilla";
 
-import type {
-  RemoteById,
-  RemoteSnapshot,
-  RemoteSnapshotMetadata,
-  RemoteSubscriptionProps,
-  RemoteSyncStatus,
-} from "@/shared/api/remoteSnapshot";
-import { toRemoteById } from "@/shared/api/remoteSnapshot";
+import {
+  toRemoteById,
+  type RemoteById,
+  type RemoteSnapshot,
+  type RemoteSnapshotMetadata,
+  type RemoteSubscriptionProps,
+  type RemoteSyncStatus,
+} from "@/shared/api";
 import type { FirestoreInitializationResult } from "@/shared/firebase/firestore-runtime";
 import { applyRealtimeChange } from "@/shared/lib/realtimeChange";
 

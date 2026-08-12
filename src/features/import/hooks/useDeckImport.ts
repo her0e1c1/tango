@@ -10,15 +10,13 @@ import type { Deck, DeckId } from "@/entities/deck";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
-import { createCard, selectCardsForDeck, useCards } from "@/entities/card";
-import { createDeck, useDecks } from "@/entities/deck";
+import { CardBulkMutationError, createCard, selectCardsForDeck, useCards } from "@/entities/card";
+import { createDeck, useDeckMutations, useDecks } from "@/entities/deck";
 import { useSession } from "@/entities/session";
 import { useCardMutations } from "@/features/card/hooks/useCardMutations";
-import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { parseCsv } from "@/features/import/lib/cardCsv";
 import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
-import { CardBulkMutationError } from "@/services/cardCommands";
 import sampleCards from "../../../../sample/build/output.json";
 
 interface DeckImportAttempt {

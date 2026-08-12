@@ -4,10 +4,9 @@ import type { Card, CardEdit, CardId } from "@/entities/card";
 
 import { useEffect, useRef } from "react";
 
-import { useCards } from "@/entities/card";
+import { cardCommands, useCards } from "@/entities/card";
 import { useSession } from "@/entities/session";
-import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
-import { cardCommands } from "@/services/cardCommands";
+import { useAsyncAction } from "@/shared/hooks";
 
 type CardPatch = Partial<Omit<Card, "id" | "deckId" | "uid">>;
 

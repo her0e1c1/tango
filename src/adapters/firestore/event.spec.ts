@@ -6,7 +6,7 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { RemoteSnapshot } from "@/shared/api/remoteSnapshot";
+import type { RemoteSnapshot } from "@/shared/api";
 
 import "@/shared/firebase/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";

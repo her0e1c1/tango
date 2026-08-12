@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
+import type { RemoteSubscriptionProps } from "@/shared/api";
 import type { FirestoreInitializationResult } from "@/shared/firebase/firestore-runtime";
 import {
   createRemoteReadStore,
@@ -13,7 +13,7 @@ interface Item {
   value: string;
 }
 
-const synced = { size: 0, fromCache: false, hasPendingWrites: false };
+const synced = { fromCache: false, hasPendingWrites: false };
 const createItem = (id: string): Item => ({ id, value: id });
 
 const createHarness = (
@@ -45,7 +45,7 @@ const publish = (harness: ReturnType<typeof createHarness>, items: Item[] = [], 
   harness.subscriptions.at(-1)?.onSnapshot({
     type: "replace",
     items,
-    metadata: { ...metadata, size: items.length },
+    metadata,
   });
 };
 

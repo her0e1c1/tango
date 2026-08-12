@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { Card } from "@/entities/card/model/card";
-import type { RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
-import { createRemoteReadStore } from "@/shared/lib/remote-read/createRemoteReadStore";
+import type { RemoteSubscriptionProps } from "@/shared/api";
+import { createRemoteReadStore } from "@/shared/lib/remote-read";
 import { createCard } from "@/test/factories";
 
-const synced = { size: 0, fromCache: false, hasPendingWrites: false };
+const synced = { fromCache: false, hasPendingWrites: false };
 
 const createHarness = () => {
   const subscriptions: Array<RemoteSubscriptionProps<Card>> = [];
@@ -33,7 +33,7 @@ describe("Card remote read store", () => {
     harness.subscriptions[0]?.onSnapshot({
       type: "replace",
       items: [card],
-      metadata: { ...synced, size: 1 },
+      metadata: synced,
     });
 
     expect(harness.store.getState()).toMatchObject({

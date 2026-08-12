@@ -9,7 +9,7 @@ import type { Card } from "@/entities/card";
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { CardForm as Template, type CardFormFields } from "@/features/card/components/CardForm";
-import type { Option } from "@/shared/ui/forms/Select";
+import type { Option } from "@/shared/ui/forms";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 

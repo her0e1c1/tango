@@ -9,7 +9,7 @@ import { onSnapshot, where, collection, query, type QuerySnapshot } from "fireba
 import { mapCardDocument, mapDeckDocument } from "@/adapters/firestore/dto";
 import type { Card } from "@/entities/card/model/card";
 import type { Deck } from "@/entities/deck/model/deck";
-import type { RemoteChange, RemoteSnapshot, RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
+import type { RemoteChange, RemoteSnapshot, RemoteSubscriptionProps } from "@/shared/api";
 import { getDb } from "@/shared/firebase/firestore-runtime";
 
 type RemoteEntity = { id: string; updatedAt: number; deletedAt: number | null };
@@ -30,7 +30,6 @@ const createInitialSnapshot = <T extends RemoteEntity>(
     type: "replace",
     items,
     metadata: {
-      size: snapshot.docs.length,
       fromCache: snapshot.metadata.fromCache,
       hasPendingWrites: snapshot.metadata.hasPendingWrites,
     },
@@ -58,7 +57,6 @@ const processChanges = <T extends RemoteEntity>(
     type: "change",
     event,
     metadata: {
-      size: changes.length,
       fromCache: snapshot.metadata.fromCache,
       hasPendingWrites: snapshot.metadata.hasPendingWrites,
     },

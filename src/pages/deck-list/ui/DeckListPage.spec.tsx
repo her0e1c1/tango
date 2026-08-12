@@ -65,10 +65,6 @@ vi.mock("@/entities/deck", () => ({
     decks: Object.values(mocks.decksById),
     decksById: mocks.decksById,
   }),
-}));
-vi.mock("react-use", () => ({ useKey: mocks.useKey }));
-vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/deck", () => ({
   useDeckMutations: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
     mocks.onRemoveSuccess = options?.onRemoveSuccess;
     return {
@@ -80,6 +76,8 @@ vi.mock("@/features/deck", () => ({
     };
   },
 }));
+vi.mock("react-use", () => ({ useKey: mocks.useKey }));
+vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/import", () => ({ useSampleDeckBootstrap: vi.fn() }));
 
 import { DeckListPage } from "./DeckListPage";

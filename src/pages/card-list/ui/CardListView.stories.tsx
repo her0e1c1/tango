@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
-import { DeckStartForm, type DeckStartFormProps } from "@/features/deck";
+import { DeckStartForm, type DeckStartFormProps } from "@/features/study";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 

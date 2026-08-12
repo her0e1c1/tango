@@ -3,8 +3,7 @@ import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Deck } from "@/entities/deck/model/deck";
-import type { RemoteReadStoreState } from "@/shared/lib/remote-read/createRemoteReadStore";
-import { RemoteReadScopeProvider } from "@/shared/lib/remote-read/RemoteReadScope";
+import { RemoteReadScopeProvider, type RemoteReadStoreState } from "@/shared/lib/remote-read";
 import { createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({

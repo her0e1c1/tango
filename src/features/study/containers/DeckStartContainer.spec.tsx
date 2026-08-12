@@ -32,9 +32,7 @@ vi.mock("@/entities/card", () => ({
 }));
 vi.mock("@/entities/deck", () => ({
   useDecks: () => ({ status: "ready" as const, retry: vi.fn(), decksById: {} }),
-}));
-vi.mock("@/features/deck/hooks/useDeckActions", () => ({
-  useDeckActions: () => ({ update: mocks.update }),
+  useDeckMutations: () => ({ update: mocks.update }),
 }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: () => ({ start: mocks.currentStart }),
@@ -48,7 +46,7 @@ vi.mock("@/shared/config", () => ({
   useConfig: () => ({}),
   setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("@/features/deck/hooks/useDeckFilterState", () => ({
+vi.mock("../hooks/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,

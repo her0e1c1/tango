@@ -18,7 +18,7 @@ import { useStudyCards } from "@/features/study/hooks/useStudyCards";
 import { buildStudySession, calculateNextIndex } from "@/features/study/model/session";
 import { buildStudyPatch, resolveSwipeAction } from "@/features/study/model/swipe";
 import { studyStore } from "@/features/study/state/studyStore";
-import { useConfig } from "@/shared/config/useConfig";
+import { useConfig } from "@/shared/config";
 
 export interface StudyActions {
   start: () => void;

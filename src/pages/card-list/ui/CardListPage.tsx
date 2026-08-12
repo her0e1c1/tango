@@ -5,12 +5,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck, useDecks } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck, useDeckMutations, useDecks } from "@/entities/deck";
 import { useCardMutations } from "@/features/card";
-import { DeckStartForm, useDeckActions, useDeckFilterState } from "@/features/deck";
-import { useStudyCards } from "@/features/study";
+import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read/combineRemoteReadStates";
+import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { Layout } from "@/shared/ui/layout";
@@ -34,8 +33,8 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
       setSuccessMessage(`Deleted card “${card.frontText}”.`);
     },
   });
-  const deckActions = useDeckActions(deck.id);
-  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckActions.update });
+  const deckMutations = useDeckMutations();
+  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : getCategory(deck.category, showCard.tags);
 

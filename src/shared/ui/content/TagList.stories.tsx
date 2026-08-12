@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Tag } from "@/shared/ui/forms/Tag";
+import { Tag } from "@/shared/ui/forms";
 import { TagList as Template } from "@/shared/ui/content/TagList";
 import * as fixture from "@/storybook/fixture";
 
