@@ -129,6 +129,37 @@ describe("Auth transition controller", () => {
     expect(dependencies.subscribeUid).toHaveBeenCalledWith("uid-c");
   });
 
+  it("resubscribes the original UID after a stale replacement cleans it up", async () => {
+    let finishCleanup: () => void = () => undefined;
+    let cleanupStarted: () => void = () => undefined;
+    const started = new Promise<void>((resolve) => {
+      cleanupStarted = resolve;
+    });
+    const cleanup = new Promise<void>((resolve) => {
+      finishCleanup = resolve;
+    });
+    const dependencies = createDependencies();
+    dependencies.cleanupUid.mockImplementation(() => {
+      cleanupStarted();
+      return cleanup;
+    });
+    const controller = createAuthTransitionController(dependencies);
+    const stateA = authenticated(createSession("uid-a"));
+    await controller.transition(stateA);
+    dependencies.subscribeUid.mockClear();
+
+    const transitionB = controller.transition(authenticated(createSession("uid-b")));
+    await started;
+    const transitionA = controller.transition(stateA);
+    finishCleanup();
+    await Promise.all([transitionB, transitionA]);
+
+    expect(dependencies.cleanupUid).toHaveBeenCalledTimes(1);
+    expect(dependencies.subscribeUid).not.toHaveBeenCalledWith("uid-b");
+    expect(dependencies.subscribeUid).toHaveBeenCalledTimes(1);
+    expect(dependencies.subscribeUid).toHaveBeenCalledWith("uid-a");
+  });
+
   it("keeps same-UID metadata without cleanup or resubscription", async () => {
     const dependencies = createDependencies();
     const controller = createAuthTransitionController(dependencies);

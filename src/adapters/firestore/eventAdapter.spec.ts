@@ -220,6 +220,27 @@ describe("Firestore remote-read subscriptions", () => {
     );
   });
 
+  it("publishes a corrected snapshot as the initial replacement after validation fails", () => {
+    const onSnapshot = vi.fn();
+    const onError = vi.fn();
+    subscribeCardReads({ uid: "uid-a", onSnapshot, onError });
+
+    mocks.next?.(snapshot([document("card-invalid", cardDocument({ nextSeeingAt: null }))]));
+    expect(onSnapshot).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledOnce();
+    onError.mockClear();
+
+    mocks.next?.(snapshot([document("card-corrected", cardDocument({ frontText: "Corrected" }))]));
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(onSnapshot).toHaveBeenCalledOnce();
+    expect(onSnapshot).toHaveBeenCalledWith({
+      type: "replace",
+      items: [expect.objectContaining({ id: "card-corrected", frontText: "Corrected" })],
+      metadata: { size: 1, fromCache: false, hasPendingWrites: false },
+    });
+  });
+
   it("forwards change validation errors without emitting a partial delta", () => {
     const onSnapshot = vi.fn();
     const onError = vi.fn();

@@ -9,7 +9,7 @@ import { onSnapshot, where, collection, query, type QuerySnapshot } from "fireba
 import { mapCardDocument, mapDeckDocument } from "@/adapters/firestore/dto";
 import type { Card } from "@/entities/card/model/card";
 import type { Deck } from "@/entities/deck/model/deck";
-import type { RemoteChange, RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
+import type { RemoteChange, RemoteSnapshot, RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
 import { getDb } from "@/shared/firebase/firestore-runtime";
 
 type RemoteEntity = { id: string; updatedAt: number; deletedAt: number | null };
@@ -19,15 +19,14 @@ type RemoteEntity = { id: string; updatedAt: number; deletedAt: number | null };
  * The generic adapter handles initial data, incremental changes, metadata, and listener errors for
  * either entity type.
  */
-const processInitialSnapshot = <T extends RemoteEntity>(
+const createInitialSnapshot = <T extends RemoteEntity>(
   snapshot: QuerySnapshot,
-  props: RemoteSubscriptionProps<T>,
   mapDocument: (id: string, data: Record<string, unknown>) => T
-) => {
+): RemoteSnapshot<T> => {
   const items = snapshot.docs
     .map((document) => mapDocument(document.id, document.data()))
     .filter((item: T) => item.deletedAt === null);
-  props.onSnapshot({
+  return {
     type: "replace",
     items,
     metadata: {
@@ -35,7 +34,7 @@ const processInitialSnapshot = <T extends RemoteEntity>(
       fromCache: snapshot.metadata.fromCache,
       hasPendingWrites: snapshot.metadata.hasPendingWrites,
     },
-  });
+  };
 };
 
 const processChanges = <T extends RemoteEntity>(
@@ -80,8 +79,9 @@ const subscribeReads = <T extends RemoteEntity>(
       // Treat each snapshot atomically so one invalid document cannot publish a partial collection.
       try {
         if (initial) {
+          const remoteSnapshot = createInitialSnapshot(snapshot, mapDocument);
           initial = false;
-          processInitialSnapshot(snapshot, props, mapDocument);
+          props.onSnapshot(remoteSnapshot);
         } else {
           processChanges(snapshot, props, mapDocument);
         }

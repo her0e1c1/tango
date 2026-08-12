@@ -50,7 +50,7 @@ const processTransition = async (
   }
 
   await cleanupActiveUid();
-  if (currentGeneration !== getGeneration()) return activeIdentity;
+  if (currentGeneration !== getGeneration()) return undefined;
 
   await dependencies.subscribeUid(nextIdentity.uid);
   return nextIdentity;
