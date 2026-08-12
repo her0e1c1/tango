@@ -23,7 +23,6 @@ const mocks = vi.hoisted(() => ({
   deckSyncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
   decks: [] as Deck[],
   cards: [] as Card[],
-  parseDeckImportCsv: vi.fn(),
   parseCsv: vi.fn(),
   prepareDeck: vi.fn(),
   prepareCard: vi.fn(),
@@ -66,13 +65,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     }),
   };
 });
-vi.mock("@/features/import/lib/deckImportAnalysis", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/import/lib/deckImportAnalysis")>();
-  return {
-    ...actual,
-    parseDeckImportCsv: (...args: Parameters<typeof actual.parseDeckImportCsv>) => mocks.parseDeckImportCsv(...args),
-  };
-});
 vi.mock("@/features/import/lib/cardCsv", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/import/lib/cardCsv")>();
   return { ...actual, parseCsv: mocks.parseCsv };
@@ -93,13 +85,12 @@ describe("useDeckImport", () => {
     mocks.deckSyncStatus = "synced";
     mocks.decks = [];
     mocks.cards = [];
-    mocks.parseDeckImportCsv.mockImplementation(async (content: string | File) => {
-      const { parseDeckImportCsv } = await vi.importActual<typeof import("@/features/import/lib/deckImportAnalysis")>(
-        "@/features/import/lib/deckImportAnalysis"
+    mocks.parseCsv.mockImplementation(async (content: string) => {
+      const { parseCsv } = await vi.importActual<typeof import("@/features/import/lib/cardCsv")>(
+        "@/features/import/lib/cardCsv"
       );
-      return parseDeckImportCsv(content);
+      return parseCsv(content);
     });
-    mocks.parseCsv.mockResolvedValue([{ frontText: "front", backText: "back", tags: [], uniqueKey: "key" }]);
     mocks.prepareDeck.mockReturnValue(createDeck({ id: "deck", uid: "uid-a" }));
     mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck" }));
     mocks.createDeck.mockResolvedValue(undefined);
@@ -261,6 +252,34 @@ describe("useDeckImport", () => {
     expect(fetch).toHaveBeenCalledWith(new URL("https://example.test/deck.csv"));
   });
 
+  it("uses the same CSV analysis pipeline for File and URL input", async () => {
+    const csv = '"front","back"," foo,foo "," key "';
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(csv));
+    const { result } = renderHook(useDeckImport);
+
+    await actAsync(async () => result.current.selectFile(new File([csv], "deck.csv")));
+    await actAsync(async () => result.current.importUrl("https://example.test/deck.csv"));
+
+    expect(mocks.parseCsv).toHaveBeenNthCalledWith(1, csv);
+    expect(mocks.parseCsv).toHaveBeenNthCalledWith(2, csv);
+  });
+
+  it("does not write when URL CSV validation fails", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"","back","","key"'));
+    mocks.parseCsv.mockResolvedValueOnce({
+      rows: [],
+      skippedRows: [],
+      issues: [{ rowNumber: 1, message: "frontText is required.", context: '["","back","","key"]' }],
+      invalidCount: 1,
+    });
+    const { result } = renderHook(useDeckImport);
+
+    await expect(result.current.importUrl("https://example.test/invalid.csv")).rejects.toThrow("Fix invalid CSV rows");
+
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+  });
+
   it("rejects a second import while the first is pending", async () => {
     let finish!: () => void;
     mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
@@ -408,8 +427,8 @@ describe("useDeckImport", () => {
   });
 
   it("does not publish or import a file preview after an A-to-B-to-A UID transition", async () => {
-    let finishParse!: (analysis: Awaited<ReturnType<typeof mocks.parseDeckImportCsv>>) => void;
-    mocks.parseDeckImportCsv.mockReturnValueOnce(
+    let finishParse!: (analysis: Awaited<ReturnType<typeof mocks.parseCsv>>) => void;
+    mocks.parseCsv.mockReturnValueOnce(
       new Promise((resolve) => {
         finishParse = resolve;
       })

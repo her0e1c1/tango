@@ -1,6 +1,4 @@
-import type { CardRaw } from "@/entities/card";
-
-import { describe, expect, expectTypeOf, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { fromRow, isEmpty, parseCsv } from "@/features/import/lib/cardCsv";
 
@@ -18,6 +16,15 @@ describe("card CSV import", () => {
     it("uses empty values for missing columns", () => {
       expect(fromRow([])).toEqual({ frontText: "", backText: "", tags: [], uniqueKey: "" });
     });
+
+    it("normalizes tags and the unique key without changing card text", () => {
+      expect(fromRow(["  front  ", " back ", " foo,foo, bar , ,Foo ", " key "])).toEqual({
+        frontText: "  front  ",
+        backText: " back ",
+        tags: ["foo", "bar", "Foo"],
+        uniqueKey: "key",
+      });
+    });
   });
 
   describe("isEmpty", () => {
@@ -32,15 +39,41 @@ describe("card CSV import", () => {
   });
 
   describe("parseCsv", () => {
-    it("parses string content and removes empty rows", async () => {
-      const cards = await parseCsv("front,back\n,,tag,key");
+    it("parses, normalizes, and validates string content", async () => {
+      const analysis = await parseCsv('"front","back"," foo,foo, bar "," key "\n,,,');
 
-      expectTypeOf(cards).toEqualTypeOf<CardRaw[]>();
-      expect(cards).toEqual([{ frontText: "front", backText: "back", uniqueKey: "", tags: [] }]);
+      expect(analysis).toEqual({
+        rows: [
+          {
+            rowNumber: 1,
+            card: { frontText: "front", backText: "back", uniqueKey: "key", tags: ["foo", "bar"] },
+          },
+        ],
+        skippedRows: [2],
+        issues: [],
+        invalidCount: 0,
+      });
+    });
+
+    it("rejects whitespace-only card sides and trimmed duplicate keys", async () => {
+      const analysis = await parseCsv('" ","back",""," same "\n"front"," ","","same"');
+
+      expect(analysis.invalidCount).toBe(2);
+      expect(analysis.rows).toEqual([]);
+      expect(analysis.issues).toEqual([
+        { rowNumber: 1, message: "frontText is required.", context: '[" ","back",""," same "]' },
+        { rowNumber: 2, message: "backText is required.", context: '["front"," ","","same"]' },
+        {
+          rowNumber: 2,
+          message: 'uniqueKey "same" is duplicated in this file.',
+          context: '["front"," ","","same"]',
+        },
+      ]);
     });
 
     it("rejects unsupported input at the parser boundary", async () => {
-      await expect(parseCsv({ content: "front,back" })).rejects.toThrow("CSV content must be a string or File");
+      // @ts-expect-error Verifies the runtime boundary for untyped callers.
+      await expect(parseCsv({ content: "front,back" })).rejects.toThrow("CSV content must be a string");
     });
   });
 });
