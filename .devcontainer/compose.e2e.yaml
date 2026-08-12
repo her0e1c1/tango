@@ -6,6 +6,19 @@ services:
     env_file:
       - ../.env.e2e
 
+  functions:
+    command:
+      - firebase
+      - emulators:start
+      - --only
+      - functions
+      - --project
+      - tango-e2e
+      - --config
+      - firebase.json
+    environment:
+      GCLOUD_PROJECT: tango-e2e
+
   browser:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
     init: true

@@ -13,7 +13,6 @@ x-dev: &dev
   volumes:
     - ..:/workspace:cached
     - node_modules:/workspace/node_modules
-    - functions_node_modules:/workspace/functions/node_modules
   entrypoint: bash
 
 services:
@@ -61,6 +60,10 @@ services:
     <<: *dev
     init: true
     entrypoint: []
+    volumes:
+      - ..:/workspace:cached
+      - node_modules:/workspace/node_modules
+      - functions_node_modules:/workspace/functions/node_modules
     command:
       - firebase
       - emulators:start
@@ -94,6 +97,10 @@ services:
       - dev
     entrypoint: []
     command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+      - node_modules:/workspace/node_modules
+      - functions_node_modules:/workspace/functions/node_modules
 
   app:
     <<: *dev

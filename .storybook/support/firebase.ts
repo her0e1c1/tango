@@ -5,5 +5,7 @@
  */
 
 import type { Auth } from "firebase/auth";
+import type { Functions } from "firebase/functions";
 
 export const auth = { currentUser: null } as Auth;
+export const functions = {} as Functions;
