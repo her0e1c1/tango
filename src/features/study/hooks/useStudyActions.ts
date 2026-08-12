@@ -15,8 +15,9 @@ import { useNavigate } from "react-router-dom";
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { useStudyCards } from "@/features/study/hooks/useStudyCards";
+import { buildStudySession, calculateNextIndex } from "@/features/study/model/session";
+import { buildStudyPatch, resolveSwipeAction } from "@/features/study/model/swipe";
 import { studyStore } from "@/features/study/state/studyStore";
-import { buildStudyPatch, buildStudySession, calculateNextIndex, resolveSwipeAction } from "@/lib/study";
 import { useConfig } from "@/shared/config/useConfig";
 
 export interface StudyActions {

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { filterCardsForDeck } from "@/lib/study";
+import { filterCardsForDeck } from "@/features/study/model/cardSelection";
 import type { ConfigState } from "@/shared/config";
 
 const MAX_TIMEOUT_MS = 2_147_483_647;
