@@ -5,8 +5,16 @@ import hljs from "highlight.js";
 import { CATEGORY, getCategory, isHighlightLanguage } from "./category";
 
 describe("category", () => {
-  it("uses Highlight.js as the source of truth for code languages", () => {
-    expect(CATEGORY).toEqual(["raw", "math", ...hljs.listLanguages()]);
+  it("uses Highlight.js languages and aliases as the source of truth", () => {
+    const languages = hljs.listLanguages();
+    const aliases = languages.flatMap((language) => hljs.getLanguage(language)?.aliases ?? []);
+
+    expect(CATEGORY).toEqual([...new Set(["raw", "math", ...languages, ...aliases])]);
+  });
+
+  it("keeps legacy selectable aliases available", () => {
+    expect(CATEGORY).toContain("golang");
+    expect(CATEGORY).toContain("sh");
   });
 
   it("uses the first supported tag as the effective category", () => {
