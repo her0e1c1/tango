@@ -23,10 +23,8 @@ vi.mock("@/entities/session/@x/deck", () => ({
 }));
 vi.mock("@/entities/deck/api/firestore", () => ({
   create: mocks.create,
-  update: mocks.update,
-}));
-vi.mock("@/adapters/firestore/deck", () => ({
   remove: mocks.remove,
+  update: mocks.update,
 }));
 
 import { useDeckMutations } from "./useDeckMutations";

@@ -24,11 +24,40 @@ vi.mock("@/shared/firestore", async (importOriginal) => ({
   getDb: () => "db",
 }));
 
-import { remove } from "@/adapters/firestore/deck";
+import { remove } from "@/entities/deck/api/firestore";
 
 describe("firestore/deck.remove", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("deletes the Deck only after every matching child Card deletion settles", async () => {
+    let finishSecond!: () => void;
+    const secondDeletion = new Promise<void>((resolve) => {
+      finishSecond = resolve;
+    });
+    mocks.getDocs.mockResolvedValue({ docs: [{ ref: "card-a" }, { ref: "card-b" }] });
+    mocks.deleteDoc.mockResolvedValueOnce(undefined).mockReturnValueOnce(secondDeletion).mockResolvedValueOnce(undefined);
+
+    const operation = remove("deck-id", "uid-a");
+    await vi.waitFor(() => expect(mocks.deleteDoc).toHaveBeenCalledTimes(2));
+
+    expect(mocks.collection).toHaveBeenCalledWith("db", "card");
+    expect(mocks.where).toHaveBeenNthCalledWith(1, "uid", "==", "uid-a");
+    expect(mocks.where).toHaveBeenNthCalledWith(2, "deckId", "==", "deck-id");
+    expect(mocks.query).toHaveBeenCalledWith(
+      "card-collection",
+      ["uid", "==", "uid-a"],
+      ["deckId", "==", "deck-id"]
+    );
+    expect(mocks.getDocs).toHaveBeenCalledWith("card-query");
+    expect(mocks.doc).not.toHaveBeenCalled();
+
+    finishSecond();
+    await operation;
+
+    expect(mocks.doc).toHaveBeenCalledWith("db", "deck", "deck-id");
+    expect(mocks.deleteDoc).toHaveBeenNthCalledWith(3, "deck-ref");
   });
 
   it("waits for every child deletion and preserves the first useful error", async () => {

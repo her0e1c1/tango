@@ -31,7 +31,7 @@ export default mergeConfig(
           test: {
             name: 'unit',
             globals: true,
-            include: ['src/**/*.spec.{ts,tsx}', '*.spec.{ts,tsx}'],
+            include: ['src/**/*.spec.{ts,tsx}', 'test/**/*.spec.{ts,tsx}', '*.spec.{ts,tsx}'],
             environment: 'jsdom',
           },
         },

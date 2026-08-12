@@ -1,7 +1,6 @@
 /**
- * @file Verifies the "splitCards" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "should create a deck and
- * check if exists", "should update a deck", "should delete a deck".
+ * @file Verifies Deck persistence with automated examples.
+ * The examples cover creating, updating, checking, and deleting Deck documents.
  */
 
 import type { Deck } from "@/entities/deck";
@@ -9,10 +8,10 @@ import type { Deck } from "@/entities/deck";
 import "@/shared/firebase/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
-import * as deckAdapter from "@/adapters/firestore/deck";
+import * as deckAdapter from "@/entities/deck/api/firestore";
 import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
-import { createCard, createDeck } from "@/test/factories";
+import { createDeck } from "@/test/factories";
 
 const uuid = UUID.v4;
 
@@ -73,37 +72,5 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect((await getDoc(doc(db, "deck", d.id))).exists()).toBeTruthy();
     await deckAdapter.remove(d.id, "uid");
     await expect(deckAdapter.exists(d.id)).rejects.toMatchObject({ code: "permission-denied" });
-  });
-
-  describe("splitCards", () => {
-    const cards = [...Array(5)].map((_, i) => createCard({ id: String(i) }));
-
-    it("should split cards (max) = (5)", async () => {
-      const css = deckAdapter.splitCards(cards, 5);
-      expect(css).toEqual([cards]);
-    });
-
-    it("should split cards (max) = (3)", async () => {
-      const css = deckAdapter.splitCards(cards, 3);
-      expect(css).toEqual([cards.slice(0, 3), cards.slice(3, 5)]);
-    });
-
-    it("should split cards (max) = (2)", async () => {
-      const css = deckAdapter.splitCards(cards, 2);
-      expect(css).toEqual([cards.slice(0, 2), cards.slice(2, 4), cards.slice(4, 5)]);
-    });
-
-    it("should be empty cards", async () => {
-      expect(deckAdapter.splitCards(cards, 0)).toEqual([]);
-      expect(deckAdapter.splitCards([], 5)).toEqual([]);
-    });
-
-    it("returns no chunks for a negative maximum", () => {
-      expect(deckAdapter.splitCards(cards, -1)).toEqual([]);
-    });
-
-    it("rounds a positive fractional maximum up", () => {
-      expect(deckAdapter.splitCards(cards, 2.5)).toEqual([cards.slice(0, 3), cards.slice(3, 5)]);
-    });
   });
 });

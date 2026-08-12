@@ -14,10 +14,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("./firestore", () => ({
   create: mocks.create,
-  update: mocks.update,
-}));
-vi.mock("@/adapters/firestore/deck", () => ({
   remove: mocks.remove,
+  update: mocks.update,
 }));
 
 import { deckCommands } from "./commands";
