@@ -13,8 +13,8 @@ import { render, fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect, it, describe, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { ConfigForm } from "@/features/settings/components/ConfigForm";
-import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
+import { ConfigForm } from "@/features/settings/ui/components/ConfigForm";
+import { useConfigFormState } from "@/features/settings/model/hooks/useConfigFormState";
 
 /**
  * Renders the test-only Config Form Harness component with controlled state or providers.

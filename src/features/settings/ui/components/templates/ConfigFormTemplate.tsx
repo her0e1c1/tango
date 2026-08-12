@@ -6,7 +6,7 @@
 
 import type * as React from "react";
 import { Layout } from "@/shared/ui/layout";
-import { ConfigForm, type ConfigFormProps } from "@/features/settings/components/ConfigForm";
+import { ConfigForm, type ConfigFormProps } from "@/features/settings/ui/components/ConfigForm";
 
 export interface ConfigFormTemplateProps {
   layout?: React.ComponentProps<typeof Layout>;

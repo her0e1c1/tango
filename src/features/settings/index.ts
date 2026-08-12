@@ -1,1 +1,1 @@
-export { ConfigContainer } from "./containers/ConfigContainer";
+export { ConfigContainer } from "./ui/containers/ConfigContainer";

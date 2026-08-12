@@ -12,7 +12,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { ConfigForm, type ConfigFormFields, type ConfigFormProps } from "@/features/settings/components/ConfigForm";
+import { ConfigForm, type ConfigFormFields, type ConfigFormProps } from "@/features/settings/ui/components/ConfigForm";
 import { createConfig } from "@/test/factories";
 
 /**

@@ -8,10 +8,10 @@ import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
+import { ConfigFormTemplate } from "@/features/settings/ui/components/templates/ConfigFormTemplate";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
-import { useAccountOperations } from "@/features/settings/hooks/useAccountOperations";
-import { useConfigFormState } from "@/features/settings/hooks/useConfigFormState";
+import { useAccountOperations } from "@/features/settings/model/hooks/useAccountOperations";
+import { useConfigFormState } from "@/features/settings/model/hooks/useConfigFormState";
 import { useSession } from "@/entities/session";
 import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
 

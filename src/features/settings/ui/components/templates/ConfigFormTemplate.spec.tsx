@@ -8,8 +8,8 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import type { ConfigFormFields } from "@/features/settings/components/ConfigForm";
-import { ConfigFormTemplate } from "@/features/settings/components/templates/ConfigFormTemplate";
+import type { ConfigFormFields } from "@/features/settings/ui/components/ConfigForm";
+import { ConfigFormTemplate } from "@/features/settings/ui/components/templates/ConfigFormTemplate";
 import { createConfig } from "@/test/factories";
 
 const fields: ConfigFormFields = {

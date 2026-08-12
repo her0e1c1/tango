@@ -56,10 +56,10 @@ vi.mock("@/shared/config", () => ({
   updateConfig: vi.fn(),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/settings/hooks/useConfigFormState", () => ({
+vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({
   useConfigFormState: (options: Record<string, unknown>) => options,
 }));
-vi.mock("@/features/settings/components/templates/ConfigFormTemplate", () => ({
+vi.mock("@/features/settings/ui/components/templates/ConfigFormTemplate", () => ({
   ConfigFormTemplate: ({ configForm }: { configForm: Record<string, unknown> }) => (
     <>
       {configForm.accountFeedback as ReactNode}

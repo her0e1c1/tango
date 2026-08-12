@@ -25,7 +25,7 @@ vi.mock("@/shared/config", () => ({
   updateConfig: mocks.updateConfig,
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/settings/hooks/useAccountOperations", () => ({
+vi.mock("@/features/settings/model/hooks/useAccountOperations", () => ({
   useAccountOperations: () => ({
     pending: false,
     error: null,
@@ -34,12 +34,12 @@ vi.mock("@/features/settings/hooks/useAccountOperations", () => ({
     retry: mocks.retry,
   }),
 }));
-vi.mock("@/features/settings/hooks/useConfigFormState", () => ({
+vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({
   useConfigFormState: () => ({}),
 }));
-vi.mock("@/features/settings/components/ConfigForm", () => ({ ConfigForm: () => null }));
+vi.mock("@/features/settings/ui/components/ConfigForm", () => ({ ConfigForm: () => null }));
 
-import { ConfigContainer } from "@/features/settings/containers/ConfigContainer";
+import { ConfigContainer } from "@/features/settings/ui/containers/ConfigContainer";
 
 describe("ConfigContainer", () => {
   beforeEach(() => {
