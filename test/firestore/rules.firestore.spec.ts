@@ -120,7 +120,7 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "deck", id)));
       });
 
-      it("should read a publick deck", async () => {
+      it("should read a public deck", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
         await assertSucceeds(getDoc(doc(db, "deck", id)));
@@ -191,7 +191,7 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "deck", id)));
       });
 
-      it("should read a publick deck", async () => {
+      it("should read a public deck", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
         await assertSucceeds(getDoc(doc(db, "deck", id)));

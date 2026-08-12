@@ -4,18 +4,31 @@
  * "should update a card", "should bulk-update a card".
  */
 
-import type { Card } from "@/entities/card";
+import type { Card } from "../model/card";
 
-import "@/shared/firebase/test/initializeTestFirestore";
+import "@/test/firestore/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-import * as cardAdapter from "@/adapters/firestore/card";
-import * as deckAdapter from "@/adapters/firestore/deck";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
-import { createCard, createDeck } from "@/test/factories";
+import { createCard } from "@/test/factories";
+import * as cardAdapter from "./firestore";
 
 const uuid = UUID.v4;
+const deckDocument = {
+  name: "Deck",
+  isPublic: false,
+  uid: "uid",
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  scoreMax: null,
+  scoreMin: null,
+  selectedTags: [],
+  tagAndFilter: false,
+  category: "",
+  convertToBr: false,
+};
 
 vi.mock("@/shared/firestore", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/firestore")>()),
@@ -38,10 +51,9 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     (getTimestamp as Mock).mockReturnValue(timestamp);
   });
 
-  // card needs to belong to its deck
   const initDeck = async () => {
     const id = uuid();
-    await deckAdapter.create(createDeck({ uid: "uid", id }));
+    await setDoc(doc(db, "deck", id), deckDocument);
     return id;
   };
 

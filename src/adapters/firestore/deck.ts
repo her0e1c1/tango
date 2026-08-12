@@ -2,8 +2,6 @@ import { collection, deleteDoc, doc, getDocs, query, where } from "firebase/fire
 
 import { getDb } from "@/shared/firestore";
 
-export { create, exists, readAll, update } from "@/entities/deck/api/firestore";
-
 /**
  * Splits a card list into batches no larger than the requested maximum.
  * Firestore batch limits can then be respected without dropping or reordering cards.

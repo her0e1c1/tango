@@ -3,6 +3,8 @@ import { playwright } from '@vitest/browser-playwright'
 import { defineConfig, mergeConfig } from 'vitest/config'
 import viteConfig from './vite.config'
 
+const firestoreTests = ['src/**/*.firestore.spec.{ts,tsx}', 'test/**/*.firestore.spec.{ts,tsx}']
+
 export default mergeConfig(
   viteConfig,
   defineConfig({
@@ -32,6 +34,17 @@ export default mergeConfig(
             name: 'unit',
             globals: true,
             include: ['src/**/*.spec.{ts,tsx}', '*.spec.{ts,tsx}'],
+            exclude: firestoreTests,
+            environment: 'jsdom',
+          },
+        },
+        {
+          extends: true,
+          test: {
+            name: 'firestore',
+            globals: true,
+            include: firestoreTests,
+            fileParallelism: false,
             environment: 'jsdom',
           },
         },
