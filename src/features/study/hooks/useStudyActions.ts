@@ -52,6 +52,38 @@ interface StudySwipeDependencies {
   update: (card: CardEdit) => Promise<void>;
 }
 
+const applyOptimisticUpdate = (deckId: DeckId, nextIndex: number) => {
+  const state = studyStore.getState();
+  if (nextIndex < 0) state.removeStudy(deckId);
+  else state.setCurrentIndex(deckId, nextIndex);
+  return studyStore.getState().sessionsByDeckId[deckId];
+};
+
+type StudyState = ReturnType<typeof studyStore.getState>;
+type Session = StudyState["sessionsByDeckId"][string];
+
+const revertOptimisticUpdate = (
+  deckId: DeckId,
+  nextIndex: number,
+  mutationTokenRef: { current: symbol | undefined },
+  mutationToken: symbol,
+  optimisticSession: Session,
+  previous: { session: Session; showBackText: boolean; lastSwipe: StudyState["lastSwipe"] }
+) => {
+  const current = studyStore.getState();
+  const currentSession = current.sessionsByDeckId[deckId];
+  const changeStillCurrent =
+    mutationTokenRef.current === mutationToken &&
+    (nextIndex < 0 ? currentSession == null : currentSession === optimisticSession);
+  if (changeStillCurrent) {
+    studyStore.setState((state) => ({
+      sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: previous.session },
+      showBackText: previous.showBackText,
+      lastSwipe: previous.lastSwipe,
+    }));
+  }
+};
+
 /**
  * Runs the study swipe workflow for the study feature.
  * The sequence and its cleanup remain together so partial failures can be handled consistently.
@@ -93,24 +125,11 @@ const runStudySwipe = async (
   const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
   const mutationToken = Symbol();
   mutationTokenRef.current = mutationToken;
-  if (nextIndex < 0) state.removeStudy(deckId);
-  else state.setCurrentIndex(deckId, nextIndex);
-  const optimisticSession = studyStore.getState().sessionsByDeckId[deckId];
+  const optimisticSession = applyOptimisticUpdate(deckId, nextIndex);
   try {
     await update(patch);
   } catch {
-    const current = studyStore.getState();
-    const currentSession = current.sessionsByDeckId[deckId];
-    const changeStillCurrent =
-      mutationTokenRef.current === mutationToken &&
-      (nextIndex < 0 ? currentSession == null : currentSession === optimisticSession);
-    if (changeStillCurrent) {
-      studyStore.setState((state) => ({
-        sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: previous.session },
-        showBackText: previous.showBackText,
-        lastSwipe: previous.lastSwipe,
-      }));
-    }
+    revertOptimisticUpdate(deckId, nextIndex, mutationTokenRef, mutationToken, optimisticSession, previous);
   } finally {
     if (mutationTokenRef.current === mutationToken) mutationTokenRef.current = undefined;
   }

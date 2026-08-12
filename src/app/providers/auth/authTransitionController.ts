@@ -27,6 +27,35 @@ const isSameRequest = (left: AuthRequest | undefined, right: AuthRequest) => {
   return isSameIdentity(left.identity, right.identity);
 };
 
+const processTransition = async (
+  request: AuthRequest,
+  state: SessionState,
+  getGeneration: () => number,
+  currentGeneration: number,
+  activeIdentity: AuthenticatedSession | undefined,
+  dependencies: AuthTransitionDependencies,
+  cleanupActiveUid: () => Promise<void>
+): Promise<AuthenticatedSession | undefined> => {
+  if (state.status !== "authenticated") {
+    await cleanupActiveUid();
+    return undefined;
+  }
+
+  const nextIdentity = request.status === "authenticated" ? request.identity : undefined;
+  if (nextIdentity == null) return activeIdentity;
+
+  if (activeIdentity?.uid === nextIdentity.uid) {
+    if (currentGeneration === getGeneration()) return nextIdentity;
+    return activeIdentity;
+  }
+
+  await cleanupActiveUid();
+  if (currentGeneration !== getGeneration()) return activeIdentity;
+
+  await dependencies.subscribeUid(nextIdentity.uid);
+  return nextIdentity;
+};
+
 export const createAuthTransitionController = (dependencies: AuthTransitionDependencies) => {
   let generation = 0;
   let requestedState: AuthRequest | undefined;
@@ -57,23 +86,15 @@ export const createAuthTransitionController = (dependencies: AuthTransitionDepen
 
       tail = tail
         .then(async () => {
-          if (state.status !== "authenticated") {
-            await cleanupActiveUid();
-            return true;
-          }
-
-          const nextIdentity = request.status === "authenticated" ? request.identity : undefined;
-          if (nextIdentity == null) return true;
-          if (activeIdentity?.uid === nextIdentity.uid) {
-            if (currentGeneration === generation) activeIdentity = nextIdentity;
-            return true;
-          }
-
-          await cleanupActiveUid();
-          if (currentGeneration !== generation) return true;
-
-          await dependencies.subscribeUid(nextIdentity.uid);
-          activeIdentity = nextIdentity;
+          activeIdentity = await processTransition(
+            request,
+            state,
+            () => generation,
+            currentGeneration,
+            activeIdentity,
+            dependencies,
+            cleanupActiveUid
+          );
           return true;
         })
         .catch((error) => {

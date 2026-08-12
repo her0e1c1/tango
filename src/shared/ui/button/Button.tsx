@@ -44,18 +44,23 @@ const sizeClasses: Record<ButtonSize, string> = {
   lg: "min-h-touch min-w-touch px-6 py-3 font-bold text-lg",
 };
 
+const resolveVariant = (props: ButtonProps): ButtonVariant =>
+  props.variant ?? (props.primary ? "primary" : "secondary");
+const resolveSize = (props: ButtonProps): ButtonSize => props.size ?? (props.small ? "sm" : props.large ? "lg" : "md");
+const getLoadingAnnouncement = (content: React.ReactNode) =>
+  typeof content === "string" || typeof content === "number" ? `Loading ${content}` : "Loading";
+
 /**
  * Renders the Button user interface.
  * Renders label or child content with the requested variant and size while announcing and
  * disabling loading work.
  */
 export const Button: React.FC<ButtonProps> = (props) => {
-  const variant = props.variant ?? (props.primary ? "primary" : "secondary");
-  const size = props.size ?? (props.small ? "sm" : props.large ? "lg" : "md");
+  const variant = resolveVariant(props);
+  const size = resolveSize(props);
   const inactive = props.disabled || props.loading;
   const content = props.label ?? props.children;
-  const loadingAnnouncement =
-    typeof content === "string" || typeof content === "number" ? `Loading ${content}` : "Loading";
+  const loadingAnnouncement = getLoadingAnnouncement(content);
 
   return (
     <>

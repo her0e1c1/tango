@@ -4,7 +4,7 @@
  * not handle database details directly.
  */
 
-import { onSnapshot, where, collection, query } from "firebase/firestore";
+import { onSnapshot, where, collection, query, type QuerySnapshot } from "firebase/firestore";
 
 import { mapCardDocument, mapDeckDocument } from "@/adapters/firestore/dto";
 import type { Card } from "@/entities/card/model/card";
@@ -19,6 +19,53 @@ type RemoteEntity = { id: string; updatedAt: number; deletedAt: number | null };
  * The generic adapter handles initial data, incremental changes, metadata, and listener errors for
  * either entity type.
  */
+const processInitialSnapshot = <T extends RemoteEntity>(
+  snapshot: QuerySnapshot,
+  props: RemoteSubscriptionProps<T>,
+  mapDocument: (id: string, data: Record<string, unknown>) => T
+) => {
+  const items = snapshot.docs
+    .map((document) => mapDocument(document.id, document.data()))
+    .filter((item: T) => item.deletedAt === null);
+  props.onSnapshot({
+    type: "replace",
+    items,
+    metadata: {
+      size: snapshot.docs.length,
+      fromCache: snapshot.metadata.fromCache,
+      hasPendingWrites: snapshot.metadata.hasPendingWrites,
+    },
+  });
+};
+
+const processChanges = <T extends RemoteEntity>(
+  snapshot: QuerySnapshot,
+  props: RemoteSubscriptionProps<T>,
+  mapDocument: (id: string, data: Record<string, unknown>) => T
+) => {
+  const changes = snapshot.docChanges();
+  const event: RemoteChange<T> = { added: [], modified: [], removed: [] };
+  for (const change of changes) {
+    const item = mapDocument(change.doc.id, change.doc.data());
+    if (item.deletedAt !== null || change.type === "removed") {
+      event.removed.push(item.id);
+    } else if (change.type === "added") {
+      event.added.push(item);
+    } else {
+      event.modified.push(item);
+    }
+  }
+  props.onSnapshot({
+    type: "change",
+    event,
+    metadata: {
+      size: changes.length,
+      fromCache: snapshot.metadata.fromCache,
+      hasPendingWrites: snapshot.metadata.hasPendingWrites,
+    },
+  });
+};
+
 const subscribeReads = <T extends RemoteEntity>(
   collectionName: "deck" | "card",
   props: RemoteSubscriptionProps<T>,
@@ -32,33 +79,12 @@ const subscribeReads = <T extends RemoteEntity>(
     (snapshot) => {
       // Treat each snapshot atomically so one invalid document cannot publish a partial collection.
       try {
-        const changes = snapshot.docChanges();
-        const metadata = {
-          size: initial ? snapshot.docs.length : changes.length,
-          fromCache: snapshot.metadata.fromCache,
-          hasPendingWrites: snapshot.metadata.hasPendingWrites,
-        };
         if (initial) {
-          const items = snapshot.docs
-            .map((document) => mapDocument(document.id, document.data()))
-            .filter((item) => item.deletedAt === null);
           initial = false;
-          props.onSnapshot({ type: "replace", items, metadata });
-          return;
+          processInitialSnapshot(snapshot, props, mapDocument);
+        } else {
+          processChanges(snapshot, props, mapDocument);
         }
-
-        const event: RemoteChange<T> = { added: [], modified: [], removed: [] };
-        for (const change of changes) {
-          const item = mapDocument(change.doc.id, change.doc.data());
-          if (item.deletedAt !== null || change.type === "removed") {
-            event.removed.push(item.id);
-          } else if (change.type === "added") {
-            event.added.push(item);
-          } else {
-            event.modified.push(item);
-          }
-        }
-        props.onSnapshot({ type: "change", event, metadata });
       } catch (cause) {
         props.onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

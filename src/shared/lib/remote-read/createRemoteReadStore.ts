@@ -87,23 +87,7 @@ export const createRemoteReadStore = <T extends { id: string }>(
       set({ status, syncStatus: undefined, error: toError(cause) });
     };
 
-    const start = async (uid: string): Promise<void> => {
-      const previous = get();
-      const previousSession = activeSession;
-      const session: ReadSession = { uid, subscription: undefined };
-      activeSession = session;
-      cleanupSession(previousSession);
-      if (!isCurrent(session)) return;
-
-      const retainCurrentData = previous.uid === session.uid;
-      set({
-        uid: session.uid,
-        status: "loading",
-        itemsById: retainCurrentData ? previous.itemsById : {},
-        syncStatus: undefined,
-        error: undefined,
-      });
-
+    const initializeSession = async (session: ReadSession): Promise<FirestoreInitializationResult> => {
       let initialization: FirestoreInitializationResult;
       try {
         initialization = await dependencies.waitForInitialization();
@@ -111,15 +95,11 @@ export const createRemoteReadStore = <T extends { id: string }>(
         fail(session, "error", cause);
         throw toError(cause);
       }
+      return initialization;
+    };
 
-      if (!isCurrent(session)) return;
-      if (initialization.status === "blocked") {
-        fail(session, "blocked", initialization.error);
-        return;
-      }
-
+    const subscribeToSession = (session: ReadSession) => {
       const onError = (error: Error) => fail(session, "error", error);
-
       try {
         const subscription = dependencies.subscribe({
           uid: session.uid,
@@ -147,6 +127,33 @@ export const createRemoteReadStore = <T extends { id: string }>(
         }
         throw toError(cause);
       }
+    };
+
+    const start = async (uid: string): Promise<void> => {
+      const previous = get();
+      const previousSession = activeSession;
+      const session: ReadSession = { uid, subscription: undefined };
+      activeSession = session;
+      cleanupSession(previousSession);
+      if (!isCurrent(session)) return;
+
+      const retainCurrentData = previous.uid === session.uid;
+      set({
+        uid: session.uid,
+        status: "loading",
+        itemsById: retainCurrentData ? previous.itemsById : {},
+        syncStatus: undefined,
+        error: undefined,
+      });
+
+      const initialization = await initializeSession(session);
+      if (!isCurrent(session)) return;
+      if (initialization.status === "blocked") {
+        fail(session, "blocked", initialization.error);
+        return;
+      }
+
+      subscribeToSession(session);
     };
 
     const stop = (uid?: string) => {

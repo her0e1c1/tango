@@ -80,6 +80,40 @@ export type ConfigOverrides = {
   cardSwipeRight?: SwipeAction;
 };
 
+const createAppearance = (
+  appearance?: Partial<AppearancePreferences>,
+  flat?: Partial<ConfigOverrides>
+): AppearancePreferences => ({
+  darkMode: appearance?.darkMode ?? flat?.darkMode ?? false,
+  showHeader: appearance?.showHeader ?? flat?.showHeader ?? true,
+  fullscreen: appearance?.fullscreen ?? flat?.fullscreen ?? false,
+  sizeBackText: appearance?.sizeBackText ?? flat?.sizeBackText ?? 0,
+  hideBodyWhenCardChanged: appearance?.hideBodyWhenCardChanged ?? flat?.hideBodyWhenCardChanged ?? true,
+  showSwipeFeedback: appearance?.showSwipeFeedback ?? flat?.showSwipeFeedback ?? false,
+});
+
+const createStudy = (study?: Partial<StudyPreferences>, flat?: Partial<ConfigOverrides>): StudyPreferences => ({
+  maxNumberOfCardsToLearn: study?.maxNumberOfCardsToLearn ?? flat?.maxNumberOfCardsToLearn ?? 10,
+  shuffled: study?.shuffled ?? flat?.shuffled ?? false,
+  useCardInterval: study?.useCardInterval ?? flat?.useCardInterval ?? false,
+  cardInterval: study?.cardInterval ?? flat?.cardInterval ?? 60,
+  keepBackTextViewed: study?.keepBackTextViewed ?? flat?.keepBackTextViewed ?? false,
+  defaultAutoPlay: study?.defaultAutoPlay ?? flat?.defaultAutoPlay ?? false,
+  selectedTags: study?.selectedTags ?? flat?.selectedTags ?? [],
+});
+
+const createControls = (
+  controls?: Partial<ControlPreferences>,
+  flat?: Partial<ConfigOverrides>
+): ControlPreferences => ({
+  showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,
+  showScoreSlider: controls?.showScoreSlider ?? flat?.showScoreSlider ?? false,
+  cardSwipeUp: controls?.cardSwipeUp ?? flat?.cardSwipeUp ?? "GoToNextCardMastered",
+  cardSwipeDown: controls?.cardSwipeDown ?? flat?.cardSwipeDown ?? "GoToNextCardNotMastered",
+  cardSwipeLeft: controls?.cardSwipeLeft ?? flat?.cardSwipeLeft ?? "GoToPrevCard",
+  cardSwipeRight: controls?.cardSwipeRight ?? flat?.cardSwipeRight ?? "GoToNextCard",
+});
+
 /**
  * Builds a complete test configuration with predictable defaults and optional overrides.
  * Tests can change one setting without repeating every required configuration field.
@@ -87,31 +121,9 @@ export type ConfigOverrides = {
 export const createConfig = (overrides: ConfigOverrides = {}): ConfigState => {
   const { appearance, study, controls, ...flat } = overrides;
   return {
-    appearance: {
-      darkMode: appearance?.darkMode ?? flat.darkMode ?? false,
-      showHeader: appearance?.showHeader ?? flat.showHeader ?? true,
-      fullscreen: appearance?.fullscreen ?? flat.fullscreen ?? false,
-      sizeBackText: appearance?.sizeBackText ?? flat.sizeBackText ?? 0,
-      hideBodyWhenCardChanged: appearance?.hideBodyWhenCardChanged ?? flat.hideBodyWhenCardChanged ?? true,
-      showSwipeFeedback: appearance?.showSwipeFeedback ?? flat.showSwipeFeedback ?? false,
-    },
-    study: {
-      maxNumberOfCardsToLearn: study?.maxNumberOfCardsToLearn ?? flat.maxNumberOfCardsToLearn ?? 10,
-      shuffled: study?.shuffled ?? flat.shuffled ?? false,
-      useCardInterval: study?.useCardInterval ?? flat.useCardInterval ?? false,
-      cardInterval: study?.cardInterval ?? flat.cardInterval ?? 60,
-      keepBackTextViewed: study?.keepBackTextViewed ?? flat.keepBackTextViewed ?? false,
-      defaultAutoPlay: study?.defaultAutoPlay ?? flat.defaultAutoPlay ?? false,
-      selectedTags: study?.selectedTags ?? flat.selectedTags ?? [],
-    },
-    controls: {
-      showSwipeButtonList: controls?.showSwipeButtonList ?? flat.showSwipeButtonList ?? true,
-      showScoreSlider: controls?.showScoreSlider ?? flat.showScoreSlider ?? false,
-      cardSwipeUp: controls?.cardSwipeUp ?? flat.cardSwipeUp ?? "GoToNextCardMastered",
-      cardSwipeDown: controls?.cardSwipeDown ?? flat.cardSwipeDown ?? "GoToNextCardNotMastered",
-      cardSwipeLeft: controls?.cardSwipeLeft ?? flat.cardSwipeLeft ?? "GoToPrevCard",
-      cardSwipeRight: controls?.cardSwipeRight ?? flat.cardSwipeRight ?? "GoToNextCard",
-    },
+    appearance: createAppearance(appearance, flat),
+    study: createStudy(study, flat),
+    controls: createControls(controls, flat),
   };
 };
 
