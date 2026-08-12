@@ -23,8 +23,10 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
 const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
   const { deck, cards, config, tags } = props;
   const deckMutations = useDeckMutations();
-  const studyActions = useStudyActions(deck.id);
   const navigate = useNavigate();
+  const studyActions = useStudyActions(deck.id, {
+    onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
+  });
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;

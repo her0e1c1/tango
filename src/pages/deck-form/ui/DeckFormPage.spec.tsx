@@ -83,41 +83,12 @@ describe("DeckFormPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
   });
 
-  it("submits edited deck values", async () => {
+  it("owns navigation after saving", async () => {
     render(<DeckFormPage />);
-    const name = screen.getByRole("textbox", { name: "Name" });
-    const url = screen.getByRole("textbox", { name: "Source URL" });
-
-    await userEvent.clear(name);
-    await userEvent.type(name, " Updated ");
-    await userEvent.type(url, "https://example.com/deck.csv");
-    await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
-    await userEvent.selectOptions(screen.getByRole("combobox"), "math");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    expect(mocks.save).toHaveBeenCalledWith({
-      ...deck,
-      name: "Updated",
-      url: "https://example.com/deck.csv",
-      convertToBr: true,
-      category: "math",
-    });
+    expect(mocks.save).toHaveBeenCalledWith(deck);
     expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
-  });
-
-  it("keeps validation errors in the feature form", async () => {
-    render(<DeckFormPage />);
-    const name = screen.getByRole("textbox", { name: "Name" });
-    const url = screen.getByRole("textbox", { name: "Source URL" });
-
-    await userEvent.clear(name);
-    await userEvent.type(name, "   ");
-    await userEvent.type(url, "not-a-url");
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-
-    expect(screen.getByText("Deck name is required.")).toBeVisible();
-    expect(screen.getByText("Enter a valid URL.")).toBeVisible();
-    expect(mocks.save).not.toHaveBeenCalled();
   });
 
   it("owns cancellation navigation", async () => {

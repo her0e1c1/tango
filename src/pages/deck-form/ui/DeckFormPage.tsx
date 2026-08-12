@@ -1,10 +1,8 @@
 import type * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CATEGORY, type Category, type Deck, useDecks } from "@/entities/deck";
-import { deckFormSchema, type DeckFormValues, useDeckEditorActions } from "@/features/deck-editor";
+import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
 import { setDarkMode, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
@@ -22,14 +20,11 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
     label: category,
     value: category,
   }));
-  const { formState, handleSubmit, register } = useForm<DeckFormValues>({
-    defaultValues: {
-      name: deck.name,
-      category: deck.category,
-      url: deck.url,
-      convertToBr: deck.convertToBr,
-    },
-    resolver: zodResolver(deckFormSchema),
+  const deckForm = useDeckFormState({
+    deck,
+    categoryOptions,
+    onCancel: deckActions.cancel,
+    onSubmit: deckActions.save,
   });
 
   return (
@@ -47,25 +42,7 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
         feedbackSlot={
           <RemoteMutationNotice pending={deckActions.pending} error={deckActions.error} onRetry={deckActions.retry} />
         }
-        deckForm={{
-          deck,
-          fields: {
-            name: register("name"),
-            convertToBr: register("convertToBr"),
-            url: register("url"),
-            category: {
-              ...register("category"),
-              options: categoryOptions,
-            },
-          },
-          errors: {
-            ...(formState.errors.name?.message !== undefined ? { name: formState.errors.name.message } : {}),
-            ...(formState.errors.url?.message !== undefined ? { url: formState.errors.url.message } : {}),
-          },
-          isSubmitting: formState.isSubmitting,
-          onCancel: deckActions.cancel,
-          onSubmit: handleSubmit((values) => deckActions.save({ ...deck, ...values, url: values.url ?? "" })),
-        }}
+        deckForm={deckForm}
       />
     </Layout>
   );

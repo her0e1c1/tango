@@ -38,7 +38,12 @@ vi.mock("@/entities/deck", () => ({
   useDeckMutations: () => ({ update: mocks.update }),
 }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
-  useStudyActions: () => ({ start: mocks.start }),
+  useStudyActions: (_deckId: string, options: { onStarted?: () => void } = {}) => ({
+    start: () => {
+      mocks.start();
+      options.onStarted?.();
+    },
+  }),
 }));
 vi.mock("@/features/study/hooks/useStudyCards", () => ({ useStudyCards: () => mocks.cards }));
 vi.mock("@/features/study/hooks/useDeckFilterState", () => ({
@@ -97,6 +102,15 @@ describe("DeckStartPage", () => {
     mocks.start.mockClear();
     fireEvent.keyDown(screen.getByRole("slider", { name: "Maximum score value" }), { key: "Enter" });
     expect(mocks.start).not.toHaveBeenCalled();
+  });
+
+  it("owns navigation after the study session starts", () => {
+    render(<DeckStartPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Start 1 card" }));
+
+    expect(mocks.start).toHaveBeenCalledOnce();
+    expect(mocks.navigate).toHaveBeenCalledWith("/deck/deck-id/study", { replace: true });
   });
 
   it("does not start when no cards match", () => {
