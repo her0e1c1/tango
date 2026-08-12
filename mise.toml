@@ -68,15 +68,19 @@ run = [
   "mise run //sample:fmt",
 ]
 
-[tasks.fmt-check]
+[tasks.fmt-fix]
 run = [
-  "npm run fmt:check",
-  "mise run //sample:fmt-check",
+  "npm run fmt:fix",
+  "mise run //sample:fmt-fix",
 ]
 
 [tasks.lint]
 depends = ["build-sample"]
 run = "npm run lint"
+
+[tasks.lint-fix]
+depends = ["build-sample"]
+run = "npm run lint:fix"
 
 [tasks.build-sample]
 run = "mise run //sample:build"
@@ -109,7 +113,11 @@ docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 
 [tasks.check]
 depends = ["init"]
-run = [{ tasks = ["fmt-check", "lint", "lint-docker", "test-unit"] }]
+run = [{ tasks = ["fmt", "lint", "lint-docker", "test-unit"] }]
+
+[tasks.fix]
+depends = ["init"]
+run = [{ tasks = ["fmt-fix", "lint-fix"] }]
 
 [tasks.ci]
 depends = ["init"]
