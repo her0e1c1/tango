@@ -1,4 +1,4 @@
-/** @file Provides Deck mutation state and actions to React features. */
+/** @file Provides Deck entity mutation state and actions. */
 
 import type { Deck, DeckEdit, DeckId } from "@/entities/deck";
 

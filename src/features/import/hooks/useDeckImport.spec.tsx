@@ -46,14 +46,12 @@ vi.mock("@/entities/card", () => ({
 }));
 vi.mock("@/entities/deck", () => ({
   createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
+  useDeckMutations: () => ({ create: mocks.createDeck }),
   useDecks: () => ({
     status: mocks.deckRemoteStatus,
     syncStatus: mocks.deckSyncStatus,
     decks: mocks.decks,
   }),
-}));
-vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
-  useDeckMutations: () => ({ create: mocks.createDeck }),
 }));
 vi.mock("@/features/card/hooks/useCardMutations", () => ({
   useCardMutations: () => ({ bulkUpsert: mocks.bulkUpsert }),

@@ -27,7 +27,7 @@ vi.mock("@/adapters/firestore/deck", () => ({
   remove: mocks.remove,
 }));
 
-import { useDeckMutations } from "@/features/deck/hooks/useDeckMutations";
+import { useDeckMutations } from "./useDeckMutations";
 
 describe("useDeckMutations", () => {
   beforeEach(() => {

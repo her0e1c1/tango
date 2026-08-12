@@ -1,5 +1,5 @@
 /**
- * @file Defines the deck feature's Deck Start Form presentation component.
+ * @file Defines the study feature's Deck Start Form presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
@@ -7,7 +7,7 @@
 import { useId } from "react";
 import type * as React from "react";
 import { Form, Slider, Switch } from "@/shared/ui/forms";
-import { TagFilter, type TagFilterProps } from "@/features/deck/components/TagFilter";
+import { TagFilter, type TagFilterProps } from "./TagFilter";
 
 export interface DeckStartFormProps {
   scoreMax: number | null;

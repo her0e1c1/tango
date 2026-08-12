@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartForm, type DeckStartFormProps } from "@/features/deck/components/DeckStartForm";
+import { DeckStartForm, type DeckStartFormProps } from "./DeckStartForm";
 
 /**
  * Provides the create props test helper used by this file.

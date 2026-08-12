@@ -1,5 +1,5 @@
 /**
- * @file Defines the deck feature's Deck Form presentation component.
+ * @file Defines the deck editor feature's Deck Form presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */

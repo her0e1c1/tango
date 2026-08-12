@@ -10,7 +10,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
 
-import { DeckForm as Template, type DeckFormFields } from "@/features/deck/components/DeckForm";
+import { DeckForm as Template, type DeckFormFields } from "./DeckForm";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
@@ -62,7 +62,7 @@ const InteractiveDeckForm = (props: React.ComponentProps<typeof Template>) => {
 };
 
 const meta = {
-  title: "Deck/DeckForm",
+  title: "Deck Editor/DeckForm",
   component: Template,
   tags: ["autodocs"],
   parameters: {
