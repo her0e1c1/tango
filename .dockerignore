@@ -1,9 +1,14 @@
 .git
 .worktrees
 node_modules
-dist
+build
 storybook-static
 coverage
+playwright-report
+test-results
+.firebase
+.superpowers
+.DS_Store
+*.log
 .env*
 !.env.example
-npm-debug.log*
