@@ -1,15 +1,12 @@
-/**
- * @file Defines Storybook examples for Deck Start Template.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
+import type { DeckStartFormProps } from "@/features/study";
+import { DeckStartForm } from "@/features/study";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import { DeckStartForm, type DeckStartFormProps } from "../DeckStartForm";
-import { DeckStartTemplate as Template } from "./DeckStartTemplate";
 import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+
+import { DeckStartView as View } from "./DeckStartView";
 
 const deckStartForm: DeckStartFormProps = {
   scoreMax: 1,
@@ -29,64 +26,34 @@ const deckStartForm: DeckStartFormProps = {
   },
 };
 
-const longDeckStartForm: DeckStartFormProps = {
-  ...deckStartForm,
-  tagFilterProps: { ...deckStartForm.tagFilterProps, tags: [...fixture.tags.toolong] },
-};
-
 const meta = {
-  title: "Study/DeckStartTemplate",
-  component: Template,
+  title: "Pages/Deck Start",
+  component: View,
   tags: ["autodocs"],
-  parameters: {
-    layout: "fullscreen",
-    viewport: {
-      viewports: INITIAL_VIEWPORTS,
-      defaultViewport: "desktop",
-    },
-  },
+  parameters: { viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" } },
   args: {
     deckName: fixture.deck.default.name,
     maxNumberOfCardsToLearn: fixture.config.default.study.maxNumberOfCardsToLearn,
     cardsLength: 123,
     filterSlot: <DeckStartForm {...deckStartForm} />,
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof View>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-
 export const Long: Story = {
   args: {
     deckName: fixture.deck.tooLongName.name,
-    filterSlot: <DeckStartForm {...longDeckStartForm} />,
+    filterSlot: (
+      <DeckStartForm
+        {...deckStartForm}
+        tagFilterProps={{ ...deckStartForm.tagFilterProps, tags: [...fixture.tags.toolong] }}
+      />
+    ),
   },
 };
-
 export const NoMatches: Story = { args: { cardsLength: 0 } };
-
-export const Dark: Story = {
-  ...Long,
-  globals: { theme: "dark" },
-};
-
-export const IphoneX: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
-};
-
-export const IphoneXLong: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
-  args: {
-    filterSlot: <DeckStartForm {...longDeckStartForm} />,
-  },
-};
+export const Dark: Story = { ...Long, globals: { theme: "dark" } };
+export const Mobile: Story = { ...Long, parameters: { viewport: { defaultViewport: "iphonex" } } };

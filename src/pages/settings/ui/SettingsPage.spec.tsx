@@ -1,10 +1,6 @@
-/**
- * @file Verifies the Config Container navigation and header interaction contract.
- */
-
 import { fireEvent, render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
 
 import type { ConfigState } from "@/shared/config";
 import { createConfig } from "@/test/factories";
@@ -13,16 +9,13 @@ const mocks = vi.hoisted(() => ({
   config: null as unknown as ConfigState,
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
-  updateConfig: vi.fn(),
-  login: vi.fn(async () => undefined),
-  retry: vi.fn(async () => undefined),
 }));
 
 vi.mock("@/entities/session", () => ({ useSession: () => ({ status: "initializing" as const }) }));
 vi.mock("@/shared/config", () => ({
   useConfig: () => mocks.config,
   setDarkMode: mocks.setDarkMode,
-  updateConfig: mocks.updateConfig,
+  updateConfig: vi.fn(),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/settings/model/hooks/useAccountOperations", () => ({
@@ -30,8 +23,8 @@ vi.mock("@/features/settings/model/hooks/useAccountOperations", () => ({
     pending: false,
     error: null,
     kind: "login" as const,
-    login: mocks.login,
-    retry: mocks.retry,
+    login: vi.fn(async () => undefined),
+    retry: vi.fn(async () => undefined),
   }),
 }));
 vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({
@@ -39,16 +32,16 @@ vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({
 }));
 vi.mock("@/features/settings/ui/components/ConfigForm", () => ({ ConfigForm: () => null }));
 
-import { ConfigContainer } from "@/features/settings/ui/containers/ConfigContainer";
+import { SettingsPage } from "./SettingsPage";
 
-describe("ConfigContainer", () => {
+describe("SettingsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.config = createConfig({ appearance: { darkMode: false } });
   });
 
-  it("navigates from the top shortcut and header actions", () => {
-    render(<ConfigContainer login={vi.fn()} logout={vi.fn()} />);
+  it("owns the route shortcut and application header", () => {
+    render(<SettingsPage login={vi.fn()} logout={vi.fn()} />);
 
     fireEvent.keyDown(window, { key: "t" });
     fireEvent.click(screen.getByRole("button", { name: "tango" }));

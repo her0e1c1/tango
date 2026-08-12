@@ -1,15 +1,11 @@
-/**
- * @file Defines Storybook examples for Config Form Template.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
+import type { ConfigFormFields } from "@/features/settings";
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import { ConfigFormTemplate as Template } from "@/features/settings/ui/components/templates/ConfigFormTemplate";
-import type { ConfigFormFields } from "@/features/settings/ui/components/ConfigForm";
 import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+
+import { SettingsView as View } from "./SettingsView";
 
 const fields: ConfigFormFields = {
   showHeader: { checked: fixture.config.default.appearance.showHeader, onChange: () => undefined },
@@ -33,74 +29,47 @@ const fields: ConfigFormFields = {
   },
 };
 
+const configForm = {
+  config: fixture.config.default,
+  fields,
+  maxNumberOfCardsToLearn: fixture.config.default.study.maxNumberOfCardsToLearn,
+  cardInterval: fixture.config.default.study.cardInterval,
+  version: "1.2.3",
+};
+
 const meta = {
-  title: "Settings/ConfigFormTemplate",
-  component: Template,
+  title: "Pages/Settings",
+  component: View,
   tags: ["autodocs"],
-  parameters: {
-    layout: "fullscreen",
-    viewport: {
-      viewports: INITIAL_VIEWPORTS,
-      defaultViewport: "desktop",
-    },
-  },
-  args: {
-    configForm: {
-      config: fixture.config.default,
-      fields,
-      maxNumberOfCardsToLearn: fixture.config.default.study.maxNumberOfCardsToLearn,
-      cardInterval: fixture.config.default.study.cardInterval,
-      version: "1.2.3",
-    },
-  },
-} satisfies Meta<typeof Template>;
+  parameters: { viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" } },
+  args: { configForm },
+} satisfies Meta<typeof View>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const LoggedOut: Story = {};
-
 export const LoggedIn: Story = {
   args: {
     configForm: {
+      ...configForm,
       isLoggedIn: true,
       identity: { uid: "settings-user", displayName: "Settings User" },
-      config: fixture.config.default,
-      fields,
-      maxNumberOfCardsToLearn: fixture.config.default.study.maxNumberOfCardsToLearn,
-      cardInterval: fixture.config.default.study.cardInterval,
-      version: "1.2.3",
     },
   },
 };
-
 export const LongContent: Story = {
   args: {
     configForm: {
+      ...configForm,
       isLoggedIn: true,
       identity: {
         uid: "settings-user-with-an-intentionally-long-identifier-for-responsive-review-1234567890",
         displayName: "A settings user with an intentionally long display name for responsive review",
       },
-      config: fixture.config.longUserName,
-      fields,
-      maxNumberOfCardsToLearn: fixture.config.longUserName.study.maxNumberOfCardsToLearn,
-      cardInterval: fixture.config.longUserName.study.cardInterval,
       version: "2026.07.16-calm-focus-settings-presentation-long-metadata",
     },
   },
 };
-
-export const Dark: Story = {
-  ...LoggedIn,
-  globals: { theme: "dark" },
-};
-
-export const Mobile: Story = {
-  ...LongContent,
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
-};
+export const Dark: Story = { ...LoggedIn, globals: { theme: "dark" } };
+export const Mobile: Story = { ...LongContent, parameters: { viewport: { defaultViewport: "iphonex" } } };
