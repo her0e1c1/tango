@@ -4,8 +4,8 @@ COMPOSE_ENV_FILES = "../.env"
 
 [tasks]
 test = "docker compose run --rm --remove-orphans --entrypoint py.test base"
-fmt = "docker compose run --rm --remove-orphans --entrypoint 'ruff format' base"
-fmt-check = "docker compose run --rm --remove-orphans --entrypoint 'ruff format --check' base"
+fmt = "docker compose run --rm --remove-orphans --entrypoint 'ruff format --check' base"
+fmt-fix = "docker compose run --rm --remove-orphans --entrypoint 'ruff format' base"
 
 [tasks.build]
 sources = ["generate.py", "test/**/*"]
