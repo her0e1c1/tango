@@ -1,10 +1,6 @@
 import type { Deck, DeckEdit } from "../model/deck";
 
-import {
-  create as createRemoteDeck,
-  remove as removeRemoteDeck,
-  update as updateRemoteDeck,
-} from "@/adapters/firestore/deck";
+import { remove as removeRemoteDeck } from "@/adapters/firestore/deck";
 import {
   deckMembershipMutationLock,
   deckMutationLock,
@@ -12,6 +8,7 @@ import {
   withMutationLocks,
 } from "@/store/remoteMutationLocks";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
+import { create as createRemoteDeck, update as updateRemoteDeck } from "./firestore";
 
 const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Deck writes");

@@ -9,7 +9,6 @@ import type { Deck, DeckId } from "@/entities/deck";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { documentMetadata as firestoreMetadata } from "@/adapters/firestore";
 import {
   CardBulkMutationError,
   cardCommands,
@@ -18,7 +17,7 @@ import {
   selectCardsForDeck,
   useCards,
 } from "@/entities/card";
-import { createDeck, useDeckMutations, useDecks } from "@/entities/deck";
+import { createDeck, generateDeckId, useDeckMutations, useDecks } from "@/entities/deck";
 import { useSession } from "@/entities/session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
 import { parseCsv } from "@/features/import/lib/cardCsv";
@@ -102,7 +101,7 @@ const prepareDeckImportAttempt = (
   );
   const createDeckPending = deck == null;
   if (deck == null) {
-    deck = createDeck({ name }, uid, firestoreMetadata.generateDeckId);
+    deck = createDeck({ name }, uid, generateDeckId);
     if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
   }
 

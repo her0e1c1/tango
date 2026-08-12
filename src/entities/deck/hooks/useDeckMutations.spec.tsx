@@ -21,9 +21,11 @@ vi.mock("@/entities/session/@x/deck", () => ({
       ? { status: "signedOut" }
       : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
 }));
-vi.mock("@/adapters/firestore/deck", () => ({
+vi.mock("@/entities/deck/api/firestore", () => ({
   create: mocks.create,
   update: mocks.update,
+}));
+vi.mock("@/adapters/firestore/deck", () => ({
   remove: mocks.remove,
 }));
 

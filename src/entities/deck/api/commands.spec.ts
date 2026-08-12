@@ -11,9 +11,11 @@ const mocks = vi.hoisted(() => ({
   remove: vi.fn(),
 }));
 
-vi.mock("@/adapters/firestore/deck", () => ({
+vi.mock("./firestore", () => ({
   create: mocks.create,
   update: mocks.update,
+}));
+vi.mock("@/adapters/firestore/deck", () => ({
   remove: mocks.remove,
 }));
 

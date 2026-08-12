@@ -57,6 +57,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...actual,
     createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
+    generateDeckId: mocks.generateDeckId,
     useDeckMutations: () => ({ create: mocks.createDeck }),
     useDecks: () => ({
       status: mocks.deckRemoteStatus,
@@ -69,10 +70,6 @@ vi.mock("@/features/import/lib/cardCsv", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/import/lib/cardCsv")>();
   return { ...actual, parseCsv: mocks.parseCsv };
 });
-vi.mock("@/adapters/firestore", () => ({
-  documentMetadata: { generateDeckId: mocks.generateDeckId },
-}));
-
 import { sampleDeckId, useDeckImport } from "@/features/import/hooks/useDeckImport";
 
 describe("useDeckImport", () => {
