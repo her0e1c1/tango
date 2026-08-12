@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { logout } from "@/app/auth/logout";
-import { STUDY_STORAGE_KEY, studyStore } from "@/features/study/state/studyStore";
+import { studyStore } from "@/features/study";
 
 const mocks = vi.hoisted(() => ({
   signOutCurrentUser: vi.fn(),
@@ -27,6 +27,8 @@ describe("logout", () => {
   });
 
   it("signs out before clearing remote and study state", async () => {
+    const unrelatedStorageKey = "unrelated-preference";
+    const unrelatedStorageValue = "preserve-me";
     const operations: string[] = [];
     mocks.suspendAnonymousBootstrap.mockImplementation(() => {
       operations.push("suspend");
@@ -38,13 +40,16 @@ describe("logout", () => {
     mocks.stopRemoteReads.mockImplementation(() => {
       operations.push("stop-remote");
     });
+    localStorage.setItem(unrelatedStorageKey, unrelatedStorageValue);
     studyStore.getState().startStudy("deck", ["card"]);
+    expect(localStorage).toHaveLength(2);
 
     await logout("uid-a");
 
     expect(operations).toEqual(["suspend", "sign-out", "stop-remote", "resume"]);
     expect(studyStore.getState().sessionsByDeckId).toEqual({});
-    expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
+    expect(localStorage.getItem(unrelatedStorageKey)).toBe(unrelatedStorageValue);
+    expect(localStorage).toHaveLength(1);
   });
 
   it("preserves local state when sign-out fails", async () => {
