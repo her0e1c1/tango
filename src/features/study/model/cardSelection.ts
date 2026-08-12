@@ -3,6 +3,15 @@ import { compareStudyProgress, isStudyProgressEligible } from "@/entities/study-
 import type { StudyCard } from "@/features/study/model/studyCard";
 import type { StudyPreferences } from "@/shared/config";
 
+const isCardMatchingTags = (card: StudyCard["card"], deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
+  const tags = deck.selectedTags;
+  if (tags.length === 0) return true;
+  if (deck.tagAndFilter) {
+    return tags.every((tag) => card.tags.includes(tag));
+  }
+  return tags.some((tag) => card.tags.includes(tag));
+};
+
 export const filterCardsForDeck = <TCard extends StudyCard["card"]>(
   cards: StudyCard<TCard>[],
   deck: Pick<Deck, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
@@ -10,15 +19,7 @@ export const filterCardsForDeck = <TCard extends StudyCard["card"]>(
   now: number
 ): StudyCard<TCard>[] => {
   const filtered = cards.filter(({ card, progress }) => {
-    const tags = deck.selectedTags;
-    if (tags.length > 0) {
-      if (deck.tagAndFilter && !tags.every((tag) => card.tags.includes(tag))) {
-        return false;
-      }
-      if (!deck.tagAndFilter && !tags.some((tag) => card.tags.includes(tag))) {
-        return false;
-      }
-    }
+    if (!isCardMatchingTags(card, deck)) return false;
     return isStudyProgressEligible(
       progress,
       {

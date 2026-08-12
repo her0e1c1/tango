@@ -18,10 +18,3 @@ export const generateDeckId = (): string => doc(collection(getDb(), "deck")).id;
  * Only the identifier is returned; the card document is written later by the card adapter.
  */
 export const generateCardId = (): string => doc(collection(getDb(), "card")).id;
-
-/**
- * Returns the current time as a numeric timestamp.
- * Using one adapter helper keeps Firestore document timestamps consistent and easy to replace in
- * tests.
- */
-export const getTimestamp = () => Date.now();

@@ -54,6 +54,50 @@ const formatLastStudied = (timestamp: number): string => {
 const primaryActionClassName =
   "inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
+const DeckListCardStatus: React.FC<{
+  deck: Deck;
+  active: boolean;
+  studyProgress: DeckListStudyProgress | undefined;
+  progressValue: number;
+  cardCount: number;
+  statusId: string;
+}> = ({ deck, active, studyProgress, progressValue, cardCount, statusId }) => (
+  <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
+    {deck.category !== "" && (
+      <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
+        {deck.category}
+      </span>
+    )}
+    <span className="truncate">
+      {active && studyProgress
+        ? `${progressValue} / ${studyProgress.cardCount} · ${formatLastStudied(studyProgress.lastStudiedAt)}`
+        : `${cardCount} ${cardCount === 1 ? "card" : "cards"}`}
+    </span>
+  </span>
+);
+
+const DeckListCardProgressBar: React.FC<{
+  active: boolean;
+  progressValue: number;
+  progressPercent: number;
+  cardCount: number;
+  deckName: string;
+}> = ({ active, progressValue, progressPercent, cardCount, deckName }) => {
+  if (!active) return null;
+  return (
+    <span
+      role="progressbar"
+      aria-label={`Progress for ${deckName}`}
+      aria-valuemin={0}
+      aria-valuemax={cardCount}
+      aria-valuenow={progressValue}
+      className="mt-2 block h-1 overflow-hidden rounded-pill bg-surface-muted"
+    >
+      <span className="block h-full rounded-pill bg-accent-primary" style={{ width: `${progressPercent}%` }} />
+    </span>
+  );
+};
+
 /**
  * Renders the Deck Card user interface.
  * Summarizes a deck, its tags, study progress, and available actions while reflecting pending
@@ -98,41 +142,33 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           ) : null}
         </button>
 
-        <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
-          {deck.category !== "" && (
-            <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
-              {deck.category}
-            </span>
-          )}
-          <span className="truncate">
-            {active
-              ? `${progressValue} / ${studyProgress.cardCount} · ${formatLastStudied(studyProgress.lastStudiedAt)}`
-              : `${props.cardCount} ${props.cardCount === 1 ? "card" : "cards"}`}
-          </span>
-        </span>
+        <DeckListCardStatus
+          deck={deck}
+          active={active}
+          studyProgress={studyProgress}
+          progressValue={progressValue}
+          cardCount={props.cardCount}
+          statusId={statusId}
+        />
 
-        {active && (
-          <span
-            role="progressbar"
-            aria-label={`Progress for ${deck.name}`}
-            aria-valuemin={0}
-            aria-valuemax={studyProgress.cardCount}
-            aria-valuenow={progressValue}
-            className="mt-2 block h-1 overflow-hidden rounded-pill bg-surface-muted"
-          >
-            <span className="block h-full rounded-pill bg-accent-primary" style={{ width: `${progressPercent}%` }} />
-          </span>
-        )}
+        <DeckListCardProgressBar
+          active={active}
+          progressValue={progressValue}
+          progressPercent={progressPercent}
+          cardCount={studyProgress?.cardCount ?? 0}
+          deckName={deck.name}
+        />
       </div>
 
       <button
         type="button"
         aria-label={`${active ? "Continue" : "Study"} ${deck.name}`}
-        className={`${primaryActionClassName} ${
+        className={cx(
+          primaryActionClassName,
           active
             ? "bg-accent-primary text-ink-inverse hover:opacity-90"
             : "border border-border bg-transparent text-ink hover:bg-surface-muted"
-        }`}
+        )}
         onClick={withId(active ? props.onClickContinue : props.onClickStudy)}
         disabled={pending}
       >

@@ -49,13 +49,17 @@ export const useAsyncAction = <Id>(scope: string) => {
     });
   };
 
+  const isCurrentScope = (operationGeneration: number) => {
+    return currentScope.current === scope && generation.current === operationGeneration;
+  };
+
   const run = async <T>(ids: readonly Id[], operationKey: string, task: () => Promise<T>): Promise<T> => {
     const operationGeneration = generation.current;
     updatePending(ids, 1);
 
     try {
       const result = await task();
-      if (currentScope.current === scope && generation.current === operationGeneration) {
+      if (isCurrentScope(operationGeneration)) {
         const failure = lastFailure.current;
         if (failure?.operationKey === operationKey) {
           lastFailure.current = null;
@@ -64,13 +68,13 @@ export const useAsyncAction = <Id>(scope: string) => {
       }
       return result;
     } catch (nextError) {
-      if (currentScope.current === scope && generation.current === operationGeneration) {
+      if (isCurrentScope(operationGeneration)) {
         lastFailure.current = { ids, operationKey, task };
         setState((current) => (current.scope === scope ? { ...current, error: nextError } : current));
       }
       throw nextError;
     } finally {
-      if (currentScope.current === scope && generation.current === operationGeneration) {
+      if (isCurrentScope(operationGeneration)) {
         updatePending(ids, -1);
       }
     }

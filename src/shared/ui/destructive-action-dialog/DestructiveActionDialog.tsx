@@ -44,14 +44,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     };
   }, []);
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      props.onCancel();
-      return;
-    }
-    if (event.key !== "Tab") return;
-
+  const handleDialogTabKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? []);
     if (focusable.length === 0) {
       event.preventDefault();
@@ -67,6 +60,17 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     } else if (!event.shiftKey && document.activeElement === last) {
       event.preventDefault();
       first.focus();
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      props.onCancel();
+      return;
+    }
+    if (event.key === "Tab") {
+      handleDialogTabKey(event);
     }
   };
 

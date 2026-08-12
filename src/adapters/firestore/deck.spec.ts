@@ -10,14 +10,14 @@ import "@/shared/firebase/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import * as deckAdapter from "@/adapters/firestore/deck";
-import { getTimestamp } from "@/adapters/firestore/documentMetadata";
+import { getTimestamp } from "@/shared/firebase/firestoreDocument";
 import * as UUID from "uuid";
 import { createCard, createDeck } from "@/test/factories";
 
 const uuid = UUID.v4;
 
-vi.mock("./documentMetadata", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("./documentMetadata")>()),
+vi.mock("@/shared/firebase/firestoreDocument", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/firebase/firestoreDocument")>()),
   getTimestamp: vi.fn(),
 }));
 

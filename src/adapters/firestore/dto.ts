@@ -6,33 +6,9 @@
 
 import type { Card, CardEdit, CardId } from "@/entities/card";
 import type { Deck, DeckEdit, DeckId } from "@/entities/deck";
+import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/firebase/firestoreDocument";
 
-import type { Timestamp } from "firebase/firestore";
 import { z } from "zod";
-
-const validDateSchema = z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date");
-const timestampSchema = z.custom<Timestamp>(
-  (value) =>
-    typeof value === "object" &&
-    value !== null &&
-    typeof Reflect.get(value, "toDate") === "function" &&
-    Number.isInteger(Reflect.get(value, "seconds")) &&
-    Number.isInteger(Reflect.get(value, "nanoseconds")) &&
-    Reflect.get(value, "nanoseconds") >= 0 &&
-    Reflect.get(value, "nanoseconds") < 1_000_000_000,
-  "Expected a Firestore Timestamp"
-);
-const timestampOrDateSchema = z.union([validDateSchema, timestampSchema]).transform((value, context) => {
-  if (value instanceof Date) return value;
-  try {
-    const date = value.toDate();
-    if (!Number.isNaN(date.getTime())) return date;
-  } catch {
-    // The validation issue below keeps malformed Timestamp-like values inside the DTO error boundary.
-  }
-  context.addIssue({ code: "custom", message: "Invalid Firestore Timestamp" });
-  return z.NEVER;
-});
 
 const deckDocumentSchema = z.object({
   id: z.string().optional(),
@@ -63,30 +39,8 @@ type DeckDocument = z.infer<typeof deckDocumentSchema>;
 export type DeckCreateDto = z.infer<typeof deckCreateDtoSchema>;
 export type DeckUpdateDto = z.infer<typeof deckUpdateDtoSchema>;
 
-export class FirestoreDocumentValidationError extends Error {
-  constructor(
-    readonly collectionName: "deck" | "card",
-    readonly documentId: string,
-    readonly issues: z.core.$ZodIssue[]
-  ) {
-    const details = issues
-      .map((issue) => `${issue.path.length === 0 ? "<document>" : issue.path.join(".")}: ${issue.message}`)
-      .join("; ");
-    super(`Invalid Firestore ${collectionName} document "${documentId}": ${details}`);
-    this.name = "FirestoreDocumentValidationError";
-  }
-}
-
-const parseDocument = <T>(schema: z.ZodType<T>, collectionName: "deck" | "card", id: string, value: unknown): T => {
-  const result = schema.safeParse(value);
-  if (!result.success) {
-    throw new FirestoreDocumentValidationError(collectionName, id, result.error.issues);
-  }
-  return result.data;
-};
-
 const parseDeckDocument = (id: DeckId, value: unknown): DeckDocument =>
-  parseDocument(deckDocumentSchema, "deck", id, value);
+  parseFirestoreDocument(deckDocumentSchema, "deck", id, value);
 
 /**
  * Converts deck document into the shape used by the next application layer.
@@ -128,7 +82,7 @@ const cardDocumentSchema = z.object({
   score: z.number(),
   numberOfSeen: z.number(),
   lastSeenAt: z.number().optional(),
-  nextSeeingAt: timestampOrDateSchema.optional(),
+  nextSeeingAt: firestoreTimestampDateSchema.optional(),
   interval: z.number().optional(),
   url: z.string().optional(),
   startLine: z.number().optional(),
@@ -148,7 +102,7 @@ export type CardCreateDto = z.infer<typeof cardCreateDtoSchema>;
 export type CardUpdateDto = z.infer<typeof cardUpdateDtoSchema>;
 
 const parseCardDocument = (id: CardId, value: unknown): CardDocument =>
-  parseDocument(cardDocumentSchema, "card", id, value);
+  parseFirestoreDocument(cardDocumentSchema, "card", id, value);
 
 /**
  * Converts card document into the shape used by the next application layer.
