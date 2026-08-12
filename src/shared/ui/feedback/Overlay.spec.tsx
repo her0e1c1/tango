@@ -65,4 +65,14 @@ describe("shared overlay surface", () => {
 
     expect(onClick).toHaveBeenCalledOnce();
   });
+
+  it("does not expose an aria label when non-interactive", () => {
+    render(
+      <Overlay position="center" ariaLabel="Decorative overlay">
+        Overlay
+      </Overlay>
+    );
+
+    expect(screen.getByText("Overlay")).not.toHaveAttribute("aria-label");
+  });
 });
