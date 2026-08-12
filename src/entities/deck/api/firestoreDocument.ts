@@ -25,9 +25,22 @@ const deckCreateDtoSchema = deckDocumentSchema.extend({
   id: z.string(),
 });
 
-const deckUpdateDtoSchema = deckDocumentSchema.omit({ id: true }).partial().extend({
-  updatedAt: z.number(),
-});
+const deckUpdateDtoSchema = deckDocumentSchema
+  .pick({
+    name: true,
+    url: true,
+    isPublic: true,
+    scoreMax: true,
+    scoreMin: true,
+    selectedTags: true,
+    tagAndFilter: true,
+    category: true,
+    convertToBr: true,
+  })
+  .partial()
+  .extend({
+    updatedAt: z.number(),
+  });
 
 type DeckDocument = z.infer<typeof deckDocumentSchema>;
 export type DeckCreateDto = z.infer<typeof deckCreateDtoSchema>;
@@ -92,10 +105,7 @@ export const buildDeckUpdateDto = (deck: DeckEdit, updatedAt: number): DeckUpdat
       name: deck.name,
       url: deck.url,
       isPublic: deck.isPublic,
-      uid: deck.uid,
-      createdAt: deck.createdAt,
       updatedAt,
-      deletedAt: deck.deletedAt,
       scoreMax: deck.scoreMax,
       scoreMin: deck.scoreMin,
       selectedTags: deck.selectedTags,

@@ -224,17 +224,14 @@ describe("Firestore DTO builders", () => {
     });
   });
 
-  it("omits the id, undefined values, and client state when updating a deck", () => {
+  it("allows only editable fields and the adapter timestamp when updating a deck", () => {
     const deckEdit: DeckEdit = deck;
     const dto: DeckUpdateDto = buildDeckUpdateDto(deckEdit, 101);
 
     expect(dto).toEqual({
       name: "Deck",
       isPublic: true,
-      uid: "user-1",
-      createdAt: 1,
       updatedAt: 101,
-      deletedAt: null,
       scoreMax: 3,
       scoreMin: -2,
       selectedTags: ["math"],

@@ -44,6 +44,12 @@ describe("deck commands", () => {
     expect(mocks.remove).not.toHaveBeenCalled();
   });
 
+  it("updates without ownership metadata in the edit input", async () => {
+    await deckCommands.update("uid-a", { id: "deck", name: "Updated" });
+
+    expect(mocks.update).toHaveBeenCalledExactlyOnceWith({ id: "deck", name: "Updated" });
+  });
+
   it("serializes writes to the same Deck", async () => {
     let finishUpdate!: () => void;
     mocks.update.mockReturnValueOnce(
