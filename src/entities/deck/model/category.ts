@@ -10,8 +10,11 @@ export type Category = string;
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 const HIGHLIGHT_LANGUAGES = hljs.listLanguages();
+const HIGHLIGHT_ALIASES = HIGHLIGHT_LANGUAGES.flatMap((language) => hljs.getLanguage(language)?.aliases ?? []);
 
-export const CATEGORY: Category[] = [...APPLICATION_CATEGORIES, ...HIGHLIGHT_LANGUAGES];
+export const CATEGORY: Category[] = [
+  ...new Set([...APPLICATION_CATEGORIES, ...HIGHLIGHT_LANGUAGES, ...HIGHLIGHT_ALIASES]),
+];
 
 export const isHighlightLanguage = (category: Category): boolean => hljs.getLanguage(category) !== undefined;
 
