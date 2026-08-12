@@ -17,9 +17,8 @@ import * as deckAdapter from "@/adapters/firestore/deck";
 import * as eventAdapter from "@/adapters/firestore/event";
 import { createCard, createDeck } from "@/test/factories";
 
-vi.mock("./documentMetadata", () => ({
-  generateDeckId: vi.fn(() => "unused-deck-id"),
-  generateCardId: vi.fn(() => "unused-card-id"),
+vi.mock("@/shared/firebase/firestoreDocument", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/firebase/firestoreDocument")>()),
   getTimestamp: vi.fn(() => 100),
 }));
 

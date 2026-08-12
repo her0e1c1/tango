@@ -18,9 +18,9 @@ import {
   setDoc,
   type Firestore,
 } from "firebase/firestore";
-import { getTimestamp } from "@/adapters/firestore/documentMetadata";
 import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument } from "@/adapters/firestore/dto";
 import { getDb } from "@/shared/firebase/firestore-runtime";
+import { getTimestamp } from "@/shared/firebase/firestoreDocument";
 
 /**
  * Reads every active deck owned by the requested user from Firestore.

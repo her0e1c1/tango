@@ -16,10 +16,10 @@ import {
   buildCardUpdateDto,
   buildDeckCreateDto,
   buildDeckUpdateDto,
-  FirestoreDocumentValidationError,
   mapCardDocument,
   mapDeckDocument,
 } from "@/adapters/firestore/dto";
+import { FirestoreDocumentValidationError } from "@/shared/firebase/firestoreDocument";
 import { createCard, createDeck } from "@/test/factories";
 
 describe("Firestore DTO builders", () => {
