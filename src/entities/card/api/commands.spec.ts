@@ -1,4 +1,4 @@
-import type { Card } from "@/entities/card";
+import type { Card } from "../model/card";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,7 +19,7 @@ vi.mock("@/adapters/firestore/card", () => ({
   upsert: mocks.upsert,
 }));
 
-import { cardCommands } from "@/services/cardCommands";
+import { cardCommands } from "./commands";
 
 const createCard = (overrides: Partial<Card> = {}) => createCardFixture({ uid: "uid-a", ...overrides });
 

@@ -12,7 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck } from "@/test/factories";
 import type { DeckImportResult } from "@/features/import/components/deckImportTypes";
-import { CardBulkMutationError } from "@/services/cardCommands";
+import { CardBulkMutationError } from "@/entities/card";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
@@ -39,19 +39,27 @@ vi.mock("@/entities/session", () => ({
       ? { status: "signedOut" }
       : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
 }));
-vi.mock("@/entities/card", () => ({
-  createCard: (...args: unknown[]) => mocks.prepareCard(...args),
-  selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
-  useCards: () => ({ status: mocks.cardRemoteStatus, syncStatus: mocks.cardSyncStatus, cards: mocks.cards }),
-}));
-vi.mock("@/entities/deck", () => ({
-  createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
-  useDecks: () => ({
-    status: mocks.deckRemoteStatus,
-    syncStatus: mocks.deckSyncStatus,
-    decks: mocks.decks,
-  }),
-}));
+vi.mock("@/entities/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/card")>();
+  return {
+    ...actual,
+    createCard: (...args: unknown[]) => mocks.prepareCard(...args),
+    selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+    useCards: () => ({ status: mocks.cardRemoteStatus, syncStatus: mocks.cardSyncStatus, cards: mocks.cards }),
+  };
+});
+vi.mock("@/entities/deck", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/deck")>();
+  return {
+    ...actual,
+    createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
+    useDecks: () => ({
+      status: mocks.deckRemoteStatus,
+      syncStatus: mocks.deckSyncStatus,
+      decks: mocks.decks,
+    }),
+  };
+});
 vi.mock("@/features/deck/hooks/useDeckMutations", () => ({
   useDeckMutations: () => ({ create: mocks.createDeck }),
 }));

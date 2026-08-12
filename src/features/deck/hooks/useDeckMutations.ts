@@ -4,9 +4,9 @@ import type { Deck, DeckEdit, DeckId } from "@/entities/deck";
 
 import { useEffect, useRef } from "react";
 
+import { deckCommands } from "@/entities/deck";
 import { useSession } from "@/entities/session";
 import { useAsyncAction } from "@/shared/hooks/useAsyncAction";
-import { deckCommands } from "@/services/deckCommands";
 
 interface UseDeckMutationsOptions {
   onRemoveSuccess?: (deck: Deck) => void;
