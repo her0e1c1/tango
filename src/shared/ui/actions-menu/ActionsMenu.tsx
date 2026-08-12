@@ -7,6 +7,8 @@
 import type * as React from "react";
 import { AiOutlineMore } from "react-icons/ai";
 
+import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
+
 export interface ActionsMenuItem {
   key: string;
   label: string;
@@ -35,15 +37,6 @@ const triggerClassName =
 const menuClassName =
   "absolute right-0 top-full z-20 min-w-40 rounded-control border border-border bg-surface py-1 shadow-elevated";
 
-const focusableSelector = [
-  "a[href]",
-  "button:not([disabled])",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "textarea:not([disabled])",
-  '[tabindex]:not([tabindex="-1"])',
-].join(",");
-
 /**
  * Moves keyboard focus to the menu item next to the trigger button.
  * This preserves an intuitive focus position when an actions menu opens from either direction.
@@ -52,7 +45,7 @@ const focusAdjacentToTrigger = (menu: HTMLElement, direction: -1 | 1) => {
   const trigger = menu.parentElement?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]');
   if (trigger == null) return;
 
-  const focusable = Array.from(document.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+  const focusable = Array.from(document.querySelectorAll<HTMLElement>(focusableElementSelector)).filter(
     (element) => element.tabIndex >= 0 && element.closest("[hidden], [inert]") == null
   );
   const triggerIndex = focusable.indexOf(trigger);

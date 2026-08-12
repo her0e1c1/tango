@@ -45,6 +45,51 @@ describe("DestructiveActionDialog", () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
+  it("excludes disabled controls and includes explicit tab stops in the focus trap", () => {
+    render(
+      <DestructiveActionDialog
+        {...defaultProps}
+        description={
+          <>
+            <button type="button" disabled tabIndex={0}>
+              Disabled detail
+            </button>
+            <details>
+              <summary tabIndex={0}>Focusable detail</summary>
+            </details>
+          </>
+        }
+      />
+    );
+    const detail = screen.getByText("Focusable detail");
+    const confirm = screen.getByRole("button", { name: "Delete deck" });
+    detail.focus();
+
+    expect(fireEvent.keyDown(detail, { key: "Tab", shiftKey: true })).toBe(false);
+    expect(confirm).toHaveFocus();
+  });
+
+  it.each([
+    [
+      "hidden",
+      <div hidden>
+        <button type="button">Hidden detail</button>
+      </div>,
+    ],
+    [
+      "inert",
+      <div inert>
+        <button type="button">Inert detail</button>
+      </div>,
+    ],
+  ])("preserves the dialog's unfiltered %s descendant semantics", (_kind, description) => {
+    render(<DestructiveActionDialog {...defaultProps} description={description} />);
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+
+    expect(fireEvent.keyDown(cancel, { key: "Tab", shiftKey: true })).toBe(true);
+    expect(cancel).toHaveFocus();
+  });
+
   it("restores focus to the control that opened it", async () => {
     const Example = () => {
       const [open, setOpen] = React.useState(false);

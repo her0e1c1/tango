@@ -149,6 +149,34 @@ describe("ActionsMenu", () => {
     expect(screen.getByRole("button", { name: "Previous control" })).toHaveFocus();
   });
 
+  it("skips disabled, hidden, and inert controls before focusing an explicit tab stop", async () => {
+    render(
+      <>
+        <ControlledMenu {...labels} items={items()} />
+        <button type="button" disabled tabIndex={0}>
+          Disabled control
+        </button>
+        <div hidden>
+          <button type="button">Hidden control</button>
+        </div>
+        <div inert>
+          <button type="button">Inert control</button>
+        </div>
+        <details>
+          <summary tabIndex={0}>Explicit tab stop</summary>
+        </details>
+        <button type="button">Next enabled control</button>
+      </>
+    );
+    fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
+    const edit = screen.getByRole("menuitem", { name: "Edit" });
+    await waitFor(() => expect(edit).toHaveFocus());
+
+    await actAsync(async () => fireEvent.keyDown(edit, { key: "Tab" }));
+
+    expect(screen.getByText("Explicit tab stop")).toHaveFocus();
+  });
+
   it("keeps the menu open when an ambiguous blur settles inside", async () => {
     render(<ControlledMenu {...labels} items={items()} />);
     fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
