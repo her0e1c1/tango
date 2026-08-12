@@ -63,8 +63,15 @@ describe("config store", () => {
       ...defaultConfig,
       appearance: { ...defaultConfig.appearance, darkMode: true },
     });
-    expect(restored.getState().updateConfig).toBeTypeOf("function");
-    expect(restored.getState().toggleConfig).toBeTypeOf("function");
+
+    restored.getState().updateConfig({ appearance: { showHeader: false } });
+    restored.getState().toggleConfig("appearance", "darkMode");
+
+    expect(restored.getState().config.appearance).toEqual({
+      ...defaultConfig.appearance,
+      darkMode: false,
+      showHeader: false,
+    });
   });
 
   it("validates numeric ranges during updates", () => {

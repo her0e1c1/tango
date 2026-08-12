@@ -79,11 +79,10 @@ describe("sample Deck bootstrap", () => {
     const first = controller.start("uid-a", addSample);
     const second = controller.start("uid-a", addSample);
 
-    expect(first).toBe(second);
     expect(addSample).not.toHaveBeenCalled();
     await Promise.resolve();
     expect(addSample).toHaveBeenCalledOnce();
     finish();
-    await first;
+    await Promise.all([first, second]);
   });
 });

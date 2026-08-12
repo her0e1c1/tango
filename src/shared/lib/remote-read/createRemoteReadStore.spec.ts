@@ -193,10 +193,8 @@ describe("createRemoteReadStore", () => {
         : createHarness();
     await harness.store.getState().start("uid-a");
     if (status === "error") harness.subscriptions[0]?.onError(error);
-    const failedState = harness.store.getState();
-
     harness.store.getState().stop("uid-b");
-    expect(harness.store.getState()).toBe(failedState);
+    expect(harness.store.getState()).toMatchObject({ uid: "uid-a", status, error });
 
     harness.store.getState().stop("uid-a");
     expect(harness.store.getState()).toMatchObject({

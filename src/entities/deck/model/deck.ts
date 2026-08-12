@@ -20,7 +20,6 @@ export interface Deck {
 }
 
 export type DeckRaw = Pick<Deck, "name">;
-export type DeckNew = Omit<Deck, "id">;
 export type DeckEdit = Partial<Deck> & Pick<Deck, "id">;
 
 export const createDeck = (deck: DeckRaw, uid: string, generateId: () => string): Deck => ({

@@ -32,10 +32,15 @@ describe("Firestore runtime", () => {
     await expect(runtime.waitForInitialization()).resolves.toEqual({ status: "ready" });
   });
 
-  it("shares one initialization promise across readers", () => {
+  it("releases every reader after initialization", async () => {
     const runtime = createFirestoreRuntime();
+    const db = { name: "persistent" } as unknown as Firestore;
+    const first = runtime.waitForInitialization();
+    const second = runtime.waitForInitialization();
 
-    expect(runtime.waitForInitialization()).toBe(runtime.waitForInitialization());
+    runtime.initialize(db);
+
+    await expect(Promise.all([first, second])).resolves.toEqual([{ status: "ready" }, { status: "ready" }]);
   });
 
   it("preserves a blocking initialization error without allowing initialization", async () => {

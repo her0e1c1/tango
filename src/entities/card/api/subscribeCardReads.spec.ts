@@ -1,14 +1,18 @@
-import type { Card } from "../model/card";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RemoteSubscriptionProps } from "@/shared/api";
+type TestDocument = { id: string; data: () => Record<string, unknown> };
+type TestSnapshot = {
+  docs: TestDocument[];
+  docChanges: () => [];
+  metadata: { fromCache: boolean; hasPendingWrites: boolean };
+};
 
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
-  subscribeReads: vi.fn(),
+  next: undefined as ((snapshot: TestSnapshot) => void) | undefined,
+  error: undefined as ((error: Error) => void) | undefined,
   unsubscribe: vi.fn(),
 }));
 
@@ -16,19 +20,17 @@ vi.mock("firebase/firestore", () => ({
   collection: mocks.collection,
   query: mocks.query,
   where: mocks.where,
+  onSnapshot: vi.fn(
+    (_query: unknown, _options: unknown, next: (snapshot: TestSnapshot) => void, error: (cause: Error) => void) => {
+      mocks.next = next;
+      mocks.error = error;
+      return mocks.unsubscribe;
+    }
+  ),
 }));
 vi.mock("@/shared/firebase/firestore-runtime", () => ({ getDb: () => "db" }));
-vi.mock("@/shared/firebase/subscribeReads", () => ({ subscribeReads: mocks.subscribeReads }));
 
 import { subscribeCardReads } from "./subscribeCardReads";
-
-interface CapturedOptions {
-  query: unknown;
-  mapDocument: (id: string, data: unknown) => Card;
-  isActive: (card: Card) => boolean;
-  onSnapshot: RemoteSubscriptionProps<Card>["onSnapshot"];
-  onError: RemoteSubscriptionProps<Card>["onError"];
-}
 
 const cardDocument = (deletedAt: number | null = null) => ({
   frontText: "Front",
@@ -44,41 +46,42 @@ const cardDocument = (deletedAt: number | null = null) => ({
   numberOfSeen: 0,
 });
 
+const document = (id: string, data: Record<string, unknown>): TestDocument => ({ id, data: () => data });
+
 describe("subscribeCardReads", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.subscribeReads.mockReturnValue(mocks.unsubscribe);
+    mocks.next = undefined;
+    mocks.error = undefined;
   });
 
-  it("constructs a UID-scoped Card query and forwards callbacks", () => {
-    const props: RemoteSubscriptionProps<Card> = {
-      uid: "uid-a",
-      onSnapshot: vi.fn(),
-      onError: vi.fn(),
-    };
+  it("publishes active Cards from the requested user's collection", () => {
+    const onSnapshot = vi.fn();
+    const unsubscribe = subscribeCardReads({ uid: "uid-a", onSnapshot, onError: vi.fn() });
 
-    expect(subscribeCardReads(props)).toBe(mocks.unsubscribe);
+    mocks.next?.({
+      docs: [document("active", cardDocument()), document("deleted", cardDocument(3))],
+      docChanges: () => [],
+      metadata: { fromCache: false, hasPendingWrites: false },
+    });
+
+    expect(unsubscribe).toBe(mocks.unsubscribe);
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
-
-    const options = mocks.subscribeReads.mock.calls[0]?.[0] as CapturedOptions;
-    expect(options.query).toEqual([
-      ["db", "card"],
-      ["uid", "==", "uid-a"],
-    ]);
-    expect(options.onSnapshot).toBe(props.onSnapshot);
-    expect(options.onError).toBe(props.onError);
+    expect(onSnapshot).toHaveBeenCalledWith({
+      type: "replace",
+      items: [expect.objectContaining({ id: "active", deletedAt: null })],
+      metadata: { fromCache: false, hasPendingWrites: false },
+    });
   });
 
-  it("owns Card mapping and active soft-delete policy", () => {
-    subscribeCardReads({ uid: "uid-a", onSnapshot: vi.fn(), onError: vi.fn() });
+  it("forwards listener errors", () => {
+    const error = new Error("listener failed");
+    const onError = vi.fn();
+    subscribeCardReads({ uid: "uid-a", onSnapshot: vi.fn(), onError });
 
-    const options = mocks.subscribeReads.mock.calls[0]?.[0] as CapturedOptions;
-    const active = options.mapDocument("active", cardDocument());
-    const deleted = options.mapDocument("deleted", cardDocument(3));
+    mocks.error?.(error);
 
-    expect(active).toEqual(expect.objectContaining({ id: "active", deletedAt: null }));
-    expect(options.isActive(active)).toBe(true);
-    expect(options.isActive(deleted)).toBe(false);
+    expect(onError).toHaveBeenCalledWith(error);
   });
 });

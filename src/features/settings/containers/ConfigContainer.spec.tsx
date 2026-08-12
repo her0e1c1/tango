@@ -14,7 +14,6 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
   updateConfig: vi.fn(),
-  useKey: vi.fn(),
   login: vi.fn(async () => undefined),
   retry: vi.fn(async () => undefined),
 }));
@@ -26,7 +25,6 @@ vi.mock("@/shared/config", () => ({
   updateConfig: mocks.updateConfig,
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("react-use", () => ({ useKey: mocks.useKey }));
 vi.mock("@/features/settings/hooks/useAccountOperations", () => ({
   useAccountOperations: () => ({
     pending: false,
@@ -49,11 +47,10 @@ describe("ConfigContainer", () => {
     mocks.config = createConfig({ appearance: { darkMode: false } });
   });
 
-  it("preserves the top shortcut and forwards header actions", () => {
+  it("navigates from the top shortcut and header actions", () => {
     render(<ConfigContainer login={vi.fn()} logout={vi.fn()} />);
 
-    const topShortcut = mocks.useKey.mock.calls.find(([key]) => key === "t")?.[1];
-    topShortcut?.();
+    fireEvent.keyDown(window, { key: "t" });
     fireEvent.click(screen.getByRole("button", { name: "tango" }));
     fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
     fireEvent.click(screen.getByRole("button", { name: "Import decks" }));

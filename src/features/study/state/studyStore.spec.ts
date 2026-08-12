@@ -5,8 +5,6 @@
  * "touches only an existing requested session".
  */
 
-import type { DeckId } from "@/entities/deck";
-
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { STUDY_STORAGE_KEY, createStudyStore, selectStudySessionForRoute } from "@/features/study/state/studyStore";
@@ -37,25 +35,6 @@ const createVersionedStorage = (state: unknown, version: number) =>
     [STUDY_STORAGE_KEY]: JSON.stringify({ state, version }),
   });
 
-/**
- * Provides the call set current index test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
-const callSetCurrentIndex = (store: ReturnType<typeof createStudyStore>, deckId: DeckId, currentIndex: number) => {
-  const setCurrentIndex = store.getState().setCurrentIndex as unknown as (id: DeckId, index: number) => void;
-  setCurrentIndex(deckId, currentIndex);
-};
-
-/**
- * Provides the call remove study test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
-const callRemoveStudy = (store: ReturnType<typeof createStudyStore>, deckId: DeckId) => {
-  const removeStudy = Reflect.get(store.getState(), "removeStudy");
-  expect(removeStudy).toBeTypeOf("function");
-  (removeStudy as (id: DeckId) => void)(deckId);
-};
-
 describe("study store", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -84,7 +63,7 @@ describe("study store", () => {
     store.getState().startStudy("deck-2", ["card-3", "card-4"]);
 
     vi.setSystemTime(3000);
-    callSetCurrentIndex(store, "deck-1", 1);
+    store.getState().setCurrentIndex("deck-1", 1);
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({ currentIndex: 1, lastStudiedAt: 3000 });
     expect(store.getState().sessionsByDeckId["deck-2"]).toMatchObject({ currentIndex: 0, lastStudiedAt: 1000 });
@@ -97,7 +76,7 @@ describe("study store", () => {
     store.getState().startStudy("deck-1", ["card-1", "card-2"]);
 
     vi.setSystemTime(3000);
-    callSetCurrentIndex(store, "deck-1", currentIndex);
+    store.getState().setCurrentIndex("deck-1", currentIndex);
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({ currentIndex: 0, lastStudiedAt: 1000 });
   });
@@ -107,12 +86,10 @@ describe("study store", () => {
     vi.setSystemTime(1000);
     const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
     store.getState().startStudy("deck-1", ["card-1"]);
-    const touchStudy = Reflect.get(store.getState(), "touchStudy");
-    expect(touchStudy).toBeTypeOf("function");
 
     vi.setSystemTime(4000);
-    (touchStudy as (id: DeckId) => void)("deck-1");
-    (touchStudy as (id: DeckId) => void)("missing-deck");
+    store.getState().touchStudy("deck-1");
+    store.getState().touchStudy("missing-deck");
 
     expect(store.getState().sessionsByDeckId["deck-1"]?.lastStudiedAt).toBe(4000);
     expect(store.getState().sessionsByDeckId).not.toHaveProperty("missing-deck");
@@ -123,7 +100,7 @@ describe("study store", () => {
     store.getState().startStudy("deck-1", ["card-1"]);
     store.getState().startStudy("deck-2", ["card-2"]);
 
-    callRemoveStudy(store, "deck-1");
+    store.getState().removeStudy("deck-1");
 
     expect(store.getState().sessionsByDeckId).toEqual({
       "deck-2": expect.objectContaining({ deckId: "deck-2" }),

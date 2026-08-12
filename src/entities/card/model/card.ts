@@ -25,9 +25,7 @@ export interface Card {
 
 export type CardDeck = DeckForCard;
 export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
-export type CardNew = Omit<Card, "id">;
 export type CardEdit = Partial<Card> & Pick<Card, "id" | "deckId">;
-export type CardTextKey = "frontText" | "backText" | "hint";
 
 export const createCard = (card: CardRaw, deck: CardDeck, generateId: () => string): Card => {
   const { uid, id: deckId } = deck;

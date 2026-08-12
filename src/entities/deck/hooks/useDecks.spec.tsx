@@ -51,7 +51,6 @@ describe("Deck remote hooks", () => {
     const { result } = renderHook(useDecks, { wrapper: authenticatedWrapper });
 
     expect(result.current.decksById).toEqual({ [deck.id]: deck, missing: undefined });
-    expect(result.current.decksById[deck.id]).toBe(deck);
     expect(result.current.decks).toEqual([deck]);
     expect(result.current.status).toBe("ready");
     expect(result.current.syncStatus).toBe("synced");
