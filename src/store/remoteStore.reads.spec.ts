@@ -5,7 +5,7 @@ import type { RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { FirestoreInitializationResult } from "@/shared/firebase/firestore-runtime";
-import { createRemoteStore, type RemoteReadDependencies } from "@/store/remoteStore";
+import { createRemoteStore, type RemoteReadDependencies, type RemoteStoreState } from "@/store/remoteStore";
 import { createCard, createDeck } from "@/test/factories";
 
 const synced = { size: 0, fromCache: false, hasPendingWrites: false };
@@ -135,13 +135,26 @@ describe("remote store reads", () => {
 
   it("stops listeners and ignores stale callbacks", async () => {
     const harness = createHarness();
+    const deck = createDeck({ id: "current" });
     await harness.store.getState().start("uid-a");
+    publishInitial(harness, [deck]);
     const staleDeckSubscription = harness.deckSubscriptions[0];
+    let decksDuringCleanup: RemoteStoreState["decksById"] | undefined;
+    harness.deckUnsubscribes[0]?.mockImplementation(() => {
+      staleDeckSubscription?.onSnapshot({
+        type: "replace",
+        items: [createDeck({ id: "stale-during-cleanup" })],
+        metadata: synced,
+      });
+      decksDuringCleanup = harness.store.getState().decksById;
+    });
 
+    harness.store.getState().stop("uid-a");
     harness.store.getState().stop("uid-a");
 
     expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
     expect(harness.cardUnsubscribes[0]).toHaveBeenCalledOnce();
+    expect(decksDuringCleanup).toEqual({ [deck.id]: deck });
     expect(harness.store.getState()).toMatchObject({
       uid: null,
       status: "idle",
@@ -162,6 +175,22 @@ describe("remote store reads", () => {
     const deck = createDeck({ id: "deck" });
     await harness.store.getState().start("uid-a");
     publishInitial(harness, [deck]);
+    const staleDeckSubscription = harness.deckSubscriptions[0];
+
+    harness.cardSubscriptions[0]?.onError(new Error("listener failed"));
+    staleDeckSubscription?.onSnapshot({
+      type: "replace",
+      items: [createDeck({ id: "stale" })],
+      metadata: synced,
+    });
+
+    expect(harness.store.getState()).toMatchObject({
+      uid: "uid-a",
+      status: "error",
+      decksById: { [deck.id]: deck },
+    });
+    expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
+    expect(harness.cardUnsubscribes[0]).toHaveBeenCalledOnce();
 
     const retry = harness.store.getState().retry();
     expect(harness.store.getState()).toMatchObject({
@@ -197,17 +226,45 @@ describe("remote store reads", () => {
     expect(harness.dependencies.subscribeCards).toHaveBeenCalledOnce();
   });
 
-  it("publishes blocked initialization", async () => {
+  it("publishes blocked initialization and retries the same user", async () => {
     const error = new Error("persistence blocked");
-    const harness = createHarness(
-      vi.fn<RemoteReadDependencies["waitForInitialization"]>(async () => ({ status: "blocked", error }))
-    );
+    const waitForInitialization = vi
+      .fn<RemoteReadDependencies["waitForInitialization"]>()
+      .mockResolvedValueOnce({ status: "blocked", error })
+      .mockResolvedValue({ status: "ready" });
+    const harness = createHarness(waitForInitialization);
 
     await harness.store.getState().start("uid-a");
 
     expect(harness.store.getState()).toMatchObject({ uid: "uid-a", status: "blocked", error });
     expect(harness.dependencies.subscribeDecks).not.toHaveBeenCalled();
     expect(harness.dependencies.subscribeCards).not.toHaveBeenCalled();
+
+    await harness.store.getState().retry();
+
+    expect(harness.dependencies.subscribeDecks).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ uid: "uid-a" })
+    );
+    expect(harness.dependencies.subscribeCards).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ uid: "uid-a" })
+    );
+  });
+
+  it("does not create listeners when stopped during initialization", async () => {
+    let resolveInitialization!: (result: FirestoreInitializationResult) => void;
+    const initialization = new Promise<FirestoreInitializationResult>((resolve) => {
+      resolveInitialization = resolve;
+    });
+    const harness = createHarness(vi.fn(() => initialization));
+
+    const start = harness.store.getState().start("uid-a");
+    harness.store.getState().stop("uid-a");
+    resolveInitialization({ status: "ready" });
+    await start;
+
+    expect(harness.dependencies.subscribeDecks).not.toHaveBeenCalled();
+    expect(harness.dependencies.subscribeCards).not.toHaveBeenCalled();
+    expect(harness.store.getState()).toMatchObject({ uid: null, status: "idle" });
   });
 
   it("closes a partial subscription when listener setup throws", async () => {
@@ -218,9 +275,35 @@ describe("remote store reads", () => {
     });
 
     await expect(harness.store.getState().start("uid-a")).rejects.toBe(failure);
+    expect(harness.store.getState()).toMatchObject({ status: "error", error: failure });
+
+    harness.store.getState().stop("uid-a");
 
     expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
-    expect(harness.store.getState()).toMatchObject({ status: "error", error: failure });
+  });
+
+  it("cleans partial subscriptions when superseded during listener setup", async () => {
+    const harness = createHarness();
+    const staleCardUnsubscribe = vi.fn();
+    let latestStart: Promise<void> | undefined;
+    vi.mocked(harness.dependencies.subscribeCards).mockImplementationOnce(() => {
+      latestStart = harness.store.getState().start("uid-b");
+      return staleCardUnsubscribe;
+    });
+
+    await harness.store.getState().start("uid-a");
+    await latestStart;
+
+    expect(harness.deckUnsubscribes[0]).toHaveBeenCalledOnce();
+    expect(staleCardUnsubscribe).toHaveBeenCalledOnce();
+    expect(harness.dependencies.subscribeDecks).toHaveBeenLastCalledWith(expect.objectContaining({ uid: "uid-b" }));
+    expect(harness.dependencies.subscribeCards).toHaveBeenLastCalledWith(expect.objectContaining({ uid: "uid-b" }));
+
+    harness.store.getState().stop("uid-b");
+
+    expect(harness.deckUnsubscribes[1]).toHaveBeenCalledOnce();
+    expect(harness.cardUnsubscribes[0]).toHaveBeenCalledOnce();
+    expect(staleCardUnsubscribe).toHaveBeenCalledOnce();
   });
 
   it("lets the latest start own subscriptions", async () => {

@@ -44,6 +44,12 @@ interface SnapshotMetadata {
   cards?: RemoteSnapshotMetadata;
 }
 
+interface ReadSession {
+  readonly uid: string;
+  readonly metadata: SnapshotMetadata;
+  readonly subscriptions: Unsubscribe[];
+}
+
 const initialReadState = (): Omit<RemoteStoreState, "start" | "stop" | "retry"> => ({
   uid: null,
   status: "idle",
@@ -79,38 +85,35 @@ const closeAll = (subscriptions: readonly Unsubscribe[]) => {
 };
 
 export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreApi<RemoteStoreState> => {
-  let activeUid: string | null = null;
-  let generation = 0;
-  let metadata: SnapshotMetadata = {};
-  let activeSubscriptions: Unsubscribe[] = [];
+  let activeSession: ReadSession | undefined;
 
-  const closeActiveSubscriptions = () => {
-    const subscriptions = activeSubscriptions;
-    activeSubscriptions = [];
+  const cleanupSession = (session: ReadSession | undefined) => {
+    if (session == null) return;
+    const subscriptions = session.subscriptions.splice(0);
     closeAll(subscriptions);
   };
 
   return createStore<RemoteStoreState>()((set, get) => {
-    const isCurrent = (uid: string, operationGeneration: number) =>
-      activeUid === uid && generation === operationGeneration;
+    const isCurrent = (session: ReadSession) => activeSession === session;
 
-    const fail = (uid: string, operationGeneration: number, status: "blocked" | "error", cause: unknown) => {
-      if (!isCurrent(uid, operationGeneration)) return;
-      generation += 1;
-      closeActiveSubscriptions();
+    const fail = (session: ReadSession, status: "blocked" | "error", cause: unknown) => {
+      if (!isCurrent(session)) return;
+      activeSession = undefined;
+      cleanupSession(session);
       set({ status, syncStatus: undefined, error: toError(cause) });
     };
 
     const start = async (uid: string): Promise<void> => {
-      const operationGeneration = ++generation;
       const previous = get();
-      closeActiveSubscriptions();
-      activeUid = uid;
-      metadata = {};
+      const previousSession = activeSession;
+      const session: ReadSession = { uid, metadata: {}, subscriptions: [] };
+      activeSession = session;
+      cleanupSession(previousSession);
+      if (!isCurrent(session)) return;
 
-      const retainCurrentData = previous.uid === uid;
+      const retainCurrentData = previous.uid === session.uid;
       set({
-        uid,
+        uid: session.uid,
         status: "loading",
         decksById: retainCurrentData ? previous.decksById : {},
         cardsById: retainCurrentData ? previous.cardsById : {},
@@ -122,35 +125,34 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
       try {
         initialization = await dependencies.waitForInitialization();
       } catch (cause) {
-        fail(uid, operationGeneration, "error", cause);
+        fail(session, "error", cause);
         throw toError(cause);
       }
 
-      if (!isCurrent(uid, operationGeneration)) return;
+      if (!isCurrent(session)) return;
       if (initialization.status === "blocked") {
-        fail(uid, operationGeneration, "blocked", initialization.error);
+        fail(session, "blocked", initialization.error);
         return;
       }
 
-      const subscriptions: Unsubscribe[] = [];
       const readiness = () => {
-        const syncStatus = deriveSyncStatus(metadata);
+        const syncStatus = deriveSyncStatus(session.metadata);
         return {
           status: syncStatus == null ? ("loading" as const) : ("ready" as const),
           syncStatus,
           error: undefined,
         };
       };
-      const onError = (error: Error) => fail(uid, operationGeneration, "error", error);
+      const onError = (error: Error) => fail(session, "error", error);
 
       try {
-        subscriptions.push(
+        session.subscriptions.push(
           dependencies.subscribeDecks({
-            uid,
+            uid: session.uid,
             onError,
             onSnapshot: (snapshot) => {
-              if (!isCurrent(uid, operationGeneration)) return;
-              metadata = { ...metadata, decks: { ...snapshot.metadata } };
+              if (!isCurrent(session)) return;
+              session.metadata.decks = { ...snapshot.metadata };
               set({
                 decksById: applySnapshot(get().decksById, snapshot),
                 ...readiness(),
@@ -158,18 +160,18 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
             },
           })
         );
-        if (!isCurrent(uid, operationGeneration)) {
-          closeAll(subscriptions);
+        if (!isCurrent(session)) {
+          cleanupSession(session);
           return;
         }
 
-        subscriptions.push(
+        session.subscriptions.push(
           dependencies.subscribeCards({
-            uid,
+            uid: session.uid,
             onError,
             onSnapshot: (snapshot) => {
-              if (!isCurrent(uid, operationGeneration)) return;
-              metadata = { ...metadata, cards: { ...snapshot.metadata } };
+              if (!isCurrent(session)) return;
+              session.metadata.cards = { ...snapshot.metadata };
               set({
                 cardsById: applySnapshot(get().cardsById, snapshot),
                 ...readiness(),
@@ -177,28 +179,32 @@ export const createRemoteStore = (dependencies: RemoteReadDependencies): StoreAp
             },
           })
         );
-        if (!isCurrent(uid, operationGeneration)) {
-          closeAll(subscriptions);
+        if (!isCurrent(session)) {
+          cleanupSession(session);
           return;
         }
-        activeSubscriptions = subscriptions;
       } catch (cause) {
-        closeAll(subscriptions);
-        fail(uid, operationGeneration, "error", cause);
+        if (isCurrent(session)) {
+          fail(session, "error", cause);
+        } else {
+          cleanupSession(session);
+        }
         throw toError(cause);
       }
     };
 
     const stop = (uid?: string) => {
-      if (uid != null && activeUid !== uid) return;
-      generation += 1;
-      activeUid = null;
-      metadata = {};
-      closeActiveSubscriptions();
+      if (uid != null && get().uid !== uid) return;
+      const session = activeSession;
+      activeSession = undefined;
+      cleanupSession(session);
       set(initialReadState());
     };
 
-    const retry = () => (activeUid == null ? Promise.resolve() : start(activeUid));
+    const retry = () => {
+      const uid = get().uid;
+      return uid == null ? Promise.resolve() : start(uid);
+    };
 
     return {
       ...initialReadState(),
