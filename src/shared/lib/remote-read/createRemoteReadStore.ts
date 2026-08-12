@@ -79,15 +79,6 @@ export const createRemoteReadStore = <T extends { id: string }>(
     close(subscription);
   };
 
-  const ownSubscription = (session: ReadSession, subscription: Unsubscribe) => {
-    if (!isCurrent(session)) {
-      close(subscription);
-      return false;
-    }
-    session.subscription = subscription;
-    return true;
-  };
-
   return createStore<RemoteReadStoreState<T>>()((set, get) => {
     const fail = (session: ReadSession, status: "blocked" | "error", cause: unknown) => {
       if (!isCurrent(session)) return;
@@ -143,7 +134,11 @@ export const createRemoteReadStore = <T extends { id: string }>(
             });
           },
         });
-        ownSubscription(session, subscription);
+        if (!isCurrent(session)) {
+          close(subscription);
+          return;
+        }
+        session.subscription = subscription;
       } catch (cause) {
         if (isCurrent(session)) {
           fail(session, "error", cause);

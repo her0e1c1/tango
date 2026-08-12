@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { Card } from "@/entities/card/model/card";
-import { createCardRemoteReadStore } from "@/entities/card/model/remoteReadStore";
 import type { RemoteSubscriptionProps } from "@/shared/api/remoteSnapshot";
+import { createRemoteReadStore } from "@/shared/lib/remote-read/createRemoteReadStore";
 import { createCard } from "@/test/factories";
 
 const synced = { size: 0, fromCache: false, hasPendingWrites: false };
@@ -10,7 +10,7 @@ const synced = { size: 0, fromCache: false, hasPendingWrites: false };
 const createHarness = () => {
   const subscriptions: Array<RemoteSubscriptionProps<Card>> = [];
   const unsubscribes: ReturnType<typeof vi.fn>[] = [];
-  const store = createCardRemoteReadStore({
+  const store = createRemoteReadStore<Card>({
     waitForInitialization: vi.fn(async () => ({ status: "ready" as const })),
     subscribe: vi.fn((props) => {
       subscriptions.push(props);
