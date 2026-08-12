@@ -4,7 +4,7 @@
  * components.
  */
 
-import { CATEGORY, type Deck, useDecks } from "@/entities/deck";
+import { CATEGORY, type Category, type Deck, useDecks } from "@/entities/deck";
 
 import type * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,7 +28,10 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const config = useConfig();
   const navigate = useNavigate();
   const deckActions = useDeckActions(deck.id);
-  const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
+  const categoryOptions: { label: Category; value: Category }[] = CATEGORY.map((category) => ({
+    label: category,
+    value: category,
+  }));
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
     defaultValues: {
       name: deck.name,
