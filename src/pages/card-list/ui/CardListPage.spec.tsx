@@ -10,7 +10,7 @@ import type { Deck } from "@/entities/deck";
 import type { ConfigState } from "@/shared/config";
 
 import userEvent from "@testing-library/user-event";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -32,7 +32,6 @@ const mocks = vi.hoisted(() => ({
   onClickTag: vi.fn(),
   navigate: vi.fn(),
   onRemoveSuccess: undefined as ((card: Card) => void) | undefined,
-  useKey: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -112,10 +111,6 @@ vi.mock("@/features/study", async (importOriginal) => {
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
-}));
-
-vi.mock("react-use", () => ({
-  useKey: mocks.useKey,
 }));
 
 import { CardListPage } from "./CardListPage";
@@ -198,7 +193,7 @@ describe("CardListPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
   });
 
-  it("navigates to Card edit and preserves top and settings shortcuts", async () => {
+  it("navigates to Card edit and responds to top and settings shortcuts", async () => {
     render(<CardListPage />);
 
     await userEvent.click(screen.getByRole("button", { name: `Open actions for ${card.frontText}` }));
@@ -206,10 +201,8 @@ describe("CardListPage", () => {
     expect(mocks.navigate).toHaveBeenLastCalledWith(`/card/${card.id}/edit`);
 
     mocks.navigate.mockClear();
-    const topShortcut = mocks.useKey.mock.calls.find(([key]) => key === "t")?.[1];
-    const settingsShortcut = mocks.useKey.mock.calls.find(([key]) => key === "s")?.[1];
-    topShortcut?.();
-    settingsShortcut?.();
+    fireEvent.keyDown(window, { key: "t" });
+    fireEvent.keyDown(window, { key: "s" });
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
   });

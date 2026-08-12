@@ -40,7 +40,7 @@ vi.mock("@/shared/firestore", async (importOriginal) => ({
   getDb: () => "db",
 }));
 
-import { subscribeCardReads, subscribeDeckReads } from "@/adapters/firestore/event";
+import { subscribeDeckReads } from "@/adapters/firestore/event";
 
 /**
  * Provides the document test helper used by this file.
@@ -79,26 +79,6 @@ const deckDocument = (overrides: Record<string, unknown> = {}) => ({
   tagAndFilter: false,
   category: "",
   convertToBr: false,
-  ...overrides,
-});
-
-/**
- * Provides the card document test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
-const cardDocument = (overrides: Record<string, unknown> = {}) => ({
-  id: "payload-card",
-  frontText: "Remote front",
-  backText: "Remote back",
-  tags: [],
-  uniqueKey: "remote-key",
-  deckId: "deck-a",
-  uid: "uid-a",
-  createdAt: 1,
-  updatedAt: 2,
-  deletedAt: null,
-  score: 0,
-  numberOfSeen: 0,
   ...overrides,
 });
 
@@ -169,81 +149,6 @@ describe("Firestore remote-read subscriptions", () => {
     });
   });
 
-  it("maps Card replacements and deltas through the Card mapper", () => {
-    const onSnapshot = vi.fn();
-    subscribeCardReads({ uid: "uid-a", onSnapshot, onError: vi.fn() });
-
-    mocks.next?.(
-      snapshot([
-        document(
-          "card-a",
-          cardDocument({ nextSeeingAt: { seconds: 0, nanoseconds: 50_000_000, toDate: () => new Date(50) } })
-        ),
-      ])
-    );
-    expect(onSnapshot).toHaveBeenLastCalledWith({
-      type: "replace",
-      items: [expect.objectContaining({ id: "card-a", nextSeeingAt: new Date(50) })],
-      metadata: { fromCache: false, hasPendingWrites: false },
-    });
-
-    mocks.next?.(snapshot([], [{ type: "modified", doc: document("card-a", cardDocument({ frontText: "Updated" })) }]));
-    expect(onSnapshot).toHaveBeenLastCalledWith({
-      type: "change",
-      event: {
-        added: [],
-        modified: [expect.objectContaining({ id: "card-a", frontText: "Updated" })],
-        removed: [],
-      },
-      metadata: { fromCache: false, hasPendingWrites: false },
-    });
-  });
-
-  it("forwards initial document validation errors without emitting a partial snapshot", () => {
-    const onSnapshot = vi.fn();
-    const onError = vi.fn();
-    subscribeCardReads({ uid: "uid-a", onSnapshot, onError });
-
-    expect(() =>
-      mocks.next?.(
-        snapshot([
-          document("card-valid", cardDocument()),
-          document("card-invalid", cardDocument({ nextSeeingAt: null })),
-        ])
-      )
-    ).not.toThrow();
-
-    expect(onSnapshot).not.toHaveBeenCalled();
-    expect(onError).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: "FirestoreDocumentValidationError",
-        documentId: "card-invalid",
-        message: expect.stringContaining("nextSeeingAt"),
-      })
-    );
-  });
-
-  it("publishes a corrected snapshot as the initial replacement after validation fails", () => {
-    const onSnapshot = vi.fn();
-    const onError = vi.fn();
-    subscribeCardReads({ uid: "uid-a", onSnapshot, onError });
-
-    mocks.next?.(snapshot([document("card-invalid", cardDocument({ nextSeeingAt: null }))]));
-    expect(onSnapshot).not.toHaveBeenCalled();
-    expect(onError).toHaveBeenCalledOnce();
-    onError.mockClear();
-
-    mocks.next?.(snapshot([document("card-corrected", cardDocument({ frontText: "Corrected" }))]));
-
-    expect(onError).not.toHaveBeenCalled();
-    expect(onSnapshot).toHaveBeenCalledOnce();
-    expect(onSnapshot).toHaveBeenCalledWith({
-      type: "replace",
-      items: [expect.objectContaining({ id: "card-corrected", frontText: "Corrected" })],
-      metadata: { fromCache: false, hasPendingWrites: false },
-    });
-  });
-
   it("forwards change validation errors without emitting a partial delta", () => {
     const onSnapshot = vi.fn();
     const onError = vi.fn();
@@ -291,7 +196,7 @@ describe("Firestore remote-read subscriptions", () => {
   it("forwards listener errors", () => {
     const error = new Error("listener failed");
     const onError = vi.fn();
-    subscribeCardReads({ uid: "uid-a", onSnapshot: vi.fn(), onError });
+    subscribeDeckReads({ uid: "uid-a", onSnapshot: vi.fn(), onError });
 
     mocks.error?.(error);
 

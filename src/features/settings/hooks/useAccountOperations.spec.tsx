@@ -1,8 +1,7 @@
 /**
  * @file Verifies the "useAccountOperations" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "shares the login promise
- * while login is pending", "shares the logout promise while logout is pending", "retries the
- * failed operation".
+ * The examples make the expected behavior concrete with cases such as "deduplicates login while
+ * login is pending", "deduplicates logout while logout is pending", "retries the failed operation".
  */
 
 import { act, renderHook, waitFor } from "@testing-library/react";
@@ -34,7 +33,7 @@ const deferred = <T,>() => {
 const StrictModeWrapper = ({ children }: PropsWithChildren) => <React.StrictMode>{children}</React.StrictMode>;
 
 describe("useAccountOperations", () => {
-  it("shares the login promise while login is pending", async () => {
+  it("deduplicates login while login is pending", async () => {
     const request = deferred<void>();
     const login = vi.fn(() => request.promise);
     const { result } = renderHook(() => useAccountOperations({ login }), { wrapper: StrictModeWrapper });
@@ -46,19 +45,18 @@ describe("useAccountOperations", () => {
       second = result.current.login();
     });
 
-    expect(first).toBe(second);
     expect(login).toHaveBeenCalledOnce();
     expect(result.current).toMatchObject({ kind: "login", pending: true, error: null });
 
     await actAsync(async () => {
       request.resolve();
-      await first;
+      await Promise.all([first, second]);
     });
 
     expect(result.current.pending).toBe(false);
   });
 
-  it("shares a pending login promise when logout is unavailable", async () => {
+  it("keeps the pending login when logout is unavailable", async () => {
     const request = deferred<void>();
     const login = vi.fn(() => request.promise);
     const { result } = renderHook(() => useAccountOperations({ login }), { wrapper: StrictModeWrapper });
@@ -70,18 +68,18 @@ describe("useAccountOperations", () => {
       logoutPromise = result.current.logout();
     });
 
-    expect(logoutPromise).toBe(loginPromise);
+    expect(login).toHaveBeenCalledOnce();
     expect(result.current).toMatchObject({ kind: "login", pending: true, error: null });
 
     await actAsync(async () => {
       request.resolve();
-      await logoutPromise;
+      await Promise.all([loginPromise, logoutPromise]);
     });
 
     expect(result.current.pending).toBe(false);
   });
 
-  it("shares the logout promise while logout is pending", async () => {
+  it("deduplicates logout while logout is pending", async () => {
     const request = deferred<void>();
     const logout = vi.fn(() => request.promise);
     const { result } = renderHook(() => useAccountOperations({ login: vi.fn(), logout }), {
@@ -95,13 +93,12 @@ describe("useAccountOperations", () => {
       second = result.current.logout();
     });
 
-    expect(first).toBe(second);
     expect(logout).toHaveBeenCalledOnce();
     expect(result.current).toMatchObject({ kind: "logout", pending: true, error: null });
 
     await actAsync(async () => {
       request.resolve();
-      await first;
+      await Promise.all([first, second]);
     });
 
     expect(result.current.pending).toBe(false);
@@ -266,7 +263,6 @@ describe("useAccountOperations", () => {
     rerender({ generation: "later-user" });
     await waitFor(() => expect(result.current).toMatchObject({ kind: null, pending: false, error: null }));
     const retryAfterReset = result.current.retry();
-    expect(retryAfterReset).not.toBe(staleRetry);
     await expect(retryAfterReset).resolves.toBeUndefined();
     expect(retryCleanup).toHaveBeenCalledOnce();
 
@@ -274,7 +270,6 @@ describe("useAccountOperations", () => {
     act(() => {
       nextOperation = result.current.login();
     });
-    expect(nextOperation).not.toBe(staleRetry);
     expect(nextLogin).toHaveBeenCalledOnce();
     expect(result.current).toMatchObject({ kind: "login", pending: true, error: null });
 

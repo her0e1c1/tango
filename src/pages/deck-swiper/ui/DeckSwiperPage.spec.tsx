@@ -57,7 +57,6 @@ const mocks = vi.hoisted(() => ({
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
   setDarkMode: vi.fn(),
-  useKey: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -95,10 +94,6 @@ vi.mock("@/entities/card", () => ({
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,
-}));
-
-vi.mock("react-use", () => ({
-  useKey: mocks.useKey,
 }));
 
 vi.mock("@/features/card", async (importOriginal) => {
@@ -229,7 +224,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     vi.useRealTimers();
   });
 
-  it("renders the active session card and forwards study callbacks", () => {
+  it("renders the active session card and responds to study controls", () => {
     render(<DeckSwiperPage />);
 
     expect(screen.getByText(card.frontText)).toBeVisible();
@@ -240,12 +235,25 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
     expect(mocks.toggleShowBackText).toHaveBeenCalledOnce();
     expect(mocks.updateIndex).toHaveBeenCalledWith(1);
-    expect(mocks.useKey).toHaveBeenCalledWith("ArrowLeft", mocks.swipeLeft);
-    expect(mocks.useKey).toHaveBeenCalledWith("ArrowRight", mocks.swipeRight);
-    expect(mocks.useKey).toHaveBeenCalledWith("Enter", mocks.toggleShowBackText);
-    expect(mocks.useKey).toHaveBeenCalledWith("h", mocks.toggleShowHeader);
-    expect(mocks.useKey).toHaveBeenCalledWith("b", mocks.toggleShowSwipeButtonList);
-    expect(mocks.useKey).toHaveBeenCalledWith(" ", mocks.toggleAutoPlay);
+
+    mocks.toggleShowBackText.mockClear();
+    fireEvent.keyDown(window, { key: "ArrowUp" });
+    fireEvent.keyDown(window, { key: "ArrowDown" });
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    fireEvent.keyDown(window, { key: "Enter" });
+    fireEvent.keyDown(window, { key: "h" });
+    fireEvent.keyDown(window, { key: "b" });
+    fireEvent.keyDown(window, { key: " " });
+
+    expect(mocks.swipeUp).toHaveBeenCalledOnce();
+    expect(mocks.swipeDown).toHaveBeenCalledOnce();
+    expect(mocks.swipeLeft).toHaveBeenCalledOnce();
+    expect(mocks.swipeRight).toHaveBeenCalledOnce();
+    expect(mocks.toggleShowBackText).toHaveBeenCalledOnce();
+    expect(mocks.toggleShowHeader).toHaveBeenCalledOnce();
+    expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
+    expect(mocks.toggleAutoPlay).toHaveBeenCalledOnce();
   });
 
   it("owns header visibility across front and back content", () => {

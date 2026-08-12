@@ -21,7 +21,6 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   downloadSampleCsv: vi.fn(),
   setDarkMode: vi.fn(),
-  useKey: vi.fn(),
   preview: undefined as DeckImportPreview | undefined,
   data: undefined as DeckImportResult | undefined,
   partialResult: undefined as DeckImportResult | undefined,
@@ -51,10 +50,6 @@ vi.mock("@/features/import", () => ({
 vi.mock("@/shared/config", () => ({
   useConfig: () => ({ appearance: { darkMode: false } }),
   setDarkMode: mocks.setDarkMode,
-}));
-
-vi.mock("react-use", () => ({
-  useKey: mocks.useKey,
 }));
 
 import { DeckImportPage } from "./DeckImportPage";
@@ -114,8 +109,6 @@ describe("DeckImportPage", () => {
     expect(mocks.importPreview).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
     expect(mocks.downloadSampleCsv).toHaveBeenCalledOnce();
-    expect(mocks.useKey).toHaveBeenCalledWith("t", expect.any(Function));
-    expect(mocks.useKey).toHaveBeenCalledWith("s", expect.any(Function));
   });
 
   it("renders the import screen in the application shell and forwards header actions", async () => {
@@ -132,13 +125,11 @@ describe("DeckImportPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
   });
 
-  it("preserves top and settings keyboard shortcuts", () => {
+  it("navigates from top and settings keyboard shortcuts", () => {
     render(<DeckImportPage />);
 
-    const topShortcut = mocks.useKey.mock.calls.find(([key]) => key === "t")?.[1];
-    const settingsShortcut = mocks.useKey.mock.calls.find(([key]) => key === "s")?.[1];
-    topShortcut?.();
-    settingsShortcut?.();
+    fireEvent.keyDown(window, { key: "t" });
+    fireEvent.keyDown(window, { key: "s" });
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");

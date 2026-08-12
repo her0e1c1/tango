@@ -35,7 +35,6 @@ const mocks = vi.hoisted(() => ({
   touchStudySession: vi.fn<(deckId: DeckId) => void>(),
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
-  useKey: vi.fn(),
 }));
 
 vi.mock("@/shared/config", () => ({
@@ -76,7 +75,6 @@ vi.mock("@/entities/deck", () => ({
     };
   },
 }));
-vi.mock("react-use", () => ({ useKey: mocks.useKey }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/import", () => ({ useSampleDeckBootstrap: vi.fn() }));
 
@@ -190,13 +188,11 @@ describe("DeckListPage", () => {
     expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${recentDeck.id}/start`);
   });
 
-  it("preserves settings and import keyboard shortcuts", () => {
+  it("navigates from settings and import keyboard shortcuts", () => {
     render(<DeckListPage />);
 
-    const settingsShortcut = mocks.useKey.mock.calls.find(([key]) => key === "s")?.[1];
-    const importShortcut = mocks.useKey.mock.calls.find(([key]) => key === "i")?.[1];
-    settingsShortcut?.();
-    importShortcut?.();
+    fireEvent.keyDown(window, { key: "s" });
+    fireEvent.keyDown(window, { key: "i" });
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");

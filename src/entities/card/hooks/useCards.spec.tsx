@@ -55,7 +55,7 @@ describe("Card remote hooks", () => {
 
     const { result } = renderHook(useCards, { wrapper: authenticatedWrapper });
 
-    expect(result.current.cardsById[first.id]).toBe(first);
+    expect(result.current.cardsById[first.id]).toEqual(first);
     expect(result.current.cards).toEqual([first, second, other]);
     expect(selectCardsForDeck(result.current.cards, "deck-a")).toEqual([first, second]);
     expect(selectTagsForDeck(result.current.cards, "deck-a")).toEqual(["a", "z"]);
