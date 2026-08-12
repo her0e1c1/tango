@@ -94,13 +94,10 @@ describe("Button action control", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it.each([
-    [{ primary: true }, "bg-accent-primary"],
-    [{ small: true }, "px-3"],
-    [{ large: true }, "px-6"],
-  ] as const)("temporarily supports legacy props", (legacyProps, expectedClass) => {
-    render(<Button {...legacyProps}>Legacy</Button>);
+  it("uses secondary variant and md size by default", () => {
+    render(<Button>Default</Button>);
 
-    expect(screen.getByRole("button", { name: "Legacy" })).toHaveClass(expectedClass);
+    const button = screen.getByRole("button", { name: "Default" });
+    expect(button).toHaveClass("bg-accent-secondary", "px-4", "text-body");
   });
 });

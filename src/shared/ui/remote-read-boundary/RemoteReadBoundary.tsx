@@ -29,7 +29,7 @@ const ErrorNotice = ({ hasData, onRetry }: Pick<RemoteReadBoundaryProps, "hasDat
     className="mb-4 flex items-center justify-between gap-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
   >
     <span>{hasData ? "Sync interrupted. Showing current data." : "Unable to load data."}</span>
-    <Button small onClick={onRetry}>
+    <Button size="sm" onClick={onRetry}>
       Retry
     </Button>
   </div>
