@@ -6,7 +6,6 @@ export const toRemoteById = <T extends { id: string }>(items: readonly T[]): Rem
 export type RemoteSyncStatus = "cached" | "pending" | "synced";
 
 export interface RemoteSnapshotMetadata {
-  size: number;
   fromCache: boolean;
   hasPendingWrites: boolean;
 }

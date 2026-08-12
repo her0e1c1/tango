@@ -34,7 +34,6 @@ const subscribeReads = <T extends RemoteEntity>(
       try {
         const changes = snapshot.docChanges();
         const metadata = {
-          size: initial ? snapshot.docs.length : changes.length,
           fromCache: snapshot.metadata.fromCache,
           hasPendingWrites: snapshot.metadata.hasPendingWrites,
         };
