@@ -71,13 +71,17 @@ vi.mock("@/entities/card", () => ({
   useCards: () => ({ cards: [...mocks.cards] }),
 }));
 
-vi.mock("@/entities/deck", () => ({
-  useDecks: () => ({
-    status: "ready" as const,
-    retry: vi.fn(),
-    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
-  }),
-}));
+vi.mock("@/entities/deck", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/deck")>();
+  return {
+    ...actual,
+    useDecks: () => ({
+      status: "ready" as const,
+      retry: vi.fn(),
+      decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
+    }),
+  };
+});
 
 vi.mock("@/features/study", () => ({
   useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
