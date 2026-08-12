@@ -1,9 +1,4 @@
-.git
-.worktrees
-node_modules
-dist
-storybook-static
-coverage
-.env*
-!.env.example
-npm-debug.log*
+# Keep the build context limited to files consumed by the root Dockerfile.
+**
+!package.json
+!package-lock.json
