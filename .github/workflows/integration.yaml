@@ -31,7 +31,7 @@ jobs:
         run: docker compose up --wait --wait-timeout 120 --remove-orphans -d db
 
       - name: Run Firestore tests
-        run: npm run test:firestore
+        run: npm run test:integration
 
       - name: Stop Firestore emulator
         if: ${{ always() }}

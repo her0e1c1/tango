@@ -60,7 +60,7 @@ Run a specific suite with:
 
 ```bash
 mise run test-unit
-mise run test-firestore
+mise run test-integration
 mise run test-sample
 ```
 

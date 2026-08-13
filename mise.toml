@@ -50,9 +50,9 @@ run = [
 depends = ["build-sample"]
 run = "npm run test:unit"
 
-[tasks.test-firestore]
+[tasks.test-integration]
 depends = ["up"]
-run = "npm run test:firestore"
+run = "npm run test:integration"
 
 [tasks.test-storybook]
 depends = ["build-sample"]
