@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { convertDeckDocumentToDeck } from "./firestoreDocument";
+import { convertDeckDtoToDeck } from "./dto";
 
-const deckDocument = (overrides: Record<string, unknown> = {}) => ({
+const deckDto = (overrides: Record<string, unknown> = {}) => ({
   name: "Remote Deck",
   isPublic: true,
   uid: "user-2",
@@ -18,12 +18,12 @@ const deckDocument = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-describe("Deck Firestore document", () => {
+describe("Deck DTO", () => {
   it("converts Deck-owned fields and optional url using the snapshot id", () => {
     expect(
-      convertDeckDocumentToDeck(
+      convertDeckDtoToDeck(
         "snapshot-id",
-        deckDocument({
+        deckDto({
           id: "payload-id",
           url: "https://example.com/deck",
           currentIndex: 2,
@@ -49,11 +49,11 @@ describe("Deck Firestore document", () => {
   });
 
   it("omits an absent optional url", () => {
-    expect(convertDeckDocumentToDeck("snapshot-id", deckDocument())).not.toHaveProperty("url");
+    expect(convertDeckDtoToDeck("snapshot-id", deckDto())).not.toHaveProperty("url");
   });
 
   it("reports invalid documents through the Firestore validation boundary", () => {
-    expect(() => convertDeckDocumentToDeck("invalid-deck", deckDocument({ selectedTags: [42] }))).toThrowError(
+    expect(() => convertDeckDtoToDeck("invalid-deck", deckDto({ selectedTags: [42] }))).toThrowError(
       expect.objectContaining({
         name: "FirestoreDocumentValidationError",
         collectionName: "deck",
@@ -61,7 +61,7 @@ describe("Deck Firestore document", () => {
         message: expect.stringContaining("selectedTags.0"),
       })
     );
-    expect(() => convertDeckDocumentToDeck("missing-deck", { uid: "user-2" })).toThrowError(
+    expect(() => convertDeckDtoToDeck("missing-deck", { uid: "user-2" })).toThrowError(
       expect.objectContaining({ name: "FirestoreDocumentValidationError" })
     );
   });
