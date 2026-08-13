@@ -8,7 +8,7 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { RemoteSnapshot } from "@/shared/api";
 
-import "@/shared/firebase/test/initializeTestFirestore";
+import "@/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 

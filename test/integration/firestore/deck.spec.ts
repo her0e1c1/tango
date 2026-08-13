@@ -5,7 +5,7 @@
 
 import type { Deck } from "@/entities/deck";
 
-import "@/shared/firebase/test/initializeTestFirestore";
+import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import * as deckAdapter from "@/entities/deck/api/firestore";

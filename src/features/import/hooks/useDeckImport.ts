@@ -18,8 +18,8 @@ import {
   useCards,
 } from "@/entities/card";
 import { createDeck, generateDeckId, useDeckMutations, useDecks } from "@/entities/deck";
-import { useSession } from "@/entities/session";
-import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/components/deckImportTypes";
+import { useAuthSession } from "@/entities/auth-session";
+import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/model/deckImportTypes";
 import { parseCsv } from "@/features/import/lib/cardCsv";
 import { buildDeckImportPlan } from "@/features/import/lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
@@ -281,7 +281,7 @@ const previewDeckImportFile = async (
  * services themselves.
  */
 export const useDeckImport = () => {
-  const auth = useSession();
+  const auth = useAuthSession();
   const cardRemote = useCards();
   const deckRemote = useDecks();
   const deckMutations = useDeckMutations();

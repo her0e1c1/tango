@@ -9,18 +9,18 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SessionState } from "@/entities/session";
+import type { AuthSessionState } from "@/entities/auth-session";
 
 const mocks = vi.hoisted(() => ({
   darkMode: false,
-  authState: { status: "initializing" } as SessionState,
+  authState: { status: "initializing" } as AuthSessionState,
 }));
 
 vi.mock("@/shared/config", () => ({
   useConfig: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
 vi.mock("@/app/auth/logout", () => ({ logout: vi.fn() }));
-vi.mock("@/entities/session", () => ({ useSession: () => mocks.authState }));
+vi.mock("@/entities/auth-session", () => ({ useAuthSession: () => mocks.authState }));
 vi.mock("@/features/auth", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));

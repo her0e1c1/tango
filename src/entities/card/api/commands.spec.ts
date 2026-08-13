@@ -2,8 +2,8 @@ import type { Card } from "../model/card";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/entities/deck/@x/card";
 import { REMOTE_WRITE_TIMEOUT_MS } from "@/shared/lib/remoteWrite";
-import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/store/remoteMutationLocks";
 import { createCard as createCardFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({

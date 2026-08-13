@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/entities/session", () => ({ useSession: () => ({ status: "initializing" as const }) }));
+vi.mock("@/entities/auth-session", () => ({ useAuthSession: () => ({ status: "initializing" as const }) }));
 vi.mock("@/shared/config", () => ({
   useConfig: () => mocks.config,
   setDarkMode: mocks.setDarkMode,

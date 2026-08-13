@@ -1,4 +1,4 @@
-import type { DeckId } from "@/entities/deck/@x/card";
+import { type DeckId, deckMembershipMutationLock, withDeckMembershipLocks } from "@/entities/deck/@x/card";
 
 import type { Card, CardEdit, CardId } from "../model/card";
 
@@ -8,9 +8,10 @@ import {
   update as updateRemoteCard,
   upsert as upsertRemoteCard,
 } from "./firestore";
-import { cardMutationLock, deckMembershipMutationLock, withDeckMembershipLocks } from "@/store/remoteMutationLocks";
 import { runSerially } from "@/shared/lib/runSerially";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
+
+const cardMutationLock = (uid: string, id: CardId) => `card:${uid}:${id}`;
 
 const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Card writes");

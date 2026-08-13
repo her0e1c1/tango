@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createSessionStore } from "@/entities/session/model/sessionStore";
+import { createAuthSessionStore } from "@/entities/auth-session/model/authSessionStore";
 
-describe("sessionStore", () => {
+describe("authSessionStore", () => {
   it("starts without an identity", () => {
-    const store = createSessionStore();
+    const store = createAuthSessionStore();
 
     expect(store.getSnapshot()).toEqual({ status: "initializing" });
     expect("uid" in store.getSnapshot()).toBe(false);
   });
 
   it("publishes snapshots to active subscribers", () => {
-    const store = createSessionStore();
+    const store = createAuthSessionStore();
     const listener = vi.fn();
     const unsubscribe = store.subscribe(listener);
 
@@ -24,7 +24,7 @@ describe("sessionStore", () => {
   });
 
   it("accepts a deterministic initial snapshot", () => {
-    const store = createSessionStore({
+    const store = createAuthSessionStore({
       status: "authenticated",
       uid: "storybook-user",
       isAnonymous: true,

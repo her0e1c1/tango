@@ -1,6 +1,6 @@
 import { useEffect, type PropsWithChildren } from "react";
 
-import { SessionProvider } from "@/entities/session";
+import { AuthSessionProvider } from "@/entities/auth-session";
 import { authRuntime, type AuthRuntime } from "@/features/auth";
 
 type AuthProviderProps = PropsWithChildren<{ runtime?: AuthRuntime }>;
@@ -10,5 +10,5 @@ export const AuthProvider = ({ children, runtime = authRuntime }: AuthProviderPr
     runtime.controller.start();
   }, [runtime]);
 
-  return <SessionProvider store={runtime.sessionStore}>{children}</SessionProvider>;
+  return <AuthSessionProvider store={runtime.authSessionStore}>{children}</AuthSessionProvider>;
 };

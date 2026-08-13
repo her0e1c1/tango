@@ -12,7 +12,7 @@ import { deckRemoteReadStore } from "@/entities/deck/model/remoteReadStore";
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
-import { createSessionStore, SessionProvider, type SessionState } from "@/entities/session";
+import { AuthSessionProvider, createAuthSessionStore, type AuthSessionState } from "@/entities/auth-session";
 import { studyStore, type StudySession } from "@/features/study/state/studyStore";
 import { configStore } from "@/shared/config/configStore";
 import { configSchema, normalizeConfigInput } from "@/shared/config/configSchema";
@@ -32,14 +32,14 @@ export interface PageStoryParameters {
   autoPlay?: boolean;
 }
 
-const storybookSession: SessionState = {
+const storybookAuthSession: AuthSessionState = {
   status: "authenticated",
   uid: PAGE_STORY_UID,
   isAnonymous: true,
   displayName: null,
 };
 
-const storybookSessionStore = createSessionStore(storybookSession);
+const storybookAuthSessionStore = createAuthSessionStore(storybookAuthSession);
 
 const cloneDeck = (deck: Deck): Deck => ({
   ...deck,
@@ -107,12 +107,12 @@ export const withPageStory: Decorator = (Story, context) => {
   if (parameters == null) throw new Error("Page stories require parameters.page");
 
   return (
-    <SessionProvider store={storybookSessionStore}>
+    <AuthSessionProvider store={storybookAuthSessionStore}>
       <RemoteReadScopeProvider uid={PAGE_STORY_UID}>
         <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
           <Story />
         </MemoryRouter>
       </RemoteReadScopeProvider>
-    </SessionProvider>
+    </AuthSessionProvider>
   );
 };

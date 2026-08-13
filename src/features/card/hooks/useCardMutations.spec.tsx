@@ -17,8 +17,8 @@ const mocks = vi.hoisted(() => ({
   upsert: vi.fn(),
 }));
 
-vi.mock("@/entities/session", () => ({
-  useSession: () =>
+vi.mock("@/entities/auth-session", () => ({
+  useAuthSession: () =>
     mocks.uid === ""
       ? { status: "signedOut" }
       : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },

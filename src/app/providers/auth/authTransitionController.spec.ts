@@ -7,7 +7,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import type { AuthenticatedSession, SessionState } from "@/entities/session";
+import type { AuthenticatedSession, AuthSessionState } from "@/entities/auth-session";
 import { createAuthTransitionController } from "@/app/providers/auth/authTransitionController";
 
 /**
@@ -23,7 +23,7 @@ const createSession = (
  * Provides the authenticated test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const authenticated = (session: AuthenticatedSession): SessionState => ({ status: "authenticated", ...session });
+const authenticated = (session: AuthenticatedSession): AuthSessionState => ({ status: "authenticated", ...session });
 
 /**
  * Provides the create dependencies test helper used by this file.
