@@ -9,66 +9,27 @@ import testingLibrary from "eslint-plugin-testing-library";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
+const sourceLayers = ["app", "entities", "features", "pages", "shared"];
 const boundaryElements = [
   {
     type: "presentation",
-    pattern: [
-      "src/features/*/components/**/*",
-      "src/features/*/ui/components/**/*",
-      "src/entities/*/components/**/*",
-    ],
+    pattern: ["src/features/*/{components,ui/components}/**/*", "src/entities/*/components/**/*"],
     mode: "full",
   },
-  {
-    type: "shared-ui",
-    pattern: "src/shared/ui/**/*",
-    mode: "full",
-  },
-  {
-    type: "state",
-    pattern: [
-      "src/features/*/state/**/*",
-      "src/entities/*/model/*Store*",
-      "src/entities/*/model/*Provider*",
-      "src/shared/config/**/*",
-      "src/shared/lib/remote-read/**/*",
-    ],
-    mode: "full",
-  },
+  { type: "shared-ui", pattern: "src/shared/ui/**/*", mode: "full" },
+  { type: "state", pattern: "src/features/*/state/**/*", mode: "full" },
   {
     type: "infrastructure",
-    pattern: [
-      "src/entities/*/api/**/*",
-      "src/entities/*/hooks/**/*",
-      "src/shared/api/**/*",
-      "src/shared/files/**/*",
-      "src/shared/firebase/**/*",
-      "src/shared/firestore/**/*",
-      "src/shared/lib/remoteWrite*",
-      "src/shared/lib/realtimeChange*",
-    ],
+    pattern: ["src/entities/*/{api,hooks}/**/*", "src/shared/{api,firebase,firestore}/**/*"],
     mode: "full",
   },
   {
     type: "entity-contract",
-    pattern: ["src/entities/*/model/**/*", "src/entities/*/@x/**/*", "src/entities/*/index.ts"],
+    pattern: ["src/entities/*/{model,@x}/**/*", "src/entities/*/index.ts"],
     mode: "full",
   },
-  {
-    type: "orchestration-model",
-    pattern: ["src/features/**/*", "src/pages/**/*"],
-    mode: "full",
-  },
-  {
-    type: "shared-lib",
-    pattern: "src/shared/**/*",
-    mode: "full",
-  },
-  {
-    type: "app",
-    pattern: "src/app/**/*",
-    mode: "full",
-  },
+  { type: "orchestration-model", pattern: ["src/features/**/*", "src/pages/**/*"], mode: "full" },
+  { type: "shared-lib", pattern: "src/shared/**/*", mode: "full" },
 ];
 
 export default [
@@ -100,7 +61,14 @@ export default [
     files: sourceFiles,
     settings: {
       ...boundariesRecommended.settings,
-      "boundaries/elements": boundaryElements,
+      "boundaries/elements": [
+        ...boundaryElements,
+        ...sourceLayers.map((layer) => ({
+          type: layer,
+          pattern: `src/${layer}/**/*`,
+          mode: "full",
+        })),
+      ],
       "boundaries/ignore": ["src/vite-env.d.ts"],
       "boundaries/dependency-nodes": [
         "import",
