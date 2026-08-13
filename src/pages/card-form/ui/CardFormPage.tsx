@@ -1,11 +1,12 @@
 import type * as React from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCards } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { useEditCard } from "@/features/card/edit";
 import { useCardFormState } from "@/features/card/form";
-import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
+import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -15,17 +16,19 @@ import { CardFormView } from "./CardFormView";
 const CardFormContent = ({ card }: { card: Card }) => {
   const navigate = useNavigate();
   const mutations = useEditCard();
+  const [mutationError, setMutationError] = useState<unknown>(null);
   const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
   const goBack = () => void navigate(-1);
   const cardForm = useCardFormState({
     card,
     categoryOptions,
     onSubmit: async (nextCard) => {
+      setMutationError(null);
       try {
         await mutations.update(nextCard);
         goBack();
-      } catch {
-        // The mutation notice owns error feedback and retry.
+      } catch (error) {
+        setMutationError(error);
       }
     },
   });
@@ -34,7 +37,7 @@ const CardFormContent = ({ card }: { card: Card }) => {
     <AppLayout showHeader>
       <CardFormView
         feedbackSlot={
-          <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
+          <Feedback tone="error">{mutationError == null ? null : "Unable to save changes. Try again."}</Feedback>
         }
         cardForm={{ ...cardForm, onCancel: goBack }}
       />

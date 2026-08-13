@@ -22,12 +22,8 @@ const mocks = vi.hoisted(() => ({
   cardsById: {} as Record<CardId, Card>,
   sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
   hydrated: true,
-  pending: false,
   syncStatus: "synced" as "cached" | "pending" | "synced",
-  pendingDeckIds: new Set<DeckId>(),
-  error: null as unknown,
   remove: vi.fn(async (_deck: Deck) => undefined),
-  retry: vi.fn(),
   downloadDeckCsv: vi.fn(),
   discardStudySessionsMissingDecks: vi.fn<(deckIds: Iterable<DeckId>) => void>(),
   removeStudySession: vi.fn<(deckId: DeckId) => void>(),
@@ -67,10 +63,6 @@ vi.mock("@/entities/deck", () => ({
 vi.mock("@/features/deck/delete", () => ({
   useDeleteDeck: () => ({
     remove: mocks.remove,
-    pending: mocks.pending,
-    isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),
-    error: mocks.error,
-    retry: mocks.retry,
   }),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
@@ -87,10 +79,7 @@ describe("DeckListPage", () => {
     localStorage.clear();
     vi.clearAllMocks();
     mocks.hydrated = true;
-    mocks.pending = false;
     mocks.syncStatus = "synced";
-    mocks.pendingDeckIds = new Set();
-    mocks.error = null;
     mocks.config = createConfig({ darkMode: false });
     mocks.decksById = { [otherDeck.id]: otherDeck, [oldDeck.id]: oldDeck, [recentDeck.id]: recentDeck };
     mocks.cardsById = {
@@ -268,33 +257,18 @@ describe("DeckListPage", () => {
     expect(mocks.discardStudySessionsMissingDecks).not.toHaveBeenCalled();
   });
 
-  it("does not prune an optimistically removed deck session while deletion is pending", () => {
-    mocks.pending = true;
-    delete mocks.decksById[recentDeck.id];
-
-    const view = render(<DeckListPage />);
-
-    expect(mocks.sessionsByDeckId[recentDeck.id]).toBeDefined();
-    expect(mocks.discardStudySessionsMissingDecks).not.toHaveBeenCalled();
-
-    mocks.pending = false;
-    mocks.decksById[recentDeck.id] = recentDeck;
-    view.rerender(<DeckListPage />);
-    expect(mocks.sessionsByDeckId[recentDeck.id]).toBeDefined();
-  });
-
-  it("shows Deck deletion feedback and disables only the pending row", () => {
-    mocks.pending = true;
-    mocks.pendingDeckIds = new Set([recentDeck.id]);
-    mocks.error = new Error("delete failed");
+  it("lets the user repeat the original Deck deletion after failure", async () => {
+    mocks.remove.mockRejectedValueOnce(new Error("delete failed"));
     render(<DeckListPage />);
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Unable to delete deck.");
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    expect(mocks.retry).toHaveBeenCalledOnce();
-    expect(screen.getByRole("button", { name: "View Recent deck" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Continue Recent deck" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Open actions for Recent deck" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "View Alpha deck" })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Recent deck" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+
+    expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
   });
 });
