@@ -2,10 +2,11 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { selectCardsForDeck, useCards } from "@/entities/card";
+import { selectCardsForDeck } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 import { createCard, generateCardId } from "@/features/card/create";
 import { editCard } from "@/features/card/edit";
+import { useCards } from "@/features/card/read";
 import { createDeck } from "@/features/deck/create";
 import { useDeleteDeck } from "@/features/deck/delete";
 import { buildDeckListSections } from "@/features/deck/list";
@@ -40,7 +41,20 @@ export const DeckListPage: React.FC = () => {
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(deckRemote.decks, cardRemote.cards, sessionsByDeckId);
-  useSampleDeckBootstrap({ createCard, createDeck, deckRead: deckRemote, editCard, generateCardId });
+  const synchronized =
+    cardRemote.status === "ready" &&
+    cardRemote.syncStatus === "synced" &&
+    deckRemote.status === "ready" &&
+    deckRemote.syncStatus === "synced";
+  useSampleDeckBootstrap({
+    cards: cardRemote.cards,
+    createCard,
+    createDeck,
+    decks: deckRemote.decks,
+    editCard,
+    generateCardId,
+    synchronized,
+  });
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
 

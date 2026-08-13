@@ -5,14 +5,12 @@
  */
 
 import type { Card, CardId } from "@/entities/card";
-import type { Deck, DeckId } from "@/entities/deck";
+import type { DeckId } from "@/entities/deck";
 import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { ConfigState, SwipeDirection } from "@/shared/config";
 
 import React from "react";
 
-import { selectCardsForDeck, useCards } from "@/entities/card";
-import { useStudyCards } from "./useStudyCards";
 import { buildStudySession, calculateNextIndex } from "../model/session";
 import { createStudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
@@ -20,7 +18,7 @@ import { studyStore } from "../state/studyStoreInstance";
 import { useConfig } from "@/shared/config";
 
 export interface StudyActions {
-  start: () => void;
+  start: (cards: Card[]) => void;
   swipeUp: () => Promise<void>;
   swipeDown: () => Promise<void>;
   swipeLeft: () => Promise<void>;
@@ -36,8 +34,8 @@ interface StudyCardMutation {
 }
 
 interface UseStudyActionsOptions {
+  cardsById: Partial<Record<CardId, Card>>;
   cardMutation?: StudyCardMutation;
-  deck: Deck;
   onStarted?: () => void;
 }
 
@@ -139,20 +137,16 @@ const runStudySwipe = async (
  */
 export const useStudyActions = (
   deckId: DeckId,
-  { cardMutation, deck, onStarted }: UseStudyActionsOptions
+  { cardMutation, cardsById, onStarted }: UseStudyActionsOptions
 ): StudyActions => {
   const config = useConfig();
-  const cardRemote = useCards();
-  const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
-  const cards = useStudyCards(deck, deckCards, config);
-  const cardsById = cardRemote.cardsById;
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
   /**
    * Creates a new study session from the currently filtered cards.
    * The saved UI preferences are applied before the Page is notified that the session is ready.
    */
-  const start = () => {
+  const start = (cards: Card[]) => {
     const cardOrderIds = buildStudySession(cards, config.study);
     const state = studyStore.getState();
     state.startStudy(deckId, cardOrderIds);

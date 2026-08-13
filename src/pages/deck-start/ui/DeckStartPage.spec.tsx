@@ -22,6 +22,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/card", () => ({
   selectCardsForDeck: () => mocks.cards,
   selectTagsForDeck: () => [],
+}));
+vi.mock("@/features/card/read", () => ({
   useCards: () => ({
     status: "ready" as const,
     retry: vi.fn(),
@@ -39,7 +41,7 @@ vi.mock("@/features/deck/read", () => ({
 vi.mock("@/features/deck/edit", () => ({ useEditDeck: () => ({ update: mocks.update }) }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: (_deckId: string, options: { onStarted?: () => void } = {}) => ({
-    start: () => {
+    start: (_cards: Card[]) => {
       mocks.start();
       options.onStarted?.();
     },

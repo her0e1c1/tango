@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   stopDecks: vi.fn(),
 }));
 
-vi.mock("@/entities/card", () => ({
+vi.mock("@/features/card/read", () => ({
   startCardReads: mocks.startCards,
   stopCardReads: mocks.stopCards,
 }));
@@ -21,7 +21,7 @@ import { startRemoteReads, stopRemoteReads } from "@/app/providers/remote-read/r
 describe("remote read lifecycle", () => {
   beforeEach(() => vi.resetAllMocks());
 
-  it("starts and stops both Entity read lifecycles", async () => {
+  it("starts and stops both remote read lifecycles", async () => {
     await startRemoteReads("uid-a");
     stopRemoteReads("uid-a");
 
@@ -31,7 +31,7 @@ describe("remote read lifecycle", () => {
     expect(mocks.stopDecks).toHaveBeenCalledExactlyOnceWith("uid-a");
   });
 
-  it("preserves each Entity state when one lifecycle reports a start failure", async () => {
+  it("preserves each read state when one lifecycle reports a start failure", async () => {
     const failure = new Error("Deck reads failed");
     mocks.startDecks.mockRejectedValue(failure);
 

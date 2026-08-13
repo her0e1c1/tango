@@ -1,4 +1,4 @@
-import type { Card } from "../model/card";
+import type { Card } from "@/entities/card";
 
 import { collection, query, where } from "firebase/firestore";
 

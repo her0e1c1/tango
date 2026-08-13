@@ -1,4 +1,4 @@
-import type { Card } from "./card";
+import type { Card } from "@/entities/card";
 import { waitForFirestoreInitialization } from "@/shared/firestore";
 import { createRemoteReadStore } from "@/shared/lib/remote-read";
 import { subscribeCardReads } from "../api/subscribeCardReads";

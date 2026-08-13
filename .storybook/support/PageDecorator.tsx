@@ -5,8 +5,8 @@
  */
 
 import type { Card } from "@/entities/card";
-import { cardRemoteReadStore } from "@/entities/card/model/remoteReadStore";
 import type { Deck } from "@/entities/deck";
+import { cardRemoteReadStore } from "@/features/card/read/model/remoteReadStore";
 import { deckRemoteReadStore } from "@/features/deck/read/model/remoteReadStore";
 
 import type { Decorator } from "@storybook/react";

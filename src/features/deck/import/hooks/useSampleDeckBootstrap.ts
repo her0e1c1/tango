@@ -54,14 +54,9 @@ export const useSampleDeckBootstrap = (options: DeckImportOptions) => {
   const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useEffect(() => {
-    if (
-      uid === "" ||
-      options.deckRead.status !== "ready" ||
-      options.deckRead.syncStatus !== "synced" ||
-      options.deckRead.decks.length > 0
-    ) {
+    if (uid === "" || !options.synchronized || options.decks.length > 0) {
       return;
     }
     void sampleDeckBootstrapController.start(uid, deckImport.addSample)?.catch(() => undefined);
-  }, [deckImport.addSample, options.deckRead.decks.length, options.deckRead.status, options.deckRead.syncStatus, uid]);
+  }, [deckImport.addSample, options.decks.length, options.synchronized, uid]);
 };
