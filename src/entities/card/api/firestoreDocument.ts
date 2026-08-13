@@ -2,7 +2,7 @@ import type { Card, CardEdit, CardId } from "../model/card";
 
 import { z } from "zod";
 
-import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/firestore";
+import { firestoreTimestampDateSchema, omitUndefined, parseFirestoreDocument } from "@/shared/firestore";
 
 const cardDocumentSchema = z.object({
   id: z.string().optional(),
@@ -64,15 +64,6 @@ export const mapCardDocument = (id: CardId, value: unknown): Card => {
   if (document.endLine !== undefined) card.endLine = document.endLine;
   return card;
 };
-
-type OmitUndefined<T extends Record<string, unknown>> = {
-  [K in keyof T as undefined extends T[K] ? never : K]: T[K];
-} & {
-  [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>;
-};
-
-const omitUndefined = <T extends Record<string, unknown>>(value: T): OmitUndefined<T> =>
-  Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as OmitUndefined<T>;
 
 export const buildCardCreateDto = (card: Card, createdAt: number): CardCreateDto =>
   cardCreateDtoSchema.parse(

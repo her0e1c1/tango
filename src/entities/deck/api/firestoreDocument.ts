@@ -2,7 +2,7 @@ import type { Deck, DeckEdit, DeckId } from "../model/deck";
 
 import { z } from "zod";
 
-import { parseFirestoreDocument } from "@/shared/firestore";
+import { omitUndefined, parseFirestoreDocument } from "@/shared/firestore";
 
 const deckDocumentSchema = z.object({
   id: z.string().optional(),
@@ -69,15 +69,6 @@ export const mapDeckDocument = (id: DeckId, value: unknown): Deck => {
   if (document.url !== undefined) deck.url = document.url;
   return deck;
 };
-
-type OmitUndefined<T extends Record<string, unknown>> = {
-  [K in keyof T as undefined extends T[K] ? never : K]: T[K];
-} & {
-  [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>;
-};
-
-const omitUndefined = <T extends Record<string, unknown>>(value: T): OmitUndefined<T> =>
-  Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as OmitUndefined<T>;
 
 export const buildDeckCreateDto = (deck: Deck, createdAt: number): DeckCreateDto =>
   deckCreateDtoSchema.parse(
