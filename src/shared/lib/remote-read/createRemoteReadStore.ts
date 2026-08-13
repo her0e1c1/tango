@@ -30,11 +30,6 @@ export interface RemoteReadStoreState<T extends { id: string }> {
   retry: () => Promise<void>;
 }
 
-interface ReadSession {
-  readonly uid: string;
-  subscription: Unsubscribe | undefined;
-}
-
 const initialReadState = <T extends { id: string }>(): Omit<RemoteReadStoreState<T>, "start" | "stop" | "retry"> => ({
   uid: null,
   status: "idle",
@@ -57,110 +52,72 @@ const deriveSyncStatus = (metadata: RemoteSnapshotMetadata): RemoteSyncStatus =>
 
 const toError = (value: unknown): Error => (value instanceof Error ? value : new Error(String(value)));
 
-const close = (unsubscribe: Unsubscribe | undefined) => {
-  try {
-    unsubscribe?.();
-  } catch {
-    // Listener cleanup is best-effort because stale callbacks are guarded by session identity.
-  }
-};
-
 export const createRemoteReadStore = <T extends { id: string }>(
   dependencies: RemoteReadDependencies<T>
 ): StoreApi<RemoteReadStoreState<T>> => {
-  let activeSession: ReadSession | undefined;
-
-  const isCurrent = (session: ReadSession) => activeSession === session;
-
-  const cleanupSession = (session: ReadSession | undefined) => {
-    if (session == null) return;
-    const subscription = session.subscription;
-    session.subscription = undefined;
-    close(subscription);
-  };
+  let generation = 0;
+  let unsubscribe: Unsubscribe | undefined;
 
   return createStore<RemoteReadStoreState<T>>()((set, get) => {
-    const fail = (session: ReadSession, status: "blocked" | "error", cause: unknown) => {
-      if (!isCurrent(session)) return;
-      activeSession = undefined;
-      cleanupSession(session);
+    const fail = (currentGeneration: number, status: "blocked" | "error", cause: unknown) => {
+      if (currentGeneration !== generation) return;
       set({ status, syncStatus: undefined, error: toError(cause) });
-    };
-
-    const initializeSession = async (session: ReadSession): Promise<FirestoreInitializationResult> => {
-      let initialization: FirestoreInitializationResult;
-      try {
-        initialization = await dependencies.waitForInitialization();
-      } catch (cause) {
-        fail(session, "error", cause);
-        throw toError(cause);
-      }
-      return initialization;
-    };
-
-    const subscribeToSession = (session: ReadSession) => {
-      const onError = (error: Error) => fail(session, "error", error);
-      try {
-        const subscription = dependencies.subscribe({
-          uid: session.uid,
-          onError,
-          onSnapshot: (snapshot) => {
-            if (!isCurrent(session)) return;
-            set({
-              itemsById: applySnapshot(get().itemsById, snapshot),
-              status: "ready",
-              syncStatus: deriveSyncStatus(snapshot.metadata),
-              error: undefined,
-            });
-          },
-        });
-        if (!isCurrent(session)) {
-          close(subscription);
-          return;
-        }
-        session.subscription = subscription;
-      } catch (cause) {
-        if (isCurrent(session)) {
-          fail(session, "error", cause);
-        } else {
-          cleanupSession(session);
-        }
-        throw toError(cause);
-      }
     };
 
     const start = async (uid: string): Promise<void> => {
       const previous = get();
-      const previousSession = activeSession;
-      const session: ReadSession = { uid, subscription: undefined };
-      activeSession = session;
-      cleanupSession(previousSession);
-      if (!isCurrent(session)) return;
+      const currentGeneration = ++generation;
+      unsubscribe?.();
+      unsubscribe = undefined;
 
-      const retainCurrentData = previous.uid === session.uid;
       set({
-        uid: session.uid,
+        uid,
         status: "loading",
-        itemsById: retainCurrentData ? previous.itemsById : {},
+        itemsById: previous.uid === uid ? previous.itemsById : {},
         syncStatus: undefined,
         error: undefined,
       });
 
-      const initialization = await initializeSession(session);
-      if (!isCurrent(session)) return;
+      let initialization: FirestoreInitializationResult;
+      try {
+        initialization = await dependencies.waitForInitialization();
+      } catch (cause) {
+        const error = toError(cause);
+        fail(currentGeneration, "error", error);
+        throw error;
+      }
+
+      if (currentGeneration !== generation) return;
       if (initialization.status === "blocked") {
-        fail(session, "blocked", initialization.error);
+        fail(currentGeneration, "blocked", initialization.error);
         return;
       }
 
-      subscribeToSession(session);
+      const nextUnsubscribe = dependencies.subscribe({
+        uid,
+        onError: (error) => fail(currentGeneration, "error", error),
+        onSnapshot: (snapshot) => {
+          if (currentGeneration !== generation) return;
+          set({
+            itemsById: applySnapshot(get().itemsById, snapshot),
+            status: "ready",
+            syncStatus: deriveSyncStatus(snapshot.metadata),
+            error: undefined,
+          });
+        },
+      });
+      if (currentGeneration !== generation) {
+        nextUnsubscribe();
+        return;
+      }
+      unsubscribe = nextUnsubscribe;
     };
 
     const stop = (uid?: string) => {
       if (uid != null && get().uid !== uid) return;
-      const session = activeSession;
-      activeSession = undefined;
-      cleanupSession(session);
+      generation += 1;
+      unsubscribe?.();
+      unsubscribe = undefined;
       set(initialReadState<T>());
     };
 

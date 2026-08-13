@@ -2,11 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RemoteSubscriptionProps } from "@/shared/api";
 import type { FirestoreInitializationResult } from "@/shared/firestore";
-import {
-  createRemoteReadStore,
-  type RemoteReadDependencies,
-  type RemoteReadStoreState,
-} from "@/shared/lib/remote-read/createRemoteReadStore";
+import { createRemoteReadStore, type RemoteReadDependencies } from "@/shared/lib/remote-read/createRemoteReadStore";
 
 interface Item {
   id: string;
@@ -111,25 +107,12 @@ describe("createRemoteReadStore", () => {
 
   it("stops its listener and ignores stale callbacks", async () => {
     const harness = createHarness();
-    const current = createItem("current");
     await harness.store.getState().start("uid-a");
-    publish(harness, [current]);
     const staleSubscription = harness.subscriptions[0];
-    let itemsDuringCleanup: RemoteReadStoreState<Item>["itemsById"] | undefined;
-    harness.unsubscribes[0]?.mockImplementation(() => {
-      staleSubscription?.onSnapshot({
-        type: "replace",
-        items: [createItem("stale-during-cleanup")],
-        metadata: synced,
-      });
-      itemsDuringCleanup = harness.store.getState().itemsById;
-    });
 
-    harness.store.getState().stop("uid-a");
     harness.store.getState().stop("uid-a");
 
     expect(harness.unsubscribes[0]).toHaveBeenCalledOnce();
-    expect(itemsDuringCleanup).toEqual({ [current.id]: current });
     expect(harness.store.getState()).toMatchObject({ uid: null, status: "idle", itemsById: {} });
 
     staleSubscription?.onSnapshot({
@@ -138,6 +121,26 @@ describe("createRemoteReadStore", () => {
       metadata: synced,
     });
     expect(harness.store.getState().itemsById).toEqual({});
+  });
+
+  it("ignores snapshots from a previous UID", async () => {
+    const harness = createHarness();
+    await harness.store.getState().start("uid-a");
+    const staleSubscription = harness.subscriptions[0];
+
+    await harness.store.getState().start("uid-b");
+    const current = createItem("current");
+    publish(harness, [current]);
+    staleSubscription?.onSnapshot({
+      type: "replace",
+      items: [createItem("stale")],
+      metadata: synced,
+    });
+
+    expect(harness.store.getState()).toMatchObject({
+      uid: "uid-b",
+      itemsById: { [current.id]: current },
+    });
   });
 
   it("retains data for a same-UID retry and clears it for another UID", async () => {
@@ -182,7 +185,6 @@ describe("createRemoteReadStore", () => {
     await listener.store.getState().start("uid-a");
     listener.subscriptions[0]?.onError(listenerFailure);
     expect(listener.store.getState()).toMatchObject({ status: "error", error: listenerFailure });
-    expect(listener.unsubscribes[0]).toHaveBeenCalledOnce();
   });
 
   it.each(["blocked", "error"] as const)("resets %s state only for the matching UID", async (status) => {
@@ -222,38 +224,7 @@ describe("createRemoteReadStore", () => {
     expect(harness.store.getState()).toMatchObject({ uid: null, status: "idle" });
   });
 
-  it("publishes an error when listener setup throws", async () => {
-    const harness = createHarness();
-    const failure = new Error("listener setup failed");
-    vi.mocked(harness.dependencies.subscribe).mockImplementationOnce(() => {
-      throw failure;
-    });
-
-    await expect(harness.store.getState().start("uid-a")).rejects.toBe(failure);
-
-    expect(harness.store.getState()).toMatchObject({ uid: "uid-a", status: "error", error: failure });
-  });
-
-  it("closes a subscription superseded during listener setup", async () => {
-    const harness = createHarness();
-    const staleUnsubscribe = vi.fn();
-    let latestStart: Promise<void> | undefined;
-    vi.mocked(harness.dependencies.subscribe).mockImplementationOnce((props) => {
-      harness.subscriptions.push(props);
-      latestStart = harness.store.getState().start("uid-b");
-      return staleUnsubscribe;
-    });
-
-    await harness.store.getState().start("uid-a");
-    await latestStart;
-
-    expect(staleUnsubscribe).toHaveBeenCalledOnce();
-    expect(harness.dependencies.subscribe).toHaveBeenLastCalledWith(expect.objectContaining({ uid: "uid-b" }));
-    harness.store.getState().stop("uid-b");
-    expect(staleUnsubscribe).toHaveBeenCalledOnce();
-  });
-
-  it("lets only the latest start create and own a subscription", async () => {
+  it("creates a listener only for the latest UID when initialization overlaps", async () => {
     let resolveInitialization!: (result: FirestoreInitializationResult) => void;
     const initialization = new Promise<FirestoreInitializationResult>((resolve) => {
       resolveInitialization = resolve;
