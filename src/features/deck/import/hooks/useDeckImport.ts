@@ -11,7 +11,7 @@ import type { RemoteSyncStatus } from "@/shared/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { createCard as prepareCard, selectCardsForDeck, useCards } from "@/entities/card";
-import { createDeck, generateDeckId } from "@/entities/deck";
+import { createDeck as prepareDeck, generateDeckId } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
@@ -130,7 +130,7 @@ const prepareDeckImportAttempt = (
   );
   const createDeckPending = deck == null;
   if (deck == null) {
-    deck = createDeck({ name }, uid, generateDeckId);
+    deck = prepareDeck({ name }, uid, generateDeckId);
     if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
   }
 
