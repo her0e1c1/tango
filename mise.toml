@@ -129,3 +129,67 @@ run = [
   "docker compose down --volumes --remove-orphans",
   "rm -rf node_modules build storybook-static test-results playwright-report coverage .firebase sample/build",
 ]
+
+[tasks.clean-branches]
+description = "Delete local branches of merged or closed PRs"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+current_branch=$(git branch --show-current 2>/dev/null || true)
+default_branch="main"
+
+closed_prs=""
+if command -v gh >/dev/null 2>&1; then
+  closed_prs=$(gh pr list --state closed --limit 1000 --json headRefName -q '.[].headRefName' 2>/dev/null || true)
+fi
+
+merged_git=$(git branch --merged "$default_branch" --format="%(refname:short)" 2>/dev/null || true)
+
+targets=$(printf "%s\n%s" "$closed_prs" "$merged_git" | sort -u | grep -v '^$')
+
+if [ -z "$targets" ]; then
+  echo "No merged or closed branches found."
+  exit 0
+fi
+
+declare -A branch_to_wt
+current_wt=""
+while IFS= read -r line; do
+  if [[ "$line" =~ ^worktree\ (.*)$ ]]; then
+    current_wt="${BASH_REMATCH[1]}"
+  elif [[ "$line" =~ ^branch\ refs/heads/(.*)$ ]]; then
+    branch="${BASH_REMATCH[1]}"
+    branch_to_wt["$branch"]="$current_wt"
+  fi
+done < <(git worktree list --porcelain 2>/dev/null || true)
+
+pwd_path=$(pwd -P)
+deleted_count=0
+
+for b in $(git branch --format="%(refname:short)"); do
+  [[ -z "$b" ]] && continue
+  [[ "$b" == "main" || "$b" == "master" || "$b" == "$default_branch" || "$b" == "$current_branch" ]] && continue
+
+  if echo "$targets" | grep -qx "$b"; then
+    wt="${branch_to_wt[$b]:-}"
+    if [ -n "$wt" ]; then
+      wt_real=$(cd "$wt" 2>/dev/null && pwd -P || echo "$wt")
+      if [ "$wt_real" = "$pwd_path" ]; then
+        echo "Skipping active worktree branch: $b"
+        continue
+      fi
+      echo "Removing worktree for branch: $b"
+      git worktree remove --force "$wt" 2>/dev/null || true
+    fi
+
+    echo "Deleting local branch: $b"
+    if git branch -D "$b" 2>/dev/null; then
+      deleted_count=$((deleted_count + 1))
+    fi
+  fi
+done
+
+git worktree prune 2>/dev/null || true
+echo "Cleaned up $deleted_count merged/closed branch(es)."
+'''
