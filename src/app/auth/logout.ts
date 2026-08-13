@@ -1,5 +1,5 @@
 import { stopRemoteReads } from "@/app/providers/remote-read/remoteReadLifecycle";
-import { suspendAnonymousBootstrap } from "@/entities/auth-session";
+import { suspendAnonymousBootstrap } from "@/app/providers/auth";
 import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { clearStudyStore, studyStore, type StudyState } from "@/features/study";
 

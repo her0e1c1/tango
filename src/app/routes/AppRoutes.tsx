@@ -8,6 +8,7 @@ import type React from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 import { logout } from "@/app/auth/logout";
+import { publishAuthenticatedUser } from "@/app/providers/auth";
 import { loginGoogle } from "@/features/auth/sign-in";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
@@ -37,6 +38,8 @@ const UnknownRoute = () => {
   );
 };
 
+const login = async () => publishAuthenticatedUser(await loginGoogle());
+
 /**
  * Renders Tango's route tree inside the router supplied by the caller.
  * Production uses BrowserRouter while Storybook can provide MemoryRouter for isolated page stories.
@@ -50,7 +53,7 @@ export const AppRoutes: React.FC = () => (
     <Route path="/deck/:id/study" element={<DeckSwiperPage />} />
     <Route path="/card/:id" element={<CardViewPage />} />
     <Route path="/card/:id/edit" element={<CardFormPage />} />
-    <Route path="/settings" element={<SettingsPage login={loginGoogle} logout={logout} />} />
+    <Route path="/settings" element={<SettingsPage login={login} logout={logout} />} />
     <Route path="/import" element={<DeckImportPage />} />
     <Route path="*" element={<UnknownRoute />} />
   </Routes>

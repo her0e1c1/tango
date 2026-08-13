@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signInAnonymously, type Auth, type User, type UserCredential } from "firebase/auth";
 
-import { createAuthSessionStore, type AuthSessionStore } from "./authSessionStore";
+import { createAuthSessionStore, type AuthSessionStore } from "@/entities/auth-session";
 import { auth } from "@/shared/firebase";
 
 type AuthControllerDependencies = {

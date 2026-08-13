@@ -1,13 +1,7 @@
 export { AuthSessionProvider, useAuthSession } from "./model/AuthSessionProvider";
 export {
-  authRuntime,
-  createAuthRuntime,
-  publishAuthenticatedUser,
-  suspendAnonymousBootstrap,
-  type AuthRuntime,
-} from "./model/authController";
-export {
   createAuthSessionStore,
   type AuthenticatedSession,
   type AuthSessionState,
+  type AuthSessionStore,
 } from "./model/authSessionStore";

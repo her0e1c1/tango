@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   stopRemoteReads: vi.fn(),
 }));
 
-vi.mock("@/entities/auth-session", () => ({
+vi.mock("@/app/providers/auth", () => ({
   suspendAnonymousBootstrap: mocks.suspendAnonymousBootstrap,
 }));
 vi.mock("@/features/auth/sign-out", () => ({

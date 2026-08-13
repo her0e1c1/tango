@@ -1,7 +1,7 @@
 import type { Auth, User, UserCredential } from "firebase/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createAuthSessionStore } from "./authSessionStore";
+import { createAuthSessionStore } from "@/entities/auth-session";
 
 const singletonMocks = vi.hoisted(() => ({
   auth: { currentUser: null },

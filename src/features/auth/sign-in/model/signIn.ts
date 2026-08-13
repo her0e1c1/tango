@@ -1,10 +1,9 @@
 import { FirebaseError } from "firebase/app";
-import { GoogleAuthProvider, linkWithPopup, signInWithCredential, type UserCredential } from "firebase/auth";
+import { GoogleAuthProvider, linkWithPopup, signInWithCredential, type User, type UserCredential } from "firebase/auth";
 
-import { publishAuthenticatedUser } from "@/entities/auth-session";
 import { auth } from "@/shared/firebase";
 
-export const loginGoogle = async (): Promise<void> => {
+export const loginGoogle = async (): Promise<User> => {
   const currentUser = auth.currentUser;
   if (!currentUser?.isAnonymous) throw new Error("Anonymous user is required before Google sign-in");
 
@@ -20,5 +19,5 @@ export const loginGoogle = async (): Promise<void> => {
     result = await signInWithCredential(auth, credential);
   }
 
-  publishAuthenticatedUser(result.user);
+  return result.user;
 };

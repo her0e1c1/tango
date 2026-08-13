@@ -31,9 +31,8 @@ vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
   stopRemoteReads: mocks.stop,
 }));
 
-import { AuthProvider } from "@/app/providers/auth";
+import { AuthProvider, createAuthRuntime } from "@/app/providers/auth";
 import { RemoteReadBootstrap } from "@/app/providers/remote-read";
-import { createAuthRuntime } from "@/entities/auth-session";
 import { useRemoteReadScopeUid } from "@/shared/lib/remote-read";
 
 const ReadScopeProbe = () => <output data-testid="read-scope">{useRemoteReadScopeUid() ?? "signed-out"}</output>;
