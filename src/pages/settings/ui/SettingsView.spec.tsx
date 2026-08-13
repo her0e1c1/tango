@@ -1,11 +1,13 @@
 import { render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import type { ConfigFormFields } from "@/features/settings";
 import { createConfig } from "@/test/factories";
 
 import { SettingsView } from "./SettingsView";
+
+type ConfigFormFields = NonNullable<ComponentProps<typeof SettingsView>["configForm"]>["fields"];
 
 const fields: ConfigFormFields = {
   showHeader: { name: "showHeader" },

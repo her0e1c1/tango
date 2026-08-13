@@ -6,7 +6,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import { studyStore } from "../state/studyStore";
+import { studyStore } from "../state/studyStoreInstance";
 
 const { persist } = studyStore;
 

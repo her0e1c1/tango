@@ -2,7 +2,6 @@ import type { SwipeState } from "@/shared/config";
 
 import { describe, expect, it } from "vitest";
 
-import { createStudyProgress } from "@/entities/study-progress";
 import type { StudyCard } from "./studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "./swipe";
 import { createCard } from "@/test/factories";
@@ -26,7 +25,7 @@ describe("buildStudyPatch", () => {
   const now = new Date(1999, 10, 1).getTime();
   const card: StudyCard = {
     card: createCard({ id: "c1", deckId: "d1" }),
-    progress: { ...createStudyProgress("c1"), numberOfSeen: 2 },
+    progress: { cardId: "c1", score: 0, numberOfSeen: 2 },
   };
 
   it("builds a patch with incremented numberOfSeen and computed score", () => {

@@ -6,13 +6,8 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type {
-  AppearancePreferences,
-  ConfigState,
-  ControlPreferences,
-  StudyPreferences,
-  SwipeAction,
-} from "@/shared/config";
+import type { ConfigState, StudyPreferences, SwipeAction } from "@/shared/config";
+import type { AppearancePreferences, ControlPreferences } from "@/shared/config/configTypes";
 
 /**
  * Builds a complete test deck with predictable defaults and optional field overrides.

@@ -9,7 +9,7 @@ import type * as React from "react";
 import { Form, Slider, Switch } from "@/shared/ui/forms";
 import { TagFilter, type TagFilterProps } from "./TagFilter";
 
-export interface DeckStartFormProps {
+interface DeckStartFormProps {
   scoreMax: number | null;
   scoreMin: number | null;
   scoreMaxSwitchProps: React.ComponentProps<typeof Switch>;

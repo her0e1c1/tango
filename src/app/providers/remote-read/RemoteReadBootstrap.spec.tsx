@@ -6,7 +6,7 @@
  */
 
 import { act, render, screen, waitFor } from "@testing-library/react";
-import type { Auth, User, UserCredential } from "firebase/auth";
+import type { User } from "firebase/auth";
 import React, { type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -31,8 +31,10 @@ vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
   stopRemoteReads: mocks.stop,
 }));
 
-import { AuthProvider, createAuthRuntime } from "@/app/providers/auth";
+import { AuthProvider } from "@/app/providers/auth";
+import type { AuthRuntime } from "@/app/providers/auth/authController";
 import { RemoteReadBootstrap } from "@/app/providers/remote-read";
+import { createAuthSessionStore } from "@/entities/auth-session";
 import { useRemoteReadScopeUid } from "@/shared/lib/remote-read";
 
 const ReadScopeProbe = () => <output data-testid="read-scope">{useRemoteReadScopeUid() ?? "signed-out"}</output>;
@@ -42,15 +44,19 @@ const ReadScopeProbe = () => <output data-testid="read-scope">{useRemoteReadScop
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
 const createHarness = (children?: ReactNode) => {
-  let publishUser: (user: User | null) => void = () => undefined;
-  const runtime = createAuthRuntime({
-    auth: {} as Auth,
-    onAuthStateChanged: vi.fn((_auth, onUser) => {
-      publishUser = onUser;
-      return vi.fn();
-    }),
-    signInAnonymously: vi.fn<() => Promise<UserCredential>>(),
-  });
+  const authSessionStore = createAuthSessionStore();
+  const runtime: AuthRuntime = {
+    authSessionStore,
+    start: vi.fn(),
+    publishAuthenticatedUser: vi.fn(),
+    suspendAnonymousBootstrap: vi.fn(() => vi.fn()),
+  };
+  const publishUser = (user: User | null) =>
+    authSessionStore.publish(
+      user == null
+        ? { status: "signedOut" }
+        : { status: "authenticated", uid: user.uid, isAnonymous: user.isAnonymous, displayName: null }
+    );
   render(
     <React.StrictMode>
       <AuthProvider runtime={runtime}>

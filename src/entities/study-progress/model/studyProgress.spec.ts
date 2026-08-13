@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   compareStudyProgress,
-  createStudyProgress,
   createStudyProgressFromCard,
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
@@ -12,17 +11,9 @@ import {
   type StudyRating,
 } from "../index";
 
-describe("createStudyProgress", () => {
-  it("creates study progress with the initial score and seen count", () => {
-    const progress: StudyProgress = createStudyProgress("card-id");
+const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
 
-    expect(progress).toEqual({
-      cardId: "card-id",
-      score: 0,
-      numberOfSeen: 0,
-    });
-  });
-
+describe("createStudyProgressFromCard", () => {
   it("allows editing selected progress fields while retaining the card id", () => {
     const edit: StudyProgressEdit = {
       cardId: "card-id",
@@ -71,7 +62,7 @@ describe("recordStudyProgress", () => {
     [2, "not-mastered", 0],
     [3, "unrated", 3],
   ])("updates score %i for a %s rating", (score, rating, expectedScore) => {
-    const progress = { ...createStudyProgress("card-id"), score, numberOfSeen: 2 };
+    const progress = { ...initialStudyProgress("card-id"), score, numberOfSeen: 2 };
 
     expect(recordStudyProgress(progress, rating, 1_786_512_000_000)).toEqual({
       cardId: "card-id",
@@ -90,26 +81,26 @@ describe("study progress selection", () => {
   };
 
   it("applies score bounds and the next seeing time", () => {
-    expect(isStudyProgressEligible({ ...createStudyProgress("eligible"), score: 2 }, filter, 1_000)).toBe(true);
-    expect(isStudyProgressEligible({ ...createStudyProgress("high"), score: 3 }, filter, 1_000)).toBe(false);
-    expect(isStudyProgressEligible({ ...createStudyProgress("low"), score: -2 }, filter, 1_000)).toBe(false);
+    expect(isStudyProgressEligible({ ...initialStudyProgress("eligible"), score: 2 }, filter, 1_000)).toBe(true);
+    expect(isStudyProgressEligible({ ...initialStudyProgress("high"), score: 3 }, filter, 1_000)).toBe(false);
+    expect(isStudyProgressEligible({ ...initialStudyProgress("low"), score: -2 }, filter, 1_000)).toBe(false);
     expect(
-      isStudyProgressEligible({ ...createStudyProgress("future"), nextSeeingAt: new Date(1_001) }, filter, 1_000)
+      isStudyProgressEligible({ ...initialStudyProgress("future"), nextSeeingAt: new Date(1_001) }, filter, 1_000)
     ).toBe(false);
   });
 
   it("orders progress by seen count", () => {
-    const first = { ...createStudyProgress("first"), numberOfSeen: 1 };
-    const second = { ...createStudyProgress("second"), numberOfSeen: 3 };
+    const first = { ...initialStudyProgress("first"), numberOfSeen: 1 };
+    const second = { ...initialStudyProgress("second"), numberOfSeen: 3 };
 
     expect([second, first].sort(compareStudyProgress)).toEqual([first, second]);
   });
 
   it("finds the nearest future seeing time", () => {
     const progresses = [
-      { ...createStudyProgress("past"), nextSeeingAt: new Date(900) },
-      { ...createStudyProgress("later"), nextSeeingAt: new Date(2_000) },
-      { ...createStudyProgress("next"), nextSeeingAt: new Date(1_500) },
+      { ...initialStudyProgress("past"), nextSeeingAt: new Date(900) },
+      { ...initialStudyProgress("later"), nextSeeingAt: new Date(2_000) },
+      { ...initialStudyProgress("next"), nextSeeingAt: new Date(1_500) },
     ];
 
     expect(getNextStudyAvailabilityAt(progresses, 1_000)).toBe(1_500);

@@ -1,11 +1,12 @@
-import type { ConfigFormFields } from "@/features/settings";
-
 import type { Meta, StoryObj } from "@storybook/react";
+import type { ComponentProps } from "react";
 
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 import { SettingsView as View } from "./SettingsView";
+
+type ConfigFormFields = NonNullable<ComponentProps<typeof View>["configForm"]>["fields"];
 
 const fields: ConfigFormFields = {
   showHeader: { checked: fixture.config.default.appearance.showHeader, onChange: () => undefined },

@@ -1,5 +1,5 @@
 import type { Card } from "@/entities/card";
-import { createStudyProgress, type StudyProgress } from "@/entities/study-progress";
+import type { StudyProgress } from "@/entities/study-progress";
 import type { StudyCard } from "./studyCard";
 import type { StudyPreferences } from "@/shared/config";
 
@@ -14,7 +14,7 @@ describe("filterCardsForDeck", () => {
     const content = createCard({ id: "c1", tags: [], ...card });
     return {
       card: content,
-      progress: { ...createStudyProgress(content.id), ...progress, cardId: content.id },
+      progress: { score: 0, numberOfSeen: 0, ...progress, cardId: content.id },
     };
   };
 

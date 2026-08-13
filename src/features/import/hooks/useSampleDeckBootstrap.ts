@@ -18,7 +18,7 @@ type AddSample = () => Promise<unknown>;
  * Optional dependencies or settings let production code and tests reuse the same behavior in
  * different environments.
  */
-export const createSampleDeckBootstrapController = () => {
+const createSampleDeckBootstrapController = () => {
   const completedUids = new Set<string>();
   const pendingByUid = new Map<string, Promise<unknown>>();
 

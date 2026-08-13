@@ -17,7 +17,7 @@ interface CardFormTagField extends Option {
   input: React.ComponentProps<typeof Tag>;
 }
 
-export interface CardFormFields {
+interface CardFormFields {
   frontText: React.ComponentProps<typeof Textarea>;
   backText: React.ComponentProps<typeof Textarea>;
   tags: CardFormTagField[];

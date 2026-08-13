@@ -1,11 +1,7 @@
-import type { Card } from "../model/card";
-
 import { Timestamp } from "firebase/firestore";
 import { describe, expect, it } from "vitest";
 
-import { FirestoreDocumentValidationError } from "@/shared/firestore";
-import { createCard } from "@/test/factories";
-import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument } from "./firestoreDocument";
+import { mapCardDocument } from "./firestoreDocument";
 
 const cardDocument = (overrides: Record<string, unknown> = {}) => ({
   frontText: "Remote front",
@@ -79,31 +75,8 @@ describe("Card Firestore document", () => {
         message: expect.stringContaining("nextSeeingAt"),
       })
     );
-    expect(() => mapCardDocument("missing-card", { uid: "user-2" })).toThrow(FirestoreDocumentValidationError);
-  });
-
-  it("builds create and update DTOs from Card-owned fields", () => {
-    const card = createCard({
-      id: "card-1",
-      deckId: "deck-1",
-      uid: "user-1",
-      tags: ["math"],
-      createdAt: 1,
-      updatedAt: 2,
-      score: 3,
-      numberOfSeen: 4,
-      nextSeeingAt: new Date(6),
-    });
-
-    expect(buildCardCreateDto(card, 200)).toEqual(
-      expect.objectContaining({ id: "card-1", createdAt: 200, updatedAt: 200, deletedAt: null })
+    expect(() => mapCardDocument("missing-card", { uid: "user-2" })).toThrowError(
+      expect.objectContaining({ name: "FirestoreDocumentValidationError" })
     );
-    expect(buildCardUpdateDto(card, 201)).toEqual(
-      expect.objectContaining({ deckId: "deck-1", createdAt: 1, updatedAt: 201 })
-    );
-    expect(buildCardUpdateDto(card, 201)).not.toHaveProperty("id");
-
-    const invalidCard = { ...card, tags: ["math", 42] } as unknown as Card;
-    expect(() => buildCardCreateDto(invalidCard, 200)).toThrow();
   });
 });

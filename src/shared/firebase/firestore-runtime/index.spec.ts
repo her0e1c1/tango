@@ -1,67 +1,62 @@
 import type { Firestore } from "firebase/firestore";
-import { describe, expect, it } from "vitest";
-
-import { createFirestoreRuntime } from ".";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("Firestore runtime", () => {
-  it("rejects reads before initialization", () => {
-    const runtime = createFirestoreRuntime();
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it("rejects reads before initialization", async () => {
+    const runtime = await import(".");
 
     expect(() => runtime.getDb()).toThrow("Firestore is not initialized");
   });
 
-  it("keeps one injected instance and rejects a different duplicate initialization", () => {
-    const runtime = createFirestoreRuntime();
+  it("keeps one injected instance and rejects a different duplicate initialization", async () => {
+    const runtime = await import(".");
     const db = { name: "first" } as unknown as Firestore;
 
-    runtime.initialize(db);
-    runtime.initialize(db);
+    runtime.initializeFirestoreRuntime(db);
+    runtime.initializeFirestoreRuntime(db);
 
     expect(runtime.getDb()).toBe(db);
-    expect(() => runtime.initialize({ name: "second" } as unknown as Firestore)).toThrow(
+    expect(() => runtime.initializeFirestoreRuntime({ name: "second" } as unknown as Firestore)).toThrow(
       "Firestore runtime is already initialized"
     );
   });
 
-  it("waits until the injected Firestore instance is ready", async () => {
-    const runtime = createFirestoreRuntime();
-    const db = { name: "persistent" } as unknown as Firestore;
-
-    runtime.initialize(db);
-
-    await expect(runtime.waitForInitialization()).resolves.toEqual({ status: "ready" });
-  });
-
   it("releases every reader after initialization", async () => {
-    const runtime = createFirestoreRuntime();
+    const runtime = await import(".");
     const db = { name: "persistent" } as unknown as Firestore;
-    const first = runtime.waitForInitialization();
-    const second = runtime.waitForInitialization();
+    const first = runtime.waitForFirestoreInitialization();
+    const second = runtime.waitForFirestoreInitialization();
 
-    runtime.initialize(db);
+    runtime.initializeFirestoreRuntime(db);
 
     await expect(Promise.all([first, second])).resolves.toEqual([{ status: "ready" }, { status: "ready" }]);
   });
 
   it("preserves a blocking initialization error without allowing initialization", async () => {
-    const runtime = createFirestoreRuntime();
+    const runtime = await import(".");
     const error = new Error("persistent cache unavailable");
 
-    runtime.block(error);
+    runtime.blockFirestoreRuntime(error);
 
     expect(() => runtime.getDb()).toThrow(error);
-    expect(() => runtime.initialize({} as Firestore)).toThrow(error);
-    await expect(runtime.waitForInitialization()).resolves.toEqual({ status: "blocked", error });
+    expect(() => runtime.initializeFirestoreRuntime({} as Firestore)).toThrow(error);
+    await expect(runtime.waitForFirestoreInitialization()).resolves.toEqual({ status: "blocked", error });
   });
 
   it("keeps ready as a terminal state", async () => {
-    const runtime = createFirestoreRuntime();
+    const runtime = await import(".");
     const db = { name: "persistent" } as unknown as Firestore;
 
-    runtime.initialize(db);
+    runtime.initializeFirestoreRuntime(db);
 
-    expect(() => runtime.block(new Error("late failure"))).toThrow("Firestore runtime is already initialized");
+    expect(() => runtime.blockFirestoreRuntime(new Error("late failure"))).toThrow(
+      "Firestore runtime is already initialized"
+    );
     expect(runtime.getDb()).toBe(db);
-    await expect(runtime.waitForInitialization()).resolves.toEqual({ status: "ready" });
+    await expect(runtime.waitForFirestoreInitialization()).resolves.toEqual({ status: "ready" });
   });
 });

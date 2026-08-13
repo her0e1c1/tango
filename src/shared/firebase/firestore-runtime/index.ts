@@ -9,7 +9,7 @@ type FirestoreRuntimeState =
   | { status: "ready"; db: Firestore }
   | { status: "blocked"; error: Error };
 
-export const createFirestoreRuntime = () => {
+const createFirestoreRuntime = () => {
   let state: FirestoreRuntimeState = { status: "initializing" };
   let resolveInitialization: (result: FirestoreInitializationResult) => void = () => undefined;
   const initialization = new Promise<FirestoreInitializationResult>((resolve) => {

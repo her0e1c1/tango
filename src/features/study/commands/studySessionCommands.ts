@@ -1,6 +1,6 @@
 import type { DeckId } from "@/entities/deck";
 
-import { studyStore } from "../state/studyStore";
+import { studyStore } from "../state/studyStoreInstance";
 
 export const initializeStudySessionUi = (defaultAutoPlay: boolean) => {
   studyStore.getState().initializeStudyUi(defaultAutoPlay);

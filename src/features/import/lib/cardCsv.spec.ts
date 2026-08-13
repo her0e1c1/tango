@@ -1,43 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { fromRow, isEmpty, parseCsv } from "./cardCsv";
+import { parseCsv } from "./cardCsv";
 
 describe("card CSV import", () => {
-  describe("fromRow", () => {
-    it("maps CSV columns to raw card data", () => {
-      expect(fromRow(["front", "back", "a,b,c", "123"])).toEqual({
-        frontText: "front",
-        backText: "back",
-        tags: ["a", "b", "c"],
-        uniqueKey: "123",
-      });
-    });
-
-    it("uses empty values for missing columns", () => {
-      expect(fromRow([])).toEqual({ frontText: "", backText: "", tags: [], uniqueKey: "" });
-    });
-
-    it("normalizes tags and the unique key without changing card text", () => {
-      expect(fromRow(["  front  ", " back ", " foo,foo, bar , ,Foo ", " key "])).toEqual({
-        frontText: "  front  ",
-        backText: " back ",
-        tags: ["foo", "bar", "Foo"],
-        uniqueKey: "key",
-      });
-    });
-  });
-
-  describe("isEmpty", () => {
-    it("ignores tags and keys when both card sides are empty", () => {
-      expect(isEmpty({ frontText: "", backText: "", tags: ["tag"], uniqueKey: "key" })).toBe(true);
-    });
-
-    it("keeps a card when either side has content", () => {
-      expect(isEmpty({ frontText: "front", backText: "", tags: [], uniqueKey: "" })).toBe(false);
-      expect(isEmpty({ frontText: "", backText: "back", tags: [], uniqueKey: "" })).toBe(false);
-    });
-  });
-
   describe("parseCsv", () => {
     it("parses, normalizes, and validates string content", async () => {
       const analysis = await parseCsv('"front","back"," foo,foo, bar "," key "\n,,,');

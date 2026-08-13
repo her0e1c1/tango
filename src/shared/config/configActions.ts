@@ -2,7 +2,8 @@
  * @file Exposes commands that mutate application configuration.
  */
 
-import { configStore, type ConfigStoreState } from "@/shared/config/configStore";
+import type { ConfigStoreState } from "@/shared/config/configStore";
+import { configStore } from "@/shared/config/configStoreInstance";
 
 type UpdateConfig = ConfigStoreState["updateConfig"];
 

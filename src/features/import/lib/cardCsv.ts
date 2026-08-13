@@ -5,9 +5,7 @@ import * as Papa from "papaparse";
 import type { DeckImportAnalysis, DeckImportIssue, DeckImportRow } from "../model/deckImportTypes";
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
-export const isEmpty = (card: CardRaw): boolean => card.frontText === "" && card.backText === "";
-
-export const fromRow = (row: string[]): CardRaw => ({
+const fromRow = (row: string[]): CardRaw => ({
   frontText: row[0] || "",
   backText: row[1] || "",
   tags:

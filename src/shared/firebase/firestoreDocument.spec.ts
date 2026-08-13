@@ -2,13 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 
-import {
-  FirestoreDocumentValidationError,
-  firestoreTimestampDateSchema,
-  getTimestamp,
-  omitUndefined,
-  parseFirestoreDocument,
-} from "./firestoreDocument";
+import { firestoreTimestampDateSchema, getTimestamp, omitUndefined, parseFirestoreDocument } from "./firestoreDocument";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -32,7 +26,9 @@ describe("Firestore document helpers", () => {
         message: expect.stringContaining("title"),
       })
     );
-    expect(() => parseFirestoreDocument(schema, "note", "note-a", {})).toThrow(FirestoreDocumentValidationError);
+    expect(() => parseFirestoreDocument(schema, "note", "note-a", {})).toThrowError(
+      expect.objectContaining({ name: "FirestoreDocumentValidationError" })
+    );
   });
 
   it("converts Firestore timestamps and preserves valid legacy dates", () => {

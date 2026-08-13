@@ -9,7 +9,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { List } from "@/shared/ui/layout/List";
 import { Main } from "@/shared/ui/main";
 import { Outer } from "@/shared/ui/outer";
 
@@ -108,30 +107,5 @@ describe("shared app shell", () => {
 
     expect(screen.getByText("tango")).toBeInTheDocument();
     expect(content).toHaveClass("h-full");
-  });
-
-  it("keeps flex precedence and the one/two/three-column List modes", () => {
-    const view = render(
-      <List flex col1>
-        List content
-      </List>
-    );
-    const list = screen.getByText("List content");
-
-    expect(list).toHaveClass("flex", "flex-wrap", "gap-section-gap");
-    expect(list).not.toHaveClass("grid", "grid-cols-1");
-
-    view.rerender(<List col1>List content</List>);
-    expect(screen.getByText("List content")).toHaveClass("grid", "grid-cols-1", "gap-section-gap");
-    expect(screen.getByText("List content")).not.toHaveClass("md:grid-cols-2", "lg:grid-cols-3");
-
-    view.rerender(<List>List content</List>);
-    expect(screen.getByText("List content")).toHaveClass(
-      "grid",
-      "grid-cols-1",
-      "gap-section-gap",
-      "md:grid-cols-2",
-      "lg:grid-cols-3"
-    );
   });
 });

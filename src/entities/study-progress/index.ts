@@ -1,6 +1,5 @@
 export {
   compareStudyProgress,
-  createStudyProgress,
   createStudyProgressFromCard,
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,

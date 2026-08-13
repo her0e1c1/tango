@@ -1,7 +1,6 @@
-import { onAuthStateChanged, signInAnonymously, type Auth, type User } from "firebase/auth";
+import type { Auth, User } from "firebase/auth";
 
 import { createAuthSessionStore } from "@/entities/auth-session";
-import { auth } from "@/shared/firebase";
 
 type AuthRuntimeDependencies = {
   auth: Auth;
@@ -74,7 +73,3 @@ export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
 };
 
 export type AuthRuntime = ReturnType<typeof createAuthRuntime>;
-
-export const authRuntime = createAuthRuntime({ auth, onAuthStateChanged, signInAnonymously });
-
-export const { publishAuthenticatedUser, suspendAnonymousBootstrap } = authRuntime;
