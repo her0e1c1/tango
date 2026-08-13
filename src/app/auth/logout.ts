@@ -1,5 +1,6 @@
 import { stopRemoteReads } from "@/app/providers/remote-read/remoteReadLifecycle";
-import { signOutCurrentUser, suspendAnonymousBootstrap } from "@/features/auth";
+import { suspendAnonymousBootstrap } from "@/entities/auth-session";
+import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { clearStudyStore, studyStore, type StudyState } from "@/features/study";
 
 const { getState: getStudyState } = studyStore;

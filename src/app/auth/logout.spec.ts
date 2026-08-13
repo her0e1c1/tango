@@ -10,9 +10,11 @@ const mocks = vi.hoisted(() => ({
   stopRemoteReads: vi.fn(),
 }));
 
-vi.mock("@/features/auth", () => ({
-  signOutCurrentUser: mocks.signOutCurrentUser,
+vi.mock("@/entities/auth-session", () => ({
   suspendAnonymousBootstrap: mocks.suspendAnonymousBootstrap,
+}));
+vi.mock("@/features/auth/sign-out", () => ({
+  signOutCurrentUser: mocks.signOutCurrentUser,
 }));
 vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
   stopRemoteReads: mocks.stopRemoteReads,

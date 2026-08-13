@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthSession } from "@/entities/auth-session";
-import { useAccountOperations, useConfigFormState } from "@/features/settings";
+import { useSignIn } from "@/features/auth/sign-in";
+import { useSignOut } from "@/features/auth/sign-out";
+import { useConfigFormState } from "@/features/settings";
 import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
@@ -24,20 +26,25 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
     uid: authenticated?.uid ?? "",
     displayName: authenticated?.displayName ?? null,
   };
-  const account = useAccountOperations({
-    generation: authenticated
-      ? `authenticated:${authenticated.uid}:${authenticated.isAnonymous ? "anonymous" : "linked"}`
-      : authState.status,
-    login,
-    ...(authenticated ? { logout: () => logout(authenticated.uid) } : {}),
+  const authGeneration = authenticated
+    ? `authenticated:${authenticated.uid}:${authenticated.isAnonymous ? "anonymous" : "linked"}`
+    : authState.status;
+  const signIn = useSignIn({ generation: authGeneration, signIn: login });
+  const signOut = useSignOut({
+    generation: authGeneration,
+    ...(authenticated ? { signOut: () => logout(authenticated.uid) } : {}),
   });
+  const account =
+    signOut.pending || signOut.error != null
+      ? { ...signOut, kind: "logout" as const }
+      : { ...signIn, kind: "login" as const };
   const configForm = useConfigFormState({
     config,
     identity,
     version: __APP_VERSION__,
     isLoggedIn: authenticated != null && !authenticated.isAnonymous,
-    onLogin: () => void account.login().catch(() => undefined),
-    ...(authenticated ? { onLogout: () => void account.logout().catch(() => undefined) } : {}),
+    onLogin: () => void signIn.signIn().catch(() => undefined),
+    ...(authenticated ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {}),
     accountPending: account.pending,
     accountFeedback: (
       <RemoteMutationNotice

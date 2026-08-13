@@ -1,7 +1,7 @@
 import { FirebaseError } from "firebase/app";
-import { GoogleAuthProvider, linkWithPopup, signInWithCredential, signOut, type UserCredential } from "firebase/auth";
+import { GoogleAuthProvider, linkWithPopup, signInWithCredential, type UserCredential } from "firebase/auth";
 
-import { publishAuthenticatedUser } from "./authController";
+import { publishAuthenticatedUser } from "@/entities/auth-session";
 import { auth } from "@/shared/firebase";
 
 export const loginGoogle = async (): Promise<void> => {
@@ -22,5 +22,3 @@ export const loginGoogle = async (): Promise<void> => {
 
   publishAuthenticatedUser(result.user);
 };
-
-export const signOutCurrentUser = (): Promise<void> => signOut(auth);

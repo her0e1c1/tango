@@ -8,7 +8,7 @@ import type React from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 import { logout } from "@/app/auth/logout";
-import { loginGoogle } from "@/features/auth";
+import { loginGoogle } from "@/features/auth/sign-in";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";

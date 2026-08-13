@@ -1,5 +1,5 @@
 import { FirebaseError } from "firebase/app";
-import { GoogleAuthProvider, linkWithPopup, signInWithCredential, signOut } from "firebase/auth";
+import { GoogleAuthProvider, linkWithPopup, signInWithCredential } from "firebase/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -8,12 +8,12 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
-vi.mock("./authController", () => ({
+vi.mock("@/entities/auth-session", () => ({
   publishAuthenticatedUser: mocks.publishAuthenticatedUser,
 }));
 vi.mock("firebase/auth");
 
-import { loginGoogle, signOutCurrentUser } from "./authActions";
+import { loginGoogle } from "./signIn";
 
 describe("loginGoogle", () => {
   beforeEach(() => {
@@ -84,13 +84,5 @@ describe("loginGoogle", () => {
 
     await expect(loginGoogle()).rejects.toBe(recoveryError);
     expect(mocks.publishAuthenticatedUser).not.toHaveBeenCalled();
-  });
-});
-
-describe("signOutCurrentUser", () => {
-  it("signs out through Firebase Auth", async () => {
-    await signOutCurrentUser();
-
-    expect(signOut).toHaveBeenCalledWith(mocks.auth);
   });
 });
