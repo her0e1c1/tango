@@ -12,7 +12,7 @@ import { SettingsView } from "./SettingsView";
 
 interface SettingsPageProps {
   login: () => Promise<void>;
-  logout: (uid: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => {
@@ -29,7 +29,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
       ? `authenticated:${authenticated.uid}:${authenticated.isAnonymous ? "anonymous" : "linked"}`
       : authState.status,
     login,
-    ...(authenticated ? { logout: () => logout(authenticated.uid) } : {}),
+    ...(authenticated ? { logout } : {}),
   });
   const configForm = useConfigFormState({
     config,

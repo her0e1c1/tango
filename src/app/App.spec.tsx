@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/shared/config", () => ({
   useConfig: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
-vi.mock("@/app/auth/logout", () => ({ logout: vi.fn() }));
+vi.mock("@/app/session/logout", () => ({ logout: vi.fn() }));
 vi.mock("@/entities/auth-session", () => ({ useAuthSession: () => mocks.authState }));
 vi.mock("@/features/auth", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));

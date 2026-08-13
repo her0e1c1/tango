@@ -14,10 +14,5 @@ export { useStudyCards } from "./hooks/useStudyCards";
 export { useStudyControllerState } from "./hooks/useStudyControllerState";
 export { useStudySessions } from "./hooks/useStudySessions";
 export { useStudyStore } from "./hooks/useStudyStore";
-export {
-  clearStudyStore,
-  selectStudySessionForRoute,
-  studyStore,
-  type StudySession,
-  type StudyState,
-} from "./state/studyStore";
+export { createStudySessionTeardown } from "./model/studySessionLifecycle";
+export { selectStudySessionForRoute, studyStore, type StudySession } from "./state/studyStore";

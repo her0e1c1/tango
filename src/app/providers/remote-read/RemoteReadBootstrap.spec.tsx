@@ -26,9 +26,17 @@ vi.mock("firebase/auth", () => ({
   signInAnonymously: mocks.signInAnonymously,
   signInWithCredential: vi.fn(),
 }));
-vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
-  startRemoteReads: mocks.start,
-  stopRemoteReads: mocks.stop,
+vi.mock("@/app/providers/remote-read/remoteReadSessionLifecycle", () => ({
+  transitionRemoteReadSession: vi.fn(async (state: { status: string; uid?: string }) => {
+    try {
+      if (state.status === "authenticated" && state.uid) await mocks.start(state.uid);
+      else await mocks.stop();
+      return true;
+    } catch (error) {
+      console.error("Remote read transition failed", error);
+      return false;
+    }
+  }),
 }));
 
 import { AuthProvider } from "@/app/providers/auth";

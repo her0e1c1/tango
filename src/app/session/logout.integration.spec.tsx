@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "Auth Logout integration" contract with automated examples.
+ * @file Verifies the "Session Logout integration" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "waits for logout cleanup
  * before bootstrapping the next anonymous UID", "keeps post-sign-out cleanup failures visible and
  * retries only unfinished cleanup", "hands cleanup feedback across auth after retrying a failed
@@ -23,8 +23,9 @@ const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
   startRemoteReads: vi.fn(),
   cleanupUid: vi.fn(),
-  clearStudyStore: vi.fn(),
-  actualClearStudyStore: undefined as undefined | (() => Promise<void>),
+  teardownStudySession: vi.fn(),
+  createStudySessionTeardown: vi.fn(),
+  actualCreateStudySessionTeardown: undefined as undefined | (() => () => Promise<void>),
   operations: [] as string[],
   navigate: vi.fn(),
 }));
@@ -47,8 +48,8 @@ vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
 }));
 vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
-  mocks.actualClearStudyStore = actual.clearStudyStore;
-  return { ...actual, clearStudyStore: mocks.clearStudyStore };
+  mocks.actualCreateStudySessionTeardown = actual.createStudySessionTeardown;
+  return { ...actual, createStudySessionTeardown: mocks.createStudySessionTeardown };
 });
 vi.mock("@/shared/config", () => ({
   useConfig: () => ({ appearance: { darkMode: false } }),
@@ -73,9 +74,10 @@ vi.mock("@/pages/settings/ui/SettingsView", () => ({
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
-import { logout } from "@/app/auth/logout";
+import { logout } from "@/app/session/logout";
 import { AuthProvider } from "@/app/providers/auth";
 import { RemoteReadBootstrap } from "@/app/providers/remote-read";
+import { transitionRemoteReadSession } from "@/app/providers/remote-read/remoteReadSessionLifecycle";
 import { useAuthSession } from "@/entities/auth-session";
 import { createAuthRuntime } from "@/features/auth";
 import { SettingsPage } from "@/pages/settings";
@@ -85,15 +87,15 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-beforeEach(() => {
-  vi.clearAllMocks();
+beforeEach(async () => {
+  await transitionRemoteReadSession({ status: "signedOut" });
+  vi.resetAllMocks();
   mocks.auth.currentUser = null;
   mocks.publishUser = undefined;
   mocks.operations.length = 0;
-  mocks.clearStudyStore.mockImplementation(() => {
-    if (!mocks.actualClearStudyStore) throw new Error("Actual study cleanup was not initialized");
-    return mocks.actualClearStudyStore();
-  });
+  if (!mocks.actualCreateStudySessionTeardown) throw new Error("Actual study cleanup was not initialized");
+  mocks.teardownStudySession.mockImplementation(mocks.actualCreateStudySessionTeardown());
+  mocks.createStudySessionTeardown.mockReturnValue(mocks.teardownStudySession);
   studyStore.setState({ sessionsByDeckId: {}, showBackText: false, autoPlay: false, lastSwipe: undefined });
   localStorage.clear();
 });
@@ -110,6 +112,14 @@ const createTestRuntime = () =>
     auth: mocks.auth as unknown as Auth,
     onAuthStateChanged: mocks.onAuthStateChanged,
     signInAnonymously: mocks.signInAnonymously,
+  });
+
+const activateRemoteReads = (user: User) =>
+  transitionRemoteReadSession({
+    status: "authenticated",
+    uid: user.uid,
+    isAnonymous: user.isAnonymous,
+    displayName: user.providerData[0]?.displayName ?? null,
   });
 
 it("waits for logout cleanup before bootstrapping the next anonymous UID", async () => {
@@ -131,7 +141,7 @@ it("waits for logout cleanup before bootstrapping the next anonymous UID", async
   mocks.startRemoteReads.mockImplementation(async (uid: string) => {
     mocks.operations.push(`subscribe:${uid}`);
   });
-  mocks.clearStudyStore.mockImplementation(async () => {
+  mocks.teardownStudySession.mockImplementation(async () => {
     mocks.operations.push("clear-study");
   });
   mocks.signOut.mockImplementation(async () => {
@@ -159,14 +169,14 @@ it("waits for logout cleanup before bootstrapping the next anonymous UID", async
 
   let pendingLogout!: Promise<void>;
   act(() => {
-    pendingLogout = logout("uid-a");
+    pendingLogout = logout();
   });
-  await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledOnce());
 
   expect(mocks.operations).toContain("sign-out");
   expect(mocks.signInAnonymously).not.toHaveBeenCalled();
   expect(mocks.startRemoteReads).not.toHaveBeenCalledWith("uid-b");
-  expect(mocks.clearStudyStore).not.toHaveBeenCalled();
+  expect(mocks.teardownStudySession).not.toHaveBeenCalled();
 
   await actAsync(async () => {
     resolveCleanup();
@@ -209,7 +219,7 @@ it("keeps post-sign-out cleanup failures visible and retries only unfinished cle
     .mockReturnValueOnce(firstCleanup)
     .mockRejectedValueOnce(retryCleanupError)
     .mockResolvedValueOnce(undefined);
-  mocks.clearStudyStore.mockResolvedValue(undefined);
+  mocks.teardownStudySession.mockResolvedValue(undefined);
 
   const runtime = createTestRuntime();
   render(
@@ -218,6 +228,7 @@ it("keeps post-sign-out cleanup failures visible and retries only unfinished cle
     </AuthProvider>
   );
   act(() => mocks.publishUser?.(userA));
+  await activateRemoteReads(userA);
   fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
   await waitFor(() => expect(screen.queryByRole("button", { name: "Logout" })).not.toBeInTheDocument());
   await actAsync(async () => rejectFirstCleanup(firstCleanupError));
@@ -226,19 +237,19 @@ it("keeps post-sign-out cleanup failures visible and retries only unfinished cle
   expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
   expect(mocks.signOut).toHaveBeenCalledOnce();
   expect(mocks.cleanupUid).toHaveBeenCalledOnce();
-  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
+  expect(mocks.teardownStudySession).toHaveBeenCalledOnce();
 
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledTimes(2));
   expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
   expect(mocks.signOut).toHaveBeenCalledOnce();
-  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
+  expect(mocks.teardownStudySession).toHaveBeenCalledOnce();
 
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
   expect(mocks.cleanupUid).toHaveBeenCalledTimes(3);
   expect(mocks.signOut).toHaveBeenCalledOnce();
-  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
+  expect(mocks.teardownStudySession).toHaveBeenCalledOnce();
 });
 
 it("hands cleanup feedback across auth after retrying a failed sign-out", async () => {
@@ -255,7 +266,7 @@ it("hands cleanup feedback across auth after retrying a failed sign-out", async 
   mocks.signOut.mockRejectedValueOnce(signOutError).mockImplementationOnce(async () => mocks.publishUser?.(null));
   mocks.signInAnonymously.mockReturnValue(anonymousBootstrap);
   mocks.cleanupUid.mockRejectedValueOnce(cleanupError).mockResolvedValueOnce(undefined);
-  mocks.clearStudyStore.mockResolvedValue(undefined);
+  mocks.teardownStudySession.mockResolvedValue(undefined);
 
   const runtime = createTestRuntime();
   render(
@@ -264,6 +275,7 @@ it("hands cleanup feedback across auth after retrying a failed sign-out", async 
     </AuthProvider>
   );
   act(() => mocks.publishUser?.(userA));
+  await activateRemoteReads(userA);
 
   fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
@@ -282,7 +294,7 @@ it("hands cleanup feedback across auth after retrying a failed sign-out", async 
   await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
   expect(mocks.signOut).toHaveBeenCalledTimes(2);
   expect(mocks.cleanupUid).toHaveBeenCalledTimes(2);
-  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
+  expect(mocks.teardownStudySession).toHaveBeenCalledOnce();
 });
 
 it("does not erase a new anonymous study when obsolete logout cleanup is retried", async () => {
@@ -315,6 +327,7 @@ it("does not erase a new anonymous study when obsolete logout cleanup is retried
     </React.StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
+  await activateRemoteReads(userA);
   studyStore.getState().startStudy("old-deck", ["old-card"]);
 
   fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
@@ -330,5 +343,5 @@ it("does not erase a new anonymous study when obsolete logout cleanup is retried
   });
   expect(mocks.signOut).toHaveBeenCalledOnce();
   expect(mocks.cleanupUid).toHaveBeenCalledOnce();
-  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
+  expect(mocks.teardownStudySession).toHaveBeenCalledTimes(2);
 });
