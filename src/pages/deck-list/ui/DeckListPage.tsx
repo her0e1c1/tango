@@ -5,6 +5,8 @@ import { useKey } from "react-use";
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 import { useDecks } from "@/entities/deck";
+import { createCard, generateCardId } from "@/features/card/create";
+import { editCard } from "@/features/card/edit";
 import { createDeck } from "@/features/deck/create";
 import { useDeleteDeck } from "@/features/deck/delete";
 import { buildDeckListSections } from "@/features/deck/list";
@@ -38,7 +40,7 @@ export const DeckListPage: React.FC = () => {
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(deckRemote.decks, cardRemote.cards, sessionsByDeckId);
-  useSampleDeckBootstrap({ createDeck });
+  useSampleDeckBootstrap({ createCard, createDeck, editCard, generateCardId });
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
 

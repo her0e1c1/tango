@@ -6,7 +6,7 @@
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 
-import { CardForm, type CardFormProps } from "@/features/card";
+import { CardForm, type CardFormProps } from "@/features/card/form";
 
 export interface CardFormViewProps {
   cardForm?: CardFormProps;

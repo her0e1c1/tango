@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCards } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
-import { useCardFormState, useCardMutations } from "@/features/card";
+import { useEditCard } from "@/features/card/edit";
+import { useCardFormState } from "@/features/card/form";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -13,7 +14,7 @@ import { CardFormView } from "./CardFormView";
 
 const CardFormContent = ({ card }: { card: Card }) => {
   const navigate = useNavigate();
-  const mutations = useCardMutations();
+  const mutations = useEditCard();
   const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
   const goBack = () => void navigate(-1);
   const cardForm = useCardFormState({

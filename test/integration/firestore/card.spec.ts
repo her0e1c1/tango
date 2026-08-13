@@ -9,7 +9,9 @@ import type { Card } from "@/entities/card";
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { cardCommands } from "@/features/card/api/cardCommands";
+import { createCard as createCardCommand } from "@/features/card/create";
+import { deleteCard } from "@/features/card/delete/api/deleteCard";
+import { editCard } from "@/features/card/edit";
 import { createDeck as createDeckCommand } from "@/features/deck/create";
 import { upsertImportedCards } from "@/features/deck/import/api/upsertImportedCards";
 import { getTimestamp } from "@/shared/firestore";
@@ -55,7 +57,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
-    await cardCommands.create("uid", c);
+    await createCardCommand("uid", c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...newCard, deckId, id: c.id });
     expect(data).not.toHaveProperty("currentIndex");
@@ -65,14 +67,14 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   it("should update a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
-    await cardCommands.create("uid", c);
+    await createCardCommand("uid", c);
     const n = {
       ...c,
       frontText: "updated",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
-    await cardCommands.update("uid", n);
+    await editCard("uid", n);
     const data = (await getDoc(doc(db, "card", n.id))).data();
     expect(data).toEqual({ ...c, frontText: "updated" });
     expect(data).not.toHaveProperty("currentIndex");
@@ -83,7 +85,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
 
-    await upsertImportedCards("uid", [c]);
+    await upsertImportedCards("uid", [c], [c.id], { createCard: createCardCommand, editCard });
 
     expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(c);
   });
@@ -93,7 +95,12 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     const valid = { ...newCard, deckId, id: uuid(), frontText: "valid" };
     const invalid = { ...newCard, deckId, id: uuid(), frontText: 42 } as unknown as Card;
 
-    await expect(upsertImportedCards("uid", [valid, invalid])).rejects.toMatchObject({
+    await expect(
+      upsertImportedCards("uid", [valid, invalid], [valid.id, invalid.id], {
+        createCard: createCardCommand,
+        editCard,
+      })
+    ).rejects.toMatchObject({
       failedIds: [invalid.id],
       message: "1 of 2 Card writes failed",
     });
@@ -104,8 +111,8 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   it("should logical-remove a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
-    await cardCommands.create("uid", c);
-    await cardCommands.remove("uid", c.id);
+    await createCardCommand("uid", c);
+    await deleteCard("uid", c.id);
     const d = { ...c, deckId, deletedAt: timestamp } as Card;
     expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(d);
   });
@@ -113,7 +120,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   it("should exists a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
-    await cardCommands.create("uid", c);
+    await createCardCommand("uid", c);
     expect((await getDoc(doc(db, "card", c.id))).exists()).toBe(true);
   });
 });
