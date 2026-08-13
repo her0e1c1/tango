@@ -1,12 +1,12 @@
-import type { StudyProgressEdit } from "@/entities/study-progress";
+import { editStudyProgressSchema, type EditStudyProgressInput } from "@/entities/study-progress";
 
 import { doc, updateDoc } from "firebase/firestore";
 
-import { getDb, getTimestamp, omitUndefined, parseCardUpdateDto } from "@/shared/firestore";
+import { getDb, getTimestamp, omitUndefined } from "@/shared/firestore";
 
-export const editStudyProgress = async (uid: string, progress: StudyProgressEdit): Promise<void> => {
-  if (uid === "") throw new Error("A confirmed user is required for remote StudyProgress writes");
-  const { cardId, ...fields } = progress;
-  const document = parseCardUpdateDto(cardId, omitUndefined({ ...fields, updatedAt: getTimestamp() }));
+export const editStudyProgress = async (uid: string, progress: EditStudyProgressInput["progress"]): Promise<void> => {
+  const input = editStudyProgressSchema.parse({ uid, progress });
+  const { cardId, ...fields } = input.progress;
+  const document = omitUndefined({ ...fields, updatedAt: getTimestamp() });
   await updateDoc(doc(getDb(), "card", cardId), document);
 };

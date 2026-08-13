@@ -1,6 +1,33 @@
 import type { Card, CardId } from "../model/schema";
 
-import { parseCardDto } from "@/shared/firestore";
+import { z } from "zod";
+
+import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/firestore";
+
+const cardDtoSchema = z.object({
+  id: z.string().optional(),
+  frontText: z.string(),
+  backText: z.string(),
+  tags: z.array(z.string()),
+  uniqueKey: z.string(),
+  deckId: z.string(),
+  uid: z.string(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+  deletedAt: z.number().nullable(),
+  score: z.number(),
+  numberOfSeen: z.number(),
+  lastSeenAt: z.number().optional(),
+  nextSeeingAt: firestoreTimestampDateSchema.optional(),
+  interval: z.number().optional(),
+  url: z.string().optional(),
+  startLine: z.number().optional(),
+  endLine: z.number().optional(),
+});
+
+type CardDto = z.infer<typeof cardDtoSchema>;
+
+const parseCardDto = (id: CardId, value: unknown): CardDto => parseFirestoreDocument(cardDtoSchema, "card", id, value);
 
 export const convertCardDtoToCard = (id: CardId, value: unknown): Card => {
   const dto = parseCardDto(id, value);
