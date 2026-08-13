@@ -50,7 +50,7 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/features/card/read", () => ({
   useCards: () => {
     const cards = Object.values(mocks.cardsById);
-    return { status: "ready" as const, retry: vi.fn(), cards };
+    return { status: "ready" as const, syncStatus: mocks.syncStatus, retry: vi.fn(), cards };
   },
 }));
 vi.mock("@/features/deck/read", () => ({

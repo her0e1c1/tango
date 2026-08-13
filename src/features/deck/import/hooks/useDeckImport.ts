@@ -6,7 +6,6 @@
 
 import type { Card, CardId, CardRaw } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import type { RemoteSyncStatus } from "@/shared/api";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -20,20 +19,13 @@ import sampleCards from "../../../../../sample/build/output.json";
 import { CardBulkMutationError, upsertImportedCards } from "../api/upsertImportedCards";
 
 export interface DeckImportOptions {
-  cardRead: {
-    cards: Card[];
-    status: "idle" | "loading" | "ready" | "blocked" | "error";
-    syncStatus?: RemoteSyncStatus | undefined;
-  };
+  cards: Card[];
   createCard: (uid: string, card: Card) => Promise<unknown>;
   createDeck: (uid: string, deck: Deck) => Promise<unknown>;
-  deckRead: {
-    decks: Deck[];
-    status: "idle" | "loading" | "ready" | "blocked" | "error";
-    syncStatus?: RemoteSyncStatus | undefined;
-  };
+  decks: Deck[];
   editCard: (uid: string, card: Card) => Promise<unknown>;
   generateCardId: () => string;
+  synchronized: boolean;
 }
 
 interface DeckImportState {
@@ -315,21 +307,17 @@ const previewDeckImportFile = async (
  * services themselves.
  */
 export const useDeckImport = ({
-  cardRead,
+  cards,
   createCard,
   createDeck,
-  deckRead,
+  decks,
   editCard,
   generateCardId,
+  synchronized,
 }: DeckImportOptions) => {
   const auth = useAuthSession();
-  const cardsByDeckId = useCallback((deckId: DeckId) => selectCardsForDeck(cardRead.cards, deckId), [cardRead.cards]);
+  const cardsByDeckId = useCallback((deckId: DeckId) => selectCardsForDeck(cards, deckId), [cards]);
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const synchronized =
-    cardRead.status === "ready" &&
-    cardRead.syncStatus === "synced" &&
-    deckRead.status === "ready" &&
-    deckRead.syncStatus === "synced";
   const generation = useRef(0);
   const generationUid = useRef(uid);
   const runningRef = useRef(false);
@@ -356,13 +344,13 @@ export const useDeckImport = ({
     dependenciesRef.current = {
       uid,
       synchronized,
-      decks: deckRead.decks,
+      decks,
       cardsByDeckId,
       createDeck: (deck) => createDeck(uid, deck),
       generateCardId,
       bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
     };
-  }, [cardsByDeckId, createCard, createDeck, deckRead.decks, editCard, generateCardId, synchronized, uid]);
+  }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, synchronized, uid]);
   const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
     setState((current) => ({
       ...(current.uid === uid ? current : initialDeckImportState(uid)),
@@ -428,7 +416,7 @@ export const useDeckImport = ({
       setError,
       reset: resetOperation,
       synchronized,
-      decks: deckRead.decks,
+      decks,
       cardsByDeckId,
       uid,
       currentUid: generationUid,

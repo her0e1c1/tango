@@ -1,4 +1,4 @@
-import type { Card } from "@/entities/card";
+import type { Card, CardId } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { ConfigState } from "@/shared/config";
 
@@ -22,27 +22,25 @@ import { DeckStartView } from "./DeckStartView";
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
-type CardRead = Pick<ReturnType<typeof useCards>, "cards" | "cardsById">;
-
 const DeckStartContent = (props: {
-  cardRead: CardRead;
+  cardsById: Partial<Record<CardId, Card>>;
   deck: Deck;
   cards: Card[];
   config: ConfigState;
   tags: string[];
 }) => {
-  const { cardRead, deck, cards, config, tags } = props;
+  const { cardsById, deck, cards, config, tags } = props;
   const deckMutations = useEditDeck();
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {
-    cardRead,
-    deck,
+    cardsById,
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
   });
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
+  const start = () => studyActions.start(cards);
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
-    studyActions.start();
+    start();
   };
   useKey("Enter", startFromEnter, {}, [startFromEnter]);
 
@@ -52,7 +50,7 @@ const DeckStartContent = (props: {
         deckName={deck.name}
         maxNumberOfCardsToLearn={config.study.maxNumberOfCardsToLearn}
         cardsLength={cards.length}
-        onClickStart={studyActions.start}
+        onClickStart={start}
         filterSlot={<DeckStartForm {...deckStartForm} />}
       />
     </AppLayout>
@@ -89,7 +87,7 @@ export const DeckStartPage: React.FC = () => {
       onRetry={readState.retry}
     >
       {deck != null ? (
-        <DeckStartContent cardRead={cardRemote} deck={deck} cards={cards} config={config} tags={tags} />
+        <DeckStartContent cardsById={cardRemote.cardsById} deck={deck} cards={cards} config={config} tags={tags} />
       ) : null}
     </RemoteReadBoundary>
   );

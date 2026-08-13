@@ -18,7 +18,20 @@ export const DeckImportPage: React.FC = () => {
   const navigate = useNavigate();
   const cardRead = useCards();
   const deckRead = useDecks();
-  const deckImport = useDeckImport({ cardRead, createCard, createDeck, deckRead, editCard, generateCardId });
+  const synchronized =
+    cardRead.status === "ready" &&
+    cardRead.syncStatus === "synced" &&
+    deckRead.status === "ready" &&
+    deckRead.syncStatus === "synced";
+  const deckImport = useDeckImport({
+    cards: cardRead.cards,
+    createCard,
+    createDeck,
+    decks: deckRead.decks,
+    editCard,
+    generateCardId,
+    synchronized,
+  });
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
 

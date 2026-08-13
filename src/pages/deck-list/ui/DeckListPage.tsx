@@ -41,13 +41,19 @@ export const DeckListPage: React.FC = () => {
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(deckRemote.decks, cardRemote.cards, sessionsByDeckId);
+  const synchronized =
+    cardRemote.status === "ready" &&
+    cardRemote.syncStatus === "synced" &&
+    deckRemote.status === "ready" &&
+    deckRemote.syncStatus === "synced";
   useSampleDeckBootstrap({
-    cardRead: cardRemote,
+    cards: cardRemote.cards,
     createCard,
     createDeck,
-    deckRead: deckRemote,
+    decks: deckRemote.decks,
     editCard,
     generateCardId,
+    synchronized,
   });
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));

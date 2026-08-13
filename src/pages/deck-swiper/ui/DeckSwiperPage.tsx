@@ -57,8 +57,7 @@ const DeckSwiperContent = ({
   const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
   const cardMutation = useEditStudyProgress();
   const studyActions = useStudyActions(deckId, {
-    cardRead: cardRemote,
-    deck,
+    cardsById: cardRemote.cardsById,
     cardMutation: {
       update: cardMutation.update,
     },

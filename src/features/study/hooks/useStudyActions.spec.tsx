@@ -20,7 +20,6 @@ const mocks = vi.hoisted(() => {
 
   return {
     state: null as { card: Record<CardId, Card>; config: ConfigState } | null,
-    filteredCards: [] as Card[],
     cardUpdate,
     cardMutations: {
       update: cardUpdate,
@@ -33,14 +32,6 @@ vi.mock("@/shared/config", () => ({
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     return mocks.state.config;
   },
-}));
-
-vi.mock("@/entities/card", () => ({
-  selectCardsForDeck: (cards: Card[], deckId: string) => cards.filter((card) => card.deckId === deckId),
-}));
-
-vi.mock("./useStudyCards", () => ({
-  useStudyCards: () => mocks.filteredCards,
 }));
 
 const deck: Deck = {
@@ -110,10 +101,7 @@ const createState = (config = createConfig()) => ({
   config,
 });
 
-const getCardRead = () => ({
-  cardsById: mocks.state?.card ?? {},
-  cards: Object.values(mocks.state?.card ?? {}),
-});
+const getCardsById = () => mocks.state?.card ?? {};
 
 describe("useStudyActions", () => {
   beforeEach(() => {
@@ -122,7 +110,6 @@ describe("useStudyActions", () => {
     vi.spyOn(Date, "now").mockReturnValue(946684800000);
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.state = createState();
-    mocks.filteredCards = Object.values(mocks.state.card);
     studyStore.setState({
       sessionsByDeckId: {},
       showBackText: false,
@@ -152,10 +139,10 @@ describe("useStudyActions", () => {
         lastSwipe: undefined,
       });
     });
-    const { result } = renderHook(() => useStudyActions(deck.id, { cardRead: getCardRead(), deck, onStarted }));
+    const { result } = renderHook(() => useStudyActions(deck.id, { cardsById: getCardsById(), onStarted }));
 
     act(() => {
-      result.current.start();
+      result.current.start([card1]);
     });
 
     expect(onStarted).toHaveBeenCalledOnce();
@@ -164,7 +151,7 @@ describe("useStudyActions", () => {
   it("rejects a route and session mismatch before writing a card", async () => {
     studyStore.getState().startStudy("deck-2", [card1.id]);
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {
@@ -181,7 +168,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {
@@ -214,7 +201,7 @@ describe("useStudyActions", () => {
     studyStore.setState({ showBackText: true });
     mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {
@@ -237,7 +224,7 @@ describe("useStudyActions", () => {
       })
     );
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     const swipe = result.current.swipeRight();
@@ -262,7 +249,7 @@ describe("useStudyActions", () => {
         })
     );
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     const firstSwipe = result.current.swipeRight();
@@ -284,7 +271,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {
@@ -299,7 +286,7 @@ describe("useStudyActions", () => {
     studyStore.setState({ showBackText: true });
     const before = studyStore.getState();
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {
@@ -316,7 +303,7 @@ describe("useStudyActions", () => {
     studyStore.getState().setCurrentIndex(deck.id, 1);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {
@@ -336,7 +323,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     act(() => {
@@ -351,7 +338,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy(deck.id, [card1.id]);
     studyStore.getState().startStudy("deck-2", ["other-card"]);
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardRead: getCardRead(), deck, cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {
