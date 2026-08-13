@@ -9,20 +9,18 @@ import type { Deck, DeckId } from "@/entities/deck";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  CardBulkMutationError,
-  cardCommands,
-  createCard,
-  generateCardId,
-  selectCardsForDeck,
-  useCards,
-} from "@/entities/card";
-import { createDeck, generateDeckId, useDeckMutations, useDecks } from "@/entities/deck";
+import { createCard, generateCardId, selectCardsForDeck, useCards } from "@/entities/card";
+import { createDeck, generateDeckId, useDecks } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
+import { CardBulkMutationError, upsertImportedCards } from "../api/upsertImportedCards";
+
+export interface DeckImportOptions {
+  createDeck: (uid: string, deck: Deck) => Promise<unknown>;
+}
 
 interface DeckImportAttempt {
   uid: string;
@@ -280,11 +278,10 @@ const previewDeckImportFile = async (
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useDeckImport = () => {
+export const useDeckImport = ({ createDeck: createDeckUseCase }: DeckImportOptions) => {
   const auth = useAuthSession();
   const cardRemote = useCards();
   const deckRemote = useDecks();
-  const deckMutations = useDeckMutations();
   const cardsByDeckId = useCallback(
     (deckId: DeckId) => selectCardsForDeck(cardRemote.cards, deckId),
     [cardRemote.cards]
@@ -342,14 +339,14 @@ export const useDeckImport = () => {
         deckRemote.syncStatus === "synced",
       decks: deckRemote.decks,
       cardsByDeckId,
-      createDeck: deckMutations.create,
-      bulkUpsert: (cards) => cardCommands.bulkUpsert(uid, cards),
+      createDeck: (deck) => createDeckUseCase(uid, deck),
+      bulkUpsert: (cards) => upsertImportedCards(uid, cards),
     };
   }, [
     cardRemote.status,
     cardRemote.syncStatus,
-    deckMutations.create,
     cardsByDeckId,
+    createDeckUseCase,
     deckRemote.decks,
     deckRemote.status,
     deckRemote.syncStatus,

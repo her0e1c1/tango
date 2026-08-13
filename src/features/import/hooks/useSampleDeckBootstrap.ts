@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { useDecks } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import { useDeckImport } from "./useDeckImport";
+import type { DeckImportOptions } from "./useDeckImport";
 
 type AddSample = () => Promise<unknown>;
 
@@ -48,10 +49,10 @@ const sampleDeckBootstrapController = createSampleDeckBootstrapController();
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useSampleDeckBootstrap = () => {
+export const useSampleDeckBootstrap = (options: DeckImportOptions) => {
   const auth = useAuthSession();
   const remote = useDecks();
-  const deckImport = useDeckImport();
+  const deckImport = useDeckImport(options);
   const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useEffect(() => {

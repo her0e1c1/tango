@@ -2,6 +2,7 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CATEGORY, type Category, type Deck, useDecks } from "@/entities/deck";
+import { useEditDeck } from "@/features/deck/edit";
 import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
 import { setDarkMode, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
@@ -14,8 +15,9 @@ import { DeckFormView } from "./DeckFormView";
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const config = useConfig();
   const navigate = useNavigate();
+  const mutations = useEditDeck();
   const goToList = () => void navigate("/", { replace: true });
-  const deckActions = useDeckEditorActions({ onCancel: goToList, onSaved: goToList });
+  const deckActions = useDeckEditorActions({ mutations, onCancel: goToList, onSaved: goToList });
   const categoryOptions: { label: Category; value: Category }[] = CATEGORY.map((category) => ({
     label: category,
     value: category,

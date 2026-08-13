@@ -4,7 +4,9 @@ import { useKey } from "react-use";
 
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import { useDeckMutations, useDecks } from "@/entities/deck";
+import { useDecks } from "@/entities/deck";
+import { createDeck } from "@/features/deck/create";
+import { useDeleteDeck } from "@/features/deck/delete";
 import { downloadDeckCsv } from "@/features/export";
 import { useSampleDeckBootstrap } from "@/features/import";
 import {
@@ -33,8 +35,8 @@ export const DeckListPage: React.FC = () => {
   const readState = combineRemoteReadStates(cardRemote, deckRemote);
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
-  const mutations = useDeckMutations({
-    onRemoveSuccess: (deck) => {
+  const mutations = useDeleteDeck({
+    onSuccess: (deck) => {
       removeStudySession(deck.id);
       setDeletionTarget((target) => (target?.deck.id === deck.id ? undefined : target));
       setSuccessMessage(`Deleted deck “${deck.name}”.`);
@@ -44,7 +46,7 @@ export const DeckListPage: React.FC = () => {
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(deckRemote.decks, cardRemote.cards, sessionsByDeckId);
-  useSampleDeckBootstrap();
+  useSampleDeckBootstrap({ createDeck });
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
 

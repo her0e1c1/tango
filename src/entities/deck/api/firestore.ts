@@ -37,15 +37,8 @@ export const update = async (deck: DeckEdit): Promise<void> => {
   await updateDoc(doc(getDb(), DECK_COLLECTION, deck.id), buildDeckUpdateDto(deck, getTimestamp()));
 };
 
-export const remove = async (deckId: string, uid: string): Promise<void> => {
-  const db = getDb();
-  const cardQuery = query(collection(db, "card"), where("uid", "==", uid), where("deckId", "==", deckId));
-  const snapshot = await getDocs(cardQuery);
-  const childResults = await Promise.allSettled(snapshot.docs.map((document) => deleteDoc(document.ref)));
-  const childFailure = childResults.find((result): result is PromiseRejectedResult => result.status === "rejected");
-  if (childFailure != null) throw childFailure.reason;
-
-  await deleteDoc(doc(db, DECK_COLLECTION, deckId));
+export const remove = async (deckId: string): Promise<void> => {
+  await deleteDoc(doc(getDb(), DECK_COLLECTION, deckId));
 };
 
 export const exists = async (id: string): Promise<boolean> =>

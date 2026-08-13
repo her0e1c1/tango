@@ -2,6 +2,7 @@ import type React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
+import { createDeck } from "@/features/deck/create";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/import";
 import { setDarkMode, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
@@ -11,7 +12,7 @@ import { DeckImportView } from "./DeckImportView";
 export const DeckImportPage: React.FC = () => {
   const config = useConfig();
   const navigate = useNavigate();
-  const deckImport = useDeckImport();
+  const deckImport = useDeckImport({ createDeck });
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
 

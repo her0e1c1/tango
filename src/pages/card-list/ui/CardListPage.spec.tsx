@@ -79,9 +79,10 @@ vi.mock("@/entities/deck", async (importOriginal) => {
       retry: vi.fn(),
       decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
     }),
-    useDeckMutations: () => ({ update: vi.fn() }),
   };
 });
+
+vi.mock("@/features/deck/edit", () => ({ useEditDeck: () => ({ update: vi.fn() }) }));
 
 vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();

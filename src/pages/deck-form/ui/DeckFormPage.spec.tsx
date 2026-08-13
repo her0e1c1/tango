@@ -35,6 +35,10 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 
+vi.mock("@/features/deck/edit", () => ({
+  useEditDeck: () => ({ update: vi.fn(), pending: false, error: null, retry: vi.fn() }),
+}));
+
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,

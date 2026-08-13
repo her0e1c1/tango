@@ -4,9 +4,10 @@ import type { Card, CardEdit, CardId } from "@/entities/card";
 
 import { useEffect, useRef } from "react";
 
-import { cardCommands, useCards } from "@/entities/card";
+import { useCards } from "@/entities/card";
 import { useAuthSession } from "@/entities/auth-session";
 import { useAsyncAction } from "@/shared/hooks";
+import { cardCommands } from "../api/cardCommands";
 
 type CardPatch = Partial<Omit<Card, "id" | "deckId" | "uid">>;
 
@@ -45,23 +46,15 @@ export const useCardMutations = ({ onRemoveSuccess }: UseCardMutationsOptions = 
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
     const operationScope = scope.current;
     return mutation.run([id], `remove:${id}`, async () => {
-      await cardCommands.remove(uid, id, card.deckId);
+      await cardCommands.remove(uid, id);
       if (scope.current === operationScope) onRemoveSuccessRef.current?.(card);
     });
   };
-  const bulkUpsert = (cards: Card[]) => {
-    const ids = cards.map((card) => card.id);
-    return mutation.run(ids, `bulkUpsert:${JSON.stringify([...ids].sort())}`, () =>
-      cardCommands.bulkUpsert(uid, cards)
-    );
-  };
-
   return {
     create,
     update,
     updateBy,
     remove,
-    bulkUpsert,
     pending: mutation.pending,
     isPending: mutation.isPending,
     error: mutation.error,

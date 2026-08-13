@@ -70,7 +70,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     const d = { ...newDeck, id: uuid() };
     await deckAdapter.create(d);
     expect((await getDoc(doc(db, "deck", d.id))).exists()).toBeTruthy();
-    await deckAdapter.remove(d.id, "uid");
+    await deckAdapter.remove(d.id);
     await expect(deckAdapter.exists(d.id)).rejects.toMatchObject({ code: "permission-denied" });
   });
 });
