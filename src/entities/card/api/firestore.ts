@@ -1,9 +1,5 @@
 import type { Card, CardEdit } from "../model/card";
-import {
-  createStudyProgress,
-  createStudyProgressFromCard,
-  mapStudyProgressDocument,
-} from "@/entities/study-progress/@x/card";
+import { createStudyProgressFromCard, mapStudyProgressDocument } from "@/entities/study-progress/@x/card";
 
 import {
   collection,
@@ -39,7 +35,7 @@ export const readAll = async (uid: string, firestore: Firestore = getDb()): Prom
 export const create = async (card: Card, createdAt?: number): Promise<string> => {
   await setDoc(
     doc(getDb(), CARD_COLLECTION, card.id),
-    buildCardCreateDto(card, createStudyProgress(card.id), createdAt ?? getTimestamp())
+    buildCardCreateDto(card, createStudyProgressFromCard(card), createdAt ?? getTimestamp())
   );
   return card.id;
 };

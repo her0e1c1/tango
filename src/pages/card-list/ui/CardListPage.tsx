@@ -6,6 +6,7 @@ import { useKey } from "react-use";
 
 import { type Card, type CardId, selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, useDeckMutations, useDecks } from "@/entities/deck";
+import { useStudyProgresses } from "@/entities/study-progress";
 import { useCardMutations } from "@/features/card";
 import { DeckStartForm, useDeckFilterState, useStudyCards, useStudyProgressMutations } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
@@ -151,11 +152,12 @@ export const CardListPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
   const config = useConfig();
   const cardRemote = useCards();
+  const progressRemote = useStudyProgresses();
   const remote = useDecks();
-  const readState = combineRemoteReadStates(cardRemote, remote);
+  const readState = combineRemoteReadStates(cardRemote, progressRemote, remote);
   const deck = remote.decksById[deckId];
   const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
-  const cards = useStudyCards(deck, deckCards, config);
+  const cards = useStudyCards(deck, deckCards, progressRemote.progressesByCardId, config);
   const tags = selectTagsForDeck(cardRemote.cards, deckId);
 
   return (

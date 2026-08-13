@@ -18,12 +18,14 @@ import { actAsync } from "@/test/act";
 const mocks = vi.hoisted(() => {
   const cardUpdate = vi.fn();
   const pendingIds = new Set<CardId>();
+  const missingProgressIds = new Set<CardId>();
 
   return {
     state: null as { card: Record<CardId, Card>; config: ConfigState } | null,
     filteredCards: [] as Card[],
     cardUpdate,
     pendingIds,
+    missingProgressIds,
     progressMutations: {
       update: cardUpdate,
       isPending: (id: CardId) => pendingIds.has(id),
@@ -49,6 +51,27 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/deck", () => ({
   useDecks: () => ({ decksById: {} }),
 }));
+
+vi.mock("@/entities/study-progress", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/study-progress")>();
+  return {
+    ...actual,
+    useStudyProgresses: () => ({
+      progressesByCardId: Object.fromEntries(
+        Object.values(mocks.state?.card ?? {}).flatMap((card) =>
+          mocks.missingProgressIds.has(card.id)
+            ? []
+            : [
+                [
+                  card.id,
+                  { cardId: card.id, score: card.score, numberOfSeen: card.numberOfSeen, lastSeenAt: card.lastSeenAt },
+                ],
+              ]
+        )
+      ),
+    }),
+  };
+});
 
 vi.mock("@/features/study/hooks/useStudyCards", () => ({
   useStudyCards: () => mocks.filteredCards,
@@ -128,6 +151,7 @@ describe("useStudyActions", () => {
     vi.spyOn(Date, "now").mockReturnValue(946684800000);
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.pendingIds.clear();
+    mocks.missingProgressIds.clear();
     mocks.state = createState();
     mocks.filteredCards = Object.values(mocks.state.card);
     studyStore.setState({
@@ -262,6 +286,22 @@ describe("useStudyActions", () => {
 
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
     expect(studyStore.getState().sessionsByDeckId[deck.id]?.currentIndex).toBe(0);
+  });
+
+  it("leaves the session unchanged when its StudyProgress is unavailable", async () => {
+    studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
+    mocks.missingProgressIds.add(card1.id);
+    const { result } = renderHook(() => useStudyActions(deck.id, { progressMutation: mocks.progressMutations }));
+
+    await actAsync(async () => {
+      await result.current.swipeRight();
+    });
+
+    expect(mocks.cardUpdate).not.toHaveBeenCalled();
+    expect(studyStore.getState()).toMatchObject({
+      sessionsByDeckId: { [deck.id]: { currentIndex: 0 } },
+      lastSwipe: undefined,
+    });
   });
 
   it("blocks a second swipe while the first Card write is unresolved", async () => {

@@ -1,5 +1,5 @@
 import type { Card } from "@/entities/card";
-import { createStudyProgressFromCard, type StudyProgress } from "@/entities/study-progress";
+import type { StudyProgress } from "@/entities/study-progress";
 
 type StudyCardContent = Omit<Card, keyof Omit<StudyProgress, "cardId">>;
 
@@ -8,7 +8,7 @@ export interface StudyCard<TCard extends StudyCardContent = StudyCardContent> {
   progress: StudyProgress;
 }
 
-export const createStudyCard = <TCard extends Card>(card: TCard): StudyCard<TCard> => ({
+export const createStudyCard = <TCard extends Card>(card: TCard, progress: StudyProgress): StudyCard<TCard> => ({
   card,
-  progress: createStudyProgressFromCard(card),
+  progress,
 });

@@ -2,16 +2,28 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
+import { getNextStudyAvailabilityAt, type StudyProgress } from "@/entities/study-progress";
 import { filterCardsForDeck } from "@/features/study/model/cardSelection";
 import { createStudyCard } from "@/features/study/model/studyCard";
 import type { ConfigState } from "@/shared/config";
 
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
-export const useStudyCards = (deck: Deck | undefined, cards: Card[], config: ConfigState): Card[] => {
+export const useStudyCards = (
+  deck: Deck | undefined,
+  cards: Card[],
+  progressesByCardId: Readonly<Record<string, StudyProgress | undefined>>,
+  config: ConfigState
+): Card[] => {
   const [scheduleClock, setScheduleClock] = useState(() => Date.now());
-  const studyCards = useMemo(() => cards.map(createStudyCard), [cards]);
+  const studyCards = useMemo(
+    () =>
+      cards.flatMap((card) => {
+        const progress = progressesByCardId[card.id];
+        return progress == null ? [] : [createStudyCard(card, progress)];
+      }),
+    [cards, progressesByCardId]
+  );
 
   useEffect(() => {
     const current = Date.now();
@@ -34,5 +46,10 @@ export const useStudyCards = (deck: Deck | undefined, cards: Card[], config: Con
     };
   }, [scheduleClock, studyCards]);
 
-  return deck == null ? [] : filterCardsForDeck(studyCards, deck, config.study, scheduleClock).map(({ card }) => card);
+  return deck == null
+    ? []
+    : filterCardsForDeck(studyCards, deck, config.study, scheduleClock).map(({ card, progress }) => {
+        const { cardId: _cardId, ...progressFields } = progress;
+        return { ...card, ...progressFields };
+      });
 };

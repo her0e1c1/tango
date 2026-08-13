@@ -91,6 +91,19 @@ vi.mock("@/entities/card", () => ({
   }),
 }));
 
+vi.mock("@/entities/study-progress", () => ({
+  useStudyProgresses: () => ({
+    status: mocks.cardReadStatus,
+    retry: mocks.cardReadRetry,
+    progressesByCardId: Object.fromEntries(
+      Object.values(mocks.state?.card ?? {}).map((card) => [
+        card.id,
+        { cardId: card.id, score: card.score, numberOfSeen: card.numberOfSeen, lastSeenAt: card.lastSeenAt },
+      ])
+    ),
+  }),
+}));
+
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,

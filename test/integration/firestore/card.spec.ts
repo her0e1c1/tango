@@ -52,12 +52,22 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
       ...newCard,
       deckId,
       id: uuid(),
+      score: 2,
+      numberOfSeen: 3,
+      lastSeenAt: timestamp,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
     await cardAdapter.create(c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
-    expect(data).toEqual({ ...newCard, deckId, id: c.id });
+    expect(data).toEqual({
+      ...newCard,
+      deckId,
+      id: c.id,
+      score: 2,
+      numberOfSeen: 3,
+      lastSeenAt: timestamp,
+    });
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });

@@ -8,7 +8,7 @@ import { useAsyncAction } from "@/shared/hooks";
 export const useStudyProgressMutations = (deckId: DeckId) => {
   const auth = useSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const mutation = useAsyncAction<CardId>(uid);
+  const mutation = useAsyncAction<CardId>(`${uid}:${deckId}`);
 
   const update = (progress: StudyProgressEdit) =>
     mutation.run([progress.cardId], `update:${progress.cardId}`, () =>

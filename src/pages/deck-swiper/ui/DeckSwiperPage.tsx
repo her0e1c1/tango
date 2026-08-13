@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useCards } from "@/entities/card";
+import { useStudyProgresses } from "@/entities/study-progress";
 import { BackText, CardOverlay, FrontText } from "@/features/card";
 import {
   initializeStudySessionUi,
@@ -39,7 +40,8 @@ export const DeckSwiperPage: React.FC = () => {
   const config = useConfig();
   const remote = useDecks();
   const cardRemote = useCards();
-  const readState = combineRemoteReadStates(cardRemote, remote);
+  const progressRemote = useStudyProgresses();
+  const readState = combineRemoteReadStates(cardRemote, progressRemote, remote);
   const deck = remote.decksById[deckId];
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);

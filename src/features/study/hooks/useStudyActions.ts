@@ -6,12 +6,13 @@
 
 import type { Card, CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import type { StudyProgressEdit } from "@/entities/study-progress";
+import type { StudyProgress, StudyProgressEdit } from "@/entities/study-progress";
 import type { ConfigState, SwipeDirection } from "@/shared/config";
 
 import React from "react";
 
 import { selectCardsForDeck, useCards } from "@/entities/card";
+import { useStudyProgresses } from "@/entities/study-progress";
 import { useDecks } from "@/entities/deck";
 import { useStudyCards } from "@/features/study/hooks/useStudyCards";
 import { buildStudySession, calculateNextIndex } from "@/features/study/model/session";
@@ -53,6 +54,7 @@ interface StudySwipeDependencies {
   deckId: DeckId;
   config: ConfigState;
   cardsById: Partial<Record<CardId, Card>>;
+  progressesByCardId: Readonly<Record<string, StudyProgress | undefined>>;
   isPending: (id: CardId) => boolean;
   update: (progress: StudyProgressEdit) => Promise<void>;
 }
@@ -95,7 +97,7 @@ const revertOptimisticUpdate = (
  */
 const runStudySwipe = async (
   direction: SwipeDirection,
-  { mutationTokenRef, deckId, config, cardsById, isPending, update }: StudySwipeDependencies
+  { mutationTokenRef, deckId, config, cardsById, progressesByCardId, isPending, update }: StudySwipeDependencies
 ): Promise<void> => {
   if (mutationTokenRef.current !== undefined) return;
   const state = studyStore.getState();
@@ -114,6 +116,8 @@ const runStudySwipe = async (
   const cardId = session.cardOrderIds[session.currentIndex];
   const card = cardId == null ? undefined : cardsById[cardId];
   if (card == null || isPending(card.id)) return;
+  const progress = progressesByCardId[card.id];
+  if (progress == null) return;
 
   const previous = {
     session: { ...session },
@@ -126,7 +130,7 @@ const runStudySwipe = async (
     state.hideBackText();
   }
 
-  const patch = buildStudyPatch(createStudyCard(card), swipeAction, Date.now());
+  const patch = buildStudyPatch(createStudyCard(card, progress), swipeAction, Date.now());
   const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
   const mutationToken = Symbol();
   mutationTokenRef.current = mutationToken;
@@ -151,9 +155,10 @@ export const useStudyActions = (
 ): StudyActions => {
   const config = useConfig();
   const cardRemote = useCards();
+  const progressRemote = useStudyProgresses();
   const deckRemote = useDecks();
   const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
-  const cards = useStudyCards(deckRemote.decksById[deckId], deckCards, config);
+  const cards = useStudyCards(deckRemote.decksById[deckId], deckCards, progressRemote.progressesByCardId, config);
   const cardsById = cardRemote.cardsById;
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
@@ -181,6 +186,7 @@ export const useStudyActions = (
       deckId,
       config,
       cardsById,
+      progressesByCardId: progressRemote.progressesByCardId,
       isPending: progressMutation.isPending,
       update: progressMutation.update,
     });

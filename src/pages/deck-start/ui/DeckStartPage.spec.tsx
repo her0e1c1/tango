@@ -37,6 +37,15 @@ vi.mock("@/entities/deck", () => ({
   }),
   useDeckMutations: () => ({ update: mocks.update }),
 }));
+vi.mock("@/entities/study-progress", () => ({
+  useStudyProgresses: () => ({
+    status: "ready" as const,
+    retry: vi.fn(),
+    progressesByCardId: Object.fromEntries(
+      mocks.cards.map((card) => [card.id, { cardId: card.id, score: card.score, numberOfSeen: card.numberOfSeen }])
+    ),
+  }),
+}));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: (_deckId: string, options: { onStarted?: () => void } = {}) => ({
     start: () => {

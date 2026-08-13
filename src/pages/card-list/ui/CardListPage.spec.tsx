@@ -85,6 +85,19 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 
+vi.mock("@/entities/study-progress", () => ({
+  useStudyProgresses: () => ({
+    status: "ready" as const,
+    retry: vi.fn(),
+    progressesByCardId: Object.fromEntries(
+      mocks.cards.map((card) => [
+        card.id,
+        { cardId: card.id, score: card.score, numberOfSeen: card.numberOfSeen, lastSeenAt: card.lastSeenAt },
+      ])
+    ),
+  }),
+}));
+
 vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
