@@ -5,7 +5,7 @@
  * collections when the UID has no documents".
  */
 
-import "@/shared/firebase/test/initializeTestFirestore";
+import "@/test/initializeTestFirestore";
 import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { initializeTestEnvironment, type RulesTestEnvironment } from "@firebase/rules-unit-testing";
