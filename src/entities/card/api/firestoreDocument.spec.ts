@@ -4,6 +4,7 @@ import { Timestamp } from "firebase/firestore";
 import { describe, expect, it } from "vitest";
 
 import { FirestoreDocumentValidationError } from "@/shared/firestore";
+import { createStudyProgressFromCard, mapStudyProgressDocument } from "@/entities/study-progress/@x/card";
 import { createCard } from "@/test/factories";
 import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument } from "./firestoreDocument";
 
@@ -23,7 +24,7 @@ const cardDocument = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe("Card Firestore document", () => {
-  it("maps Firestore timestamps and optional fields using the snapshot id", () => {
+  it("maps only Card fields using the snapshot id", () => {
     expect(
       mapCardDocument(
         "snapshot-id",
@@ -47,20 +48,31 @@ describe("Card Firestore document", () => {
       createdAt: 10,
       updatedAt: 20,
       deletedAt: null,
-      score: 3,
-      numberOfSeen: 4,
-      lastSeenAt: 50,
-      nextSeeingAt: new Date(60),
-      interval: 7,
       url: "https://example.com/card",
       startLine: 8,
       endLine: 9,
     });
   });
 
+  it("maps StudyProgress independently from the same document", () => {
+    expect(
+      mapStudyProgressDocument(
+        "snapshot-id",
+        cardDocument({ lastSeenAt: 50, nextSeeingAt: Timestamp.fromMillis(60), interval: 7 })
+      )
+    ).toEqual({
+      cardId: "snapshot-id",
+      score: 3,
+      numberOfSeen: 4,
+      lastSeenAt: 50,
+      nextSeeingAt: new Date(60),
+      interval: 7,
+    });
+  });
+
   it("preserves legacy Date values and omits absent optional fields", () => {
     const nextSeeingAt = new Date(60);
-    const mapped = mapCardDocument("snapshot-id", cardDocument({ nextSeeingAt }));
+    const mapped = mapStudyProgressDocument("snapshot-id", cardDocument({ nextSeeingAt }));
 
     expect(mapped.nextSeeingAt).toEqual(nextSeeingAt);
     expect(mapped).not.toHaveProperty("lastSeenAt");
@@ -95,7 +107,7 @@ describe("Card Firestore document", () => {
       nextSeeingAt: new Date(6),
     });
 
-    expect(buildCardCreateDto(card, 200)).toEqual(
+    expect(buildCardCreateDto(card, createStudyProgressFromCard(card), 200)).toEqual(
       expect.objectContaining({ id: "card-1", createdAt: 200, updatedAt: 200, deletedAt: null })
     );
     expect(buildCardUpdateDto(card, 201)).toEqual(
@@ -104,6 +116,6 @@ describe("Card Firestore document", () => {
     expect(buildCardUpdateDto(card, 201)).not.toHaveProperty("id");
 
     const invalidCard = { ...card, tags: ["math", 42] } as unknown as Card;
-    expect(() => buildCardCreateDto(invalidCard, 200)).toThrow();
+    expect(() => buildCardCreateDto(invalidCard, createStudyProgressFromCard(invalidCard), 200)).toThrow();
   });
 });

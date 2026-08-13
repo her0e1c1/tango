@@ -30,7 +30,7 @@ const mocks = vi.hoisted(() => ({
   swipeRight: vi.fn(),
   updateIndex: vi.fn(),
   resetStudy: vi.fn(),
-  cardMutation: {
+  progressMutation: {
     isPending: vi.fn(() => false),
     update: vi.fn(),
     pending: false,
@@ -96,17 +96,13 @@ vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
 
-vi.mock("@/features/card", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/card")>();
-  return { ...actual, useCardMutations: () => mocks.cardMutation };
-});
-
 vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
     initializeStudySessionUi: mocks.initializeStudySessionUi,
     touchStudySession: mocks.touchStudySession,
+    useStudyProgressMutations: () => mocks.progressMutation,
     useStudyActions: () => ({
       swipeUp: mocks.swipeUp,
       swipeDown: mocks.swipeDown,
@@ -186,8 +182,8 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     mocks.deckReadStatus = "ready";
     mocks.pending = false;
     mocks.error = null;
-    mocks.cardMutation.pending = false;
-    mocks.cardMutation.error = null;
+    mocks.progressMutation.pending = false;
+    mocks.progressMutation.error = null;
     mocks.studyState.sessionsByDeckId = {
       [deck.id]: {
         deckId: deck.id,

@@ -10,6 +10,7 @@ export {
 export { useStudyHydrated } from "./hooks/useStudyHydrated";
 export { useDeckFilterState } from "./hooks/useDeckFilterState";
 export { useStudyActions } from "./hooks/useStudyActions";
+export { useStudyProgressMutations } from "./hooks/useStudyProgressMutations";
 export { useStudyCards } from "./hooks/useStudyCards";
 export { useStudyControllerState } from "./hooks/useStudyControllerState";
 export { useStudySessions } from "./hooks/useStudySessions";

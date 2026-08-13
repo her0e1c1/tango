@@ -32,8 +32,7 @@ describe("buildStudyPatch", () => {
   it("builds a patch with incremented numberOfSeen and computed score", () => {
     const patch = buildStudyPatch(card, "GoToNextCardMastered", now);
     expect(patch).toEqual({
-      id: "c1",
-      deckId: "d1",
+      cardId: "c1",
       score: 1,
       numberOfSeen: 3,
       lastSeenAt: now,

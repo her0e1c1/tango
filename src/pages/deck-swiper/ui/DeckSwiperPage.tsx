@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useCards } from "@/entities/card";
-import { BackText, CardOverlay, FrontText, useCardMutations } from "@/features/card";
+import { BackText, CardOverlay, FrontText } from "@/features/card";
 import {
   initializeStudySessionUi,
   selectStudySessionForRoute,
@@ -14,6 +14,7 @@ import {
   useStudyActions,
   useStudyControllerState,
   useStudyHydrated,
+  useStudyProgressMutations,
   useStudyStore,
 } from "@/features/study";
 import { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
@@ -50,14 +51,14 @@ export const DeckSwiperPage: React.FC = () => {
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
   const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
-  const cardMutation = useCardMutations();
+  const progressMutation = useStudyProgressMutations(deckId);
   const studyActions = useStudyActions(deckId, {
-    cardMutation: {
-      isPending: cardMutation.isPending,
-      update: cardMutation.update,
-      pending: cardMutation.pending,
-      error: cardMutation.error,
-      retry: cardMutation.retry,
+    progressMutation: {
+      isPending: progressMutation.isPending,
+      update: progressMutation.update,
+      pending: progressMutation.pending,
+      error: progressMutation.error,
+      retry: progressMutation.retry,
     },
   });
   useKey("ArrowUp", studyActions.swipeUp);

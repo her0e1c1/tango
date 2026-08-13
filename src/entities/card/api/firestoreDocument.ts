@@ -1,4 +1,5 @@
 import type { Card, CardEdit, CardId } from "../model/card";
+import type { StudyProgress } from "@/entities/study-progress/@x/card";
 
 import { z } from "zod";
 
@@ -29,20 +30,24 @@ const cardCreateDtoSchema = cardDocumentSchema.extend({
   id: z.string(),
 });
 
-const cardUpdateDtoSchema = cardDocumentSchema.omit({ id: true }).partial().extend({
-  updatedAt: z.number(),
-});
+const cardUpdateDtoSchema = cardDocumentSchema
+  .omit({ id: true, score: true, numberOfSeen: true, lastSeenAt: true, nextSeeingAt: true, interval: true })
+  .partial()
+  .extend({
+    updatedAt: z.number(),
+  });
 
-type CardDocument = z.infer<typeof cardDocumentSchema>;
+export type CardDocument = z.infer<typeof cardDocumentSchema>;
+type CardContent = Omit<Card, "score" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval">;
 export type CardCreateDto = z.infer<typeof cardCreateDtoSchema>;
 export type CardUpdateDto = z.infer<typeof cardUpdateDtoSchema>;
 
-const parseCardDocument = (id: CardId, value: unknown): CardDocument =>
+export const parseCardDocument = (id: CardId, value: unknown): CardDocument =>
   parseFirestoreDocument(cardDocumentSchema, "card", id, value);
 
-export const mapCardDocument = (id: CardId, value: unknown): Card => {
+export const mapCardDocument = (id: CardId, value: unknown): CardContent => {
   const document = parseCardDocument(id, value);
-  const card: Card = {
+  const card: CardContent = {
     id,
     frontText: document.frontText,
     backText: document.backText,
@@ -53,12 +58,7 @@ export const mapCardDocument = (id: CardId, value: unknown): Card => {
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
     deletedAt: document.deletedAt,
-    score: document.score,
-    numberOfSeen: document.numberOfSeen,
   };
-  if (document.lastSeenAt !== undefined) card.lastSeenAt = document.lastSeenAt;
-  if (document.nextSeeingAt !== undefined) card.nextSeeingAt = document.nextSeeingAt;
-  if (document.interval !== undefined) card.interval = document.interval;
   if (document.url !== undefined) card.url = document.url;
   if (document.startLine !== undefined) card.startLine = document.startLine;
   if (document.endLine !== undefined) card.endLine = document.endLine;
@@ -74,7 +74,7 @@ type OmitUndefined<T extends Record<string, unknown>> = {
 const omitUndefined = <T extends Record<string, unknown>>(value: T): OmitUndefined<T> =>
   Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as OmitUndefined<T>;
 
-export const buildCardCreateDto = (card: Card, createdAt: number): CardCreateDto =>
+export const buildCardCreateDto = (card: Card, progress: StudyProgress, createdAt: number): CardCreateDto =>
   cardCreateDtoSchema.parse(
     omitUndefined({
       id: card.id,
@@ -87,11 +87,11 @@ export const buildCardCreateDto = (card: Card, createdAt: number): CardCreateDto
       createdAt,
       updatedAt: createdAt,
       deletedAt: null,
-      score: card.score,
-      numberOfSeen: card.numberOfSeen,
-      lastSeenAt: card.lastSeenAt,
-      nextSeeingAt: card.nextSeeingAt,
-      interval: card.interval,
+      score: progress.score,
+      numberOfSeen: progress.numberOfSeen,
+      lastSeenAt: progress.lastSeenAt,
+      nextSeeingAt: progress.nextSeeingAt,
+      interval: progress.interval,
       url: card.url,
       startLine: card.startLine,
       endLine: card.endLine,
@@ -110,11 +110,6 @@ export const buildCardUpdateDto = (card: CardEdit, updatedAt: number): CardUpdat
       createdAt: card.createdAt,
       updatedAt,
       deletedAt: card.deletedAt,
-      score: card.score,
-      numberOfSeen: card.numberOfSeen,
-      lastSeenAt: card.lastSeenAt,
-      nextSeeingAt: card.nextSeeingAt,
-      interval: card.interval,
       url: card.url,
       startLine: card.startLine,
       endLine: card.endLine,

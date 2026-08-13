@@ -14,6 +14,7 @@ import * as UUID from "uuid";
 
 import * as cardAdapter from "@/entities/card/api/firestore";
 import { buildCardCreateDto } from "@/entities/card/api/firestoreDocument";
+import { createStudyProgressFromCard } from "@/entities/study-progress";
 import * as deckAdapter from "@/entities/deck/api/firestore";
 import { buildDeckCreateDto } from "@/entities/deck/api/firestoreDocument";
 import { createCard, createDeck } from "@/test/factories";
@@ -69,9 +70,16 @@ describe("Firestore full reads", () => {
     const deleted = createCard({ id: uuid(), deckId: deck.id, uid: "uid", frontText: "Deleted remote" });
     const foreign = createCard({ id: uuid(), deckId: "foreign-deck", uid: "other", frontText: "Foreign remote" });
     await seed("deck", deck.id, buildDeckCreateDto(deck, deck.createdAt));
-    await seed("card", active.id, buildCardCreateDto(active, active.createdAt));
-    await seed("card", deleted.id, { ...buildCardCreateDto(deleted, deleted.createdAt), deletedAt: 100 });
-    await seed("card", foreign.id, buildCardCreateDto(foreign, foreign.createdAt));
+    await seed("card", active.id, buildCardCreateDto(active, createStudyProgressFromCard(active), active.createdAt));
+    await seed("card", deleted.id, {
+      ...buildCardCreateDto(deleted, createStudyProgressFromCard(deleted), deleted.createdAt),
+      deletedAt: 100,
+    });
+    await seed(
+      "card",
+      foreign.id,
+      buildCardCreateDto(foreign, createStudyProgressFromCard(foreign), foreign.createdAt)
+    );
 
     await expect(cardAdapter.readAll("uid", db)).resolves.toEqual([
       expect.objectContaining({ id: active.id, frontText: "Active remote" }),
@@ -97,7 +105,10 @@ describe("Firestore full reads", () => {
 
   it("rejects an invalid Card nextSeeingAt with its field path", async () => {
     const card = createCard({ id: uuid(), uid: "uid" });
-    await seed("card", card.id, { ...buildCardCreateDto(card, card.createdAt), nextSeeingAt: null });
+    await seed("card", card.id, {
+      ...buildCardCreateDto(card, createStudyProgressFromCard(card), card.createdAt),
+      nextSeeingAt: null,
+    });
 
     await expect(cardAdapter.readAll("uid", db)).rejects.toMatchObject({
       name: "FirestoreDocumentValidationError",

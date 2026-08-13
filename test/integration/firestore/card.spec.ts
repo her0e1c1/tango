@@ -10,6 +10,7 @@ import "@/shared/firebase/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import * as cardAdapter from "@/entities/card/api/firestore";
+import * as studyProgressAdapter from "@/entities/study-progress/api/firestore";
 import * as deckAdapter from "@/entities/deck/api/firestore";
 import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
@@ -68,6 +69,8 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     const n = {
       ...c,
       frontText: "updated",
+      score: 4,
+      numberOfSeen: 5,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
@@ -76,6 +79,21 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     expect(data).toEqual({ ...c, frontText: "updated" });
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
+  });
+
+  it("should update study progress without changing Card fields", async () => {
+    const deckId = await initDeck();
+    const c = { ...newCard, deckId, id: uuid() };
+    await cardAdapter.create(c);
+
+    await studyProgressAdapter.update({ cardId: c.id, score: 4, numberOfSeen: 5, lastSeenAt: timestamp });
+
+    expect((await getDoc(doc(db, "card", c.id))).data()).toEqual({
+      ...c,
+      score: 4,
+      numberOfSeen: 5,
+      lastSeenAt: timestamp,
+    });
   });
 
   it("should bulk-update a card", async () => {

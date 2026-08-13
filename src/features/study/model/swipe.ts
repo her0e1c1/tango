@@ -1,6 +1,5 @@
-import type { CardEdit } from "@/entities/card";
-import { recordStudyProgress, type StudyRating } from "@/entities/study-progress";
-import { createCardProgressEdit, type StudyCard } from "@/features/study/model/studyCard";
+import { recordStudyProgress, type StudyProgressEdit, type StudyRating } from "@/entities/study-progress";
+import type { StudyCard } from "@/features/study/model/studyCard";
 import type { SwipeAction, SwipeDirection, SwipeState } from "@/shared/config";
 
 export const resolveSwipeAction = (controls: SwipeState, direction: SwipeDirection): SwipeAction => {
@@ -15,7 +14,5 @@ const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
   return "unrated";
 };
 
-export const buildStudyPatch = (studyCard: StudyCard, swipeAction: SwipeAction, now: number): CardEdit => {
-  const progress = recordStudyProgress(studyCard.progress, resolveStudyRating(swipeAction), now);
-  return createCardProgressEdit(studyCard.card.deckId, progress);
-};
+export const buildStudyPatch = (studyCard: StudyCard, swipeAction: SwipeAction, now: number): StudyProgressEdit =>
+  recordStudyProgress(studyCard.progress, resolveStudyRating(swipeAction), now);

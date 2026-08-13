@@ -1,4 +1,9 @@
 import type { Card, CardEdit } from "../model/card";
+import {
+  createStudyProgress,
+  createStudyProgressFromCard,
+  mapStudyProgressDocument,
+} from "@/entities/study-progress/@x/card";
 
 import {
   collection,
@@ -23,12 +28,19 @@ export const generateCardId = (): string => doc(collection(getDb(), CARD_COLLECT
 export const readAll = async (uid: string, firestore: Firestore = getDb()): Promise<Card[]> => {
   const snapshot = await getDocs(query(collection(firestore, CARD_COLLECTION), where("uid", "==", uid)));
   return snapshot.docs
-    .map((document) => mapCardDocument(document.id, document.data()))
+    .map((document) => ({
+      ...mapCardDocument(document.id, document.data()),
+      ...mapStudyProgressDocument(document.id, document.data()),
+      id: document.id,
+    }))
     .filter((card) => card.deletedAt === null);
 };
 
 export const create = async (card: Card, createdAt?: number): Promise<string> => {
-  await setDoc(doc(getDb(), CARD_COLLECTION, card.id), buildCardCreateDto(card, createdAt ?? getTimestamp()));
+  await setDoc(
+    doc(getDb(), CARD_COLLECTION, card.id),
+    buildCardCreateDto(card, createStudyProgress(card.id), createdAt ?? getTimestamp())
+  );
   return card.id;
 };
 
@@ -36,7 +48,7 @@ export const upsert = async (card: Card): Promise<string> => {
   const timestamp = getTimestamp();
   const createdAt = card.createdAt > 0 ? card.createdAt : timestamp;
   await setDoc(doc(getDb(), CARD_COLLECTION, card.id), {
-    ...buildCardCreateDto(card, createdAt),
+    ...buildCardCreateDto(card, createStudyProgressFromCard(card), createdAt),
     updatedAt: timestamp,
   });
   return card.id;

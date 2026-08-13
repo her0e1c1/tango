@@ -4,12 +4,13 @@ import { collection, query, where } from "firebase/firestore";
 
 import type { RemoteSubscriptionProps } from "@/shared/api";
 import { getDb, subscribeReads } from "@/shared/firestore";
+import { mapStudyProgressDocument } from "@/entities/study-progress/@x/card";
 import { mapCardDocument } from "./firestoreDocument";
 
 export const subscribeCardReads = (props: RemoteSubscriptionProps<Card>): (() => void) =>
   subscribeReads({
     query: query(collection(getDb(), "card"), where("uid", "==", props.uid)),
-    mapDocument: mapCardDocument,
+    mapDocument: (id, value) => ({ ...mapCardDocument(id, value), ...mapStudyProgressDocument(id, value), id }),
     isActive: (card) => card.deletedAt === null,
     onSnapshot: props.onSnapshot,
     onError: props.onError,

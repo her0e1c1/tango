@@ -4,8 +4,9 @@
  * coordinate services themselves.
  */
 
-import type { Card, CardEdit, CardId } from "@/entities/card";
+import type { Card, CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
+import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { ConfigState, SwipeDirection } from "@/shared/config";
 
 import React from "react";
@@ -34,16 +35,16 @@ export interface StudyActions {
   retry: () => void;
 }
 
-interface StudyCardMutation {
+interface StudyProgressMutation {
   isPending: (id: CardId) => boolean;
-  update: (card: CardEdit) => Promise<void>;
+  update: (progress: StudyProgressEdit) => Promise<void>;
   pending: boolean;
   error: unknown;
   retry: () => void;
 }
 
 interface UseStudyActionsOptions {
-  cardMutation?: StudyCardMutation;
+  progressMutation?: StudyProgressMutation;
   onStarted?: () => void;
 }
 
@@ -53,7 +54,7 @@ interface StudySwipeDependencies {
   config: ConfigState;
   cardsById: Partial<Record<CardId, Card>>;
   isPending: (id: CardId) => boolean;
-  update: (card: CardEdit) => Promise<void>;
+  update: (progress: StudyProgressEdit) => Promise<void>;
 }
 
 const applyOptimisticUpdate = (deckId: DeckId, nextIndex: number) => {
@@ -146,7 +147,7 @@ const runStudySwipe = async (
  */
 export const useStudyActions = (
   deckId: DeckId,
-  { cardMutation, onStarted }: UseStudyActionsOptions = {}
+  { progressMutation, onStarted }: UseStudyActionsOptions = {}
 ): StudyActions => {
   const config = useConfig();
   const cardRemote = useCards();
@@ -174,14 +175,14 @@ export const useStudyActions = (
    * persistence stay identical.
    */
   const swipe = (direction: SwipeDirection) => {
-    if (cardMutation == null) return Promise.resolve();
+    if (progressMutation == null) return Promise.resolve();
     return runStudySwipe(direction, {
       mutationTokenRef,
       deckId,
       config,
       cardsById,
-      isPending: cardMutation.isPending,
-      update: cardMutation.update,
+      isPending: progressMutation.isPending,
+      update: progressMutation.update,
     });
   };
 
@@ -200,8 +201,8 @@ export const useStudyActions = (
     toggleShowBackText: () => studyStore.getState().toggleShowBackText(),
     toggleAutoPlay: () => studyStore.getState().toggleAutoPlay(),
     resetStudy: () => studyStore.getState().removeStudy(deckId),
-    pending: cardMutation?.pending ?? false,
-    error: cardMutation?.error,
-    retry: cardMutation?.retry ?? (() => undefined),
+    pending: progressMutation?.pending ?? false,
+    error: progressMutation?.error,
+    retry: progressMutation?.retry ?? (() => undefined),
   };
 };

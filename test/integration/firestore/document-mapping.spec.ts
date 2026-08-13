@@ -16,6 +16,8 @@ import { Timestamp } from "firebase/firestore";
 import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument } from "@/entities/card/api/firestoreDocument";
 import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument } from "@/entities/deck/api/firestoreDocument";
 import { FirestoreDocumentValidationError } from "@/shared/firestore";
+import { createStudyProgressFromCard } from "@/entities/study-progress";
+import { buildStudyProgressUpdateDto, mapStudyProgressDocument } from "@/entities/study-progress/api/firestoreDocument";
 import { createCard, createDeck } from "@/test/factories";
 
 describe("Firestore DTO builders", () => {
@@ -145,14 +147,25 @@ describe("Firestore DTO builders", () => {
       createdAt: 10,
       updatedAt: 20,
       deletedAt: null,
+      url: "https://example.com/card",
+      startLine: 8,
+      endLine: 9,
+    });
+  });
+
+  it("maps progress from the same card document independently", () => {
+    expect(
+      mapStudyProgressDocument(
+        "snapshot-id",
+        cardDocument({ lastSeenAt: 50, nextSeeingAt: Timestamp.fromMillis(60), interval: 7 })
+      )
+    ).toEqual({
+      cardId: "snapshot-id",
       score: 3,
       numberOfSeen: 4,
       lastSeenAt: 50,
       nextSeeingAt: new Date(60),
       interval: 7,
-      url: "https://example.com/card",
-      startLine: 8,
-      endLine: 9,
     });
   });
 
@@ -172,7 +185,7 @@ describe("Firestore DTO builders", () => {
   it("accepts a legacy Date for nextSeeingAt", () => {
     const nextSeeingAt = new Date(60);
 
-    expect(mapCardDocument("snapshot-id", cardDocument({ nextSeeingAt }))).toEqual(
+    expect(mapStudyProgressDocument("snapshot-id", cardDocument({ nextSeeingAt }))).toEqual(
       expect.objectContaining({ nextSeeingAt })
     );
   });
@@ -237,7 +250,7 @@ describe("Firestore DTO builders", () => {
   });
 
   it("allows only server card fields when creating", () => {
-    const dto: CardCreateDto = buildCardCreateDto(card, 200);
+    const dto: CardCreateDto = buildCardCreateDto(card, createStudyProgressFromCard(card), 200);
 
     expect(dto).toEqual({
       id: "card-1",
@@ -260,6 +273,17 @@ describe("Firestore DTO builders", () => {
     });
   });
 
+  it("builds a StudyProgress-only update DTO", () => {
+    expect(buildStudyProgressUpdateDto(createStudyProgressFromCard(card), 202)).toEqual({
+      score: 3,
+      numberOfSeen: 4,
+      lastSeenAt: 5,
+      nextSeeingAt: new Date(6),
+      interval: 7,
+      updatedAt: 202,
+    });
+  });
+
   it("omits the id and undefined values when updating a card", () => {
     const dto: CardUpdateDto = buildCardUpdateDto(card, 201);
 
@@ -273,11 +297,6 @@ describe("Firestore DTO builders", () => {
       createdAt: 1,
       updatedAt: 201,
       deletedAt: null,
-      score: 3,
-      numberOfSeen: 4,
-      lastSeenAt: 5,
-      nextSeeingAt: new Date(6),
-      interval: 7,
       startLine: 8,
       endLine: 9,
     });
@@ -289,9 +308,9 @@ describe("Firestore DTO builders", () => {
     const cardWithoutId = { ...card, id: undefined } as unknown as Card;
     const deckWithoutId = { ...deck, id: undefined } as unknown as Deck;
 
-    expect(() => buildCardCreateDto(invalidCard, 200)).toThrow();
+    expect(() => buildCardCreateDto(invalidCard, createStudyProgressFromCard(invalidCard), 200)).toThrow();
     expect(() => buildDeckUpdateDto(invalidDeck, 201)).toThrow();
-    expect(() => buildCardCreateDto(cardWithoutId, 200)).toThrow();
+    expect(() => buildCardCreateDto(cardWithoutId, createStudyProgressFromCard(cardWithoutId), 200)).toThrow();
     expect(() => buildDeckCreateDto(deckWithoutId, 200)).toThrow();
   });
 });
