@@ -33,7 +33,6 @@ describe("buildStudyPatch", () => {
     const patch = buildStudyPatch(card, "GoToNextCardMastered", now);
     expect(patch).toEqual({
       id: "c1",
-      deckId: "d1",
       score: 1,
       numberOfSeen: 3,
       lastSeenAt: now,

@@ -38,7 +38,8 @@ export const useCardMutations = ({ onRemoveSuccess }: UseCardMutationsOptions = 
   const updateBy = (id: CardId, callback: (card: Card) => CardPatch) => {
     const card = cardsById[id];
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
-    return update({ ...callback(card), id: card.id, deckId: card.deckId });
+    const { id: _id, deckId: _deckId, uid: _uid, ...patch } = callback(card) as Partial<Card>;
+    return update({ ...patch, id: card.id });
   };
   const remove = (id: CardId) => {
     const card = cardsById[id];

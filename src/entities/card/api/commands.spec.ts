@@ -63,6 +63,20 @@ describe("card commands", () => {
     expect(mocks.update).toHaveBeenCalledOnce();
   });
 
+  it("allows writes to different Cards to proceed independently", async () => {
+    let finishCreate!: () => void;
+    mocks.create.mockReturnValueOnce(new Promise<string>((resolve) => (finishCreate = () => resolve("created"))));
+
+    const create = cardCommands.create("uid-a", createCard({ id: "first", deckId: "deck" }));
+    const update = cardCommands.update("uid-a", createCard({ id: "second", deckId: "deck", score: 2 }));
+
+    await expect(update).resolves.toBeUndefined();
+    expect(mocks.create).toHaveBeenCalledOnce();
+    expect(mocks.update).toHaveBeenCalledOnce();
+    finishCreate();
+    await create;
+  });
+
   it("reports only failed bulk upserts", async () => {
     const first = createCard({ id: "first" });
     const second = createCard({ id: "second" });
