@@ -70,18 +70,10 @@ describe("CardViewPage", () => {
     expect(screen.getByText(/answer =/)).toHaveTextContent("const answer = 42;");
   });
 
-  it("renders the ready screen in the application shell and forwards header actions", async () => {
+  it("renders the ready screen in the application shell", () => {
     render(<CardViewPage />);
 
-    await userEvent.click(screen.getByRole("button", { name: "tango" }));
-    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
-    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
-    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
-
-    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("shows recovery actions when the card is unavailable", async () => {

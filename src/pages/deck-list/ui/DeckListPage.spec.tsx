@@ -200,18 +200,10 @@ describe("DeckListPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
   });
 
-  it("forwards header actions", () => {
+  it("renders the application shell", () => {
     render(<DeckListPage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "tango" }));
-    fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
-    fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
-
-    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("removes only the deleted deck session after the remote delete succeeds", async () => {

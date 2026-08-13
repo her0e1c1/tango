@@ -82,15 +82,7 @@ describe("DeckStartPage", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "tango" }));
-    fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
-    fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
-
-    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("starts from Enter only outside interactive controls", () => {

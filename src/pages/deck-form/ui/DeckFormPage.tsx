@@ -4,16 +4,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CATEGORY, type Category, type Deck, useDecks } from "@/entities/deck";
 import { useEditDeck } from "@/features/deck/edit";
 import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
-import { setDarkMode, useConfig } from "@/shared/config";
-import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
+import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckFormView } from "./DeckFormView";
 
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
-  const config = useConfig();
   const navigate = useNavigate();
   const mutations = useEditDeck();
   const goToList = () => void navigate("/", { replace: true });
@@ -30,23 +28,14 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
   });
 
   return (
-    <Layout
-      showHeader
-      headerProps={{
-        dark: config.appearance.darkMode,
-        onClickDarkMode: setDarkMode,
-        onClickLogo: () => void navigate("/"),
-        onClickImport: () => void navigate("/import"),
-        onClickSettings: () => void navigate("/settings"),
-      }}
-    >
+    <AppLayout showHeader>
       <DeckFormView
         feedbackSlot={
           <RemoteMutationNotice pending={deckActions.pending} error={deckActions.error} onRetry={deckActions.retry} />
         }
         deckForm={deckForm}
       />
-    </Layout>
+    </AppLayout>
   );
 };
 

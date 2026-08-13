@@ -16,20 +16,18 @@ import {
   useStudyHydrated,
   useStudySessions,
 } from "@/features/study";
-import { setDarkMode, useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
-import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
+import { AppLayout } from "@/widgets/app-layout";
 
 import { buildDeckListSections } from "../selectors/buildDeckListSections";
 import { DeckListView } from "./DeckListView";
 
 export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
-  const config = useConfig();
   const cardRemote = useCards();
   const deckRemote = useDecks();
   const readState = combineRemoteReadStates(cardRemote, deckRemote);
@@ -65,16 +63,7 @@ export const DeckListPage: React.FC = () => {
       onRetry={readState.retry}
     >
       {hydrated ? (
-        <Layout
-          showHeader
-          headerProps={{
-            dark: config.appearance.darkMode,
-            onClickDarkMode: setDarkMode,
-            onClickLogo: () => void navigate("/"),
-            onClickImport: () => void navigate("/import"),
-            onClickSettings: () => void navigate("/settings"),
-          }}
-        >
+        <AppLayout showHeader>
           <RemoteMutationNotice
             pending={mutations.pending}
             error={mutations.error}
@@ -135,7 +124,7 @@ export const DeckListPage: React.FC = () => {
               },
             }}
           />
-        </Layout>
+        </AppLayout>
       ) : (
         <div role="status" className="py-10 text-center text-sm text-ink-muted">
           Loading study progress…

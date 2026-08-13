@@ -4,16 +4,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { type Card, useCards } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { useCardFormState, useCardMutations } from "@/features/card";
-import { setDarkMode, useConfig } from "@/shared/config";
-import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
+import { AppLayout } from "@/widgets/app-layout";
 
 import { CardFormView } from "./CardFormView";
 
 const CardFormContent = ({ card }: { card: Card }) => {
-  const config = useConfig();
   const navigate = useNavigate();
   const mutations = useCardMutations();
   const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
@@ -32,23 +30,14 @@ const CardFormContent = ({ card }: { card: Card }) => {
   });
 
   return (
-    <Layout
-      showHeader
-      headerProps={{
-        dark: config.appearance.darkMode,
-        onClickDarkMode: setDarkMode,
-        onClickLogo: () => void navigate("/"),
-        onClickImport: () => void navigate("/import"),
-        onClickSettings: () => void navigate("/settings"),
-      }}
-    >
+    <AppLayout showHeader>
       <CardFormView
         feedbackSlot={
           <RemoteMutationNotice pending={mutations.pending} error={mutations.error} onRetry={mutations.retry} />
         }
         cardForm={{ ...cardForm, onCancel: goBack }}
       />
-    </Layout>
+    </AppLayout>
   );
 };
 
