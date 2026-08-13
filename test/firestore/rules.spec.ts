@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "firestore/rule" contract with automated examples.
+ * @file Verifies the Firestore security-rule contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "should read a deck",
  * "should create a deck", "should update a deck".
  */

@@ -12,9 +12,10 @@ import { initializeTestEnvironment, type RulesTestEnvironment } from "@firebase/
 import { doc, setDoc, type Firestore } from "firebase/firestore";
 import * as UUID from "uuid";
 
-import * as cardAdapter from "@/adapters/firestore/card";
-import * as deckAdapter from "@/adapters/firestore/deck";
-import { buildCardCreateDto, buildDeckCreateDto } from "@/adapters/firestore/dto";
+import * as cardAdapter from "@/entities/card/api/firestore";
+import { buildCardCreateDto } from "@/entities/card/api/firestoreDocument";
+import * as deckAdapter from "@/entities/deck/api/firestore";
+import { buildDeckCreateDto } from "@/entities/deck/api/firestoreDocument";
 import { createCard, createDeck } from "@/test/factories";
 
 const uuid = UUID.v4;

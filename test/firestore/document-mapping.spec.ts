@@ -7,19 +7,14 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck, DeckEdit } from "@/entities/deck";
-import type { CardCreateDto, CardUpdateDto, DeckCreateDto, DeckUpdateDto } from "@/adapters/firestore/dto";
+import type { CardCreateDto, CardUpdateDto } from "@/entities/card/api/firestoreDocument";
+import type { DeckCreateDto, DeckUpdateDto } from "@/entities/deck/api/firestoreDocument";
 
 import { describe, expect, it } from "vitest";
 import { Timestamp } from "firebase/firestore";
 
-import {
-  buildCardCreateDto,
-  buildCardUpdateDto,
-  buildDeckCreateDto,
-  buildDeckUpdateDto,
-  mapCardDocument,
-  mapDeckDocument,
-} from "@/adapters/firestore/dto";
+import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument } from "@/entities/card/api/firestoreDocument";
+import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument } from "@/entities/deck/api/firestoreDocument";
 import { FirestoreDocumentValidationError } from "@/shared/firestore";
 import { createCard, createDeck } from "@/test/factories";
 

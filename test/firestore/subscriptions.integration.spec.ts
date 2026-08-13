@@ -12,9 +12,10 @@ import "@/shared/firebase/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import * as cardAdapter from "@/adapters/firestore/card";
-import * as deckAdapter from "@/adapters/firestore/deck";
-import * as eventAdapter from "@/adapters/firestore/event";
+import * as cardAdapter from "@/entities/card/api/firestore";
+import { subscribeCardReads } from "@/entities/card/api/subscribeCardReads";
+import * as deckAdapter from "@/entities/deck/api/firestore";
+import { subscribeDeckReads } from "@/entities/deck/api/subscribeDeckReads";
 import { createCard, createDeck } from "@/test/factories";
 
 vi.mock("@/shared/firestore", async (importOriginal) => ({
@@ -31,12 +32,12 @@ describe("Query realtime subscriptions", () => {
     const deckSnapshots: RemoteSnapshot<Deck>[] = [];
     const cardSnapshots: RemoteSnapshot<Card>[] = [];
     const errors: Error[] = [];
-    const stopDecks = eventAdapter.subscribeDeckReads({
+    const stopDecks = subscribeDeckReads({
       uid: "uid",
       onSnapshot: (snapshot) => deckSnapshots.push(snapshot),
       onError: (error) => errors.push(error),
     });
-    const stopCards = eventAdapter.subscribeCardReads({
+    const stopCards = subscribeCardReads({
       uid: "uid",
       onSnapshot: (snapshot) => cardSnapshots.push(snapshot),
       onError: (error) => errors.push(error),

@@ -37,6 +37,15 @@ export default mergeConfig(
         },
         {
           extends: true,
+          test: {
+            name: 'integration',
+            globals: true,
+            include: ['test/firestore/**/*.spec.{ts,tsx}'],
+            environment: 'jsdom',
+          },
+        },
+        {
+          extends: true,
           optimizeDeps: {
             include: ['storybook/test'],
           },
