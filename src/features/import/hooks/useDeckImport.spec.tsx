@@ -12,7 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck } from "@/test/factories";
 import type { DeckImportResult } from "../model/deckImportTypes";
-import { CardBulkMutationError } from "@/entities/card";
+import { CardBulkMutationError } from "../api/upsertImportedCards";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
@@ -42,14 +42,17 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    cardCommands: {
-      ...actual.cardCommands,
-      bulkUpsert: (_uid: string, cards: Card[]) => mocks.bulkUpsert(cards),
-    },
     createCard: (...args: unknown[]) => mocks.prepareCard(...args),
     generateCardId: mocks.generateCardId,
     selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
     useCards: () => ({ status: mocks.cardRemoteStatus, syncStatus: mocks.cardSyncStatus, cards: mocks.cards }),
+  };
+});
+vi.mock("../api/upsertImportedCards", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../api/upsertImportedCards")>();
+  return {
+    ...actual,
+    upsertImportedCards: (_uid: string, cards: Card[]) => mocks.bulkUpsert(cards),
   };
 });
 vi.mock("@/entities/deck", async (importOriginal) => {

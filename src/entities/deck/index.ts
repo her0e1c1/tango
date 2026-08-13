@@ -8,10 +8,5 @@ export {
 } from "./api/firestore";
 export { createDeck } from "./model/deck";
 export type { Deck, DeckEdit, DeckId } from "./model/deck";
-export {
-  deckMembershipMutationLock,
-  deckMutationLock,
-  withDeckMembershipLocks,
-} from "./model/deckMutationLocks";
 export { useDecks } from "./hooks/useDecks";
 export { startDeckReads, stopDeckReads } from "./model/remoteReadStore";

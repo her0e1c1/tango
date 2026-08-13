@@ -9,14 +9,7 @@ import type { Deck, DeckId } from "@/entities/deck";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  CardBulkMutationError,
-  cardCommands,
-  createCard,
-  generateCardId,
-  selectCardsForDeck,
-  useCards,
-} from "@/entities/card";
+import { createCard, generateCardId, selectCardsForDeck, useCards } from "@/entities/card";
 import { createDeck, createDeckDocument, generateDeckId, useDecks } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
@@ -24,6 +17,7 @@ import { parseCsv } from "../lib/cardCsv";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
+import { CardBulkMutationError, upsertImportedCards } from "../api/upsertImportedCards";
 
 interface DeckImportAttempt {
   uid: string;
@@ -343,7 +337,7 @@ export const useDeckImport = () => {
       decks: deckRemote.decks,
       cardsByDeckId,
       createDeck: (deck) => waitForRemoteWrite(createDeckDocument(deck), "Deck import creation"),
-      bulkUpsert: (cards) => cardCommands.bulkUpsert(uid, cards),
+      bulkUpsert: (cards) => upsertImportedCards(uid, cards),
     };
   }, [
     cardRemote.status,

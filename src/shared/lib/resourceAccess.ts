@@ -1,21 +1,24 @@
-interface MembershipLockState {
+interface ResourceAccessState {
   exclusive?: Promise<void>;
   shared: Set<Promise<void>>;
 }
 
-const membershipLocks = new Map<string, MembershipLockState>();
+const accessStates = new Map<string, ResourceAccessState>();
 
-export const withDeckMembershipLocks = async <T>(
+export const resourceKey = (namespace: string, ...identifiers: string[]): string =>
+  JSON.stringify([namespace, ...identifiers]);
+
+export const withResourceAccess = async <T>(
   keys: string[],
   mode: "shared" | "exclusive",
   task: () => Promise<T>
 ): Promise<T> => {
   const uniqueKeys = [...new Set(keys)];
-  const states = uniqueKeys.map<MembershipLockState>((key) => {
-    const existing = membershipLocks.get(key);
+  const states = uniqueKeys.map<ResourceAccessState>((key) => {
+    const existing = accessStates.get(key);
     if (existing != null) return existing;
-    const created: MembershipLockState = { shared: new Set() };
-    membershipLocks.set(key, created);
+    const created: ResourceAccessState = { shared: new Set() };
+    accessStates.set(key, created);
     return created;
   });
   const previous = states.flatMap((state) => {
@@ -38,12 +41,9 @@ export const withDeckMembershipLocks = async <T>(
       if (mode === "shared") state.shared.delete(settled);
       else if (state.exclusive === settled) delete state.exclusive;
       const key = uniqueKeys[index];
-      if (key != null && state.exclusive == null && state.shared.size === 0 && membershipLocks.get(key) === state) {
-        membershipLocks.delete(key);
+      if (key != null && state.exclusive == null && state.shared.size === 0 && accessStates.get(key) === state) {
+        accessStates.delete(key);
       }
     });
   }
 };
-
-export const deckMembershipMutationLock = (uid: string, id: string) => `deck-membership:${uid}:${id}`;
-export const deckMutationLock = (uid: string, id: string) => `deck:${uid}:${id}`;

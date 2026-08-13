@@ -14,7 +14,6 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   update: vi.fn(),
   logicalRemove: vi.fn(),
-  upsert: vi.fn(),
 }));
 
 vi.mock("@/entities/auth-session", () => ({
@@ -27,26 +26,25 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    cardCommands: {
-      create: async (uid: string, card: Card) => {
-        if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
-        await mocks.create(card);
-      },
-      update: async (_uid: string, card: Partial<Card>) => {
-        await mocks.update(card);
-      },
-      remove: async (_uid: string, id: string) => {
-        await mocks.logicalRemove(id);
-      },
-      bulkUpsert: async (_uid: string, cards: Card[]) => {
-        await Promise.all(cards.map(mocks.upsert));
-      },
-    },
     useCards: () => ({
       cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
     }),
   };
 });
+vi.mock("../api/cardCommands", () => ({
+  cardCommands: {
+    create: async (uid: string, card: Card) => {
+      if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
+      await mocks.create(card);
+    },
+    update: async (_uid: string, card: Partial<Card>) => {
+      await mocks.update(card);
+    },
+    remove: async (_uid: string, id: string) => {
+      await mocks.logicalRemove(id);
+    },
+  },
+}));
 
 import { useCardMutations } from "./useCardMutations";
 
@@ -58,7 +56,6 @@ describe("useCardMutations", () => {
     mocks.create.mockResolvedValue("card-id");
     mocks.update.mockResolvedValue(undefined);
     mocks.logicalRemove.mockResolvedValue(undefined);
-    mocks.upsert.mockResolvedValue("card-id");
   });
 
   it("does not allow updateBy patches to redirect the target Card", async () => {
