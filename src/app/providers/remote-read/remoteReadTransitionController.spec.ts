@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "Auth transition controller" contract with automated examples.
+ * @file Verifies the "Remote read transition controller" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "ignores persisted identity
  * until Firebase confirms a user", "starts remote reads from the confirmed Firebase UID", "does
  * not duplicate work when StrictMode replays the same auth effect".
@@ -8,7 +8,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { AuthenticatedSession, AuthSessionState } from "@/entities/auth-session";
-import { createAuthTransitionController } from "@/app/providers/auth/authTransitionController";
+import { createRemoteReadTransitionController } from "@/app/providers/remote-read/remoteReadTransitionController";
 
 /**
  * Provides the create user test helper used by this file.
@@ -35,10 +35,10 @@ const createDependencies = () => ({
   reportError: vi.fn(),
 });
 
-describe("Auth transition controller", () => {
+describe("Remote read transition controller", () => {
   it("ignores persisted identity until Firebase confirms a user", async () => {
     const dependencies = createDependencies();
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
     const persistedConfig = { uid: "stale-uid", isAnonymous: false };
 
     await controller.transition({ status: "initializing" });
@@ -50,7 +50,7 @@ describe("Auth transition controller", () => {
   it("starts remote reads from the confirmed Firebase UID", async () => {
     const dependencies = createDependencies();
     const user = createSession("uid-a");
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
 
     await controller.transition(authenticated(user));
 
@@ -60,7 +60,7 @@ describe("Auth transition controller", () => {
   it("does not duplicate work when StrictMode replays the same auth effect", async () => {
     const dependencies = createDependencies();
     const state = authenticated(createSession("uid-a"));
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
 
     const first = controller.transition(state);
     const replay = controller.transition(state);
@@ -74,7 +74,7 @@ describe("Auth transition controller", () => {
     const dependencies = createDependencies();
     dependencies.cleanupUid.mockImplementation((uid) => operations.push(`cleanup:${uid}`));
     dependencies.subscribeUid.mockImplementation((uid) => operations.push(`subscribe:${uid}`));
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
     await controller.transition(authenticated(createSession("uid-a")));
     operations.length = 0;
 
@@ -88,7 +88,7 @@ describe("Auth transition controller", () => {
     "cleans the confirmed UID without subscribing for $status",
     async (state) => {
       const dependencies = createDependencies();
-      const controller = createAuthTransitionController(dependencies);
+      const controller = createRemoteReadTransitionController(dependencies);
       await controller.transition(authenticated(createSession("uid-a")));
       dependencies.cleanupUid.mockClear();
       dependencies.subscribeUid.mockClear();
@@ -114,7 +114,7 @@ describe("Auth transition controller", () => {
       cleanupStarted();
       return cleanup;
     });
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
     await controller.transition(authenticated(createSession("uid-a")));
     dependencies.subscribeUid.mockClear();
 
@@ -143,7 +143,7 @@ describe("Auth transition controller", () => {
       cleanupStarted();
       return cleanup;
     });
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
     const stateA = authenticated(createSession("uid-a"));
     await controller.transition(stateA);
     dependencies.subscribeUid.mockClear();
@@ -162,7 +162,7 @@ describe("Auth transition controller", () => {
 
   it("keeps same-UID metadata without cleanup or resubscription", async () => {
     const dependencies = createDependencies();
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
     await controller.transition(authenticated(createSession("uid-a")));
     dependencies.cleanupUid.mockClear();
     dependencies.subscribeUid.mockClear();
@@ -176,7 +176,7 @@ describe("Auth transition controller", () => {
 
   it("recognizes a new same-UID metadata snapshot", async () => {
     const dependencies = createDependencies();
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
     await controller.transition(authenticated(createSession("uid-a")));
     dependencies.cleanupUid.mockClear();
     dependencies.subscribeUid.mockClear();
@@ -191,7 +191,7 @@ describe("Auth transition controller", () => {
     const cleanupError = new Error("cleanup failed");
     const dependencies = createDependencies();
     dependencies.cleanupUid.mockRejectedValueOnce(cleanupError).mockResolvedValueOnce(undefined);
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
     await controller.transition(authenticated(createSession("uid-a")));
     dependencies.subscribeUid.mockClear();
     const stateB = authenticated(createSession("uid-b"));
@@ -211,7 +211,7 @@ describe("Auth transition controller", () => {
     const subscribeError = new Error("subscribe failed");
     const dependencies = createDependencies();
     dependencies.subscribeUid.mockRejectedValueOnce(subscribeError).mockResolvedValueOnce(undefined);
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
     const state = authenticated(createSession("uid-a"));
 
     const first = await controller.transition(state);
@@ -241,7 +241,7 @@ describe("Auth transition controller", () => {
         return cleanup;
       })
       .mockResolvedValueOnce(undefined);
-    const controller = createAuthTransitionController(dependencies);
+    const controller = createRemoteReadTransitionController(dependencies);
     await controller.transition(authenticated(createSession("uid-a")));
     dependencies.subscribeUid.mockClear();
 

@@ -1,14 +1,14 @@
 import { type PropsWithChildren, useEffect, useState } from "react";
 
-import { createAuthTransitionController } from "@/app/providers/auth/authTransitionController";
 import { startRemoteReads, stopRemoteReads } from "@/app/providers/remote-read/remoteReadLifecycle";
+import { createRemoteReadTransitionController } from "@/app/providers/remote-read/remoteReadTransitionController";
 import { useAuthSession } from "@/entities/auth-session";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
 
 export const RemoteReadBootstrap = ({ children }: PropsWithChildren) => {
   const authSession = useAuthSession();
   const [controller] = useState(() =>
-    createAuthTransitionController({
+    createRemoteReadTransitionController({
       cleanupUid: stopRemoteReads,
       subscribeUid: startRemoteReads,
       reportError: (error) => console.error("Remote read transition failed", error),
