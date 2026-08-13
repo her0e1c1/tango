@@ -4,10 +4,12 @@ import { editStudyProgressSchema } from "./schema";
 
 describe("StudyProgress operation schemas", () => {
   it("accepts progress fields for an identified Card", () => {
-    expect(editStudyProgressSchema.parse({ uid: "uid-a", progress: { cardId: "card", score: 2 } })).toEqual({
-      uid: "uid-a",
-      progress: { cardId: "card", score: 2 },
-    });
+    expect(
+      editStudyProgressSchema.parse({
+        uid: "uid-a",
+        progress: { cardId: "card", score: 2, frontText: "unexpected", deckId: "other-deck" },
+      })
+    ).toEqual({ uid: "uid-a", progress: { cardId: "card", score: 2 } });
   });
 
   it("rejects missing user and Card identities", () => {
