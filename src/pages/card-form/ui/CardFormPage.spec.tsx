@@ -44,18 +44,14 @@ vi.mock("react-router-dom", () => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
-vi.mock("@/features/card", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/card")>();
-  return {
-    ...actual,
-    useCardMutations: () => ({
-      update: mocks.cardUpdate,
-      pending: false,
-      error: null,
-      retry: vi.fn(),
-    }),
-  };
-});
+vi.mock("@/features/card/edit", () => ({
+  useEditCard: () => ({
+    update: mocks.cardUpdate,
+    pending: false,
+    error: null,
+    retry: vi.fn(),
+  }),
+}));
 
 import { CardFormPage } from "./CardFormPage";
 

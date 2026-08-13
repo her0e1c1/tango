@@ -1,11 +1,11 @@
 import type { Card } from "@/entities/card";
 
-import { doc, setDoc } from "firebase/firestore";
+import { collection, doc, setDoc } from "firebase/firestore";
 import { z } from "zod";
 
 import { getDb, getTimestamp, omitUndefined } from "@/shared/firestore";
 
-const cardDocumentSchema = z.object({
+const cardCreateSchema = z.object({
   id: z.string(),
   frontText: z.string(),
   backText: z.string(),
@@ -26,12 +26,11 @@ const cardDocumentSchema = z.object({
   endLine: z.number().optional(),
 });
 
-export const upsertCardDocument = async (card: Card): Promise<string> => {
-  const updatedAt = getTimestamp();
-  const createdAt = card.createdAt > 0 ? card.createdAt : updatedAt;
-  const document = cardDocumentSchema.parse(
-    omitUndefined({ ...card, createdAt, updatedAt, deletedAt: card.deletedAt ?? null })
-  );
+export const generateCardId = (): string => doc(collection(getDb(), "card")).id;
+
+export const createCardDocument = async (card: Card): Promise<string> => {
+  const createdAt = getTimestamp();
+  const document = cardCreateSchema.parse(omitUndefined({ ...card, createdAt, updatedAt: createdAt, deletedAt: null }));
   await setDoc(doc(getDb(), "card", card.id), document);
   return card.id;
 };

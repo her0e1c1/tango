@@ -28,6 +28,8 @@ const mocks = vi.hoisted(() => ({
   prepareCard: vi.fn(),
   generateDeckId: vi.fn(() => "generated-deck-id"),
   generateCardId: vi.fn(() => "generated-card-id"),
+  createCardWrite: vi.fn(),
+  editCard: vi.fn(),
   createDeck: vi.fn(),
   bulkUpsert: vi.fn(),
 }));
@@ -43,7 +45,6 @@ vi.mock("@/entities/card", async (importOriginal) => {
   return {
     ...actual,
     createCard: (...args: unknown[]) => mocks.prepareCard(...args),
-    generateCardId: mocks.generateCardId,
     selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
     useCards: () => ({ status: mocks.cardRemoteStatus, syncStatus: mocks.cardSyncStatus, cards: mocks.cards }),
   };
@@ -74,7 +75,13 @@ vi.mock("../lib/cardCsv", async (importOriginal) => {
 });
 import { useDeckImport } from "./useDeckImport";
 
-const useTestDeckImport = () => useDeckImport({ createDeck: (_uid, deck) => mocks.createDeck(deck) });
+const deckImportOptions = {
+  createCard: mocks.createCardWrite,
+  createDeck: (_uid: string, deck: Deck) => mocks.createDeck(deck),
+  editCard: mocks.editCard,
+  generateCardId: mocks.generateCardId,
+};
+const useTestDeckImport = () => useDeckImport(deckImportOptions);
 
 describe("useDeckImport", () => {
   beforeEach(() => {
@@ -92,6 +99,8 @@ describe("useDeckImport", () => {
     });
     mocks.prepareDeck.mockReturnValue(createDeck({ id: "deck", uid: "uid-a" }));
     mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck" }));
+    mocks.createCardWrite.mockResolvedValue(undefined);
+    mocks.editCard.mockResolvedValue(undefined);
     mocks.createDeck.mockResolvedValue(undefined);
     mocks.bulkUpsert.mockResolvedValue(undefined);
   });

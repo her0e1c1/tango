@@ -4,7 +4,7 @@
  */
 
 import type * as React from "react";
-import { BackText, type BackTextProps } from "@/features/card";
+import { BackText, type BackTextProps } from "@/features/card/view";
 
 export interface CardViewViewProps {
   backText?: BackTextProps;

@@ -96,10 +96,7 @@ vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
 
-vi.mock("@/features/card", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/card")>();
-  return { ...actual, useCardMutations: () => mocks.cardMutation };
-});
+vi.mock("@/features/card/edit", () => ({ useEditCard: () => mocks.cardMutation }));
 
 vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
