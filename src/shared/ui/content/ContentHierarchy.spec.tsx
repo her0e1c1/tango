@@ -9,31 +9,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { Card, Description, Section, Style, TagList, Title } from "@/shared/ui/content";
+import { Description, Style, TagList, Title } from "@/shared/ui/content";
 
 describe("shared content hierarchy", () => {
-  it("uses the Calm Focus surface hierarchy while retaining Card props", () => {
-    const view = render(<Card className="custom-card">Card content</Card>);
-    const surface = screen.getByText("Card content");
-    expect(surface).toHaveClass(
-      "gap-3",
-      "rounded-surface",
-      "bg-surface",
-      "p-4",
-      "md:p-5",
-      "text-ink",
-      "shadow-surface",
-      "custom-card"
-    );
-
-    view.rerender(
-      <Card full disabled border>
-        Disabled card
-      </Card>
-    );
-    expect(screen.getByText("Disabled card")).toHaveClass("bg-surface-muted", "border", "border-border");
-  });
-
   it("wraps long titles and retains keyboard click behavior", () => {
     const onClick = vi.fn();
     render(<Title onClick={onClick}>A continuous-title-that-must-wrap-on-narrow-screens</Title>);
@@ -43,18 +21,16 @@ describe("shared content hierarchy", () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 
-  it("gives sections, descriptions, and styled text semantic type roles", () => {
+  it("gives descriptions and styled text semantic type roles", () => {
     const view = render(
       <>
-        <Section title="Section title" />
         <Description>Description text</Description>
         <Style>Styled text</Style>
       </>
     );
-    expect(screen.getByText("Section title")).toHaveClass("text-body", "text-ink-muted", "border-border");
     expect(screen.getByText("Description text")).toHaveClass("text-caption", "text-ink-muted", "break-words");
     expect(screen.getByText("Styled text")).toHaveClass("text-ink", "break-words");
-    expect(view.container).toHaveTextContent("Section titleDescription textStyled text");
+    expect(view.container).toHaveTextContent("Description textStyled text");
   });
 
   it("wraps ordinary tag lists and constrains long lists without horizontal scrolling", () => {

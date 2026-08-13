@@ -7,7 +7,7 @@
 import type { Firestore } from "firebase/firestore";
 import { describe, expect, it, vi } from "vitest";
 
-import { FirestorePersistenceUnavailableError, verifyFirestorePersistence } from "./firestorePersistence";
+import { verifyFirestorePersistence } from "./firestorePersistence";
 
 /**
  * Provides the firestore with cache kind test helper used by this file.
@@ -29,9 +29,9 @@ describe("Firestore persistence probe", () => {
   it("rejects the SDK's silent memory fallback", async () => {
     const db = firestoreWithCacheKind("memory");
 
-    await expect(verifyFirestorePersistence(db, async () => undefined)).rejects.toBeInstanceOf(
-      FirestorePersistenceUnavailableError
-    );
+    await expect(verifyFirestorePersistence(db, async () => undefined)).rejects.toMatchObject({
+      name: "FirestorePersistenceUnavailableError",
+    });
   });
 
   it("propagates IndexedDB initialization errors", async () => {

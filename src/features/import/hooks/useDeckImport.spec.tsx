@@ -72,7 +72,7 @@ vi.mock("../lib/cardCsv", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../lib/cardCsv")>();
   return { ...actual, parseCsv: mocks.parseCsv };
 });
-import { sampleDeckId, useDeckImport } from "./useDeckImport";
+import { useDeckImport } from "./useDeckImport";
 
 const useTestDeckImport = () => useDeckImport({ createDeck: (_uid, deck) => mocks.createDeck(deck) });
 
@@ -217,13 +217,13 @@ describe("useDeckImport", () => {
 
     expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "Sample Deck" }, "uid-a", mocks.generateDeckId);
     expect(mocks.createDeck).toHaveBeenCalledWith(
-      expect.objectContaining({ id: sampleDeckId("uid-a"), name: "Deck", uid: "uid-a" })
+      expect.objectContaining({ id: "sample-v1-uid-a", name: "Deck", uid: "uid-a" })
     );
     expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
   });
 
   it("reuses the same sample Deck for the active user", async () => {
-    mocks.decks = [createDeck({ id: sampleDeckId("uid-a"), name: "Renamed sample" })];
+    mocks.decks = [createDeck({ id: "sample-v1-uid-a", name: "Renamed sample" })];
     const { result } = renderHook(useTestDeckImport);
 
     await actAsync(async () => result.current.addSample());

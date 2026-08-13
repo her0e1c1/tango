@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, updateConfig } from "@/shared/config";
-import { configStore } from "@/shared/config/configStore";
+import { configStore } from "@/shared/config/configStoreInstance";
 import { createConfig } from "@/test/factories";
 
 describe("config actions", () => {

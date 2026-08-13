@@ -5,11 +5,14 @@
  */
 
 import { fireEvent, render, within, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartForm, type DeckStartFormProps } from "./DeckStartForm";
+import { DeckStartForm } from "./DeckStartForm";
+
+type DeckStartFormProps = ComponentProps<typeof DeckStartForm>;
 
 /**
  * Provides the create props test helper used by this file.

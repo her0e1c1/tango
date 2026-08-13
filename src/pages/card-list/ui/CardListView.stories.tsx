@@ -7,11 +7,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
-import { DeckStartForm, type DeckStartFormProps } from "@/features/study";
+import { DeckStartForm } from "@/features/study";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 import { CardListView as Template } from "./CardListView";
+
+type DeckStartFormProps = React.ComponentProps<typeof DeckStartForm>;
 
 const deckStartForm: DeckStartFormProps = {
   scoreMax: 1,

@@ -5,9 +5,12 @@
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
+import type { ComponentProps } from "react";
 
-import { ConfigForm as Template, type ConfigFormFields } from "./ConfigForm";
+import { ConfigForm as Template } from "./ConfigForm";
 import * as fixture from "@/storybook/fixture";
+
+type ConfigFormFields = ComponentProps<typeof Template>["fields"];
 
 const fields: ConfigFormFields = {
   showHeader: { checked: fixture.config.default.appearance.showHeader, onChange: () => undefined },

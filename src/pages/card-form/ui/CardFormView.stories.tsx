@@ -7,13 +7,15 @@
 import type { Card } from "@/entities/card";
 
 import type { Meta, StoryObj } from "@storybook/react";
+import type { ComponentProps } from "react";
 
 import type { Option } from "@/shared/ui/forms";
-import type { CardFormFields } from "@/features/card";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 import { CardFormView as Template } from "./CardFormView";
+
+type CardFormFields = NonNullable<ComponentProps<typeof Template>["cardForm"]>["fields"];
 
 /**
  * Prepares fields for data for the Storybook examples in this file.

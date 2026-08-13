@@ -6,7 +6,7 @@
 
 import { useStore } from "zustand";
 
-import { configStore } from "@/shared/config/configStore";
+import { configStore } from "@/shared/config/configStoreInstance";
 import type { ConfigState } from "@/shared/config/configTypes";
 
 /**

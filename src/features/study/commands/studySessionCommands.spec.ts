@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { studyStore } from "../state/studyStore";
+import { studyStore } from "../state/studyStoreInstance";
 import {
   discardStudySessionsMissingDecks,
   initializeStudySessionUi,

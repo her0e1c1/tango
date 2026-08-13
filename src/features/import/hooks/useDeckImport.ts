@@ -45,7 +45,7 @@ const synchronizationError = () =>
  * Builds the stable sample deck id used by the import feature.
  * Centralizing the format prevents different callers from producing incompatible identifiers.
  */
-export const sampleDeckId = (uid: string): DeckId => `sample-v${SAMPLE_VERSION}-${uid}`;
+const sampleDeckId = (uid: string): DeckId => `sample-v${SAMPLE_VERSION}-${uid}`;
 
 /**
  * Converts imported card records into rows with human-readable row numbers.

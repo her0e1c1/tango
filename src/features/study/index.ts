@@ -1,4 +1,4 @@
-export { DeckStartForm, type DeckStartFormProps } from "./components/DeckStartForm";
+export { DeckStartForm } from "./components/DeckStartForm";
 export { Controller, type ControllerProps } from "./components/Controller";
 export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";
 export {
@@ -15,8 +15,7 @@ export { useStudyControllerState } from "./hooks/useStudyControllerState";
 export { useStudySessions } from "./hooks/useStudySessions";
 export { useStudyStore } from "./hooks/useStudyStore";
 export {
-  clearStudyStore,
   selectStudySessionForRoute,
-  studyStore,
   type StudySession,
 } from "./state/studyStore";
+export { clearStudyStore } from "./state/studyStoreInstance";

@@ -7,7 +7,9 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { STUDY_STORAGE_KEY, createStudyStore, selectStudySessionForRoute } from "./studyStore";
+import { createStudyStore, selectStudySessionForRoute } from "./studyStore";
+
+const STUDY_STORAGE_KEY = "tango-study";
 
 /**
  * Provides the create memory storage test helper used by this file.

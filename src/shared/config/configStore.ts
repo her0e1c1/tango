@@ -9,9 +9,7 @@ import { createStore } from "zustand/vanilla";
 import { configSchema, defaultConfig, parsePersistedConfig } from "@/shared/config/configSchema";
 import type { ConfigState } from "@/shared/config/configTypes";
 
-export { defaultConfig } from "@/shared/config/configSchema";
-
-export const CONFIG_STORAGE_KEY = "tango-config";
+const CONFIG_STORAGE_KEY = "tango-config";
 const CONFIG_STORAGE_VERSION = 2;
 
 type ConfigSection = keyof ConfigState;
@@ -20,7 +18,7 @@ type BooleanConfigKey<S extends ConfigSection> = {
   [Key in keyof ConfigState[S]]: ConfigState[S][Key] extends boolean ? Key : never;
 }[keyof ConfigState[S]];
 
-export type PartialConfigState = {
+type PartialConfigState = {
   [K in keyof ConfigState]?: Partial<ConfigState[K]>;
 };
 
@@ -93,5 +91,3 @@ export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreO
     )
   );
 };
-
-export const configStore = createConfigStore();
