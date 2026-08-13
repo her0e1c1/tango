@@ -1,9 +1,9 @@
 import { Timestamp } from "firebase/firestore";
 import { describe, expect, it } from "vitest";
 
-import { mapCardDocument } from "./firestoreDocument";
+import { convertCardDtoToCard } from "./dto";
 
-const cardDocument = (overrides: Record<string, unknown> = {}) => ({
+const cardDto = (overrides: Record<string, unknown> = {}) => ({
   frontText: "Remote front",
   backText: "Remote back",
   tags: ["science"],
@@ -18,12 +18,12 @@ const cardDocument = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-describe("Card Firestore document", () => {
-  it("maps Firestore timestamps and optional fields using the snapshot id", () => {
+describe("Card DTO", () => {
+  it("converts Firestore timestamps and optional fields using the snapshot id", () => {
     expect(
-      mapCardDocument(
+      convertCardDtoToCard(
         "snapshot-id",
-        cardDocument({
+        cardDto({
           lastSeenAt: 50,
           nextSeeingAt: Timestamp.fromMillis(60),
           interval: 7,
@@ -56,7 +56,7 @@ describe("Card Firestore document", () => {
 
   it("preserves legacy Date values and omits absent optional fields", () => {
     const nextSeeingAt = new Date(60);
-    const mapped = mapCardDocument("snapshot-id", cardDocument({ nextSeeingAt }));
+    const mapped = convertCardDtoToCard("snapshot-id", cardDto({ nextSeeingAt }));
 
     expect(mapped.nextSeeingAt).toEqual(nextSeeingAt);
     expect(mapped).not.toHaveProperty("lastSeenAt");
@@ -67,7 +67,7 @@ describe("Card Firestore document", () => {
   });
 
   it("reports invalid documents through the Firestore validation boundary", () => {
-    expect(() => mapCardDocument("invalid-card", cardDocument({ nextSeeingAt: null }))).toThrowError(
+    expect(() => convertCardDtoToCard("invalid-card", cardDto({ nextSeeingAt: null }))).toThrowError(
       expect.objectContaining({
         name: "FirestoreDocumentValidationError",
         collectionName: "card",
@@ -75,7 +75,7 @@ describe("Card Firestore document", () => {
         message: expect.stringContaining("nextSeeingAt"),
       })
     );
-    expect(() => mapCardDocument("missing-card", { uid: "user-2" })).toThrowError(
+    expect(() => convertCardDtoToCard("missing-card", { uid: "user-2" })).toThrowError(
       expect.objectContaining({ name: "FirestoreDocumentValidationError" })
     );
   });
