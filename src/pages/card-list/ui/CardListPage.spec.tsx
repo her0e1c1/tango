@@ -10,7 +10,7 @@ import type { Deck } from "@/entities/deck";
 import type { ConfigState } from "@/shared/config";
 
 import userEvent from "@testing-library/user-event";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -120,6 +120,12 @@ vi.mock("react-router-dom", () => ({
 }));
 
 import { CardListPage } from "./CardListPage";
+
+const swipe = (article: HTMLElement, from: number, to: number) => {
+  fireEvent.mouseDown(article, { clientX: from, clientY: 0 });
+  fireEvent.mouseMove(document, { clientX: to, clientY: 0 });
+  fireEvent.mouseUp(document, { clientX: to, clientY: 0 });
+};
 
 describe("CardListPage", () => {
   const deck: Deck = {
@@ -279,6 +285,29 @@ describe("CardListPage", () => {
     view.rerender(<CardListPage />);
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(mocks.deleteRetry).toHaveBeenCalledOnce();
+  });
+
+  it("retries an edit failure that occurs after a delete failure", async () => {
+    const deleteError = new Error("delete failed");
+    mocks.cardRemove.mockRejectedValueOnce(deleteError);
+    render(<CardListPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: `Open actions for ${card.frontText}` }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    mocks.deleteError = deleteError;
+    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
+    expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    const editError = new Error("edit failed");
+    mocks.error = editError;
+    mocks.cardUpdateBy.mockRejectedValueOnce(editError);
+    swipe(screen.getByRole("article"), 0, 100);
+    await waitFor(() => expect(mocks.cardUpdateBy).toHaveBeenCalledOnce());
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(mocks.retry).toHaveBeenCalledOnce();
+    expect(mocks.deleteRetry).not.toHaveBeenCalled();
   });
 
   it("opens a selected card's back text and closes it through the overlay callback", async () => {

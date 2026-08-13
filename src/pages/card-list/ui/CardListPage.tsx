@@ -21,12 +21,35 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { CardListView } from "./CardListView";
 
+type CardMutationKind = "delete" | "edit";
+
+interface CardMutationFeedback {
+  pending: boolean;
+  error: unknown;
+  retry: () => void;
+}
+
+const selectCardMutationFeedback = (
+  lastFailedMutation: CardMutationKind | undefined,
+  editMutation: CardMutationFeedback,
+  deleteMutation: CardMutationFeedback
+): { kind: CardMutationKind; mutation: CardMutationFeedback } | undefined => {
+  if (deleteMutation.pending) return { kind: "delete", mutation: deleteMutation };
+  if (editMutation.pending) return { kind: "edit", mutation: editMutation };
+  if (lastFailedMutation === "delete") return { kind: "delete", mutation: deleteMutation };
+  if (lastFailedMutation === "edit") return { kind: "edit", mutation: editMutation };
+  if (deleteMutation.error != null) return { kind: "delete", mutation: deleteMutation };
+  if (editMutation.error != null) return { kind: "edit", mutation: editMutation };
+  return undefined;
+};
+
 const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; config: ConfigState }) => {
   const { deck, cards, tags, config } = props;
   const [showCard, setShowCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
+  const [lastFailedMutation, setLastFailedMutation] = React.useState<CardMutationKind>();
   const navigate = useNavigate();
   const editMutation = useEditCard();
   const deleteMutation = useDeleteCard({
@@ -43,8 +66,12 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const updateBy = (id: CardId, buildPatch: (card: Card) => CardPatch) => {
     const card = cards.find((candidate) => candidate.id === id);
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
-    return editMutation.updateBy(card, buildPatch);
+    return editMutation.updateBy(card, buildPatch).catch((error) => {
+      setLastFailedMutation("edit");
+      throw error;
+    });
   };
+  const feedback = selectCardMutationFeedback(lastFailedMutation, editMutation, deleteMutation);
 
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
@@ -78,20 +105,14 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
         }}
         feedbackSlot={
           <>
-            {deleteMutation.pending || deleteMutation.error != null ? (
+            {feedback != null ? (
               <RemoteMutationNotice
-                pending={deleteMutation.pending}
-                error={deleteMutation.error}
-                onRetry={deleteMutation.retry}
-                pendingLabel="Deleting card…"
+                pending={feedback.mutation.pending}
+                error={feedback.mutation.error}
+                onRetry={feedback.mutation.retry}
+                {...(feedback.kind === "delete" ? { pendingLabel: "Deleting card…" } : {})}
               />
-            ) : (
-              <RemoteMutationNotice
-                pending={editMutation.pending}
-                error={editMutation.error}
-                onRetry={editMutation.retry}
-              />
-            )}
+            ) : null}
             <Feedback tone="success">{successMessage}</Feedback>
           </>
         }
@@ -115,6 +136,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
               onCancel={() => setDeletionTarget(undefined)}
               onConfirm={() =>
                 deleteMutation.remove(deletionTarget).catch(() => {
+                  setLastFailedMutation("delete");
                   setDeletionErrorCardId(deletionTarget.id);
                 })
               }
