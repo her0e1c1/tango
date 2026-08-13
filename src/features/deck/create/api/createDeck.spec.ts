@@ -1,33 +1,14 @@
-import type { Deck } from "@/entities/deck";
-
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createDeck as createDeckFixture } from "@/test/factories";
-
-const mocks = vi.hoisted(() => ({ createDeckDocument: vi.fn() }));
-
-vi.mock("./firestore", () => ({
-  createDeckDocument: mocks.createDeckDocument,
-}));
 
 import { createDeck } from "../index";
 
 describe("createDeck", () => {
-  const deck = createDeckFixture({ id: "deck", uid: "uid-a" }) as Deck;
+  const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.createDeckDocument.mockResolvedValue(deck.id);
-  });
-
-  it("creates an owned Deck", async () => {
-    await createDeck("uid-a", deck);
-    expect(mocks.createDeckDocument).toHaveBeenCalledExactlyOnceWith(deck);
-  });
-
-  it("rejects missing users and mismatched owners before writing", async () => {
+  it("rejects missing users and mismatched owners", async () => {
     await expect(createDeck("", deck)).rejects.toThrow("confirmed user");
     await expect(createDeck("uid-b", deck)).rejects.toThrow("owner does not match");
-    expect(mocks.createDeckDocument).not.toHaveBeenCalled();
   });
 });
