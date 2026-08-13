@@ -28,7 +28,7 @@ interface CardProgressFields {
   interval?: number;
 }
 
-export const createStudyProgress = (cardId: CardId): StudyProgress => ({
+const createStudyProgress = (cardId: CardId): StudyProgress => ({
   cardId,
   score: 0,
   numberOfSeen: 0,

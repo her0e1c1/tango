@@ -9,7 +9,8 @@ import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 
 import { Score } from "@/shared/ui/content/Score";
-import { Feedback, type FeedbackTone } from "@/shared/ui/feedback";
+import { Feedback } from "@/shared/ui/feedback";
+import type { FeedbackTone } from "@/shared/ui/feedback/Feedback";
 
 describe("shared status content", () => {
   it.each([

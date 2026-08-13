@@ -52,12 +52,17 @@ afterEach(() => {
   singletons.db._firestoreClient._offlineComponents.kind = "persistent";
 });
 
-describe("Firebase singletons", () => {
-  it("exports one app with stable auth and Firestore instances", async () => {
-    const first = await import("@/shared/firebase");
-    const second = await import("@/shared/firebase");
+const importFirebase = async () => {
+  const firebase = await import("@/shared/firebase");
+  const firestoreRuntime = await import("@/shared/firebase/firestore-runtime");
+  return { ...firebase, ...firestoreRuntime };
+};
 
-    expect(first.app).toBe(singletons.app);
+describe("Firebase singletons", () => {
+  it("initializes stable auth and Firestore instances once", async () => {
+    const first = await importFirebase();
+    const second = await importFirebase();
+
     expect(first.auth).toBe(singletons.auth);
     expect(first.getDb()).toBe(singletons.db);
     expect(second.getDb()).toBe(first.getDb());
@@ -70,7 +75,7 @@ describe("Firebase singletons", () => {
   it("uses persistent single-tab cache in production", async () => {
     vi.stubEnv("PROD", true);
 
-    const firebase = await import("@/shared/firebase");
+    const firebase = await importFirebase();
     await firebase.waitForFirestoreInitialization();
 
     expect(persistentSingleTabManager).toHaveBeenCalledWith({});
@@ -87,7 +92,7 @@ describe("Firebase singletons", () => {
     vi.stubEnv("VITE_DB_HOST", "127.0.0.1");
     vi.stubEnv("VITE_DB_PORT", "8080");
 
-    const { getDb } = await import("@/shared/firebase");
+    const { getDb } = await importFirebase();
 
     expect(memoryLocalCache).toHaveBeenCalledTimes(1);
     expect(initializeFirestore).toHaveBeenCalledWith(singletons.app, { localCache: "memory-cache" });
@@ -105,7 +110,7 @@ describe("Firebase singletons", () => {
       throw failure;
     });
 
-    const firebase = await import("@/shared/firebase");
+    const firebase = await importFirebase();
 
     await expect(firebase.waitForFirestoreInitialization()).resolves.toEqual({ status: "blocked", error: failure });
     expect(() => firebase.getDb()).toThrow(failure);
@@ -118,7 +123,7 @@ describe("Firebase singletons", () => {
       throw failure;
     });
 
-    const { getDb, waitForFirestoreInitialization } = await import("@/shared/firebase");
+    const { getDb, waitForFirestoreInitialization } = await importFirebase();
 
     await expect(waitForFirestoreInitialization()).resolves.toEqual({ status: "blocked", error: failure });
     expect(() => getDb()).toThrow(failure);
@@ -129,7 +134,7 @@ describe("Firebase singletons", () => {
     vi.stubEnv("PROD", true);
     vi.stubGlobal("navigator", { ...navigator, locks: undefined });
 
-    const firebase = await import("@/shared/firebase");
+    const firebase = await importFirebase();
 
     await expect(firebase.waitForFirestoreInitialization()).resolves.toEqual({
       status: "ready",
@@ -142,7 +147,7 @@ describe("Firebase singletons", () => {
     vi.stubEnv("PROD", true);
     singletons.db._firestoreClient._offlineComponents.kind = "memory";
 
-    const firebase = await import("@/shared/firebase");
+    const firebase = await importFirebase();
 
     await expect(firebase.waitForFirestoreInitialization()).resolves.toEqual({
       status: "blocked",
@@ -159,7 +164,7 @@ describe("Firebase singletons", () => {
     vi.stubEnv("VITE_AUTH_HOST", "127.0.0.1");
     vi.stubEnv("VITE_AUTH_PORT", "9099");
 
-    const { auth } = await import("@/shared/firebase");
+    const { auth } = await importFirebase();
 
     expect(connectAuthEmulator).toHaveBeenCalledWith(auth, "http://127.0.0.1:9099");
   });
@@ -173,7 +178,7 @@ describe("Firebase singletons", () => {
     vi.stubEnv("VITE_AUTH_HOST", host);
     vi.stubEnv("VITE_AUTH_PORT", port);
 
-    await import("@/shared/firebase");
+    await importFirebase();
 
     expect(connectAuthEmulator).not.toHaveBeenCalled();
   });
@@ -184,7 +189,7 @@ describe("Firebase singletons", () => {
     vi.stubEnv("VITE_AUTH_HOST", "127.0.0.1");
     vi.stubEnv("VITE_AUTH_PORT", "9099");
 
-    await import("@/shared/firebase");
+    await importFirebase();
 
     expect(connectAuthEmulator).not.toHaveBeenCalled();
   });
@@ -195,7 +200,7 @@ describe("Firebase singletons", () => {
     vi.stubEnv("VITE_AUTH_HOST", "");
     vi.stubEnv("VITE_AUTH_PORT", "");
 
-    await import("@/shared/firebase");
+    await importFirebase();
 
     expect(connectAuthEmulator).not.toHaveBeenCalled();
   });

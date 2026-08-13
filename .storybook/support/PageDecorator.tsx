@@ -13,14 +13,19 @@ import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { AuthSessionProvider, createAuthSessionStore, type AuthSessionState } from "@/entities/auth-session";
-import { studyStore, type StudySession } from "@/features/study/state/studyStore";
-import { configStore } from "@/shared/config/configStore";
-import { configSchema, normalizeConfigInput } from "@/shared/config/configSchema";
-import type { PartialConfigState } from "@/shared/config/configStore";
+import type { StudySession } from "@/features/study/state/studyStore";
+import { studyStore } from "@/features/study/state/studyStoreInstance";
+import { configStore } from "@/shared/config/configStoreInstance";
+import { parsePersistedConfig } from "@/shared/config/configSchema";
+import type { ConfigState } from "@/shared/config/configTypes";
 import { toRemoteById } from "@/shared/api/remoteSnapshot";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read/RemoteReadScope";
 
 export const PAGE_STORY_UID = "storybook-user";
+
+type PartialConfigState = {
+  [K in keyof ConfigState]?: Partial<ConfigState[K]>;
+};
 
 export interface PageStoryParameters {
   path: string;
@@ -71,7 +76,7 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
 
   const decks = (parameters.decks ?? []).map(cloneDeck);
   const cards = (parameters.cards ?? []).map(cloneCard);
-  const config = configSchema.parse(normalizeConfigInput(parameters.config));
+  const config = parsePersistedConfig(parameters.config);
   configStore.setState({
     config: {
       ...config,

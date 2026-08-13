@@ -16,7 +16,7 @@ import { useStudyCards } from "./useStudyCards";
 import { buildStudySession, calculateNextIndex } from "../model/session";
 import { createStudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
-import { studyStore } from "../state/studyStore";
+import { studyStore } from "../state/studyStoreInstance";
 import { useConfig } from "@/shared/config";
 
 export interface StudyActions {

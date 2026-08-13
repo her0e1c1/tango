@@ -12,8 +12,10 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { ConfigForm, type ConfigFormFields, type ConfigFormProps } from "./ConfigForm";
+import { ConfigForm, type ConfigFormProps } from "./ConfigForm";
 import { createConfig } from "@/test/factories";
+
+type ConfigFormFields = React.ComponentProps<typeof ConfigForm>["fields"];
 
 /**
  * Provides the create fields test helper used by this file.

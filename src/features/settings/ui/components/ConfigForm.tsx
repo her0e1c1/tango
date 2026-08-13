@@ -14,7 +14,7 @@ import { SettingsRow, SettingsSection } from "./SettingsSection";
 import { Button } from "@/shared/ui/button";
 import { Slider, Switch } from "@/shared/ui/forms";
 
-export interface ConfigFormFields {
+interface ConfigFormFields {
   showHeader: React.ComponentProps<typeof Switch>;
   showSwipeButtonList: React.ComponentProps<typeof Switch>;
   showSwipeFeedback: React.ComponentProps<typeof Switch>;

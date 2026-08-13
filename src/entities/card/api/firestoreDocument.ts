@@ -1,8 +1,8 @@
-import type { Card, CardEdit, CardId } from "../model/card";
+import type { Card, CardId } from "../model/card";
 
 import { z } from "zod";
 
-import { firestoreTimestampDateSchema, omitUndefined, parseFirestoreDocument } from "@/shared/firestore";
+import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/firestore";
 
 const cardDocumentSchema = z.object({
   id: z.string().optional(),
@@ -25,17 +25,7 @@ const cardDocumentSchema = z.object({
   endLine: z.number().optional(),
 });
 
-const cardCreateDtoSchema = cardDocumentSchema.extend({
-  id: z.string(),
-});
-
-const cardUpdateDtoSchema = cardDocumentSchema.omit({ id: true }).partial().extend({
-  updatedAt: z.number(),
-});
-
 type CardDocument = z.infer<typeof cardDocumentSchema>;
-export type CardCreateDto = z.infer<typeof cardCreateDtoSchema>;
-export type CardUpdateDto = z.infer<typeof cardUpdateDtoSchema>;
 
 const parseCardDocument = (id: CardId, value: unknown): CardDocument =>
   parseFirestoreDocument(cardDocumentSchema, "card", id, value);
@@ -64,50 +54,3 @@ export const mapCardDocument = (id: CardId, value: unknown): Card => {
   if (document.endLine !== undefined) card.endLine = document.endLine;
   return card;
 };
-
-export const buildCardCreateDto = (card: Card, createdAt: number): CardCreateDto =>
-  cardCreateDtoSchema.parse(
-    omitUndefined({
-      id: card.id,
-      frontText: card.frontText,
-      backText: card.backText,
-      tags: card.tags,
-      uniqueKey: card.uniqueKey,
-      deckId: card.deckId,
-      uid: card.uid,
-      createdAt,
-      updatedAt: createdAt,
-      deletedAt: null,
-      score: card.score,
-      numberOfSeen: card.numberOfSeen,
-      lastSeenAt: card.lastSeenAt,
-      nextSeeingAt: card.nextSeeingAt,
-      interval: card.interval,
-      url: card.url,
-      startLine: card.startLine,
-      endLine: card.endLine,
-    })
-  );
-
-export const buildCardUpdateDto = (card: CardEdit, updatedAt: number): CardUpdateDto =>
-  cardUpdateDtoSchema.parse(
-    omitUndefined({
-      frontText: card.frontText,
-      backText: card.backText,
-      tags: card.tags,
-      uniqueKey: card.uniqueKey,
-      deckId: card.deckId,
-      uid: card.uid,
-      createdAt: card.createdAt,
-      updatedAt,
-      deletedAt: card.deletedAt,
-      score: card.score,
-      numberOfSeen: card.numberOfSeen,
-      lastSeenAt: card.lastSeenAt,
-      nextSeeingAt: card.nextSeeingAt,
-      interval: card.interval,
-      url: card.url,
-      startLine: card.startLine,
-      endLine: card.endLine,
-    })
-  );

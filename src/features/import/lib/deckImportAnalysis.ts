@@ -7,7 +7,6 @@
 import type { Card, CardRaw } from "@/entities/card";
 
 import type { DeckImportPlan, DeckImportPlanRow, DeckImportRow } from "../model/deckImportTypes";
-import { parseCsv } from "./cardCsv";
 
 /**
  * Checks whether two imported card values contain the same user-editable content.
@@ -17,12 +16,6 @@ const sameCardContent = (left: CardRaw, right: CardRaw) =>
   left.frontText === right.frontText &&
   left.backText === right.backText &&
   left.tags.join("\0") === right.tags.join("\0");
-
-/**
- * Parses deck import csv into validated application data.
- * Malformed input is reported before downstream code relies on the result.
- */
-export const parseDeckImportCsv = parseCsv;
 
 /**
  * Builds deck import plan from the supplied application values.

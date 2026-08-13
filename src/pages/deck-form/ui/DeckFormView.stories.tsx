@@ -1,12 +1,14 @@
 import type { Deck } from "@/entities/deck";
-import type { DeckFormFields } from "@/features/deck-editor";
 
 import type { Meta, StoryObj } from "@storybook/react";
+import type { ComponentProps } from "react";
 
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 import { DeckFormView as View } from "./DeckFormView";
+
+type DeckFormFields = NonNullable<ComponentProps<typeof View>["deckForm"]>["fields"];
 
 const fieldsFor = (deck: Deck): DeckFormFields => ({
   name: { value: deck.name, onChange: () => undefined },

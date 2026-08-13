@@ -7,7 +7,10 @@
 
 import { describe, expect, it } from "vitest";
 
-import { CONFIG_STORAGE_KEY, createConfigStore, defaultConfig } from "@/shared/config/configStore";
+import { defaultConfig } from "@/shared/config/configSchema";
+import { createConfigStore } from "@/shared/config/configStore";
+
+const CONFIG_STORAGE_KEY = "tango-config";
 
 /**
  * Provides the create memory storage test helper used by this file.

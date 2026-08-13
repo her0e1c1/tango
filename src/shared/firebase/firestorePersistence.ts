@@ -19,7 +19,7 @@ type CacheWarmer = (db: Firestore) => Promise<unknown>;
  * The class keeps related error details or behavior together so callers can recognize and handle
  * this specific case.
  */
-export class FirestorePersistenceUnavailableError extends Error {
+class FirestorePersistenceUnavailableError extends Error {
   constructor() {
     super("Firestore persistent storage is unavailable. Memory fallback is disabled.");
     this.name = "FirestorePersistenceUnavailableError";

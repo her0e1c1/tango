@@ -12,7 +12,7 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useStudyActions } from "./useStudyActions";
-import { studyStore } from "../state/studyStore";
+import { studyStore } from "../state/studyStoreInstance";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => {

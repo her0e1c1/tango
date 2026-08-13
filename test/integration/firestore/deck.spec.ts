@@ -8,7 +8,9 @@ import type { Deck } from "@/entities/deck";
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
-import * as deckAdapter from "@/entities/deck/api/firestore";
+import { createDeckDocument } from "@/features/deck/create/api/firestore";
+import { deleteDeckDocuments } from "@/features/deck/delete/api/firestore";
+import { updateDeckDocument } from "@/features/deck/edit/api/firestore";
 import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
 import { createDeck } from "@/test/factories";
@@ -42,24 +44,24 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
-    await deckAdapter.create(d);
+    await createDeckDocument(d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...newDeck, id: d.id });
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
-    expect(await deckAdapter.exists(d.id)).toBeTruthy();
+    expect((await getDoc(doc(db, "deck", d.id))).exists()).toBeTruthy();
   });
 
   it("should update a deck", async () => {
     const d = { ...newDeck, id: uuid() };
-    await deckAdapter.create(d);
+    await createDeckDocument(d);
     const n = {
       ...d,
       name: "updated",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
-    await deckAdapter.update(n);
+    await updateDeckDocument(n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...d, name: "updated" });
     expect(data).not.toHaveProperty("currentIndex");
@@ -68,9 +70,9 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
 
   it("should delete a deck", async () => {
     const d = { ...newDeck, id: uuid() };
-    await deckAdapter.create(d);
+    await createDeckDocument(d);
     expect((await getDoc(doc(db, "deck", d.id))).exists()).toBeTruthy();
-    await deckAdapter.remove(d.id);
-    await expect(deckAdapter.exists(d.id)).rejects.toMatchObject({ code: "permission-denied" });
+    await deleteDeckDocuments(d.uid, d.id);
+    await expect(getDoc(doc(db, "deck", d.id))).rejects.toMatchObject({ code: "permission-denied" });
   });
 });
