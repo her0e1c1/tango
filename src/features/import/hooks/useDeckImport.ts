@@ -22,6 +22,24 @@ export interface DeckImportOptions {
   createDeck: (uid: string, deck: Deck) => Promise<unknown>;
 }
 
+interface DeckImportState {
+  uid: string;
+  running: boolean;
+  validating: boolean;
+  preview: DeckImportPreview | undefined;
+  error: unknown;
+  data: DeckImportResult | undefined;
+}
+
+const initialDeckImportState = (uid: string): DeckImportState => ({
+  uid,
+  running: false,
+  validating: false,
+  preview: undefined,
+  error: null,
+  data: undefined,
+});
+
 interface DeckImportAttempt {
   uid: string;
   deck: Deck;
@@ -287,32 +305,17 @@ export const useDeckImport = ({ createDeck: createDeckUseCase }: DeckImportOptio
     [cardRemote.cards]
   );
   const uid = auth.status === "authenticated" ? auth.uid : "";
+  const synchronized =
+    cardRemote.status === "ready" &&
+    cardRemote.syncStatus === "synced" &&
+    deckRemote.status === "ready" &&
+    deckRemote.syncStatus === "synced";
   const generation = useRef(0);
   const generationUid = useRef(uid);
-  const [stateUid, setStateUid] = useState(uid);
   const runningRef = useRef(false);
-  const [runningState, setRunningState] = useState(() => ({ uid, value: false }));
-  const [validatingState, setValidatingState] = useState(() => ({ uid, value: false }));
-  const [previewState, setPreviewState] = useState<{
-    uid: string;
-    value: DeckImportPreview | undefined;
-  }>(() => ({ uid, value: undefined }));
-  const [errorState, setErrorState] = useState<{ uid: string; value: unknown }>(() => ({
-    uid,
-    value: null,
-  }));
-  const [dataState, setDataState] = useState<{ uid: string; value: DeckImportResult | undefined }>(() => ({
-    uid,
-    value: undefined,
-  }));
-  if (stateUid !== uid) {
-    setStateUid(uid);
-    setRunningState({ uid, value: false });
-    setValidatingState({ uid, value: false });
-    setPreviewState({ uid, value: undefined });
-    setErrorState({ uid, value: null });
-    setDataState({ uid, value: undefined });
-  }
+  const [state, setState] = useState(() => initialDeckImportState(uid));
+  const currentState = state.uid === uid ? state : initialDeckImportState(uid);
+  if (state.uid !== uid) setState(currentState);
   const lastRequest = useRef<ImportRequest>(undefined);
   const dependenciesRef = useRef<DeckImportDependencies>(undefined);
   const runRef = useRef<(request: ImportRequest) => Promise<DeckImportResult>>(undefined);
@@ -332,31 +335,23 @@ export const useDeckImport = ({ createDeck: createDeckUseCase }: DeckImportOptio
   useEffect(() => {
     dependenciesRef.current = {
       uid,
-      synchronized:
-        cardRemote.status === "ready" &&
-        cardRemote.syncStatus === "synced" &&
-        deckRemote.status === "ready" &&
-        deckRemote.syncStatus === "synced",
+      synchronized,
       decks: deckRemote.decks,
       cardsByDeckId,
       createDeck: (deck) => createDeckUseCase(uid, deck),
       bulkUpsert: (cards) => upsertImportedCards(uid, cards),
     };
-  }, [
-    cardRemote.status,
-    cardRemote.syncStatus,
-    cardsByDeckId,
-    createDeckUseCase,
-    deckRemote.decks,
-    deckRemote.status,
-    deckRemote.syncStatus,
-    uid,
-  ]);
-  const setRunning = (value: boolean) => setRunningState({ uid, value });
-  const setValidating = (value: boolean) => setValidatingState({ uid, value });
-  const setPreview = (value: DeckImportPreview | undefined) => setPreviewState({ uid, value });
-  const setError = (value: unknown) => setErrorState({ uid, value });
-  const setData = (value: DeckImportResult | undefined) => setDataState({ uid, value });
+  }, [cardsByDeckId, createDeckUseCase, deckRemote.decks, synchronized, uid]);
+  const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
+    setState((current) => ({
+      ...(current.uid === uid ? current : initialDeckImportState(uid)),
+      ...update,
+    }));
+  };
+  const setRunning = (running: boolean) => updateState({ running });
+  const setValidating = (validating: boolean) => updateState({ validating });
+  const setPreview = (preview: DeckImportPreview | undefined) => updateState({ preview });
+  const setError = (error: unknown) => updateState({ error });
 
   const mutateAsync = async (request: ImportRequest) => {
     const operationGeneration = generation.current;
@@ -366,12 +361,11 @@ export const useDeckImport = ({ createDeck: createDeckUseCase }: DeckImportOptio
       // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
       if (dependencies == null) throw new Error("Deck import dependencies are not available");
       const result = await executeDeckImport(request, dependencies);
-      if (generation.current === operationGeneration) setData(result);
+      if (generation.current === operationGeneration) updateState({ data: result });
       return result;
     } catch (nextError) {
       if (generation.current === operationGeneration) {
-        setData(undefined);
-        setError(nextError);
+        updateState({ data: undefined, error: nextError });
       }
       throw nextError;
     }
@@ -379,8 +373,7 @@ export const useDeckImport = ({ createDeck: createDeckUseCase }: DeckImportOptio
 
   const resetOperation = () => {
     lastRequest.current = undefined;
-    setData(undefined);
-    setError(null);
+    updateState({ data: undefined, error: null });
   };
 
   /**
@@ -400,11 +393,7 @@ export const useDeckImport = ({ createDeck: createDeckUseCase }: DeckImportOptio
     runRef.current = run;
   });
 
-  const preview = previewState.uid === uid ? previewState.value : undefined;
-  const validating = validatingState.uid === uid && validatingState.value;
-  const running = runningState.uid === uid && runningState.value;
-  const error = errorState.uid === uid ? errorState.value : null;
-  const data = dataState.uid === uid ? dataState.value : undefined;
+  const { preview, validating, running, error, data } = currentState;
 
   /**
    * Validates the selected CSV file and stores its import preview.
@@ -417,11 +406,7 @@ export const useDeckImport = ({ createDeck: createDeckUseCase }: DeckImportOptio
       setPreview,
       setError,
       reset: resetOperation,
-      synchronized:
-        cardRemote.status === "ready" &&
-        cardRemote.syncStatus === "synced" &&
-        deckRemote.status === "ready" &&
-        deckRemote.syncStatus === "synced",
+      synchronized,
       decks: deckRemote.decks,
       cardsByDeckId,
       uid,
