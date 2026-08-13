@@ -3,8 +3,8 @@ import type { Deck } from "../model/deck";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { REMOTE_WRITE_TIMEOUT_MS } from "@/shared/lib/remoteWrite";
-import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/store/remoteMutationLocks";
 import { createDeck as createDeckFixture } from "@/test/factories";
+import { deckMembershipMutationLock, withDeckMembershipLocks } from "./remoteMutationLocks";
 
 const mocks = vi.hoisted(() => ({
   create: vi.fn(),
