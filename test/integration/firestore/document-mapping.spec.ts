@@ -16,7 +16,7 @@ import { Timestamp } from "firebase/firestore";
 import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument } from "@/entities/card/api/firestoreDocument";
 import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument } from "@/entities/deck/api/firestoreDocument";
 import { FirestoreDocumentValidationError } from "@/shared/firestore";
-import { createStudyProgressFromCard } from "@/entities/study-progress";
+import { createStudyProgressFromCard, type StudyProgressEdit } from "@/entities/study-progress";
 import { buildStudyProgressUpdateDto, mapStudyProgressDocument } from "@/entities/study-progress/api/firestoreDocument";
 import { createCard, createDeck } from "@/test/factories";
 
@@ -282,6 +282,19 @@ describe("Firestore DTO builders", () => {
       interval: 7,
       updatedAt: 202,
     });
+  });
+
+  it("omits explicitly undefined StudyProgress fields", () => {
+    const edit = {
+      cardId: card.id,
+      score: undefined,
+      numberOfSeen: undefined,
+      lastSeenAt: undefined,
+      nextSeeingAt: undefined,
+      interval: undefined,
+    } as unknown as StudyProgressEdit;
+
+    expect(buildStudyProgressUpdateDto(edit, 203)).toEqual({ updatedAt: 203 });
   });
 
   it("omits the id and undefined values when updating a card", () => {

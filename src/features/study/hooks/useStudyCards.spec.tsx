@@ -61,6 +61,32 @@ describe("useStudyCards", () => {
     expect(result.current.enabled).toEqual([card]);
   });
 
+  it("refreshes eligibility when only StudyProgress changes", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+    const deck = createDeck({ id: "scheduled" });
+    const card = createCard({ id: "scheduled-card", deckId: deck.id, nextSeeingAt: new Date(1_200) });
+    const config = createConfig({ useCardInterval: true });
+    const initialProgress = {
+      [card.id]: { ...createStudyProgressFromCard(card), nextSeeingAt: new Date(2_000) },
+    };
+    const { result, rerender } = renderHook(({ progress }) => useStudyCards(deck, [card], progress, config), {
+      initialProps: { progress: initialProgress },
+    });
+
+    act(() => vi.advanceTimersByTime(0));
+    expect(result.current).toEqual([]);
+
+    vi.setSystemTime(1_500);
+    rerender({
+      progress: { [card.id]: { ...createStudyProgressFromCard(card), nextSeeingAt: new Date(1_200) } },
+    });
+    expect(result.current).toEqual([]);
+
+    act(() => vi.advanceTimersByTime(0));
+    expect(result.current).toEqual([card]);
+  });
+
   it("reschedules review times beyond the browser timeout limit", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1_000);

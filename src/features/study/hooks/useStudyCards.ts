@@ -29,7 +29,7 @@ export const useStudyCards = (
     const current = Date.now();
     const refresh = window.setTimeout(() => setScheduleClock(current), 0);
     return () => window.clearTimeout(refresh);
-  }, [cards]);
+  }, [studyCards]);
 
   useEffect(() => {
     const current = Date.now();

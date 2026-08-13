@@ -16,6 +16,9 @@ const studyProgressUpdateDtoSchema = z.object({
 
 export type StudyProgressUpdateDto = z.infer<typeof studyProgressUpdateDtoSchema>;
 
+const omitUndefined = (value: Record<string, unknown>): Record<string, unknown> =>
+  Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined));
+
 export const mapStudyProgressDocument = (cardId: string, value: unknown): StudyProgress => {
   const document = parseCardDocument(cardId, value);
   const progress: StudyProgress = {
@@ -30,8 +33,10 @@ export const mapStudyProgressDocument = (cardId: string, value: unknown): StudyP
 };
 
 export const buildStudyProgressUpdateDto = (progress: StudyProgressEdit, updatedAt: number): StudyProgressUpdateDto =>
-  studyProgressUpdateDtoSchema.parse({
-    ...progress,
-    cardId: undefined,
-    updatedAt,
-  });
+  studyProgressUpdateDtoSchema.parse(
+    omitUndefined({
+      ...progress,
+      cardId: undefined,
+      updatedAt,
+    })
+  );
