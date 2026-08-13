@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
@@ -27,7 +27,7 @@ describe("useDeleteCard", () => {
     mocks.deleteCard.mockResolvedValue(undefined);
   });
 
-  it("reports a successful removal after retry", async () => {
+  it("reports a successful removal when the original action is run again", async () => {
     const onSuccess = vi.fn();
     mocks.deleteCard.mockRejectedValueOnce(new Error("remove failed")).mockResolvedValueOnce(undefined);
     const { result } = renderHook(() => useDeleteCard({ onSuccess }));
@@ -35,27 +35,10 @@ describe("useDeleteCard", () => {
       await expect(result.current.remove(card)).rejects.toThrow("remove failed");
     });
     expect(onSuccess).not.toHaveBeenCalled();
-    act(() => result.current.retry());
-    await waitFor(() => expect(onSuccess).toHaveBeenCalledExactlyOnceWith(card));
-  });
-
-  it("suppresses a stale success after the authenticated UID changes", async () => {
-    let finish!: () => void;
-    const onSuccess = vi.fn();
-    mocks.deleteCard.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
-    const { result, rerender } = renderHook(() => useDeleteCard({ onSuccess }));
-    let operation!: Promise<void>;
-    act(() => {
-      operation = result.current.remove(card);
-    });
-    await waitFor(() => expect(result.current.pending).toBe(true));
-    mocks.uid = "uid-b";
-    rerender();
     await actAsync(async () => {
-      finish();
-      await operation;
+      await result.current.remove(card);
     });
-    expect(onSuccess).not.toHaveBeenCalled();
-    expect(result.current.pending).toBe(false);
+
+    expect(onSuccess).toHaveBeenCalledExactlyOnceWith(card);
   });
 });

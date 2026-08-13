@@ -47,9 +47,6 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 vi.mock("@/features/card/edit", () => ({
   useEditCard: () => ({
     update: mocks.cardUpdate,
-    pending: false,
-    error: null,
-    retry: vi.fn(),
   }),
 }));
 
@@ -160,6 +157,7 @@ describe("CardFormPage", () => {
 
     expect(mocks.cardUpdate).toHaveBeenCalledWith(card);
     expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent("Unable to save changes. Try again.");
   });
 
   it("shows recovery actions when the card is unavailable", () => {

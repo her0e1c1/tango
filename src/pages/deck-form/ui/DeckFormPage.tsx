@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CATEGORY, type Category, type Deck, useDecks } from "@/entities/deck";
 import { useEditDeck } from "@/features/deck/edit";
 import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
-import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
+import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -31,7 +31,7 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
     <AppLayout showHeader>
       <DeckFormView
         feedbackSlot={
-          <RemoteMutationNotice pending={deckActions.pending} error={deckActions.error} onRetry={deckActions.retry} />
+          <Feedback tone="error">{deckActions.error == null ? null : "Unable to save changes. Try again."}</Feedback>
         }
         deckForm={deckForm}
       />
