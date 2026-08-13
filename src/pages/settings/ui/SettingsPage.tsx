@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthSession } from "@/entities/auth-session";
-import { useAccountOperations, useConfigFormState } from "@/features/settings";
+import { useSignIn } from "@/features/auth/sign-in";
+import { useSignOut } from "@/features/auth/sign-out";
+import { useConfigFormState } from "@/features/settings";
 import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
@@ -24,26 +26,24 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
     uid: authenticated?.uid ?? "",
     displayName: authenticated?.displayName ?? null,
   };
-  const account = useAccountOperations({
-    generation: authenticated
-      ? `authenticated:${authenticated.uid}:${authenticated.isAnonymous ? "anonymous" : "linked"}`
-      : authState.status,
-    login,
-    ...(authenticated ? { logout: () => logout(authenticated.uid) } : {}),
-  });
+  const linkedUser = authenticated != null && !authenticated.isAnonymous ? authenticated : undefined;
+  const signIn = useSignIn(login);
+  const signOut = useSignOut(linkedUser ? () => logout(linkedUser.uid) : undefined);
+  const account = linkedUser ? { ...signOut, kind: "logout" as const } : { ...signIn, kind: "login" as const };
+  const retryAccountOperation = account.kind === "logout" ? signOut.signOut : signIn.signIn;
   const configForm = useConfigFormState({
     config,
     identity,
     version: __APP_VERSION__,
-    isLoggedIn: authenticated != null && !authenticated.isAnonymous,
-    onLogin: () => void account.login().catch(() => undefined),
-    ...(authenticated ? { onLogout: () => void account.logout().catch(() => undefined) } : {}),
+    isLoggedIn: linkedUser != null,
+    onLogin: () => void signIn.signIn().catch(() => undefined),
+    ...(linkedUser ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {}),
     accountPending: account.pending,
     accountFeedback: (
       <RemoteMutationNotice
         pending={account.pending}
         error={account.error}
-        onRetry={() => void account.retry().catch(() => undefined)}
+        onRetry={() => void retryAccountOperation().catch(() => undefined)}
         pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
         errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
       />

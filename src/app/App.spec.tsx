@@ -20,8 +20,9 @@ vi.mock("@/shared/config", () => ({
   useConfig: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
 vi.mock("@/app/auth/logout", () => ({ logout: vi.fn() }));
+vi.mock("@/app/providers/auth", () => ({ publishAuthenticatedUser: vi.fn() }));
 vi.mock("@/entities/auth-session", () => ({ useAuthSession: () => mocks.authState }));
-vi.mock("@/features/auth", () => ({ loginGoogle: vi.fn() }));
+vi.mock("@/features/auth/sign-in", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));
