@@ -1,4 +1,5 @@
 import type { DeckId } from "@/entities/deck/@x/card";
+import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/entities/deck/@x/card";
 
 import type { Card, CardEdit, CardId } from "../model/card";
 
@@ -10,7 +11,6 @@ import {
 } from "./firestore";
 import { runSerially } from "@/shared/lib/runSerially";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
-import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/shared/lib/deckMutationLocks";
 
 const cardMutationLock = (uid: string, id: CardId) => `card:${uid}:${id}`;
 

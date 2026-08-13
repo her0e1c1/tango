@@ -1,9 +1,13 @@
 import type { Deck } from "@/entities/deck";
 
 import { removeCardDocumentsForDeck } from "@/entities/card";
-import { removeDeckDocument } from "@/entities/deck";
+import {
+  deckMembershipMutationLock,
+  deckMutationLock,
+  removeDeckDocument,
+  withDeckMembershipLocks,
+} from "@/entities/deck";
 import { runSerially } from "@/shared/lib/runSerially";
-import { deckMembershipMutationLock, deckMutationLock, withDeckMembershipLocks } from "@/shared/lib/deckMutationLocks";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 
 export const deleteDeck = async (uid: string, deck: Deck): Promise<void> => {

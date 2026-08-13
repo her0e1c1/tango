@@ -1,8 +1,7 @@
 import type { Deck } from "@/entities/deck";
 
-import { createDeckDocument } from "@/entities/deck";
+import { createDeckDocument, deckMutationLock } from "@/entities/deck";
 import { runSerially } from "@/shared/lib/runSerially";
-import { deckMutationLock } from "@/shared/lib/deckMutationLocks";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 
 const requireOwner = (uid: string, deck: Deck) => {

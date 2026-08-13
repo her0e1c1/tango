@@ -1,8 +1,7 @@
 import type { DeckEdit } from "@/entities/deck";
 
-import { updateDeckDocument } from "@/entities/deck";
+import { deckMutationLock, updateDeckDocument } from "@/entities/deck";
 import { runSerially } from "@/shared/lib/runSerially";
-import { deckMutationLock } from "@/shared/lib/deckMutationLocks";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 
 export const editDeck = async (uid: string, deck: DeckEdit): Promise<void> => {
