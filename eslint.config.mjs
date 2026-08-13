@@ -9,6 +9,7 @@ import testingLibrary from "eslint-plugin-testing-library";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
+const sourceLayers = ["app", "entities", "features", "pages", "shared", "store"];
 
 export default [
   {
@@ -32,12 +33,22 @@ export default [
     files: sourceFiles,
     settings: {
       ...boundariesRecommended.settings,
+      "boundaries/elements": sourceLayers.map((layer) => ({
+        type: layer,
+        pattern: `src/${layer}`,
+        partialMatch: false,
+      })),
+      "boundaries/ignore": ["src/vite-env.d.ts"],
       "boundaries/dependency-nodes": [
         "import",
         "export",
         "require",
         "dynamic-import",
       ],
+    },
+    rules: {
+      ...boundariesRecommended.rules,
+      "boundaries/no-unknown-files": "error",
     },
   }),
   {
