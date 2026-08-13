@@ -4,8 +4,9 @@
  * coordinate services themselves.
  */
 
-import type { Card, CardEdit, CardId } from "@/entities/card";
+import type { Card, CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
+import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { ConfigState, SwipeDirection } from "@/shared/config";
 
 import React from "react";
@@ -36,7 +37,7 @@ export interface StudyActions {
 
 interface StudyCardMutation {
   isPending: (id: CardId) => boolean;
-  update: (card: CardEdit) => Promise<void>;
+  update: (progress: StudyProgressEdit) => Promise<void>;
   pending: boolean;
   error: unknown;
   retry: () => void;
@@ -53,7 +54,7 @@ interface StudySwipeDependencies {
   config: ConfigState;
   cardsById: Partial<Record<CardId, Card>>;
   isPending: (id: CardId) => boolean;
-  update: (card: CardEdit) => Promise<void>;
+  update: (progress: StudyProgressEdit) => Promise<void>;
 }
 
 const applyOptimisticUpdate = (deckId: DeckId, nextIndex: number) => {

@@ -1,8 +1,8 @@
-import { type Card, parseCardCreateDto } from "@/entities/card";
+import type { Card } from "@/entities/card";
 
 import { collection, doc, setDoc } from "firebase/firestore";
 
-import { getDb, getTimestamp, omitUndefined } from "@/shared/firestore";
+import { getDb, getTimestamp, omitUndefined, parseCardCreateDto } from "@/shared/firestore";
 
 export const generateCardId = (): string => doc(collection(getDb(), "card")).id;
 

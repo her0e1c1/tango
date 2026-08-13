@@ -1,33 +1,12 @@
-import type { DeckForCard, DeckId } from "@/entities/deck/@x/card";
+import type { DeckForCard } from "@/entities/deck/@x/card";
+import type { Card as CardModel } from "./schema";
 
-export type CardId = string;
-
-export interface Card {
-  frontText: string;
-  backText: string;
-  tags: string[];
-  uniqueKey: string;
-  id: CardId;
-  deckId: DeckId;
-  uid: string;
-  createdAt: number;
-  updatedAt: number;
-  deletedAt: number | null;
-  score: number;
-  numberOfSeen: number;
-  lastSeenAt?: number;
-  nextSeeingAt?: Date;
-  interval?: number;
-  url?: string;
-  startLine?: number;
-  endLine?: number;
-}
+export type { Card, CardId } from "./schema";
 
 export type CardDeck = DeckForCard;
-export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
-export type CardEdit = Partial<Card> & Pick<Card, "id" | "deckId">;
+export type CardRaw = Pick<CardModel, "frontText" | "backText" | "uniqueKey" | "tags">;
 
-export const createCard = (card: CardRaw, deck: CardDeck, generateId: () => string): Card => {
+export const createCard = (card: CardRaw, deck: CardDeck, generateId: () => string): CardModel => {
   const { uid, id: deckId } = deck;
   return {
     ...card,

@@ -30,7 +30,7 @@ export const useDeleteCard = ({ onSuccess }: UseDeleteCardOptions = {}) => {
   const remove = (card: Card) => {
     const operationScope = scope.current;
     return mutation.run([card.id], `remove:${card.id}`, async () => {
-      await deleteCard(uid, card.id);
+      await deleteCard(uid, card);
       if (scope.current === operationScope) onSuccessRef.current?.(card);
     });
   };

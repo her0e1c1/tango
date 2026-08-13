@@ -27,10 +27,10 @@ describe("useEditCard", () => {
     mocks.editCard.mockResolvedValue(undefined);
   });
 
-  it("does not allow patches to redirect the target Card", async () => {
+  it("adds the target Card id to an editable field patch", async () => {
     const { result } = renderHook(useEditCard);
-    await actAsync(() => result.current.updateBy(card, () => ({ id: "other", deckId: "other-deck", score: 2 })));
-    expect(mocks.editCard).toHaveBeenCalledWith("uid-a", { id: card.id, deckId: card.deckId, score: 2 });
+    await actAsync(() => result.current.updateBy(card, () => ({ frontText: "Updated" })));
+    expect(mocks.editCard).toHaveBeenCalledWith("uid-a", { id: card.id, frontText: "Updated" });
   });
 
   it("exposes pending state and retries the latest failed edit", async () => {

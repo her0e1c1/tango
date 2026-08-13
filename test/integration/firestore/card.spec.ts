@@ -8,7 +8,7 @@ import type { Card } from "@/entities/card";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { collection, deleteDoc, getDocs, getFirestore, doc, getDoc, query, where } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/features/card/create";
 import { deleteCard } from "@/features/card/delete/api/deleteCard";
 import { editCard } from "@/features/card/edit";
@@ -108,11 +108,24 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     expect((await getDoc(doc(db, "card", valid.id))).data()).toEqual(valid);
   });
 
+  it("does not recreate an existing Card deleted after import planning", async () => {
+    const deckId = await initDeck();
+    const card = { ...newCard, deckId, id: uuid(), frontText: "planned update" };
+    await createCardCommand("uid", card);
+    await deleteDoc(doc(db, "card", card.id));
+
+    await expect(
+      upsertImportedCards("uid", [card], [], { createCard: createCardCommand, editCard })
+    ).rejects.toMatchObject({ failedIds: [card.id] });
+    const ownedCards = await getDocs(query(collection(db, "card"), where("uid", "==", "uid")));
+    expect(ownedCards.docs.some((snapshot) => snapshot.id === card.id)).toBe(false);
+  });
+
   it("should logical-remove a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);
-    await deleteCard("uid", c.id);
+    await deleteCard("uid", c);
     const d = { ...c, deckId, deletedAt: timestamp } as Card;
     expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(d);
   });

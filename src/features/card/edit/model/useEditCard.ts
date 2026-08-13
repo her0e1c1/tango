@@ -4,7 +4,7 @@ import { useAuthSession } from "@/entities/auth-session";
 import { useAsyncAction } from "@/shared/hooks";
 import { editCard } from "../api/editCard";
 
-export type CardPatch = Partial<Omit<Card, "id" | "deckId" | "uid">>;
+type CardPatch = Omit<CardEdit, "id">;
 
 export const useEditCard = () => {
   const auth = useAuthSession();
@@ -14,8 +14,7 @@ export const useEditCard = () => {
 
   return {
     update,
-    updateBy: (card: Card, buildPatch: (card: Card) => CardPatch) =>
-      update({ ...buildPatch(card), id: card.id, deckId: card.deckId }),
+    updateBy: (card: Card, buildPatch: (card: Card) => CardPatch) => update({ ...buildPatch(card), id: card.id }),
     pending: mutation.pending,
     isPending: mutation.isPending,
     error: mutation.error,
