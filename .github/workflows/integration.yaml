@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 
 env:
+  COMPOSE_FILE: .devcontainer/compose.yaml:.devcontainer/compose.local.yaml
   COMPOSE_PROJECT_NAME: tango-integration
   VITE_DB_HOST: localhost
   VITE_DB_PORT: 8000
@@ -16,13 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: jdx/mise-action@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.15.0
+          cache: npm
 
-      - run: mise run init
+      - name: Install npm
+        run: npm install --global npm@12.0.1
+
+      - run: npm ci
+
+      - name: Start Firestore emulator
+        run: docker compose up --wait --wait-timeout 120 --remove-orphans -d db
 
       - name: Run Firestore tests
-        run: mise run test-firestore
+        run: npm run test:firestore
 
       - name: Stop Firestore emulator
         if: ${{ always() }}
-        run: mise run down
+        run: docker compose down --volumes --remove-orphans
