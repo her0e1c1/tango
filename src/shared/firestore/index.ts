@@ -4,6 +4,7 @@ export {
   FirestoreDocumentValidationError,
   firestoreTimestampDateSchema,
   getTimestamp,
+  omitUndefined,
   parseFirestoreDocument,
 } from "../firebase/firestoreDocument";
 export { subscribeReads } from "../firebase/subscribeReads";

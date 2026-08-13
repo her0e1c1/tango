@@ -6,6 +6,7 @@ import {
   FirestoreDocumentValidationError,
   firestoreTimestampDateSchema,
   getTimestamp,
+  omitUndefined,
   parseFirestoreDocument,
 } from "./firestoreDocument";
 
@@ -51,5 +52,25 @@ describe("Firestore document helpers", () => {
     vi.spyOn(Date, "now").mockReturnValue(123);
 
     expect(getTimestamp()).toBe(123);
+  });
+
+  it("omits undefined fields while preserving null and concrete values", () => {
+    const input = {
+      keepNull: null,
+      keepString: "text",
+      keepNumber: 0,
+      keepBoolean: false,
+      keepArray: [1, 2],
+      omitThis: undefined,
+    };
+
+    expect(omitUndefined(input)).toEqual({
+      keepNull: null,
+      keepString: "text",
+      keepNumber: 0,
+      keepBoolean: false,
+      keepArray: [1, 2],
+    });
+    expect(omitUndefined(input)).not.toHaveProperty("omitThis");
   });
 });
