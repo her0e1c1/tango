@@ -2,6 +2,8 @@ import type React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
+import { createCard, generateCardId } from "@/features/card/create";
+import { editCard } from "@/features/card/edit";
 import { createDeck } from "@/features/deck/create";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck/import";
 import { useDecks } from "@/features/deck/read";
@@ -14,7 +16,7 @@ export const DeckImportPage: React.FC = () => {
   const config = useConfig();
   const navigate = useNavigate();
   const deckRead = useDecks();
-  const deckImport = useDeckImport({ createDeck, deckRead });
+  const deckImport = useDeckImport({ createCard, createDeck, deckRead, editCard, generateCardId });
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
 

@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import { describe, expect, it } from "vitest";
 
-import { convertCardDtoToCard } from "./dto";
+import { convertCardDtoToCard, parseCardCreateDto, parseCardUpdateDto } from "./dto";
 
 const cardDto = (overrides: Record<string, unknown> = {}) => ({
   frontText: "Remote front",
@@ -76,6 +76,23 @@ describe("Card DTO", () => {
       })
     );
     expect(() => convertCardDtoToCard("missing-card", { uid: "user-2" })).toThrowError(
+      expect.objectContaining({ name: "FirestoreDocumentValidationError" })
+    );
+  });
+
+  it("validates create and update writes through the raw document contract", () => {
+    expect(parseCardCreateDto("new-card", { ...cardDto(), id: "new-card", ignored: true })).toEqual({
+      ...cardDto(),
+      id: "new-card",
+    });
+    expect(parseCardUpdateDto("existing-card", { score: 5, updatedAt: 30, ignored: true })).toEqual({
+      score: 5,
+      updatedAt: 30,
+    });
+    expect(() => parseCardCreateDto("new-card", cardDto())).toThrowError(
+      expect.objectContaining({ name: "FirestoreDocumentValidationError" })
+    );
+    expect(() => parseCardUpdateDto("existing-card", { score: "invalid", updatedAt: 30 })).toThrowError(
       expect.objectContaining({ name: "FirestoreDocumentValidationError" })
     );
   });

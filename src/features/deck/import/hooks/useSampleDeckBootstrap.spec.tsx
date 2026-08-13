@@ -29,7 +29,14 @@ vi.mock("./useDeckImport", () => ({
 import { useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
 
 const createDeck = vi.fn<(uid: string, deck: Deck) => Promise<unknown>>();
-const useTestSampleDeckBootstrap = () => useSampleDeckBootstrap({ createDeck, deckRead: mocks.remote });
+const useTestSampleDeckBootstrap = () =>
+  useSampleDeckBootstrap({
+    createCard: vi.fn(),
+    createDeck,
+    deckRead: mocks.remote,
+    editCard: vi.fn(),
+    generateCardId: vi.fn(() => "card-id"),
+  });
 
 /**
  * Provides the strict mode test helper used by this file.

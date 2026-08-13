@@ -5,7 +5,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useCards } from "@/entities/card";
-import { BackText, CardOverlay, FrontText, useCardMutations } from "@/features/card";
+import { useEditCard } from "@/features/card/edit";
+import { BackText, CardOverlay, FrontText } from "@/features/card/view";
 import { useDecks } from "@/features/deck/read";
 import {
   initializeStudySessionUi,
@@ -51,7 +52,7 @@ export const DeckSwiperPage: React.FC = () => {
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
   const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
-  const cardMutation = useCardMutations();
+  const cardMutation = useEditCard();
   const studyActions = useStudyActions(deckId, {
     deck,
     cardMutation: {

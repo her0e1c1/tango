@@ -10,7 +10,7 @@ import type { RemoteSyncStatus } from "@/shared/api";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { createCard, generateCardId, selectCardsForDeck, useCards } from "@/entities/card";
+import { createCard as prepareCard, selectCardsForDeck, useCards } from "@/entities/card";
 import { createDeck, generateDeckId } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
@@ -20,12 +20,15 @@ import sampleCards from "../../../../../sample/build/output.json";
 import { CardBulkMutationError, upsertImportedCards } from "../api/upsertImportedCards";
 
 export interface DeckImportOptions {
+  createCard: (uid: string, card: Card) => Promise<unknown>;
   createDeck: (uid: string, deck: Deck) => Promise<unknown>;
   deckRead: {
     decks: Deck[];
     status: "idle" | "loading" | "ready" | "blocked" | "error";
     syncStatus?: RemoteSyncStatus | undefined;
   };
+  editCard: (uid: string, card: Card) => Promise<unknown>;
+  generateCardId: () => string;
 }
 
 interface DeckImportState {
@@ -106,14 +109,18 @@ interface DeckImportDependencies {
   decks: Deck[];
   cardsByDeckId: (id: DeckId) => Card[];
   createDeck: (deck: Deck) => Promise<unknown>;
-  bulkUpsert: (cards: Card[]) => Promise<unknown>;
+  generateCardId: () => string;
+  bulkUpsert: (cards: Card[], createdIds: CardId[]) => Promise<unknown>;
 }
 
-type DeckImportPreparationDependencies = Pick<DeckImportDependencies, "uid" | "decks" | "cardsByDeckId">;
+type DeckImportPreparationDependencies = Pick<
+  DeckImportDependencies,
+  "uid" | "decks" | "cardsByDeckId" | "generateCardId"
+>;
 
 const prepareDeckImportAttempt = (
   request: ImportRequest,
-  { uid, decks, cardsByDeckId }: DeckImportPreparationDependencies
+  { uid, decks, cardsByDeckId, generateCardId }: DeckImportPreparationDependencies
 ): DeckImportAttempt => {
   const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
   const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
@@ -136,7 +143,7 @@ const prepareDeckImportAttempt = (
   plan.rows.forEach((row) => {
     const current = byUniqueKey.get(row.card.uniqueKey);
     if (row.action === "create") {
-      const card = createCard(row.card, deck, generateCardId);
+      const card = prepareCard(row.card, deck, generateCardId);
       remainingUpserts.push(card);
       createdIds.push(card.id);
     } else if (row.action === "update" && current != null) {
@@ -162,13 +169,13 @@ const prepareDeckImportAttempt = (
  */
 const executeDeckImport = async (
   request: ImportRequest,
-  { uid, synchronized, decks, cardsByDeckId, createDeck, bulkUpsert }: DeckImportDependencies
+  { uid, synchronized, decks, cardsByDeckId, createDeck, generateCardId, bulkUpsert }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
   if (!synchronized) throw synchronizationError();
   let attempt = request.attempt;
   if (attempt == null || attempt.uid !== uid) {
-    attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId });
+    attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId, generateCardId });
     request.attempt = attempt;
   }
   if (attempt.createDeckPending) {
@@ -177,7 +184,7 @@ const executeDeckImport = async (
   }
   const upserts = attempt.remainingUpserts;
   try {
-    if (upserts.length > 0) await bulkUpsert(upserts);
+    if (upserts.length > 0) await bulkUpsert(upserts, attempt.createdIds);
   } catch (error) {
     const failedIds = error instanceof CardBulkMutationError ? error.failedIds : upserts.map((card) => card.id);
     const failed = new Set(failedIds);
@@ -302,7 +309,7 @@ const previewDeckImportFile = async (
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useDeckImport = ({ createDeck: createDeckUseCase, deckRead }: DeckImportOptions) => {
+export const useDeckImport = ({ createCard, createDeck, deckRead, editCard, generateCardId }: DeckImportOptions) => {
   const auth = useAuthSession();
   const cardRemote = useCards();
   const cardsByDeckId = useCallback(
@@ -343,10 +350,11 @@ export const useDeckImport = ({ createDeck: createDeckUseCase, deckRead }: DeckI
       synchronized,
       decks: deckRead.decks,
       cardsByDeckId,
-      createDeck: (deck) => createDeckUseCase(uid, deck),
-      bulkUpsert: (cards) => upsertImportedCards(uid, cards),
+      createDeck: (deck) => createDeck(uid, deck),
+      generateCardId,
+      bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
     };
-  }, [cardsByDeckId, createDeckUseCase, deckRead.decks, synchronized, uid]);
+  }, [cardsByDeckId, createCard, createDeck, deckRead.decks, editCard, generateCardId, synchronized, uid]);
   const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
     setState((current) => ({
       ...(current.uid === uid ? current : initialDeckImportState(uid)),

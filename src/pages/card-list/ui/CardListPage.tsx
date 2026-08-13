@@ -6,7 +6,8 @@ import { useKey } from "react-use";
 
 import { type Card, type CardId, selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
-import { useCardMutations } from "@/features/card";
+import { useDeleteCard } from "@/features/card/delete";
+import { type CardPatch, useEditCard } from "@/features/card/edit";
 import { useEditDeck } from "@/features/deck/edit";
 import { useDecks } from "@/features/deck/read";
 import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/study";
@@ -21,15 +22,39 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { CardListView } from "./CardListView";
 
+type CardMutationKind = "delete" | "edit";
+
+interface CardMutationFeedback {
+  pending: boolean;
+  error: unknown;
+  retry: () => void;
+}
+
+const selectCardMutationFeedback = (
+  lastFailedMutation: CardMutationKind | undefined,
+  editMutation: CardMutationFeedback,
+  deleteMutation: CardMutationFeedback
+): { kind: CardMutationKind; mutation: CardMutationFeedback } | undefined => {
+  if (deleteMutation.pending) return { kind: "delete", mutation: deleteMutation };
+  if (editMutation.pending) return { kind: "edit", mutation: editMutation };
+  if (lastFailedMutation === "delete") return { kind: "delete", mutation: deleteMutation };
+  if (lastFailedMutation === "edit") return { kind: "edit", mutation: editMutation };
+  if (deleteMutation.error != null) return { kind: "delete", mutation: deleteMutation };
+  if (editMutation.error != null) return { kind: "edit", mutation: editMutation };
+  return undefined;
+};
+
 const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; config: ConfigState }) => {
   const { deck, cards, tags, config } = props;
   const [showCard, setShowCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
+  const [lastFailedMutation, setLastFailedMutation] = React.useState<CardMutationKind>();
   const navigate = useNavigate();
-  const mutations = useCardMutations({
-    onRemoveSuccess: (card) => {
+  const editMutation = useEditCard();
+  const deleteMutation = useDeleteCard({
+    onSuccess: (card) => {
       setDeletionTarget((target) => (target?.id === card.id ? undefined : target));
       setDeletionErrorCardId((id) => (id === card.id ? undefined : id));
       setSuccessMessage(`Deleted card “${card.frontText}”.`);
@@ -39,6 +64,15 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : getCategory(deck.category, showCard.tags);
+  const updateBy = (id: CardId, buildPatch: (card: Card) => CardPatch) => {
+    const card = cards.find((candidate) => candidate.id === id);
+    if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
+    return editMutation.updateBy(card, buildPatch).catch((error) => {
+      setLastFailedMutation("edit");
+      throw error;
+    });
+  };
+  const feedback = selectCardMutationFeedback(lastFailedMutation, editMutation, deleteMutation);
 
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
@@ -58,10 +92,8 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
           deckStartForm.tagFilterProps.onClickTag?.(selectedTags.filter((value) => value !== tag));
         }}
         card={{
-          onSwipedLeft: (id) =>
-            void mutations.updateBy(id, (card) => ({ score: card.score - 1 })).catch(() => undefined),
-          onSwipedRight: (id) =>
-            void mutations.updateBy(id, (card) => ({ score: card.score + 1 })).catch(() => undefined),
+          onSwipedLeft: (id) => void updateBy(id, (card) => ({ score: card.score - 1 })).catch(() => undefined),
+          onSwipedRight: (id) => void updateBy(id, (card) => ({ score: card.score + 1 })).catch(() => undefined),
           goToEdit: (id) => void navigate(`/card/${id}/edit`),
           onDelete: (id) => {
             const card = cards.find((candidate) => candidate.id === id);
@@ -74,12 +106,14 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
         }}
         feedbackSlot={
           <>
-            <RemoteMutationNotice
-              pending={mutations.pending}
-              error={mutations.error}
-              onRetry={mutations.retry}
-              {...(deletionTarget != null ? { pendingLabel: "Deleting card…" } : {})}
-            />
+            {feedback != null ? (
+              <RemoteMutationNotice
+                pending={feedback.mutation.pending}
+                error={feedback.mutation.error}
+                onRetry={feedback.mutation.retry}
+                {...(feedback.kind === "delete" ? { pendingLabel: "Deleting card…" } : {})}
+              />
+            ) : null}
             <Feedback tone="success">{successMessage}</Feedback>
           </>
         }
@@ -96,20 +130,21 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
                 </>
               }
               confirmLabel="Delete card"
-              pending={mutations.isPending(deletionTarget.id)}
+              pending={deleteMutation.isPending(deletionTarget.id)}
               {...(deletionErrorCardId === deletionTarget.id
                 ? { errorMessage: "Unable to delete this card. Check your connection and try again." }
                 : {})}
               onCancel={() => setDeletionTarget(undefined)}
               onConfirm={() =>
-                mutations.remove(deletionTarget.id).catch(() => {
+                deleteMutation.remove(deletionTarget).catch(() => {
+                  setLastFailedMutation("delete");
                   setDeletionErrorCardId(deletionTarget.id);
                 })
               }
             />
           ) : null
         }
-        isCardPending={mutations.isPending}
+        isCardPending={(id) => editMutation.isPending(id) || deleteMutation.isPending(id)}
         {...(showCard != null && category != null
           ? {
               overlay: {

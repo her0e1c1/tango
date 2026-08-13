@@ -1,10 +1,10 @@
-export type AuthenticatedSession = {
+type AuthenticatedSession = {
   uid: string;
   isAnonymous: boolean;
   displayName: string | null;
 };
 
-export type AuthSessionState =
+type AuthSessionState =
   | { status: "initializing" }
   | ({ status: "authenticated" } & AuthenticatedSession)
   | { status: "signedOut" }

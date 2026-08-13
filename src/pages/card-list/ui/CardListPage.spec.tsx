@@ -10,7 +10,7 @@ import type { Deck } from "@/entities/deck";
 import type { ConfigState } from "@/shared/config";
 
 import userEvent from "@testing-library/user-event";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -26,6 +26,9 @@ const mocks = vi.hoisted(() => ({
   pending: false,
   error: null as unknown,
   retry: vi.fn(),
+  deletePending: false,
+  deleteError: null as unknown,
+  deleteRetry: vi.fn(),
   setDarkMode: vi.fn(),
   cardUpdateBy: vi.fn(),
   cardRemove: vi.fn(),
@@ -36,26 +39,28 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
-vi.mock("@/features/card", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/card")>();
-  return {
-    ...actual,
-    useCardMutations: (options?: { onRemoveSuccess?: (card: Card) => void }) => ({
-      updateBy: mocks.cardUpdateBy,
-      remove: (id: CardId) => {
-        mocks.onRemoveSuccess = options?.onRemoveSuccess;
-        return mocks.cardRemove(id).then(() => {
-          const card = mocks.cards.find((candidate) => candidate.id === id);
-          if (card != null) mocks.onRemoveSuccess?.(card);
-        });
-      },
-      isPending: (id: CardId) => id === mocks.pendingCardId,
-      pending: mocks.pending,
-      error: mocks.error,
-      retry: mocks.retry,
-    }),
-  };
-});
+vi.mock("@/features/card/edit", () => ({
+  useEditCard: () => ({
+    updateBy: (card: Card, buildPatch: (card: Card) => object) => mocks.cardUpdateBy(card.id, buildPatch),
+    isPending: (id: CardId) => id === mocks.pendingCardId,
+    pending: mocks.pending,
+    error: mocks.error,
+    retry: mocks.retry,
+  }),
+}));
+
+vi.mock("@/features/card/delete", () => ({
+  useDeleteCard: (options?: { onSuccess?: (card: Card) => void }) => ({
+    remove: (card: Card) => {
+      mocks.onRemoveSuccess = options?.onSuccess;
+      return mocks.cardRemove(card.id).then(() => mocks.onRemoveSuccess?.(card));
+    },
+    isPending: (id: CardId) => id === mocks.pendingCardId,
+    pending: mocks.deletePending,
+    error: mocks.deleteError,
+    retry: mocks.deleteRetry,
+  }),
+}));
 
 vi.mock("@/shared/config", () => ({
   useConfig: () => mocks.config,
@@ -118,6 +123,12 @@ vi.mock("react-router-dom", () => ({
 
 import { CardListPage } from "./CardListPage";
 
+const swipe = (article: HTMLElement, from: number, to: number) => {
+  fireEvent.mouseDown(article, { clientX: from, clientY: 0 });
+  fireEvent.mouseMove(document, { clientX: to, clientY: 0 });
+  fireEvent.mouseUp(document, { clientX: to, clientY: 0 });
+};
+
 describe("CardListPage", () => {
   const deck: Deck = {
     id: "deck-id",
@@ -159,6 +170,9 @@ describe("CardListPage", () => {
     mocks.pending = false;
     mocks.error = null;
     mocks.retry.mockReset();
+    mocks.deletePending = false;
+    mocks.deleteError = null;
+    mocks.deleteRetry.mockReset();
     mocks.setDarkMode.mockReset();
     mocks.cardUpdateBy.mockReset().mockResolvedValue(undefined);
     mocks.cardRemove.mockReset().mockResolvedValue(undefined);
@@ -269,10 +283,33 @@ describe("CardListPage", () => {
 
     expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeInTheDocument();
     expect(screen.getByText("Unable to delete this card. Check your connection and try again.")).toBeInTheDocument();
-    mocks.error = new Error("delete failed");
+    mocks.deleteError = new Error("delete failed");
     view.rerender(<CardListPage />);
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(mocks.deleteRetry).toHaveBeenCalledOnce();
+  });
+
+  it("retries an edit failure that occurs after a delete failure", async () => {
+    const deleteError = new Error("delete failed");
+    mocks.cardRemove.mockRejectedValueOnce(deleteError);
+    render(<CardListPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: `Open actions for ${card.frontText}` }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    mocks.deleteError = deleteError;
+    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
+    expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    const editError = new Error("edit failed");
+    mocks.error = editError;
+    mocks.cardUpdateBy.mockRejectedValueOnce(editError);
+    swipe(screen.getByRole("article"), 0, 100);
+    await waitFor(() => expect(mocks.cardUpdateBy).toHaveBeenCalledOnce());
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+
     expect(mocks.retry).toHaveBeenCalledOnce();
+    expect(mocks.deleteRetry).not.toHaveBeenCalled();
   });
 
   it("opens a selected card's back text and closes it through the overlay callback", async () => {

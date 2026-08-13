@@ -14,7 +14,9 @@ import { deleteApp, getApps } from "firebase/app";
 
 import { subscribeCardReads } from "@/entities/card/api/subscribeCardReads";
 import { subscribeDeckReads } from "@/features/deck/read/api/subscribeDeckReads";
-import { cardCommands } from "@/features/card/api/cardCommands";
+import { createCard as createCardCommand } from "@/features/card/create";
+import { deleteCard } from "@/features/card/delete/api/deleteCard";
+import { editCard } from "@/features/card/edit";
 import { createDeck as createDeckCommand } from "@/features/deck/create";
 import { deleteDeck } from "@/features/deck/delete/api/deleteDeck";
 import { editDeck } from "@/features/deck/edit/api/editDeck";
@@ -54,7 +56,7 @@ describe("Query realtime subscriptions", () => {
       const deck = createDeckFixture({ id: "deck-id", uid: "uid" });
       const card = createCard({ id: "card-id", deckId: deck.id, uid: "uid" });
       await createDeckCommand("uid", deck);
-      await cardCommands.create("uid", card);
+      await createCardCommand("uid", card);
       await vi.waitFor(() => {
         expect(
           deckSnapshots.some(
@@ -69,7 +71,7 @@ describe("Query realtime subscriptions", () => {
       });
 
       await editDeck("uid", { ...deck, name: "Updated" });
-      await cardCommands.update("uid", { ...card, frontText: "Updated" });
+      await editCard("uid", { ...card, frontText: "Updated" });
       await vi.waitFor(() => {
         expect(
           deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.modified[0]?.name === "Updated")
@@ -81,7 +83,7 @@ describe("Query realtime subscriptions", () => {
         ).toBe(true);
       });
 
-      await cardCommands.remove("uid", card.id);
+      await deleteCard("uid", card.id);
       await deleteDeck("uid", deck);
       await vi.waitFor(() => {
         expect(

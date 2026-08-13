@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import type { Option } from "@/shared/ui/forms";
-import type { CardFormProps } from "../components/CardForm";
+import type { CardFormProps } from "../ui/CardForm";
 import { cardFormSchema, type CardFormValues } from "../lib/cardFormSchema";
 
 export interface UseCardFormStateOptions {

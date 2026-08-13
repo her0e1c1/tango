@@ -8,7 +8,7 @@ import type { Deck } from "@/entities/deck";
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
-import { cardCommands } from "@/features/card/api/cardCommands";
+import { createCard as createCardCommand } from "@/features/card/create";
 import { createDeck } from "@/features/deck/create";
 import { deleteDeck } from "@/features/deck/delete/api/deleteDeck";
 import { editDeck } from "@/features/deck/edit/api/editDeck";
@@ -76,7 +76,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       createCard({ id: uuid(), deckId: d.id, uid: d.uid }),
     ];
     await createDeck("uid", d);
-    await Promise.all(cards.map((card) => cardCommands.create("uid", card)));
+    await Promise.all(cards.map((card) => createCardCommand("uid", card)));
 
     await deleteDeck("uid", d);
 

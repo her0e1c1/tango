@@ -26,7 +26,6 @@ const mocks = vi.hoisted(() => ({
   syncStatus: "synced" as "cached" | "pending" | "synced",
   pendingDeckIds: new Set<DeckId>(),
   error: null as unknown,
-  onRemoveSuccess: undefined as ((deck: Deck) => void) | undefined,
   remove: vi.fn(async (_deck: Deck) => undefined),
   retry: vi.fn(),
   downloadDeckCsv: vi.fn(),
@@ -66,16 +65,13 @@ vi.mock("@/features/deck/read", () => ({
   }),
 }));
 vi.mock("@/features/deck/delete", () => ({
-  useDeleteDeck: (options?: { onSuccess?: (deck: Deck) => void }) => {
-    mocks.onRemoveSuccess = options?.onSuccess;
-    return {
-      remove: (deck: Deck) => mocks.remove(deck).then(() => mocks.onRemoveSuccess?.(deck)),
-      pending: mocks.pending,
-      isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),
-      error: mocks.error,
-      retry: mocks.retry,
-    };
-  },
+  useDeleteDeck: () => ({
+    remove: mocks.remove,
+    pending: mocks.pending,
+    isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),
+    error: mocks.error,
+    retry: mocks.retry,
+  }),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/deck/import", () => ({ useSampleDeckBootstrap: vi.fn() }));
@@ -95,7 +91,6 @@ describe("DeckListPage", () => {
     mocks.syncStatus = "synced";
     mocks.pendingDeckIds = new Set();
     mocks.error = null;
-    mocks.onRemoveSuccess = undefined;
     mocks.config = createConfig({ darkMode: false });
     mocks.decksById = { [otherDeck.id]: otherDeck, [oldDeck.id]: oldDeck, [recentDeck.id]: recentDeck };
     mocks.cardsById = {
