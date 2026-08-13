@@ -9,7 +9,7 @@ import testingLibrary from "eslint-plugin-testing-library";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
-const sourceLayers = ["app", "entities", "features", "pages", "shared", "store"];
+const sourceLayers = ["app", "entities", "features", "pages", "shared"];
 
 export default [
   {
