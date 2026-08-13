@@ -1,5 +1,9 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
 import * as tsParser from "@typescript-eslint/parser";
+import {
+  createConfig as createBoundariesConfig,
+  recommended as boundariesRecommended,
+} from "eslint-plugin-boundaries/config";
 import reactHooks from "eslint-plugin-react-hooks";
 import testingLibrary from "eslint-plugin-testing-library";
 
@@ -23,6 +27,19 @@ export default [
     ...reactHooks.configs.flat["recommended-latest"],
     files: sourceFiles,
   },
+  createBoundariesConfig({
+    ...boundariesRecommended,
+    files: sourceFiles,
+    settings: {
+      ...boundariesRecommended.settings,
+      "boundaries/dependency-nodes": [
+        "import",
+        "export",
+        "require",
+        "dynamic-import",
+      ],
+    },
+  }),
   {
     files: sourceFiles,
     ignores: testFiles,
