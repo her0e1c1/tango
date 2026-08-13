@@ -1,15 +1,7 @@
-/**
- * @file Verifies the Deck List selector contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "puts active decks in recent
- * order and inactive decks in name order", "uses deck name as a stable tie breaker for equally
- * recent sessions".
- */
-
 import type { DeckId } from "@/entities/deck";
 
 import { describe, expect, it } from "vitest";
 
-import type { StudySession } from "@/features/study";
 import { createCard, createDeck } from "@/test/factories";
 
 import { buildDeckListSections } from "./buildDeckListSections";
@@ -27,7 +19,7 @@ describe("buildDeckListSections", () => {
       createCard({ id: "card-2", deckId: "other-z" }),
       createCard({ id: "card-3", deckId: "other-a" }),
     ];
-    const sessionsByDeckId: Partial<Record<DeckId, StudySession>> = {
+    const sessionsByDeckId = {
       "active-old": {
         deckId: "active-old",
         cardOrderIds: ["old-1", "old-2"],
@@ -62,7 +54,7 @@ describe("buildDeckListSections", () => {
 
   it("uses deck name as a stable tie breaker for equally recent sessions", () => {
     const decks = [createDeck({ id: "b", name: "Beta" }), createDeck({ id: "a", name: "Alpha" })];
-    const session = (deckId: DeckId): StudySession => ({
+    const session = (deckId: DeckId) => ({
       deckId,
       cardOrderIds: [`${deckId}-card`],
       currentIndex: 0,

@@ -5,6 +5,7 @@
  */
 
 import type { DeckId } from "@/entities/deck";
+import type { DeckListSections } from "@/features/deck/list";
 
 import * as React from "react";
 import { fireEvent, render, within, screen } from "@testing-library/react";
@@ -13,7 +14,6 @@ import { describe, expect, it } from "vitest";
 
 import { createDeck } from "@/test/factories";
 
-import type { DeckListSections } from "../selectors/buildDeckListSections";
 import { DeckListView } from "./DeckListView";
 
 const activeDeck = createDeck({ id: "active", name: "Active deck", category: "math" });
