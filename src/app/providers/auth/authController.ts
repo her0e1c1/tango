@@ -1,16 +1,12 @@
-import { onAuthStateChanged, signInAnonymously, type Auth, type User, type UserCredential } from "firebase/auth";
+import { onAuthStateChanged, signInAnonymously, type Auth, type User } from "firebase/auth";
 
 import { createAuthSessionStore } from "@/entities/auth-session";
 import { auth } from "@/shared/firebase";
 
 type AuthRuntimeDependencies = {
   auth: Auth;
-  onAuthStateChanged: (
-    auth: Auth,
-    onUser: (user: User | null) => void,
-    onError: (error: unknown) => void
-  ) => () => void;
-  signInAnonymously: (auth: Auth) => Promise<UserCredential>;
+  onAuthStateChanged: (auth: Auth, onUser: (user: User | null) => void) => () => void;
+  signInAnonymously: (auth: Auth) => Promise<unknown>;
 };
 
 const authSessionFromUser = (user: User) => ({
@@ -22,26 +18,29 @@ const authSessionFromUser = (user: User) => ({
 export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
   const authSessionStore = createAuthSessionStore();
   let observerStarted = false;
-  let anonymousSignIn: Promise<UserCredential> | undefined;
-  let anonymousBootstrapSuspensions = 0;
-
-  const publishError = (error: unknown) => authSessionStore.publish({ status: "error", error });
+  let anonymousBootstrapStarted = false;
+  let anonymousBootstrapSuspended = false;
 
   const startAnonymousBootstrap = () => {
-    if (anonymousBootstrapSuspensions > 0 || anonymousSignIn || authSessionStore.getSnapshot().status !== "signedOut") {
+    if (
+      anonymousBootstrapSuspended ||
+      anonymousBootstrapStarted ||
+      authSessionStore.getSnapshot().status !== "signedOut"
+    ) {
       return;
     }
 
-    const attempt = dependencies.signInAnonymously(dependencies.auth);
-    anonymousSignIn = attempt;
-    void attempt.catch((error) => {
-      if (anonymousSignIn === attempt) publishError(error);
+    anonymousBootstrapStarted = true;
+    void dependencies.signInAnonymously(dependencies.auth).catch((error) => {
+      if (authSessionStore.getSnapshot().status === "signedOut") {
+        authSessionStore.publish({ status: "error", error });
+      }
     });
   };
 
   const publishObservedUser = (user: User | null) => {
     if (user) {
-      anonymousSignIn = undefined;
+      anonymousBootstrapStarted = false;
       authSessionStore.publish({ status: "authenticated", ...authSessionFromUser(user) });
       return;
     }
@@ -53,7 +52,7 @@ export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
   const start = () => {
     if (observerStarted) return;
     observerStarted = true;
-    dependencies.onAuthStateChanged(dependencies.auth, publishObservedUser, publishError);
+    dependencies.onAuthStateChanged(dependencies.auth, publishObservedUser);
   };
 
   const publishAuthenticatedUser = (user: User) => {
@@ -64,13 +63,10 @@ export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
   };
 
   const suspendAnonymousBootstrap = () => {
-    anonymousBootstrapSuspensions += 1;
-    let released = false;
+    anonymousBootstrapSuspended = true;
     return () => {
-      if (released) return;
-      released = true;
-      anonymousBootstrapSuspensions -= 1;
-      if (anonymousBootstrapSuspensions === 0) startAnonymousBootstrap();
+      anonymousBootstrapSuspended = false;
+      startAnonymousBootstrap();
     };
   };
 

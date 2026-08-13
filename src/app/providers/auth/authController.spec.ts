@@ -27,10 +27,8 @@ const createUser = (
 
 const createHarness = (signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined))) => {
   let publishUser: (user: User | null) => void = () => undefined;
-  let publishError: (error: unknown) => void = () => undefined;
-  const onAuthStateChanged = vi.fn((_auth, onUser, onError) => {
+  const onAuthStateChanged = vi.fn((_auth, onUser) => {
     publishUser = onUser;
-    publishError = onError;
     return vi.fn();
   });
   const runtime = createAuthRuntime({
@@ -39,7 +37,7 @@ const createHarness = (signInAnonymously = vi.fn(() => new Promise<UserCredentia
     signInAnonymously,
   });
   runtime.start();
-  return { runtime, onAuthStateChanged, publishError, publishUser, sessionStore: runtime.authSessionStore };
+  return { runtime, onAuthStateChanged, publishUser, sessionStore: runtime.authSessionStore };
 };
 
 describe("authController", () => {
@@ -77,19 +75,16 @@ describe("authController", () => {
     expect(signInAnonymously).toHaveBeenCalledOnce();
   });
 
-  it("waits for every bootstrap suspension to be released", () => {
+  it("waits for the bootstrap suspension to be released", () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { runtime, publishUser } = createHarness(signInAnonymously);
-    const resumeFirst = runtime.suspendAnonymousBootstrap();
-    const resumeSecond = runtime.suspendAnonymousBootstrap();
+    const resume = runtime.suspendAnonymousBootstrap();
     publishUser(null);
 
-    resumeFirst();
-    resumeFirst();
     expect(signInAnonymously).not.toHaveBeenCalled();
 
-    resumeSecond();
-    resumeSecond();
+    resume();
+    resume();
     expect(signInAnonymously).toHaveBeenCalledOnce();
   });
 
@@ -116,13 +111,10 @@ describe("authController", () => {
     expect(signInAnonymously).toHaveBeenCalledTimes(2);
   });
 
-  it("publishes observer and anonymous sign-in failures without an identity", async () => {
+  it("publishes anonymous sign-in failures without an identity", async () => {
     const anonymousError = new Error("anonymous sign-in failed");
-    const { publishError, publishUser, sessionStore } = createHarness(vi.fn().mockRejectedValue(anonymousError));
-    const observerError = new Error("observer failed");
+    const { publishUser, sessionStore } = createHarness(vi.fn().mockRejectedValue(anonymousError));
 
-    publishError(observerError);
-    expect(sessionStore.getSnapshot()).toEqual({ status: "error", error: observerError });
     publishUser(null);
 
     await vi.waitFor(() => expect(sessionStore.getSnapshot()).toEqual({ status: "error", error: anonymousError }));
