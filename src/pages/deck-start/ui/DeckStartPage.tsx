@@ -7,8 +7,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
-import { useDecks } from "@/entities/deck";
 import { useEditDeck } from "@/features/deck/edit";
+import { useDecks } from "@/features/deck/read";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
@@ -26,6 +26,7 @@ const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigStat
   const deckMutations = useEditDeck();
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {
+    deck,
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
   });
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });

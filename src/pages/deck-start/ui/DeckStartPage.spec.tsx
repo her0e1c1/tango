@@ -29,7 +29,7 @@ vi.mock("@/entities/card", () => ({
     cardsById: Object.fromEntries(mocks.cards.map((card) => [card.id, card])),
   }),
 }));
-vi.mock("@/entities/deck", () => ({
+vi.mock("@/features/deck/read", () => ({
   useDecks: () => ({
     status: "ready" as const,
     retry: vi.fn(),

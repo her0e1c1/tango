@@ -22,7 +22,6 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/auth-session", () => ({ useAuthSession: () => mocks.auth }));
-vi.mock("@/entities/deck", () => ({ useDecks: () => mocks.remote }));
 vi.mock("./useDeckImport", () => ({
   useDeckImport: () => ({ addSample: mocks.addSample }),
 }));
@@ -30,7 +29,7 @@ vi.mock("./useDeckImport", () => ({
 import { useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
 
 const createDeck = vi.fn<(uid: string, deck: Deck) => Promise<unknown>>();
-const useTestSampleDeckBootstrap = () => useSampleDeckBootstrap({ createDeck });
+const useTestSampleDeckBootstrap = () => useSampleDeckBootstrap({ createDeck, deckRead: mocks.remote });
 
 /**
  * Provides the strict mode test helper used by this file.

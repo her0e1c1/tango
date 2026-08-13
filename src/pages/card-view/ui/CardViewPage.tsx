@@ -2,7 +2,8 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCards } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck, useDecks } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
+import { useDecks } from "@/features/deck/read";
 import { useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";

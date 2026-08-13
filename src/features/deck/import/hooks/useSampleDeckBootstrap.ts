@@ -6,7 +6,6 @@
 
 import { useEffect } from "react";
 
-import { useDecks } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import { useDeckImport } from "./useDeckImport";
 import type { DeckImportOptions } from "./useDeckImport";
@@ -51,14 +50,18 @@ const sampleDeckBootstrapController = createSampleDeckBootstrapController();
  */
 export const useSampleDeckBootstrap = (options: DeckImportOptions) => {
   const auth = useAuthSession();
-  const remote = useDecks();
   const deckImport = useDeckImport(options);
   const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useEffect(() => {
-    if (uid === "" || remote.status !== "ready" || remote.syncStatus !== "synced" || remote.decks.length > 0) {
+    if (
+      uid === "" ||
+      options.deckRead.status !== "ready" ||
+      options.deckRead.syncStatus !== "synced" ||
+      options.deckRead.decks.length > 0
+    ) {
       return;
     }
     void sampleDeckBootstrapController.start(uid, deckImport.addSample)?.catch(() => undefined);
-  }, [deckImport.addSample, remote.decks.length, remote.status, remote.syncStatus, uid]);
+  }, [deckImport.addSample, options.deckRead.decks.length, options.deckRead.status, options.deckRead.syncStatus, uid]);
 };

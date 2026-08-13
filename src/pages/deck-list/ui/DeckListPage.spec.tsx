@@ -56,7 +56,7 @@ vi.mock("@/entities/card", () => ({
     return { status: "ready" as const, retry: vi.fn(), cards };
   },
 }));
-vi.mock("@/entities/deck", () => ({
+vi.mock("@/features/deck/read", () => ({
   useDecks: () => ({
     status: "ready" as const,
     syncStatus: mocks.syncStatus,

@@ -46,10 +46,6 @@ vi.mock("@/entities/card", () => ({
   useCards: () => ({ cardsById: mocks.state?.card ?? {}, cards: Object.values(mocks.state?.card ?? {}) }),
 }));
 
-vi.mock("@/entities/deck", () => ({
-  useDecks: () => ({ decksById: {} }),
-}));
-
 vi.mock("./useStudyCards", () => ({
   useStudyCards: () => mocks.filteredCards,
 }));

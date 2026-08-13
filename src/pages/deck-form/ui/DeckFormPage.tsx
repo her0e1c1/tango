@@ -1,8 +1,9 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { CATEGORY, type Category, type Deck, useDecks } from "@/entities/deck";
+import { CATEGORY, type Category, type Deck } from "@/entities/deck";
 import { useEditDeck } from "@/features/deck/edit";
+import { useDecks } from "@/features/deck/read";
 import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";

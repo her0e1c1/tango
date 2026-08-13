@@ -11,5 +11,3 @@ export type {
   DeleteDeckInput,
   EditDeckInput,
 } from "./model/schema";
-export { useDecks } from "./hooks/useDecks";
-export { startDeckReads, stopDeckReads } from "./model/remoteReadStore";

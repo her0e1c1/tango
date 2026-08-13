@@ -13,7 +13,7 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
 import { subscribeCardReads } from "@/entities/card/api/subscribeCardReads";
-import { subscribeDeckReads } from "@/entities/deck/api/subscribeDeckReads";
+import { subscribeDeckReads } from "@/features/deck/read/api/subscribeDeckReads";
 import { cardCommands } from "@/features/card/api/cardCommands";
 import { createDeck as createDeckCommand } from "@/features/deck/create";
 import { deleteDeck } from "@/features/deck/delete/api/deleteDeck";

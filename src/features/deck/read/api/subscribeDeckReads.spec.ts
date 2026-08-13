@@ -1,4 +1,4 @@
-import type { Deck } from "../model/deck";
+import type { Deck } from "@/entities/deck";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

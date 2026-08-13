@@ -1,4 +1,4 @@
-import { getCategory, isHighlightLanguage, type DeckId, useDecks } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type DeckId } from "@/entities/deck";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -6,6 +6,7 @@ import { useKey } from "react-use";
 
 import { useCards } from "@/entities/card";
 import { BackText, CardOverlay, FrontText, useCardMutations } from "@/features/card";
+import { useDecks } from "@/features/deck/read";
 import {
   initializeStudySessionUi,
   selectStudySessionForRoute,
@@ -52,6 +53,7 @@ export const DeckSwiperPage: React.FC = () => {
   const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
   const cardMutation = useCardMutations();
   const studyActions = useStudyActions(deckId, {
+    deck,
     cardMutation: {
       isPending: cardMutation.isPending,
       update: cardMutation.update,
