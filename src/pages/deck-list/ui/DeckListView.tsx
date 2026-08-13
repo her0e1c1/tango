@@ -4,7 +4,8 @@
 
 import * as React from "react";
 
-import type { DeckListItem, DeckListSections } from "../selectors/buildDeckListSections";
+import type { DeckListItem, DeckListSections } from "@/features/deck/list";
+
 import { DeckListCard, type DeckListCardActions } from "./DeckListCard";
 
 export interface DeckListViewProps {

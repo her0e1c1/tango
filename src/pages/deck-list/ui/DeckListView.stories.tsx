@@ -7,10 +7,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import type { Deck } from "@/entities/deck";
+import type { DeckListItem, DeckListSections } from "@/features/deck/list";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import type { DeckListItem, DeckListSections } from "../selectors/buildDeckListSections";
 import { DeckListView as Template } from "./DeckListView";
 
 /**

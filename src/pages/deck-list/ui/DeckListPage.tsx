@@ -7,6 +7,7 @@ import type { Deck, DeckId } from "@/entities/deck";
 import { useDecks } from "@/entities/deck";
 import { createDeck } from "@/features/deck/create";
 import { useDeleteDeck } from "@/features/deck/delete";
+import { buildDeckListSections } from "@/features/deck/list";
 import { downloadDeckCsv } from "@/features/export";
 import { useSampleDeckBootstrap } from "@/features/import";
 import {
@@ -23,7 +24,6 @@ import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
 
-import { buildDeckListSections } from "../selectors/buildDeckListSections";
 import { DeckListView } from "./DeckListView";
 
 export const DeckListPage: React.FC = () => {

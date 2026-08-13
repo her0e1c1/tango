@@ -9,8 +9,8 @@ import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
 import type { Deck, DeckId } from "@/entities/deck";
+import type { DeckListStudyProgress } from "@/features/deck/list";
 
-import type { DeckListStudyProgress } from "../selectors/buildDeckListSections";
 import { DeckActionsMenu } from "./DeckActionsMenu";
 
 export interface DeckListCardActions {
