@@ -2,9 +2,11 @@ import { renderHook } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Deck } from "../model/deck";
-import { RemoteReadScopeProvider, type RemoteReadStoreState } from "@/shared/lib/remote-read";
+import type { deckRemoteReadStore } from "../model/remoteReadStore";
+import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
 import { createDeck } from "@/test/factories";
+
+type DeckReadState = ReturnType<typeof deckRemoteReadStore.getState>;
 
 const mocks = vi.hoisted(() => ({
   state: {
@@ -12,7 +14,7 @@ const mocks = vi.hoisted(() => ({
     status: "ready",
     syncStatus: "synced",
     itemsById: {},
-  } as Omit<RemoteReadStoreState<Deck>, "start" | "stop" | "retry">,
+  } as Omit<DeckReadState, "start" | "stop" | "retry">,
   retry: vi.fn(),
 }));
 

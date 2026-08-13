@@ -10,9 +10,11 @@ import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
 
-import { DeckForm as Template, type DeckFormFields } from "./DeckForm";
+import { DeckForm as Template } from "./DeckForm";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+
+type DeckFormFields = React.ComponentProps<typeof Template>["fields"];
 
 /**
  * Prepares fields for data for the Storybook examples in this file.

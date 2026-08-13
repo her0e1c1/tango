@@ -9,11 +9,7 @@ import { createStore } from "zustand/vanilla";
 import { configSchema, defaultConfig, parsePersistedConfig } from "@/shared/config/configSchema";
 import type { ConfigState } from "@/shared/config/configTypes";
 
-/** @internal */
-export { defaultConfig } from "@/shared/config/configSchema";
-
-/** @internal */
-export const CONFIG_STORAGE_KEY = "tango-config";
+const CONFIG_STORAGE_KEY = "tango-config";
 const CONFIG_STORAGE_VERSION = 2;
 
 type ConfigSection = keyof ConfigState;
@@ -22,7 +18,7 @@ type BooleanConfigKey<S extends ConfigSection> = {
   [Key in keyof ConfigState[S]]: ConfigState[S][Key] extends boolean ? Key : never;
 }[keyof ConfigState[S]];
 
-export type PartialConfigState = {
+type PartialConfigState = {
   [K in keyof ConfigState]?: Partial<ConfigState[K]>;
 };
 
@@ -45,7 +41,6 @@ interface CreateConfigStoreOptions {
  * Creates a configuration store that validates and persists user settings.
  * Optional storage and hydration controls let tests run without the browser's local storage.
  */
-/** @internal */
 export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedConfigState>(() => storage ?? localStorage);
   return createStore<ConfigStoreState>()(
@@ -96,5 +91,3 @@ export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreO
     )
   );
 };
-
-export const configStore = createConfigStore();

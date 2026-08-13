@@ -11,8 +11,7 @@ import type { SwipeDirection } from "@/shared/config";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 
-/** @internal */
-export const STUDY_STORAGE_KEY = "tango-study";
+const STUDY_STORAGE_KEY = "tango-study";
 
 export interface StudySession {
   deckId: DeckId;
@@ -124,7 +123,6 @@ const migratePersistedStudyState = (persistedState: unknown, version: number): P
  * Optional dependencies or settings let production code and tests reuse the same behavior in
  * different environments.
  */
-/** @internal */
 export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedStudyState>(() => storage ?? localStorage);
   return createStore<StudyState>()(
@@ -212,22 +210,6 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
       }
     )
   );
-};
-
-export const studyStore = createStudyStore();
-
-/**
- * Clears every study session, resets transient study controls, and removes persisted browser data.
- * Logout awaits this function so a previous user's study progress cannot reappear after hydration.
- */
-export const clearStudyStore = async (): Promise<void> => {
-  studyStore.setState({
-    sessionsByDeckId: {},
-    showBackText: false,
-    autoPlay: false,
-    lastSwipe: undefined,
-  });
-  await studyStore.persist.clearStorage();
 };
 
 /**

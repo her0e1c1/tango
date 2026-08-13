@@ -5,7 +5,7 @@
  * auth session", "retries a failed sign-out while the authenticated screen remains mounted".
  */
 
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import type { Auth, User, UserCredential } from "firebase/auth";
 import React, { type ReactNode } from "react";
@@ -78,13 +78,13 @@ import { createAuthRuntime } from "@/app/providers/auth/authController";
 import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 import { useAuthSession } from "@/entities/auth-session";
 import { SettingsPage } from "@/pages/settings";
-import { studyStore } from "@/features/study";
+import { useStudyStore } from "@/features/study";
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.clearAllMocks();
   mocks.auth.currentUser = null;
   mocks.publishUser = undefined;
@@ -93,9 +93,23 @@ beforeEach(() => {
     if (!mocks.actualClearStudyStore) throw new Error("Actual study cleanup was not initialized");
     return mocks.actualClearStudyStore();
   });
-  studyStore.setState({ sessionsByDeckId: {}, showBackText: false, autoPlay: false, lastSwipe: undefined });
+  if (!mocks.actualClearStudyStore) throw new Error("Actual study cleanup was not initialized");
+  await mocks.actualClearStudyStore();
   localStorage.clear();
 });
+
+const startStudy = (deckId: string, cardIds: string[]) => {
+  const { result, unmount } = renderHook(() => useStudyStore((state) => state.startStudy));
+  act(() => result.current(deckId, cardIds));
+  unmount();
+};
+
+const getStudySessions = () => {
+  const { result, unmount } = renderHook(() => useStudyStore((state) => state.sessionsByDeckId));
+  const sessions = result.current;
+  unmount();
+  return sessions;
+};
 
 /**
  * Renders the test-only Authenticated Settings component with controlled state or providers.
@@ -293,16 +307,16 @@ it("does not expose obsolete cleanup retries to a new anonymous study", async ()
     </React.StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
-  studyStore.getState().startStudy("old-deck", ["old-card"]);
+  startStudy("old-deck", ["old-card"]);
 
   fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
   await waitFor(() => expect(mocks.clearStudyStore).toHaveBeenCalledOnce());
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  expect(studyStore.getState().sessionsByDeckId).toEqual({});
+  expect(getStudySessions()).toEqual({});
 
-  act(() => studyStore.getState().startStudy("new-deck", ["new-card"]));
+  startStudy("new-deck", ["new-card"]);
 
-  expect(studyStore.getState().sessionsByDeckId).toEqual({
+  expect(getStudySessions()).toEqual({
     "new-deck": expect.objectContaining({ deckId: "new-deck", cardOrderIds: ["new-card"] }),
   });
   expect(mocks.signOut).toHaveBeenCalledOnce();

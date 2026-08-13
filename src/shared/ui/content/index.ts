@@ -1,4 +1,3 @@
-export { Card } from "./Card";
 export { Code } from "./Code";
 export { Description } from "./Description";
 export { MathContent } from "./Math";

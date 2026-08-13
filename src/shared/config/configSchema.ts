@@ -124,7 +124,7 @@ const normalizeControls = (ctrlObj: Record<string, unknown>, obj: Record<string,
   cardSwipeRight: ctrlObj.cardSwipeRight ?? obj.cardSwipeRight,
 });
 
-export const normalizeConfigInput = (input: unknown): unknown => {
+const normalizeConfigInput = (input: unknown): unknown => {
   if (typeof input !== "object" || input === null) {
     return input;
   }

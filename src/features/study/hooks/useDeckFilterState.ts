@@ -9,7 +9,9 @@ import type { Deck } from "@/entities/deck";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import type { DeckStartFormProps } from "../components/DeckStartForm";
+import type { DeckStartForm } from "../components/DeckStartForm";
+
+type DeckStartFormProps = React.ComponentProps<typeof DeckStartForm>;
 
 export interface UseDeckFilterStateOptions {
   deck: Deck;

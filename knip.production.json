@@ -1,13 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["src/app/main.tsx!", "src/**/*.stories.{ts,tsx}!", ".storybook/**/*.{ts,tsx}!"],
-  "project": ["src/**/*.{ts,tsx}!", "!src/**/*.{spec,test}.{ts,tsx}"],
+  "entry": ["src/app/main.tsx!"],
+  "project": ["src/**/*.{ts,tsx}!", "!src/**/*.{spec,test}.{ts,tsx}", "!src/**/*.stories.{ts,tsx}"],
   "includeEntryExports": true,
-  "tags": ["-@internal"],
-  "ignoreIssues": {
-    "src/**/*.stories.{ts,tsx}": ["exports", "types"],
-    ".storybook/**/*.{ts,tsx}": ["exports", "types"]
-  },
   "storybook": false,
   "vitest": false
 }
