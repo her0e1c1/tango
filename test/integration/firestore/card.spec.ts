@@ -6,7 +6,7 @@
 
 import type { Card } from "@/entities/card";
 
-import "@/shared/firebase/test/initializeTestFirestore";
+import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import * as cardAdapter from "@/entities/card/api/firestore";

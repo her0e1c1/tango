@@ -2,7 +2,8 @@
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { initializeFirestoreRuntime } from "../firestore-runtime";
+
+import { initializeFirestoreRuntime } from "@/shared/firebase/firestore-runtime";
 
 initializeApp({
   projectId: "test",
