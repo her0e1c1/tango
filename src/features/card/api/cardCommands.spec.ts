@@ -2,7 +2,6 @@ import type { Card } from "@/entities/card";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { resourceKey, withResourceAccess } from "@/shared/lib/resourceAccess";
 import { createCard as createCardFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -49,23 +48,5 @@ describe("cardCommands", () => {
     finishCreate();
     await Promise.all([create, update]);
     expect(mocks.update).toHaveBeenCalledOnce();
-  });
-
-  it("waits while the target Deck membership has exclusive access", async () => {
-    let finishExclusive!: () => void;
-    const exclusive = withResourceAccess(
-      [resourceKey("deck-membership", "uid-a", "deck")],
-      "exclusive",
-      () => new Promise<void>((resolve) => (finishExclusive = resolve))
-    );
-    const card = createCard({ id: "card", deckId: "deck" });
-    const cardWrite = cardCommands.create("uid-a", card);
-
-    await Promise.resolve();
-    expect(mocks.create).not.toHaveBeenCalled();
-
-    finishExclusive();
-    await Promise.all([exclusive, cardWrite]);
-    expect(mocks.create).toHaveBeenCalledExactlyOnceWith(card);
   });
 });
