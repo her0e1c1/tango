@@ -76,7 +76,7 @@ vi.mock("react-use", () => ({ useKey: vi.fn() }));
 import { logout } from "@/app/auth/logout";
 import { AuthProvider } from "@/app/providers/auth";
 import { RemoteReadBootstrap } from "@/app/providers/remote-read";
-import { useSession } from "@/entities/session";
+import { useAuthSession } from "@/entities/auth-session";
 import { createAuthRuntime } from "@/features/auth";
 import { SettingsPage } from "@/pages/settings";
 import { studyStore } from "@/features/study";
@@ -103,7 +103,7 @@ beforeEach(() => {
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
 const AuthenticatedSettings = () =>
-  useSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={logout} /> : null;
+  useAuthSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={logout} /> : null;
 
 const createTestRuntime = () =>
   createAuthRuntime({

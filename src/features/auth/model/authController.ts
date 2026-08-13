@@ -1,11 +1,11 @@
 import { onAuthStateChanged, signInAnonymously, type Auth, type User, type UserCredential } from "firebase/auth";
 
-import { createSessionStore, type SessionStore } from "@/entities/session";
+import { createAuthSessionStore, type AuthSessionStore } from "@/entities/auth-session";
 import { auth } from "@/shared/firebase";
 
 type AuthControllerDependencies = {
   auth: Auth;
-  sessionStore: SessionStore;
+  authSessionStore: AuthSessionStore;
   onAuthStateChanged: (
     auth: Auth,
     onUser: (user: User | null) => void,
@@ -14,7 +14,7 @@ type AuthControllerDependencies = {
   signInAnonymously: (auth: Auth) => Promise<UserCredential>;
 };
 
-const sessionFromUser = (user: User) => ({
+const authSessionFromUser = (user: User) => ({
   uid: user.uid,
   isAnonymous: user.isAnonymous,
   displayName: user.providerData[0]?.displayName ?? null,
@@ -29,14 +29,14 @@ export const createAuthController = (dependencies: AuthControllerDependencies) =
   let disposed = false;
 
   const publishError = (error: unknown) => {
-    if (!disposed) dependencies.sessionStore.publish({ status: "error", error });
+    if (!disposed) dependencies.authSessionStore.publish({ status: "error", error });
   };
 
   const startAnonymousBootstrap = () => {
     if (
       disposed ||
       anonymousBootstrapSuspensions > 0 ||
-      dependencies.sessionStore.getSnapshot().status !== "signedOut" ||
+      dependencies.authSessionStore.getSnapshot().status !== "signedOut" ||
       anonymousAttempted
     ) {
       return;
@@ -62,11 +62,11 @@ export const createAuthController = (dependencies: AuthControllerDependencies) =
     if (user) {
       anonymousAttempted = false;
       anonymousInFlight = undefined;
-      dependencies.sessionStore.publish({ status: "authenticated", ...sessionFromUser(user) });
+      dependencies.authSessionStore.publish({ status: "authenticated", ...authSessionFromUser(user) });
       return;
     }
 
-    dependencies.sessionStore.publish({ status: "signedOut" });
+    dependencies.authSessionStore.publish({ status: "signedOut" });
     startAnonymousBootstrap();
   };
 
@@ -83,9 +83,9 @@ export const createAuthController = (dependencies: AuthControllerDependencies) =
     },
     publishAuthenticatedUser: (user: User) => {
       if (disposed) return;
-      const current = dependencies.sessionStore.getSnapshot();
+      const current = dependencies.authSessionStore.getSnapshot();
       if (current.status === "authenticated" && current.uid === user.uid) {
-        dependencies.sessionStore.publish({ status: "authenticated", ...sessionFromUser(user) });
+        dependencies.authSessionStore.publish({ status: "authenticated", ...authSessionFromUser(user) });
       }
     },
     suspendAnonymousBootstrap: () => {
@@ -110,13 +110,13 @@ export const createAuthController = (dependencies: AuthControllerDependencies) =
   };
 };
 
-type AuthRuntimeDependencies = Omit<AuthControllerDependencies, "sessionStore">;
+type AuthRuntimeDependencies = Omit<AuthControllerDependencies, "authSessionStore">;
 
 export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
-  const sessionStore = createSessionStore();
+  const authSessionStore = createAuthSessionStore();
   return {
-    sessionStore,
-    controller: createAuthController({ ...dependencies, sessionStore }),
+    authSessionStore,
+    controller: createAuthController({ ...dependencies, authSessionStore }),
   };
 };
 

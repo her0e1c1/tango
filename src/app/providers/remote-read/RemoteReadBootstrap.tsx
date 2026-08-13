@@ -2,11 +2,11 @@ import { type PropsWithChildren, useEffect, useState } from "react";
 
 import { createAuthTransitionController } from "@/app/providers/auth/authTransitionController";
 import { startRemoteReads, stopRemoteReads } from "@/app/providers/remote-read/remoteReadLifecycle";
-import { useSession } from "@/entities/session";
+import { useAuthSession } from "@/entities/auth-session";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
 
 export const RemoteReadBootstrap = ({ children }: PropsWithChildren) => {
-  const session = useSession();
+  const authSession = useAuthSession();
   const [controller] = useState(() =>
     createAuthTransitionController({
       cleanupUid: stopRemoteReads,
@@ -18,15 +18,15 @@ export const RemoteReadBootstrap = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     let cancelled = false;
     const transition = async () => {
-      const succeeded = await controller.transition(session);
-      if (!cancelled && succeeded === false) await controller.transition(session);
+      const succeeded = await controller.transition(authSession);
+      if (!cancelled && succeeded === false) await controller.transition(authSession);
     };
     void transition();
     return () => {
       cancelled = true;
     };
-  }, [controller, session]);
+  }, [controller, authSession]);
 
-  const uid = session.status === "authenticated" ? session.uid : null;
+  const uid = authSession.status === "authenticated" ? authSession.uid : null;
   return <RemoteReadScopeProvider uid={uid}>{children}</RemoteReadScopeProvider>;
 };

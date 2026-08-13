@@ -8,7 +8,7 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
 import { AppRoutes } from "@/app/routes";
-import { useSession } from "@/entities/session";
+import { useAuthSession } from "@/entities/auth-session";
 import { useConfig } from "@/shared/config";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -19,7 +19,7 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
  */
 const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location.reload() }) => {
   const { darkMode } = useConfig().appearance;
-  const authState = useSession();
+  const authState = useAuthSession();
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);

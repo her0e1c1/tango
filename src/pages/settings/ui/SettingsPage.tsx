@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useSession } from "@/entities/session";
+import { useAuthSession } from "@/entities/auth-session";
 import { useAccountOperations, useConfigFormState } from "@/features/settings";
 import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
@@ -17,7 +17,7 @@ interface SettingsPageProps {
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => {
   const config = useConfig();
-  const authState = useSession();
+  const authState = useAuthSession();
   const navigate = useNavigate();
   const authenticated = authState.status === "authenticated" ? authState : undefined;
   const identity = {
