@@ -1,5 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["public/storybookServiceWorker.js", "steiger.config.ts"],
+  "entry": [
+    "public/storybookServiceWorker.js",
+    "steiger.config.ts",
+    "test/lint-policy/fixtures/{pass,error}/**/*.case.js"
+  ],
   "includeEntryExports": true
 }
