@@ -6,6 +6,7 @@ import { subscribeCardReads } from "../api/subscribeCardReads";
 export const cardRemoteReadStore = createRemoteReadStore<Card>({
   waitForInitialization: waitForFirestoreInitialization,
   subscribe: subscribeCardReads,
+  keyOf: (card) => card.id,
 });
 
 export const startCardReads = (uid: string) => cardRemoteReadStore.getState().start(uid);

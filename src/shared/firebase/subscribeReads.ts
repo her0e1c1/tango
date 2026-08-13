@@ -3,18 +3,20 @@ import type { RemoteChange, RemoteSnapshot } from "@/shared/api";
 import { onSnapshot as subscribeToQuery, type DocumentData, type Query } from "firebase/firestore";
 import { toRemoteSnapshotMetadata } from "./documentMetadata";
 
-export interface SubscribeReadsOptions<T extends { id: string }> {
+export interface SubscribeReadsOptions<T> {
   query: Query;
   mapDocument: (id: string, data: DocumentData) => T;
   isActive: (item: T) => boolean;
+  keyOf: (item: T) => string;
   onSnapshot: (snapshot: RemoteSnapshot<T>) => void;
   onError: (error: Error) => void;
 }
 
-export const subscribeReads = <T extends { id: string }>({
+export const subscribeReads = <T>({
   query,
   mapDocument,
   isActive,
+  keyOf,
   onSnapshot,
   onError,
 }: SubscribeReadsOptions<T>): (() => void) => {
@@ -36,7 +38,7 @@ export const subscribeReads = <T extends { id: string }>({
         for (const change of snapshot.docChanges()) {
           const item = mapDocument(change.doc.id, change.doc.data());
           if (!isActive(item) || change.type === "removed") {
-            event.removed.push(item.id);
+            event.removed.push(keyOf(item));
           } else if (change.type === "added") {
             event.added.push(item);
           } else {

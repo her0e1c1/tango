@@ -48,10 +48,11 @@ const createHarness = () => {
     };
   });
   const isActive = vi.fn((item: TestItem) => item.active);
+  const keyOf = vi.fn((item: TestItem) => item.id);
   const onSnapshot = vi.fn<(received: RemoteSnapshot<TestItem>) => void>();
   const onError = vi.fn<(error: Error) => void>();
-  const options: SubscribeReadsOptions<TestItem> = { query, mapDocument, isActive, onSnapshot, onError };
-  return { options, query, mapDocument, isActive, onSnapshot, onError };
+  const options: SubscribeReadsOptions<TestItem> = { query, mapDocument, isActive, keyOf, onSnapshot, onError };
+  return { options, query, mapDocument, isActive, keyOf, onSnapshot, onError };
 };
 
 beforeEach(() => {

@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useStore } from "zustand";
 
 import type { StudyProgress } from "../model/studyProgress";
@@ -11,15 +10,7 @@ export const useStudyProgresses = () => {
   const uid = useRemoteReadScopeUid();
   const remote = useStore(studyProgressRemoteReadStore);
   const hasActiveUid = uid !== null && remote.uid === uid;
-  const progressesByCardId = useMemo(
-    () =>
-      hasActiveUid
-        ? Object.fromEntries(
-            Object.values(remote.itemsById).flatMap((item) => (item == null ? [] : [[item.cardId, item]]))
-          )
-        : EMPTY_PROGRESS,
-    [hasActiveUid, remote.itemsById]
-  );
+  const progressesByCardId = hasActiveUid ? remote.itemsById : EMPTY_PROGRESS;
 
   return {
     progressesByCardId,

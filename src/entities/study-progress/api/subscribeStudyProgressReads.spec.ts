@@ -29,6 +29,7 @@ interface CapturedOptions {
   query: unknown;
   mapDocument: (id: string, data: unknown) => StudyProgressRead;
   isActive: (progress: StudyProgressRead) => boolean;
+  keyOf: (progress: StudyProgressRead) => string;
   onSnapshot: RemoteSubscriptionProps<StudyProgressRead>["onSnapshot"];
   onError: RemoteSubscriptionProps<StudyProgressRead>["onError"];
 }
@@ -82,12 +83,12 @@ describe("subscribeStudyProgressReads", () => {
     const deleted = options.mapDocument("card-b", cardDocument(3));
 
     expect(active).toEqual({
-      id: "card-a",
       cardId: "card-a",
       score: 3,
       numberOfSeen: 4,
       deletedAt: null,
     });
+    expect(options.keyOf(active)).toBe("card-a");
     expect(options.isActive(active)).toBe(true);
     expect(options.isActive(deleted)).toBe(false);
   });

@@ -18,6 +18,7 @@ const createHarness = () => {
       unsubscribes.push(unsubscribe);
       return unsubscribe;
     }),
+    keyOf: (deck) => deck.id,
   });
   return { store, subscriptions, unsubscribes };
 };

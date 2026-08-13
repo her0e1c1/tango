@@ -6,7 +6,6 @@ import { parseCardDocument } from "@/entities/card/@x/study-progress";
 import { mapStudyProgressDocument } from "./firestoreDocument";
 
 export interface StudyProgressRead {
-  id: string;
   cardId: string;
   score: number;
   numberOfSeen: number;
@@ -21,10 +20,10 @@ export const subscribeStudyProgressReads = (props: RemoteSubscriptionProps<Study
     query: query(collection(getDb(), "card"), where("uid", "==", props.uid)),
     mapDocument: (id, value) => ({
       ...mapStudyProgressDocument(id, value),
-      id,
       deletedAt: parseCardDocument(id, value).deletedAt,
     }),
     isActive: (progress) => progress.deletedAt === null,
+    keyOf: (progress) => progress.cardId,
     onSnapshot: props.onSnapshot,
     onError: props.onError,
   });

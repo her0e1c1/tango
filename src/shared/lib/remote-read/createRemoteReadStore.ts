@@ -17,9 +17,10 @@ type Unsubscribe = () => void;
 export interface RemoteReadDependencies<T> {
   waitForInitialization: () => Promise<FirestoreInitializationResult>;
   subscribe: (props: RemoteSubscriptionProps<T>) => Unsubscribe;
+  keyOf: (item: T) => string;
 }
 
-export interface RemoteReadStoreState<T extends { id: string }> {
+export interface RemoteReadStoreState<T> {
   readonly uid: string | null;
   readonly status: "idle" | "loading" | "ready" | "blocked" | "error";
   readonly itemsById: RemoteById<T>;
@@ -35,7 +36,7 @@ interface ReadSession {
   subscription: Unsubscribe | undefined;
 }
 
-const initialReadState = <T extends { id: string }>(): Omit<RemoteReadStoreState<T>, "start" | "stop" | "retry"> => ({
+const initialReadState = <T>(): Omit<RemoteReadStoreState<T>, "start" | "stop" | "retry"> => ({
   uid: null,
   status: "idle",
   itemsById: {},
@@ -43,11 +44,14 @@ const initialReadState = <T extends { id: string }>(): Omit<RemoteReadStoreState
   error: undefined,
 });
 
-const applySnapshot = <T extends { id: string }>(
+const applySnapshot = <T>(
   previous: RemoteById<T>,
-  snapshot: RemoteSnapshot<T>
+  snapshot: RemoteSnapshot<T>,
+  keyOf: (item: T) => string
 ): RemoteById<T> =>
-  snapshot.type === "replace" ? toRemoteById(snapshot.items) : applyRealtimeChange(previous, snapshot.event);
+  snapshot.type === "replace"
+    ? toRemoteById(snapshot.items, keyOf)
+    : applyRealtimeChange(previous, snapshot.event, keyOf);
 
 const deriveSyncStatus = (metadata: RemoteSnapshotMetadata): RemoteSyncStatus => {
   if (metadata.hasPendingWrites) return "pending";
@@ -65,7 +69,7 @@ const close = (unsubscribe: Unsubscribe | undefined) => {
   }
 };
 
-export const createRemoteReadStore = <T extends { id: string }>(
+export const createRemoteReadStore = <T>(
   dependencies: RemoteReadDependencies<T>
 ): StoreApi<RemoteReadStoreState<T>> => {
   let activeSession: ReadSession | undefined;
@@ -107,7 +111,7 @@ export const createRemoteReadStore = <T extends { id: string }>(
           onSnapshot: (snapshot) => {
             if (!isCurrent(session)) return;
             set({
-              itemsById: applySnapshot(get().itemsById, snapshot),
+              itemsById: applySnapshot(get().itemsById, snapshot, dependencies.keyOf),
               status: "ready",
               syncStatus: deriveSyncStatus(snapshot.metadata),
               error: undefined,

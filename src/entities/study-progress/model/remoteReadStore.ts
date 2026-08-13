@@ -5,6 +5,7 @@ import { subscribeStudyProgressReads, type StudyProgressRead } from "../api/subs
 export const studyProgressRemoteReadStore = createRemoteReadStore<StudyProgressRead>({
   waitForInitialization: waitForFirestoreInitialization,
   subscribe: subscribeStudyProgressReads,
+  keyOf: (progress) => progress.cardId,
 });
 
 export const startStudyProgressReads = (uid: string) => studyProgressRemoteReadStore.getState().start(uid);

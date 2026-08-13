@@ -6,6 +6,7 @@ import { subscribeDeckReads } from "../api/subscribeDeckReads";
 export const deckRemoteReadStore = createRemoteReadStore<Deck>({
   waitForInitialization: waitForFirestoreInitialization,
   subscribe: subscribeDeckReads,
+  keyOf: (deck) => deck.id,
 });
 
 export const startDeckReads = (uid: string) => deckRemoteReadStore.getState().start(uid);

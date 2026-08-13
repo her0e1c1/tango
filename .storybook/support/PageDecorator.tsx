@@ -90,13 +90,13 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   deckRemoteReadStore.setState({
     uid: PAGE_STORY_UID,
     status: "ready",
-    itemsById: toRemoteById(decks),
+    itemsById: toRemoteById(decks, (deck) => deck.id),
     syncStatus: "synced",
   });
   cardRemoteReadStore.setState({
     uid: PAGE_STORY_UID,
     status: "ready",
-    itemsById: toRemoteById(cards),
+    itemsById: toRemoteById(cards, (card) => card.id),
     syncStatus: "synced",
   });
 };

@@ -11,6 +11,7 @@ export const subscribeDeckReads = (props: RemoteSubscriptionProps<Deck>): (() =>
     query: query(collection(getDb(), "deck"), where("uid", "==", props.uid)),
     mapDocument: mapDeckDocument,
     isActive: (deck) => deck.deletedAt === null,
+    keyOf: (deck) => deck.id,
     onSnapshot: props.onSnapshot,
     onError: props.onError,
   });

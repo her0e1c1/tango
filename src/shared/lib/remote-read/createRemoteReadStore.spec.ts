@@ -25,6 +25,7 @@ const createHarness = (
   const unsubscribes: ReturnType<typeof vi.fn>[] = [];
   const dependencies: RemoteReadDependencies<Item> = {
     waitForInitialization,
+    keyOf: (item) => item.id,
     subscribe: vi.fn((props) => {
       subscriptions.push(props);
       const unsubscribe = vi.fn();
@@ -74,6 +75,28 @@ describe("createRemoteReadStore", () => {
       syncStatus: "cached",
       itemsById: { [item.id]: item },
     });
+  });
+
+  it("indexes items without IDs through the configured key selector", async () => {
+    interface ItemWithoutId {
+      cardId: string;
+      value: string;
+    }
+    const subscriptions: Array<RemoteSubscriptionProps<ItemWithoutId>> = [];
+    const store = createRemoteReadStore<ItemWithoutId>({
+      waitForInitialization: vi.fn(async () => ({ status: "ready" as const })),
+      keyOf: (item) => item.cardId,
+      subscribe: vi.fn((props) => {
+        subscriptions.push(props);
+        return vi.fn();
+      }),
+    });
+    const item = { cardId: "card-a", value: "progress" };
+
+    await store.getState().start("uid-a");
+    subscriptions[0]?.onSnapshot({ type: "replace", items: [item], metadata: synced });
+
+    expect(store.getState().itemsById).toEqual({ "card-a": item });
   });
 
   it("derives pending, cached, and synced states from each snapshot", async () => {

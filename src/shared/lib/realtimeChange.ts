@@ -5,15 +5,16 @@
  */
 
 /**
- * Applies a single Firestore realtime event to a normalized `byId` map.
+ * Applies a single Firestore realtime event to a normalized keyed map.
  *
  * Handles `added`, `modified`, and `removed` changes. Logical deletion
  * (items with `deletedAt` set) is already handled by the snapshot mapper
- * before the event reaches this helper — removed IDs are listed in `removed`.
+ * before the event reaches this helper — removed keys are listed in `removed`.
  */
-export const applyRealtimeChange = <T extends { id: string }>(
+export const applyRealtimeChange = <T>(
   prevById: Readonly<Record<string, T | undefined>>,
-  event: { added?: T[]; modified?: T[]; removed?: string[] }
+  event: { added?: T[]; modified?: T[]; removed?: string[] },
+  keyOf: (item: T) => string
 ): Record<string, T | undefined> => {
   const { added = [], modified = [], removed = [] } = event;
   if (added.length === 0 && modified.length === 0 && removed.length === 0) {
@@ -21,10 +22,10 @@ export const applyRealtimeChange = <T extends { id: string }>(
   }
   const next = { ...prevById };
   added.forEach((item) => {
-    next[item.id] = item;
+    next[keyOf(item)] = item;
   });
   modified.forEach((item) => {
-    next[item.id] = item;
+    next[keyOf(item)] = item;
   });
   removed.forEach((id) => {
     delete next[id];

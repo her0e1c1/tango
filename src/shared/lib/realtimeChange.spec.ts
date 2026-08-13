@@ -14,10 +14,11 @@ describe("applyRealtimeChange", () => {
     a: { id: "a", name: "alpha" },
     b: { id: "b", name: "beta" },
   };
+  const keyOf = (item: Item) => item.id;
 
   it("inserts added items", () => {
     const event = { added: [{ id: "c", name: "gamma" }] };
-    const result = applyRealtimeChange(initial, event);
+    const result = applyRealtimeChange(initial, event, keyOf);
     expect(result.c).toEqual({ id: "c", name: "gamma" });
     expect(result.a).toEqual(initial.a);
     expect(result.b).toEqual(initial.b);
@@ -25,14 +26,14 @@ describe("applyRealtimeChange", () => {
 
   it("updates modified items", () => {
     const event = { modified: [{ id: "a", name: "updated" }] };
-    const result = applyRealtimeChange(initial, event);
+    const result = applyRealtimeChange(initial, event, keyOf);
     expect(result.a).toEqual({ id: "a", name: "updated" });
     expect(result.b).toEqual(initial.b);
   });
 
   it("deletes removed items", () => {
     const event = { removed: ["b"] };
-    const result = applyRealtimeChange(initial, event);
+    const result = applyRealtimeChange(initial, event, keyOf);
     expect("b" in result).toBe(false);
     expect(result.a).toEqual(initial.a);
   });
@@ -43,7 +44,7 @@ describe("applyRealtimeChange", () => {
       modified: [{ id: "a", name: "updated" }],
       removed: ["b"],
     };
-    const result = applyRealtimeChange(initial, event);
+    const result = applyRealtimeChange(initial, event, keyOf);
     expect(result.a).toEqual({ id: "a", name: "updated" });
     expect("b" in result).toBe(false);
     expect(result.c).toEqual({ id: "c", name: "gamma" });
@@ -52,17 +53,17 @@ describe("applyRealtimeChange", () => {
   it("does not mutate the original byId map", () => {
     const event = { added: [{ id: "c", name: "gamma" }] };
     const copy = { ...initial };
-    applyRealtimeChange(initial, event);
+    applyRealtimeChange(initial, event, keyOf);
     expect(initial).toEqual(copy);
   });
 
   it("handles empty event without changes", () => {
-    const result = applyRealtimeChange(initial, {});
+    const result = applyRealtimeChange(initial, {}, keyOf);
     expect(result).toEqual(initial);
   });
 
   it("handles empty initial state with added items", () => {
-    const result = applyRealtimeChange({}, { added: [{ id: "x", name: "x" }] });
+    const result = applyRealtimeChange({}, { added: [{ id: "x", name: "x" }] }, keyOf);
     expect(result.x).toEqual({ id: "x", name: "x" });
   });
 });
