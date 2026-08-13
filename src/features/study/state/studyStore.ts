@@ -13,7 +13,7 @@ import { createStore } from "zustand/vanilla";
 
 const STUDY_STORAGE_KEY = "tango-study";
 
-export interface StudySession {
+interface StudySession {
   deckId: DeckId;
   cardOrderIds: CardId[];
   currentIndex: number;

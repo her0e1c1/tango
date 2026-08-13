@@ -13,14 +13,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Card, CardId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import type { StudySession } from "@/features/study";
+import type { useStudySessions } from "@/features/study";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   config: {} as ConfigState,
   decksById: {} as Record<DeckId, Deck>,
   cardsById: {} as Record<CardId, Card>,
-  sessionsByDeckId: {} as Partial<Record<DeckId, StudySession>>,
+  sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
   hydrated: true,
   pending: false,
   syncStatus: "synced" as "cached" | "pending" | "synced",
