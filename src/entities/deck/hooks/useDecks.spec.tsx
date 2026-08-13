@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Deck } from "@/entities/deck/model/deck";
+import type { Deck } from "../model/deck";
 import { RemoteReadScopeProvider, type RemoteReadStoreState } from "@/shared/lib/remote-read";
 import { createDeck } from "@/test/factories";
 
@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   retry: vi.fn(),
 }));
 
-vi.mock("@/entities/deck/model/remoteReadStore", () => ({
+vi.mock("../model/remoteReadStore", () => ({
   deckRemoteReadStore: {
     subscribe: () => () => undefined,
     getState: () => Object.assign(mocks.state, { retry: mocks.retry }),
@@ -24,7 +24,7 @@ vi.mock("@/entities/deck/model/remoteReadStore", () => ({
   },
 }));
 
-import { useDecks } from "@/entities/deck";
+import { useDecks } from "../index";
 
 const authenticatedWrapper = ({ children }: PropsWithChildren) => (
   <RemoteReadScopeProvider uid="uid-a">{children}</RemoteReadScopeProvider>

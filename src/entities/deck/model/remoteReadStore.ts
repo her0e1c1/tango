@@ -1,4 +1,4 @@
-import type { Deck } from "@/entities/deck/model/deck";
+import type { Deck } from "./deck";
 import { waitForFirestoreInitialization } from "@/shared/firestore";
 import { createRemoteReadStore } from "@/shared/lib/remote-read";
 import { subscribeDeckReads } from "../api/subscribeDeckReads";

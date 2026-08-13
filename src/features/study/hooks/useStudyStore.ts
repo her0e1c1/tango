@@ -6,7 +6,7 @@
 
 import { useStore } from "zustand";
 
-import { type StudyState, studyStore } from "@/features/study/state/studyStore";
+import { type StudyState, studyStore } from "../state/studyStore";
 
 /**
  * Provides the study store values and operations needed by React components.

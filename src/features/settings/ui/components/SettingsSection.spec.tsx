@@ -9,7 +9,7 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 
-import { SettingsRow, SettingsSection } from "@/features/settings/ui/components/SettingsSection";
+import { SettingsRow, SettingsSection } from "./SettingsSection";
 
 describe("settings presentation", () => {
   it("relates a settings section to its unique heading", () => {

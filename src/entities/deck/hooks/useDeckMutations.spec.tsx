@@ -1,4 +1,4 @@
-import type { Deck } from "@/entities/deck";
+import type { Deck } from "../index";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -21,7 +21,7 @@ vi.mock("@/entities/auth-session/@x/deck", () => ({
       ? { status: "signedOut" }
       : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
 }));
-vi.mock("@/entities/deck/api/firestore", () => ({
+vi.mock("../api/firestore", () => ({
   create: mocks.create,
   remove: mocks.remove,
   update: mocks.update,

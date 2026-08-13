@@ -9,7 +9,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { CardActionsMenu } from "@/features/card/components/CardActionsMenu";
+import { CardActionsMenu } from "./CardActionsMenu";
 
 type ControlledMenuProps = Omit<React.ComponentProps<typeof CardActionsMenu>, "open" | "onToggle" | "onClose">;
 

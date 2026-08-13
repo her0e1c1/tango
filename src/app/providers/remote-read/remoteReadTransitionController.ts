@@ -4,7 +4,7 @@ type AuthRequest =
   | { status: Exclude<AuthSessionState["status"], "authenticated"> }
   | { status: "authenticated"; identity: AuthenticatedSession };
 
-export type AuthTransitionDependencies = {
+export type RemoteReadTransitionDependencies = {
   cleanupUid: (uid: string) => unknown | Promise<unknown>;
   subscribeUid: (uid: string) => unknown | Promise<unknown>;
   reportError: (error: unknown) => void;
@@ -33,7 +33,7 @@ const processTransition = async (
   getGeneration: () => number,
   currentGeneration: number,
   activeIdentity: AuthenticatedSession | undefined,
-  dependencies: AuthTransitionDependencies,
+  dependencies: RemoteReadTransitionDependencies,
   cleanupActiveUid: () => Promise<void>
 ): Promise<AuthenticatedSession | undefined> => {
   if (state.status !== "authenticated") {
@@ -56,7 +56,7 @@ const processTransition = async (
   return nextIdentity;
 };
 
-export const createAuthTransitionController = (dependencies: AuthTransitionDependencies) => {
+export const createRemoteReadTransitionController = (dependencies: RemoteReadTransitionDependencies) => {
   let generation = 0;
   let requestedState: AuthRequest | undefined;
   let activeIdentity: AuthenticatedSession | undefined;

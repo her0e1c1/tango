@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useStore } from "zustand";
 
-import type { Deck } from "@/entities/deck/model/deck";
-import { deckRemoteReadStore } from "@/entities/deck/model/remoteReadStore";
+import type { Deck } from "../model/deck";
+import { deckRemoteReadStore } from "../model/remoteReadStore";
 import type { RemoteById } from "@/shared/api";
 import { useRemoteReadScopeUid } from "@/shared/lib/remote-read";
 

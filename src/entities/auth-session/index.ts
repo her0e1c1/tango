@@ -1,7 +1,7 @@
-export { AuthSessionProvider, useAuthSession } from "@/entities/auth-session/model/AuthSessionProvider";
+export { AuthSessionProvider, useAuthSession } from "./model/AuthSessionProvider";
 export {
   createAuthSessionStore,
   type AuthenticatedSession,
   type AuthSessionState,
   type AuthSessionStore,
-} from "@/entities/auth-session/model/authSessionStore";
+} from "./model/authSessionStore";

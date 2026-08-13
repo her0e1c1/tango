@@ -5,7 +5,7 @@
  */
 
 import * as React from "react";
-import type { ControllerProps } from "@/features/study/components/Controller";
+import type { ControllerProps } from "../components/Controller";
 
 export interface UseStudyControllerStateOptions extends ControllerProps {
   enabled?: boolean;

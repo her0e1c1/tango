@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 import { createStudyProgressFromCard } from "@/entities/study-progress";
 
-import { useStudyCards } from "@/features/study/hooks/useStudyCards";
+import { useStudyCards } from "./useStudyCards";
 
 describe("useStudyCards", () => {
   const progressFor = (cards: ReturnType<typeof createCard>[]) =>

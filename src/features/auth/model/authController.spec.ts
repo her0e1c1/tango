@@ -15,7 +15,7 @@ vi.mock("firebase/auth", () => ({
   signInAnonymously: singletonMocks.signInAnonymously,
 }));
 
-import { createAuthController } from "@/features/auth/model/authController";
+import { createAuthController } from "./authController";
 
 const createUser = (
   uid: string,
