@@ -6,7 +6,7 @@
 - Do not commit files ignored by `.gitignore`.
 - Do not add files under `docs` unless the user explicitly requests them.
 - Follow `CONTRIBUTING.md` when creating GitHub issues.
-- Include the related issue number in every pull request title.
+- Include the related issue number in every pull request title. If there is no related issue, explicitly state `No issue` in the title.
 - Write comments, commit messages, pull request titles, and pull request descriptions in English.
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
