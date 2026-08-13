@@ -10,7 +10,7 @@
     "includes": ["**/*.{ts,tsx}", "src/**/*.{js,jsx,css}", "scripts/**/*.mjs", "*.{js,mjs}"]
   },
   "formatter": {
-    "includes": ["src/**", "test/firestore/**"],
+    "includes": ["src/**", "test/**"],
     "indentStyle": "space",
     "lineWidth": 120
   },

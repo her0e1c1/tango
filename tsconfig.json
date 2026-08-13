@@ -23,5 +23,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "test", "*.ts", ".storybook/**/*", "e2e/**/*"]
+  "include": ["src", "test", "*.ts", ".storybook/**/*"]
 }
