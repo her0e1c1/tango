@@ -5,9 +5,13 @@
 
 import type { Deck } from "@/entities/deck";
 
-import { useDeckMutations } from "@/entities/deck";
-
 interface DeckEditorActionsOptions {
+  mutations: {
+    update: (deck: Deck) => Promise<void>;
+    pending: boolean;
+    error: unknown;
+    retry: () => void;
+  };
   onCancel: () => void;
   onSaved: () => void;
 }
@@ -15,8 +19,7 @@ interface DeckEditorActionsOptions {
 /**
  * Provides the mutation actions used by the Deck editor.
  */
-export const useDeckEditorActions = ({ onCancel, onSaved }: DeckEditorActionsOptions) => {
-  const mutations = useDeckMutations();
+export const useDeckEditorActions = ({ mutations, onCancel, onSaved }: DeckEditorActionsOptions) => {
   return {
     save: async (deck: Deck) => {
       try {

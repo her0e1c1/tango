@@ -57,8 +57,8 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...actual,
     createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
+    createDeckDocument: (deck: Deck) => mocks.createDeck(deck),
     generateDeckId: mocks.generateDeckId,
-    useDeckMutations: () => ({ create: mocks.createDeck }),
     useDecks: () => ({
       status: mocks.deckRemoteStatus,
       syncStatus: mocks.deckSyncStatus,

@@ -23,4 +23,10 @@ export default defineConfig([
       "fsd/insignificant-slice": "off",
     },
   },
+  {
+    files: ["./src/features/deck/*/**"],
+    rules: {
+      "fsd/insignificant-slice": "off",
+    },
+  },
 ]);

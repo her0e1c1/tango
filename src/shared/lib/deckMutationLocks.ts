@@ -1,14 +1,10 @@
-import type { DeckId } from "../model/deck";
-
 interface MembershipLockState {
   exclusive?: Promise<void>;
   shared: Set<Promise<void>>;
 }
+
 const membershipLocks = new Map<string, MembershipLockState>();
 
-/**
- * Allows concurrent Card writes while giving Deck removal exclusive access to its membership.
- */
 export const withDeckMembershipLocks = async <T>(
   keys: string[],
   mode: "shared" | "exclusive",
@@ -49,5 +45,5 @@ export const withDeckMembershipLocks = async <T>(
   }
 };
 
-export const deckMembershipMutationLock = (uid: string, id: DeckId) => `deck-membership:${uid}:${id}`;
-export const deckMutationLock = (uid: string, id: DeckId) => `deck:${uid}:${id}`;
+export const deckMembershipMutationLock = (uid: string, id: string) => `deck-membership:${uid}:${id}`;
+export const deckMutationLock = (uid: string, id: string) => `deck:${uid}:${id}`;

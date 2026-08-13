@@ -7,7 +7,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
-import { useDeckMutations, useDecks } from "@/entities/deck";
+import { useDecks } from "@/entities/deck";
+import { useEditDeck } from "@/features/deck/edit";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
@@ -22,7 +23,7 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
 
 const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
   const { deck, cards, config, tags } = props;
-  const deckMutations = useDeckMutations();
+  const deckMutations = useEditDeck();
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),

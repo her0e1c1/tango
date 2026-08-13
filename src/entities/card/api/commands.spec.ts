@@ -2,7 +2,7 @@ import type { Card } from "../model/card";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/entities/deck/@x/card";
+import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/shared/lib/deckMutationLocks";
 import { REMOTE_WRITE_TIMEOUT_MS } from "@/shared/lib/remoteWrite";
 import { createCard as createCardFixture } from "@/test/factories";
 

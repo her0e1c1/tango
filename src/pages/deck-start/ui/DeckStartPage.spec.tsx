@@ -35,8 +35,8 @@ vi.mock("@/entities/deck", () => ({
     retry: vi.fn(),
     decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
   }),
-  useDeckMutations: () => ({ update: mocks.update }),
 }));
+vi.mock("@/features/deck/edit", () => ({ useEditDeck: () => ({ update: mocks.update }) }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: (_deckId: string, options: { onStarted?: () => void } = {}) => ({
     start: () => {

@@ -17,12 +17,13 @@ import {
   selectCardsForDeck,
   useCards,
 } from "@/entities/card";
-import { createDeck, generateDeckId, useDeckMutations, useDecks } from "@/entities/deck";
+import { createDeck, createDeckDocument, generateDeckId, useDecks } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
+import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 
 interface DeckImportAttempt {
   uid: string;
@@ -284,7 +285,6 @@ export const useDeckImport = () => {
   const auth = useAuthSession();
   const cardRemote = useCards();
   const deckRemote = useDecks();
-  const deckMutations = useDeckMutations();
   const cardsByDeckId = useCallback(
     (deckId: DeckId) => selectCardsForDeck(cardRemote.cards, deckId),
     [cardRemote.cards]
@@ -342,13 +342,12 @@ export const useDeckImport = () => {
         deckRemote.syncStatus === "synced",
       decks: deckRemote.decks,
       cardsByDeckId,
-      createDeck: deckMutations.create,
+      createDeck: (deck) => waitForRemoteWrite(createDeckDocument(deck), "Deck import creation"),
       bulkUpsert: (cards) => cardCommands.bulkUpsert(uid, cards),
     };
   }, [
     cardRemote.status,
     cardRemote.syncStatus,
-    deckMutations.create,
     cardsByDeckId,
     deckRemote.decks,
     deckRemote.status,

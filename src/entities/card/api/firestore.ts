@@ -59,6 +59,15 @@ export const remove = async (id: string): Promise<void> => {
   await deleteDoc(doc(getDb(), CARD_COLLECTION, id));
 };
 
+export const removeForDeck = async (uid: string, deckId: string): Promise<void> => {
+  const snapshot = await getDocs(
+    query(collection(getDb(), CARD_COLLECTION), where("uid", "==", uid), where("deckId", "==", deckId))
+  );
+  const results = await Promise.allSettled(snapshot.docs.map((document) => deleteDoc(document.ref)));
+  const failure = results.find((result): result is PromiseRejectedResult => result.status === "rejected");
+  if (failure != null) throw failure.reason;
+};
+
 export const exists = async (id: string): Promise<boolean> => {
   try {
     return (await getDoc(doc(getDb(), CARD_COLLECTION, id))).exists();
