@@ -49,6 +49,18 @@ vi.mock("@/features/study", () => ({
   useStudySessions: () => mocks.sessionsByDeckId,
 }));
 vi.mock("@/features/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
+vi.mock("@/features/deck-removal", () => ({
+  useDeckRemoval: (options?: { onSuccess?: (deck: Deck) => void }) => {
+    mocks.onRemoveSuccess = options?.onSuccess;
+    return {
+      remove: (deck: Deck) => mocks.remove(deck).then(() => mocks.onRemoveSuccess?.(deck)),
+      pending: mocks.pending,
+      isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),
+      error: mocks.error,
+      retry: mocks.retry,
+    };
+  },
+}));
 vi.mock("@/entities/card", () => ({
   selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
   useCards: () => {
@@ -64,16 +76,6 @@ vi.mock("@/entities/deck", () => ({
     decks: Object.values(mocks.decksById),
     decksById: mocks.decksById,
   }),
-  useDeckMutations: (options?: { onRemoveSuccess?: (deck: Deck) => void }) => {
-    mocks.onRemoveSuccess = options?.onRemoveSuccess;
-    return {
-      remove: (deck: Deck) => mocks.remove(deck).then(() => mocks.onRemoveSuccess?.(deck)),
-      pending: mocks.pending,
-      isPending: (id: DeckId) => mocks.pendingDeckIds.has(id),
-      error: mocks.error,
-      retry: mocks.retry,
-    };
-  },
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/import", () => ({ useSampleDeckBootstrap: vi.fn() }));

@@ -1,5 +1,7 @@
 export { CATEGORY, getCategory, isHighlightLanguage } from "./model/category";
 export type { Category } from "./model/category";
+export { remove as removeDeckDocument } from "./api/firestore";
+export { deckMembershipMutationLock, deckMutationLock, withDeckMembershipLocks } from "./api/remoteMutationLocks";
 export { generateDeckId } from "./api/firestore";
 export { createDeck } from "./model/deck";
 export type { Deck, DeckEdit, DeckId } from "./model/deck";

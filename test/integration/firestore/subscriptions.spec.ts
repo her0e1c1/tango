@@ -80,7 +80,7 @@ describe("Query realtime subscriptions", () => {
       });
 
       await cardAdapter.remove(card.id);
-      await deckAdapter.remove(deck.id, deck.uid);
+      await deckAdapter.remove(deck.id);
       await vi.waitFor(() => {
         expect(
           deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.removed.includes(deck.id))

@@ -4,7 +4,8 @@ import { useKey } from "react-use";
 
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import { useDeckMutations, useDecks } from "@/entities/deck";
+import { useDecks } from "@/entities/deck";
+import { useDeckRemoval } from "@/features/deck-removal";
 import { downloadDeckCsv } from "@/features/export";
 import { useSampleDeckBootstrap } from "@/features/import";
 import {
@@ -33,8 +34,8 @@ export const DeckListPage: React.FC = () => {
   const readState = combineRemoteReadStates(cardRemote, deckRemote);
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
-  const mutations = useDeckMutations({
-    onRemoveSuccess: (deck) => {
+  const mutations = useDeckRemoval({
+    onSuccess: (deck) => {
       removeStudySession(deck.id);
       setDeletionTarget((target) => (target?.deck.id === deck.id ? undefined : target));
       setSuccessMessage(`Deleted deck “${deck.name}”.`);
