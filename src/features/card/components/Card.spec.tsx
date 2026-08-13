@@ -11,7 +11,7 @@ import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
 import type { Card as CardEntity } from "@/entities/card";
-import { Card } from "@/features/card/components/Card";
+import { Card } from "./Card";
 
 const card = {
   id: "card-id",

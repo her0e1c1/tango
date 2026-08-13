@@ -19,9 +19,9 @@ import {
 } from "@/entities/card";
 import { createDeck, generateDeckId, useDeckMutations, useDecks } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
-import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "@/features/import/model/deckImportTypes";
-import { parseCsv } from "@/features/import/lib/cardCsv";
-import { buildDeckImportPlan } from "@/features/import/lib/deckImportAnalysis";
+import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
+import { parseCsv } from "../lib/cardCsv";
+import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
 
 interface DeckImportAttempt {

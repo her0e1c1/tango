@@ -1,11 +1,11 @@
 import type { Card } from "@/entities/card";
 import { createStudyProgress, type StudyProgress } from "@/entities/study-progress";
-import type { StudyCard } from "@/features/study/model/studyCard";
+import type { StudyCard } from "./studyCard";
 import type { StudyPreferences } from "@/shared/config";
 
 import { describe, expect, it } from "vitest";
 
-import { filterCardsForDeck } from "@/features/study/model/cardSelection";
+import { filterCardsForDeck } from "./cardSelection";
 import { createCard, createDeck } from "@/test/factories";
 
 describe("filterCardsForDeck", () => {

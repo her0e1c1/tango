@@ -6,8 +6,8 @@
 
 import type { Card, CardRaw } from "@/entities/card";
 
-import type { DeckImportPlan, DeckImportPlanRow, DeckImportRow } from "@/features/import/model/deckImportTypes";
-import { parseCsv } from "@/features/import/lib/cardCsv";
+import type { DeckImportPlan, DeckImportPlanRow, DeckImportRow } from "../model/deckImportTypes";
+import { parseCsv } from "./cardCsv";
 
 /**
  * Checks whether two imported card values contain the same user-editable content.

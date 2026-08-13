@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { BackText as Template } from "@/features/card/components/BackText";
+import { BackText as Template } from "./BackText";
 import * as fixture from "@/storybook/fixture";
 
 const meta = {

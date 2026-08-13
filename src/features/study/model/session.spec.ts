@@ -3,7 +3,7 @@ import type { StudyPreferences } from "@/shared/config";
 
 import { describe, expect, it } from "vitest";
 
-import { buildStudySession, calculateNextIndex } from "@/features/study/model/session";
+import { buildStudySession, calculateNextIndex } from "./session";
 
 describe("calculateNextIndex", () => {
   it("moves forward for non-prev actions", () => {

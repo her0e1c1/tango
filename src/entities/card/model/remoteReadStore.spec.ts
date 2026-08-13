@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Card } from "@/entities/card/model/card";
+import type { Card } from "./card";
 import type { RemoteSubscriptionProps } from "@/shared/api";
 import { createRemoteReadStore } from "@/shared/lib/remote-read";
 import { createCard } from "@/test/factories";

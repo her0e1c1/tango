@@ -9,7 +9,8 @@ import testingLibrary from "eslint-plugin-testing-library";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
-const sourceLayers = ["app", "entities", "features", "pages", "shared"];
+const sliceLayers = ["entities", "features", "pages"];
+const nonSliceLayers = ["app", "shared"];
 
 export default [
   {
@@ -23,6 +24,11 @@ export default [
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    settings: {
+      "import/resolver": {
+        typescript: { project: "./tsconfig.json" },
+      },
+    },
   },
   {
     ...reactHooks.configs.flat["recommended-latest"],
@@ -33,11 +39,19 @@ export default [
     files: sourceFiles,
     settings: {
       ...boundariesRecommended.settings,
-      "boundaries/elements": sourceLayers.map((layer) => ({
-        type: layer,
-        pattern: `src/${layer}/**/*`,
-        mode: "full",
-      })),
+      "boundaries/elements": [
+        ...sliceLayers.map((layer) => ({
+          type: layer,
+          pattern: `src/${layer}/*`,
+          mode: "folder",
+          capture: ["slice"],
+        })),
+        ...nonSliceLayers.map((layer) => ({
+          type: layer,
+          pattern: `src/${layer}/**/*`,
+          mode: "full",
+        })),
+      ],
       "boundaries/ignore": ["src/vite-env.d.ts"],
       "boundaries/dependency-nodes": [
         "import",
@@ -48,6 +62,25 @@ export default [
     },
     rules: {
       ...boundariesRecommended.rules,
+      "boundaries/dependencies": [
+        "error",
+        {
+          checkInternals: true,
+          default: "allow",
+          rules: [
+            {
+              from: { type: sliceLayers },
+              disallow: {
+                dependency: {
+                  relationship: { to: "internal" },
+                  source: "@/**",
+                },
+              },
+              message: "Use a relative import within the same slice.",
+            },
+          ],
+        },
+      ],
       "boundaries/no-unknown-files": "error",
     },
   }),

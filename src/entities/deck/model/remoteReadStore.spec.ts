@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Deck } from "@/entities/deck/model/deck";
+import type { Deck } from "./deck";
 import type { RemoteSubscriptionProps } from "@/shared/api";
 import { createRemoteReadStore } from "@/shared/lib/remote-read";
 import { createDeck } from "@/test/factories";

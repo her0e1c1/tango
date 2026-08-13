@@ -48,7 +48,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
   };
 });
 
-import { useCardMutations } from "@/features/card/hooks/useCardMutations";
+import { useCardMutations } from "./useCardMutations";
 
 describe("useCardMutations", () => {
   beforeEach(() => {

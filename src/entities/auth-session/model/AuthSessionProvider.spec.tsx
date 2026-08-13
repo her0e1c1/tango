@@ -2,8 +2,8 @@ import { act, renderHook } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
 import { describe, expect, it } from "vitest";
 
-import { AuthSessionProvider, useAuthSession } from "@/entities/auth-session/model/AuthSessionProvider";
-import { createAuthSessionStore } from "@/entities/auth-session/model/authSessionStore";
+import { AuthSessionProvider, useAuthSession } from "./AuthSessionProvider";
+import { createAuthSessionStore } from "./authSessionStore";
 
 describe("AuthSessionProvider", () => {
   it("exposes session updates to React consumers", () => {

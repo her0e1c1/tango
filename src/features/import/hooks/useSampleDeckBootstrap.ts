@@ -8,7 +8,7 @@ import { useEffect } from "react";
 
 import { useDecks } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
-import { useDeckImport } from "@/features/import/hooks/useDeckImport";
+import { useDeckImport } from "./useDeckImport";
 
 type AddSample = () => Promise<unknown>;
 

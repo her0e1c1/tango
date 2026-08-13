@@ -1,7 +1,7 @@
-export { loginGoogle, signOutCurrentUser } from "@/features/auth/model/authActions";
+export { loginGoogle, signOutCurrentUser } from "./model/authActions";
 export {
   authRuntime,
   createAuthRuntime,
   suspendAnonymousBootstrap,
   type AuthRuntime,
-} from "@/features/auth/model/authController";
+} from "./model/authController";

@@ -1,6 +1,6 @@
 import type { Deck } from "@/entities/deck";
 import { compareStudyProgress, isStudyProgressEligible } from "@/entities/study-progress";
-import type { StudyCard } from "@/features/study/model/studyCard";
+import type { StudyCard } from "./studyCard";
 import type { StudyPreferences } from "@/shared/config";
 
 const isCardMatchingTags = (card: StudyCard["card"], deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {

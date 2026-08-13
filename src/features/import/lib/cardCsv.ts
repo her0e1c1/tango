@@ -2,7 +2,7 @@ import type { CardRaw } from "@/entities/card";
 
 import * as Papa from "papaparse";
 
-import type { DeckImportAnalysis, DeckImportIssue, DeckImportRow } from "@/features/import/model/deckImportTypes";
+import type { DeckImportAnalysis, DeckImportIssue, DeckImportRow } from "../model/deckImportTypes";
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
 export const isEmpty = (card: CardRaw): boolean => card.frontText === "" && card.backText === "";

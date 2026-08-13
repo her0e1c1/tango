@@ -11,8 +11,8 @@ import type { ConfigState } from "@/shared/config";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useStudyActions } from "@/features/study/hooks/useStudyActions";
-import { studyStore } from "@/features/study/state/studyStore";
+import { useStudyActions } from "./useStudyActions";
+import { studyStore } from "../state/studyStore";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => {
@@ -50,7 +50,7 @@ vi.mock("@/entities/deck", () => ({
   useDecks: () => ({ decksById: {} }),
 }));
 
-vi.mock("@/features/study/hooks/useStudyCards", () => ({
+vi.mock("./useStudyCards", () => ({
   useStudyCards: () => mocks.filteredCards,
 }));
 

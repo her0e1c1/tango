@@ -8,12 +8,12 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
-vi.mock("@/features/auth/model/authController", () => ({
+vi.mock("./authController", () => ({
   publishAuthenticatedUser: mocks.publishAuthenticatedUser,
 }));
 vi.mock("firebase/auth");
 
-import { loginGoogle, signOutCurrentUser } from "@/features/auth/model/authActions";
+import { loginGoogle, signOutCurrentUser } from "./authActions";
 
 describe("loginGoogle", () => {
   beforeEach(() => {

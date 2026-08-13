@@ -12,11 +12,11 @@ import React from "react";
 
 import { selectCardsForDeck, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
-import { useStudyCards } from "@/features/study/hooks/useStudyCards";
-import { buildStudySession, calculateNextIndex } from "@/features/study/model/session";
-import { createStudyCard } from "@/features/study/model/studyCard";
-import { buildStudyPatch, resolveSwipeAction } from "@/features/study/model/swipe";
-import { studyStore } from "@/features/study/state/studyStore";
+import { useStudyCards } from "./useStudyCards";
+import { buildStudySession, calculateNextIndex } from "../model/session";
+import { createStudyCard } from "../model/studyCard";
+import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
+import { studyStore } from "../state/studyStore";
 import { useConfig } from "@/shared/config";
 
 export interface StudyActions {
