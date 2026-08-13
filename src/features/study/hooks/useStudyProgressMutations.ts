@@ -2,11 +2,11 @@ import type { CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { studyProgressCommands, type StudyProgressEdit } from "@/entities/study-progress";
 
-import { useSession } from "@/entities/session";
+import { useAuthSession } from "@/entities/auth-session";
 import { useAsyncAction } from "@/shared/hooks";
 
 export const useStudyProgressMutations = (deckId: DeckId) => {
-  const auth = useSession();
+  const auth = useAuthSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const mutation = useAsyncAction<CardId>(`${uid}:${deckId}`);
 

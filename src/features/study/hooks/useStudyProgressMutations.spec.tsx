@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ run: vi.fn(), useAsyncAction: vi.fn() }));
 
-vi.mock("@/entities/session", () => ({
-  useSession: () => ({ status: "authenticated", uid: "uid" }),
+vi.mock("@/entities/auth-session", () => ({
+  useAuthSession: () => ({ status: "authenticated", uid: "uid" }),
 }));
 vi.mock("@/shared/hooks", () => ({
   useAsyncAction: (scope: string) => {

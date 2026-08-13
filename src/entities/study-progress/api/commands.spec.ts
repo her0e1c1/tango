@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/entities/deck/@x/study-progress";
 import { REMOTE_WRITE_TIMEOUT_MS } from "@/shared/lib/remoteWrite";
-import { deckMembershipMutationLock, withDeckMembershipLocks } from "@/store/remoteMutationLocks";
 
 const mocks = vi.hoisted(() => ({ update: vi.fn() }));
 
