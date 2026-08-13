@@ -28,5 +28,5 @@ export const useSignOut = (signOut?: () => Promise<void>) => {
     return promise;
   }, [signOut]);
 
-  return { pending, error, signOut: run, retry: run };
+  return { pending, error, signOut: run };
 };

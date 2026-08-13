@@ -26,20 +26,18 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
     uid: authenticated?.uid ?? "",
     displayName: authenticated?.displayName ?? null,
   };
+  const linkedUser = authenticated != null && !authenticated.isAnonymous ? authenticated : undefined;
   const signIn = useSignIn(login);
-  const signOut = useSignOut(authenticated ? () => logout(authenticated.uid) : undefined);
-  const account =
-    signOut.pending || signOut.error != null
-      ? { ...signOut, kind: "logout" as const }
-      : { ...signIn, kind: "login" as const };
+  const signOut = useSignOut(linkedUser ? () => logout(linkedUser.uid) : undefined);
+  const account = linkedUser ? { ...signOut, kind: "logout" as const } : { ...signIn, kind: "login" as const };
   const retryAccountOperation = account.kind === "logout" ? signOut.signOut : signIn.signIn;
   const configForm = useConfigFormState({
     config,
     identity,
     version: __APP_VERSION__,
-    isLoggedIn: authenticated != null && !authenticated.isAnonymous,
+    isLoggedIn: linkedUser != null,
     onLogin: () => void signIn.signIn().catch(() => undefined),
-    ...(authenticated ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {}),
+    ...(linkedUser ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {}),
     accountPending: account.pending,
     accountFeedback: (
       <RemoteMutationNotice

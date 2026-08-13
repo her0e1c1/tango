@@ -38,13 +38,13 @@ describe("useSignOut", () => {
     expect(result.current.pending).toBe(false);
   });
 
-  it("runs sign-out again when retry is requested", async () => {
+  it("allows sign-out again after a failure", async () => {
     const error = new Error("sign out failed");
     const signOut = vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
     const { result } = renderHook(() => useSignOut(signOut));
 
     await actAsync(async () => expect(result.current.signOut()).rejects.toBe(error));
-    await actAsync(async () => expect(result.current.retry()).resolves.toBeUndefined());
+    await actAsync(async () => expect(result.current.signOut()).resolves.toBeUndefined());
 
     expect(signOut).toHaveBeenCalledTimes(2);
     expect(result.current).toMatchObject({ pending: false, error: null });

@@ -30,7 +30,6 @@ vi.mock("@/features/auth/sign-out", () => ({
     pending: false,
     error: null,
     signOut: vi.fn(async () => undefined),
-    retry: vi.fn(async () => undefined),
   }),
 }));
 vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({

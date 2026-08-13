@@ -19,5 +19,4 @@ export {
   selectStudySessionForRoute,
   studyStore,
   type StudySession,
-  type StudyState,
 } from "./state/studyStore";

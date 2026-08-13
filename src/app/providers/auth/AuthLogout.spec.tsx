@@ -164,7 +164,7 @@ it("waits for logout cleanup before bootstrapping the next anonymous UID", async
   expect(mocks.operations).toContain("sign-out");
   expect(mocks.signInAnonymously).not.toHaveBeenCalled();
   expect(mocks.startRemoteReads).not.toHaveBeenCalledWith("uid-b");
-  expect(mocks.clearStudyStore).not.toHaveBeenCalled();
+  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
 
   await actAsync(async () => {
     resolveCleanup();
@@ -295,7 +295,7 @@ it("does not expose obsolete cleanup retries to a new anonymous study", async ()
   studyStore.getState().startStudy("old-deck", ["old-card"]);
 
   fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
-  expect(await screen.findByRole("button", { name: "Logout" })).toBeInTheDocument();
+  await waitFor(() => expect(mocks.clearStudyStore).toHaveBeenCalledOnce());
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(studyStore.getState().sessionsByDeckId).toEqual({});
 
