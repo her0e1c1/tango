@@ -21,6 +21,7 @@ test-sample = "mise run //sample:test"
 lint-docker = "hadolint --failure-threshold warning Dockerfile sample/Dockerfile"
 down = "docker compose down --remove-orphans"
 ps = "docker compose ps"
+cleanup-branches = "bash scripts/cleanup-branches.sh"
 
 [tasks.init]
 depends = ["init-deps"]
