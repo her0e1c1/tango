@@ -10,7 +10,7 @@
     "includes": ["**/*.{ts,tsx}", "src/**/*.{js,jsx,css}", "scripts/**/*.mjs", "*.{js,mjs}"]
   },
   "formatter": {
-    "includes": ["src/**", "test/**"],
+    "includes": ["src/**", "test/**", ".storybook/**"],
     "indentStyle": "space",
     "lineWidth": 120
   },
@@ -35,7 +35,7 @@
           "options": {
             "devDependencies": [
               "**/*.{spec,stories}.{ts,tsx}",
-              "**/{.storybook,e2e,scripts,test}/**",
+              "**/{.storybook,scripts,test}/**",
               "**/*.config.{js,mjs,ts}"
             ]
           }

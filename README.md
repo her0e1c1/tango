@@ -72,8 +72,8 @@ Run every TypeScript and React spec, including the Firestore emulator specs, in 
 mise run coverage
 ```
 
-Coverage includes `src/**/*.{ts,tsx}`, including files that no test imports. Specs, stories, declaration files,
-and `src/storybook/**` are excluded. The committed global thresholds are 86% statements, 78% branches,
+Coverage includes `src/**/*.{ts,tsx}`, including files that no test imports. Specs, stories, and declaration files
+are excluded. The committed global thresholds are 86% statements, 78% branches,
 85% functions, and 92% lines. When the full-suite result improves, raise the relevant integer threshold manually
 in `vitest.config.ts`; do not auto-update thresholds.
 
