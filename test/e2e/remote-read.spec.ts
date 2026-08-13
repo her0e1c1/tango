@@ -98,11 +98,7 @@ const persistedConfig = {
   selectedTags: [],
 };
 
-const seedAuth = async (
-  page: Page,
-  uid: string,
-  options: { linked?: boolean; nextUid?: string } = {}
-) => {
+const seedAuth = async (page: Page, uid: string, options: { linked?: boolean; nextUid?: string } = {}) => {
   let activeUid = uid;
   let signInCount = 0;
   await page.route("https://identitytoolkit.googleapis.com/**", async (route) => {
@@ -149,25 +145,15 @@ const seedAuth = async (
       }),
     });
   });
-  await page.addInitScript(
-    (config) => {
-      window.localStorage.setItem(
-        "tango-config",
-        JSON.stringify({ state: { config }, version: 1 })
-      );
-    },
-    persistedConfig
-  );
+  await page.addInitScript((config) => {
+    window.localStorage.setItem("tango-config", JSON.stringify({ state: { config }, version: 1 }));
+  }, persistedConfig);
 };
 
 test("loads UID-scoped remote Decks and Cards again after reload", async ({ page }) => {
   const uid = "remote-read-user";
   await setDocument("deck", "remote-read-deck", deckFields(uid, "Remote Query Deck"));
-  await setDocument(
-    "card",
-    "remote-read-card",
-    cardFields(uid, "remote-read-deck", "Remote Query Card")
-  );
+  await setDocument("card", "remote-read-card", cardFields(uid, "remote-read-deck", "Remote Query Card"));
   await setDocument("deck", "foreign-deck", deckFields("foreign-user", "Foreign Deck"));
   await seedAuth(page, uid);
 
@@ -239,9 +225,7 @@ test("logout replaces the UID-scoped Query cache", async ({ page }) => {
 
   await page.goto("/settings");
   await expect(page.getByText(uidA, { exact: true })).toHaveCount(1);
-  const nextSignIn = page.waitForResponse(
-    (response) => response.url().includes("accounts:signUp") && response.ok()
-  );
+  const nextSignIn = page.waitForResponse((response) => response.url().includes("accounts:signUp") && response.ok());
   await page.getByRole("button", { name: "Logout" }).click();
   await nextSignIn;
   await expect(page.getByText(uidB, { exact: true })).toHaveCount(1);

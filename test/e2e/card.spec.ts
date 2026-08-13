@@ -40,12 +40,14 @@ const seedCardSession = async (page: Page) => {
 };
 
 const cardItem = (page: Page, frontText: string) =>
-  page
-    .getByRole("button", { name: `View ${frontText}`, exact: true })
-    .locator("xpath=ancestor::article[1]");
+  page.getByRole("button", { name: `View ${frontText}`, exact: true }).locator("xpath=ancestor::article[1]");
 
 const expectScore = async (page: Page, frontText: string, score: number) => {
-  await expect(cardItem(page, frontText).locator("span").filter({ hasText: new RegExp(`^${score}$`) })).toBeVisible();
+  await expect(
+    cardItem(page, frontText)
+      .locator("span")
+      .filter({ hasText: new RegExp(`^${score}$`) })
+  ).toBeVisible();
 };
 
 const persistedScore = async () => {

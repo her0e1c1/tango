@@ -37,7 +37,9 @@ test("shows settings and persists a device setting", async ({ page }) => {
   await expect(darkMode).toBeChecked();
   await expect
     .poll(() =>
-      page.evaluate(() => JSON.parse(window.localStorage.getItem("tango-config") ?? "{}").state?.config?.appearance?.darkMode)
+      page.evaluate(
+        () => JSON.parse(window.localStorage.getItem("tango-config") ?? "{}").state?.config?.appearance?.darkMode
+      )
     )
     .toBe(true);
   await page.evaluate(() => window.assertNoBrowserErrors());

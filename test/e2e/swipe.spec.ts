@@ -131,24 +131,28 @@ test("updates study progress with a mastered deck swipe", async ({ page }) => {
 
   await expect(page.getByText("banana")).toBeVisible();
   await expect.poll(async () => persistedCard(e2eCards[0].id)).toMatchObject({ score: 1, numberOfSeen: 1 });
-  await expect.poll(async () => persistedStudyEnvelope(page)).toMatchObject({
-    state: {
-      sessionsByDeckId: {
-        [e2eDeck.id]: {
-          deckId: e2eDeck.id,
-          cardOrderIds: e2eCards.map((card) => card.id),
-          currentIndex: 1,
+  await expect
+    .poll(async () => persistedStudyEnvelope(page))
+    .toMatchObject({
+      state: {
+        sessionsByDeckId: {
+          [e2eDeck.id]: {
+            deckId: e2eDeck.id,
+            cardOrderIds: e2eCards.map((card) => card.id),
+            currentIndex: 1,
+          },
         },
       },
-    },
-    version: 3,
-  });
-  await expect.poll(async () => persistedStateBoundaries(page)).toEqual({
-    rootDeck: false,
-    rootCard: false,
-    configShowBackText: false,
-    configAutoPlay: false,
-    configLastSwipe: false,
-  });
+      version: 3,
+    });
+  await expect
+    .poll(async () => persistedStateBoundaries(page))
+    .toEqual({
+      rootDeck: false,
+      rootCard: false,
+      configShowBackText: false,
+      configAutoPlay: false,
+      configLastSwipe: false,
+    });
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
