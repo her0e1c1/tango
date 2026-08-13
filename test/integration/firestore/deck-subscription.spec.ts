@@ -40,7 +40,7 @@ vi.mock("@/shared/firestore", async (importOriginal) => ({
   getDb: () => "db",
 }));
 
-import { subscribeDeckReads } from "@/entities/deck/api/subscribeDeckReads";
+import { subscribeDeckReads } from "@/features/deck/read/api/subscribeDeckReads";
 
 /**
  * Provides the document test helper used by this file.

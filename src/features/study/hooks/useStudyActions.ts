@@ -5,14 +5,13 @@
  */
 
 import type { Card, CardId } from "@/entities/card";
-import type { DeckId } from "@/entities/deck";
+import type { Deck, DeckId } from "@/entities/deck";
 import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { ConfigState, SwipeDirection } from "@/shared/config";
 
 import React from "react";
 
 import { selectCardsForDeck, useCards } from "@/entities/card";
-import { useDecks } from "@/entities/deck";
 import { useStudyCards } from "./useStudyCards";
 import { buildStudySession, calculateNextIndex } from "../model/session";
 import { createStudyCard } from "../model/studyCard";
@@ -38,6 +37,7 @@ interface StudyCardMutation {
 
 interface UseStudyActionsOptions {
   cardMutation?: StudyCardMutation;
+  deck: Deck;
   onStarted?: () => void;
 }
 
@@ -139,13 +139,12 @@ const runStudySwipe = async (
  */
 export const useStudyActions = (
   deckId: DeckId,
-  { cardMutation, onStarted }: UseStudyActionsOptions = {}
+  { cardMutation, deck, onStarted }: UseStudyActionsOptions
 ): StudyActions => {
   const config = useConfig();
   const cardRemote = useCards();
-  const deckRemote = useDecks();
   const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
-  const cards = useStudyCards(deckRemote.decksById[deckId], deckCards, config);
+  const cards = useStudyCards(deck, deckCards, config);
   const cardsById = cardRemote.cardsById;
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 

@@ -1,4 +1,4 @@
-import type { Deck } from "../model/deck";
+import type { Deck } from "@/entities/deck";
 
 import { collection, query, where } from "firebase/firestore";
 

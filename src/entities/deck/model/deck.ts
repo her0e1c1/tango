@@ -1,6 +1,6 @@
 import type { Deck as DeckModel } from "./schema";
 
-export type { Deck, DeckId } from "./schema";
+export type { Deck } from "./schema";
 
 export type DeckRaw = Pick<DeckModel, "name">;
 

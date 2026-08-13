@@ -22,7 +22,6 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/auth-session", () => ({ useAuthSession: () => mocks.auth }));
-vi.mock("@/entities/deck", () => ({ useDecks: () => mocks.remote }));
 vi.mock("./useDeckImport", () => ({
   useDeckImport: () => ({ addSample: mocks.addSample }),
 }));
@@ -34,6 +33,7 @@ const useTestSampleDeckBootstrap = () =>
   useSampleDeckBootstrap({
     createCard: vi.fn(),
     createDeck,
+    deckRead: mocks.remote,
     editCard: vi.fn(),
     generateCardId: vi.fn(() => "card-id"),
   });

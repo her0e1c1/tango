@@ -7,7 +7,7 @@
 import type { Card } from "@/entities/card";
 import { cardRemoteReadStore } from "@/entities/card/model/remoteReadStore";
 import type { Deck } from "@/entities/deck";
-import { deckRemoteReadStore } from "@/entities/deck/model/remoteReadStore";
+import { deckRemoteReadStore } from "@/features/deck/read/model/remoteReadStore";
 
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";

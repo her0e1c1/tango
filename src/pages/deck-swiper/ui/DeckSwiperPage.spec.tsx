@@ -68,13 +68,15 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
-    useDecks: () => ({
-      status: mocks.deckReadStatus,
-      retry: mocks.deckReadRetry,
-      decksById: mocks.state?.deck ?? {},
-    }),
   };
 });
+vi.mock("@/features/deck/read", () => ({
+  useDecks: () => ({
+    status: mocks.deckReadStatus,
+    retry: mocks.deckReadRetry,
+    decksById: mocks.state?.deck ?? {},
+  }),
+}));
 
 vi.mock("@/entities/card", () => ({
   useCards: () => ({

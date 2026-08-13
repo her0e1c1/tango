@@ -1,4 +1,4 @@
-import type { Deck, DeckId } from "../model/deck";
+import type { Deck, DeckId } from "@/entities/deck";
 
 import { z } from "zod";
 

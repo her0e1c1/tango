@@ -5,9 +5,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck, useDecks } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import { useDeleteCard } from "@/features/card/delete";
 import { useEditDeck } from "@/features/deck/edit";
+import { useDecks } from "@/features/deck/read";
 import {
   DeckStartForm,
   type StudyProgressPatch,

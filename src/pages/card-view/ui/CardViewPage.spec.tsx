@@ -38,13 +38,15 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
-    useDecks: () => ({
-      status: mocks.deckStatus,
-      retry: mocks.deckRetry,
-      decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
-    }),
   };
 });
+vi.mock("@/features/deck/read", () => ({
+  useDecks: () => ({
+    status: mocks.deckStatus,
+    retry: mocks.deckRetry,
+    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
+  }),
+}));
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,

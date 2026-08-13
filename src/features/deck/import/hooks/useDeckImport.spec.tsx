@@ -62,11 +62,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     ...actual,
     createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
     generateDeckId: mocks.generateDeckId,
-    useDecks: () => ({
-      status: mocks.deckRemoteStatus,
-      syncStatus: mocks.deckSyncStatus,
-      decks: mocks.decks,
-    }),
   };
 });
 vi.mock("../lib/cardCsv", async (importOriginal) => {
@@ -75,13 +70,18 @@ vi.mock("../lib/cardCsv", async (importOriginal) => {
 });
 import { useDeckImport } from "./useDeckImport";
 
-const deckImportOptions = {
-  createCard: mocks.createCardWrite,
-  createDeck: (_uid: string, deck: Deck) => mocks.createDeck(deck),
-  editCard: mocks.editCard,
-  generateCardId: mocks.generateCardId,
-};
-const useTestDeckImport = () => useDeckImport(deckImportOptions);
+const useTestDeckImport = () =>
+  useDeckImport({
+    createCard: mocks.createCardWrite,
+    createDeck: (_uid: string, deck: Deck) => mocks.createDeck(deck),
+    deckRead: {
+      status: mocks.deckRemoteStatus,
+      syncStatus: mocks.deckSyncStatus,
+      decks: mocks.decks,
+    },
+    editCard: mocks.editCard,
+    generateCardId: mocks.generateCardId,
+  });
 
 describe("useDeckImport", () => {
   beforeEach(() => {
