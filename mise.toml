@@ -22,6 +22,9 @@ lint-docker = "hadolint --failure-threshold warning Dockerfile sample/Dockerfile
 down = "docker compose down --remove-orphans"
 ps = "docker compose ps"
 
+[tasks.git-cleanup]
+file = "scripts/cleanup-branches.sh"
+
 [tasks.init]
 depends = ["init-deps"]
 run = "test -f .env || cp .env.example .env"
