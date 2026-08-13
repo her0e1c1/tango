@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useCards } from "@/entities/card";
-import { useEditCard } from "@/features/card/edit";
 import { BackText, CardOverlay, FrontText } from "@/features/card/view";
 import { useDecks } from "@/features/deck/read";
 import {
@@ -13,6 +12,7 @@ import {
   selectStudySessionForRoute,
   type SwipeButtonListProps,
   touchStudySession,
+  useEditStudyProgress,
   useStudyActions,
   useStudyControllerState,
   useStudyHydrated,
@@ -55,7 +55,7 @@ const DeckSwiperContent = ({
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
   const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
-  const cardMutation = useEditCard();
+  const cardMutation = useEditStudyProgress();
   const studyActions = useStudyActions(deckId, {
     deck,
     cardMutation: {

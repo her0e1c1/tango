@@ -83,7 +83,7 @@ describe("Query realtime subscriptions", () => {
         ).toBe(true);
       });
 
-      await deleteCard("uid", card.id);
+      await deleteCard("uid", card);
       await deleteDeck("uid", deck);
       await vi.waitFor(() => {
         expect(

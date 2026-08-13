@@ -91,14 +91,13 @@ vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
 
-vi.mock("@/features/card/edit", () => ({ useEditCard: () => mocks.cardMutation }));
-
 vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
     initializeStudySessionUi: mocks.initializeStudySessionUi,
     touchStudySession: mocks.touchStudySession,
+    useEditStudyProgress: () => mocks.cardMutation,
     useStudyActions: () => ({
       swipeUp: mocks.swipeUp,
       swipeDown: mocks.swipeDown,

@@ -32,12 +32,6 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
-vi.mock("@/features/card/edit", () => ({
-  useEditCard: () => ({
-    updateBy: (card: Card, buildPatch: (card: Card) => object) => mocks.cardUpdateBy(card.id, buildPatch),
-  }),
-}));
-
 vi.mock("@/features/card/delete", () => ({
   useDeleteCard: (options?: { onSuccess?: (card: Card) => void }) => ({
     remove: (card: Card) => {
@@ -80,6 +74,9 @@ vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
+    useEditStudyProgress: () => ({
+      updateBy: (card: Card, buildPatch: (card: Card) => object) => mocks.cardUpdateBy(card.id, buildPatch),
+    }),
     useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
     useDeckFilterState: () => ({
       scoreMax: mocks.filter.scoreMax,

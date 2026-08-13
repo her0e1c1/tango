@@ -27,10 +27,10 @@ describe("useEditCard", () => {
     mocks.editCard.mockResolvedValue(undefined);
   });
 
-  it("does not allow patches to redirect the target Card", async () => {
+  it("adds the target Card identity to an editable field patch", async () => {
     const { result } = renderHook(useEditCard);
-    await actAsync(() => result.current.updateBy(card, () => ({ id: "other", deckId: "other-deck", score: 2 })));
-    expect(mocks.editCard).toHaveBeenCalledWith("uid-a", { id: card.id, deckId: card.deckId, score: 2 });
+    await actAsync(() => result.current.updateBy(card, () => ({ frontText: "Updated" })));
+    expect(mocks.editCard).toHaveBeenCalledWith("uid-a", { id: card.id, uid: card.uid, frontText: "Updated" });
   });
 
   it("allows the original edit action to be run again after failure", async () => {

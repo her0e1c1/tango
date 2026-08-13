@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createCard as createCardFixture } from "@/test/factories";
 
@@ -18,5 +18,20 @@ describe("upsertImportedCards", () => {
     await expect(upsertImportedCards("uid-a", [createCard({ uid: "uid-b" })], [], writers)).rejects.toThrow(
       "owner does not match"
     );
+  });
+
+  it("routes planned creates to createCard and existing Cards to editCard", async () => {
+    const created = createCard({ id: "created" });
+    const existing = createCard({ id: "existing" });
+    const createCardWriter = vi.fn().mockResolvedValue(undefined);
+    const editCardWriter = vi.fn().mockResolvedValue(undefined);
+
+    await upsertImportedCards("uid-a", [created, existing], [created.id], {
+      createCard: createCardWriter,
+      editCard: editCardWriter,
+    });
+
+    expect(createCardWriter).toHaveBeenCalledWith("uid-a", created);
+    expect(editCardWriter).toHaveBeenCalledWith("uid-a", existing);
   });
 });
