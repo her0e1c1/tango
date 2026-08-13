@@ -1,7 +1,6 @@
 import type { Card, CardId } from "@/entities/card";
 
 import { runSerially } from "@/shared/lib/runSerially";
-import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 import { upsertCardDocument } from "./cardFirestore";
 
 export class CardBulkMutationError extends Error {
@@ -23,9 +22,7 @@ export const upsertImportedCards = async (uid: string, cards: Card[]): Promise<v
   }
 
   const results = await Promise.allSettled(
-    cards.map((card) =>
-      runSerially(cardMutationLock(uid, card.id), () => waitForRemoteWrite(upsertCardDocument(card), "Card import"))
-    )
+    cards.map((card) => runSerially(cardMutationLock(uid, card.id), () => upsertCardDocument(card)))
   );
   const failedIds = results.flatMap((result, index) => {
     const card = cards[index];

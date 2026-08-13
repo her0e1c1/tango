@@ -1,7 +1,6 @@
 import type { Card, CardEdit, CardId } from "@/entities/card";
 
 import { runSerially } from "@/shared/lib/runSerially";
-import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 import { createCardDocument, removeCardDocument, updateCardDocument } from "./firestore";
 
 const requireUid = (uid: string) => {
@@ -23,17 +22,17 @@ export const cardCommands = {
   create: async (uid: string, card: Card): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await serializeCardWrite(uid, card.id, () => waitForRemoteWrite(createCardDocument(card), "Card creation"));
+    await serializeCardWrite(uid, card.id, () => createCardDocument(card));
   },
 
   update: async (uid: string, card: CardEdit): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await serializeCardWrite(uid, card.id, () => waitForRemoteWrite(updateCardDocument(card), "Card update"));
+    await serializeCardWrite(uid, card.id, () => updateCardDocument(card));
   },
 
   remove: async (uid: string, id: CardId): Promise<void> => {
     requireUid(uid);
-    await serializeCardWrite(uid, id, () => waitForRemoteWrite(removeCardDocument(id), "Card deletion"));
+    await serializeCardWrite(uid, id, () => removeCardDocument(id));
   },
 };
