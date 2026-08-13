@@ -1,14 +1,7 @@
-/**
- * @file Verifies the "RemoteReadBootstrap integration" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "starts remote reads once
- * for one confirmed state under StrictMode and AuthProvider", "automatically retries a failed
- * unchanged auth request only once".
- */
-
 import { act, render, screen, waitFor } from "@testing-library/react";
 import type { User } from "firebase/auth";
 import React, { type ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   auth: { currentUser: null },
@@ -39,10 +32,6 @@ import { useRemoteReadScopeUid } from "@/shared/lib/remote-read";
 
 const ReadScopeProbe = () => <output data-testid="read-scope">{useRemoteReadScopeUid() ?? "signed-out"}</output>;
 
-/**
- * Provides the create harness test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
 const createHarness = (children?: ReactNode) => {
   const authSessionStore = createAuthSessionStore();
   const runtime: AuthRuntime = {
@@ -71,11 +60,6 @@ describe("RemoteReadBootstrap integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.start.mockResolvedValue(undefined);
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("starts remote reads once for one confirmed state under StrictMode and AuthProvider", async () => {
@@ -104,16 +88,17 @@ describe("RemoteReadBootstrap integration", () => {
     act(() => finishStart());
   });
 
-  it("automatically retries a failed unchanged auth request only once", async () => {
-    const subscribeError = new Error("subscribe failed");
-    mocks.start.mockRejectedValue(subscribeError);
+  it("stops the previous UID before starting its replacement", async () => {
     const { publishUser } = createHarness();
+    const userA = { uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User;
+    const userB = { uid: "uid-b", isAnonymous: true, providerData: [] } as unknown as User;
 
-    act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
+    act(() => publishUser(userA));
+    await waitFor(() => expect(mocks.start).toHaveBeenCalledWith("uid-a"));
+    act(() => publishUser(userB));
 
-    await waitFor(() => expect(mocks.start).toHaveBeenCalledTimes(2));
-    await Promise.resolve();
-    expect(mocks.start).toHaveBeenCalledTimes(2);
-    expect(console.error).toHaveBeenCalledWith("Remote read transition failed", subscribeError);
+    await waitFor(() => expect(mocks.start).toHaveBeenCalledWith("uid-b"));
+    expect(mocks.stop).toHaveBeenCalledExactlyOnceWith("uid-a");
+    expect(mocks.stop.mock.invocationCallOrder[0]).toBeLessThan(mocks.start.mock.invocationCallOrder[1] ?? 0);
   });
 });

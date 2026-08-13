@@ -12,7 +12,7 @@ import { deckRemoteReadStore } from "@/entities/deck/model/remoteReadStore";
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
-import { AuthSessionProvider, createAuthSessionStore, type AuthSessionState } from "@/entities/auth-session";
+import { AuthSessionProvider, createAuthSessionStore } from "@/entities/auth-session";
 import type { StudyState } from "@/features/study/state/studyStore";
 import { studyStore } from "@/features/study/state/studyStoreInstance";
 import { configStore } from "@/shared/config/configStoreInstance";
@@ -37,14 +37,12 @@ export interface PageStoryParameters {
   autoPlay?: boolean;
 }
 
-const storybookAuthSession: AuthSessionState = {
+const storybookAuthSessionStore = createAuthSessionStore({
   status: "authenticated",
   uid: PAGE_STORY_UID,
   isAnonymous: true,
   displayName: null,
-};
-
-const storybookAuthSessionStore = createAuthSessionStore(storybookAuthSession);
+});
 
 const cloneDeck = (deck: Deck): Deck => ({
   ...deck,
