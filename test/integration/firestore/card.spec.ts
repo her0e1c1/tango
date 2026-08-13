@@ -11,7 +11,7 @@ import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { createCardDocument, removeCardDocument, updateCardDocument } from "@/features/card/api/firestore";
 import { createDeckDocument } from "@/features/deck/create/api/firestore";
-import { upsertCardDocument } from "@/features/import/api/cardFirestore";
+import { upsertCardDocument } from "@/features/deck/import/api/cardFirestore";
 import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
 import { createCard, createDeck } from "@/test/factories";

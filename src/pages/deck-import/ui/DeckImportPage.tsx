@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { createDeck } from "@/features/deck/create";
-import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/import";
+import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck/import";
 import { useConfig } from "@/shared/config";
 import { AppLayout } from "@/widgets/app-layout";
 

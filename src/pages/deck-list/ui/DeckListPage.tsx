@@ -8,8 +8,8 @@ import { useDecks } from "@/entities/deck";
 import { createDeck } from "@/features/deck/create";
 import { useDeleteDeck } from "@/features/deck/delete";
 import { buildDeckListSections } from "@/features/deck/list";
-import { downloadDeckCsv } from "@/features/export";
-import { useSampleDeckBootstrap } from "@/features/import";
+import { downloadDeckCsv } from "@/features/deck/export";
+import { useSampleDeckBootstrap } from "@/features/deck/import";
 import {
   discardStudySessionsMissingDecks,
   removeStudySession,

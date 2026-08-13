@@ -15,7 +15,7 @@ import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
-import sampleCards from "../../../../sample/build/output.json";
+import sampleCards from "../../../../../sample/build/output.json";
 import { CardBulkMutationError, upsertImportedCards } from "../api/upsertImportedCards";
 
 export interface DeckImportOptions {
