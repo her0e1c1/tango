@@ -6,113 +6,85 @@ interface SignInDependencies {
 }
 
 interface SignInState {
+  generation: string;
   pending: boolean;
   error: unknown;
 }
 
-const createSignInController = () => {
-  let operation = () => Promise.resolve();
-  let inFlight: Promise<void> | null = null;
-  let retryOperation: (() => Promise<void>) | null = null;
-  let generation: string | undefined;
-  let scopeEpoch = 0;
-  let subscriptionGeneration = 0;
-  let state: SignInState = { pending: false, error: null };
-  const listeners = new Set<() => void>();
+interface InFlightSignIn {
+  generation: string;
+  promise: Promise<void>;
+}
 
-  const setState = (nextState: SignInState) => {
-    state = nextState;
-    for (const listener of listeners) listener();
-  };
+interface FailedSignIn {
+  generation: string;
+  operation: () => Promise<void>;
+}
 
-  const reset = () => {
-    scopeEpoch += 1;
-    inFlight = null;
-    retryOperation = null;
-    generation = undefined;
-    setState({ pending: false, error: null });
-  };
+export const useSignIn = ({ generation, signIn }: SignInDependencies) => {
+  const operationRef = React.useRef(signIn);
+  const generationRef = React.useRef(generation);
+  const inFlightRef = React.useRef<InFlightSignIn | null>(null);
+  const failedRef = React.useRef<FailedSignIn | null>(null);
+  const [state, setState] = React.useState<SignInState>({ generation, pending: false, error: null });
 
-  const resetWhenUnused = () => {
-    if (listeners.size === 0 && inFlight == null) reset();
-  };
+  React.useEffect(() => {
+    operationRef.current = signIn;
+  }, [signIn]);
 
-  const connectGeneration = (nextGeneration: string) => {
-    if (generation == null) {
-      generation = nextGeneration;
-      return;
+  React.useEffect(() => {
+    generationRef.current = generation;
+    inFlightRef.current = null;
+    failedRef.current = null;
+  }, [generation]);
+
+  const run = React.useCallback((operation: () => Promise<void>): Promise<void> => {
+    const operationGeneration = generationRef.current;
+    const inFlight = inFlightRef.current;
+    if (inFlight?.generation === operationGeneration) return inFlight.promise;
+
+    failedRef.current = null;
+    setState({ generation: operationGeneration, pending: true, error: null });
+
+    let attempt: Promise<void>;
+    try {
+      attempt = operation();
+    } catch (error) {
+      attempt = Promise.reject(error);
     }
-    if (generation === nextGeneration) return;
 
-    reset();
-    generation = nextGeneration;
-  };
-
-  const run = (nextOperation: () => Promise<void>): Promise<void> => {
-    if (inFlight != null) return inFlight;
-
-    retryOperation = null;
-    const operationEpoch = scopeEpoch;
-    setState({ pending: true, error: null });
-    const promise = nextOperation().then(
+    const promise = attempt.then(
       () => {
-        if (operationEpoch === scopeEpoch) setState({ pending: false, error: null });
+        if (generationRef.current === operationGeneration) {
+          setState({ generation: operationGeneration, pending: false, error: null });
+        }
       },
       (error: unknown) => {
-        if (operationEpoch === scopeEpoch) {
-          retryOperation = nextOperation;
-          setState({ pending: false, error });
+        if (generationRef.current === operationGeneration) {
+          failedRef.current = { generation: operationGeneration, operation };
+          setState({ generation: operationGeneration, pending: false, error });
         }
         throw error;
       }
     );
-    inFlight = promise;
+    inFlightRef.current = { generation: operationGeneration, promise };
     void promise.then(
       () => {
-        if (inFlight === promise) {
-          inFlight = null;
-          resetWhenUnused();
-        }
+        if (inFlightRef.current?.promise === promise) inFlightRef.current = null;
       },
       () => {
-        if (inFlight === promise) {
-          inFlight = null;
-          resetWhenUnused();
-        }
+        if (inFlightRef.current?.promise === promise) inFlightRef.current = null;
       }
     );
     return promise;
-  };
+  }, []);
 
-  return {
-    getSnapshot: () => state,
-    subscribe: (nextGeneration: string, listener: () => void) => {
-      subscriptionGeneration += 1;
-      connectGeneration(nextGeneration);
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-        const cleanupGeneration = ++subscriptionGeneration;
-        // A StrictMode subscription is replaced in the same task; leaving the screen is not.
-        queueMicrotask(() => {
-          if (cleanupGeneration === subscriptionGeneration) resetWhenUnused();
-        });
-      };
-    },
-    setOperation: (nextOperation: () => Promise<void>) => {
-      operation = nextOperation;
-    },
-    signIn: () => run(operation),
-    retry: () => (retryOperation == null ? Promise.resolve() : run(retryOperation)),
-  };
-};
+  const startSignIn = React.useCallback(() => run(operationRef.current), [run]);
+  const retry = React.useCallback(() => {
+    const failed = failedRef.current;
+    return failed?.generation === generationRef.current ? run(failed.operation) : Promise.resolve();
+  }, [run]);
+  const visibleState = state.generation === generation ? state : { generation, pending: false, error: null };
 
-const signInController = createSignInController();
-
-export const useSignIn = ({ generation, signIn }: SignInDependencies) => {
-  signInController.setOperation(signIn);
-  const subscribe = (listener: () => void) => signInController.subscribe(generation, listener);
-  const state = React.useSyncExternalStore(subscribe, signInController.getSnapshot, signInController.getSnapshot);
-
-  return { ...state, signIn: signInController.signIn, retry: signInController.retry };
+  return { pending: visibleState.pending, error: visibleState.error, signIn: startSignIn, retry };
 };

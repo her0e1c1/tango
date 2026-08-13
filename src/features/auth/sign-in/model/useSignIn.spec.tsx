@@ -104,4 +104,39 @@ describe("useSignIn", () => {
     await waitFor(() => expect(result.current).toMatchObject({ pending: false, error: null }));
     await expect(result.current.retry()).resolves.toBeUndefined();
   });
+
+  it("ignores a late completion from an earlier auth generation", async () => {
+    const firstRequest = deferred<void>();
+    const nextRequest = deferred<void>();
+    const signIn = vi.fn().mockReturnValueOnce(firstRequest.promise).mockReturnValueOnce(nextRequest.promise);
+    const { result, rerender } = renderHook(({ generation }) => useSignIn({ generation, signIn }), {
+      initialProps: { generation: "anonymous-a" },
+      wrapper: StrictModeWrapper,
+    });
+
+    let firstAttempt!: Promise<void>;
+    act(() => {
+      firstAttempt = result.current.signIn();
+    });
+    rerender({ generation: "anonymous-b" });
+
+    let nextAttempt!: Promise<void>;
+    act(() => {
+      nextAttempt = result.current.signIn();
+    });
+    expect(signIn).toHaveBeenCalledTimes(2);
+    expect(result.current.pending).toBe(true);
+
+    await actAsync(async () => {
+      firstRequest.resolve();
+      await firstAttempt;
+    });
+    expect(result.current.pending).toBe(true);
+
+    await actAsync(async () => {
+      nextRequest.resolve();
+      await nextAttempt;
+    });
+    expect(result.current.pending).toBe(false);
+  });
 });
