@@ -7,7 +7,7 @@ import { useKey } from "react-use";
 import { type Card, type CardId, selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, useDeckMutations, useDecks } from "@/entities/deck";
 import { useCardMutations } from "@/features/card";
-import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/study";
+import { DeckStartForm, useDeckFilterState, useStudyCards, useStudyProgressMutations } from "@/features/study";
 import { setDarkMode, useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
@@ -33,6 +33,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
       setSuccessMessage(`Deleted card “${card.frontText}”.`);
     },
   });
+  const progressMutations = useStudyProgressMutations(deck.id);
   const deckMutations = useDeckMutations();
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
   const closeCard = () => setShowCard(undefined);
@@ -66,9 +67,13 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
         }}
         card={{
           onSwipedLeft: (id) =>
-            void mutations.updateBy(id, (card) => ({ score: card.score - 1 })).catch(() => undefined),
+            void progressMutations
+              .update({ cardId: id, score: (cards.find((card) => card.id === id)?.score ?? 0) - 1 })
+              .catch(() => undefined),
           onSwipedRight: (id) =>
-            void mutations.updateBy(id, (card) => ({ score: card.score + 1 })).catch(() => undefined),
+            void progressMutations
+              .update({ cardId: id, score: (cards.find((card) => card.id === id)?.score ?? 0) + 1 })
+              .catch(() => undefined),
           goToEdit: (id) => void navigate(`/card/${id}/edit`),
           onDelete: (id) => {
             const card = cards.find((candidate) => candidate.id === id);
@@ -82,9 +87,12 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
         feedbackSlot={
           <>
             <RemoteMutationNotice
-              pending={mutations.pending}
-              error={mutations.error}
-              onRetry={mutations.retry}
+              pending={mutations.pending || progressMutations.pending}
+              error={mutations.error ?? progressMutations.error}
+              onRetry={() => {
+                mutations.retry();
+                progressMutations.retry();
+              }}
               {...(deletionTarget != null ? { pendingLabel: "Deleting card…" } : {})}
             />
             <Feedback tone="success">{successMessage}</Feedback>
@@ -116,7 +124,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
             />
           ) : null
         }
-        isCardPending={mutations.isPending}
+        isCardPending={(id) => mutations.isPending(id) || progressMutations.isPending(id)}
         {...(showCard != null && category != null
           ? {
               overlay: {

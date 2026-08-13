@@ -29,6 +29,8 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
   cardUpdateBy: vi.fn(),
   cardRemove: vi.fn(),
+  progressUpdate: vi.fn(),
+  progressRetry: vi.fn(),
   onClickTag: vi.fn(),
   navigate: vi.fn(),
   onRemoveSuccess: undefined as ((card: Card) => void) | undefined,
@@ -88,6 +90,13 @@ vi.mock("@/features/study", async (importOriginal) => {
   return {
     ...actual,
     useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
+    useStudyProgressMutations: () => ({
+      update: mocks.progressUpdate,
+      isPending: () => false,
+      pending: false,
+      error: null,
+      retry: mocks.progressRetry,
+    }),
     useDeckFilterState: () => ({
       scoreMax: mocks.filter.scoreMax,
       scoreMin: mocks.filter.scoreMin,
@@ -159,6 +168,8 @@ describe("CardListPage", () => {
     mocks.setDarkMode.mockReset();
     mocks.cardUpdateBy.mockReset().mockResolvedValue(undefined);
     mocks.cardRemove.mockReset().mockResolvedValue(undefined);
+    mocks.progressUpdate.mockReset().mockResolvedValue(undefined);
+    mocks.progressRetry.mockReset();
     mocks.onClickTag.mockReset();
     mocks.navigate.mockReset();
     mocks.onRemoveSuccess = undefined;
@@ -221,6 +232,18 @@ describe("CardListPage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
     expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);
+  });
+
+  it("writes score swipes through StudyProgress mutations", () => {
+    render(<CardListPage />);
+    const article = screen.getByRole("article");
+
+    fireEvent.mouseDown(article, { clientX: 0, clientY: 0 });
+    fireEvent.mouseMove(article, { clientX: 100, clientY: 0 });
+    fireEvent.mouseUp(article, { clientX: 100, clientY: 0 });
+
+    expect(mocks.progressUpdate).toHaveBeenCalledExactlyOnceWith({ cardId: card.id, score: 1 });
+    expect(mocks.cardUpdateBy).not.toHaveBeenCalled();
   });
 
   it("cancels or confirms Card deletion with observable feedback", async () => {
