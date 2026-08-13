@@ -17,19 +17,13 @@ import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => {
   const cardUpdate = vi.fn();
-  const pendingIds = new Set<CardId>();
 
   return {
     state: null as { card: Record<CardId, Card>; config: ConfigState } | null,
     filteredCards: [] as Card[],
     cardUpdate,
-    pendingIds,
     cardMutations: {
       update: cardUpdate,
-      isPending: (id: CardId) => pendingIds.has(id),
-      pending: false,
-      error: null,
-      retry: vi.fn(),
     },
   };
 });
@@ -123,7 +117,6 @@ describe("useStudyActions", () => {
     vi.clearAllMocks();
     vi.spyOn(Date, "now").mockReturnValue(946684800000);
     mocks.cardUpdate.mockResolvedValue(undefined);
-    mocks.pendingIds.clear();
     mocks.state = createState();
     mocks.filteredCards = Object.values(mocks.state.card);
     studyStore.setState({
@@ -246,19 +239,6 @@ describe("useStudyActions", () => {
       currentIndex: 1,
       lastStudiedAt: 946684800100,
     });
-  });
-
-  it("blocks another swipe while the target Card is pending", async () => {
-    studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
-    mocks.pendingIds.add(card1.id);
-    const { result } = renderHook(() => useStudyActions(deck.id, { deck, cardMutation: mocks.cardMutations }));
-
-    await actAsync(async () => {
-      await result.current.swipeRight();
-    });
-
-    expect(mocks.cardUpdate).not.toHaveBeenCalled();
-    expect(studyStore.getState().sessionsByDeckId[deck.id]?.currentIndex).toBe(0);
   });
 
   it("blocks a second swipe while the first Card write is unresolved", async () => {

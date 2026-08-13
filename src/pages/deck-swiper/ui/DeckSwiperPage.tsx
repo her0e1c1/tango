@@ -20,7 +20,6 @@ import {
 } from "@/features/study";
 import { toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
-import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -60,11 +59,7 @@ const DeckSwiperContent = ({
   const studyActions = useStudyActions(deckId, {
     deck,
     cardMutation: {
-      isPending: cardMutation.isPending,
       update: cardMutation.update,
-      pending: cardMutation.pending,
-      error: cardMutation.error,
-      retry: cardMutation.retry,
     },
   });
   useKey("ArrowUp", studyActions.swipeUp);
@@ -148,15 +143,11 @@ const DeckSwiperContent = ({
 
   const category = getCategory(deck.category, card.tags);
   const swipeActions: SwipeButtonListProps = {
-    disabled: studyActions.pending,
-    ...(studyActions.pending
-      ? {}
-      : {
-          onClickUp: studyActions.swipeUp,
-          onClickDown: studyActions.swipeDown,
-          onClickLeft: studyActions.swipeLeft,
-          onClickRight: studyActions.swipeRight,
-        }),
+    disabled: false,
+    onClickUp: studyActions.swipeUp,
+    onClickDown: studyActions.swipeDown,
+    onClickLeft: studyActions.swipeLeft,
+    onClickRight: studyActions.swipeRight,
   };
 
   return (
@@ -168,26 +159,14 @@ const DeckSwiperContent = ({
         {...(config.appearance.showSwipeFeedback && lastSwipe !== undefined
           ? { swipeFeedback: lastSwipe.direction }
           : {})}
-        feedbackSlot={
-          <RemoteMutationNotice
-            pending={studyActions.pending}
-            error={studyActions.error}
-            onRetry={studyActions.retry}
-            showPending={false}
-          />
-        }
         frontTextSlot={
           <FrontText
             category={category}
             text={card.frontText}
-            {...(!studyActions.pending
-              ? {
-                  onSwipeUp: studyActions.swipeUp,
-                  onSwipeDown: studyActions.swipeDown,
-                  onSwipeLeft: studyActions.swipeLeft,
-                  onSwipeRight: studyActions.swipeRight,
-                }
-              : {})}
+            onSwipeUp={studyActions.swipeUp}
+            onSwipeDown={studyActions.swipeDown}
+            onSwipeLeft={studyActions.swipeLeft}
+            onSwipeRight={studyActions.swipeRight}
             onClick={studyActions.toggleShowBackText}
           />
         }
