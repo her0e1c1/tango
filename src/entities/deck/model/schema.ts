@@ -1,0 +1,58 @@
+import { z } from "zod";
+
+const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
+const deckIdSchema = z.string().min(1, "Deck id is required");
+const deckUidSchema = z.string().min(1, "Deck owner is required");
+
+const editableDeckFieldsSchema = z.object({
+  name: z.string().min(1, "Deck name is required"),
+  url: z.string().optional(),
+  isPublic: z.boolean(),
+  scoreMax: z.number().nullable(),
+  scoreMin: z.number().nullable(),
+  selectedTags: z.array(z.string()),
+  tagAndFilter: z.boolean(),
+  category: z.string(),
+  convertToBr: z.boolean(),
+});
+
+const deckSchema = editableDeckFieldsSchema.extend({
+  id: deckIdSchema,
+  uid: deckUidSchema,
+  createdAt: z.number(),
+  updatedAt: z.number(),
+  deletedAt: z.number().nullable(),
+});
+
+const deckEditSchema = editableDeckFieldsSchema.partial().extend({ id: deckIdSchema });
+const deckIdentitySchema = z.object({ id: deckIdSchema, uid: deckUidSchema });
+
+const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, context: z.RefinementCtx): void => {
+  if (input.deck.uid !== input.uid) {
+    context.addIssue({
+      code: "custom",
+      message: "Deck owner does not match the authenticated user",
+      path: ["deck", "uid"],
+    });
+  }
+};
+
+export const createDeckSchema = z
+  .object({ uid: authenticatedUidSchema, deck: deckSchema })
+  .superRefine(validateDeckOwner);
+
+export const editDeckSchema = z.object({
+  uid: authenticatedUidSchema,
+  deck: deckEditSchema,
+});
+
+export const deleteDeckSchema = z
+  .object({ uid: authenticatedUidSchema, deck: deckIdentitySchema })
+  .superRefine(validateDeckOwner);
+
+export type Deck = z.infer<typeof deckSchema>;
+export type DeckId = z.infer<typeof deckIdSchema>;
+export type DeckEdit = z.infer<typeof deckEditSchema>;
+export type CreateDeckInput = z.infer<typeof createDeckSchema>;
+export type EditDeckInput = z.infer<typeof editDeckSchema>;
+export type DeleteDeckInput = z.infer<typeof deleteDeckSchema>;

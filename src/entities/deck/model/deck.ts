@@ -1,42 +1,10 @@
-import type { Category } from "./category";
+import type { Deck as DeckModel } from "./schema";
 
-export type DeckId = string;
+export type { Deck, DeckId } from "./schema";
 
-export interface Deck {
-  name: string;
-  url?: string;
-  isPublic: boolean;
-  id: DeckId;
-  uid: string;
-  createdAt: number;
-  updatedAt: number;
-  deletedAt: number | null;
-  scoreMax: number | null;
-  scoreMin: number | null;
-  selectedTags: string[];
-  tagAndFilter: boolean;
-  category: Category;
-  convertToBr: boolean;
-}
+export type DeckRaw = Pick<DeckModel, "name">;
 
-export type DeckRaw = Pick<Deck, "name">;
-export type DeckEdit = Pick<Deck, "id"> &
-  Partial<
-    Pick<
-      Deck,
-      | "name"
-      | "url"
-      | "isPublic"
-      | "scoreMax"
-      | "scoreMin"
-      | "selectedTags"
-      | "tagAndFilter"
-      | "category"
-      | "convertToBr"
-    >
-  >;
-
-export const createDeck = (deck: DeckRaw, uid: string, generateId: () => string): Deck => ({
+export const createDeck = (deck: DeckRaw, uid: string, generateId: () => string): DeckModel => ({
   ...deck,
   uid,
   id: generateId(),
