@@ -1,17 +1,17 @@
 <!-- markdownlint-disable MD041 -->
 <!--
-【PRタイトルルール】
-タイトルには必ず関連するIssue番号を含めてください。
-関連するIssueがない場合は「No issue」と明記してください。
-例: feat(#123): ログイン機能の実装
-   [#456] 〇〇バグの修正
-   [No issue] 〇〇の更新
+Pull request title rules:
+Always include the related issue number in the title.
+If there is no related issue, explicitly state "No issue".
+Examples: feat(#123): Implement login
+   [#456] Fix the example bug
+   [No issue] Update dependencies
 -->
 
-## 関連Issue
-<!-- 関連Issueがない場合は「なし」と記載してください。 -->
+## Related issue
+<!-- If there is no related issue, write "None". -->
 Fixes #
 
-## 概要
+## Summary
 
 ...
