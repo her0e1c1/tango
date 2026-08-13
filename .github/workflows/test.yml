@@ -17,6 +17,10 @@ jobs:
     uses: ./.github/workflows/e2e.yaml
     secrets: inherit
 
+  integration:
+    name: Integration
+    uses: ./.github/workflows/integration.yaml
+
   test:
     name: Test
     runs-on: ubuntu-latest
