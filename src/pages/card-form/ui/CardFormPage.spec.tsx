@@ -95,24 +95,10 @@ describe("CardFormPage", () => {
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
 
-  it("renders the ready screen in the application shell and forwards header actions", async () => {
-    const view = render(<CardFormPage />);
-
-    await userEvent.click(screen.getByRole("button", { name: "tango" }));
-    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
-    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
-    await userEvent.click(screen.getByRole("button", { name: "Open settings" }));
-
-    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
-
-    view.unmount();
-    mocks.config = createConfig({ appearance: { darkMode: true } });
+  it("renders the ready screen in the application shell", () => {
     render(<CardFormPage />);
-    await userEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
-    expect(mocks.setDarkMode).toHaveBeenNthCalledWith(2, false);
+
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("returns to the previous page without saving when cancelled", async () => {

@@ -6,9 +6,9 @@ import { useAuthSession } from "@/entities/auth-session";
 import { useSignIn } from "@/features/auth/sign-in";
 import { useSignOut } from "@/features/auth/sign-out";
 import { useConfigFormState } from "@/features/settings";
-import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
-import { Layout } from "@/shared/ui/layout";
+import { updateConfig, useConfig } from "@/shared/config";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
+import { AppLayout } from "@/widgets/app-layout";
 
 import { SettingsView } from "./SettingsView";
 
@@ -53,17 +53,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
   useKey("t", () => void navigate("/"));
 
   return (
-    <Layout
-      showHeader
-      headerProps={{
-        dark: config.appearance.darkMode,
-        onClickDarkMode: setDarkMode,
-        onClickLogo: () => void navigate("/"),
-        onClickImport: () => void navigate("/import"),
-        onClickSettings: () => void navigate("/settings"),
-      }}
-    >
+    <AppLayout showHeader>
       <SettingsView configForm={configForm} />
-    </Layout>
+    </AppLayout>
   );
 };

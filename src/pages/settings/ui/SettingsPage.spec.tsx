@@ -45,19 +45,12 @@ describe("SettingsPage", () => {
     mocks.config = createConfig({ appearance: { darkMode: false } });
   });
 
-  it("owns the route shortcut and application header", () => {
+  it("owns the route shortcut and renders in the application shell", () => {
     render(<SettingsPage login={vi.fn()} logout={vi.fn()} />);
 
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     fireEvent.keyDown(window, { key: "t" });
-    fireEvent.click(screen.getByRole("button", { name: "tango" }));
-    fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
-    fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
-    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/import");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(4, "/settings");
+    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/");
   });
 });

@@ -16,11 +16,11 @@ import {
   useStudyHydrated,
   useStudyStore,
 } from "@/features/study";
-import { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
+import { toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
-import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
+import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckSwiperView } from "./DeckSwiperView";
 
@@ -153,18 +153,7 @@ export const DeckSwiperPage: React.FC = () => {
   };
 
   return (
-    <Layout
-      fullscreen
-      scroll={showBackText}
-      showHeader={config.appearance.showHeader && !showBackText}
-      headerProps={{
-        dark: config.appearance.darkMode,
-        onClickDarkMode: setDarkMode,
-        onClickLogo: () => void navigate("/"),
-        onClickImport: () => void navigate("/import"),
-        onClickSettings: () => void navigate("/settings"),
-      }}
-    >
+    <AppLayout fullscreen scroll={showBackText} showHeader={config.appearance.showHeader && !showBackText}>
       <DeckSwiperView
         showController={config.study.cardInterval > 0}
         showBackText={showBackText}
@@ -209,6 +198,6 @@ export const DeckSwiperPage: React.FC = () => {
         swipeButtonList={swipeActions}
         swipeOverlay={swipeActions}
       />
-    </Layout>
+    </AppLayout>
   );
 };

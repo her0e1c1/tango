@@ -4,8 +4,8 @@ import { useKey } from "react-use";
 
 import { createDeck } from "@/features/deck/create";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/import";
-import { setDarkMode, useConfig } from "@/shared/config";
-import { Layout } from "@/shared/ui/layout";
+import { useConfig } from "@/shared/config";
+import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckImportView } from "./DeckImportView";
 
@@ -17,16 +17,7 @@ export const DeckImportPage: React.FC = () => {
   useKey("s", () => void navigate("/settings"));
 
   return (
-    <Layout
-      showHeader
-      headerProps={{
-        dark: config.appearance.darkMode,
-        onClickDarkMode: setDarkMode,
-        onClickLogo: () => void navigate("/"),
-        onClickImport: () => void navigate("/import"),
-        onClickSettings: () => void navigate("/settings"),
-      }}
-    >
+    <AppLayout showHeader>
       <DeckImportView
         onChange={(file) => {
           void deckImport.selectFile(file).catch(() => undefined);
@@ -52,6 +43,6 @@ export const DeckImportPage: React.FC = () => {
         dark={config.appearance.darkMode}
         sampleText={SAMPLE_CSV_TEXT}
       />
-    </Layout>
+    </AppLayout>
   );
 };

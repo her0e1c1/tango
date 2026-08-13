@@ -9,14 +9,14 @@ import { getCategory, isHighlightLanguage, type Deck, useDecks } from "@/entitie
 import { useCardMutations } from "@/features/card";
 import { useEditDeck } from "@/features/deck/edit";
 import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/study";
-import { setDarkMode, useConfig } from "@/shared/config";
+import { useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
-import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
+import { AppLayout } from "@/widgets/app-layout";
 
 import { CardListView } from "./CardListView";
 
@@ -43,16 +43,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   useKey("s", () => void navigate("/settings"));
 
   return (
-    <Layout
-      showHeader
-      headerProps={{
-        dark: config.appearance.darkMode,
-        onClickDarkMode: setDarkMode,
-        onClickLogo: () => void navigate("/"),
-        onClickImport: () => void navigate("/import"),
-        onClickSettings: () => void navigate("/settings"),
-      }}
-    >
+    <AppLayout showHeader>
       <CardListView
         cards={cards}
         filter={{
@@ -133,7 +124,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
           : {})}
         onShowCard={setShowCard}
       />
-    </Layout>
+    </AppLayout>
   );
 };
 
