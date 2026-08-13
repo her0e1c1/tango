@@ -16,13 +16,11 @@ import type { Deck, DeckId } from "@/entities/deck";
 import type { useStudySessions } from "@/features/study";
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
-type StudySession = NonNullable<ReturnType<typeof useStudySessions>[DeckId]>;
-
 const mocks = vi.hoisted(() => ({
   config: {} as ConfigState,
   decksById: {} as Record<DeckId, Deck>,
   cardsById: {} as Record<CardId, Card>,
-  sessionsByDeckId: {} as Partial<Record<DeckId, StudySession>>,
+  sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
   hydrated: true,
   pending: false,
   syncStatus: "synced" as "cached" | "pending" | "synced",

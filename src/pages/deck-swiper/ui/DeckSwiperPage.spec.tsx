@@ -18,8 +18,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { useStudySessions } from "@/features/study";
 import { createConfig } from "@/test/factories";
 
-type StudySession = NonNullable<ReturnType<typeof useStudySessions>[DeckId]>;
-
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
   state: null as { deck: Record<DeckId, Deck>; card: Record<CardId, Card>; config: ConfigState } | null,
@@ -40,7 +38,7 @@ const mocks = vi.hoisted(() => ({
     retry: vi.fn(),
   },
   studyState: {
-    sessionsByDeckId: {} as Partial<Record<DeckId, StudySession>>,
+    sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
     showBackText: false,
     autoPlay: false,
     lastSwipe: undefined as { direction: SwipeDirection; eventId: number } | undefined,

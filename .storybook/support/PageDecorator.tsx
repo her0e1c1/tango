@@ -6,14 +6,14 @@
 
 import type { Card } from "@/entities/card";
 import { cardRemoteReadStore } from "@/entities/card/model/remoteReadStore";
-import type { Deck, DeckId } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 import { deckRemoteReadStore } from "@/entities/deck/model/remoteReadStore";
 
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { AuthSessionProvider, createAuthSessionStore, type AuthSessionState } from "@/entities/auth-session";
-import type { useStudySessions } from "@/features/study";
+import type { StudyState } from "@/features/study/state/studyStore";
 import { studyStore } from "@/features/study/state/studyStoreInstance";
 import { configStore } from "@/shared/config/configStoreInstance";
 import { parsePersistedConfig } from "@/shared/config/configSchema";
@@ -22,8 +22,6 @@ import { toRemoteById } from "@/shared/api/remoteSnapshot";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read/RemoteReadScope";
 
 export const PAGE_STORY_UID = "storybook-user";
-
-type StudySession = NonNullable<ReturnType<typeof useStudySessions>[DeckId]>;
 
 type PartialConfigState = {
   [K in keyof ConfigState]?: Partial<ConfigState[K]>;
@@ -34,7 +32,7 @@ export interface PageStoryParameters {
   decks?: Deck[];
   cards?: Card[];
   config?: PartialConfigState;
-  sessionsByDeckId?: Partial<Record<DeckId, StudySession>>;
+  sessionsByDeckId?: StudyState["sessionsByDeckId"];
   showBackText?: boolean;
   autoPlay?: boolean;
 }
@@ -59,10 +57,8 @@ const cloneCard = (card: Card): Card => ({
   ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(card.nextSeeingAt.getTime()) }),
 });
 
-const cloneSessions = (
-  sessionsByDeckId: Partial<Record<DeckId, StudySession>>
-): Partial<Record<DeckId, StudySession>> => {
-  const sessions: Partial<Record<DeckId, StudySession>> = {};
+const cloneSessions = (sessionsByDeckId: StudyState["sessionsByDeckId"]): StudyState["sessionsByDeckId"] => {
+  const sessions: StudyState["sessionsByDeckId"] = {};
   Object.entries(sessionsByDeckId).forEach(([deckId, session]) => {
     if (session != null) sessions[deckId] = { ...session, cardOrderIds: [...session.cardOrderIds] };
   });
