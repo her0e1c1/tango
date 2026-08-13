@@ -8,7 +8,7 @@ type AuthProviderProps = PropsWithChildren<{ runtime?: AuthRuntime }>;
 
 export const AuthProvider = ({ children, runtime = authRuntime }: AuthProviderProps) => {
   useEffect(() => {
-    runtime.controller.start();
+    runtime.start();
   }, [runtime]);
 
   return <AuthSessionProvider store={runtime.authSessionStore}>{children}</AuthSessionProvider>;
