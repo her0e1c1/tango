@@ -33,13 +33,7 @@ export const DeckListPage: React.FC = () => {
   const readState = combineRemoteReadStates(cardRemote, deckRemote);
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
-  const mutations = useDeleteDeck({
-    onSuccess: (deck) => {
-      removeStudySession(deck.id);
-      setDeletionTarget((target) => (target?.deck.id === deck.id ? undefined : target));
-      setSuccessMessage(`Deleted deck “${deck.name}”.`);
-    },
-  });
+  const mutations = useDeleteDeck();
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
@@ -93,7 +87,17 @@ export const DeckListPage: React.FC = () => {
                 </>
               }
               onCancel={() => setDeletionTarget(undefined)}
-              onConfirm={() => mutations.remove(deletionTarget.deck).catch(() => undefined)}
+              onConfirm={async () => {
+                const deck = deletionTarget.deck;
+                try {
+                  await mutations.remove(deck);
+                  removeStudySession(deck.id);
+                  setDeletionTarget(undefined);
+                  setSuccessMessage(`Deleted deck “${deck.name}”.`);
+                } catch {
+                  // The mutation exposes the error and retry action to the dialog and notice.
+                }
+              }}
             />
           ) : null}
           <DeckListView
