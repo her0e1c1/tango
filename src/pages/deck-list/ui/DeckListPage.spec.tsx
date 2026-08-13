@@ -13,8 +13,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Card, CardId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import type { StudySession } from "@/features/study";
+import type { useStudySessions } from "@/features/study";
 import { createCard, createConfig, createDeck } from "@/test/factories";
+
+type StudySession = NonNullable<ReturnType<typeof useStudySessions>[DeckId]>;
 
 const mocks = vi.hoisted(() => ({
   config: {} as ConfigState,

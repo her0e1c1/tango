@@ -15,8 +15,10 @@ import "@testing-library/jest-dom/vitest";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { StudySession } from "@/features/study";
+import type { useStudySessions } from "@/features/study";
 import { createConfig } from "@/test/factories";
+
+type StudySession = NonNullable<ReturnType<typeof useStudySessions>[DeckId]>;
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },

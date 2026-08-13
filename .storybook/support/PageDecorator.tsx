@@ -13,7 +13,7 @@ import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { AuthSessionProvider, createAuthSessionStore, type AuthSessionState } from "@/entities/auth-session";
-import type { StudySession } from "@/features/study/state/studyStore";
+import type { useStudySessions } from "@/features/study";
 import { studyStore } from "@/features/study/state/studyStoreInstance";
 import { configStore } from "@/shared/config/configStoreInstance";
 import { parsePersistedConfig } from "@/shared/config/configSchema";
@@ -22,6 +22,8 @@ import { toRemoteById } from "@/shared/api/remoteSnapshot";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read/RemoteReadScope";
 
 export const PAGE_STORY_UID = "storybook-user";
+
+type StudySession = NonNullable<ReturnType<typeof useStudySessions>[DeckId]>;
 
 type PartialConfigState = {
   [K in keyof ConfigState]?: Partial<ConfigState[K]>;
