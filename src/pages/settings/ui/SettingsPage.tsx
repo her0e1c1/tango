@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthSession } from "@/entities/auth-session";
-import { useAccountOperations, useConfigFormState } from "@/features/settings";
 import { setDarkMode, updateConfig, useConfig } from "@/shared/config";
 import { Layout } from "@/shared/ui/layout";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 
+import { useAccountOperations } from "../model/useAccountOperations";
+import { useConfigFormState } from "../model/useConfigFormState";
 import { SettingsView } from "./SettingsView";
 
 interface SettingsPageProps {

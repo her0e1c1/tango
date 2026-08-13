@@ -1,10 +1,9 @@
-import type { ConfigFormFields } from "@/features/settings";
-
 import type { Meta, StoryObj } from "@storybook/react";
 
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
+import type { ConfigFormFields } from "./ConfigForm";
 import { SettingsView as View } from "./SettingsView";
 
 const fields: ConfigFormFields = {

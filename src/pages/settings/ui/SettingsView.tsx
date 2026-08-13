@@ -1,6 +1,6 @@
 import type * as React from "react";
 
-import { ConfigForm, type ConfigFormProps } from "@/features/settings";
+import { ConfigForm, type ConfigFormProps } from "./ConfigForm";
 
 export interface SettingsViewProps {
   configForm?: ConfigFormProps;

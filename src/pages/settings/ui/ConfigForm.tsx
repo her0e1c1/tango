@@ -1,5 +1,5 @@
 /**
- * @file Defines the settings feature's Config Form presentation component.
+ * @file Defines the Settings page's Config Form presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
@@ -10,9 +10,10 @@ import type * as React from "react";
 import { useId } from "react";
 import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool, AiOutlineUser } from "react-icons/ai";
 
-import { SettingsRow, SettingsSection } from "@/features/settings/ui/components/SettingsSection";
 import { Button } from "@/shared/ui/button";
 import { Slider, Switch } from "@/shared/ui/forms";
+
+import { SettingsRow, SettingsSection } from "./SettingsSection";
 
 export interface ConfigFormFields {
   showHeader: React.ComponentProps<typeof Switch>;

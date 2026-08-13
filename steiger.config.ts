@@ -17,7 +17,6 @@ export default defineConfig([
       "./src/entities/study-progress/**",
       "./src/features/deck-editor/**",
       "./src/features/export/**",
-      "./src/features/settings/**",
     ],
     rules: {
       "fsd/insignificant-slice": "off",

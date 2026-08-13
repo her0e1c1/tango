@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import type { ConfigFormFields } from "@/features/settings";
+import type { ConfigFormFields } from "./ConfigForm";
 import { createConfig } from "@/test/factories";
 
 import { SettingsView } from "./SettingsView";

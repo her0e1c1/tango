@@ -1,5 +1,5 @@
 /**
- * @file Provides the settings feature's Use Account Operations React hook.
+ * @file Provides the Settings page's Use Account Operations React hook.
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */
