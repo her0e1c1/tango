@@ -48,15 +48,38 @@ describe("removeDeck", () => {
     expect(mocks.removeDeckWithCards).toHaveBeenCalledExactlyOnceWith(deck.id, deck.uid);
   });
 
-  it("rejects a stalled removal", async () => {
+  it("reuses the original cleanup when retried after a timeout", async () => {
     vi.useFakeTimers();
-    mocks.removeDeckWithCards.mockReturnValueOnce(new Promise(() => undefined));
-    const deck = createDeck({ uid: "uid-a" });
-    const operation = removeDeck(deck.uid, deck);
-    const assertion = expect(operation).rejects.toThrow("Deck deletion did not finish");
+    let finishCleanup!: () => void;
+    mocks.removeDeckWithCards.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishCleanup = resolve;
+      })
+    );
+    const deck = createDeck({ id: "slow-deck", uid: "uid-a" });
+    const firstRemoval = removeDeck(deck.uid, deck);
+    const timeout = expect(firstRemoval).rejects.toThrow("Deck deletion did not finish");
 
     await vi.advanceTimersByTimeAsync(REMOTE_WRITE_TIMEOUT_MS);
+    await timeout;
 
-    await assertion;
+    const retry = removeDeck(deck.uid, deck);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(mocks.removeDeckWithCards).toHaveBeenCalledOnce();
+
+    finishCleanup();
+    await retry;
+    expect(mocks.removeDeckWithCards).toHaveBeenCalledOnce();
+  });
+
+  it("starts a new cleanup when retried after the original fails", async () => {
+    const failure = new Error("cleanup failed");
+    mocks.removeDeckWithCards.mockRejectedValueOnce(failure).mockResolvedValueOnce(undefined);
+    const deck = createDeck({ id: "failed-deck", uid: "uid-a" });
+
+    await expect(removeDeck(deck.uid, deck)).rejects.toBe(failure);
+    await removeDeck(deck.uid, deck);
+
+    expect(mocks.removeDeckWithCards).toHaveBeenCalledTimes(2);
   });
 });

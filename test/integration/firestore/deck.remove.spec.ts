@@ -1,109 +1,81 @@
-/** @file Verifies bounded, serial Card cleanup before Deck deletion. */
+import { readFileSync } from "node:fs";
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { initializeTestEnvironment, type RulesTestEnvironment } from "@firebase/rules-unit-testing";
+import { doc, getDoc, setDoc, type Firestore } from "firebase/firestore";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { v4 as uuid } from "uuid";
 
-const mocks = vi.hoisted(() => ({
-  collection: vi.fn(() => "card-collection"),
-  getDocs: vi.fn(),
-  query: vi.fn(() => "card-query"),
-  removeDeckDocument: vi.fn(),
-  where: vi.fn((...parts: unknown[]) => parts),
-  writeBatch: vi.fn(),
-}));
+import { buildCardCreateDto } from "@/entities/card/api/firestoreDocument";
+import { buildDeckCreateDto } from "@/entities/deck/api/firestoreDocument";
+import { removeDeckWithCards } from "@/features/deck-removal/api/removeDeck";
+import { createCard, createDeck } from "@/test/factories";
 
-vi.mock("firebase/firestore", () => ({
-  collection: mocks.collection,
-  getDocs: mocks.getDocs,
-  query: mocks.query,
-  where: mocks.where,
-  writeBatch: mocks.writeBatch,
-}));
-vi.mock("@/entities/deck", () => ({ removeDeckDocument: mocks.removeDeckDocument }));
-vi.mock("@/shared/firestore", () => ({ getDb: () => "db" }));
+describe("Deck removal with the Firestore emulator", () => {
+  let testEnv: RulesTestEnvironment;
+  let db: Firestore;
 
-import { CARD_DELETE_BATCH_SIZE, removeDeckWithCards } from "@/features/deck-removal/api/removeDeck";
+  const seed = async (collectionName: "deck" | "card", id: string, data: object) => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), collectionName, id), data);
+    });
+  };
 
-const documents = (count: number, start = 0) =>
-  Array.from({ length: count }, (_, index) => ({ ref: `card-${start + index}` }));
+  const existsWithoutRules = async (collectionName: "deck" | "card", id: string) => {
+    let exists = false;
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      exists = (await getDoc(doc(context.firestore(), collectionName, id))).exists();
+    });
+    return exists;
+  };
 
-const batch = () => ({ delete: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) });
-
-describe("firestore/deck.remove", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.getDocs.mockResolvedValue({ docs: [] });
-    mocks.removeDeckDocument.mockResolvedValue(undefined);
+  beforeAll(async () => {
+    testEnv = await initializeTestEnvironment({
+      projectId: "test-deck-removal",
+      firestore: {
+        rules: readFileSync("./firestore.rules", "utf8"),
+        host: import.meta.env.VITE_DB_HOST,
+        port: parseInt(import.meta.env.VITE_DB_PORT, 10),
+      },
+    });
+    db = testEnv.authenticatedContext("uid").firestore() as unknown as Firestore;
   });
 
-  it("deletes an empty Deck without creating a Card batch", async () => {
-    await removeDeckWithCards("deck-id", "uid-a");
-
-    expect(mocks.collection).toHaveBeenCalledWith("db", "card");
-    expect(mocks.where).toHaveBeenNthCalledWith(1, "uid", "==", "uid-a");
-    expect(mocks.where).toHaveBeenNthCalledWith(2, "deckId", "==", "deck-id");
-    expect(mocks.getDocs).toHaveBeenCalledWith("card-query");
-    expect(mocks.writeBatch).not.toHaveBeenCalled();
-    expect(mocks.removeDeckDocument).toHaveBeenCalledExactlyOnceWith("deck-id");
+  beforeEach(async () => {
+    await testEnv.clearFirestore();
   });
 
-  it("deletes one bounded Card batch before the Deck", async () => {
-    const cardBatch = batch();
-    mocks.getDocs.mockResolvedValue({ docs: documents(CARD_DELETE_BATCH_SIZE) });
-    mocks.writeBatch.mockReturnValue(cardBatch);
+  afterAll(async () => {
+    await testEnv.cleanup();
+  });
 
-    await removeDeckWithCards("deck-id", "uid-a");
+  it("deletes matching Cards before deleting their Deck", async () => {
+    const deck = createDeck({ id: uuid(), uid: "uid" });
+    const cards = [
+      createCard({ id: uuid(), deckId: deck.id, uid: deck.uid }),
+      createCard({ id: uuid(), deckId: deck.id, uid: deck.uid }),
+    ];
+    await seed("deck", deck.id, buildDeckCreateDto(deck, deck.createdAt));
+    await Promise.all(cards.map((card) => seed("card", card.id, buildCardCreateDto(card, card.createdAt))));
 
-    expect(cardBatch.delete).toHaveBeenCalledTimes(CARD_DELETE_BATCH_SIZE);
-    expect(cardBatch.commit).toHaveBeenCalledOnce();
-    expect(cardBatch.commit.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.removeDeckDocument.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY
+    await removeDeckWithCards(deck.id, deck.uid, db);
+
+    await expect(existsWithoutRules("deck", deck.id)).resolves.toBe(false);
+    await Promise.all(
+      cards.map(async (card) => {
+        await expect(existsWithoutRules("card", card.id)).resolves.toBe(false);
+      })
     );
   });
 
-  it("commits multiple bounded Card batches serially", async () => {
-    const first = batch();
-    const second = batch();
-    let finishFirst!: () => void;
-    first.commit.mockReturnValueOnce(new Promise<void>((resolve) => (finishFirst = resolve)));
-    mocks.getDocs.mockResolvedValue({ docs: documents(CARD_DELETE_BATCH_SIZE + 1) });
-    mocks.writeBatch.mockReturnValueOnce(first).mockReturnValueOnce(second);
+  it("commits Card cleanup before a rejected Deck deletion", async () => {
+    const deck = createDeck({ id: uuid(), uid: "other-user" });
+    const card = createCard({ id: uuid(), deckId: deck.id, uid: "uid" });
+    await seed("deck", deck.id, buildDeckCreateDto(deck, deck.createdAt));
+    await seed("card", card.id, buildCardCreateDto(card, card.createdAt));
 
-    const operation = removeDeckWithCards("deck-id", "uid-a");
-    await vi.waitFor(() => expect(first.commit).toHaveBeenCalledOnce());
-    expect(mocks.writeBatch).toHaveBeenCalledOnce();
-    expect(second.commit).not.toHaveBeenCalled();
-    expect(mocks.removeDeckDocument).not.toHaveBeenCalled();
+    await expect(removeDeckWithCards(deck.id, card.uid, db)).rejects.toMatchObject({ code: "permission-denied" });
 
-    finishFirst();
-    await operation;
-
-    expect(first.delete).toHaveBeenCalledTimes(CARD_DELETE_BATCH_SIZE);
-    expect(second.delete).toHaveBeenCalledExactlyOnceWith(`card-${CARD_DELETE_BATCH_SIZE}`);
-    expect(second.commit).toHaveBeenCalledOnce();
-    expect(mocks.removeDeckDocument).toHaveBeenCalledExactlyOnceWith("deck-id");
-  });
-
-  it("keeps the Deck after a batch failure and retries only remaining Cards", async () => {
-    const failure = new Error("batch failed");
-    const first = batch();
-    const failed = batch();
-    failed.commit.mockRejectedValueOnce(failure);
-    mocks.getDocs
-      .mockResolvedValueOnce({ docs: documents(CARD_DELETE_BATCH_SIZE + 1) })
-      .mockResolvedValueOnce({ docs: documents(1, CARD_DELETE_BATCH_SIZE) });
-    mocks.writeBatch.mockReturnValueOnce(first).mockReturnValueOnce(failed);
-
-    await expect(removeDeckWithCards("deck-id", "uid-a")).rejects.toBe(failure);
-    expect(first.commit).toHaveBeenCalledOnce();
-    expect(failed.commit).toHaveBeenCalledOnce();
-    expect(mocks.removeDeckDocument).not.toHaveBeenCalled();
-
-    const retry = batch();
-    mocks.writeBatch.mockReturnValueOnce(retry);
-    await removeDeckWithCards("deck-id", "uid-a");
-
-    expect(mocks.getDocs).toHaveBeenCalledTimes(2);
-    expect(retry.delete).toHaveBeenCalledExactlyOnceWith(`card-${CARD_DELETE_BATCH_SIZE}`);
-    expect(mocks.removeDeckDocument).toHaveBeenCalledExactlyOnceWith("deck-id");
+    await expect(existsWithoutRules("card", card.id)).resolves.toBe(false);
+    await expect(existsWithoutRules("deck", deck.id)).resolves.toBe(true);
   });
 });

@@ -2,7 +2,7 @@ import type { Deck, DeckId } from "@/entities/deck";
 
 import { useEffect, useRef } from "react";
 
-import { useSession } from "@/entities/session";
+import { useAuthSession } from "@/entities/auth-session";
 import { useAsyncAction } from "@/shared/hooks";
 import { removeDeck } from "../model/removeDeck";
 
@@ -11,7 +11,7 @@ interface UseDeckRemovalOptions {
 }
 
 export const useDeckRemoval = ({ onSuccess }: UseDeckRemovalOptions = {}) => {
-  const auth = useSession();
+  const auth = useAuthSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const mutation = useAsyncAction<DeckId>(uid);
   const scope = useRef({ uid });

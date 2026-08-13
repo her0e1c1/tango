@@ -37,8 +37,8 @@ export const update = async (deck: DeckEdit): Promise<void> => {
   await updateDoc(doc(getDb(), DECK_COLLECTION, deck.id), buildDeckUpdateDto(deck, getTimestamp()));
 };
 
-export const remove = async (deckId: string): Promise<void> => {
-  await deleteDoc(doc(getDb(), DECK_COLLECTION, deckId));
+export const remove = async (deckId: string, firestore: Firestore = getDb()): Promise<void> => {
+  await deleteDoc(doc(firestore, DECK_COLLECTION, deckId));
 };
 
 export const exists = async (id: string): Promise<boolean> =>
