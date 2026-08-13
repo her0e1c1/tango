@@ -1,13 +1,11 @@
 import { stopRemoteReads } from "@/app/providers/remote-read/remoteReadLifecycle";
 import { signOutCurrentUser, suspendAnonymousBootstrap } from "@/features/auth";
-import { clearStudyStore, studyStore, type StudyState } from "@/features/study";
-
-const { getState: getStudyState } = studyStore;
+import { createStudyIdentityCleanup, type StudyIdentityCleanup } from "@/features/study";
 
 interface LogoutCleanupProgress {
   remote: boolean;
   study: boolean;
-  studyStateAfterClear?: StudyState;
+  studyCleanup: StudyIdentityCleanup;
 }
 
 type LogoutCleanupStep = "remote" | "study";
@@ -43,12 +41,7 @@ const runLogout = async (
     };
 
     await run("remote", () => stopRemoteReads(confirmedUid));
-    await run("study", async () => {
-      if (progress.studyStateAfterClear && getStudyState() !== progress.studyStateAfterClear) return;
-      const cleanup = clearStudyStore();
-      progress.studyStateAfterClear = getStudyState();
-      await cleanup;
-    });
+    await run("study", progress.studyCleanup);
     if (errors.length > 0) {
       throw new LogoutCleanupError(errors[0], () => runLogout(confirmedUid, progress, false));
     }
@@ -58,4 +51,4 @@ const runLogout = async (
 };
 
 export const logout = (confirmedUid: string): Promise<void> =>
-  runLogout(confirmedUid, { remote: false, study: false }, true);
+  runLogout(confirmedUid, { remote: false, study: false, studyCleanup: createStudyIdentityCleanup() }, true);

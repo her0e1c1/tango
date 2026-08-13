@@ -15,9 +15,11 @@ export { useStudyControllerState } from "./hooks/useStudyControllerState";
 export { useStudySessions } from "./hooks/useStudySessions";
 export { useStudyStore } from "./hooks/useStudyStore";
 export {
-  clearStudyStore,
+  createStudyIdentityCleanup,
+  type StudyIdentityCleanup,
+} from "./lifecycle/studyIdentityCleanup";
+export {
   selectStudySessionForRoute,
   studyStore,
   type StudySession,
-  type StudyState,
 } from "./state/studyStore";
