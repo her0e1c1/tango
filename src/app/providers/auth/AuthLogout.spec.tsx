@@ -1,9 +1,8 @@
 /**
  * @file Verifies the "Auth Logout integration" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "waits for logout cleanup
- * before bootstrapping the next anonymous UID", "keeps post-sign-out cleanup failures visible and
- * retries only unfinished cleanup", "hands cleanup feedback across auth after retrying a failed
- * sign-out".
+ * before bootstrapping the next anonymous UID", "does not carry cleanup failures into the next
+ * auth session", "retries a failed sign-out while the authenticated screen remains mounted".
  */
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -181,11 +180,10 @@ it("waits for logout cleanup before bootstrapping the next anonymous UID", async
   expect(subscribeBIndex).toBeGreaterThan(anonymousStartIndex);
 });
 
-it("keeps post-sign-out cleanup failures visible and retries only unfinished cleanup", async () => {
+it("does not carry cleanup failures into the next auth session", async () => {
   const userA = { uid: "feedback-uid-a", isAnonymous: false, providerData: [] } as unknown as User;
   const userB = { uid: "feedback-uid-b", isAnonymous: true, providerData: [] } as unknown as User;
   const firstCleanupError = new Error("cleanup failed");
-  const retryCleanupError = new Error("retry cleanup failed");
   let rejectFirstCleanup!: (error: unknown) => void;
   const firstCleanup = new Promise<void>((_resolve, reject) => {
     rejectFirstCleanup = reject;
@@ -204,10 +202,7 @@ it("keeps post-sign-out cleanup failures visible and retries only unfinished cle
     }
   });
   mocks.signInAnonymously.mockReturnValue(anonymousBootstrap);
-  mocks.cleanupUid
-    .mockReturnValueOnce(firstCleanup)
-    .mockRejectedValueOnce(retryCleanupError)
-    .mockResolvedValueOnce(undefined);
+  mocks.cleanupUid.mockReturnValueOnce(firstCleanup);
   mocks.clearStudyStore.mockResolvedValue(undefined);
 
   const runtime = createTestRuntime();
@@ -222,29 +217,16 @@ it("keeps post-sign-out cleanup failures visible and retries only unfinished cle
   await actAsync(async () => rejectFirstCleanup(firstCleanupError));
   act(() => mocks.publishUser?.(userB));
 
-  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+  await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
   expect(mocks.signOut).toHaveBeenCalledOnce();
   expect(mocks.cleanupUid).toHaveBeenCalledOnce();
   expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
-
-  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-  await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledTimes(2));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
-  expect(mocks.signOut).toHaveBeenCalledOnce();
-  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
-
-  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-  await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
-  expect(mocks.cleanupUid).toHaveBeenCalledTimes(3);
-  expect(mocks.signOut).toHaveBeenCalledOnce();
-  expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
 });
 
-it("hands cleanup feedback across auth after retrying a failed sign-out", async () => {
+it("retries a failed sign-out while the authenticated screen remains mounted", async () => {
   const userA = { uid: "retry-uid-a", isAnonymous: false, providerData: [] } as unknown as User;
   const userB = { uid: "retry-uid-b", isAnonymous: true, providerData: [] } as unknown as User;
   const signOutError = new Error("sign out failed");
-  const cleanupError = new Error("cleanup failed after retry");
   const anonymousBootstrap = new Promise<UserCredential>(() => undefined);
 
   mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
@@ -253,7 +235,7 @@ it("hands cleanup feedback across auth after retrying a failed sign-out", async 
   });
   mocks.signOut.mockRejectedValueOnce(signOutError).mockImplementationOnce(async () => mocks.publishUser?.(null));
   mocks.signInAnonymously.mockReturnValue(anonymousBootstrap);
-  mocks.cleanupUid.mockRejectedValueOnce(cleanupError).mockResolvedValueOnce(undefined);
+  mocks.cleanupUid.mockResolvedValue(undefined);
   mocks.clearStudyStore.mockResolvedValue(undefined);
 
   const runtime = createTestRuntime();
@@ -272,19 +254,15 @@ it("hands cleanup feedback across auth after retrying a failed sign-out", async 
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(screen.queryByRole("button", { name: "Logout" })).not.toBeInTheDocument());
   await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledOnce());
-  await actAsync(async () => Promise.resolve());
   act(() => mocks.publishUser?.(userB));
-
-  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
-  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
   await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
   expect(mocks.signOut).toHaveBeenCalledTimes(2);
-  expect(mocks.cleanupUid).toHaveBeenCalledTimes(2);
+  expect(mocks.cleanupUid).toHaveBeenCalledOnce();
   expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
 });
 
-it("does not erase a new anonymous study when obsolete logout cleanup is retried", async () => {
+it("does not expose obsolete cleanup retries to a new anonymous study", async () => {
   const userA = { uid: "study-uid-a", isAnonymous: false, providerData: [] } as unknown as User;
   const userB = { uid: "study-uid-b", isAnonymous: true, providerData: [] } as unknown as User;
   const cleanupError = new Error("study storage cleanup failed");
@@ -317,13 +295,12 @@ it("does not erase a new anonymous study when obsolete logout cleanup is retried
   studyStore.getState().startStudy("old-deck", ["old-card"]);
 
   fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+  expect(await screen.findByRole("button", { name: "Logout" })).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(studyStore.getState().sessionsByDeckId).toEqual({});
 
   act(() => studyStore.getState().startStudy("new-deck", ["new-card"]));
-  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
-  await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
   expect(studyStore.getState().sessionsByDeckId).toEqual({
     "new-deck": expect.objectContaining({ deckId: "new-deck", cardOrderIds: ["new-card"] }),
   });

@@ -26,14 +26,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
     uid: authenticated?.uid ?? "",
     displayName: authenticated?.displayName ?? null,
   };
-  const authGeneration = authenticated
-    ? `authenticated:${authenticated.uid}:${authenticated.isAnonymous ? "anonymous" : "linked"}`
-    : authState.status;
-  const signIn = useSignIn({ generation: authGeneration, signIn: login });
-  const signOut = useSignOut({
-    generation: authGeneration,
-    ...(authenticated ? { signOut: () => logout(authenticated.uid) } : {}),
-  });
+  const signIn = useSignIn(login);
+  const signOut = useSignOut(authenticated ? () => logout(authenticated.uid) : undefined);
   const account =
     signOut.pending || signOut.error != null
       ? { ...signOut, kind: "logout" as const }

@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import React, { type PropsWithChildren } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -19,9 +19,7 @@ describe("useSignIn", () => {
   it("deduplicates sign-in while it is pending", async () => {
     const request = deferred<void>();
     const signIn = vi.fn(() => request.promise);
-    const { result } = renderHook(() => useSignIn({ generation: "anonymous", signIn }), {
-      wrapper: StrictModeWrapper,
-    });
+    const { result } = renderHook(() => useSignIn(signIn), { wrapper: StrictModeWrapper });
 
     let first!: Promise<void>;
     let second!: Promise<void>;
@@ -40,10 +38,10 @@ describe("useSignIn", () => {
     expect(result.current.pending).toBe(false);
   });
 
-  it("retries the failed operation", async () => {
+  it("runs sign-in again when retry is requested", async () => {
     const error = new Error("sign in failed");
     const signIn = vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
-    const { result } = renderHook(() => useSignIn({ generation: "anonymous", signIn }));
+    const { result } = renderHook(() => useSignIn(signIn));
 
     await actAsync(async () => expect(result.current.signIn()).rejects.toBe(error));
     expect(result.current).toMatchObject({ pending: false, error });
@@ -57,7 +55,7 @@ describe("useSignIn", () => {
     const error = new Error("sign in failed");
     const request = deferred<void>();
     const signIn = vi.fn().mockRejectedValueOnce(error).mockReturnValueOnce(request.promise);
-    const { result } = renderHook(() => useSignIn({ generation: "anonymous", signIn }));
+    const { result } = renderHook(() => useSignIn(signIn));
     await actAsync(async () => expect(result.current.signIn()).rejects.toBe(error));
 
     let attempt!: Promise<void>;
@@ -72,71 +70,16 @@ describe("useSignIn", () => {
     });
   });
 
-  it("discards settled feedback after the screen is left", async () => {
+  it("does not carry failures to a later mount", async () => {
     const error = new Error("sign in failed");
     const signIn = vi.fn().mockRejectedValue(error);
-    const { result: firstResult, unmount } = renderHook(() => useSignIn({ generation: "anonymous", signIn }), {
+    const { result: firstResult, unmount } = renderHook(() => useSignIn(signIn), {
       wrapper: StrictModeWrapper,
     });
     await actAsync(async () => expect(firstResult.current.signIn()).rejects.toBe(error));
     unmount();
-    await actAsync(async () => Promise.resolve());
 
-    const { result: nextResult } = renderHook(() => useSignIn({ generation: "anonymous", signIn }), {
-      wrapper: StrictModeWrapper,
-    });
-    expect(nextResult.current).toMatchObject({ pending: false, error: null });
-    await expect(nextResult.current.retry()).resolves.toBeUndefined();
-    expect(signIn).toHaveBeenCalledOnce();
-  });
-
-  it("discards feedback after an unrelated auth generation", async () => {
-    const error = new Error("sign in failed");
-    const signIn = vi.fn().mockRejectedValue(error);
-    const { result, rerender } = renderHook(({ generation }) => useSignIn({ generation, signIn }), {
-      initialProps: { generation: "anonymous-a" },
-      wrapper: StrictModeWrapper,
-    });
-    await actAsync(async () => expect(result.current.signIn()).rejects.toBe(error));
-
-    rerender({ generation: "anonymous-b" });
-
-    await waitFor(() => expect(result.current).toMatchObject({ pending: false, error: null }));
-    await expect(result.current.retry()).resolves.toBeUndefined();
-  });
-
-  it("ignores a late completion from an earlier auth generation", async () => {
-    const firstRequest = deferred<void>();
-    const nextRequest = deferred<void>();
-    const signIn = vi.fn().mockReturnValueOnce(firstRequest.promise).mockReturnValueOnce(nextRequest.promise);
-    const { result, rerender } = renderHook(({ generation }) => useSignIn({ generation, signIn }), {
-      initialProps: { generation: "anonymous-a" },
-      wrapper: StrictModeWrapper,
-    });
-
-    let firstAttempt!: Promise<void>;
-    act(() => {
-      firstAttempt = result.current.signIn();
-    });
-    rerender({ generation: "anonymous-b" });
-
-    let nextAttempt!: Promise<void>;
-    act(() => {
-      nextAttempt = result.current.signIn();
-    });
-    expect(signIn).toHaveBeenCalledTimes(2);
-    expect(result.current.pending).toBe(true);
-
-    await actAsync(async () => {
-      firstRequest.resolve();
-      await firstAttempt;
-    });
-    expect(result.current.pending).toBe(true);
-
-    await actAsync(async () => {
-      nextRequest.resolve();
-      await nextAttempt;
-    });
-    expect(result.current.pending).toBe(false);
+    const { result } = renderHook(() => useSignIn(signIn), { wrapper: StrictModeWrapper });
+    expect(result.current).toMatchObject({ pending: false, error: null });
   });
 });
