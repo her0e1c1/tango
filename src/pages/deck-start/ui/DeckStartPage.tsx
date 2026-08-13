@@ -6,7 +6,8 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
+import { selectCardsForDeck, selectTagsForDeck } from "@/entities/card";
+import { useCards } from "@/features/card/read";
 import { useEditDeck } from "@/features/deck/edit";
 import { useDecks } from "@/features/deck/read";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
@@ -21,11 +22,20 @@ import { DeckStartView } from "./DeckStartView";
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
-const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigState; tags: string[] }) => {
-  const { deck, cards, config, tags } = props;
+type CardRead = Pick<ReturnType<typeof useCards>, "cards" | "cardsById">;
+
+const DeckStartContent = (props: {
+  cardRead: CardRead;
+  deck: Deck;
+  cards: Card[];
+  config: ConfigState;
+  tags: string[];
+}) => {
+  const { cardRead, deck, cards, config, tags } = props;
   const deckMutations = useEditDeck();
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {
+    cardRead,
     deck,
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
   });
@@ -78,7 +88,9 @@ export const DeckStartPage: React.FC = () => {
       }
       onRetry={readState.retry}
     >
-      {deck != null ? <DeckStartContent deck={deck} cards={cards} config={config} tags={tags} /> : null}
+      {deck != null ? (
+        <DeckStartContent cardRead={cardRemote} deck={deck} cards={cards} config={config} tags={tags} />
+      ) : null}
     </RemoteReadBoundary>
   );
 };

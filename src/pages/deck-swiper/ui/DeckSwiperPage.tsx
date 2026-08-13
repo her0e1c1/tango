@@ -4,7 +4,7 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useCards } from "@/entities/card";
+import { useCards } from "@/features/card/read";
 import { BackText, CardOverlay, FrontText } from "@/features/card/view";
 import { useDecks } from "@/features/deck/read";
 import {
@@ -57,6 +57,7 @@ const DeckSwiperContent = ({
   const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
   const cardMutation = useEditStudyProgress();
   const studyActions = useStudyActions(deckId, {
+    cardRead: cardRemote,
     deck,
     cardMutation: {
       update: cardMutation.update,

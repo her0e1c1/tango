@@ -4,6 +4,7 @@ import { useKey } from "react-use";
 
 import { createCard, generateCardId } from "@/features/card/create";
 import { editCard } from "@/features/card/edit";
+import { useCards } from "@/features/card/read";
 import { createDeck } from "@/features/deck/create";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck/import";
 import { useDecks } from "@/features/deck/read";
@@ -15,8 +16,9 @@ import { DeckImportView } from "./DeckImportView";
 export const DeckImportPage: React.FC = () => {
   const config = useConfig();
   const navigate = useNavigate();
+  const cardRead = useCards();
   const deckRead = useDecks();
-  const deckImport = useDeckImport({ createCard, createDeck, deckRead, editCard, generateCardId });
+  const deckImport = useDeckImport({ cardRead, createCard, createDeck, deckRead, editCard, generateCardId });
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
 

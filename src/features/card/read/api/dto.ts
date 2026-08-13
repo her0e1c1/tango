@@ -1,4 +1,4 @@
-import type { Card, CardId } from "../model/schema";
+import type { Card, CardId } from "@/entities/card";
 
 import { z } from "zod";
 

@@ -11,7 +11,7 @@ import type { ConfigState, SwipeDirection } from "@/shared/config";
 
 import React from "react";
 
-import { selectCardsForDeck, useCards } from "@/entities/card";
+import { selectCardsForDeck } from "@/entities/card";
 import { useStudyCards } from "./useStudyCards";
 import { buildStudySession, calculateNextIndex } from "../model/session";
 import { createStudyCard } from "../model/studyCard";
@@ -36,6 +36,10 @@ interface StudyCardMutation {
 }
 
 interface UseStudyActionsOptions {
+  cardRead: {
+    cards: Card[];
+    cardsById: Partial<Record<CardId, Card>>;
+  };
   cardMutation?: StudyCardMutation;
   deck: Deck;
   onStarted?: () => void;
@@ -139,13 +143,11 @@ const runStudySwipe = async (
  */
 export const useStudyActions = (
   deckId: DeckId,
-  { cardMutation, deck, onStarted }: UseStudyActionsOptions
+  { cardMutation, cardRead, deck, onStarted }: UseStudyActionsOptions
 ): StudyActions => {
   const config = useConfig();
-  const cardRemote = useCards();
-  const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
+  const deckCards = React.useMemo(() => selectCardsForDeck(cardRead.cards, deckId), [cardRead.cards, deckId]);
   const cards = useStudyCards(deck, deckCards, config);
-  const cardsById = cardRemote.cardsById;
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
   /**
@@ -171,7 +173,7 @@ export const useStudyActions = (
       mutationTokenRef,
       deckId,
       config,
-      cardsById,
+      cardsById: cardRead.cardsById,
       update: cardMutation.update,
     });
   };

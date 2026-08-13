@@ -3,6 +3,7 @@ import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { cardRemoteReadStore } from "../model/remoteReadStore";
+import { selectCardsForDeck, selectTagsForDeck } from "@/entities/card";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
 import { createCard } from "@/test/factories";
 
@@ -26,7 +27,7 @@ vi.mock("../model/remoteReadStore", () => ({
   },
 }));
 
-import { selectCardsForDeck, selectTagsForDeck, useCards } from "../index";
+import { useCards } from "../index";
 
 const authenticatedWrapper = ({ children }: PropsWithChildren) => (
   <RemoteReadScopeProvider uid="uid-a">{children}</RemoteReadScopeProvider>

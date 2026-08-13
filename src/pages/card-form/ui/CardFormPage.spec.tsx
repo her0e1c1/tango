@@ -29,7 +29,7 @@ vi.mock("@/shared/config", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 
-vi.mock("@/entities/card", () => ({
+vi.mock("@/features/card/read", () => ({
   useCards: () => ({
     status: "ready" as const,
     retry: vi.fn(),

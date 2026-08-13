@@ -78,7 +78,7 @@ vi.mock("@/features/deck/read", () => ({
   }),
 }));
 
-vi.mock("@/entities/card", () => ({
+vi.mock("@/features/card/read", () => ({
   useCards: () => ({
     status: mocks.cardReadStatus,
     retry: mocks.cardReadRetry,

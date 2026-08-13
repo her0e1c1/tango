@@ -22,6 +22,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/card", () => ({
   selectCardsForDeck: () => mocks.cards,
   selectTagsForDeck: () => [],
+}));
+vi.mock("@/features/card/read", () => ({
   useCards: () => ({
     status: "ready" as const,
     retry: vi.fn(),

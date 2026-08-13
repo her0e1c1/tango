@@ -31,6 +31,7 @@ import { useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
 const createDeck = vi.fn<(uid: string, deck: Deck) => Promise<unknown>>();
 const useTestSampleDeckBootstrap = () =>
   useSampleDeckBootstrap({
+    cardRead: { status: "ready", syncStatus: "synced", cards: [] },
     createCard: vi.fn(),
     createDeck,
     deckRead: mocks.remote,

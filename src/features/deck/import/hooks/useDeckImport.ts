@@ -10,7 +10,7 @@ import type { RemoteSyncStatus } from "@/shared/api";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { createCard as prepareCard, selectCardsForDeck, useCards } from "@/entities/card";
+import { createCard as prepareCard, selectCardsForDeck } from "@/entities/card";
 import { createDeck, generateDeckId } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
@@ -20,6 +20,11 @@ import sampleCards from "../../../../../sample/build/output.json";
 import { CardBulkMutationError, upsertImportedCards } from "../api/upsertImportedCards";
 
 export interface DeckImportOptions {
+  cardRead: {
+    cards: Card[];
+    status: "idle" | "loading" | "ready" | "blocked" | "error";
+    syncStatus?: RemoteSyncStatus | undefined;
+  };
   createCard: (uid: string, card: Card) => Promise<unknown>;
   createDeck: (uid: string, deck: Deck) => Promise<unknown>;
   deckRead: {
@@ -309,17 +314,20 @@ const previewDeckImportFile = async (
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useDeckImport = ({ createCard, createDeck, deckRead, editCard, generateCardId }: DeckImportOptions) => {
+export const useDeckImport = ({
+  cardRead,
+  createCard,
+  createDeck,
+  deckRead,
+  editCard,
+  generateCardId,
+}: DeckImportOptions) => {
   const auth = useAuthSession();
-  const cardRemote = useCards();
-  const cardsByDeckId = useCallback(
-    (deckId: DeckId) => selectCardsForDeck(cardRemote.cards, deckId),
-    [cardRemote.cards]
-  );
+  const cardsByDeckId = useCallback((deckId: DeckId) => selectCardsForDeck(cardRead.cards, deckId), [cardRead.cards]);
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const synchronized =
-    cardRemote.status === "ready" &&
-    cardRemote.syncStatus === "synced" &&
+    cardRead.status === "ready" &&
+    cardRead.syncStatus === "synced" &&
     deckRead.status === "ready" &&
     deckRead.syncStatus === "synced";
   const generation = useRef(0);
