@@ -6,7 +6,7 @@ import {
   update as updateRemoteCard,
   upsert as upsertRemoteCard,
 } from "./firestore";
-import { cardMutationLock, withMutationLocks } from "@/store/remoteMutationLocks";
+import { runSerially } from "@/shared/lib/runSerially";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 
 const requireUid = (uid: string) => {
@@ -20,7 +20,7 @@ const requireOwner = (uid: string, entityUid: string | undefined) => {
 };
 
 const withCardWriteLock = <T>(uid: string, id: CardId, task: () => Promise<T>): Promise<T> =>
-  withMutationLocks([cardMutationLock(uid, id)], task);
+  runSerially(`card:${uid}:${id}`, task);
 
 export class CardBulkMutationError extends Error {
   constructor(
