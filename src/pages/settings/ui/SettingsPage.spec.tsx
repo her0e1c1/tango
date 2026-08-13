@@ -23,7 +23,6 @@ vi.mock("@/features/auth/sign-in", () => ({
     pending: false,
     error: null,
     signIn: vi.fn(async () => undefined),
-    retry: vi.fn(async () => undefined),
   }),
 }));
 vi.mock("@/features/auth/sign-out", () => ({

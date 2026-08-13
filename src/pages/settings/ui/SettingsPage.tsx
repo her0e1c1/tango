@@ -32,6 +32,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
     signOut.pending || signOut.error != null
       ? { ...signOut, kind: "logout" as const }
       : { ...signIn, kind: "login" as const };
+  const retryAccountOperation = account.kind === "logout" ? signOut.signOut : signIn.signIn;
   const configForm = useConfigFormState({
     config,
     identity,
@@ -44,7 +45,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
       <RemoteMutationNotice
         pending={account.pending}
         error={account.error}
-        onRetry={() => void account.retry().catch(() => undefined)}
+        onRetry={() => void retryAccountOperation().catch(() => undefined)}
         pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
         errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
       />

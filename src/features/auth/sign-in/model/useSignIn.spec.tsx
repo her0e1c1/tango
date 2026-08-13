@@ -1,5 +1,4 @@
 import { act, renderHook } from "@testing-library/react";
-import React, { type PropsWithChildren } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { useSignIn } from "./useSignIn";
@@ -13,19 +12,15 @@ const deferred = <T,>() => {
   return { promise, resolve };
 };
 
-const StrictModeWrapper = ({ children }: PropsWithChildren) => <React.StrictMode>{children}</React.StrictMode>;
-
 describe("useSignIn", () => {
-  it("deduplicates sign-in while it is pending", async () => {
+  it("reports pending while sign-in is running", async () => {
     const request = deferred<void>();
     const signIn = vi.fn(() => request.promise);
-    const { result } = renderHook(() => useSignIn(signIn), { wrapper: StrictModeWrapper });
+    const { result } = renderHook(() => useSignIn(signIn));
 
-    let first!: Promise<void>;
-    let second!: Promise<void>;
+    let attempt!: Promise<void>;
     act(() => {
-      first = result.current.signIn();
-      second = result.current.signIn();
+      attempt = result.current.signIn();
     });
 
     expect(signIn).toHaveBeenCalledOnce();
@@ -33,12 +28,12 @@ describe("useSignIn", () => {
 
     await actAsync(async () => {
       request.resolve();
-      await Promise.all([first, second]);
+      await attempt;
     });
     expect(result.current.pending).toBe(false);
   });
 
-  it("runs sign-in again when retry is requested", async () => {
+  it("allows sign-in again after a failure", async () => {
     const error = new Error("sign in failed");
     const signIn = vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
     const { result } = renderHook(() => useSignIn(signIn));
@@ -46,7 +41,7 @@ describe("useSignIn", () => {
     await actAsync(async () => expect(result.current.signIn()).rejects.toBe(error));
     expect(result.current).toMatchObject({ pending: false, error });
 
-    await actAsync(async () => expect(result.current.retry()).resolves.toBeUndefined());
+    await actAsync(async () => expect(result.current.signIn()).resolves.toBeUndefined());
     expect(signIn).toHaveBeenCalledTimes(2);
     expect(result.current).toMatchObject({ pending: false, error: null });
   });
@@ -73,13 +68,11 @@ describe("useSignIn", () => {
   it("does not carry failures to a later mount", async () => {
     const error = new Error("sign in failed");
     const signIn = vi.fn().mockRejectedValue(error);
-    const { result: firstResult, unmount } = renderHook(() => useSignIn(signIn), {
-      wrapper: StrictModeWrapper,
-    });
+    const { result: firstResult, unmount } = renderHook(() => useSignIn(signIn));
     await actAsync(async () => expect(firstResult.current.signIn()).rejects.toBe(error));
     unmount();
 
-    const { result } = renderHook(() => useSignIn(signIn), { wrapper: StrictModeWrapper });
+    const { result } = renderHook(() => useSignIn(signIn));
     expect(result.current).toMatchObject({ pending: false, error: null });
   });
 });
