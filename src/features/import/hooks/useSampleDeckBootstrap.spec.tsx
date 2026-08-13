@@ -29,6 +29,9 @@ vi.mock("./useDeckImport", () => ({
 
 import { createSampleDeckBootstrapController, useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
 
+const createDeck = vi.fn<(uid: string, deck: Deck) => Promise<unknown>>();
+const useTestSampleDeckBootstrap = () => useSampleDeckBootstrap({ createDeck });
+
 /**
  * Provides the strict mode test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
@@ -44,14 +47,14 @@ describe("sample Deck bootstrap", () => {
   });
 
   it("adds the sample once for a server-synced empty user under StrictMode", async () => {
-    renderHook(useSampleDeckBootstrap, { wrapper: strictMode });
+    renderHook(useTestSampleDeckBootstrap, { wrapper: strictMode });
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
   });
 
   it("waits for the server before treating an empty cache as an empty user", async () => {
     mocks.remote.syncStatus = "cached";
-    const { rerender } = renderHook(useSampleDeckBootstrap);
+    const { rerender } = renderHook(useTestSampleDeckBootstrap);
 
     expect(mocks.addSample).not.toHaveBeenCalled();
     mocks.remote.syncStatus = "synced";
@@ -63,7 +66,7 @@ describe("sample Deck bootstrap", () => {
   it("does not add the sample when the user already has a Deck", () => {
     mocks.remote.decks = [{ id: "existing" } as Deck];
 
-    renderHook(useSampleDeckBootstrap);
+    renderHook(useTestSampleDeckBootstrap);
 
     expect(mocks.addSample).not.toHaveBeenCalled();
   });

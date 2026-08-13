@@ -16,9 +16,11 @@ import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../mode
 import { parseCsv } from "../lib/cardCsv";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import sampleCards from "../../../../sample/build/output.json";
-import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 import { CardBulkMutationError, upsertImportedCards } from "../api/upsertImportedCards";
-import { createImportedDeckDocument } from "../api/deckFirestore";
+
+export interface DeckImportOptions {
+  createDeck: (uid: string, deck: Deck) => Promise<unknown>;
+}
 
 interface DeckImportAttempt {
   uid: string;
@@ -276,7 +278,7 @@ const previewDeckImportFile = async (
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useDeckImport = () => {
+export const useDeckImport = ({ createDeck: createDeckUseCase }: DeckImportOptions) => {
   const auth = useAuthSession();
   const cardRemote = useCards();
   const deckRemote = useDecks();
@@ -337,13 +339,14 @@ export const useDeckImport = () => {
         deckRemote.syncStatus === "synced",
       decks: deckRemote.decks,
       cardsByDeckId,
-      createDeck: (deck) => waitForRemoteWrite(createImportedDeckDocument(deck), "Deck import creation"),
+      createDeck: (deck) => createDeckUseCase(uid, deck),
       bulkUpsert: (cards) => upsertImportedCards(uid, cards),
     };
   }, [
     cardRemote.status,
     cardRemote.syncStatus,
     cardsByDeckId,
+    createDeckUseCase,
     deckRemote.decks,
     deckRemote.status,
     deckRemote.syncStatus,

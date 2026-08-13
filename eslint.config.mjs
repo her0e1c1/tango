@@ -98,8 +98,8 @@ export default [
         {
           patterns: [
             {
-              group: ["@/features/deck/*", "@/features/deck/*/**"],
-              message: "Feature slices must not import another deck feature slice; compose them in a page or app layer.",
+              group: ["@/features/*/*", "@/features/*/*/**"],
+              message: "Grouped feature slices must be composed in a page or app layer.",
             },
           ],
         },

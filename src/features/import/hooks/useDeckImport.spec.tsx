@@ -68,14 +68,13 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     }),
   };
 });
-vi.mock("../api/deckFirestore", () => ({
-  createImportedDeckDocument: (deck: Deck) => mocks.createDeck(deck),
-}));
 vi.mock("../lib/cardCsv", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../lib/cardCsv")>();
   return { ...actual, parseCsv: mocks.parseCsv };
 });
 import { sampleDeckId, useDeckImport } from "./useDeckImport";
+
+const useTestDeckImport = () => useDeckImport({ createDeck: (_uid, deck) => mocks.createDeck(deck) });
 
 describe("useDeckImport", () => {
   beforeEach(() => {
@@ -98,7 +97,7 @@ describe("useDeckImport", () => {
   });
 
   it("previews a file without writing until import is confirmed", async () => {
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     let imported: DeckImportResult | undefined;
 
@@ -127,7 +126,7 @@ describe("useDeckImport", () => {
 
   it("rejects a preview before planning when Card reads are not synchronized", async () => {
     mocks.cardSyncStatus = "cached";
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
@@ -146,7 +145,7 @@ describe("useDeckImport", () => {
 
   it("allows a new preview after Card reads synchronize", async () => {
     mocks.cardSyncStatus = "cached";
-    const { result, rerender } = renderHook(useDeckImport);
+    const { result, rerender } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
@@ -163,7 +162,7 @@ describe("useDeckImport", () => {
   });
 
   it("keeps invalid files in preview without mutating state", async () => {
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(["front,back"], "invalid.csv", { type: "text/csv" });
 
     await actAsync(async () => {
@@ -194,7 +193,7 @@ describe("useDeckImport", () => {
         uniqueKey: "key",
       }),
     ];
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     let imported: DeckImportResult | undefined;
 
@@ -212,7 +211,7 @@ describe("useDeckImport", () => {
   });
 
   it("adds the bundled sample with a stable per-user Deck id", async () => {
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
 
     await actAsync(async () => result.current.addSample());
 
@@ -225,7 +224,7 @@ describe("useDeckImport", () => {
 
   it("reuses the same sample Deck for the active user", async () => {
     mocks.decks = [createDeck({ id: sampleDeckId("uid-a"), name: "Renamed sample" })];
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
 
     await actAsync(async () => result.current.addSample());
 
@@ -235,7 +234,7 @@ describe("useDeckImport", () => {
 
   it("treats a non-2xx URL response as an error", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("missing", { status: 404 }));
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
 
     await expect(result.current.importUrl("https://example.test/deck.csv")).rejects.toThrow(
       "Unable to fetch Deck CSV (404)"
@@ -245,7 +244,7 @@ describe("useDeckImport", () => {
 
   it("fetches a public import URL without credentials", async () => {
     const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"front","back","","key"'));
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
 
     await actAsync(async () => result.current.importUrl("https://example.test/deck.csv"));
 
@@ -256,7 +255,7 @@ describe("useDeckImport", () => {
     const csv = '"front","back"," foo,foo "," key "';
     const normalizedCard = { frontText: "front", backText: "back", tags: ["foo"], uniqueKey: "key" };
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(csv));
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
 
     await actAsync(async () => result.current.selectFile(new File([csv], "deck.csv")));
     expect(result.current.preview?.analysis.rows).toEqual([{ rowNumber: 1, card: normalizedCard }]);
@@ -267,7 +266,7 @@ describe("useDeckImport", () => {
 
   it("does not write when URL CSV validation fails", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"","back","","key"'));
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
 
     await expect(result.current.importUrl("https://example.test/invalid.csv")).rejects.toThrow("Fix invalid CSV rows");
 
@@ -278,7 +277,7 @@ describe("useDeckImport", () => {
   it("rejects a second import while the first is pending", async () => {
     let finish!: () => void;
     mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
@@ -301,7 +300,7 @@ describe("useDeckImport", () => {
   it("retains successful and failed counts after a partial Card write failure", async () => {
     mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck", uniqueKey: "key" }));
     mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError(["card"], 1));
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
@@ -327,7 +326,7 @@ describe("useDeckImport", () => {
     mocks.prepareDeck.mockReturnValue(deck);
     mocks.prepareCard.mockReturnValueOnce(first).mockReturnValueOnce(second);
     mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([second.id], 2)).mockResolvedValueOnce(undefined);
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {
       type: "text/csv",
     });
@@ -365,7 +364,7 @@ describe("useDeckImport", () => {
   });
 
   it("clears operation data and error when a new file is selected", async () => {
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     await actAsync(async () => result.current.addSample());
     expect(result.current.data).toBeDefined();
@@ -384,7 +383,7 @@ describe("useDeckImport", () => {
   it("ignores completion from an old UID operation", async () => {
     let finishOld!: () => void;
     mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finishOld = resolve)));
-    const { result, rerender } = renderHook(useDeckImport);
+    const { result, rerender } = renderHook(useTestDeckImport);
 
     let oldOperation!: Promise<DeckImportResult>;
     act(() => {
@@ -405,7 +404,7 @@ describe("useDeckImport", () => {
   it("does not write a slow URL import after the initiating UID changes", async () => {
     let finishFetch!: (response: Response) => void;
     vi.spyOn(globalThis, "fetch").mockReturnValueOnce(new Promise<Response>((resolve) => (finishFetch = resolve)));
-    const { result, rerender } = renderHook(useDeckImport);
+    const { result, rerender } = renderHook(useTestDeckImport);
 
     const operation = result.current.importUrl("https://example.test/deck.csv");
     const rejection = expect(operation).rejects.toThrow("user changed");
@@ -428,7 +427,7 @@ describe("useDeckImport", () => {
         finishParse = resolve;
       })
     );
-    const { result, rerender } = renderHook(useDeckImport);
+    const { result, rerender } = renderHook(useTestDeckImport);
     const file = new File(['"stale-front","stale-back","","stale-key"'], "stale.csv", {
       type: "text/csv",
     });
@@ -465,7 +464,7 @@ describe("useDeckImport", () => {
   });
 
   it("does not resurrect import data after an A-to-B-to-A UID transition", async () => {
-    const { result, rerender } = renderHook(useDeckImport);
+    const { result, rerender } = renderHook(useTestDeckImport);
     await actAsync(async () => result.current.addSample());
     expect(result.current.data).toBeDefined();
 
@@ -481,7 +480,7 @@ describe("useDeckImport", () => {
   it("does not resurrect import running state after an A-to-B-to-A UID transition", async () => {
     let finish!: () => void;
     mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
-    const { result, rerender } = renderHook(useDeckImport);
+    const { result, rerender } = renderHook(useTestDeckImport);
 
     let operation!: Promise<DeckImportResult>;
     act(() => {
@@ -507,7 +506,7 @@ describe("useDeckImport", () => {
     mocks.bulkUpsert.mockRejectedValueOnce(
       new CardBulkMutationError([second.id], 2, { cause: new Error("authoritative read failed") })
     );
-    const { result } = renderHook(useDeckImport);
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {
       type: "text/csv",
     });
