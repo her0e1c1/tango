@@ -22,12 +22,14 @@ describe("Card operation schemas", () => {
       uid: "uid-a",
       card: {
         id: card.id,
+        uid: card.uid,
         frontText: "Updated",
         backText: card.backText,
         tags: card.tags,
         uniqueKey: card.uniqueKey,
       },
     });
+    expect(() => editCardSchema.parse({ uid: "uid-b", card })).toThrow("owner does not match");
   });
 
   it("validates delete ownership and returns only Card identity", () => {

@@ -3,7 +3,7 @@ import type { Card, CardEdit } from "@/entities/card";
 import { useAuthSession } from "@/entities/auth-session";
 import { editCard } from "../api/editCard";
 
-type CardPatch = Omit<CardEdit, "id">;
+type CardPatch = Omit<CardEdit, "id" | "uid">;
 
 export const useEditCard = () => {
   const auth = useAuthSession();
@@ -12,6 +12,7 @@ export const useEditCard = () => {
 
   return {
     update,
-    updateBy: (card: Card, buildPatch: (card: Card) => CardPatch) => update({ ...buildPatch(card), id: card.id }),
+    updateBy: (card: Card, buildPatch: (card: Card) => CardPatch) =>
+      update({ ...buildPatch(card), id: card.id, uid: card.uid }),
   };
 };

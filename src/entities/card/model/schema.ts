@@ -28,7 +28,7 @@ const cardSchema = editableCardFieldsSchema.extend({
   interval: z.number().optional(),
 });
 
-const cardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });
+const cardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema, uid: cardUidSchema });
 const cardIdentitySchema = z.object({ id: cardIdSchema, uid: cardUidSchema });
 
 const validateCardOwner = (input: { uid: string; card: { uid: string } }, context: z.RefinementCtx): void => {
@@ -45,10 +45,12 @@ export const createCardSchema = z
   .object({ uid: authenticatedUidSchema, card: cardSchema })
   .superRefine(validateCardOwner);
 
-export const editCardSchema = z.object({
-  uid: authenticatedUidSchema,
-  card: cardEditSchema,
-});
+export const editCardSchema = z
+  .object({
+    uid: authenticatedUidSchema,
+    card: cardEditSchema,
+  })
+  .superRefine(validateCardOwner);
 
 export const deleteCardSchema = z
   .object({ uid: authenticatedUidSchema, card: cardIdentitySchema })

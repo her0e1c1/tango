@@ -15,8 +15,9 @@ describe("editCard", () => {
     mocks.updateCardDocument.mockResolvedValue(undefined);
   });
 
-  it("rejects missing users", async () => {
+  it("rejects missing users and mismatched owners", async () => {
     await expect(editCard("", card)).rejects.toThrow("confirmed user");
+    await expect(editCard("uid-b", card)).rejects.toThrow("owner does not match");
   });
 
   it("passes only ordinary editable fields to the write adapter", async () => {

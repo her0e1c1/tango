@@ -27,10 +27,10 @@ describe("useEditCard", () => {
     mocks.editCard.mockResolvedValue(undefined);
   });
 
-  it("adds the target Card id to an editable field patch", async () => {
+  it("adds the target Card identity to an editable field patch", async () => {
     const { result } = renderHook(useEditCard);
     await actAsync(() => result.current.updateBy(card, () => ({ frontText: "Updated" })));
-    expect(mocks.editCard).toHaveBeenCalledWith("uid-a", { id: card.id, frontText: "Updated" });
+    expect(mocks.editCard).toHaveBeenCalledWith("uid-a", { id: card.id, uid: card.uid, frontText: "Updated" });
   });
 
   it("allows the original edit action to be run again after failure", async () => {
