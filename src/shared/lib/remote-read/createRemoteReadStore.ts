@@ -1,33 +1,23 @@
 import type { StoreApi } from "zustand";
 import { createStore } from "zustand/vanilla";
 
-import {
-  toRemoteById,
-  type RemoteById,
-  type RemoteSnapshot,
-  type RemoteSnapshotMetadata,
-  type RemoteSubscriptionProps,
-  type RemoteSyncStatus,
-} from "@/shared/api";
-import type { FirestoreInitializationResult } from "@/shared/firestore";
-import { applyRealtimeChange } from "@/shared/lib/realtimeChange";
+import type { RemoteById, RemoteSubscriptionProps, RemoteSyncStatus } from "@/shared/api";
 
 type Unsubscribe = () => void;
 
-export interface RemoteReadDependencies<T> {
-  waitForInitialization: () => Promise<FirestoreInitializationResult>;
+export interface RemoteReadDependencies<T extends { id: string }> {
   subscribe: (props: RemoteSubscriptionProps<T>) => Unsubscribe;
 }
 
 export interface RemoteReadStoreState<T extends { id: string }> {
   readonly uid: string | null;
-  readonly status: "idle" | "loading" | "ready" | "blocked" | "error";
+  readonly status: "idle" | "loading" | "ready" | "error";
   readonly itemsById: RemoteById<T>;
   readonly syncStatus?: RemoteSyncStatus | undefined;
   readonly error?: Error | undefined;
-  start: (uid: string) => Promise<void>;
+  start: (uid: string) => void;
   stop: (uid?: string) => void;
-  retry: () => Promise<void>;
+  retry: () => void;
 }
 
 const initialReadState = <T extends { id: string }>(): Omit<RemoteReadStoreState<T>, "start" | "stop" | "retry"> => ({
@@ -38,69 +28,19 @@ const initialReadState = <T extends { id: string }>(): Omit<RemoteReadStoreState
   error: undefined,
 });
 
-const applySnapshot = <T extends { id: string }>(
-  previous: RemoteById<T>,
-  snapshot: RemoteSnapshot<T>
-): RemoteById<T> =>
-  snapshot.type === "replace" ? toRemoteById(snapshot.items) : applyRealtimeChange(previous, snapshot.event);
-
-const deriveSyncStatus = (metadata: RemoteSnapshotMetadata): RemoteSyncStatus => {
-  if (metadata.hasPendingWrites) return "pending";
-  if (metadata.fromCache) return "cached";
-  return "synced";
-};
-
 const toError = (value: unknown): Error => (value instanceof Error ? value : new Error(String(value)));
 
 export const createRemoteReadStore = <T extends { id: string }>(
   dependencies: RemoteReadDependencies<T>
 ): StoreApi<RemoteReadStoreState<T>> => {
-  let generation = 0;
-  let unsubscribe: Unsubscribe | undefined;
+  let currentSubscription: { unsubscribe?: Unsubscribe } | undefined;
 
   return createStore<RemoteReadStoreState<T>>()((set, get) => {
-    const fail = (currentGeneration: number, status: "blocked" | "error", cause: unknown) => {
-      if (currentGeneration !== generation) return;
-      generation += 1;
-      const currentUnsubscribe = unsubscribe;
-      unsubscribe = undefined;
-      set({ status, syncStatus: undefined, error: toError(cause) });
-      currentUnsubscribe?.();
-    };
-
-    const subscribe = (uid: string, currentGeneration: number) => {
-      let nextUnsubscribe: Unsubscribe;
-      try {
-        nextUnsubscribe = dependencies.subscribe({
-          uid,
-          onError: (error) => fail(currentGeneration, "error", error),
-          onSnapshot: (snapshot) => {
-            if (currentGeneration !== generation) return;
-            set({
-              itemsById: applySnapshot(get().itemsById, snapshot),
-              status: "ready",
-              syncStatus: deriveSyncStatus(snapshot.metadata),
-              error: undefined,
-            });
-          },
-        });
-      } catch (cause) {
-        const error = toError(cause);
-        fail(currentGeneration, "error", error);
-        throw error;
-      }
-      if (currentGeneration !== generation) {
-        nextUnsubscribe();
-        return;
-      }
-      unsubscribe = nextUnsubscribe;
-    };
-
-    const start = async (uid: string): Promise<void> => {
+    const start = (uid: string) => {
       const previous = get();
-      const currentGeneration = ++generation;
-      unsubscribe?.();
-      unsubscribe = undefined;
+      const previousSubscription = currentSubscription;
+      currentSubscription = undefined;
+      previousSubscription?.unsubscribe?.();
 
       set({
         uid,
@@ -110,35 +50,46 @@ export const createRemoteReadStore = <T extends { id: string }>(
         error: undefined,
       });
 
-      let initialization: FirestoreInitializationResult;
+      const subscription: { unsubscribe?: Unsubscribe } = {};
+      currentSubscription = subscription;
       try {
-        initialization = await dependencies.waitForInitialization();
+        subscription.unsubscribe = dependencies.subscribe({
+          uid,
+          onError: (error) => {
+            if (currentSubscription !== subscription) return;
+            currentSubscription = undefined;
+            set({ status: "error", syncStatus: undefined, error });
+            subscription.unsubscribe?.();
+          },
+          onSnapshot: (snapshot) => {
+            if (currentSubscription !== subscription) return;
+            set({
+              itemsById: snapshot.itemsById,
+              status: "ready",
+              syncStatus: snapshot.syncStatus,
+              error: undefined,
+            });
+          },
+        });
       } catch (cause) {
-        const error = toError(cause);
-        fail(currentGeneration, "error", error);
-        throw error;
+        if (currentSubscription !== subscription) return;
+        currentSubscription = undefined;
+        set({ status: "error", syncStatus: undefined, error: toError(cause) });
       }
-
-      if (currentGeneration !== generation) return;
-      if (initialization.status === "blocked") {
-        fail(currentGeneration, "blocked", initialization.error);
-        return;
-      }
-
-      subscribe(uid, currentGeneration);
+      if (currentSubscription !== subscription) subscription.unsubscribe?.();
     };
 
     const stop = (uid?: string) => {
       if (uid != null && get().uid !== uid) return;
-      generation += 1;
-      unsubscribe?.();
-      unsubscribe = undefined;
+      const subscription = currentSubscription;
+      currentSubscription = undefined;
+      subscription?.unsubscribe?.();
       set(initialReadState<T>());
     };
 
     const retry = () => {
       const uid = get().uid;
-      return uid == null ? Promise.resolve() : start(uid);
+      if (uid != null) start(uid);
     };
 
     return {

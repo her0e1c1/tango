@@ -61,15 +61,32 @@ describe("Deck remote hooks", () => {
   it("preserves Deck data and retry in a terminal state", () => {
     const error = new Error("terminal");
     const deck = createDeck({ id: "deck" });
-    mocks.state = { uid: "uid-a", status: "blocked", error, itemsById: { [deck.id]: deck } };
+    mocks.state = { uid: "uid-a", status: "error", error, itemsById: { [deck.id]: deck } };
 
     const { result } = renderHook(useDecks, { wrapper: authenticatedWrapper });
     void result.current.retry();
 
     expect(result.current.decks).toEqual([deck]);
-    expect(result.current.status).toBe("blocked");
+    expect(result.current.status).toBe("error");
     expect(result.current.error).toBe(error);
     expect(mocks.retry).toHaveBeenCalledOnce();
+  });
+
+  it("exposes application-wide initialization failures and retry", () => {
+    const error = new Error("persistence blocked");
+    const retry = vi.fn();
+    const wrapper = ({ children }: PropsWithChildren) => (
+      <RemoteReadScopeProvider uid="uid-a" lifecycle={{ status: "blocked", error, retry }}>
+        {children}
+      </RemoteReadScopeProvider>
+    );
+
+    const { result } = renderHook(useDecks, { wrapper });
+    void result.current.retry();
+
+    expect(result.current.status).toBe("blocked");
+    expect(result.current.error).toBe(error);
+    expect(retry).toHaveBeenCalledOnce();
   });
 
   it("hides Deck data while the App scope expects another UID", () => {

@@ -9,8 +9,7 @@ export const stopRemoteReads = (uid: string) => {
   }
 };
 
-export const startRemoteReads = async (uid: string): Promise<void> => {
-  // Entity stores expose their own setup failures; completing this transition keeps
-  // successful peers registered for later auth cleanup and independent use.
-  await Promise.allSettled([startCardReads(uid), startDeckReads(uid)]);
+export const startRemoteReads = (uid: string) => {
+  startCardReads(uid);
+  startDeckReads(uid);
 };

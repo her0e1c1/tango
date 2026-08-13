@@ -5,22 +5,12 @@ export const toRemoteById = <T extends { id: string }>(items: readonly T[]): Rem
 
 export type RemoteSyncStatus = "cached" | "pending" | "synced";
 
-export interface RemoteSnapshotMetadata {
-  fromCache: boolean;
-  hasPendingWrites: boolean;
+export interface RemoteSnapshot<T extends { id: string }> {
+  itemsById: RemoteById<T>;
+  syncStatus: RemoteSyncStatus;
 }
 
-export interface RemoteChange<T> {
-  added: T[];
-  modified: T[];
-  removed: string[];
-}
-
-export type RemoteSnapshot<T> =
-  | { type: "replace"; items: T[]; metadata: RemoteSnapshotMetadata }
-  | { type: "change"; event: RemoteChange<T>; metadata: RemoteSnapshotMetadata };
-
-export interface RemoteSubscriptionProps<T> {
+export interface RemoteSubscriptionProps<T extends { id: string }> {
   uid: string;
   onSnapshot: (snapshot: RemoteSnapshot<T>) => void;
   onError: (error: Error) => void;
