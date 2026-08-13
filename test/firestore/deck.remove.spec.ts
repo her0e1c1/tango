@@ -37,7 +37,10 @@ describe("firestore/deck.remove", () => {
       finishSecond = resolve;
     });
     mocks.getDocs.mockResolvedValue({ docs: [{ ref: "card-a" }, { ref: "card-b" }] });
-    mocks.deleteDoc.mockResolvedValueOnce(undefined).mockReturnValueOnce(secondDeletion).mockResolvedValueOnce(undefined);
+    mocks.deleteDoc
+      .mockResolvedValueOnce(undefined)
+      .mockReturnValueOnce(secondDeletion)
+      .mockResolvedValueOnce(undefined);
 
     const operation = remove("deck-id", "uid-a");
     await vi.waitFor(() => expect(mocks.deleteDoc).toHaveBeenCalledTimes(2));
@@ -45,11 +48,7 @@ describe("firestore/deck.remove", () => {
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenNthCalledWith(1, "uid", "==", "uid-a");
     expect(mocks.where).toHaveBeenNthCalledWith(2, "deckId", "==", "deck-id");
-    expect(mocks.query).toHaveBeenCalledWith(
-      "card-collection",
-      ["uid", "==", "uid-a"],
-      ["deckId", "==", "deck-id"]
-    );
+    expect(mocks.query).toHaveBeenCalledWith("card-collection", ["uid", "==", "uid-a"], ["deckId", "==", "deck-id"]);
     expect(mocks.getDocs).toHaveBeenCalledWith("card-query");
     expect(mocks.doc).not.toHaveBeenCalled();
 

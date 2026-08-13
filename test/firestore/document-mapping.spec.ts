@@ -13,16 +13,8 @@ import type { DeckCreateDto, DeckUpdateDto } from "@/entities/deck/api/firestore
 import { describe, expect, it } from "vitest";
 import { Timestamp } from "firebase/firestore";
 
-import {
-  buildCardCreateDto,
-  buildCardUpdateDto,
-  mapCardDocument,
-} from "@/entities/card/api/firestoreDocument";
-import {
-  buildDeckCreateDto,
-  buildDeckUpdateDto,
-  mapDeckDocument,
-} from "@/entities/deck/api/firestoreDocument";
+import { buildCardCreateDto, buildCardUpdateDto, mapCardDocument } from "@/entities/card/api/firestoreDocument";
+import { buildDeckCreateDto, buildDeckUpdateDto, mapDeckDocument } from "@/entities/deck/api/firestoreDocument";
 import { FirestoreDocumentValidationError } from "@/shared/firestore";
 import { createCard, createDeck } from "@/test/factories";
 
