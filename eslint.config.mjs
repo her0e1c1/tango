@@ -9,8 +9,8 @@ import testingLibrary from "eslint-plugin-testing-library";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
-const slicedLayers = ["entities", "features"];
-const otherSourceLayers = ["app", "pages", "shared"];
+const sliceLayers = ["entities", "features", "pages"];
+const nonSliceLayers = ["app", "shared"];
 
 export default [
   {
@@ -40,13 +40,13 @@ export default [
     settings: {
       ...boundariesRecommended.settings,
       "boundaries/elements": [
-        ...slicedLayers.map((layer) => ({
+        ...sliceLayers.map((layer) => ({
           type: layer,
           pattern: `src/${layer}/*`,
           mode: "folder",
           capture: ["slice"],
         })),
-        ...otherSourceLayers.map((layer) => ({
+        ...nonSliceLayers.map((layer) => ({
           type: layer,
           pattern: `src/${layer}/**/*`,
           mode: "full",
@@ -69,7 +69,7 @@ export default [
           default: "allow",
           rules: [
             {
-              from: { type: slicedLayers },
+              from: { type: sliceLayers },
               disallow: {
                 dependency: {
                   relationship: { to: "internal" },
