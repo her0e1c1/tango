@@ -277,18 +277,10 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
 
-  it("forwards header actions from the ready study screen", () => {
+  it("renders the application shell for the ready study screen", () => {
     render(<DeckSwiperPage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "tango" }));
-    fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
-    fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
-
-    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("keeps pending study saves silent while disabling swipe controls", () => {

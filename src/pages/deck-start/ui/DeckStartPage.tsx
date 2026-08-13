@@ -10,11 +10,11 @@ import { selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card
 import { useDecks } from "@/entities/deck";
 import { useEditDeck } from "@/features/deck/edit";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
-import { setDarkMode, useConfig } from "@/shared/config";
+import { useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
-import { Layout } from "@/shared/ui/layout";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
+import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckStartView } from "./DeckStartView";
 
@@ -36,16 +36,7 @@ const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigStat
   useKey("Enter", startFromEnter, {}, [startFromEnter]);
 
   return (
-    <Layout
-      showHeader
-      headerProps={{
-        dark: config.appearance.darkMode,
-        onClickDarkMode: setDarkMode,
-        onClickLogo: () => void navigate("/"),
-        onClickImport: () => void navigate("/import"),
-        onClickSettings: () => void navigate("/settings"),
-      }}
-    >
+    <AppLayout showHeader>
       <DeckStartView
         deckName={deck.name}
         maxNumberOfCardsToLearn={config.study.maxNumberOfCardsToLearn}
@@ -53,7 +44,7 @@ const DeckStartContent = (props: { deck: Deck; cards: Card[]; config: ConfigStat
         onClickStart={studyActions.start}
         filterSlot={<DeckStartForm {...deckStartForm} />}
       />
-    </Layout>
+    </AppLayout>
   );
 };
 

@@ -3,30 +3,20 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, useDecks } from "@/entities/deck";
-import { setDarkMode, useConfig } from "@/shared/config";
+import { useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
-import { Layout } from "@/shared/ui/layout";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
+import { AppLayout } from "@/widgets/app-layout";
 
 import { CardViewView } from "./CardViewView";
 
 const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
-  const navigate = useNavigate();
   const config = useConfig();
   const category = getCategory(deck.category, card.tags);
 
   return (
-    <Layout
-      showHeader
-      headerProps={{
-        dark: config.appearance.darkMode,
-        onClickDarkMode: setDarkMode,
-        onClickLogo: () => void navigate("/"),
-        onClickImport: () => void navigate("/import"),
-        onClickSettings: () => void navigate("/settings"),
-      }}
-    >
+    <AppLayout showHeader>
       <CardViewView
         backText={{
           category,
@@ -35,7 +25,7 @@ const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
           text: card.backText,
         }}
       />
-    </Layout>
+    </AppLayout>
   );
 };
 
