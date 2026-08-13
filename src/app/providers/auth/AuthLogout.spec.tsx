@@ -73,7 +73,8 @@ vi.mock("@/pages/settings/ui/SettingsView", () => ({
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
 import { logout } from "@/app/auth/logout";
-import { AuthProvider, createAuthRuntime } from "@/app/providers/auth";
+import { AuthProvider } from "@/app/providers/auth";
+import { createAuthRuntime } from "@/app/providers/auth/authController";
 import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 import { useAuthSession } from "@/entities/auth-session";
 import { SettingsPage } from "@/pages/settings";

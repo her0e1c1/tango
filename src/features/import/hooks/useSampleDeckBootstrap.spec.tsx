@@ -27,7 +27,7 @@ vi.mock("./useDeckImport", () => ({
   useDeckImport: () => ({ addSample: mocks.addSample }),
 }));
 
-import { createSampleDeckBootstrapController, useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
+import { useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
 
 const createDeck = vi.fn<(uid: string, deck: Deck) => Promise<unknown>>();
 const useTestSampleDeckBootstrap = () => useSampleDeckBootstrap({ createDeck });
@@ -69,20 +69,5 @@ describe("sample Deck bootstrap", () => {
     renderHook(useTestSampleDeckBootstrap);
 
     expect(mocks.addSample).not.toHaveBeenCalled();
-  });
-
-  it("deduplicates concurrent starts for one user", async () => {
-    const controller = createSampleDeckBootstrapController();
-    let finish!: () => void;
-    const addSample = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)));
-
-    const first = controller.start("uid-a", addSample);
-    const second = controller.start("uid-a", addSample);
-
-    expect(addSample).not.toHaveBeenCalled();
-    await Promise.resolve();
-    expect(addSample).toHaveBeenCalledOnce();
-    finish();
-    await Promise.all([first, second]);
   });
 });

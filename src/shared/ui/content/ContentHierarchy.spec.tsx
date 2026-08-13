@@ -9,7 +9,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { Card, Description, Section, Style, TagList, Title } from "@/shared/ui/content";
+import { Card, Description, Style, TagList, Title } from "@/shared/ui/content";
+import { Section } from "@/shared/ui/content/Section";
 
 describe("shared content hierarchy", () => {
   it("uses the Calm Focus surface hierarchy while retaining Card props", () => {

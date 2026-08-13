@@ -28,7 +28,7 @@ export const firestoreTimestampDateSchema = z
     return z.NEVER;
   });
 
-export class FirestoreDocumentValidationError extends Error {
+class FirestoreDocumentValidationError extends Error {
   constructor(
     readonly collectionName: string,
     readonly documentId: string,

@@ -9,8 +9,10 @@ import { createStore } from "zustand/vanilla";
 import { configSchema, defaultConfig, parsePersistedConfig } from "@/shared/config/configSchema";
 import type { ConfigState } from "@/shared/config/configTypes";
 
+/** @internal */
 export { defaultConfig } from "@/shared/config/configSchema";
 
+/** @internal */
 export const CONFIG_STORAGE_KEY = "tango-config";
 const CONFIG_STORAGE_VERSION = 2;
 
@@ -43,6 +45,7 @@ interface CreateConfigStoreOptions {
  * Creates a configuration store that validates and persists user settings.
  * Optional storage and hydration controls let tests run without the browser's local storage.
  */
+/** @internal */
 export const createConfigStore = ({ storage, skipHydration }: CreateConfigStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedConfigState>(() => storage ?? localStorage);
   return createStore<ConfigStoreState>()(

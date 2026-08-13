@@ -4,7 +4,6 @@ export { Description } from "./Description";
 export { MathContent } from "./Math";
 export { RemovableTag } from "./RemovableTag";
 export { Score } from "./Score";
-export { Section } from "./Section";
 export { Style } from "./Style";
 export { TagLabel } from "./TagLabel";
 export { TagList } from "./TagList";

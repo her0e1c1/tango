@@ -12,10 +12,12 @@ import "@/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import * as cardAdapter from "@/entities/card/api/firestore";
 import { subscribeCardReads } from "@/entities/card/api/subscribeCardReads";
-import * as deckAdapter from "@/entities/deck/api/firestore";
 import { subscribeDeckReads } from "@/entities/deck/api/subscribeDeckReads";
+import { createCardDocument, removeCardDocument, updateCardDocument } from "@/features/card/api/firestore";
+import { createDeckDocument } from "@/features/deck/create/api/firestore";
+import { deleteDeckDocuments } from "@/features/deck/delete/api/firestore";
+import { updateDeckDocument } from "@/features/deck/edit/api/firestore";
 import { createCard, createDeck } from "@/test/factories";
 
 vi.mock("@/shared/firestore", async (importOriginal) => ({
@@ -51,8 +53,8 @@ describe("Query realtime subscriptions", () => {
 
       const deck = createDeck({ id: "deck-id", uid: "uid" });
       const card = createCard({ id: "card-id", deckId: deck.id, uid: "uid" });
-      await deckAdapter.create(deck);
-      await cardAdapter.create(card);
+      await createDeckDocument(deck);
+      await createCardDocument(card);
       await vi.waitFor(() => {
         expect(
           deckSnapshots.some(
@@ -66,8 +68,8 @@ describe("Query realtime subscriptions", () => {
         ).toBe(true);
       });
 
-      await deckAdapter.update({ ...deck, name: "Updated" });
-      await cardAdapter.update({ ...card, frontText: "Updated" });
+      await updateDeckDocument({ ...deck, name: "Updated" });
+      await updateCardDocument({ ...card, frontText: "Updated" });
       await vi.waitFor(() => {
         expect(
           deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.modified[0]?.name === "Updated")
@@ -79,8 +81,8 @@ describe("Query realtime subscriptions", () => {
         ).toBe(true);
       });
 
-      await cardAdapter.remove(card.id);
-      await deckAdapter.remove(deck.id);
+      await removeCardDocument(card.id);
+      await deleteDeckDocuments(deck.uid, deck.id);
       await vi.waitFor(() => {
         expect(
           deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.removed.includes(deck.id))

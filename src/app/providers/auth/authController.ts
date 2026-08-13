@@ -20,6 +20,7 @@ const authSessionFromUser = (user: User) => ({
   displayName: user.providerData[0]?.displayName ?? null,
 });
 
+/** @internal */
 export const createAuthController = (dependencies: AuthControllerDependencies) => {
   let observerStarted = false;
   let stopObserver: (() => void) | undefined;
@@ -112,6 +113,7 @@ export const createAuthController = (dependencies: AuthControllerDependencies) =
 
 type AuthRuntimeDependencies = Omit<AuthControllerDependencies, "authSessionStore">;
 
+/** @internal */
 export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
   const authSessionStore = createAuthSessionStore();
   return {

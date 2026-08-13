@@ -11,6 +11,7 @@ import type { SwipeDirection } from "@/shared/config";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 
+/** @internal */
 export const STUDY_STORAGE_KEY = "tango-study";
 
 export interface StudySession {
@@ -123,6 +124,7 @@ const migratePersistedStudyState = (persistedState: unknown, version: number): P
  * Optional dependencies or settings let production code and tests reuse the same behavior in
  * different environments.
  */
+/** @internal */
 export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedStudyState>(() => storage ?? localStorage);
   return createStore<StudyState>()(

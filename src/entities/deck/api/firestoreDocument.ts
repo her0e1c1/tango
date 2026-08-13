@@ -1,8 +1,8 @@
-import type { Deck, DeckEdit, DeckId } from "../model/deck";
+import type { Deck, DeckId } from "../model/deck";
 
 import { z } from "zod";
 
-import { omitUndefined, parseFirestoreDocument } from "@/shared/firestore";
+import { parseFirestoreDocument } from "@/shared/firestore";
 
 const deckDocumentSchema = z.object({
   id: z.string().optional(),
@@ -21,30 +21,7 @@ const deckDocumentSchema = z.object({
   convertToBr: z.boolean(),
 });
 
-const deckCreateDtoSchema = deckDocumentSchema.extend({
-  id: z.string(),
-});
-
-const deckUpdateDtoSchema = deckDocumentSchema
-  .pick({
-    name: true,
-    url: true,
-    isPublic: true,
-    scoreMax: true,
-    scoreMin: true,
-    selectedTags: true,
-    tagAndFilter: true,
-    category: true,
-    convertToBr: true,
-  })
-  .partial()
-  .extend({
-    updatedAt: z.number(),
-  });
-
 type DeckDocument = z.infer<typeof deckDocumentSchema>;
-export type DeckCreateDto = z.infer<typeof deckCreateDtoSchema>;
-export type DeckUpdateDto = z.infer<typeof deckUpdateDtoSchema>;
 
 const parseDeckDocument = (id: DeckId, value: unknown): DeckDocument =>
   parseFirestoreDocument(deckDocumentSchema, "deck", id, value);
@@ -69,39 +46,3 @@ export const mapDeckDocument = (id: DeckId, value: unknown): Deck => {
   if (document.url !== undefined) deck.url = document.url;
   return deck;
 };
-
-export const buildDeckCreateDto = (deck: Deck, createdAt: number): DeckCreateDto =>
-  deckCreateDtoSchema.parse(
-    omitUndefined({
-      id: deck.id,
-      name: deck.name,
-      url: deck.url,
-      isPublic: deck.isPublic,
-      uid: deck.uid,
-      createdAt,
-      updatedAt: createdAt,
-      deletedAt: deck.deletedAt,
-      scoreMax: deck.scoreMax,
-      scoreMin: deck.scoreMin,
-      selectedTags: deck.selectedTags,
-      tagAndFilter: deck.tagAndFilter,
-      category: deck.category,
-      convertToBr: deck.convertToBr,
-    })
-  );
-
-export const buildDeckUpdateDto = (deck: DeckEdit, updatedAt: number): DeckUpdateDto =>
-  deckUpdateDtoSchema.parse(
-    omitUndefined({
-      name: deck.name,
-      url: deck.url,
-      isPublic: deck.isPublic,
-      updatedAt,
-      scoreMax: deck.scoreMax,
-      scoreMin: deck.scoreMin,
-      selectedTags: deck.selectedTags,
-      tagAndFilter: deck.tagAndFilter,
-      category: deck.category,
-      convertToBr: deck.convertToBr,
-    })
-  );
