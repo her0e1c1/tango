@@ -29,7 +29,7 @@ const cardCreateDtoSchema = cardDocumentSchema.extend({
   id: z.string(),
 });
 
-const cardUpdateDtoSchema = cardDocumentSchema.omit({ id: true }).partial().extend({
+const cardUpdateDtoSchema = cardDocumentSchema.omit({ id: true, deckId: true }).partial().extend({
   updatedAt: z.number(),
 });
 
@@ -105,7 +105,6 @@ export const buildCardUpdateDto = (card: CardEdit, updatedAt: number): CardUpdat
       backText: card.backText,
       tags: card.tags,
       uniqueKey: card.uniqueKey,
-      deckId: card.deckId,
       uid: card.uid,
       createdAt: card.createdAt,
       updatedAt,

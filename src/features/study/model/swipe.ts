@@ -17,5 +17,5 @@ const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
 
 export const buildStudyPatch = (studyCard: StudyCard, swipeAction: SwipeAction, now: number): CardEdit => {
   const progress = recordStudyProgress(studyCard.progress, resolveStudyRating(swipeAction), now);
-  return createCardProgressEdit(studyCard.card.deckId, progress);
+  return createCardProgressEdit(progress);
 };

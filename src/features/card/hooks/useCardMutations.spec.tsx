@@ -69,7 +69,7 @@ describe("useCardMutations", () => {
 
     await actAsync(async () => result.current.updateBy(card.id, redirectingPatch));
 
-    expect(mocks.update).toHaveBeenCalledWith({ id: card.id, deckId: card.deckId, score: 2 });
+    expect(mocks.update).toHaveBeenCalledWith({ id: card.id, score: 2 });
   });
 
   it("rejects updateBy and remove when the Card is unavailable", async () => {

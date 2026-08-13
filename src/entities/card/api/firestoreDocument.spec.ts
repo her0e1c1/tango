@@ -98,10 +98,9 @@ describe("Card Firestore document", () => {
     expect(buildCardCreateDto(card, 200)).toEqual(
       expect.objectContaining({ id: "card-1", createdAt: 200, updatedAt: 200, deletedAt: null })
     );
-    expect(buildCardUpdateDto(card, 201)).toEqual(
-      expect.objectContaining({ deckId: "deck-1", createdAt: 1, updatedAt: 201 })
-    );
+    expect(buildCardUpdateDto(card, 201)).toEqual(expect.objectContaining({ createdAt: 1, updatedAt: 201 }));
     expect(buildCardUpdateDto(card, 201)).not.toHaveProperty("id");
+    expect(buildCardUpdateDto(card, 201)).not.toHaveProperty("deckId");
 
     const invalidCard = { ...card, tags: ["math", 42] } as unknown as Card;
     expect(() => buildCardCreateDto(invalidCard, 200)).toThrow();

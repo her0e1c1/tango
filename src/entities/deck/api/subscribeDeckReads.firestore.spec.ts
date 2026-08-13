@@ -2,7 +2,6 @@ import type { Deck } from "../model/deck";
 import type { RemoteSnapshot } from "@/shared/api";
 
 import "@/test/firestore/initializeTestFirestore";
-import { deleteDoc, doc, getFirestore } from "firebase/firestore";
 import { describe, expect, it, vi } from "vitest";
 import * as UUID from "uuid";
 
@@ -16,8 +15,6 @@ vi.mock("@/shared/firestore", async (importOriginal) => ({
 }));
 
 describe("Deck Firestore subscription", () => {
-  const db = getFirestore();
-
   it("delivers initial, update, and delete snapshots", async () => {
     const snapshots: RemoteSnapshot<Deck>[] = [];
     const errors: Error[] = [];
@@ -53,7 +50,11 @@ describe("Deck Firestore subscription", () => {
         { timeout: 5_000 }
       );
 
-      await deleteDoc(doc(db, "deck", deck.id));
+      const response = await fetch(
+        `http://${import.meta.env.VITE_DB_HOST}:${import.meta.env.VITE_DB_PORT}/emulator/v1/projects/test/databases/(default)/documents`,
+        { method: "DELETE" }
+      );
+      expect(response.ok).toBe(true);
       await vi.waitFor(
         () => {
           expect(
