@@ -1,7 +1,7 @@
-import type { AuthenticatedSession, SessionState } from "@/entities/session";
+import type { AuthenticatedSession, AuthSessionState } from "@/entities/auth-session";
 
 type AuthRequest =
-  | { status: Exclude<SessionState["status"], "authenticated"> }
+  | { status: Exclude<AuthSessionState["status"], "authenticated"> }
   | { status: "authenticated"; identity: AuthenticatedSession };
 
 export type AuthTransitionDependencies = {
@@ -10,7 +10,7 @@ export type AuthTransitionDependencies = {
   reportError: (error: unknown) => void;
 };
 
-const getRequest = (state: SessionState): AuthRequest =>
+const getRequest = (state: AuthSessionState): AuthRequest =>
   state.status === "authenticated"
     ? {
         status: state.status,
@@ -29,7 +29,7 @@ const isSameRequest = (left: AuthRequest | undefined, right: AuthRequest) => {
 
 const processTransition = async (
   request: AuthRequest,
-  state: SessionState,
+  state: AuthSessionState,
   getGeneration: () => number,
   currentGeneration: number,
   activeIdentity: AuthenticatedSession | undefined,
@@ -78,7 +78,7 @@ export const createAuthTransitionController = (dependencies: AuthTransitionDepen
   };
 
   return {
-    transition: (state: SessionState) => {
+    transition: (state: AuthSessionState) => {
       const request = getRequest(state);
       if (isSameRequest(requestedState, request)) return tail;
       requestedState = request;

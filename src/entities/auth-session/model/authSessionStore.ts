@@ -4,13 +4,13 @@ export type AuthenticatedSession = {
   displayName: string | null;
 };
 
-export type SessionState =
+export type AuthSessionState =
   | { status: "initializing" }
   | ({ status: "authenticated" } & AuthenticatedSession)
   | { status: "signedOut" }
   | { status: "error"; error: unknown };
 
-export const createSessionStore = (initialState: SessionState = { status: "initializing" }) => {
+export const createAuthSessionStore = (initialState: AuthSessionState = { status: "initializing" }) => {
   let state = initialState;
   const listeners = new Set<() => void>();
 
@@ -20,11 +20,11 @@ export const createSessionStore = (initialState: SessionState = { status: "initi
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    publish: (nextState: SessionState) => {
+    publish: (nextState: AuthSessionState) => {
       state = nextState;
       for (const listener of listeners) listener();
     },
   };
 };
 
-export type SessionStore = ReturnType<typeof createSessionStore>;
+export type AuthSessionStore = ReturnType<typeof createAuthSessionStore>;

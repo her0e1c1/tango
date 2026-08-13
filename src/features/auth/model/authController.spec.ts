@@ -1,7 +1,7 @@
 import type { Auth, User, UserCredential } from "firebase/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createSessionStore } from "@/entities/session";
+import { createAuthSessionStore } from "@/entities/auth-session";
 
 const singletonMocks = vi.hoisted(() => ({
   auth: { currentUser: null },
@@ -36,10 +36,10 @@ const createHarness = (signInAnonymously = vi.fn(() => new Promise<UserCredentia
     publishError = onError;
     return stopObserver;
   });
-  const sessionStore = createSessionStore();
+  const sessionStore = createAuthSessionStore();
   const controller = createAuthController({
     auth: {} as Auth,
-    sessionStore,
+    authSessionStore: sessionStore,
     onAuthStateChanged,
     signInAnonymously,
   });
@@ -153,10 +153,10 @@ describe("authController", () => {
 
   it("publishes synchronous setup failures", () => {
     const observerError = new Error("observer setup failed");
-    const observerStore = createSessionStore();
+    const observerStore = createAuthSessionStore();
     const observerController = createAuthController({
       auth: {} as Auth,
-      sessionStore: observerStore,
+      authSessionStore: observerStore,
       onAuthStateChanged: vi.fn(() => {
         throw observerError;
       }),
