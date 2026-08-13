@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createConfig, createDeck } from "@/test/factories";
 
-import { useStudyCards } from "@/features/study/hooks/useStudyCards";
+import { useStudyCards } from "./useStudyCards";
 
 describe("useStudyCards", () => {
   beforeEach(() => vi.restoreAllMocks());

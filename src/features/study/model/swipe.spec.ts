@@ -3,8 +3,8 @@ import type { SwipeState } from "@/shared/config";
 import { describe, expect, it } from "vitest";
 
 import { createStudyProgress } from "@/entities/study-progress";
-import type { StudyCard } from "@/features/study/model/studyCard";
-import { buildStudyPatch, resolveSwipeAction } from "@/features/study/model/swipe";
+import type { StudyCard } from "./studyCard";
+import { buildStudyPatch, resolveSwipeAction } from "./swipe";
 import { createCard } from "@/test/factories";
 
 describe("resolveSwipeAction", () => {

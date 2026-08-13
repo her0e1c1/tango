@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fromRow, isEmpty, parseCsv } from "@/features/import/lib/cardCsv";
+import { fromRow, isEmpty, parseCsv } from "./cardCsv";
 
 describe("card CSV import", () => {
   describe("fromRow", () => {

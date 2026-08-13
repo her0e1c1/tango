@@ -7,7 +7,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
-import { BackText } from "@/features/card/components/BackText";
+import { BackText } from "./BackText";
 
 describe("BackText", () => {
   it("preserves plain text and click behavior with long-content wrapping", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createAuthSessionStore } from "@/entities/auth-session/model/authSessionStore";
+import { createAuthSessionStore } from "./authSessionStore";
 
 describe("authSessionStore", () => {
   it("starts without an identity", () => {

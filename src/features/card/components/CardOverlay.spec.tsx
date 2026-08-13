@@ -7,7 +7,7 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
-import { CardOverlay } from "@/features/card/components/CardOverlay";
+import { CardOverlay } from "./CardOverlay";
 import { createCard } from "@/test/factories";
 
 describe("CardOverlay", () => {

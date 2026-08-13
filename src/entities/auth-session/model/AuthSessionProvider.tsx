@@ -1,6 +1,6 @@
 import { createContext, useContext, useSyncExternalStore, type PropsWithChildren } from "react";
 
-import type { AuthSessionStore } from "@/entities/auth-session/model/authSessionStore";
+import type { AuthSessionStore } from "./authSessionStore";
 
 const AuthSessionContext = createContext<AuthSessionStore | null>(null);
 

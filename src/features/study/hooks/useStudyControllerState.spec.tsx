@@ -11,8 +11,8 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Controller, type ControllerProps } from "@/features/study/components/Controller";
-import { useStudyControllerState } from "@/features/study/hooks/useStudyControllerState";
+import { Controller, type ControllerProps } from "../components/Controller";
+import { useStudyControllerState } from "./useStudyControllerState";
 
 /**
  * Renders the test-only Controller Harness component with controlled state or providers.

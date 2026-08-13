@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { CardForm, type CardFormProps } from "@/features/card/components/CardForm";
+import { CardForm, type CardFormProps } from "./CardForm";
 import { createCard } from "@/test/factories";
 
 const createdAt = Date.UTC(2026, 0, 2);

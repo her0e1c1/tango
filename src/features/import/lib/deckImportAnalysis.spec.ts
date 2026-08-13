@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { buildDeckImportPlan, parseDeckImportCsv } from "@/features/import/lib/deckImportAnalysis";
+import { buildDeckImportPlan, parseDeckImportCsv } from "./deckImportAnalysis";
 import { createCard } from "@/test/factories";
 
 describe("parseDeckImportCsv", () => {

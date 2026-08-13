@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
-import { filterCardsForDeck } from "@/features/study/model/cardSelection";
-import { createStudyCard } from "@/features/study/model/studyCard";
+import { filterCardsForDeck } from "../model/cardSelection";
+import { createStudyCard } from "../model/studyCard";
 import type { ConfigState } from "@/shared/config";
 
 const MAX_TIMEOUT_MS = 2_147_483_647;

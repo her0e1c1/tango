@@ -11,7 +11,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck } from "@/test/factories";
-import type { DeckImportResult } from "@/features/import/model/deckImportTypes";
+import type { DeckImportResult } from "../model/deckImportTypes";
 import { CardBulkMutationError } from "@/entities/card";
 import { actAsync } from "@/test/act";
 
@@ -66,11 +66,11 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     }),
   };
 });
-vi.mock("@/features/import/lib/cardCsv", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/import/lib/cardCsv")>();
+vi.mock("../lib/cardCsv", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../lib/cardCsv")>();
   return { ...actual, parseCsv: mocks.parseCsv };
 });
-import { sampleDeckId, useDeckImport } from "@/features/import/hooks/useDeckImport";
+import { sampleDeckId, useDeckImport } from "./useDeckImport";
 
 describe("useDeckImport", () => {
   beforeEach(() => {
@@ -83,9 +83,7 @@ describe("useDeckImport", () => {
     mocks.decks = [];
     mocks.cards = [];
     mocks.parseCsv.mockImplementation(async (content: string) => {
-      const { parseCsv } = await vi.importActual<typeof import("@/features/import/lib/cardCsv")>(
-        "@/features/import/lib/cardCsv"
-      );
+      const { parseCsv } = await vi.importActual<typeof import("../lib/cardCsv")>("../lib/cardCsv");
       return parseCsv(content);
     });
     mocks.prepareDeck.mockReturnValue(createDeck({ id: "deck", uid: "uid-a" }));

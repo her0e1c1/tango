@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({ downloadTextFile: vi.fn() }));
 
 vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.downloadTextFile }));
 
-import { downloadSampleCsv, SAMPLE_CSV_TEXT } from "@/features/import/sampleCsv";
+import { downloadSampleCsv, SAMPLE_CSV_TEXT } from "./sampleCsv";
 
 describe("sample CSV", () => {
   beforeEach(() => {

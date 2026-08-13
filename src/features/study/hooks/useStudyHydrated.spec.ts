@@ -7,8 +7,8 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useStudyHydrated } from "@/features/study/hooks/useStudyHydrated";
-import { studyStore } from "@/features/study/state/studyStore";
+import { useStudyHydrated } from "./useStudyHydrated";
+import { studyStore } from "../state/studyStore";
 
 const { getState, persist } = studyStore;
 

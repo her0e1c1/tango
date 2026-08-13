@@ -7,7 +7,7 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { STUDY_STORAGE_KEY, createStudyStore, selectStudySessionForRoute } from "@/features/study/state/studyStore";
+import { STUDY_STORAGE_KEY, createStudyStore, selectStudySessionForRoute } from "./studyStore";
 
 /**
  * Provides the create memory storage test helper used by this file.

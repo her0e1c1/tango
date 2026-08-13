@@ -10,7 +10,7 @@ import {
   type StudyProgress,
   type StudyProgressEdit,
   type StudyRating,
-} from "@/entities/study-progress";
+} from "../index";
 
 describe("createStudyProgress", () => {
   it("creates study progress with the initial score and seen count", () => {

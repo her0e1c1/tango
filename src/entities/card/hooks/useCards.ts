@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useStore } from "zustand";
 
-import type { Card } from "@/entities/card/model/card";
-import { cardRemoteReadStore } from "@/entities/card/model/remoteReadStore";
+import type { Card } from "../model/card";
+import { cardRemoteReadStore } from "../model/remoteReadStore";
 import type { RemoteById } from "@/shared/api";
 import { useRemoteReadScopeUid } from "@/shared/lib/remote-read";
 
