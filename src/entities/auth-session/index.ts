@@ -3,5 +3,4 @@ export {
   createAuthSessionStore,
   type AuthenticatedSession,
   type AuthSessionState,
-  type AuthSessionStore,
 } from "./model/authSessionStore";

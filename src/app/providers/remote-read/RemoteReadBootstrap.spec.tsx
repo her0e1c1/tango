@@ -58,7 +58,7 @@ const createHarness = (children?: ReactNode) => {
       </AuthProvider>
     </React.StrictMode>
   );
-  return { publishUser, runtime };
+  return { publishUser };
 };
 
 describe("RemoteReadBootstrap integration", () => {
@@ -73,13 +73,12 @@ describe("RemoteReadBootstrap integration", () => {
   });
 
   it("starts remote reads once for one confirmed state under StrictMode and AuthProvider", async () => {
-    const { publishUser, runtime } = createHarness();
+    const { publishUser } = createHarness();
 
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
     await waitFor(() => expect(mocks.start).toHaveBeenCalledTimes(1));
     expect(mocks.start).toHaveBeenCalledWith("uid-a");
-    runtime.controller.dispose();
   });
 
   it("publishes the confirmed UID to children without waiting for the read transition", () => {
@@ -90,20 +89,19 @@ describe("RemoteReadBootstrap integration", () => {
           finishStart = resolve;
         })
     );
-    const { publishUser, runtime } = createHarness(<ReadScopeProbe />);
+    const { publishUser } = createHarness(<ReadScopeProbe />);
     expect(screen.getByTestId("read-scope").textContent).toBe("signed-out");
 
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
     expect(screen.getByTestId("read-scope").textContent).toBe("uid-a");
     act(() => finishStart());
-    runtime.controller.dispose();
   });
 
   it("automatically retries a failed unchanged auth request only once", async () => {
     const subscribeError = new Error("subscribe failed");
     mocks.start.mockRejectedValue(subscribeError);
-    const { publishUser, runtime } = createHarness();
+    const { publishUser } = createHarness();
 
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
@@ -111,6 +109,5 @@ describe("RemoteReadBootstrap integration", () => {
     await Promise.resolve();
     expect(mocks.start).toHaveBeenCalledTimes(2);
     expect(console.error).toHaveBeenCalledWith("Remote read transition failed", subscribeError);
-    runtime.controller.dispose();
   });
 });
