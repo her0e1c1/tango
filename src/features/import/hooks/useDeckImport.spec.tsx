@@ -60,7 +60,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...actual,
     createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
-    createDeckDocument: (deck: Deck) => mocks.createDeck(deck),
     generateDeckId: mocks.generateDeckId,
     useDecks: () => ({
       status: mocks.deckRemoteStatus,
@@ -69,6 +68,9 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     }),
   };
 });
+vi.mock("../api/deckFirestore", () => ({
+  createImportedDeckDocument: (deck: Deck) => mocks.createDeck(deck),
+}));
 vi.mock("../lib/cardCsv", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../lib/cardCsv")>();
   return { ...actual, parseCsv: mocks.parseCsv };

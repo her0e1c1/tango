@@ -6,8 +6,7 @@ import { createDeck as createDeckFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({ createDeckDocument: vi.fn() }));
 
-vi.mock("@/entities/deck", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/deck")>()),
+vi.mock("./firestore", () => ({
   createDeckDocument: mocks.createDeckDocument,
 }));
 

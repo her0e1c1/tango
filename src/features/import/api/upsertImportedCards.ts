@@ -1,9 +1,9 @@
 import type { Card, CardId } from "@/entities/card";
 
-import { upsertCardDocument } from "@/entities/card";
 import { resourceKey, withResourceAccess } from "@/shared/lib/resourceAccess";
 import { runSerially } from "@/shared/lib/runSerially";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
+import { upsertCardDocument } from "./cardFirestore";
 
 export class CardBulkMutationError extends Error {
   constructor(

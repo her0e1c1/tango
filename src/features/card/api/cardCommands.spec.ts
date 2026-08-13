@@ -11,8 +11,7 @@ const mocks = vi.hoisted(() => ({
   remove: vi.fn(),
 }));
 
-vi.mock("@/entities/card", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/card")>()),
+vi.mock("./firestore", () => ({
   createCardDocument: mocks.create,
   updateCardDocument: mocks.update,
   removeCardDocument: mocks.remove,

@@ -7,8 +7,7 @@ import { createCard as createCardFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({ upsert: vi.fn() }));
 
-vi.mock("@/entities/card", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/card")>()),
+vi.mock("./cardFirestore", () => ({
   upsertCardDocument: mocks.upsert,
 }));
 

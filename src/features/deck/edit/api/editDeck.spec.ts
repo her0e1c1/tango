@@ -2,8 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ updateDeckDocument: vi.fn() }));
 
-vi.mock("@/entities/deck", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/deck")>()),
+vi.mock("./firestore", () => ({
   updateDeckDocument: mocks.updateDeckDocument,
 }));
 

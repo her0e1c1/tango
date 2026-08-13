@@ -1,10 +1,10 @@
 import type { Card, CardEdit, CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 
-import { createCardDocument, removeCardDocument, updateCardDocument } from "@/entities/card";
 import { resourceKey, withResourceAccess } from "@/shared/lib/resourceAccess";
 import { runSerially } from "@/shared/lib/runSerially";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
+import { createCardDocument, removeCardDocument, updateCardDocument } from "./firestore";
 
 const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
