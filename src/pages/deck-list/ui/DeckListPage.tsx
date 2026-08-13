@@ -22,7 +22,6 @@ import {
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
-import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -34,6 +33,7 @@ export const DeckListPage: React.FC = () => {
   const deckRemote = useDecks();
   const readState = combineRemoteReadStates(cardRemote, deckRemote);
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
+  const [deletionErrorDeckId, setDeletionErrorDeckId] = React.useState<DeckId>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
   const mutations = useDeleteDeck();
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
@@ -45,11 +45,11 @@ export const DeckListPage: React.FC = () => {
   useKey("i", () => void navigate("/import"));
 
   React.useEffect(() => {
-    if (!hydrated || mutations.pending || deckRemote.status !== "ready" || deckRemote.syncStatus !== "synced") {
+    if (!hydrated || deckRemote.status !== "ready" || deckRemote.syncStatus !== "synced") {
       return;
     }
     discardStudySessionsMissingDecks(deckRemote.decks.map((deck) => deck.id));
-  }, [deckRemote.decks, deckRemote.status, deckRemote.syncStatus, hydrated, mutations.pending]);
+  }, [deckRemote.decks, deckRemote.status, deckRemote.syncStatus, hydrated]);
 
   return (
     <RemoteReadBoundary
@@ -60,13 +60,6 @@ export const DeckListPage: React.FC = () => {
     >
       {hydrated ? (
         <AppLayout showHeader>
-          <RemoteMutationNotice
-            pending={mutations.pending}
-            error={mutations.error}
-            onRetry={mutations.retry}
-            pendingLabel="Deleting deck…"
-            errorLabel="Unable to delete deck."
-          />
           <Feedback tone="success">{successMessage}</Feedback>
           {deletionTarget != null ? (
             <DestructiveActionDialog
@@ -74,8 +67,7 @@ export const DeckListPage: React.FC = () => {
               targetLabel="Deck"
               targetName={deletionTarget.deck.name}
               confirmLabel="Delete deck"
-              pending={mutations.isPending(deletionTarget.deck.id)}
-              {...(mutations.error != null
+              {...(deletionErrorDeckId === deletionTarget.deck.id
                 ? { errorMessage: "Unable to delete this deck. Check your connection and try again." }
                 : {})}
               description={
@@ -91,13 +83,14 @@ export const DeckListPage: React.FC = () => {
               onCancel={() => setDeletionTarget(undefined)}
               onConfirm={async () => {
                 const deck = deletionTarget.deck;
+                setDeletionErrorDeckId(undefined);
                 try {
                   await mutations.remove(deck);
                   removeStudySession(deck.id);
                   setDeletionTarget(undefined);
                   setSuccessMessage(`Deleted deck “${deck.name}”.`);
                 } catch {
-                  // The mutation exposes the error and retry action to the dialog and notice.
+                  setDeletionErrorDeckId(deck.id);
                 }
               }}
             />
@@ -105,7 +98,6 @@ export const DeckListPage: React.FC = () => {
           <DeckListView
             sections={sections}
             deckCard={{
-              isPending: mutations.isPending,
               openMenuDeckId,
               onToggleMenu: (id) => setOpenMenuDeckId((value) => (value === id ? undefined : id)),
               onCloseMenu: () => setOpenMenuDeckId(undefined),
@@ -125,6 +117,7 @@ export const DeckListPage: React.FC = () => {
                 const deck = deckRemote.decksById[id];
                 if (deck != null) {
                   setSuccessMessage(undefined);
+                  setDeletionErrorDeckId(undefined);
                   setDeletionTarget({ deck, cardCount: selectCardsForDeck(cardRemote.cards, id).length });
                 }
               },

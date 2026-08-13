@@ -31,11 +31,7 @@ const mocks = vi.hoisted(() => ({
   updateIndex: vi.fn(),
   resetStudy: vi.fn(),
   cardMutation: {
-    isPending: vi.fn(() => false),
     update: vi.fn(),
-    pending: false,
-    error: null as unknown,
-    retry: vi.fn(),
   },
   studyState: {
     sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
@@ -46,9 +42,6 @@ const mocks = vi.hoisted(() => ({
   },
   initializeStudySessionUi: vi.fn(),
   touchStudySession: vi.fn(),
-  pending: false,
-  error: null as unknown,
-  retry: vi.fn(),
   hydrated: true,
   cardReadStatus: "ready" as "loading" | "ready" | "error" | "blocked",
   deckReadStatus: "ready" as "loading" | "ready" | "error" | "blocked",
@@ -112,9 +105,6 @@ vi.mock("@/features/study", async (importOriginal) => {
       toggleShowBackText: mocks.toggleShowBackText,
       toggleAutoPlay: mocks.toggleAutoPlay,
       resetStudy: mocks.resetStudy,
-      pending: mocks.pending,
-      error: mocks.error,
-      retry: mocks.retry,
     }),
     useStudyHydrated: () => mocks.hydrated,
     useStudyStore: (selector: (state: typeof mocks.studyState) => unknown) => selector(mocks.studyState),
@@ -180,10 +170,6 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     mocks.hydrated = true;
     mocks.cardReadStatus = "ready";
     mocks.deckReadStatus = "ready";
-    mocks.pending = false;
-    mocks.error = null;
-    mocks.cardMutation.pending = false;
-    mocks.cardMutation.error = null;
     mocks.studyState.sessionsByDeckId = {
       [deck.id]: {
         deckId: deck.id,
@@ -277,17 +263,6 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     render(<DeckSwiperPage />);
 
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
-  });
-
-  it("keeps pending study saves silent while disabling swipe controls", () => {
-    mocks.pending = true;
-
-    render(<DeckSwiperPage />);
-
-    expect(screen.queryByText("Saving…")).not.toBeInTheDocument();
-    for (const name of ["Swipe up", "Swipe down", "Swipe left", "Swipe right"]) {
-      expect(screen.getByRole("button", { name })).toBeDisabled();
-    }
   });
 
   it("shows the last swipe briefly only when feedback is enabled", () => {

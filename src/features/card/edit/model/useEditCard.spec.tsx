@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
@@ -33,48 +33,17 @@ describe("useEditCard", () => {
     expect(mocks.editCard).toHaveBeenCalledWith("uid-a", { id: card.id, frontText: "Updated" });
   });
 
-  it("exposes pending state and retries the latest failed edit", async () => {
-    let finish!: () => void;
-    mocks.editCard
-      .mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)))
-      .mockRejectedValueOnce(new Error("write failed"))
-      .mockResolvedValueOnce(undefined);
+  it("allows the original edit action to be run again after failure", async () => {
+    mocks.editCard.mockRejectedValueOnce(new Error("write failed")).mockResolvedValueOnce(undefined);
     const { result } = renderHook(useEditCard);
-    let pending!: Promise<void>;
-    act(() => {
-      pending = result.current.update(card);
-    });
-    await waitFor(() => expect(result.current.isPending(card.id)).toBe(true));
-    await actAsync(async () => {
-      finish();
-      await pending;
-    });
 
     await actAsync(async () => {
       await expect(result.current.update(card)).rejects.toThrow("write failed");
     });
-    act(() => result.current.retry());
-    await waitFor(() => {
-      expect(mocks.editCard).toHaveBeenCalledTimes(3);
-      expect(result.current.error).toBeNull();
-    });
-  });
-
-  it("clears obsolete mutation state after the authenticated UID changes", async () => {
-    let finish!: () => void;
-    mocks.editCard.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
-    const { result, rerender } = renderHook(useEditCard);
-    let operation!: Promise<void>;
-    act(() => {
-      operation = result.current.update(card);
-    });
-    await waitFor(() => expect(result.current.pending).toBe(true));
-    mocks.uid = "uid-b";
-    rerender();
-    expect(result.current.pending).toBe(false);
     await actAsync(async () => {
-      finish();
-      await operation;
+      await result.current.update(card);
     });
+
+    expect(mocks.editCard).toHaveBeenCalledTimes(2);
   });
 });

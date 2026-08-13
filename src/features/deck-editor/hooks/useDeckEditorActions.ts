@@ -1,16 +1,15 @@
 /**
  * @file Provides Deck editor actions.
- * The hook combines mutation state and operations while its Page owner supplies navigation.
+ * The hook combines mutation operations while its Page owner supplies navigation.
  */
 
 import type { Deck } from "@/entities/deck";
 
+import { useState } from "react";
+
 interface DeckEditorActionsOptions {
   mutations: {
     update: (deck: Deck) => Promise<void>;
-    pending: boolean;
-    error: unknown;
-    retry: () => void;
   };
   onCancel: () => void;
   onSaved: () => void;
@@ -20,18 +19,19 @@ interface DeckEditorActionsOptions {
  * Provides the mutation actions used by the Deck editor.
  */
 export const useDeckEditorActions = ({ mutations, onCancel, onSaved }: DeckEditorActionsOptions) => {
+  const [error, setError] = useState<unknown>(null);
+
   return {
     save: async (deck: Deck) => {
+      setError(null);
       try {
         await mutations.update(deck);
         onSaved();
-      } catch {
-        // The mutation notice owns error feedback and retry.
+      } catch (nextError) {
+        setError(nextError);
       }
     },
     cancel: onCancel,
-    pending: mutations.pending,
-    error: mutations.error,
-    retry: mutations.retry,
+    error,
   };
 };

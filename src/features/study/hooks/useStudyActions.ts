@@ -30,17 +30,10 @@ export interface StudyActions {
   toggleShowBackText: () => void;
   toggleAutoPlay: () => void;
   resetStudy: () => void;
-  pending: boolean;
-  error: unknown;
-  retry: () => void;
 }
 
 interface StudyCardMutation {
-  isPending: (id: CardId) => boolean;
   update: (progress: StudyProgressEdit) => Promise<void>;
-  pending: boolean;
-  error: unknown;
-  retry: () => void;
 }
 
 interface UseStudyActionsOptions {
@@ -53,7 +46,6 @@ interface StudySwipeDependencies {
   deckId: DeckId;
   config: ConfigState;
   cardsById: Partial<Record<CardId, Card>>;
-  isPending: (id: CardId) => boolean;
   update: (progress: StudyProgressEdit) => Promise<void>;
 }
 
@@ -95,7 +87,7 @@ const revertOptimisticUpdate = (
  */
 const runStudySwipe = async (
   direction: SwipeDirection,
-  { mutationTokenRef, deckId, config, cardsById, isPending, update }: StudySwipeDependencies
+  { mutationTokenRef, deckId, config, cardsById, update }: StudySwipeDependencies
 ): Promise<void> => {
   if (mutationTokenRef.current !== undefined) return;
   const state = studyStore.getState();
@@ -113,7 +105,7 @@ const runStudySwipe = async (
 
   const cardId = session.cardOrderIds[session.currentIndex];
   const card = cardId == null ? undefined : cardsById[cardId];
-  if (card == null || isPending(card.id)) return;
+  if (card == null) return;
 
   const previous = {
     session: { ...session },
@@ -181,7 +173,6 @@ export const useStudyActions = (
       deckId,
       config,
       cardsById,
-      isPending: cardMutation.isPending,
       update: cardMutation.update,
     });
   };
@@ -201,8 +192,5 @@ export const useStudyActions = (
     toggleShowBackText: () => studyStore.getState().toggleShowBackText(),
     toggleAutoPlay: () => studyStore.getState().toggleAutoPlay(),
     resetStudy: () => studyStore.getState().removeStudy(deckId),
-    pending: cardMutation?.pending ?? false,
-    error: cardMutation?.error,
-    retry: cardMutation?.retry ?? (() => undefined),
   };
 };
