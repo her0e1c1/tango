@@ -1,4 +1,4 @@
-import { getCategory, isHighlightLanguage, type DeckId } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck, type DeckId } from "@/entities/deck";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -31,17 +31,21 @@ const SWIPE_FEEDBACK_DURATION_MS = 900;
 const isHistoryState = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
-export const DeckSwiperPage: React.FC = () => {
-  const params = useParams();
-  const navigate = useNavigate();
-  const deckId = params.id;
-  if (deckId == null) throw Error("invalid deck id");
+type CardRemote = ReturnType<typeof useCards>;
+type CombinedReadState = ReturnType<typeof combineRemoteReadStates>;
 
+const DeckSwiperContent = ({
+  cardRemote,
+  deck,
+  readState,
+}: {
+  cardRemote: CardRemote;
+  deck: Deck;
+  readState: CombinedReadState;
+}) => {
+  const navigate = useNavigate();
+  const deckId = deck.id;
   const config = useConfig();
-  const remote = useDecks();
-  const cardRemote = useCards();
-  const readState = combineRemoteReadStates(cardRemote, remote);
-  const deck = remote.decksById[deckId];
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
@@ -129,7 +133,7 @@ export const DeckSwiperPage: React.FC = () => {
     };
   }, [deckId, navigate]);
 
-  if (card == null || deck == null) {
+  if (card == null) {
     return (
       <RemoteReadBoundary
         status={readState.status}
@@ -202,5 +206,27 @@ export const DeckSwiperPage: React.FC = () => {
         swipeOverlay={swipeActions}
       />
     </AppLayout>
+  );
+};
+
+export const DeckSwiperPage: React.FC = () => {
+  const params = useParams();
+  const deckId = params.id;
+  if (deckId == null) throw Error("invalid deck id");
+
+  const remote = useDecks();
+  const cardRemote = useCards();
+  const readState = combineRemoteReadStates(cardRemote, remote);
+  const deck = remote.decksById[deckId];
+
+  return (
+    <RemoteReadBoundary
+      status={readState.status}
+      hasData={deck != null}
+      emptyLabel="Study session unavailable."
+      onRetry={readState.retry}
+    >
+      {deck != null ? <DeckSwiperContent cardRemote={cardRemote} deck={deck} readState={readState} /> : null}
+    </RemoteReadBoundary>
   );
 };

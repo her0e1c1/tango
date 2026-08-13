@@ -43,7 +43,7 @@ interface StudyCardMutation {
 
 interface UseStudyActionsOptions {
   cardMutation?: StudyCardMutation;
-  deck?: Deck | undefined;
+  deck: Deck;
   onStarted?: () => void;
 }
 
@@ -146,7 +146,7 @@ const runStudySwipe = async (
  */
 export const useStudyActions = (
   deckId: DeckId,
-  { cardMutation, deck, onStarted }: UseStudyActionsOptions = {}
+  { cardMutation, deck, onStarted }: UseStudyActionsOptions
 ): StudyActions => {
   const config = useConfig();
   const cardRemote = useCards();
