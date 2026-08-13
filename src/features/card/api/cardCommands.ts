@@ -4,7 +4,6 @@ import type { DeckId } from "@/entities/deck";
 import { createCardDocument, removeCardDocument, updateCardDocument } from "@/entities/card";
 import { resourceKey, withResourceAccess } from "@/shared/lib/resourceAccess";
 import { runSerially } from "@/shared/lib/runSerially";
-import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 
 const requireUid = (uid: string) => {
   if (uid === "") throw new Error("A confirmed user is required for remote Card writes");
@@ -25,21 +24,17 @@ export const cardCommands = {
   create: async (uid: string, card: Card): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await withCardWriteAccess(uid, card.id, card.deckId, () =>
-      waitForRemoteWrite(createCardDocument(card), "Card creation")
-    );
+    await withCardWriteAccess(uid, card.id, card.deckId, () => createCardDocument(card));
   },
 
   update: async (uid: string, card: CardEdit): Promise<void> => {
     requireUid(uid);
     requireOwner(uid, card.uid);
-    await withCardWriteAccess(uid, card.id, card.deckId, () =>
-      waitForRemoteWrite(updateCardDocument(card), "Card update")
-    );
+    await withCardWriteAccess(uid, card.id, card.deckId, () => updateCardDocument(card));
   },
 
   remove: async (uid: string, id: CardId, deckId: DeckId): Promise<void> => {
     requireUid(uid);
-    await withCardWriteAccess(uid, id, deckId, () => waitForRemoteWrite(removeCardDocument(id), "Card deletion"));
+    await withCardWriteAccess(uid, id, deckId, () => removeCardDocument(id));
   },
 };
