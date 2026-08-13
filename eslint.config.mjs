@@ -9,6 +9,7 @@ import testingLibrary from "eslint-plugin-testing-library";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
+const lintPolicyFixtureFiles = ["test/lint-policy/fixtures/**/*.{js,jsx}"];
 
 export default [
   {
@@ -37,6 +38,45 @@ export default [
         "export",
         "require",
         "dynamic-import",
+      ],
+    },
+  }),
+  createBoundariesConfig({
+    files: lintPolicyFixtureFiles,
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+        sourceType: "module",
+      },
+    },
+    settings: {
+      "boundaries/elements": [
+        {
+          type: "fixture-presentation",
+          pattern: "test/lint-policy/fixtures/presentation/**",
+        },
+        {
+          type: "fixture-shared-ui",
+          pattern: "test/lint-policy/fixtures/shared-ui/**",
+        },
+        {
+          type: "fixture-prohibited",
+          pattern: "test/lint-policy/fixtures/prohibited/**",
+        },
+      ],
+    },
+    rules: {
+      "boundaries/dependencies": [
+        "error",
+        {
+          default: "allow",
+          rules: [
+            {
+              from: { type: "fixture-presentation" },
+              disallow: { to: { type: "fixture-prohibited" } },
+            },
+          ],
+        },
       ],
     },
   }),
