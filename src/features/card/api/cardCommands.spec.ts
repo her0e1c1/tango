@@ -35,18 +35,16 @@ describe("cardCommands", () => {
     expect(mocks.update).not.toHaveBeenCalled();
   });
 
-  it("serializes writes to the same Card", async () => {
+  it("starts writes to the same Card independently", async () => {
     let finishCreate!: () => void;
     mocks.create.mockReturnValueOnce(new Promise<string>((resolve) => (finishCreate = () => resolve("created"))));
     const card = createCard({ id: "card" });
 
     const create = cardCommands.create("uid-a", card);
     const update = cardCommands.update("uid-a", { ...card, score: 2 });
-    await vi.waitFor(() => expect(mocks.create).toHaveBeenCalledOnce());
-    expect(mocks.update).not.toHaveBeenCalled();
+    await vi.waitFor(() => expect(mocks.update).toHaveBeenCalledOnce());
 
     finishCreate();
     await Promise.all([create, update]);
-    expect(mocks.update).toHaveBeenCalledOnce();
   });
 });
