@@ -6,7 +6,7 @@
 
 import type { Card, CardRaw } from "@/entities/card";
 
-import type { DeckImportPlan, DeckImportPlanRow, DeckImportRow } from "@/features/import/components/deckImportTypes";
+import type { DeckImportPlan, DeckImportPlanRow, DeckImportRow } from "@/features/import/model/deckImportTypes";
 import { parseCsv } from "@/features/import/lib/cardCsv";
 
 /**

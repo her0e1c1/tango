@@ -11,7 +11,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck } from "@/test/factories";
-import type { DeckImportResult } from "@/features/import/components/deckImportTypes";
+import type { DeckImportResult } from "@/features/import/model/deckImportTypes";
 import { CardBulkMutationError } from "@/entities/card";
 import { actAsync } from "@/test/act";
 
