@@ -1,7 +1,4 @@
-/** @file Serializes conflicting remote mutations. */
-
-import type { CardId } from "@/entities/card";
-import type { DeckId } from "@/entities/deck";
+import type { DeckId } from "../model/deck";
 
 interface MembershipLockState {
   exclusive?: Promise<void>;
@@ -52,6 +49,5 @@ export const withDeckMembershipLocks = async <T>(
   }
 };
 
-export const cardMutationLock = (uid: string, id: CardId) => `card:${uid}:${id}`;
 export const deckMembershipMutationLock = (uid: string, id: DeckId) => `deck-membership:${uid}:${id}`;
 export const deckMutationLock = (uid: string, id: DeckId) => `deck:${uid}:${id}`;
