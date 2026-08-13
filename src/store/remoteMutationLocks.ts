@@ -3,37 +3,11 @@
 import type { CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 
-const tails = new Map<string, Promise<void>>();
 interface MembershipLockState {
   exclusive?: Promise<void>;
   shared: Set<Promise<void>>;
 }
 const membershipLocks = new Map<string, MembershipLockState>();
-
-/**
- * Serializes a task behind all earlier mutations that touch the same entity keys.
- * Locks are released after success or failure, allowing unrelated entities to continue in
- * parallel.
- */
-export const withMutationLocks = async <T>(keys: string[], task: () => Promise<T>): Promise<T> => {
-  const uniqueKeys = [...new Set(keys)];
-  const previous = uniqueKeys.map((key) => tails.get(key)).filter((tail): tail is Promise<void> => tail != null);
-  const operation = Promise.all(previous).then(task);
-  const settled = operation.then(
-    () => undefined,
-    () => undefined
-  );
-  uniqueKeys.forEach((key) => {
-    tails.set(key, settled);
-  });
-  try {
-    return await operation;
-  } finally {
-    uniqueKeys.forEach((key) => {
-      if (tails.get(key) === settled) tails.delete(key);
-    });
-  }
-};
 
 /**
  * Allows concurrent Card writes while giving Deck removal exclusive access to its membership.
