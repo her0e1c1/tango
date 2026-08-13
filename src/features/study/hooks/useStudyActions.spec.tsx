@@ -185,8 +185,7 @@ describe("useStudyActions", () => {
     });
 
     const patch = {
-      id: card1.id,
-      deckId: deck.id,
+      cardId: card1.id,
       score: 1,
       numberOfSeen: 1,
       lastSeenAt: 946684800000,

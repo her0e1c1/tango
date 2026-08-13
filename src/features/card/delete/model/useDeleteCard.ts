@@ -12,7 +12,7 @@ export const useDeleteCard = ({ onSuccess }: UseDeleteCardOptions = {}) => {
   const uid = auth.status === "authenticated" ? auth.uid : "";
 
   const remove = async (card: Card) => {
-    await deleteCard(uid, card.id);
+    await deleteCard(uid, card);
     onSuccess?.(card);
   };
 

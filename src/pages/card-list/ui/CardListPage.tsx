@@ -7,9 +7,14 @@ import { useKey } from "react-use";
 import { type Card, type CardId, selectCardsForDeck, selectTagsForDeck, useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, useDecks } from "@/entities/deck";
 import { useDeleteCard } from "@/features/card/delete";
-import { type CardPatch, useEditCard } from "@/features/card/edit";
 import { useEditDeck } from "@/features/deck/edit";
-import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/study";
+import {
+  DeckStartForm,
+  type StudyProgressPatch,
+  useDeckFilterState,
+  useEditStudyProgress,
+  useStudyCards,
+} from "@/features/study";
 import { useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
@@ -28,7 +33,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const [mutationError, setMutationError] = React.useState<unknown>(null);
   const [successMessage, setSuccessMessage] = React.useState<string>();
   const navigate = useNavigate();
-  const editMutation = useEditCard();
+  const editMutation = useEditStudyProgress();
   const deleteMutation = useDeleteCard({
     onSuccess: (card) => {
       setDeletionTarget((target) => (target?.id === card.id ? undefined : target));
@@ -40,7 +45,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : getCategory(deck.category, showCard.tags);
-  const updateBy = (id: CardId, buildPatch: (card: Card) => CardPatch) => {
+  const updateBy = (id: CardId, buildPatch: (card: Card) => StudyProgressPatch) => {
     const card = cards.find((candidate) => candidate.id === id);
     if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
     return editMutation.updateBy(card, buildPatch);
