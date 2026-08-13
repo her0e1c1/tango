@@ -185,6 +185,14 @@ describe("createRemoteReadStore", () => {
     await listener.store.getState().start("uid-a");
     listener.subscriptions[0]?.onError(listenerFailure);
     expect(listener.store.getState()).toMatchObject({ status: "error", error: listenerFailure });
+    expect(listener.unsubscribes[0]).toHaveBeenCalledOnce();
+
+    listener.subscriptions[0]?.onSnapshot({
+      type: "replace",
+      items: [createItem("stale")],
+      metadata: synced,
+    });
+    expect(listener.store.getState()).toMatchObject({ status: "error", itemsById: {} });
   });
 
   it.each(["blocked", "error"] as const)("resets %s state only for the matching UID", async (status) => {
@@ -222,6 +230,18 @@ describe("createRemoteReadStore", () => {
 
     expect(harness.dependencies.subscribe).not.toHaveBeenCalled();
     expect(harness.store.getState()).toMatchObject({ uid: null, status: "idle" });
+  });
+
+  it("publishes an error when listener setup throws", async () => {
+    const harness = createHarness();
+    const failure = new Error("listener setup failed");
+    vi.mocked(harness.dependencies.subscribe).mockImplementationOnce(() => {
+      throw failure;
+    });
+
+    await expect(harness.store.getState().start("uid-a")).rejects.toBe(failure);
+
+    expect(harness.store.getState()).toMatchObject({ uid: "uid-a", status: "error", error: failure });
   });
 
   it("creates a listener only for the latest UID when initialization overlaps", async () => {

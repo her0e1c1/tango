@@ -61,7 +61,39 @@ export const createRemoteReadStore = <T extends { id: string }>(
   return createStore<RemoteReadStoreState<T>>()((set, get) => {
     const fail = (currentGeneration: number, status: "blocked" | "error", cause: unknown) => {
       if (currentGeneration !== generation) return;
+      generation += 1;
+      const currentUnsubscribe = unsubscribe;
+      unsubscribe = undefined;
       set({ status, syncStatus: undefined, error: toError(cause) });
+      currentUnsubscribe?.();
+    };
+
+    const subscribe = (uid: string, currentGeneration: number) => {
+      let nextUnsubscribe: Unsubscribe;
+      try {
+        nextUnsubscribe = dependencies.subscribe({
+          uid,
+          onError: (error) => fail(currentGeneration, "error", error),
+          onSnapshot: (snapshot) => {
+            if (currentGeneration !== generation) return;
+            set({
+              itemsById: applySnapshot(get().itemsById, snapshot),
+              status: "ready",
+              syncStatus: deriveSyncStatus(snapshot.metadata),
+              error: undefined,
+            });
+          },
+        });
+      } catch (cause) {
+        const error = toError(cause);
+        fail(currentGeneration, "error", error);
+        throw error;
+      }
+      if (currentGeneration !== generation) {
+        nextUnsubscribe();
+        return;
+      }
+      unsubscribe = nextUnsubscribe;
     };
 
     const start = async (uid: string): Promise<void> => {
@@ -93,24 +125,7 @@ export const createRemoteReadStore = <T extends { id: string }>(
         return;
       }
 
-      const nextUnsubscribe = dependencies.subscribe({
-        uid,
-        onError: (error) => fail(currentGeneration, "error", error),
-        onSnapshot: (snapshot) => {
-          if (currentGeneration !== generation) return;
-          set({
-            itemsById: applySnapshot(get().itemsById, snapshot),
-            status: "ready",
-            syncStatus: deriveSyncStatus(snapshot.metadata),
-            error: undefined,
-          });
-        },
-      });
-      if (currentGeneration !== generation) {
-        nextUnsubscribe();
-        return;
-      }
-      unsubscribe = nextUnsubscribe;
+      subscribe(uid, currentGeneration);
     };
 
     const stop = (uid?: string) => {
