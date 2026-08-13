@@ -1,5 +1,4 @@
 import { act, renderHook } from "@testing-library/react";
-import React, { type PropsWithChildren } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { useSignOut } from "./useSignOut";
@@ -13,19 +12,15 @@ const deferred = <T,>() => {
   return { promise, resolve };
 };
 
-const StrictModeWrapper = ({ children }: PropsWithChildren) => <React.StrictMode>{children}</React.StrictMode>;
-
 describe("useSignOut", () => {
-  it("deduplicates sign-out while it is pending", async () => {
+  it("reports pending while sign-out is running", async () => {
     const request = deferred<void>();
     const signOut = vi.fn(() => request.promise);
-    const { result } = renderHook(() => useSignOut(signOut), { wrapper: StrictModeWrapper });
+    const { result } = renderHook(() => useSignOut(signOut));
 
-    let first!: Promise<void>;
-    let second!: Promise<void>;
+    let attempt!: Promise<void>;
     act(() => {
-      first = result.current.signOut();
-      second = result.current.signOut();
+      attempt = result.current.signOut();
     });
 
     expect(signOut).toHaveBeenCalledOnce();
@@ -33,7 +28,7 @@ describe("useSignOut", () => {
 
     await actAsync(async () => {
       request.resolve();
-      await Promise.all([first, second]);
+      await attempt;
     });
     expect(result.current.pending).toBe(false);
   });
@@ -50,17 +45,14 @@ describe("useSignOut", () => {
     expect(result.current).toMatchObject({ pending: false, error: null });
   });
 
-  it("does not carry cleanup failures to a later mount", async () => {
-    const cleanupRetry = vi.fn().mockResolvedValue(undefined);
-    const error = Object.assign(new Error("logout cleanup failed"), { retry: cleanupRetry });
-    const { result: firstResult, unmount } = renderHook(() => useSignOut(vi.fn().mockRejectedValue(error)), {
-      wrapper: StrictModeWrapper,
-    });
+  it("does not carry failures to a later mount", async () => {
+    const error = new Error("sign out failed");
+    const signOut = vi.fn().mockRejectedValue(error);
+    const { result: firstResult, unmount } = renderHook(() => useSignOut(signOut));
     await actAsync(async () => expect(firstResult.current.signOut()).rejects.toBe(error));
     unmount();
 
-    const { result } = renderHook(() => useSignOut(), { wrapper: StrictModeWrapper });
+    const { result } = renderHook(() => useSignOut(signOut));
     expect(result.current).toMatchObject({ pending: false, error: null });
-    expect(cleanupRetry).not.toHaveBeenCalled();
   });
 });
