@@ -15,7 +15,7 @@ import "@testing-library/jest-dom/vitest";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { StudySession } from "@/features/study";
+import type { useStudySessions } from "@/features/study";
 import { createConfig } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -38,7 +38,7 @@ const mocks = vi.hoisted(() => ({
     retry: vi.fn(),
   },
   studyState: {
-    sessionsByDeckId: {} as Partial<Record<DeckId, StudySession>>,
+    sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
     showBackText: false,
     autoPlay: false,
     lastSwipe: undefined as { direction: SwipeDirection; eventId: number } | undefined,
