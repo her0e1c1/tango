@@ -8,12 +8,8 @@ import {
   update as updateRemoteCard,
   upsert as upsertRemoteCard,
 } from "./firestore";
-import {
-  cardMutationLock,
-  deckMembershipMutationLock,
-  withDeckMembershipLocks,
-  withMutationLocks,
-} from "@/store/remoteMutationLocks";
+import { cardMutationLock, deckMembershipMutationLock, withDeckMembershipLocks } from "@/store/remoteMutationLocks";
+import { runSerially } from "@/shared/lib/runSerially";
 import { waitForRemoteWrite } from "@/shared/lib/remoteWrite";
 
 const requireUid = (uid: string) => {
@@ -27,7 +23,7 @@ const requireOwner = (uid: string, entityUid: string | undefined) => {
 };
 
 const withCardWriteLocks = <T>(uid: string, id: CardId, deckId: DeckId, task: () => Promise<T>): Promise<T> =>
-  withMutationLocks([cardMutationLock(uid, id)], () =>
+  runSerially(cardMutationLock(uid, id), () =>
     withDeckMembershipLocks([deckMembershipMutationLock(uid, deckId)], "shared", task)
   );
 
