@@ -1,11 +1,10 @@
 import { onAuthStateChanged, signInAnonymously, type Auth, type User, type UserCredential } from "firebase/auth";
 
-import { createAuthSessionStore, type AuthSessionStore } from "@/entities/auth-session";
+import { createAuthSessionStore } from "@/entities/auth-session";
 import { auth } from "@/shared/firebase";
 
-type AuthControllerDependencies = {
+type AuthRuntimeDependencies = {
   auth: Auth;
-  authSessionStore: AuthSessionStore;
   onAuthStateChanged: (
     auth: Auth,
     onUser: (user: User | null) => void,
@@ -20,110 +19,66 @@ const authSessionFromUser = (user: User) => ({
   displayName: user.providerData[0]?.displayName ?? null,
 });
 
-export const createAuthController = (dependencies: AuthControllerDependencies) => {
+export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
+  const authSessionStore = createAuthSessionStore();
   let observerStarted = false;
-  let stopObserver: (() => void) | undefined;
-  let anonymousAttempted = false;
-  let anonymousInFlight: Promise<UserCredential> | undefined;
+  let anonymousSignIn: Promise<UserCredential> | undefined;
   let anonymousBootstrapSuspensions = 0;
-  let disposed = false;
 
-  const publishError = (error: unknown) => {
-    if (!disposed) dependencies.authSessionStore.publish({ status: "error", error });
-  };
+  const publishError = (error: unknown) => authSessionStore.publish({ status: "error", error });
 
   const startAnonymousBootstrap = () => {
-    if (
-      disposed ||
-      anonymousBootstrapSuspensions > 0 ||
-      dependencies.authSessionStore.getSnapshot().status !== "signedOut" ||
-      anonymousAttempted
-    ) {
+    if (anonymousBootstrapSuspensions > 0 || anonymousSignIn || authSessionStore.getSnapshot().status !== "signedOut") {
       return;
     }
 
-    anonymousAttempted = true;
-    try {
-      const attempt = dependencies.signInAnonymously(dependencies.auth);
-      anonymousInFlight = attempt;
-      void attempt.catch((error) => {
-        if (anonymousInFlight === attempt) {
-          anonymousInFlight = undefined;
-          publishError(error);
-        }
-      });
-    } catch (error) {
-      publishError(error);
-    }
+    const attempt = dependencies.signInAnonymously(dependencies.auth);
+    anonymousSignIn = attempt;
+    void attempt.catch((error) => {
+      if (anonymousSignIn === attempt) publishError(error);
+    });
   };
 
   const publishObservedUser = (user: User | null) => {
-    if (disposed) return;
     if (user) {
-      anonymousAttempted = false;
-      anonymousInFlight = undefined;
-      dependencies.authSessionStore.publish({ status: "authenticated", ...authSessionFromUser(user) });
+      anonymousSignIn = undefined;
+      authSessionStore.publish({ status: "authenticated", ...authSessionFromUser(user) });
       return;
     }
 
-    dependencies.authSessionStore.publish({ status: "signedOut" });
+    authSessionStore.publish({ status: "signedOut" });
     startAnonymousBootstrap();
   };
 
-  return {
-    start: () => {
-      if (disposed) throw new Error("Auth controller has been disposed");
-      if (observerStarted) return;
-      observerStarted = true;
-      try {
-        stopObserver = dependencies.onAuthStateChanged(dependencies.auth, publishObservedUser, publishError);
-      } catch (error) {
-        publishError(error);
-      }
-    },
-    publishAuthenticatedUser: (user: User) => {
-      if (disposed) return;
-      const current = dependencies.authSessionStore.getSnapshot();
-      if (current.status === "authenticated" && current.uid === user.uid) {
-        dependencies.authSessionStore.publish({ status: "authenticated", ...authSessionFromUser(user) });
-      }
-    },
-    suspendAnonymousBootstrap: () => {
-      if (disposed) return () => undefined;
-      anonymousBootstrapSuspensions += 1;
-      let released = false;
-      return () => {
-        if (released || disposed) return;
-        released = true;
-        anonymousBootstrapSuspensions -= 1;
-        if (anonymousBootstrapSuspensions === 0) startAnonymousBootstrap();
-      };
-    },
-    dispose: () => {
-      if (disposed) return;
-      disposed = true;
-      anonymousInFlight = undefined;
-      const unsubscribe = stopObserver;
-      stopObserver = undefined;
-      unsubscribe?.();
-    },
+  const start = () => {
+    if (observerStarted) return;
+    observerStarted = true;
+    dependencies.onAuthStateChanged(dependencies.auth, publishObservedUser, publishError);
   };
-};
 
-type AuthRuntimeDependencies = Omit<AuthControllerDependencies, "authSessionStore">;
-
-export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
-  const authSessionStore = createAuthSessionStore();
-  return {
-    authSessionStore,
-    controller: createAuthController({ ...dependencies, authSessionStore }),
+  const publishAuthenticatedUser = (user: User) => {
+    const current = authSessionStore.getSnapshot();
+    if (current.status === "authenticated" && current.uid === user.uid) {
+      authSessionStore.publish({ status: "authenticated", ...authSessionFromUser(user) });
+    }
   };
+
+  const suspendAnonymousBootstrap = () => {
+    anonymousBootstrapSuspensions += 1;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      anonymousBootstrapSuspensions -= 1;
+      if (anonymousBootstrapSuspensions === 0) startAnonymousBootstrap();
+    };
+  };
+
+  return { authSessionStore, start, publishAuthenticatedUser, suspendAnonymousBootstrap };
 };
 
 export type AuthRuntime = ReturnType<typeof createAuthRuntime>;
 
 export const authRuntime = createAuthRuntime({ auth, onAuthStateChanged, signInAnonymously });
 
-export const publishAuthenticatedUser = (user: User) => authRuntime.controller.publishAuthenticatedUser(user);
-
-export const suspendAnonymousBootstrap = () => authRuntime.controller.suspendAnonymousBootstrap();
+export const { publishAuthenticatedUser, suspendAnonymousBootstrap } = authRuntime;

@@ -1,8 +1,6 @@
 import type { Auth, User, UserCredential } from "firebase/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createAuthSessionStore } from "@/entities/auth-session";
-
 const singletonMocks = vi.hoisted(() => ({
   auth: { currentUser: null },
   onAuthStateChanged: vi.fn(() => vi.fn()),
@@ -15,7 +13,7 @@ vi.mock("firebase/auth", () => ({
   signInAnonymously: singletonMocks.signInAnonymously,
 }));
 
-import { createAuthController } from "./authController";
+import { createAuthRuntime } from "./authController";
 
 const createUser = (
   uid: string,
@@ -30,35 +28,29 @@ const createUser = (
 const createHarness = (signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined))) => {
   let publishUser: (user: User | null) => void = () => undefined;
   let publishError: (error: unknown) => void = () => undefined;
-  const stopObserver = vi.fn();
   const onAuthStateChanged = vi.fn((_auth, onUser, onError) => {
     publishUser = onUser;
     publishError = onError;
-    return stopObserver;
+    return vi.fn();
   });
-  const sessionStore = createAuthSessionStore();
-  const controller = createAuthController({
+  const runtime = createAuthRuntime({
     auth: {} as Auth,
-    authSessionStore: sessionStore,
     onAuthStateChanged,
     signInAnonymously,
   });
-  controller.start();
-  return { controller, onAuthStateChanged, publishError, publishUser, sessionStore, stopObserver };
+  runtime.start();
+  return { runtime, onAuthStateChanged, publishError, publishUser, sessionStore: runtime.authSessionStore };
 };
 
 describe("authController", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("starts one app-lifetime observer and disposes it once", () => {
+  it("starts one app-lifetime observer", () => {
     const harness = createHarness();
 
-    harness.controller.start();
-    harness.controller.dispose();
-    harness.controller.dispose();
+    harness.runtime.start();
 
     expect(harness.onAuthStateChanged).toHaveBeenCalledOnce();
-    expect(harness.stopObserver).toHaveBeenCalledOnce();
   });
 
   it("maps Firebase users to a Firebase-independent session snapshot", () => {
@@ -87,9 +79,9 @@ describe("authController", () => {
 
   it("waits for every bootstrap suspension to be released", () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const { controller, publishUser } = createHarness(signInAnonymously);
-    const resumeFirst = controller.suspendAnonymousBootstrap();
-    const resumeSecond = controller.suspendAnonymousBootstrap();
+    const { runtime, publishUser } = createHarness(signInAnonymously);
+    const resumeFirst = runtime.suspendAnonymousBootstrap();
+    const resumeSecond = runtime.suspendAnonymousBootstrap();
     publishUser(null);
 
     resumeFirst();
@@ -103,8 +95,8 @@ describe("authController", () => {
 
   it("does not bootstrap anonymously when authentication returns before release", () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const { controller, publishUser } = createHarness(signInAnonymously);
-    const resume = controller.suspendAnonymousBootstrap();
+    const { runtime, publishUser } = createHarness(signInAnonymously);
+    const resume = runtime.suspendAnonymousBootstrap();
 
     publishUser(null);
     publishUser(createUser("uid-a"));
@@ -151,37 +143,12 @@ describe("authController", () => {
     expect(sessionStore.getSnapshot()).toMatchObject({ status: "authenticated", uid: "uid-a" });
   });
 
-  it("publishes synchronous setup failures", () => {
-    const observerError = new Error("observer setup failed");
-    const observerStore = createAuthSessionStore();
-    const observerController = createAuthController({
-      auth: {} as Auth,
-      authSessionStore: observerStore,
-      onAuthStateChanged: vi.fn(() => {
-        throw observerError;
-      }),
-      signInAnonymously: vi.fn(),
-    });
-
-    expect(() => observerController.start()).not.toThrow();
-    expect(observerStore.getSnapshot()).toEqual({ status: "error", error: observerError });
-
-    const anonymousError = new Error("sign-in setup failed");
-    const { publishUser, sessionStore } = createHarness(
-      vi.fn(() => {
-        throw anonymousError;
-      })
-    );
-    expect(() => publishUser(null)).not.toThrow();
-    expect(sessionStore.getSnapshot()).toEqual({ status: "error", error: anonymousError });
-  });
-
   it("refreshes metadata only for the confirmed uid", () => {
-    const { controller, publishUser, sessionStore } = createHarness();
+    const { runtime, publishUser, sessionStore } = createHarness();
     publishUser(createUser("uid-a"));
 
-    controller.publishAuthenticatedUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
-    controller.publishAuthenticatedUser(createUser("uid-b", { isAnonymous: false, displayName: "Grace" }));
+    runtime.publishAuthenticatedUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
+    runtime.publishAuthenticatedUser(createUser("uid-b", { isAnonymous: false, displayName: "Grace" }));
 
     expect(sessionStore.getSnapshot()).toEqual({
       status: "authenticated",
@@ -189,23 +156,5 @@ describe("authController", () => {
       isAnonymous: false,
       displayName: "Ada",
     });
-  });
-
-  it("ignores late callbacks after disposal", async () => {
-    let rejectSignIn: (error: unknown) => void = () => undefined;
-    const attempt = new Promise<UserCredential>((_resolve, reject) => {
-      rejectSignIn = reject;
-    });
-    const { controller, publishError, publishUser, sessionStore } = createHarness(vi.fn(() => attempt));
-    publishUser(null);
-    controller.dispose();
-
-    publishUser(createUser("uid-a"));
-    publishError(new Error("late observer failure"));
-    rejectSignIn(new Error("late sign-in failure"));
-    await attempt.catch(() => undefined);
-
-    expect(sessionStore.getSnapshot()).toEqual({ status: "signedOut" });
-    expect(() => controller.start()).toThrow("Auth controller has been disposed");
   });
 });
