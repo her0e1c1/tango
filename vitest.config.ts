@@ -14,7 +14,6 @@ export default mergeConfig(
           'src/**/*.d.ts',
           'src/**/*.spec.{ts,tsx}',
           'src/**/*.stories.{ts,tsx}',
-          'src/storybook/**',
         ],
         reporter: ['text', 'html', 'lcov', 'json-summary'],
         reportOnFailure: true,

@@ -4,9 +4,7 @@ import { mergeConfig } from "vite";
 import { withoutPwaPlugins } from "./vitePlugins";
 
 const storybookFirebase = fileURLToPath(new URL("./support/firebase.ts", import.meta.url));
-const storybookFirestoreRuntime = fileURLToPath(
-  new URL("./support/firestoreRuntime.ts", import.meta.url),
-);
+const storybookFirestoreRuntime = fileURLToPath(new URL("./support/firestoreRuntime.ts", import.meta.url));
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.tsx"],
@@ -38,7 +36,7 @@ const config: StorybookConfig = {
             },
           ],
         },
-      },
+      }
     ),
 };
 export default config;
