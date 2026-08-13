@@ -48,7 +48,7 @@ vi.mock("@/features/study", () => ({
   useStudyHydrated: () => mocks.hydrated,
   useStudySessions: () => mocks.sessionsByDeckId,
 }));
-vi.mock("@/features/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
+vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
 vi.mock("@/entities/card", () => ({
   selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
   useCards: () => {
@@ -78,7 +78,7 @@ vi.mock("@/features/deck/delete", () => ({
   },
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/import", () => ({ useSampleDeckBootstrap: vi.fn() }));
+vi.mock("@/features/deck/import", () => ({ useSampleDeckBootstrap: vi.fn() }));
 
 import { DeckListPage } from "./DeckListPage";
 

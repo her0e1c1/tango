@@ -11,7 +11,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DeckImportPreview, DeckImportResult } from "@/features/import";
+import type { DeckImportPreview, DeckImportResult } from "@/features/deck/import";
 
 const mocks = vi.hoisted(() => ({
   selectFile: vi.fn(),
@@ -30,7 +30,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/import", () => ({
+vi.mock("@/features/deck/import", () => ({
   SAMPLE_CSV_TEXT: "sample csv",
   downloadSampleCsv: mocks.downloadSampleCsv,
   useDeckImport: () => ({
