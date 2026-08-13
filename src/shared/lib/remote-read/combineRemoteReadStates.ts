@@ -16,8 +16,6 @@ const combineStatus = (states: readonly RemoteReadState[]): RemoteReadStatus => 
 export const combineRemoteReadStates = (...states: readonly RemoteReadState[]) => ({
   status: combineStatus(states),
   retry: async () => {
-    await Promise.allSettled(
-      states.filter(({ status }) => status === "error" || status === "blocked").map(({ retry }) => retry())
-    );
+    await Promise.allSettled(states.filter(({ status }) => status === "error").map(({ retry }) => retry()));
   },
 });

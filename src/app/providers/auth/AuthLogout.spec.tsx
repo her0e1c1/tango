@@ -20,7 +20,6 @@ const mocks = vi.hoisted(() => ({
   signOut: vi.fn(),
   publishUser: undefined as ((user: User | null) => void) | undefined,
   dispatch: vi.fn(),
-  initializeFirestore: vi.fn(),
   startRemoteReads: vi.fn(),
   cleanupUid: vi.fn(),
   clearStudyStore: vi.fn(),
@@ -40,10 +39,6 @@ vi.mock("firebase/auth", () => ({
 }));
 vi.mock("firebase/app", () => ({
   FirebaseError: class FirebaseError extends Error {},
-}));
-vi.mock("@/shared/firestore", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/shared/firestore")>()),
-  waitForFirestoreInitialization: mocks.initializeFirestore,
 }));
 vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
   startRemoteReads: mocks.startRemoteReads,
@@ -93,7 +88,6 @@ beforeEach(async () => {
   vi.clearAllMocks();
   mocks.auth.currentUser = null;
   mocks.publishUser = undefined;
-  mocks.initializeFirestore.mockResolvedValue({ status: "ready" });
   mocks.operations.length = 0;
   mocks.clearStudyStore.mockImplementation(() => {
     if (!mocks.actualClearStudyStore) throw new Error("Actual study cleanup was not initialized");

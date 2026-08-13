@@ -72,23 +72,6 @@ describe("Deck remote hooks", () => {
     expect(mocks.retry).toHaveBeenCalledOnce();
   });
 
-  it("exposes application-wide initialization failures and retry", () => {
-    const error = new Error("persistence blocked");
-    const retry = vi.fn();
-    const wrapper = ({ children }: PropsWithChildren) => (
-      <RemoteReadScopeProvider uid="uid-a" lifecycle={{ status: "blocked", error, retry }}>
-        {children}
-      </RemoteReadScopeProvider>
-    );
-
-    const { result } = renderHook(useDecks, { wrapper });
-    void result.current.retry();
-
-    expect(result.current.status).toBe("blocked");
-    expect(result.current.error).toBe(error);
-    expect(retry).toHaveBeenCalledOnce();
-  });
-
   it("hides Deck data while the App scope expects another UID", () => {
     const deck = createDeck({ id: "deck" });
     mocks.state = { uid: "uid-b", status: "ready", syncStatus: "synced", itemsById: { [deck.id]: deck } };
