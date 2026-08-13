@@ -35,8 +35,8 @@ export default [
       ...boundariesRecommended.settings,
       "boundaries/elements": sourceLayers.map((layer) => ({
         type: layer,
-        pattern: `src/${layer}`,
-        partialMatch: false,
+        pattern: `src/${layer}/**/*`,
+        mode: "full",
       })),
       "boundaries/ignore": ["src/vite-env.d.ts"],
       "boundaries/dependency-nodes": [
