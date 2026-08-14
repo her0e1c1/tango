@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
   deck: null as Deck | null,
   cards: [] as Card[],
-  readState: { status: "ready" as "loading" | "ready" | "error", retry: vi.fn() },
+  readState: { status: "ready" as "loading" | "ready" | "error" },
   navigate: vi.fn(),
   onClickTag: vi.fn(),
   updateBy: vi.fn(),
@@ -84,7 +84,6 @@ describe("CardListPage", () => {
     mocks.cards = [card, otherCard];
     mocks.preferences = createPreferences();
     mocks.readState.status = "ready";
-    mocks.readState.retry.mockReset();
     mocks.navigate.mockReset();
     mocks.onClickTag.mockReset();
     mocks.updateBy.mockReset().mockResolvedValue(undefined);
@@ -118,17 +117,17 @@ describe("CardListPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
   });
 
-  it("renders loading and retry feedback outside the application shell", async () => {
+  it("renders loading and error feedback outside the application shell", () => {
     mocks.readState.status = "loading";
-    render(<CardListPage />);
+    const view = render(<CardListPage />);
     expect(screen.getByRole("heading", { name: "Loading…" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    view.unmount();
 
     mocks.readState.status = "error";
-    const view = render(<CardListPage />);
-    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
-    expect(mocks.readState.retry).toHaveBeenCalledOnce();
-    view.unmount();
+    render(<CardListPage />);
+    expect(screen.getByRole("heading", { name: "Unable to load data." })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 
   it("renders not-found feedback with route navigation", async () => {
