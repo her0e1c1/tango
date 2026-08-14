@@ -5,7 +5,7 @@ export const toRemoteById = <T extends { id: string }>(items: readonly T[]): Rem
 
 export type RemoteSyncStatus = "cached" | "pending" | "synced";
 
-export interface RemoteSnapshot<T extends { id: string }> {
+interface RemoteSnapshot<T extends { id: string }> {
   itemsById: RemoteById<T>;
   syncStatus: RemoteSyncStatus;
 }

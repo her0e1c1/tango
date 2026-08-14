@@ -5,7 +5,7 @@
  */
 
 import type { Card } from "@/entities/card";
-import type { RemoteSnapshot } from "@/shared/api";
+import type { RemoteSubscriptionProps } from "@/shared/api";
 
 import "@/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
@@ -22,6 +22,8 @@ import { subscribeDecks } from "@/app/providers/remote-read/deck";
 import { deckStore } from "@/entities/deck/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
+type CardSnapshot = Parameters<RemoteSubscriptionProps<Card>["onSnapshot"]>[0];
+
 vi.mock("@/shared/firestore", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/firestore")>()),
   getTimestamp: vi.fn(() => 100),
@@ -37,7 +39,7 @@ describe("Query realtime subscriptions", () => {
 
   it("delivers initial, update, and delete snapshots without a cursor", async () => {
     const uid = "uid";
-    const cardSnapshots: RemoteSnapshot<Card>[] = [];
+    const cardSnapshots: CardSnapshot[] = [];
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, vi.fn(), (error) => errors.push(error));
     const stopCards = subscribeCardReads({
