@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signInAnonymously, type User, type UserCredential } from "firebase/auth";
 
-import { getAuthSession, replaceAuthSession } from "@/entities/auth-session";
+import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 import { clearStudyStore } from "@/features/study";
 import { auth } from "@/shared/firebase";
 

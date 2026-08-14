@@ -8,7 +8,7 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
 import { AppRoutes } from "@/app/routes";
-import { useAuthSession } from "@/entities/auth-session";
+import { useAuthSession } from "@/entities/auth";
 import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 

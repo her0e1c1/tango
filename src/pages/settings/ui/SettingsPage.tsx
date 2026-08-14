@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useAuthSession } from "@/entities/auth-session";
+import { useAuthSession } from "@/entities/auth";
 import { useSignIn } from "@/features/auth/sign-in";
 import { useSignOut } from "@/features/auth/sign-out";
 import { usePreferencesFormState } from "@/features/settings";
