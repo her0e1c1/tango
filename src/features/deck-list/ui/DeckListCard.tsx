@@ -1,5 +1,5 @@
 /**
- * @file Defines the Deck List Page's Deck Card presentation component.
+ * @file Defines the Deck List Feature's Deck Card presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
@@ -9,7 +9,7 @@ import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
 import type { Deck, DeckId } from "@/entities/deck";
-import type { DeckListStudyProgress } from "@/features/deck/list";
+import type { DeckListStudyProgress } from "../model/buildDeckListSections";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
 

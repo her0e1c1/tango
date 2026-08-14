@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import type { Deck } from "@/entities/deck";
-import type { DeckListItem, DeckListSections } from "@/features/deck/list";
+import type { DeckListItem, DeckListSections } from "../model/buildDeckListSections";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
@@ -45,7 +45,7 @@ const longSections: DeckListSections = {
 };
 
 const meta = {
-  title: "Pages/DeckList/DeckListView",
+  title: "Features/DeckList/DeckListView",
   component: Template,
   tags: ["autodocs"],
   parameters: {

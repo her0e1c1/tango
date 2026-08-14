@@ -16,6 +16,7 @@ export default defineConfig([
     files: [
       "./src/entities/study-progress/**",
       "./src/features/deck-editor/**",
+      "./src/features/deck-list/**",
       "./src/features/settings/**",
     ],
     rules: {

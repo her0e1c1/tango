@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckListCard" contract with automated examples.
+ * @file Verifies the Deck List Feature's card behavior.
  * The examples make the expected behavior concrete with cases such as "renders compact progress
  * for an active deck", "renders the card count and Study action for an inactive deck", "passes the
  * deck id to navigation and management actions".

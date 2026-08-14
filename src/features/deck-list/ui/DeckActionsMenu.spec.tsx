@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckActionsMenu" contract with automated examples.
+ * @file Verifies the Deck List Feature's actions menu behavior.
  * The examples make the expected behavior concrete with cases such as "opens an accessible menu
  * and routes each action", "omits Restart for inactive decks", "supports arrow navigation and
  * returns focus to the trigger on Escape".
