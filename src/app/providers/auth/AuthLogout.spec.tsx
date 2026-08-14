@@ -44,9 +44,8 @@ vi.mock("@/app/providers/remote-read/card", () => ({
   startCardSynchronization: () => vi.fn(),
 }));
 vi.mock("@/app/providers/remote-read/deck", () => ({
-  subscribeDecks: (uid: string, onReady?: () => void) => {
+  subscribeDecks: (uid: string) => {
     void mocks.startRemoteReads(uid);
-    onReady?.();
     return () => void mocks.cleanupUid(uid);
   },
 }));
@@ -80,12 +79,17 @@ vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
 import { AppProviders } from "@/app/providers/AppProviders";
 import { startAuthSession } from "@/app/providers/auth/lifecycle";
+import { startRemoteReadSessionLifecycle } from "@/app/providers/remote-read/lifecycle";
 import { getAuthSession, replaceAuthSession, useAuthSession } from "@/entities/auth";
 import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { SettingsPage } from "@/pages/settings";
 import { useStudyStore } from "@/features/study";
 
+let stopRemoteReadSession: (() => void) | undefined;
+
 afterEach(() => {
+  stopRemoteReadSession?.();
+  stopRemoteReadSession = undefined;
   vi.restoreAllMocks();
 });
 
@@ -98,6 +102,7 @@ beforeEach(async () => {
     mocks.publishUser = onUser;
     return vi.fn();
   });
+  stopRemoteReadSession = startRemoteReadSessionLifecycle();
   startAuthSession();
   mocks.clearStudyStore.mockImplementation(() => {
     if (!mocks.actualClearStudyStore) throw new Error("Actual study cleanup was not initialized");
