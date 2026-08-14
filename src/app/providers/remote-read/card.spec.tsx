@@ -180,7 +180,7 @@ describe("Card app synchronization", () => {
     stop();
   });
 
-  it("unsubscribes, clears Cards, and ignores late callbacks when stopped", () => {
+  it("unsubscribes and ignores late callbacks when stopped", () => {
     const { result } = renderCardState();
     const stop = startCardSynchronization("uid-a");
     const previousListener = mocks.listeners[0];
@@ -190,8 +190,7 @@ describe("Card app synchronization", () => {
     act(stop);
 
     expect(previousListener?.unsubscribe).toHaveBeenCalledOnce();
-    expect(result.current.cards).toEqual([]);
     act(() => previousListener?.next(snapshot([cardDocument("late")])));
-    expect(result.current.cards).toEqual([]);
+    expect(result.current.cards).toEqual([expect.objectContaining({ id: "old" })]);
   });
 });

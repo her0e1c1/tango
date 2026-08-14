@@ -31,16 +31,20 @@ const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
   return deck;
 };
 
-export const subscribeDecks = (uid: string, onReady: () => void, onError: (error: Error) => void): (() => void) =>
+export const subscribeDecks = (
+  uid: string,
+  onError: (error: Error) => void,
+  isCurrent: () => boolean = () => true
+): (() => void) =>
   onSnapshot(
     query(collection(db, "deck"), where("uid", "==", uid)),
     (snapshot) => {
+      if (!isCurrent()) return;
       try {
         const decks = snapshot.docs
           .map((document) => convertDeckDtoToDeck(document.id, document.data()))
           .filter((deck) => deck.deletedAt === null);
         replaceDecks(decks);
-        onReady();
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

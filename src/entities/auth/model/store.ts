@@ -7,6 +7,8 @@ export const authSessionStore = createStore<AuthSessionState>()(() => initialAut
 
 export const getAuthSession = (): AuthSessionState => authSessionStore.getState();
 
+export const subscribeAuthSession = (listener: () => void): (() => void) => authSessionStore.subscribe(listener);
+
 export const replaceAuthSession = (session: AuthSessionState): void => {
   authSessionStore.setState(session, true);
 };

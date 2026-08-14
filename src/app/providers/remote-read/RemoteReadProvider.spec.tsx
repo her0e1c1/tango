@@ -1,164 +1,63 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
-import React, { type ReactNode } from "react";
+import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  startCards: vi.fn(),
-  stopCardsByUid: {} as Record<string, ReturnType<typeof vi.fn>>,
-  stopDecks: vi.fn(),
-  clearCards: vi.fn(),
-  clearDecks: vi.fn(),
-  deckReadyByUid: {} as Record<string, () => void>,
-}));
-
-vi.mock("./card", () => ({
-  startCardSynchronization: mocks.startCards.mockImplementation((uid: string) => {
-    const stop = vi.fn();
-    mocks.stopCardsByUid[uid] = stop;
-    return stop;
-  }),
-}));
-vi.mock("@/entities/card", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/entities/card")>();
-  return {
-    ...actual,
-    clearCards: () => {
-      mocks.clearCards();
-      actual.clearCards();
-    },
-  };
-});
-vi.mock("@/entities/deck", () => ({ clearDecks: mocks.clearDecks }));
-vi.mock("./deck", () => ({
-  subscribeDecks: vi.fn((uid: string, onReady: () => void) => {
-    mocks.deckReadyByUid[uid] = onReady;
-    return mocks.stopDecks;
-  }),
-}));
+vi.mock("@/shared/firebase", () => ({ db: "db" }));
+vi.mock("./card", () => ({ startCardSynchronization: () => vi.fn() }));
+vi.mock("./deck", () => ({ subscribeDecks: () => vi.fn() }));
 
 import { RemoteReadProvider } from "@/app/providers/remote-read";
 import { replaceAuthSession } from "@/entities/auth";
-import { replaceCards, useCards } from "@/entities/card";
+import { clearCards, replaceCards, useCards } from "@/entities/card";
 import { createCard } from "@/test/factories";
+import { startRemoteReadSession } from "./lifecycle";
+
+const authenticate = (uid: string) =>
+  replaceAuthSession({ status: "authenticated", uid, isAnonymous: true, displayName: null });
 
 const CardConsumer = ({ onRender }: { onRender?: (frontTexts: string[]) => void }) => {
   const cards = useCards();
-  onRender?.(cards.map(({ frontText }) => frontText));
-  return (
-    <>
-      {cards.map((card) => (
-        <div key={card.id}>{card.frontText}</div>
-      ))}
-    </>
-  );
+  const frontTexts = cards.map(({ frontText }) => frontText);
+  onRender?.(frontTexts);
+  return frontTexts.map((frontText) => <div key={frontText}>{frontText}</div>);
 };
 
-const createHarness = (children?: ReactNode) => {
-  const publishUser = (uid: string | null) =>
-    replaceAuthSession(
-      uid == null
-        ? { status: "unauthenticated" }
-        : { status: "authenticated", uid, isAnonymous: true, displayName: null }
-    );
-  render(
-    <React.StrictMode>
-      <RemoteReadProvider>{children}</RemoteReadProvider>
-    </React.StrictMode>
-  );
-  return { publishUser };
-};
-
-describe("RemoteReadProvider integration", () => {
+describe("RemoteReadProvider", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    replaceCards([]);
     replaceAuthSession({ status: "initializing" });
-    Object.keys(mocks.deckReadyByUid).forEach((uid) => {
-      delete mocks.deckReadyByUid[uid];
-    });
-    Object.keys(mocks.stopCardsByUid).forEach((uid) => {
-      delete mocks.stopCardsByUid[uid];
-    });
+    clearCards();
   });
 
-  it("renders children after the current UID's first Deck snapshot", async () => {
-    const { publishUser } = createHarness(<div>content</div>);
+  it("renders without waiting for a remote snapshot", () => {
+    authenticate("uid-a");
 
-    act(() => publishUser("uid-a"));
-
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
-    expect(screen.queryByText("content")).toBeNull();
-    act(() => mocks.deckReadyByUid["uid-a"]?.());
-    expect(screen.getByText("content")).toBeTruthy();
-  });
-
-  it("ignores readiness from a previous UID", async () => {
-    const { publishUser } = createHarness(<div>content</div>);
-    act(() => publishUser("uid-a"));
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
-    const readyA = mocks.deckReadyByUid["uid-a"];
-    act(() => publishUser("uid-b"));
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-b"));
-
-    act(() => readyA?.());
-    expect(screen.queryByText("content")).toBeNull();
-    act(() => mocks.deckReadyByUid["uid-b"]?.());
-    expect(screen.getByText("content")).toBeTruthy();
-  });
-
-  it("stops the previous UID before starting its replacement", async () => {
-    const { publishUser } = createHarness();
-    act(() => publishUser("uid-a"));
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
-    act(() => publishUser("uid-b"));
-
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-b"));
-    expect(mocks.stopCardsByUid["uid-a"]).toHaveBeenCalledOnce();
-    expect(mocks.stopDecks).toHaveBeenCalledOnce();
-    expect(mocks.clearCards).toHaveBeenCalled();
-    expect(mocks.clearDecks).toHaveBeenCalled();
-  });
-
-  it("stops Card synchronization after logout", async () => {
-    const { publishUser } = createHarness();
-    act(() => publishUser("uid-a"));
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
-
-    act(() => publishUser(null));
-
-    await waitFor(() => expect(mocks.stopCardsByUid["uid-a"]).toHaveBeenCalledOnce());
-  });
-
-  it("does not render the previous user's Card during logout cleanup", async () => {
-    const card = createCard({ id: "card-a", uid: "uid-a", frontText: "Previous user Card" });
-    const renderedCards: string[][] = [];
-    const { publishUser } = createHarness(
-      <>
-        <div>scope content</div>
-        <CardConsumer onRender={(frontTexts) => renderedCards.push(frontTexts)} />
-      </>
+    render(
+      <RemoteReadProvider>
+        <div>content</div>
+      </RemoteReadProvider>
     );
-    act(() => publishUser("uid-a"));
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
-    const readyA = mocks.deckReadyByUid["uid-a"];
-    act(() => readyA?.());
+
+    expect(screen.getByText("content")).toBeTruthy();
+  });
+
+  it("does not render the previous UID's Cards after a session transition", () => {
+    const stopRemoteReadSession = startRemoteReadSession();
+    authenticate("uid-a");
+    const renderedCards: string[][] = [];
+    const card = createCard({ id: "card-a", uid: "uid-a", frontText: "Previous user Card" });
+    const { unmount } = render(
+      <RemoteReadProvider>
+        <CardConsumer onRender={(frontTexts) => renderedCards.push(frontTexts)} />
+      </RemoteReadProvider>
+    );
     act(() => replaceCards([card]));
     expect(screen.getByText(card.frontText)).toBeTruthy();
     renderedCards.length = 0;
 
-    act(() => publishUser(null));
+    act(() => authenticate("uid-b"));
 
-    expect(renderedCards.flat()).not.toContain(card.frontText);
     expect(screen.queryByText(card.frontText)).toBeNull();
-    expect(screen.getByText("scope content")).toBeTruthy();
-    act(() => readyA?.());
-    expect(screen.getByText("scope content")).toBeTruthy();
-    await waitFor(() => expect(mocks.stopCardsByUid["uid-a"]).toHaveBeenCalledOnce());
-
-    act(() => publishUser("uid-a"));
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText("scope content")).toBeNull();
-    act(() => mocks.deckReadyByUid["uid-a"]?.());
-    expect(screen.getByText("scope content")).toBeTruthy();
+    expect(renderedCards.flat()).not.toContain(card.frontText);
+    unmount();
+    stopRemoteReadSession();
   });
 });

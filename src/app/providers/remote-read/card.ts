@@ -3,7 +3,7 @@ import type { Card, CardId } from "@/entities/card";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { z } from "zod";
 
-import { clearCards, replaceCards } from "@/entities/card";
+import { replaceCards } from "@/entities/card";
 import { resetCardRead, setCardReadError, setCardReadLoading, setCardReadReady } from "@/features/card/read";
 import type { RemoteSyncStatus } from "@/shared/api";
 import { db } from "@/shared/firebase";
@@ -132,6 +132,5 @@ export const startCardSynchronization = (uid: string): (() => void) => {
     unsubscribe?.();
     unsubscribe = undefined;
     resetCardRead(uid);
-    clearCards();
   };
 };
