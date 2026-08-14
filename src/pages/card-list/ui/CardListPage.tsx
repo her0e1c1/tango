@@ -5,11 +5,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, filterCardsByDeckId, filterTagsByDeckId } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck, useDeck } from "@/entities/deck";
 import { useDeleteCard } from "@/features/card/delete";
 import { useCards } from "@/features/card/read";
 import { useEditDeck } from "@/features/deck/edit";
-import { useDecks } from "@/features/deck/read";
+import { useDeckRead } from "@/features/deck/read";
 import {
   DeckStartForm,
   type StudyProgressPatch,
@@ -147,9 +147,9 @@ export const CardListPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
   const config = useConfig();
   const cardRemote = useCards();
-  const remote = useDecks();
+  const remote = useDeckRead();
   const readState = combineRemoteReadStates(cardRemote, remote);
-  const deck = remote.decksById[deckId];
+  const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
   const cards = useStudyCards(deck, deckCards, config);
   const tags = filterTagsByDeckId(cardRemote.cards, deckId);

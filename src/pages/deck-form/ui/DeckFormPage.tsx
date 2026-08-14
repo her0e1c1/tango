@@ -1,9 +1,9 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { CATEGORY, type Category, type Deck } from "@/entities/deck";
+import { CATEGORY, type Category, type Deck, useDeck } from "@/entities/deck";
 import { useEditDeck } from "@/features/deck/edit";
-import { useDecks } from "@/features/deck/read";
+import { useDeckRead } from "@/features/deck/read";
 import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
 import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -45,8 +45,8 @@ export const DeckFormPage: React.FC = () => {
   const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
-  const remote = useDecks();
-  const deck = remote.decksById[deckId];
+  const remote = useDeckRead();
+  const deck = useDeck(deckId);
 
   return (
     <RemoteReadBoundary

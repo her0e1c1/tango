@@ -2,9 +2,9 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import type { Card } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck, useDeck } from "@/entities/deck";
 import { useCards } from "@/features/card/read";
-import { useDecks } from "@/features/deck/read";
+import { useDeckRead } from "@/features/deck/read";
 import { useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -37,10 +37,10 @@ export const CardViewPage: React.FC = () => {
   const cardId = params.id;
   if (cardId == null) throw Error("invalid card id");
   const remote = useCards();
-  const deckRemote = useDecks();
+  const deckRemote = useDeckRead();
   const readState = combineRemoteReadStates(remote, deckRemote);
   const card = remote.cardsById[cardId];
-  const deck = card == null ? undefined : deckRemote.decksById[card.deckId];
+  const deck = useDeck(card?.deckId);
   const available = card != null && deck != null;
 
   return (

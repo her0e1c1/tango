@@ -1,4 +1,4 @@
-import { getCategory, isHighlightLanguage, type Deck, type DeckId } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck, type DeckId, useDeck } from "@/entities/deck";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -6,7 +6,7 @@ import { useKey } from "react-use";
 
 import { useCards } from "@/features/card/read";
 import { BackText, CardOverlay, FrontText } from "@/features/card/view";
-import { useDecks } from "@/features/deck/read";
+import { useDeckRead } from "@/features/deck/read";
 import {
   initializeStudySessionUi,
   selectStudySessionForRoute,
@@ -193,10 +193,10 @@ export const DeckSwiperPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
 
-  const remote = useDecks();
+  const remote = useDeckRead();
   const cardRemote = useCards();
   const readState = combineRemoteReadStates(cardRemote, remote);
-  const deck = remote.decksById[deckId];
+  const deck = useDeck(deckId);
 
   return (
     <RemoteReadBoundary

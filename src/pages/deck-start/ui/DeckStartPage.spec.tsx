@@ -23,6 +23,9 @@ vi.mock("@/entities/card", () => ({
   filterCardsByDeckId: () => mocks.cards,
   filterTagsByDeckId: () => [],
 }));
+vi.mock("@/entities/deck", () => ({
+  useDeck: () => mocks.deck ?? undefined,
+}));
 vi.mock("@/features/card/read", () => ({
   useCards: () => ({
     status: "ready" as const,
@@ -32,10 +35,9 @@ vi.mock("@/features/card/read", () => ({
   }),
 }));
 vi.mock("@/features/deck/read", () => ({
-  useDecks: () => ({
+  useDeckRead: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
   }),
 }));
 vi.mock("@/features/deck/edit", () => ({ useEditDeck: () => ({ update: mocks.update }) }));

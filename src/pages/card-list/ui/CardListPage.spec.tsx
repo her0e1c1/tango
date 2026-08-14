@@ -60,13 +60,13 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
+    useDeck: () => mocks.deck ?? undefined,
   };
 });
 vi.mock("@/features/deck/read", () => ({
-  useDecks: () => ({
+  useDeckRead: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
   }),
 }));
 

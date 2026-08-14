@@ -1,5 +1,5 @@
 import type { Card, CardId } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import { type Deck, useDeck } from "@/entities/deck";
 import type { ConfigState } from "@/shared/config";
 
 import * as React from "react";
@@ -9,7 +9,7 @@ import { useKey } from "react-use";
 import { filterCardsByDeckId, filterTagsByDeckId } from "@/entities/card";
 import { useCards } from "@/features/card/read";
 import { useEditDeck } from "@/features/deck/edit";
-import { useDecks } from "@/features/deck/read";
+import { useDeckRead } from "@/features/deck/read";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
@@ -64,9 +64,9 @@ export const DeckStartPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
   const config = useConfig();
   const cardRemote = useCards();
-  const deckRemote = useDecks();
+  const deckRemote = useDeckRead();
   const readState = combineRemoteReadStates(cardRemote, deckRemote);
-  const deck = deckRemote.decksById[deckId];
+  const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
   const cards = useStudyCards(deck, deckCards, config);
   const tags = filterTagsByDeckId(cardRemote.cards, deckId);
