@@ -28,8 +28,8 @@ jobs:
             command: npm run build:sample && npm run build && npm run build:storybook
             registry: true
           - name: Code quality
-            command: npm run fmt && npm run lint
-            registry: false
+            command: npm run build:sample && npm run fmt && npm run lint
+            registry: true
           - name: Unit coverage
             command: npm run build:sample && npm run test:coverage
             registry: true
