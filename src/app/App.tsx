@@ -40,7 +40,7 @@ const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location
         : subscribeCards(
             authenticatedUid,
             (error) => setCardReadError(authenticatedUid, error),
-            () => setCardReadReady(authenticatedUid)
+            (metadata) => setCardReadReady(authenticatedUid, !metadata.fromCache && !metadata.hasPendingWrites)
           );
     const stopDecks = authenticatedUid == null ? undefined : subscribeDecks(authenticatedUid, console.error);
 

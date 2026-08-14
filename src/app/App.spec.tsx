@@ -109,14 +109,21 @@ describe("App", () => {
   it("updates the Card read state from subscription events", () => {
     render(<App />);
     const onError = mocks.subscribeCards.mock.calls[0]?.[1] as (error: Error) => void;
-    const onData = mocks.subscribeCards.mock.calls[0]?.[2] as () => void;
+    const onData = mocks.subscribeCards.mock.calls[0]?.[2] as (metadata: {
+      fromCache: boolean;
+      hasPendingWrites: boolean;
+    }) => void;
     const error = new Error("Card subscription failed");
 
     expect(mocks.setCardReadLoading).toHaveBeenCalledWith("test-user");
-    onData();
+    onData({ fromCache: true, hasPendingWrites: false });
+    onData({ fromCache: false, hasPendingWrites: true });
+    onData({ fromCache: false, hasPendingWrites: false });
     onError(error);
 
-    expect(mocks.setCardReadReady).toHaveBeenCalledWith("test-user");
+    expect(mocks.setCardReadReady).toHaveBeenNthCalledWith(1, "test-user", false);
+    expect(mocks.setCardReadReady).toHaveBeenNthCalledWith(2, "test-user", false);
+    expect(mocks.setCardReadReady).toHaveBeenNthCalledWith(3, "test-user", true);
     expect(mocks.setCardReadError).toHaveBeenCalledWith("test-user", error);
   });
 

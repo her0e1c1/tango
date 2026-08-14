@@ -7,6 +7,7 @@ import type {
   DeleteCardInput,
   EditCardInput,
 } from "../model/types";
+import type { SnapshotMetadata } from "firebase/firestore";
 
 import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
@@ -69,17 +70,18 @@ const convertCardDtoToCard = (id: CardId, value: unknown): Card => {
 export const subscribeCards = (
   uid: string,
   onError: (error: Error) => void,
-  onData: () => void = () => undefined
+  onData: (metadata: SnapshotMetadata) => void = () => undefined
 ): (() => void) =>
   onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
+    { includeMetadataChanges: true },
     (snapshot) => {
       try {
         const cards = snapshot.docs
           .map((document) => convertCardDtoToCard(document.id, document.data()))
           .filter((card) => card.deletedAt === null);
         replaceCards(cards);
-        onData();
+        onData(snapshot.metadata);
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

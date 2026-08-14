@@ -4,8 +4,7 @@
  * normal containers, hooks, and route parameters.
  */
 
-import type { Card } from "@/entities/card";
-import { replaceCards } from "@/entities/card/model/store";
+import { replaceCards, type Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { replaceDecks } from "@/entities/deck";
 
@@ -90,7 +89,7 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   replaceDecks(decks);
   replaceCards(cards);
   setCardReadLoading(PAGE_STORY_UID);
-  setCardReadReady(PAGE_STORY_UID);
+  setCardReadReady(PAGE_STORY_UID, true);
 };
 
 /** Wraps a page story with the providers normally supplied by the application entry point. */

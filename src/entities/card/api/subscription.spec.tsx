@@ -6,7 +6,10 @@ import { useCards } from "../model/hooks";
 import { clearCards } from "../model/store";
 
 type TestDocument = { id: string; data: () => Record<string, unknown> };
-type TestSnapshot = { docs: TestDocument[] };
+type TestSnapshot = {
+  docs: TestDocument[];
+  metadata: { fromCache: boolean; hasPendingWrites: boolean };
+};
 
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
@@ -15,11 +18,13 @@ const mocks = vi.hoisted(() => ({
   next: undefined as ((snapshot: TestSnapshot) => void) | undefined,
   error: undefined as ((error: Error) => void) | undefined,
   unsubscribe: vi.fn(),
-  onSnapshot: vi.fn((_query: unknown, next: (snapshot: TestSnapshot) => void, error: (cause: Error) => void) => {
-    mocks.next = next;
-    mocks.error = error;
-    return mocks.unsubscribe;
-  }),
+  onSnapshot: vi.fn(
+    (_query: unknown, _options: unknown, next: (snapshot: TestSnapshot) => void, error: (cause: Error) => void) => {
+      mocks.next = next;
+      mocks.error = error;
+      return mocks.unsubscribe;
+    }
+  ),
 }));
 
 vi.mock("firebase/firestore", async (importOriginal) => {
@@ -54,6 +59,8 @@ const cardDocument = (id: string, overrides: Record<string, unknown> = {}): Test
   }),
 });
 
+const metadata = { fromCache: false, hasPendingWrites: false };
+
 describe("Card Firestore subscription", () => {
   beforeEach(() => {
     clearCards();
@@ -69,10 +76,16 @@ describe("Card Firestore subscription", () => {
 
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
-    expect(mocks.onSnapshot).toHaveBeenCalledWith(expect.anything(), expect.any(Function), expect.any(Function));
+    expect(mocks.onSnapshot).toHaveBeenCalledWith(
+      expect.anything(),
+      { includeMetadataChanges: true },
+      expect.any(Function),
+      expect.any(Function)
+    );
 
     act(() =>
       mocks.next?.({
+        metadata,
         docs: [
           cardDocument("active", {
             lastSeenAt: 50,
@@ -98,9 +111,9 @@ describe("Card Firestore subscription", () => {
         endLine: 9,
       }),
     ]);
-    expect(onData).toHaveBeenCalledOnce();
+    expect(onData).toHaveBeenCalledWith(metadata);
 
-    act(() => mocks.next?.({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
+    act(() => mocks.next?.({ metadata, docs: [cardDocument("replacement", { frontText: "Current" })] }));
     expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" })]);
 
     unsubscribe();
@@ -111,7 +124,7 @@ describe("Card Firestore subscription", () => {
     const onError = vi.fn();
     subscribeCards("uid-a", onError);
 
-    act(() => mocks.next?.({ docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
+    act(() => mocks.next?.({ metadata, docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ name: "FirestoreDocumentValidationError", documentId: "invalid" })

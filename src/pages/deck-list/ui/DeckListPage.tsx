@@ -21,7 +21,7 @@ export const DeckListPage: React.FC = () => {
   const deleteDeck = useDeleteDeck();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
-  const synchronized = cardReadState.status === "ready";
+  const synchronized = cardReadState.serverConfirmed;
 
   useSampleDeckBootstrap({
     cards,
