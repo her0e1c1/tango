@@ -11,4 +11,4 @@ export { useStudySessions } from "./hooks/useStudySessions";
 export { useStudyStore } from "./hooks/useStudyStore";
 export { selectStudySessionForRoute } from "./state/studyStore";
 export { clearStudyStore } from "./state/studyStoreInstance";
-export { useEditStudyProgress, type StudyProgressPatch } from "./hooks/useEditStudyProgress";
+export { useEditStudyProgress } from "./hooks/useEditStudyProgress";
