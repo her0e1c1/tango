@@ -5,11 +5,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, filterCardsByDeckId, filterTagsByDeckId } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck, useDeck } from "@/entities/deck";
 import { useDeleteCard } from "@/features/card/delete";
 import { useCards } from "@/features/card/read";
 import { useEditDeck } from "@/features/deck/edit";
-import { useDecks } from "@/features/deck/read";
 import {
   DeckStartForm,
   type StudyProgressPatch,
@@ -18,7 +17,6 @@ import {
   useStudyCards,
 } from "@/features/study";
 import { useConfig } from "@/shared/config";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -147,17 +145,15 @@ export const CardListPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
   const config = useConfig();
   const cardRemote = useCards();
-  const remote = useDecks();
-  const readState = combineRemoteReadStates(cardRemote, remote);
-  const deck = remote.decksById[deckId];
+  const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
   const cards = useStudyCards(deck, deckCards, config);
   const tags = filterTagsByDeckId(cardRemote.cards, deckId);
 
   return (
     <RemoteReadBoundary
-      status={readState.status}
-      hasData={readState.status === "ready" && deck != null}
+      status={cardRemote.status}
+      hasData={cardRemote.status === "ready" && deck != null}
       emptyContent={
         <RouteFeedback
           title="Deck not found"
@@ -167,7 +163,7 @@ export const CardListPage: React.FC = () => {
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={readState.retry}
+      onRetry={cardRemote.retry}
     >
       {deck != null ? <CardListContent deck={deck} cards={cards} tags={tags} config={config} /> : null}
     </RemoteReadBoundary>

@@ -47,20 +47,14 @@ vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCs
 vi.mock("@/entities/card", () => ({
   filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
 }));
+vi.mock("@/entities/deck", () => ({
+  useDecks: () => Object.values(mocks.decksById),
+}));
 vi.mock("@/features/card/read", () => ({
   useCards: () => {
     const cards = Object.values(mocks.cardsById);
     return { status: "ready" as const, syncStatus: mocks.syncStatus, retry: vi.fn(), cards };
   },
-}));
-vi.mock("@/features/deck/read", () => ({
-  useDecks: () => ({
-    status: "ready" as const,
-    syncStatus: mocks.syncStatus,
-    retry: vi.fn(),
-    decks: Object.values(mocks.decksById),
-    decksById: mocks.decksById,
-  }),
 }));
 vi.mock("@/features/deck/delete", () => ({
   useDeleteDeck: () => ({
@@ -248,16 +242,6 @@ describe("DeckListPage", () => {
     await waitFor(() => expect(mocks.sessionsByDeckId.missing).toBeUndefined());
     expect(mocks.discardStudySessionsMissingDecks).toHaveBeenCalled();
     expect(mocks.sessionsByDeckId[recentDeck.id]).toBeDefined();
-  });
-
-  it("keeps sessions while remote decks are only available from cache", () => {
-    mocks.syncStatus = "cached";
-    delete mocks.decksById[recentDeck.id];
-
-    render(<DeckListPage />);
-
-    expect(mocks.sessionsByDeckId[recentDeck.id]).toBeDefined();
-    expect(mocks.discardStudySessionsMissingDecks).not.toHaveBeenCalled();
   });
 
   it("lets the user repeat the original Deck deletion after failure", async () => {

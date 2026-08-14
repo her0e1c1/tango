@@ -23,19 +23,15 @@ vi.mock("@/entities/card", () => ({
   filterCardsByDeckId: () => mocks.cards,
   filterTagsByDeckId: () => [],
 }));
+vi.mock("@/entities/deck", () => ({
+  useDeck: () => mocks.deck ?? undefined,
+}));
 vi.mock("@/features/card/read", () => ({
   useCards: () => ({
     status: "ready" as const,
     retry: vi.fn(),
     cards: mocks.cards,
     cardsById: Object.fromEntries(mocks.cards.map((card) => [card.id, card])),
-  }),
-}));
-vi.mock("@/features/deck/read", () => ({
-  useDecks: () => ({
-    status: "ready" as const,
-    retry: vi.fn(),
-    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
   }),
 }));
 vi.mock("@/features/deck/edit", () => ({ useEditDeck: () => ({ update: mocks.update }) }));

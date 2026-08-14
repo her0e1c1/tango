@@ -15,9 +15,7 @@ const mocks = vi.hoisted(() => ({
   card: null as Card | null,
   deck: null as Deck | null,
   cardStatus: "ready" as "loading" | "ready" | "error" | "blocked",
-  deckStatus: "ready" as "loading" | "ready" | "error" | "blocked",
   cardRetry: vi.fn(),
-  deckRetry: vi.fn(),
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
@@ -38,15 +36,9 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
+    useDeck: () => mocks.deck ?? undefined,
   };
 });
-vi.mock("@/features/deck/read", () => ({
-  useDecks: () => ({
-    status: mocks.deckStatus,
-    retry: mocks.deckRetry,
-    decksById: mocks.deck == null ? {} : { [mocks.deck.id]: mocks.deck },
-  }),
-}));
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
@@ -61,7 +53,6 @@ describe("CardViewPage", () => {
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
     mocks.card = createCard({ id: "card-id", deckId: "deck-id", backText: "const answer = 42;", tags: ["typescript"] });
     mocks.cardStatus = "ready";
-    mocks.deckStatus = "ready";
     mocks.navigate.mockReset();
     mocks.setDarkMode.mockReset();
   });

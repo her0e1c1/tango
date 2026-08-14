@@ -1,12 +1,10 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { CATEGORY, type Category, type Deck } from "@/entities/deck";
+import { CATEGORY, type Category, type Deck, useDeck } from "@/entities/deck";
 import { useEditDeck } from "@/features/deck/edit";
-import { useDecks } from "@/features/deck/read";
 import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
 import { Feedback } from "@/shared/ui/feedback";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -45,25 +43,17 @@ export const DeckFormPage: React.FC = () => {
   const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
-  const remote = useDecks();
-  const deck = remote.decksById[deckId];
+  const deck = useDeck(deckId);
+
+  if (deck != null) return <DeckFormContent deck={deck} />;
 
   return (
-    <RemoteReadBoundary
-      status={remote.status}
-      hasData={deck != null}
-      emptyContent={
-        <RouteFeedback
-          title="Deck not found"
-          description="The requested deck is unavailable or has been removed."
-          tone="not-found"
-          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
-        />
-      }
-      onRetry={remote.retry}
-    >
-      {deck != null ? <DeckFormContent deck={deck} /> : null}
-    </RemoteReadBoundary>
+    <RouteFeedback
+      title="Deck not found"
+      description="The requested deck is unavailable or has been removed."
+      tone="not-found"
+      primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+      secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+    />
   );
 };

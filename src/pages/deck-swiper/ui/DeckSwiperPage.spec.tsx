@@ -44,9 +44,7 @@ const mocks = vi.hoisted(() => ({
   touchStudySession: vi.fn(),
   hydrated: true,
   cardReadStatus: "ready" as "loading" | "ready" | "error" | "blocked",
-  deckReadStatus: "ready" as "loading" | "ready" | "error" | "blocked",
   cardReadRetry: vi.fn(),
-  deckReadRetry: vi.fn(),
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
   setDarkMode: vi.fn(),
@@ -68,16 +66,9 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
+    useDeck: (id: DeckId) => mocks.state?.deck[id],
   };
 });
-vi.mock("@/features/deck/read", () => ({
-  useDecks: () => ({
-    status: mocks.deckReadStatus,
-    retry: mocks.deckReadRetry,
-    decksById: mocks.state?.deck ?? {},
-  }),
-}));
-
 vi.mock("@/features/card/read", () => ({
   useCards: () => ({
     status: mocks.cardReadStatus,
@@ -171,7 +162,6 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     mocks.state = createState();
     mocks.hydrated = true;
     mocks.cardReadStatus = "ready";
-    mocks.deckReadStatus = "ready";
     mocks.studyState.sessionsByDeckId = {
       [deck.id]: {
         deckId: deck.id,
