@@ -69,6 +69,14 @@ describe("remote read session lifecycle", () => {
     expect(mocks.operations).toEqual(["clear Cards", "clear Decks"]);
   });
 
+  it("clears entity data before starting listeners for the current authenticated session", () => {
+    mocks.session = authenticated("uid-a");
+
+    startRemoteReadSessionLifecycle();
+
+    expect(mocks.operations).toEqual(["clear Cards", "clear Decks", "start Cards uid-a", "start Decks uid-a"]);
+  });
+
   it("stops and clears the previous session before starting the replacement", () => {
     startRemoteReadSessionLifecycle();
     publish(authenticated("uid-a"));
