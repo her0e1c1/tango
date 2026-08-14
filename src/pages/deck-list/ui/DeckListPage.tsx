@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { filterCardsByDeckId } from "@/entities/card";
-import type { Deck, DeckId } from "@/entities/deck";
+import { type Deck, type DeckId, useDecks } from "@/entities/deck";
 import { createCard, generateCardId } from "@/features/card/create";
 import { editCard } from "@/features/card/edit";
 import { useCards } from "@/features/card/read";
@@ -12,7 +12,6 @@ import { useDeleteDeck } from "@/features/deck/delete";
 import { buildDeckListSections } from "@/features/deck/list";
 import { downloadDeckCsv } from "@/features/deck/export";
 import { useSampleDeckBootstrap } from "@/features/deck/import";
-import { useDecks } from "@/features/deck/read";
 import {
   discardStudySessionsMissingDecks,
   removeStudySession,
@@ -20,7 +19,6 @@ import {
   useStudyHydrated,
   useStudySessions,
 } from "@/features/study";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -31,8 +29,7 @@ import { DeckListView } from "./DeckListView";
 export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
   const cardRemote = useCards();
-  const deckRemote = useDecks();
-  const readState = combineRemoteReadStates(cardRemote, deckRemote);
+  const decks = useDecks();
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [deletionErrorDeckId, setDeletionErrorDeckId] = React.useState<DeckId>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
@@ -40,17 +37,13 @@ export const DeckListPage: React.FC = () => {
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
-  const sections = buildDeckListSections(deckRemote.decks, cardRemote.cards, sessionsByDeckId);
-  const synchronized =
-    cardRemote.status === "ready" &&
-    cardRemote.syncStatus === "synced" &&
-    deckRemote.status === "ready" &&
-    deckRemote.syncStatus === "synced";
+  const sections = buildDeckListSections(decks, cardRemote.cards, sessionsByDeckId);
+  const synchronized = cardRemote.status === "ready" && cardRemote.syncStatus === "synced";
   useSampleDeckBootstrap({
     cards: cardRemote.cards,
     createCard,
     createDeck,
-    decks: deckRemote.decks,
+    decks,
     editCard,
     generateCardId,
     synchronized,
@@ -59,18 +52,16 @@ export const DeckListPage: React.FC = () => {
   useKey("i", () => void navigate("/import"));
 
   React.useEffect(() => {
-    if (!hydrated || deckRemote.status !== "ready" || deckRemote.syncStatus !== "synced") {
-      return;
-    }
-    discardStudySessionsMissingDecks(deckRemote.decks.map((deck) => deck.id));
-  }, [deckRemote.decks, deckRemote.status, deckRemote.syncStatus, hydrated]);
+    if (!hydrated) return;
+    discardStudySessionsMissingDecks(decks.map((deck) => deck.id));
+  }, [decks, hydrated]);
 
   return (
     <RemoteReadBoundary
-      status={readState.status}
-      hasData={readState.status === "ready" && deckRemote.decks.length > 0}
+      status={cardRemote.status}
+      hasData={cardRemote.status === "ready" && decks.length > 0}
       emptyLabel="No decks yet."
-      onRetry={readState.retry}
+      onRetry={cardRemote.retry}
     >
       {hydrated ? (
         <AppLayout showHeader>
@@ -124,11 +115,11 @@ export const DeckListPage: React.FC = () => {
               onClickRestart: (id) => void navigate(`/deck/${id}/start`),
               onClickStudy: (id) => void navigate(`/deck/${id}/start`),
               onClickDownload: (id) => {
-                const deck = deckRemote.decksById[id];
+                const deck = decks.find((candidate) => candidate.id === id);
                 if (deck != null) downloadDeckCsv(deck, filterCardsByDeckId(cardRemote.cards, id));
               },
               onClickDelete: (id) => {
-                const deck = deckRemote.decksById[id];
+                const deck = decks.find((candidate) => candidate.id === id);
                 if (deck != null) {
                   setSuccessMessage(undefined);
                   setDeletionErrorDeckId(undefined);

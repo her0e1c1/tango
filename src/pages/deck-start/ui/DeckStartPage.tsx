@@ -1,5 +1,5 @@
 import type { Card, CardId } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import { type Deck, useDeck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
 import * as React from "react";
@@ -9,10 +9,8 @@ import { useKey } from "react-use";
 import { filterCardsByDeckId, filterTagsByDeckId } from "@/entities/card";
 import { useCards } from "@/features/card/read";
 import { useEditDeck } from "@/features/deck/edit";
-import { useDecks } from "@/features/deck/read";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -64,17 +62,15 @@ export const DeckStartPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
   const preferences = usePreferences();
   const cardRemote = useCards();
-  const deckRemote = useDecks();
-  const readState = combineRemoteReadStates(cardRemote, deckRemote);
-  const deck = deckRemote.decksById[deckId];
+  const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
   const cards = useStudyCards(deck, deckCards, preferences);
   const tags = filterTagsByDeckId(cardRemote.cards, deckId);
 
   return (
     <RemoteReadBoundary
-      status={readState.status}
-      hasData={readState.status === "ready" && deck != null}
+      status={cardRemote.status}
+      hasData={cardRemote.status === "ready" && deck != null}
       emptyContent={
         <RouteFeedback
           title="Deck not found"
@@ -84,7 +80,7 @@ export const DeckStartPage: React.FC = () => {
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={readState.retry}
+      onRetry={cardRemote.retry}
     >
       {deck != null ? (
         <DeckStartContent

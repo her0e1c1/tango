@@ -7,7 +7,7 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { cardRemoteReadStore } from "@/features/card/read/model/remoteReadStore";
-import { deckRemoteReadStore } from "@/features/deck/read/model/remoteReadStore";
+import { replaceDecks } from "@/entities/deck";
 
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
@@ -86,12 +86,7 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
     autoPlay: parameters.autoPlay ?? false,
     lastSwipe: undefined,
   });
-  deckRemoteReadStore.setState({
-    uid: PAGE_STORY_UID,
-    status: "ready",
-    itemsById: toRemoteById(decks),
-    syncStatus: "synced",
-  });
+  replaceDecks(decks);
   cardRemoteReadStore.setState({
     uid: PAGE_STORY_UID,
     status: "ready",

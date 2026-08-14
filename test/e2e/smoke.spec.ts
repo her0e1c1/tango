@@ -38,7 +38,7 @@ test("shows settings and persists a device setting", async ({ page }) => {
   await expect
     .poll(() =>
       page.evaluate(
-        () => JSON.parse(window.localStorage.getItem("tango-config") ?? "{}").state?.config?.appearance?.darkMode
+        () => JSON.parse(window.localStorage.getItem("tango-config") ?? "{}").state?.preferences?.appearance?.darkMode
       )
     )
     .toBe(true);

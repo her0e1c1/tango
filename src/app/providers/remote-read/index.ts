@@ -1,1 +1,1 @@
-export { RemoteReadBootstrap } from "@/app/providers/remote-read/RemoteReadBootstrap";
+export { RemoteReadProvider } from "@/app/providers/remote-read/RemoteReadProvider";
