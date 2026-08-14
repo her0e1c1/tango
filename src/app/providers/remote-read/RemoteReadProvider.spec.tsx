@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   startCards: vi.fn(),
   stopCards: vi.fn(),
   stopDecks: vi.fn(),
+  clearCards: vi.fn(),
   clearDecks: vi.fn(),
   deckReadyByUid: {} as Record<string, () => void>,
 }));
@@ -14,6 +15,7 @@ vi.mock("@/features/card/read", () => ({
   startCardReads: mocks.startCards,
   stopCardReads: mocks.stopCards,
 }));
+vi.mock("@/entities/card", () => ({ clearCards: mocks.clearCards }));
 vi.mock("@/entities/deck", () => ({ clearDecks: mocks.clearDecks }));
 vi.mock("./deck", () => ({
   subscribeDecks: vi.fn((uid: string, onReady: () => void) => {
@@ -81,6 +83,19 @@ describe("RemoteReadProvider integration", () => {
     await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-b"));
     expect(mocks.stopCards).toHaveBeenCalledExactlyOnceWith("uid-a");
     expect(mocks.stopDecks).toHaveBeenCalledOnce();
+    expect(mocks.clearCards).toHaveBeenCalled();
     expect(mocks.clearDecks).toHaveBeenCalled();
+  });
+
+  it("clears Card data after logout", async () => {
+    const { publishUser } = createHarness();
+    act(() => publishUser("uid-a"));
+    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
+    mocks.clearCards.mockClear();
+
+    act(() => publishUser(null));
+
+    await waitFor(() => expect(mocks.stopCards).toHaveBeenCalledWith("uid-a"));
+    expect(mocks.clearCards).toHaveBeenCalled();
   });
 });
