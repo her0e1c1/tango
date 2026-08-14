@@ -1,4 +1,4 @@
-import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 
 import { defaultPreferences, type Preferences } from "./preferences";
@@ -17,30 +17,11 @@ interface PersistedPreferencesState {
   preferences: Preferences;
 }
 
-interface CreatePreferencesStoreOptions {
-  storage?: StateStorage;
-}
-
-const createInitialPreferences = (): Preferences => ({
-  ...defaultPreferences,
-  appearance: { ...defaultPreferences.appearance },
-  study: { ...defaultPreferences.study, selectedTags: [...defaultPreferences.study.selectedTags] },
-  controls: { ...defaultPreferences.controls },
-});
-
-const getPersistedPreferences = (persistedState: unknown): Preferences => {
-  if (typeof persistedState !== "object" || persistedState == null || !("preferences" in persistedState)) {
-    return createInitialPreferences();
-  }
-  return preferencesSchema.parse(persistedState.preferences);
-};
-
-const createPreferencesStore = ({ storage }: CreatePreferencesStoreOptions = {}) => {
-  const persistStorage = createJSONStorage<PersistedPreferencesState>(() => storage ?? localStorage);
-  return createStore<PreferencesStoreState>()(
+const createPreferencesStore = () =>
+  createStore<PreferencesStoreState>()(
     persist<PreferencesStoreState, [], [], PersistedPreferencesState>(
       (set) => ({
-        preferences: createInitialPreferences(),
+        preferences: defaultPreferences,
         updatePreferences: (preferencesInput) =>
           set((state) => {
             const merged = {
@@ -60,16 +41,16 @@ const createPreferencesStore = ({ storage }: CreatePreferencesStoreOptions = {})
       }),
       {
         name: "tango-config",
-        ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
-        merge: (persistedState, currentState) => ({
-          ...currentState,
-          preferences: getPersistedPreferences(persistedState),
-        }),
+        merge: (persistedState, currentState) => {
+          const result = preferencesSchema.safeParse(
+            (persistedState as Partial<PersistedPreferencesState> | undefined)?.preferences
+          );
+          return result.success ? { ...currentState, preferences: result.data } : currentState;
+        },
         partialize: ({ preferences }) => ({ preferences }),
       }
     )
   );
-};
 
 export const preferencesStore = createPreferencesStore();
 
