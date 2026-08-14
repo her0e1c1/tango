@@ -1,10 +1,10 @@
-import type { PropsWithChildren } from "react";
+import { useEffect, type PropsWithChildren } from "react";
 
-import { AuthBootstrap } from "@/app/providers/auth";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
+import { startAuthSession } from "./auth/authLifecycle";
 
-export const AppProviders = ({ children }: PropsWithChildren) => (
-  <AuthBootstrap>
-    <RemoteReadProvider>{children}</RemoteReadProvider>
-  </AuthBootstrap>
-);
+export const AppProviders = ({ children }: PropsWithChildren) => {
+  useEffect(startAuthSession, []);
+
+  return <RemoteReadProvider>{children}</RemoteReadProvider>;
+};
