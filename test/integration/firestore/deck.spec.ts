@@ -8,7 +8,7 @@ import { createDeck, deleteDeck, editDeck, type Deck, type DeckCreateInput } fro
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
-import { createCard as createCardCommand } from "@/features/card/create";
+import { createCard as createCardCommand } from "@/entities/card";
 import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";

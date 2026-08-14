@@ -1,7 +1,6 @@
-import type { Card, CardEdit } from "@/entities/card";
+import { type Card, type CardEdit, editCard } from "@/entities/card";
 
 import { useAuthSession } from "@/entities/auth";
-import { editCard } from "../api/editCard";
 
 type CardPatch = Omit<CardEdit, "id" | "uid">;
 
