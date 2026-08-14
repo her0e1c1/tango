@@ -34,7 +34,7 @@
     "lint:fsd": "steiger ./src",
     "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' && biome lint --write . && npm run fmt:markdown",
     "lint:knip": "knip",
-    "lint:knip:production": "knip --config knip.production.json --production --include files,exports,types",
+    "lint:knip:production": "knip --production --files --exports",
     "lint:markdown": "markdownlint-cli2",
     "lint:tsc": "tsc",
     "storybook": "storybook dev"
