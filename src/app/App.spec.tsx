@@ -67,7 +67,7 @@ describe("App", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Starting Tango…" })).toBeInTheDocument();
     expect(screen.queryByText("Deck list")).toBeNull();
 
-    mocks.authState = { status: "authenticating", attemptId: "attempt-a" };
+    mocks.authState = { status: "authenticating", attemptId: Symbol("attempt-a") };
     view.rerender(<App />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Starting Tango…" })).toBeInTheDocument();

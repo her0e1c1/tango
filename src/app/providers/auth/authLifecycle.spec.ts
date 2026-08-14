@@ -90,7 +90,7 @@ describe("authLifecycle", () => {
     expect(getAuthSession()).toEqual({ status: "signedOut" });
     expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
-    expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(String) });
+    expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
   });
 
   it("waits for Study cleanup before anonymous sign-in", async () => {
@@ -147,14 +147,14 @@ describe("authLifecycle", () => {
 
     publishUser(null);
     await vi.waitFor(() =>
-      expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(String) })
+      expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) })
     );
     publishUser(null);
     await Promise.resolve();
 
     expect(signInAnonymously).toHaveBeenCalledOnce();
     expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
-    expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(String) });
+    expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
   });
 
   it("starts anonymous sign-in once when duplicate cleanups finish", async () => {
@@ -172,7 +172,7 @@ describe("authLifecycle", () => {
 
     finishCleanup();
     await vi.waitFor(() =>
-      expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(String) })
+      expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) })
     );
 
     expect(signInAnonymously).toHaveBeenCalledOnce();
@@ -231,13 +231,13 @@ describe("authLifecycle", () => {
     publishUser(null);
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
     const firstAttempt = getAuthSession();
-    expect(firstAttempt).toMatchObject({ status: "authenticating", attemptId: expect.any(String) });
+    expect(firstAttempt).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
 
     publishUser(createUser("uid-a"));
     publishUser(null);
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledTimes(2));
     const secondAttempt = getAuthSession();
-    expect(secondAttempt).toMatchObject({ status: "authenticating", attemptId: expect.any(String) });
+    expect(secondAttempt).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
     expect(secondAttempt).not.toEqual(firstAttempt);
 
     rejectFirstSignIn(new Error("late failure"));

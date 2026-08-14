@@ -14,7 +14,7 @@ const authSessionFromUser = (user: User) => ({
 const startAnonymousBootstrap = () => {
   if (getAuthSession().status !== "signedOut") return;
 
-  const attemptId = crypto.randomUUID();
+  const attemptId = Symbol("anonymous-auth-attempt");
   replaceAuthSession({ status: "authenticating", attemptId });
   void signInAnonymously(auth).catch((error) => {
     const currentSession = getAuthSession();
