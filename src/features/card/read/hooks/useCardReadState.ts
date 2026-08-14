@@ -1,5 +1,5 @@
-import { cardRemoteReadStore } from "../model/remoteReadStore";
 import { useRemoteRead } from "@/shared/lib/remote-read";
+import { cardRemoteReadStore } from "../model/remoteReadStore";
 
 export const useCardReadState = () => {
   const remote = useRemoteRead(cardRemoteReadStore);

@@ -4,16 +4,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   startCards: vi.fn(),
-  stopCards: vi.fn(),
+  stopCardsByUid: {} as Record<string, ReturnType<typeof vi.fn>>,
   stopDecks: vi.fn(),
   clearCards: vi.fn(),
   clearDecks: vi.fn(),
   deckReadyByUid: {} as Record<string, () => void>,
 }));
 
-vi.mock("@/features/card/read", () => ({
-  startCardReads: mocks.startCards,
-  stopCardReads: mocks.stopCards,
+vi.mock("./card", () => ({
+  startCardSynchronization: mocks.startCards.mockImplementation((uid: string) => {
+    const stop = vi.fn();
+    mocks.stopCardsByUid[uid] = stop;
+    return stop;
+  }),
 }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
@@ -73,6 +76,9 @@ describe("RemoteReadProvider integration", () => {
     Object.keys(mocks.deckReadyByUid).forEach((uid) => {
       delete mocks.deckReadyByUid[uid];
     });
+    Object.keys(mocks.stopCardsByUid).forEach((uid) => {
+      delete mocks.stopCardsByUid[uid];
+    });
   });
 
   it("renders children after the current UID's first Deck snapshot", async () => {
@@ -107,25 +113,23 @@ describe("RemoteReadProvider integration", () => {
     act(() => publishUser("uid-b"));
 
     await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-b"));
-    expect(mocks.stopCards).toHaveBeenCalledExactlyOnceWith("uid-a");
+    expect(mocks.stopCardsByUid["uid-a"]).toHaveBeenCalledOnce();
     expect(mocks.stopDecks).toHaveBeenCalledOnce();
     expect(mocks.clearCards).toHaveBeenCalled();
     expect(mocks.clearDecks).toHaveBeenCalled();
   });
 
-  it("clears Card data after logout", async () => {
+  it("stops Card synchronization after logout", async () => {
     const { publishUser } = createHarness();
     act(() => publishUser("uid-a"));
     await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
-    mocks.clearCards.mockClear();
 
     act(() => publishUser(null));
 
-    await waitFor(() => expect(mocks.stopCards).toHaveBeenCalledWith("uid-a"));
-    expect(mocks.clearCards).toHaveBeenCalled();
+    await waitFor(() => expect(mocks.stopCardsByUid["uid-a"]).toHaveBeenCalledOnce());
   });
 
-  it("hides the previous user's Card while logout clears the read scope", async () => {
+  it("does not render the previous user's Card during logout cleanup", async () => {
     const card = createCard({ id: "card-a", uid: "uid-a", frontText: "Previous user Card" });
     const renderedCards: string[][] = [];
     const { publishUser } = createHarness(
@@ -149,7 +153,7 @@ describe("RemoteReadProvider integration", () => {
     expect(screen.getByText("scope content")).toBeTruthy();
     act(() => readyA?.());
     expect(screen.getByText("scope content")).toBeTruthy();
-    await waitFor(() => expect(mocks.stopCards).toHaveBeenCalledWith("uid-a"));
+    await waitFor(() => expect(mocks.stopCardsByUid["uid-a"]).toHaveBeenCalledOnce());
 
     act(() => publishUser("uid-a"));
     await waitFor(() => expect(mocks.startCards).toHaveBeenCalledTimes(2));

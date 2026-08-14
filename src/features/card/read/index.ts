@@ -1,2 +1,7 @@
 export { useCardReadState } from "./hooks/useCardReadState";
-export { startCardReads, stopCardReads } from "./model/remoteReadStore";
+export {
+  resetCardRead,
+  setCardReadError,
+  setCardReadLoading,
+  setCardReadReady,
+} from "./model/remoteReadStore";
