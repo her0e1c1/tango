@@ -1,9 +1,3 @@
-/**
- * @file Provides deck editor rules for Deck Form Schema.
- * Keeping these calculations outside React makes their inputs, outputs, and edge cases easier to
- * understand and test.
- */
-
 import * as z from "zod";
 
 export const deckFormSchema = z.object({

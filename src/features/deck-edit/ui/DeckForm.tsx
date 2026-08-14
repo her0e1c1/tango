@@ -1,9 +1,3 @@
-/**
- * @file Defines the deck editor feature's Deck Form presentation component.
- * The component renders props and reports user intent through callbacks while data access stays
- * outside the view.
- */
-
 import type { Deck } from "@/entities/deck";
 
 import type * as React from "react";
@@ -26,16 +20,11 @@ export interface DeckFormProps {
     name?: string;
     url?: string;
   };
-  isSubmitting?: boolean;
-  onCancel?: () => void;
-  onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
+  isSubmitting: boolean;
+  onCancel: () => void;
+  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
 }
 
-/**
- * Renders the Deck Form user interface.
- * Collects deck metadata and import settings, connects validation messages, and forwards submit or
- * cancel actions.
- */
 export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();
   const basicHeadingId = `${sectionHeadingIdPrefix}-deck-basic-heading`;
@@ -46,7 +35,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const urlErrorId = `${urlInputId}-error`;
 
   return (
-    <Form {...(props.onSubmit !== undefined ? { onSubmit: props.onSubmit } : {})}>
+    <Form onSubmit={props.onSubmit}>
       <section
         aria-labelledby={basicHeadingId}
         className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
@@ -127,14 +116,10 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
         </dl>
       </details>
       <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-        <Button variant="quiet" type="button" {...(props.onCancel !== undefined ? { onClick: props.onCancel } : {})}>
+        <Button variant="quiet" type="button" onClick={props.onCancel}>
           Cancel
         </Button>
-        <Button
-          variant="primary"
-          type="submit"
-          {...(props.isSubmitting !== undefined ? { disabled: props.isSubmitting } : {})}
-        >
+        <Button variant="primary" type="submit" disabled={props.isSubmitting}>
           {props.isSubmitting ? "Saving…" : "Save changes"}
         </Button>
       </div>

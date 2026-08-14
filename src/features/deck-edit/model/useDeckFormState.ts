@@ -3,27 +3,17 @@ import type { Deck } from "@/entities/deck";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import type { DeckFormProps } from "../components/DeckForm";
-import { deckFormSchema, type DeckFormValues } from "../lib/deckFormSchema";
-
-interface DeckFormOption {
-  label: string;
-  value: string;
-}
+import { CATEGORY } from "@/entities/deck";
+import type { DeckFormProps } from "../ui/DeckForm";
+import { deckFormSchema, type DeckFormValues } from "./deckFormSchema";
 
 interface UseDeckFormStateOptions {
   deck: Deck;
-  categoryOptions: DeckFormOption[];
-  onCancel?: () => void;
-  onSubmit?: (deck: Deck) => void | Promise<void>;
+  onCancel: () => void;
+  onSubmit: (deck: Deck) => Promise<void>;
 }
 
-export const useDeckFormState = ({
-  deck,
-  categoryOptions,
-  onCancel,
-  onSubmit,
-}: UseDeckFormStateOptions): DeckFormProps => {
+export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateOptions): DeckFormProps => {
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
     defaultValues: {
       name: deck.name,
@@ -42,7 +32,7 @@ export const useDeckFormState = ({
       url: register("url"),
       category: {
         ...register("category"),
-        options: categoryOptions,
+        options: CATEGORY.map((category) => ({ label: category, value: category })),
       },
     },
     errors: {
@@ -50,7 +40,7 @@ export const useDeckFormState = ({
       ...(formState.errors.url?.message !== undefined ? { url: formState.errors.url.message } : {}),
     },
     isSubmitting: formState.isSubmitting,
-    ...(onCancel !== undefined ? { onCancel } : {}),
-    onSubmit: handleSubmit((values) => onSubmit?.({ ...deck, ...values, url: values.url ?? "" })),
+    onCancel,
+    onSubmit: handleSubmit((values) => onSubmit({ ...deck, ...values, url: values.url ?? "" })),
   };
 };
