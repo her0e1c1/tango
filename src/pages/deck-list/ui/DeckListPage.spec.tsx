@@ -56,13 +56,6 @@ vi.mock("@/features/card/read", () => ({
     return { status: "ready" as const, syncStatus: mocks.syncStatus, retry: vi.fn(), cards };
   },
 }));
-vi.mock("@/features/deck/read", () => ({
-  useDeckRead: () => ({
-    status: "ready" as const,
-    syncStatus: mocks.syncStatus,
-    retry: vi.fn(),
-  }),
-}));
 vi.mock("@/features/deck/delete", () => ({
   useDeleteDeck: () => ({
     remove: mocks.remove,
@@ -248,16 +241,6 @@ describe("DeckListPage", () => {
     await waitFor(() => expect(mocks.sessionsByDeckId.missing).toBeUndefined());
     expect(mocks.discardStudySessionsMissingDecks).toHaveBeenCalled();
     expect(mocks.sessionsByDeckId[recentDeck.id]).toBeDefined();
-  });
-
-  it("keeps sessions while remote decks are only available from cache", () => {
-    mocks.syncStatus = "cached";
-    delete mocks.decksById[recentDeck.id];
-
-    render(<DeckListPage />);
-
-    expect(mocks.sessionsByDeckId[recentDeck.id]).toBeDefined();
-    expect(mocks.discardStudySessionsMissingDecks).not.toHaveBeenCalled();
   });
 
   it("lets the user repeat the original Deck deletion after failure", async () => {

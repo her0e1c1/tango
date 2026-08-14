@@ -47,9 +47,6 @@ vi.mock("@/features/deck/import", () => ({
     error: mocks.error,
   }),
 }));
-vi.mock("@/features/deck/read", () => ({
-  useDeckRead: () => ({ status: "ready", syncStatus: "synced" }),
-}));
 vi.mock("@/features/card/read", () => ({
   useCards: () => ({ status: "ready", syncStatus: "synced", cards: [] }),
 }));

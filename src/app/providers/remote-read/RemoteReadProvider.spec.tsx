@@ -1,4 +1,4 @@
-import { act, render, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import type { User } from "firebase/auth";
 import React, { type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,8 +7,10 @@ const mocks = vi.hoisted(() => ({
   auth: { currentUser: null },
   onAuthStateChanged: vi.fn(() => vi.fn()),
   signInAnonymously: vi.fn(),
-  start: vi.fn(),
-  stop: vi.fn(),
+  startCards: vi.fn(),
+  stopCards: vi.fn(),
+  stopDecks: vi.fn(),
+  clearDecks: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
@@ -19,14 +21,18 @@ vi.mock("firebase/auth", () => ({
   signInAnonymously: mocks.signInAnonymously,
   signInWithCredential: vi.fn(),
 }));
-vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
-  startRemoteReads: mocks.start,
-  stopRemoteReads: mocks.stop,
+vi.mock("@/features/card/read", () => ({
+  startCardReads: mocks.startCards,
+  stopCardReads: mocks.stopCards,
+}));
+vi.mock("@/entities/deck", () => ({ clearDecks: mocks.clearDecks }));
+vi.mock("./deck", () => ({
+  subscribeDecks: vi.fn(() => mocks.stopDecks),
 }));
 
 import { AuthProvider } from "@/app/providers/auth";
 import type { AuthRuntime } from "@/app/providers/auth/authController";
-import { RemoteReadBootstrap } from "@/app/providers/remote-read";
+import { RemoteReadProvider } from "@/app/providers/remote-read";
 import { createAuthSessionStore } from "@/entities/auth-session";
 
 const createHarness = (children?: ReactNode) => {
@@ -46,25 +52,25 @@ const createHarness = (children?: ReactNode) => {
   render(
     <React.StrictMode>
       <AuthProvider runtime={runtime}>
-        <RemoteReadBootstrap>{children}</RemoteReadBootstrap>
+        <RemoteReadProvider>{children}</RemoteReadProvider>
       </AuthProvider>
     </React.StrictMode>
   );
   return { publishUser };
 };
 
-describe("RemoteReadBootstrap integration", () => {
+describe("RemoteReadProvider integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("starts remote reads once for one confirmed state under StrictMode and AuthProvider", async () => {
-    const { publishUser } = createHarness();
+  it("starts reads and renders children", async () => {
+    const { publishUser } = createHarness(<div>content</div>);
 
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
-    await waitFor(() => expect(mocks.start).toHaveBeenCalledTimes(1));
-    expect(mocks.start).toHaveBeenCalledWith("uid-a");
+    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
+    expect(screen.getByText("content")).toBeTruthy();
   });
 
   it("stops the previous UID before starting its replacement", async () => {
@@ -73,11 +79,12 @@ describe("RemoteReadBootstrap integration", () => {
     const userB = { uid: "uid-b", isAnonymous: true, providerData: [] } as unknown as User;
 
     act(() => publishUser(userA));
-    await waitFor(() => expect(mocks.start).toHaveBeenCalledWith("uid-a"));
+    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
     act(() => publishUser(userB));
 
-    await waitFor(() => expect(mocks.start).toHaveBeenCalledWith("uid-b"));
-    expect(mocks.stop).toHaveBeenCalledExactlyOnceWith("uid-a");
-    expect(mocks.stop.mock.invocationCallOrder[0]).toBeLessThan(mocks.start.mock.invocationCallOrder[1] ?? 0);
+    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-b"));
+    expect(mocks.stopCards).toHaveBeenCalledExactlyOnceWith("uid-a");
+    expect(mocks.stopDecks).toHaveBeenCalledOnce();
+    expect(mocks.clearDecks).toHaveBeenCalled();
   });
 });

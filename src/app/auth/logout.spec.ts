@@ -8,7 +8,6 @@ const mocks = vi.hoisted(() => ({
   signOutCurrentUser: vi.fn(),
   suspendAnonymousBootstrap: vi.fn(),
   resumeAnonymousBootstrap: vi.fn(),
-  stopRemoteReads: vi.fn(),
 }));
 
 vi.mock("@/app/providers/auth", () => ({
@@ -17,10 +16,6 @@ vi.mock("@/app/providers/auth", () => ({
 vi.mock("@/features/auth/sign-out", () => ({
   signOutCurrentUser: mocks.signOutCurrentUser,
 }));
-vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
-  stopRemoteReads: mocks.stopRemoteReads,
-}));
-
 const startStudy = (deckId: string, cardIds: string[]) => {
   const { result, unmount } = renderHook(() => useStudyStore((state) => state.startStudy));
   act(() => result.current(deckId, cardIds));
@@ -42,7 +37,7 @@ describe("logout", () => {
     localStorage.clear();
   });
 
-  it("signs out before clearing remote and study state", async () => {
+  it("signs out before clearing study state", async () => {
     const unrelatedStorageKey = "unrelated-preference";
     const unrelatedStorageValue = "preserve-me";
     const operations: string[] = [];
@@ -53,16 +48,13 @@ describe("logout", () => {
     mocks.signOutCurrentUser.mockImplementation(async () => {
       operations.push("sign-out");
     });
-    mocks.stopRemoteReads.mockImplementation(() => {
-      operations.push("stop-remote");
-    });
     localStorage.setItem(unrelatedStorageKey, unrelatedStorageValue);
     startStudy("deck", ["card"]);
     expect(localStorage).toHaveLength(2);
 
-    await logout("uid-a");
+    await logout();
 
-    expect(operations).toEqual(["suspend", "sign-out", "stop-remote", "resume"]);
+    expect(operations).toEqual(["suspend", "sign-out", "resume"]);
     expect(getStudySessions()).toEqual({});
     expect(localStorage.getItem(unrelatedStorageKey)).toBe(unrelatedStorageValue);
     expect(localStorage).toHaveLength(1);
@@ -72,20 +64,8 @@ describe("logout", () => {
     startStudy("deck", ["card"]);
     mocks.signOutCurrentUser.mockRejectedValue(new Error("sign-out failed"));
 
-    await expect(logout("uid-a")).rejects.toThrow("sign-out failed");
+    await expect(logout()).rejects.toThrow("sign-out failed");
 
-    expect(mocks.stopRemoteReads).not.toHaveBeenCalled();
     expect(getStudySessions()).not.toEqual({});
-  });
-
-  it("clears study state after remote cleanup fails", async () => {
-    startStudy("deck", ["card"]);
-    mocks.stopRemoteReads.mockImplementation(() => {
-      throw new Error("cleanup failed");
-    });
-
-    await expect(logout("uid-a")).rejects.toThrow("cleanup failed");
-
-    expect(getStudySessions()).toEqual({});
   });
 });

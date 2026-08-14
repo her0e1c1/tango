@@ -14,7 +14,7 @@ import { SettingsView } from "./SettingsView";
 
 interface SettingsPageProps {
   login: () => Promise<void>;
-  logout: (uid: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => {
@@ -28,7 +28,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
   };
   const linkedUser = authenticated != null && !authenticated.isAnonymous ? authenticated : undefined;
   const signIn = useSignIn(login);
-  const signOut = useSignOut(linkedUser ? () => logout(linkedUser.uid) : undefined);
+  const signOut = useSignOut(linkedUser ? logout : undefined);
   const account = linkedUser ? { ...signOut, kind: "logout" as const } : { ...signIn, kind: "login" as const };
   const retryAccountOperation = account.kind === "logout" ? signOut.signOut : signIn.signIn;
   const configForm = useConfigFormState({

@@ -12,7 +12,6 @@ import { useDeleteDeck } from "@/features/deck/delete";
 import { buildDeckListSections } from "@/features/deck/list";
 import { downloadDeckCsv } from "@/features/deck/export";
 import { useSampleDeckBootstrap } from "@/features/deck/import";
-import { useDeckRead } from "@/features/deck/read";
 import {
   discardStudySessionsMissingDecks,
   removeStudySession,
@@ -20,7 +19,6 @@ import {
   useStudyHydrated,
   useStudySessions,
 } from "@/features/study";
-import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -32,8 +30,6 @@ export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
   const cardRemote = useCards();
   const decks = useDecks();
-  const deckRemote = useDeckRead();
-  const readState = combineRemoteReadStates(cardRemote, deckRemote);
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [deletionErrorDeckId, setDeletionErrorDeckId] = React.useState<DeckId>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
@@ -42,11 +38,7 @@ export const DeckListPage: React.FC = () => {
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(decks, cardRemote.cards, sessionsByDeckId);
-  const synchronized =
-    cardRemote.status === "ready" &&
-    cardRemote.syncStatus === "synced" &&
-    deckRemote.status === "ready" &&
-    deckRemote.syncStatus === "synced";
+  const synchronized = cardRemote.status === "ready" && cardRemote.syncStatus === "synced";
   useSampleDeckBootstrap({
     cards: cardRemote.cards,
     createCard,
@@ -60,18 +52,16 @@ export const DeckListPage: React.FC = () => {
   useKey("i", () => void navigate("/import"));
 
   React.useEffect(() => {
-    if (!hydrated || deckRemote.status !== "ready" || deckRemote.syncStatus !== "synced") {
-      return;
-    }
+    if (!hydrated) return;
     discardStudySessionsMissingDecks(decks.map((deck) => deck.id));
-  }, [decks, deckRemote.status, deckRemote.syncStatus, hydrated]);
+  }, [decks, hydrated]);
 
   return (
     <RemoteReadBoundary
-      status={readState.status}
-      hasData={readState.status === "ready" && decks.length > 0}
+      status={cardRemote.status}
+      hasData={cardRemote.status === "ready" && decks.length > 0}
       emptyLabel="No decks yet."
-      onRetry={readState.retry}
+      onRetry={cardRemote.retry}
     >
       {hydrated ? (
         <AppLayout showHeader>

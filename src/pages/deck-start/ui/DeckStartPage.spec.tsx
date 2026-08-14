@@ -34,12 +34,6 @@ vi.mock("@/features/card/read", () => ({
     cardsById: Object.fromEntries(mocks.cards.map((card) => [card.id, card])),
   }),
 }));
-vi.mock("@/features/deck/read", () => ({
-  useDeckRead: () => ({
-    status: "ready" as const,
-    retry: vi.fn(),
-  }),
-}));
 vi.mock("@/features/deck/edit", () => ({ useEditDeck: () => ({ update: mocks.update }) }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: (_deckId: string, options: { onStarted?: () => void } = {}) => ({

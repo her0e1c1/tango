@@ -8,7 +8,6 @@ import { editCard } from "@/features/card/edit";
 import { useCards } from "@/features/card/read";
 import { createDeck } from "@/features/deck/create";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck/import";
-import { useDeckRead } from "@/features/deck/read";
 import { useConfig } from "@/shared/config";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -19,12 +18,7 @@ export const DeckImportPage: React.FC = () => {
   const navigate = useNavigate();
   const cardRead = useCards();
   const decks = useDecks();
-  const deckRead = useDeckRead();
-  const synchronized =
-    cardRead.status === "ready" &&
-    cardRead.syncStatus === "synced" &&
-    deckRead.status === "ready" &&
-    deckRead.syncStatus === "synced";
+  const synchronized = cardRead.status === "ready" && cardRead.syncStatus === "synced";
   const deckImport = useDeckImport({
     cards: cardRead.cards,
     createCard,

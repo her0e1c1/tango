@@ -7,8 +7,6 @@ type Unsubscribe = () => void;
 
 export interface RemoteReadDependencies<T extends { id: string }> {
   subscribe: (props: RemoteSubscriptionProps<T>) => Unsubscribe;
-  onSnapshot?: RemoteSubscriptionProps<T>["onSnapshot"];
-  storeItems?: boolean;
 }
 
 export interface RemoteReadStoreState<T extends { id: string }> {
@@ -65,9 +63,8 @@ export const createRemoteReadStore = <T extends { id: string }>(
           },
           onSnapshot: (snapshot) => {
             if (currentSubscription !== subscription) return;
-            dependencies.onSnapshot?.(snapshot);
             set({
-              itemsById: dependencies.storeItems === false ? {} : snapshot.itemsById,
+              itemsById: snapshot.itemsById,
               status: "ready",
               syncStatus: snapshot.syncStatus,
               error: undefined,
