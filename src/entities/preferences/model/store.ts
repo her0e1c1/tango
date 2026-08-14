@@ -1,3 +1,4 @@
+import { persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 
 import { defaultPreferences, type Preferences } from "./preferences";
@@ -12,33 +13,44 @@ interface PreferencesStoreState {
   updatePreferences: (preferences: PartialPreferences) => void;
 }
 
-const createInitialPreferences = (): Preferences => ({
-  ...defaultPreferences,
-  appearance: { ...defaultPreferences.appearance },
-  study: { ...defaultPreferences.study, selectedTags: [...defaultPreferences.study.selectedTags] },
-  controls: { ...defaultPreferences.controls },
-});
+interface PersistedPreferencesState {
+  preferences: Preferences;
+}
 
 const createPreferencesStore = () =>
-  createStore<PreferencesStoreState>()((set) => ({
-    preferences: createInitialPreferences(),
-    updatePreferences: (preferencesInput) =>
-      set((state) => {
-        const merged = {
-          appearance: { ...state.preferences.appearance, ...preferencesInput.appearance },
-          study: {
-            ...state.preferences.study,
-            ...preferencesInput.study,
-            selectedTags:
-              preferencesInput.study?.selectedTags == null
-                ? state.preferences.study.selectedTags
-                : [...preferencesInput.study.selectedTags],
-          },
-          controls: { ...state.preferences.controls, ...preferencesInput.controls },
-        };
-        return { preferences: preferencesSchema.parse(merged) };
+  createStore<PreferencesStoreState>()(
+    persist<PreferencesStoreState, [], [], PersistedPreferencesState>(
+      (set) => ({
+        preferences: defaultPreferences,
+        updatePreferences: (preferencesInput) =>
+          set((state) => {
+            const merged = {
+              appearance: { ...state.preferences.appearance, ...preferencesInput.appearance },
+              study: {
+                ...state.preferences.study,
+                ...preferencesInput.study,
+                selectedTags:
+                  preferencesInput.study?.selectedTags == null
+                    ? state.preferences.study.selectedTags
+                    : [...preferencesInput.study.selectedTags],
+              },
+              controls: { ...state.preferences.controls, ...preferencesInput.controls },
+            };
+            return { preferences: preferencesSchema.parse(merged) };
+          }),
       }),
-  }));
+      {
+        name: "tango-config",
+        merge: (persistedState, currentState) => {
+          const result = preferencesSchema.safeParse(
+            (persistedState as Partial<PersistedPreferencesState> | undefined)?.preferences
+          );
+          return result.success ? { ...currentState, preferences: result.data } : currentState;
+        },
+        partialize: ({ preferences }) => ({ preferences }),
+      }
+    )
+  );
 
 export const preferencesStore = createPreferencesStore();
 

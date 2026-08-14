@@ -52,7 +52,7 @@ export const e2eConfig = {
 
 export const seedConfig = async (page: Page, config: typeof e2eConfig = e2eConfig) => {
   await page.addInitScript((value) => {
-    window.localStorage.setItem("tango-config", JSON.stringify({ state: { config: value }, version: 2 }));
+    window.localStorage.setItem("tango-config", JSON.stringify({ state: { preferences: value }, version: 0 }));
   }, config);
 };
 
