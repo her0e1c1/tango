@@ -30,7 +30,7 @@ import { useCardReadState } from "../index";
 const authenticatedWrapper = ({ children }: PropsWithChildren) => (
   <RemoteReadScopeProvider uid="uid-a">{children}</RemoteReadScopeProvider>
 );
-const signedOutWrapper = ({ children }: PropsWithChildren) => (
+const unauthenticatedWrapper = ({ children }: PropsWithChildren) => (
   <RemoteReadScopeProvider uid={null}>{children}</RemoteReadScopeProvider>
 );
 
@@ -72,10 +72,10 @@ describe("Card remote hooks", () => {
     expect(result.current.syncStatus).toBeUndefined();
   });
 
-  it("reports idle immediately when the App scope is signed out", () => {
+  it("reports idle immediately when the App scope is unauthenticated", () => {
     mocks.state = { uid: "uid-a", status: "ready", syncStatus: "synced", itemsById: {} };
 
-    const { result } = renderHook(useCardReadState, { wrapper: signedOutWrapper });
+    const { result } = renderHook(useCardReadState, { wrapper: unauthenticatedWrapper });
 
     expect(result.current.status).toBe("idle");
   });
