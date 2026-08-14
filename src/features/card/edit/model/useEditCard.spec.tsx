@@ -8,7 +8,7 @@ import { createCard as createCardFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({ uid: "uid-a", editCard: vi.fn() }));
 
-vi.mock("@/entities/auth-session", () => ({
+vi.mock("@/entities/auth", () => ({
   useAuthSession: () =>
     mocks.uid === ""
       ? { status: "signedOut" }

@@ -32,7 +32,7 @@ const mocks = vi.hoisted(() => ({
   bulkUpsert: vi.fn(),
 }));
 
-vi.mock("@/entities/auth-session", () => ({
+vi.mock("@/entities/auth", () => ({
   useAuthSession: () =>
     mocks.uid === ""
       ? { status: "signedOut" }

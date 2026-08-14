@@ -82,7 +82,7 @@ import { logout } from "@/app/auth/logout";
 import { AuthBootstrap } from "@/app/providers/auth";
 import { startAuthSession } from "@/app/providers/auth/authLifecycle";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
-import { replaceAuthSession, useAuthSession } from "@/entities/auth-session";
+import { replaceAuthSession, useAuthSession } from "@/entities/auth";
 import { SettingsPage } from "@/pages/settings";
 import { useStudyStore } from "@/features/study";
 

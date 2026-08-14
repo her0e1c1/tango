@@ -6,7 +6,7 @@
 
 import { useEffect } from "react";
 
-import { useAuthSession } from "@/entities/auth-session";
+import { useAuthSession } from "@/entities/auth";
 import { useDeckImport } from "./useDeckImport";
 import type { DeckImportOptions } from "./useDeckImport";
 

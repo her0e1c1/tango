@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signInAnonymously, type User } from "firebase/auth";
 
-import { getAuthSession, replaceAuthSession } from "@/entities/auth-session";
+import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 import { auth } from "@/shared/firebase";
 
 let observerStarted = false;

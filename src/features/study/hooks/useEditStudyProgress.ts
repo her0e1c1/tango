@@ -1,7 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { StudyProgressEdit } from "@/entities/study-progress";
 
-import { useAuthSession } from "@/entities/auth-session";
+import { useAuthSession } from "@/entities/auth";
 import { editStudyProgress } from "../api/editStudyProgress";
 
 export type StudyProgressPatch = Omit<StudyProgressEdit, "cardId">;
