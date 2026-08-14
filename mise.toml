@@ -32,7 +32,7 @@ run = "test -f .env || cp .env.example .env"
 [tasks.init-deps]
 sources = ["package.json", "package-lock.json"]
 outputs = ["node_modules/.package-lock.json"]
-run = "npm ci"
+run = "npm run ci:install"
 
 [tasks.dev]
 depends = ["build-sample", "dev-up"]

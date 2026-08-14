@@ -12,6 +12,7 @@
     "build:sample": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base",
     "build:storybook": "storybook build",
     "ci": "npm run build:sample && npm run build && npm run build:storybook && npm run fmt && npm run fmt:sample && npm run lint && npm run test:coverage && npm run test:sample",
+    "ci:install": "./scripts/npm-ci.sh",
     "db": "firebase emulators:start",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
@@ -98,7 +99,7 @@
     "eslint-plugin-boundaries": "^6.0.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-testing-library": "^7.16.2",
-    "firebase-tools": "^15.22.4",
+    "firebase-tools": "^15.27.0",
     "jsdom": "^29.1.1",
     "knip": "^6.32.1",
     "markdownlint-cli2": "^0.23.1",
@@ -117,5 +118,22 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "overrides": {
+    "glob": "13.0.6",
+    "node-domexception": "npm:@nolyfill/domexception@1.0.28",
+    "tsconfck": "npm:@depup/tsconfck@3.1.6-depup.0",
+    "uuid@9.0.1": "11.1.0"
+  },
+  "allowScripts": {
+    "@firebase/util@1.15.2": true,
+    "@parcel/watcher@2.5.6": true,
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true,
+    "fsevents@2.3.2": true,
+    "msw@2.15.0": true,
+    "protobufjs@7.6.5": true,
+    "re2@1.26.1": true,
+    "unrs-resolver@1.12.2": true
   }
 }

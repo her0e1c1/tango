@@ -6,14 +6,15 @@ WORKDIR /workspace
 
 ENV PATH=/workspace/node_modules/.bin:$PATH
 
-RUN npm install -g npm@11.6.0
+RUN npm install -g npm@12.0.1
 
 FROM base AS deps
 
 COPY package.json package-lock.json ./
+COPY scripts/npm-ci.sh ./scripts/npm-ci.sh
 
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+    npm run ci:install
 
 FROM base AS app
 

@@ -60,7 +60,7 @@ jobs:
       - name: Install npm
         run: npm install --global npm@12.0.1
 
-      - run: npm ci
+      - run: npm run ci:install
 
       - name: Install Storybook Chromium
         if: ${{ matrix.storybook }}
