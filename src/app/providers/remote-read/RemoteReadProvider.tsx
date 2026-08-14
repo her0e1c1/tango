@@ -10,16 +10,18 @@ import { subscribeDecks } from "./deck";
 export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
   const authSession = useAuthSession();
   const uid = authSession.status === "authenticated" ? authSession.uid : null;
-  const [deckReadyUid, setDeckReadyUid] = useState<string | null>(null);
+  const [readReadyUid, setReadReadyUid] = useState<string | null>();
 
   useEffect(() => {
     if (uid == null) {
       clearCards();
       clearDecks();
+      // Expose the signed-out scope only after stale entity data has been cleared.
+      queueMicrotask(() => setReadReadyUid(null));
       return;
     }
     startCardReads(uid);
-    const unsubscribeDecks = subscribeDecks(uid, () => setDeckReadyUid(uid), console.error);
+    const unsubscribeDecks = subscribeDecks(uid, () => setReadReadyUid(uid), console.error);
     return () => {
       stopCardReads(uid);
       unsubscribeDecks();
@@ -28,7 +30,7 @@ export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
     };
   }, [uid]);
 
-  if (uid != null && deckReadyUid !== uid) return null;
+  if (readReadyUid !== uid) return null;
 
   return <RemoteReadScopeProvider uid={uid}>{children}</RemoteReadScopeProvider>;
 };
