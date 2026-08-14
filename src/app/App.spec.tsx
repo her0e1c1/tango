@@ -9,21 +9,21 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { createAuthSessionStore } from "@/entities/auth-session";
+import type { useAuthSession } from "@/entities/auth";
 
-type AuthSessionState = ReturnType<ReturnType<typeof createAuthSessionStore>["getSnapshot"]>;
+type AuthSessionState = ReturnType<typeof useAuthSession>;
 
 const mocks = vi.hoisted(() => ({
   darkMode: false,
   authState: { status: "initializing" } as AuthSessionState,
 }));
 
-vi.mock("@/shared/config", () => ({
-  useConfig: () => ({ appearance: { darkMode: mocks.darkMode } }),
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
 vi.mock("@/app/auth/logout", () => ({ logout: vi.fn() }));
 vi.mock("@/app/providers/auth", () => ({ publishAuthenticatedUser: vi.fn() }));
-vi.mock("@/entities/auth-session", () => ({ useAuthSession: () => mocks.authState }));
+vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authState }));
 vi.mock("@/features/auth/sign-in", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));

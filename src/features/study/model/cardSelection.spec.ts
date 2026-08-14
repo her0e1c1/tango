@@ -1,7 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { StudyProgress } from "@/entities/study-progress";
 import type { StudyCard } from "./studyCard";
-import type { StudyPreferences } from "@/shared/config";
+import type { StudyPreferences } from "@/entities/preferences";
 
 import { describe, expect, it } from "vitest";
 
@@ -59,8 +59,8 @@ describe("filterCardsForDeck", () => {
   it("filters by card interval when useCardInterval is true", () => {
     const future = new Date(now + 100_000);
     const cards = [makeCard({ id: "a" }, { nextSeeingAt: future }), makeCard({ id: "b" })];
-    const config = { useCardInterval: true } as StudyPreferences;
-    expect(filterCardsForDeck(cards, baseDeck, config, now).map(({ card }) => card.id)).toEqual(["b"]);
+    const preferences = { useCardInterval: true } as StudyPreferences;
+    expect(filterCardsForDeck(cards, baseDeck, preferences, now).map(({ card }) => card.id)).toEqual(["b"]);
   });
 
   it("sorts by numberOfSeen ascending", () => {

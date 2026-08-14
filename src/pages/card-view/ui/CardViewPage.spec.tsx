@@ -1,4 +1,4 @@
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -7,11 +7,11 @@ import "@testing-library/jest-dom/vitest";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { createCard, createConfig, createDeck } from "@/test/factories";
+import { createCard, createPreferences, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
-  config: null as unknown as ConfigState,
+  preferences: null as unknown as Preferences,
   card: null as Card | null,
   deck: null as Deck | null,
   cardStatus: "ready" as "loading" | "ready" | "error" | "blocked",
@@ -21,8 +21,8 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/shared/config", () => ({
-  useConfig: () => mocks.config,
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/features/card/read", () => ({
@@ -49,7 +49,7 @@ import { CardViewPage } from "./CardViewPage";
 describe("CardViewPage", () => {
   beforeEach(() => {
     mocks.params.id = "card-id";
-    mocks.config = createConfig({ appearance: { darkMode: false } });
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
     mocks.card = createCard({ id: "card-id", deckId: "deck-id", backText: "const answer = 42;", tags: ["typescript"] });
     mocks.cardStatus = "ready";

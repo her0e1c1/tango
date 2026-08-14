@@ -1,21 +1,21 @@
 /**
- * @file Provides the settings feature's Use Config Form State React hook.
+ * @file Provides the settings feature's Use Preferences Form State React hook.
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */
 
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import type { ConfigFormProps } from "../../ui/components/ConfigForm";
+import type { PreferencesFormProps } from "../../ui/components/PreferencesForm";
 
-export interface UseConfigFormStateOptions {
-  config: ConfigState;
-  onSubmit?: (config: ConfigState) => void;
+export interface UsePreferencesFormStateOptions {
+  preferences: Preferences;
+  onSubmit?: (preferences: Preferences) => void;
   isLoggedIn?: boolean;
-  identity?: ConfigFormProps["identity"];
+  identity?: PreferencesFormProps["identity"];
   onLogin?: () => void;
   onLogout?: () => void;
   accountPending?: boolean;
@@ -24,12 +24,12 @@ export interface UseConfigFormStateOptions {
 }
 
 /**
- * Provides the config form state values and operations needed by React components.
+ * Provides the preferences form state values and operations needed by React components.
  * Callers receive one focused interface without coordinating the settings feature's stores and
  * services themselves.
  */
-export const useConfigFormState = ({
-  config,
+export const usePreferencesFormState = ({
+  preferences,
   onSubmit,
   isLoggedIn,
   identity,
@@ -38,9 +38,9 @@ export const useConfigFormState = ({
   accountPending,
   accountFeedback,
   version,
-}: UseConfigFormStateOptions): ConfigFormProps => {
-  const { control, handleSubmit, register, setValue, subscribe } = useForm<ConfigState>({
-    defaultValues: config,
+}: UsePreferencesFormStateOptions): PreferencesFormProps => {
+  const { control, handleSubmit, register, setValue, subscribe } = useForm<Preferences>({
+    defaultValues: preferences,
   });
   const maxNumberOfCardsToLearn = useWatch({ control, name: "study.maxNumberOfCardsToLearn" });
   const cardInterval = useWatch({ control, name: "study.cardInterval" });
@@ -53,11 +53,11 @@ export const useConfigFormState = ({
   }, [handleSubmit, onSubmit, subscribe]);
 
   React.useEffect(() => {
-    setValue("appearance.darkMode", config.appearance.darkMode);
-  }, [config.appearance.darkMode, setValue]);
+    setValue("appearance.darkMode", preferences.appearance.darkMode);
+  }, [preferences.appearance.darkMode, setValue]);
 
   return {
-    config,
+    preferences,
     ...(isLoggedIn !== undefined ? { isLoggedIn } : {}),
     ...(identity !== undefined ? { identity } : {}),
     ...(onLogin !== undefined ? { onLogin } : {}),

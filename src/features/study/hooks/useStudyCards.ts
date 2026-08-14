@@ -5,11 +5,11 @@ import type { Deck } from "@/entities/deck";
 import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
 import { filterCardsForDeck } from "../model/cardSelection";
 import { createStudyCard } from "../model/studyCard";
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
-export const useStudyCards = (deck: Deck | undefined, cards: Card[], config: ConfigState): Card[] => {
+export const useStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): Card[] => {
   const [scheduleClock, setScheduleClock] = useState(() => Date.now());
   const studyCards = useMemo(() => cards.map(createStudyCard), [cards]);
 
@@ -34,5 +34,7 @@ export const useStudyCards = (deck: Deck | undefined, cards: Card[], config: Con
     };
   }, [scheduleClock, studyCards]);
 
-  return deck == null ? [] : filterCardsForDeck(studyCards, deck, config.study, scheduleClock).map(({ card }) => card);
+  return deck == null
+    ? []
+    : filterCardsForDeck(studyCards, deck, preferences.study, scheduleClock).map(({ card }) => card);
 };

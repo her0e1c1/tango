@@ -7,7 +7,7 @@
 
 import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import type { Auth, User, UserCredential } from "firebase/auth";
+import type { User, UserCredential } from "firebase/auth";
 import React, { type ReactNode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
@@ -55,21 +55,21 @@ vi.mock("@/features/study", async (importOriginal) => {
   mocks.actualClearStudyStore = actual.clearStudyStore;
   return { ...actual, clearStudyStore: mocks.clearStudyStore };
 });
-vi.mock("@/shared/config", () => ({
-  useConfig: () => ({ appearance: { darkMode: false } }),
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => ({ appearance: { darkMode: false } }),
   setDarkMode: vi.fn(),
-  updateConfig: vi.fn(),
+  updatePreferences: vi.fn(),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({
-  useConfigFormState: (options: Record<string, unknown>) => options,
+vi.mock("@/features/settings/model/hooks/usePreferencesFormState", () => ({
+  usePreferencesFormState: (options: Record<string, unknown>) => options,
 }));
 vi.mock("@/pages/settings/ui/SettingsView", () => ({
-  SettingsView: ({ configForm }: { configForm: Record<string, unknown> }) => (
+  SettingsView: ({ preferencesForm }: { preferencesForm: Record<string, unknown> }) => (
     <>
-      {configForm.accountFeedback as ReactNode}
-      {typeof configForm.onLogout === "function" && (
-        <button type="button" onClick={configForm.onLogout as () => void}>
+      {preferencesForm.accountFeedback as ReactNode}
+      {typeof preferencesForm.onLogout === "function" && (
+        <button type="button" onClick={preferencesForm.onLogout as () => void}>
           Logout
         </button>
       )}
@@ -79,10 +79,10 @@ vi.mock("@/pages/settings/ui/SettingsView", () => ({
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
 import { logout } from "@/app/auth/logout";
-import { AuthProvider } from "@/app/providers/auth";
-import { createAuthRuntime } from "@/app/providers/auth/authController";
+import { AuthBootstrap } from "@/app/providers/auth";
+import { startAuthSession } from "@/app/providers/auth/authLifecycle";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
-import { useAuthSession } from "@/entities/auth-session";
+import { replaceAuthSession, useAuthSession } from "@/entities/auth";
 import { SettingsPage } from "@/pages/settings";
 import { useStudyStore } from "@/features/study";
 
@@ -92,9 +92,14 @@ afterEach(() => {
 
 beforeEach(async () => {
   vi.clearAllMocks();
+  replaceAuthSession({ status: "initializing" });
   mocks.auth.currentUser = null;
-  mocks.publishUser = undefined;
   mocks.operations.length = 0;
+  mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
+    mocks.publishUser = onUser;
+    return vi.fn();
+  });
+  startAuthSession();
   mocks.clearStudyStore.mockImplementation(() => {
     if (!mocks.actualClearStudyStore) throw new Error("Actual study cleanup was not initialized");
     return mocks.actualClearStudyStore();
@@ -124,13 +129,6 @@ const getStudySessions = () => {
 const AuthenticatedSettings = () =>
   useAuthSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={logout} /> : null;
 
-const createTestRuntime = () =>
-  createAuthRuntime({
-    auth: mocks.auth as unknown as Auth,
-    onAuthStateChanged: mocks.onAuthStateChanged,
-    signInAnonymously: mocks.signInAnonymously,
-  });
-
 it("waits for local cleanup before bootstrapping the next anonymous UID", async () => {
   let resolveStudyCleanup: () => void = () => undefined;
   const delayedStudyCleanup = new Promise<void>((resolve) => {
@@ -139,10 +137,6 @@ it("waits for local cleanup before bootstrapping the next anonymous UID", async 
   const userA = { uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User;
   const userB = { uid: "uid-b", isAnonymous: true, providerData: [] } as unknown as User;
 
-  mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
-    mocks.publishUser = onUser;
-    return vi.fn();
-  });
   mocks.cleanupUid.mockImplementation((uid: string) => {
     mocks.operations.push(`cleanup:${uid}`);
   });
@@ -167,9 +161,9 @@ it("waits for local cleanup before bootstrapping the next anonymous UID", async 
 
   render(
     <React.StrictMode>
-      <AuthProvider>
+      <AuthBootstrap>
         <RemoteReadProvider />
-      </AuthProvider>
+      </AuthBootstrap>
     </React.StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
@@ -207,19 +201,14 @@ it("retries a failed sign-out while the authenticated screen remains mounted", a
   const signOutError = new Error("sign out failed");
   const anonymousBootstrap = new Promise<UserCredential>(() => undefined);
 
-  mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
-    mocks.publishUser = onUser;
-    return vi.fn();
-  });
   mocks.signOut.mockRejectedValueOnce(signOutError).mockImplementationOnce(async () => mocks.publishUser?.(null));
   mocks.signInAnonymously.mockReturnValue(anonymousBootstrap);
   mocks.clearStudyStore.mockResolvedValue(undefined);
 
-  const runtime = createTestRuntime();
   render(
-    <AuthProvider runtime={runtime}>
+    <AuthBootstrap>
       <AuthenticatedSettings />
-    </AuthProvider>
+    </AuthBootstrap>
   );
   act(() => mocks.publishUser?.(userA));
 
@@ -241,10 +230,6 @@ it("does not expose obsolete study cleanup retries to a new anonymous study", as
   const userB = { uid: "study-uid-b", isAnonymous: true, providerData: [] } as unknown as User;
   const cleanupError = new Error("study storage cleanup failed");
 
-  mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
-    mocks.publishUser = onUser;
-    return vi.fn();
-  });
   mocks.signOut.mockImplementation(async () => mocks.publishUser?.(null));
   mocks.signInAnonymously.mockImplementation(() =>
     Promise.resolve().then(() => {
@@ -256,12 +241,11 @@ it("does not expose obsolete study cleanup retries to a new anonymous study", as
     throw cleanupError;
   });
 
-  const runtime = createTestRuntime();
   render(
     <React.StrictMode>
-      <AuthProvider runtime={runtime}>
+      <AuthBootstrap>
         <AuthenticatedSettings />
-      </AuthProvider>
+      </AuthBootstrap>
     </React.StrictMode>
   );
   act(() => mocks.publishUser?.(userA));

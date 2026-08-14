@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "ConfigForm" contract with automated examples.
+ * @file Verifies the "PreferencesForm" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "groups every auto-saved
  * setting in the unified settings list", "preserves all switch, slider, and metadata values",
  * "forwards switch and slider changes to their field callbacks".
@@ -12,16 +12,16 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { ConfigForm, type ConfigFormProps } from "./ConfigForm";
-import { createConfig } from "@/test/factories";
+import { PreferencesForm, type PreferencesFormProps } from "./PreferencesForm";
+import { createPreferences } from "@/test/factories";
 
-type ConfigFormFields = React.ComponentProps<typeof ConfigForm>["fields"];
+type PreferencesFormFields = React.ComponentProps<typeof PreferencesForm>["fields"];
 
 /**
  * Provides the create fields test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-function createFields(): ConfigFormFields {
+function createFields(): PreferencesFormFields {
   return {
     showHeader: { name: "showHeader", checked: true, onChange: vi.fn() },
     showSwipeButtonList: { name: "showSwipeButtonList", checked: false, onChange: vi.fn() },
@@ -39,9 +39,9 @@ function createFields(): ConfigFormFields {
  * Provides the create props test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-function createProps(overrides: Partial<ConfigFormProps> = {}): ConfigFormProps {
+function createProps(overrides: Partial<PreferencesFormProps> = {}): PreferencesFormProps {
   return {
-    config: createConfig(),
+    preferences: createPreferences(),
     fields: createFields(),
     maxNumberOfCardsToLearn: 24,
     cardInterval: 7,
@@ -50,9 +50,9 @@ function createProps(overrides: Partial<ConfigFormProps> = {}): ConfigFormProps 
   };
 }
 
-describe("ConfigForm", () => {
+describe("PreferencesForm", () => {
   it("groups every auto-saved setting in the unified settings list", () => {
-    render(<ConfigForm {...createProps()} />);
+    render(<PreferencesForm {...createProps()} />);
 
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
     for (const name of ["Account", "Appearance", "Study"]) {
@@ -69,7 +69,9 @@ describe("ConfigForm", () => {
 
   it("preserves all switch, slider, and metadata values", () => {
     render(
-      <ConfigForm {...createProps({ identity: { uid: "user-123", displayName: "Settings User" }, isLoggedIn: true })} />
+      <PreferencesForm
+        {...createProps({ identity: { uid: "user-123", displayName: "Settings User" }, isLoggedIn: true })}
+      />
     );
 
     expect(screen.getAllByRole("checkbox")).toHaveLength(7);
@@ -89,7 +91,7 @@ describe("ConfigForm", () => {
   });
 
   it("describes review scheduling independently from autoplay", () => {
-    render(<ConfigForm {...createProps()} />);
+    render(<PreferencesForm {...createProps()} />);
 
     expect(screen.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
     expect(screen.getByText("Hide cards until their next review time")).toBeInTheDocument();
@@ -109,7 +111,7 @@ describe("ConfigForm", () => {
     const fields = createFields();
     fields.showHeader.onChange = showHeader;
     fields.maxNumberOfCardsToLearn.onChange = maxNumberOfCardsToLearn;
-    render(<ConfigForm {...createProps({ fields })} />);
+    render(<PreferencesForm {...createProps({ fields })} />);
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
     fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
@@ -125,8 +127,8 @@ describe("ConfigForm", () => {
   it("keeps section heading relationships unique across multiple instances", () => {
     render(
       <>
-        <ConfigForm {...createProps()} />
-        <ConfigForm {...createProps()} />
+        <PreferencesForm {...createProps()} />
+        <PreferencesForm {...createProps()} />
       </>
     );
     for (const name of ["Account", "Appearance", "Study"]) {
@@ -139,14 +141,14 @@ describe("ConfigForm", () => {
   it("preserves logged-out login and logged-in logout behavior", async () => {
     const onLogin = vi.fn();
     const onLogout = vi.fn();
-    const view = render(<ConfigForm {...createProps({ onLogin })} />);
+    const view = render(<PreferencesForm {...createProps({ onLogin })} />);
 
     expect(screen.getByText("Google Login")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Login" }));
     expect(onLogin).toHaveBeenCalledOnce();
 
     view.rerender(
-      <ConfigForm
+      <PreferencesForm
         {...createProps({
           isLoggedIn: true,
           identity: { uid: "user-123", displayName: "Settings User" },
@@ -162,7 +164,7 @@ describe("ConfigForm", () => {
 
   it("shows account feedback and disables the active account action while pending", () => {
     const feedback = <p>Signing in…</p>;
-    const view = render(<ConfigForm {...createProps({ accountPending: true, accountFeedback: feedback })} />);
+    const view = render(<PreferencesForm {...createProps({ accountPending: true, accountFeedback: feedback })} />);
 
     const login = screen.getByRole("button", { name: "Login" });
     expect(login).toBeDisabled();
@@ -170,7 +172,7 @@ describe("ConfigForm", () => {
     expect(within(screen.getByRole("region", { name: "Account" })).getByText("Signing in…")).toBeVisible();
 
     view.rerender(
-      <ConfigForm
+      <PreferencesForm
         {...createProps({
           isLoggedIn: true,
           identity: { uid: "user-123", displayName: "Settings User" },

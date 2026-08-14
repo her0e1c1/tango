@@ -8,8 +8,8 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
 import { AppRoutes } from "@/app/routes";
-import { useAuthSession } from "@/entities/auth-session";
-import { useConfig } from "@/shared/config";
+import { useAuthSession } from "@/entities/auth";
+import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 /**
@@ -18,7 +18,7 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
  * when startup fails.
  */
 const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location.reload() }) => {
-  const { darkMode } = useConfig().appearance;
+  const { darkMode } = usePreferences().appearance;
   const authState = useAuthSession();
 
   React.useEffect(() => {

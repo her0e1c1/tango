@@ -6,10 +6,10 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import type { Option } from "@/shared/ui/forms/Select";
-import { createCard, createConfig, createDeck } from "@/test/factories";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
 
 export const form = {
   options: {
@@ -119,13 +119,13 @@ export const cards = {
   ].map((item, index) => ({ ...item, id: `long-card-${index + 1}` })),
 } as const satisfies Record<string, Card[]>;
 
-export const config = {
-  default: createConfig({
+export const preferences = {
+  default: createPreferences({
     showHeader: true,
     maxNumberOfCardsToLearn: 10,
   }),
-  longUserName: createConfig(),
-} as const satisfies Record<string, ConfigState>;
+  longUserName: createPreferences(),
+} as const satisfies Record<string, Preferences>;
 
 export const math = {
   inline: "$E = mc^2$",

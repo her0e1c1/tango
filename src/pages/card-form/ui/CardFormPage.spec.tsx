@@ -6,26 +6,26 @@
  */
 
 import type { Card } from "@/entities/card";
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createConfig } from "@/test/factories";
+import { createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
-  config: null as unknown as ConfigState,
+  preferences: null as unknown as Preferences,
   card: null as Card | null,
   cardUpdate: vi.fn(),
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/config", () => ({
-  useConfig: () => mocks.config,
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
 
@@ -72,7 +72,7 @@ describe("CardFormPage", () => {
   beforeEach(() => {
     mocks.params.id = card.id;
     mocks.card = card;
-    mocks.config = createConfig({ appearance: { darkMode: false } });
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.cardUpdate.mockReset();
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.navigate.mockReset();

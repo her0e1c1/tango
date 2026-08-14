@@ -6,8 +6,10 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { ConfigState, StudyPreferences, SwipeAction } from "@/shared/config";
-import type { AppearancePreferences, ControlPreferences } from "@/shared/config/configTypes";
+import type { Preferences, StudyPreferences, SwipeAction } from "@/entities/preferences";
+
+type AppearancePreferences = Preferences["appearance"];
+type ControlPreferences = Preferences["controls"];
 
 /**
  * Builds a complete test deck with predictable defaults and optional field overrides.
@@ -50,7 +52,7 @@ export const createCard = (overrides: Partial<Card> = {}): Card => ({
   ...overrides,
 });
 
-export type ConfigOverrides = {
+export type PreferencesOverrides = {
   appearance?: Partial<AppearancePreferences>;
   study?: Partial<StudyPreferences>;
   controls?: Partial<ControlPreferences>;
@@ -77,7 +79,7 @@ export type ConfigOverrides = {
 
 const createAppearance = (
   appearance?: Partial<AppearancePreferences>,
-  flat?: Partial<ConfigOverrides>
+  flat?: Partial<PreferencesOverrides>
 ): AppearancePreferences => ({
   darkMode: appearance?.darkMode ?? flat?.darkMode ?? false,
   showHeader: appearance?.showHeader ?? flat?.showHeader ?? true,
@@ -87,7 +89,7 @@ const createAppearance = (
   showSwipeFeedback: appearance?.showSwipeFeedback ?? flat?.showSwipeFeedback ?? false,
 });
 
-const createStudy = (study?: Partial<StudyPreferences>, flat?: Partial<ConfigOverrides>): StudyPreferences => ({
+const createStudy = (study?: Partial<StudyPreferences>, flat?: Partial<PreferencesOverrides>): StudyPreferences => ({
   maxNumberOfCardsToLearn: study?.maxNumberOfCardsToLearn ?? flat?.maxNumberOfCardsToLearn ?? 10,
   shuffled: study?.shuffled ?? flat?.shuffled ?? false,
   useCardInterval: study?.useCardInterval ?? flat?.useCardInterval ?? false,
@@ -99,7 +101,7 @@ const createStudy = (study?: Partial<StudyPreferences>, flat?: Partial<ConfigOve
 
 const createControls = (
   controls?: Partial<ControlPreferences>,
-  flat?: Partial<ConfigOverrides>
+  flat?: Partial<PreferencesOverrides>
 ): ControlPreferences => ({
   showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,
   showScoreSlider: controls?.showScoreSlider ?? flat?.showScoreSlider ?? false,
@@ -110,10 +112,10 @@ const createControls = (
 });
 
 /**
- * Builds a complete test configuration with predictable defaults and optional overrides.
- * Tests can change one setting without repeating every required configuration field.
+ * Builds complete test preferences with predictable defaults and optional overrides.
+ * Tests can change one setting without repeating every required preference field.
  */
-export const createConfig = (overrides: ConfigOverrides = {}): ConfigState => {
+export const createPreferences = (overrides: PreferencesOverrides = {}): Preferences => {
   const { appearance, study, controls, ...flat } = overrides;
   return {
     appearance: createAppearance(appearance, flat),

@@ -1,9 +1,9 @@
 import type * as React from "react";
 
-import { ConfigForm, type ConfigFormProps } from "@/features/settings";
+import { PreferencesForm, type PreferencesFormProps } from "@/features/settings";
 
 export interface SettingsViewProps {
-  configForm?: ConfigFormProps;
+  preferencesForm?: PreferencesFormProps;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = (props) => (
@@ -12,6 +12,6 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => (
       <h1 className="break-words text-title font-bold text-ink">Settings</h1>
       <p className="text-caption text-ink-muted">Changes are saved automatically</p>
     </div>
-    {props.configForm != null && <ConfigForm {...props.configForm} />}
+    {props.preferencesForm != null && <PreferencesForm {...props.preferencesForm} />}
   </section>
 );
