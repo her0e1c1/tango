@@ -7,14 +7,12 @@ let observerStarted = false;
 let anonymousBootstrapStarted = false;
 let anonymousBootstrapSuspended = false;
 
-const publishAuthenticatedSession = (user: User) => {
-  replaceAuthSession({
-    status: "authenticated",
-    uid: user.uid,
-    isAnonymous: user.isAnonymous,
-    displayName: user.providerData[0]?.displayName ?? null,
-  });
-};
+const authSessionFromUser = (user: User) => ({
+  status: "authenticated" as const,
+  uid: user.uid,
+  isAnonymous: user.isAnonymous,
+  displayName: user.providerData[0]?.displayName ?? null,
+});
 
 const startAnonymousBootstrap = () => {
   if (anonymousBootstrapSuspended || anonymousBootstrapStarted || getAuthSession().status !== "signedOut") {
@@ -35,7 +33,7 @@ export const startAuthSession = () => {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       anonymousBootstrapStarted = false;
-      publishAuthenticatedSession(user);
+      replaceAuthSession(authSessionFromUser(user));
       return;
     }
 
@@ -47,7 +45,7 @@ export const startAuthSession = () => {
 export const publishAuthenticatedUser = (user: User) => {
   const current = getAuthSession();
   if (current.status === "authenticated" && current.uid === user.uid) {
-    publishAuthenticatedSession(user);
+    replaceAuthSession(authSessionFromUser(user));
   }
 };
 
