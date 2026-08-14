@@ -5,9 +5,7 @@ import { z } from "zod";
 
 import { replaceCards } from "@/entities/card";
 import { resetCardRead, setCardReadError, setCardReadLoading, setCardReadReady } from "@/features/card/read";
-import type { RemoteSyncStatus } from "@/shared/api";
-import { db } from "@/shared/firebase";
-import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/firestore";
+import { db, firestoreTimestampDateSchema, parseFirestoreDocument, type RemoteSyncStatus } from "@/shared/firebase";
 
 const cardDtoSchema = z.object({
   id: z.string().optional(),

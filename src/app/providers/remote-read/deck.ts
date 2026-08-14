@@ -5,8 +5,7 @@ import { z } from "zod";
 
 import { replaceDecks } from "@/entities/deck";
 import { reconcileStudySessionsWithDecks } from "@/features/study";
-import { db } from "@/shared/firebase";
-import { parseFirestoreDocument } from "@/shared/firestore";
+import { db, parseFirestoreDocument } from "@/shared/firebase";
 
 const deckDtoSchema = z.object({
   id: z.string().optional(),

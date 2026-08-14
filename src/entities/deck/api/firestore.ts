@@ -2,8 +2,7 @@ import type { Deck, DeckCreate, DeckCreateInput, DeckEdit, DeleteDeckInput, Edit
 
 import { collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 
-import { db } from "@/shared/firebase";
-import { getTimestamp, omitUndefined } from "@/shared/firestore";
+import { db, getTimestamp, omitUndefined } from "@/shared/firebase";
 import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
 
 const DECK_COLLECTION = "deck";

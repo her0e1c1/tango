@@ -40,7 +40,10 @@ vi.mock("firebase/firestore", async (importOriginal) => {
     where: mocks.where,
   };
 });
-vi.mock("@/shared/firebase", () => ({ db: "db" }));
+vi.mock("@/shared/firebase", async () => ({
+  ...(await import("@/test/firebaseHelpers")).firebaseHelpers,
+  db: "db",
+}));
 
 import { startCardSynchronization } from "./card";
 

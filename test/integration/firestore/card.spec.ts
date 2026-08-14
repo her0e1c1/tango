@@ -18,18 +18,16 @@ import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { collection, deleteDoc, getDocs, getFirestore, doc, getDoc, query, where } from "firebase/firestore";
 import { upsertImportedCards } from "@/features/deck/import/api/upsertImportedCards";
 import { editStudyProgress } from "@/features/study/api/editStudyProgress";
-import { getTimestamp } from "@/shared/firestore";
+import { getTimestamp } from "@/shared/firebase";
 import * as UUID from "uuid";
 import { createCard, createDeck } from "@/test/factories";
 
 const uuid = UUID.v4;
 
-vi.mock("@/shared/firestore", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/shared/firestore")>()),
-  getTimestamp: vi.fn(),
-}));
 vi.mock("@/shared/firebase", async () => ({
+  ...(await import("@/test/firebaseHelpers")).firebaseHelpers,
   db: (await import("@/test/initializeTestFirestore")).testDb,
+  getTimestamp: vi.fn(),
 }));
 
 describe.concurrent("firestore/card", { retry: 3 }, () => {

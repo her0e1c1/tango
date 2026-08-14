@@ -58,7 +58,11 @@ vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/firebase", async () => ({
+  ...(await import("@/test/firebaseHelpers")).firebaseHelpers,
+  auth: {},
+  db: {},
+}));
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,

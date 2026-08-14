@@ -19,7 +19,7 @@ import {
   useStudyStore,
 } from "@/features/study";
 import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
-import { toRemoteById } from "@/shared/api";
+import { toRemoteById } from "@/shared/firebase";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
 

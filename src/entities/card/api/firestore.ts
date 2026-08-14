@@ -2,8 +2,7 @@ import type { Card, CardCreate, CardCreateInput, CardEdit, DeleteCardInput, Edit
 
 import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
 
-import { db } from "@/shared/firebase";
-import { getTimestamp, omitUndefined } from "@/shared/firestore";
+import { db, getTimestamp, omitUndefined } from "@/shared/firebase";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 
 const CARD_COLLECTION = "card";

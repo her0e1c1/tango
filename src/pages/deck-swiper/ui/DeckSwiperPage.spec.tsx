@@ -50,7 +50,10 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
+vi.mock("@/shared/firebase", async () => ({
+  ...(await import("@/test/firebaseHelpers")).firebaseHelpers,
+  auth: {},
+}));
 
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => {
