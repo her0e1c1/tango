@@ -1,4 +1,4 @@
-import { type PropsWithChildren, useEffect, useMemo, useState } from "react";
+import { type PropsWithChildren, useEffect, useState } from "react";
 
 import { useAuthSession } from "@/entities/auth";
 import { clearCards } from "@/entities/card";
@@ -10,8 +10,7 @@ import { subscribeDecks } from "./deck";
 export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
   const authSession = useAuthSession();
   const uid = authSession.status === "authenticated" ? authSession.uid : null;
-  const subscriptionToken = useMemo(() => Symbol(uid ?? "signed-out"), [uid]);
-  const [readReadyToken, setReadReadyToken] = useState<symbol>();
+  const [readReadyUid, setReadReadyUid] = useState<string | null>();
 
   useEffect(() => {
     clearCards();
@@ -19,7 +18,7 @@ export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
     if (uid == null) {
       // The signed-out scope becomes renderable only after its entity stores are empty.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setReadReadyToken(subscriptionToken);
+      setReadReadyUid(null);
       return;
     }
     let active = true;
@@ -27,7 +26,7 @@ export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
     const unsubscribeDecks = subscribeDecks(
       uid,
       () => {
-        if (active) setReadReadyToken(subscriptionToken);
+        if (active) setReadReadyUid(uid);
       },
       console.error
     );
@@ -38,9 +37,9 @@ export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
       clearCards();
       clearDecks();
     };
-  }, [subscriptionToken, uid]);
+  }, [uid]);
 
-  if (readReadyToken !== subscriptionToken) return null;
+  if (readReadyUid !== uid) return null;
 
   return <RemoteReadScopeProvider uid={uid}>{children}</RemoteReadScopeProvider>;
 };
