@@ -14,9 +14,13 @@ const authSessionFromUser = (user: User) => ({
 const startAnonymousBootstrap = () => {
   if (getAuthSession().status !== "signedOut") return;
 
-  replaceAuthSession({ status: "authenticating" });
+  const attemptId = crypto.randomUUID();
+  replaceAuthSession({ status: "authenticating", attemptId });
   void signInAnonymously(auth).catch((error) => {
-    if (getAuthSession().status === "authenticating") replaceAuthSession({ status: "error", error });
+    const currentSession = getAuthSession();
+    if (currentSession.status === "authenticating" && currentSession.attemptId === attemptId) {
+      replaceAuthSession({ status: "error", error });
+    }
   });
 };
 

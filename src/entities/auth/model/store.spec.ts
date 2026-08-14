@@ -27,8 +27,8 @@ describe("authSessionStore", () => {
   });
 
   it("represents anonymous authentication without an SDK credential", () => {
-    replaceAuthSession({ status: "authenticating" });
+    replaceAuthSession({ status: "authenticating", attemptId: "attempt-a" });
 
-    expect(getAuthSession()).toEqual({ status: "authenticating" });
+    expect(getAuthSession()).toEqual({ status: "authenticating", attemptId: "attempt-a" });
   });
 });
