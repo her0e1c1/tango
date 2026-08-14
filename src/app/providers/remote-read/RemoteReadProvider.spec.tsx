@@ -37,18 +37,16 @@ vi.mock("./deck", () => ({
 import { AuthProvider } from "@/app/providers/auth";
 import type { AuthRuntime } from "@/app/providers/auth/authController";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
-import { createAuthSessionStore } from "@/entities/auth-session";
+import { replaceAuthSession } from "@/entities/auth-session";
 
 const createHarness = (children?: ReactNode) => {
-  const authSessionStore = createAuthSessionStore();
   const runtime: AuthRuntime = {
-    authSessionStore,
     start: vi.fn(),
     publishAuthenticatedUser: vi.fn(),
     suspendAnonymousBootstrap: vi.fn(() => vi.fn()),
   };
   const publishUser = (user: User | null) =>
-    authSessionStore.publish(
+    replaceAuthSession(
       user == null
         ? { status: "signedOut" }
         : { status: "authenticated", uid: user.uid, isAnonymous: user.isAnonymous, displayName: null }
@@ -66,6 +64,7 @@ const createHarness = (children?: ReactNode) => {
 describe("RemoteReadProvider integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    replaceAuthSession({ status: "initializing" });
     Object.keys(mocks.deckReadyByUid).forEach((uid) => {
       delete mocks.deckReadyByUid[uid];
     });

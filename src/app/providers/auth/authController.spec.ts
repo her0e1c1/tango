@@ -1,6 +1,8 @@
 import type { Auth, User, UserCredential } from "firebase/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getAuthSession, replaceAuthSession } from "@/entities/auth-session";
+
 const singletonMocks = vi.hoisted(() => ({
   auth: { currentUser: null },
   onAuthStateChanged: vi.fn(() => vi.fn()),
@@ -37,11 +39,14 @@ const createHarness = (signInAnonymously = vi.fn(() => new Promise<UserCredentia
     signInAnonymously,
   });
   runtime.start();
-  return { runtime, onAuthStateChanged, publishUser, sessionStore: runtime.authSessionStore };
+  return { runtime, onAuthStateChanged, publishUser };
 };
 
 describe("authController", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    replaceAuthSession({ status: "initializing" });
+  });
 
   it("starts one app-lifetime observer", () => {
     const harness = createHarness();
@@ -52,11 +57,11 @@ describe("authController", () => {
   });
 
   it("maps Firebase users to a Firebase-independent session snapshot", () => {
-    const { publishUser, sessionStore } = createHarness();
+    const { publishUser } = createHarness();
 
     publishUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
 
-    expect(sessionStore.getSnapshot()).toEqual({
+    expect(getAuthSession()).toEqual({
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: false,
@@ -66,12 +71,12 @@ describe("authController", () => {
 
   it("starts anonymous sign-in once for duplicate signed-out callbacks", () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const { publishUser, sessionStore } = createHarness(signInAnonymously);
+    const { publishUser } = createHarness(signInAnonymously);
 
     publishUser(null);
     publishUser(null);
 
-    expect(sessionStore.getSnapshot()).toEqual({ status: "signedOut" });
+    expect(getAuthSession()).toEqual({ status: "signedOut" });
     expect(signInAnonymously).toHaveBeenCalledOnce();
   });
 
@@ -113,11 +118,11 @@ describe("authController", () => {
 
   it("publishes anonymous sign-in failures without an identity", async () => {
     const anonymousError = new Error("anonymous sign-in failed");
-    const { publishUser, sessionStore } = createHarness(vi.fn().mockRejectedValue(anonymousError));
+    const { publishUser } = createHarness(vi.fn().mockRejectedValue(anonymousError));
 
     publishUser(null);
 
-    await vi.waitFor(() => expect(sessionStore.getSnapshot()).toEqual({ status: "error", error: anonymousError }));
+    await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "error", error: anonymousError }));
   });
 
   it("ignores a stale anonymous sign-in failure after authentication succeeds", async () => {
@@ -125,24 +130,24 @@ describe("authController", () => {
     const signInAttempt = new Promise<UserCredential>((_resolve, reject) => {
       rejectSignIn = reject;
     });
-    const { publishUser, sessionStore } = createHarness(vi.fn(() => signInAttempt));
+    const { publishUser } = createHarness(vi.fn(() => signInAttempt));
 
     publishUser(null);
     publishUser(createUser("uid-a"));
     rejectSignIn(new Error("late failure"));
     await signInAttempt.catch(() => undefined);
 
-    expect(sessionStore.getSnapshot()).toMatchObject({ status: "authenticated", uid: "uid-a" });
+    expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "uid-a" });
   });
 
   it("refreshes metadata only for the confirmed uid", () => {
-    const { runtime, publishUser, sessionStore } = createHarness();
+    const { runtime, publishUser } = createHarness();
     publishUser(createUser("uid-a"));
 
     runtime.publishAuthenticatedUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
     runtime.publishAuthenticatedUser(createUser("uid-b", { isAnonymous: false, displayName: "Grace" }));
 
-    expect(sessionStore.getSnapshot()).toEqual({
+    expect(getAuthSession()).toEqual({
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: false,

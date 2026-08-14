@@ -82,7 +82,7 @@ import { logout } from "@/app/auth/logout";
 import { AuthProvider } from "@/app/providers/auth";
 import { createAuthRuntime } from "@/app/providers/auth/authController";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
-import { useAuthSession } from "@/entities/auth-session";
+import { replaceAuthSession, useAuthSession } from "@/entities/auth-session";
 import { SettingsPage } from "@/pages/settings";
 import { useStudyStore } from "@/features/study";
 
@@ -92,6 +92,7 @@ afterEach(() => {
 
 beforeEach(async () => {
   vi.clearAllMocks();
+  replaceAuthSession({ status: "initializing" });
   mocks.auth.currentUser = null;
   mocks.publishUser = undefined;
   mocks.operations.length = 0;

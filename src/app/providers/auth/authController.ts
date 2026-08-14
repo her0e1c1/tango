@@ -1,6 +1,6 @@
 import type { Auth, User } from "firebase/auth";
 
-import { createAuthSessionStore } from "@/entities/auth-session";
+import { getAuthSession, replaceAuthSession, type AuthSessionState } from "@/entities/auth-session";
 
 type AuthRuntimeDependencies = {
   auth: Auth;
@@ -8,31 +8,29 @@ type AuthRuntimeDependencies = {
   signInAnonymously: (auth: Auth) => Promise<unknown>;
 };
 
-const authSessionFromUser = (user: User) => ({
+type AuthenticatedAuthSession = Extract<AuthSessionState, { status: "authenticated" }>;
+
+const authSessionFromUser = (user: User): AuthenticatedAuthSession => ({
+  status: "authenticated",
   uid: user.uid,
   isAnonymous: user.isAnonymous,
   displayName: user.providerData[0]?.displayName ?? null,
 });
 
 export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
-  const authSessionStore = createAuthSessionStore();
   let observerStarted = false;
   let anonymousBootstrapStarted = false;
   let anonymousBootstrapSuspended = false;
 
   const startAnonymousBootstrap = () => {
-    if (
-      anonymousBootstrapSuspended ||
-      anonymousBootstrapStarted ||
-      authSessionStore.getSnapshot().status !== "signedOut"
-    ) {
+    if (anonymousBootstrapSuspended || anonymousBootstrapStarted || getAuthSession().status !== "signedOut") {
       return;
     }
 
     anonymousBootstrapStarted = true;
     void dependencies.signInAnonymously(dependencies.auth).catch((error) => {
-      if (authSessionStore.getSnapshot().status === "signedOut") {
-        authSessionStore.publish({ status: "error", error });
+      if (getAuthSession().status === "signedOut") {
+        replaceAuthSession({ status: "error", error });
       }
     });
   };
@@ -40,11 +38,11 @@ export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
   const publishObservedUser = (user: User | null) => {
     if (user) {
       anonymousBootstrapStarted = false;
-      authSessionStore.publish({ status: "authenticated", ...authSessionFromUser(user) });
+      replaceAuthSession(authSessionFromUser(user));
       return;
     }
 
-    authSessionStore.publish({ status: "signedOut" });
+    replaceAuthSession({ status: "signedOut" });
     startAnonymousBootstrap();
   };
 
@@ -55,9 +53,9 @@ export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
   };
 
   const publishAuthenticatedUser = (user: User) => {
-    const current = authSessionStore.getSnapshot();
+    const current = getAuthSession();
     if (current.status === "authenticated" && current.uid === user.uid) {
-      authSessionStore.publish({ status: "authenticated", ...authSessionFromUser(user) });
+      replaceAuthSession(authSessionFromUser(user));
     }
   };
 
@@ -69,7 +67,7 @@ export const createAuthRuntime = (dependencies: AuthRuntimeDependencies) => {
     };
   };
 
-  return { authSessionStore, start, publishAuthenticatedUser, suspendAnonymousBootstrap };
+  return { start, publishAuthenticatedUser, suspendAnonymousBootstrap };
 };
 
 export type AuthRuntime = ReturnType<typeof createAuthRuntime>;
