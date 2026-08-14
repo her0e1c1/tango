@@ -25,11 +25,12 @@ const createPreferencesStore = () =>
         preferences: defaultPreferences,
         updatePreferences: (preferencesInput) =>
           set((state) => {
+            const { selectedTags, ...study } = preferencesInput.study ?? {};
             Object.assign(state.preferences.appearance, preferencesInput.appearance);
-            Object.assign(state.preferences.study, preferencesInput.study);
+            Object.assign(state.preferences.study, study);
             Object.assign(state.preferences.controls, preferencesInput.controls);
-            if (preferencesInput.study?.selectedTags != null) {
-              state.preferences.study.selectedTags = [...preferencesInput.study.selectedTags];
+            if (selectedTags != null) {
+              state.preferences.study.selectedTags = [...selectedTags];
             }
             state.preferences = preferencesSchema.parse(state.preferences);
           }),
