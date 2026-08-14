@@ -1,7 +1,6 @@
-import type { Card } from "@/entities/card";
+import { type Card, deleteCard } from "@/entities/card";
 
 import { useAuthSession } from "@/entities/auth";
-import { deleteCard } from "../api/deleteCard";
 
 interface UseDeleteCardOptions {
   onSuccess?: (card: Card) => void;

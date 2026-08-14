@@ -18,6 +18,7 @@ vi.mock("./card", () => ({
     return stop;
   }),
 }));
+vi.mock("@/shared/firebase", () => ({ db: {} }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {

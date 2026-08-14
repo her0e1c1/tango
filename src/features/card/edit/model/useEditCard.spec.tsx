@@ -14,7 +14,7 @@ vi.mock("@/entities/auth", () => ({
       ? { status: "unauthenticated" }
       : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
 }));
-vi.mock("../api/editCard", () => ({ editCard: mocks.editCard }));
+vi.mock("@/entities/card", () => ({ editCard: mocks.editCard }));
 
 import { useEditCard } from "./useEditCard";
 

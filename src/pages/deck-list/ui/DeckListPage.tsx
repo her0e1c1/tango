@@ -2,10 +2,8 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { filterCardsByDeckId, useCards } from "@/entities/card";
+import { createCard, editCard, filterCardsByDeckId, generateCardId, useCards } from "@/entities/card";
 import { createDeck, type Deck, type DeckId, useDecks } from "@/entities/deck";
-import { createCard, generateCardId } from "@/features/card/create";
-import { editCard } from "@/features/card/edit";
 import { useCardReadState } from "@/features/card/read";
 import { useDeleteDeck } from "@/features/deck/delete";
 import { buildDeckListSections } from "@/features/deck/list";

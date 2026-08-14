@@ -31,7 +31,12 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/entities/deck", () => ({ createDeck: vi.fn(), useDecks: () => [] }));
-vi.mock("@/entities/card", () => ({ useCards: () => [] }));
+vi.mock("@/entities/card", () => ({
+  createCard: vi.fn(),
+  editCard: vi.fn(),
+  generateCardId: vi.fn(),
+  useCards: () => [],
+}));
 vi.mock("@/features/deck/import", () => ({
   SAMPLE_CSV_TEXT: "sample csv",
   downloadSampleCsv: mocks.downloadSampleCsv,

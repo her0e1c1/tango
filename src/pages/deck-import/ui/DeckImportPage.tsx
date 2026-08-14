@@ -3,10 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { createDeck, useDecks } from "@/entities/deck";
-import { useCards } from "@/entities/card";
+import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
-import { createCard, generateCardId } from "@/features/card/create";
-import { editCard } from "@/features/card/edit";
 import { useCardReadState } from "@/features/card/read";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck/import";
 import { AppLayout } from "@/widgets/app-layout";

@@ -45,7 +45,10 @@ vi.mock("@/features/study", () => ({
 }));
 vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
 vi.mock("@/entities/card", () => ({
+  createCard: vi.fn(),
+  editCard: vi.fn(),
   filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+  generateCardId: vi.fn(),
   useCards: () => Object.values(mocks.cardsById),
 }));
 vi.mock("@/entities/deck", () => ({
