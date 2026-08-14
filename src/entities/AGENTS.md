@@ -26,9 +26,9 @@
 ## `model/store.ts`
 
 - Define the global Entity store and synchronous state mutations.
-- Zustand may be used here as an explicit Entity-layer exception.
+- Treat Zustand as an explicit Entity-layer exception.
 - Do not perform external access, subscriptions, or asynchronous workflows.
-- As an explicit exception, persistence middleware may access storage, hydrate state, and manage persistence subscriptions.
+- Treat persistence middleware as an explicit exception for storage access, state hydration, and persistence subscriptions.
 
 ## `model/hooks.ts`
 
@@ -38,7 +38,7 @@
 ## `api/`
 
 - Define Entity-specific Firestore access and persistence implementations.
-- `api/` may access Firestore resources related to this Entity.
+- Keep Firestore access in `api/` to resources related to this Entity.
 - Collection names, document IDs, Entity CRUD, and Entity-specific query or parsing primitives belong here.
 - Firestore SDK access is allowed here, not in `model/`.
 
