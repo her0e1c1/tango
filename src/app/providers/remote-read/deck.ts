@@ -4,6 +4,7 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { z } from "zod";
 
 import { replaceDecks } from "@/entities/deck";
+import { reconcileStudySessionsWithDecks } from "@/features/study";
 import { db } from "@/shared/firebase";
 import { parseFirestoreDocument } from "@/shared/firestore";
 
@@ -33,6 +34,7 @@ const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
 
 export const subscribeDecks = (uid: string, onError: (error: Error) => void): (() => void) => {
   let active = true;
+  let cancelStudyReconciliation: (() => void) | undefined;
   const unsubscribe = onSnapshot(
     query(collection(db, "deck"), where("uid", "==", uid)),
     (snapshot) => {
@@ -42,6 +44,8 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
           .map((document) => convertDeckDtoToDeck(document.id, document.data()))
           .filter((deck) => deck.deletedAt === null);
         replaceDecks(decks);
+        cancelStudyReconciliation?.();
+        cancelStudyReconciliation = reconcileStudySessionsWithDecks(decks.map((deck) => deck.id));
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
@@ -54,5 +58,6 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
   return () => {
     active = false;
     unsubscribe();
+    cancelStudyReconciliation?.();
   };
 };

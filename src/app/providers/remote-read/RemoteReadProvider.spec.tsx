@@ -13,6 +13,7 @@ import { replaceAuthSession } from "@/entities/auth";
 import { clearCards, replaceCards, useCards } from "@/entities/card";
 import { createCard } from "@/test/factories";
 import { RemoteReadProvider } from "./RemoteReadProvider";
+import { startRemoteReadSessionLifecycle } from "./lifecycle";
 
 beforeEach(() => {
   replaceAuthSession({ status: "initializing" });
@@ -30,13 +31,14 @@ it("renders children without waiting for a remote snapshot", () => {
 });
 
 it("does not render the previous user's Cards during a UID switch", () => {
+  const stopLifecycle = startRemoteReadSessionLifecycle();
   const renderedCards: string[][] = [];
   const CardConsumer = () => {
     const cards = useCards();
     renderedCards.push(cards.map(({ frontText }) => frontText));
     return null;
   };
-  render(
+  const { unmount } = render(
     <RemoteReadProvider>
       <CardConsumer />
     </RemoteReadProvider>
@@ -62,4 +64,6 @@ it("does not render the previous user's Cards during a UID switch", () => {
   );
 
   expect(renderedCards.flat()).not.toContain("Previous user Card");
+  unmount();
+  stopLifecycle();
 });

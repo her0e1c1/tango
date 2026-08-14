@@ -4,19 +4,17 @@ import { clearDecks } from "@/entities/deck";
 import { startCardSynchronization } from "./card";
 import { subscribeDecks } from "./deck";
 
-const noCleanup = (): void => undefined;
-
 export const startRemoteReadSessionLifecycle = (): (() => void) => {
   let currentUid: string | null | undefined;
-  let stopCurrentSession = noCleanup;
+  let stopCurrentSession: (() => void) | undefined;
 
   const transition = (session: ReturnType<typeof getAuthSession>) => {
     const nextUid = session.status === "authenticated" ? session.uid : null;
     if (nextUid === currentUid) return;
     currentUid = nextUid;
 
-    stopCurrentSession();
-    stopCurrentSession = noCleanup;
+    stopCurrentSession?.();
+    stopCurrentSession = undefined;
     clearCards();
     clearDecks();
 
@@ -35,7 +33,7 @@ export const startRemoteReadSessionLifecycle = (): (() => void) => {
 
   return () => {
     unsubscribeAuthSession();
-    stopCurrentSession();
+    stopCurrentSession?.();
     clearCards();
     clearDecks();
   };

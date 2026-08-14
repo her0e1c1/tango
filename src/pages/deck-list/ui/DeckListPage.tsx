@@ -11,13 +11,7 @@ import { useDeleteDeck } from "@/features/deck/delete";
 import { buildDeckListSections } from "@/features/deck/list";
 import { downloadDeckCsv } from "@/features/deck/export";
 import { useSampleDeckBootstrap } from "@/features/deck/import";
-import {
-  discardStudySessionsMissingDecks,
-  removeStudySession,
-  touchStudySession,
-  useStudyHydrated,
-  useStudySessions,
-} from "@/features/study";
+import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -50,11 +44,6 @@ export const DeckListPage: React.FC = () => {
   });
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
-
-  React.useEffect(() => {
-    if (!hydrated) return;
-    discardStudySessionsMissingDecks(decks.map((deck) => deck.id));
-  }, [decks, hydrated]);
 
   return (
     <RemoteReadBoundary

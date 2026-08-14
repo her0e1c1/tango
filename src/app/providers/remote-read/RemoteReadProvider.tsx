@@ -1,9 +1,3 @@
-import { type PropsWithChildren, useEffect } from "react";
+import type { PropsWithChildren } from "react";
 
-import { startRemoteReadSessionLifecycle } from "./lifecycle";
-
-export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
-  useEffect(startRemoteReadSessionLifecycle, []);
-
-  return children;
-};
+export const RemoteReadProvider = ({ children }: PropsWithChildren) => children;
