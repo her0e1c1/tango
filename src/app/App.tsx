@@ -8,12 +8,10 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
 import { startAuthSession } from "@/app/providers/auth/lifecycle";
+import { FirestoreSubscriptionsProvider } from "@/app/providers/firestore-subscriptions";
 import { AppRoutes } from "@/app/routes";
 import { useAuthSession } from "@/entities/auth";
-import { clearCards, subscribeCards } from "@/entities/card";
-import { clearDecks, subscribeDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
-import { resetCardRead, setCardReadError, setCardReadLoading, setCardReadReady } from "@/features/card/read";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 /**
@@ -24,33 +22,11 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
 const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location.reload() }) => {
   const { darkMode } = usePreferences().appearance;
   const authState = useAuthSession();
-  const authenticatedUid = authState.status === "authenticated" ? authState.uid : null;
 
   React.useEffect(() => {
     const stopAuthSession = startAuthSession();
     return stopAuthSession;
   }, []);
-
-  React.useEffect(() => {
-    if (authenticatedUid != null) setCardReadLoading(authenticatedUid);
-    const stopCards =
-      authenticatedUid == null
-        ? undefined
-        : subscribeCards(
-            authenticatedUid,
-            (error) => setCardReadError(authenticatedUid, error),
-            (metadata) => setCardReadReady(authenticatedUid, !metadata.fromCache && !metadata.hasPendingWrites)
-          );
-    const stopDecks = authenticatedUid == null ? undefined : subscribeDecks(authenticatedUid, console.error);
-
-    return () => {
-      stopCards?.();
-      stopDecks?.();
-      resetCardRead(authenticatedUid ?? undefined);
-      clearCards();
-      clearDecks();
-    };
-  }, [authenticatedUid]);
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -62,25 +38,31 @@ const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location
     authState.status === "authenticating"
   ) {
     return (
-      <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />
+      <FirestoreSubscriptionsProvider>
+        <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />
+      </FirestoreSubscriptionsProvider>
     );
   }
 
   if (authState.status === "error") {
     return (
-      <RouteFeedback
-        title="Unable to start Tango"
-        description="Authentication could not be initialized."
-        tone="error"
-        primaryAction={{ label: "Reload", onClick: reload }}
-      />
+      <FirestoreSubscriptionsProvider>
+        <RouteFeedback
+          title="Unable to start Tango"
+          description="Authentication could not be initialized."
+          tone="error"
+          primaryAction={{ label: "Reload", onClick: reload }}
+        />
+      </FirestoreSubscriptionsProvider>
     );
   }
 
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <FirestoreSubscriptionsProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </FirestoreSubscriptionsProvider>
   );
 };
 
