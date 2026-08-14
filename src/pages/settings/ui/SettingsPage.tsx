@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthSession } from "@/entities/auth";
-import { useSignIn } from "@/features/auth/sign-in";
-import { useSignOut } from "@/features/auth/sign-out";
+import { useSignIn } from "@/features/sign-in";
+import { useSignOut } from "@/features/sign-out";
 import { usePreferencesFormState } from "@/features/settings";
 import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
