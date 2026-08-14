@@ -4,29 +4,33 @@
  * coordinate services themselves.
  */
 
-import type { Card, CardCreateInput, CardEdit } from "@/entities/card";
-import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
+import type { CardCreateInput, CardEdit } from "@/entities/card";
+import type { Deck, DeckCreateInput } from "@/entities/deck";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { filterCardsByDeckId } from "@/entities/card";
+import { filterCardsByDeckId, getCardsFromServer } from "@/entities/card";
 import { useAuthSession } from "@/entities/auth";
+import { getDecksFromServer } from "@/entities/deck";
 import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import { upsertImportedCards } from "../api/upsertImportedCards";
 import type { DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
-import { executeDeckImport, partialResultFrom, synchronizationError } from "../model/deckImportExecution";
+import { executeDeckImport, partialResultFrom } from "../model/deckImportExecution";
 
 export interface DeckImportOptions {
-  cards: Card[];
   createCard: (uid: string, card: CardCreateInput) => Promise<unknown>;
   createDeck: (uid: string, deck: DeckCreateInput) => Promise<unknown>;
-  decks: Deck[];
   editCard: (uid: string, card: CardEdit) => Promise<unknown>;
   generateCardId: () => string;
-  synchronized: boolean;
 }
+
+const getDeckImportDataFromServer = async (uid: string) => {
+  if (uid === "") throw new Error("A confirmed user is required for imports");
+  const [cards, decks] = await Promise.all([getCardsFromServer(uid), getDecksFromServer(uid)]);
+  return { cards, decks };
+};
 
 interface DeckImportState {
   uid: string;
@@ -83,9 +87,6 @@ interface FilePreviewDependencies {
   setPreview: (preview: DeckImportPreview | undefined) => void;
   setError: (error: unknown) => void;
   reset: () => void;
-  synchronized: boolean;
-  decks: Deck[];
-  cardsByDeckId: (id: DeckId) => Card[];
   uid: string;
   currentUid: { current: string };
   generation: number;
@@ -105,9 +106,6 @@ const previewDeckImportFile = async (
     setPreview,
     setError,
     reset,
-    synchronized,
-    decks,
-    cardsByDeckId,
     uid,
     currentUid,
     generation,
@@ -116,20 +114,14 @@ const previewDeckImportFile = async (
 ) => {
   const isCurrent = () => currentGeneration.current === generation && currentUid.current === uid;
   if (runningRef.current) throw new Error("A Deck import is already running");
-  if (!synchronized) {
-    const error = synchronizationError();
-    reset();
-    setError(error);
-    throw error;
-  }
   setValidating(true);
   setPreview(undefined);
   reset();
   try {
-    const analysis = await parseCsv(await file.text());
+    const [analysis, remote] = await Promise.all([parseCsv(await file.text()), getDeckImportDataFromServer(uid)]);
     if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
-    const deck = decks.find((candidate) => candidate.name === file.name);
-    const existing = deck == null ? [] : cardsByDeckId(deck.id);
+    const deck = remote.decks.find((candidate) => candidate.name === file.name);
+    const existing = deck == null ? [] : filterCardsByDeckId(remote.cards, deck.id);
     const next = {
       fileName: file.name,
       deckName: file.name,
@@ -138,6 +130,9 @@ const previewDeckImportFile = async (
     };
     setPreview(next);
     return next;
+  } catch (error) {
+    if (isCurrent()) setError(error);
+    throw error;
   } finally {
     if (isCurrent()) setValidating(false);
   }
@@ -148,17 +143,8 @@ const previewDeckImportFile = async (
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useDeckImport = ({
-  cards,
-  createCard,
-  createDeck,
-  decks,
-  editCard,
-  generateCardId,
-  synchronized,
-}: DeckImportOptions) => {
+export const useDeckImport = ({ createCard, createDeck, editCard, generateCardId }: DeckImportOptions) => {
   const auth = useAuthSession();
-  const cardsByDeckId = useCallback((deckId: DeckId) => filterCardsByDeckId(cards, deckId), [cards]);
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const generation = useRef(0);
   const generationUid = useRef(uid);
@@ -167,7 +153,8 @@ export const useDeckImport = ({
   const currentState = state.uid === uid ? state : initialDeckImportState(uid);
   if (state.uid !== uid) setState(currentState);
   const lastRequest = useRef<DeckImportRequest>(undefined);
-  const dependenciesRef = useRef<DeckImportDependencies>(undefined);
+  const dependenciesRef =
+    useRef<Pick<DeckImportDependencies, "uid" | "createDeck" | "generateCardId" | "bulkUpsert">>(undefined);
   const runRef = useRef<(request: DeckImportRequest) => Promise<DeckImportResult>>(undefined);
   const [retry] = useState(() => () => {
     const request = lastRequest.current;
@@ -185,14 +172,11 @@ export const useDeckImport = ({
   useEffect(() => {
     dependenciesRef.current = {
       uid,
-      synchronized,
-      decks,
-      cardsByDeckId,
       createDeck: (deck) => createDeck(uid, deck),
       generateCardId,
       bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
     };
-  }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, synchronized, uid]);
+  }, [createCard, createDeck, editCard, generateCardId, uid]);
   const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
     setState((current) => ({
       ...(current.uid === uid ? current : initialDeckImportState(uid)),
@@ -211,7 +195,12 @@ export const useDeckImport = ({
       const dependencies = dependenciesRef.current;
       // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
       if (dependencies == null) throw new Error("Deck import dependencies are not available");
-      const result = await executeDeckImport(request, dependencies);
+      const remote = await getDeckImportDataFromServer(dependencies.uid);
+      const result = await executeDeckImport(request, {
+        ...dependencies,
+        decks: remote.decks,
+        cardsByDeckId: (deckId) => filterCardsByDeckId(remote.cards, deckId),
+      });
       if (generation.current === operationGeneration) updateState({ data: result });
       return result;
     } catch (nextError) {
@@ -257,9 +246,6 @@ export const useDeckImport = ({
       setPreview,
       setError,
       reset: resetOperation,
-      synchronized,
-      decks,
-      cardsByDeckId,
       uid,
       currentUid: generationUid,
       generation: generation.current,

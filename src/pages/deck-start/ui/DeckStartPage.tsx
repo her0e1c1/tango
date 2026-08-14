@@ -7,10 +7,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
-import { useCardReadState } from "@/features/card/read";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 import { toRemoteById } from "@/shared/api";
@@ -62,29 +60,22 @@ export const DeckStartPage: React.FC = () => {
   const preferences = usePreferences();
   const allCards = useCards();
   const cardsById = React.useMemo(() => toRemoteById(allCards), [allCards]);
-  const cardReadState = useCardReadState();
   const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(allCards, deckId), [allCards, deckId]);
   const cards = useStudyCards(deck, deckCards, preferences);
   const tags = filterTagsByDeckId(allCards, deckId);
 
+  if (deck != null) {
+    return <DeckStartContent cardsById={cardsById} deck={deck} cards={cards} preferences={preferences} tags={tags} />;
+  }
+
   return (
-    <RemoteReadBoundary
-      status={cardReadState.status}
-      hasData={cardReadState.status === "ready" && deck != null}
-      emptyContent={
-        <RouteFeedback
-          title="Deck not found"
-          description="The requested deck is unavailable or has been removed."
-          tone="not-found"
-          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
-        />
-      }
-    >
-      {deck != null ? (
-        <DeckStartContent cardsById={cardsById} deck={deck} cards={cards} preferences={preferences} tags={tags} />
-      ) : null}
-    </RemoteReadBoundary>
+    <RouteFeedback
+      title="Deck not found"
+      description="The requested deck is unavailable or has been removed."
+      tone="not-found"
+      primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+      secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+    />
   );
 };

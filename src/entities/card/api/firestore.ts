@@ -7,9 +7,7 @@ import type {
   DeleteCardInput,
   EditCardInput,
 } from "../model/types";
-import type { SnapshotMetadata } from "firebase/firestore";
-
-import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
 
 import { db } from "@/shared/firebase";
@@ -67,21 +65,22 @@ const convertCardDtoToCard = (id: CardId, value: unknown): Card => {
   return card;
 };
 
-export const subscribeCards = (
-  uid: string,
-  onError: (error: Error) => void,
-  onData: (metadata: SnapshotMetadata) => void = () => undefined
-): (() => void) =>
+const activeCardsFromSnapshot = (snapshot: { docs: { id: string; data: () => unknown }[] }): Card[] =>
+  snapshot.docs
+    .map((document) => convertCardDtoToCard(document.id, document.data()))
+    .filter((card) => card.deletedAt === null);
+
+export const getCardsFromServer = async (uid: string): Promise<Card[]> => {
+  const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
+  return activeCardsFromSnapshot(snapshot);
+};
+
+export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
   onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
-    { includeMetadataChanges: true },
     (snapshot) => {
       try {
-        const cards = snapshot.docs
-          .map((document) => convertCardDtoToCard(document.id, document.data()))
-          .filter((card) => card.deletedAt === null);
-        replaceCards(cards);
-        onData(snapshot.metadata);
+        replaceCards(activeCardsFromSnapshot(snapshot));
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

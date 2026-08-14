@@ -8,7 +8,18 @@ import type {
   EditDeckInput,
 } from "../model/types";
 
-import { collection, deleteDoc, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  getDocsFromServer,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { z } from "zod";
 
 import { db } from "@/shared/firebase";
@@ -43,15 +54,22 @@ const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
   return deck;
 };
 
+const activeDecksFromSnapshot = (snapshot: { docs: { id: string; data: () => unknown }[] }): Deck[] =>
+  snapshot.docs
+    .map((document) => convertDeckDtoToDeck(document.id, document.data()))
+    .filter((deck) => deck.deletedAt === null);
+
+export const getDecksFromServer = async (uid: string): Promise<Deck[]> => {
+  const snapshot = await getDocsFromServer(query(collection(db, DECK_COLLECTION), where("uid", "==", uid)));
+  return activeDecksFromSnapshot(snapshot);
+};
+
 export const subscribeDecks = (uid: string, onError: (error: Error) => void): (() => void) =>
   onSnapshot(
     query(collection(db, DECK_COLLECTION), where("uid", "==", uid)),
     (snapshot) => {
       try {
-        const decks = snapshot.docs
-          .map((document) => convertDeckDtoToDeck(document.id, document.data()))
-          .filter((deck) => deck.deletedAt === null);
-        replaceDecks(decks);
+        replaceDecks(activeDecksFromSnapshot(snapshot));
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

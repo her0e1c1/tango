@@ -30,6 +30,8 @@ const mocks = vi.hoisted(() => ({
   editCard: vi.fn(),
   createDeck: vi.fn(),
   bulkUpsert: vi.fn(),
+  getCardsFromServer: vi.fn(),
+  getDecksFromServer: vi.fn(),
 }));
 
 vi.mock("@/entities/auth", () => ({
@@ -44,6 +46,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
   return {
     ...actual,
     filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+    getCardsFromServer: mocks.getCardsFromServer,
   };
 });
 vi.mock("../api/upsertImportedCards", async (importOriginal) => {
@@ -58,6 +61,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...actual,
     generateDeckId: mocks.generateDeckId,
+    getDecksFromServer: mocks.getDecksFromServer,
   };
 });
 vi.mock("../lib/cardCsv", async (importOriginal) => {
@@ -66,20 +70,12 @@ vi.mock("../lib/cardCsv", async (importOriginal) => {
 });
 import { useDeckImport } from "./useDeckImport";
 
-const useTestDeckImport = (props?: { synchronized?: boolean }) =>
+const useTestDeckImport = () =>
   useDeckImport({
-    cards: mocks.cards,
     createCard: mocks.createCardWrite,
     createDeck: (_uid: string, deck: DeckCreateInput) => mocks.createDeck(deck),
-    decks: mocks.decks,
     editCard: mocks.editCard,
     generateCardId: mocks.generateCardId,
-    synchronized:
-      props?.synchronized ??
-      (mocks.cardRemoteStatus === "ready" &&
-        mocks.cardSyncStatus === "synced" &&
-        mocks.deckRemoteStatus === "ready" &&
-        mocks.deckSyncStatus === "synced"),
   });
 
 describe("useDeckImport", () => {
@@ -102,6 +98,8 @@ describe("useDeckImport", () => {
     mocks.editCard.mockResolvedValue(undefined);
     mocks.createDeck.mockResolvedValue(undefined);
     mocks.bulkUpsert.mockResolvedValue(undefined);
+    mocks.getCardsFromServer.mockImplementation(async () => mocks.cards);
+    mocks.getDecksFromServer.mockImplementation(async () => mocks.decks);
   });
 
   it("previews a file without writing until import is confirmed", async () => {
@@ -141,35 +139,32 @@ describe("useDeckImport", () => {
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
   });
 
-  it("rejects a preview before planning when Card reads are not synchronized", async () => {
-    mocks.cardSyncStatus = "cached";
+  it("rejects a preview when the server-backed read fails", async () => {
+    const error = new Error("offline");
+    mocks.getCardsFromServer.mockRejectedValueOnce(error);
     const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
-      await expect(result.current.selectFile(file)).rejects.toThrow("synchronized connection");
+      await expect(result.current.selectFile(file)).rejects.toThrow("offline");
     });
 
     expect(result.current.preview).toBeUndefined();
     expect(result.current.pending).toBe(false);
-    expect(result.current.error).toEqual(
-      new Error("Deck import requires a synchronized connection. Check your connection and retry.")
-    );
+    expect(result.current.error).toBe(error);
     expect(mocks.generateDeckId).not.toHaveBeenCalled();
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
   });
 
-  it("allows a new preview after Card reads synchronize", async () => {
-    mocks.cardSyncStatus = "cached";
-    const initialProps: Parameters<typeof useTestDeckImport>[0] = { synchronized: false };
-    const { result, rerender } = renderHook(useTestDeckImport, { initialProps });
+  it("allows a new preview after the server becomes available", async () => {
+    mocks.getCardsFromServer.mockRejectedValueOnce(new Error("offline"));
+    const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
-      await expect(result.current.selectFile(file)).rejects.toThrow("synchronized connection");
+      await expect(result.current.selectFile(file)).rejects.toThrow("offline");
     });
-    rerender({ synchronized: true });
     await actAsync(async () => result.current.selectFile(file));
     await actAsync(async () => result.current.importPreview());
 

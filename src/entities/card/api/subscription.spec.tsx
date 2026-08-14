@@ -8,7 +8,6 @@ import { clearCards } from "../model/store";
 type TestDocument = { id: string; data: () => Record<string, unknown> };
 type TestSnapshot = {
   docs: TestDocument[];
-  metadata: { fromCache: boolean; hasPendingWrites: boolean };
 };
 
 const mocks = vi.hoisted(() => ({
@@ -18,13 +17,12 @@ const mocks = vi.hoisted(() => ({
   next: undefined as ((snapshot: TestSnapshot) => void) | undefined,
   error: undefined as ((error: Error) => void) | undefined,
   unsubscribe: vi.fn(),
-  onSnapshot: vi.fn(
-    (_query: unknown, _options: unknown, next: (snapshot: TestSnapshot) => void, error: (cause: Error) => void) => {
-      mocks.next = next;
-      mocks.error = error;
-      return mocks.unsubscribe;
-    }
-  ),
+  getDocsFromServer: vi.fn(),
+  onSnapshot: vi.fn((_query: unknown, next: (snapshot: TestSnapshot) => void, error: (cause: Error) => void) => {
+    mocks.next = next;
+    mocks.error = error;
+    return mocks.unsubscribe;
+  }),
 }));
 
 vi.mock("firebase/firestore", async (importOriginal) => {
@@ -32,6 +30,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
   return {
     ...actual,
     collection: mocks.collection,
+    getDocsFromServer: mocks.getDocsFromServer,
     onSnapshot: mocks.onSnapshot,
     query: mocks.query,
     where: mocks.where,
@@ -39,7 +38,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
-import { subscribeCards } from "./firestore";
+import { getCardsFromServer, subscribeCards } from "./firestore";
 
 const cardDocument = (id: string, overrides: Record<string, unknown> = {}): TestDocument => ({
   id,
@@ -59,8 +58,6 @@ const cardDocument = (id: string, overrides: Record<string, unknown> = {}): Test
   }),
 });
 
-const metadata = { fromCache: false, hasPendingWrites: false };
-
 describe("Card Firestore subscription", () => {
   beforeEach(() => {
     clearCards();
@@ -70,22 +67,15 @@ describe("Card Firestore subscription", () => {
   });
 
   it("subscribes by UID and fully replaces active Cards from each snapshot", () => {
-    const onData = vi.fn();
     const { result } = renderHook(useCards);
-    const unsubscribe = subscribeCards("uid-a", vi.fn(), onData);
+    const unsubscribe = subscribeCards("uid-a", vi.fn());
 
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
-    expect(mocks.onSnapshot).toHaveBeenCalledWith(
-      expect.anything(),
-      { includeMetadataChanges: true },
-      expect.any(Function),
-      expect.any(Function)
-    );
+    expect(mocks.onSnapshot).toHaveBeenCalledWith(expect.anything(), expect.any(Function), expect.any(Function));
 
     act(() =>
       mocks.next?.({
-        metadata,
         docs: [
           cardDocument("active", {
             lastSeenAt: 50,
@@ -111,9 +101,7 @@ describe("Card Firestore subscription", () => {
         endLine: 9,
       }),
     ]);
-    expect(onData).toHaveBeenCalledWith(metadata);
-
-    act(() => mocks.next?.({ metadata, docs: [cardDocument("replacement", { frontText: "Current" })] }));
+    act(() => mocks.next?.({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
     expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" })]);
 
     unsubscribe();
@@ -124,7 +112,7 @@ describe("Card Firestore subscription", () => {
     const onError = vi.fn();
     subscribeCards("uid-a", onError);
 
-    act(() => mocks.next?.({ metadata, docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
+    act(() => mocks.next?.({ docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ name: "FirestoreDocumentValidationError", documentId: "invalid" })
@@ -139,5 +127,14 @@ describe("Card Firestore subscription", () => {
     mocks.error?.(error);
 
     expect(onError).toHaveBeenCalledWith(error);
+  });
+
+  it("reads active Cards explicitly from the server", async () => {
+    mocks.getDocsFromServer.mockResolvedValue({
+      docs: [cardDocument("active"), cardDocument("deleted", { deletedAt: 3 })],
+    });
+
+    await expect(getCardsFromServer("uid-a")).resolves.toEqual([expect.objectContaining({ id: "active" })]);
+    expect(mocks.getDocsFromServer).toHaveBeenCalledOnce();
   });
 });

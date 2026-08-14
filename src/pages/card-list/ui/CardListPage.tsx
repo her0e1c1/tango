@@ -5,11 +5,9 @@ import { useKey } from "react-use";
 import { filterCardsByDeckId, filterTagsByDeckId, type Card, type CardId, useCards } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
-import { useCardReadState } from "@/features/card/read";
 import { CardList } from "@/features/card-list";
 import { BackText } from "@/features/card/view";
 import { DeckStartForm, useDeckFilterState, useEditStudyProgress, useStudyCards } from "@/features/study";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -49,7 +47,6 @@ export const CardListPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
   const preferences = usePreferences();
   const allCards = useCards();
-  const cardReadState = useCardReadState();
   const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(allCards, deckId), [allCards, deckId]);
   const cards = useStudyCards(deck, deckCards, preferences);
@@ -58,31 +55,27 @@ export const CardListPage: React.FC = () => {
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
 
-  return (
-    <RemoteReadBoundary
-      status={cardReadState.status}
-      hasData={cardReadState.status === "ready" && deck != null}
-      emptyContent={
-        <RouteFeedback
-          title="Deck not found"
-          description="The requested deck is unavailable or has been removed."
-          tone="not-found"
-          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+  if (deck != null) {
+    return (
+      <AppLayout showHeader>
+        <CardListComposition
+          deck={deck}
+          cards={cards}
+          tags={tags}
+          preferences={preferences}
+          onEditCard={(id) => void navigate(`/card/${id}/edit`)}
         />
-      }
-    >
-      {deck != null ? (
-        <AppLayout showHeader>
-          <CardListComposition
-            deck={deck}
-            cards={cards}
-            tags={tags}
-            preferences={preferences}
-            onEditCard={(id) => void navigate(`/card/${id}/edit`)}
-          />
-        </AppLayout>
-      ) : null}
-    </RemoteReadBoundary>
+      </AppLayout>
+    );
+  }
+
+  return (
+    <RouteFeedback
+      title="Deck not found"
+      description="The requested deck is unavailable or has been removed."
+      tone="not-found"
+      primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+      secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+    />
   );
 };

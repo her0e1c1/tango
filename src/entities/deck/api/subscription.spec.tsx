@@ -6,6 +6,7 @@ import { clearDecks } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
+  getDocsFromServer: vi.fn(),
   onSnapshot: vi.fn(),
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
@@ -14,13 +15,14 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("firebase/firestore", () => ({
   collection: mocks.collection,
+  getDocsFromServer: mocks.getDocsFromServer,
   onSnapshot: mocks.onSnapshot,
   query: mocks.query,
   where: mocks.where,
 }));
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
-import { subscribeDecks } from "./firestore";
+import { getDecksFromServer, subscribeDecks } from "./firestore";
 
 const deckDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
@@ -88,5 +90,14 @@ describe("Deck Firestore subscription", () => {
     getErrorHandler()(error);
 
     expect(onError).toHaveBeenCalledWith(error);
+  });
+
+  it("reads active Decks explicitly from the server", async () => {
+    mocks.getDocsFromServer.mockResolvedValue({
+      docs: [deckDocument("active"), deckDocument("deleted", { deletedAt: 3 })],
+    });
+
+    await expect(getDecksFromServer("uid-a")).resolves.toEqual([expect.objectContaining({ id: "active" })]);
+    expect(mocks.getDocsFromServer).toHaveBeenCalledOnce();
   });
 });

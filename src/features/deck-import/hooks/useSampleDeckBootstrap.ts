@@ -54,9 +54,7 @@ export const useSampleDeckBootstrap = (options: DeckImportOptions) => {
   const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useEffect(() => {
-    if (uid === "" || !options.synchronized || options.decks.length > 0) {
-      return;
-    }
+    if (uid === "") return;
     void sampleDeckBootstrapController.start(uid, deckImport.addSample)?.catch(() => undefined);
-  }, [deckImport.addSample, options.decks.length, options.synchronized, uid]);
+  }, [deckImport.addSample, uid]);
 };
