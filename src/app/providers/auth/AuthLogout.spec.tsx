@@ -45,8 +45,9 @@ vi.mock("@/features/card/read", () => ({
   stopCardReads: vi.fn(),
 }));
 vi.mock("@/app/providers/remote-read/deck", () => ({
-  subscribeDecks: (uid: string) => {
+  subscribeDecks: (uid: string, onReady?: () => void) => {
     void mocks.startRemoteReads(uid);
+    onReady?.();
     return () => void mocks.cleanupUid(uid);
   },
 }));
@@ -78,9 +79,8 @@ vi.mock("@/pages/settings/ui/SettingsView", () => ({
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
-import { AuthBootstrap } from "@/app/providers/auth";
+import { AppProviders } from "@/app/providers/AppProviders";
 import { startAuthSession } from "@/app/providers/auth/authLifecycle";
-import { RemoteReadProvider } from "@/app/providers/remote-read";
 import { getAuthSession, replaceAuthSession, useAuthSession } from "@/entities/auth";
 import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { SettingsPage } from "@/pages/settings";
@@ -161,9 +161,7 @@ it("waits for local cleanup before bootstrapping the next anonymous UID", async 
 
   render(
     <React.StrictMode>
-      <AuthBootstrap>
-        <RemoteReadProvider />
-      </AuthBootstrap>
+      <AppProviders />
     </React.StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
@@ -206,9 +204,9 @@ it("retries a failed sign-out while the authenticated screen remains mounted", a
   mocks.clearStudyStore.mockResolvedValue(undefined);
 
   render(
-    <AuthBootstrap>
+    <AppProviders>
       <AuthenticatedSettings />
-    </AuthBootstrap>
+    </AppProviders>
   );
   act(() => mocks.publishUser?.(userA));
 
@@ -236,9 +234,9 @@ it("blocks anonymous bootstrap when study cleanup fails", async () => {
 
   render(
     <React.StrictMode>
-      <AuthBootstrap>
+      <AppProviders>
         <AuthenticatedSettings />
-      </AuthBootstrap>
+      </AppProviders>
     </React.StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
