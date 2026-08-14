@@ -1,4 +1,8 @@
+import { renderHook } from "@testing-library/react";
+import { act } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { clearCards, useCards as useStoredCards } from "@/entities/card";
 
 type TestDocument = { id: string; data: () => Record<string, unknown> };
 type TestSnapshot = {
@@ -56,17 +60,19 @@ const snapshot = (
 
 describe("subscribeCardReads", () => {
   beforeEach(() => {
+    clearCards();
     vi.clearAllMocks();
     mocks.next = undefined;
     mocks.error = undefined;
   });
 
   it("publishes active Cards from the requested user's collection", () => {
+    const { result } = renderHook(useStoredCards);
     const onSnapshot = vi.fn();
     const onError = vi.fn();
     const unsubscribe = subscribeCardReads({ uid: "uid-a", onSnapshot, onError });
 
-    mocks.next?.(snapshot([document("active", cardDocument()), document("deleted", cardDocument(3))]));
+    act(() => mocks.next?.(snapshot([document("active", cardDocument()), document("deleted", cardDocument(3))])));
 
     expect(unsubscribe).toBe(mocks.unsubscribe);
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
@@ -81,19 +87,22 @@ describe("subscribeCardReads", () => {
       itemsById: { active: expect.objectContaining({ id: "active", deletedAt: null }) },
       syncStatus: "synced",
     });
+    expect(result.current).toEqual([expect.objectContaining({ id: "active", deletedAt: null })]);
   });
 
   it("replaces the full result on every snapshot", () => {
+    const { result } = renderHook(useStoredCards);
     const onSnapshot = vi.fn();
     subscribeCardReads({ uid: "uid-a", onSnapshot, onError: vi.fn() });
-    mocks.next?.(snapshot([document("old", cardDocument())]));
+    act(() => mocks.next?.(snapshot([document("old", cardDocument())])));
 
-    mocks.next?.(snapshot([document("current", { ...cardDocument(), frontText: "Current" })]));
+    act(() => mocks.next?.(snapshot([document("current", { ...cardDocument(), frontText: "Current" })])));
 
     expect(onSnapshot).toHaveBeenLastCalledWith({
       itemsById: { current: expect.objectContaining({ id: "current", frontText: "Current" }) },
       syncStatus: "synced",
     });
+    expect(result.current).toEqual([expect.objectContaining({ id: "current", frontText: "Current" })]);
   });
 
   it.each([
@@ -110,16 +119,23 @@ describe("subscribeCardReads", () => {
   });
 
   it("does not publish a partial result when conversion fails", () => {
+    const { result } = renderHook(useStoredCards);
     const onSnapshot = vi.fn();
     const onError = vi.fn();
     subscribeCardReads({ uid: "uid-a", onSnapshot, onError });
+    act(() => mocks.next?.(snapshot([document("previous", cardDocument())])));
+    onSnapshot.mockClear();
+    onError.mockClear();
 
     expect(() =>
-      mocks.next?.(snapshot([document("valid", cardDocument()), document("invalid", { ...cardDocument(), uid: 1 })]))
+      act(() =>
+        mocks.next?.(snapshot([document("valid", cardDocument()), document("invalid", { ...cardDocument(), uid: 1 })]))
+      )
     ).not.toThrow();
 
     expect(onSnapshot).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledWith(expect.any(Error));
+    expect(result.current).toEqual([expect.objectContaining({ id: "previous" })]);
   });
 
   it("forwards listener errors", () => {
