@@ -29,11 +29,14 @@ vi.mock("@/entities/preferences", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 
+vi.mock("@/entities/card", () => ({
+  useCard: () => mocks.card ?? undefined,
+}));
+
 vi.mock("@/features/card/read", () => ({
-  useCards: () => ({
+  useCardReadState: () => ({
     status: "ready" as const,
     retry: vi.fn(),
-    cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
   }),
 }));
 

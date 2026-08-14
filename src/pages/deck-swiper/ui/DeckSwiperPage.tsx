@@ -4,7 +4,8 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useCards } from "@/features/card/read";
+import { type Card, type CardId, useCards } from "@/entities/card";
+import { useCardReadState } from "@/features/card/read";
 import { BackText, CardOverlay, FrontText } from "@/features/card/view";
 import {
   initializeStudySessionUi,
@@ -18,6 +19,7 @@ import {
   useStudyStore,
 } from "@/features/study";
 import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
+import { toRemoteById } from "@/shared/api";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -28,16 +30,16 @@ const SWIPE_FEEDBACK_DURATION_MS = 900;
 const isHistoryState = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
-type CardRemote = ReturnType<typeof useCards>;
+type CardReadState = ReturnType<typeof useCardReadState>;
 
 const DeckSwiperContent = ({
-  cardRemote,
+  cardsById,
   deck,
   readState,
 }: {
-  cardRemote: CardRemote;
+  cardsById: Partial<Record<CardId, Card>>;
   deck: Deck;
-  readState: CardRemote;
+  readState: CardReadState;
 }) => {
   const navigate = useNavigate();
   const deckId = deck.id;
@@ -51,10 +53,10 @@ const DeckSwiperContent = ({
 
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
-  const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
+  const card = cardId == null ? undefined : cardsById[cardId];
   const cardMutation = useEditStudyProgress();
   const studyActions = useStudyActions(deckId, {
-    cardsById: cardRemote.cardsById,
+    cardsById,
     cardMutation: {
       update: cardMutation.update,
     },
@@ -190,8 +192,9 @@ export const DeckSwiperPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
 
-  const cardRemote = useCards();
-  const readState = cardRemote;
+  const cards = useCards();
+  const cardsById = React.useMemo(() => toRemoteById(cards), [cards]);
+  const readState = useCardReadState();
   const deck = useDeck(deckId);
 
   return (
@@ -201,7 +204,7 @@ export const DeckSwiperPage: React.FC = () => {
       emptyLabel="Study session unavailable."
       onRetry={readState.retry}
     >
-      {deck != null ? <DeckSwiperContent cardRemote={cardRemote} deck={deck} readState={readState} /> : null}
+      {deck != null ? <DeckSwiperContent cardsById={cardsById} deck={deck} readState={readState} /> : null}
     </RemoteReadBoundary>
   );
 };

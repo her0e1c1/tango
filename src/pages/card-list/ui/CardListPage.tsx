@@ -4,10 +4,10 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { type Card, type CardId, filterCardsByDeckId, filterTagsByDeckId } from "@/entities/card";
+import { type Card, type CardId, filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, useDeck } from "@/entities/deck";
 import { useDeleteCard } from "@/features/card/delete";
-import { useCards } from "@/features/card/read";
+import { useCardReadState } from "@/features/card/read";
 import { useEditDeck } from "@/features/deck/edit";
 import {
   DeckStartForm,
@@ -144,16 +144,17 @@ export const CardListPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
   const preferences = usePreferences();
-  const cardRemote = useCards();
+  const allCards = useCards();
+  const cardReadState = useCardReadState();
   const deck = useDeck(deckId);
-  const deckCards = React.useMemo(() => filterCardsByDeckId(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
+  const deckCards = React.useMemo(() => filterCardsByDeckId(allCards, deckId), [allCards, deckId]);
   const cards = useStudyCards(deck, deckCards, preferences);
-  const tags = filterTagsByDeckId(cardRemote.cards, deckId);
+  const tags = filterTagsByDeckId(allCards, deckId);
 
   return (
     <RemoteReadBoundary
-      status={cardRemote.status}
-      hasData={cardRemote.status === "ready" && deck != null}
+      status={cardReadState.status}
+      hasData={cardReadState.status === "ready" && deck != null}
       emptyContent={
         <RouteFeedback
           title="Deck not found"
@@ -163,7 +164,7 @@ export const CardListPage: React.FC = () => {
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={cardRemote.retry}
+      onRetry={cardReadState.retry}
     >
       {deck != null ? <CardListContent deck={deck} cards={cards} tags={tags} preferences={preferences} /> : null}
     </RemoteReadBoundary>
