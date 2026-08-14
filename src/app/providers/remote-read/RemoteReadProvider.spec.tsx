@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   stopCards: vi.fn(),
   stopDecks: vi.fn(),
   clearDecks: vi.fn(),
+  deckReadyByUid: {} as Record<string, () => void>,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
@@ -27,7 +28,10 @@ vi.mock("@/features/card/read", () => ({
 }));
 vi.mock("@/entities/deck", () => ({ clearDecks: mocks.clearDecks }));
 vi.mock("./deck", () => ({
-  subscribeDecks: vi.fn(() => mocks.stopDecks),
+  subscribeDecks: vi.fn((uid: string, onReady: () => void) => {
+    mocks.deckReadyByUid[uid] = onReady;
+    return mocks.stopDecks;
+  }),
 }));
 
 import { AuthProvider } from "@/app/providers/auth";
@@ -62,14 +66,36 @@ const createHarness = (children?: ReactNode) => {
 describe("RemoteReadProvider integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.keys(mocks.deckReadyByUid).forEach((uid) => {
+      delete mocks.deckReadyByUid[uid];
+    });
   });
 
-  it("starts reads and renders children", async () => {
+  it("renders children after the current UID's first Deck snapshot", async () => {
     const { publishUser } = createHarness(<div>content</div>);
 
     act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
 
     await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
+    expect(screen.queryByText("content")).toBeNull();
+    act(() => mocks.deckReadyByUid["uid-a"]?.());
+    expect(screen.getByText("content")).toBeTruthy();
+  });
+
+  it("ignores readiness from a previous UID", async () => {
+    const { publishUser } = createHarness(<div>content</div>);
+    const userA = { uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User;
+    const userB = { uid: "uid-b", isAnonymous: true, providerData: [] } as unknown as User;
+
+    act(() => publishUser(userA));
+    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
+    const readyA = mocks.deckReadyByUid["uid-a"];
+    act(() => publishUser(userB));
+    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-b"));
+
+    act(() => readyA?.());
+    expect(screen.queryByText("content")).toBeNull();
+    act(() => mocks.deckReadyByUid["uid-b"]?.());
     expect(screen.getByText("content")).toBeTruthy();
   });
 

@@ -31,7 +31,7 @@ const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
   return deck;
 };
 
-export const subscribeDecks = (uid: string, onError: (error: Error) => void): (() => void) =>
+export const subscribeDecks = (uid: string, onReady: () => void, onError: (error: Error) => void): (() => void) =>
   onSnapshot(
     query(collection(db, "deck"), where("uid", "==", uid)),
     (snapshot) => {
@@ -40,6 +40,7 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
           .map((document) => convertDeckDtoToDeck(document.id, document.data()))
           .filter((deck) => deck.deletedAt === null);
         replaceDecks(decks);
+        onReady();
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

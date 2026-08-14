@@ -39,7 +39,7 @@ describe("Query realtime subscriptions", () => {
     const uid = "uid";
     const cardSnapshots: RemoteSnapshot<Card>[] = [];
     const errors: Error[] = [];
-    const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
+    const stopDecks = subscribeDecks(uid, vi.fn(), (error) => errors.push(error));
     const stopCards = subscribeCardReads({
       uid,
       onSnapshot: (snapshot) => cardSnapshots.push(snapshot),
