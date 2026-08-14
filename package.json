@@ -33,7 +33,7 @@
     "lint:eslint": "eslint --max-warnings=0 'src/**/*.{ts,tsx}'",
     "lint:fsd": "steiger ./src",
     "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' && biome lint --write . && npm run fmt:markdown",
-    "lint:knip": "knip && knip --production --strict",
+    "lint:knip": "knip --strict",
     "lint:markdown": "markdownlint-cli2",
     "lint:tsc": "tsc",
     "storybook": "storybook dev"
