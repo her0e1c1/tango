@@ -1,5 +1,5 @@
 /**
- * @file Defines Storybook examples for the Card List Page view.
+ * @file Defines Storybook examples for the Card List feature view.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
@@ -7,36 +7,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
-import { DeckStartForm } from "@/features/study";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 import { CardListView as Template } from "./CardListView";
-
-type DeckStartFormProps = React.ComponentProps<typeof DeckStartForm>;
-
-const deckStartForm: DeckStartFormProps = {
-  scoreMax: 1,
-  scoreMin: -1,
-  scoreMaxSwitchProps: { name: "scoreMaxSwitch", checked: true, onChange: () => undefined },
-  scoreMinSwitchProps: { name: "scoreMinSwitch", checked: true, onChange: () => undefined },
-  scoreMaxSliderProps: { name: "scoreMax", value: "1", min: -10, max: 10, onChange: () => undefined },
-  scoreMinSliderProps: { name: "scoreMin", value: "-1", min: -10, max: 10, onChange: () => undefined },
-  tagFilterProps: {
-    tags: [...fixture.tags.default],
-    selectedTags: [],
-    tagAndFilter: false,
-    onClickFilter: () => undefined,
-    onClickAll: () => undefined,
-    onClickClear: () => undefined,
-    onClickTag: () => undefined,
-  },
-};
-
-const longDeckStartForm: DeckStartFormProps = {
-  ...deckStartForm,
-  tagFilterProps: { ...deckStartForm.tagFilterProps, tags: [...fixture.tags.toolong] },
-};
 
 const activeFilter = { scoreMax: 1, scoreMin: -1, selectedTags: ["tag 1", "tag 2"] };
 const longUnbrokenTag =
@@ -92,7 +66,7 @@ const ClosableCardViewExample: React.FC<React.ComponentProps<typeof Template>> =
 };
 
 const meta = {
-  title: "Pages/Card List",
+  title: "Features/Card List",
   component: Template,
   tags: ["autodocs"],
   parameters: {
@@ -105,7 +79,7 @@ const meta = {
   args: {
     cards: fixture.cards.default,
     filter: activeFilter,
-    filterSlot: <DeckStartForm {...deckStartForm} />,
+    filterSlot: <div>Filter controls</div>,
   },
 } satisfies Meta<typeof Template>;
 
@@ -134,7 +108,7 @@ export const RemovableSelectedTags: Story = {
 
 export const Long: Story = {
   args: {
-    filterSlot: <DeckStartForm {...longDeckStartForm} />,
+    filterSlot: <div>Many filter controls</div>,
     cards: fixture.cards.long,
   },
 };
@@ -172,7 +146,7 @@ export const IphoneX: Story = {
 export const IphoneXLong: Story = {
   parameters: { viewport: { defaultViewport: "iphonex" } },
   args: {
-    filterSlot: <DeckStartForm {...longDeckStartForm} />,
+    filterSlot: <div>Many filter controls</div>,
     filter: { scoreMax: 1, scoreMin: -1, selectedTags: [longUnbrokenTag] },
     cards: longUnbrokenCards,
   },

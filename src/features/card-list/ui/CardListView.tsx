@@ -1,5 +1,5 @@
 /**
- * @file Composes the Card List Page's presentation.
+ * @file Composes the Card List feature's presentation.
  * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
@@ -8,8 +8,14 @@ import { AiOutlineDown } from "react-icons/ai";
 
 import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
-import type { Card as CardEntity, CardId } from "@/entities/card";
-import { BackText, type BackTextProps, Card, type CardProps } from "@/features/card/view";
+import {
+  BackText,
+  CardView,
+  type BackTextProps,
+  type Card as CardEntity,
+  type CardId,
+  type CardProps,
+} from "@/entities/card";
 
 interface CardListOverlayProps {
   backText: BackTextProps;
@@ -79,7 +85,7 @@ const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowC
   return (
     <div className="overflow-visible rounded-surface border border-border bg-surface shadow-surface dark:border-black">
       {props.cards.map((card) => (
-        <Card
+        <CardView
           key={card.id}
           card={card}
           disabled={props.isCardPending?.(card.id) ?? false}

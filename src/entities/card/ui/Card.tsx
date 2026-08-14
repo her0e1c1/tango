@@ -1,5 +1,5 @@
 /**
- * @file Defines the card feature's Card presentation component.
+ * @file Defines the Card entity's row presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
@@ -8,7 +8,7 @@ import cx from "classnames";
 import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
-import type { Card as CardEntity, CardId } from "@/entities/card";
+import type { Card as CardEntity, CardId } from "../model/types";
 import { CardActionsMenu } from "./CardActionsMenu";
 import { Score, TagLabel } from "@/shared/ui/content";
 

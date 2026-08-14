@@ -9,3 +9,7 @@ export type {
   CardRaw,
 } from "./model/types";
 export { filterCardsByDeckId, filterTagsByDeckId } from "./model/rules";
+export { BackText, type BackTextProps } from "./ui/BackText";
+export { Card as CardView, type CardProps } from "./ui/Card";
+export { CardOverlay } from "./ui/CardOverlay";
+export { FrontText } from "./ui/FrontText";

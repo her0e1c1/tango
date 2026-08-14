@@ -10,7 +10,7 @@ import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Card as CardEntity } from "@/entities/card";
+import type { Card as CardEntity } from "../model/types";
 import { Card } from "./Card";
 
 const card = {
