@@ -3,7 +3,7 @@ import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { cardRemoteReadStore } from "../model/remoteReadStore";
-import { selectCardsForDeck, selectTagsForDeck } from "@/entities/card";
+import { filterByDeckId, filterTagsByDeckId } from "@/entities/card";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
 import { createCard } from "@/test/factories";
 
@@ -60,8 +60,8 @@ describe("Card remote hooks", () => {
 
     expect(result.current.cardsById[first.id]).toEqual(first);
     expect(result.current.cards).toEqual([first, second, other]);
-    expect(selectCardsForDeck(result.current.cards, "deck-a")).toEqual([first, second]);
-    expect(selectTagsForDeck(result.current.cards, "deck-a")).toEqual(["a", "z"]);
+    expect(filterByDeckId(result.current.cards, "deck-a")).toEqual([first, second]);
+    expect(filterTagsByDeckId(result.current.cards, "deck-a")).toEqual(["a", "z"]);
     expect(result.current.status).toBe("ready");
     expect(result.current.syncStatus).toBe("synced");
   });

@@ -44,7 +44,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
   return {
     ...actual,
     createCard: (...args: unknown[]) => mocks.prepareCard(...args),
-    selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+    filterByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
   };
 });
 vi.mock("../api/upsertImportedCards", async (importOriginal) => {

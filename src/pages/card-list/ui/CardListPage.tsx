@@ -4,7 +4,7 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { type Card, type CardId, selectCardsForDeck, selectTagsForDeck } from "@/entities/card";
+import { type Card, type CardId, filterByDeckId, filterTagsByDeckId } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import { useDeleteCard } from "@/features/card/delete";
 import { useCards } from "@/features/card/read";
@@ -150,9 +150,9 @@ export const CardListPage: React.FC = () => {
   const remote = useDecks();
   const readState = combineRemoteReadStates(cardRemote, remote);
   const deck = remote.decksById[deckId];
-  const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
+  const deckCards = React.useMemo(() => filterByDeckId(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
   const cards = useStudyCards(deck, deckCards, config);
-  const tags = selectTagsForDeck(cardRemote.cards, deckId);
+  const tags = filterTagsByDeckId(cardRemote.cards, deckId);
 
   return (
     <RemoteReadBoundary

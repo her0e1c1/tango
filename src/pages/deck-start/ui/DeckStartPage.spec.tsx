@@ -20,8 +20,8 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/card", () => ({
-  selectCardsForDeck: () => mocks.cards,
-  selectTagsForDeck: () => [],
+  filterByDeckId: () => mocks.cards,
+  filterTagsByDeckId: () => [],
 }));
 vi.mock("@/features/card/read", () => ({
   useCards: () => ({
