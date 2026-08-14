@@ -26,6 +26,7 @@
 ## `model/store.ts`
 
 - Define the global Entity store and synchronous state mutations.
+- Zustand may be used here as an explicit Entity-layer exception.
 - Do not perform external access, subscriptions, or asynchronous workflows.
 - As an explicit exception, persistence middleware may access storage, hydrate state, and manage persistence subscriptions.
 
@@ -36,10 +37,10 @@
 
 ## `api/`
 
-- Own Entity-specific external access and persistence implementations.
+- Define Entity-specific Firestore access and persistence implementations.
+- `api/` may access Firestore resources related to this Entity.
 - Collection names, document IDs, Entity CRUD, and Entity-specific query or parsing primitives belong here.
-- Firebase, Firestore, and other external SDKs may be accessed only from `api/`, not `model/`.
-- Keep runtime subscription lifecycle, feature workflows, and use-case orchestration outside `entities`.
+- Firestore SDK access is allowed here, not in `model/`.
 
 ## `@x/`
 
@@ -54,5 +55,5 @@
 
 - Colocate tests as `*.spec.ts` or `*.spec.tsx` next to the file they cover.
 - Do not create implementation files outside the roles defined above.
-- Do not place UI, use cases, subscription lifecycle, or feature workflow state in `entities`.
-- Keep generic external-system helpers in `shared` and Entity-specific persistence in the owning Entity `api/`.
+- Do not place UI in `entities`.
+- Keep generic external-system helpers in `shared` and Entity-related Firestore access in `api/`.
