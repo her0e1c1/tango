@@ -27,11 +27,22 @@
 
 - Define the global Entity store and synchronous state mutations.
 - Do not perform external access, subscriptions, or asynchronous workflows.
+- As an explicit exception, persistence middleware may access storage, hydrate state, and manage persistence subscriptions.
 
 ## `model/hooks.ts`
 
 - Define thin React hooks for reading or selecting Entity state.
 - Do not place business logic or external access here.
+
+## `api/`
+
+- As an explicit exception, Entity-specific infrastructure helpers may access external systems in `api/`.
+- Keep feature workflows and use-case orchestration outside `entities`.
+
+## `@x/`
+
+- Use `@x/` only for explicit cross-slice contracts.
+- Prefer type-only re-exports and keep the exposed surface minimal.
 
 ## `index.ts`
 
