@@ -77,7 +77,6 @@ vi.mock("@/pages/settings/ui/SettingsView", () => ({
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
-import { AppProviders } from "@/app/providers/AppProviders";
 import { startAuthSession } from "@/app/providers/auth/lifecycle";
 import { startRemoteReadSessionLifecycle } from "@/app/providers/remote-read/lifecycle";
 import { getAuthSession, replaceAuthSession, useAuthSession } from "@/entities/auth";
@@ -163,11 +162,6 @@ it("waits for local cleanup before bootstrapping the next anonymous UID", async 
     });
   });
 
-  render(
-    <React.StrictMode>
-      <AppProviders />
-    </React.StrictMode>
-  );
   act(() => mocks.publishUser?.(userA));
   await waitFor(() => expect(mocks.startRemoteReads).toHaveBeenCalledWith("uid-a"));
   mocks.operations.length = 0;
@@ -207,11 +201,7 @@ it("retries a failed sign-out while the authenticated screen remains mounted", a
   mocks.signInAnonymously.mockReturnValue(anonymousBootstrap);
   mocks.clearStudyStore.mockResolvedValue(undefined);
 
-  render(
-    <AppProviders>
-      <AuthenticatedSettings />
-    </AppProviders>
-  );
+  render(<AuthenticatedSettings />);
   act(() => mocks.publishUser?.(userA));
 
   fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
@@ -238,9 +228,7 @@ it("blocks anonymous bootstrap when study cleanup fails", async () => {
 
   render(
     <React.StrictMode>
-      <AppProviders>
-        <AuthenticatedSettings />
-      </AppProviders>
+      <AuthenticatedSettings />
     </React.StrictMode>
   );
   act(() => mocks.publishUser?.(userA));
