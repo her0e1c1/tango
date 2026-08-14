@@ -1,9 +1,6 @@
 # Entities Instructions
 
-- Treat `src/entities` as the domain layer and owner of global entity state.
-- Keep domain models, domain logic, global entity state, and simple read/write interfaces here.
-- Domain/business logic that spans multiple entities also belongs in `entities`.
-- Limit entity stores to entity data and simple operations such as replace and clear.
-- Simple selector hooks may expose entity data to consumers.
-- Do not place UI, use cases, Firestore/Firebase access, subscriptions, loading/error/retry state,
-  complex asynchronous workflows, or feature-specific processing in entities.
+- Treat `src/entities` as the domain layer.
+- Keep domain models, schemas, business rules, and domain logic pure.
+- Global Entity stores and thin selector hooks are allowed as an exception.
+- Do not place any other responsibilities in `entities`, including UI, use cases, external access, persistence, subscriptions, or asynchronous workflows.
