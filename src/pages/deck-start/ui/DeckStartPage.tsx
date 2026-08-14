@@ -8,7 +8,7 @@ import { useKey } from "react-use";
 
 import { filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
 import { useCardReadState } from "@/features/card/read";
-import { useEditDeck } from "@/features/deck/edit";
+import { useDeckEditAction } from "@/features/deck-edit";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -29,7 +29,7 @@ const DeckStartContent = (props: {
   tags: string[];
 }) => {
   const { cardsById, deck, cards, preferences, tags } = props;
-  const deckMutations = useEditDeck();
+  const deckMutations = useDeckEditAction();
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {
     cardsById,

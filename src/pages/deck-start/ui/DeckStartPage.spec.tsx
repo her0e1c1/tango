@@ -33,7 +33,7 @@ vi.mock("@/features/card/read", () => ({
     retry: vi.fn(),
   }),
 }));
-vi.mock("@/features/deck/edit", () => ({ useEditDeck: () => ({ update: mocks.update }) }));
+vi.mock("@/features/deck-edit", () => ({ useDeckEditAction: () => ({ update: mocks.update }) }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: (_deckId: string, options: { onStarted?: () => void } = {}) => ({
     start: (_cards: Card[]) => {

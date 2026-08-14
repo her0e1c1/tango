@@ -13,11 +13,7 @@ export default defineConfig([
     },
   },
   {
-    files: [
-      "./src/entities/study-progress/**",
-      "./src/features/deck-editor/**",
-      "./src/features/settings/**",
-    ],
+    files: ["./src/entities/study-progress/**", "./src/features/settings/**"],
     rules: {
       "fsd/insignificant-slice": "off",
     },

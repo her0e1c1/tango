@@ -1,27 +1,18 @@
 import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createPreferences, createDeck } from "@/test/factories";
+import { createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  preferences: null as unknown as Preferences,
   deck: null as Deck | null,
-  save: vi.fn(),
-  cancel: vi.fn(),
   navigate: vi.fn(),
-  setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/entities/preferences", () => ({
-  usePreferences: () => mocks.preferences,
-  setDarkMode: mocks.setDarkMode,
-}));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 vi.mock("@/entities/deck", async (importOriginal) => {
@@ -31,29 +22,23 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     useDeck: () => mocks.deck ?? undefined,
   };
 });
-vi.mock("@/features/deck/edit", () => ({
-  useEditDeck: () => ({ update: vi.fn(), pending: false, error: null, retry: vi.fn() }),
+vi.mock("@/features/deck-edit", () => ({
+  DeckEditForm: (props: { deck: Deck; onCancel: () => void; onSaved: () => void }) => (
+    <section>
+      <h1>{props.deck.name}</h1>
+      <button type="button" onClick={props.onSaved}>
+        Save changes
+      </button>
+      <button type="button" onClick={props.onCancel}>
+        Cancel
+      </button>
+    </section>
+  ),
 }));
 
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
-}));
-
-vi.mock("@/features/deck-editor/hooks/useDeckEditorActions", () => ({
-  useDeckEditorActions: (options: { onCancel: () => void; onSaved: () => void }) => ({
-    save: async (deck: Deck) => {
-      mocks.save(deck);
-      options.onSaved();
-    },
-    cancel: () => {
-      mocks.cancel();
-      options.onCancel();
-    },
-    pending: false,
-    error: null,
-    retry: vi.fn(),
-  }),
 }));
 
 import { DeckFormPage } from "./DeckFormPage";
@@ -64,7 +49,6 @@ describe("DeckFormPage", () => {
   beforeEach(() => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
-    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     vi.clearAllMocks();
   });
 
@@ -79,7 +63,6 @@ describe("DeckFormPage", () => {
     render(<DeckFormPage />);
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    expect(mocks.save).toHaveBeenCalledWith(deck);
     expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
   });
 
@@ -88,7 +71,6 @@ describe("DeckFormPage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-    expect(mocks.cancel).toHaveBeenCalledOnce();
     expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
   });
 
