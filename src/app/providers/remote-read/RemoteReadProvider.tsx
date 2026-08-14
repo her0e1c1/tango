@@ -1,6 +1,6 @@
 import { type PropsWithChildren, useEffect, useState } from "react";
 
-import { useAuthSession } from "@/entities/auth-session";
+import { useAuthSession } from "@/entities/auth";
 import { clearDecks } from "@/entities/deck";
 import { startCardReads, stopCardReads } from "@/features/card/read";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";

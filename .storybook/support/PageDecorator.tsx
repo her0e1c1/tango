@@ -12,7 +12,7 @@ import { replaceDecks } from "@/entities/deck";
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
-import { replaceAuthSession } from "@/entities/auth-session";
+import { replaceAuthSession } from "@/entities/auth";
 import { preferencesSchema, preferencesStore, type Preferences } from "@/entities/preferences";
 import type { StudyState } from "@/features/study/state/studyStore";
 import { studyStore } from "@/features/study/state/studyStoreInstance";

@@ -9,7 +9,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { useAuthSession } from "@/entities/auth-session";
+import type { useAuthSession } from "@/entities/auth";
 
 type AuthSessionState = ReturnType<typeof useAuthSession>;
 
@@ -23,7 +23,7 @@ vi.mock("@/entities/preferences", () => ({
 }));
 vi.mock("@/app/auth/logout", () => ({ logout: vi.fn() }));
 vi.mock("@/app/providers/auth", () => ({ publishAuthenticatedUser: vi.fn() }));
-vi.mock("@/entities/auth-session", () => ({ useAuthSession: () => mocks.authState }));
+vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authState }));
 vi.mock("@/features/auth/sign-in", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));

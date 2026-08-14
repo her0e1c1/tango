@@ -1,6 +1,6 @@
 import type { Deck } from "@/entities/deck";
 
-import { useAuthSession } from "@/entities/auth-session";
+import { useAuthSession } from "@/entities/auth";
 import { deleteDeck } from "../api/deleteDeck";
 
 export const useDeleteDeck = () => {

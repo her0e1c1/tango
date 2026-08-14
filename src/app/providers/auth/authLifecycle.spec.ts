@@ -32,7 +32,7 @@ const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCre
   });
   singletonMocks.signInAnonymously.mockImplementation(signInAnonymously);
 
-  const authSession = await import("@/entities/auth-session");
+  const authSession = await import("@/entities/auth");
   const lifecycle = await import("./authLifecycle");
   authSession.replaceAuthSession({ status: "initializing" });
   lifecycle.startAuthSession();

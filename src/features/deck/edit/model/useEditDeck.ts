@@ -1,6 +1,6 @@
 import type { DeckEdit } from "@/entities/deck";
 
-import { useAuthSession } from "@/entities/auth-session";
+import { useAuthSession } from "@/entities/auth";
 import { editDeck } from "../api/editDeck";
 
 export const useEditDeck = () => {
