@@ -18,9 +18,8 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   authUid: "user-1",
   readStatus: "ready" as "idle" | "loading" | "ready" | "error",
-  syncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
+  serverConfirmed: true,
   hydrated: true,
-  retry: vi.fn(),
   deleteDeck: vi.fn(async (_uid: string, _deck: Deck) => undefined),
   downloadDeckCsv: vi.fn(),
   removeStudySession: vi.fn(),
@@ -55,8 +54,7 @@ vi.mock("@/entities/deck", () => ({
 vi.mock("@/features/card/read", () => ({
   useCardReadState: () => ({
     status: mocks.readStatus,
-    syncStatus: mocks.syncStatus,
-    retry: mocks.retry,
+    serverConfirmed: mocks.serverConfirmed,
   }),
 }));
 vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
@@ -111,7 +109,7 @@ describe("DeckListPage", () => {
     mocks.cards = [card];
     mocks.authUid = "user-1";
     mocks.readStatus = "ready";
-    mocks.syncStatus = "synced";
+    mocks.serverConfirmed = true;
     mocks.hydrated = true;
   });
 

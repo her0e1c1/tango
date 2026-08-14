@@ -21,7 +21,7 @@ export const DeckListPage: React.FC = () => {
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
-  const synchronized = cardReadState.status === "ready" && cardReadState.syncStatus === "synced";
+  const synchronized = cardReadState.serverConfirmed;
   const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useSampleDeckBootstrap({
@@ -41,7 +41,6 @@ export const DeckListPage: React.FC = () => {
       status={cardReadState.status}
       hasData={cardReadState.status === "ready" && decks.length > 0}
       emptyLabel="No decks yet."
-      onRetry={cardReadState.retry}
     >
       {hydrated ? (
         <AppLayout showHeader>
