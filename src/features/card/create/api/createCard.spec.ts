@@ -1,6 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createCard as createCardFixture } from "@/test/factories";
+
+vi.mock("@/shared/firebase", () => ({ db: {} }));
 
 import { createCard } from "../index";
 

@@ -2,14 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   doc: vi.fn(() => "card-reference"),
-  getDb: vi.fn(() => "db"),
   getTimestamp: vi.fn(() => 100),
   updateDoc: vi.fn(),
 }));
 
 vi.mock("firebase/firestore", () => ({ doc: mocks.doc, updateDoc: mocks.updateDoc }));
+vi.mock("@/shared/firebase", () => ({ db: "db" }));
 vi.mock("@/shared/firestore", () => ({
-  getDb: mocks.getDb,
   getTimestamp: mocks.getTimestamp,
   omitUndefined: (value: Record<string, unknown>) =>
     Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)),

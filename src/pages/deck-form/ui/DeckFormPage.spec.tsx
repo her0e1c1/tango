@@ -22,6 +22,7 @@ vi.mock("@/shared/config", () => ({
   useConfig: () => mocks.config,
   setDarkMode: mocks.setDarkMode,
 }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
