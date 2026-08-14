@@ -8,8 +8,14 @@ import "@/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { createCard as createCardCommand, deleteCard, editCard } from "@/entities/card";
-import { createDeck as createDeckCommand, deleteDeck, editDeck } from "@/entities/deck";
+import {
+  createCard as createCardCommand,
+  createDeck as createDeckCommand,
+  deleteCard,
+  deleteDeck,
+  editCard,
+  editDeck,
+} from "@/features/firebase-runtime";
 import { startCardSynchronization } from "@/app/providers/remote-read/card";
 import { subscribeDecks } from "@/app/providers/remote-read/deck";
 import { cardStore } from "@/entities/card/model/store";

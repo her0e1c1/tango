@@ -80,7 +80,7 @@ vi.mock("react-use", () => ({ useKey: vi.fn() }));
 import { startAuthSession } from "@/app/providers/auth/lifecycle";
 import { startRemoteReadSessionLifecycle } from "@/app/providers/remote-read/lifecycle";
 import { getAuthSession, replaceAuthSession, useAuthSession } from "@/entities/auth";
-import { signOutCurrentUser } from "@/features/auth/sign-out";
+import { signOutCurrentUser } from "@/features/firebase-runtime";
 import { SettingsPage } from "@/pages/settings";
 import { useStudyStore } from "@/features/study";
 

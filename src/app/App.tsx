@@ -12,7 +12,28 @@ import { startRemoteReadSessionLifecycle } from "@/app/providers/remote-read/lif
 import { AppRoutes } from "@/app/routes";
 import { useAuthSession } from "@/entities/auth";
 import { usePreferences } from "@/entities/preferences";
+import {
+  createCard,
+  createDeck,
+  deleteCard,
+  deleteDeck,
+  editCard,
+  editDeck,
+  editStudyProgress,
+  generateCardId,
+  generateDeckId,
+  loginGoogle,
+  signOutCurrentUser,
+} from "@/features/firebase-runtime";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
+
+const routeServices = {
+  card: { create: createCard, edit: editCard, remove: deleteCard, generateId: generateCardId },
+  deck: { create: createDeck, edit: editDeck, remove: deleteDeck, generateId: generateDeckId },
+  editStudyProgress,
+  login: loginGoogle,
+  logout: signOutCurrentUser,
+};
 
 /**
  * Renders the App user interface.
@@ -60,7 +81,7 @@ const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location
 
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AppRoutes services={routeServices} />
     </BrowserRouter>
   );
 };

@@ -5,7 +5,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck, useDeck } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, type Deck, type DeckEdit, useDeck } from "@/entities/deck";
+import type { StudyProgressEdit } from "@/entities/study-progress";
 import { useDeleteCard } from "@/features/card/delete";
 import { useCardReadState } from "@/features/card/read";
 import { useEditDeck } from "@/features/deck/edit";
@@ -25,23 +26,34 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { CardListView } from "./CardListView";
 
-const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; preferences: Preferences }) => {
-  const { deck, cards, tags, preferences } = props;
+interface CardListMutations {
+  deleteCard?: (uid: string, card: Card) => Promise<void>;
+  editDeck?: (uid: string, deck: DeckEdit) => Promise<void>;
+  editStudyProgress?: (uid: string, progress: StudyProgressEdit) => Promise<void>;
+}
+
+const CardListContent = (
+  props: { deck: Deck; cards: Card[]; tags: string[]; preferences: Preferences } & CardListMutations
+) => {
+  const { deck, cards, tags, preferences, deleteCard, editDeck, editStudyProgress } = props;
   const [showCard, setShowCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
   const [mutationError, setMutationError] = React.useState<unknown>(null);
   const [successMessage, setSuccessMessage] = React.useState<string>();
   const navigate = useNavigate();
-  const editMutation = useEditStudyProgress();
-  const deleteMutation = useDeleteCard({
-    onSuccess: (card) => {
-      setDeletionTarget((target) => (target?.id === card.id ? undefined : target));
-      setDeletionErrorCardId((id) => (id === card.id ? undefined : id));
-      setSuccessMessage(`Deleted card “${card.frontText}”.`);
+  const editMutation = useEditStudyProgress(editStudyProgress);
+  const deleteMutation = useDeleteCard(
+    {
+      onSuccess: (card) => {
+        setDeletionTarget((target) => (target?.id === card.id ? undefined : target));
+        setDeletionErrorCardId((id) => (id === card.id ? undefined : id));
+        setSuccessMessage(`Deleted card “${card.frontText}”.`);
+      },
     },
-  });
-  const deckMutations = useEditDeck();
+    deleteCard
+  );
+  const deckMutations = useEditDeck(editDeck);
   const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : getCategory(deck.category, showCard.tags);
@@ -138,7 +150,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; pre
   );
 };
 
-export const CardListPage: React.FC = () => {
+export const CardListPage: React.FC<CardListMutations> = (mutations) => {
   const params = useParams();
   const navigate = useNavigate();
   const deckId = params.id;
@@ -166,7 +178,9 @@ export const CardListPage: React.FC = () => {
       }
       onRetry={cardReadState.retry}
     >
-      {deck != null ? <CardListContent deck={deck} cards={cards} tags={tags} preferences={preferences} /> : null}
+      {deck != null ? (
+        <CardListContent deck={deck} cards={cards} tags={tags} preferences={preferences} {...mutations} />
+      ) : null}
     </RemoteReadBoundary>
   );
 };

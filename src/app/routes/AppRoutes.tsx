@@ -7,8 +7,9 @@
 import type React from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
-import { loginGoogle } from "@/features/auth/sign-in";
-import { signOutCurrentUser } from "@/features/auth/sign-out";
+import type { Card, CardCreateInput, CardEdit } from "@/entities/card";
+import type { Deck, DeckCreateInput, DeckEdit } from "@/entities/deck";
+import type { StudyProgressEdit } from "@/entities/study-progress";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
@@ -37,25 +38,74 @@ const UnknownRoute = () => {
   );
 };
 
-const login = async () => {
-  await loginGoogle();
-};
+export interface AppRouteServices {
+  card: {
+    create: (uid: string, card: CardCreateInput) => Promise<void>;
+    edit: (uid: string, card: CardEdit) => Promise<void>;
+    remove: (uid: string, card: Card) => Promise<void>;
+    generateId: () => string;
+  };
+  deck: {
+    create: (uid: string, deck: DeckCreateInput) => Promise<void>;
+    edit: (uid: string, deck: DeckEdit) => Promise<void>;
+    remove: (uid: string, deck: Deck) => Promise<void>;
+    generateId: () => string;
+  };
+  editStudyProgress: (uid: string, progress: StudyProgressEdit) => Promise<void>;
+  login: () => Promise<unknown>;
+  logout: () => Promise<void>;
+}
 
 /**
  * Renders Tango's route tree inside the router supplied by the caller.
  * Production uses BrowserRouter while Storybook can provide MemoryRouter for isolated page stories.
  */
-export const AppRoutes: React.FC = () => (
+export const AppRoutes: React.FC<{ services: AppRouteServices }> = ({ services }) => (
   <Routes>
-    <Route path="/" element={<DeckListPage />} />
-    <Route path="/deck/:id" element={<CardListPage />} />
-    <Route path="/deck/:id/edit" element={<DeckFormPage />} />
-    <Route path="/deck/:id/start" element={<DeckStartPage />} />
-    <Route path="/deck/:id/study" element={<DeckSwiperPage />} />
+    <Route
+      path="/"
+      element={
+        <DeckListPage
+          createCard={services.card.create}
+          createDeck={services.deck.create}
+          deleteDeck={services.deck.remove}
+          editCard={services.card.edit}
+          generateCardId={services.card.generateId}
+          generateDeckId={services.deck.generateId}
+        />
+      }
+    />
+    <Route
+      path="/deck/:id"
+      element={
+        <CardListPage
+          deleteCard={services.card.remove}
+          editDeck={services.deck.edit}
+          editStudyProgress={services.editStudyProgress}
+        />
+      }
+    />
+    <Route path="/deck/:id/edit" element={<DeckFormPage editDeck={services.deck.edit} />} />
+    <Route path="/deck/:id/start" element={<DeckStartPage editDeck={services.deck.edit} />} />
+    <Route path="/deck/:id/study" element={<DeckSwiperPage editStudyProgress={services.editStudyProgress} />} />
     <Route path="/card/:id" element={<CardViewPage />} />
-    <Route path="/card/:id/edit" element={<CardFormPage />} />
-    <Route path="/settings" element={<SettingsPage login={login} logout={signOutCurrentUser} />} />
-    <Route path="/import" element={<DeckImportPage />} />
+    <Route path="/card/:id/edit" element={<CardFormPage editCard={services.card.edit} />} />
+    <Route
+      path="/settings"
+      element={<SettingsPage login={async () => void (await services.login())} logout={services.logout} />}
+    />
+    <Route
+      path="/import"
+      element={
+        <DeckImportPage
+          createCard={services.card.create}
+          createDeck={services.deck.create}
+          editCard={services.card.edit}
+          generateCardId={services.card.generateId}
+          generateDeckId={services.deck.generateId}
+        />
+      }
+    />
     <Route path="*" element={<UnknownRoute />} />
   </Routes>
 );

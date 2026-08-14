@@ -3,12 +3,12 @@
  * The examples cover creating, updating, checking, and deleting Deck documents.
  */
 
-import { createDeck, deleteDeck, editDeck, type Deck, type DeckCreateInput } from "@/entities/deck";
+import type { Deck, DeckCreateInput } from "@/entities/deck";
+import { createCard as createCardCommand, createDeck, deleteDeck, editDeck } from "@/features/firebase-runtime";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
-import { createCard as createCardCommand } from "@/entities/card";
 import { getTimestamp } from "@/shared/firebase";
 import * as UUID from "uuid";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";

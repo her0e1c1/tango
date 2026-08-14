@@ -1,5 +1,5 @@
 import type { Card, CardId } from "@/entities/card";
-import { type Deck, useDeck } from "@/entities/deck";
+import { type Deck, type DeckEdit, useDeck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
 import * as React from "react";
@@ -14,7 +14,7 @@ import { usePreferences } from "@/entities/preferences";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-import { toRemoteById } from "@/shared/firebase";
+import { toRemoteById } from "@/shared/remote";
 
 import { DeckStartView } from "./DeckStartView";
 
@@ -25,11 +25,12 @@ const DeckStartContent = (props: {
   cardsById: Partial<Record<CardId, Card>>;
   deck: Deck;
   cards: Card[];
+  editDeck: ((uid: string, deck: DeckEdit) => Promise<void>) | undefined;
   preferences: Preferences;
   tags: string[];
 }) => {
-  const { cardsById, deck, cards, preferences, tags } = props;
-  const deckMutations = useEditDeck();
+  const { cardsById, deck, cards, editDeck, preferences, tags } = props;
+  const deckMutations = useEditDeck(editDeck);
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {
     cardsById,
@@ -56,7 +57,9 @@ const DeckStartContent = (props: {
   );
 };
 
-export const DeckStartPage: React.FC = () => {
+export const DeckStartPage: React.FC<{
+  editDeck?: (uid: string, deck: DeckEdit) => Promise<void>;
+}> = ({ editDeck }) => {
   const params = useParams();
   const navigate = useNavigate();
   const deckId = params.id;
@@ -86,7 +89,14 @@ export const DeckStartPage: React.FC = () => {
       onRetry={cardReadState.retry}
     >
       {deck != null ? (
-        <DeckStartContent cardsById={cardsById} deck={deck} cards={cards} preferences={preferences} tags={tags} />
+        <DeckStartContent
+          cardsById={cardsById}
+          deck={deck}
+          cards={cards}
+          editDeck={editDeck}
+          preferences={preferences}
+          tags={tags}
+        />
       ) : null}
     </RemoteReadBoundary>
   );

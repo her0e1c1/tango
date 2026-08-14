@@ -14,8 +14,6 @@ export {
   omitUndefined,
   parseFirestoreDocument,
 } from "./firestoreDocument";
-export { toRemoteById } from "./remoteSnapshot";
-export type { RemoteSyncStatus } from "./remoteSnapshot";
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
 const apiKey = import.meta.env.VITE_WEB_API_KEY;

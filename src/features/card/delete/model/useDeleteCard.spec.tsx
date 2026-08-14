@@ -14,8 +14,6 @@ vi.mock("@/entities/auth", () => ({
       ? { status: "unauthenticated" }
       : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
 }));
-vi.mock("@/entities/card", () => ({ deleteCard: mocks.deleteCard }));
-
 import { useDeleteCard } from "./useDeleteCard";
 
 const card = createCardFixture({ id: "card", uid: "uid-a" }) as Card;
@@ -30,7 +28,7 @@ describe("useDeleteCard", () => {
   it("reports a successful removal when the original action is run again", async () => {
     const onSuccess = vi.fn();
     mocks.deleteCard.mockRejectedValueOnce(new Error("remove failed")).mockResolvedValueOnce(undefined);
-    const { result } = renderHook(() => useDeleteCard({ onSuccess }));
+    const { result } = renderHook(() => useDeleteCard({ onSuccess }, mocks.deleteCard));
     await actAsync(async () => {
       await expect(result.current.remove(card)).rejects.toThrow("remove failed");
     });

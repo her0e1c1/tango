@@ -4,7 +4,7 @@ import {
   omitUndefined,
   parseFirestoreDocument,
 } from "@/shared/firebase/firestoreDocument";
-import { toRemoteById } from "@/shared/firebase/remoteSnapshot";
+import { toRemoteById } from "@/shared/remote";
 
 export const firebaseHelpers = {
   firestoreTimestampDateSchema,

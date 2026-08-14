@@ -2,8 +2,10 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { createCard, editCard, filterCardsByDeckId, generateCardId, useCards } from "@/entities/card";
-import { createDeck, type Deck, type DeckId, useDecks } from "@/entities/deck";
+import { filterCardsByDeckId, useCards } from "@/entities/card";
+import type { CardCreateInput, CardEdit } from "@/entities/card";
+import { type Deck, type DeckId, useDecks } from "@/entities/deck";
+import type { DeckCreateInput } from "@/entities/deck";
 import { useCardReadState } from "@/features/card/read";
 import { useDeleteDeck } from "@/features/deck/delete";
 import { buildDeckListSections } from "@/features/deck/list";
@@ -17,7 +19,40 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckListView } from "./DeckListView";
 
-export const DeckListPage: React.FC = () => {
+interface DeckListPageProps {
+  createCard?: (uid: string, card: CardCreateInput) => Promise<void>;
+  createDeck?: (uid: string, deck: DeckCreateInput) => Promise<void>;
+  deleteDeck?: (uid: string, deck: Deck) => Promise<void>;
+  editCard?: (uid: string, card: CardEdit) => Promise<void>;
+  generateCardId?: () => string;
+  generateDeckId?: () => string;
+}
+
+const unavailableMutation = async (): Promise<never> => {
+  throw new Error("Remote mutations are unavailable");
+};
+const unavailableId = (): never => {
+  throw new Error("Remote id generation is unavailable");
+};
+
+const useSampleDeck = (
+  { createCard, createDeck, editCard, generateCardId, generateDeckId }: DeckListPageProps,
+  cards: ReturnType<typeof useCards>,
+  decks: ReturnType<typeof useDecks>,
+  synchronized: boolean
+) =>
+  useSampleDeckBootstrap({
+    cards,
+    createCard: createCard ?? unavailableMutation,
+    createDeck: createDeck ?? unavailableMutation,
+    decks,
+    editCard: editCard ?? unavailableMutation,
+    generateCardId: generateCardId ?? unavailableId,
+    generateDeckId: generateDeckId ?? unavailableId,
+    synchronized,
+  });
+
+export const DeckListPage: React.FC<DeckListPageProps> = (props) => {
   const navigate = useNavigate();
   const cards = useCards();
   const cardReadState = useCardReadState();
@@ -25,21 +60,13 @@ export const DeckListPage: React.FC = () => {
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [deletionErrorDeckId, setDeletionErrorDeckId] = React.useState<DeckId>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
-  const mutations = useDeleteDeck();
+  const mutations = useDeleteDeck(props.deleteDeck);
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
   const sections = buildDeckListSections(decks, cards, sessionsByDeckId);
   const synchronized = cardReadState.status === "ready" && cardReadState.syncStatus === "synced";
-  useSampleDeckBootstrap({
-    cards,
-    createCard,
-    createDeck,
-    decks,
-    editCard,
-    generateCardId,
-    synchronized,
-  });
+  useSampleDeck(props, cards, decks, synchronized);
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
 

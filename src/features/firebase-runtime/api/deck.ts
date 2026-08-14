@@ -1,9 +1,9 @@
-import type { Deck, DeckCreate, DeckCreateInput, DeckEdit, DeleteDeckInput, EditDeckInput } from "../model/types";
+import type { Deck, DeckCreate, DeckCreateInput, DeckEdit, DeleteDeckInput, EditDeckInput } from "@/entities/deck";
 
 import { collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 
 import { db, getTimestamp, omitUndefined } from "@/shared/firebase";
-import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
+import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "@/entities/deck";
 
 const DECK_COLLECTION = "deck";
 const CARD_COLLECTION = "card";

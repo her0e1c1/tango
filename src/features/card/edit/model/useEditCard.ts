@@ -1,13 +1,16 @@
-import { type Card, type CardEdit, editCard } from "@/entities/card";
+import type { Card, CardEdit } from "@/entities/card";
 
 import { useAuthSession } from "@/entities/auth";
 
 type CardPatch = Omit<CardEdit, "id" | "uid">;
 
-export const useEditCard = () => {
+type EditCard = (uid: string, card: CardEdit) => Promise<void>;
+
+export const useEditCard = (editCard?: EditCard) => {
   const auth = useAuthSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
-  const update = (card: CardEdit) => editCard(uid, card);
+  const update = (card: CardEdit) =>
+    editCard == null ? Promise.reject(new Error("Card editing is unavailable")) : editCard(uid, card);
 
   return {
     update,

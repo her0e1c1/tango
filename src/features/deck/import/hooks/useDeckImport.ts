@@ -10,7 +10,6 @@ import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { filterCardsByDeckId } from "@/entities/card";
-import { generateDeckId } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
@@ -25,6 +24,7 @@ export interface DeckImportOptions {
   decks: Deck[];
   editCard: (uid: string, card: CardEdit) => Promise<unknown>;
   generateCardId: () => string;
+  generateDeckId: () => string;
   synchronized: boolean;
 }
 
@@ -107,17 +107,18 @@ interface DeckImportDependencies {
   cardsByDeckId: (id: DeckId) => Card[];
   createDeck: (deck: DeckCreateInput) => Promise<unknown>;
   generateCardId: () => string;
+  generateDeckId: () => string;
   bulkUpsert: (cards: CardCreateInput[], createdIds: CardId[]) => Promise<unknown>;
 }
 
 type DeckImportPreparationDependencies = Pick<
   DeckImportDependencies,
-  "uid" | "decks" | "cardsByDeckId" | "generateCardId"
+  "uid" | "decks" | "cardsByDeckId" | "generateCardId" | "generateDeckId"
 >;
 
 const prepareDeckImportAttempt = (
   request: ImportRequest,
-  { uid, decks, cardsByDeckId, generateCardId }: DeckImportPreparationDependencies
+  { uid, decks, cardsByDeckId, generateCardId, generateDeckId }: DeckImportPreparationDependencies
 ): DeckImportAttempt => {
   const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
   const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
@@ -165,13 +166,22 @@ const prepareDeckImportAttempt = (
  */
 const executeDeckImport = async (
   request: ImportRequest,
-  { uid, synchronized, decks, cardsByDeckId, createDeck, generateCardId, bulkUpsert }: DeckImportDependencies
+  {
+    uid,
+    synchronized,
+    decks,
+    cardsByDeckId,
+    createDeck,
+    generateCardId,
+    generateDeckId,
+    bulkUpsert,
+  }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
   if (!synchronized) throw synchronizationError();
   let attempt = request.attempt;
   if (attempt == null || attempt.uid !== uid) {
-    attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId, generateCardId });
+    attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId, generateCardId, generateDeckId });
     request.attempt = attempt;
   }
   if (attempt.createDeckPending) {
@@ -312,6 +322,7 @@ export const useDeckImport = ({
   decks,
   editCard,
   generateCardId,
+  generateDeckId,
   synchronized,
 }: DeckImportOptions) => {
   const auth = useAuthSession();
@@ -347,9 +358,10 @@ export const useDeckImport = ({
       cardsByDeckId,
       createDeck: (deck) => createDeck(uid, deck),
       generateCardId,
+      generateDeckId,
       bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
     };
-  }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, synchronized, uid]);
+  }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, generateDeckId, synchronized, uid]);
   const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
     setState((current) => ({
       ...(current.uid === uid ? current : initialDeckImportState(uid)),

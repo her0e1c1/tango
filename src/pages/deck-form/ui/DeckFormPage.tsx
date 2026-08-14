@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { CATEGORY, type Category, type Deck, useDeck } from "@/entities/deck";
+import { CATEGORY, type Category, type Deck, type DeckEdit, useDeck } from "@/entities/deck";
 import { useEditDeck } from "@/features/deck/edit";
 import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
 import { Feedback } from "@/shared/ui/feedback";
@@ -10,9 +10,11 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckFormView } from "./DeckFormView";
 
-const DeckFormContent = ({ deck }: { deck: Deck }) => {
+type EditDeck = (uid: string, deck: DeckEdit) => Promise<void>;
+
+const DeckFormContent = ({ deck, editDeck }: { deck: Deck; editDeck: EditDeck | undefined }) => {
   const navigate = useNavigate();
-  const mutations = useEditDeck();
+  const mutations = useEditDeck(editDeck);
   const goToList = () => void navigate("/", { replace: true });
   const deckActions = useDeckEditorActions({ mutations, onCancel: goToList, onSaved: goToList });
   const categoryOptions: { label: Category; value: Category }[] = CATEGORY.map((category) => ({
@@ -38,14 +40,14 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
   );
 };
 
-export const DeckFormPage: React.FC = () => {
+export const DeckFormPage: React.FC<{ editDeck?: EditDeck }> = ({ editDeck }) => {
   const params = useParams();
   const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
   const deck = useDeck(deckId);
 
-  if (deck != null) return <DeckFormContent deck={deck} />;
+  if (deck != null) return <DeckFormContent deck={deck} editDeck={editDeck} />;
 
   return (
     <RouteFeedback

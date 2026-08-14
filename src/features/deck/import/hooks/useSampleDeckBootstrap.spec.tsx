@@ -37,6 +37,7 @@ const useTestSampleDeckBootstrap = (props: { synchronized?: boolean } = {}) =>
     decks: mocks.remote.decks,
     editCard: vi.fn(),
     generateCardId: vi.fn(() => "card-id"),
+    generateDeckId: vi.fn(() => "deck-id"),
     synchronized: props.synchronized ?? (mocks.remote.status === "ready" && mocks.remote.syncStatus === "synced"),
   });
 

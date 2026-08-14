@@ -4,7 +4,7 @@ import { createDeck as createDeckFixture } from "@/test/factories";
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 
-import { createDeck, deleteDeck, editDeck } from "./firestore";
+import { createDeck, deleteDeck, editDeck } from "./deck";
 
 describe("Deck Firestore persistence", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });

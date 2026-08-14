@@ -1,9 +1,5 @@
-import { fileURLToPath } from "node:url";
 import type { StorybookConfig } from "@storybook/react-vite";
-import { mergeConfig } from "vite";
 import { withoutPwaPlugins } from "./vitePlugins";
-
-const storybookFirebase = fileURLToPath(new URL("./support/firebase.ts", import.meta.url));
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.tsx"],
@@ -19,17 +15,9 @@ const config: StorybookConfig = {
     name: "@storybook/react-vite",
     options: {},
   },
-  viteFinal: async (viteConfig) =>
-    mergeConfig(
-      {
-        ...viteConfig,
-        plugins: withoutPwaPlugins(viteConfig.plugins),
-      },
-      {
-        resolve: {
-          alias: [{ find: /^@\/shared\/firebase$/, replacement: storybookFirebase }],
-        },
-      }
-    ),
+  viteFinal: async (viteConfig) => ({
+    ...viteConfig,
+    plugins: withoutPwaPlugins(viteConfig.plugins),
+  }),
 };
 export default config;

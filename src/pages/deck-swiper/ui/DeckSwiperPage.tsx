@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, useCards } from "@/entities/card";
+import type { StudyProgressEdit } from "@/entities/study-progress";
 import { useCardReadState } from "@/features/card/read";
 import { BackText, CardOverlay, FrontText } from "@/features/card/view";
 import {
@@ -19,7 +20,7 @@ import {
   useStudyStore,
 } from "@/features/study";
 import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
-import { toRemoteById } from "@/shared/firebase";
+import { toRemoteById } from "@/shared/remote";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -35,10 +36,12 @@ type CardReadState = ReturnType<typeof useCardReadState>;
 const DeckSwiperContent = ({
   cardsById,
   deck,
+  editStudyProgress,
   readState,
 }: {
   cardsById: Partial<Record<CardId, Card>>;
   deck: Deck;
+  editStudyProgress: ((uid: string, progress: StudyProgressEdit) => Promise<void>) | undefined;
   readState: CardReadState;
 }) => {
   const navigate = useNavigate();
@@ -54,7 +57,7 @@ const DeckSwiperContent = ({
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
   const card = cardId == null ? undefined : cardsById[cardId];
-  const cardMutation = useEditStudyProgress();
+  const cardMutation = useEditStudyProgress(editStudyProgress);
   const studyActions = useStudyActions(deckId, {
     cardsById,
     cardMutation: {
@@ -187,7 +190,9 @@ const DeckSwiperContent = ({
   );
 };
 
-export const DeckSwiperPage: React.FC = () => {
+export const DeckSwiperPage: React.FC<{
+  editStudyProgress?: (uid: string, progress: StudyProgressEdit) => Promise<void>;
+}> = ({ editStudyProgress }) => {
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
@@ -204,7 +209,14 @@ export const DeckSwiperPage: React.FC = () => {
       emptyLabel="Study session unavailable."
       onRetry={readState.retry}
     >
-      {deck != null ? <DeckSwiperContent cardsById={cardsById} deck={deck} readState={readState} /> : null}
+      {deck != null ? (
+        <DeckSwiperContent
+          cardsById={cardsById}
+          deck={deck}
+          editStudyProgress={editStudyProgress}
+          readState={readState}
+        />
+      ) : null}
     </RemoteReadBoundary>
   );
 };

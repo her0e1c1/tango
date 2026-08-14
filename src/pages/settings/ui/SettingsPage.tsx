@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthSession } from "@/entities/auth";
-import { useSignIn } from "@/features/auth/sign-in";
-import { useSignOut } from "@/features/auth/sign-out";
 import { usePreferencesFormState } from "@/features/settings";
 import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 
+import { useSignIn } from "../model/useSignIn";
+import { useSignOut } from "../model/useSignOut";
 import { SettingsView } from "./SettingsView";
 
 interface SettingsPageProps {

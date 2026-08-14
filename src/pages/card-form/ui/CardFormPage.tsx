@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { type Card, useCard } from "@/entities/card";
+import { type Card, type CardEdit, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { useEditCard } from "@/features/card/edit";
 import { useCardFormState } from "@/features/card/form";
@@ -14,9 +14,11 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { CardFormView } from "./CardFormView";
 
-const CardFormContent = ({ card }: { card: Card }) => {
+type EditCard = (uid: string, card: CardEdit) => Promise<void>;
+
+const CardFormContent = ({ card, editCard }: { card: Card; editCard: EditCard | undefined }) => {
   const navigate = useNavigate();
-  const mutations = useEditCard();
+  const mutations = useEditCard(editCard);
   const [mutationError, setMutationError] = useState<unknown>(null);
   const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
   const goBack = () => void navigate(-1);
@@ -46,7 +48,7 @@ const CardFormContent = ({ card }: { card: Card }) => {
   );
 };
 
-export const CardFormPage: React.FC = () => {
+export const CardFormPage: React.FC<{ editCard?: EditCard }> = ({ editCard }) => {
   const params = useParams();
   const navigate = useNavigate();
   const cardId = params.id;
@@ -69,7 +71,7 @@ export const CardFormPage: React.FC = () => {
       }
       onRetry={cardReadState.retry}
     >
-      {card != null ? <CardFormContent card={card} /> : null}
+      {card != null ? <CardFormContent card={card} editCard={editCard} /> : null}
     </RemoteReadBoundary>
   );
 };

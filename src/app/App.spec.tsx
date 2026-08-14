@@ -30,8 +30,19 @@ vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
 vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authState }));
-vi.mock("@/features/auth/sign-in", () => ({ loginGoogle: vi.fn() }));
-vi.mock("@/features/auth/sign-out", () => ({ signOutCurrentUser: vi.fn() }));
+vi.mock("@/features/firebase-runtime", () => ({
+  createCard: vi.fn(),
+  deleteCard: vi.fn(),
+  editCard: vi.fn(),
+  generateCardId: vi.fn(),
+  createDeck: vi.fn(),
+  deleteDeck: vi.fn(),
+  editDeck: vi.fn(),
+  generateDeckId: vi.fn(),
+  editStudyProgress: vi.fn(),
+  loginGoogle: vi.fn(),
+  signOutCurrentUser: vi.fn(),
+}));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));

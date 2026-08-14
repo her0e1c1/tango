@@ -1,6 +1,6 @@
 import { createStore } from "zustand/vanilla";
 
-import type { RemoteSyncStatus } from "@/shared/firebase";
+import type { RemoteSyncStatus } from "@/shared/remote";
 
 type CardReadLifecycleState = {
   uid: string | null;

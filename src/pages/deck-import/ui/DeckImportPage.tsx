@@ -2,8 +2,10 @@ import type React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { createDeck, useDecks } from "@/entities/deck";
-import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
+import { useDecks } from "@/entities/deck";
+import type { DeckCreateInput } from "@/entities/deck";
+import { useCards } from "@/entities/card";
+import type { CardCreateInput, CardEdit } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { useCardReadState } from "@/features/card/read";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck/import";
@@ -11,7 +13,28 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckImportView } from "./DeckImportView";
 
-export const DeckImportPage: React.FC = () => {
+interface DeckImportPageProps {
+  createCard?: (uid: string, card: CardCreateInput) => Promise<void>;
+  createDeck?: (uid: string, deck: DeckCreateInput) => Promise<void>;
+  editCard?: (uid: string, card: CardEdit) => Promise<void>;
+  generateCardId?: () => string;
+  generateDeckId?: () => string;
+}
+
+const unavailableMutation = async (): Promise<never> => {
+  throw new Error("Remote mutations are unavailable");
+};
+const unavailableId = (): never => {
+  throw new Error("Remote id generation is unavailable");
+};
+
+export const DeckImportPage: React.FC<DeckImportPageProps> = ({
+  createCard,
+  createDeck,
+  editCard,
+  generateCardId,
+  generateDeckId,
+}) => {
   const preferences = usePreferences();
   const navigate = useNavigate();
   const cards = useCards();
@@ -20,11 +43,12 @@ export const DeckImportPage: React.FC = () => {
   const synchronized = cardReadState.status === "ready" && cardReadState.syncStatus === "synced";
   const deckImport = useDeckImport({
     cards,
-    createCard,
-    createDeck,
+    createCard: createCard ?? unavailableMutation,
+    createDeck: createDeck ?? unavailableMutation,
     decks,
-    editCard,
-    generateCardId,
+    editCard: editCard ?? unavailableMutation,
+    generateCardId: generateCardId ?? unavailableId,
+    generateDeckId: generateDeckId ?? unavailableId,
     synchronized,
   });
   useKey("t", () => void navigate("/"));

@@ -74,6 +74,7 @@ const useTestDeckImport = (props?: { synchronized?: boolean }) =>
     decks: mocks.decks,
     editCard: mocks.editCard,
     generateCardId: mocks.generateCardId,
+    generateDeckId: mocks.generateDeckId,
     synchronized:
       props?.synchronized ??
       (mocks.cardRemoteStatus === "ready" &&

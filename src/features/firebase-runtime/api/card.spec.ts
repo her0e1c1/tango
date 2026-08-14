@@ -4,7 +4,7 @@ import { createCard as createCardFixture } from "@/test/factories";
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 
-import { createCard, deleteCard, editCard } from "./firestore";
+import { createCard, deleteCard, editCard } from "./card";
 
 describe("Card Firestore persistence", () => {
   const card = createCardFixture({ id: "card", uid: "uid-a" });
