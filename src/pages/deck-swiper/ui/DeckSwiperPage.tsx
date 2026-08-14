@@ -129,12 +129,7 @@ const DeckSwiperContent = ({
 
   if (card == null) {
     return (
-      <RemoteReadBoundary
-        status={readState.status}
-        hasData={false}
-        emptyLabel="Study session unavailable."
-        onRetry={readState.retry}
-      >
+      <RemoteReadBoundary status={readState.status} hasData={false} emptyLabel="Study session unavailable.">
         {null}
       </RemoteReadBoundary>
     );
@@ -198,12 +193,7 @@ export const DeckSwiperPage: React.FC = () => {
   const deck = useDeck(deckId);
 
   return (
-    <RemoteReadBoundary
-      status={readState.status}
-      hasData={deck != null}
-      emptyLabel="Study session unavailable."
-      onRetry={readState.retry}
-    >
+    <RemoteReadBoundary status={readState.status} hasData={deck != null} emptyLabel="Study session unavailable.">
       {deck != null ? <DeckSwiperContent cardsById={cardsById} deck={deck} readState={readState} /> : null}
     </RemoteReadBoundary>
   );
