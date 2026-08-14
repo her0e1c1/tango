@@ -5,5 +5,7 @@
  */
 
 import type { Auth } from "firebase/auth";
+import type { Firestore } from "firebase/firestore";
 
 export const auth = { currentUser: null } as Auth;
+export const db = {} as Firestore;

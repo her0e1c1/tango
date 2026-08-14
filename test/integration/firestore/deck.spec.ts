@@ -22,6 +22,9 @@ vi.mock("@/shared/firestore", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/firestore")>()),
   getTimestamp: vi.fn(),
 }));
+vi.mock("@/shared/firebase", async () => ({
+  db: (await import("@/test/initializeTestFirestore")).testDb,
+}));
 
 describe.concurrent("firestore/deck", { retry: 3 }, () => {
   const db = getFirestore();

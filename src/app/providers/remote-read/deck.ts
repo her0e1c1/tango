@@ -4,7 +4,8 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { z } from "zod";
 
 import { replaceDecks } from "@/entities/deck";
-import { getDb, parseFirestoreDocument } from "@/shared/firestore";
+import { db } from "@/shared/firebase";
+import { parseFirestoreDocument } from "@/shared/firestore";
 
 const deckDtoSchema = z.object({
   id: z.string().optional(),
@@ -32,7 +33,7 @@ const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
 
 export const subscribeDecks = (uid: string, onError: (error: Error) => void): (() => void) =>
   onSnapshot(
-    query(collection(getDb(), "deck"), where("uid", "==", uid)),
+    query(collection(db, "deck"), where("uid", "==", uid)),
     (snapshot) => {
       try {
         const decks = snapshot.docs

@@ -57,7 +57,7 @@ beforeEach(() => {
   mocks.error = undefined;
 });
 
-describe("Firestore read subscriptions", () => {
+describe("Firestore subscriptions", () => {
   it("publishes the active current query result and returns the unsubscribe callback", () => {
     const harness = createHarness();
 

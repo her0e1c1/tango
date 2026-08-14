@@ -16,6 +16,8 @@ vi.mock("@/app/providers/auth", () => ({
 vi.mock("@/features/auth/sign-out", () => ({
   signOutCurrentUser: mocks.signOutCurrentUser,
 }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+
 const startStudy = (deckId: string, cardIds: string[]) => {
   const { result, unmount } = renderHook(() => useStudyStore((state) => state.startStudy));
   act(() => result.current(deckId, cardIds));

@@ -63,6 +63,7 @@ vi.mock("@/features/deck/delete", () => ({
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/deck/import", () => ({ useSampleDeckBootstrap: vi.fn() }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { DeckListPage } from "./DeckListPage";
 

@@ -50,6 +50,7 @@ vi.mock("@/features/deck/import", () => ({
 vi.mock("@/features/card/read", () => ({
   useCards: () => ({ status: "ready", syncStatus: "synced", cards: [] }),
 }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 vi.mock("@/shared/config", () => ({
   useConfig: () => ({ appearance: { darkMode: false } }),

@@ -3,7 +3,8 @@ import type { DeckEdit } from "@/entities/deck";
 import { doc, updateDoc } from "firebase/firestore";
 import { z } from "zod";
 
-import { getDb, getTimestamp, omitUndefined } from "@/shared/firestore";
+import { db } from "@/shared/firebase";
+import { getTimestamp, omitUndefined } from "@/shared/firestore";
 
 const deckUpdateSchema = z
   .object({
@@ -35,5 +36,5 @@ export const updateDeckDocument = async (deck: DeckEdit): Promise<void> => {
       convertToBr: deck.convertToBr,
     })
   );
-  await updateDoc(doc(getDb(), "deck", deck.id), document);
+  await updateDoc(doc(db, "deck", deck.id), document);
 };
