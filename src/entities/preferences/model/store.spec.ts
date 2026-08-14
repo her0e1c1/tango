@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { defaultPreferences } from "./preferences";
-import { preferencesStore } from "./store";
+import { preferencesStore, toggleShowHeader, toggleShowSwipeButtonList } from "./store";
 
 describe("preferences store", () => {
   beforeEach(() => {
@@ -17,13 +17,14 @@ describe("preferences store", () => {
       controls: { showScoreSlider: true },
     });
     store.getState().updatePreferences({ appearance: { showHeader: false } });
-    store.getState().togglePreference("appearance", "darkMode");
+    toggleShowHeader();
+    toggleShowSwipeButtonList();
 
     expect(store.getState().preferences).toEqual({
       ...defaultPreferences,
       study: { ...defaultPreferences.study, cardInterval: 15 },
-      appearance: { ...defaultPreferences.appearance, darkMode: false, showHeader: false },
-      controls: { ...defaultPreferences.controls, showScoreSlider: true },
+      appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: true },
+      controls: { ...defaultPreferences.controls, showScoreSlider: true, showSwipeButtonList: false },
     });
   });
 

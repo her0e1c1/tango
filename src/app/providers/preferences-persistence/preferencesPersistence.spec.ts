@@ -32,7 +32,7 @@ describe("preferences persistence", () => {
         version: PREFERENCES_STORAGE_VERSION,
       }),
     });
-    const stop = startPreferencesPersistence(storage, preferencesStore);
+    const stop = startPreferencesPersistence(storage);
 
     expect(preferencesStore.getState().preferences.appearance.darkMode).toBe(true);
 
@@ -68,7 +68,7 @@ describe("preferences persistence", () => {
     };
 
     const storage = createMemoryStorage({ [PREFERENCES_STORAGE_KEY]: JSON.stringify(persisted) });
-    const stop = startPreferencesPersistence(storage, preferencesStore);
+    const stop = startPreferencesPersistence(storage);
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
@@ -86,7 +86,7 @@ describe("preferences persistence", () => {
       [PREFERENCES_STORAGE_KEY]: JSON.stringify({ state: { config: "invalid" }, version: 1 }),
     });
 
-    const stop = startPreferencesPersistence(storage, preferencesStore);
+    const stop = startPreferencesPersistence(storage);
 
     expect(preferencesStore.getState().preferences).toEqual(defaultPreferences);
     stop();

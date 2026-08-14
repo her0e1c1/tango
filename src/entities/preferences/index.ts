@@ -15,4 +15,3 @@ export {
   toggleShowSwipeButtonList,
   updatePreferences,
 } from "./model/store";
-export type { PreferencesStoreState } from "./model/store";
