@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeckListProps } from "./DeckList";
 import { createCard, createDeck } from "@/test/factories";
 
+const mocks = vi.hoisted(() => ({ downloadTextFile: vi.fn() }));
+
 vi.mock("@/shared/lib/firestoreRuntime", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.downloadTextFile }));
 
 import { DeckList } from "./DeckList";
 
@@ -36,7 +39,6 @@ const actions = {
   onContinueDeck: vi.fn(),
   onStartDeck: vi.fn(),
   onEditDeck: vi.fn(),
-  onDownloadDeck: vi.fn(),
   onDeleteDeck: vi.fn(async () => undefined),
 };
 
@@ -80,7 +82,11 @@ describe("DeckList", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Alpha deck" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Download" }));
-    expect(actions.onDownloadDeck).toHaveBeenCalledExactlyOnceWith(otherDeck, cards.slice(0, 2));
+    expect(mocks.downloadTextFile).toHaveBeenCalledExactlyOnceWith(
+      expect.any(String),
+      "Alpha deck.csv",
+      "text/plain;charset=utf-8"
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Alpha deck" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));

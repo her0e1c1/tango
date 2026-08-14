@@ -6,6 +6,7 @@ import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 
 import { buildDeckListSections } from "../model/buildDeckListSections";
+import { downloadDeckCsv } from "../lib/deckCsv";
 import { DeckListView } from "./DeckListView";
 
 export interface DeckListProps {
@@ -16,7 +17,6 @@ export interface DeckListProps {
   onContinueDeck: (id: DeckId) => void;
   onStartDeck: (id: DeckId) => void;
   onEditDeck: (id: DeckId) => void;
-  onDownloadDeck: (deck: Deck, cards: Card[]) => void;
   onDeleteDeck: (deck: Deck) => Promise<void>;
 }
 
@@ -101,7 +101,7 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
           onClickStudy: props.onStartDeck,
           onClickDownload: (id) => {
             const deck = findDeck(id);
-            if (deck != null) props.onDownloadDeck(deck, cardsForDeck(id));
+            if (deck != null) downloadDeckCsv(deck, cardsForDeck(id));
           },
           onClickDelete: requestDeletion,
         }}
