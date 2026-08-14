@@ -6,19 +6,14 @@
 import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
+import type { Card as CardEntity, CardId } from "@/entities/card";
 import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
-import {
-  BackText,
-  CardView,
-  type BackTextProps,
-  type Card as CardEntity,
-  type CardId,
-  type CardProps,
-} from "@/entities/card";
+
+import { Card, type CardProps } from "./Card";
 
 interface CardListOverlayProps {
-  backText: BackTextProps;
+  content: React.ReactNode;
   onClose?: () => void;
 }
 
@@ -36,8 +31,6 @@ export interface CardListViewProps {
   overlay?: CardListOverlayProps;
   onShowCard?: (card: CardEntity) => void;
   onRemoveTag?: (tag: string) => void;
-  feedbackSlot?: React.ReactNode;
-  dialogSlot?: React.ReactNode;
   isCardPending?: (id: CardId) => boolean;
 }
 
@@ -85,7 +78,7 @@ const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowC
   return (
     <div className="overflow-visible rounded-surface border border-border bg-surface shadow-surface dark:border-black">
       {props.cards.map((card) => (
-        <CardView
+        <Card
           key={card.id}
           card={card}
           disabled={props.isCardPending?.(card.id) ?? false}
@@ -116,8 +109,6 @@ export const CardListView: React.FC<CardListViewProps> = (props) => {
 
   return (
     <>
-      {props.feedbackSlot}
-      {props.dialogSlot}
       {props.overlay != null && (
         <Overlay
           position="center"
@@ -125,7 +116,7 @@ export const CardListView: React.FC<CardListViewProps> = (props) => {
           className="overflow-y-auto bg-surface-elevated"
           {...(props.overlay.onClose !== undefined ? { onClick: props.overlay.onClose } : {})}
         >
-          <BackText {...props.overlay.backText} />
+          {props.overlay.content}
         </Overlay>
       )}
 

@@ -7,6 +7,7 @@ import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
 import { useCardReadState } from "@/features/card/read";
 import { CardList } from "@/features/card-list";
+import { BackText } from "@/features/card/view";
 import { DeckStartForm, useDeckFilterState, useEditStudyProgress, useStudyCards } from "@/features/study";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -34,6 +35,7 @@ const CardListComposition = (props: {
         controls: <DeckStartForm {...deckStartForm} />,
         onChangeSelectedTags: (selectedTags) => deckStartForm.tagFilterProps.onClickTag?.(selectedTags),
       }}
+      renderBackText={(backText) => <BackText {...backText} />}
       onEditCard={props.onEditCard}
       onChangeScore={(card, score) => editMutation.updateBy(card, () => ({ score }))}
     />

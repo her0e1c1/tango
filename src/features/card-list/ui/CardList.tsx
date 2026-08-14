@@ -17,11 +17,19 @@ interface CardListFilter {
   onChangeSelectedTags: (tags: string[]) => void;
 }
 
+interface CardListBackTextProps {
+  text: string;
+  category?: string;
+  code?: boolean;
+  dark?: boolean;
+}
+
 export interface CardListProps {
   deck: Deck;
   cards: Card[];
   preferences: Preferences;
   filter: CardListFilter;
+  renderBackText: (props: CardListBackTextProps) => React.ReactNode;
   onEditCard: (id: CardId) => void;
   onChangeScore: (card: Card, score: number) => Promise<void>;
 }
@@ -112,12 +120,12 @@ export const CardList: React.FC<CardListProps> = (props) => {
         {...(shownCard != null && category != null
           ? {
               overlay: {
-                backText: {
+                content: props.renderBackText({
                   text: shownCard.backText,
                   category,
                   code: isHighlightLanguage(category),
                   dark: props.preferences.appearance.darkMode,
-                },
+                }),
                 onClose: () => setShownCard(undefined),
               },
             }

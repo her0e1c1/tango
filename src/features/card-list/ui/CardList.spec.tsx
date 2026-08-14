@@ -44,6 +44,7 @@ const renderCardList = (overrides: Partial<CardListProps> = {}) =>
         controls: <div>Filter controls</div>,
         onChangeSelectedTags,
       }}
+      renderBackText={(backText) => <div>{backText.text}</div>}
       onEditCard={onEditCard}
       onChangeScore={onChangeScore}
       {...overrides}

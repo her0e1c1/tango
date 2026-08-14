@@ -69,8 +69,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     useDeck: (id: DeckId) => mocks.state?.deck[id],
   };
 });
-vi.mock("@/entities/card", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/card")>()),
+vi.mock("@/entities/card", () => ({
   useCards: () => Object.values(mocks.state?.card ?? {}),
 }));
 vi.mock("@/features/card/read", () => ({

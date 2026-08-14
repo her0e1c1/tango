@@ -1,5 +1,5 @@
 /**
- * @file Defines the Card entity's front-text presentation component.
+ * @file Defines the card feature's Front Text presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */

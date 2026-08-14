@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { BackText as BackTextComponent, CardOverlay, FrontText as FrontTextComponent } from "@/entities/card";
+import { BackText as BackTextComponent, CardOverlay, FrontText as FrontTextComponent } from "@/features/card/view";
 import * as fixture from "@/storybook/fixture";
 
 import { DeckSwiperView as Template } from "./DeckSwiperView";

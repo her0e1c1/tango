@@ -1,10 +1,10 @@
 /**
- * @file Defines the Card entity's overlay presentation component.
+ * @file Defines the card feature's Card Overlay presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
 
-import type { Card } from "../model/types";
+import type { Card } from "@/entities/card";
 
 import type * as React from "react";
 import { Description, Score } from "@/shared/ui/content";

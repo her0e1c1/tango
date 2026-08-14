@@ -1,7 +1,7 @@
 /**
  * @file Verifies the "CardListView" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders the heading, zero
- * count, collapsed no-filter summary, and feedback", "formats score bounds, tag count, persistent
+ * count and collapsed no-filter summary", "formats score bounds, tag count, persistent
  * chips, and singular card count", "constrains a long unbroken selected tag without changing its
  * text".
  */
@@ -21,15 +21,14 @@ const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", s
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
 describe("CardListView", () => {
-  it("renders the heading, zero count, collapsed no-filter summary, and feedback", () => {
-    render(<CardListView cards={[]} feedbackSlot={<div role="status">Saved</div>} filterSlot={<div>Controls</div>} />);
+  it("renders the heading, zero count, and collapsed no-filter summary", () => {
+    render(<CardListView cards={[]} filterSlot={<div>Controls</div>} />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Cards" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(screen.getByText("0 cards")).toBeInTheDocument();
     expect(screen.getByText("No filters")).toBeInTheDocument();
     expect(screen.getByText("Filters")).toBeVisible();
-    expect(screen.getByRole("status")).toHaveTextContent("Saved");
     expect(screen.queryByText(/no cards/i)).not.toBeInTheDocument();
   });
 
@@ -100,7 +99,7 @@ describe("CardListView", () => {
     const onShowCard = vi.fn();
     const onClose = vi.fn();
     render(
-      <CardListView cards={[card]} onShowCard={onShowCard} overlay={{ backText: { text: "Overlay back" }, onClose }} />
+      <CardListView cards={[card]} onShowCard={onShowCard} overlay={{ content: <div>Overlay back</div>, onClose }} />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "View Front" }));

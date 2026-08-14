@@ -116,10 +116,7 @@ export const Long: Story = {
 export const CardView: Story = {
   args: {
     overlay: {
-      backText: {
-        text: fixture.card.default.backText,
-        category: fixture.deck.default.category,
-      },
+      content: <div>{fixture.card.default.backText}</div>,
       onClose: fn(),
     },
   },
