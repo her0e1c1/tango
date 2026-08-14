@@ -4,7 +4,7 @@ import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
-import { resetCardRead, setCardReadError, setCardReadLoading, setCardReadReady } from "../model/remoteReadStore";
+import { resetCardRead, setCardReadError, setCardReadLoading, setCardReadReady } from "../model/readLifecycleStore";
 
 import { useCardReadState } from "../index";
 
@@ -13,6 +13,9 @@ const authenticatedWrapper = ({ children }: PropsWithChildren) => (
 );
 const unauthenticatedWrapper = ({ children }: PropsWithChildren) => (
   <RemoteReadScopeProvider uid={null}>{children}</RemoteReadScopeProvider>
+);
+const replacementWrapper = ({ children }: PropsWithChildren) => (
+  <RemoteReadScopeProvider uid="uid-b">{children}</RemoteReadScopeProvider>
 );
 
 describe("Card remote hooks", () => {
@@ -51,6 +54,30 @@ describe("Card remote hooks", () => {
 
     expect(result.current.status).toBe("loading");
     expect(result.current.syncStatus).toBeUndefined();
+  });
+
+  it("ignores lifecycle reports from a replaced UID", () => {
+    setCardReadLoading("uid-a", vi.fn());
+    setCardReadLoading("uid-b", vi.fn());
+    setCardReadReady("uid-a", "synced");
+    setCardReadError("uid-a", new Error("stale"));
+
+    const { result } = renderHook(useCardReadState, { wrapper: replacementWrapper });
+
+    expect(result.current.status).toBe("loading");
+    expect(result.current.syncStatus).toBeUndefined();
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it("resets only the matching UID", () => {
+    setCardReadLoading("uid-a", vi.fn());
+    setCardReadReady("uid-a", "cached");
+    resetCardRead("uid-b");
+
+    const { result } = renderHook(useCardReadState, { wrapper: authenticatedWrapper });
+
+    expect(result.current.status).toBe("ready");
+    expect(result.current.syncStatus).toBe("cached");
   });
 
   it("reports idle immediately when the App scope is unauthenticated", () => {
