@@ -3,4 +3,4 @@ export {
   getTimestamp,
   omitUndefined,
   parseFirestoreDocument,
-} from "./firestoreDocument";
+} from "../firebase/firestoreDocument";

@@ -1,1 +1,1 @@
-export { toRemoteById } from "./remoteSnapshot";
+export { toRemoteById } from "../firebase/remoteSnapshot";
