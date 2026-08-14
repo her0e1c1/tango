@@ -24,6 +24,26 @@ const deckSchema = editableDeckFieldsSchema.extend({
   deletedAt: z.number().nullable(),
 });
 
+export type Deck = z.infer<typeof deckSchema>;
+
+type DeckRaw = Pick<Deck, "name">;
+
+export const createDeck = (deck: DeckRaw, uid: string, generateId: () => string): Deck => ({
+  ...deck,
+  uid,
+  id: generateId(),
+  createdAt: 0,
+  updatedAt: 0,
+  deletedAt: null,
+  scoreMax: null,
+  scoreMin: null,
+  isPublic: false,
+  selectedTags: [],
+  tagAndFilter: false,
+  convertToBr: false,
+  category: "",
+});
+
 const deckEditSchema = editableDeckFieldsSchema.partial().extend({ id: deckIdSchema });
 const deckIdentitySchema = z.object({ id: deckIdSchema, uid: deckUidSchema });
 
@@ -50,7 +70,6 @@ export const deleteDeckSchema = z
   .object({ uid: authenticatedUidSchema, deck: deckIdentitySchema })
   .superRefine(validateDeckOwner);
 
-export type Deck = z.infer<typeof deckSchema>;
 export type DeckId = z.infer<typeof deckIdSchema>;
 export type DeckEdit = z.infer<typeof deckEditSchema>;
 export type CreateDeckInput = z.infer<typeof createDeckSchema>;
