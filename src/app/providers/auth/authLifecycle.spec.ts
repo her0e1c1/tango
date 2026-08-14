@@ -103,6 +103,7 @@ describe("authLifecycle", () => {
 
     publishUser(null);
 
+    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
     expect(signInAnonymously).not.toHaveBeenCalled();
 
     finishCleanup();
@@ -128,7 +129,7 @@ describe("authLifecycle", () => {
     expect(signInAnonymously).not.toHaveBeenCalled();
   });
 
-  it("starts a new anonymous episode after an authenticated user signs out", async () => {
+  it("starts a new anonymous episode after clearing an authenticated user's study state", async () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { publishUser } = await createHarness(signInAnonymously);
 
