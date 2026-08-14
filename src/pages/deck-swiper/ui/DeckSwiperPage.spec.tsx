@@ -44,7 +44,6 @@ const mocks = vi.hoisted(() => ({
   touchStudySession: vi.fn(),
   hydrated: true,
   cardReadStatus: "ready" as "loading" | "ready" | "error" | "blocked",
-  cardReadRetry: vi.fn(),
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
   setDarkMode: vi.fn(),
@@ -78,7 +77,6 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/features/card/read", () => ({
   useCardReadState: () => ({
     status: mocks.cardReadStatus,
-    retry: mocks.cardReadRetry,
   }),
 }));
 

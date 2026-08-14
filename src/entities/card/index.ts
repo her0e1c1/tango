@@ -1,4 +1,5 @@
 export { useCard, useCards } from "./model/hooks";
+/** @public */
 export { clearCards, replaceCards } from "./model/store";
 export type {
   Card,

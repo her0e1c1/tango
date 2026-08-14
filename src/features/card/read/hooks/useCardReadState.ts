@@ -7,8 +7,7 @@ export const useCardReadState = () => {
 
   return {
     status: lifecycle.status,
-    syncStatus: lifecycle.status === "ready" ? lifecycle.syncStatus : undefined,
+    serverConfirmed: lifecycle.status === "ready" && lifecycle.serverConfirmed,
     error: lifecycle.status === "error" ? lifecycle.error : undefined,
-    retry: lifecycle.retry,
   };
 };

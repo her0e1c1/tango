@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resetCardRead, setCardReadError, setCardReadLoading, setCardReadReady } from "../model/readLifecycleStore";
@@ -11,54 +11,51 @@ describe("Card remote hooks", () => {
   });
 
   it("exposes the current read lifecycle", () => {
-    setCardReadLoading("uid-a", vi.fn());
-    setCardReadReady("uid-a", "synced");
+    setCardReadLoading("uid-a");
+    setCardReadReady("uid-a", true);
     const { result } = renderHook(useCardReadState);
 
     expect(result.current.status).toBe("ready");
-    expect(result.current.syncStatus).toBe("synced");
+    expect(result.current.serverConfirmed).toBe(true);
   });
 
-  it("exposes errors and retry in a terminal state", () => {
+  it("exposes errors in a terminal state", () => {
     const error = new Error("terminal");
-    const retry = vi.fn();
-    setCardReadLoading("uid-a", retry);
+    setCardReadLoading("uid-a");
     setCardReadError("uid-a", error);
 
     const { result } = renderHook(useCardReadState);
-    act(() => result.current.retry());
 
     expect(result.current.error).toBe(error);
-    expect(retry).toHaveBeenCalledOnce();
+    expect(result.current.serverConfirmed).toBe(false);
   });
 
   it("ignores lifecycle reports from a replaced UID", () => {
-    setCardReadLoading("uid-a", vi.fn());
-    setCardReadLoading("uid-b", vi.fn());
-    setCardReadReady("uid-a", "synced");
+    setCardReadLoading("uid-a");
+    setCardReadLoading("uid-b");
+    setCardReadReady("uid-a", true);
     setCardReadError("uid-a", new Error("stale"));
 
     const { result } = renderHook(useCardReadState);
 
     expect(result.current.status).toBe("loading");
-    expect(result.current.syncStatus).toBeUndefined();
+    expect(result.current.serverConfirmed).toBe(false);
     expect(result.current.error).toBeUndefined();
   });
 
   it("resets only the matching UID", () => {
-    setCardReadLoading("uid-a", vi.fn());
-    setCardReadReady("uid-a", "cached");
+    setCardReadLoading("uid-a");
+    setCardReadReady("uid-a", true);
     resetCardRead("uid-b");
 
     const { result } = renderHook(useCardReadState);
 
     expect(result.current.status).toBe("ready");
-    expect(result.current.syncStatus).toBe("cached");
   });
 
   it("reports idle after the App lifecycle resets Card reads", () => {
-    setCardReadLoading("uid-a", vi.fn());
-    setCardReadReady("uid-a", "synced");
+    setCardReadLoading("uid-a");
+    setCardReadReady("uid-a", true);
     resetCardRead("uid-a");
 
     const { result } = renderHook(useCardReadState);

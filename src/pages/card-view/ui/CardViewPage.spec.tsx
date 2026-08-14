@@ -2,19 +2,19 @@ import type { Preferences } from "@/entities/preferences";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { clearCards, replaceCards } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { createCard, createPreferences, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
   preferences: null as unknown as Preferences,
+  card: null as Card | null,
   deck: null as Deck | null,
   cardStatus: "ready" as "loading" | "ready" | "error" | "blocked",
-  cardRetry: vi.fn(),
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
@@ -24,10 +24,12 @@ vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
+vi.mock("@/entities/card", () => ({
+  useCard: () => mocks.card ?? undefined,
+}));
 vi.mock("@/features/card/read", () => ({
   useCardReadState: () => ({
     status: mocks.cardStatus,
-    retry: mocks.cardRetry,
   }),
 }));
 vi.mock("@/entities/deck", async (importOriginal) => {
@@ -55,14 +57,12 @@ describe("CardViewPage", () => {
   beforeEach(() => {
     mocks.params.id = "card-id";
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
+    mocks.card = card;
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
-    replaceCards([card]);
     mocks.cardStatus = "ready";
     mocks.navigate.mockReset();
     mocks.setDarkMode.mockReset();
   });
-
-  afterEach(clearCards);
 
   it("renders the card answer using its resolved category", () => {
     render(<CardViewPage />);
@@ -77,7 +77,7 @@ describe("CardViewPage", () => {
   });
 
   it("shows recovery actions when the card is unavailable", async () => {
-    clearCards();
+    mocks.card = null;
     render(<CardViewPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();

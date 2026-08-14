@@ -9,7 +9,7 @@ import type { DeckCreateInput } from "@/entities/deck";
 import { useCardReadState } from "@/features/card/read";
 import { useDeleteDeck } from "@/features/deck/delete";
 import { downloadDeckCsv } from "@/features/deck/export";
-import { useSampleDeckBootstrap } from "@/features/deck/import";
+import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
 import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -56,7 +56,7 @@ export const DeckListPage: React.FC<DeckListPageProps> = (props) => {
   const deleteDeck = useDeleteDeck(props.deleteDeck);
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
-  const synchronized = cardReadState.status === "ready" && cardReadState.syncStatus === "synced";
+  const synchronized = cardReadState.serverConfirmed;
 
   useSampleDeck(props, cards, decks, synchronized);
   useKey("s", () => void navigate("/settings"));
@@ -67,7 +67,6 @@ export const DeckListPage: React.FC<DeckListPageProps> = (props) => {
       status={cardReadState.status}
       hasData={cardReadState.status === "ready" && decks.length > 0}
       emptyLabel="No decks yet."
-      onRetry={cardReadState.retry}
     >
       {hydrated ? (
         <AppLayout showHeader>

@@ -15,8 +15,8 @@ import {
   deleteDeck,
   editCard,
   editDeck,
+  subscribeCards,
 } from "@/features/firebase-runtime";
-import { startCardSynchronization } from "@/app/providers/remote-read/card";
 import { subscribeDecks } from "@/app/providers/remote-read/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
@@ -37,7 +37,7 @@ describe("Query realtime subscriptions", () => {
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
-    const stopCards = startCardSynchronization(uid);
+    const stopCards = subscribeCards(uid, (error) => errors.push(error));
 
     try {
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });

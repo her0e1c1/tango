@@ -1,5 +1,5 @@
 /**
- * @file Defines the card feature's Card Actions Menu presentation component.
+ * @file Defines the Card list feature's actions menu presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */

@@ -1,29 +1,18 @@
-import type { Preferences } from "@/entities/preferences";
-
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { type Card, type CardId, filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck, type DeckEdit, useDeck } from "@/entities/deck";
+import { filterCardsByDeckId, filterTagsByDeckId, type Card, type CardId, useCards } from "@/entities/card";
+import { type Deck, type DeckEdit, useDeck } from "@/entities/deck";
+import { type Preferences, usePreferences } from "@/entities/preferences";
 import type { StudyProgressEdit } from "@/entities/study-progress";
-import { useDeleteCard } from "@/features/card/delete";
 import { useCardReadState } from "@/features/card/read";
-import {
-  DeckStartForm,
-  type StudyProgressPatch,
-  useDeckFilterState,
-  useEditStudyProgress,
-  useStudyCards,
-} from "@/features/study";
-import { usePreferences } from "@/entities/preferences";
-import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
-import { Feedback } from "@/shared/ui/feedback";
+import { CardList } from "@/features/card-list";
+import { BackText } from "@/features/card/view";
+import { DeckStartForm, useDeckFilterState, useEditStudyProgress, useStudyCards } from "@/features/study";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-
-import { CardListView } from "./CardListView";
 
 interface CardListMutations {
   deleteCard?: (uid: string, card: Card) => Promise<void>;
@@ -31,120 +20,39 @@ interface CardListMutations {
   editStudyProgress?: (uid: string, progress: StudyProgressEdit) => Promise<void>;
 }
 
-const CardListContent = (
-  props: { deck: Deck; cards: Card[]; tags: string[]; preferences: Preferences } & CardListMutations
-) => {
-  const { deck, cards, tags, preferences, deleteCard, editDeck, editStudyProgress } = props;
-  const [showCard, setShowCard] = React.useState<Card>();
-  const [deletionTarget, setDeletionTarget] = React.useState<Card>();
-  const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
-  const [mutationError, setMutationError] = React.useState<unknown>(null);
-  const [successMessage, setSuccessMessage] = React.useState<string>();
-  const navigate = useNavigate();
-  const editMutation = useEditStudyProgress(editStudyProgress);
-  const deleteMutation = useDeleteCard(
-    {
-      onSuccess: (card) => {
-        setDeletionTarget((target) => (target?.id === card.id ? undefined : target));
-        setDeletionErrorCardId((id) => (id === card.id ? undefined : id));
-        setSuccessMessage(`Deleted card “${card.frontText}”.`);
-      },
-    },
-    deleteCard
-  );
-  const deckStartForm = useDeckFilterState({ deck, editDeck, tags });
-  const closeCard = () => setShowCard(undefined);
-  const category = showCard == null ? undefined : getCategory(deck.category, showCard.tags);
-  const updateBy = (id: CardId, buildPatch: (card: Card) => StudyProgressPatch) => {
-    const card = cards.find((candidate) => candidate.id === id);
-    if (card == null) return Promise.reject(new Error(`Card ${id} is not available`));
-    return editMutation.updateBy(card, buildPatch);
-  };
+const unavailableMutation = async (): Promise<never> => {
+  throw new Error("Remote mutations are unavailable");
+};
 
-  useKey("t", () => void navigate("/"));
-  useKey("s", () => void navigate("/settings"));
+const CardListComposition = (
+  props: {
+    deck: Deck;
+    cards: Card[];
+    tags: string[];
+    preferences: Preferences;
+    onEditCard: (id: CardId) => void;
+  } & CardListMutations
+) => {
+  const deckStartForm = useDeckFilterState({ deck: props.deck, editDeck: props.editDeck, tags: props.tags });
+  const editMutation = useEditStudyProgress(props.editStudyProgress);
 
   return (
-    <AppLayout showHeader>
-      <CardListView
-        cards={cards}
-        filter={{
-          scoreMax: deckStartForm.scoreMax,
-          scoreMin: deckStartForm.scoreMin,
-          selectedTags: deckStartForm.tagFilterProps.selectedTags ?? [],
-        }}
-        filterSlot={<DeckStartForm {...deckStartForm} />}
-        onRemoveTag={(tag) => {
-          const selectedTags = deckStartForm.tagFilterProps.selectedTags ?? [];
-          deckStartForm.tagFilterProps.onClickTag?.(selectedTags.filter((value) => value !== tag));
-        }}
-        card={{
-          onSwipedLeft: (id) =>
-            void updateBy(id, (card) => ({ score: card.score - 1 }))
-              .then(() => setMutationError(null))
-              .catch(setMutationError),
-          onSwipedRight: (id) =>
-            void updateBy(id, (card) => ({ score: card.score + 1 }))
-              .then(() => setMutationError(null))
-              .catch(setMutationError),
-          goToEdit: (id) => void navigate(`/card/${id}/edit`),
-          onDelete: (id) => {
-            const card = cards.find((candidate) => candidate.id === id);
-            if (card != null) {
-              setSuccessMessage(undefined);
-              setDeletionErrorCardId(undefined);
-              setDeletionTarget(card);
-            }
-          },
-        }}
-        feedbackSlot={
-          <>
-            <Feedback tone="error">{mutationError == null ? null : "Unable to save changes. Try again."}</Feedback>
-            <Feedback tone="success">{successMessage}</Feedback>
-          </>
-        }
-        dialogSlot={
-          deletionTarget != null ? (
-            <DestructiveActionDialog
-              title="Delete card?"
-              targetLabel="Card front"
-              targetName={deletionTarget.frontText}
-              description={
-                <>
-                  <p>This permanently deletes this card.</p>
-                  <p>This action cannot be undone.</p>
-                </>
-              }
-              confirmLabel="Delete card"
-              {...(deletionErrorCardId === deletionTarget.id
-                ? { errorMessage: "Unable to delete this card. Check your connection and try again." }
-                : {})}
-              onCancel={() => setDeletionTarget(undefined)}
-              onConfirm={() => {
-                setDeletionErrorCardId(undefined);
-                return deleteMutation.remove(deletionTarget).catch(() => {
-                  setDeletionErrorCardId(deletionTarget.id);
-                });
-              }}
-            />
-          ) : null
-        }
-        {...(showCard != null && category != null
-          ? {
-              overlay: {
-                backText: {
-                  text: showCard.backText,
-                  category,
-                  code: isHighlightLanguage(category),
-                  dark: preferences.appearance.darkMode,
-                },
-                onClose: closeCard,
-              },
-            }
-          : {})}
-        onShowCard={setShowCard}
-      />
-    </AppLayout>
+    <CardList
+      deck={props.deck}
+      cards={props.cards}
+      preferences={props.preferences}
+      filter={{
+        scoreMax: deckStartForm.scoreMax,
+        scoreMin: deckStartForm.scoreMin,
+        selectedTags: deckStartForm.tagFilterProps.selectedTags ?? [],
+        controls: <DeckStartForm {...deckStartForm} />,
+        onChangeSelectedTags: (selectedTags) => deckStartForm.tagFilterProps.onClickTag?.(selectedTags),
+      }}
+      renderBackText={(backText) => <BackText {...backText} />}
+      onDeleteCard={props.deleteCard ?? unavailableMutation}
+      onEditCard={props.onEditCard}
+      onChangeScore={(card, score) => editMutation.updateBy(card, () => ({ score }))}
+    />
   );
 };
 
@@ -161,6 +69,9 @@ export const CardListPage: React.FC<CardListMutations> = (mutations) => {
   const cards = useStudyCards(deck, deckCards, preferences);
   const tags = filterTagsByDeckId(allCards, deckId);
 
+  useKey("t", () => void navigate("/"));
+  useKey("s", () => void navigate("/settings"));
+
   return (
     <RemoteReadBoundary
       status={cardReadState.status}
@@ -174,10 +85,18 @@ export const CardListPage: React.FC<CardListMutations> = (mutations) => {
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={cardReadState.retry}
     >
       {deck != null ? (
-        <CardListContent deck={deck} cards={cards} tags={tags} preferences={preferences} {...mutations} />
+        <AppLayout showHeader>
+          <CardListComposition
+            deck={deck}
+            cards={cards}
+            tags={tags}
+            preferences={preferences}
+            onEditCard={(id) => void navigate(`/card/${id}/edit`)}
+            {...mutations}
+          />
+        </AppLayout>
       ) : null}
     </RemoteReadBoundary>
   );

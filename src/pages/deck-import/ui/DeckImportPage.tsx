@@ -8,7 +8,7 @@ import { useCards } from "@/entities/card";
 import type { CardCreateInput, CardEdit } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { useCardReadState } from "@/features/card/read";
-import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck/import";
+import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck-import";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckImportView } from "./DeckImportView";
@@ -40,7 +40,7 @@ export const DeckImportPage: React.FC<DeckImportPageProps> = ({
   const cards = useCards();
   const cardReadState = useCardReadState();
   const decks = useDecks();
-  const synchronized = cardReadState.status === "ready" && cardReadState.syncStatus === "synced";
+  const synchronized = cardReadState.serverConfirmed;
   const deckImport = useDeckImport({
     cards,
     createCard: createCard ?? unavailableMutation,

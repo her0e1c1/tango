@@ -17,9 +17,8 @@ const mocks = vi.hoisted(() => ({
   decks: [] as Deck[],
   cards: [] as Card[],
   readStatus: "ready" as "idle" | "loading" | "ready" | "error",
-  syncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
+  serverConfirmed: true,
   hydrated: true,
-  retry: vi.fn(),
   remove: vi.fn(async (_deck: Deck) => undefined),
   downloadDeckCsv: vi.fn(),
   removeStudySession: vi.fn(),
@@ -45,13 +44,12 @@ vi.mock("@/entities/deck", () => ({
 vi.mock("@/features/card/read", () => ({
   useCardReadState: () => ({
     status: mocks.readStatus,
-    syncStatus: mocks.syncStatus,
-    retry: mocks.retry,
+    serverConfirmed: mocks.serverConfirmed,
   }),
 }));
 vi.mock("@/features/deck/delete", () => ({ useDeleteDeck: () => ({ remove: mocks.remove }) }));
 vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
-vi.mock("@/features/deck/import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
+vi.mock("@/features/deck-import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
 vi.mock("@/features/study", () => ({
   removeStudySession: mocks.removeStudySession,
   touchStudySession: mocks.touchStudySession,
@@ -101,7 +99,7 @@ describe("DeckListPage", () => {
     mocks.decks = [deck];
     mocks.cards = [card];
     mocks.readStatus = "ready";
-    mocks.syncStatus = "synced";
+    mocks.serverConfirmed = true;
     mocks.hydrated = true;
   });
 

@@ -84,7 +84,6 @@ export const DeckStartPage: React.FC<{
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={cardReadState.retry}
     >
       {deck != null ? (
         <DeckStartContent
