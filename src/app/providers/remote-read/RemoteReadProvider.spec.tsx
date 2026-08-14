@@ -23,7 +23,7 @@ vi.mock("./deck", () => ({
 }));
 
 import { RemoteReadProvider } from "@/app/providers/remote-read";
-import { replaceAuthSession } from "@/entities/auth-session";
+import { replaceAuthSession } from "@/entities/auth";
 
 const createHarness = (children?: ReactNode) => {
   const publishUser = (uid: string | null) =>

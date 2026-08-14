@@ -81,7 +81,7 @@ vi.mock("react-use", () => ({ useKey: vi.fn() }));
 import { AuthBootstrap } from "@/app/providers/auth";
 import { startAuthSession } from "@/app/providers/auth/authLifecycle";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
-import { getAuthSession, replaceAuthSession, useAuthSession } from "@/entities/auth-session";
+import { getAuthSession, replaceAuthSession, useAuthSession } from "@/entities/auth";
 import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { SettingsPage } from "@/pages/settings";
 import { useStudyStore } from "@/features/study";

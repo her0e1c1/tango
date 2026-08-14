@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 
-import { useAuthSession } from "@/entities/auth-session";
+import { useAuthSession } from "@/entities/auth";
 import { deleteCard } from "../api/deleteCard";
 
 interface UseDeleteCardOptions {
