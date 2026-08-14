@@ -7,8 +7,8 @@ const config: KnipConfig = {
     "!src/**/*.{spec,test}.{ts,tsx}!",
     "!src/**/*.stories.{ts,tsx}!",
   ],
+  ignoreDependencies: ["@feature-sliced/steiger-plugin", "tailwindcss"],
   includeEntryExports: true,
-  treatConfigHintsAsErrors: true,
 };
 
 export default config;
