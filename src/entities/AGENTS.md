@@ -25,8 +25,7 @@
 
 ## `model/store.ts`
 
-- Define the global Entity store and synchronous state mutations.
-- Treat Zustand as an explicit Entity-layer exception.
+- Define the global Entity store with Zustand and synchronous state mutations.
 - Do not perform external access, subscriptions, or asynchronous workflows.
 - Treat persistence middleware as an explicit exception for storage access, state hydration, and persistence subscriptions.
 
