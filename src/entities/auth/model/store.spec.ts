@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { getAuthSession, replaceAuthSession, subscribeAuthSession } from "./store";
+import { getAuthSession, replaceAuthSession } from "./store";
 
 describe("authSessionStore", () => {
   beforeEach(() => replaceAuthSession({ status: "initializing" }));
@@ -31,15 +31,5 @@ describe("authSessionStore", () => {
     replaceAuthSession({ status: "authenticating", attemptId });
 
     expect(getAuthSession()).toEqual({ status: "authenticating", attemptId });
-  });
-
-  it("notifies App lifecycles when the session changes", () => {
-    const listener = vi.fn();
-    const unsubscribe = subscribeAuthSession(listener);
-
-    replaceAuthSession({ status: "unauthenticated" });
-
-    expect(listener).toHaveBeenCalledWith({ status: "unauthenticated" }, { status: "initializing" });
-    unsubscribe();
   });
 });

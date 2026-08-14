@@ -1,2 +1,2 @@
 export { useAuthSession } from "./model/hooks";
-export { getAuthSession, replaceAuthSession, subscribeAuthSession } from "./model/store";
+export { getAuthSession, replaceAuthSession } from "./model/store";

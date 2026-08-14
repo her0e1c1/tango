@@ -8,9 +8,12 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
 import { startAuthSession } from "@/app/providers/auth/lifecycle";
-import { startRemoteReadSessionLifecycle } from "@/app/providers/remote-read/lifecycle";
+import { startCardSynchronization } from "@/app/providers/remote-read/card";
+import { subscribeDecks } from "@/app/providers/remote-read/deck";
 import { AppRoutes } from "@/app/routes";
 import { useAuthSession } from "@/entities/auth";
+import { clearCards } from "@/entities/card";
+import { clearDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -22,16 +25,24 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
 const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location.reload() }) => {
   const { darkMode } = usePreferences().appearance;
   const authState = useAuthSession();
+  const authenticatedUid = authState.status === "authenticated" ? authState.uid : null;
 
   React.useEffect(() => {
     const stopAuthSession = startAuthSession();
-    const stopRemoteReadSession = startRemoteReadSessionLifecycle();
+    return stopAuthSession;
+  }, []);
+
+  React.useEffect(() => {
+    const stopCards = authenticatedUid == null ? undefined : startCardSynchronization(authenticatedUid);
+    const stopDecks = authenticatedUid == null ? undefined : subscribeDecks(authenticatedUid, console.error);
 
     return () => {
-      stopRemoteReadSession();
-      stopAuthSession();
+      stopCards?.();
+      stopDecks?.();
+      clearCards();
+      clearDecks();
     };
-  }, []);
+  }, [authenticatedUid]);
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
