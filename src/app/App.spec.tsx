@@ -18,14 +18,20 @@ const mocks = vi.hoisted(() => ({
   authState: { status: "initializing" } as AuthSessionState,
   startAuthSession: vi.fn(),
   stopAuthSession: vi.fn(),
-  startRemoteReadSessionLifecycle: vi.fn(),
-  stopRemoteReadSession: vi.fn(),
+  startCardSynchronization: vi.fn(),
+  subscribeDecks: vi.fn(),
+  operations: [] as string[],
 }));
 
 vi.mock("@/app/providers/auth/lifecycle", () => ({ startAuthSession: mocks.startAuthSession }));
-vi.mock("@/app/providers/remote-read/lifecycle", () => ({
-  startRemoteReadSessionLifecycle: mocks.startRemoteReadSessionLifecycle,
+vi.mock("@/app/providers/remote-read/card", () => ({
+  startCardSynchronization: mocks.startCardSynchronization,
 }));
+vi.mock("@/app/providers/remote-read/deck", () => ({
+  subscribeDecks: mocks.subscribeDecks,
+}));
+vi.mock("@/entities/card", () => ({ clearCards: () => mocks.operations.push("clear Cards") }));
+vi.mock("@/entities/deck", () => ({ clearDecks: () => mocks.operations.push("clear Decks") }));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
@@ -48,23 +54,83 @@ describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.startAuthSession.mockReturnValue(mocks.stopAuthSession);
-    mocks.startRemoteReadSessionLifecycle.mockReturnValue(mocks.stopRemoteReadSession);
+    mocks.startCardSynchronization.mockImplementation((uid: string) => {
+      mocks.operations.push(`start Cards ${uid}`);
+      return () => mocks.operations.push(`stop Cards ${uid}`);
+    });
+    mocks.subscribeDecks.mockImplementation((uid: string) => {
+      mocks.operations.push(`start Decks ${uid}`);
+      return () => mocks.operations.push(`stop Decks ${uid}`);
+    });
+    mocks.operations.length = 0;
     mocks.darkMode = false;
     mocks.authState = { status: "authenticated", uid: "test-user", isAnonymous: true, displayName: null };
     document.documentElement.classList.remove("dark");
     window.history.replaceState({}, "", "/");
   });
 
-  it("starts and stops the application lifecycles", () => {
+  it("starts and stops the authentication lifecycle", () => {
     const view = render(<App />);
 
     expect(mocks.startAuthSession).toHaveBeenCalledOnce();
-    expect(mocks.startRemoteReadSessionLifecycle).toHaveBeenCalledOnce();
 
     view.unmount();
 
-    expect(mocks.stopRemoteReadSession).toHaveBeenCalledOnce();
     expect(mocks.stopAuthSession).toHaveBeenCalledOnce();
+  });
+
+  it("starts and stops remote reads for the authenticated UID", () => {
+    const view = render(<App />);
+
+    expect(mocks.operations).toEqual(["start Cards test-user", "start Decks test-user"]);
+
+    view.unmount();
+
+    expect(mocks.operations).toEqual([
+      "start Cards test-user",
+      "start Decks test-user",
+      "stop Cards test-user",
+      "stop Decks test-user",
+      "clear Cards",
+      "clear Decks",
+    ]);
+  });
+
+  it("replaces remote reads when the authenticated UID changes", () => {
+    const view = render(<App />);
+    mocks.operations.length = 0;
+
+    mocks.authState = { status: "authenticated", uid: "next-user", isAnonymous: false, displayName: "Ada" };
+    view.rerender(<App />);
+
+    expect(mocks.operations).toEqual([
+      "stop Cards test-user",
+      "stop Decks test-user",
+      "clear Cards",
+      "clear Decks",
+      "start Cards next-user",
+      "start Decks next-user",
+    ]);
+  });
+
+  it("keeps remote reads when authentication metadata changes for the same UID", () => {
+    const view = render(<App />);
+    mocks.operations.length = 0;
+
+    mocks.authState = { status: "authenticated", uid: "test-user", isAnonymous: false, displayName: "Ada" };
+    view.rerender(<App />);
+
+    expect(mocks.operations).toEqual([]);
+  });
+
+  it("stops remote reads and clears data on logout", () => {
+    const view = render(<App />);
+    mocks.operations.length = 0;
+
+    mocks.authState = { status: "unauthenticated" };
+    view.rerender(<App />);
+
+    expect(mocks.operations).toEqual(["stop Cards test-user", "stop Decks test-user", "clear Cards", "clear Decks"]);
   });
 
   it("updates only the theme when the setting changes", () => {
