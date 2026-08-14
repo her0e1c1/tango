@@ -4,7 +4,7 @@
  * writing until import is confirmed" and "keeps invalid files in preview without mutating state".
  */
 
-import type { Card } from "@/entities/card";
+import type { Card, CardCreateInput } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
@@ -24,9 +24,8 @@ const mocks = vi.hoisted(() => ({
   decks: [] as Deck[],
   cards: [] as Card[],
   parseCsv: vi.fn(),
-  prepareCard: vi.fn(),
   generateDeckId: vi.fn(() => "deck"),
-  generateCardId: vi.fn(() => "generated-card-id"),
+  generateCardId: vi.fn(() => "card"),
   createCardWrite: vi.fn(),
   editCard: vi.fn(),
   createDeck: vi.fn(),
@@ -43,7 +42,6 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    createCard: (...args: unknown[]) => mocks.prepareCard(...args),
     filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
   };
 });
@@ -51,7 +49,7 @@ vi.mock("../api/upsertImportedCards", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../api/upsertImportedCards")>();
   return {
     ...actual,
-    upsertImportedCards: (_uid: string, cards: Card[]) => mocks.bulkUpsert(cards),
+    upsertImportedCards: (_uid: string, cards: CardCreateInput[]) => mocks.bulkUpsert(cards),
   };
 });
 vi.mock("@/entities/deck", async (importOriginal) => {
@@ -98,7 +96,7 @@ describe("useDeckImport", () => {
       return parseCsv(content);
     });
     mocks.generateDeckId.mockReturnValue("deck");
-    mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck" }));
+    mocks.generateCardId.mockReturnValue("card");
     mocks.createCardWrite.mockResolvedValue(undefined);
     mocks.editCard.mockResolvedValue(undefined);
     mocks.createDeck.mockResolvedValue(undefined);
@@ -128,8 +126,17 @@ describe("useDeckImport", () => {
     });
     expect(mocks.createDeck).toHaveBeenCalledOnce();
     expect(mocks.createDeck).toHaveBeenCalledWith({ id: "deck", uid: "uid-a", name: "deck.csv" });
-    expect(mocks.prepareCard).toHaveBeenCalledWith(expect.anything(), expect.anything(), mocks.generateCardId);
-    expect(mocks.bulkUpsert).toHaveBeenCalledWith([expect.objectContaining({ id: "card" })]);
+    expect(mocks.bulkUpsert).toHaveBeenCalledWith([
+      {
+        id: "card",
+        deckId: "deck",
+        uid: "uid-a",
+        frontText: "front",
+        backText: "back",
+        tags: [],
+        uniqueKey: "key",
+      },
+    ]);
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
   });
 
@@ -271,7 +278,7 @@ describe("useDeckImport", () => {
     expect(result.current.preview?.analysis.rows).toEqual([{ rowNumber: 1, card: normalizedCard }]);
 
     await actAsync(async () => result.current.importUrl("https://example.test/deck.csv"));
-    expect(mocks.prepareCard).toHaveBeenCalledWith(normalizedCard, expect.anything(), mocks.generateCardId);
+    expect(mocks.bulkUpsert).toHaveBeenLastCalledWith([expect.objectContaining(normalizedCard)]);
   });
 
   it("does not write when URL CSV validation fails", async () => {
@@ -308,7 +315,6 @@ describe("useDeckImport", () => {
   });
 
   it("retains successful and failed counts after a partial Card write failure", async () => {
-    mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck", uniqueKey: "key" }));
     mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError(["card"], 1));
     const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
@@ -331,10 +337,26 @@ describe("useDeckImport", () => {
 
   it("retries only failed prepared Cards with stable IDs before listener publication", async () => {
     const deck = createDeck({ id: "destination", uid: "uid-a" });
-    const first = createCard({ id: "prepared-first", deckId: deck.id, uniqueKey: "first" });
-    const second = createCard({ id: "prepared-second", deckId: deck.id, uniqueKey: "second" });
+    const first = {
+      id: "prepared-first",
+      deckId: deck.id,
+      uid: deck.uid,
+      frontText: "front-1",
+      backText: "back-1",
+      tags: [],
+      uniqueKey: "first",
+    } satisfies CardCreateInput;
+    const second = {
+      id: "prepared-second",
+      deckId: deck.id,
+      uid: deck.uid,
+      frontText: "front-2",
+      backText: "back-2",
+      tags: [],
+      uniqueKey: "second",
+    } satisfies CardCreateInput;
     mocks.generateDeckId.mockReturnValueOnce(deck.id);
-    mocks.prepareCard.mockReturnValueOnce(first).mockReturnValueOnce(second);
+    mocks.generateCardId.mockReturnValueOnce(first.id).mockReturnValueOnce(second.id);
     mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([second.id], 2)).mockResolvedValueOnce(undefined);
     const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {
@@ -367,7 +389,6 @@ describe("useDeckImport", () => {
     expect(mocks.decks).toEqual([]);
     expect(mocks.cards).toEqual([]);
     expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.prepareCard).toHaveBeenCalledTimes(2);
     expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(1, [first, second]);
     expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(2, [second]);
   });
@@ -509,11 +530,9 @@ describe("useDeckImport", () => {
   });
 
   it("keeps successful import rows successful when authoritative recovery fails", async () => {
-    const first = createCard({ id: "first", deckId: "deck", uniqueKey: "first" });
-    const second = createCard({ id: "second", deckId: "deck", uniqueKey: "second" });
-    mocks.prepareCard.mockReturnValueOnce(first).mockReturnValueOnce(second);
+    mocks.generateCardId.mockReturnValueOnce("first").mockReturnValueOnce("second");
     mocks.bulkUpsert.mockRejectedValueOnce(
-      new CardBulkMutationError([second.id], 2, { cause: new Error("authoritative read failed") })
+      new CardBulkMutationError(["second"], 2, { cause: new Error("authoritative read failed") })
     );
     const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {

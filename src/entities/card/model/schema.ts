@@ -14,18 +14,21 @@ const editableCardFieldsSchema = z.object({
   endLine: z.number().optional(),
 });
 
-const cardSchema = editableCardFieldsSchema.extend({
+const cardCreateSchema = editableCardFieldsSchema.extend({
   id: cardIdSchema,
   deckId: z.string().min(1, "Card deck is required"),
   uid: cardUidSchema,
-  createdAt: z.number(),
-  updatedAt: z.number(),
-  deletedAt: z.number().nullable(),
-  score: z.number(),
-  numberOfSeen: z.number(),
+  deletedAt: z.number().nullable().default(null),
+  score: z.number().default(0),
+  numberOfSeen: z.number().default(0),
   lastSeenAt: z.number().optional(),
   nextSeeingAt: z.date().optional(),
   interval: z.number().optional(),
+});
+
+const cardSchema = cardCreateSchema.extend({
+  createdAt: z.number(),
+  updatedAt: z.number(),
 });
 
 const cardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema, uid: cardUidSchema });
@@ -42,7 +45,7 @@ const validateCardOwner = (input: { uid: string; card: { uid: string } }, contex
 };
 
 export const createCardSchema = z
-  .object({ uid: authenticatedUidSchema, card: cardSchema })
+  .object({ uid: authenticatedUidSchema, card: cardCreateSchema })
   .superRefine(validateCardOwner);
 
 export const editCardSchema = z
@@ -57,8 +60,10 @@ export const deleteCardSchema = z
   .superRefine(validateCardOwner);
 
 export type Card = z.infer<typeof cardSchema>;
+export type CardCreate = z.infer<typeof cardCreateSchema>;
+export type CardCreateInput = z.input<typeof cardCreateSchema>;
 export type CardId = z.infer<typeof cardIdSchema>;
 export type CardEdit = z.infer<typeof cardEditSchema>;
-export type CreateCardInput = z.infer<typeof createCardSchema>;
+export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
 export type EditCardInput = z.infer<typeof editCardSchema>;
 export type DeleteCardInput = z.infer<typeof deleteCardSchema>;
