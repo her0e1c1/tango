@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Card writes");
-const cardIdSchema = z.string().min(1, "Card id is required");
+export const cardIdSchema = z.string().min(1, "Card id is required");
 const cardUidSchema = z.string().min(1, "Card owner is required");
 
 const editableCardFieldsSchema = z.object({
@@ -14,7 +14,7 @@ const editableCardFieldsSchema = z.object({
   endLine: z.number().optional(),
 });
 
-const cardCreateSchema = editableCardFieldsSchema.extend({
+export const cardCreateSchema = editableCardFieldsSchema.extend({
   id: cardIdSchema,
   deckId: z.string().min(1, "Card deck is required"),
   uid: cardUidSchema,
@@ -26,12 +26,12 @@ const cardCreateSchema = editableCardFieldsSchema.extend({
   interval: z.number().optional(),
 });
 
-const cardSchema = cardCreateSchema.extend({
+export const cardSchema = cardCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
 });
 
-const cardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema, uid: cardUidSchema });
+export const cardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema, uid: cardUidSchema });
 const cardIdentitySchema = z.object({ id: cardIdSchema, uid: cardUidSchema });
 
 const validateCardOwner = (input: { uid: string; card: { uid: string } }, context: z.RefinementCtx): void => {
@@ -58,12 +58,3 @@ export const editCardSchema = z
 export const deleteCardSchema = z
   .object({ uid: authenticatedUidSchema, card: cardIdentitySchema })
   .superRefine(validateCardOwner);
-
-export type Card = z.infer<typeof cardSchema>;
-export type CardCreate = z.infer<typeof cardCreateSchema>;
-export type CardCreateInput = z.input<typeof cardCreateSchema>;
-export type CardId = z.infer<typeof cardIdSchema>;
-export type CardEdit = z.infer<typeof cardEditSchema>;
-export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
-export type EditCardInput = z.infer<typeof editCardSchema>;
-export type DeleteCardInput = z.infer<typeof deleteCardSchema>;

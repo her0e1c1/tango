@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
-const deckIdSchema = z.string().min(1, "Deck id is required");
+export const deckIdSchema = z.string().min(1, "Deck id is required");
 const deckUidSchema = z.string().min(1, "Deck owner is required");
 
 const editableDeckFieldsSchema = z.object({
@@ -16,7 +16,7 @@ const editableDeckFieldsSchema = z.object({
   convertToBr: z.boolean(),
 });
 
-const deckCreateSchema = editableDeckFieldsSchema.extend({
+export const deckCreateSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
   uid: deckUidSchema,
   isPublic: editableDeckFieldsSchema.shape.isPublic.default(false),
@@ -29,12 +29,12 @@ const deckCreateSchema = editableDeckFieldsSchema.extend({
   deletedAt: z.number().nullable().default(null),
 });
 
-const deckSchema = deckCreateSchema.extend({
+export const deckSchema = deckCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
 });
 
-const deckEditSchema = editableDeckFieldsSchema.partial().extend({ id: deckIdSchema });
+export const deckEditSchema = editableDeckFieldsSchema.partial().extend({ id: deckIdSchema });
 const deckIdentitySchema = z.object({ id: deckIdSchema, uid: deckUidSchema });
 
 const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, context: z.RefinementCtx): void => {
@@ -59,11 +59,3 @@ export const editDeckSchema = z.object({
 export const deleteDeckSchema = z
   .object({ uid: authenticatedUidSchema, deck: deckIdentitySchema })
   .superRefine(validateDeckOwner);
-
-export type Deck = z.infer<typeof deckSchema>;
-export type DeckCreate = z.infer<typeof deckCreateSchema>;
-export type DeckCreateInput = z.input<typeof deckCreateSchema>;
-export type DeckId = z.infer<typeof deckIdSchema>;
-export type DeckEdit = z.infer<typeof deckEditSchema>;
-export type EditDeckInput = z.infer<typeof editDeckSchema>;
-export type DeleteDeckInput = z.infer<typeof deleteDeckSchema>;

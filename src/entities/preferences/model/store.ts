@@ -2,8 +2,9 @@ import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
-import { defaultPreferences, type Preferences } from "./preferences";
+import { defaultPreferences } from "./defaults";
 import { preferencesSchema } from "./schema";
+import type { Preferences } from "./types";
 
 type PartialPreferences = {
   [K in keyof Preferences]?: Partial<Preferences[K]>;

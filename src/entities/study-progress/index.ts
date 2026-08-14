@@ -4,7 +4,6 @@ export {
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
   recordStudyProgress,
-} from "./model/studyProgress";
-export type { StudyProgress, StudyProgressEdit, StudyRating } from "./model/studyProgress";
+} from "./model/rules";
 export { editStudyProgressSchema } from "./model/schema";
-export type { EditStudyProgressInput } from "./model/schema";
+export type { EditStudyProgressInput, StudyProgress, StudyProgressEdit, StudyRating } from "./model/types";

@@ -1,6 +1,6 @@
 import { createStore } from "zustand/vanilla";
 
-import type { Card } from "./schema";
+import type { Card } from "./types";
 
 interface CardState {
   cards: Card[];

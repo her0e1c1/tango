@@ -1,6 +1,6 @@
 import { useStore } from "zustand";
 
-import type { Preferences } from "./preferences";
 import { preferencesStore } from "./store";
+import type { Preferences } from "./types";
 
 export const usePreferences = (): Preferences => useStore(preferencesStore, (state) => state.preferences);

@@ -5,5 +5,5 @@ export type {
   SwipeAction,
   SwipeDirection,
   SwipeState,
-} from "./model/preferences";
+} from "./model/types";
 export { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, updatePreferences } from "./model/store";

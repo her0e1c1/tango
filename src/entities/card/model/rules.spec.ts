@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { filterCardsByDeckId, filterTagsByDeckId } from "./logic";
 import { createCard } from "@/test/factories";
+import { filterCardsByDeckId, filterTagsByDeckId } from "./rules";
 
 describe("filterCardsByDeckId", () => {
   it("returns cards matching the specified deckId", () => {
