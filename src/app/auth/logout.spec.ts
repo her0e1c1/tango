@@ -2,7 +2,8 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { logout } from "@/app/auth/logout";
-import { clearStudyStore, useStudyStore } from "@/features/study";
+import { clearStudyStore, useStudyActions, useStudySessions } from "@/features/study";
+import { createCard } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   signOutCurrentUser: vi.fn(),
@@ -22,13 +23,14 @@ vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
 }));
 
 const startStudy = (deckId: string, cardIds: string[]) => {
-  const { result, unmount } = renderHook(() => useStudyStore((state) => state.startStudy));
-  act(() => result.current(deckId, cardIds));
+  const cards = cardIds.map((id) => createCard({ id, deckId }));
+  const { result, unmount } = renderHook(() => useStudyActions(deckId, { cardsById: {} }));
+  act(() => result.current.start(cards));
   unmount();
 };
 
 const getStudySessions = () => {
-  const { result, unmount } = renderHook(() => useStudyStore((state) => state.sessionsByDeckId));
+  const { result, unmount } = renderHook(useStudySessions);
   const sessions = result.current;
   unmount();
   return sessions;

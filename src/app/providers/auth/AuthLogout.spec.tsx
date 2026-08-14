@@ -12,6 +12,8 @@ import React, { type ReactNode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
+import type { ConfigState } from "@/shared/config";
+import { createCard, createConfig } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   auth: { currentUser: null },
@@ -26,6 +28,7 @@ const mocks = vi.hoisted(() => ({
   actualClearStudyStore: undefined as undefined | (() => Promise<void>),
   operations: [] as string[],
   navigate: vi.fn(),
+  config: null as ConfigState | null,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
@@ -50,7 +53,10 @@ vi.mock("@/features/study", async (importOriginal) => {
   return { ...actual, clearStudyStore: mocks.clearStudyStore };
 });
 vi.mock("@/shared/config", () => ({
-  useConfig: () => ({ appearance: { darkMode: false } }),
+  useConfig: () => {
+    if (mocks.config == null) throw new Error("Mock config is not initialized");
+    return mocks.config;
+  },
   setDarkMode: vi.fn(),
   updateConfig: vi.fn(),
 }));
@@ -78,7 +84,7 @@ import { createAuthRuntime } from "@/app/providers/auth/authController";
 import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 import { useAuthSession } from "@/entities/auth-session";
 import { SettingsPage } from "@/pages/settings";
-import { useStudyStore } from "@/features/study";
+import { useStudyActions, useStudySessions } from "@/features/study";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -87,6 +93,7 @@ afterEach(() => {
 beforeEach(async () => {
   vi.clearAllMocks();
   mocks.auth.currentUser = null;
+  mocks.config = createConfig();
   mocks.publishUser = undefined;
   mocks.operations.length = 0;
   mocks.clearStudyStore.mockImplementation(() => {
@@ -99,13 +106,14 @@ beforeEach(async () => {
 });
 
 const startStudy = (deckId: string, cardIds: string[]) => {
-  const { result, unmount } = renderHook(() => useStudyStore((state) => state.startStudy));
-  act(() => result.current(deckId, cardIds));
+  const cards = cardIds.map((id) => createCard({ id, deckId }));
+  const { result, unmount } = renderHook(() => useStudyActions(deckId, { cardsById: {} }));
+  act(() => result.current.start(cards));
   unmount();
 };
 
 const getStudySessions = () => {
-  const { result, unmount } = renderHook(() => useStudyStore((state) => state.sessionsByDeckId));
+  const { result, unmount } = renderHook(useStudySessions);
   const sessions = result.current;
   unmount();
   return sessions;

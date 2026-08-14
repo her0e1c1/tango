@@ -1,24 +1,12 @@
-import { getCategory, isHighlightLanguage, type Deck, type DeckId } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useKey } from "react-use";
 
 import { useCards } from "@/features/card/read";
 import { BackText, CardOverlay, FrontText } from "@/features/card/view";
 import { useDecks } from "@/features/deck/read";
-import {
-  initializeStudySessionUi,
-  selectStudySessionForRoute,
-  type SwipeButtonListProps,
-  touchStudySession,
-  useEditStudyProgress,
-  useStudyActions,
-  useStudyControllerState,
-  useStudyHydrated,
-  useStudyStore,
-} from "@/features/study";
-import { toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
+import { useStudyScreen } from "@/features/study";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
@@ -26,7 +14,6 @@ import { AppLayout } from "@/widgets/app-layout";
 import { DeckSwiperView } from "./DeckSwiperView";
 
 const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
-const SWIPE_FEEDBACK_DURATION_MS = 900;
 const isHistoryState = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
@@ -44,73 +31,12 @@ const DeckSwiperContent = ({
 }) => {
   const navigate = useNavigate();
   const deckId = deck.id;
-  const config = useConfig();
-  const session = useStudyStore(selectStudySessionForRoute(deckId));
-  const showBackText = useStudyStore((state) => state.showBackText);
-  const autoPlay = useStudyStore((state) => state.autoPlay);
-  const lastSwipe = useStudyStore((state) => state.lastSwipe);
-  const clearLastSwipe = useStudyStore((state) => state.clearLastSwipe);
-  const hydrated = useStudyHydrated();
-
-  const index = session?.currentIndex ?? -1;
-  const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
-  const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
-  const cardMutation = useEditStudyProgress();
-  const studyActions = useStudyActions(deckId, {
+  const study = useStudyScreen({
     cardsById: cardRemote.cardsById,
-    cardMutation: {
-      update: cardMutation.update,
-    },
+    deck,
+    readsReady: readState.status === "ready",
+    onUnavailable: () => void navigate("/", { replace: true }),
   });
-  useKey("ArrowUp", studyActions.swipeUp);
-  useKey("ArrowDown", studyActions.swipeDown);
-  useKey("ArrowLeft", studyActions.swipeLeft);
-  useKey("ArrowRight", studyActions.swipeRight);
-  useKey("Enter", studyActions.toggleShowBackText);
-  useKey("h", toggleShowHeader);
-  useKey("b", toggleShowSwipeButtonList);
-  useKey(" ", studyActions.toggleAutoPlay);
-
-  React.useEffect(() => {
-    if (!config.appearance.showSwipeFeedback) {
-      if (lastSwipe !== undefined) clearLastSwipe();
-      return;
-    }
-    if (lastSwipe === undefined) return;
-
-    const timeout = window.setTimeout(clearLastSwipe, SWIPE_FEEDBACK_DURATION_MS);
-    return () => window.clearTimeout(timeout);
-  }, [clearLastSwipe, config.appearance.showSwipeFeedback, lastSwipe]);
-
-  const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
-  const controller = useStudyControllerState({
-    autoPlay,
-    cardInterval: config.study.cardInterval,
-    enabled: card != null && config.study.cardInterval > 0,
-    index,
-    numberOfCards: session?.cardOrderIds.length ?? 0,
-    onChange: studyActions.updateIndex,
-    onToggleAutoPlay: studyActions.toggleAutoPlay,
-  });
-
-  const exitingDeck = React.useRef<DeckId>(undefined);
-  React.useEffect(() => {
-    if (!valid) return;
-    initializeStudySessionUi(config.study.defaultAutoPlay);
-    touchStudySession(deckId);
-  }, [config.study.defaultAutoPlay, deckId, valid]);
-
-  React.useEffect(() => {
-    if (valid) {
-      exitingDeck.current = undefined;
-      return;
-    }
-    if (!hydrated || readState.status !== "ready" || exitingDeck.current === deckId) return;
-
-    exitingDeck.current = deckId;
-    studyActions.resetStudy();
-    void navigate("/", { replace: true });
-  }, [deckId, hydrated, navigate, readState.status, studyActions, valid]);
 
   // Keep the active study session on the route when browser history moves backward.
   React.useEffect(() => {
@@ -128,7 +54,7 @@ const DeckSwiperContent = ({
     };
   }, [deckId, navigate]);
 
-  if (card == null) {
+  if (study.card == null) {
     return (
       <RemoteReadBoundary
         status={readState.status}
@@ -141,48 +67,37 @@ const DeckSwiperContent = ({
     );
   }
 
-  const category = getCategory(deck.category, card.tags);
-  const swipeActions: SwipeButtonListProps = {
-    disabled: false,
-    onClickUp: studyActions.swipeUp,
-    onClickDown: studyActions.swipeDown,
-    onClickLeft: studyActions.swipeLeft,
-    onClickRight: studyActions.swipeRight,
-  };
-
   return (
-    <AppLayout fullscreen scroll={showBackText} showHeader={config.appearance.showHeader && !showBackText}>
+    <AppLayout fullscreen scroll={study.showBackText} showHeader={study.showHeader}>
       <DeckSwiperView
-        showController={config.study.cardInterval > 0}
-        showBackText={showBackText}
-        showSwipeButtonList={config.controls.showSwipeButtonList}
-        {...(config.appearance.showSwipeFeedback && lastSwipe !== undefined
-          ? { swipeFeedback: lastSwipe.direction }
-          : {})}
+        showController={study.showController}
+        showBackText={study.showBackText}
+        showSwipeButtonList={study.showSwipeButtonList}
+        {...(study.swipeFeedback === undefined ? {} : { swipeFeedback: study.swipeFeedback })}
         frontTextSlot={
           <FrontText
-            category={category}
-            text={card.frontText}
-            onSwipeUp={studyActions.swipeUp}
-            onSwipeDown={studyActions.swipeDown}
-            onSwipeLeft={studyActions.swipeLeft}
-            onSwipeRight={studyActions.swipeRight}
-            onClick={studyActions.toggleShowBackText}
+            {...(study.category === undefined ? {} : { category: study.category })}
+            text={study.card.frontText}
+            onSwipeUp={study.actions.swipeUp}
+            onSwipeDown={study.actions.swipeDown}
+            onSwipeLeft={study.actions.swipeLeft}
+            onSwipeRight={study.actions.swipeRight}
+            onClick={study.actions.toggleShowBackText}
           />
         }
-        cardOverlaySlot={<CardOverlay card={card} />}
+        cardOverlaySlot={<CardOverlay card={study.card} />}
         backTextSlot={
           <BackText
-            category={category}
-            code={isHighlightLanguage(category)}
-            dark={config.appearance.darkMode}
-            text={card.backText}
-            onClick={studyActions.toggleShowBackText}
+            {...(study.backText.category === undefined ? {} : { category: study.backText.category })}
+            code={study.backText.code}
+            dark={study.backText.dark}
+            text={study.card.backText}
+            onClick={study.actions.toggleShowBackText}
           />
         }
-        controller={controller}
-        swipeButtonList={swipeActions}
-        swipeOverlay={swipeActions}
+        controller={study.controller}
+        swipeButtonList={study.swipeActions}
+        swipeOverlay={study.swipeActions}
       />
     </AppLayout>
   );
