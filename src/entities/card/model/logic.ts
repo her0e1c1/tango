@@ -1,4 +1,4 @@
-import type { Card } from "./card";
+import type { Card } from "./schema";
 
 export const filterCardsByDeckId = (cards: Card[], deckId: string): Card[] =>
   cards.filter((card) => card.deckId === deckId);

@@ -1,1 +1,1 @@
-export type { CardId } from "../model/card";
+export type { CardId } from "../model/schema";

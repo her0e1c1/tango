@@ -7,8 +7,38 @@ import { createCardSchema, deleteCardSchema, editCardSchema } from "./schema";
 describe("Card operation schemas", () => {
   const card = createCardFixture({ id: "card", deckId: "deck", uid: "uid-a" });
 
+  it("applies entity defaults without adding persistence timestamps", () => {
+    expect(
+      createCardSchema.parse({
+        uid: "uid-a",
+        card: {
+          id: "card",
+          deckId: "deck",
+          uid: "uid-a",
+          frontText: "front",
+          backText: "back",
+          tags: ["tag"],
+          uniqueKey: "key",
+        },
+      })
+    ).toEqual({
+      uid: "uid-a",
+      card: {
+        id: "card",
+        deckId: "deck",
+        uid: "uid-a",
+        frontText: "front",
+        backText: "back",
+        tags: ["tag"],
+        uniqueKey: "key",
+        deletedAt: null,
+        score: 0,
+        numberOfSeen: 0,
+      },
+    });
+  });
+
   it("validates create ownership", () => {
-    expect(createCardSchema.parse({ uid: "uid-a", card })).toEqual({ uid: "uid-a", card });
     expect(() => createCardSchema.parse({ uid: "uid-b", card })).toThrow("owner does not match");
   });
 

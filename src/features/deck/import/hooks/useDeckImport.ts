@@ -4,12 +4,12 @@
  * coordinate services themselves.
  */
 
-import type { Card, CardId, CardRaw } from "@/entities/card";
+import type { Card, CardCreateInput, CardEdit, CardId, CardRaw } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { createCard as prepareCard, filterCardsByDeckId } from "@/entities/card";
+import { filterCardsByDeckId } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
@@ -20,10 +20,10 @@ import { CardBulkMutationError, upsertImportedCards } from "../api/upsertImporte
 
 export interface DeckImportOptions {
   cards: Card[];
-  createCard: (uid: string, card: Card) => Promise<unknown>;
+  createCard: (uid: string, card: CardCreateInput) => Promise<unknown>;
   createDeck: (uid: string, deck: DeckCreateInput) => Promise<unknown>;
   decks: Deck[];
-  editCard: (uid: string, card: Card) => Promise<unknown>;
+  editCard: (uid: string, card: CardEdit) => Promise<unknown>;
   generateCardId: () => string;
   synchronized: boolean;
 }
@@ -50,7 +50,7 @@ interface DeckImportAttempt {
   uid: string;
   deck: DeckCreateInput;
   createDeckPending: boolean;
-  remainingUpserts: Card[];
+  remainingUpserts: CardCreateInput[];
   createdIds: CardId[];
   updatedIds: CardId[];
   totals: Pick<DeckImportResult, "created" | "updated" | "skipped">;
@@ -107,7 +107,7 @@ interface DeckImportDependencies {
   cardsByDeckId: (id: DeckId) => Card[];
   createDeck: (deck: DeckCreateInput) => Promise<unknown>;
   generateCardId: () => string;
-  bulkUpsert: (cards: Card[], createdIds: CardId[]) => Promise<unknown>;
+  bulkUpsert: (cards: CardCreateInput[], createdIds: CardId[]) => Promise<unknown>;
 }
 
 type DeckImportPreparationDependencies = Pick<
@@ -133,13 +133,13 @@ const prepareDeckImportAttempt = (
   const existing = cardsByDeckId(deck.id);
   const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
   const plan = buildDeckImportPlan(rows, existing);
-  const remainingUpserts: Card[] = [];
+  const remainingUpserts: CardCreateInput[] = [];
   const createdIds: CardId[] = [];
   const updatedIds: CardId[] = [];
   plan.rows.forEach((row) => {
     const current = byUniqueKey.get(row.card.uniqueKey);
     if (row.action === "create") {
-      const card = prepareCard(row.card, deck, generateCardId);
+      const card = { ...row.card, id: generateCardId(), deckId: deck.id, uid: deck.uid } satisfies CardCreateInput;
       remainingUpserts.push(card);
       createdIds.push(card.id);
     } else if (row.action === "update" && current != null) {

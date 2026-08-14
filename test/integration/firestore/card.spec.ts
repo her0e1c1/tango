@@ -4,7 +4,7 @@
  * "should update a card", and "should import cards".
  */
 
-import type { Card } from "@/entities/card";
+import type { Card, CardCreateInput } from "@/entities/card";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
@@ -51,12 +51,16 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   it("should create a card", async () => {
     const deckId = await initDeck();
     const c = {
-      ...newCard,
-      deckId,
       id: uuid(),
+      deckId,
+      uid: "uid",
+      frontText: "front text",
+      backText: "back text",
+      tags: [],
+      uniqueKey: "unique-key",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies CardCreateInput & { currentIndex: number; cardOrderIds: string[] };
     await createCardCommand("uid", c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...newCard, deckId, id: c.id });

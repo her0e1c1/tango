@@ -1,4 +1,4 @@
-import type { Card } from "@/entities/card";
+import type { Card, CardCreateInput } from "@/entities/card";
 
 import { describe, expect, it, vi } from "vitest";
 
@@ -21,7 +21,15 @@ describe("upsertImportedCards", () => {
   });
 
   it("routes planned creates to createCard and existing Cards to editCard", async () => {
-    const created = createCard({ id: "created" });
+    const created = {
+      id: "created",
+      deckId: "deck",
+      uid: "uid-a",
+      frontText: "front",
+      backText: "back",
+      tags: [],
+      uniqueKey: "created",
+    } satisfies CardCreateInput;
     const existing = createCard({ id: "existing" });
     const createCardWriter = vi.fn().mockResolvedValue(undefined);
     const editCardWriter = vi.fn().mockResolvedValue(undefined);

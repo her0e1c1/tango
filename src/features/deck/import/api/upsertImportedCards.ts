@@ -1,8 +1,8 @@
-import type { Card, CardId } from "@/entities/card";
+import type { CardCreateInput, CardEdit, CardId } from "@/entities/card";
 
 interface ImportedCardWriters {
-  createCard: (uid: string, card: Card) => Promise<unknown>;
-  editCard: (uid: string, card: Card) => Promise<unknown>;
+  createCard: (uid: string, card: CardCreateInput) => Promise<unknown>;
+  editCard: (uid: string, card: CardEdit) => Promise<unknown>;
 }
 
 export class CardBulkMutationError extends Error {
@@ -17,7 +17,7 @@ export class CardBulkMutationError extends Error {
 
 export const upsertImportedCards = async (
   uid: string,
-  cards: Card[],
+  cards: CardCreateInput[],
   createdIds: CardId[],
   { createCard, editCard }: ImportedCardWriters
 ): Promise<void> => {
