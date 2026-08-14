@@ -28,14 +28,14 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/app/providers/auth/lifecycle", () => ({ startAuthSession: mocks.startAuthSession }));
-vi.mock("@/app/providers/remote-read/deck", () => ({
-  subscribeDecks: mocks.subscribeDecks,
-}));
 vi.mock("@/entities/card", () => ({
   clearCards: () => mocks.operations.push("clear Cards"),
   subscribeCards: mocks.subscribeCards,
 }));
-vi.mock("@/entities/deck", () => ({ clearDecks: () => mocks.operations.push("clear Decks") }));
+vi.mock("@/entities/deck", () => ({
+  clearDecks: () => mocks.operations.push("clear Decks"),
+  subscribeDecks: mocks.subscribeDecks,
+}));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));

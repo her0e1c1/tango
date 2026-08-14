@@ -6,7 +6,7 @@
 
 import { replaceCards, type Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { replaceDecks } from "@/entities/deck";
+import { replaceDecks } from "@/entities/deck/model/store";
 
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
