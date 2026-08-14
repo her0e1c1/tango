@@ -6,7 +6,7 @@
 
 import type { Card, CardId } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => {
   const cardUpdate = vi.fn();
 
   return {
-    state: null as { card: Record<CardId, Card>; config: ConfigState } | null,
+    state: null as { card: Record<CardId, Card>; preferences: Preferences } | null,
     cardUpdate,
     cardMutations: {
       update: cardUpdate,
@@ -27,10 +27,10 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("@/shared/config", () => ({
-  useConfig: () => {
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    return mocks.state.config;
+    return mocks.state.preferences;
   },
 }));
 
@@ -72,13 +72,13 @@ const createCard = (id: CardId, numberOfSeen: number): Card => ({
 const card1 = createCard("card-1", 0);
 const card2 = createCard("card-2", 1);
 
-import { createConfig as factoryCreateConfig, type ConfigOverrides } from "@/test/factories";
+import { createPreferences as factoryCreateConfig, type PreferencesOverrides } from "@/test/factories";
 
 /**
- * Provides the create config test helper used by this file.
+ * Provides the create preferences test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const createConfig = (overrides: ConfigOverrides = {}): ConfigState =>
+const createPreferences = (overrides: PreferencesOverrides = {}): Preferences =>
   factoryCreateConfig({
     shuffled: false,
     maxNumberOfCardsToLearn: 1,
@@ -96,9 +96,9 @@ const createConfig = (overrides: ConfigOverrides = {}): ConfigState =>
  * Provides the create state test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const createState = (config = createConfig()) => ({
+const createState = (preferences = createPreferences()) => ({
   card: { [card1.id]: card1, [card2.id]: card2 },
-  config,
+  preferences,
 });
 
 const getCardsById = () => mocks.state?.card ?? {};
@@ -266,8 +266,8 @@ describe("useStudyActions", () => {
     });
   });
 
-  it("keeps back text visible when the long-lived config allows it", async () => {
-    mocks.state = createState(createConfig({ appearance: { hideBodyWhenCardChanged: false } }));
+  it("keeps back text visible when the long-lived preferences allows it", async () => {
+    mocks.state = createState(createPreferences({ appearance: { hideBodyWhenCardChanged: false } }));
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() =>

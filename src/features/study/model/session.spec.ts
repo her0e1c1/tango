@@ -1,5 +1,5 @@
 import type { Card } from "@/entities/card";
-import type { StudyPreferences } from "@/shared/config";
+import type { StudyPreferences } from "@/entities/preferences";
 
 import { describe, expect, it } from "vitest";
 

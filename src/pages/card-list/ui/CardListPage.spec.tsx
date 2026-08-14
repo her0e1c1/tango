@@ -7,18 +7,18 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import userEvent from "@testing-library/user-event";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createConfig } from "@/test/factories";
+import { createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  config: null as unknown as ConfigState,
+  preferences: null as unknown as Preferences,
   deck: null as Deck | null,
   cards: [] as Card[],
   filter: { scoreMax: null as number | null, scoreMin: null as number | null, selectedTags: [] as string[] },
@@ -41,8 +41,8 @@ vi.mock("@/features/card/delete", () => ({
   }),
 }));
 
-vi.mock("@/shared/config", () => ({
-  useConfig: () => mocks.config,
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
 
@@ -148,7 +148,7 @@ describe("CardListPage", () => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
     mocks.cards = [card];
-    mocks.config = createConfig({ appearance: { darkMode: false }, study: { useCardInterval: false } });
+    mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { useCardInterval: false } });
     mocks.filter = { scoreMax: null, scoreMin: null, selectedTags: [] };
     mocks.setDarkMode.mockReset();
     mocks.cardUpdateBy.mockReset().mockResolvedValue(undefined);

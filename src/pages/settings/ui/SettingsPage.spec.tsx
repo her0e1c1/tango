@@ -2,20 +2,20 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import type { ConfigState } from "@/shared/config";
-import { createConfig } from "@/test/factories";
+import type { Preferences } from "@/entities/preferences";
+import { createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  config: null as unknown as ConfigState,
+  preferences: null as unknown as Preferences,
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
 
 vi.mock("@/entities/auth-session", () => ({ useAuthSession: () => ({ status: "initializing" as const }) }));
-vi.mock("@/shared/config", () => ({
-  useConfig: () => mocks.config,
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
-  updateConfig: vi.fn(),
+  updatePreferences: vi.fn(),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/features/auth/sign-in", () => ({
@@ -32,17 +32,17 @@ vi.mock("@/features/auth/sign-out", () => ({
     signOut: vi.fn(async () => undefined),
   }),
 }));
-vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({
-  useConfigFormState: () => ({}),
+vi.mock("@/features/settings/model/hooks/usePreferencesFormState", () => ({
+  usePreferencesFormState: () => ({}),
 }));
-vi.mock("@/features/settings/ui/components/ConfigForm", () => ({ ConfigForm: () => null }));
+vi.mock("@/features/settings/ui/components/PreferencesForm", () => ({ PreferencesForm: () => null }));
 
 import { SettingsPage } from "./SettingsPage";
 
 describe("SettingsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.config = createConfig({ appearance: { darkMode: false } });
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
   });
 
   it("owns the route shortcut and renders in the application shell", () => {

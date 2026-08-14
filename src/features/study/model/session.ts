@@ -1,7 +1,7 @@
 import * as lodash from "lodash";
 
 import type { Card } from "@/entities/card";
-import type { StudyPreferences, SwipeAction } from "@/shared/config";
+import type { StudyPreferences, SwipeAction } from "@/entities/preferences";
 
 export const calculateNextIndex = (currentIndex: number, cardCount: number, swipeAction: SwipeAction): number => {
   let nextIndex = currentIndex;

@@ -49,21 +49,21 @@ vi.mock("@/features/study", async (importOriginal) => {
   mocks.actualClearStudyStore = actual.clearStudyStore;
   return { ...actual, clearStudyStore: mocks.clearStudyStore };
 });
-vi.mock("@/shared/config", () => ({
-  useConfig: () => ({ appearance: { darkMode: false } }),
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => ({ appearance: { darkMode: false } }),
   setDarkMode: vi.fn(),
-  updateConfig: vi.fn(),
+  updatePreferences: vi.fn(),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/settings/model/hooks/useConfigFormState", () => ({
-  useConfigFormState: (options: Record<string, unknown>) => options,
+vi.mock("@/features/settings/model/hooks/usePreferencesFormState", () => ({
+  usePreferencesFormState: (options: Record<string, unknown>) => options,
 }));
 vi.mock("@/pages/settings/ui/SettingsView", () => ({
-  SettingsView: ({ configForm }: { configForm: Record<string, unknown> }) => (
+  SettingsView: ({ preferencesForm }: { preferencesForm: Record<string, unknown> }) => (
     <>
-      {configForm.accountFeedback as ReactNode}
-      {typeof configForm.onLogout === "function" && (
-        <button type="button" onClick={configForm.onLogout as () => void}>
+      {preferencesForm.accountFeedback as ReactNode}
+      {typeof preferencesForm.onLogout === "function" && (
+        <button type="button" onClick={preferencesForm.onLogout as () => void}>
           Logout
         </button>
       )}

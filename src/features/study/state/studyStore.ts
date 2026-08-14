@@ -6,7 +6,7 @@
 
 import type { CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import type { SwipeDirection } from "@/shared/config";
+import type { SwipeDirection } from "@/entities/preferences";
 
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";

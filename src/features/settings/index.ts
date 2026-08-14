@@ -1,2 +1,2 @@
-export { ConfigForm, type ConfigFormProps } from "./ui/components/ConfigForm";
-export { useConfigFormState } from "./model/hooks/useConfigFormState";
+export { PreferencesForm, type PreferencesFormProps } from "./ui/components/PreferencesForm";
+export { usePreferencesFormState } from "./model/hooks/usePreferencesFormState";

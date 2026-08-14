@@ -8,13 +8,13 @@ import { useCards } from "@/features/card/read";
 import { createDeck } from "@/features/deck/create";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck/import";
 import { useDecks } from "@/features/deck/read";
-import { useConfig } from "@/shared/config";
+import { usePreferences } from "@/entities/preferences";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckImportView } from "./DeckImportView";
 
 export const DeckImportPage: React.FC = () => {
-  const config = useConfig();
+  const preferences = usePreferences();
   const navigate = useNavigate();
   const cardRead = useCards();
   const deckRead = useDecks();
@@ -59,7 +59,7 @@ export const DeckImportPage: React.FC = () => {
         {...(deckImport.data !== undefined ? { result: deckImport.data } : {})}
         {...(deckImport.partialResult !== undefined ? { partialResult: deckImport.partialResult } : {})}
         error={deckImport.error}
-        dark={config.appearance.darkMode}
+        dark={preferences.appearance.darkMode}
         sampleText={SAMPLE_CSV_TEXT}
       />
     </AppLayout>

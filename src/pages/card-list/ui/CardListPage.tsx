@@ -1,4 +1,4 @@
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -17,7 +17,7 @@ import {
   useEditStudyProgress,
   useStudyCards,
 } from "@/features/study";
-import { useConfig } from "@/shared/config";
+import { usePreferences } from "@/entities/preferences";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
@@ -27,8 +27,8 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { CardListView } from "./CardListView";
 
-const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; config: ConfigState }) => {
-  const { deck, cards, tags, config } = props;
+const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; preferences: Preferences }) => {
+  const { deck, cards, tags, preferences } = props;
   const [showCard, setShowCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
@@ -128,7 +128,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; con
                   text: showCard.backText,
                   category,
                   code: isHighlightLanguage(category),
-                  dark: config.appearance.darkMode,
+                  dark: preferences.appearance.darkMode,
                 },
                 onClose: closeCard,
               },
@@ -145,13 +145,13 @@ export const CardListPage: React.FC = () => {
   const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
-  const config = useConfig();
+  const preferences = usePreferences();
   const cardRemote = useCards();
   const remote = useDecks();
   const readState = combineRemoteReadStates(cardRemote, remote);
   const deck = remote.decksById[deckId];
   const deckCards = React.useMemo(() => filterCardsByDeckId(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
-  const cards = useStudyCards(deck, deckCards, config);
+  const cards = useStudyCards(deck, deckCards, preferences);
   const tags = filterTagsByDeckId(cardRemote.cards, deckId);
 
   return (
@@ -169,7 +169,7 @@ export const CardListPage: React.FC = () => {
       }
       onRetry={readState.retry}
     >
-      {deck != null ? <CardListContent deck={deck} cards={cards} tags={tags} config={config} /> : null}
+      {deck != null ? <CardListContent deck={deck} cards={cards} tags={tags} preferences={preferences} /> : null}
     </RemoteReadBoundary>
   );
 };

@@ -1,16 +1,16 @@
 import type { Deck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createConfig, createDeck } from "@/test/factories";
+import { createPreferences, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  config: null as unknown as ConfigState,
+  preferences: null as unknown as Preferences,
   deck: null as Deck | null,
   save: vi.fn(),
   cancel: vi.fn(),
@@ -18,8 +18,8 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/config", () => ({
-  useConfig: () => mocks.config,
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -71,7 +71,7 @@ describe("DeckFormPage", () => {
   beforeEach(() => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
-    mocks.config = createConfig({ appearance: { darkMode: false } });
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     vi.clearAllMocks();
   });
 

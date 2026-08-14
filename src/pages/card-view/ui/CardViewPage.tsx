@@ -5,7 +5,7 @@ import type { Card } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import { useCards } from "@/features/card/read";
 import { useDecks } from "@/features/deck/read";
-import { useConfig } from "@/shared/config";
+import { usePreferences } from "@/entities/preferences";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -14,7 +14,7 @@ import { AppLayout } from "@/widgets/app-layout";
 import { CardViewView } from "./CardViewView";
 
 const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
-  const config = useConfig();
+  const preferences = usePreferences();
   const category = getCategory(deck.category, card.tags);
 
   return (
@@ -23,7 +23,7 @@ const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
         backText={{
           category,
           code: isHighlightLanguage(category),
-          dark: config.appearance.darkMode,
+          dark: preferences.appearance.darkMode,
           text: card.backText,
         }}
       />

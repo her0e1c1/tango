@@ -18,7 +18,7 @@ import {
   useStudyHydrated,
   useStudyStore,
 } from "@/features/study";
-import { toggleShowHeader, toggleShowSwipeButtonList, useConfig } from "@/shared/config";
+import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
@@ -44,7 +44,7 @@ const DeckSwiperContent = ({
 }) => {
   const navigate = useNavigate();
   const deckId = deck.id;
-  const config = useConfig();
+  const preferences = usePreferences();
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
@@ -72,7 +72,7 @@ const DeckSwiperContent = ({
   useKey(" ", studyActions.toggleAutoPlay);
 
   React.useEffect(() => {
-    if (!config.appearance.showSwipeFeedback) {
+    if (!preferences.appearance.showSwipeFeedback) {
       if (lastSwipe !== undefined) clearLastSwipe();
       return;
     }
@@ -80,13 +80,13 @@ const DeckSwiperContent = ({
 
     const timeout = window.setTimeout(clearLastSwipe, SWIPE_FEEDBACK_DURATION_MS);
     return () => window.clearTimeout(timeout);
-  }, [clearLastSwipe, config.appearance.showSwipeFeedback, lastSwipe]);
+  }, [clearLastSwipe, preferences.appearance.showSwipeFeedback, lastSwipe]);
 
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
   const controller = useStudyControllerState({
     autoPlay,
-    cardInterval: config.study.cardInterval,
-    enabled: card != null && config.study.cardInterval > 0,
+    cardInterval: preferences.study.cardInterval,
+    enabled: card != null && preferences.study.cardInterval > 0,
     index,
     numberOfCards: session?.cardOrderIds.length ?? 0,
     onChange: studyActions.updateIndex,
@@ -96,9 +96,9 @@ const DeckSwiperContent = ({
   const exitingDeck = React.useRef<DeckId>(undefined);
   React.useEffect(() => {
     if (!valid) return;
-    initializeStudySessionUi(config.study.defaultAutoPlay);
+    initializeStudySessionUi(preferences.study.defaultAutoPlay);
     touchStudySession(deckId);
-  }, [config.study.defaultAutoPlay, deckId, valid]);
+  }, [preferences.study.defaultAutoPlay, deckId, valid]);
 
   React.useEffect(() => {
     if (valid) {
@@ -151,12 +151,12 @@ const DeckSwiperContent = ({
   };
 
   return (
-    <AppLayout fullscreen scroll={showBackText} showHeader={config.appearance.showHeader && !showBackText}>
+    <AppLayout fullscreen scroll={showBackText} showHeader={preferences.appearance.showHeader && !showBackText}>
       <DeckSwiperView
-        showController={config.study.cardInterval > 0}
+        showController={preferences.study.cardInterval > 0}
         showBackText={showBackText}
-        showSwipeButtonList={config.controls.showSwipeButtonList}
-        {...(config.appearance.showSwipeFeedback && lastSwipe !== undefined
+        showSwipeButtonList={preferences.controls.showSwipeButtonList}
+        {...(preferences.appearance.showSwipeFeedback && lastSwipe !== undefined
           ? { swipeFeedback: lastSwipe.direction }
           : {})}
         frontTextSlot={
@@ -175,7 +175,7 @@ const DeckSwiperContent = ({
           <BackText
             category={category}
             code={isHighlightLanguage(category)}
-            dark={config.appearance.darkMode}
+            dark={preferences.appearance.darkMode}
             text={card.backText}
             onClick={studyActions.toggleShowBackText}
           />

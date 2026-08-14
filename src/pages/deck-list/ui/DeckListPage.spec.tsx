@@ -5,7 +5,7 @@
  * continuing".
  */
 
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import { fireEvent, render, waitFor, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -14,10 +14,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Card, CardId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 import type { useStudySessions } from "@/features/study";
-import { createCard, createConfig, createDeck } from "@/test/factories";
+import { createCard, createPreferences, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  config: {} as ConfigState,
+  preferences: {} as Preferences,
   decksById: {} as Record<DeckId, Deck>,
   cardsById: {} as Record<CardId, Card>,
   sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
@@ -32,8 +32,8 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/config", () => ({
-  useConfig: () => mocks.config,
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/features/study", () => ({
@@ -83,7 +83,7 @@ describe("DeckListPage", () => {
     vi.clearAllMocks();
     mocks.hydrated = true;
     mocks.syncStatus = "synced";
-    mocks.config = createConfig({ darkMode: false });
+    mocks.preferences = createPreferences({ darkMode: false });
     mocks.decksById = { [otherDeck.id]: otherDeck, [oldDeck.id]: oldDeck, [recentDeck.id]: recentDeck };
     mocks.cardsById = {
       "other-1": createCard({ id: "other-1", deckId: otherDeck.id }),

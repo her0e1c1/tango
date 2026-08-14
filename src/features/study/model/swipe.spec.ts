@@ -1,4 +1,4 @@
-import type { SwipeState } from "@/shared/config";
+import type { SwipeState } from "@/entities/preferences";
 
 import { describe, expect, it } from "vitest";
 

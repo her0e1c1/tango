@@ -8,8 +8,8 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/config", () => ({
-  useConfig: () => ({ appearance: { darkMode: mocks.darkMode } }),
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
