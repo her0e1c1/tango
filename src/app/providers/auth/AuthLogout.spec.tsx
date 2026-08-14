@@ -80,7 +80,7 @@ vi.mock("@/pages/settings/ui/SettingsView", () => ({
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
 import { AppProviders } from "@/app/providers/AppProviders";
-import { startAuthSession } from "@/app/providers/auth/authLifecycle";
+import { startAuthSession } from "@/app/providers/auth/lifecycle";
 import { getAuthSession, replaceAuthSession, useAuthSession } from "@/entities/auth";
 import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { SettingsPage } from "@/pages/settings";
