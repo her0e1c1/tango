@@ -2,13 +2,11 @@ import type * as React from "react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import type { Card } from "@/entities/card";
+import { type Card, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { useEditCard } from "@/features/card/edit";
 import { useCardFormState } from "@/features/card/form";
-import { useCards } from "@/features/card/read";
 import { Feedback } from "@/shared/ui/feedback";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -51,25 +49,17 @@ export const CardFormPage: React.FC = () => {
   const navigate = useNavigate();
   const cardId = params.id;
   if (cardId == null) throw Error("invalid card id");
-  const remote = useCards();
-  const card = remote.cardsById[cardId];
+  const card = useCard(cardId);
 
-  return (
-    <RemoteReadBoundary
-      status={remote.status}
-      hasData={card != null}
-      emptyContent={
-        <RouteFeedback
-          title="Card not found"
-          description="The requested card is unavailable or has been removed."
-          tone="not-found"
-          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
-        />
-      }
-      onRetry={remote.retry}
-    >
-      {card != null ? <CardFormContent card={card} /> : null}
-    </RemoteReadBoundary>
+  return card != null ? (
+    <CardFormContent card={card} />
+  ) : (
+    <RouteFeedback
+      title="Card not found"
+      description="The requested card is unavailable or has been removed."
+      tone="not-found"
+      primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+      secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+    />
   );
 };

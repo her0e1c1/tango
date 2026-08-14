@@ -10,3 +10,5 @@ export type {
   EditCardInput,
 } from "./model/schema";
 export { filterCardsByDeckId, filterTagsByDeckId } from "./model/logic";
+export { useCard, useCards } from "./model/hooks";
+export { clearCards, replaceCards } from "./model/store";

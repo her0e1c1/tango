@@ -22,7 +22,6 @@ const mocks = vi.hoisted(() => ({
   cardsById: {} as Record<CardId, Card>,
   sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
   hydrated: true,
-  syncStatus: "synced" as "cached" | "pending" | "synced",
   remove: vi.fn(async (_deck: Deck) => undefined),
   downloadDeckCsv: vi.fn(),
   discardStudySessionsMissingDecks: vi.fn<(deckIds: Iterable<DeckId>) => void>(),
@@ -46,15 +45,10 @@ vi.mock("@/features/study", () => ({
 vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
 vi.mock("@/entities/card", () => ({
   filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+  useCards: () => Object.values(mocks.cardsById),
 }));
 vi.mock("@/entities/deck", () => ({
   useDecks: () => Object.values(mocks.decksById),
-}));
-vi.mock("@/features/card/read", () => ({
-  useCards: () => {
-    const cards = Object.values(mocks.cardsById);
-    return { status: "ready" as const, syncStatus: mocks.syncStatus, retry: vi.fn(), cards };
-  },
 }));
 vi.mock("@/features/deck/delete", () => ({
   useDeleteDeck: () => ({
@@ -76,7 +70,6 @@ describe("DeckListPage", () => {
     localStorage.clear();
     vi.clearAllMocks();
     mocks.hydrated = true;
-    mocks.syncStatus = "synced";
     mocks.preferences = createPreferences({ darkMode: false });
     mocks.decksById = { [otherDeck.id]: otherDeck, [oldDeck.id]: oldDeck, [recentDeck.id]: recentDeck };
     mocks.cardsById = {

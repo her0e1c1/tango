@@ -43,8 +43,6 @@ const mocks = vi.hoisted(() => ({
   initializeStudySessionUi: vi.fn(),
   touchStudySession: vi.fn(),
   hydrated: true,
-  cardReadStatus: "ready" as "loading" | "ready" | "error" | "blocked",
-  cardReadRetry: vi.fn(),
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
   setDarkMode: vi.fn(),
@@ -69,13 +67,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     useDeck: (id: DeckId) => mocks.state?.deck[id],
   };
 });
-vi.mock("@/features/card/read", () => ({
-  useCards: () => ({
-    status: mocks.cardReadStatus,
-    retry: mocks.cardReadRetry,
-    cardsById: mocks.state?.card ?? {},
-  }),
-}));
+vi.mock("@/entities/card", () => ({ useCards: () => Object.values(mocks.state?.card ?? {}) }));
 
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
@@ -161,7 +153,6 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     mocks.params.id = deck.id;
     mocks.state = createState();
     mocks.hydrated = true;
-    mocks.cardReadStatus = "ready";
     mocks.studyState.sessionsByDeckId = {
       [deck.id]: {
         deckId: deck.id,
@@ -452,18 +443,5 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
       expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
     });
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
-  });
-
-  it("keeps the study session while Card reads are still loading", () => {
-    mocks.cardReadStatus = "loading";
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.card = {};
-
-    render(<DeckSwiperPage />);
-
-    expect(screen.getByRole("heading", { name: "Loading…" })).toBeInTheDocument();
-    expect(mocks.resetStudy).not.toHaveBeenCalled();
-    expect(mocks.navigate).not.toHaveBeenCalledWith("/", { replace: true });
-    expect(mocks.studyState.sessionsByDeckId[deck.id]).toBeDefined();
   });
 });

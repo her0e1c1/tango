@@ -1,10 +1,12 @@
+import type { Card, CardId } from "@/entities/card";
+import { useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, type DeckId, useDeck } from "@/entities/deck";
+import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useCards } from "@/features/card/read";
 import { BackText, CardOverlay, FrontText } from "@/features/card/view";
 import {
   initializeStudySessionUi,
@@ -17,8 +19,6 @@ import {
   useStudyHydrated,
   useStudyStore,
 } from "@/features/study";
-import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckSwiperView } from "./DeckSwiperView";
@@ -28,17 +28,9 @@ const SWIPE_FEEDBACK_DURATION_MS = 900;
 const isHistoryState = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
-type CardRemote = ReturnType<typeof useCards>;
+type CardsById = Partial<Record<CardId, Card>>;
 
-const DeckSwiperContent = ({
-  cardRemote,
-  deck,
-  readState,
-}: {
-  cardRemote: CardRemote;
-  deck: Deck;
-  readState: CardRemote;
-}) => {
+const DeckSwiperContent = ({ cardsById, deck }: { cardsById: CardsById; deck: Deck }) => {
   const navigate = useNavigate();
   const deckId = deck.id;
   const preferences = usePreferences();
@@ -51,10 +43,10 @@ const DeckSwiperContent = ({
 
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
-  const card = cardId == null ? undefined : cardRemote.cardsById[cardId];
+  const card = cardId == null ? undefined : cardsById[cardId];
   const cardMutation = useEditStudyProgress();
   const studyActions = useStudyActions(deckId, {
-    cardsById: cardRemote.cardsById,
+    cardsById,
     cardMutation: {
       update: cardMutation.update,
     },
@@ -102,12 +94,12 @@ const DeckSwiperContent = ({
       exitingDeck.current = undefined;
       return;
     }
-    if (!hydrated || readState.status !== "ready" || exitingDeck.current === deckId) return;
+    if (!hydrated || exitingDeck.current === deckId) return;
 
     exitingDeck.current = deckId;
     studyActions.resetStudy();
     void navigate("/", { replace: true });
-  }, [deckId, hydrated, navigate, readState.status, studyActions, valid]);
+  }, [deckId, hydrated, navigate, studyActions, valid]);
 
   // Keep the active study session on the route when browser history moves backward.
   React.useEffect(() => {
@@ -126,16 +118,7 @@ const DeckSwiperContent = ({
   }, [deckId, navigate]);
 
   if (card == null) {
-    return (
-      <RemoteReadBoundary
-        status={readState.status}
-        hasData={false}
-        emptyLabel="Study session unavailable."
-        onRetry={readState.retry}
-      >
-        {null}
-      </RemoteReadBoundary>
-    );
+    return <div role="status">Study session unavailable.</div>;
   }
 
   const category = getCategory(deck.category, card.tags);
@@ -190,18 +173,13 @@ export const DeckSwiperPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
 
-  const cardRemote = useCards();
-  const readState = cardRemote;
+  const cards = useCards();
+  const cardsById = React.useMemo(() => Object.fromEntries(cards.map((card) => [card.id, card])), [cards]);
   const deck = useDeck(deckId);
 
-  return (
-    <RemoteReadBoundary
-      status={readState.status}
-      hasData={deck != null}
-      emptyLabel="Study session unavailable."
-      onRetry={readState.retry}
-    >
-      {deck != null ? <DeckSwiperContent cardRemote={cardRemote} deck={deck} readState={readState} /> : null}
-    </RemoteReadBoundary>
+  return deck != null ? (
+    <DeckSwiperContent cardsById={cardsById} deck={deck} />
+  ) : (
+    <div role="status">Study session unavailable.</div>
   );
 };

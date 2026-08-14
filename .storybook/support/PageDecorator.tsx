@@ -4,9 +4,8 @@
  * normal containers, hooks, and route parameters.
  */
 
-import type { Card } from "@/entities/card";
+import { type Card, replaceCards } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { cardRemoteReadStore } from "@/features/card/read/model/remoteReadStore";
 import { replaceDecks } from "@/entities/deck";
 
 import type { Decorator } from "@storybook/react";
@@ -18,8 +17,6 @@ import { preferencesSchema } from "@/entities/preferences/model/schema";
 import { preferencesStore } from "@/entities/preferences/model/store";
 import type { StudyState } from "@/features/study/state/studyStore";
 import { studyStore } from "@/features/study/state/studyStoreInstance";
-import { toRemoteById } from "@/shared/api/remoteSnapshot";
-import { RemoteReadScopeProvider } from "@/shared/lib/remote-read/RemoteReadScope";
 
 export const PAGE_STORY_UID = "storybook-user";
 
@@ -89,12 +86,7 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
     lastSwipe: undefined,
   });
   replaceDecks(decks);
-  cardRemoteReadStore.setState({
-    uid: PAGE_STORY_UID,
-    status: "ready",
-    itemsById: toRemoteById(cards),
-    syncStatus: "synced",
-  });
+  replaceCards(cards);
 };
 
 /** Wraps a page story with the providers normally supplied by the application entry point. */
@@ -103,10 +95,8 @@ export const withPageStory: Decorator = (Story, context) => {
   if (parameters == null) throw new Error("Page stories require parameters.page");
 
   return (
-    <RemoteReadScopeProvider uid={PAGE_STORY_UID}>
-      <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
-        <Story />
-      </MemoryRouter>
-    </RemoteReadScopeProvider>
+    <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
+      <Story />
+    </MemoryRouter>
   );
 };

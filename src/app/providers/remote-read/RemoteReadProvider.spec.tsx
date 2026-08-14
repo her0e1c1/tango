@@ -3,18 +3,22 @@ import React, { type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  startCards: vi.fn(),
   stopCards: vi.fn(),
   stopDecks: vi.fn(),
+  clearCards: vi.fn(),
   clearDecks: vi.fn(),
+  cardReadyByUid: {} as Record<string, () => void>,
   deckReadyByUid: {} as Record<string, () => void>,
 }));
 
-vi.mock("@/features/card/read", () => ({
-  startCardReads: mocks.startCards,
-  stopCardReads: mocks.stopCards,
-}));
+vi.mock("@/entities/card", () => ({ clearCards: mocks.clearCards }));
 vi.mock("@/entities/deck", () => ({ clearDecks: mocks.clearDecks }));
+vi.mock("./card", () => ({
+  subscribeCards: vi.fn((uid: string, onReady: () => void) => {
+    mocks.cardReadyByUid[uid] = onReady;
+    return mocks.stopCards;
+  }),
+}));
 vi.mock("./deck", () => ({
   subscribeDecks: vi.fn((uid: string, onReady: () => void) => {
     mocks.deckReadyByUid[uid] = onReady;
@@ -45,42 +49,51 @@ describe("RemoteReadProvider integration", () => {
     Object.keys(mocks.deckReadyByUid).forEach((uid) => {
       delete mocks.deckReadyByUid[uid];
     });
+    Object.keys(mocks.cardReadyByUid).forEach((uid) => {
+      delete mocks.cardReadyByUid[uid];
+    });
   });
 
-  it("renders children after the current UID's first Deck snapshot", async () => {
+  it("renders children after the current UID's first Card and Deck snapshots", async () => {
     const { publishUser } = createHarness(<div>content</div>);
 
     act(() => publishUser("uid-a"));
 
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
+    await waitFor(() => expect(mocks.cardReadyByUid["uid-a"]).toBeTypeOf("function"));
     expect(screen.queryByText("content")).toBeNull();
     act(() => mocks.deckReadyByUid["uid-a"]?.());
+    expect(screen.queryByText("content")).toBeNull();
+    act(() => mocks.cardReadyByUid["uid-a"]?.());
     expect(screen.getByText("content")).toBeTruthy();
   });
 
   it("ignores readiness from a previous UID", async () => {
     const { publishUser } = createHarness(<div>content</div>);
     act(() => publishUser("uid-a"));
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
+    await waitFor(() => expect(mocks.cardReadyByUid["uid-a"]).toBeTypeOf("function"));
     const readyA = mocks.deckReadyByUid["uid-a"];
     act(() => publishUser("uid-b"));
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-b"));
+    await waitFor(() => expect(mocks.cardReadyByUid["uid-b"]).toBeTypeOf("function"));
 
     act(() => readyA?.());
     expect(screen.queryByText("content")).toBeNull();
-    act(() => mocks.deckReadyByUid["uid-b"]?.());
+    act(() => {
+      mocks.deckReadyByUid["uid-b"]?.();
+      mocks.cardReadyByUid["uid-b"]?.();
+    });
     expect(screen.getByText("content")).toBeTruthy();
   });
 
   it("stops the previous UID before starting its replacement", async () => {
     const { publishUser } = createHarness();
     act(() => publishUser("uid-a"));
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
+    await waitFor(() => expect(mocks.cardReadyByUid["uid-a"]).toBeTypeOf("function"));
     act(() => publishUser("uid-b"));
 
-    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-b"));
-    expect(mocks.stopCards).toHaveBeenCalledExactlyOnceWith("uid-a");
+    await waitFor(() => expect(mocks.cardReadyByUid["uid-b"]).toBeTypeOf("function"));
+    expect(mocks.stopCards).toHaveBeenCalledOnce();
     expect(mocks.stopDecks).toHaveBeenCalledOnce();
+    expect(mocks.clearCards).toHaveBeenCalled();
     expect(mocks.clearDecks).toHaveBeenCalled();
   });
 });

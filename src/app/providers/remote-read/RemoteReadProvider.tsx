@@ -1,31 +1,34 @@
 import { type PropsWithChildren, useEffect, useState } from "react";
 
 import { useAuthSession } from "@/entities/auth";
+import { clearCards } from "@/entities/card";
 import { clearDecks } from "@/entities/deck";
-import { startCardReads, stopCardReads } from "@/features/card/read";
-import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
+import { subscribeCards } from "./card";
 import { subscribeDecks } from "./deck";
 
 export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
   const authSession = useAuthSession();
   const uid = authSession.status === "authenticated" ? authSession.uid : null;
   const [deckReadyUid, setDeckReadyUid] = useState<string | null>(null);
+  const [cardReadyUid, setCardReadyUid] = useState<string | null>(null);
 
   useEffect(() => {
     if (uid == null) {
+      clearCards();
       clearDecks();
       return;
     }
-    startCardReads(uid);
+    const unsubscribeCards = subscribeCards(uid, () => setCardReadyUid(uid), console.error);
     const unsubscribeDecks = subscribeDecks(uid, () => setDeckReadyUid(uid), console.error);
     return () => {
-      stopCardReads(uid);
+      unsubscribeCards();
       unsubscribeDecks();
+      clearCards();
       clearDecks();
     };
   }, [uid]);
 
-  if (uid != null && deckReadyUid !== uid) return null;
+  if (uid != null && (cardReadyUid !== uid || deckReadyUid !== uid)) return null;
 
-  return <RemoteReadScopeProvider uid={uid}>{children}</RemoteReadScopeProvider>;
+  return <>{children}</>;
 };

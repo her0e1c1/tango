@@ -40,9 +40,8 @@ vi.mock("firebase/auth", () => ({
 vi.mock("firebase/app", () => ({
   FirebaseError: class FirebaseError extends Error {},
 }));
-vi.mock("@/features/card/read", () => ({
-  startCardReads: vi.fn(),
-  stopCardReads: vi.fn(),
+vi.mock("@/app/providers/remote-read/card", () => ({
+  subscribeCards: () => vi.fn(),
 }));
 vi.mock("@/app/providers/remote-read/deck", () => ({
   subscribeDecks: (uid: string) => {

@@ -22,17 +22,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/card", () => ({
   filterCardsByDeckId: () => mocks.cards,
   filterTagsByDeckId: () => [],
+  useCards: () => mocks.cards,
 }));
 vi.mock("@/entities/deck", () => ({
   useDeck: () => mocks.deck ?? undefined,
-}));
-vi.mock("@/features/card/read", () => ({
-  useCards: () => ({
-    status: "ready" as const,
-    retry: vi.fn(),
-    cards: mocks.cards,
-    cardsById: Object.fromEntries(mocks.cards.map((card) => [card.id, card])),
-  }),
 }));
 vi.mock("@/features/deck/edit", () => ({ useEditDeck: () => ({ update: mocks.update }) }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({

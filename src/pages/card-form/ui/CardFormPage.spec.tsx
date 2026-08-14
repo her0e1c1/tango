@@ -29,13 +29,7 @@ vi.mock("@/entities/preferences", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 
-vi.mock("@/features/card/read", () => ({
-  useCards: () => ({
-    status: "ready" as const,
-    retry: vi.fn(),
-    cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
-  }),
-}));
+vi.mock("@/entities/card", () => ({ useCard: () => mocks.card ?? undefined }));
 
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
