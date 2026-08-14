@@ -21,7 +21,6 @@ const mocks = vi.hoisted(() => ({
   serverConfirmed: true,
   hydrated: true,
   deleteDeck: vi.fn(async (_uid: string, _deck: Deck) => undefined),
-  downloadDeckCsv: vi.fn(),
   removeStudySession: vi.fn(),
   touchStudySession: vi.fn(),
   navigate: vi.fn(),
@@ -57,7 +56,6 @@ vi.mock("@/features/card/read", () => ({
     serverConfirmed: mocks.serverConfirmed,
   }),
 }));
-vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
 vi.mock("@/features/deck-import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
 vi.mock("@/features/study", () => ({
   removeStudySession: mocks.removeStudySession,
@@ -82,9 +80,6 @@ vi.mock("@/features/deck-list", () => ({
         </button>
         <button type="button" onClick={() => props.onEditDeck(deck.id)}>
           Edit deck
-        </button>
-        <button type="button" onClick={() => props.onDownloadDeck(deck, props.cards)}>
-          Download deck
         </button>
         <button type="button" onClick={() => void props.onDeleteDeck(deck)}>
           Delete deck
@@ -120,7 +115,6 @@ describe("DeckListPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue deck" }));
     fireEvent.click(screen.getByRole("button", { name: "Start deck" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit deck" }));
-    fireEvent.click(screen.getByRole("button", { name: "Download deck" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, `/deck/${deck.id}`);
@@ -128,7 +122,6 @@ describe("DeckListPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, `/deck/${deck.id}/study`);
     expect(mocks.navigate).toHaveBeenNthCalledWith(3, `/deck/${deck.id}/start`);
     expect(mocks.navigate).toHaveBeenNthCalledWith(4, `/deck/${deck.id}/edit`);
-    expect(mocks.downloadDeckCsv).toHaveBeenCalledExactlyOnceWith(deck, [card]);
     expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith(mocks.authUid, deck);
     await waitFor(() => expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id));
   });

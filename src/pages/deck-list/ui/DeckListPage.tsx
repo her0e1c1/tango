@@ -6,7 +6,6 @@ import { useAuthSession } from "@/entities/auth";
 import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
 import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
 import { useCardReadState } from "@/features/card/read";
-import { downloadDeckCsv } from "@/features/deck/export";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
 import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
@@ -55,7 +54,6 @@ export const DeckListPage: React.FC = () => {
             }}
             onStartDeck={(id) => void navigate(`/deck/${id}/start`)}
             onEditDeck={(id) => void navigate(`/deck/${id}/edit`)}
-            onDownloadDeck={downloadDeckCsv}
             onDeleteDeck={async (deck) => {
               await deleteDeck(uid, deck);
               removeStudySession(deck.id);
