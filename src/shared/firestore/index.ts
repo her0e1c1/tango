@@ -4,4 +4,3 @@ export {
   omitUndefined,
   parseFirestoreDocument,
 } from "./firestoreDocument";
-export { subscribeReads } from "./subscribeReads";
