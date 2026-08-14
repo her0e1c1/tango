@@ -1,7 +1,6 @@
 import type { Deck, DeckCreate, DeckCreateInput, DeckEdit, DeleteDeckInput, EditDeckInput } from "../model/types";
 
 import { collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
-import { z } from "zod";
 
 import { db } from "@/shared/firebase";
 import { getTimestamp, omitUndefined } from "@/shared/firestore";
@@ -9,21 +8,6 @@ import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/sch
 
 const DECK_COLLECTION = "deck";
 const CARD_COLLECTION = "card";
-
-const deckUpdateDocumentSchema = z
-  .object({
-    name: z.string(),
-    url: z.string(),
-    isPublic: z.boolean(),
-    scoreMax: z.number().nullable(),
-    scoreMin: z.number().nullable(),
-    selectedTags: z.array(z.string()),
-    tagAndFilter: z.boolean(),
-    category: z.string(),
-    convertToBr: z.boolean(),
-  })
-  .partial()
-  .extend({ updatedAt: z.number() });
 
 export const generateDeckId = (): string => doc(collection(db, DECK_COLLECTION)).id;
 
@@ -39,20 +23,18 @@ export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<vo
 };
 
 const updateDeckDocument = async (deck: DeckEdit): Promise<void> => {
-  const document = deckUpdateDocumentSchema.parse(
-    omitUndefined({
-      name: deck.name,
-      url: deck.url,
-      isPublic: deck.isPublic,
-      updatedAt: getTimestamp(),
-      scoreMax: deck.scoreMax,
-      scoreMin: deck.scoreMin,
-      selectedTags: deck.selectedTags,
-      tagAndFilter: deck.tagAndFilter,
-      category: deck.category,
-      convertToBr: deck.convertToBr,
-    })
-  );
+  const document = omitUndefined({
+    name: deck.name,
+    url: deck.url,
+    isPublic: deck.isPublic,
+    updatedAt: getTimestamp(),
+    scoreMax: deck.scoreMax,
+    scoreMin: deck.scoreMin,
+    selectedTags: deck.selectedTags,
+    tagAndFilter: deck.tagAndFilter,
+    category: deck.category,
+    convertToBr: deck.convertToBr,
+  });
   await updateDoc(doc(db, DECK_COLLECTION, deck.id), document);
 };
 
