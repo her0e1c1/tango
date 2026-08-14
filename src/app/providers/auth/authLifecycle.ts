@@ -1,11 +1,10 @@
-import { onAuthStateChanged, signInAnonymously, type User } from "firebase/auth";
+import { onAuthStateChanged, signInAnonymously, type User, type UserCredential } from "firebase/auth";
 
 import { getAuthSession, replaceAuthSession } from "@/entities/auth-session";
+import { clearStudyStore } from "@/features/study";
 import { auth } from "@/shared/firebase";
 
-let observerStarted = false;
-let anonymousBootstrapStarted = false;
-let anonymousBootstrapSuspended = false;
+let anonymousSignIn: Promise<UserCredential> | undefined;
 
 const authSessionFromUser = (user: User) => ({
   status: "authenticated" as const,
@@ -15,44 +14,30 @@ const authSessionFromUser = (user: User) => ({
 });
 
 const startAnonymousBootstrap = () => {
-  if (anonymousBootstrapSuspended || anonymousBootstrapStarted || getAuthSession().status !== "signedOut") {
-    return;
-  }
+  if (anonymousSignIn || getAuthSession().status !== "signedOut") return;
 
-  anonymousBootstrapStarted = true;
-  void signInAnonymously(auth).catch((error) => {
-    if (getAuthSession().status === "signedOut") {
-      replaceAuthSession({ status: "error", error });
-    }
+  const pendingSignIn = signInAnonymously(auth);
+  anonymousSignIn = pendingSignIn;
+  void pendingSignIn.catch((error) => {
+    if (anonymousSignIn !== pendingSignIn) return;
+
+    anonymousSignIn = undefined;
+    if (getAuthSession().status === "signedOut") replaceAuthSession({ status: "error", error });
   });
 };
 
-export const startAuthSession = () => {
-  if (observerStarted) return;
-  observerStarted = true;
+export const startAuthSession = () =>
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      anonymousBootstrapStarted = false;
+      anonymousSignIn = undefined;
       replaceAuthSession(authSessionFromUser(user));
       return;
     }
 
     replaceAuthSession({ status: "signedOut" });
-    startAnonymousBootstrap();
+    void clearStudyStore()
+      .then(startAnonymousBootstrap)
+      .catch((error) => {
+        if (getAuthSession().status === "signedOut") replaceAuthSession({ status: "error", error });
+      });
   });
-};
-
-export const publishAuthenticatedUser = (user: User) => {
-  const current = getAuthSession();
-  if (current.status === "authenticated" && current.uid === user.uid) {
-    replaceAuthSession(authSessionFromUser(user));
-  }
-};
-
-export const suspendAnonymousBootstrap = () => {
-  anonymousBootstrapSuspended = true;
-  return () => {
-    anonymousBootstrapSuspended = false;
-    startAnonymousBootstrap();
-  };
-};

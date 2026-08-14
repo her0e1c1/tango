@@ -78,11 +78,11 @@ vi.mock("@/pages/settings/ui/SettingsView", () => ({
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
-import { logout } from "@/app/auth/logout";
 import { AuthBootstrap } from "@/app/providers/auth";
 import { startAuthSession } from "@/app/providers/auth/authLifecycle";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
 import { replaceAuthSession, useAuthSession } from "@/entities/auth-session";
+import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { SettingsPage } from "@/pages/settings";
 import { useStudyStore } from "@/features/study";
 
@@ -127,7 +127,7 @@ const getStudySessions = () => {
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
 const AuthenticatedSettings = () =>
-  useAuthSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={logout} /> : null;
+  useAuthSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={signOutCurrentUser} /> : null;
 
 it("waits for local cleanup before bootstrapping the next anonymous UID", async () => {
   let resolveStudyCleanup: () => void = () => undefined;
@@ -172,7 +172,7 @@ it("waits for local cleanup before bootstrapping the next anonymous UID", async 
 
   let pendingLogout!: Promise<void>;
   act(() => {
-    pendingLogout = logout();
+    pendingLogout = signOutCurrentUser();
   });
   await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledOnce());
 
