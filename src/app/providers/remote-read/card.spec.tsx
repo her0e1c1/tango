@@ -1,11 +1,9 @@
 import { act, renderHook } from "@testing-library/react";
 import { Timestamp } from "firebase/firestore";
-import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { clearCards, useCards } from "@/entities/card";
 import { resetCardRead, useCardReadState } from "@/features/card/read";
-import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
 
 type TestDocument = { id: string; data: () => Record<string, unknown> };
 type TestSnapshot = {
@@ -69,12 +67,15 @@ const snapshot = (
   metadata: TestSnapshot["metadata"] = { fromCache: false, hasPendingWrites: false }
 ): TestSnapshot => ({ docs, metadata });
 
-const authenticatedWrapper = ({ children }: PropsWithChildren) => (
-  <RemoteReadScopeProvider uid="uid-a">{children}</RemoteReadScopeProvider>
-);
+const renderCardState = () => renderHook(() => ({ cards: useCards(), read: useCardReadState() }));
 
-const renderCardState = () =>
-  renderHook(() => ({ cards: useCards(), read: useCardReadState() }), { wrapper: authenticatedWrapper });
+const startCardSync = () => {
+  let stop: () => void = () => undefined;
+  act(() => {
+    stop = startCardSynchronization("uid-a");
+  });
+  return stop;
+};
 
 describe("Card app synchronization", () => {
   beforeEach(() => {
@@ -86,7 +87,7 @@ describe("Card app synchronization", () => {
 
   it("subscribes by UID and fully replaces active Cards from each snapshot", () => {
     const { result } = renderCardState();
-    const stop = startCardSynchronization("uid-a");
+    const stop = startCardSync();
 
     expect(result.current.read.status).toBe("loading");
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
@@ -130,7 +131,7 @@ describe("Card app synchronization", () => {
     act(() => mocks.listeners[0]?.next(snapshot([cardDocument("replacement", { frontText: "Current" })])));
 
     expect(result.current.cards).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" })]);
-    stop();
+    act(stop);
   });
 
   it.each([
@@ -139,17 +140,17 @@ describe("Card app synchronization", () => {
     [{ fromCache: false, hasPendingWrites: false }, "synced"],
   ] as const)("reports %s metadata as %s", (metadata, syncStatus) => {
     const { result } = renderCardState();
-    const stop = startCardSynchronization("uid-a");
+    const stop = startCardSync();
 
     act(() => mocks.listeners[0]?.next(snapshot([], metadata)));
 
     expect(result.current.read.syncStatus).toBe(syncStatus);
-    stop();
+    act(stop);
   });
 
   it("publishes parse failures to the existing error and retry contract", () => {
     const { result } = renderCardState();
-    const stop = startCardSynchronization("uid-a");
+    const stop = startCardSync();
 
     act(() => mocks.listeners[0]?.next(snapshot([cardDocument("invalid", { nextSeeingAt: null })])));
 
@@ -166,23 +167,23 @@ describe("Card app synchronization", () => {
     act(() => mocks.listeners[1]?.next(snapshot([cardDocument("valid")])));
     expect(result.current.read.status).toBe("ready");
     expect(result.current.cards).toEqual([expect.objectContaining({ id: "valid" })]);
-    stop();
+    act(stop);
   });
 
   it("publishes listener failures to the existing error contract", () => {
     const { result } = renderCardState();
-    const stop = startCardSynchronization("uid-a");
+    const stop = startCardSync();
     const error = new Error("listener failed");
 
     act(() => mocks.listeners[0]?.error(error));
 
     expect(result.current.read).toMatchObject({ status: "error", error });
-    stop();
+    act(stop);
   });
 
-  it("unsubscribes, clears Cards, and ignores late callbacks when stopped", () => {
+  it("unsubscribes, resets read state, and ignores late callbacks when stopped", () => {
     const { result } = renderCardState();
-    const stop = startCardSynchronization("uid-a");
+    const stop = startCardSync();
     const previousListener = mocks.listeners[0];
     act(() => previousListener?.next(snapshot([cardDocument("old")])));
     expect(result.current.cards).toHaveLength(1);
@@ -190,7 +191,9 @@ describe("Card app synchronization", () => {
     act(stop);
 
     expect(previousListener?.unsubscribe).toHaveBeenCalledOnce();
-    expect(result.current.cards).toEqual([]);
+    expect(result.current.read.status).toBe("idle");
+    expect(result.current.cards).toEqual([expect.objectContaining({ id: "old" })]);
+    act(clearCards);
     act(() => previousListener?.next(snapshot([cardDocument("late")])));
     expect(result.current.cards).toEqual([]);
   });

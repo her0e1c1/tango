@@ -52,8 +52,7 @@ describe("Deck app synchronization", () => {
 
   it("subscribes by UID and replaces the store with active Decks", () => {
     const { result } = renderHook(useDecks);
-    const onReady = vi.fn();
-    const unsubscribe = subscribeDecks("uid-a", onReady, vi.fn());
+    const unsubscribe = subscribeDecks("uid-a", vi.fn());
 
     expect(mocks.collection).toHaveBeenCalledWith("db", "deck");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
@@ -64,21 +63,33 @@ describe("Deck app synchronization", () => {
     );
 
     expect(result.current).toEqual([expect.objectContaining({ id: "active", url: "https://example.com" })]);
-    expect(onReady).toHaveBeenCalledOnce();
     unsubscribe();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
 
   it("reports invalid Firestore documents", () => {
-    const onReady = vi.fn();
     const onError = vi.fn();
-    subscribeDecks("uid-a", onReady, onError);
+    subscribeDecks("uid-a", onError);
 
     act(() => getSnapshotHandler()({ docs: [deckDocument("invalid", { selectedTags: [42] })] }));
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ name: "FirestoreDocumentValidationError", documentId: "invalid" })
     );
-    expect(onReady).not.toHaveBeenCalled();
+  });
+
+  it("ignores snapshots and errors after unsubscribe", () => {
+    const { result } = renderHook(useDecks);
+    const onError = vi.fn();
+    const unsubscribe = subscribeDecks("uid-a", onError);
+    const snapshotHandler = getSnapshotHandler();
+    const errorHandler = mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
+
+    unsubscribe();
+    act(() => snapshotHandler({ docs: [deckDocument("late")] }));
+    errorHandler(new Error("late"));
+
+    expect(result.current).toEqual([]);
+    expect(onError).not.toHaveBeenCalled();
   });
 });

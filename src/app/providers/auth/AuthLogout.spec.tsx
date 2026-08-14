@@ -44,9 +44,8 @@ vi.mock("@/app/providers/remote-read/card", () => ({
   startCardSynchronization: () => vi.fn(),
 }));
 vi.mock("@/app/providers/remote-read/deck", () => ({
-  subscribeDecks: (uid: string, onReady?: () => void) => {
+  subscribeDecks: (uid: string) => {
     void mocks.startRemoteReads(uid);
-    onReady?.();
     return () => void mocks.cleanupUid(uid);
   },
 }));

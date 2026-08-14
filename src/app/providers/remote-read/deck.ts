@@ -31,19 +31,28 @@ const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
   return deck;
 };
 
-export const subscribeDecks = (uid: string, onReady: () => void, onError: (error: Error) => void): (() => void) =>
-  onSnapshot(
+export const subscribeDecks = (uid: string, onError: (error: Error) => void): (() => void) => {
+  let active = true;
+  const unsubscribe = onSnapshot(
     query(collection(db, "deck"), where("uid", "==", uid)),
     (snapshot) => {
+      if (!active) return;
       try {
         const decks = snapshot.docs
           .map((document) => convertDeckDtoToDeck(document.id, document.data()))
           .filter((deck) => deck.deletedAt === null);
         replaceDecks(decks);
-        onReady();
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
     },
-    onError
+    (error) => {
+      if (active) onError(error);
+    }
   );
+
+  return () => {
+    active = false;
+    unsubscribe();
+  };
+};
