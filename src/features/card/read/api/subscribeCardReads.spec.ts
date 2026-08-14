@@ -14,12 +14,6 @@ const mocks = vi.hoisted(() => ({
   next: undefined as ((snapshot: TestSnapshot) => void) | undefined,
   error: undefined as ((error: Error) => void) | undefined,
   unsubscribe: vi.fn(),
-}));
-
-vi.mock("firebase/firestore", () => ({
-  collection: mocks.collection,
-  query: mocks.query,
-  where: mocks.where,
   onSnapshot: vi.fn(
     (_query: unknown, _options: unknown, next: (snapshot: TestSnapshot) => void, error: (cause: Error) => void) => {
       mocks.next = next;
@@ -27,6 +21,13 @@ vi.mock("firebase/firestore", () => ({
       return mocks.unsubscribe;
     }
   ),
+}));
+
+vi.mock("firebase/firestore", () => ({
+  collection: mocks.collection,
+  query: mocks.query,
+  where: mocks.where,
+  onSnapshot: mocks.onSnapshot,
 }));
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
@@ -48,6 +49,11 @@ const cardDocument = (deletedAt: number | null = null) => ({
 
 const document = (id: string, data: Record<string, unknown>): TestDocument => ({ id, data: () => data });
 
+const snapshot = (
+  docs: TestDocument[],
+  metadata: TestSnapshot["metadata"] = { fromCache: false, hasPendingWrites: false }
+): TestSnapshot => ({ docs, docChanges: () => [], metadata });
+
 describe("subscribeCardReads", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -57,21 +63,63 @@ describe("subscribeCardReads", () => {
 
   it("publishes active Cards from the requested user's collection", () => {
     const onSnapshot = vi.fn();
-    const unsubscribe = subscribeCardReads({ uid: "uid-a", onSnapshot, onError: vi.fn() });
+    const onError = vi.fn();
+    const unsubscribe = subscribeCardReads({ uid: "uid-a", onSnapshot, onError });
 
-    mocks.next?.({
-      docs: [document("active", cardDocument()), document("deleted", cardDocument(3))],
-      docChanges: () => [],
-      metadata: { fromCache: false, hasPendingWrites: false },
-    });
+    mocks.next?.(snapshot([document("active", cardDocument()), document("deleted", cardDocument(3))]));
 
     expect(unsubscribe).toBe(mocks.unsubscribe);
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
+    expect(mocks.onSnapshot).toHaveBeenCalledWith(
+      expect.anything(),
+      { includeMetadataChanges: true },
+      expect.any(Function),
+      onError
+    );
     expect(onSnapshot).toHaveBeenCalledWith({
       itemsById: { active: expect.objectContaining({ id: "active", deletedAt: null }) },
       syncStatus: "synced",
     });
+  });
+
+  it("replaces the full result on every snapshot", () => {
+    const onSnapshot = vi.fn();
+    subscribeCardReads({ uid: "uid-a", onSnapshot, onError: vi.fn() });
+    mocks.next?.(snapshot([document("old", cardDocument())]));
+
+    mocks.next?.(snapshot([document("current", { ...cardDocument(), frontText: "Current" })]));
+
+    expect(onSnapshot).toHaveBeenLastCalledWith({
+      itemsById: { current: expect.objectContaining({ id: "current", frontText: "Current" }) },
+      syncStatus: "synced",
+    });
+  });
+
+  it.each([
+    [{ fromCache: true, hasPendingWrites: false }, "cached"],
+    [{ fromCache: true, hasPendingWrites: true }, "pending"],
+    [{ fromCache: false, hasPendingWrites: false }, "synced"],
+  ] as const)("derives %s metadata as %s", (metadata, syncStatus) => {
+    const onSnapshot = vi.fn();
+    subscribeCardReads({ uid: "uid-a", onSnapshot, onError: vi.fn() });
+
+    mocks.next?.(snapshot([], metadata));
+
+    expect(onSnapshot).toHaveBeenCalledWith({ itemsById: {}, syncStatus });
+  });
+
+  it("does not publish a partial result when conversion fails", () => {
+    const onSnapshot = vi.fn();
+    const onError = vi.fn();
+    subscribeCardReads({ uid: "uid-a", onSnapshot, onError });
+
+    expect(() =>
+      mocks.next?.(snapshot([document("valid", cardDocument()), document("invalid", { ...cardDocument(), uid: 1 })]))
+    ).not.toThrow();
+
+    expect(onSnapshot).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(expect.any(Error));
   });
 
   it("forwards listener errors", () => {

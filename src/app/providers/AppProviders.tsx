@@ -1,13 +1,13 @@
 import type { PropsWithChildren } from "react";
 
-import { AuthProvider } from "@/app/providers/auth";
 import { PreferencesPersistenceProvider } from "@/app/providers/preferences-persistence";
+import { AuthBootstrap } from "@/app/providers/auth";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
   <PreferencesPersistenceProvider>
-    <AuthProvider>
+    <AuthBootstrap>
       <RemoteReadProvider>{children}</RemoteReadProvider>
-    </AuthProvider>
+    </AuthBootstrap>
   </PreferencesPersistenceProvider>
 );

@@ -1,17 +1,30 @@
 import type { Card } from "@/entities/card";
 
-import { collection, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 
-import type { RemoteSubscriptionProps } from "@/shared/api";
+import { toRemoteById, type RemoteSubscriptionProps, type RemoteSyncStatus } from "@/shared/api";
 import { db } from "@/shared/firebase";
-import { subscribeReads } from "@/shared/firestore";
 import { convertCardDtoToCard } from "./dto";
 
+const toSyncStatus = (metadata: { fromCache: boolean; hasPendingWrites: boolean }): RemoteSyncStatus => {
+  if (metadata.hasPendingWrites) return "pending";
+  if (metadata.fromCache) return "cached";
+  return "synced";
+};
+
 export const subscribeCardReads = (props: RemoteSubscriptionProps<Card>): (() => void) =>
-  subscribeReads({
-    query: query(collection(db, "card"), where("uid", "==", props.uid)),
-    mapDocument: convertCardDtoToCard,
-    isActive: (card) => card.deletedAt === null,
-    onSnapshot: props.onSnapshot,
-    onError: props.onError,
-  });
+  onSnapshot(
+    query(collection(db, "card"), where("uid", "==", props.uid)),
+    { includeMetadataChanges: true },
+    (snapshot) => {
+      try {
+        const cards = snapshot.docs
+          .map((document) => convertCardDtoToCard(document.id, document.data()))
+          .filter((card) => card.deletedAt === null);
+        props.onSnapshot({ itemsById: toRemoteById(cards), syncStatus: toSyncStatus(snapshot.metadata) });
+      } catch (cause) {
+        props.onError(cause instanceof Error ? cause : new Error(String(cause)));
+      }
+    },
+    props.onError
+  );

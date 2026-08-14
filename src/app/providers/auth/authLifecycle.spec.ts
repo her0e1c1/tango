@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const singletonMocks = vi.hoisted(() => ({
   auth: { currentUser: null },
-  onAuthStateChanged: vi.fn(() => vi.fn()),
+  onAuthStateChanged: vi.fn((_auth: Auth, _onUser: (user: User | null) => void) => vi.fn()),
   signInAnonymously: vi.fn(),
 }));
 
@@ -12,8 +12,6 @@ vi.mock("firebase/auth", () => ({
   onAuthStateChanged: singletonMocks.onAuthStateChanged,
   signInAnonymously: singletonMocks.signInAnonymously,
 }));
-
-import { createAuthRuntime } from "./authController";
 
 const createUser = (
   uid: string,
@@ -25,38 +23,40 @@ const createUser = (
     providerData: displayName == null ? [] : [{ displayName }],
   }) as User;
 
-const createHarness = (signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined))) => {
+const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined))) => {
+  vi.resetModules();
   let publishUser: (user: User | null) => void = () => undefined;
-  const onAuthStateChanged = vi.fn((_auth, onUser) => {
+  singletonMocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
     publishUser = onUser;
     return vi.fn();
   });
-  const runtime = createAuthRuntime({
-    auth: {} as Auth,
-    onAuthStateChanged,
-    signInAnonymously,
-  });
-  runtime.start();
-  return { runtime, onAuthStateChanged, publishUser, sessionStore: runtime.authSessionStore };
+  singletonMocks.signInAnonymously.mockImplementation(signInAnonymously);
+
+  const authSession = await import("@/entities/auth-session");
+  const lifecycle = await import("./authLifecycle");
+  authSession.replaceAuthSession({ status: "initializing" });
+  lifecycle.startAuthSession();
+
+  return { ...lifecycle, ...authSession, publishUser };
 };
 
-describe("authController", () => {
+describe("authLifecycle", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("starts one app-lifetime observer", () => {
-    const harness = createHarness();
+  it("starts one app-lifetime observer", async () => {
+    const harness = await createHarness();
 
-    harness.runtime.start();
+    harness.startAuthSession();
 
-    expect(harness.onAuthStateChanged).toHaveBeenCalledOnce();
+    expect(singletonMocks.onAuthStateChanged).toHaveBeenCalledOnce();
   });
 
-  it("maps Firebase users to a Firebase-independent session snapshot", () => {
-    const { publishUser, sessionStore } = createHarness();
+  it("maps Firebase users to a Firebase-independent session snapshot", async () => {
+    const { getAuthSession, publishUser } = await createHarness();
 
     publishUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
 
-    expect(sessionStore.getSnapshot()).toEqual({
+    expect(getAuthSession()).toEqual({
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: false,
@@ -64,21 +64,21 @@ describe("authController", () => {
     });
   });
 
-  it("starts anonymous sign-in once for duplicate signed-out callbacks", () => {
+  it("starts anonymous sign-in once for duplicate signed-out callbacks", async () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const { publishUser, sessionStore } = createHarness(signInAnonymously);
+    const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
 
     publishUser(null);
     publishUser(null);
 
-    expect(sessionStore.getSnapshot()).toEqual({ status: "signedOut" });
+    expect(getAuthSession()).toEqual({ status: "signedOut" });
     expect(signInAnonymously).toHaveBeenCalledOnce();
   });
 
-  it("waits for the bootstrap suspension to be released", () => {
+  it("waits for the bootstrap suspension to be released", async () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const { runtime, publishUser } = createHarness(signInAnonymously);
-    const resume = runtime.suspendAnonymousBootstrap();
+    const { publishUser, suspendAnonymousBootstrap } = await createHarness(signInAnonymously);
+    const resume = suspendAnonymousBootstrap();
     publishUser(null);
 
     expect(signInAnonymously).not.toHaveBeenCalled();
@@ -88,10 +88,10 @@ describe("authController", () => {
     expect(signInAnonymously).toHaveBeenCalledOnce();
   });
 
-  it("does not bootstrap anonymously when authentication returns before release", () => {
+  it("does not bootstrap anonymously when authentication returns before release", async () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const { runtime, publishUser } = createHarness(signInAnonymously);
-    const resume = runtime.suspendAnonymousBootstrap();
+    const { publishUser, suspendAnonymousBootstrap } = await createHarness(signInAnonymously);
+    const resume = suspendAnonymousBootstrap();
 
     publishUser(null);
     publishUser(createUser("uid-a"));
@@ -100,9 +100,9 @@ describe("authController", () => {
     expect(signInAnonymously).not.toHaveBeenCalled();
   });
 
-  it("starts a new anonymous episode after an authenticated user signs out", () => {
+  it("starts a new anonymous episode after an authenticated user signs out", async () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const { publishUser } = createHarness(signInAnonymously);
+    const { publishUser } = await createHarness(signInAnonymously);
 
     publishUser(null);
     publishUser(createUser("uid-a"));
@@ -113,11 +113,11 @@ describe("authController", () => {
 
   it("publishes anonymous sign-in failures without an identity", async () => {
     const anonymousError = new Error("anonymous sign-in failed");
-    const { publishUser, sessionStore } = createHarness(vi.fn().mockRejectedValue(anonymousError));
+    const { getAuthSession, publishUser } = await createHarness(vi.fn().mockRejectedValue(anonymousError));
 
     publishUser(null);
 
-    await vi.waitFor(() => expect(sessionStore.getSnapshot()).toEqual({ status: "error", error: anonymousError }));
+    await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "error", error: anonymousError }));
   });
 
   it("ignores a stale anonymous sign-in failure after authentication succeeds", async () => {
@@ -125,24 +125,24 @@ describe("authController", () => {
     const signInAttempt = new Promise<UserCredential>((_resolve, reject) => {
       rejectSignIn = reject;
     });
-    const { publishUser, sessionStore } = createHarness(vi.fn(() => signInAttempt));
+    const { getAuthSession, publishUser } = await createHarness(vi.fn(() => signInAttempt));
 
     publishUser(null);
     publishUser(createUser("uid-a"));
     rejectSignIn(new Error("late failure"));
     await signInAttempt.catch(() => undefined);
 
-    expect(sessionStore.getSnapshot()).toMatchObject({ status: "authenticated", uid: "uid-a" });
+    expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "uid-a" });
   });
 
-  it("refreshes metadata only for the confirmed uid", () => {
-    const { runtime, publishUser, sessionStore } = createHarness();
+  it("refreshes metadata only for the confirmed uid", async () => {
+    const { getAuthSession, publishAuthenticatedUser, publishUser } = await createHarness();
     publishUser(createUser("uid-a"));
 
-    runtime.publishAuthenticatedUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
-    runtime.publishAuthenticatedUser(createUser("uid-b", { isAnonymous: false, displayName: "Grace" }));
+    publishAuthenticatedUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
+    publishAuthenticatedUser(createUser("uid-b", { isAnonymous: false, displayName: "Grace" }));
 
-    expect(sessionStore.getSnapshot()).toEqual({
+    expect(getAuthSession()).toEqual({
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: false,

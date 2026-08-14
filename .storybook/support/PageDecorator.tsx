@@ -12,7 +12,7 @@ import { replaceDecks } from "@/entities/deck";
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
-import { AuthSessionProvider, createAuthSessionStore } from "@/entities/auth-session";
+import { replaceAuthSession } from "@/entities/auth-session";
 import { preferencesSchema, preferencesStore, type Preferences } from "@/entities/preferences";
 import type { StudyState } from "@/features/study/state/studyStore";
 import { studyStore } from "@/features/study/state/studyStoreInstance";
@@ -34,13 +34,6 @@ export interface PageStoryParameters {
   showBackText?: boolean;
   autoPlay?: boolean;
 }
-
-const storybookAuthSessionStore = createAuthSessionStore({
-  status: "authenticated",
-  uid: PAGE_STORY_UID,
-  isAnonymous: true,
-  displayName: null,
-});
 
 const cloneDeck = (deck: Deck): Deck => ({
   ...deck,
@@ -67,6 +60,13 @@ const cloneSessions = (sessionsByDeckId: StudyState["sessionsByDeckId"]): StudyS
  */
 export const preparePageStory = async (parameters: PageStoryParameters): Promise<void> => {
   await studyStore.persist.rehydrate();
+
+  replaceAuthSession({
+    status: "authenticated",
+    uid: PAGE_STORY_UID,
+    isAnonymous: true,
+    displayName: null,
+  });
 
   const decks = (parameters.decks ?? []).map(cloneDeck);
   const cards = (parameters.cards ?? []).map(cloneCard);
@@ -101,12 +101,10 @@ export const withPageStory: Decorator = (Story, context) => {
   if (parameters == null) throw new Error("Page stories require parameters.page");
 
   return (
-    <AuthSessionProvider store={storybookAuthSessionStore}>
-      <RemoteReadScopeProvider uid={PAGE_STORY_UID}>
-        <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
-          <Story />
-        </MemoryRouter>
-      </RemoteReadScopeProvider>
-    </AuthSessionProvider>
+    <RemoteReadScopeProvider uid={PAGE_STORY_UID}>
+      <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
+        <Story />
+      </MemoryRouter>
+    </RemoteReadScopeProvider>
   );
 };

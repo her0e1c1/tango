@@ -1,2 +1,2 @@
-export { AuthSessionProvider, useAuthSession } from "./model/AuthSessionProvider";
-export { createAuthSessionStore } from "./model/authSessionStore";
+export { useAuthSession } from "./model/hooks";
+export { getAuthSession, replaceAuthSession } from "./model/store";

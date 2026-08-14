@@ -1,5 +1,5 @@
-export { AuthProvider } from "@/app/providers/auth/AuthProvider";
+export { AuthBootstrap } from "@/app/providers/auth/AuthBootstrap";
 export {
   publishAuthenticatedUser,
   suspendAnonymousBootstrap,
-} from "@/app/providers/auth/authRuntime";
+} from "@/app/providers/auth/authLifecycle";
