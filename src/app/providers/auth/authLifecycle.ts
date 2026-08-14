@@ -1,20 +1,20 @@
 import { onAuthStateChanged, signInAnonymously, type User } from "firebase/auth";
 
-import { getAuthSession, replaceAuthSession, type AuthSessionState } from "@/entities/auth-session";
+import { getAuthSession, replaceAuthSession } from "@/entities/auth-session";
 import { auth } from "@/shared/firebase";
-
-type AuthenticatedAuthSession = Extract<AuthSessionState, { status: "authenticated" }>;
 
 let observerStarted = false;
 let anonymousBootstrapStarted = false;
 let anonymousBootstrapSuspended = false;
 
-const authSessionFromUser = (user: User): AuthenticatedAuthSession => ({
-  status: "authenticated",
-  uid: user.uid,
-  isAnonymous: user.isAnonymous,
-  displayName: user.providerData[0]?.displayName ?? null,
-});
+const publishAuthenticatedSession = (user: User) => {
+  replaceAuthSession({
+    status: "authenticated",
+    uid: user.uid,
+    isAnonymous: user.isAnonymous,
+    displayName: user.providerData[0]?.displayName ?? null,
+  });
+};
 
 const startAnonymousBootstrap = () => {
   if (anonymousBootstrapSuspended || anonymousBootstrapStarted || getAuthSession().status !== "signedOut") {
@@ -29,27 +29,25 @@ const startAnonymousBootstrap = () => {
   });
 };
 
-const publishObservedUser = (user: User | null) => {
-  if (user) {
-    anonymousBootstrapStarted = false;
-    replaceAuthSession(authSessionFromUser(user));
-    return;
-  }
-
-  replaceAuthSession({ status: "signedOut" });
-  startAnonymousBootstrap();
-};
-
 export const startAuthSession = () => {
   if (observerStarted) return;
   observerStarted = true;
-  onAuthStateChanged(auth, publishObservedUser);
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      anonymousBootstrapStarted = false;
+      publishAuthenticatedSession(user);
+      return;
+    }
+
+    replaceAuthSession({ status: "signedOut" });
+    startAnonymousBootstrap();
+  });
 };
 
 export const publishAuthenticatedUser = (user: User) => {
   const current = getAuthSession();
   if (current.status === "authenticated" && current.uid === user.uid) {
-    replaceAuthSession(authSessionFromUser(user));
+    publishAuthenticatedSession(user);
   }
 };
 

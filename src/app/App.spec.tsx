@@ -9,7 +9,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AuthSessionState } from "@/entities/auth-session";
+import type { useAuthSession } from "@/entities/auth-session";
+
+type AuthSessionState = ReturnType<typeof useAuthSession>;
 
 const mocks = vi.hoisted(() => ({
   darkMode: false,
