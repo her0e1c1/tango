@@ -38,8 +38,9 @@ import { replaceAuthSession } from "@/entities/auth";
 import { replaceCards, useCards } from "@/entities/card";
 import { createCard } from "@/test/factories";
 
-const CardConsumer = () => {
+const CardConsumer = ({ onRender }: { onRender?: (frontTexts: string[]) => void }) => {
   const cards = useCards();
+  onRender?.(cards.map(({ frontText }) => frontText));
   return (
     <>
       {cards.map((card) => (
@@ -124,10 +125,11 @@ describe("RemoteReadProvider integration", () => {
 
   it("hides the previous user's Card while logout clears the read scope", async () => {
     const card = createCard({ id: "card-a", uid: "uid-a", frontText: "Previous user Card" });
+    const renderedCards: string[][] = [];
     const { publishUser } = createHarness(
       <>
         <div>scope content</div>
-        <CardConsumer />
+        <CardConsumer onRender={(frontTexts) => renderedCards.push(frontTexts)} />
       </>
     );
     act(() => publishUser("uid-a"));
@@ -136,9 +138,11 @@ describe("RemoteReadProvider integration", () => {
     act(() => readyA?.());
     act(() => replaceCards([card]));
     expect(screen.getByText(card.frontText)).toBeTruthy();
+    renderedCards.length = 0;
 
     act(() => publishUser(null));
 
+    expect(renderedCards.flat()).not.toContain(card.frontText);
     expect(screen.queryByText(card.frontText)).toBeNull();
     expect(screen.getByText("scope content")).toBeTruthy();
     act(() => readyA?.());
