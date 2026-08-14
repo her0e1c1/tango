@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { filterByDeckId, filterTagsByDeckId } from "./logic";
+import { filterCardsByDeckId, filterTagsByDeckId } from "./logic";
 import { createCard } from "@/test/factories";
 
-describe("filterByDeckId", () => {
+describe("filterCardsByDeckId", () => {
   it("returns cards matching the specified deckId", () => {
     const card1 = createCard({ id: "card-1", deckId: "deck-a" });
     const card2 = createCard({ id: "card-2", deckId: "deck-b" });
     const card3 = createCard({ id: "card-3", deckId: "deck-a" });
 
-    expect(filterByDeckId([card1, card2, card3], "deck-a")).toEqual([card1, card3]);
+    expect(filterCardsByDeckId([card1, card2, card3], "deck-a")).toEqual([card1, card3]);
   });
 });
 

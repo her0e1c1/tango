@@ -9,4 +9,4 @@ export type {
   DeleteCardInput,
   EditCardInput,
 } from "./model/schema";
-export { filterByDeckId, filterTagsByDeckId } from "./model/logic";
+export { filterCardsByDeckId, filterTagsByDeckId } from "./model/logic";

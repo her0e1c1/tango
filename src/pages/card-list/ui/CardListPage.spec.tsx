@@ -47,7 +47,7 @@ vi.mock("@/shared/config", () => ({
 }));
 
 vi.mock("@/entities/card", () => ({
-  filterByDeckId: (cards: Card[], id: string) => cards.filter((card) => card.deckId === id),
+  filterCardsByDeckId: (cards: Card[], id: string) => cards.filter((card) => card.deckId === id),
   filterTagsByDeckId: (cards: Card[], id: string) => [
     ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
   ],

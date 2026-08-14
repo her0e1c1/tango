@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { filterByDeckId } from "@/entities/card";
+import { filterCardsByDeckId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 import { createCard, generateCardId } from "@/features/card/create";
 import { editCard } from "@/features/card/edit";
@@ -125,14 +125,14 @@ export const DeckListPage: React.FC = () => {
               onClickStudy: (id) => void navigate(`/deck/${id}/start`),
               onClickDownload: (id) => {
                 const deck = deckRemote.decksById[id];
-                if (deck != null) downloadDeckCsv(deck, filterByDeckId(cardRemote.cards, id));
+                if (deck != null) downloadDeckCsv(deck, filterCardsByDeckId(cardRemote.cards, id));
               },
               onClickDelete: (id) => {
                 const deck = deckRemote.decksById[id];
                 if (deck != null) {
                   setSuccessMessage(undefined);
                   setDeletionErrorDeckId(undefined);
-                  setDeletionTarget({ deck, cardCount: filterByDeckId(cardRemote.cards, id).length });
+                  setDeletionTarget({ deck, cardCount: filterCardsByDeckId(cardRemote.cards, id).length });
                 }
               },
             }}
