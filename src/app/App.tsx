@@ -8,13 +8,13 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
 import { startAuthSession } from "@/app/providers/auth/lifecycle";
-import { startCardSynchronization } from "@/app/providers/remote-read/card";
 import { subscribeDecks } from "@/app/providers/remote-read/deck";
 import { AppRoutes } from "@/app/routes";
 import { useAuthSession } from "@/entities/auth";
-import { clearCards } from "@/entities/card";
+import { clearCards, subscribeCards } from "@/entities/card";
 import { clearDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
+import { resetCardRead, setCardReadError, setCardReadLoading, setCardReadReady } from "@/features/card/read";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 /**
@@ -33,12 +33,21 @@ const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location
   }, []);
 
   React.useEffect(() => {
-    const stopCards = authenticatedUid == null ? undefined : startCardSynchronization(authenticatedUid);
+    if (authenticatedUid != null) setCardReadLoading(authenticatedUid);
+    const stopCards =
+      authenticatedUid == null
+        ? undefined
+        : subscribeCards(
+            authenticatedUid,
+            (error) => setCardReadError(authenticatedUid, error),
+            (metadata) => setCardReadReady(authenticatedUid, !metadata.fromCache && !metadata.hasPendingWrites)
+          );
     const stopDecks = authenticatedUid == null ? undefined : subscribeDecks(authenticatedUid, console.error);
 
     return () => {
       stopCards?.();
       stopDecks?.();
+      resetCardRead(authenticatedUid ?? undefined);
       clearCards();
       clearDecks();
     };

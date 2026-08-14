@@ -88,8 +88,8 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   });
   replaceDecks(decks);
   replaceCards(cards);
-  setCardReadLoading(PAGE_STORY_UID, () => undefined);
-  setCardReadReady(PAGE_STORY_UID, "synced");
+  setCardReadLoading(PAGE_STORY_UID);
+  setCardReadReady(PAGE_STORY_UID, true);
 };
 
 /** Wraps a page story with the providers normally supplied by the application entry point. */

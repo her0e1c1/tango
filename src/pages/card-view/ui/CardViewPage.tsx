@@ -52,7 +52,6 @@ export const CardViewPage: React.FC = () => {
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={cardReadState.retry}
     >
       {available ? <CardViewContent card={card} deck={deck} /> : null}
     </RemoteReadBoundary>

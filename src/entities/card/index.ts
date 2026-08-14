@@ -1,5 +1,6 @@
-export { createCard, deleteCard, editCard, generateCardId } from "./api/firestore";
+export { createCard, deleteCard, editCard, generateCardId, subscribeCards } from "./api/firestore";
 export { useCard, useCards } from "./model/hooks";
+/** @public */
 export { clearCards, replaceCards } from "./model/store";
 export type {
   Card,
