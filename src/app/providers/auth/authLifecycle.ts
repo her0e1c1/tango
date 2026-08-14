@@ -34,7 +34,14 @@ export const startAuthSession = () =>
       return;
     }
 
+    const previousSession = getAuthSession();
     replaceAuthSession({ status: "signedOut" });
+    if (previousSession.status === "initializing") {
+      startAnonymousBootstrap();
+      return;
+    }
+    if (previousSession.status !== "authenticated") return;
+
     void clearStudyStore()
       .then(startAnonymousBootstrap)
       .catch((error) => {

@@ -67,7 +67,7 @@ describe("authLifecycle", () => {
     });
   });
 
-  it("starts anonymous sign-in once for duplicate signed-out callbacks", async () => {
+  it("starts initial anonymous sign-in without clearing persisted Study state", async () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
 
@@ -76,6 +76,7 @@ describe("authLifecycle", () => {
 
     expect(getAuthSession()).toEqual({ status: "signedOut" });
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
+    expect(singletonMocks.clearStudyStore).not.toHaveBeenCalled();
   });
 
   it("waits for Study cleanup before anonymous sign-in", async () => {
@@ -87,6 +88,7 @@ describe("authLifecycle", () => {
     const { publishUser } = await createHarness(signInAnonymously);
     singletonMocks.clearStudyStore.mockReturnValue(cleanup);
 
+    publishUser(createUser("uid-a"));
     publishUser(null);
 
     expect(signInAnonymously).not.toHaveBeenCalled();
@@ -104,8 +106,9 @@ describe("authLifecycle", () => {
     const { publishUser } = await createHarness(signInAnonymously);
     singletonMocks.clearStudyStore.mockReturnValue(cleanup);
 
-    publishUser(null);
     publishUser(createUser("uid-a"));
+    publishUser(null);
+    publishUser(createUser("uid-b"));
     finishCleanup();
     await cleanup;
     await Promise.resolve();
@@ -131,6 +134,7 @@ describe("authLifecycle", () => {
     const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
     singletonMocks.clearStudyStore.mockRejectedValue(cleanupError);
 
+    publishUser(createUser("uid-a"));
     publishUser(null);
 
     await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "error", error: cleanupError }));
