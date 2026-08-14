@@ -6,7 +6,7 @@ import { useKey } from "react-use";
 
 import { type Card, type CardId, useCards } from "@/entities/card";
 import { useCardReadState } from "@/features/card/read";
-import { BackText, CardOverlay, FrontText } from "@/features/card/view";
+import { BackText, CardOverlay, FrontText } from "@/features/card-view";
 import {
   initializeStudySessionUi,
   selectStudySessionForRoute,
