@@ -7,6 +7,8 @@
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
+import { startAuthSession } from "@/app/providers/auth/lifecycle";
+import { startRemoteReadSessionLifecycle } from "@/app/providers/remote-read/lifecycle";
 import { AppRoutes } from "@/app/routes";
 import { useAuthSession } from "@/entities/auth";
 import { usePreferences } from "@/entities/preferences";
@@ -20,6 +22,16 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
 const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location.reload() }) => {
   const { darkMode } = usePreferences().appearance;
   const authState = useAuthSession();
+
+  React.useEffect(() => {
+    const stopAuthSession = startAuthSession();
+    const stopRemoteReadSession = startRemoteReadSessionLifecycle();
+
+    return () => {
+      stopRemoteReadSession();
+      stopAuthSession();
+    };
+  }, []);
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);

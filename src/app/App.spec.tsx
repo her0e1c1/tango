@@ -16,8 +16,16 @@ type AuthSessionState = ReturnType<typeof useAuthSession>;
 const mocks = vi.hoisted(() => ({
   darkMode: false,
   authState: { status: "initializing" } as AuthSessionState,
+  startAuthSession: vi.fn(),
+  stopAuthSession: vi.fn(),
+  startRemoteReadSessionLifecycle: vi.fn(),
+  stopRemoteReadSession: vi.fn(),
 }));
 
+vi.mock("@/app/providers/auth/lifecycle", () => ({ startAuthSession: mocks.startAuthSession }));
+vi.mock("@/app/providers/remote-read/lifecycle", () => ({
+  startRemoteReadSessionLifecycle: mocks.startRemoteReadSessionLifecycle,
+}));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
@@ -38,10 +46,25 @@ import App from "./App";
 
 describe("App", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.startAuthSession.mockReturnValue(mocks.stopAuthSession);
+    mocks.startRemoteReadSessionLifecycle.mockReturnValue(mocks.stopRemoteReadSession);
     mocks.darkMode = false;
     mocks.authState = { status: "authenticated", uid: "test-user", isAnonymous: true, displayName: null };
     document.documentElement.classList.remove("dark");
     window.history.replaceState({}, "", "/");
+  });
+
+  it("starts and stops the application lifecycles", () => {
+    const view = render(<App />);
+
+    expect(mocks.startAuthSession).toHaveBeenCalledOnce();
+    expect(mocks.startRemoteReadSessionLifecycle).toHaveBeenCalledOnce();
+
+    view.unmount();
+
+    expect(mocks.stopRemoteReadSession).toHaveBeenCalledOnce();
+    expect(mocks.stopAuthSession).toHaveBeenCalledOnce();
   });
 
   it("updates only the theme when the setting changes", () => {

@@ -10,17 +10,12 @@ import "./styles/index.css";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import { AppProviders } from "./providers/AppProviders";
-import { startRemoteReadSessionLifecycle } from "./providers/remote-read/lifecycle";
 
 const root = document.getElementById("root");
 if (root == null) throw new Error("Missing root element");
 
-startRemoteReadSessionLifecycle();
 createRoot(root).render(
   <React.StrictMode>
-    <AppProviders>
-      <App />
-    </AppProviders>
+    <App />
   </React.StrictMode>
 );
