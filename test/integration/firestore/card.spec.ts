@@ -14,6 +14,7 @@ import { deleteCard } from "@/features/card/delete/api/deleteCard";
 import { editCard } from "@/features/card/edit";
 import { createDeck as createDeckCommand } from "@/features/deck/create";
 import { upsertImportedCards } from "@/features/deck/import/api/upsertImportedCards";
+import { editStudyProgress } from "@/features/study/api/editStudyProgress";
 import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
 import { createCard, createDeck } from "@/test/factories";
@@ -86,6 +87,25 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     expect(data).toEqual({ ...c, frontText: "updated" });
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
+  });
+
+  it("updates StudyProgress without changing Card-owned fields", async () => {
+    const deckId = await initDeck();
+    const card = { ...newCard, deckId, id: uuid() };
+    await createCardCommand("uid", card);
+    const untrustedProgress = {
+      cardId: card.id,
+      score: 2,
+      numberOfSeen: 3,
+      frontText: "unexpected",
+      deckId: "other-deck",
+      uid: "other-user",
+      deletedAt: 1,
+    } as unknown as Parameters<typeof editStudyProgress>[1];
+
+    await editStudyProgress("uid", untrustedProgress);
+
+    expect((await getDoc(doc(db, "card", card.id))).data()).toEqual({ ...card, score: 2, numberOfSeen: 3 });
   });
 
   it("should upsert a complete card", async () => {
