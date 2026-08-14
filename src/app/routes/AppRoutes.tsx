@@ -7,8 +7,8 @@
 import type React from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
-import { loginGoogle } from "@/features/auth/sign-in";
-import { signOutCurrentUser } from "@/features/auth/sign-out";
+import { loginGoogle } from "@/features/sign-in";
+import { signOutCurrentUser } from "@/features/sign-out";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
