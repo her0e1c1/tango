@@ -37,14 +37,14 @@ const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCre
   singletonMocks.clearStudyStore.mockResolvedValue(undefined);
 
   const authSession = await import("@/entities/auth");
-  const lifecycle = await import("./authLifecycle");
+  const lifecycle = await import("./lifecycle");
   authSession.replaceAuthSession({ status: "initializing" });
   const stopAuthSession = lifecycle.startAuthSession();
 
   return { ...lifecycle, ...authSession, publishUser, stopAuthSession, unsubscribe };
 };
 
-describe("authLifecycle", () => {
+describe("lifecycle", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns the Firebase observer cleanup", async () => {
