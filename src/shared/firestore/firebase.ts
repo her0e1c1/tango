@@ -8,16 +8,6 @@ import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 import { connectFirestoreEmulator, initializeFirestore, persistentLocalCache } from "firebase/firestore";
 
-/** @public */
-export {
-  firestoreTimestampDateSchema,
-  getTimestamp,
-  omitUndefined,
-  parseFirestoreDocument,
-} from "./firestoreDocument";
-/** @public */
-export { toRemoteById } from "./remoteSnapshot";
-
 const projectId = import.meta.env.VITE_PROJECT_ID;
 const apiKey = import.meta.env.VITE_WEB_API_KEY;
 

@@ -3,4 +3,5 @@ export {
   getTimestamp,
   omitUndefined,
   parseFirestoreDocument,
-} from "../firebase/firestoreDocument";
+} from "./firestoreDocument";
+export { toRemoteById } from "./remoteSnapshot";
