@@ -33,7 +33,7 @@
     "lint:eslint": "eslint --max-warnings=0 'src/**/*.{ts,tsx}'",
     "lint:fsd": "steiger ./src",
     "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' && biome lint --write . && npm run fmt:markdown",
-    "lint:knip": "knip && knip --production --files --exports",
+    "lint:knip": "knip && knip --production --strict",
     "lint:markdown": "markdownlint-cli2",
     "lint:tsc": "tsc",
     "storybook": "storybook dev"
@@ -64,7 +64,7 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "sass": "^1.101.0",
-    "uuid": "^14.0.1",
+    "vite": "^8.1.3",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
@@ -109,7 +109,7 @@
     "storybook": "^10.5.7",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
-    "vite": "^8.1.3",
+    "uuid": "^14.0.1",
     "vite-plugin-pwa": "^1.3.0",
     "vitest": "4.1.10"
   },
