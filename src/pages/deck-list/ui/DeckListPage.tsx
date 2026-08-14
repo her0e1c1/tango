@@ -7,7 +7,7 @@ import { createDeck, useDecks } from "@/entities/deck";
 import { useCardReadState } from "@/features/card/read";
 import { useDeleteDeck } from "@/features/deck/delete";
 import { downloadDeckCsv } from "@/features/deck/export";
-import { useSampleDeckBootstrap } from "@/features/deck/import";
+import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
 import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";

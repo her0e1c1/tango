@@ -9,7 +9,7 @@ import { AiOutlineCloudDownload } from "react-icons/ai";
 import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
 import { Upload } from "@/shared/ui/forms";
-import type { DeckImportPreview, DeckImportResult } from "@/features/deck/import";
+import type { DeckImportPreview, DeckImportResult } from "@/features/deck-import";
 
 interface DeckImportViewProps {
   onChange?: (file: File) => void;

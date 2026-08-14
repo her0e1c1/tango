@@ -3,7 +3,7 @@ import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { generateDeckId } from "@/entities/deck";
 
-import sampleCards from "../../../../../sample/build/output.json";
+import sampleCards from "../../../../sample/build/output.json";
 import { CardBulkMutationError } from "../api/upsertImportedCards";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import type { DeckImportResult, DeckImportRow } from "./deckImportTypes";

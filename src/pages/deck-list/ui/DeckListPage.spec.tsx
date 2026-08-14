@@ -51,7 +51,7 @@ vi.mock("@/features/card/read", () => ({
 }));
 vi.mock("@/features/deck/delete", () => ({ useDeleteDeck: () => ({ remove: mocks.remove }) }));
 vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
-vi.mock("@/features/deck/import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
+vi.mock("@/features/deck-import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
 vi.mock("@/features/study", () => ({
   removeStudySession: mocks.removeStudySession,
   touchStudySession: mocks.touchStudySession,

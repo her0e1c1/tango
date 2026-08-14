@@ -11,7 +11,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DeckImportPreview, DeckImportResult } from "@/features/deck/import";
+import type { DeckImportPreview, DeckImportResult } from "@/features/deck-import";
 
 const mocks = vi.hoisted(() => ({
   selectFile: vi.fn(),
@@ -37,7 +37,7 @@ vi.mock("@/entities/card", () => ({
   generateCardId: vi.fn(),
   useCards: () => [],
 }));
-vi.mock("@/features/deck/import", () => ({
+vi.mock("@/features/deck-import", () => ({
   SAMPLE_CSV_TEXT: "sample csv",
   downloadSampleCsv: mocks.downloadSampleCsv,
   useDeckImport: () => ({
