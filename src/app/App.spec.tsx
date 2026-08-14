@@ -21,7 +21,6 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
-vi.mock("@/app/providers/auth", () => ({ publishAuthenticatedUser: vi.fn() }));
 vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authState }));
 vi.mock("@/features/auth/sign-in", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/features/auth/sign-out", () => ({ signOutCurrentUser: vi.fn() }));

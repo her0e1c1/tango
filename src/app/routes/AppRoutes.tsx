@@ -7,7 +7,6 @@
 import type React from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
-import { publishAuthenticatedUser } from "@/app/providers/auth";
 import { loginGoogle } from "@/features/auth/sign-in";
 import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { CardFormPage } from "@/pages/card-form";
@@ -38,7 +37,9 @@ const UnknownRoute = () => {
   );
 };
 
-const login = async () => publishAuthenticatedUser(await loginGoogle());
+const login = async () => {
+  await loginGoogle();
+};
 
 /**
  * Renders Tango's route tree inside the router supplied by the caller.

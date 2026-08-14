@@ -1,12 +1,10 @@
-import { onAuthStateChanged, signInAnonymously, type User } from "firebase/auth";
+import { onIdTokenChanged, signInAnonymously, type User, type UserCredential } from "firebase/auth";
 
 import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 import { clearStudyStore } from "@/features/study";
 import { auth } from "@/shared/firebase";
 
-let observerStarted = false;
-let anonymousBootstrapStarted = false;
-let previousUserCleanup: Promise<void> | null = null;
+let anonymousSignIn: Promise<UserCredential> | undefined;
 
 const authSessionFromUser = (user: User) => ({
   status: "authenticated" as const,
@@ -16,59 +14,30 @@ const authSessionFromUser = (user: User) => ({
 });
 
 const startAnonymousBootstrap = () => {
-  if (previousUserCleanup !== null || anonymousBootstrapStarted || getAuthSession().status !== "signedOut") {
-    return;
-  }
+  if (anonymousSignIn || getAuthSession().status !== "signedOut") return;
 
-  anonymousBootstrapStarted = true;
-  void signInAnonymously(auth).catch((error) => {
-    if (getAuthSession().status === "signedOut") {
-      replaceAuthSession({ status: "error", error });
-    }
+  const pendingSignIn = signInAnonymously(auth);
+  anonymousSignIn = pendingSignIn;
+  void pendingSignIn.catch((error) => {
+    if (anonymousSignIn !== pendingSignIn) return;
+
+    anonymousSignIn = undefined;
+    if (getAuthSession().status === "signedOut") replaceAuthSession({ status: "error", error });
   });
 };
 
-const clearPreviousUser = () => {
-  if (previousUserCleanup !== null) return;
-
-  previousUserCleanup = clearStudyStore();
-  void previousUserCleanup.then(
-    () => {
-      previousUserCleanup = null;
-      startAnonymousBootstrap();
-    },
-    (error) => {
-      if (getAuthSession().status === "signedOut") {
-        replaceAuthSession({ status: "error", error });
-      }
-    }
-  );
-};
-
-export const startAuthSession = () => {
-  if (observerStarted) return;
-  observerStarted = true;
-  onAuthStateChanged(auth, (user) => {
+export const startAuthSession = () =>
+  onIdTokenChanged(auth, (user) => {
     if (user) {
-      anonymousBootstrapStarted = false;
-      previousUserCleanup = null;
+      anonymousSignIn = undefined;
       replaceAuthSession(authSessionFromUser(user));
       return;
     }
 
-    const hadAuthenticatedUser = getAuthSession().status === "authenticated";
     replaceAuthSession({ status: "signedOut" });
-    if (hadAuthenticatedUser) {
-      clearPreviousUser();
-    } else {
-      startAnonymousBootstrap();
-    }
+    void clearStudyStore()
+      .then(startAnonymousBootstrap)
+      .catch((error) => {
+        if (getAuthSession().status === "signedOut") replaceAuthSession({ status: "error", error });
+      });
   });
-};
-
-export const publishAuthenticatedUser = (user: User) => {
-  const current = getAuthSession();
-  if (current.status === "authenticated" && current.uid === user.uid) {
-    replaceAuthSession(authSessionFromUser(user));
-  }
-};
