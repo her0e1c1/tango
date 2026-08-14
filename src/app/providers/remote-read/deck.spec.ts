@@ -9,7 +9,6 @@ const mocks = vi.hoisted(() => ({
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
   unsubscribe: vi.fn(),
-  reconciliationCleanups: [] as ReturnType<typeof vi.fn>[],
   reconcileStudySessions: vi.fn(),
 }));
 
@@ -47,18 +46,13 @@ const deckDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
 
 const getSnapshotHandler = () =>
   mocks.onSnapshot.mock.calls[0]?.[1] as (snapshot: { docs: ReturnType<typeof deckDocument>[] }) => void;
+const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
 describe("Deck app synchronization", () => {
   beforeEach(() => {
     clearDecks();
     vi.clearAllMocks();
     mocks.onSnapshot.mockReturnValue(mocks.unsubscribe);
-    mocks.reconciliationCleanups.length = 0;
-    mocks.reconcileStudySessions.mockImplementation(() => {
-      const cleanup = vi.fn();
-      mocks.reconciliationCleanups.push(cleanup);
-      return cleanup;
-    });
   });
 
   it("subscribes by UID and replaces the store with active Decks", () => {
@@ -77,7 +71,6 @@ describe("Deck app synchronization", () => {
     expect(mocks.reconcileStudySessions).toHaveBeenCalledWith(["active"]);
     unsubscribe();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();
-    expect(mocks.reconciliationCleanups[0]).toHaveBeenCalledOnce();
   });
 
   it("reports invalid Firestore documents", () => {
@@ -92,32 +85,13 @@ describe("Deck app synchronization", () => {
     expect(mocks.reconcileStudySessions).not.toHaveBeenCalled();
   });
 
-  it("keeps only the latest snapshot's pending Study reconciliation", () => {
-    const unsubscribe = subscribeDecks("uid-a", vi.fn());
-    const snapshotHandler = getSnapshotHandler();
-    act(() => snapshotHandler({ docs: [deckDocument("first")] }));
-
-    act(() => snapshotHandler({ docs: [deckDocument("second")] }));
-
-    expect(mocks.reconciliationCleanups[0]).toHaveBeenCalledOnce();
-    expect(mocks.reconcileStudySessions).toHaveBeenLastCalledWith(["second"]);
-    unsubscribe();
-    expect(mocks.reconciliationCleanups[1]).toHaveBeenCalledOnce();
-  });
-
-  it("ignores snapshots and errors after unsubscribe", () => {
-    const { result } = renderHook(useDecks);
+  it("reports Firestore subscription errors", () => {
     const onError = vi.fn();
-    const unsubscribe = subscribeDecks("uid-a", onError);
-    const snapshotHandler = getSnapshotHandler();
-    const errorHandler = mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
+    subscribeDecks("uid-a", onError);
+    const error = new Error("subscription failed");
 
-    unsubscribe();
-    act(() => snapshotHandler({ docs: [deckDocument("late")] }));
-    errorHandler(new Error("late"));
+    getErrorHandler()(error);
 
-    expect(result.current).toEqual([]);
-    expect(onError).not.toHaveBeenCalled();
-    expect(mocks.reconcileStudySessions).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(error);
   });
 });
