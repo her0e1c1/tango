@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard, createConfig, createDeck } from "@/test/factories";
+import { createCard, createPreferences, createDeck } from "@/test/factories";
 
 import { useStudyCards } from "./useStudyCards";
 
@@ -20,7 +20,7 @@ describe("useStudyCards", () => {
     const future = createCard({ id: "future", deckId: deck.id, nextSeeingAt: new Date(now + 1) });
     const cards = [available, future];
 
-    const { result } = renderHook(() => useStudyCards(deck, cards, createConfig({ useCardInterval: true })));
+    const { result } = renderHook(() => useStudyCards(deck, cards, createPreferences({ useCardInterval: true })));
 
     expect(result.current).toEqual([available]);
   });
@@ -28,7 +28,7 @@ describe("useStudyCards", () => {
   it("returns no Cards when the Deck is unavailable", () => {
     const cards = [createCard({ deckId: "missing" })];
 
-    const { result } = renderHook(() => useStudyCards(undefined, cards, createConfig()));
+    const { result } = renderHook(() => useStudyCards(undefined, cards, createPreferences()));
 
     expect(result.current).toEqual([]);
   });
@@ -39,8 +39,8 @@ describe("useStudyCards", () => {
     const deck = createDeck({ id: "scheduled" });
     const card = createCard({ id: "scheduled-card", deckId: deck.id, nextSeeingAt: new Date(1_500) });
     const cards = [card];
-    const enabled = createConfig({ useCardInterval: true });
-    const disabled = createConfig({ useCardInterval: false });
+    const enabled = createPreferences({ useCardInterval: true });
+    const disabled = createPreferences({ useCardInterval: false });
     const { result } = renderHook(() => ({
       enabled: useStudyCards(deck, cards, enabled),
       disabled: useStudyCards(deck, cards, disabled),
@@ -66,7 +66,7 @@ describe("useStudyCards", () => {
       deckId: deck.id,
       nextSeeingAt: new Date(1_000 + maxTimeout + 500),
     });
-    const config = createConfig({ useCardInterval: true });
+    const config = createPreferences({ useCardInterval: true });
     const { result } = renderHook(() => useStudyCards(deck, [card], config));
 
     expect(result.current).toEqual([]);

@@ -1,10 +1,10 @@
 /**
- * @file Defines the settings feature's Config Form presentation component.
+ * @file Defines the settings feature's Preferences Form presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
 
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import type * as React from "react";
 import { useId } from "react";
@@ -14,7 +14,7 @@ import { SettingsRow, SettingsSection } from "./SettingsSection";
 import { Button } from "@/shared/ui/button";
 import { Slider, Switch } from "@/shared/ui/forms";
 
-interface ConfigFormFields {
+interface PreferencesFormFields {
   showHeader: React.ComponentProps<typeof Switch>;
   showSwipeButtonList: React.ComponentProps<typeof Switch>;
   showSwipeFeedback: React.ComponentProps<typeof Switch>;
@@ -26,11 +26,11 @@ interface ConfigFormFields {
   cardInterval: React.ComponentProps<typeof Slider>;
 }
 
-export interface ConfigFormProps {
+export interface PreferencesFormProps {
   isLoggedIn?: boolean;
   identity?: { uid: string; displayName: string | null };
-  config: ConfigState;
-  fields: ConfigFormFields;
+  preferences: Preferences;
+  fields: PreferencesFormFields;
   maxNumberOfCardsToLearn: number;
   cardInterval: number;
   onLogin?: () => void;
@@ -41,11 +41,11 @@ export interface ConfigFormProps {
 }
 
 /**
- * Renders the Config Form user interface.
+ * Renders the Preferences Form user interface.
  * Presents display and study preferences together with account actions and reports each setting
  * change to its owner.
  */
-export const ConfigForm: React.FC<ConfigFormProps> = (props) => {
+export const PreferencesForm: React.FC<PreferencesFormProps> = (props) => {
   const idPrefix = useId();
   const inputIds = {
     showHeader: `${idPrefix}-show-header`,

@@ -1,16 +1,16 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createCard, createConfig, createDeck } from "@/test/factories";
+import { createCard, createPreferences, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  config: null as unknown as ConfigState,
+  preferences: null as unknown as Preferences,
   deck: null as Deck | null,
   cards: [] as Card[],
   start: vi.fn(),
@@ -55,8 +55,8 @@ vi.mock("@/features/study/hooks/useDeckFilterState", () => ({
     tagFilterProps: { tags: [], selectedTags: [], tagAndFilter: false },
   }),
 }));
-vi.mock("@/shared/config", () => ({
-  useConfig: () => mocks.config,
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -70,7 +70,7 @@ import { DeckStartPage } from "./DeckStartPage";
 describe("DeckStartPage", () => {
   beforeEach(() => {
     mocks.params.id = "deck-id";
-    mocks.config = createConfig({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
+    mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
     mocks.deck = createDeck({ id: "deck-id", name: "Japanese vocabulary" });
     mocks.cards = [createCard({ deckId: "deck-id" })];
     vi.clearAllMocks();

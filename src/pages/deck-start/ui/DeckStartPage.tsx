@@ -1,6 +1,6 @@
 import type { Card, CardId } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
-import type { ConfigState } from "@/shared/config";
+import type { Preferences } from "@/entities/preferences";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -10,7 +10,7 @@ import { filterCardsByDeckId, filterTagsByDeckId } from "@/entities/card";
 import { useCards } from "@/features/card/read";
 import { useEditDeck } from "@/features/deck/edit";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
-import { useConfig } from "@/shared/config";
+import { usePreferences } from "@/entities/preferences";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -24,10 +24,10 @@ const DeckStartContent = (props: {
   cardsById: Partial<Record<CardId, Card>>;
   deck: Deck;
   cards: Card[];
-  config: ConfigState;
+  preferences: Preferences;
   tags: string[];
 }) => {
-  const { cardsById, deck, cards, config, tags } = props;
+  const { cardsById, deck, cards, preferences, tags } = props;
   const deckMutations = useEditDeck();
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {
@@ -46,7 +46,7 @@ const DeckStartContent = (props: {
     <AppLayout showHeader>
       <DeckStartView
         deckName={deck.name}
-        maxNumberOfCardsToLearn={config.study.maxNumberOfCardsToLearn}
+        maxNumberOfCardsToLearn={preferences.study.maxNumberOfCardsToLearn}
         cardsLength={cards.length}
         onClickStart={start}
         filterSlot={<DeckStartForm {...deckStartForm} />}
@@ -60,11 +60,11 @@ export const DeckStartPage: React.FC = () => {
   const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
-  const config = useConfig();
+  const preferences = usePreferences();
   const cardRemote = useCards();
   const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
-  const cards = useStudyCards(deck, deckCards, config);
+  const cards = useStudyCards(deck, deckCards, preferences);
   const tags = filterTagsByDeckId(cardRemote.cards, deckId);
 
   return (
@@ -83,7 +83,13 @@ export const DeckStartPage: React.FC = () => {
       onRetry={cardRemote.retry}
     >
       {deck != null ? (
-        <DeckStartContent cardsById={cardRemote.cardsById} deck={deck} cards={cards} config={config} tags={tags} />
+        <DeckStartContent
+          cardsById={cardRemote.cardsById}
+          deck={deck}
+          cards={cards}
+          preferences={preferences}
+          tags={tags}
+        />
       ) : null}
     </RemoteReadBoundary>
   );

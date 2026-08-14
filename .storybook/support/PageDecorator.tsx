@@ -13,25 +13,23 @@ import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { replaceAuthSession } from "@/entities/auth-session";
+import { preferencesSchema, preferencesStore, type Preferences } from "@/entities/preferences";
 import type { StudyState } from "@/features/study/state/studyStore";
 import { studyStore } from "@/features/study/state/studyStoreInstance";
-import { configStore } from "@/shared/config/configStoreInstance";
-import { parsePersistedConfig } from "@/shared/config/configSchema";
-import type { ConfigState } from "@/shared/config/configTypes";
 import { toRemoteById } from "@/shared/api/remoteSnapshot";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read/RemoteReadScope";
 
 export const PAGE_STORY_UID = "storybook-user";
 
-type PartialConfigState = {
-  [K in keyof ConfigState]?: Partial<ConfigState[K]>;
+type PartialPreferences = {
+  [K in keyof Preferences]?: Partial<Preferences[K]>;
 };
 
 export interface PageStoryParameters {
   path: string;
   decks?: Deck[];
   cards?: Card[];
-  config?: PartialConfigState;
+  preferences?: PartialPreferences;
   sessionsByDeckId?: StudyState["sessionsByDeckId"];
   showBackText?: boolean;
   autoPlay?: boolean;
@@ -61,7 +59,7 @@ const cloneSessions = (sessionsByDeckId: StudyState["sessionsByDeckId"]): StudyS
  * Running this in a Storybook loader guarantees study hydration is complete before the route renders.
  */
 export const preparePageStory = async (parameters: PageStoryParameters): Promise<void> => {
-  await Promise.all([configStore.persist.rehydrate(), studyStore.persist.rehydrate()]);
+  await studyStore.persist.rehydrate();
 
   replaceAuthSession({
     status: "authenticated",
@@ -72,13 +70,13 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
 
   const decks = (parameters.decks ?? []).map(cloneDeck);
   const cards = (parameters.cards ?? []).map(cloneCard);
-  const config = parsePersistedConfig(parameters.config);
-  configStore.setState({
-    config: {
-      ...config,
+  const preferences = preferencesSchema.parse(parameters.preferences);
+  preferencesStore.setState({
+    preferences: {
+      ...preferences,
       study: {
-        ...config.study,
-        selectedTags: [...config.study.selectedTags],
+        ...preferences.study,
+        selectedTags: [...preferences.study.selectedTags],
       },
     },
   });

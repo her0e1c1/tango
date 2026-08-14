@@ -7,7 +7,7 @@
 import type { Card, CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { StudyProgressEdit } from "@/entities/study-progress";
-import type { ConfigState, SwipeDirection } from "@/shared/config";
+import type { Preferences, SwipeDirection } from "@/entities/preferences";
 
 import React from "react";
 
@@ -15,7 +15,7 @@ import { buildStudySession, calculateNextIndex } from "../model/session";
 import { createStudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
 import { studyStore } from "../state/studyStoreInstance";
-import { useConfig } from "@/shared/config";
+import { usePreferences } from "@/entities/preferences";
 
 export interface StudyActions {
   start: (cards: Card[]) => void;
@@ -42,7 +42,7 @@ interface UseStudyActionsOptions {
 interface StudySwipeDependencies {
   mutationTokenRef: { current: symbol | undefined };
   deckId: DeckId;
-  config: ConfigState;
+  preferences: Preferences;
   cardsById: Partial<Record<CardId, Card>>;
   update: (progress: StudyProgressEdit) => Promise<void>;
 }
@@ -85,14 +85,14 @@ const revertOptimisticUpdate = (
  */
 const runStudySwipe = async (
   direction: SwipeDirection,
-  { mutationTokenRef, deckId, config, cardsById, update }: StudySwipeDependencies
+  { mutationTokenRef, deckId, preferences, cardsById, update }: StudySwipeDependencies
 ): Promise<void> => {
   if (mutationTokenRef.current !== undefined) return;
   const state = studyStore.getState();
   const session = state.sessionsByDeckId[deckId];
   if (session == null) return;
 
-  const swipeAction = resolveSwipeAction(config.controls, direction);
+  const swipeAction = resolveSwipeAction(preferences.controls, direction);
   if (swipeAction === "DoNothing") return;
 
   if (swipeAction === "GoBack") {
@@ -112,7 +112,7 @@ const runStudySwipe = async (
   };
 
   state.setLastSwipe(direction);
-  if (config.appearance.hideBodyWhenCardChanged) {
+  if (preferences.appearance.hideBodyWhenCardChanged) {
     state.hideBackText();
   }
 
@@ -139,7 +139,7 @@ export const useStudyActions = (
   deckId: DeckId,
   { cardMutation, cardsById, onStarted }: UseStudyActionsOptions
 ): StudyActions => {
-  const config = useConfig();
+  const preferences = usePreferences();
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
   /**
@@ -147,10 +147,10 @@ export const useStudyActions = (
    * The saved UI preferences are applied before the Page is notified that the session is ready.
    */
   const start = (cards: Card[]) => {
-    const cardOrderIds = buildStudySession(cards, config.study);
+    const cardOrderIds = buildStudySession(cards, preferences.study);
     const state = studyStore.getState();
     state.startStudy(deckId, cardOrderIds);
-    state.initializeStudyUi(config.study.defaultAutoPlay);
+    state.initializeStudyUi(preferences.study.defaultAutoPlay);
     onStarted?.();
   };
 
@@ -164,7 +164,7 @@ export const useStudyActions = (
     return runStudySwipe(direction, {
       mutationTokenRef,
       deckId,
-      config,
+      preferences,
       cardsById,
       update: cardMutation.update,
     });

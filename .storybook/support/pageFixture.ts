@@ -3,7 +3,7 @@
 import type { Card, CardId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 
-import { createCard, createConfig, createDeck } from "@/test/factories";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";
 import { PAGE_STORY_UID, type PageStoryParameters } from "@/storybook/PageDecorator";
 
@@ -90,7 +90,7 @@ const pageStoryCards: Card[] = [
 export const pageStoryState = {
   decks: pageStoryDecks,
   cards: pageStoryCards,
-  config: createConfig({
+  preferences: createPreferences({
     maxNumberOfCardsToLearn: 20,
     showScoreSlider: true,
   }),

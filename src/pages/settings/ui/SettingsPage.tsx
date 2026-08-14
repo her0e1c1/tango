@@ -5,8 +5,8 @@ import { useKey } from "react-use";
 import { useAuthSession } from "@/entities/auth-session";
 import { useSignIn } from "@/features/auth/sign-in";
 import { useSignOut } from "@/features/auth/sign-out";
-import { useConfigFormState } from "@/features/settings";
-import { updateConfig, useConfig } from "@/shared/config";
+import { usePreferencesFormState } from "@/features/settings";
+import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -18,7 +18,7 @@ interface SettingsPageProps {
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => {
-  const config = useConfig();
+  const preferences = usePreferences();
   const authState = useAuthSession();
   const navigate = useNavigate();
   const authenticated = authState.status === "authenticated" ? authState : undefined;
@@ -31,8 +31,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
   const signOut = useSignOut(linkedUser ? logout : undefined);
   const account = linkedUser ? { ...signOut, kind: "logout" as const } : { ...signIn, kind: "login" as const };
   const retryAccountOperation = account.kind === "logout" ? signOut.signOut : signIn.signIn;
-  const configForm = useConfigFormState({
-    config,
+  const preferencesForm = usePreferencesFormState({
+    preferences,
     identity,
     version: __APP_VERSION__,
     isLoggedIn: linkedUser != null,
@@ -48,13 +48,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
         errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
       />
     ),
-    onSubmit: updateConfig,
+    onSubmit: updatePreferences,
   });
   useKey("t", () => void navigate("/"));
 
   return (
     <AppLayout showHeader>
-      <SettingsView configForm={configForm} />
+      <SettingsView preferencesForm={preferencesForm} />
     </AppLayout>
   );
 };

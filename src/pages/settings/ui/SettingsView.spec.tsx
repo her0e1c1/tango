@@ -3,13 +3,13 @@ import type { ComponentProps } from "react";
 import { describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createConfig } from "@/test/factories";
+import { createPreferences } from "@/test/factories";
 
 import { SettingsView } from "./SettingsView";
 
-type ConfigFormFields = NonNullable<ComponentProps<typeof SettingsView>["configForm"]>["fields"];
+type PreferencesFormFields = NonNullable<ComponentProps<typeof SettingsView>["preferencesForm"]>["fields"];
 
-const fields: ConfigFormFields = {
+const fields: PreferencesFormFields = {
   showHeader: { name: "showHeader" },
   showSwipeButtonList: { name: "showSwipeButtonList" },
   showSwipeFeedback: { name: "showSwipeFeedback" },
@@ -22,11 +22,11 @@ const fields: ConfigFormFields = {
 };
 
 describe("SettingsView", () => {
-  it("composes the config form under one page heading without the application shell", () => {
+  it("composes the preferences form under one page heading without the application shell", () => {
     render(
       <SettingsView
-        configForm={{
-          config: createConfig(),
+        preferencesForm={{
+          preferences: createPreferences(),
           fields,
           maxNumberOfCardsToLearn: 10,
           cardInterval: 5,

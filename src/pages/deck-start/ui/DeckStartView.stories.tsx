@@ -35,7 +35,7 @@ const meta = {
   parameters: { viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" } },
   args: {
     deckName: fixture.deck.default.name,
-    maxNumberOfCardsToLearn: fixture.config.default.study.maxNumberOfCardsToLearn,
+    maxNumberOfCardsToLearn: fixture.preferences.default.study.maxNumberOfCardsToLearn,
     cardsLength: 123,
     filterSlot: <DeckStartForm {...deckStartForm} />,
   },

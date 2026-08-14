@@ -1,7 +1,7 @@
 import { recordStudyProgress, type StudyRating } from "@/entities/study-progress";
 import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { StudyCard } from "./studyCard";
-import type { SwipeAction, SwipeDirection, SwipeState } from "@/shared/config";
+import type { SwipeAction, SwipeDirection, SwipeState } from "@/entities/preferences";
 
 export const resolveSwipeAction = (controls: SwipeState, direction: SwipeDirection): SwipeAction => {
   return controls[direction];

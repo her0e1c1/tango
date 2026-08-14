@@ -8,7 +8,7 @@
 
 import type { Card, CardId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import type { ConfigState, SwipeDirection } from "@/shared/config";
+import type { Preferences, SwipeDirection } from "@/entities/preferences";
 
 import { act, fireEvent, render, waitFor, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -16,11 +16,11 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { useStudySessions } from "@/features/study";
-import { createConfig } from "@/test/factories";
+import { createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  state: null as { deck: Record<DeckId, Deck>; card: Record<CardId, Card>; config: ConfigState } | null,
+  state: null as { deck: Record<DeckId, Deck>; card: Record<CardId, Card>; preferences: Preferences } | null,
   navigate: vi.fn(),
   toggleShowBackText: vi.fn(),
   toggleAutoPlay: vi.fn(),
@@ -52,10 +52,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
-vi.mock("@/shared/config", () => ({
-  useConfig: () => {
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    return mocks.state.config;
+    return mocks.state.preferences;
   },
   toggleShowHeader: mocks.toggleShowHeader,
   toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
@@ -147,7 +147,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   const createState = (currentDeck: Deck = deck) => ({
     deck: { [currentDeck.id]: currentDeck },
     card: { [card.id]: card, [legacyCard.id]: legacyCard },
-    config: createConfig({
+    preferences: createPreferences({
       cardInterval: 1,
       darkMode: false,
       showHeader: true,
@@ -242,9 +242,9 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
     mocks.studyState.showBackText = false;
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.config = createConfig({
-      ...mocks.state.config,
-      appearance: { ...mocks.state.config.appearance, showHeader: false },
+    mocks.state.preferences = createPreferences({
+      ...mocks.state.preferences,
+      appearance: { ...mocks.state.preferences.appearance, showHeader: false },
     });
     view.rerender(<DeckSwiperPage />);
 
@@ -260,9 +260,9 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   it("shows the last swipe briefly only when feedback is enabled", () => {
     vi.useFakeTimers();
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.config = createConfig({
-      ...mocks.state.config,
-      appearance: { ...mocks.state.config.appearance, showSwipeFeedback: true },
+    mocks.state.preferences = createPreferences({
+      ...mocks.state.preferences,
+      appearance: { ...mocks.state.preferences.appearance, showSwipeFeedback: true },
     });
     const view = render(<DeckSwiperPage />);
 
@@ -277,9 +277,9 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     view.rerender(<DeckSwiperPage />);
     expect(screen.queryByText("Swiped left")).not.toBeInTheDocument();
 
-    mocks.state.config = createConfig({
-      ...mocks.state.config,
-      appearance: { ...mocks.state.config.appearance, showSwipeFeedback: false },
+    mocks.state.preferences = createPreferences({
+      ...mocks.state.preferences,
+      appearance: { ...mocks.state.preferences.appearance, showSwipeFeedback: false },
     });
     mocks.studyState.lastSwipe = { direction: "cardSwipeRight", eventId: 2 };
     view.rerender(<DeckSwiperPage />);
@@ -289,9 +289,9 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   it("restarts swipe feedback timing for repeated identical swipes", () => {
     vi.useFakeTimers();
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.config = createConfig({
-      ...mocks.state.config,
-      appearance: { ...mocks.state.config.appearance, showSwipeFeedback: true },
+    mocks.state.preferences = createPreferences({
+      ...mocks.state.preferences,
+      appearance: { ...mocks.state.preferences.appearance, showSwipeFeedback: true },
     });
     const view = render(<DeckSwiperPage />);
 

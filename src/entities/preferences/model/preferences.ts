@@ -40,8 +40,36 @@ export interface ControlPreferences extends SwipeState {
   showScoreSlider: boolean;
 }
 
-export interface ConfigState {
+export interface Preferences {
   appearance: AppearancePreferences;
   study: StudyPreferences;
   controls: ControlPreferences;
 }
+
+export const defaultPreferences: Preferences = Object.freeze({
+  appearance: Object.freeze({
+    darkMode: false,
+    showHeader: true,
+    fullscreen: false,
+    sizeBackText: 0,
+    hideBodyWhenCardChanged: true,
+    showSwipeFeedback: false,
+  }),
+  study: Object.freeze({
+    maxNumberOfCardsToLearn: 10,
+    shuffled: false,
+    useCardInterval: false,
+    cardInterval: 60,
+    keepBackTextViewed: false,
+    defaultAutoPlay: false,
+    selectedTags: Object.freeze([]) as unknown as string[],
+  }),
+  controls: Object.freeze({
+    showSwipeButtonList: true,
+    showScoreSlider: false,
+    cardSwipeUp: "GoToNextCardMastered",
+    cardSwipeDown: "GoToNextCardNotMastered",
+    cardSwipeLeft: "GoToPrevCard",
+    cardSwipeRight: "GoToNextCard",
+  }),
+});

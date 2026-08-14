@@ -18,8 +18,8 @@ const mocks = vi.hoisted(() => ({
   authState: { status: "initializing" } as AuthSessionState,
 }));
 
-vi.mock("@/shared/config", () => ({
-  useConfig: () => ({ appearance: { darkMode: mocks.darkMode } }),
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
 vi.mock("@/app/auth/logout", () => ({ logout: vi.fn() }));
 vi.mock("@/app/providers/auth", () => ({ publishAuthenticatedUser: vi.fn() }));
