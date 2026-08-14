@@ -90,6 +90,7 @@ describe("authLifecycle", () => {
     expect(getAuthSession()).toEqual({ status: "signedOut" });
     expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
+    expect(getAuthSession()).toEqual({ status: "authenticating" });
   });
 
   it("waits for Study cleanup before anonymous sign-in", async () => {
@@ -138,6 +139,39 @@ describe("authLifecycle", () => {
     publishUser(null);
 
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledTimes(2));
+  });
+
+  it("does not restart anonymous sign-in for duplicate signed-out events", async () => {
+    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
+    const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
+
+    publishUser(null);
+    await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "authenticating" }));
+    publishUser(null);
+    await Promise.resolve();
+
+    expect(signInAnonymously).toHaveBeenCalledOnce();
+    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
+    expect(getAuthSession()).toEqual({ status: "authenticating" });
+  });
+
+  it("starts anonymous sign-in once when duplicate cleanups finish", async () => {
+    let finishCleanup: () => void = () => undefined;
+    const cleanup = new Promise<void>((resolve) => {
+      finishCleanup = resolve;
+    });
+    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
+    const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
+    singletonMocks.clearStudyStore.mockReturnValue(cleanup);
+
+    publishUser(null);
+    publishUser(null);
+    expect(singletonMocks.clearStudyStore).toHaveBeenCalledTimes(2);
+
+    finishCleanup();
+    await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "authenticating" }));
+
+    expect(signInAnonymously).toHaveBeenCalledOnce();
   });
 
   it("publishes Study cleanup failures before anonymous bootstrap", async () => {

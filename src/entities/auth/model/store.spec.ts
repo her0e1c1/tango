@@ -25,4 +25,10 @@ describe("authSessionStore", () => {
       displayName: null,
     });
   });
+
+  it("represents anonymous authentication without an SDK credential", () => {
+    replaceAuthSession({ status: "authenticating" });
+
+    expect(getAuthSession()).toEqual({ status: "authenticating" });
+  });
 });

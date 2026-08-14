@@ -8,6 +8,7 @@ type AuthenticatedSession = {
 
 export type AuthSessionState =
   | { status: "initializing" }
+  | { status: "authenticating" }
   | ({ status: "authenticated" } & AuthenticatedSession)
   | { status: "signedOut" }
   | { status: "error"; error: unknown };
