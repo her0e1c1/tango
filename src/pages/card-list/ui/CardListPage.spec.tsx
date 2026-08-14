@@ -64,8 +64,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     useDeck: () => mocks.deck ?? undefined,
   };
 });
-vi.mock("@/features/deck/edit", () => ({ useEditDeck: () => ({ update: vi.fn() }) }));
-
 vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {

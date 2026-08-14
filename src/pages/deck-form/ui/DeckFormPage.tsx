@@ -1,41 +1,20 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { CATEGORY, type Category, type Deck, type DeckEdit, useDeck } from "@/entities/deck";
-import { useEditDeck } from "@/features/deck/edit";
-import { useDeckEditorActions, useDeckFormState } from "@/features/deck-editor";
-import { Feedback } from "@/shared/ui/feedback";
+import { type Deck, type DeckEdit, useDeck } from "@/entities/deck";
+import { DeckEditForm } from "@/features/deck-edit";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-
-import { DeckFormView } from "./DeckFormView";
 
 type EditDeck = (uid: string, deck: DeckEdit) => Promise<void>;
 
 const DeckFormContent = ({ deck, editDeck }: { deck: Deck; editDeck: EditDeck | undefined }) => {
   const navigate = useNavigate();
-  const mutations = useEditDeck(editDeck);
   const goToList = () => void navigate("/", { replace: true });
-  const deckActions = useDeckEditorActions({ mutations, onCancel: goToList, onSaved: goToList });
-  const categoryOptions: { label: Category; value: Category }[] = CATEGORY.map((category) => ({
-    label: category,
-    value: category,
-  }));
-  const deckForm = useDeckFormState({
-    deck,
-    categoryOptions,
-    onCancel: deckActions.cancel,
-    onSubmit: deckActions.save,
-  });
 
   return (
     <AppLayout showHeader>
-      <DeckFormView
-        feedbackSlot={
-          <Feedback tone="error">{deckActions.error == null ? null : "Unable to save changes. Try again."}</Feedback>
-        }
-        deckForm={deckForm}
-      />
+      <DeckEditForm deck={deck} editDeck={editDeck} onSaved={goToList} onCancel={goToList} />
     </AppLayout>
   );
 };

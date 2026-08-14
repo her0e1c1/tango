@@ -1,0 +1,119 @@
+/**
+ * @file Defines Storybook examples for the Deck List presentation.
+ * These isolated scenarios show developers how the component looks, which props it accepts, and
+ * how it responds to interaction.
+ */
+
+import type { Meta, StoryObj } from "@storybook/react";
+
+import type { Deck } from "@/entities/deck";
+import type { DeckListItem, DeckListSections } from "../model/buildDeckListSections";
+import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+
+import { DeckListView as Template } from "./DeckListView";
+
+/**
+ * Prepares other items data for the Storybook examples in this file.
+ * The helper keeps sample setup separate from the component configuration readers are meant to
+ * inspect.
+ */
+const otherItems = (decks: Deck[]): DeckListItem[] => decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
+/**
+ * Prepares studying items data for the Storybook examples in this file.
+ * The helper keeps sample setup separate from the component configuration readers are meant to
+ * inspect.
+ */
+const studyingItems = (decks: Deck[]): DeckListItem[] =>
+  decks.map((deck, index) => ({
+    deck,
+    cardCount: 30 + index,
+    studyProgress: {
+      currentIndex: index + 1,
+      cardCount: 12 + index * 7,
+      lastStudiedAt: Date.now() - index * 24 * 60 * 60 * 1000,
+    },
+  }));
+
+const mixed: DeckListSections = {
+  studying: studyingItems(fixture.decks.default.slice(0, 3)),
+  other: otherItems(fixture.decks.default.slice(3)),
+};
+const longSections: DeckListSections = {
+  studying: studyingItems(fixture.decks.long.slice(0, 4)),
+  other: otherItems(fixture.decks.long.slice(4)),
+};
+
+const meta = {
+  title: "Features/DeckList/DeckListView",
+  component: Template,
+  tags: ["autodocs"],
+  parameters: {
+    layout: "fullscreen",
+    viewport: {
+      viewports: INITIAL_VIEWPORTS,
+      defaultViewport: "desktop",
+    },
+  },
+  args: {
+    sections: mixed,
+  },
+} satisfies Meta<typeof Template>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+
+export const HoverHighlight: Story = {
+  play: async ({ canvas, userEvent }) => {
+    const firstDeck = canvas.getAllByRole("button", { name: /^View / })[0];
+    if (firstDeck == null) throw new Error("HoverHighlight requires at least one deck");
+    await userEvent.hover(firstDeck);
+  },
+};
+
+export const Inactive: Story = {
+  args: { sections: { studying: [], other: otherItems(fixture.decks.default) } },
+};
+
+export const WithStudyProgress: Story = {
+  args: { sections: { studying: studyingItems(fixture.decks.default), other: [] } },
+};
+
+export const Active: Story = WithStudyProgress;
+
+export const Empty: Story = {
+  args: { sections: { studying: [], other: [] } },
+};
+
+export const EmptyComposition: Story = Empty;
+
+export const Long: Story = {
+  args: { sections: longSections },
+};
+
+export const IphoneX: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: "iphonex",
+    },
+  },
+};
+
+export const MobileLight: Story = IphoneX;
+
+export const Dark: Story = {
+  globals: {
+    theme: "dark",
+  },
+};
+
+export const IphoneXLong: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: "iphonex",
+    },
+  },
+  args: { sections: longSections },
+};

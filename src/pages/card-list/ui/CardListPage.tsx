@@ -9,7 +9,6 @@ import { getCategory, isHighlightLanguage, type Deck, type DeckEdit, useDeck } f
 import type { StudyProgressEdit } from "@/entities/study-progress";
 import { useDeleteCard } from "@/features/card/delete";
 import { useCardReadState } from "@/features/card/read";
-import { useEditDeck } from "@/features/deck/edit";
 import {
   DeckStartForm,
   type StudyProgressPatch,
@@ -53,8 +52,7 @@ const CardListContent = (
     },
     deleteCard
   );
-  const deckMutations = useEditDeck(editDeck);
-  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
+  const deckStartForm = useDeckFilterState({ deck, editDeck, tags });
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : getCategory(deck.category, showCard.tags);
   const updateBy = (id: CardId, buildPatch: (card: Card) => StudyProgressPatch) => {

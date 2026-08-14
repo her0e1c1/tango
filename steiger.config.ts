@@ -15,7 +15,7 @@ export default defineConfig([
   {
     files: [
       "./src/entities/study-progress/**",
-      "./src/features/deck-editor/**",
+      "./src/features/deck-list/**",
       "./src/features/settings/**",
     ],
     rules: {
@@ -25,6 +25,13 @@ export default defineConfig([
   {
     files: ["./src/features/card/*/**", "./src/features/deck/*/**"],
     rules: {
+      "fsd/insignificant-slice": "off",
+    },
+  },
+  {
+    files: ["./src/features/card-edit/**", "./src/features/deck-edit/**"],
+    rules: {
+      // Edit features intentionally own their workflows while serving single route adapters.
       "fsd/insignificant-slice": "off",
     },
   },

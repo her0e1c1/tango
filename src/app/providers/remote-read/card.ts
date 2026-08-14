@@ -64,72 +64,42 @@ const toSyncStatus = (metadata: { fromCache: boolean; hasPendingWrites: boolean 
 
 const toError = (cause: unknown): Error => (cause instanceof Error ? cause : new Error(String(cause)));
 
-const subscribeCards = (
-  uid: string,
-  isCurrent: () => boolean,
-  onReady: (syncStatus: RemoteSyncStatus) => void,
-  onError: (error: Error) => void
-): (() => void) =>
-  onSnapshot(
-    query(collection(db, "card"), where("uid", "==", uid)),
-    { includeMetadataChanges: true },
-    (snapshot) => {
-      if (!isCurrent()) return;
-      try {
-        const cards = snapshot.docs
-          .map((document) => convertCardDtoToCard(document.id, document.data()))
-          .filter((card) => card.deletedAt === null);
-        replaceCards(cards);
-        onReady(toSyncStatus(snapshot.metadata));
-      } catch (cause) {
-        onError(toError(cause));
-      }
-    },
-    onError
-  );
-
 export const startCardSynchronization = (uid: string): (() => void) => {
-  let active = true;
-  let attempt = 0;
   let unsubscribe: (() => void) | undefined;
 
   const start = () => {
-    const currentAttempt = ++attempt;
     unsubscribe?.();
     unsubscribe = undefined;
     setCardReadLoading(uid, start);
 
-    const reportError = (error: Error) => {
-      if (!active || attempt !== currentAttempt) return;
-      unsubscribe?.();
-      unsubscribe = undefined;
-      setCardReadError(uid, error);
-    };
-
     try {
-      const nextUnsubscribe = subscribeCards(
-        uid,
-        () => active && attempt === currentAttempt,
-        (syncStatus) => {
-          if (!active || attempt !== currentAttempt) return;
-          setCardReadReady(uid, syncStatus);
+      unsubscribe = onSnapshot(
+        query(collection(db, "card"), where("uid", "==", uid)),
+        { includeMetadataChanges: true },
+        (snapshot) => {
+          try {
+            const cards = snapshot.docs
+              .map((document) => convertCardDtoToCard(document.id, document.data()))
+              .filter((card) => card.deletedAt === null);
+            replaceCards(cards);
+            setCardReadReady(uid, toSyncStatus(snapshot.metadata));
+          } catch (cause) {
+            unsubscribe?.();
+            unsubscribe = undefined;
+            setCardReadError(uid, toError(cause));
+          }
         },
-        reportError
+        (error) => setCardReadError(uid, error)
       );
-      if (!active || attempt !== currentAttempt) nextUnsubscribe();
-      else unsubscribe = nextUnsubscribe;
     } catch (cause) {
-      reportError(toError(cause));
+      setCardReadError(uid, toError(cause));
     }
   };
 
   start();
 
   return () => {
-    active = false;
-    attempt += 1;
     unsubscribe?.();
-    unsubscribe = undefined;
     resetCardRead(uid);
   };
 };

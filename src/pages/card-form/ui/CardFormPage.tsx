@@ -1,49 +1,22 @@
 import type * as React from "react";
-import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, type CardEdit, useCard } from "@/entities/card";
-import { CATEGORY } from "@/entities/deck";
-import { useEditCard } from "@/features/card/edit";
-import { useCardFormState } from "@/features/card/form";
+import { CardEditForm } from "@/features/card-edit";
 import { useCardReadState } from "@/features/card/read";
-import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-
-import { CardFormView } from "./CardFormView";
 
 type EditCard = (uid: string, card: CardEdit) => Promise<void>;
 
 const CardFormContent = ({ card, editCard }: { card: Card; editCard: EditCard | undefined }) => {
   const navigate = useNavigate();
-  const mutations = useEditCard(editCard);
-  const [mutationError, setMutationError] = useState<unknown>(null);
-  const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
   const goBack = () => void navigate(-1);
-  const cardForm = useCardFormState({
-    card,
-    categoryOptions,
-    onSubmit: async (nextCard) => {
-      setMutationError(null);
-      try {
-        await mutations.update(nextCard);
-        goBack();
-      } catch (error) {
-        setMutationError(error);
-      }
-    },
-  });
 
   return (
     <AppLayout showHeader>
-      <CardFormView
-        feedbackSlot={
-          <Feedback tone="error">{mutationError == null ? null : "Unable to save changes. Try again."}</Feedback>
-        }
-        cardForm={{ ...cardForm, onCancel: goBack }}
-      />
+      <CardEditForm card={card} editCard={editCard} onSaved={goBack} onCancel={goBack} />
     </AppLayout>
   );
 };
