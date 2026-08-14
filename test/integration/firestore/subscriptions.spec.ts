@@ -4,9 +4,6 @@
  * and delete snapshots without a cursor".
  */
 
-import type { Card } from "@/entities/card";
-import type { RemoteSubscriptionProps } from "@/shared/api";
-
 import "@/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
@@ -14,15 +11,14 @@ import { deleteApp, getApps } from "firebase/app";
 import { createCard as createCardCommand } from "@/features/card/create";
 import { deleteCard } from "@/features/card/delete/api/deleteCard";
 import { editCard } from "@/features/card/edit";
-import { subscribeCardReads } from "@/features/card/read/api/subscribeCardReads";
 import { createDeck as createDeckCommand } from "@/features/deck/create";
 import { deleteDeck } from "@/features/deck/delete/api/deleteDeck";
 import { editDeck } from "@/features/deck/edit/api/editDeck";
+import { startCardSynchronization } from "@/app/providers/remote-read/card";
 import { subscribeDecks } from "@/app/providers/remote-read/deck";
+import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
-
-type CardSnapshot = Parameters<RemoteSubscriptionProps<Card>["onSnapshot"]>[0];
 
 vi.mock("@/shared/firestore", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/firestore")>()),
@@ -39,14 +35,9 @@ describe("Query realtime subscriptions", () => {
 
   it("delivers initial, update, and delete snapshots without a cursor", async () => {
     const uid = "uid";
-    const cardSnapshots: CardSnapshot[] = [];
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, vi.fn(), (error) => errors.push(error));
-    const stopCards = subscribeCardReads({
-      uid,
-      onSnapshot: (snapshot) => cardSnapshots.push(snapshot),
-      onError: (error) => errors.push(error),
-    });
+    const stopCards = startCardSynchronization(uid);
 
     try {
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
@@ -55,21 +46,23 @@ describe("Query realtime subscriptions", () => {
       await createCardCommand(uid, card);
       await vi.waitFor(() => {
         expect(deckStore.getState().decks).toContainEqual(expect.objectContaining({ id: deck.id }));
-        expect(cardSnapshots.at(-1)?.itemsById[card.id]).toMatchObject({ id: card.id });
+        expect(cardStore.getState().cards).toContainEqual(expect.objectContaining({ id: card.id }));
       });
 
       await editDeck(uid, { ...deck, name: "Updated" });
       await editCard(uid, { ...card, frontText: "Updated" });
       await vi.waitFor(() => {
         expect(deckStore.getState().decks).toContainEqual(expect.objectContaining({ id: deck.id, name: "Updated" }));
-        expect(cardSnapshots.at(-1)?.itemsById[card.id]?.frontText).toBe("Updated");
+        expect(cardStore.getState().cards).toContainEqual(
+          expect.objectContaining({ id: card.id, frontText: "Updated" })
+        );
       });
 
       await deleteCard(uid, card);
       await deleteDeck(uid, deck);
       await vi.waitFor(() => {
         expect(deckStore.getState().decks.find((candidate) => candidate.id === deck.id)).toBeUndefined();
-        expect(cardSnapshots.at(-1)?.itemsById[card.id]).toBeUndefined();
+        expect(cardStore.getState().cards.find((candidate) => candidate.id === card.id)).toBeUndefined();
       });
       expect(errors).toEqual([]);
     } finally {

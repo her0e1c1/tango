@@ -3,8 +3,8 @@ import { type PropsWithChildren, useEffect, useState } from "react";
 import { useAuthSession } from "@/entities/auth";
 import { clearCards } from "@/entities/card";
 import { clearDecks } from "@/entities/deck";
-import { startCardReads, stopCardReads } from "@/features/card/read";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
+import { startCardSynchronization } from "./card";
 import { subscribeDecks } from "./deck";
 
 export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
@@ -22,7 +22,7 @@ export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
       return;
     }
     let active = true;
-    startCardReads(uid);
+    const stopCards = startCardSynchronization(uid);
     const unsubscribeDecks = subscribeDecks(
       uid,
       () => {
@@ -32,9 +32,8 @@ export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
     );
     return () => {
       active = false;
-      stopCardReads(uid);
+      stopCards();
       unsubscribeDecks();
-      clearCards();
       clearDecks();
     };
   }, [uid]);
