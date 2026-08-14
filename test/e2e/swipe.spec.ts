@@ -89,14 +89,14 @@ const persistedStateBoundaries = async (page: Page) =>
   page.evaluate(() => {
     const root = JSON.parse(window.localStorage.getItem("tango-config") ?? "{}");
     const state = root.state ?? {};
-    const config = state.config ?? {};
+    const preferences = state.preferences ?? {};
     const hasOwn = (value: object, key: PropertyKey) => Object.getOwnPropertyDescriptor(value, key) !== undefined;
     return {
       rootDeck: hasOwn(state, "deck"),
       rootCard: hasOwn(state, "card"),
-      configShowBackText: hasOwn(config, "showBackText"),
-      configAutoPlay: hasOwn(config, "autoPlay"),
-      configLastSwipe: hasOwn(config, "lastSwipe"),
+      preferencesShowBackText: hasOwn(preferences, "showBackText"),
+      preferencesAutoPlay: hasOwn(preferences, "autoPlay"),
+      preferencesLastSwipe: hasOwn(preferences, "lastSwipe"),
     };
   });
 
@@ -150,9 +150,9 @@ test("updates study progress with a mastered deck swipe", async ({ page }) => {
     .toEqual({
       rootDeck: false,
       rootCard: false,
-      configShowBackText: false,
-      configAutoPlay: false,
-      configLastSwipe: false,
+      preferencesShowBackText: false,
+      preferencesAutoPlay: false,
+      preferencesLastSwipe: false,
     });
   await page.evaluate(() => window.assertNoBrowserErrors());
 });

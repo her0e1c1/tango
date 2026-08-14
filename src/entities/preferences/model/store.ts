@@ -1,3 +1,4 @@
+import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 
 import { defaultPreferences, type Preferences } from "./preferences";
@@ -12,6 +13,14 @@ interface PreferencesStoreState {
   updatePreferences: (preferences: PartialPreferences) => void;
 }
 
+interface PersistedPreferencesState {
+  preferences: Preferences;
+}
+
+interface CreatePreferencesStoreOptions {
+  storage?: StateStorage;
+}
+
 const createInitialPreferences = (): Preferences => ({
   ...defaultPreferences,
   appearance: { ...defaultPreferences.appearance },
@@ -19,26 +28,48 @@ const createInitialPreferences = (): Preferences => ({
   controls: { ...defaultPreferences.controls },
 });
 
-const createPreferencesStore = () =>
-  createStore<PreferencesStoreState>()((set) => ({
-    preferences: createInitialPreferences(),
-    updatePreferences: (preferencesInput) =>
-      set((state) => {
-        const merged = {
-          appearance: { ...state.preferences.appearance, ...preferencesInput.appearance },
-          study: {
-            ...state.preferences.study,
-            ...preferencesInput.study,
-            selectedTags:
-              preferencesInput.study?.selectedTags == null
-                ? state.preferences.study.selectedTags
-                : [...preferencesInput.study.selectedTags],
-          },
-          controls: { ...state.preferences.controls, ...preferencesInput.controls },
-        };
-        return { preferences: preferencesSchema.parse(merged) };
+const getPersistedPreferences = (persistedState: unknown): Preferences => {
+  if (typeof persistedState !== "object" || persistedState == null || !("preferences" in persistedState)) {
+    return createInitialPreferences();
+  }
+  return preferencesSchema.parse(persistedState.preferences);
+};
+
+const createPreferencesStore = ({ storage }: CreatePreferencesStoreOptions = {}) => {
+  const persistStorage = createJSONStorage<PersistedPreferencesState>(() => storage ?? localStorage);
+  return createStore<PreferencesStoreState>()(
+    persist<PreferencesStoreState, [], [], PersistedPreferencesState>(
+      (set) => ({
+        preferences: createInitialPreferences(),
+        updatePreferences: (preferencesInput) =>
+          set((state) => {
+            const merged = {
+              appearance: { ...state.preferences.appearance, ...preferencesInput.appearance },
+              study: {
+                ...state.preferences.study,
+                ...preferencesInput.study,
+                selectedTags:
+                  preferencesInput.study?.selectedTags == null
+                    ? state.preferences.study.selectedTags
+                    : [...preferencesInput.study.selectedTags],
+              },
+              controls: { ...state.preferences.controls, ...preferencesInput.controls },
+            };
+            return { preferences: preferencesSchema.parse(merged) };
+          }),
       }),
-  }));
+      {
+        name: "tango-config",
+        ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
+        merge: (persistedState, currentState) => ({
+          ...currentState,
+          preferences: getPersistedPreferences(persistedState),
+        }),
+        partialize: ({ preferences }) => ({ preferences }),
+      }
+    )
+  );
+};
 
 export const preferencesStore = createPreferencesStore();
 

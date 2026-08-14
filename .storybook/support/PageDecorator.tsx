@@ -13,7 +13,9 @@ import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { replaceAuthSession } from "@/entities/auth";
-import { preferencesSchema, preferencesStore, type Preferences } from "@/entities/preferences";
+import type { Preferences } from "@/entities/preferences";
+import { preferencesSchema } from "@/entities/preferences/model/schema";
+import { preferencesStore } from "@/entities/preferences/model/store";
 import type { StudyState } from "@/features/study/state/studyStore";
 import { studyStore } from "@/features/study/state/studyStoreInstance";
 import { toRemoteById } from "@/shared/api/remoteSnapshot";

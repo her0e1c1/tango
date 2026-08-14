@@ -77,25 +77,31 @@ const cardFields = (uid: string, deckId: string, frontText: string) => ({
 });
 
 const persistedConfig = {
-  useCardInterval: false,
-  showSwipeButtonList: true,
-  showScoreSlider: false,
-  showHeader: true,
-  fullscreen: false,
-  maxNumberOfCardsToLearn: 10,
-  hideBodyWhenCardChanged: true,
-  sizeBackText: 0,
-  shuffled: false,
-  defaultAutoPlay: false,
-  cardInterval: 60,
-  keepBackTextViewed: false,
-  showSwipeFeedback: false,
-  cardSwipeUp: "GoToNextCardMastered",
-  cardSwipeDown: "GoToNextCardNotMastered",
-  cardSwipeLeft: "GoToPrevCard",
-  cardSwipeRight: "GoToNextCard",
-  darkMode: false,
-  selectedTags: [],
+  appearance: {
+    darkMode: false,
+    showHeader: true,
+    fullscreen: false,
+    sizeBackText: 0,
+    hideBodyWhenCardChanged: true,
+    showSwipeFeedback: false,
+  },
+  study: {
+    maxNumberOfCardsToLearn: 10,
+    shuffled: false,
+    useCardInterval: false,
+    cardInterval: 60,
+    keepBackTextViewed: false,
+    defaultAutoPlay: false,
+    selectedTags: [],
+  },
+  controls: {
+    showSwipeButtonList: true,
+    showScoreSlider: false,
+    cardSwipeUp: "GoToNextCardMastered",
+    cardSwipeDown: "GoToNextCardNotMastered",
+    cardSwipeLeft: "GoToPrevCard",
+    cardSwipeRight: "GoToNextCard",
+  },
 };
 
 const seedAuth = async (page: Page, uid: string, options: { linked?: boolean; nextUid?: string } = {}) => {
@@ -146,7 +152,7 @@ const seedAuth = async (page: Page, uid: string, options: { linked?: boolean; ne
     });
   });
   await page.addInitScript((config) => {
-    window.localStorage.setItem("tango-config", JSON.stringify({ state: { config }, version: 1 }));
+    window.localStorage.setItem("tango-config", JSON.stringify({ state: { preferences: config }, version: 0 }));
   }, persistedConfig);
 };
 

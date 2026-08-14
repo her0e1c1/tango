@@ -1,10 +1,31 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { defaultPreferences } from "./preferences";
-import { preferencesStore, toggleShowHeader, toggleShowSwipeButtonList } from "./store";
+import { preferencesStore, setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, updatePreferences } from "./store";
+
+type MemoryStorage = Omit<StateStorage, "getItem"> & {
+  getItem: (name: string) => string | null;
+};
+
+const createMemoryStorage = (initial: Record<string, string> = {}): MemoryStorage => {
+  const values = new Map(Object.entries(initial));
+  return {
+    getItem: (name) => values.get(name) ?? null,
+    setItem: (name, value) => values.set(name, value),
+    removeItem: (name) => values.delete(name),
+  };
+};
+
+const useMemoryStorage = (initial: Record<string, string> = {}): MemoryStorage => {
+  const storage = createMemoryStorage(initial);
+  preferencesStore.persist.setOptions({ storage: createJSONStorage(() => storage) });
+  return storage;
+};
 
 describe("preferences store", () => {
   beforeEach(() => {
+    useMemoryStorage();
     preferencesStore.getState().updatePreferences(defaultPreferences);
   });
 
@@ -17,8 +38,8 @@ describe("preferences store", () => {
       controls: { showScoreSlider: true },
     });
     store.getState().updatePreferences({ appearance: { showHeader: false } });
-    toggleShowHeader();
-    toggleShowSwipeButtonList();
+    store.getState().updatePreferences({ appearance: { showHeader: true } });
+    store.getState().updatePreferences({ controls: { showSwipeButtonList: false } });
 
     expect(store.getState().preferences).toEqual({
       ...defaultPreferences,
@@ -41,5 +62,62 @@ describe("preferences store", () => {
     );
     expect(store.getState().preferences.study.cardInterval).toBe(defaultPreferences.study.cardInterval);
     expect(store.getState().preferences.appearance.sizeBackText).toBe(defaultPreferences.appearance.sizeBackText);
+  });
+
+  it("updates preferences through the public helpers", () => {
+    setDarkMode(true);
+    updatePreferences({ study: { cardInterval: 15 } });
+    toggleShowHeader();
+    toggleShowSwipeButtonList();
+
+    expect(preferencesStore.getState().preferences).toEqual({
+      ...defaultPreferences,
+      appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: false },
+      study: { ...defaultPreferences.study, cardInterval: 15 },
+      controls: { ...defaultPreferences.controls, showSwipeButtonList: false },
+    });
+  });
+
+  it("persists preference changes", () => {
+    const storage = useMemoryStorage();
+
+    preferencesStore.getState().updatePreferences({ appearance: { darkMode: true } });
+
+    expect(JSON.parse(storage.getItem("tango-config") ?? "{}")).toEqual({
+      state: {
+        preferences: {
+          ...defaultPreferences,
+          appearance: { ...defaultPreferences.appearance, darkMode: true },
+        },
+      },
+      version: 0,
+    });
+  });
+
+  it("hydrates persisted preferences", async () => {
+    const persistedPreferences = {
+      ...defaultPreferences,
+      appearance: { ...defaultPreferences.appearance, darkMode: true },
+      study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
+    };
+    useMemoryStorage({
+      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 0 }),
+    });
+
+    await preferencesStore.persist.rehydrate();
+
+    expect(preferencesStore.getState().preferences).toEqual(persistedPreferences);
+  });
+
+  it.each([
+    ["malformed JSON", "not-json"],
+    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 0 })],
+    ["legacy envelope", JSON.stringify({ state: { config: { darkMode: true, showHeader: false } }, version: 0 })],
+  ])("uses current defaults for %s", async (_case, persistedValue) => {
+    useMemoryStorage({ "tango-config": persistedValue });
+
+    await preferencesStore.persist.rehydrate();
+
+    expect(preferencesStore.getState().preferences).toEqual(defaultPreferences);
   });
 });
