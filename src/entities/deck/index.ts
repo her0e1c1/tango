@@ -3,7 +3,6 @@ export { useDeck, useDecks } from "./model/hooks";
 export { clearDecks, replaceDecks } from "./model/store";
 export { createDeckSchema, deleteDeckSchema, editDeckSchema } from "./model/schema";
 export type {
-  Category,
   Deck,
   DeckCreate,
   DeckCreateInput,
