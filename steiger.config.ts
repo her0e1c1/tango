@@ -25,6 +25,13 @@ export default defineConfig([
     },
   },
   {
+    files: ["./src/features/deck-edit/**"],
+    rules: {
+      // Deck edit intentionally owns the workflow while serving a single route adapter.
+      "fsd/insignificant-slice": "off",
+    },
+  },
+  {
     files: ["./src/entities/preferences/**"],
     rules: {
       // Preferences is the domain concept's established name, not a plural collection of entities.

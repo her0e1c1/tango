@@ -8,7 +8,6 @@ import { useKey } from "react-use";
 
 import { filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
 import { useCardReadState } from "@/features/card/read";
-import { useDeckEditAction } from "@/features/deck-edit";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -29,13 +28,12 @@ const DeckStartContent = (props: {
   tags: string[];
 }) => {
   const { cardsById, deck, cards, preferences, tags } = props;
-  const deckMutations = useDeckEditAction();
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {
     cardsById,
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
   });
-  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
+  const deckStartForm = useDeckFilterState({ deck, tags });
   const start = () => studyActions.start(cards);
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;

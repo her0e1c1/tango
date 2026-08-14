@@ -11,12 +11,19 @@ import type React from "react";
 
 import userEvent from "@testing-library/user-event";
 import { fireEvent, render, waitFor, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { DeckStartForm } from "../components/DeckStartForm";
 import { useDeckFilterState } from "./useDeckFilterState";
 import { createDeck } from "@/test/factories";
+
+const mocks = vi.hoisted(() => ({ editDeck: vi.fn() }));
+
+vi.mock("@/entities/auth", () => ({
+  useAuthSession: () => ({ status: "authenticated" as const, uid: "user-id", isAnonymous: false, displayName: null }),
+}));
+vi.mock("@/entities/deck", () => ({ editDeck: mocks.editDeck }));
 
 /**
  * Renders the test-only Deck Filter Harness component with controlled state or providers.
@@ -25,9 +32,8 @@ import { createDeck } from "@/test/factories";
 const DeckFilterHarness: React.FC<{
   deck: Deck;
   tags: string[];
-  onSubmit: (deck: Deck) => void;
-}> = ({ deck, tags, onSubmit }) => {
-  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit });
+}> = ({ deck, tags }) => {
+  const deckStartForm = useDeckFilterState({ deck, tags });
   return <DeckStartForm {...deckStartForm} />;
 };
 
@@ -40,9 +46,12 @@ describe("DeckStartForm with useDeckFilterState", () => {
   });
   const tags = ["tag1", "tag2", "tag3"];
 
-  it("auto-submits score and tag filter changes", async () => {
-    const onSubmit = vi.fn();
-    render(<DeckFilterHarness onSubmit={onSubmit} deck={deck} tags={tags} />);
+  beforeEach(() => {
+    mocks.editDeck.mockReset().mockResolvedValue(undefined);
+  });
+
+  it("persists score and tag filter changes", async () => {
+    render(<DeckFilterHarness deck={deck} tags={tags} />);
 
     fireEvent.change(screen.getByRole("slider", { name: "Maximum score value" }), {
       target: { value: 2 },
@@ -54,27 +63,26 @@ describe("DeckStartForm with useDeckFilterState", () => {
     await userEvent.click(screen.getByRole("button", { name: /all/i }));
 
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({
-        ...deck,
-        scoreMax: 2,
-        scoreMin: -2,
-        tagAndFilter: true,
-        selectedTags: tags,
-      });
+      expect(mocks.editDeck).toHaveBeenLastCalledWith(
+        "user-id",
+        expect.objectContaining({ scoreMax: 2, scoreMin: -2, tagAndFilter: true, selectedTags: tags })
+      );
     });
   });
 
-  it("auto-submits score toggle and slider changes", async () => {
-    const onSubmit = vi.fn();
-    render(<DeckFilterHarness onSubmit={onSubmit} deck={{ ...deck, scoreMax: null, scoreMin: null }} tags={tags} />);
+  it("persists score toggle and slider changes", async () => {
+    render(<DeckFilterHarness deck={{ ...deck, scoreMax: null, scoreMin: null }} tags={tags} />);
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable maximum score" }));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, scoreMax: 0, scoreMin: null });
+      expect(mocks.editDeck).toHaveBeenLastCalledWith(
+        "user-id",
+        expect.objectContaining({ scoreMax: 0, scoreMin: null })
+      );
     });
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable minimum score" }));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, scoreMax: 0, scoreMin: 0 });
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ scoreMax: 0, scoreMin: 0 }));
     });
 
     fireEvent.change(screen.getByRole("slider", { name: "Maximum score value" }), {
@@ -84,33 +92,38 @@ describe("DeckStartForm with useDeckFilterState", () => {
       target: { value: -2 },
     });
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, scoreMax: 2, scoreMin: -2 });
+      expect(mocks.editDeck).toHaveBeenLastCalledWith(
+        "user-id",
+        expect.objectContaining({ scoreMax: 2, scoreMin: -2 })
+      );
     });
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable maximum score" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable minimum score" }));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, scoreMax: null, scoreMin: null });
+      expect(mocks.editDeck).toHaveBeenLastCalledWith(
+        "user-id",
+        expect.objectContaining({ scoreMax: null, scoreMin: null })
+      );
     });
   });
 
-  it("auto-submits individual tag, all, and clear changes", async () => {
-    const onSubmit = vi.fn();
-    render(<DeckFilterHarness onSubmit={onSubmit} deck={deck} tags={tags} />);
+  it("persists individual tag, all, and clear changes", async () => {
+    render(<DeckFilterHarness deck={deck} tags={tags} />);
 
     await userEvent.click(screen.getByText("tag2"));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, selectedTags: ["tag2"] });
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ selectedTags: ["tag2"] }));
     });
 
     await userEvent.click(screen.getByRole("button", { name: /all/i }));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, selectedTags: tags });
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ selectedTags: tags }));
     });
 
     await userEvent.click(screen.getByRole("button", { name: /clear/i }));
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({ ...deck, selectedTags: [] });
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ selectedTags: [] }));
     });
   });
 });

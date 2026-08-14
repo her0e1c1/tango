@@ -8,7 +8,6 @@ import { type Card, type CardId, filterCardsByDeckId, filterTagsByDeckId, useCar
 import { getCategory, isHighlightLanguage, type Deck, useDeck } from "@/entities/deck";
 import { useDeleteCard } from "@/features/card/delete";
 import { useCardReadState } from "@/features/card/read";
-import { useDeckEditAction } from "@/features/deck-edit";
 import {
   DeckStartForm,
   type StudyProgressPatch,
@@ -41,8 +40,7 @@ const CardListContent = (props: { deck: Deck; cards: Card[]; tags: string[]; pre
       setSuccessMessage(`Deleted card “${card.frontText}”.`);
     },
   });
-  const deckMutations = useDeckEditAction();
-  const deckStartForm = useDeckFilterState({ deck, tags, onSubmit: deckMutations.update });
+  const deckStartForm = useDeckFilterState({ deck, tags });
   const closeCard = () => setShowCard(undefined);
   const category = showCard == null ? undefined : getCategory(deck.category, showCard.tags);
   const updateBy = (id: CardId, buildPatch: (card: Card) => StudyProgressPatch) => {

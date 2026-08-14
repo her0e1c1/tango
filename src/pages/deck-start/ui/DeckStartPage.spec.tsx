@@ -14,7 +14,6 @@ const mocks = vi.hoisted(() => ({
   deck: null as Deck | null,
   cards: [] as Card[],
   start: vi.fn(),
-  update: vi.fn(),
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
@@ -33,7 +32,6 @@ vi.mock("@/features/card/read", () => ({
     retry: vi.fn(),
   }),
 }));
-vi.mock("@/features/deck-edit", () => ({ useDeckEditAction: () => ({ update: mocks.update }) }));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: (_deckId: string, options: { onStarted?: () => void } = {}) => ({
     start: (_cards: Card[]) => {
