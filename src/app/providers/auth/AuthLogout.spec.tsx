@@ -15,7 +15,7 @@ import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   auth: { currentUser: null },
-  onAuthStateChanged: vi.fn(),
+  onIdTokenChanged: vi.fn(),
   signInAnonymously: vi.fn(),
   signOut: vi.fn(),
   publishUser: undefined as ((user: User | null) => void) | undefined,
@@ -32,7 +32,7 @@ vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth", () => ({
   GoogleAuthProvider: Object.assign(vi.fn(), { credentialFromError: vi.fn() }),
   linkWithPopup: vi.fn(),
-  onAuthStateChanged: mocks.onAuthStateChanged,
+  onIdTokenChanged: mocks.onIdTokenChanged,
   signInAnonymously: mocks.signInAnonymously,
   signInWithCredential: vi.fn(),
   signOut: mocks.signOut,
@@ -78,11 +78,11 @@ vi.mock("@/pages/settings/ui/SettingsView", () => ({
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
-import { logout } from "@/app/auth/logout";
 import { AuthBootstrap } from "@/app/providers/auth";
 import { startAuthSession } from "@/app/providers/auth/authLifecycle";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
 import { replaceAuthSession, useAuthSession } from "@/entities/auth";
+import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { SettingsPage } from "@/pages/settings";
 import { useStudyStore } from "@/features/study";
 
@@ -95,7 +95,7 @@ beforeEach(async () => {
   replaceAuthSession({ status: "initializing" });
   mocks.auth.currentUser = null;
   mocks.operations.length = 0;
-  mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
+  mocks.onIdTokenChanged.mockImplementation((_auth, onUser) => {
     mocks.publishUser = onUser;
     return vi.fn();
   });
@@ -127,7 +127,7 @@ const getStudySessions = () => {
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
 const AuthenticatedSettings = () =>
-  useAuthSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={logout} /> : null;
+  useAuthSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={signOutCurrentUser} /> : null;
 
 it("waits for local cleanup before bootstrapping the next anonymous UID", async () => {
   let resolveStudyCleanup: () => void = () => undefined;
@@ -172,7 +172,7 @@ it("waits for local cleanup before bootstrapping the next anonymous UID", async 
 
   let pendingLogout!: Promise<void>;
   act(() => {
-    pendingLogout = logout();
+    pendingLogout = signOutCurrentUser();
   });
   await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledOnce());
 
