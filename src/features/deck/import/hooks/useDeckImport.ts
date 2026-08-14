@@ -5,12 +5,12 @@
  */
 
 import type { Card, CardId, CardRaw } from "@/entities/card";
-import type { Deck, DeckId } from "@/entities/deck";
+import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { createCard as prepareCard, selectCardsForDeck } from "@/entities/card";
-import { createDeck, generateDeckId } from "@/entities/deck";
+import { generateDeckId } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
@@ -21,7 +21,7 @@ import { CardBulkMutationError, upsertImportedCards } from "../api/upsertImporte
 export interface DeckImportOptions {
   cards: Card[];
   createCard: (uid: string, card: Card) => Promise<unknown>;
-  createDeck: (uid: string, deck: Deck) => Promise<unknown>;
+  createDeck: (uid: string, deck: DeckCreateInput) => Promise<unknown>;
   decks: Deck[];
   editCard: (uid: string, card: Card) => Promise<unknown>;
   generateCardId: () => string;
@@ -48,7 +48,7 @@ const initialDeckImportState = (uid: string): DeckImportState => ({
 
 interface DeckImportAttempt {
   uid: string;
-  deck: Deck;
+  deck: DeckCreateInput;
   createDeckPending: boolean;
   remainingUpserts: Card[];
   createdIds: CardId[];
@@ -105,7 +105,7 @@ interface DeckImportDependencies {
   synchronized: boolean;
   decks: Deck[];
   cardsByDeckId: (id: DeckId) => Card[];
-  createDeck: (deck: Deck) => Promise<unknown>;
+  createDeck: (deck: DeckCreateInput) => Promise<unknown>;
   generateCardId: () => string;
   bulkUpsert: (cards: Card[], createdIds: CardId[]) => Promise<unknown>;
 }
@@ -122,13 +122,12 @@ const prepareDeckImportAttempt = (
   const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
   const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
   const rows = request.kind === "sample" ? rowsFromCards(sampleCards as CardRaw[]) : request.rows;
-  let deck = decks.find((candidate) =>
+  let deck: DeckCreateInput | undefined = decks.find((candidate) =>
     preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
   );
   const createDeckPending = deck == null;
   if (deck == null) {
-    deck = createDeck({ name }, uid, generateDeckId);
-    if (preferredDeckId !== undefined) deck = { ...deck, id: preferredDeckId };
+    deck = { id: preferredDeckId ?? generateDeckId(), uid, name };
   }
 
   const existing = cardsByDeckId(deck.id);

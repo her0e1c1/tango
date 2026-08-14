@@ -3,7 +3,7 @@
  * The examples cover creating, updating, checking, and deleting Deck documents.
  */
 
-import type { Deck } from "@/entities/deck";
+import type { Deck, DeckCreateInput } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
@@ -40,11 +40,12 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
 
   it("should create a deck and check if exists", async () => {
     const d = {
-      ...newDeck,
       id: uuid(),
+      uid: "uid",
+      name: "new deck name",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies DeckCreateInput & { currentIndex: number; cardOrderIds: string[] };
     await createDeck("uid", d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...newDeck, id: d.id });

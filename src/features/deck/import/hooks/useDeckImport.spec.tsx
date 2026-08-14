@@ -5,7 +5,7 @@
  */
 
 import type { Card } from "@/entities/card";
-import type { Deck, DeckId } from "@/entities/deck";
+import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -24,9 +24,8 @@ const mocks = vi.hoisted(() => ({
   decks: [] as Deck[],
   cards: [] as Card[],
   parseCsv: vi.fn(),
-  prepareDeck: vi.fn(),
   prepareCard: vi.fn(),
-  generateDeckId: vi.fn(() => "generated-deck-id"),
+  generateDeckId: vi.fn(() => "deck"),
   generateCardId: vi.fn(() => "generated-card-id"),
   createCardWrite: vi.fn(),
   editCard: vi.fn(),
@@ -59,7 +58,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
-    createDeck: (...args: unknown[]) => mocks.prepareDeck(...args),
     generateDeckId: mocks.generateDeckId,
   };
 });
@@ -73,7 +71,7 @@ const useTestDeckImport = (props?: { synchronized?: boolean }) =>
   useDeckImport({
     cards: mocks.cards,
     createCard: mocks.createCardWrite,
-    createDeck: (_uid: string, deck: Deck) => mocks.createDeck(deck),
+    createDeck: (_uid: string, deck: DeckCreateInput) => mocks.createDeck(deck),
     decks: mocks.decks,
     editCard: mocks.editCard,
     generateCardId: mocks.generateCardId,
@@ -99,7 +97,7 @@ describe("useDeckImport", () => {
       const { parseCsv } = await vi.importActual<typeof import("../lib/cardCsv")>("../lib/cardCsv");
       return parseCsv(content);
     });
-    mocks.prepareDeck.mockReturnValue(createDeck({ id: "deck", uid: "uid-a" }));
+    mocks.generateDeckId.mockReturnValue("deck");
     mocks.prepareCard.mockReturnValue(createCard({ id: "card", deckId: "deck" }));
     mocks.createCardWrite.mockResolvedValue(undefined);
     mocks.editCard.mockResolvedValue(undefined);
@@ -129,7 +127,7 @@ describe("useDeckImport", () => {
       imported = await result.current.importPreview();
     });
     expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "deck.csv" }, "uid-a", mocks.generateDeckId);
+    expect(mocks.createDeck).toHaveBeenCalledWith({ id: "deck", uid: "uid-a", name: "deck.csv" });
     expect(mocks.prepareCard).toHaveBeenCalledWith(expect.anything(), expect.anything(), mocks.generateCardId);
     expect(mocks.bulkUpsert).toHaveBeenCalledWith([expect.objectContaining({ id: "card" })]);
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
@@ -149,7 +147,7 @@ describe("useDeckImport", () => {
     expect(result.current.error).toEqual(
       new Error("Deck import requires a synchronized connection. Check your connection and retry.")
     );
-    expect(mocks.prepareDeck).not.toHaveBeenCalled();
+    expect(mocks.generateDeckId).not.toHaveBeenCalled();
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
   });
@@ -226,10 +224,11 @@ describe("useDeckImport", () => {
 
     await actAsync(async () => result.current.addSample());
 
-    expect(mocks.prepareDeck).toHaveBeenCalledWith({ name: "Sample Deck" }, "uid-a", mocks.generateDeckId);
-    expect(mocks.createDeck).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "sample-v1-uid-a", name: "Deck", uid: "uid-a" })
-    );
+    expect(mocks.createDeck).toHaveBeenCalledWith({
+      id: "sample-v1-uid-a",
+      name: "Sample Deck",
+      uid: "uid-a",
+    });
     expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
   });
 
@@ -334,7 +333,7 @@ describe("useDeckImport", () => {
     const deck = createDeck({ id: "destination", uid: "uid-a" });
     const first = createCard({ id: "prepared-first", deckId: deck.id, uniqueKey: "first" });
     const second = createCard({ id: "prepared-second", deckId: deck.id, uniqueKey: "second" });
-    mocks.prepareDeck.mockReturnValue(deck);
+    mocks.generateDeckId.mockReturnValueOnce(deck.id);
     mocks.prepareCard.mockReturnValueOnce(first).mockReturnValueOnce(second);
     mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([second.id], 2)).mockResolvedValueOnce(undefined);
     const { result } = renderHook(useTestDeckImport);
@@ -368,7 +367,6 @@ describe("useDeckImport", () => {
     expect(mocks.decks).toEqual([]);
     expect(mocks.cards).toEqual([]);
     expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.prepareDeck).toHaveBeenCalledOnce();
     expect(mocks.prepareCard).toHaveBeenCalledTimes(2);
     expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(1, [first, second]);
     expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(2, [second]);

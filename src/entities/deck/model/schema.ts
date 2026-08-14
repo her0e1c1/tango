@@ -16,12 +16,22 @@ const editableDeckFieldsSchema = z.object({
   convertToBr: z.boolean(),
 });
 
-const deckSchema = editableDeckFieldsSchema.extend({
+const deckCreateSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
   uid: deckUidSchema,
+  isPublic: editableDeckFieldsSchema.shape.isPublic.default(false),
+  scoreMax: editableDeckFieldsSchema.shape.scoreMax.default(null),
+  scoreMin: editableDeckFieldsSchema.shape.scoreMin.default(null),
+  selectedTags: editableDeckFieldsSchema.shape.selectedTags.default([]),
+  tagAndFilter: editableDeckFieldsSchema.shape.tagAndFilter.default(false),
+  category: editableDeckFieldsSchema.shape.category.default(""),
+  convertToBr: editableDeckFieldsSchema.shape.convertToBr.default(false),
+  deletedAt: z.number().nullable().default(null),
+});
+
+const deckSchema = deckCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
-  deletedAt: z.number().nullable(),
 });
 
 const deckEditSchema = editableDeckFieldsSchema.partial().extend({ id: deckIdSchema });
@@ -38,7 +48,7 @@ const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, contex
 };
 
 export const createDeckSchema = z
-  .object({ uid: authenticatedUidSchema, deck: deckSchema })
+  .object({ uid: authenticatedUidSchema, deck: deckCreateSchema })
   .superRefine(validateDeckOwner);
 
 export const editDeckSchema = z.object({
@@ -51,8 +61,9 @@ export const deleteDeckSchema = z
   .superRefine(validateDeckOwner);
 
 export type Deck = z.infer<typeof deckSchema>;
+export type DeckCreate = z.infer<typeof deckCreateSchema>;
+export type DeckCreateInput = z.input<typeof deckCreateSchema>;
 export type DeckId = z.infer<typeof deckIdSchema>;
 export type DeckEdit = z.infer<typeof deckEditSchema>;
-export type CreateDeckInput = z.infer<typeof createDeckSchema>;
 export type EditDeckInput = z.infer<typeof editDeckSchema>;
 export type DeleteDeckInput = z.infer<typeof deleteDeckSchema>;

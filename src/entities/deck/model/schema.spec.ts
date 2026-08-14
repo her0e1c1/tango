@@ -8,8 +8,23 @@ describe("Deck operation schemas", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
   describe("createDeckSchema", () => {
-    it("accepts a complete Deck owned by the authenticated user", () => {
-      expect(createDeckSchema.parse({ uid: "uid-a", deck })).toEqual({ uid: "uid-a", deck });
+    it("applies entity defaults without adding persistence timestamps", () => {
+      expect(createDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", uid: "uid-a", name: "Deck" } })).toEqual({
+        uid: "uid-a",
+        deck: {
+          id: "deck",
+          uid: "uid-a",
+          name: "Deck",
+          isPublic: false,
+          scoreMax: null,
+          scoreMin: null,
+          selectedTags: [],
+          tagAndFilter: false,
+          category: "",
+          convertToBr: false,
+          deletedAt: null,
+        },
+      });
     });
 
     it.each([
