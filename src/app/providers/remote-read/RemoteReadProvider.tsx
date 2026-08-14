@@ -1,4 +1,4 @@
-import { type PropsWithChildren, useEffect, useState } from "react";
+import { type PropsWithChildren, useLayoutEffect, useMemo, useState } from "react";
 
 import { useAuthSession } from "@/entities/auth";
 import { clearCards } from "@/entities/card";
@@ -10,27 +10,34 @@ import { subscribeDecks } from "./deck";
 export const RemoteReadProvider = ({ children }: PropsWithChildren) => {
   const authSession = useAuthSession();
   const uid = authSession.status === "authenticated" ? authSession.uid : null;
-  const [readReadyUid, setReadReadyUid] = useState<string | null>();
+  const subscriptionToken = useMemo(() => Symbol(uid ?? "signed-out"), [uid]);
+  const [deckReadyToken, setDeckReadyToken] = useState<symbol>();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (uid == null) {
       clearCards();
       clearDecks();
-      // Expose the signed-out scope only after stale entity data has been cleared.
-      queueMicrotask(() => setReadReadyUid(null));
       return;
     }
+    let active = true;
     startCardReads(uid);
-    const unsubscribeDecks = subscribeDecks(uid, () => setReadReadyUid(uid), console.error);
+    const unsubscribeDecks = subscribeDecks(
+      uid,
+      () => {
+        if (active) setDeckReadyToken(subscriptionToken);
+      },
+      console.error
+    );
     return () => {
+      active = false;
       stopCardReads(uid);
       unsubscribeDecks();
       clearCards();
       clearDecks();
     };
-  }, [uid]);
+  }, [subscriptionToken, uid]);
 
-  if (readReadyUid !== uid) return null;
+  if (uid != null && deckReadyToken !== subscriptionToken) return null;
 
   return <RemoteReadScopeProvider uid={uid}>{children}</RemoteReadScopeProvider>;
 };

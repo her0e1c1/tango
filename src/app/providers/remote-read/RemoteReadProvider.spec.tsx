@@ -124,16 +124,31 @@ describe("RemoteReadProvider integration", () => {
 
   it("hides the previous user's Card while logout clears the read scope", async () => {
     const card = createCard({ id: "card-a", uid: "uid-a", frontText: "Previous user Card" });
-    const { publishUser } = createHarness(<CardConsumer />);
+    const { publishUser } = createHarness(
+      <>
+        <div>scope content</div>
+        <CardConsumer />
+      </>
+    );
     act(() => publishUser("uid-a"));
     await waitFor(() => expect(mocks.startCards).toHaveBeenCalledWith("uid-a"));
-    act(() => mocks.deckReadyByUid["uid-a"]?.());
+    const readyA = mocks.deckReadyByUid["uid-a"];
+    act(() => readyA?.());
     act(() => replaceCards([card]));
     expect(screen.getByText(card.frontText)).toBeTruthy();
 
     act(() => publishUser(null));
 
     expect(screen.queryByText(card.frontText)).toBeNull();
+    expect(screen.getByText("scope content")).toBeTruthy();
+    act(() => readyA?.());
+    expect(screen.getByText("scope content")).toBeTruthy();
     await waitFor(() => expect(mocks.stopCards).toHaveBeenCalledWith("uid-a"));
+
+    act(() => publishUser("uid-a"));
+    await waitFor(() => expect(mocks.startCards).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText("scope content")).toBeNull();
+    act(() => mocks.deckReadyByUid["uid-a"]?.());
+    expect(screen.getByText("scope content")).toBeTruthy();
   });
 });
