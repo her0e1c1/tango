@@ -2,12 +2,12 @@ import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
+import { useAuthSession } from "@/entities/auth";
 import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
-import { createDeck, useDecks } from "@/entities/deck";
+import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
 import { useCardReadState } from "@/features/card/read";
-import { useDeleteDeck } from "@/features/deck/delete";
 import { downloadDeckCsv } from "@/features/deck/export";
-import { useSampleDeckBootstrap } from "@/features/deck/import";
+import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
 import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -15,13 +15,14 @@ import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
+  const auth = useAuthSession();
   const cards = useCards();
   const cardReadState = useCardReadState();
   const decks = useDecks();
-  const deleteDeck = useDeleteDeck();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
   const synchronized = cardReadState.serverConfirmed;
+  const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useSampleDeckBootstrap({
     cards,
@@ -56,7 +57,7 @@ export const DeckListPage: React.FC = () => {
             onEditDeck={(id) => void navigate(`/deck/${id}/edit`)}
             onDownloadDeck={downloadDeckCsv}
             onDeleteDeck={async (deck) => {
-              await deleteDeck.remove(deck);
+              await deleteDeck(uid, deck);
               removeStudySession(deck.id);
             }}
           />

@@ -1,5 +1,5 @@
 /**
- * @file Defines the card feature's Card presentation component.
+ * @file Defines the Card list feature's row presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */

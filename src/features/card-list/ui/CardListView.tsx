@@ -1,18 +1,19 @@
 /**
- * @file Composes the Card List Page's presentation.
+ * @file Composes the Card List feature's presentation.
  * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
 import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
+import type { Card as CardEntity, CardId } from "@/entities/card";
 import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
-import type { Card as CardEntity, CardId } from "@/entities/card";
-import { BackText, type BackTextProps, Card, type CardProps } from "@/features/card/view";
+
+import { Card, type CardProps } from "./Card";
 
 interface CardListOverlayProps {
-  backText: BackTextProps;
+  content: React.ReactNode;
   onClose?: () => void;
 }
 
@@ -30,8 +31,6 @@ export interface CardListViewProps {
   overlay?: CardListOverlayProps;
   onShowCard?: (card: CardEntity) => void;
   onRemoveTag?: (tag: string) => void;
-  feedbackSlot?: React.ReactNode;
-  dialogSlot?: React.ReactNode;
   isCardPending?: (id: CardId) => boolean;
 }
 
@@ -110,8 +109,6 @@ export const CardListView: React.FC<CardListViewProps> = (props) => {
 
   return (
     <>
-      {props.feedbackSlot}
-      {props.dialogSlot}
       {props.overlay != null && (
         <Overlay
           position="center"
@@ -119,7 +116,7 @@ export const CardListView: React.FC<CardListViewProps> = (props) => {
           className="overflow-y-auto bg-surface-elevated"
           {...(props.overlay.onClose !== undefined ? { onClick: props.overlay.onClose } : {})}
         >
-          <BackText {...props.overlay.backText} />
+          {props.overlay.content}
         </Overlay>
       )}
 

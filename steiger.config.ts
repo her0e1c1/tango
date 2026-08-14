@@ -29,9 +29,9 @@ export default defineConfig([
     },
   },
   {
-    files: ["./src/features/card-edit/**", "./src/features/deck-edit/**"],
+    files: ["./src/features/card-edit/**", "./src/features/card-list/**", "./src/features/deck-edit/**"],
     rules: {
-      // Edit features intentionally own their workflows while serving single route adapters.
+      // Route-specific features intentionally own their workflows while serving a single route adapter.
       "fsd/insignificant-slice": "off",
     },
   },
