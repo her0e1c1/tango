@@ -32,7 +32,7 @@
     "lint:biome": "biome lint --error-on-warnings .",
     "lint:eslint": "eslint --max-warnings=0 'src/**/*.{ts,tsx}'",
     "lint:fsd": "steiger ./src",
-    "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' && biome lint --write . && npm run fmt:markdown",
+    "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' && biome lint --write . && knip --fix --allow-remove-files && npm run fmt:markdown",
     "lint:knip": "knip --strict",
     "lint:markdown": "markdownlint-cli2",
     "lint:tsc": "tsc",
