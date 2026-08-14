@@ -1,4 +1,5 @@
 import { persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
 import { defaultPreferences, type Preferences } from "./preferences";
@@ -19,26 +20,21 @@ interface PersistedPreferencesState {
 
 const createPreferencesStore = () =>
   createStore<PreferencesStoreState>()(
-    persist<PreferencesStoreState, [], [], PersistedPreferencesState>(
-      (set) => ({
+    persist<PreferencesStoreState, [], [["zustand/immer", never]], PersistedPreferencesState>(
+      immer((set) => ({
         preferences: defaultPreferences,
         updatePreferences: (preferencesInput) =>
           set((state) => {
-            const merged = {
-              appearance: { ...state.preferences.appearance, ...preferencesInput.appearance },
-              study: {
-                ...state.preferences.study,
-                ...preferencesInput.study,
-                selectedTags:
-                  preferencesInput.study?.selectedTags == null
-                    ? state.preferences.study.selectedTags
-                    : [...preferencesInput.study.selectedTags],
-              },
-              controls: { ...state.preferences.controls, ...preferencesInput.controls },
-            };
-            return { preferences: preferencesSchema.parse(merged) };
+            const { selectedTags, ...study } = preferencesInput.study ?? {};
+            Object.assign(state.preferences.appearance, preferencesInput.appearance);
+            Object.assign(state.preferences.study, study);
+            Object.assign(state.preferences.controls, preferencesInput.controls);
+            if (selectedTags != null) {
+              state.preferences.study.selectedTags = [...selectedTags];
+            }
+            state.preferences = preferencesSchema.parse(state.preferences);
           }),
-      }),
+      })),
       {
         name: "tango-config",
         merge: (persistedState, currentState) => {
