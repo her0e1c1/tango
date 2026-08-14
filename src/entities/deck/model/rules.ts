@@ -1,8 +1,4 @@
-/**
- * @file Owns deck category values and the rule for resolving a card's effective category.
- */
-
-export type Category = string;
+import type { Category } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -47,10 +43,6 @@ export const CATEGORY: Category[] = [...new Set([...APPLICATION_CATEGORIES, ...M
 
 export const isHighlightLanguage = (category: Category): boolean => MAJOR_LANGUAGES.includes(category);
 
-/**
- * Resolves the category used to render a card.
- * The first supported application category or code language tag overrides the deck default.
- */
 export const getCategory = (category: Category, tags: string[]): Category => {
   const tagCategory = tags.find((tag) => APPLICATION_CATEGORIES.includes(tag) || isHighlightLanguage(tag));
 

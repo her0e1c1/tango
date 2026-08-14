@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
-import { defaultPreferences } from "./preferences";
+import { defaultPreferences } from "./defaults";
 import { preferencesStore, setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, updatePreferences } from "./store";
 
 type MemoryStorage = Omit<StateStorage, "getItem"> & {

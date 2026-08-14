@@ -1,5 +1,4 @@
 export { createCardSchema, deleteCardSchema, editCardSchema } from "./model/schema";
-/** @public Scheduled for consumer migration in #773. */
 export { useCard, useCards } from "./model/hooks";
 export { clearCards, replaceCards } from "./model/store";
 export type {
@@ -11,5 +10,5 @@ export type {
   CardRaw,
   DeleteCardInput,
   EditCardInput,
-} from "./model/schema";
-export { filterCardsByDeckId, filterTagsByDeckId } from "./model/logic";
+} from "./model/types";
+export { filterCardsByDeckId, filterTagsByDeckId } from "./model/rules";

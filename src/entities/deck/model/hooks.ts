@@ -1,7 +1,7 @@
 import { useStore } from "zustand";
 
-import type { Deck, DeckId } from "./schema";
 import { deckStore } from "./store";
+import type { Deck, DeckId } from "./types";
 
 export const useDecks = (): Deck[] => useStore(deckStore, (state) => state.decks);
 

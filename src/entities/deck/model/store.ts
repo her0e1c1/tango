@@ -1,6 +1,6 @@
 import { createStore } from "zustand/vanilla";
 
-import type { Deck } from "./schema";
+import type { Deck } from "./types";
 
 interface DeckState {
   decks: Deck[];

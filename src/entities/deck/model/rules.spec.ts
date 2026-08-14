@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CATEGORY, getCategory, isHighlightLanguage } from "./category";
+import { CATEGORY, getCategory, isHighlightLanguage } from "./rules";
 
 describe("category", () => {
   it("defines supported categories including application categories and major languages", () => {

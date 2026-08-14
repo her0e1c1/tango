@@ -15,5 +15,3 @@ export const editStudyProgressSchema = z.object({
   uid: authenticatedUidSchema,
   progress: studyProgressEditSchema,
 });
-
-export type EditStudyProgressInput = z.infer<typeof editStudyProgressSchema>;
