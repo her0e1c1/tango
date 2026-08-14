@@ -12,7 +12,7 @@ const authSessionFromUser = (user: User) => ({
 });
 
 const startAnonymousBootstrap = () => {
-  if (getAuthSession().status !== "signedOut") return;
+  if (getAuthSession().status !== "unauthenticated") return;
 
   const attemptId = Symbol("anonymous-auth-attempt");
   replaceAuthSession({ status: "authenticating", attemptId });
@@ -33,10 +33,10 @@ export const startAuthSession = () =>
 
     if (getAuthSession().status === "authenticating") return;
 
-    replaceAuthSession({ status: "signedOut" });
+    replaceAuthSession({ status: "unauthenticated" });
     void clearStudyStore()
       .then(startAnonymousBootstrap)
       .catch((error) => {
-        if (getAuthSession().status === "signedOut") replaceAuthSession({ status: "error", error });
+        if (getAuthSession().status === "unauthenticated") replaceAuthSession({ status: "error", error });
       });
   });

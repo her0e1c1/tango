@@ -87,7 +87,7 @@ describe("authLifecycle", () => {
 
     publishUser(null);
 
-    expect(getAuthSession()).toEqual({ status: "signedOut" });
+    expect(getAuthSession()).toEqual({ status: "unauthenticated" });
     expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
     expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
@@ -142,7 +142,7 @@ describe("authLifecycle", () => {
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledTimes(2));
   });
 
-  it("does not restart anonymous sign-in for duplicate signed-out events", async () => {
+  it("does not restart anonymous sign-in for duplicate unauthenticated events", async () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
 
