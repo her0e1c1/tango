@@ -19,7 +19,7 @@ vi.mock("@/shared/firestore", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/firestore")>()),
   getTimestamp: vi.fn(),
 }));
-vi.mock("@/shared/firebase", async () => ({
+vi.mock("@/shared/lib/firestoreRuntime", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
