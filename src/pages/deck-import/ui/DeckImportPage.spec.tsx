@@ -49,6 +49,9 @@ vi.mock("@/features/deck/import", () => ({
 vi.mock("@/features/deck/read", () => ({
   useDecks: () => ({ status: "ready", syncStatus: "synced", decks: [] }),
 }));
+vi.mock("@/features/card/read", () => ({
+  useCards: () => ({ status: "ready", syncStatus: "synced", cards: [] }),
+}));
 
 vi.mock("@/shared/config", () => ({
   useConfig: () => ({ appearance: { darkMode: false } }),

@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   stopDecks: vi.fn(),
 }));
 
-vi.mock("@/entities/card", () => ({
+vi.mock("@/features/card/read", () => ({
   startCardReads: mocks.startCards,
   stopCardReads: mocks.stopCards,
 }));
@@ -21,7 +21,7 @@ import { startRemoteReads, stopRemoteReads } from "@/app/providers/remote-read/r
 describe("remote read lifecycle", () => {
   beforeEach(() => vi.resetAllMocks());
 
-  it("starts and stops both Entity read lifecycles", () => {
+  it("starts and stops both remote read lifecycles", () => {
     startRemoteReads("uid-a");
     stopRemoteReads("uid-a");
 

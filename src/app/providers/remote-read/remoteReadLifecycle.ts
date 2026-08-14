@@ -1,4 +1,4 @@
-import { startCardReads, stopCardReads } from "@/entities/card";
+import { startCardReads, stopCardReads } from "@/features/card/read";
 import { startDeckReads, stopDeckReads } from "@/features/deck/read";
 
 export const stopRemoteReads = (uid: string) => {

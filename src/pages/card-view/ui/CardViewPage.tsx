@@ -1,8 +1,9 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { type Card, useCards } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
+import { useCards } from "@/features/card/read";
 import { useDecks } from "@/features/deck/read";
 import { useConfig } from "@/shared/config";
 import { combineRemoteReadStates } from "@/shared/lib/remote-read";

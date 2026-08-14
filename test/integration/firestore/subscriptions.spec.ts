@@ -12,14 +12,14 @@ import "@/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { subscribeCardReads } from "@/entities/card/api/subscribeCardReads";
-import { subscribeDeckReads } from "@/features/deck/read/api/subscribeDeckReads";
 import { createCard as createCardCommand } from "@/features/card/create";
 import { deleteCard } from "@/features/card/delete/api/deleteCard";
 import { editCard } from "@/features/card/edit";
+import { subscribeCardReads } from "@/features/card/read/api/subscribeCardReads";
 import { createDeck as createDeckCommand } from "@/features/deck/create";
 import { deleteDeck } from "@/features/deck/delete/api/deleteDeck";
 import { editDeck } from "@/features/deck/edit/api/editDeck";
+import { subscribeDeckReads } from "@/features/deck/read/api/subscribeDeckReads";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
 vi.mock("@/shared/firestore", async (importOriginal) => ({

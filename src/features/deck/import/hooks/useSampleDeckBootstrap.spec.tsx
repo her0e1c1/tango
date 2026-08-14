@@ -29,13 +29,15 @@ vi.mock("./useDeckImport", () => ({
 import { useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
 
 const createDeck = vi.fn<(uid: string, deck: Deck) => Promise<unknown>>();
-const useTestSampleDeckBootstrap = () =>
+const useTestSampleDeckBootstrap = (props: { synchronized?: boolean } = {}) =>
   useSampleDeckBootstrap({
+    cards: [],
     createCard: vi.fn(),
     createDeck,
-    deckRead: mocks.remote,
+    decks: mocks.remote.decks,
     editCard: vi.fn(),
     generateCardId: vi.fn(() => "card-id"),
+    synchronized: props.synchronized ?? (mocks.remote.status === "ready" && mocks.remote.syncStatus === "synced"),
   });
 
 /**
@@ -60,11 +62,11 @@ describe("sample Deck bootstrap", () => {
 
   it("waits for the server before treating an empty cache as an empty user", async () => {
     mocks.remote.syncStatus = "cached";
-    const { rerender } = renderHook(useTestSampleDeckBootstrap);
+    const { rerender } = renderHook(useTestSampleDeckBootstrap, { initialProps: { synchronized: false } });
 
     expect(mocks.addSample).not.toHaveBeenCalled();
     mocks.remote.syncStatus = "synced";
-    rerender();
+    rerender({ synchronized: true });
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
   });

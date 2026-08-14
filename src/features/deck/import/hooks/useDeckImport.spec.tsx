@@ -46,7 +46,6 @@ vi.mock("@/entities/card", async (importOriginal) => {
     ...actual,
     createCard: (...args: unknown[]) => mocks.prepareCard(...args),
     selectCardsForDeck: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
-    useCards: () => ({ status: mocks.cardRemoteStatus, syncStatus: mocks.cardSyncStatus, cards: mocks.cards }),
   };
 });
 vi.mock("../api/upsertImportedCards", async (importOriginal) => {
@@ -70,17 +69,20 @@ vi.mock("../lib/cardCsv", async (importOriginal) => {
 });
 import { useDeckImport } from "./useDeckImport";
 
-const useTestDeckImport = () =>
+const useTestDeckImport = (props?: { synchronized?: boolean }) =>
   useDeckImport({
+    cards: mocks.cards,
     createCard: mocks.createCardWrite,
     createDeck: (_uid: string, deck: Deck) => mocks.createDeck(deck),
-    deckRead: {
-      status: mocks.deckRemoteStatus,
-      syncStatus: mocks.deckSyncStatus,
-      decks: mocks.decks,
-    },
+    decks: mocks.decks,
     editCard: mocks.editCard,
     generateCardId: mocks.generateCardId,
+    synchronized:
+      props?.synchronized ??
+      (mocks.cardRemoteStatus === "ready" &&
+        mocks.cardSyncStatus === "synced" &&
+        mocks.deckRemoteStatus === "ready" &&
+        mocks.deckSyncStatus === "synced"),
   });
 
 describe("useDeckImport", () => {
@@ -154,14 +156,14 @@ describe("useDeckImport", () => {
 
   it("allows a new preview after Card reads synchronize", async () => {
     mocks.cardSyncStatus = "cached";
-    const { result, rerender } = renderHook(useTestDeckImport);
+    const initialProps: Parameters<typeof useTestDeckImport>[0] = { synchronized: false };
+    const { result, rerender } = renderHook(useTestDeckImport, { initialProps });
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
       await expect(result.current.selectFile(file)).rejects.toThrow("synchronized connection");
     });
-    mocks.cardSyncStatus = "synced";
-    rerender();
+    rerender({ synchronized: true });
     await actAsync(async () => result.current.selectFile(file));
     await actAsync(async () => result.current.importPreview());
 

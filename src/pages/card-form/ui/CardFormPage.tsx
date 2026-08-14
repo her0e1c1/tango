@@ -2,10 +2,11 @@ import type * as React from "react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { type Card, useCards } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { useEditCard } from "@/features/card/edit";
 import { useCardFormState } from "@/features/card/form";
+import { useCards } from "@/features/card/read";
 import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
