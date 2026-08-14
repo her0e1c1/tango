@@ -51,9 +51,10 @@ vi.mock("@/entities/card", () => ({
   filterTagsByDeckId: (cards: Card[], id: string) => [
     ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
   ],
+  useCards: () => [...mocks.cards],
 }));
 vi.mock("@/features/card/read", () => ({
-  useCards: () => ({ status: "ready" as const, retry: vi.fn(), cards: [...mocks.cards] }),
+  useCardReadState: () => ({ status: "ready" as const, retry: vi.fn() }),
 }));
 
 vi.mock("@/entities/deck", async (importOriginal) => {

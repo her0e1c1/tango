@@ -2,17 +2,16 @@ import type { Preferences } from "@/entities/preferences";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import type { Card } from "@/entities/card";
+import { clearCards, replaceCards } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { createCard, createPreferences, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
   preferences: null as unknown as Preferences,
-  card: null as Card | null,
   deck: null as Deck | null,
   cardStatus: "ready" as "loading" | "ready" | "error" | "blocked",
   cardRetry: vi.fn(),
@@ -26,10 +25,9 @@ vi.mock("@/entities/preferences", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/features/card/read", () => ({
-  useCards: () => ({
+  useCardReadState: () => ({
     status: mocks.cardStatus,
     retry: mocks.cardRetry,
-    cardsById: mocks.card == null ? {} : { [mocks.card.id]: mocks.card },
   }),
 }));
 vi.mock("@/entities/deck", async (importOriginal) => {
@@ -47,15 +45,24 @@ vi.mock("react-router-dom", () => ({
 import { CardViewPage } from "./CardViewPage";
 
 describe("CardViewPage", () => {
+  const card = createCard({
+    id: "card-id",
+    deckId: "deck-id",
+    backText: "const answer = 42;",
+    tags: ["typescript"],
+  });
+
   beforeEach(() => {
     mocks.params.id = "card-id";
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
-    mocks.card = createCard({ id: "card-id", deckId: "deck-id", backText: "const answer = 42;", tags: ["typescript"] });
+    replaceCards([card]);
     mocks.cardStatus = "ready";
     mocks.navigate.mockReset();
     mocks.setDarkMode.mockReset();
   });
+
+  afterEach(clearCards);
 
   it("renders the card answer using its resolved category", () => {
     render(<CardViewPage />);
@@ -70,7 +77,7 @@ describe("CardViewPage", () => {
   });
 
   it("shows recovery actions when the card is unavailable", async () => {
-    mocks.card = null;
+    clearCards();
     render(<CardViewPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();

@@ -2,11 +2,11 @@ import type * as React from "react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import type { Card } from "@/entities/card";
+import { type Card, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { useEditCard } from "@/features/card/edit";
 import { useCardFormState } from "@/features/card/form";
-import { useCards } from "@/features/card/read";
+import { useCardReadState } from "@/features/card/read";
 import { Feedback } from "@/shared/ui/feedback";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -51,12 +51,12 @@ export const CardFormPage: React.FC = () => {
   const navigate = useNavigate();
   const cardId = params.id;
   if (cardId == null) throw Error("invalid card id");
-  const remote = useCards();
-  const card = remote.cardsById[cardId];
+  const card = useCard(cardId);
+  const cardReadState = useCardReadState();
 
   return (
     <RemoteReadBoundary
-      status={remote.status}
+      status={cardReadState.status}
       hasData={card != null}
       emptyContent={
         <RouteFeedback
@@ -67,7 +67,7 @@ export const CardFormPage: React.FC = () => {
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={remote.retry}
+      onRetry={cardReadState.retry}
     >
       {card != null ? <CardFormContent card={card} /> : null}
     </RemoteReadBoundary>

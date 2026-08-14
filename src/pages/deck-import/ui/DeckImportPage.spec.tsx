@@ -31,6 +31,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/entities/deck", () => ({ useDecks: () => [] }));
+vi.mock("@/entities/card", () => ({ useCards: () => [] }));
 vi.mock("@/features/deck/import", () => ({
   SAMPLE_CSV_TEXT: "sample csv",
   downloadSampleCsv: mocks.downloadSampleCsv,
@@ -48,7 +49,7 @@ vi.mock("@/features/deck/import", () => ({
   }),
 }));
 vi.mock("@/features/card/read", () => ({
-  useCards: () => ({ status: "ready", syncStatus: "synced", cards: [] }),
+  useCardReadState: () => ({ status: "ready", syncStatus: "synced" }),
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 

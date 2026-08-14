@@ -2,11 +2,11 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { filterCardsByDeckId } from "@/entities/card";
+import { filterCardsByDeckId, useCards } from "@/entities/card";
 import { type Deck, type DeckId, useDecks } from "@/entities/deck";
 import { createCard, generateCardId } from "@/features/card/create";
 import { editCard } from "@/features/card/edit";
-import { useCards } from "@/features/card/read";
+import { useCardReadState } from "@/features/card/read";
 import { createDeck } from "@/features/deck/create";
 import { useDeleteDeck } from "@/features/deck/delete";
 import { buildDeckListSections } from "@/features/deck/list";
@@ -28,7 +28,8 @@ import { DeckListView } from "./DeckListView";
 
 export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
-  const cardRemote = useCards();
+  const cards = useCards();
+  const cardReadState = useCardReadState();
   const decks = useDecks();
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [deletionErrorDeckId, setDeletionErrorDeckId] = React.useState<DeckId>();
@@ -37,10 +38,10 @@ export const DeckListPage: React.FC = () => {
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
-  const sections = buildDeckListSections(decks, cardRemote.cards, sessionsByDeckId);
-  const synchronized = cardRemote.status === "ready" && cardRemote.syncStatus === "synced";
+  const sections = buildDeckListSections(decks, cards, sessionsByDeckId);
+  const synchronized = cardReadState.status === "ready" && cardReadState.syncStatus === "synced";
   useSampleDeckBootstrap({
-    cards: cardRemote.cards,
+    cards,
     createCard,
     createDeck,
     decks,
@@ -58,10 +59,10 @@ export const DeckListPage: React.FC = () => {
 
   return (
     <RemoteReadBoundary
-      status={cardRemote.status}
-      hasData={cardRemote.status === "ready" && decks.length > 0}
+      status={cardReadState.status}
+      hasData={cardReadState.status === "ready" && decks.length > 0}
       emptyLabel="No decks yet."
-      onRetry={cardRemote.retry}
+      onRetry={cardReadState.retry}
     >
       {hydrated ? (
         <AppLayout showHeader>
@@ -116,14 +117,14 @@ export const DeckListPage: React.FC = () => {
               onClickStudy: (id) => void navigate(`/deck/${id}/start`),
               onClickDownload: (id) => {
                 const deck = decks.find((candidate) => candidate.id === id);
-                if (deck != null) downloadDeckCsv(deck, filterCardsByDeckId(cardRemote.cards, id));
+                if (deck != null) downloadDeckCsv(deck, filterCardsByDeckId(cards, id));
               },
               onClickDelete: (id) => {
                 const deck = decks.find((candidate) => candidate.id === id);
                 if (deck != null) {
                   setSuccessMessage(undefined);
                   setDeletionErrorDeckId(undefined);
-                  setDeletionTarget({ deck, cardCount: filterCardsByDeckId(cardRemote.cards, id).length });
+                  setDeletionTarget({ deck, cardCount: filterCardsByDeckId(cards, id).length });
                 }
               },
             }}

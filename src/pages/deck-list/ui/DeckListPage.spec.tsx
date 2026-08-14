@@ -46,15 +46,13 @@ vi.mock("@/features/study", () => ({
 vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
 vi.mock("@/entities/card", () => ({
   filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+  useCards: () => Object.values(mocks.cardsById),
 }));
 vi.mock("@/entities/deck", () => ({
   useDecks: () => Object.values(mocks.decksById),
 }));
 vi.mock("@/features/card/read", () => ({
-  useCards: () => {
-    const cards = Object.values(mocks.cardsById);
-    return { status: "ready" as const, syncStatus: mocks.syncStatus, retry: vi.fn(), cards };
-  },
+  useCardReadState: () => ({ status: "ready" as const, syncStatus: mocks.syncStatus, retry: vi.fn() }),
 }));
 vi.mock("@/features/deck/delete", () => ({
   useDeleteDeck: () => ({

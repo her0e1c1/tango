@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useDecks } from "@/entities/deck";
+import { useCards } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { createCard, generateCardId } from "@/features/card/create";
 import { editCard } from "@/features/card/edit";
-import { useCards } from "@/features/card/read";
+import { useCardReadState } from "@/features/card/read";
 import { createDeck } from "@/features/deck/create";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck/import";
 import { AppLayout } from "@/widgets/app-layout";
@@ -16,11 +17,12 @@ import { DeckImportView } from "./DeckImportView";
 export const DeckImportPage: React.FC = () => {
   const preferences = usePreferences();
   const navigate = useNavigate();
-  const cardRead = useCards();
+  const cards = useCards();
+  const cardReadState = useCardReadState();
   const decks = useDecks();
-  const synchronized = cardRead.status === "ready" && cardRead.syncStatus === "synced";
+  const synchronized = cardReadState.status === "ready" && cardReadState.syncStatus === "synced";
   const deckImport = useDeckImport({
-    cards: cardRead.cards,
+    cards,
     createCard,
     createDeck,
     decks,
