@@ -5,7 +5,7 @@
  * as an empty user", "does not add the sample when the user already has a Deck".
  */
 
-import type { Deck } from "@/entities/deck";
+import type { Deck, DeckCreateInput } from "@/entities/deck";
 
 import { renderHook, waitFor } from "@testing-library/react";
 import React, { type ReactNode } from "react";
@@ -28,7 +28,7 @@ vi.mock("./useDeckImport", () => ({
 
 import { useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
 
-const createDeck = vi.fn<(uid: string, deck: Deck) => Promise<unknown>>();
+const createDeck = vi.fn<(uid: string, deck: DeckCreateInput) => Promise<unknown>>();
 const useTestSampleDeckBootstrap = (props: { synchronized?: boolean } = {}) =>
   useSampleDeckBootstrap({
     cards: [],

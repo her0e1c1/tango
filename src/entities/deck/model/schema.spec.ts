@@ -2,34 +2,29 @@ import { describe, expect, it } from "vitest";
 
 import { createDeck as createDeckFixture } from "@/test/factories";
 
-import { createDeck, createDeckSchema, deleteDeckSchema, editDeckSchema } from "./schema";
-
-describe("createDeck", () => {
-  it("creates a deck with entity defaults and an injected id", () => {
-    expect(createDeck({ name: "name" }, "uid", () => "deck-id")).toEqual({
-      name: "name",
-      id: "deck-id",
-      uid: "uid",
-      createdAt: 0,
-      updatedAt: 0,
-      deletedAt: null,
-      scoreMax: null,
-      scoreMin: null,
-      isPublic: false,
-      selectedTags: [],
-      tagAndFilter: false,
-      convertToBr: false,
-      category: "",
-    });
-  });
-});
+import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "./schema";
 
 describe("Deck operation schemas", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
   describe("createDeckSchema", () => {
-    it("accepts a complete Deck owned by the authenticated user", () => {
-      expect(createDeckSchema.parse({ uid: "uid-a", deck })).toEqual({ uid: "uid-a", deck });
+    it("applies entity defaults without adding persistence timestamps", () => {
+      expect(createDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", uid: "uid-a", name: "Deck" } })).toEqual({
+        uid: "uid-a",
+        deck: {
+          id: "deck",
+          uid: "uid-a",
+          name: "Deck",
+          isPublic: false,
+          scoreMax: null,
+          scoreMin: null,
+          selectedTags: [],
+          tagAndFilter: false,
+          category: "",
+          convertToBr: false,
+          deletedAt: null,
+        },
+      });
     });
 
     it.each([
