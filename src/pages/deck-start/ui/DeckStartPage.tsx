@@ -6,7 +6,7 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { selectCardsForDeck, selectTagsForDeck } from "@/entities/card";
+import { filterCardsByDeckId, filterTagsByDeckId } from "@/entities/card";
 import { useCards } from "@/features/card/read";
 import { useEditDeck } from "@/features/deck/edit";
 import { useDecks } from "@/features/deck/read";
@@ -67,9 +67,9 @@ export const DeckStartPage: React.FC = () => {
   const deckRemote = useDecks();
   const readState = combineRemoteReadStates(cardRemote, deckRemote);
   const deck = deckRemote.decksById[deckId];
-  const deckCards = React.useMemo(() => selectCardsForDeck(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
+  const deckCards = React.useMemo(() => filterCardsByDeckId(cardRemote.cards, deckId), [cardRemote.cards, deckId]);
   const cards = useStudyCards(deck, deckCards, config);
-  const tags = selectTagsForDeck(cardRemote.cards, deckId);
+  const tags = filterTagsByDeckId(cardRemote.cards, deckId);
 
   return (
     <RemoteReadBoundary

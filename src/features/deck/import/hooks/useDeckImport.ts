@@ -9,7 +9,7 @@ import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { createCard as prepareCard, selectCardsForDeck } from "@/entities/card";
+import { createCard as prepareCard, filterCardsByDeckId } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth-session";
 import type { DeckImportPreview, DeckImportResult, DeckImportRow } from "../model/deckImportTypes";
@@ -315,7 +315,7 @@ export const useDeckImport = ({
   synchronized,
 }: DeckImportOptions) => {
   const auth = useAuthSession();
-  const cardsByDeckId = useCallback((deckId: DeckId) => selectCardsForDeck(cards, deckId), [cards]);
+  const cardsByDeckId = useCallback((deckId: DeckId) => filterCardsByDeckId(cards, deckId), [cards]);
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const generation = useRef(0);
   const generationUid = useRef(uid);
