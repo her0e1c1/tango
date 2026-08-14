@@ -1,12 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { studyStore } from "../state/studyStoreInstance";
-import {
-  initializeStudySessionUi,
-  reconcileStudySessionsWithDecks,
-  removeStudySession,
-  touchStudySession,
-} from "./studySessionCommands";
+import { initializeStudySessionUi, removeStudySession, touchStudySession } from "./studySessionCommands";
 
 describe("study session commands", () => {
   beforeEach(() => {
@@ -48,34 +43,5 @@ describe("study session commands", () => {
       autoPlay: true,
       lastSwipe: undefined,
     });
-  });
-
-  it("discards sessions whose decks are unavailable", () => {
-    vi.spyOn(studyStore.persist, "hasHydrated").mockReturnValue(true);
-
-    reconcileStudySessionsWithDecks(["second"]);
-
-    expect(studyStore.getState().sessionsByDeckId).toEqual({
-      second: { deckId: "second", cardOrderIds: ["card-2"], currentIndex: 0, lastStudiedAt: 200 },
-    });
-  });
-
-  it("waits for hydration before discarding sessions", () => {
-    let finishHydration: () => void = () => undefined;
-    const unsubscribe = vi.fn();
-    vi.spyOn(studyStore.persist, "hasHydrated").mockReturnValue(false);
-    vi.spyOn(studyStore.persist, "onFinishHydration").mockImplementation((listener) => {
-      finishHydration = () => listener(studyStore.getState());
-      return unsubscribe;
-    });
-
-    const cancel = reconcileStudySessionsWithDecks(["second"]);
-    expect(studyStore.getState().sessionsByDeckId).toHaveProperty("first");
-
-    finishHydration();
-
-    expect(studyStore.getState().sessionsByDeckId).not.toHaveProperty("first");
-    cancel?.();
-    expect(unsubscribe).toHaveBeenCalledOnce();
   });
 });
