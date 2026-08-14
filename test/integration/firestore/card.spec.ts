@@ -16,7 +16,7 @@ import { createDeck as createDeckCommand } from "@/entities/deck";
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { collection, deleteDoc, getDocs, getFirestore, doc, getDoc, query, where } from "firebase/firestore";
-import { upsertImportedCards } from "@/features/deck/import/api/upsertImportedCards";
+import { upsertImportedCards } from "@/features/deck-import/api/upsertImportedCards";
 import { editStudyProgress } from "@/features/study/api/editStudyProgress";
 import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
