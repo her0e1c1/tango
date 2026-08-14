@@ -1,8 +1,0 @@
-{
-  "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["src/app/main.tsx!"],
-  "project": ["src/**/*.{ts,tsx}!", "!src/**/*.{spec,test}.{ts,tsx}!", "!src/**/*.stories.{ts,tsx}!"],
-  "includeEntryExports": true,
-  "storybook": false,
-  "vitest": false
-}
