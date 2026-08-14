@@ -1,5 +1,5 @@
 /**
- * @file Defines the Deck List Page's Deck Actions Menu presentation component.
+ * @file Defines the Deck List Feature's Deck Actions Menu presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */

@@ -11,7 +11,7 @@ import { DeckListCard as Template } from "./DeckListCard";
 import * as fixture from "@/storybook/fixture";
 
 const meta = {
-  title: "Pages/DeckList/DeckListCard",
+  title: "Features/DeckList/DeckListCard",
   component: Template,
   tags: ["autodocs"],
   parameters: {

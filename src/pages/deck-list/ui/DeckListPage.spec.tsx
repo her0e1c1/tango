@@ -1,171 +1,131 @@
-/**
- * @file Verifies the Deck List Page composition contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "renders every active deck
- * in recent order and inactive decks by name" and "touches only the selected session before
- * continuing".
- */
-
 import type { Preferences } from "@/entities/preferences";
+import type { ComponentProps } from "react";
+import type { DeckList } from "@/features/deck-list";
 
-import { fireEvent, render, waitFor, within, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Card, CardId } from "@/entities/card";
-import type { Deck, DeckId } from "@/entities/deck";
-import type { useStudySessions } from "@/features/study";
-import { createCard, createPreferences, createDeck } from "@/test/factories";
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
+
+type DeckListProps = ComponentProps<typeof DeckList>;
 
 const mocks = vi.hoisted(() => ({
   preferences: {} as Preferences,
-  decksById: {} as Record<DeckId, Deck>,
-  cardsById: {} as Record<CardId, Card>,
-  sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
+  decks: [] as Deck[],
+  cards: [] as Card[],
+  readStatus: "ready" as "idle" | "loading" | "ready" | "error",
+  syncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
   hydrated: true,
-  syncStatus: "synced" as "cached" | "pending" | "synced",
+  retry: vi.fn(),
   remove: vi.fn(async (_deck: Deck) => undefined),
   downloadDeckCsv: vi.fn(),
-  removeStudySession: vi.fn<(deckId: DeckId) => void>(),
-  touchStudySession: vi.fn<(deckId: DeckId) => void>(),
+  removeStudySession: vi.fn(),
+  touchStudySession: vi.fn(),
   navigate: vi.fn(),
-  setDarkMode: vi.fn(),
+  sampleBootstrap: vi.fn(),
 }));
 
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
-  setDarkMode: mocks.setDarkMode,
+  setDarkMode: vi.fn(),
 }));
+vi.mock("@/entities/card", () => ({
+  createCard: vi.fn(),
+  editCard: vi.fn(),
+  generateCardId: vi.fn(),
+  useCards: () => mocks.cards,
+}));
+vi.mock("@/entities/deck", () => ({
+  createDeck: vi.fn(),
+  useDecks: () => mocks.decks,
+}));
+vi.mock("@/features/card/read", () => ({
+  useCardReadState: () => ({
+    status: mocks.readStatus,
+    syncStatus: mocks.syncStatus,
+    retry: mocks.retry,
+  }),
+}));
+vi.mock("@/features/deck/delete", () => ({ useDeleteDeck: () => ({ remove: mocks.remove }) }));
+vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
+vi.mock("@/features/deck/import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
 vi.mock("@/features/study", () => ({
   removeStudySession: mocks.removeStudySession,
   touchStudySession: mocks.touchStudySession,
   useStudyHydrated: () => mocks.hydrated,
-  useStudySessions: () => mocks.sessionsByDeckId,
+  useStudySessions: () => ({}),
 }));
-vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
-vi.mock("@/entities/card", () => ({
-  createCard: vi.fn(),
-  editCard: vi.fn(),
-  filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
-  generateCardId: vi.fn(),
-  useCards: () => Object.values(mocks.cardsById),
-}));
-vi.mock("@/entities/deck", () => ({
-  createDeck: vi.fn(),
-  useDecks: () => Object.values(mocks.decksById),
-}));
-vi.mock("@/features/card/read", () => ({
-  useCardReadState: () => ({ status: "ready" as const, syncStatus: mocks.syncStatus, retry: vi.fn() }),
-}));
-vi.mock("@/features/deck/delete", () => ({
-  useDeleteDeck: () => ({
-    remove: mocks.remove,
-  }),
+vi.mock("@/features/deck-list", () => ({
+  DeckList: (props: DeckListProps) => {
+    const deck = props.decks[0];
+    if (deck == null) return null;
+    return (
+      <section aria-label="Deck list feature">
+        <button type="button" onClick={() => props.onViewDeck(deck.id)}>
+          View deck
+        </button>
+        <button type="button" onClick={() => props.onContinueDeck(deck.id)}>
+          Continue deck
+        </button>
+        <button type="button" onClick={() => props.onStartDeck(deck.id)}>
+          Start deck
+        </button>
+        <button type="button" onClick={() => props.onEditDeck(deck.id)}>
+          Edit deck
+        </button>
+        <button type="button" onClick={() => props.onDownloadDeck(deck, props.cards)}>
+          Download deck
+        </button>
+        <button type="button" onClick={() => void props.onDeleteDeck(deck)}>
+          Delete deck
+        </button>
+      </section>
+    );
+  },
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/features/deck/import", () => ({ useSampleDeckBootstrap: vi.fn() }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { DeckListPage } from "./DeckListPage";
 
 describe("DeckListPage", () => {
-  const recentDeck = createDeck({ id: "recent", name: "Recent deck", category: "math" });
-  const oldDeck = createDeck({ id: "old", name: "Old deck", category: "design" });
-  const otherDeck = createDeck({ id: "other", name: "Alpha deck", category: "history" });
+  const deck = createDeck({ id: "deck-1", name: "Deck" });
+  const card = createCard({ id: "card-1", deckId: deck.id });
 
   beforeEach(() => {
-    localStorage.clear();
     vi.clearAllMocks();
-    mocks.hydrated = true;
-    mocks.syncStatus = "synced";
     mocks.preferences = createPreferences({ darkMode: false });
-    mocks.decksById = { [otherDeck.id]: otherDeck, [oldDeck.id]: oldDeck, [recentDeck.id]: recentDeck };
-    mocks.cardsById = {
-      "other-1": createCard({ id: "other-1", deckId: otherDeck.id }),
-      "other-2": createCard({ id: "other-2", deckId: otherDeck.id }),
-      "recent-1": createCard({ id: "recent-1", deckId: recentDeck.id }),
-      "recent-2": createCard({ id: "recent-2", deckId: recentDeck.id }),
-    };
-    mocks.sessionsByDeckId = {
-      [oldDeck.id]: {
-        deckId: oldDeck.id,
-        cardOrderIds: ["old-1", "old-2"],
-        currentIndex: 0,
-        lastStudiedAt: 1000,
-      },
-      [recentDeck.id]: {
-        deckId: recentDeck.id,
-        cardOrderIds: ["recent-1", "recent-2", "recent-3"],
-        currentIndex: 1,
-        lastStudiedAt: 2000,
-      },
-    };
-    mocks.touchStudySession.mockImplementation((deckId) => {
-      const session = mocks.sessionsByDeckId[deckId];
-      if (session != null) mocks.sessionsByDeckId[deckId] = { ...session, lastStudiedAt: Date.now() };
-    });
-    mocks.removeStudySession.mockImplementation((deckId) => {
-      delete mocks.sessionsByDeckId[deckId];
-    });
+    mocks.decks = [deck];
+    mocks.cards = [card];
+    mocks.readStatus = "ready";
+    mocks.syncStatus = "synced";
+    mocks.hydrated = true;
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it("renders every active deck in recent order and inactive decks by name", () => {
+  it("composes route and reusable feature actions around the Deck List Feature", async () => {
     render(<DeckListPage />);
 
-    const studying = screen.getByRole("region", { name: "Studying" });
-    expect(
-      within(studying)
-        .getAllByRole("button", { name: /^View / })
-        .map((button) => button.getAttribute("aria-label"))
-    ).toEqual(["View Recent deck", "View Old deck"]);
-    expect(within(studying).getByText(/2 \/ 3/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "View deck" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue deck" }));
+    fireEvent.click(screen.getByRole("button", { name: "Start deck" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit deck" }));
+    fireEvent.click(screen.getByRole("button", { name: "Download deck" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    const other = screen.getByRole("region", { name: "Other decks" });
-    expect(within(other).getByRole("button", { name: "View Alpha deck" })).toBeInTheDocument();
-    expect(within(other).getByText("2 cards")).toBeInTheDocument();
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, `/deck/${deck.id}`);
+    expect(mocks.touchStudySession).toHaveBeenCalledExactlyOnceWith(deck.id);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, `/deck/${deck.id}/study`);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, `/deck/${deck.id}/start`);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(4, `/deck/${deck.id}/edit`);
+    expect(mocks.downloadDeckCsv).toHaveBeenCalledExactlyOnceWith(deck, [card]);
+    expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck);
+    await waitFor(() => expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id));
   });
 
-  it("touches only the selected session before continuing", () => {
-    vi.spyOn(Date, "now").mockReturnValue(9000);
-    render(<DeckListPage />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Continue Recent deck" }));
-
-    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith(`/deck/${recentDeck.id}/study`);
-    expect(mocks.touchStudySession).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
-    expect(mocks.sessionsByDeckId[recentDeck.id]?.lastStudiedAt).toBe(9000);
-    expect(mocks.sessionsByDeckId[oldDeck.id]?.lastStudiedAt).toBe(1000);
-  });
-
-  it("navigates through deck interactions", () => {
-    render(<DeckListPage />);
-
-    fireEvent.click(screen.getByRole("button", { name: "View Alpha deck" }));
-    expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${otherDeck.id}`);
-
-    fireEvent.click(screen.getByRole("button", { name: "Study Alpha deck" }));
-    expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${otherDeck.id}/start`);
-
-    fireEvent.click(screen.getByRole("button", { name: "Open actions for Alpha deck" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Download" }));
-    expect(mocks.downloadDeckCsv).toHaveBeenCalledExactlyOnceWith(otherDeck, [
-      mocks.cardsById["other-1"],
-      mocks.cardsById["other-2"],
-    ]);
-
-    fireEvent.click(screen.getByRole("button", { name: "Open actions for Alpha deck" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
-    expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${otherDeck.id}/edit`);
-
-    fireEvent.click(screen.getByRole("button", { name: "Open actions for Recent deck" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Restart" }));
-    expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${recentDeck.id}/start`);
-  });
-
-  it("navigates from settings and import keyboard shortcuts", () => {
+  it("keeps route shortcuts and sample bootstrap wiring", () => {
     render(<DeckListPage />);
 
     fireEvent.keyDown(window, { key: "s" });
@@ -173,68 +133,30 @@ describe("DeckListPage", () => {
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.sampleBootstrap).toHaveBeenCalledWith(
+      expect.objectContaining({ decks: [deck], cards: [card], synchronized: true })
+    );
   });
 
-  it("renders the application shell", () => {
-    render(<DeckListPage />);
+  it("owns loading and empty remote-read feedback", () => {
+    mocks.readStatus = "loading";
+    const view = render(<DeckListPage />);
+    expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
 
-    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
+    mocks.readStatus = "ready";
+    mocks.decks = [];
+    view.rerender(<DeckListPage />);
+    expect(screen.getByRole("heading", { name: "No decks yet." })).toBeVisible();
   });
 
-  it("removes only the deleted deck session after the remote delete succeeds", async () => {
-    const confirm = vi.spyOn(window, "confirm");
-    render(<DeckListPage />);
-    const trigger = screen.getByRole("button", { name: "Open actions for Recent deck" });
-
-    fireEvent.click(trigger);
-    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
-    expect(dialog).toHaveTextContent("Recent deck");
-    expect(dialog).toHaveTextContent("2 cards");
-    expect(dialog).toHaveTextContent("in-progress study session");
-    expect(dialog).toHaveTextContent("cannot be undone");
-    expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
-
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(mocks.remove).not.toHaveBeenCalled();
-    expect(trigger).toHaveFocus();
-
-    fireEvent.click(trigger);
-    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
-
-    await waitFor(() => expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(recentDeck));
-    await waitFor(() => expect(mocks.sessionsByDeckId[recentDeck.id]).toBeUndefined());
-    expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
-    expect(mocks.sessionsByDeckId[oldDeck.id]).toBeDefined();
-    expect(screen.getByRole("status")).toHaveTextContent("Deleted deck “Recent deck”.");
-    expect(confirm).not.toHaveBeenCalled();
-  });
-
-  it("waits for study hydration before classifying decks", () => {
+  it("waits for study hydration before composing the feature", () => {
     mocks.hydrated = false;
     const view = render(<DeckListPage />);
-
     expect(screen.getByRole("status")).toHaveTextContent("Loading study progress");
-    expect(screen.queryByRole("region", { name: "Other decks" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Deck list feature" })).not.toBeInTheDocument();
 
     mocks.hydrated = true;
     view.rerender(<DeckListPage />);
-    expect(screen.getByRole("region", { name: "Studying" })).toBeInTheDocument();
-  });
-
-  it("lets the user repeat the original Deck deletion after failure", async () => {
-    mocks.remove.mockRejectedValueOnce(new Error("delete failed"));
-    render(<DeckListPage />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Open actions for Recent deck" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
-
-    expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
-
-    await waitFor(() => expect(mocks.remove).toHaveBeenCalledTimes(2));
-    await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
+    expect(screen.getByRole("region", { name: "Deck list feature" })).toBeVisible();
   });
 });
