@@ -1,33 +1,26 @@
 /**
  * @file Verifies the "App" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "updates only the theme when
- * the setting changes", "shows startup feedback while authentication is in progress",
- * "shows startup errors and reloads on request".
+ * the setting changes" and "renders normal routes".
  */
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { useAuthSession } from "@/entities/auth";
-
-type AuthSessionState = ReturnType<typeof useAuthSession>;
-
 const mocks = vi.hoisted(() => ({
   darkMode: false,
-  authState: { status: "initializing" } as AuthSessionState,
-  startAuthSession: vi.fn(),
-  stopAuthSession: vi.fn(),
 }));
 
-vi.mock("@/app/providers/auth/lifecycle", () => ({ startAuthSession: mocks.startAuthSession }));
+vi.mock("@/app/providers/auth", () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
 vi.mock("@/app/providers/firestore-subscriptions", () => ({
   FirestoreSubscriptionsProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
-vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authState }));
 vi.mock("@/features/sign-in", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/features/sign-out", () => ({ signOutCurrentUser: vi.fn() }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
@@ -45,21 +38,9 @@ import App from "./App";
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.startAuthSession.mockReturnValue(mocks.stopAuthSession);
     mocks.darkMode = false;
-    mocks.authState = { status: "authenticated", uid: "test-user", isAnonymous: true, displayName: null };
     document.documentElement.classList.remove("dark");
     window.history.replaceState({}, "", "/");
-  });
-
-  it("starts and stops the authentication lifecycle", () => {
-    const view = render(<App />);
-
-    expect(mocks.startAuthSession).toHaveBeenCalledOnce();
-
-    view.unmount();
-
-    expect(mocks.stopAuthSession).toHaveBeenCalledOnce();
   });
 
   it("updates only the theme when the setting changes", () => {
@@ -72,43 +53,13 @@ describe("App", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
-  it("shows startup feedback while authentication is in progress", () => {
-    mocks.authState = { status: "initializing" };
-    const view = render(<App />);
-
-    expect(screen.getByRole("heading", { level: 1, name: "Starting Tango…" })).toBeInTheDocument();
-    expect(screen.queryByText("Deck list")).toBeNull();
-
-    mocks.authState = { status: "unauthenticated" };
-    view.rerender(<App />);
-
-    expect(screen.getByRole("heading", { level: 1, name: "Starting Tango…" })).toBeInTheDocument();
-    expect(screen.queryByText("Deck list")).toBeNull();
-
-    mocks.authState = { status: "authenticating", attemptId: Symbol("attempt-a") };
-    view.rerender(<App />);
-
-    expect(screen.getByRole("heading", { level: 1, name: "Starting Tango…" })).toBeInTheDocument();
-    expect(screen.queryByText("Deck list")).toBeNull();
-  });
-
-  it("shows startup errors and reloads on request", () => {
-    const reload = vi.fn();
-    mocks.authState = { status: "error", error: new Error("auth failed") };
-    render(<App reload={reload} />);
-
-    expect(screen.getByRole("heading", { level: 1, name: "Unable to start Tango" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
-    expect(reload).toHaveBeenCalledOnce();
-  });
-
-  it("renders normal routes after authentication", () => {
+  it("renders normal routes", () => {
     render(<App />);
 
     expect(screen.getByText("Deck list")).toBeInTheDocument();
   });
 
-  it("recovers from authenticated unknown routes", () => {
+  it("recovers from unknown routes", () => {
     window.history.replaceState({}, "", "/unknown");
     render(<App />);
 
