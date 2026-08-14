@@ -1,7 +1,7 @@
 /**
  * @file Verifies the "App" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "updates only the theme when
- * the setting changes", "shows startup feedback for initializing and signed-out authentication",
+ * the setting changes", "shows startup feedback while authentication is in progress",
  * "shows startup errors and reloads on request".
  */
 
@@ -54,7 +54,7 @@ describe("App", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
-  it("shows startup feedback for initializing and signed-out authentication", () => {
+  it("shows startup feedback while authentication is in progress", () => {
     mocks.authState = { status: "initializing" };
     const view = render(<App />);
 
@@ -62,6 +62,12 @@ describe("App", () => {
     expect(screen.queryByText("Deck list")).toBeNull();
 
     mocks.authState = { status: "signedOut" };
+    view.rerender(<App />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Starting Tango…" })).toBeInTheDocument();
+    expect(screen.queryByText("Deck list")).toBeNull();
+
+    mocks.authState = { status: "authenticating", attemptId: Symbol("attempt-a") };
     view.rerender(<App />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Starting Tango…" })).toBeInTheDocument();

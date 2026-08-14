@@ -25,7 +25,11 @@ const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
-  if (authState.status === "initializing" || authState.status === "signedOut") {
+  if (
+    authState.status === "initializing" ||
+    authState.status === "signedOut" ||
+    authState.status === "authenticating"
+  ) {
     return (
       <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />
     );

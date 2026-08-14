@@ -25,4 +25,11 @@ describe("authSessionStore", () => {
       displayName: null,
     });
   });
+
+  it("represents anonymous authentication without an SDK credential", () => {
+    const attemptId = Symbol("attempt-a");
+    replaceAuthSession({ status: "authenticating", attemptId });
+
+    expect(getAuthSession()).toEqual({ status: "authenticating", attemptId });
+  });
 });

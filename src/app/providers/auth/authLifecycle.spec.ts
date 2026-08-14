@@ -90,6 +90,7 @@ describe("authLifecycle", () => {
     expect(getAuthSession()).toEqual({ status: "signedOut" });
     expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
+    expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
   });
 
   it("waits for Study cleanup before anonymous sign-in", async () => {
@@ -141,6 +142,43 @@ describe("authLifecycle", () => {
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledTimes(2));
   });
 
+  it("does not restart anonymous sign-in for duplicate signed-out events", async () => {
+    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
+    const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
+
+    publishUser(null);
+    await vi.waitFor(() =>
+      expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) })
+    );
+    publishUser(null);
+    await Promise.resolve();
+
+    expect(signInAnonymously).toHaveBeenCalledOnce();
+    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
+    expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
+  });
+
+  it("starts anonymous sign-in once when duplicate cleanups finish", async () => {
+    let finishCleanup: () => void = () => undefined;
+    const cleanup = new Promise<void>((resolve) => {
+      finishCleanup = resolve;
+    });
+    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
+    const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
+    singletonMocks.clearStudyStore.mockReturnValue(cleanup);
+
+    publishUser(null);
+    publishUser(null);
+    expect(singletonMocks.clearStudyStore).toHaveBeenCalledTimes(2);
+
+    finishCleanup();
+    await vi.waitFor(() =>
+      expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) })
+    );
+
+    expect(signInAnonymously).toHaveBeenCalledOnce();
+  });
+
   it("publishes Study cleanup failures before anonymous bootstrap", async () => {
     const cleanupError = new Error("Study cleanup failed");
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
@@ -177,5 +215,35 @@ describe("authLifecycle", () => {
     await signInAttempt.catch(() => undefined);
 
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "uid-a" });
+  });
+
+  it("ignores a stale failure after a later anonymous attempt starts", async () => {
+    let rejectFirstSignIn: (error: unknown) => void = () => undefined;
+    const firstSignIn = new Promise<UserCredential>((_resolve, reject) => {
+      rejectFirstSignIn = reject;
+    });
+    const secondSignIn = new Promise<UserCredential>(() => undefined);
+    const signInAnonymously = vi
+      .fn()
+      .mockImplementationOnce(() => firstSignIn)
+      .mockImplementationOnce(() => secondSignIn);
+    const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
+
+    publishUser(null);
+    await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
+    const firstAttempt = getAuthSession();
+    expect(firstAttempt).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
+
+    publishUser(createUser("uid-a"));
+    publishUser(null);
+    await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledTimes(2));
+    const secondAttempt = getAuthSession();
+    expect(secondAttempt).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
+    expect(secondAttempt).not.toEqual(firstAttempt);
+
+    rejectFirstSignIn(new Error("late failure"));
+    await firstSignIn.catch(() => undefined);
+
+    expect(getAuthSession()).toEqual(secondAttempt);
   });
 });
