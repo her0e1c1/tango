@@ -9,6 +9,7 @@ import type { DeckId } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preferences";
 
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
 const STUDY_STORAGE_KEY = "tango-study";
@@ -126,34 +127,26 @@ const migratePersistedStudyState = (persistedState: unknown, version: number): P
 export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedStudyState>(() => storage ?? localStorage);
   return createStore<StudyState>()(
-    persist<StudyState, [], [], PersistedStudyState>(
-      (set) => ({
+    persist(
+      immer<StudyState>((set) => ({
         sessionsByDeckId: {},
         showBackText: false,
         autoPlay: false,
         lastSwipe: undefined,
         startStudy: (deckId, cardOrderIds) =>
-          set((state) => ({
-            sessionsByDeckId: {
-              ...state.sessionsByDeckId,
-              [deckId]: {
-                deckId,
-                cardOrderIds: [...cardOrderIds],
-                currentIndex: 0,
-                lastStudiedAt: Date.now(),
-              },
-            },
-          })),
+          set((state) => {
+            state.sessionsByDeckId[deckId] = {
+              deckId,
+              cardOrderIds: [...cardOrderIds],
+              currentIndex: 0,
+              lastStudiedAt: Date.now(),
+            };
+          }),
         touchStudy: (deckId) =>
           set((state) => {
             const session = state.sessionsByDeckId[deckId];
-            if (session == null) return state;
-            return {
-              sessionsByDeckId: {
-                ...state.sessionsByDeckId,
-                [deckId]: { ...session, lastStudiedAt: Date.now() },
-              },
-            };
+            if (session == null) return;
+            session.lastStudiedAt = Date.now();
           }),
         setCurrentIndex: (deckId, currentIndex) =>
           set((state) => {
@@ -164,19 +157,14 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
               currentIndex < 0 ||
               currentIndex >= session.cardOrderIds.length
             ) {
-              return state;
+              return;
             }
-            return {
-              sessionsByDeckId: {
-                ...state.sessionsByDeckId,
-                [deckId]: { ...session, currentIndex, lastStudiedAt: Date.now() },
-              },
-            };
+            session.currentIndex = currentIndex;
+            session.lastStudiedAt = Date.now();
           }),
         removeStudy: (deckId) =>
           set((state) => {
-            const { [deckId]: _removed, ...sessionsByDeckId } = state.sessionsByDeckId;
-            return { sessionsByDeckId };
+            delete state.sessionsByDeckId[deckId];
           }),
         initializeStudyUi: (defaultAutoPlay) =>
           set({
@@ -195,7 +183,7 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
           })),
         clearLastSwipe: () => set({ lastSwipe: undefined }),
         hideBackText: () => set({ showBackText: false }),
-      }),
+      })),
       {
         name: STUDY_STORAGE_KEY,
         version: 3,
