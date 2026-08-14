@@ -52,7 +52,8 @@ describe("Deck app synchronization", () => {
 
   it("subscribes by UID and replaces the store with active Decks", () => {
     const { result } = renderHook(useDecks);
-    const unsubscribe = subscribeDecks("uid-a", vi.fn());
+    const onSnapshot = vi.fn();
+    const unsubscribe = subscribeDecks("uid-a", onSnapshot, vi.fn());
 
     expect(mocks.collection).toHaveBeenCalledWith("db", "deck");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
@@ -63,13 +64,14 @@ describe("Deck app synchronization", () => {
     );
 
     expect(result.current).toEqual([expect.objectContaining({ id: "active", url: "https://example.com" })]);
+    expect(onSnapshot).toHaveBeenCalledWith([expect.objectContaining({ id: "active" })]);
     unsubscribe();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
 
   it("reports invalid Firestore documents", () => {
     const onError = vi.fn();
-    subscribeDecks("uid-a", onError);
+    subscribeDecks("uid-a", vi.fn(), onError);
 
     act(() => getSnapshotHandler()({ docs: [deckDocument("invalid", { selectedTags: [42] })] }));
 
@@ -81,11 +83,13 @@ describe("Deck app synchronization", () => {
   it("ignores snapshots after the session is no longer current", () => {
     const { result } = renderHook(useDecks);
     let current = true;
-    subscribeDecks("uid-a", vi.fn(), () => current);
+    const onSnapshot = vi.fn();
+    subscribeDecks("uid-a", onSnapshot, vi.fn(), () => current);
     current = false;
 
     act(() => getSnapshotHandler()({ docs: [deckDocument("late")] }));
 
     expect(result.current).toEqual([]);
+    expect(onSnapshot).not.toHaveBeenCalled();
   });
 });

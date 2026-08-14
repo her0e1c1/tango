@@ -33,6 +33,7 @@ const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
 
 export const subscribeDecks = (
   uid: string,
+  onDecks: (decks: Deck[]) => void,
   onError: (error: Error) => void,
   isCurrent: () => boolean = () => true
 ): (() => void) =>
@@ -45,6 +46,7 @@ export const subscribeDecks = (
           .map((document) => convertDeckDtoToDeck(document.id, document.data()))
           .filter((deck) => deck.deletedAt === null);
         replaceDecks(decks);
+        onDecks(decks);
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

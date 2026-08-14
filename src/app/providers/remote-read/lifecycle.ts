@@ -1,10 +1,11 @@
 import { getAuthSession, subscribeAuthSession } from "@/entities/auth";
 import { clearCards } from "@/entities/card";
 import { clearDecks } from "@/entities/deck";
+import { reconcileStudySessionsWithDecks } from "@/features/study";
 import { startCardSynchronization } from "./card";
 import { subscribeDecks } from "./deck";
 
-const emptyCleanup = () => undefined;
+const emptyCleanup = (): void => undefined;
 
 export const startRemoteReadSession = (): (() => void) => {
   let currentUid: string | null | undefined;
@@ -24,12 +25,22 @@ export const startRemoteReadSession = (): (() => void) => {
     if (nextUid == null) return;
 
     let active = true;
+    let cancelStudyReconciliation = emptyCleanup;
     const stopCards = startCardSynchronization(nextUid);
-    const stopDecks = subscribeDecks(nextUid, console.error, () => active);
+    const stopDecks = subscribeDecks(
+      nextUid,
+      (decks) => {
+        cancelStudyReconciliation();
+        cancelStudyReconciliation = reconcileStudySessionsWithDecks(decks.map(({ id }) => id));
+      },
+      console.error,
+      () => active
+    );
     cleanupCurrent = () => {
       active = false;
       stopCards();
       stopDecks();
+      cancelStudyReconciliation();
     };
   };
 

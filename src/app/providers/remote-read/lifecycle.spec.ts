@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   operations: [] as string[],
   currentDeckSessionByUid: {} as Record<string, () => boolean>,
+  publishDecksByUid: {} as Record<string, (decks: { id: string }[]) => void>,
 }));
 
 vi.mock("@/entities/card", () => ({
@@ -11,6 +12,13 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/deck", () => ({
   clearDecks: () => mocks.operations.push("clear-decks"),
 }));
+vi.mock("@/features/study", () => ({
+  reconcileStudySessionsWithDecks: (deckIds: string[]) => {
+    const label = deckIds.join(",");
+    mocks.operations.push(`reconcile-study:${label}`);
+    return () => mocks.operations.push(`cancel-study:${label}`);
+  },
+}));
 vi.mock("./card", () => ({
   startCardSynchronization: (uid: string) => {
     mocks.operations.push(`start-cards:${uid}`);
@@ -18,9 +26,17 @@ vi.mock("./card", () => ({
   },
 }));
 vi.mock("./deck", () => ({
-  subscribeDecks: (uid: string, _onError: (error: Error) => void, isCurrent: () => boolean) => {
+  subscribeDecks: (
+    uid: string,
+    onSnapshot: (decks: { id: string }[]) => void,
+    _onError: (error: Error) => void,
+    isCurrent: () => boolean
+  ) => {
     mocks.operations.push(`start-decks:${uid}`);
     mocks.currentDeckSessionByUid[uid] = isCurrent;
+    mocks.publishDecksByUid[uid] = (decks) => {
+      if (isCurrent()) onSnapshot(decks);
+    };
     return () => mocks.operations.push(`stop-decks:${uid}`);
   },
 }));
@@ -37,6 +53,9 @@ describe("remote read session lifecycle", () => {
     mocks.operations.length = 0;
     Object.keys(mocks.currentDeckSessionByUid).forEach((uid) => {
       delete mocks.currentDeckSessionByUid[uid];
+    });
+    Object.keys(mocks.publishDecksByUid).forEach((uid) => {
+      delete mocks.publishDecksByUid[uid];
     });
     replaceAuthSession({ status: "initializing" });
   });
@@ -86,6 +105,23 @@ describe("remote read session lifecycle", () => {
 
     expect(mocks.operations).toEqual(["stop-cards:uid-a", "stop-decks:uid-a", "clear-cards", "clear-decks"]);
 
+    stop();
+  });
+
+  it("reconciles Study sessions only after a current Deck snapshot", () => {
+    const stop = startRemoteReadSession();
+    authenticate("uid-a");
+    expect(mocks.operations).not.toContain("reconcile-study:deck-a");
+
+    mocks.publishDecksByUid["uid-a"]?.([{ id: "deck-a" }]);
+    expect(mocks.operations).toContain("reconcile-study:deck-a");
+
+    authenticate("uid-b");
+    mocks.operations.length = 0;
+    mocks.publishDecksByUid["uid-a"]?.([{ id: "late-deck" }]);
+    mocks.publishDecksByUid["uid-b"]?.([{ id: "deck-b" }]);
+
+    expect(mocks.operations).toEqual(["reconcile-study:deck-b"]);
     stop();
   });
 
