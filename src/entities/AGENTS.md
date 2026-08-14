@@ -36,8 +36,10 @@
 
 ## `api/`
 
-- As an explicit exception, Entity-specific infrastructure helpers may access external systems in `api/`.
-- Keep feature workflows and use-case orchestration outside `entities`.
+- Own Entity-specific external access and persistence implementations.
+- Collection names, document IDs, Entity CRUD, and Entity-specific query or parsing primitives belong here.
+- Firebase, Firestore, and other external SDKs may be accessed only from `api/`, not `model/`.
+- Keep runtime subscription lifecycle, feature workflows, and use-case orchestration outside `entities`.
 
 ## `@x/`
 
@@ -52,4 +54,5 @@
 
 - Colocate tests as `*.spec.ts` or `*.spec.tsx` next to the file they cover.
 - Do not create implementation files outside the roles defined above.
-- Do not place UI, use cases, external access, subscriptions, or asynchronous workflows in `entities`.
+- Do not place UI, use cases, subscription lifecycle, or feature workflow state in `entities`.
+- Keep generic external-system helpers in `shared` and Entity-specific persistence in the owning Entity `api/`.

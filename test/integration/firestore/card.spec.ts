@@ -5,6 +5,7 @@
  */
 
 import type { Card, CardCreateInput } from "@/entities/card";
+import { createDeck as createDeckCommand } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
@@ -12,7 +13,6 @@ import { collection, deleteDoc, getDocs, getFirestore, doc, getDoc, query, where
 import { createCard as createCardCommand } from "@/features/card/create";
 import { deleteCard } from "@/features/card/delete/api/deleteCard";
 import { editCard } from "@/features/card/edit";
-import { createDeck as createDeckCommand } from "@/features/deck/create";
 import { upsertImportedCards } from "@/features/deck/import/api/upsertImportedCards";
 import { editStudyProgress } from "@/features/study/api/editStudyProgress";
 import { getTimestamp } from "@/shared/firestore";

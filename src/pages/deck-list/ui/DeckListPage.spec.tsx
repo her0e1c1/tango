@@ -49,6 +49,7 @@ vi.mock("@/entities/card", () => ({
   useCards: () => Object.values(mocks.cardsById),
 }));
 vi.mock("@/entities/deck", () => ({
+  createDeck: vi.fn(),
   useDecks: () => Object.values(mocks.decksById),
 }));
 vi.mock("@/features/card/read", () => ({
