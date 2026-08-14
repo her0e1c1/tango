@@ -25,12 +25,13 @@ describe("buildStudyPatch", () => {
   const now = new Date(1999, 10, 1).getTime();
   const card: StudyCard = {
     card: createCard({ id: "c1", deckId: "d1" }),
-    progress: { cardId: "c1", score: 0, numberOfSeen: 2 },
+    progress: { uid: "uid", cardId: "c1", score: 0, numberOfSeen: 2 },
   };
 
   it("builds a patch with incremented numberOfSeen and computed score", () => {
     const patch = buildStudyPatch(card, "GoToNextCardMastered", now);
     expect(patch).toEqual({
+      uid: "uid",
       cardId: "c1",
       score: 1,
       numberOfSeen: 3,

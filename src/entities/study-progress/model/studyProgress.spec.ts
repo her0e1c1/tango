@@ -11,17 +11,24 @@ import {
   type StudyRating,
 } from "../index";
 
-const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
+const initialStudyProgress = (cardId: string): StudyProgress => ({
+  uid: "uid-a",
+  cardId,
+  score: 0,
+  numberOfSeen: 0,
+});
 
 describe("createStudyProgressFromCard", () => {
   it("allows editing selected progress fields while retaining the card id", () => {
     const edit: StudyProgressEdit = {
+      uid: "uid-a",
       cardId: "card-id",
       score: 3,
       lastSeenAt: 1_786_512_000_000,
     };
 
     expect(edit).toEqual({
+      uid: "uid-a",
       cardId: "card-id",
       score: 3,
       lastSeenAt: 1_786_512_000_000,
@@ -31,6 +38,7 @@ describe("createStudyProgressFromCard", () => {
   it("restores progress from a Card without copying Card content", () => {
     const card = {
       id: "card-id",
+      uid: "uid-a",
       score: 3,
       numberOfSeen: 4,
       lastSeenAt: 1_786_512_000_000,
@@ -41,6 +49,7 @@ describe("createStudyProgressFromCard", () => {
     const progress = createStudyProgressFromCard(card);
 
     expect(progress).toEqual({
+      uid: "uid-a",
       cardId: "card-id",
       score: 3,
       numberOfSeen: 4,
@@ -65,6 +74,7 @@ describe("recordStudyProgress", () => {
     const progress = { ...initialStudyProgress("card-id"), score, numberOfSeen: 2 };
 
     expect(recordStudyProgress(progress, rating, 1_786_512_000_000)).toEqual({
+      uid: "uid-a",
       cardId: "card-id",
       score: expectedScore,
       numberOfSeen: 3,

@@ -14,7 +14,7 @@ describe("filterCardsForDeck", () => {
     const content = createCard({ id: "c1", tags: [], ...card });
     return {
       card: content,
-      progress: { score: 0, numberOfSeen: 0, ...progress, cardId: content.id },
+      progress: { uid: content.uid, score: 0, numberOfSeen: 0, ...progress, cardId: content.id },
     };
   };
 

@@ -1,6 +1,7 @@
 import type { CardId } from "@/entities/card/@x/study-progress";
 
 export interface StudyProgress {
+  readonly uid: string;
   cardId: CardId;
   score: number;
   numberOfSeen: number;
@@ -9,7 +10,7 @@ export interface StudyProgress {
   interval?: number;
 }
 
-export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;
+export type StudyProgressEdit = Partial<Omit<StudyProgress, "uid">> & Pick<StudyProgress, "uid" | "cardId">;
 
 export type StudyRating = "mastered" | "not-mastered" | "unrated";
 
@@ -21,6 +22,7 @@ export interface StudyProgressFilter {
 
 interface CardProgressFields {
   id: CardId;
+  uid: string;
   score: number;
   numberOfSeen: number;
   lastSeenAt?: number;
@@ -28,14 +30,15 @@ interface CardProgressFields {
   interval?: number;
 }
 
-const createStudyProgress = (cardId: CardId): StudyProgress => ({
+const createStudyProgress = (uid: string, cardId: CardId): StudyProgress => ({
+  uid,
   cardId,
   score: 0,
   numberOfSeen: 0,
 });
 
 export const createStudyProgressFromCard = (card: CardProgressFields): StudyProgress => {
-  const progress = createStudyProgress(card.id);
+  const progress = createStudyProgress(card.uid, card.id);
   progress.score = card.score;
   progress.numberOfSeen = card.numberOfSeen;
   if (card.lastSeenAt !== undefined) progress.lastSeenAt = card.lastSeenAt;
@@ -55,6 +58,7 @@ export const recordStudyProgress = (
   rating: StudyRating,
   studiedAt: number
 ): StudyProgressEdit => ({
+  uid: progress.uid,
   cardId: progress.cardId,
   score: calculateScore(progress.score, rating),
   numberOfSeen: progress.numberOfSeen + 1,

@@ -4,7 +4,7 @@ import type { StudyProgressEdit } from "@/entities/study-progress";
 import { useAuthSession } from "@/entities/auth-session";
 import { editStudyProgress } from "../api/editStudyProgress";
 
-export type StudyProgressPatch = Omit<StudyProgressEdit, "cardId">;
+export type StudyProgressPatch = Omit<StudyProgressEdit, "cardId" | "uid">;
 
 export const useEditStudyProgress = () => {
   const auth = useAuthSession();
@@ -14,6 +14,6 @@ export const useEditStudyProgress = () => {
   return {
     update,
     updateBy: (card: Card, buildPatch: (card: Card) => StudyProgressPatch) =>
-      update({ ...buildPatch(card), cardId: card.id }),
+      update({ ...buildPatch(card), uid: card.uid, cardId: card.id }),
   };
 };

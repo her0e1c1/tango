@@ -6,7 +6,7 @@ import { getDb, getTimestamp, omitUndefined } from "@/shared/firestore";
 
 export const editStudyProgress = async (uid: string, progress: EditStudyProgressInput["progress"]): Promise<void> => {
   const input = editStudyProgressSchema.parse({ uid, progress });
-  const { cardId, ...fields } = input.progress;
+  const { cardId, uid: _ownerUid, ...fields } = input.progress;
   const document = omitUndefined({ ...fields, updatedAt: getTimestamp() });
   await updateDoc(doc(getDb(), "card", cardId), document);
 };

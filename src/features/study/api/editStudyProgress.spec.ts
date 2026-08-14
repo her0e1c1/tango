@@ -25,11 +25,11 @@ describe("editStudyProgress", () => {
 
   it("writes only StudyProgress fields when runtime input contains Card fields", async () => {
     const untrustedInput = {
+      uid: "uid-a",
       cardId: "card",
       score: 2,
       frontText: "unexpected",
       deckId: "other-deck",
-      uid: "other-user",
       deletedAt: 1,
     } as unknown as Parameters<typeof editStudyProgress>[1];
 
@@ -37,5 +37,13 @@ describe("editStudyProgress", () => {
 
     expect(mocks.doc).toHaveBeenCalledWith("db", "card", "card");
     expect(mocks.updateDoc).toHaveBeenCalledWith("card-reference", { score: 2, updatedAt: 100 });
+  });
+
+  it("rejects writes for progress owned by another user", async () => {
+    await expect(editStudyProgress("uid-a", { uid: "uid-b", cardId: "card", score: 2 })).rejects.toThrow(
+      "owner does not match"
+    );
+
+    expect(mocks.updateDoc).not.toHaveBeenCalled();
   });
 });

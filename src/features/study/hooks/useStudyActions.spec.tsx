@@ -176,6 +176,7 @@ describe("useStudyActions", () => {
     });
 
     const patch = {
+      uid: card1.uid,
       cardId: card1.id,
       score: 1,
       numberOfSeen: 1,
