@@ -2,8 +2,8 @@ export { DeckStartForm } from "./components/DeckStartForm";
 export { Controller, type ControllerProps } from "./components/Controller";
 export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";
 export {
-  discardStudySessionsMissingDecks,
   initializeStudySessionUi,
+  reconcileStudySessionsWithDecks,
   removeStudySession,
   touchStudySession,
 } from "./commands/studySessionCommands";

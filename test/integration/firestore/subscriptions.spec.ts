@@ -32,7 +32,7 @@ describe("Query realtime subscriptions", () => {
   it("delivers initial, update, and delete snapshots without a cursor", async () => {
     const uid = "uid";
     const errors: Error[] = [];
-    const stopDecks = subscribeDecks(uid, vi.fn(), (error) => errors.push(error));
+    const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
     const stopCards = startCardSynchronization(uid);
 
     try {

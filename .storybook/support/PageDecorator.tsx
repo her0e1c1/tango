@@ -18,7 +18,6 @@ import { preferencesStore } from "@/entities/preferences/model/store";
 import { setCardReadLoading, setCardReadReady } from "@/features/card/read";
 import type { StudyState } from "@/features/study/state/studyStore";
 import { studyStore } from "@/features/study/state/studyStoreInstance";
-import { RemoteReadScopeProvider } from "@/shared/lib/remote-read/RemoteReadScope";
 
 export const PAGE_STORY_UID = "storybook-user";
 
@@ -99,10 +98,8 @@ export const withPageStory: Decorator = (Story, context) => {
   if (parameters == null) throw new Error("Page stories require parameters.page");
 
   return (
-    <RemoteReadScopeProvider uid={PAGE_STORY_UID}>
-      <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
-        <Story />
-      </MemoryRouter>
-    </RemoteReadScopeProvider>
+    <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
+      <Story />
+    </MemoryRouter>
   );
 };

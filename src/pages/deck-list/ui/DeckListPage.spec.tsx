@@ -25,7 +25,6 @@ const mocks = vi.hoisted(() => ({
   syncStatus: "synced" as "cached" | "pending" | "synced",
   remove: vi.fn(async (_deck: Deck) => undefined),
   downloadDeckCsv: vi.fn(),
-  discardStudySessionsMissingDecks: vi.fn<(deckIds: Iterable<DeckId>) => void>(),
   removeStudySession: vi.fn<(deckId: DeckId) => void>(),
   touchStudySession: vi.fn<(deckId: DeckId) => void>(),
   navigate: vi.fn(),
@@ -37,7 +36,6 @@ vi.mock("@/entities/preferences", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/features/study", () => ({
-  discardStudySessionsMissingDecks: mocks.discardStudySessionsMissingDecks,
   removeStudySession: mocks.removeStudySession,
   touchStudySession: mocks.touchStudySession,
   useStudyHydrated: () => mocks.hydrated,
@@ -107,12 +105,6 @@ describe("DeckListPage", () => {
     });
     mocks.removeStudySession.mockImplementation((deckId) => {
       delete mocks.sessionsByDeckId[deckId];
-    });
-    mocks.discardStudySessionsMissingDecks.mockImplementation((deckIds) => {
-      const availableDeckIds = new Set(deckIds);
-      for (const deckId of Object.keys(mocks.sessionsByDeckId)) {
-        if (!availableDeckIds.has(deckId)) delete mocks.sessionsByDeckId[deckId];
-      }
     });
   });
 
@@ -229,21 +221,6 @@ describe("DeckListPage", () => {
     mocks.hydrated = true;
     view.rerender(<DeckListPage />);
     expect(screen.getByRole("region", { name: "Studying" })).toBeInTheDocument();
-  });
-
-  it("prunes sessions for decks that no longer exist", async () => {
-    mocks.sessionsByDeckId.missing = {
-      deckId: "missing",
-      cardOrderIds: ["card"],
-      currentIndex: 0,
-      lastStudiedAt: 3000,
-    };
-
-    render(<DeckListPage />);
-
-    await waitFor(() => expect(mocks.sessionsByDeckId.missing).toBeUndefined());
-    expect(mocks.discardStudySessionsMissingDecks).toHaveBeenCalled();
-    expect(mocks.sessionsByDeckId[recentDeck.id]).toBeDefined();
   });
 
   it("lets the user repeat the original Deck deletion after failure", async () => {
