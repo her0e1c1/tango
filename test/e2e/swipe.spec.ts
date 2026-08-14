@@ -67,7 +67,9 @@ const seedSwipeSession = async (page: Page) => {
   await routeAnonymousAuth(page, e2eDeck.uid);
   await seedConfig(page);
   await seedDeckAndCards(e2eDeck, e2eCards);
-  await page.addInitScript((study) => {
+  await page.goto("/");
+  await expect(page.getByText(e2eDeck.name)).toBeVisible();
+  await page.evaluate((study) => {
     window.localStorage.setItem("tango-study", JSON.stringify(study));
   }, persistedStudy);
 };

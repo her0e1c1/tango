@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const singletonMocks = vi.hoisted(() => ({
   auth: { currentUser: null },
-  onAuthStateChanged: vi.fn((_auth: Auth, _onUser: (user: User | null) => void) => vi.fn()),
+  onIdTokenChanged: vi.fn((_auth: Auth, _onUser: (user: User | null) => void) => vi.fn()),
   signInAnonymously: vi.fn(),
   clearStudyStore: vi.fn(),
 }));
@@ -11,7 +11,7 @@ const singletonMocks = vi.hoisted(() => ({
 vi.mock("@/shared/firebase", () => ({ auth: singletonMocks.auth }));
 vi.mock("@/features/study", () => ({ clearStudyStore: singletonMocks.clearStudyStore }));
 vi.mock("firebase/auth", () => ({
-  onAuthStateChanged: singletonMocks.onAuthStateChanged,
+  onIdTokenChanged: singletonMocks.onIdTokenChanged,
   signInAnonymously: singletonMocks.signInAnonymously,
 }));
 
@@ -29,7 +29,7 @@ const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCre
   vi.resetModules();
   let publishUser: (user: User | null) => void = () => undefined;
   const unsubscribe = vi.fn();
-  singletonMocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
+  singletonMocks.onIdTokenChanged.mockImplementation((_auth, onUser) => {
     publishUser = onUser;
     return unsubscribe;
   });
@@ -50,7 +50,7 @@ describe("authLifecycle", () => {
   it("returns the Firebase observer cleanup", async () => {
     const { stopAuthSession, unsubscribe } = await createHarness();
 
-    expect(singletonMocks.onAuthStateChanged).toHaveBeenCalledOnce();
+    expect(singletonMocks.onIdTokenChanged).toHaveBeenCalledOnce();
     expect(stopAuthSession).toBe(unsubscribe);
   });
 
@@ -67,16 +67,29 @@ describe("authLifecycle", () => {
     });
   });
 
-  it("starts initial anonymous sign-in without clearing persisted Study state", async () => {
+  it("publishes linked Google metadata from the observer for the same uid", async () => {
+    const { getAuthSession, publishUser } = await createHarness();
+    publishUser(createUser("uid-a"));
+
+    publishUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
+
+    expect(getAuthSession()).toEqual({
+      status: "authenticated",
+      uid: "uid-a",
+      isAnonymous: false,
+      displayName: "Ada",
+    });
+  });
+
+  it("clears persisted Study state before initial anonymous sign-in", async () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
 
     publishUser(null);
-    publishUser(null);
 
     expect(getAuthSession()).toEqual({ status: "signedOut" });
+    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
-    expect(singletonMocks.clearStudyStore).not.toHaveBeenCalled();
   });
 
   it("waits for Study cleanup before anonymous sign-in", async () => {
@@ -88,7 +101,6 @@ describe("authLifecycle", () => {
     const { publishUser } = await createHarness(signInAnonymously);
     singletonMocks.clearStudyStore.mockReturnValue(cleanup);
 
-    publishUser(createUser("uid-a"));
     publishUser(null);
 
     expect(signInAnonymously).not.toHaveBeenCalled();

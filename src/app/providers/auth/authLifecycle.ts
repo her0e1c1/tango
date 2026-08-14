@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signInAnonymously, type User, type UserCredential } from "firebase/auth";
+import { onIdTokenChanged, signInAnonymously, type User, type UserCredential } from "firebase/auth";
 
 import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 import { clearStudyStore } from "@/features/study";
@@ -27,21 +27,14 @@ const startAnonymousBootstrap = () => {
 };
 
 export const startAuthSession = () =>
-  onAuthStateChanged(auth, (user) => {
+  onIdTokenChanged(auth, (user) => {
     if (user) {
       anonymousSignIn = undefined;
       replaceAuthSession(authSessionFromUser(user));
       return;
     }
 
-    const previousSession = getAuthSession();
     replaceAuthSession({ status: "signedOut" });
-    if (previousSession.status === "initializing") {
-      startAnonymousBootstrap();
-      return;
-    }
-    if (previousSession.status !== "authenticated") return;
-
     void clearStudyStore()
       .then(startAnonymousBootstrap)
       .catch((error) => {

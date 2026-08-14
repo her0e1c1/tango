@@ -15,7 +15,7 @@ import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   auth: { currentUser: null },
-  onAuthStateChanged: vi.fn(),
+  onIdTokenChanged: vi.fn(),
   signInAnonymously: vi.fn(),
   signOut: vi.fn(),
   publishUser: undefined as ((user: User | null) => void) | undefined,
@@ -32,7 +32,7 @@ vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth", () => ({
   GoogleAuthProvider: Object.assign(vi.fn(), { credentialFromError: vi.fn() }),
   linkWithPopup: vi.fn(),
-  onAuthStateChanged: mocks.onAuthStateChanged,
+  onIdTokenChanged: mocks.onIdTokenChanged,
   signInAnonymously: mocks.signInAnonymously,
   signInWithCredential: vi.fn(),
   signOut: mocks.signOut,
@@ -95,7 +95,7 @@ beforeEach(async () => {
   replaceAuthSession({ status: "initializing" });
   mocks.auth.currentUser = null;
   mocks.operations.length = 0;
-  mocks.onAuthStateChanged.mockImplementation((_auth, onUser) => {
+  mocks.onIdTokenChanged.mockImplementation((_auth, onUser) => {
     mocks.publishUser = onUser;
     return vi.fn();
   });
