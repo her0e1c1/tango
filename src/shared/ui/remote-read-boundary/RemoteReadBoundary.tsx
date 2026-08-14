@@ -6,7 +6,6 @@
 
 import type { ReactNode } from "react";
 
-import { Button } from "@/shared/ui/button";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 export type RemoteReadBoundaryProps = {
@@ -14,24 +13,19 @@ export type RemoteReadBoundaryProps = {
   hasData: boolean;
   emptyLabel?: string;
   emptyContent?: ReactNode;
-  onRetry: () => void;
   children: ReactNode;
 };
 
 /**
  * Renders the Error Notice user interface.
- * Explains whether loading failed completely or synchronization stopped after data arrived, and
- * offers retry.
+ * Explains whether loading failed completely or synchronization stopped after data arrived.
  */
-const ErrorNotice = ({ hasData, onRetry }: Pick<RemoteReadBoundaryProps, "hasData" | "onRetry">) => (
+const ErrorNotice = ({ hasData }: Pick<RemoteReadBoundaryProps, "hasData">) => (
   <div
     role="alert"
     className="mb-4 flex items-center justify-between gap-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
   >
     <span>{hasData ? "Sync interrupted. Showing current data." : "Unable to load data."}</span>
-    <Button size="sm" onClick={onRetry}>
-      Retry
-    </Button>
   </div>
 );
 
@@ -52,13 +46,7 @@ export const RemoteReadBoundary = (props: RemoteReadBoundaryProps) => {
   }
   if (props.status === "loading" && !props.hasData) return <RouteFeedback title="Loading…" tone="loading" />;
   if (props.status === "error" && !props.hasData) {
-    return (
-      <RouteFeedback
-        title="Unable to load data."
-        tone="error"
-        primaryAction={{ label: "Retry", onClick: props.onRetry }}
-      />
-    );
+    return <RouteFeedback title="Unable to load data." tone="error" />;
   }
   if (props.status === "ready" && !props.hasData) {
     return props.emptyContent ?? <RouteFeedback title={props.emptyLabel ?? "No data yet."} tone="not-found" />;
@@ -66,7 +54,7 @@ export const RemoteReadBoundary = (props: RemoteReadBoundaryProps) => {
 
   return (
     <>
-      {props.status === "error" && <ErrorNotice hasData onRetry={props.onRetry} />}
+      {props.status === "error" && <ErrorNotice hasData />}
       {props.children}
     </>
   );

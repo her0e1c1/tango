@@ -18,24 +18,34 @@ const mocks = vi.hoisted(() => ({
   authState: { status: "initializing" } as AuthSessionState,
   startAuthSession: vi.fn(),
   stopAuthSession: vi.fn(),
-  startCardSynchronization: vi.fn(),
+  subscribeCards: vi.fn(),
   subscribeDecks: vi.fn(),
+  resetCardRead: vi.fn(),
+  setCardReadError: vi.fn(),
+  setCardReadLoading: vi.fn(),
+  setCardReadReady: vi.fn(),
   operations: [] as string[],
 }));
 
 vi.mock("@/app/providers/auth/lifecycle", () => ({ startAuthSession: mocks.startAuthSession }));
-vi.mock("@/app/providers/remote-read/card", () => ({
-  startCardSynchronization: mocks.startCardSynchronization,
-}));
 vi.mock("@/app/providers/remote-read/deck", () => ({
   subscribeDecks: mocks.subscribeDecks,
 }));
-vi.mock("@/entities/card", () => ({ clearCards: () => mocks.operations.push("clear Cards") }));
+vi.mock("@/entities/card", () => ({
+  clearCards: () => mocks.operations.push("clear Cards"),
+  subscribeCards: mocks.subscribeCards,
+}));
 vi.mock("@/entities/deck", () => ({ clearDecks: () => mocks.operations.push("clear Decks") }));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
 vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authState }));
+vi.mock("@/features/card/read", () => ({
+  resetCardRead: mocks.resetCardRead,
+  setCardReadError: mocks.setCardReadError,
+  setCardReadLoading: mocks.setCardReadLoading,
+  setCardReadReady: mocks.setCardReadReady,
+}));
 vi.mock("@/features/auth/sign-in", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/features/auth/sign-out", () => ({ signOutCurrentUser: vi.fn() }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
@@ -54,7 +64,7 @@ describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.startAuthSession.mockReturnValue(mocks.stopAuthSession);
-    mocks.startCardSynchronization.mockImplementation((uid: string) => {
+    mocks.subscribeCards.mockImplementation((uid: string) => {
       mocks.operations.push(`start Cards ${uid}`);
       return () => mocks.operations.push(`stop Cards ${uid}`);
     });
@@ -94,6 +104,20 @@ describe("App", () => {
       "clear Cards",
       "clear Decks",
     ]);
+  });
+
+  it("updates the Card read state from subscription events", () => {
+    render(<App />);
+    const onError = mocks.subscribeCards.mock.calls[0]?.[1] as (error: Error) => void;
+    const onData = mocks.subscribeCards.mock.calls[0]?.[2] as () => void;
+    const error = new Error("Card subscription failed");
+
+    expect(mocks.setCardReadLoading).toHaveBeenCalledWith("test-user");
+    onData();
+    onError(error);
+
+    expect(mocks.setCardReadReady).toHaveBeenCalledWith("test-user");
+    expect(mocks.setCardReadError).toHaveBeenCalledWith("test-user", error);
   });
 
   it("replaces remote reads when the authenticated UID changes", () => {

@@ -40,7 +40,6 @@ export const CardFormPage: React.FC = () => {
           secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
         />
       }
-      onRetry={cardReadState.retry}
     >
       {card != null ? <CardFormContent card={card} /> : null}
     </RemoteReadBoundary>

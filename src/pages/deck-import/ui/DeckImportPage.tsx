@@ -17,7 +17,7 @@ export const DeckImportPage: React.FC = () => {
   const cards = useCards();
   const cardReadState = useCardReadState();
   const decks = useDecks();
-  const synchronized = cardReadState.status === "ready" && cardReadState.syncStatus === "synced";
+  const synchronized = cardReadState.status === "ready";
   const deckImport = useDeckImport({
     cards,
     createCard,

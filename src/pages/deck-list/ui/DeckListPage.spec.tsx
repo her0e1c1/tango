@@ -17,9 +17,7 @@ const mocks = vi.hoisted(() => ({
   decks: [] as Deck[],
   cards: [] as Card[],
   readStatus: "ready" as "idle" | "loading" | "ready" | "error",
-  syncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
   hydrated: true,
-  retry: vi.fn(),
   remove: vi.fn(async (_deck: Deck) => undefined),
   downloadDeckCsv: vi.fn(),
   removeStudySession: vi.fn(),
@@ -45,8 +43,6 @@ vi.mock("@/entities/deck", () => ({
 vi.mock("@/features/card/read", () => ({
   useCardReadState: () => ({
     status: mocks.readStatus,
-    syncStatus: mocks.syncStatus,
-    retry: mocks.retry,
   }),
 }));
 vi.mock("@/features/deck/delete", () => ({ useDeleteDeck: () => ({ remove: mocks.remove }) }));
@@ -101,7 +97,6 @@ describe("DeckListPage", () => {
     mocks.decks = [deck];
     mocks.cards = [card];
     mocks.readStatus = "ready";
-    mocks.syncStatus = "synced";
     mocks.hydrated = true;
   });
 

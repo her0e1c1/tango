@@ -1,7 +1,7 @@
 /**
  * @file Verifies the "sample Deck bootstrap" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "adds the sample once for a
- * server-synced empty user under StrictMode", "waits for the server before treating an empty cache
+ * loaded empty user under StrictMode", "waits for the initial read before treating an empty store
  * as an empty user", "does not add the sample when the user already has a Deck".
  */
 
@@ -15,7 +15,6 @@ const mocks = vi.hoisted(() => ({
   auth: { status: "authenticated", uid: "uid-a" } as { status: "authenticated"; uid: string } | { status: "loading" },
   remote: {
     status: "ready" as "idle" | "loading" | "ready" | "error" | "blocked",
-    syncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
     decks: [] as Deck[],
   },
   addSample: vi.fn<() => Promise<unknown>>(),
@@ -37,7 +36,7 @@ const useTestSampleDeckBootstrap = (props: { synchronized?: boolean } = {}) =>
     decks: mocks.remote.decks,
     editCard: vi.fn(),
     generateCardId: vi.fn(() => "card-id"),
-    synchronized: props.synchronized ?? (mocks.remote.status === "ready" && mocks.remote.syncStatus === "synced"),
+    synchronized: props.synchronized ?? mocks.remote.status === "ready",
   });
 
 /**
@@ -50,22 +49,22 @@ describe("sample Deck bootstrap", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.auth = { status: "authenticated", uid: crypto.randomUUID() };
-    mocks.remote = { status: "ready", syncStatus: "synced", decks: [] };
+    mocks.remote = { status: "ready", decks: [] };
     mocks.addSample.mockResolvedValue(undefined);
   });
 
-  it("adds the sample once for a server-synced empty user under StrictMode", async () => {
+  it("adds the sample once for a loaded empty user under StrictMode", async () => {
     renderHook(useTestSampleDeckBootstrap, { wrapper: strictMode });
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
   });
 
-  it("waits for the server before treating an empty cache as an empty user", async () => {
-    mocks.remote.syncStatus = "cached";
+  it("waits for the initial read before treating an empty store as an empty user", async () => {
+    mocks.remote.status = "loading";
     const { rerender } = renderHook(useTestSampleDeckBootstrap, { initialProps: { synchronized: false } });
 
     expect(mocks.addSample).not.toHaveBeenCalled();
-    mocks.remote.syncStatus = "synced";
+    mocks.remote.status = "ready";
     rerender({ synchronized: true });
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());

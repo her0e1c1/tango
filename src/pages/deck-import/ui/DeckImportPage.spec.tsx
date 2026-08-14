@@ -54,7 +54,7 @@ vi.mock("@/features/deck/import", () => ({
   }),
 }));
 vi.mock("@/features/card/read", () => ({
-  useCardReadState: () => ({ status: "ready", syncStatus: "synced" }),
+  useCardReadState: () => ({ status: "ready" }),
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
