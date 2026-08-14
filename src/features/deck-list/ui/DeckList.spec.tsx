@@ -38,7 +38,6 @@ const actions = {
   onEditDeck: vi.fn(),
   onDownloadDeck: vi.fn(),
   onDeleteDeck: vi.fn(async () => undefined),
-  onDeletedDeck: vi.fn(),
 };
 
 const renderDeckList = () =>
@@ -108,7 +107,6 @@ describe("DeckList", () => {
     fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
     await waitFor(() => expect(actions.onDeleteDeck).toHaveBeenCalledExactlyOnceWith(recentDeck));
-    expect(actions.onDeletedDeck).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
     expect(screen.getByRole("status")).toHaveTextContent("Deleted deck “Recent deck”.");
   });
 

@@ -9,6 +9,8 @@ import type { Deck } from "@/entities/deck";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
+import { useAuthSession } from "@/entities/auth";
+import { editDeck } from "@/entities/deck";
 import type { DeckStartForm } from "../components/DeckStartForm";
 
 type DeckStartFormProps = React.ComponentProps<typeof DeckStartForm>;
@@ -16,13 +18,14 @@ type DeckStartFormProps = React.ComponentProps<typeof DeckStartForm>;
 export interface UseDeckFilterStateOptions {
   deck: Deck;
   tags: string[];
-  onSubmit?: (deck: Deck) => void;
 }
 
 /**
  * Provides the filter state and persistence callback used to configure a study session.
  */
-export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateOptions): DeckStartFormProps => {
+export const useDeckFilterState = ({ deck, tags }: UseDeckFilterStateOptions): DeckStartFormProps => {
+  const auth = useAuthSession();
+  const uid = auth.status === "authenticated" ? auth.uid : "";
   const [scoreMaxEnabled, setScoreMaxEnabled] = React.useState(deck.scoreMax != null);
   const [scoreMinEnabled, setScoreMinEnabled] = React.useState(deck.scoreMin != null);
   const { control, handleSubmit, register, setValue, subscribe } = useForm<Deck>({ defaultValues: deck });
@@ -34,9 +37,9 @@ export const useDeckFilterState = ({ deck, tags, onSubmit }: UseDeckFilterStateO
   React.useEffect(() => {
     return subscribe({
       formState: { values: true },
-      callback: () => void handleSubmit((data) => onSubmit?.(data))(),
+      callback: () => void handleSubmit((data) => editDeck(uid, data).catch(() => undefined))(),
     });
-  }, [handleSubmit, onSubmit, subscribe]);
+  }, [handleSubmit, subscribe, uid]);
 
   const onClickFilter = (value: boolean) => {
     setValue("tagAndFilter", value);

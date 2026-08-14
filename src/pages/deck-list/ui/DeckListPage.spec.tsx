@@ -2,7 +2,7 @@ import type { Preferences } from "@/entities/preferences";
 import type { ComponentProps } from "react";
 import type { DeckList } from "@/features/deck-list";
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -82,9 +82,6 @@ vi.mock("@/features/deck-list", () => ({
         <button type="button" onClick={() => void props.onDeleteDeck(deck)}>
           Delete deck
         </button>
-        <button type="button" onClick={() => props.onDeletedDeck(deck.id)}>
-          Finish deletion
-        </button>
       </section>
     );
   },
@@ -108,7 +105,7 @@ describe("DeckListPage", () => {
     mocks.hydrated = true;
   });
 
-  it("composes route and reusable feature actions around the Deck List Feature", () => {
+  it("composes route and reusable feature actions around the Deck List Feature", async () => {
     render(<DeckListPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "View deck" }));
@@ -117,7 +114,6 @@ describe("DeckListPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Edit deck" }));
     fireEvent.click(screen.getByRole("button", { name: "Download deck" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
-    fireEvent.click(screen.getByRole("button", { name: "Finish deletion" }));
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, `/deck/${deck.id}`);
     expect(mocks.touchStudySession).toHaveBeenCalledExactlyOnceWith(deck.id);
@@ -126,7 +122,7 @@ describe("DeckListPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(4, `/deck/${deck.id}/edit`);
     expect(mocks.downloadDeckCsv).toHaveBeenCalledExactlyOnceWith(deck, [card]);
     expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck);
-    expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id);
+    await waitFor(() => expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id));
   });
 
   it("keeps route shortcuts and sample bootstrap wiring", () => {

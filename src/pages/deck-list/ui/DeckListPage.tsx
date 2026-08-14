@@ -56,8 +56,10 @@ export const DeckListPage: React.FC = () => {
             onStartDeck={(id) => void navigate(`/deck/${id}/start`)}
             onEditDeck={(id) => void navigate(`/deck/${id}/edit`)}
             onDownloadDeck={downloadDeckCsv}
-            onDeleteDeck={deleteDeck.remove}
-            onDeletedDeck={removeStudySession}
+            onDeleteDeck={async (deck) => {
+              await deleteDeck.remove(deck);
+              removeStudySession(deck.id);
+            }}
           />
         </AppLayout>
       ) : (

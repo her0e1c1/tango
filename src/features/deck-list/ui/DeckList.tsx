@@ -18,7 +18,6 @@ export interface DeckListProps {
   onEditDeck: (id: DeckId) => void;
   onDownloadDeck: (deck: Deck, cards: Card[]) => void;
   onDeleteDeck: (deck: Deck) => Promise<void>;
-  onDeletedDeck: (id: DeckId) => void;
 }
 
 interface DeletionTarget {
@@ -56,7 +55,6 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
     setDeletionErrorDeckId(undefined);
     try {
       await props.onDeleteDeck(deck);
-      props.onDeletedDeck(deck.id);
       setDeletionTarget(undefined);
       setSuccessMessage(`Deleted deck “${deck.name}”.`);
     } catch {
