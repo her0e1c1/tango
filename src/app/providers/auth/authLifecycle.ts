@@ -1,11 +1,12 @@
 import { onAuthStateChanged, signInAnonymously, type User } from "firebase/auth";
 
 import { getAuthSession, replaceAuthSession } from "@/entities/auth-session";
+import { clearStudyStore } from "@/features/study";
 import { auth } from "@/shared/firebase";
 
 let observerStarted = false;
 let anonymousBootstrapStarted = false;
-let anonymousBootstrapSuspended = false;
+let previousUserCleanup: Promise<void> | null = null;
 
 const authSessionFromUser = (user: User) => ({
   status: "authenticated" as const,
@@ -15,7 +16,7 @@ const authSessionFromUser = (user: User) => ({
 });
 
 const startAnonymousBootstrap = () => {
-  if (anonymousBootstrapSuspended || anonymousBootstrapStarted || getAuthSession().status !== "signedOut") {
+  if (previousUserCleanup !== null || anonymousBootstrapStarted || getAuthSession().status !== "signedOut") {
     return;
   }
 
@@ -27,18 +28,41 @@ const startAnonymousBootstrap = () => {
   });
 };
 
+const clearPreviousUser = () => {
+  if (previousUserCleanup !== null) return;
+
+  previousUserCleanup = clearStudyStore();
+  void previousUserCleanup.then(
+    () => {
+      previousUserCleanup = null;
+      startAnonymousBootstrap();
+    },
+    (error) => {
+      if (getAuthSession().status === "signedOut") {
+        replaceAuthSession({ status: "error", error });
+      }
+    }
+  );
+};
+
 export const startAuthSession = () => {
   if (observerStarted) return;
   observerStarted = true;
   onAuthStateChanged(auth, (user) => {
     if (user) {
       anonymousBootstrapStarted = false;
+      previousUserCleanup = null;
       replaceAuthSession(authSessionFromUser(user));
       return;
     }
 
+    const hadAuthenticatedUser = getAuthSession().status === "authenticated";
     replaceAuthSession({ status: "signedOut" });
-    startAnonymousBootstrap();
+    if (hadAuthenticatedUser) {
+      clearPreviousUser();
+    } else {
+      startAnonymousBootstrap();
+    }
   });
 };
 
@@ -47,12 +71,4 @@ export const publishAuthenticatedUser = (user: User) => {
   if (current.status === "authenticated" && current.uid === user.uid) {
     replaceAuthSession(authSessionFromUser(user));
   }
-};
-
-export const suspendAnonymousBootstrap = () => {
-  anonymousBootstrapSuspended = true;
-  return () => {
-    anonymousBootstrapSuspended = false;
-    startAnonymousBootstrap();
-  };
 };

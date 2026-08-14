@@ -7,9 +7,9 @@
 import type React from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
-import { logout } from "@/app/auth/logout";
 import { publishAuthenticatedUser } from "@/app/providers/auth";
 import { loginGoogle } from "@/features/auth/sign-in";
+import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
@@ -53,7 +53,7 @@ export const AppRoutes: React.FC = () => (
     <Route path="/deck/:id/study" element={<DeckSwiperPage />} />
     <Route path="/card/:id" element={<CardViewPage />} />
     <Route path="/card/:id/edit" element={<CardFormPage />} />
-    <Route path="/settings" element={<SettingsPage login={login} logout={logout} />} />
+    <Route path="/settings" element={<SettingsPage login={login} logout={signOutCurrentUser} />} />
     <Route path="/import" element={<DeckImportPage />} />
     <Route path="*" element={<UnknownRoute />} />
   </Routes>

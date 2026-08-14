@@ -1,8 +1,8 @@
 /**
  * @file Verifies the "Auth Logout integration" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "waits for local cleanup
- * before bootstrapping the next anonymous UID", "does not carry cleanup failures into the next
- * auth session", "retries a failed sign-out while the authenticated screen remains mounted".
+ * before bootstrapping the next anonymous UID", "blocks anonymous bootstrap when cleanup fails",
+ * "retries a failed sign-out while the authenticated screen remains mounted".
  */
 
 import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
@@ -78,11 +78,11 @@ vi.mock("@/pages/settings/ui/SettingsView", () => ({
 }));
 vi.mock("react-use", () => ({ useKey: vi.fn() }));
 
-import { logout } from "@/app/auth/logout";
 import { AuthBootstrap } from "@/app/providers/auth";
 import { startAuthSession } from "@/app/providers/auth/authLifecycle";
 import { RemoteReadProvider } from "@/app/providers/remote-read";
-import { replaceAuthSession, useAuthSession } from "@/entities/auth-session";
+import { getAuthSession, replaceAuthSession, useAuthSession } from "@/entities/auth-session";
+import { signOutCurrentUser } from "@/features/auth/sign-out";
 import { SettingsPage } from "@/pages/settings";
 import { useStudyStore } from "@/features/study";
 
@@ -127,7 +127,7 @@ const getStudySessions = () => {
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
 const AuthenticatedSettings = () =>
-  useAuthSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={logout} /> : null;
+  useAuthSession().status === "authenticated" ? <SettingsPage login={vi.fn()} logout={signOutCurrentUser} /> : null;
 
 it("waits for local cleanup before bootstrapping the next anonymous UID", async () => {
   let resolveStudyCleanup: () => void = () => undefined;
@@ -172,7 +172,7 @@ it("waits for local cleanup before bootstrapping the next anonymous UID", async 
 
   let pendingLogout!: Promise<void>;
   act(() => {
-    pendingLogout = logout();
+    pendingLogout = signOutCurrentUser();
   });
   await waitFor(() => expect(mocks.cleanupUid).toHaveBeenCalledOnce());
 
@@ -225,18 +225,11 @@ it("retries a failed sign-out while the authenticated screen remains mounted", a
   expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
 });
 
-it("does not expose obsolete study cleanup retries to a new anonymous study", async () => {
+it("blocks anonymous bootstrap when study cleanup fails", async () => {
   const userA = { uid: "study-uid-a", isAnonymous: false, providerData: [] } as unknown as User;
-  const userB = { uid: "study-uid-b", isAnonymous: true, providerData: [] } as unknown as User;
   const cleanupError = new Error("study storage cleanup failed");
 
   mocks.signOut.mockImplementation(async () => mocks.publishUser?.(null));
-  mocks.signInAnonymously.mockImplementation(() =>
-    Promise.resolve().then(() => {
-      mocks.publishUser?.(userB);
-      return { user: userB } as UserCredential;
-    })
-  );
   vi.spyOn(Storage.prototype, "removeItem").mockImplementationOnce(() => {
     throw cleanupError;
   });
@@ -252,15 +245,10 @@ it("does not expose obsolete study cleanup retries to a new anonymous study", as
   startStudy("old-deck", ["old-card"]);
 
   fireEvent.click(await screen.findByRole("button", { name: "Logout" }));
-  await waitFor(() => expect(mocks.clearStudyStore).toHaveBeenCalledOnce());
+  await waitFor(() => expect(getAuthSession()).toEqual({ status: "error", error: cleanupError }));
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(getStudySessions()).toEqual({});
-
-  startStudy("new-deck", ["new-card"]);
-
-  expect(getStudySessions()).toEqual({
-    "new-deck": expect.objectContaining({ deckId: "new-deck", cardOrderIds: ["new-card"] }),
-  });
+  expect(mocks.signInAnonymously).not.toHaveBeenCalled();
   expect(mocks.signOut).toHaveBeenCalledOnce();
   expect(mocks.clearStudyStore).toHaveBeenCalledOnce();
 });

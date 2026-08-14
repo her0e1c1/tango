@@ -5,9 +5,11 @@ const singletonMocks = vi.hoisted(() => ({
   auth: { currentUser: null },
   onAuthStateChanged: vi.fn((_auth: Auth, _onUser: (user: User | null) => void) => vi.fn()),
   signInAnonymously: vi.fn(),
+  clearStudyStore: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: singletonMocks.auth }));
+vi.mock("@/features/study", () => ({ clearStudyStore: singletonMocks.clearStudyStore }));
 vi.mock("firebase/auth", () => ({
   onAuthStateChanged: singletonMocks.onAuthStateChanged,
   signInAnonymously: singletonMocks.signInAnonymously,
@@ -31,6 +33,7 @@ const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCre
     return vi.fn();
   });
   singletonMocks.signInAnonymously.mockImplementation(signInAnonymously);
+  singletonMocks.clearStudyStore.mockResolvedValue(undefined);
 
   const authSession = await import("@/entities/auth-session");
   const lifecycle = await import("./authLifecycle");
@@ -75,32 +78,81 @@ describe("authLifecycle", () => {
     expect(signInAnonymously).toHaveBeenCalledOnce();
   });
 
-  it("waits for the bootstrap suspension to be released", async () => {
+  it("waits for previous-user study cleanup before anonymous bootstrap", async () => {
+    let finishCleanup: () => void = () => undefined;
+    const cleanup = new Promise<void>((resolve) => {
+      finishCleanup = resolve;
+    });
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const { publishUser, suspendAnonymousBootstrap } = await createHarness(signInAnonymously);
-    const resume = suspendAnonymousBootstrap();
+    const { publishUser } = await createHarness(signInAnonymously);
+    singletonMocks.clearStudyStore.mockReturnValue(cleanup);
+
+    publishUser(createUser("uid-a", { isAnonymous: false }));
     publishUser(null);
 
+    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
     expect(signInAnonymously).not.toHaveBeenCalled();
 
-    resume();
-    resume();
-    expect(signInAnonymously).toHaveBeenCalledOnce();
+    finishCleanup();
+    await cleanup;
+    await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
   });
 
-  it("does not bootstrap anonymously when authentication returns before release", async () => {
+  it("publishes cleanup failures without starting an anonymous session", async () => {
+    const cleanupError = new Error("study cleanup failed");
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const { publishUser, suspendAnonymousBootstrap } = await createHarness(signInAnonymously);
-    const resume = suspendAnonymousBootstrap();
+    const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
+    singletonMocks.clearStudyStore.mockRejectedValue(cleanupError);
 
+    publishUser(createUser("uid-a", { isAnonymous: false }));
     publishUser(null);
-    publishUser(createUser("uid-a"));
-    resume();
+
+    await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "error", error: cleanupError }));
+    expect(signInAnonymously).not.toHaveBeenCalled();
+  });
+
+  it("does not clear study state when sign-out is never observed", async () => {
+    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
+    const { publishUser } = await createHarness(signInAnonymously);
+
+    publishUser(createUser("uid-a", { isAnonymous: false }));
+
+    expect(singletonMocks.clearStudyStore).not.toHaveBeenCalled();
+  });
+
+  it("ignores duplicate signed-out callbacks while cleanup is pending", async () => {
+    const cleanup = new Promise<void>(() => undefined);
+    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
+    const { publishUser } = await createHarness(signInAnonymously);
+    singletonMocks.clearStudyStore.mockReturnValue(cleanup);
+
+    publishUser(createUser("uid-a", { isAnonymous: false }));
+    publishUser(null);
+    publishUser(null);
+
+    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
+    expect(signInAnonymously).not.toHaveBeenCalled();
+  });
+
+  it("does not bootstrap anonymously when authentication returns before cleanup", async () => {
+    let finishCleanup: () => void = () => undefined;
+    const cleanup = new Promise<void>((resolve) => {
+      finishCleanup = resolve;
+    });
+    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
+    const { publishUser } = await createHarness(signInAnonymously);
+    singletonMocks.clearStudyStore.mockReturnValue(cleanup);
+
+    publishUser(createUser("uid-a", { isAnonymous: false }));
+    publishUser(null);
+    publishUser(createUser("uid-b"));
+    finishCleanup();
+    await cleanup;
 
     expect(signInAnonymously).not.toHaveBeenCalled();
   });
 
-  it("starts a new anonymous episode after an authenticated user signs out", async () => {
+  it("starts a new anonymous episode after clearing an authenticated user's study state", async () => {
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { publishUser } = await createHarness(signInAnonymously);
 
@@ -108,7 +160,8 @@ describe("authLifecycle", () => {
     publishUser(createUser("uid-a"));
     publishUser(null);
 
-    expect(signInAnonymously).toHaveBeenCalledTimes(2);
+    await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledTimes(2));
+    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
   });
 
   it("publishes anonymous sign-in failures without an identity", async () => {
