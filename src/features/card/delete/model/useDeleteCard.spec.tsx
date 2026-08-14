@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({ uid: "uid-a", deleteCard: vi.fn() }));
 vi.mock("@/entities/auth", () => ({
   useAuthSession: () =>
     mocks.uid === ""
-      ? { status: "signedOut" }
+      ? { status: "unauthenticated" }
       : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
 }));
 vi.mock("../api/deleteCard", () => ({ deleteCard: mocks.deleteCard }));

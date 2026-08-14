@@ -30,7 +30,9 @@ import { replaceAuthSession } from "@/entities/auth";
 const createHarness = (children?: ReactNode) => {
   const publishUser = (uid: string | null) =>
     replaceAuthSession(
-      uid == null ? { status: "signedOut" } : { status: "authenticated", uid, isAnonymous: true, displayName: null }
+      uid == null
+        ? { status: "unauthenticated" }
+        : { status: "authenticated", uid, isAnonymous: true, displayName: null }
     );
   render(
     <React.StrictMode>

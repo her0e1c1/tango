@@ -27,7 +27,7 @@ const App: React.FC<{ reload?: () => void }> = ({ reload = () => window.location
 
   if (
     authState.status === "initializing" ||
-    authState.status === "signedOut" ||
+    authState.status === "unauthenticated" ||
     authState.status === "authenticating"
   ) {
     return (
