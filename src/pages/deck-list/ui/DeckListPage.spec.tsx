@@ -16,10 +16,11 @@ const mocks = vi.hoisted(() => ({
   preferences: {} as Preferences,
   decks: [] as Deck[],
   cards: [] as Card[],
+  authUid: "user-1",
   readStatus: "ready" as "idle" | "loading" | "ready" | "error",
   serverConfirmed: true,
   hydrated: true,
-  remove: vi.fn(async (_deck: Deck) => undefined),
+  deleteDeck: vi.fn(async (_uid: string, _deck: Deck) => undefined),
   downloadDeckCsv: vi.fn(),
   removeStudySession: vi.fn(),
   touchStudySession: vi.fn(),
@@ -31,6 +32,14 @@ vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: vi.fn(),
 }));
+vi.mock("@/entities/auth", () => ({
+  useAuthSession: () => ({
+    status: "authenticated",
+    uid: mocks.authUid,
+    isAnonymous: true,
+    displayName: null,
+  }),
+}));
 vi.mock("@/entities/card", () => ({
   createCard: vi.fn(),
   editCard: vi.fn(),
@@ -39,6 +48,7 @@ vi.mock("@/entities/card", () => ({
 }));
 vi.mock("@/entities/deck", () => ({
   createDeck: vi.fn(),
+  deleteDeck: mocks.deleteDeck,
   useDecks: () => mocks.decks,
 }));
 vi.mock("@/features/card/read", () => ({
@@ -47,7 +57,6 @@ vi.mock("@/features/card/read", () => ({
     serverConfirmed: mocks.serverConfirmed,
   }),
 }));
-vi.mock("@/features/deck/delete", () => ({ useDeleteDeck: () => ({ remove: mocks.remove }) }));
 vi.mock("@/features/deck/export", () => ({ downloadDeckCsv: mocks.downloadDeckCsv }));
 vi.mock("@/features/deck-import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
 vi.mock("@/features/study", () => ({
@@ -98,6 +107,7 @@ describe("DeckListPage", () => {
     mocks.preferences = createPreferences({ darkMode: false });
     mocks.decks = [deck];
     mocks.cards = [card];
+    mocks.authUid = "user-1";
     mocks.readStatus = "ready";
     mocks.serverConfirmed = true;
     mocks.hydrated = true;
@@ -119,7 +129,7 @@ describe("DeckListPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(3, `/deck/${deck.id}/start`);
     expect(mocks.navigate).toHaveBeenNthCalledWith(4, `/deck/${deck.id}/edit`);
     expect(mocks.downloadDeckCsv).toHaveBeenCalledExactlyOnceWith(deck, [card]);
-    expect(mocks.remove).toHaveBeenCalledExactlyOnceWith(deck);
+    expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith(mocks.authUid, deck);
     await waitFor(() => expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id));
   });
 
