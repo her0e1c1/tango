@@ -49,8 +49,8 @@ describe("Query realtime subscriptions", () => {
 
     try {
       await vi.waitFor(() => {
-        expect(deckSnapshots[0]).toMatchObject({ type: "replace" });
-        expect(cardSnapshots[0]).toMatchObject({ type: "replace" });
+        expect(deckSnapshots[0]).toMatchObject({ itemsById: {} });
+        expect(cardSnapshots[0]).toMatchObject({ itemsById: {} });
       });
 
       const deck = createDeckFixture({ id: "deck-id", uid: "uid" });
@@ -58,40 +58,22 @@ describe("Query realtime subscriptions", () => {
       await createDeckCommand("uid", deck);
       await createCardCommand("uid", card);
       await vi.waitFor(() => {
-        expect(
-          deckSnapshots.some(
-            (snapshot) => snapshot.type === "change" && snapshot.event.added.some((item) => item.id === deck.id)
-          )
-        ).toBe(true);
-        expect(
-          cardSnapshots.some(
-            (snapshot) => snapshot.type === "change" && snapshot.event.added.some((item) => item.id === card.id)
-          )
-        ).toBe(true);
+        expect(deckSnapshots.at(-1)?.itemsById[deck.id]).toMatchObject({ id: deck.id });
+        expect(cardSnapshots.at(-1)?.itemsById[card.id]).toMatchObject({ id: card.id });
       });
 
       await editDeck("uid", { ...deck, name: "Updated" });
       await editCard("uid", { ...card, frontText: "Updated" });
       await vi.waitFor(() => {
-        expect(
-          deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.modified[0]?.name === "Updated")
-        ).toBe(true);
-        expect(
-          cardSnapshots.some(
-            (snapshot) => snapshot.type === "change" && snapshot.event.modified[0]?.frontText === "Updated"
-          )
-        ).toBe(true);
+        expect(deckSnapshots.at(-1)?.itemsById[deck.id]?.name).toBe("Updated");
+        expect(cardSnapshots.at(-1)?.itemsById[card.id]?.frontText).toBe("Updated");
       });
 
       await deleteCard("uid", card);
       await deleteDeck("uid", deck);
       await vi.waitFor(() => {
-        expect(
-          deckSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.removed.includes(deck.id))
-        ).toBe(true);
-        expect(
-          cardSnapshots.some((snapshot) => snapshot.type === "change" && snapshot.event.removed.includes(card.id))
-        ).toBe(true);
+        expect(deckSnapshots.at(-1)?.itemsById[deck.id]).toBeUndefined();
+        expect(cardSnapshots.at(-1)?.itemsById[card.id]).toBeUndefined();
       });
       expect(errors).toEqual([]);
     } finally {

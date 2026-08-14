@@ -72,9 +72,8 @@ describe("subscribeCardReads", () => {
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
     expect(onSnapshot).toHaveBeenCalledWith({
-      type: "replace",
-      items: [expect.objectContaining({ id: "active", deletedAt: null })],
-      metadata: { fromCache: false, hasPendingWrites: false },
+      itemsById: { active: expect.objectContaining({ id: "active", deletedAt: null }) },
+      syncStatus: "synced",
     });
   });
 

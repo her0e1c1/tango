@@ -10,7 +10,7 @@ export const RemoteReadBootstrap = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     if (uid == null) return;
-    void startRemoteReads(uid);
+    startRemoteReads(uid);
     return () => stopRemoteReads(uid);
   }, [uid]);
 

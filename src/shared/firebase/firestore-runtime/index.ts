@@ -2,7 +2,7 @@
 
 import type { Firestore } from "firebase/firestore";
 
-export type FirestoreInitializationResult = { status: "ready" } | { status: "blocked"; error: Error };
+type FirestoreInitializationResult = { status: "ready" } | { status: "blocked"; error: Error };
 
 type FirestoreRuntimeState =
   | { status: "initializing" }

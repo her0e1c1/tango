@@ -1,3 +1,4 @@
 export { combineRemoteReadStates } from "./combineRemoteReadStates";
 export { createRemoteReadStore } from "./createRemoteReadStore";
-export { RemoteReadScopeProvider, useRemoteReadScopeUid } from "./RemoteReadScope";
+export { RemoteReadScopeProvider } from "./RemoteReadScope";
+export { useRemoteRead } from "./useRemoteRead";

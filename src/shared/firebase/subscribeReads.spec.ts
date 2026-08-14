@@ -7,10 +7,8 @@ import { subscribeReads, type SubscribeReadsOptions } from "./subscribeReads";
 
 type TestItem = { id: string; active: boolean; label: string };
 type TestDocument = { id: string; data: () => Record<string, unknown> };
-type TestChange = { type: "added" | "modified" | "removed"; doc: TestDocument };
 type TestSnapshot = {
   docs: TestDocument[];
-  docChanges: () => TestChange[];
   metadata: { fromCache: boolean; hasPendingWrites: boolean };
 };
 
@@ -33,9 +31,8 @@ const document = (id: string, data: Record<string, unknown>): TestDocument => ({
 
 const snapshot = (
   docs: TestDocument[],
-  changes: TestChange[] = [],
   metadata: TestSnapshot["metadata"] = { fromCache: false, hasPendingWrites: false }
-): TestSnapshot => ({ docs, docChanges: () => changes, metadata });
+): TestSnapshot => ({ docs, metadata });
 
 const createHarness = () => {
   const query = {} as Query;
@@ -51,7 +48,7 @@ const createHarness = () => {
   const onSnapshot = vi.fn<(received: RemoteSnapshot<TestItem>) => void>();
   const onError = vi.fn<(error: Error) => void>();
   const options: SubscribeReadsOptions<TestItem> = { query, mapDocument, isActive, onSnapshot, onError };
-  return { options, query, mapDocument, isActive, onSnapshot, onError };
+  return { options, query, onSnapshot, onError };
 };
 
 beforeEach(() => {
@@ -61,12 +58,12 @@ beforeEach(() => {
 });
 
 describe("Firestore read subscriptions", () => {
-  it("publishes an active initial replacement and returns the unsubscribe callback", () => {
+  it("publishes the active current query result and returns the unsubscribe callback", () => {
     const harness = createHarness();
 
     const unsubscribe = subscribeReads(harness.options);
     mocks.next?.(
-      snapshot([document("active", { active: true, label: "Active" }), document("inactive", { active: false })], [], {
+      snapshot([document("active", { active: true, label: "Active" }), document("inactive", { active: false })], {
         fromCache: true,
         hasPendingWrites: true,
       })
@@ -80,58 +77,36 @@ describe("Firestore read subscriptions", () => {
     );
     expect(unsubscribe).toBe(mocks.unsubscribe);
     expect(harness.onSnapshot).toHaveBeenCalledWith({
-      type: "replace",
-      items: [{ id: "active", active: true, label: "Active" }],
-      metadata: { fromCache: true, hasPendingWrites: true },
+      itemsById: { active: { id: "active", active: true, label: "Active" } },
+      syncStatus: "pending",
     });
   });
 
-  it("classifies incremental changes with the injected active policy", () => {
+  it("replaces the full result on every snapshot", () => {
     const harness = createHarness();
     subscribeReads(harness.options);
-    mocks.next?.(snapshot([]));
-    harness.onSnapshot.mockClear();
+    mocks.next?.(snapshot([document("old", { active: true })]));
 
-    mocks.next?.(
-      snapshot(
-        [],
-        [
-          { type: "added", doc: document("added", { active: true, label: "Added" }) },
-          { type: "modified", doc: document("modified", { active: true, label: "Modified" }) },
-          { type: "modified", doc: document("inactive", { active: false }) },
-          { type: "removed", doc: document("removed", { active: true }) },
-        ],
-        { fromCache: false, hasPendingWrites: true }
-      )
-    );
+    mocks.next?.(snapshot([document("current", { active: true, label: "Current" })]));
 
-    expect(harness.onSnapshot).toHaveBeenCalledWith({
-      type: "change",
-      event: {
-        added: [{ id: "added", active: true, label: "Added" }],
-        modified: [{ id: "modified", active: true, label: "Modified" }],
-        removed: ["inactive", "removed"],
-      },
-      metadata: { fromCache: false, hasPendingWrites: true },
+    expect(harness.onSnapshot).toHaveBeenLastCalledWith({
+      itemsById: { current: { id: "current", active: true, label: "Current" } },
+      syncStatus: "synced",
     });
   });
 
-  it("publishes metadata-only snapshots", () => {
+  it.each([
+    [{ fromCache: true, hasPendingWrites: false }, "cached"],
+    [{ fromCache: false, hasPendingWrites: true }, "pending"],
+    [{ fromCache: false, hasPendingWrites: false }, "synced"],
+  ] as const)("derives %s metadata as %s", (metadata, syncStatus) => {
     const harness = createHarness();
     subscribeReads(harness.options);
-    mocks.next?.(snapshot([], [], { fromCache: true, hasPendingWrites: true }));
-    harness.onSnapshot.mockClear();
-
-    mocks.next?.(snapshot([], [], { fromCache: false, hasPendingWrites: false }));
-
-    expect(harness.onSnapshot).toHaveBeenCalledWith({
-      type: "change",
-      event: { added: [], modified: [], removed: [] },
-      metadata: { fromCache: false, hasPendingWrites: false },
-    });
+    mocks.next?.(snapshot([], metadata));
+    expect(harness.onSnapshot).toHaveBeenCalledWith({ itemsById: {}, syncStatus });
   });
 
-  it("does not publish a partial initial replacement when mapping fails", () => {
+  it("does not publish a partial result when mapping fails", () => {
     const harness = createHarness();
     subscribeReads(harness.options);
 
@@ -145,46 +120,11 @@ describe("Firestore read subscriptions", () => {
     expect(harness.onError).toHaveBeenCalledWith(new Error("Invalid invalid"));
   });
 
-  it("does not publish a partial delta when mapping fails", () => {
-    const harness = createHarness();
-    subscribeReads(harness.options);
-    mocks.next?.(snapshot([]));
-    harness.onSnapshot.mockClear();
-
-    mocks.next?.(
-      snapshot(
-        [],
-        [
-          { type: "added", doc: document("valid", { active: true }) },
-          { type: "modified", doc: document("invalid", { active: true, invalid: true }) },
-        ]
-      )
-    );
-
-    expect(harness.onSnapshot).not.toHaveBeenCalled();
-    expect(harness.onError).toHaveBeenCalledWith(new Error("Invalid invalid"));
-  });
-
-  it("maps and validates removed changes before publishing their ids", () => {
-    const harness = createHarness();
-    subscribeReads(harness.options);
-    mocks.next?.(snapshot([]));
-    harness.onSnapshot.mockClear();
-
-    mocks.next?.(snapshot([], [{ type: "removed", doc: document("invalid-removed", { invalid: true }) }]));
-
-    expect(harness.mapDocument).toHaveBeenLastCalledWith("invalid-removed", { invalid: true });
-    expect(harness.onSnapshot).not.toHaveBeenCalled();
-    expect(harness.onError).toHaveBeenCalledWith(new Error("Invalid invalid-removed"));
-  });
-
   it("forwards listener errors", () => {
     const harness = createHarness();
     subscribeReads(harness.options);
     const error = new Error("Listener failed");
-
     mocks.error?.(error);
-
     expect(harness.onError).toHaveBeenCalledWith(error);
   });
 });

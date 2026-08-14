@@ -1,7 +1,6 @@
-import type { RemoteChange, RemoteSnapshot } from "@/shared/api";
+import { toRemoteById, type RemoteSnapshot, type RemoteSyncStatus } from "@/shared/api";
 
 import { onSnapshot as subscribeToQuery, type DocumentData, type Query } from "firebase/firestore";
-import { toRemoteSnapshotMetadata } from "./documentMetadata";
 
 export interface SubscribeReadsOptions<T extends { id: string }> {
   query: Query;
@@ -11,6 +10,12 @@ export interface SubscribeReadsOptions<T extends { id: string }> {
   onError: (error: Error) => void;
 }
 
+const toSyncStatus = (metadata: { fromCache: boolean; hasPendingWrites: boolean }): RemoteSyncStatus => {
+  if (metadata.hasPendingWrites) return "pending";
+  if (metadata.fromCache) return "cached";
+  return "synced";
+};
+
 export const subscribeReads = <T extends { id: string }>({
   query,
   mapDocument,
@@ -18,32 +23,13 @@ export const subscribeReads = <T extends { id: string }>({
   onSnapshot,
   onError,
 }: SubscribeReadsOptions<T>): (() => void) => {
-  let initial = true;
   return subscribeToQuery(
     query,
     { includeMetadataChanges: true },
     (snapshot) => {
       try {
-        const metadata = toRemoteSnapshotMetadata(snapshot.metadata);
-        if (initial) {
-          const items = snapshot.docs.map((document) => mapDocument(document.id, document.data())).filter(isActive);
-          initial = false;
-          onSnapshot({ type: "replace", items, metadata });
-          return;
-        }
-
-        const event: RemoteChange<T> = { added: [], modified: [], removed: [] };
-        for (const change of snapshot.docChanges()) {
-          const item = mapDocument(change.doc.id, change.doc.data());
-          if (!isActive(item) || change.type === "removed") {
-            event.removed.push(item.id);
-          } else if (change.type === "added") {
-            event.added.push(item);
-          } else {
-            event.modified.push(item);
-          }
-        }
-        onSnapshot({ type: "change", event, metadata });
+        const items = snapshot.docs.map((document) => mapDocument(document.id, document.data())).filter(isActive);
+        onSnapshot({ itemsById: toRemoteById(items), syncStatus: toSyncStatus(snapshot.metadata) });
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

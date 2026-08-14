@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, waitFor } from "@testing-library/react";
 import type { User } from "firebase/auth";
 import React, { type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -28,9 +28,6 @@ import { AuthProvider } from "@/app/providers/auth";
 import type { AuthRuntime } from "@/app/providers/auth/authController";
 import { RemoteReadBootstrap } from "@/app/providers/remote-read";
 import { createAuthSessionStore } from "@/entities/auth-session";
-import { useRemoteReadScopeUid } from "@/shared/lib/remote-read";
-
-const ReadScopeProbe = () => <output data-testid="read-scope">{useRemoteReadScopeUid() ?? "signed-out"}</output>;
 
 const createHarness = (children?: ReactNode) => {
   const authSessionStore = createAuthSessionStore();
@@ -59,7 +56,6 @@ const createHarness = (children?: ReactNode) => {
 describe("RemoteReadBootstrap integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.start.mockResolvedValue(undefined);
   });
 
   it("starts remote reads once for one confirmed state under StrictMode and AuthProvider", async () => {
@@ -69,23 +65,6 @@ describe("RemoteReadBootstrap integration", () => {
 
     await waitFor(() => expect(mocks.start).toHaveBeenCalledTimes(1));
     expect(mocks.start).toHaveBeenCalledWith("uid-a");
-  });
-
-  it("publishes the confirmed UID to children without waiting for the read transition", () => {
-    let finishStart: () => void = () => undefined;
-    mocks.start.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          finishStart = resolve;
-        })
-    );
-    const { publishUser } = createHarness(<ReadScopeProbe />);
-    expect(screen.getByTestId("read-scope").textContent).toBe("signed-out");
-
-    act(() => publishUser({ uid: "uid-a", isAnonymous: true, providerData: [] } as unknown as User));
-
-    expect(screen.getByTestId("read-scope").textContent).toBe("uid-a");
-    act(() => finishStart());
   });
 
   it("stops the previous UID before starting its replacement", async () => {
