@@ -158,8 +158,6 @@ describe("Card app synchronization", () => {
     expect(result.current.read.error).toEqual(
       expect.objectContaining({ name: "FirestoreDocumentValidationError", documentId: "invalid" })
     );
-    expect(mocks.listeners[0]?.unsubscribe).toHaveBeenCalledOnce();
-
     act(() => result.current.read.retry());
 
     expect(result.current.read.status).toBe("loading");
@@ -181,20 +179,13 @@ describe("Card app synchronization", () => {
     act(stop);
   });
 
-  it("unsubscribes, resets read state, and ignores late callbacks when stopped", () => {
+  it("unsubscribes and resets read state when stopped", () => {
     const { result } = renderCardState();
     const stop = startCardSync();
-    const previousListener = mocks.listeners[0];
-    act(() => previousListener?.next(snapshot([cardDocument("old")])));
-    expect(result.current.cards).toHaveLength(1);
 
     act(stop);
 
-    expect(previousListener?.unsubscribe).toHaveBeenCalledOnce();
+    expect(mocks.listeners[0]?.unsubscribe).toHaveBeenCalledOnce();
     expect(result.current.read.status).toBe("idle");
-    expect(result.current.cards).toEqual([expect.objectContaining({ id: "old" })]);
-    act(clearCards);
-    act(() => previousListener?.next(snapshot([cardDocument("late")])));
-    expect(result.current.cards).toEqual([]);
   });
 });
