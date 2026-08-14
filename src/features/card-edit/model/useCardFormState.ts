@@ -1,30 +1,25 @@
-/**
- * @file Provides the card feature's Use Card Form State React hook.
- * The hook combines state and operations behind one interface so components do not need to
- * coordinate services themselves.
- */
-
-import type { Card } from "@/entities/card";
+import type { Card, CardEdit } from "@/entities/card";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import type { Option } from "@/shared/ui/forms";
 import type { CardFormProps } from "../ui/CardForm";
-import { cardFormSchema, type CardFormValues } from "../lib/cardFormSchema";
+import { cardFormSchema, type CardFormValues } from "./cardFormSchema";
 
-export interface UseCardFormStateOptions {
+interface UseCardFormStateOptions {
   card: Card;
   categoryOptions: Option[];
-  onSubmit?: (card: Card) => void | Promise<void>;
+  onCancel: () => void;
+  onSubmit: (card: CardEdit) => Promise<void>;
 }
 
-/**
- * Provides the card form state values and operations needed by React components.
- * Callers receive one focused interface without coordinating the card feature's stores and
- * services themselves.
- */
-export const useCardFormState = ({ card, categoryOptions, onSubmit }: UseCardFormStateOptions): CardFormProps => {
+export const useCardFormState = ({
+  card,
+  categoryOptions,
+  onCancel,
+  onSubmit,
+}: UseCardFormStateOptions): CardFormProps => {
   const { formState, handleSubmit, register } = useForm<CardFormValues>({
     defaultValues: {
       frontText: card.frontText,
@@ -50,6 +45,7 @@ export const useCardFormState = ({ card, categoryOptions, onSubmit }: UseCardFor
       ...(formState.errors.backText?.message !== undefined ? { backText: formState.errors.backText.message } : {}),
     },
     isSubmitting: formState.isSubmitting,
-    onSubmit: handleSubmit((values) => onSubmit?.({ ...card, ...values })),
+    onCancel,
+    onSubmit: handleSubmit((values) => onSubmit({ id: card.id, uid: card.uid, ...values })),
   };
 };
