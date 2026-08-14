@@ -1,2 +1,1 @@
-export { useDeckRead } from "./hooks/useDeckRead";
-export { startDeckReads, stopDeckReads } from "./model/remoteReadStore";
+export { DeckReadProvider, useDeckRead } from "./lib/useDeckRead";

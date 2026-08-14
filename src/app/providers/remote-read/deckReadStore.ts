@@ -2,7 +2,7 @@ import type { Deck } from "@/entities/deck";
 
 import { clearDecks, replaceDecks } from "@/entities/deck";
 import { createRemoteReadStore } from "@/shared/lib/remote-read";
-import { subscribeDeckReads } from "../api/subscribeDeckReads";
+import { subscribeDeckReads } from "./subscribeDeckReads";
 
 export const deckRemoteReadStore = createRemoteReadStore<Deck>({
   subscribe: subscribeDeckReads,

@@ -6,8 +6,9 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
+import { deckRemoteReadStore } from "@/app/providers/remote-read/deckReadStore";
 import { cardRemoteReadStore } from "@/features/card/read/model/remoteReadStore";
-import { deckRemoteReadStore } from "@/features/deck/read/model/remoteReadStore";
+import { DeckReadProvider } from "@/features/deck/read";
 import { replaceDecks } from "@/entities/deck";
 
 import type { Decorator } from "@storybook/react";
@@ -111,9 +112,11 @@ export const withPageStory: Decorator = (Story, context) => {
   return (
     <AuthSessionProvider store={storybookAuthSessionStore}>
       <RemoteReadScopeProvider uid={PAGE_STORY_UID}>
-        <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
-          <Story />
-        </MemoryRouter>
+        <DeckReadProvider store={deckRemoteReadStore}>
+          <MemoryRouter key={context.id} initialEntries={[parameters.path]}>
+            <Story />
+          </MemoryRouter>
+        </DeckReadProvider>
       </RemoteReadScopeProvider>
     </AuthSessionProvider>
   );

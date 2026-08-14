@@ -1,5 +1,5 @@
 import { startCardReads, stopCardReads } from "@/features/card/read";
-import { startDeckReads, stopDeckReads } from "@/features/deck/read";
+import { startDeckReads, stopDeckReads } from "./deckReadStore";
 
 export const stopRemoteReads = (uid: string) => {
   try {

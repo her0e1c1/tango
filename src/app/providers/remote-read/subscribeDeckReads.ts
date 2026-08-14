@@ -4,7 +4,7 @@ import { collection, query, where } from "firebase/firestore";
 
 import type { RemoteSubscriptionProps } from "@/shared/api";
 import { getDb, subscribeReads } from "@/shared/firestore";
-import { convertDeckDtoToDeck } from "./dto";
+import { convertDeckDtoToDeck } from "./deckDto";
 
 export const subscribeDeckReads = (props: RemoteSubscriptionProps<Deck>): (() => void) =>
   subscribeReads({

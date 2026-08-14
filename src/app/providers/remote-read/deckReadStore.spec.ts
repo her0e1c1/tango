@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   unsubscribes: [] as ReturnType<typeof vi.fn>[],
 }));
 
-vi.mock("../api/subscribeDeckReads", () => ({
+vi.mock("./subscribeDeckReads", () => ({
   subscribeDeckReads: vi.fn((props: RemoteSubscriptionProps<Deck>) => {
     mocks.subscriptions.push(props);
     const unsubscribe = vi.fn();
@@ -20,7 +20,7 @@ vi.mock("../api/subscribeDeckReads", () => ({
   }),
 }));
 
-import { deckRemoteReadStore, startDeckReads, stopDeckReads } from "./remoteReadStore";
+import { deckRemoteReadStore, startDeckReads, stopDeckReads } from "./deckReadStore";
 
 describe("Deck remote read lifecycle", () => {
   beforeEach(() => {

@@ -11,7 +11,7 @@ vi.mock("@/features/card/read", () => ({
   startCardReads: mocks.startCards,
   stopCardReads: mocks.stopCards,
 }));
-vi.mock("@/features/deck/read", () => ({
+vi.mock("@/app/providers/remote-read/deckReadStore", () => ({
   startDeckReads: mocks.startDecks,
   stopDeckReads: mocks.stopDecks,
 }));

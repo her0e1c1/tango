@@ -19,7 +19,7 @@ import { subscribeCardReads } from "@/features/card/read/api/subscribeCardReads"
 import { createDeck as createDeckCommand } from "@/features/deck/create";
 import { deleteDeck } from "@/features/deck/delete/api/deleteDeck";
 import { editDeck } from "@/features/deck/edit/api/editDeck";
-import { subscribeDeckReads } from "@/features/deck/read/api/subscribeDeckReads";
+import { subscribeDeckReads } from "@/app/providers/remote-read/subscribeDeckReads";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
 vi.mock("@/shared/firestore", async (importOriginal) => ({

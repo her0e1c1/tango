@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { convertDeckDtoToDeck } from "./dto";
+import { convertDeckDtoToDeck } from "./deckDto";
 
 const deckDto = (overrides: Record<string, unknown> = {}) => ({
   name: "Remote Deck",

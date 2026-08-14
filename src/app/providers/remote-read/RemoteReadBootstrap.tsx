@@ -2,7 +2,9 @@ import { type PropsWithChildren, useEffect } from "react";
 
 import { startRemoteReads, stopRemoteReads } from "@/app/providers/remote-read/remoteReadLifecycle";
 import { useAuthSession } from "@/entities/auth-session";
+import { DeckReadProvider } from "@/features/deck/read";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
+import { deckRemoteReadStore } from "./deckReadStore";
 
 export const RemoteReadBootstrap = ({ children }: PropsWithChildren) => {
   const authSession = useAuthSession();
@@ -14,5 +16,9 @@ export const RemoteReadBootstrap = ({ children }: PropsWithChildren) => {
     return () => stopRemoteReads(uid);
   }, [uid]);
 
-  return <RemoteReadScopeProvider uid={uid}>{children}</RemoteReadScopeProvider>;
+  return (
+    <RemoteReadScopeProvider uid={uid}>
+      <DeckReadProvider store={deckRemoteReadStore}>{children}</DeckReadProvider>
+    </RemoteReadScopeProvider>
+  );
 };
