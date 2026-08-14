@@ -1,7 +1,8 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { clearDecks, useDecks } from "@/entities/deck";
+import { useDecks } from "../model/hooks";
+import { clearDecks } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
@@ -19,7 +20,7 @@ vi.mock("firebase/firestore", () => ({
 }));
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
-import { subscribeDecks } from "./deck";
+import { subscribeDecks } from "./firestore";
 
 const deckDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
@@ -44,7 +45,7 @@ const getSnapshotHandler = () =>
   mocks.onSnapshot.mock.calls[0]?.[1] as (snapshot: { docs: ReturnType<typeof deckDocument>[] }) => void;
 const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
-describe("Deck app synchronization", () => {
+describe("Deck Firestore subscription", () => {
   beforeEach(() => {
     clearDecks();
     vi.clearAllMocks();

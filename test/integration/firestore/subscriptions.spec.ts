@@ -9,8 +9,7 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
 import { createCard as createCardCommand, deleteCard, editCard, subscribeCards } from "@/entities/card";
-import { createDeck as createDeckCommand, deleteDeck, editDeck } from "@/entities/deck";
-import { subscribeDecks } from "@/app/providers/remote-read/deck";
+import { createDeck as createDeckCommand, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
