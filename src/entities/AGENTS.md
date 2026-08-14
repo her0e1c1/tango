@@ -40,5 +40,5 @@
 ## Restrictions
 
 - Colocate tests as `*.spec.ts` or `*.spec.tsx` next to the file they cover.
-- Do not create additional implementation files such as `category.ts`, `relations.ts`, `logic.ts`, `utils.ts`, `helpers.ts`, or `constants.ts`; place the code in the appropriate role above.
+- Do not create implementation files outside the roles defined above.
 - Do not place UI, use cases, external access, subscriptions, or asynchronous workflows in `entities`.
