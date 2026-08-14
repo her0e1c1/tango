@@ -20,6 +20,7 @@ vi.mock("@/features/auth/sign-out", () => ({
 vi.mock("@/app/providers/remote-read/remoteReadLifecycle", () => ({
   stopRemoteReads: mocks.stopRemoteReads,
 }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 const startStudy = (deckId: string, cardIds: string[]) => {
   const { result, unmount } = renderHook(() => useStudyStore((state) => state.startStudy));

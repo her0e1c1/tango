@@ -8,7 +8,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("Firestore document helpers", () => {
+describe("Firestore document utilities", () => {
   it("parses an arbitrary collection document", () => {
     const schema = z.object({ title: z.string() });
 

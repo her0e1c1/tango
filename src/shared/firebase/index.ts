@@ -6,7 +6,12 @@
 
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
-import { initializeFirestoreAdapter } from "./initializeFirestore";
+import {
+  connectFirestoreEmulator,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
 const apiKey = import.meta.env.VITE_WEB_API_KEY;
@@ -19,10 +24,18 @@ const app = initializeApp({
   storageBucket: `${projectId}.appspot.com`,
 });
 export const auth = getAuth(app);
-initializeFirestoreAdapter(app);
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+});
 
 const authHost = import.meta.env.VITE_AUTH_HOST;
 const authPort = import.meta.env.VITE_AUTH_PORT;
 if (import.meta.env.DEV && authHost && authPort) {
   connectAuthEmulator(auth, `http://${authHost}:${authPort}`);
+}
+
+const dbHost = import.meta.env.VITE_DB_HOST;
+const dbPort = import.meta.env.VITE_DB_PORT;
+if (import.meta.env.DEV && dbHost && dbPort) {
+  connectFirestoreEmulator(db, dbHost, Number.parseInt(dbPort, 10));
 }

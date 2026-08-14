@@ -1,7 +1,7 @@
 import type { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 
-const validDateSchema = z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date");
+const validJavaScriptDateSchema = z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date");
 const firestoreTimestampSchema = z.custom<Timestamp>(
   (value) =>
     typeof value === "object" &&
@@ -15,7 +15,7 @@ const firestoreTimestampSchema = z.custom<Timestamp>(
 );
 
 export const firestoreTimestampDateSchema = z
-  .union([validDateSchema, firestoreTimestampSchema])
+  .union([validJavaScriptDateSchema, firestoreTimestampSchema])
   .transform((value, context) => {
     if (value instanceof Date) return value;
     try {

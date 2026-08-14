@@ -63,6 +63,7 @@ vi.mock("@/shared/config", () => ({
   useConfig: () => mocks.config,
   setDarkMode: mocks.setDarkMode,
 }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,

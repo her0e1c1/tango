@@ -1,27 +1,19 @@
-/**
- * @file Verifies the "Firebase singletons" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "exports one app with stable
- * auth and Firestore instances", "uses persistent single-tab cache in production", "uses
- * injectable memory cache for tests and the emulator".
- */
-
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { connectAuthEmulator, getAuth } from "firebase/auth";
 import { initializeApp } from "firebase/app";
+import { connectAuthEmulator, getAuth } from "firebase/auth";
 import {
   connectFirestoreEmulator,
-  getDocsFromCache,
   initializeFirestore,
-  memoryLocalCache,
   persistentLocalCache,
-  persistentSingleTabManager,
-  terminate,
+  persistentMultipleTabManager,
 } from "firebase/firestore";
 
 const singletons = vi.hoisted(() => ({
   app: { name: "app" },
   auth: { currentUser: null },
-  db: { type: "firestore", _firestoreClient: { _offlineComponents: { kind: "persistent" } } },
+  db: { type: "firestore" },
+  tabManager: { type: "multiple-tab" },
+  localCache: { type: "persistent-cache" },
 }));
 
 vi.mock("firebase/app", () => ({
@@ -34,174 +26,93 @@ vi.mock("firebase/auth", () => ({
 }));
 
 vi.mock("firebase/firestore", () => ({
-  collection: vi.fn(() => "probe-collection"),
   connectFirestoreEmulator: vi.fn(),
-  getDocsFromCache: vi.fn(async () => ({ docs: [] })),
   initializeFirestore: vi.fn(() => singletons.db),
-  memoryLocalCache: vi.fn(() => "memory-cache"),
-  persistentLocalCache: vi.fn((settings) => ({ type: "persistent-cache", settings })),
-  persistentSingleTabManager: vi.fn(() => "single-tab-manager"),
-  query: vi.fn(() => "probe-query"),
-  terminate: vi.fn(async () => undefined),
+  persistentLocalCache: vi.fn(() => singletons.localCache),
+  persistentMultipleTabManager: vi.fn(() => singletons.tabManager),
 }));
 
 afterEach(() => {
   vi.clearAllMocks();
   vi.unstubAllEnvs();
   vi.resetModules();
-  singletons.db._firestoreClient._offlineComponents.kind = "persistent";
 });
+const importFirebase = async () => import("@/shared/firebase");
 
-const importFirebase = async () => {
-  const firebase = await import("@/shared/firebase");
-  const firestoreRuntime = await import("@/shared/firebase/firestore-runtime");
-  return { ...firebase, ...firestoreRuntime };
-};
-
-describe("Firebase singletons", () => {
-  it("initializes stable auth and Firestore instances once", async () => {
+describe("Firebase services", () => {
+  it("exports stable auth and Firestore instances with multi-tab persistence", async () => {
     const first = await importFirebase();
     const second = await importFirebase();
 
     expect(first.auth).toBe(singletons.auth);
-    expect(first.getDb()).toBe(singletons.db);
-    expect(second.getDb()).toBe(first.getDb());
+    expect(first.db).toBe(singletons.db);
+    expect(second.auth).toBe(first.auth);
+    expect(second.db).toBe(first.db);
     expect(initializeApp).toHaveBeenCalledTimes(1);
     expect(getAuth).toHaveBeenCalledWith(singletons.app);
-    expect(getAuth).toHaveBeenCalledTimes(1);
-    expect(initializeFirestore).toHaveBeenCalledTimes(1);
+    expect(persistentMultipleTabManager).toHaveBeenCalledWith();
+    expect(persistentLocalCache).toHaveBeenCalledWith({ tabManager: singletons.tabManager });
+    expect(initializeFirestore).toHaveBeenCalledWith(singletons.app, { localCache: singletons.localCache });
   });
 
-  it("uses persistent single-tab cache in production", async () => {
-    vi.stubEnv("PROD", true);
-
-    const firebase = await importFirebase();
-    await firebase.waitForFirestoreInitialization();
-
-    expect(persistentSingleTabManager).toHaveBeenCalledWith({});
-    expect(persistentLocalCache).toHaveBeenCalledWith({ tabManager: "single-tab-manager" });
-    expect(initializeFirestore).toHaveBeenCalledWith(singletons.app, {
-      localCache: { type: "persistent-cache", settings: { tabManager: "single-tab-manager" } },
-    });
-    expect(memoryLocalCache).not.toHaveBeenCalled();
-  });
-
-  it("uses injectable memory cache for tests and the emulator", async () => {
-    vi.stubEnv("PROD", false);
+  it("connects configured emulators in development", async () => {
     vi.stubEnv("DEV", true);
+    vi.stubEnv("VITE_AUTH_HOST", "127.0.0.1");
+    vi.stubEnv("VITE_AUTH_PORT", "9099");
     vi.stubEnv("VITE_DB_HOST", "127.0.0.1");
     vi.stubEnv("VITE_DB_PORT", "8080");
 
-    const { getDb } = await importFirebase();
-
-    expect(memoryLocalCache).toHaveBeenCalledTimes(1);
-    expect(initializeFirestore).toHaveBeenCalledWith(singletons.app, { localCache: "memory-cache" });
-    expect(connectFirestoreEmulator).toHaveBeenCalledWith(getDb(), "127.0.0.1", 8080);
-    expect(persistentLocalCache).not.toHaveBeenCalled();
-  });
-
-  it("blocks startup when the Firestore emulator connection fails", async () => {
-    vi.stubEnv("PROD", false);
-    vi.stubEnv("DEV", true);
-    vi.stubEnv("VITE_DB_HOST", "127.0.0.1");
-    vi.stubEnv("VITE_DB_PORT", "8080");
-    const failure = new Error("emulator connection failed");
-    vi.mocked(connectFirestoreEmulator).mockImplementationOnce(() => {
-      throw failure;
-    });
-
     const firebase = await importFirebase();
 
-    await expect(firebase.waitForFirestoreInitialization()).resolves.toEqual({ status: "blocked", error: failure });
-    expect(() => firebase.getDb()).toThrow(failure);
+    expect(connectAuthEmulator).toHaveBeenCalledWith(firebase.auth, "http://127.0.0.1:9099");
+    expect(connectFirestoreEmulator).toHaveBeenCalledWith(firebase.db, "127.0.0.1", 8080);
   });
 
-  it("exposes a blocking startup result instead of falling back when persistence initialization fails", async () => {
-    vi.stubEnv("PROD", true);
-    const failure = new Error("single-tab persistence unavailable");
+  it.each([
+    ["auth host", "", "9099", "127.0.0.1", "8080"],
+    ["auth port", "127.0.0.1", "", "127.0.0.1", "8080"],
+    ["Firestore host", "127.0.0.1", "9099", "", "8080"],
+    ["Firestore port", "127.0.0.1", "9099", "127.0.0.1", ""],
+  ])(
+    "does not connect the emulator whose %s is missing",
+    async (missingSetting, authHost, authPort, dbHost, dbPort) => {
+      vi.stubEnv("DEV", true);
+      vi.stubEnv("VITE_AUTH_HOST", authHost);
+      vi.stubEnv("VITE_AUTH_PORT", authPort);
+      vi.stubEnv("VITE_DB_HOST", dbHost);
+      vi.stubEnv("VITE_DB_PORT", dbPort);
+
+      await importFirebase();
+
+      if (missingSetting.startsWith("auth")) {
+        expect(connectAuthEmulator).not.toHaveBeenCalled();
+        expect(connectFirestoreEmulator).toHaveBeenCalledTimes(1);
+      } else {
+        expect(connectAuthEmulator).toHaveBeenCalledTimes(1);
+        expect(connectFirestoreEmulator).not.toHaveBeenCalled();
+      }
+    }
+  );
+
+  it("does not connect configured emulators in production", async () => {
+    vi.stubEnv("DEV", false);
+    vi.stubEnv("VITE_AUTH_HOST", "127.0.0.1");
+    vi.stubEnv("VITE_AUTH_PORT", "9099");
+    vi.stubEnv("VITE_DB_HOST", "127.0.0.1");
+    vi.stubEnv("VITE_DB_PORT", "8080");
+
+    await importFirebase();
+
+    expect(connectAuthEmulator).not.toHaveBeenCalled();
+    expect(connectFirestoreEmulator).not.toHaveBeenCalled();
+  });
+
+  it("surfaces Firestore initialization failures", async () => {
+    const failure = new Error("IndexedDB is unavailable");
     vi.mocked(initializeFirestore).mockImplementationOnce(() => {
       throw failure;
     });
 
-    const { getDb, waitForFirestoreInitialization } = await importFirebase();
-
-    await expect(waitForFirestoreInitialization()).resolves.toEqual({ status: "blocked", error: failure });
-    expect(() => getDb()).toThrow(failure);
-    expect(memoryLocalCache).not.toHaveBeenCalled();
-  });
-
-  it("does not require Web Locks for the production cache", async () => {
-    vi.stubEnv("PROD", true);
-    vi.stubGlobal("navigator", { ...navigator, locks: undefined });
-
-    const firebase = await importFirebase();
-
-    await expect(firebase.waitForFirestoreInitialization()).resolves.toEqual({
-      status: "ready",
-    });
-    expect(firebase.getDb()).toBe(singletons.db);
-    expect(memoryLocalCache).not.toHaveBeenCalled();
-  });
-
-  it("blocks startup when Firestore silently falls back to memory", async () => {
-    vi.stubEnv("PROD", true);
-    singletons.db._firestoreClient._offlineComponents.kind = "memory";
-
-    const firebase = await importFirebase();
-
-    await expect(firebase.waitForFirestoreInitialization()).resolves.toEqual({
-      status: "blocked",
-      error: expect.objectContaining({ name: "FirestorePersistenceUnavailableError" }),
-    });
-    expect(getDocsFromCache).toHaveBeenCalledTimes(1);
-    expect(terminate).toHaveBeenCalledWith(singletons.db);
-    expect(() => firebase.getDb()).toThrow("Memory fallback is disabled");
-  });
-
-  it("connects auth to the configured emulator in development", async () => {
-    vi.stubEnv("MODE", "development");
-    vi.stubEnv("DEV", true);
-    vi.stubEnv("VITE_AUTH_HOST", "127.0.0.1");
-    vi.stubEnv("VITE_AUTH_PORT", "9099");
-
-    const { auth } = await importFirebase();
-
-    expect(connectAuthEmulator).toHaveBeenCalledWith(auth, "http://127.0.0.1:9099");
-  });
-
-  it.each([
-    ["host", "", "9099"],
-    ["port", "127.0.0.1", ""],
-  ])("does not connect auth when the emulator %s is missing", async (_missingSetting, host, port) => {
-    vi.stubEnv("MODE", "development");
-    vi.stubEnv("DEV", true);
-    vi.stubEnv("VITE_AUTH_HOST", host);
-    vi.stubEnv("VITE_AUTH_PORT", port);
-
-    await importFirebase();
-
-    expect(connectAuthEmulator).not.toHaveBeenCalled();
-  });
-
-  it("does not connect auth to the emulator in production", async () => {
-    vi.stubEnv("MODE", "production");
-    vi.stubEnv("DEV", false);
-    vi.stubEnv("VITE_AUTH_HOST", "127.0.0.1");
-    vi.stubEnv("VITE_AUTH_PORT", "9099");
-
-    await importFirebase();
-
-    expect(connectAuthEmulator).not.toHaveBeenCalled();
-  });
-
-  it("does not connect auth to an invalid URL when the emulator is not configured", async () => {
-    vi.stubEnv("MODE", "development");
-    vi.stubEnv("DEV", true);
-    vi.stubEnv("VITE_AUTH_HOST", "");
-    vi.stubEnv("VITE_AUTH_PORT", "");
-
-    await importFirebase();
-
-    expect(connectAuthEmulator).not.toHaveBeenCalled();
+    await expect(importFirebase()).rejects.toBe(failure);
   });
 });
