@@ -68,6 +68,25 @@ describe("createRemoteReadStore", () => {
     });
   });
 
+  it("can publish snapshots without retaining entity data", () => {
+    const item = createItem("item");
+    const onSnapshot = vi.fn();
+    const dependencies: RemoteReadDependencies<Item> = {
+      subscribe: vi.fn((props) => {
+        props.onSnapshot({ itemsById: { [item.id]: item }, syncStatus: "synced" });
+        return vi.fn();
+      }),
+      onSnapshot,
+      storeItems: false,
+    };
+    const store = createRemoteReadStore(dependencies);
+
+    store.getState().start("uid-a");
+
+    expect(onSnapshot).toHaveBeenCalledWith({ itemsById: { [item.id]: item }, syncStatus: "synced" });
+    expect(store.getState()).toMatchObject({ status: "ready", syncStatus: "synced", itemsById: {} });
+  });
+
   it("stops its listener and ignores stale callbacks", () => {
     const harness = createHarness();
     harness.store.getState().start("uid-a");

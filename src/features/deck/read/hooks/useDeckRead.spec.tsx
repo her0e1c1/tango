@@ -2,15 +2,18 @@ import { renderHook } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DeckRemoteReadState } from "../model/remoteReadStore";
+import type { deckRemoteReadStore } from "../model/remoteReadStore";
 import { RemoteReadScopeProvider } from "@/shared/lib/remote-read";
+
+type DeckReadState = ReturnType<typeof deckRemoteReadStore.getState>;
 
 const mocks = vi.hoisted(() => ({
   state: {
     uid: "uid-a",
     status: "ready",
     syncStatus: "synced",
-  } as Omit<DeckRemoteReadState, "start" | "stop" | "retry">,
+    itemsById: {},
+  } as Omit<DeckReadState, "start" | "stop" | "retry">,
   retry: vi.fn(),
 }));
 
@@ -34,7 +37,7 @@ const signedOutWrapper = ({ children }: PropsWithChildren) => (
 describe("Deck read lifecycle hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.state = { uid: "uid-a", status: "ready", syncStatus: "synced" };
+    mocks.state = { uid: "uid-a", status: "ready", syncStatus: "synced", itemsById: {} };
   });
 
   it("exposes lifecycle state and retry", () => {
@@ -47,7 +50,7 @@ describe("Deck read lifecycle hook", () => {
   });
 
   it("hides lifecycle state while the App scope expects another UID", () => {
-    mocks.state = { uid: "uid-b", status: "ready", syncStatus: "synced" };
+    mocks.state = { uid: "uid-b", status: "ready", syncStatus: "synced", itemsById: {} };
 
     const { result } = renderHook(useDeckRead, { wrapper: authenticatedWrapper });
 

@@ -42,7 +42,11 @@ describe("Deck remote read lifecycle", () => {
 
     act(() => mocks.subscriptions[0]?.onSnapshot({ itemsById: { current: currentDeck }, syncStatus: "synced" }));
     expect(result.current).toEqual([currentDeck]);
-    expect(deckRemoteReadStore.getState()).toMatchObject({ status: "ready", syncStatus: "synced" });
+    expect(deckRemoteReadStore.getState()).toMatchObject({
+      status: "ready",
+      syncStatus: "synced",
+      itemsById: {},
+    });
   });
 
   it("clears Deck data on stop and ignores stale snapshots", () => {
