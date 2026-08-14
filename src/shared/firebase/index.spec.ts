@@ -1,18 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
-import {
-  connectFirestoreEmulator,
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
-} from "firebase/firestore";
+import { connectFirestoreEmulator, initializeFirestore, persistentLocalCache } from "firebase/firestore";
 
 const singletons = vi.hoisted(() => ({
   app: { name: "app" },
   auth: { currentUser: null },
   db: { type: "firestore" },
-  tabManager: { type: "multiple-tab" },
   localCache: { type: "persistent-cache" },
 }));
 
@@ -29,7 +23,6 @@ vi.mock("firebase/firestore", () => ({
   connectFirestoreEmulator: vi.fn(),
   initializeFirestore: vi.fn(() => singletons.db),
   persistentLocalCache: vi.fn(() => singletons.localCache),
-  persistentMultipleTabManager: vi.fn(() => singletons.tabManager),
 }));
 
 afterEach(() => {
@@ -40,7 +33,7 @@ afterEach(() => {
 const importFirebase = async () => import("@/shared/firebase");
 
 describe("Firebase services", () => {
-  it("exports stable auth and Firestore instances with multi-tab persistence", async () => {
+  it("exports stable auth and Firestore instances with persistent local cache", async () => {
     const first = await importFirebase();
     const second = await importFirebase();
 
@@ -50,8 +43,7 @@ describe("Firebase services", () => {
     expect(second.db).toBe(first.db);
     expect(initializeApp).toHaveBeenCalledTimes(1);
     expect(getAuth).toHaveBeenCalledWith(singletons.app);
-    expect(persistentMultipleTabManager).toHaveBeenCalledWith();
-    expect(persistentLocalCache).toHaveBeenCalledWith({ tabManager: singletons.tabManager });
+    expect(persistentLocalCache).toHaveBeenCalledWith();
     expect(initializeFirestore).toHaveBeenCalledWith(singletons.app, { localCache: singletons.localCache });
   });
 
