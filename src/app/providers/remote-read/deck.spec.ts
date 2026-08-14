@@ -9,7 +9,6 @@ const mocks = vi.hoisted(() => ({
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
   unsubscribe: vi.fn(),
-  reconcileStudySessions: vi.fn(),
 }));
 
 vi.mock("firebase/firestore", () => ({
@@ -19,9 +18,6 @@ vi.mock("firebase/firestore", () => ({
   where: mocks.where,
 }));
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
-vi.mock("@/features/study", () => ({
-  reconcileStudySessionsWithDecks: mocks.reconcileStudySessions,
-}));
 
 import { subscribeDecks } from "./deck";
 
@@ -68,7 +64,6 @@ describe("Deck app synchronization", () => {
     );
 
     expect(result.current).toEqual([expect.objectContaining({ id: "active", url: "https://example.com" })]);
-    expect(mocks.reconcileStudySessions).toHaveBeenCalledWith(["active"]);
     unsubscribe();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
@@ -82,7 +77,6 @@ describe("Deck app synchronization", () => {
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ name: "FirestoreDocumentValidationError", documentId: "invalid" })
     );
-    expect(mocks.reconcileStudySessions).not.toHaveBeenCalled();
   });
 
   it("reports Firestore subscription errors", () => {

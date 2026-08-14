@@ -1,12 +1,7 @@
 export { DeckStartForm } from "./components/DeckStartForm";
 export { Controller, type ControllerProps } from "./components/Controller";
 export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";
-export {
-  initializeStudySessionUi,
-  reconcileStudySessionsWithDecks,
-  removeStudySession,
-  touchStudySession,
-} from "./commands/studySessionCommands";
+export { initializeStudySessionUi, removeStudySession, touchStudySession } from "./commands/studySessionCommands";
 export { useStudyHydrated } from "./hooks/useStudyHydrated";
 export { useDeckFilterState } from "./hooks/useDeckFilterState";
 export { useStudyActions } from "./hooks/useStudyActions";

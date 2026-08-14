@@ -4,7 +4,6 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { z } from "zod";
 
 import { replaceDecks } from "@/entities/deck";
-import { reconcileStudySessionsWithDecks } from "@/features/study";
 import { db } from "@/shared/firebase";
 import { parseFirestoreDocument } from "@/shared/firestore";
 
@@ -41,7 +40,6 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
           .map((document) => convertDeckDtoToDeck(document.id, document.data()))
           .filter((deck) => deck.deletedAt === null);
         replaceDecks(decks);
-        reconcileStudySessionsWithDecks(decks.map((deck) => deck.id));
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
