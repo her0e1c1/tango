@@ -2,7 +2,7 @@ import { editStudyProgressSchema, type EditStudyProgressInput } from "@/entities
 
 import { doc, updateDoc } from "firebase/firestore";
 
-import { db } from "@/shared/firebase";
+import { db } from "@/shared/firestore";
 import { getTimestamp, omitUndefined } from "@/shared/firestore";
 
 export const editStudyProgress = async (uid: string, progress: EditStudyProgressInput["progress"]): Promise<void> => {

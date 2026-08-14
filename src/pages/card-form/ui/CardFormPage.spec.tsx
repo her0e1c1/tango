@@ -44,7 +44,7 @@ vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
 }));
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
+vi.mock("@/shared/lib/firestoreRuntime", () => ({ auth: {} }));
 
 import { CardFormPage } from "./CardFormPage";
 

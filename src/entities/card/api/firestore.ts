@@ -12,7 +12,7 @@ import type { SnapshotMetadata } from "firebase/firestore";
 import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
 
-import { db } from "@/shared/firebase";
+import { db } from "@/shared/firestore";
 import { firestoreTimestampDateSchema, getTimestamp, omitUndefined, parseFirestoreDocument } from "@/shared/firestore";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceCards } from "../model/store";

@@ -11,7 +11,7 @@ import type {
 import { collection, deleteDoc, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
 
-import { db } from "@/shared/firebase";
+import { db } from "@/shared/firestore";
 import { getTimestamp, omitUndefined, parseFirestoreDocument } from "@/shared/firestore";
 import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
 import { replaceDecks } from "../model/store";

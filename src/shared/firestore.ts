@@ -1,6 +1,8 @@
 import type { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 
+export { auth, db } from "./lib/firestoreRuntime";
+
 const validJavaScriptDateSchema = z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date");
 const firestoreTimestampSchema = z.custom<Timestamp>(
   (value) =>
@@ -65,3 +67,8 @@ export type OmitUndefined<T extends Record<string, unknown>> = {
 
 export const omitUndefined = <T extends Record<string, unknown>>(value: T): OmitUndefined<T> =>
   Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as OmitUndefined<T>;
+
+type RemoteById<T extends { id: string }> = Readonly<Record<string, T | undefined>>;
+
+export const toRemoteById = <T extends { id: string }>(items: readonly T[]): RemoteById<T> =>
+  Object.fromEntries(items.map((item) => [item.id, item]));

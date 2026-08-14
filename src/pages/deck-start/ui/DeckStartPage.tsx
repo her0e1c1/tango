@@ -13,7 +13,7 @@ import { usePreferences } from "@/entities/preferences";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-import { toRemoteById } from "@/shared/api";
+import { toRemoteById } from "@/shared/firestore";
 
 import { DeckStartView } from "./DeckStartView";
 

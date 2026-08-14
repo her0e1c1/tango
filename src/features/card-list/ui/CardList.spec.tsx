@@ -7,7 +7,7 @@ import { createCard, createDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({ deleteCard: vi.fn() }));
 
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/lib/firestoreRuntime", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({
   useAuthSession: () => ({ status: "authenticated" as const, uid: "user-id" }),
 }));

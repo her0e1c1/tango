@@ -37,7 +37,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
     where: mocks.where,
   };
 });
-vi.mock("@/shared/firebase", () => ({ db: "db" }));
+vi.mock("@/shared/lib/firestoreRuntime", () => ({ db: "db" }));
 
 import { subscribeCards } from "./firestore";
 

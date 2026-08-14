@@ -3,7 +3,7 @@ import { expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ auth: {} }));
 
-vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
+vi.mock("@/shared/lib/firestoreRuntime", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth");
 
 import { signOutCurrentUser } from "./signOut";

@@ -1,1 +1,0 @@
-export { toRemoteById } from "./firestore";

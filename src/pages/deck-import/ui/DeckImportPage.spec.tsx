@@ -56,7 +56,7 @@ vi.mock("@/features/deck-import", () => ({
 vi.mock("@/features/card/read", () => ({
   useCardReadState: () => ({ status: "ready", serverConfirmed: true }),
 }));
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/lib/firestoreRuntime", () => ({ auth: {}, db: {} }));
 
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: false } }),

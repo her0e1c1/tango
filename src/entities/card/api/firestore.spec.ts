@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createCard as createCardFixture } from "@/test/factories";
 
-vi.mock("@/shared/firebase", () => ({ db: {} }));
+vi.mock("@/shared/lib/firestoreRuntime", () => ({ db: {} }));
 
 import { createCard, deleteCard, editCard } from "./firestore";
 

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeckListProps } from "./DeckList";
 import { createCard, createDeck } from "@/test/factories";
 
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/lib/firestoreRuntime", () => ({ auth: {}, db: {} }));
 
 import { DeckList } from "./DeckList";
 

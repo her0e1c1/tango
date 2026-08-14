@@ -1,8 +1,10 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { firestoreTimestampDateSchema, getTimestamp, omitUndefined, parseFirestoreDocument } from "./firestoreDocument";
+vi.mock("@/shared/lib/firestoreRuntime", () => ({ auth: {}, db: {} }));
+
+import { firestoreTimestampDateSchema, getTimestamp, omitUndefined, parseFirestoreDocument } from "./firestore";
 
 afterEach(() => {
   vi.restoreAllMocks();
