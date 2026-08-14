@@ -8,11 +8,10 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
 import { startAuthSession } from "@/app/providers/auth/lifecycle";
-import { subscribeDecks } from "@/app/providers/remote-read/deck";
 import { AppRoutes } from "@/app/routes";
 import { useAuthSession } from "@/entities/auth";
 import { clearCards, subscribeCards } from "@/entities/card";
-import { clearDecks } from "@/entities/deck";
+import { clearDecks, subscribeDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
 import { resetCardRead, setCardReadError, setCardReadLoading, setCardReadReady } from "@/features/card/read";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
