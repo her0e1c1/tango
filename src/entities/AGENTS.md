@@ -56,4 +56,3 @@
 - Colocate tests as `*.spec.ts` or `*.spec.tsx` next to the file they cover.
 - Do not create implementation files outside the roles defined above.
 - Do not place UI in `entities`.
-- Keep generic external-system helpers in `shared` and Entity-related Firestore access in `api/`.
