@@ -3,32 +3,32 @@
 - Treat `src/entities` as the FSD Entities layer and each `src/entities/<entity>` directory as an Entity slice.
 - Keep Entity domain code in `model/` and expose the slice through `index.ts`.
 
-## `schema.ts`
+## `model/schema.ts`
 
 - Define Zod schemas, validation, refinements, and schema-level defaults.
 - Keep schema definitions pure.
 
-## `types.ts`
+## `model/types.ts`
 
 - Define shared Entity types and interfaces.
 - Prefer deriving types from Zod schemas.
 
-## `defaults.ts`
+## `model/defaults.ts`
 
 - Define Entity default values, initial values, and pure default factories.
 - Keep defaults independent from stores and external systems.
 
-## `rules.ts`
+## `model/rules.ts`
 
 - Define pure domain rules, calculations, relationships, selections, and transformations.
 - Do not access stores, React, browser APIs, or external systems.
 
-## `store.ts`
+## `model/store.ts`
 
 - Define the global Entity store and synchronous state mutations.
 - Do not perform external access, subscriptions, or asynchronous workflows.
 
-## `hooks.ts`
+## `model/hooks.ts`
 
 - Define thin React hooks for reading or selecting Entity state.
 - Do not place business logic or external access here.
