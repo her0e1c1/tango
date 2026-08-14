@@ -1,9 +1,3 @@
-/**
- * @file Defines the card feature's Card Form presentation component.
- * The component renders props and reports user intent through callbacks while data access stays
- * outside the view.
- */
-
 import type { Card } from "@/entities/card";
 
 import type * as React from "react";
@@ -30,16 +24,11 @@ export interface CardFormProps {
     frontText?: string;
     backText?: string;
   };
-  isSubmitting?: boolean;
-  onCancel?: () => void;
-  onSubmit?: React.ComponentProps<typeof Form>["onSubmit"];
+  isSubmitting: boolean;
+  onCancel: () => void;
+  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
 }
 
-/**
- * Renders the Card Form user interface.
- * Collects a card's front, back, code, math, and tag fields and connects validation messages to
- * each input.
- */
 export const CardForm: React.FC<CardFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();
   const frontHeadingId = `${sectionHeadingIdPrefix}-card-front-heading`;
@@ -51,7 +40,7 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
   const backErrorId = `${backInputId}-error`;
 
   return (
-    <Form {...(props.onSubmit !== undefined ? { onSubmit: props.onSubmit } : {})}>
+    <Form onSubmit={props.onSubmit}>
       <section
         aria-labelledby={frontHeadingId}
         className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
@@ -148,14 +137,10 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
         </dl>
       </details>
       <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-        <Button variant="quiet" type="button" {...(props.onCancel !== undefined ? { onClick: props.onCancel } : {})}>
+        <Button variant="quiet" type="button" onClick={props.onCancel}>
           Cancel
         </Button>
-        <Button
-          variant="primary"
-          type="submit"
-          {...(props.isSubmitting !== undefined ? { disabled: props.isSubmitting } : {})}
-        >
+        <Button variant="primary" type="submit" disabled={props.isSubmitting}>
           {props.isSubmitting ? "Saving…" : "Save changes"}
         </Button>
       </div>

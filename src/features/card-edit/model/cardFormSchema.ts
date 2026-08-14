@@ -1,17 +1,7 @@
-/**
- * @file Provides card feature rules for Card Form Schema.
- * Keeping these calculations outside React makes their inputs, outputs, and edge cases easier to
- * understand and test.
- */
-
 import * as z from "zod";
 
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
-/**
- * Creates a validation rule that rejects card text containing only whitespace.
- * The caller supplies the message shown beside the invalid form field.
- */
 const requiredCardText = (message: string) => z.string().refine(isNonBlank, { message });
 
 export const cardFormSchema = z.object({
