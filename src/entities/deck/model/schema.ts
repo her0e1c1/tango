@@ -6,7 +6,7 @@ const deckUidSchema = z.string().min(1, "Deck owner is required");
 
 export const editableDeckFieldsSchema = z.object({
   name: z.string().trim().min(1, "Deck name is required."),
-  url: z.union([z.literal(""), z.url("Enter a valid URL.")]).optional(),
+  url: z.url("Enter a valid URL.").optional(),
   isPublic: z.boolean(),
   scoreMax: z.number().nullable(),
   scoreMin: z.number().nullable(),

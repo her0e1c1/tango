@@ -43,9 +43,11 @@ describe("Deck operation schemas", () => {
 
   describe("editDeckSchema", () => {
     it("accepts a partial edit with a non-empty Deck id", () => {
-      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", name: " Renamed ", url: "" } })).toEqual({
+      expect(
+        editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", name: " Renamed ", url: "https://example.com" } })
+      ).toEqual({
         uid: "uid-a",
-        deck: { id: "deck", name: "Renamed", url: "" },
+        deck: { id: "deck", name: "Renamed", url: "https://example.com" },
       });
     });
 
