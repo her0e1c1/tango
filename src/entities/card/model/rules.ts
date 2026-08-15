@@ -27,6 +27,14 @@ export const getCardContentValidationErrors = (card: CardRaw): Partial<Record<ke
 export const filterCardsByDeckId = (cards: Card[], deckId: string): Card[] =>
   cards.filter((card) => card.deckId === deckId);
 
+export const indexCardsByUniqueKey = <T extends Card>(cards: readonly T[]): Map<string, T> =>
+  new Map(cards.map((card) => [card.uniqueKey, card]));
+
+export const hasSameEditableCardContent = (left: CardRaw, right: CardRaw): boolean =>
+  left.frontText === right.frontText &&
+  left.backText === right.backText &&
+  left.tags.join("\0") === right.tags.join("\0");
+
 export const filterTagsByDeckId = (cards: Card[], deckId: string): string[] =>
   [...new Set(filterCardsByDeckId(cards, deckId).flatMap((card) => card.tags))].sort();
 
