@@ -1,10 +1,3 @@
-/**
- * @file Verifies the "sample Deck bootstrap" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "adds the sample once for a
- * server-confirmed empty user under StrictMode", "waits for the server before treating an empty cache
- * as an empty user", "does not add the sample when the user already has a Deck".
- */
-
 import type { Deck, DeckCreateInput, LocalDeckCreateInput } from "@/entities/deck";
 
 import { renderHook, waitFor } from "@testing-library/react";
@@ -35,10 +28,6 @@ const useTestSampleDeckBootstrap = () =>
     generateCardId: vi.fn(() => "card-id"),
   });
 
-/**
- * Provides the strict mode test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
 const strictMode = ({ children }: { children: ReactNode }) => <React.StrictMode>{children}</React.StrictMode>;
 
 describe("sample Deck bootstrap", () => {
@@ -61,6 +50,25 @@ describe("sample Deck bootstrap", () => {
     renderHook(useTestSampleDeckBootstrap);
 
     expect(mocks.addSample).not.toHaveBeenCalled();
+  });
+
+  it("adds the sample again when Decks become empty after a completed bootstrap", async () => {
+    const { unmount } = renderHook(useTestSampleDeckBootstrap);
+    await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    unmount();
+
+    mocks.remote.decks = [{ id: "sample" } as Deck];
+    const { unmount: unmountPopulated } = renderHook(useTestSampleDeckBootstrap);
+    expect(mocks.addSample).toHaveBeenCalledOnce();
+    unmountPopulated();
+
+    mocks.remote.decks = [];
+    renderHook(useTestSampleDeckBootstrap);
+
+    await waitFor(() => expect(mocks.addSample).toHaveBeenCalledTimes(2));
   });
 
   it("deduplicates concurrent starts for one user", async () => {

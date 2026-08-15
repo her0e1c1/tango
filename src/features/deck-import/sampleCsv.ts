@@ -8,6 +8,4 @@ export const SAMPLE_CSV_TEXT = `\
 const SAMPLE_CSV_FILE_NAME = "sample.csv";
 const CSV_MIME_TYPE = "text/plain;charset=utf-8";
 
-export const downloadSampleCsv = (): void => {
-  downloadTextFile(SAMPLE_CSV_TEXT, SAMPLE_CSV_FILE_NAME, CSV_MIME_TYPE);
-};
+export const downloadSampleCsv = (): void => downloadTextFile(SAMPLE_CSV_TEXT, SAMPLE_CSV_FILE_NAME, CSV_MIME_TYPE);

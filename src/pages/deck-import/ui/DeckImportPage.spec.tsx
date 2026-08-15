@@ -74,7 +74,6 @@ vi.mock("@/entities/preferences", () => ({
 import { DeckImportPage } from "./DeckImportPage";
 
 const preview = {
-  fileName: "deck.csv",
   deckName: "deck.csv",
   analysis: {
     rows: [

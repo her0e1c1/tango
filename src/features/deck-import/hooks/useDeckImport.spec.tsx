@@ -1,9 +1,3 @@
-/**
- * @file Verifies the "useDeckImport" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "previews a file without
- * writing until import is confirmed" and "keeps invalid files in preview without mutating state".
- */
-
 import type { Card, CardMutation } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId, LocalDeckCreateInput } from "@/entities/deck";
 
@@ -93,7 +87,6 @@ describe("useDeckImport", () => {
     });
 
     expect(result.current.preview).toMatchObject({
-      fileName: "deck.csv",
       deckName: "deck.csv",
       analysis: { invalidCount: 0 },
       plan: { created: 1, updated: 0, unchanged: 0 },
