@@ -17,7 +17,6 @@ const mocks = vi.hoisted(() => ({
   decks: [] as Deck[],
   cards: [] as Card[],
   authUid: "user-1",
-  hydrated: true,
   deleteDeck: vi.fn(async (_uid: string, _deck: Deck) => undefined),
   removeStudySession: vi.fn(),
   touchStudySession: vi.fn(),
@@ -45,7 +44,6 @@ vi.mock("@/features/deck-import", () => ({ useSampleDeckBootstrap: mocks.sampleB
 vi.mock("@/features/study", () => ({
   removeStudySession: mocks.removeStudySession,
   touchStudySession: mocks.touchStudySession,
-  useStudyHydrated: () => mocks.hydrated,
   useStudySessions: () => ({}),
 }));
 vi.mock("@/features/deck-list", () => ({
@@ -88,7 +86,6 @@ describe("DeckListPage", () => {
     mocks.decks = [deck];
     mocks.cards = [card];
     mocks.authUid = "user-1";
-    mocks.hydrated = true;
   });
 
   it("composes route and reusable feature actions around the Deck List Feature", async () => {
@@ -124,16 +121,5 @@ describe("DeckListPage", () => {
     mocks.decks = [];
     render(<DeckListPage />);
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
-  });
-
-  it("waits for study hydration before composing the feature", () => {
-    mocks.hydrated = false;
-    const view = render(<DeckListPage />);
-    expect(screen.getByRole("status")).toHaveTextContent("Loading study progress");
-    expect(screen.queryByRole("region", { name: "Deck list feature" })).not.toBeInTheDocument();
-
-    mocks.hydrated = true;
-    view.rerender(<DeckListPage />);
-    expect(screen.getByRole("region", { name: "Deck list feature" })).toBeVisible();
   });
 });
