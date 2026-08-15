@@ -1,9 +1,5 @@
 import type { Card } from "@/entities/card/@x/deck";
-import {
-  createStudyProgressFromCard,
-  getNextStudyAvailabilityAt,
-  isStudyProgressEligible,
-} from "@/entities/study-progress/@x/deck";
+import { createStudyProgressFromCard, isStudyProgressEligible } from "@/entities/study-progress/@x/deck";
 
 import type { Category, Deck, DeckId } from "./types";
 
@@ -87,10 +83,7 @@ export const selectStudyCardsForDeck = <TCard extends Card>(
   deck: Deck | undefined,
   study: { useCardInterval: boolean },
   now: number
-): { cards: TCard[]; nextAvailabilityAt: number | undefined } => ({
-  cards: deck == null ? [] : filterCardsForDeck(cards, deck, study, now),
-  nextAvailabilityAt: getNextStudyAvailabilityAt(cards, now),
-});
+): TCard[] => (deck == null ? [] : filterCardsForDeck(cards, deck, study, now));
 
 export const mustFindDeckById = (decks: readonly Deck[], id: DeckId): Deck => {
   const deck = decks.find((candidate) => candidate.id === id);
