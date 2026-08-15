@@ -144,8 +144,7 @@ describe("shared selection controls", () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(input?.files?.[0]).toBe(file);
-    expect(onChange).toHaveBeenCalledOnce();
-    expect(onChange).toHaveBeenCalledWith(file);
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(file);
   });
 
   it("presents the chosen file from controlled props without storing native file state", () => {
