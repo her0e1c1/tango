@@ -125,6 +125,7 @@
         "noDeprecatedImports": "error",
         "noImportCycles": "error",
         "noLeakedRender": "error",
+        "noSkippedTests": "error",
         "noUnnecessaryConditions": "error"
       }
     }
