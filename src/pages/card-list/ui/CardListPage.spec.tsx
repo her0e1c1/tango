@@ -1,68 +1,39 @@
-import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
+import type { ReactNode } from "react";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  preferences: null as unknown as Preferences,
   deck: null as Deck | null,
-  cards: [] as Card[],
   navigate: vi.fn(),
-  onClickTag: vi.fn(),
-  updateScore: vi.fn(),
-  cardListProps: null as null | Record<string, unknown>,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/preferences", () => ({ usePreferences: () => mocks.preferences, setDarkMode: vi.fn() }));
-vi.mock("@/entities/card", () => ({
-  useCardsByDeckId: (id: string) => {
-    const cards = mocks.cards.filter((card) => card.deckId === id);
-    return { cards, tags: [...new Set(cards.flatMap((card) => card.tags))] };
-  },
-}));
 vi.mock("@/entities/deck", () => ({ useDeck: () => mocks.deck ?? undefined }));
 vi.mock("@/features/card-list", () => ({
-  useEditCardScore: () => ({ updateScore: mocks.updateScore }),
-  CardList: (props: {
-    cards: Card[];
-    filter: { selectedTags: string[]; onChangeSelectedTags: (tags: string[]) => void };
+  CardListContainer: (props: {
+    deck: Deck;
+    renderBackText: (props: { text: string }) => ReactNode;
     onEditCard: (id: string) => void;
-    onChangeScore: (card: Card, score: number) => Promise<void>;
   }) => {
-    mocks.cardListProps = props as unknown as Record<string, unknown>;
     return (
       <div>
-        <span>Card list feature</span>
-        <button type="button" onClick={() => props.onEditCard(props.cards[0]?.id ?? "missing")}>
+        <span>{`Card list: ${props.deck.id}`}</span>
+        {props.renderBackText({ text: "Back text" })}
+        <button type="button" onClick={() => props.onEditCard("card-id")}>
           Edit card
-        </button>
-        <button type="button" onClick={() => void props.onChangeScore(props.cards[0] as Card, 3)}>
-          Change score
-        </button>
-        <button type="button" onClick={() => props.filter.onChangeSelectedTags(["react"])}>
-          Change tags
         </button>
       </div>
     );
   },
 }));
-vi.mock("@/features/deck-filter", () => ({
-  DeckFilterForm: () => <div>Filter controls</div>,
-  useFilteredStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
-  useDeckFilterState: () => ({
-    scoreMax: 4,
-    scoreMin: -2,
-    tagFilterProps: { selectedTags: ["typescript"], onClickTag: mocks.onClickTag },
-  }),
-}));
+vi.mock("@/features/card-view", () => ({ BackText: ({ text }: { text: string }) => <div>{text}</div> }));
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
@@ -72,34 +43,21 @@ import { CardListPage } from "./CardListPage";
 
 describe("CardListPage", () => {
   const deck = createDeck({ id: "deck-id" });
-  const card = createCard({ id: "card-id", deckId: deck.id, tags: ["typescript"] });
-  const otherCard = createCard({ id: "other-card", deckId: "other-deck" });
 
   beforeEach(() => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
-    mocks.cards = [card, otherCard];
-    mocks.preferences = createPreferences();
     mocks.navigate.mockReset();
-    mocks.onClickTag.mockReset();
-    mocks.updateScore.mockReset().mockResolvedValue(undefined);
-    mocks.cardListProps = null;
   });
 
-  it("composes the feature from the resolved route data and route callbacks", async () => {
+  it("composes the resolved deck container and route navigation", async () => {
     render(<CardListPage />);
 
-    expect(screen.getByText("Card list feature")).toBeInTheDocument();
+    expect(screen.getByText(`Card list: ${deck.id}`)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: "Edit card" }));
-    expect(mocks.navigate).toHaveBeenCalledWith(`/card/${card.id}/edit`);
-
-    await userEvent.click(screen.getByRole("button", { name: "Change score" }));
-    expect(mocks.updateScore).toHaveBeenCalledExactlyOnceWith(card.id, 3);
-
-    await userEvent.click(screen.getByRole("button", { name: "Change tags" }));
-    expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);
+    expect(mocks.navigate).toHaveBeenCalledWith("/card/card-id/edit");
   });
 
   it("keeps route shortcuts in the page adapter", () => {
@@ -116,7 +74,7 @@ describe("CardListPage", () => {
     render(<CardListPage />);
 
     expect(screen.getByRole("heading", { name: "Deck not found" })).toBeInTheDocument();
-    expect(screen.queryByText("Card list feature")).not.toBeInTheDocument();
+    expect(screen.queryByText(`Card list: ${deck.id}`)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");

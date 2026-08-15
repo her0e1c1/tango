@@ -28,6 +28,20 @@ export default defineConfig([
     },
   },
   {
+    files: ["./src/features/card-list/ui/CardListContainer.tsx"],
+    rules: {
+      // The route container must own filter coordination while consuming only deck-filter's public contract.
+      "fsd/forbidden-imports": "off",
+    },
+  },
+  {
+    files: ["./src/features/deck-filter/**"],
+    rules: {
+      // Card list consumes this contract at the same layer, which does not count as a higher-layer reference.
+      "fsd/insignificant-slice": "off",
+    },
+  },
+  {
     files: [
       "./src/features/card-edit/**",
       "./src/features/card-list/**",
