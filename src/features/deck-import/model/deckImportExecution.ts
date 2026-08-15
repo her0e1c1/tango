@@ -1,4 +1,4 @@
-import type { Card, CardId, CardMutation, CardRaw, RemoteCard } from "@/entities/card";
+import type { Card, CardMutation, CardRaw, RemoteCard } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId, RemoteDeck } from "@/entities/deck";
 
 import { CardBulkMutationError } from "@/entities/card";
@@ -13,10 +13,7 @@ export interface DeckImportAttempt {
   deck: DeckCreateInput;
   createDeckPending: boolean;
   remainingMutations: CardMutation[];
-  createdIds: CardId[];
-  updatedIds: CardId[];
   plan: DeckImportPlan;
-  totals: Pick<DeckImportResult, "created" | "updated" | "skipped">;
 }
 
 export type DeckImportRequest = { kind: "content"; name: string; rows: DeckImportRow[] } | { kind: "sample" };
@@ -66,17 +63,13 @@ const prepareDeckImportAttempt = (
   const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
   const plan = buildDeckImportPlan(rows, existing);
   const remainingMutations: CardMutation[] = [];
-  const createdIds: CardId[] = [];
-  const updatedIds: CardId[] = [];
   plan.rows.forEach((row) => {
     const current = byUniqueKey.get(row.card.uniqueKey);
     if (row.action === "create") {
       const card = { ...row.card, id: generateCardId(), deckId: deck.id, uid: deck.uid };
       remainingMutations.push({ kind: "create", card });
-      createdIds.push(card.id);
     } else if (row.action === "update" && current != null) {
       remainingMutations.push({ kind: "edit", card: { ...current, ...row.card } });
-      updatedIds.push(current.id);
     }
   });
 
@@ -85,10 +78,7 @@ const prepareDeckImportAttempt = (
     deck,
     createDeckPending,
     remainingMutations,
-    createdIds,
-    updatedIds,
     plan,
-    totals: { created: plan.created, updated: plan.updated, skipped: plan.unchanged },
   };
 };
 
@@ -118,21 +108,29 @@ export const prepareDeckImport = async (
   });
 };
 
-export const partialResultFrom = (error: unknown): DeckImportResult | undefined => {
-  if (error == null || typeof error !== "object" || !("result" in error)) return;
-  const { result } = error;
-  if (
-    result == null ||
-    typeof result !== "object" ||
-    !("created" in result) ||
-    !("updated" in result) ||
-    !("skipped" in result) ||
-    !("failed" in result) ||
-    !("deckId" in result)
-  ) {
-    return;
+class DeckImportExecutionError extends Error {
+  readonly result: DeckImportResult;
+
+  constructor(message: string, options: ErrorOptions & { result: DeckImportResult }) {
+    super(message, options);
+    this.result = options.result;
   }
-  return result as DeckImportResult;
+}
+
+export const partialResultFrom = (error: unknown): DeckImportResult | undefined =>
+  error instanceof DeckImportExecutionError ? error.result : undefined;
+
+const resultFrom = (attempt: DeckImportAttempt, failedMutations: CardMutation[]): DeckImportResult => {
+  const failedCreates = failedMutations.filter((mutation) => mutation.kind === "create").length;
+  const failedUpdates = failedMutations.length - failedCreates;
+  // The plan remains the total source of truth while retries retain only mutations that still failed.
+  return {
+    created: attempt.plan.created - failedCreates,
+    updated: attempt.plan.updated - failedUpdates,
+    skipped: attempt.plan.unchanged,
+    failed: failedMutations.length,
+    deckId: attempt.deck.id,
+  };
 };
 
 export const executePreparedDeckImport = async (
@@ -154,21 +152,12 @@ export const executePreparedDeckImport = async (
     const failed = new Set(failedIds);
     // Preserve only failed writes so a retry keeps stable IDs without replaying writes that already succeeded.
     attempt.remainingMutations = mutations.filter((mutation) => failed.has(mutation.card.id));
-    throw Object.assign(new Error(`Deck import did not complete: ${String(error)}`), {
-      result: {
-        created: attempt.createdIds.filter((id) => !failed.has(id)).length,
-        updated: attempt.updatedIds.filter((id) => !failed.has(id)).length,
-        skipped: attempt.totals.skipped,
-        failed: attempt.remainingMutations.length,
-        deckId: attempt.deck.id,
-      },
+    throw new DeckImportExecutionError(`Deck import did not complete: ${String(error)}`, {
+      cause: error,
+      result: resultFrom(attempt, attempt.remainingMutations),
     });
   }
 
   attempt.remainingMutations = [];
-  return {
-    ...attempt.totals,
-    failed: 0,
-    deckId: attempt.deck.id,
-  };
+  return resultFrom(attempt, []);
 };
