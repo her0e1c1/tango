@@ -9,7 +9,6 @@ import { useKey } from "react-use";
 import { filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 import { toRemoteById } from "@/shared/api";
@@ -66,23 +65,17 @@ export const DeckStartPage: React.FC = () => {
   const cards = useStudyCards(deck, deckCards, preferences);
   const tags = filterTagsByDeckId(allCards, deckId);
 
-  return (
-    <RemoteReadBoundary
-      status="ready"
-      hasData={deck != null}
-      emptyContent={
-        <RouteFeedback
-          title="Deck not found"
-          description="The requested deck is unavailable or has been removed."
-          tone="not-found"
-          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
-        />
-      }
-    >
-      {deck != null ? (
-        <DeckStartContent cardsById={cardsById} deck={deck} cards={cards} preferences={preferences} tags={tags} />
-      ) : null}
-    </RemoteReadBoundary>
-  );
+  if (deck == null) {
+    return (
+      <RouteFeedback
+        title="Deck not found"
+        description="The requested deck is unavailable or has been removed."
+        tone="not-found"
+        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+      />
+    );
+  }
+
+  return <DeckStartContent cardsById={cardsById} deck={deck} cards={cards} preferences={preferences} tags={tags} />;
 };

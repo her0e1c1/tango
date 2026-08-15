@@ -19,7 +19,7 @@ import {
 } from "@/features/study";
 import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
 import { toRemoteById } from "@/shared/api";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
+import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckSwiperView } from "./DeckSwiperView";
@@ -33,6 +33,7 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   const navigate = useNavigate();
   const deckId = deck.id;
   const preferences = usePreferences();
+  const allCards = useCards();
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
@@ -71,6 +72,9 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   }, [clearLastSwipe, preferences.appearance.showSwipeFeedback, lastSwipe]);
 
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
+  const sessionHasTargetCard = session != null && index >= 0 && index < session.cardOrderIds.length;
+  const isWaitingForCards = sessionHasTargetCard && card == null && allCards.length === 0;
+
   const controller = useStudyControllerState({
     autoPlay,
     cardInterval: preferences.study.cardInterval,
@@ -93,12 +97,12 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
       exitingDeck.current = undefined;
       return;
     }
-    if (!hydrated || exitingDeck.current === deckId) return;
+    if (!hydrated || isWaitingForCards || exitingDeck.current === deckId) return;
 
     exitingDeck.current = deckId;
     studyActions.resetStudy();
     void navigate("/", { replace: true });
-  }, [deckId, hydrated, navigate, studyActions, valid]);
+  }, [deckId, hydrated, isWaitingForCards, navigate, studyActions, valid]);
 
   // Keep the active study session on the route when browser history moves backward.
   React.useEffect(() => {
@@ -117,11 +121,10 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   }, [deckId, navigate]);
 
   if (card == null) {
-    return (
-      <RemoteReadBoundary status="ready" hasData={false} emptyLabel="Study session unavailable.">
-        {null}
-      </RemoteReadBoundary>
-    );
+    if (isWaitingForCards) {
+      return <RouteFeedback title="Loading…" tone="loading" />;
+    }
+    return <RouteFeedback title="Study session unavailable." tone="not-found" />;
   }
 
   const category = getCategory(deck.category, card.tags);
@@ -180,9 +183,9 @@ export const DeckSwiperPage: React.FC = () => {
   const cardsById = React.useMemo(() => toRemoteById(cards), [cards]);
   const deck = useDeck(deckId);
 
-  return (
-    <RemoteReadBoundary status="ready" hasData={deck != null} emptyLabel="Study session unavailable.">
-      {deck != null ? <DeckSwiperContent cardsById={cardsById} deck={deck} /> : null}
-    </RemoteReadBoundary>
-  );
+  if (deck == null) {
+    return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+  }
+
+  return <DeckSwiperContent cardsById={cardsById} deck={deck} />;
 };

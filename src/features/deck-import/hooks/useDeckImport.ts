@@ -9,7 +9,8 @@ import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { filterCardsByDeckId } from "@/entities/card";
+import { fetchCards, filterCardsByDeckId } from "@/entities/card";
+import { fetchDecks } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth";
 import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
@@ -178,6 +179,8 @@ export const useDeckImport = ({
       createDeck: (deck) => createDeck(uid, deck),
       generateCardId,
       bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
+      fetchDecks,
+      fetchCards,
     };
   }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, uid]);
   const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {

@@ -127,10 +127,10 @@ describe("DeckListPage", () => {
     expect(mocks.sampleBootstrap).toHaveBeenCalledWith(expect.objectContaining({ decks: [deck], cards: [card] }));
   });
 
-  it("owns empty remote-read feedback", () => {
+  it("renders empty list when no decks exist", () => {
     mocks.decks = [];
     render(<DeckListPage />);
-    expect(screen.getByRole("heading", { name: "No decks yet." })).toBeVisible();
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("waits for study hydration before composing the feature", () => {

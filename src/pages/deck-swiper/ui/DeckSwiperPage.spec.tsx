@@ -446,4 +446,16 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     });
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
   });
+
+  it("keeps the study session while Card store is empty before initial snapshot arrives", () => {
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    mocks.state.card = {};
+
+    render(<DeckSwiperPage />);
+
+    expect(screen.getByRole("heading", { name: "Loading…" })).toBeInTheDocument();
+    expect(mocks.resetStudy).not.toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalledWith("/", { replace: true });
+    expect(mocks.studyState.sessionsByDeckId[deck.id]).toBeDefined();
+  });
 });

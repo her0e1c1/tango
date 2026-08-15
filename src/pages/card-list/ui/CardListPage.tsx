@@ -8,7 +8,6 @@ import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
 import { DeckStartForm, useDeckFilterState, useEditStudyProgress, useStudyCards } from "@/features/study";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -56,31 +55,27 @@ export const CardListPage: React.FC = () => {
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
 
+  if (deck == null) {
+    return (
+      <RouteFeedback
+        title="Deck not found"
+        description="The requested deck is unavailable or has been removed."
+        tone="not-found"
+        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+      />
+    );
+  }
+
   return (
-    <RemoteReadBoundary
-      status="ready"
-      hasData={deck != null}
-      emptyContent={
-        <RouteFeedback
-          title="Deck not found"
-          description="The requested deck is unavailable or has been removed."
-          tone="not-found"
-          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
-        />
-      }
-    >
-      {deck != null ? (
-        <AppLayout showHeader>
-          <CardListComposition
-            deck={deck}
-            cards={cards}
-            tags={tags}
-            preferences={preferences}
-            onEditCard={(id) => void navigate(`/card/${id}/edit`)}
-          />
-        </AppLayout>
-      ) : null}
-    </RemoteReadBoundary>
+    <AppLayout showHeader>
+      <CardListComposition
+        deck={deck}
+        cards={cards}
+        tags={tags}
+        preferences={preferences}
+        onEditCard={(id) => void navigate(`/card/${id}/edit`)}
+      />
+    </AppLayout>
   );
 };

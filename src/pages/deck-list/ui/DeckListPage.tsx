@@ -8,7 +8,6 @@ import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
 import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckListPage: React.FC = () => {
@@ -31,32 +30,32 @@ export const DeckListPage: React.FC = () => {
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
 
+  if (!hydrated) {
+    return (
+      <div role="status" className="py-10 text-center text-sm text-ink-muted">
+        Loading study progress…
+      </div>
+    );
+  }
+
   return (
-    <RemoteReadBoundary status="ready" hasData={decks.length > 0} emptyLabel="No decks yet.">
-      {hydrated ? (
-        <AppLayout showHeader>
-          <DeckList
-            decks={decks}
-            cards={cards}
-            sessionsByDeckId={sessionsByDeckId}
-            onViewDeck={(id) => void navigate(`/deck/${id}`)}
-            onContinueDeck={(id) => {
-              touchStudySession(id);
-              void navigate(`/deck/${id}/study`);
-            }}
-            onStartDeck={(id) => void navigate(`/deck/${id}/start`)}
-            onEditDeck={(id) => void navigate(`/deck/${id}/edit`)}
-            onDeleteDeck={async (deck) => {
-              await deleteDeck(uid, deck);
-              removeStudySession(deck.id);
-            }}
-          />
-        </AppLayout>
-      ) : (
-        <div role="status" className="py-10 text-center text-sm text-ink-muted">
-          Loading study progress…
-        </div>
-      )}
-    </RemoteReadBoundary>
+    <AppLayout showHeader>
+      <DeckList
+        decks={decks}
+        cards={cards}
+        sessionsByDeckId={sessionsByDeckId}
+        onViewDeck={(id) => void navigate(`/deck/${id}`)}
+        onContinueDeck={(id) => {
+          touchStudySession(id);
+          void navigate(`/deck/${id}/study`);
+        }}
+        onStartDeck={(id) => void navigate(`/deck/${id}/start`)}
+        onEditDeck={(id) => void navigate(`/deck/${id}/edit`)}
+        onDeleteDeck={async (deck) => {
+          await deleteDeck(uid, deck);
+          removeStudySession(deck.id);
+        }}
+      />
+    </AppLayout>
   );
 };

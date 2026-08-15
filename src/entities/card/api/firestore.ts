@@ -8,7 +8,7 @@ import type {
   EditCardInput,
 } from "../model/types";
 
-import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
 
 import { db } from "@/shared/firebase";
@@ -81,6 +81,13 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
     },
     onError
   );
+
+export const fetchCards = async (uid: string): Promise<Card[]> => {
+  const snapshot = await getDocs(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
+  return snapshot.docs
+    .map((document) => convertCardDtoToCard(document.id, document.data()))
+    .filter((card) => card.deletedAt === null);
+};
 
 export const generateCardId = (): string => doc(collection(db, CARD_COLLECTION)).id;
 

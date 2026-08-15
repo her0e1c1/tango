@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
 import { CardEditForm } from "@/features/card-edit";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -25,21 +24,17 @@ export const CardFormPage: React.FC = () => {
   if (cardId == null) throw Error("invalid card id");
   const card = useCard(cardId);
 
-  return (
-    <RemoteReadBoundary
-      status="ready"
-      hasData={card != null}
-      emptyContent={
-        <RouteFeedback
-          title="Card not found"
-          description="The requested card is unavailable or has been removed."
-          tone="not-found"
-          primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-          secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
-        />
-      }
-    >
-      {card != null ? <CardFormContent card={card} /> : null}
-    </RemoteReadBoundary>
-  );
+  if (card == null) {
+    return (
+      <RouteFeedback
+        title="Card not found"
+        description="The requested card is unavailable or has been removed."
+        tone="not-found"
+        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+      />
+    );
+  }
+
+  return <CardFormContent card={card} />;
 };
