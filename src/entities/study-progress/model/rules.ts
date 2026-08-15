@@ -12,7 +12,7 @@ import type {
   StudyRating,
 } from "./types";
 
-export const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
+const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
   if (swipeAction === "GoToNextCardMastered") return "mastered";
   // Toggle remains a negative rating because changing this mapping would alter the existing persisted-score behavior.
   if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {
@@ -37,16 +37,19 @@ const calculateScore = (score: number, rating: StudyRating): number => {
   return score;
 };
 
-export const recordStudyProgress = (
-  progress: StudyProgress,
-  rating: StudyRating,
-  studiedAt: number
-): StudyProgressEdit => ({
+const recordStudyProgress = (progress: StudyProgress, rating: StudyRating, studiedAt: number): StudyProgressEdit => ({
   cardId: progress.cardId,
   score: calculateScore(progress.score, rating),
   numberOfSeen: progress.numberOfSeen + 1,
   lastSeenAt: studiedAt,
 });
+
+export const recordCardStudyProgress = (
+  card: CardProgressFields,
+  swipeAction: SwipeAction,
+  studiedAt: number
+): StudyProgressEdit =>
+  recordStudyProgress(createStudyProgressFromCard(card), resolveStudyRating(swipeAction), studiedAt);
 
 export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyProgressFilter, now: number): boolean => {
   if (filter.maximumScore != null && progress.score > filter.maximumScore) return false;

@@ -1,9 +1,7 @@
 export { editStudyProgress } from "./api/firestore";
 export {
   buildStudyCardOrder,
-  createStudyProgressFromCard,
   getNextStudyAvailabilityAt,
-  recordStudyProgress,
-  resolveStudyRating,
+  recordCardStudyProgress,
 } from "./model/rules";
 export type { StudyProgressEdit } from "./model/types";

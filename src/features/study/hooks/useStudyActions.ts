@@ -2,13 +2,16 @@ import { mustFindCardById, type Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preferences";
 import { usePreferences } from "@/entities/preferences";
+import { recordCardStudyProgress, type StudyProgressEdit } from "@/entities/study-progress";
 import {
-  createStudyProgressFromCard,
-  recordStudyProgress,
-  resolveStudyRating,
-  type StudyProgressEdit,
-} from "@/entities/study-progress";
-import { getStudySession, moveStudySession, removeStudySession, setStudySessionIndex } from "@/entities/study-session";
+  getCurrentStudySessionCardId,
+  getStudySession,
+  isStudySessionPositionUnchanged,
+  moveStudySession,
+  removeStudySession,
+  resolveStudySessionSwipeEffect,
+  setStudySessionIndex,
+} from "@/entities/study-session";
 
 import React from "react";
 
@@ -42,17 +45,18 @@ export const useStudyActions = (
     if (session == null) return;
 
     const swipeAction = preferences.controls[direction];
-    if (swipeAction === "DoNothing") return;
-    if (swipeAction === "GoBack") {
+    const sessionEffect = resolveStudySessionSwipeEffect(swipeAction);
+    if (sessionEffect === "none") return;
+    if (sessionEffect === "exit") {
       onSwipe?.(direction);
       removeStudySession(deckId);
       return;
     }
 
-    const cardId = session.cardOrderIds[session.currentIndex];
+    const cardId = getCurrentStudySessionCardId(session);
     if (cardId == null) return;
     const card = mustFindCardById(cards, cardId);
-    const patch = recordStudyProgress(createStudyProgressFromCard(card), resolveStudyRating(swipeAction), Date.now());
+    const patch = recordCardStudyProgress(card, swipeAction, Date.now());
 
     swipeState.current.inProgress = true;
     // The visible card advances only after persistence succeeds, so failed writes need no session rollback.
@@ -65,16 +69,11 @@ export const useStudyActions = (
 
     const currentSession = getStudySession(deckId);
     // Position changes during the write own the newer card, while timestamp-only touches still allow advancement.
-    if (
-      currentSession?.currentIndex !== session.currentIndex ||
-      currentSession.cardOrderIds[currentSession.currentIndex] !== cardId
-    ) {
-      return;
-    }
+    if (!isStudySessionPositionUnchanged(session, currentSession)) return;
 
     onSwipe?.(direction);
     if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged?.();
-    moveStudySession(deckId, swipeAction === "GoToPrevCard" ? "previous" : "next");
+    moveStudySession(deckId, sessionEffect);
   };
 
   return {
