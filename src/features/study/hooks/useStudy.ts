@@ -1,14 +1,13 @@
 import { useAuthUid } from "@/entities/auth";
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import type { SwipeDirection } from "@/entities/preferences";
+import { type SwipeDirection, usePreferences } from "@/entities/preferences";
 import { editStudyProgress } from "@/entities/study-progress";
 import { removeStudySession, type StudySession, touchStudySession, useStudySession } from "@/entities/study-session";
 
 import * as React from "react";
 
 import { useStudyActions } from "./useStudyActions";
-import { useStudyDisplayState } from "./useStudyDisplayState";
 import { useSwipeFeedback } from "./useSwipeFeedback";
 
 interface StudyCommands {
@@ -39,8 +38,13 @@ export type StudyState = StudyCommands &
 
 export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: () => void): StudyState => {
   const uid = useAuthUid();
-  const display = useStudyDisplayState();
-  const feedback = useSwipeFeedback(display.preferences.appearance.showSwipeFeedback);
+  const preferences = usePreferences();
+  const [showBackText, setShowBackText] = React.useState(false);
+  const [autoPlay, setAutoPlay] = React.useState(preferences.study.defaultAutoPlay);
+  const hideBackText = React.useCallback(() => setShowBackText(false), []);
+  const toggleBackText = React.useCallback(() => setShowBackText((visible) => !visible), []);
+  const toggleAutoPlay = React.useCallback(() => setAutoPlay((playing) => !playing), []);
+  const feedback = useSwipeFeedback(preferences.appearance.showSwipeFeedback);
   const saveProgress = React.useCallback(
     (progress: Parameters<typeof editStudyProgress>[1]) => editStudyProgress(uid, progress),
     [uid]
@@ -49,7 +53,7 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     cards,
     saveProgress,
     onSwipe: feedback.showSwipe,
-    onCardChanged: display.hideBackText,
+    onCardChanged: hideBackText,
   });
   const session = useStudySession(deckId);
   const cardId = session?.cardOrderIds[session.currentIndex];
@@ -80,25 +84,25 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     if (
       status !== "ready" ||
       session == null ||
-      !display.autoPlay ||
-      display.preferences.study.cardInterval <= 0 ||
+      !autoPlay ||
+      preferences.study.cardInterval <= 0 ||
       session.currentIndex + 1 >= session.cardOrderIds.length
     ) {
       return;
     }
     const timeout = window.setTimeout(
       () => actions.updateIndex(session.currentIndex + 1),
-      display.preferences.study.cardInterval * 1000
+      preferences.study.cardInterval * 1000
     );
     return () => window.clearTimeout(timeout);
-  }, [actions, display.autoPlay, display.preferences.study.cardInterval, session, status]);
+  }, [actions, autoPlay, preferences.study.cardInterval, session, status]);
   const commands: StudyCommands = {
     swipeUp: actions.swipeUp,
     swipeDown: actions.swipeDown,
     swipeLeft: actions.swipeLeft,
     swipeRight: actions.swipeRight,
-    toggleBackText: display.toggleBackText,
-    toggleAutoPlay: display.toggleAutoPlay,
+    toggleBackText,
+    toggleAutoPlay,
   };
 
   if (session == null || card == null) {
@@ -111,11 +115,11 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     ...commands,
     session,
     card,
-    showHeader: display.preferences.appearance.showHeader && !display.showBackText,
-    showBackText: display.showBackText,
-    showController: display.preferences.study.cardInterval > 0,
-    showSwipeButtonList: display.preferences.controls.showSwipeButtonList,
-    autoPlay: display.autoPlay,
+    showHeader: preferences.appearance.showHeader && !showBackText,
+    showBackText,
+    showController: preferences.study.cardInterval > 0,
+    showSwipeButtonList: preferences.controls.showSwipeButtonList,
+    autoPlay,
     updateIndex: actions.updateIndex,
     ...(feedback.lastSwipe !== undefined ? { swipeFeedback: feedback.lastSwipe } : {}),
   };
