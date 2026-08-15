@@ -7,7 +7,10 @@ import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { editStudyProgressSchema } from "../model/schema";
 
-export const editStudyProgress = async (uid: string, progress: EditStudyProgressInput["progress"]): Promise<void> => {
+export const editRemoteStudyProgress = async (
+  uid: string,
+  progress: EditStudyProgressInput["progress"]
+): Promise<void> => {
   const input = editStudyProgressSchema.parse({ uid, progress });
   const { cardId, ...fields } = input.progress;
   const document = omitUndefined({ ...fields, updatedAt: getCurrentTimeMillis() });

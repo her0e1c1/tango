@@ -1,4 +1,4 @@
-export { editStudyProgress } from "./api/firestore";
+export { editStudyProgress } from "./api/mutations";
 export {
   buildStudyCardOrder,
   createStudyProgressFromCard,

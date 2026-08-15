@@ -7,9 +7,9 @@ export interface StudyProgress {
   cardId: CardId;
   score: number;
   numberOfSeen: number;
-  lastSeenAt?: number;
-  nextSeeingAt?: Date;
-  interval?: number;
+  lastSeenAt?: number | undefined;
+  nextSeeingAt?: Date | undefined;
+  interval?: number | undefined;
 }
 
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;

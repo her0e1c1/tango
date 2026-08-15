@@ -11,6 +11,9 @@ import {
 } from "./schema";
 import type { Card, CardId, LocalCard, LocalCardCreateInput, LocalCardEdit, RemoteCard } from "./types";
 
+type LocalCardStudyProgressEdit = Pick<LocalCard, "id"> &
+  Partial<Pick<LocalCard, "score" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval">>;
+
 interface CardState {
   remoteCards: RemoteCard[];
   localCards: LocalCard[];
@@ -85,12 +88,28 @@ export const editLocalCard = (input: LocalCardEdit): LocalCard => {
   return updatedCard;
 };
 
+export const editLocalCardStudyProgress = (input: LocalCardStudyProgressEdit): LocalCard => {
+  const cardId = cardIdSchema.parse(input.id);
+  const { localCards } = cardStore.getState();
+  const currentCard = localCards.find(({ id }) => id === cardId);
+  if (currentCard === undefined) throw new Error(`Local Card "${cardId}" was not found`);
+
+  const updatedCard = localCardSchema.parse({ ...currentCard, ...input, updatedAt: Date.now() });
+  cardStore.setState({ localCards: localCards.map((card) => (card.id === cardId ? updatedCard : card)) });
+  return updatedCard;
+};
+
 export const deleteLocalCard = (input: CardId): void => {
   const cardId = cardIdSchema.parse(input);
   cardStore.setState({ localCards: cardStore.getState().localCards.filter(({ id }) => id !== cardId) });
 };
 
-export const deleteLocalCardsByDeckId = (deckId: string): void => {
+export const deleteLocalCardsByDeckId = (deckId: string): CardId[] => {
   const parsedDeckId = z.string().min(1, "Card deck is required").parse(deckId);
+  const deletedCardIds = cardStore
+    .getState()
+    .localCards.filter((card) => card.deckId === parsedDeckId)
+    .map((card) => card.id);
   cardStore.setState({ localCards: cardStore.getState().localCards.filter((card) => card.deckId !== parsedDeckId) });
+  return deletedCardIds;
 };
