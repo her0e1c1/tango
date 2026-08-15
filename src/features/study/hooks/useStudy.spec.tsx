@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 import type { Preferences } from "@/entities/preferences";
-import { clearStudySessions, startStudySession } from "@/entities/study-session";
+import { clearStudySessions, startStudy } from "@/entities/study-session";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -64,10 +64,7 @@ describe("useStudy", () => {
       showSwipeFeedback: true,
       cardSwipeRight: "GoToNextCardMastered",
     });
-    startStudySession(
-      deckId,
-      cards.map(({ id }) => id)
-    );
+    startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
   });
 
   afterEach(() => vi.useRealTimers());
