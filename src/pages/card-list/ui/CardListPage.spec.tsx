@@ -54,13 +54,15 @@ vi.mock("@/features/card-list", () => ({
     );
   },
 }));
-vi.mock("@/features/study", () => ({
+vi.mock("@/features/deck-start", () => ({
   DeckStartForm: () => <div>Filter controls</div>,
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,
     tagFilterProps: { selectedTags: ["typescript"], onClickTag: mocks.onClickTag },
   }),
+}));
+vi.mock("@/features/study", () => ({
   useEditStudyProgress: () => ({ updateBy: mocks.updateBy }),
   useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
 }));

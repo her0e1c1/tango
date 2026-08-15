@@ -1,5 +1,5 @@
 /**
- * @file Provides the study feature's Deck filter state hook.
+ * @file Provides the deck-start feature's Deck filter state hook.
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */
@@ -11,7 +11,7 @@ import { useForm, useWatch } from "react-hook-form";
 
 import { useAuthSession } from "@/entities/auth";
 import { editDeck } from "@/entities/deck";
-import type { DeckStartForm } from "../components/DeckStartForm";
+import type { DeckStartForm } from "../ui/DeckStartForm";
 
 type DeckStartFormProps = React.ComponentProps<typeof DeckStartForm>;
 
