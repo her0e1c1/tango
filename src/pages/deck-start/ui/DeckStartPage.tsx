@@ -9,9 +9,9 @@ import { useKey } from "react-use";
 import { filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
+import { toRemoteById } from "@/shared/api";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-import { toRemoteById } from "@/shared/lib/remoteSnapshot";
 
 import { DeckStartView } from "./DeckStartView";
 
