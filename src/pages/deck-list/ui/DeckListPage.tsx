@@ -7,7 +7,7 @@ import { generateCardId, useCards } from "@/entities/card";
 import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
-import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
+import { removeStudySession, touchStudySession, useStudySessions } from "@/features/study";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckListPage: React.FC = () => {
@@ -16,7 +16,6 @@ export const DeckListPage: React.FC = () => {
   const cards = useCards();
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
-  const hydrated = useStudyHydrated();
 
   useSampleDeckBootstrap({
     cards,
@@ -26,14 +25,6 @@ export const DeckListPage: React.FC = () => {
   });
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
-
-  if (!hydrated) {
-    return (
-      <div role="status" className="py-10 text-center text-sm text-ink-muted">
-        Loading study progress…
-      </div>
-    );
-  }
 
   return (
     <AppLayout showHeader>
