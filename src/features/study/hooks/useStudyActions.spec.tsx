@@ -52,10 +52,6 @@ const deck: Deck = {
   scoreMin: null,
 };
 
-/**
- * Provides the create card test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
 const createCard = (id: CardId, numberOfSeen: number): Card => ({
   id,
   deckId: deck.id,
@@ -76,10 +72,6 @@ const card2 = createCard("card-2", 1);
 
 import { createPreferences as factoryCreateConfig, type PreferencesOverrides } from "@/test/factories";
 
-/**
- * Provides the create preferences test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
 const createPreferences = (overrides: PreferencesOverrides = {}): Preferences =>
   factoryCreateConfig({
     shuffled: false,
@@ -94,10 +86,6 @@ const createPreferences = (overrides: PreferencesOverrides = {}): Preferences =>
     ...overrides,
   });
 
-/**
- * Provides the create state test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
 const createState = (preferences = createPreferences()) => ({
   card: { [card1.id]: card1, [card2.id]: card2 },
   preferences,
@@ -112,10 +100,7 @@ describe("useStudyActions", () => {
     vi.spyOn(Date, "now").mockReturnValue(946684800000);
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.state = createState();
-    studyStore.setState({
-      sessionsByDeckId: {},
-      autoPlay: false,
-    });
+    studyStore.setState({ sessionsByDeckId: {} });
   });
 
   afterEach(() => {
@@ -134,8 +119,8 @@ describe("useStudyActions", () => {
             lastStudiedAt: 946684800000,
           },
         },
-        autoPlay: true,
       });
+      expect(studyStore.getState()).not.toHaveProperty("autoPlay");
     });
     const { result } = renderHook(() =>
       useStudyActions(deck.id, { cardsById: getCardsById(), onStarted, onHideBackText })
@@ -181,13 +166,12 @@ describe("useStudyActions", () => {
       await result.current.swipeRight();
     });
 
-    const patch = {
+    expect(mocks.cardUpdate).toHaveBeenCalledWith({
       cardId: card1.id,
       score: 1,
       numberOfSeen: 1,
       lastSeenAt: 946684800000,
-    };
-    expect(mocks.cardUpdate).toHaveBeenCalledWith(patch);
+    });
     expect(onSwipe).toHaveBeenCalledWith("cardSwipeRight");
     expect(onHideBackText).toHaveBeenCalledOnce();
     expect(studyStore.getState()).toMatchObject({
