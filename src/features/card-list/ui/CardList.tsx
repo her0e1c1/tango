@@ -45,7 +45,9 @@ export const CardList: React.FC<CardListProps> = (props) => {
   const changeScore = (id: CardId, offset: number) => {
     const card = mustFindCardById(props.cards, id);
     void editStudyProgress(uid, { cardId: card.id, score: card.score + offset })
-      .then(() => setMutationError(null))
+      .then(() => {
+        setMutationError(null);
+      })
       .catch(setMutationError);
   };
 
@@ -90,7 +92,9 @@ export const CardList: React.FC<CardListProps> = (props) => {
           {...(deletionErrorCardId === deletionTarget.id
             ? { errorMessage: "Unable to delete this card. Check your connection and try again." }
             : {})}
-          onCancel={() => setDeletionTarget(undefined)}
+          onCancel={() => {
+            setDeletionTarget(undefined);
+          }}
           onConfirm={confirmDeletion}
         />
       ) : null}
@@ -102,12 +106,16 @@ export const CardList: React.FC<CardListProps> = (props) => {
           selectedTags: props.filter.selectedTags,
         }}
         filterSlot={props.filter.controls}
-        onRemoveTag={(tag) =>
-          props.filter.onChangeSelectedTags(props.filter.selectedTags.filter((value) => value !== tag))
-        }
+        onRemoveTag={(tag) => {
+          props.filter.onChangeSelectedTags(props.filter.selectedTags.filter((value) => value !== tag));
+        }}
         card={{
-          onSwipedLeft: (id) => changeScore(id, -1),
-          onSwipedRight: (id) => changeScore(id, 1),
+          onSwipedLeft: (id) => {
+            changeScore(id, -1);
+          },
+          onSwipedRight: (id) => {
+            changeScore(id, 1);
+          },
           goToEdit: props.onEditCard,
           onDelete: requestDeletion,
         }}
@@ -120,7 +128,9 @@ export const CardList: React.FC<CardListProps> = (props) => {
                   code: isHighlightLanguage(category),
                   dark: props.preferences.appearance.darkMode,
                 }),
-                onClose: () => setShownCard(undefined),
+                onClose: () => {
+                  setShownCard(undefined);
+                },
               },
             }
           : {})}

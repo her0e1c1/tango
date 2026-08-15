@@ -46,7 +46,9 @@ const ScoreLimit: React.FC<ScoreLimitProps> = (props) => {
           checked={props.value != null}
           aria-label={`Enable ${props.label.toLowerCase()}`}
           aria-describedby={props.descriptionId}
-          onChange={(event) => props.onChange(event.currentTarget.checked ? 0 : null)}
+          onChange={(event) => {
+            props.onChange(event.currentTarget.checked ? 0 : null);
+          }}
         />
       </div>
       <div className="mt-3 flex items-center gap-3">
@@ -61,7 +63,9 @@ const ScoreLimit: React.FC<ScoreLimitProps> = (props) => {
           aria-label={`${props.label} value`}
           aria-describedby={props.descriptionId}
           aria-valuetext={props.value == null ? `${props.label} disabled` : displayScore(props.value)}
-          onChange={(event) => props.onChange(event.currentTarget.valueAsNumber)}
+          onChange={(event) => {
+            props.onChange(event.currentTarget.valueAsNumber);
+          }}
         />
         <span className="min-w-12 rounded-control bg-surface px-2 py-1 text-center text-caption font-bold text-accent-primary">
           {props.value == null ? "Any" : displayScore(props.value)}
@@ -122,8 +126,12 @@ export const DeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
         selectedTags={props.selectedTags}
         tagAndFilter={props.tagAndFilter}
         onClickFilter={props.setTagAndFilter}
-        onClickAll={() => props.setSelectedTags(props.tags)}
-        onClickClear={() => props.setSelectedTags([])}
+        onClickAll={() => {
+          props.setSelectedTags(props.tags);
+        }}
+        onClickClear={() => {
+          props.setSelectedTags([]);
+        }}
         onClickTag={props.setSelectedTags}
       />
     </Form>

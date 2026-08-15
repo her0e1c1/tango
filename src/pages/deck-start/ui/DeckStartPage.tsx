@@ -27,7 +27,9 @@ const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Prefe
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
   });
   const deckFilter = useDeckFilterState(deck);
-  const start = () => startStudy(cards);
+  const start = () => {
+    startStudy(cards);
+  };
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
     start();

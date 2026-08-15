@@ -9,7 +9,12 @@ export interface AuthProviderProps {
   reload?: (() => void) | undefined;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = () => window.location.reload() }) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({
+  children,
+  reload = () => {
+    window.location.reload();
+  },
+}) => {
   const authState = useAuthSession();
 
   React.useEffect(() => {

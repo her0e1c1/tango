@@ -14,6 +14,8 @@ const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}"];
 const sliceLayers = ["entities", "features", "pages", "widgets"];
 const nonSliceLayers = ["app", "shared"];
+// Use only the type-aware portion so Biome remains the owner of syntax and style diagnostics.
+const strictTypeCheckedRules = tseslint.configs["flat/strict-type-checked-only"].at(-1).rules;
 
 export default [
   {
@@ -127,6 +129,24 @@ export default [
       "@typescript-eslint": tseslint,
     },
     rules: {
+      ...strictTypeCheckedRules,
+      // Biome owns these checks, including promise handling and the Types domain rollout in #1013.
+      "@typescript-eslint/await-thenable": "off",
+      "@typescript-eslint/no-base-to-string": "off",
+      "@typescript-eslint/no-floating-promises": "off",
+      "@typescript-eslint/no-implied-eval": "off",
+      "@typescript-eslint/no-misused-promises": "off",
+      "@typescript-eslint/no-unnecessary-boolean-literal-compare": "off",
+      "@typescript-eslint/no-unnecessary-condition": "off",
+      "@typescript-eslint/no-unnecessary-template-expression": "off",
+      "@typescript-eslint/no-unnecessary-type-conversion": "off",
+      "@typescript-eslint/prefer-reduce-type-parameter": "off",
+      "@typescript-eslint/require-await": "off",
+      "@typescript-eslint/restrict-plus-operands": "off",
+      // Primitive template interpolation and polymorphic `this` are project policy, not correctness constraints.
+      "@typescript-eslint/prefer-return-this-type": "off",
+      "@typescript-eslint/restrict-template-expressions": "off",
+      // Keep the unsafe-any boundary introduced by #533 explicit as the preset expands around it.
       "@typescript-eslint/no-unsafe-argument": "error",
       "@typescript-eslint/no-unsafe-assignment": "error",
       "@typescript-eslint/no-unsafe-call": "error",

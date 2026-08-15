@@ -51,7 +51,7 @@ const prepareDeckImportAttempt = (
 ): DeckImportAttempt => {
   const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
   const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
-  const rows = request.kind === "sample" ? rowsFromCards(sampleCards as CardRaw[]) : request.rows;
+  const rows = request.kind === "sample" ? rowsFromCards(sampleCards) : request.rows;
   let deck: DeckCreateInput | undefined = decks.find(
     (candidate): candidate is RemoteDeck =>
       !candidate.localMode &&

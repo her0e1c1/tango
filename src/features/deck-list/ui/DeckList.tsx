@@ -32,11 +32,12 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const sections = buildDeckListSections(props.decks, props.cards, props.sessionsByDeckId);
 
-  const closeMenu = React.useCallback(() => setOpenMenuDeckId(undefined), []);
-  const toggleMenu = React.useCallback(
-    (id: DeckId) => setOpenMenuDeckId((value) => (value === id ? undefined : id)),
-    []
-  );
+  const closeMenu = React.useCallback(() => {
+    setOpenMenuDeckId(undefined);
+  }, []);
+  const toggleMenu = React.useCallback((id: DeckId) => {
+    setOpenMenuDeckId((value) => (value === id ? undefined : id));
+  }, []);
 
   const cardsForDeck = (id: DeckId) => filterCardsByDeckId(props.cards, id);
 
@@ -82,7 +83,9 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
               <p>This action cannot be undone.</p>
             </>
           }
-          onCancel={() => setDeletionTarget(undefined)}
+          onCancel={() => {
+            setDeletionTarget(undefined);
+          }}
           onConfirm={confirmDeletion}
         />
       ) : null}
