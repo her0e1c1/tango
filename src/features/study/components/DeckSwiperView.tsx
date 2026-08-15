@@ -1,8 +1,3 @@
-/**
- * @file Composes the deck study screen's swipe-based presentation.
- * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
- */
-
 import type { SwipeDirection } from "@/entities/preferences";
 
 import cx from "classnames";
@@ -112,11 +107,6 @@ const Controls: React.FC<{
   );
 };
 
-/**
- * Composes the Deck Swiper screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in tests and
- * Storybook.
- */
 export const DeckSwiperView: React.FC<DeckSwiperViewProps> = (props) => (
   <>
     {props.feedbackSlot}
