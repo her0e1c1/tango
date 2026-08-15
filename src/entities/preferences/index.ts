@@ -1,7 +1,6 @@
 export { usePreferences } from "./model/hooks";
 export type {
   Preferences,
-  StudyPreferences,
   SwipeAction,
   SwipeDirection,
   SwipeState,
