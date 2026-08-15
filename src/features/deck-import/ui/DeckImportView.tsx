@@ -132,7 +132,7 @@ const ImportPreview = (props: ImportPreviewProps) => {
   const { preview } = props;
   if (preview == null) return null;
 
-  const busy = props.pending === true || props.validating === true;
+  const busy = Boolean(props.pending || props.validating);
   const canImport = preview.analysis.rows.length > 0 && preview.analysis.invalidCount === 0 && !busy;
   const visibleRows = preview.plan.rows.slice(0, 10);
   const hiddenRowCount = preview.plan.rows.length - visibleRows.length;
@@ -239,7 +239,7 @@ const ImportPreview = (props: ImportPreviewProps) => {
  * Storybook.
  */
 export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
-  const busy = props.pending === true || props.validating === true;
+  const busy = Boolean(props.pending || props.validating);
 
   return (
     <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">

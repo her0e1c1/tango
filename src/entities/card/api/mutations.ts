@@ -23,7 +23,7 @@ export class CardBulkMutationError extends Error {
   }
 }
 
-const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode === true;
+const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode ?? false;
 
 const requireCard = (id: CardId) => {
   const card = findCardById(id);
