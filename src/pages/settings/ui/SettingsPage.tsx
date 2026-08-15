@@ -19,16 +19,34 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
   const preferences = usePreferences();
   const authState = useAuthSession();
   const navigate = useNavigate();
-  const authenticated = authState.status === "authenticated" ? authState : undefined;
+
+  const authenticatedUser = authState.status === "authenticated" ? authState : undefined;
+  const linkedUser = authenticatedUser != null && !authenticatedUser.isAnonymous ? authenticatedUser : undefined;
+  const isLoggedIn = linkedUser != null;
   const identity = {
-    uid: authenticated?.uid ?? "",
-    displayName: authenticated?.displayName ?? null,
+    uid: authenticatedUser?.uid ?? "",
+    displayName: authenticatedUser?.displayName ?? null,
   };
-  const linkedUser = authenticated != null && !authenticated.isAnonymous ? authenticated : undefined;
+
   const signIn = useSignIn(login);
-  const signOut = useSignOut(linkedUser ? logout : undefined);
-  const account = linkedUser ? { ...signOut, kind: "logout" as const } : { ...signIn, kind: "login" as const };
-  const retryAccountOperation = account.kind === "logout" ? signOut.signOut : signIn.signIn;
+  const signOut = useSignOut(isLoggedIn ? logout : undefined);
+  const accountOperation = isLoggedIn
+    ? {
+        run: signOut.signOut,
+        pending: signOut.pending,
+        error: signOut.error,
+        pendingLabel: "Signing out…",
+        errorLabel: "Unable to sign out.",
+      }
+    : {
+        run: signIn.signIn,
+        pending: signIn.pending,
+        error: signIn.error,
+        pendingLabel: "Signing in…",
+        errorLabel: "Unable to sign in.",
+      };
+  const runAccountOperation = () => void accountOperation.run().catch(() => undefined);
+
   const formState = usePreferencesFormState({
     preferences,
     onSubmit: updatePreferences,
@@ -41,17 +59,17 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
         {...formState}
         identity={identity}
         version={__APP_VERSION__}
-        isLoggedIn={linkedUser != null}
-        onLogin={() => void signIn.signIn().catch(() => undefined)}
-        {...(linkedUser ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {})}
-        accountPending={account.pending}
+        isLoggedIn={isLoggedIn}
+        onLogin={runAccountOperation}
+        {...(isLoggedIn ? { onLogout: runAccountOperation } : {})}
+        accountPending={accountOperation.pending}
         accountFeedback={
           <RemoteMutationNotice
-            pending={account.pending}
-            error={account.error}
-            onRetry={() => void retryAccountOperation().catch(() => undefined)}
-            pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
-            errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
+            pending={accountOperation.pending}
+            error={accountOperation.error}
+            onRetry={runAccountOperation}
+            pendingLabel={accountOperation.pendingLabel}
+            errorLabel={accountOperation.errorLabel}
           />
         }
       />
