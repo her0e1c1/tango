@@ -14,10 +14,9 @@ import { usePreferences } from "@/entities/preferences";
 
 /**
  * Renders the App user interface.
- * Reads authentication and display settings, installs the application routes, and offers reload
- * when startup fails.
+ * Reads display settings and installs the application routes.
  */
-const App: React.FC<{ reload?: () => void }> = ({ reload }) => {
+const App: React.FC = () => {
   const { darkMode } = usePreferences().appearance;
 
   React.useEffect(() => {
@@ -25,7 +24,7 @@ const App: React.FC<{ reload?: () => void }> = ({ reload }) => {
   }, [darkMode]);
 
   return (
-    <AuthProvider reload={reload}>
+    <AuthProvider>
       <FirestoreSubscriptionsProvider>
         <BrowserRouter>
           <AppRoutes />
