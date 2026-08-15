@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => {
   const cardUpdate = vi.fn();
 
   return {
-    state: null as { card: Record<CardId, Card>; preferences: Preferences } | null,
+    state: null as { cards: Card[]; preferences: Preferences } | null,
     cardUpdate,
     cardMutations: {
       update: cardUpdate,
@@ -99,11 +99,11 @@ const createPreferences = (overrides: PreferencesOverrides = {}): Preferences =>
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
 const createState = (preferences = createPreferences()) => ({
-  card: { [card1.id]: card1, [card2.id]: card2 },
+  cards: [card1, card2],
   preferences,
 });
 
-const getCardsById = () => mocks.state?.card ?? {};
+const getCards = () => mocks.state?.cards ?? [];
 
 describe("useStudyActions", () => {
   beforeEach(() => {
@@ -135,9 +135,7 @@ describe("useStudyActions", () => {
         },
       });
     });
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), onStarted, onHideBackText })
-    );
+    const { result } = renderHook(() => useStudyActions(deck.id, { onStarted, onHideBackText }));
 
     act(() => {
       result.current.start([card1]);
@@ -150,7 +148,7 @@ describe("useStudyActions", () => {
   it("rejects a route and session mismatch before writing a card", async () => {
     studyStore.getState().startStudy("deck-2", [card1.id]);
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {
@@ -168,7 +166,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     const { result } = renderHook(() =>
       useStudyActions(deck.id, {
-        cardsById: getCardsById(),
+        cards: getCards(),
         cardMutation: mocks.cardMutations,
         onSwipe,
         onHideBackText,
@@ -206,7 +204,7 @@ describe("useStudyActions", () => {
     mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() =>
       useStudyActions(deck.id, {
-        cardsById: getCardsById(),
+        cards: getCards(),
         cardMutation: mocks.cardMutations,
         showBackText: true,
         onRestoreBackText,
@@ -232,7 +230,7 @@ describe("useStudyActions", () => {
       })
     );
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations })
     );
 
     const swipe = result.current.swipeRight();
@@ -257,7 +255,7 @@ describe("useStudyActions", () => {
         })
     );
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations })
     );
 
     const firstSwipe = result.current.swipeRight();
@@ -280,7 +278,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     const { result } = renderHook(() =>
       useStudyActions(deck.id, {
-        cardsById: getCardsById(),
+        cards: getCards(),
         cardMutation: mocks.cardMutations,
         showBackText: true,
         onHideBackText,
@@ -298,7 +296,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     const before = studyStore.getState();
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {
@@ -315,7 +313,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy("deck-2", ["other-card"]);
     studyStore.getState().setCurrentIndex(deck.id, 1);
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations, onSwipe })
+      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations, onSwipe })
     );
 
     await actAsync(async () => {
@@ -334,7 +332,7 @@ describe("useStudyActions", () => {
     const onHideBackText = vi.fn();
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations, onHideBackText })
+      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations, onHideBackText })
     );
 
     act(() => {
@@ -347,7 +345,7 @@ describe("useStudyActions", () => {
 
   it("calls onToggleBackText when toggleShowBackText is invoked", () => {
     const onToggleBackText = vi.fn();
-    const { result } = renderHook(() => useStudyActions(deck.id, { cardsById: getCardsById(), onToggleBackText }));
+    const { result } = renderHook(() => useStudyActions(deck.id, { onToggleBackText }));
 
     act(() => {
       result.current.toggleShowBackText();
@@ -358,7 +356,7 @@ describe("useStudyActions", () => {
 
   it("calls onToggleAutoPlay when toggleAutoPlay is invoked", () => {
     const onToggleAutoPlay = vi.fn();
-    const { result } = renderHook(() => useStudyActions(deck.id, { cardsById: getCardsById(), onToggleAutoPlay }));
+    const { result } = renderHook(() => useStudyActions(deck.id, { onToggleAutoPlay }));
 
     act(() => {
       result.current.toggleAutoPlay();
@@ -371,7 +369,7 @@ describe("useStudyActions", () => {
     studyStore.getState().startStudy(deck.id, [card1.id]);
     studyStore.getState().startStudy("deck-2", ["other-card"]);
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations })
     );
 
     await actAsync(async () => {

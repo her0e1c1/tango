@@ -4,7 +4,7 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { type Card, type CardId, useCards } from "@/entities/card";
+import { type Card, useCards } from "@/entities/card";
 import { BackText, CardOverlay, FrontText } from "@/features/card-view";
 import {
   selectStudySessionForRoute,
@@ -22,7 +22,6 @@ import {
   usePreferences,
   type SwipeDirection,
 } from "@/entities/preferences";
-import { toRemoteById } from "@/shared/lib/remoteSnapshot";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -33,11 +32,10 @@ const SWIPE_FEEDBACK_DURATION_MS = 900;
 const isHistoryState = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
-const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<CardId, Card>>; deck: Deck }) => {
+const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigate = useNavigate();
   const deckId = deck.id;
   const preferences = usePreferences();
-  const allCards = useCards();
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const [showBackText, setShowBackText] = React.useState(false);
   const [autoPlay, setAutoPlay] = React.useState(preferences.study.defaultAutoPlay);
@@ -75,10 +73,10 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
 
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
-  const card = cardId == null ? undefined : cardsById[cardId];
+  const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
   const cardMutation = useEditStudyProgress();
   const studyActions = useStudyActions(deckId, {
-    cardsById,
+    cards,
     cardMutation: {
       update: cardMutation.update,
     },
@@ -107,7 +105,7 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
 
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
   const sessionHasTargetCard = session != null && index >= 0 && index < session.cardOrderIds.length;
-  const isWaitingForCards = sessionHasTargetCard && card == null && allCards.length === 0;
+  const isWaitingForCards = sessionHasTargetCard && card == null && cards.length === 0;
 
   const controller = useStudyControllerState({
     autoPlay,
@@ -213,12 +211,11 @@ export const DeckSwiperPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
 
   const cards = useCards();
-  const cardsById = React.useMemo(() => toRemoteById(cards), [cards]);
   const deck = useDeck(deckId);
 
   if (deck == null) {
     return <RouteFeedback title="Study session unavailable." tone="not-found" />;
   }
 
-  return <DeckSwiperContent key={deck.id} cardsById={cardsById} deck={deck} />;
+  return <DeckSwiperContent key={deck.id} cards={cards} deck={deck} />;
 };
