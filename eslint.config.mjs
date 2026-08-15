@@ -130,6 +130,8 @@ export default [
     },
     rules: {
       ...strictTypeCheckedRules,
+      // Shorthand callbacks that intentionally return void are established project style, not ambiguous expressions.
+      "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
       // Biome owns these checks, including promise handling and the Types domain rollout in #1013.
       "@typescript-eslint/await-thenable": "off",
       "@typescript-eslint/no-base-to-string": "off",

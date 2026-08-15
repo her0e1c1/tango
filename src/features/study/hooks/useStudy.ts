@@ -64,12 +64,11 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     ) {
       return;
     }
-    const timeout = window.setTimeout(() => {
-      actions.updateIndex(session.index + 1);
-    }, display.preferences.study.cardInterval * 1000);
-    return () => {
-      window.clearTimeout(timeout);
-    };
+    const timeout = window.setTimeout(
+      () => actions.updateIndex(session.index + 1),
+      display.preferences.study.cardInterval * 1000
+    );
+    return () => window.clearTimeout(timeout);
   }, [actions, display.autoPlay, display.preferences.study.cardInterval, session]);
   const commands: StudyCommands = {
     swipeUp: actions.swipeUp,

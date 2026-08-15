@@ -32,17 +32,9 @@ export const useDeckFilterState = (deck: Deck): DeckFilterState => {
 
   return {
     ...filter,
-    setScoreMax: (value) => {
-      updateFilter("scoreMax", value);
-    },
-    setScoreMin: (value) => {
-      updateFilter("scoreMin", value);
-    },
-    setSelectedTags: (value) => {
-      updateFilter("selectedTags", value);
-    },
-    setTagAndFilter: (value) => {
-      updateFilter("tagAndFilter", value);
-    },
+    setScoreMax: (value) => updateFilter("scoreMax", value),
+    setScoreMin: (value) => updateFilter("scoreMin", value),
+    setSelectedTags: (value) => updateFilter("selectedTags", value),
+    setTagAndFilter: (value) => updateFilter("tagAndFilter", value),
   };
 };

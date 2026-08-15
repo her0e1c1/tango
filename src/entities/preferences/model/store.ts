@@ -51,13 +51,10 @@ const createPreferencesStore = () =>
 
 export const preferencesStore = createPreferencesStore();
 
-export const updatePreferences: PreferencesStoreState["updatePreferences"] = (preferences) => {
+export const updatePreferences: PreferencesStoreState["updatePreferences"] = (preferences) =>
   preferencesStore.getState().updatePreferences(preferences);
-};
 
-export const setDarkMode = (darkMode: boolean): void => {
-  updatePreferences({ appearance: { darkMode } });
-};
+export const setDarkMode = (darkMode: boolean): void => updatePreferences({ appearance: { darkMode } });
 
 export const toggleShowHeader = (): void => {
   const { showHeader } = preferencesStore.getState().preferences.appearance;

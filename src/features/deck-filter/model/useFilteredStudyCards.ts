@@ -21,12 +21,8 @@ export const useFilteredStudyCards = (deck: Deck | undefined, cards: Card[], pre
     if (next === undefined) return;
 
     const delay = Math.min(Math.max(next - Date.now(), 0), MAX_TIMEOUT_MS);
-    const availability = window.setTimeout(() => {
-      setScheduleClock(Date.now());
-    }, delay);
-    return () => {
-      window.clearTimeout(availability);
-    };
+    const availability = window.setTimeout(() => setScheduleClock(Date.now()), delay);
+    return () => window.clearTimeout(availability);
   }, [scheduleClock, studyCards]);
 
   return deck == null

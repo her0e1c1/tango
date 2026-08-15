@@ -81,12 +81,8 @@ const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowC
           key={card.id}
           card={card}
           menuOpen={openMenuCardId === card.id}
-          onToggleMenu={(id) => {
-            setOpenMenuCardId((value) => (value === id ? undefined : id));
-          }}
-          onCloseMenu={() => {
-            setOpenMenuCardId(undefined);
-          }}
+          onToggleMenu={(id) => setOpenMenuCardId((value) => (value === id ? undefined : id))}
+          onCloseMenu={() => setOpenMenuCardId(undefined)}
           {...(props.card?.onSwipedLeft !== undefined ? { onSwipedLeft: props.card.onSwipedLeft } : {})}
           {...(props.card?.onSwipedRight !== undefined ? { onSwipedRight: props.card.onSwipedRight } : {})}
           {...(props.card?.onDelete !== undefined ? { onDelete: props.card.onDelete } : {})}

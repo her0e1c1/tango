@@ -68,9 +68,7 @@ export const Card: React.FC<{ className?: string; card: CardEntity } & CardActio
      * handler.
      * Links and buttons can therefore be used without accidentally triggering a card swipe.
      */
-    const stopSwipeTracking = (event: Event) => {
-      event.stopPropagation();
-    };
+    const stopSwipeTracking = (event: Event) => event.stopPropagation();
     const boundaryEvents = ["mousedown", "touchstart", "touchmove", "touchend", "touchcancel"] as const;
     for (const eventName of boundaryEvents) boundary.addEventListener(eventName, stopSwipeTracking);
 

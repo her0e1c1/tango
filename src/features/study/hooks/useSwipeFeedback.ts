@@ -17,12 +17,8 @@ export const useSwipeFeedback = (enabled: boolean) => {
 
   React.useEffect(() => {
     if (lastSwipe === undefined) return;
-    const timeout = window.setTimeout(() => {
-      setLastSwipe(undefined);
-    }, SWIPE_FEEDBACK_DURATION_MS);
-    return () => {
-      window.clearTimeout(timeout);
-    };
+    const timeout = window.setTimeout(() => setLastSwipe(undefined), SWIPE_FEEDBACK_DURATION_MS);
+    return () => window.clearTimeout(timeout);
   }, [lastSwipe]);
 
   return { lastSwipe: enabled ? lastSwipe?.direction : undefined, showSwipe };
