@@ -3,10 +3,10 @@ import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preferences";
 import { editStudyProgress } from "@/entities/study-progress";
+import { removeStudySession, type StudySession, touchStudySession, useStudySession } from "@/entities/study-session";
 
 import * as React from "react";
 
-import { useActiveStudySession, useStudySessionLifecycle } from "./useActiveStudySession";
 import { useStudyActions } from "./useStudyActions";
 import { useStudyDisplayState } from "./useStudyDisplayState";
 import { useSwipeFeedback } from "./useSwipeFeedback";
@@ -25,6 +25,7 @@ export type StudyState = StudyCommands &
     | { status: "loading" | "unavailable" }
     | {
         status: "ready";
+        session: StudySession;
         card: Card;
         showHeader: boolean;
         showBackText: boolean;
@@ -32,8 +33,6 @@ export type StudyState = StudyCommands &
         showSwipeButtonList: boolean;
         swipeFeedback?: SwipeDirection;
         autoPlay: boolean;
-        index: number;
-        numberOfCards: number;
         updateIndex: (index: number) => void;
       }
   );
@@ -52,24 +51,47 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     onSwipe: feedback.showSwipe,
     onCardChanged: display.hideBackText,
   });
-  const session = useActiveStudySession(deckId, cards);
-  useStudySessionLifecycle({ deckId, session, onUnavailable });
+  const session = useStudySession(deckId);
+  const cardId = session?.cardOrderIds[session.currentIndex];
+  const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
+  const status =
+    card != null ? "ready" : session != null && cardId != null && cards.length === 0 ? "loading" : "unavailable";
+  const exitingDeck = React.useRef<DeckId>(undefined);
+
+  React.useEffect(() => {
+    if (status !== "ready") return;
+    touchStudySession(deckId);
+  }, [deckId, status]);
+
+  React.useEffect(() => {
+    if (status === "ready") {
+      exitingDeck.current = undefined;
+      return;
+    }
+    if (status === "loading" || exitingDeck.current === deckId) return;
+
+    // Invalid active progress must be removed before leaving so reopening the deck cannot repeat the same failure.
+    exitingDeck.current = deckId;
+    removeStudySession(deckId);
+    onUnavailable();
+  }, [deckId, onUnavailable, status]);
 
   React.useEffect(() => {
     if (
-      session.status !== "ready" ||
+      status !== "ready" ||
+      session == null ||
       !display.autoPlay ||
       display.preferences.study.cardInterval <= 0 ||
-      session.index + 1 >= session.numberOfCards
+      session.currentIndex + 1 >= session.cardOrderIds.length
     ) {
       return;
     }
     const timeout = window.setTimeout(
-      () => actions.updateIndex(session.index + 1),
+      () => actions.updateIndex(session.currentIndex + 1),
       display.preferences.study.cardInterval * 1000
     );
     return () => window.clearTimeout(timeout);
-  }, [actions, display.autoPlay, display.preferences.study.cardInterval, session]);
+  }, [actions, display.autoPlay, display.preferences.study.cardInterval, session, status]);
   const commands: StudyCommands = {
     swipeUp: actions.swipeUp,
     swipeDown: actions.swipeDown,
@@ -79,19 +101,21 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     toggleAutoPlay: display.toggleAutoPlay,
   };
 
-  if (session.status !== "ready") return { ...session, ...commands };
+  if (session == null || card == null) {
+    const inactiveStatus = session != null && cardId != null && cards.length === 0 ? "loading" : "unavailable";
+    return { status: inactiveStatus, ...commands };
+  }
 
   return {
     status: "ready",
     ...commands,
-    card: session.card,
+    session,
+    card,
     showHeader: display.preferences.appearance.showHeader && !display.showBackText,
     showBackText: display.showBackText,
     showController: display.preferences.study.cardInterval > 0,
     showSwipeButtonList: display.preferences.controls.showSwipeButtonList,
     autoPlay: display.autoPlay,
-    index: session.index,
-    numberOfCards: session.numberOfCards,
     updateIndex: actions.updateIndex,
     ...(feedback.lastSwipe !== undefined ? { swipeFeedback: feedback.lastSwipe } : {}),
   };
