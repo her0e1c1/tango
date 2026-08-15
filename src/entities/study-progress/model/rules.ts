@@ -1,5 +1,14 @@
+import * as lodash from "lodash";
+
 import { createStudyProgress } from "./defaults";
-import type { CardProgressFields, StudyProgress, StudyProgressEdit, StudyProgressFilter, StudyRating } from "./types";
+import type {
+  CardProgressFields,
+  StudyCardOrderOptions,
+  StudyProgress,
+  StudyProgressEdit,
+  StudyProgressFilter,
+  StudyRating,
+} from "./types";
 
 export const createStudyProgressFromCard = (card: CardProgressFields): StudyProgress => {
   const progress = createStudyProgress(card.id);
@@ -37,8 +46,22 @@ export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyPr
   return true;
 };
 
-export const compareStudyProgress = (first: StudyProgress, second: StudyProgress): number =>
+const compareStudyProgress = (first: StudyProgress, second: StudyProgress): number =>
   first.numberOfSeen - second.numberOfSeen;
+
+export const buildStudyCardOrder = (
+  cards: CardProgressFields[],
+  options: StudyCardOrderOptions
+): StudyProgress["cardId"][] => {
+  let cardOrderIds = cards
+    .map(createStudyProgressFromCard)
+    .sort(compareStudyProgress)
+    .map((progress) => progress.cardId);
+  // The maximum follows shuffling so a limited randomized session can draw from the complete card set.
+  if (options.shuffled) cardOrderIds = lodash.shuffle(cardOrderIds);
+  if (options.maxNumberOfCardsToLearn > 0) cardOrderIds = cardOrderIds.slice(0, options.maxNumberOfCardsToLearn);
+  return cardOrderIds;
+};
 
 export const getNextStudyAvailabilityAt = (progresses: StudyProgress[], now: number): number | undefined => {
   let next: number | undefined;
