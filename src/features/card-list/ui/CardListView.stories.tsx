@@ -132,10 +132,6 @@ export const DarkCardView: Story = { ...CardView, globals: { theme: "dark" } };
 
 export const Dark: Story = { globals: { theme: "dark" } };
 
-export const Pending: Story = {
-  args: { isCardPending: (id) => id === fixture.cards.default[0]?.id },
-};
-
 export const IphoneX: Story = {
   parameters: { viewport: { defaultViewport: "iphonex" } },
 };

@@ -31,7 +31,6 @@ export interface CardListViewProps {
   overlay?: CardListOverlayProps;
   onShowCard?: (card: CardEntity) => void;
   onRemoveTag?: (tag: string) => void;
-  isCardPending?: (id: CardId) => boolean;
 }
 
 /**
@@ -72,7 +71,7 @@ const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selec
  * All data and callbacks arrive through props, allowing the same screen to run in tests and
  * Storybook.
  */
-const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowCard" | "isCardPending">> = (props) => {
+const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowCard">> = (props) => {
   const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
 
   return (
@@ -81,7 +80,6 @@ const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowC
         <Card
           key={card.id}
           card={card}
-          disabled={props.isCardPending?.(card.id) ?? false}
           menuOpen={openMenuCardId === card.id}
           onToggleMenu={(id) => setOpenMenuCardId((value) => (value === id ? undefined : id))}
           onCloseMenu={() => setOpenMenuCardId(undefined)}
@@ -157,7 +155,6 @@ export const CardListView: React.FC<CardListViewProps> = (props) => {
           cards={props.cards}
           {...(props.card !== undefined ? { card: props.card } : {})}
           {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
-          {...(props.isCardPending !== undefined ? { isCardPending: props.isCardPending } : {})}
         />
       )}
     </>

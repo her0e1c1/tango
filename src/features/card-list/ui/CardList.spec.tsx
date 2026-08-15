@@ -81,6 +81,32 @@ describe("CardList", () => {
     expect(onEditCard).toHaveBeenCalledExactlyOnceWith(card.id);
   });
 
+  it("renders a language card with the resolved back text presentation", async () => {
+    const languageCard = createCard({
+      ...card,
+      backText: "const answer = 42;",
+      tags: ["typescript"],
+    });
+    const renderBackText = vi.fn((backText: Parameters<CardListProps["renderBackText"]>[0]) => (
+      <div>{backText.text}</div>
+    ));
+
+    renderCardList({
+      cards: [languageCard],
+      preferences: createPreferences({ appearance: { darkMode: true } }),
+      renderBackText,
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "View Front" }));
+
+    expect(renderBackText).toHaveBeenCalledExactlyOnceWith({
+      text: languageCard.backText,
+      category: "typescript",
+      code: true,
+      dark: true,
+    });
+  });
+
   it("owns deletion confirmation and success feedback", async () => {
     renderCardList();
     const trigger = screen.getByRole("button", { name: "Open actions for Front" });
