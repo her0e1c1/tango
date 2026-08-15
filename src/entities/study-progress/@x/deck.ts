@@ -1,1 +1,1 @@
-export { createStudyProgressFromCard, isStudyProgressEligible } from "../model/rules";
+export { createStudyProgressFromCard, getNextStudyAvailabilityAt, isStudyProgressEligible } from "../model/rules";
