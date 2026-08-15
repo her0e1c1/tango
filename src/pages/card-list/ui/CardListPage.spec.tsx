@@ -55,6 +55,7 @@ vi.mock("@/features/card-list", () => ({
 }));
 vi.mock("@/features/deck-start", () => ({
   DeckStartForm: () => <div>Filter controls</div>,
+  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,
@@ -63,7 +64,6 @@ vi.mock("@/features/deck-start", () => ({
 }));
 vi.mock("@/features/study", () => ({
   useEditStudyProgress: () => ({ updateBy: mocks.updateBy }),
-  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
 }));
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
