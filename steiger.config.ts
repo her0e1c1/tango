@@ -13,27 +13,33 @@ export default defineConfig([
     },
   },
   {
-    files: ["./src/app/**", "./src/pages/**", "./src/widgets/**", "./src/features/**", "./src/entities/**"],
+    files: [
+      "./src/entities/study-progress/**",
+      "./src/features/deck-list/**",
+      "./src/features/settings/**",
+    ],
     rules: {
       "fsd/insignificant-slice": "off",
     },
   },
   {
-    files: ["./src/app/**"],
+    files: ["./src/features/deck/*/**"],
     rules: {
-      "fsd/no-global-store-imports": "off",
+      "fsd/insignificant-slice": "off",
     },
   },
   {
-    files: ["./src/entities/**", "./src/features/**"],
+    files: ["./src/features/card-edit/**", "./src/features/card-list/**", "./src/features/deck-edit/**"],
     rules: {
-      "fsd/no-ui-in-business-logic": "off",
+      // Route-specific features intentionally own their workflows while serving a single route adapter.
+      "fsd/insignificant-slice": "off",
     },
   },
   {
-    files: ["./src/features/**"],
+    files: ["./src/entities/preferences/**"],
     rules: {
-      "fsd/no-cross-slice-dependency": "off",
+      // Preferences is the domain concept's established name, not a plural collection of entities.
+      "fsd/inconsistent-naming": "off",
     },
   },
 ]);
