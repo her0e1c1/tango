@@ -6,12 +6,18 @@
  * page when importing fails".
  */
 
-import { fireEvent, render, waitFor, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
+
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DeckImportPreview, DeckImportResult } from "@/features/deck-import";
+import type { DeckImportView } from "@/features/deck-import";
+
+type DeckImportViewProps = ComponentProps<typeof DeckImportView>;
+type DeckImportPreview = NonNullable<DeckImportViewProps["preview"]>;
+type DeckImportResult = NonNullable<DeckImportViewProps["result"]>;
 
 const mocks = vi.hoisted(() => ({
   selectFile: vi.fn(),
@@ -38,7 +44,8 @@ vi.mock("@/entities/card", () => ({
   generateCardId: vi.fn(),
   useCards: () => [],
 }));
-vi.mock("@/features/deck-import", () => ({
+vi.mock("@/features/deck-import", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/deck-import")>()),
   SAMPLE_CSV_TEXT: "sample csv",
   downloadSampleCsv: mocks.downloadSampleCsv,
   useDeckImport: () => ({

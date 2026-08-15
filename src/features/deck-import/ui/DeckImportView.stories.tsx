@@ -6,10 +6,10 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { SAMPLE_CSV_TEXT } from "@/features/deck-import";
-import type { DeckImportPreview } from "@/features/deck-import";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
+import type { DeckImportPreview } from "../model/deckImportTypes";
+import { SAMPLE_CSV_TEXT } from "../sampleCsv";
 import { DeckImportView as Template } from "./DeckImportView";
 
 const preview = {
@@ -50,7 +50,7 @@ const preview = {
 } satisfies DeckImportPreview;
 
 const meta = {
-  title: "Pages/Deck Import",
+  title: "Features/Deck Import/DeckImportView",
   component: Template,
   tags: ["autodocs"],
   parameters: {
