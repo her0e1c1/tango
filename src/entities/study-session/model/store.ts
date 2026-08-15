@@ -1,7 +1,8 @@
 import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
 
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
 import type { StudySession, StudySessions } from "./types";
@@ -9,29 +10,16 @@ import type { StudySession, StudySessions } from "./types";
 const STUDY_STORAGE_KEY = "tango-study";
 const STUDY_STORAGE_VERSION = 3;
 
-interface PersistedStudySessionState {
+interface StudySessionState {
   sessionsByDeckId: StudySessions;
-}
-
-interface StudySessionStoreState extends PersistedStudySessionState {
-  start: (deckId: DeckId, cardOrderIds: CardId[]) => void;
-  touch: (deckId: DeckId) => void;
-  setIndex: (deckId: DeckId, currentIndex: number) => void;
-  remove: (deckId: DeckId) => void;
-  restoreIfCurrent: (
-    deckId: DeckId,
-    expectedSession: StudySession | undefined,
-    previousSession: StudySession
-  ) => boolean;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
-const sanitizeStudySession = (value: unknown, fallbackLastStudiedAt?: number): StudySession | undefined => {
+const sanitizeStudySession = (value: unknown): StudySession | undefined => {
   if (!isRecord(value)) return undefined;
-  const { deckId, cardOrderIds, currentIndex } = value;
-  const lastStudiedAt = value.lastStudiedAt ?? fallbackLastStudiedAt;
+  const { deckId, cardOrderIds, currentIndex, lastStudiedAt } = value;
   if (
     typeof deckId !== "string" ||
     !Array.isArray(cardOrderIds) ||
@@ -51,7 +39,7 @@ const sanitizeStudySession = (value: unknown, fallbackLastStudiedAt?: number): S
   return { deckId, cardOrderIds: [...cardOrderIds], currentIndex, lastStudiedAt };
 };
 
-const sanitizePersistedState = (persistedState: unknown): PersistedStudySessionState => {
+const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
   if (!isRecord(persistedState) || !isRecord(persistedState.sessionsByDeckId)) {
     return { sessionsByDeckId: {} };
   }
@@ -64,109 +52,75 @@ const sanitizePersistedState = (persistedState: unknown): PersistedStudySessionS
   return { sessionsByDeckId };
 };
 
-const migratePersistedState = (persistedState: unknown, version: number): PersistedStudySessionState => {
-  if (version !== 1 && version !== 2) return { sessionsByDeckId: {} };
-  if (!isRecord(persistedState)) return { sessionsByDeckId: {} };
-  const session = sanitizeStudySession(persistedState.session, 0);
-  return session == null ? { sessionsByDeckId: {} } : { sessionsByDeckId: { [session.deckId]: session } };
-};
-
-const createStudySessionStore = () => {
-  const persistStorage = createJSONStorage<PersistedStudySessionState>(() => localStorage);
-  return createStore<StudySessionStoreState>()(
-    persist<StudySessionStoreState, [], [], PersistedStudySessionState>(
-      (set, get) => ({
-        sessionsByDeckId: {},
-        start: (deckId, cardOrderIds) =>
-          set((state) => ({
-            sessionsByDeckId: {
-              ...state.sessionsByDeckId,
-              [deckId]: {
-                deckId,
-                cardOrderIds: [...cardOrderIds],
-                currentIndex: 0,
-                lastStudiedAt: Date.now(),
-              },
-            },
-          })),
-        touch: (deckId) =>
-          set((state) => {
-            const session = state.sessionsByDeckId[deckId];
-            if (session == null) return state;
-            return {
-              sessionsByDeckId: {
-                ...state.sessionsByDeckId,
-                [deckId]: { ...session, lastStudiedAt: Date.now() },
-              },
-            };
-          }),
-        setIndex: (deckId, currentIndex) =>
-          set((state) => {
-            const session = state.sessionsByDeckId[deckId];
-            if (
-              session == null ||
-              !Number.isInteger(currentIndex) ||
-              currentIndex < 0 ||
-              currentIndex >= session.cardOrderIds.length
-            ) {
-              return state;
-            }
-            return {
-              sessionsByDeckId: {
-                ...state.sessionsByDeckId,
-                [deckId]: { ...session, currentIndex, lastStudiedAt: Date.now() },
-              },
-            };
-          }),
-        remove: (deckId) =>
-          set((state) => {
-            const { [deckId]: _removed, ...sessionsByDeckId } = state.sessionsByDeckId;
-            return { sessionsByDeckId };
-          }),
-        restoreIfCurrent: (deckId, expectedSession, previousSession) => {
-          // Reference equality makes rollback conditional: a newer session change must always win.
-          if (get().sessionsByDeckId[deckId] !== expectedSession) return false;
-          set((state) => ({
-            sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: previousSession },
-          }));
-          return true;
-        },
+export const studySessionStore = createStore<StudySessionState>()(
+  persist(
+    immer(() => ({ sessionsByDeckId: {} })),
+    {
+      name: STUDY_STORAGE_KEY,
+      version: STUDY_STORAGE_VERSION,
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...sanitizePersistedState(persistedState),
       }),
-      {
-        name: STUDY_STORAGE_KEY,
-        version: STUDY_STORAGE_VERSION,
-        storage: persistStorage,
-        migrate: migratePersistedState,
-        merge: (persistedState, currentState) => ({
-          ...currentState,
-          ...sanitizePersistedState(persistedState),
-        }),
-        partialize: ({ sessionsByDeckId }) => ({ sessionsByDeckId }),
-      }
-    )
-  );
-};
-
-export const studySessionStore = createStudySessionStore();
+    }
+  )
+);
 
 export const getStudySession = (deckId: DeckId): StudySession | undefined =>
   studySessionStore.getState().sessionsByDeckId[deckId];
 
-export const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void =>
-  studySessionStore.getState().start(deckId, cardOrderIds);
+export const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
+  studySessionStore.setState((state) => {
+    state.sessionsByDeckId[deckId] = {
+      deckId,
+      cardOrderIds: [...cardOrderIds],
+      currentIndex: 0,
+      lastStudiedAt: Date.now(),
+    };
+  });
+};
 
-export const touchStudySession = (deckId: DeckId): void => studySessionStore.getState().touch(deckId);
+export const touchStudySession = (deckId: DeckId): void => {
+  studySessionStore.setState((state) => {
+    const session = state.sessionsByDeckId[deckId];
+    if (session != null) session.lastStudiedAt = Date.now();
+  });
+};
 
-export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): void =>
-  studySessionStore.getState().setIndex(deckId, currentIndex);
+export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): void => {
+  studySessionStore.setState((state) => {
+    const session = state.sessionsByDeckId[deckId];
+    if (
+      session == null ||
+      !Number.isInteger(currentIndex) ||
+      currentIndex < 0 ||
+      currentIndex >= session.cardOrderIds.length
+    ) {
+      return;
+    }
+    session.currentIndex = currentIndex;
+    session.lastStudiedAt = Date.now();
+  });
+};
 
-export const removeStudySession = (deckId: DeckId): void => studySessionStore.getState().remove(deckId);
+export const removeStudySession = (deckId: DeckId): void => {
+  studySessionStore.setState((state) => {
+    delete state.sessionsByDeckId[deckId];
+  });
+};
 
 export const restoreStudySession = (
   deckId: DeckId,
   expectedSession: StudySession | undefined,
   previousSession: StudySession
-): boolean => studySessionStore.getState().restoreIfCurrent(deckId, expectedSession, previousSession);
+): boolean => {
+  // Reference equality makes rollback conditional: a newer session change must always win.
+  if (getStudySession(deckId) !== expectedSession) return false;
+  studySessionStore.setState((state) => {
+    state.sessionsByDeckId[deckId] = previousSession;
+  });
+  return true;
+};
 
 export const clearStudySessions = async (): Promise<void> => {
   studySessionStore.setState({ sessionsByDeckId: {} });
