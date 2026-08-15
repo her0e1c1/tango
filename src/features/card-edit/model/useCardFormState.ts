@@ -1,11 +1,14 @@
-import type { Card, CardEditInput } from "@/entities/card";
+import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
+import { cardContentSchema, type Card, type CardEditInput } from "@/entities/card";
 import type { Option } from "@/shared/ui/forms";
 import type { CardFormProps } from "../ui/CardForm";
-import { cardFormSchema, type CardFormValues } from "./cardFormSchema";
+
+const cardFormSchema = cardContentSchema.omit({ uniqueKey: true });
+type CardFormValues = z.infer<typeof cardFormSchema>;
 
 interface UseCardFormStateOptions {
   card: Card;
