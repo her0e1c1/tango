@@ -13,6 +13,10 @@ import { StudySessionStartView, useStartStudySession } from "@/features/study-se
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
+// The Enter shortcut below listens at the window level, so key events from focused controls bubble
+// into it. Keep those controls in sole ownership of Enter; otherwise activating a filter or header
+// control could also start a study session, and activating the Start button could run it twice.
+// `closest` also covers events whose target is a child rendered inside an interactive control.
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
