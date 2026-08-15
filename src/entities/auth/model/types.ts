@@ -1,7 +1,10 @@
-interface AuthenticatedSession {
+export interface AuthAccount {
   uid: string;
-  isAnonymous: boolean;
   displayName: string | null;
+}
+
+interface AuthenticatedSession extends AuthAccount {
+  isAnonymous: boolean;
 }
 
 /**

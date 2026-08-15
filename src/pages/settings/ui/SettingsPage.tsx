@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useAuthSession } from "@/entities/auth";
+import { useAuthAccount, useAuthUid } from "@/entities/auth";
 import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { SettingsForm, usePreferencesFormState } from "@/features/settings";
 import { useSignIn } from "@/features/sign-in";
@@ -17,16 +17,11 @@ interface SettingsPageProps {
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => {
   const preferences = usePreferences();
-  const authState = useAuthSession();
+  const authAccount = useAuthAccount();
+  const authUid = useAuthUid();
   const navigate = useNavigate();
 
-  const authenticatedUser = authState.status === "authenticated" ? authState : undefined;
-  const linkedUser = authenticatedUser != null && !authenticatedUser.isAnonymous ? authenticatedUser : undefined;
-  const isLoggedIn = linkedUser != null;
-  const identity = {
-    uid: authenticatedUser?.uid ?? "",
-    displayName: authenticatedUser?.displayName ?? null,
-  };
+  const isLoggedIn = authAccount != null;
 
   const signIn = useSignIn(login);
   const signOut = useSignOut(isLoggedIn ? logout : undefined);
@@ -57,7 +52,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
     <AppLayout showHeader>
       <SettingsForm
         {...formState}
-        identity={identity}
+        identity={{ uid: authUid, displayName: authAccount?.displayName ?? null }}
         version={__APP_VERSION__}
         isLoggedIn={isLoggedIn}
         onLogin={runAccountOperation}
