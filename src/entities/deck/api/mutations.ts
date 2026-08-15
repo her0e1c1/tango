@@ -15,7 +15,7 @@ const requireDeck = (id: DeckId) => {
 };
 
 export const createDeck = async (uid: string, deck: DeckCreateInput | LocalDeckCreateInput): Promise<void> => {
-  if (deck.localMode === true) {
+  if (deck.localMode) {
     createLocalDeck({ ...deck, localMode: true });
     return;
   }
