@@ -1,4 +1,4 @@
-import type { Preferences } from "@/entities/preferences";
+import { studyPreferencesLimits, type Preferences } from "@/entities/preferences";
 
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -35,14 +35,14 @@ export const usePreferencesFormState = ({ preferences, onSubmit }: UsePreference
     useCardInterval: register("study.useCardInterval"),
     maxNumberOfCardsToLearn: {
       ...register("study.maxNumberOfCardsToLearn", { valueAsNumber: true }),
-      min: 0,
-      max: 100,
+      min: studyPreferencesLimits.maxNumberOfCardsToLearn.min,
+      max: studyPreferencesLimits.maxNumberOfCardsToLearn.max,
     },
     defaultAutoPlay: register("study.defaultAutoPlay"),
     cardInterval: {
       ...register("study.cardInterval", { valueAsNumber: true }),
-      min: 0,
-      max: 60,
+      min: studyPreferencesLimits.cardInterval.min,
+      max: studyPreferencesLimits.cardInterval.max,
     },
   };
 

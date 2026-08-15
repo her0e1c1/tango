@@ -21,7 +21,8 @@ vi.mock("@/entities/auth", () => ({
   useAuthAccount: () => mocks.authAccount,
   useAuthUid: () => mocks.authUid,
 }));
-vi.mock("@/entities/preferences", () => ({
+vi.mock("@/entities/preferences", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/preferences")>()),
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
   updatePreferences: vi.fn(),

@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+import { studyPreferencesLimits } from "./rules";
+
 const DEFAULT_APPEARANCE = {
   darkMode: false,
   showHeader: true,
@@ -51,10 +53,19 @@ const appearancePreferencesSchema = z
 
 const studyPreferencesSchema = z
   .object({
-    maxNumberOfCardsToLearn: z.number().int().min(0).max(100).catch(DEFAULT_STUDY.maxNumberOfCardsToLearn),
+    maxNumberOfCardsToLearn: z
+      .number()
+      .int()
+      .min(studyPreferencesLimits.maxNumberOfCardsToLearn.min)
+      .max(studyPreferencesLimits.maxNumberOfCardsToLearn.max)
+      .catch(DEFAULT_STUDY.maxNumberOfCardsToLearn),
     shuffled: z.boolean().catch(DEFAULT_STUDY.shuffled),
     useCardInterval: z.boolean().catch(DEFAULT_STUDY.useCardInterval),
-    cardInterval: z.number().min(0).max(60).catch(DEFAULT_STUDY.cardInterval),
+    cardInterval: z
+      .number()
+      .min(studyPreferencesLimits.cardInterval.min)
+      .max(studyPreferencesLimits.cardInterval.max)
+      .catch(DEFAULT_STUDY.cardInterval),
     keepBackTextViewed: z.boolean().catch(DEFAULT_STUDY.keepBackTextViewed),
     defaultAutoPlay: z.boolean().catch(DEFAULT_STUDY.defaultAutoPlay),
     selectedTags: z.array(z.string()).catch([...DEFAULT_STUDY.selectedTags]),
