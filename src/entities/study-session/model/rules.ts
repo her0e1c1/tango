@@ -1,4 +1,4 @@
-import type { SwipeAction } from "@/entities/preferences";
+import type { SwipeAction } from "@/entities/preferences/@x/study-session";
 
 export const calculateNextIndex = (currentIndex: number, cardCount: number, swipeAction: SwipeAction): number => {
   let nextIndex = currentIndex;

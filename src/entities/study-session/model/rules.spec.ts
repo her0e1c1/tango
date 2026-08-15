@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { calculateNextIndex } from "./session";
+import { calculateNextIndex } from "./rules";
 
 describe("calculateNextIndex", () => {
   it("moves forward for non-prev actions", () => {
