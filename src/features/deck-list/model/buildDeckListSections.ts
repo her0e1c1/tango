@@ -1,6 +1,5 @@
 import { countCardsByDeckId, type Card } from "@/entities/card";
-import { compareDeckNames, type Deck, type DeckId } from "@/entities/deck";
-import { summarizeStudySession, type StudySessionSummary } from "@/entities/study-session";
+import type { Deck, DeckId } from "@/entities/deck";
 
 interface DeckListStudySession {
   cardOrderIds: string[];
@@ -8,7 +7,11 @@ interface DeckListStudySession {
   lastStudiedAt: number;
 }
 
-export type DeckListStudyProgress = StudySessionSummary;
+export interface DeckListStudyProgress {
+  currentIndex: number;
+  cardCount: number;
+  lastStudiedAt: number;
+}
 
 export interface DeckListItem {
   deck: Deck;
@@ -21,7 +24,7 @@ export interface DeckListSections {
   other: DeckListItem[];
 }
 
-const compareNames = (left: DeckListItem, right: DeckListItem) => compareDeckNames(left.deck, right.deck);
+const compareNames = (left: DeckListItem, right: DeckListItem) => left.deck.name.localeCompare(right.deck.name);
 
 export const buildDeckListSections = (
   decks: Deck[],
@@ -38,7 +41,15 @@ export const buildDeckListSections = (
     const item: DeckListItem = {
       deck,
       cardCount: cardCounts.get(deck.id) ?? 0,
-      ...(session == null ? {} : { studyProgress: summarizeStudySession(session) }),
+      ...(session == null
+        ? {}
+        : {
+            studyProgress: {
+              currentIndex: session.currentIndex,
+              cardCount: session.cardOrderIds.length,
+              lastStudiedAt: session.lastStudiedAt,
+            },
+          }),
     };
     if (session == null) other.push(item);
     else studying.push(item);

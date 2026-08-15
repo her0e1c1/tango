@@ -3,14 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { createCard, createDeck } from "@/test/factories";
-import {
-  CATEGORY,
-  compareDeckNames,
-  filterCardsForDeck,
-  getCategory,
-  isHighlightLanguage,
-  mustFindDeckById,
-} from "./rules";
+import { CATEGORY, filterCardsForDeck, getCategory, isHighlightLanguage, mustFindDeckById } from "./rules";
 
 describe("category", () => {
   it("defines supported categories including application categories and major languages", () => {
@@ -54,14 +47,6 @@ describe("mustFindDeckById", () => {
 
   it("throws when no deck matches the specified id", () => {
     expect(() => mustFindDeckById([], "missing")).toThrow("Deck not found: missing");
-  });
-});
-
-describe("compareDeckNames", () => {
-  it("orders decks by name", () => {
-    const decks = [createDeck({ name: "Zulu" }), createDeck({ name: "Alpha" })];
-
-    expect(decks.sort(compareDeckNames).map((deck) => deck.name)).toEqual(["Alpha", "Zulu"]);
   });
 });
 

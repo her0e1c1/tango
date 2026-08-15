@@ -52,9 +52,6 @@ export const getCategory = (category: Category, tags: string[]): Category => {
   return tagCategory ?? category;
 };
 
-export const compareDeckNames = (left: Pick<Deck, "name">, right: Pick<Deck, "name">): number =>
-  left.name.localeCompare(right.name);
-
 const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
   const tags = deck.selectedTags;
   if (tags.length === 0) return true;
