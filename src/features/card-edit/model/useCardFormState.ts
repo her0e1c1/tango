@@ -44,8 +44,8 @@ export const useCardFormState = ({
       })),
     },
     errors: {
-      ...(formState.errors.frontText?.message !== undefined ? { frontText: formState.errors.frontText.message } : {}),
-      ...(formState.errors.backText?.message !== undefined ? { backText: formState.errors.backText.message } : {}),
+      frontText: formState.errors.frontText?.message,
+      backText: formState.errors.backText?.message,
     },
     isSubmitting: formState.isSubmitting,
     onCancel,

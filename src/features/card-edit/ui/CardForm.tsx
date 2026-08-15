@@ -20,9 +20,9 @@ interface CardFormFields {
 export interface CardFormProps {
   card: Card;
   fields: CardFormFields;
-  errors?: {
-    frontText?: string;
-    backText?: string;
+  errors: {
+    frontText: string | undefined;
+    backText: string | undefined;
   };
   isSubmitting: boolean;
   onCancel: () => void;
@@ -56,14 +56,14 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           label="Front text"
           inputId={frontInputId}
           errorId={frontErrorId}
-          {...(props.errors?.frontText !== undefined ? { error: props.errors.frontText } : {})}
+          {...(props.errors.frontText !== undefined ? { error: props.errors.frontText } : {})}
         >
           <Textarea
             rows={8}
             {...props.fields.frontText}
             id={frontInputId}
-            aria-invalid={props.errors?.frontText != null || undefined}
-            aria-describedby={props.errors?.frontText !== undefined ? frontErrorId : undefined}
+            aria-invalid={props.errors.frontText != null || undefined}
+            aria-describedby={props.errors.frontText !== undefined ? frontErrorId : undefined}
           />
         </FormItem>
       </section>
@@ -82,14 +82,14 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           label="Back text"
           inputId={backInputId}
           errorId={backErrorId}
-          {...(props.errors?.backText !== undefined ? { error: props.errors.backText } : {})}
+          {...(props.errors.backText !== undefined ? { error: props.errors.backText } : {})}
         >
           <Textarea
             rows={8}
             {...props.fields.backText}
             id={backInputId}
-            aria-invalid={props.errors?.backText != null || undefined}
-            aria-describedby={props.errors?.backText !== undefined ? backErrorId : undefined}
+            aria-invalid={props.errors.backText != null || undefined}
+            aria-describedby={props.errors.backText !== undefined ? backErrorId : undefined}
           />
         </FormItem>
       </section>
