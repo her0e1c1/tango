@@ -1,7 +1,6 @@
 /**
  * @file Verifies the "useStudyActions" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "starts from filtered Query
- * cards before notifying its owner" and "rejects a route and session mismatch before writing a card".
+ * The examples make the expected behavior concrete with active-session transition cases.
  */
 
 import type { Card, CardId } from "@/entities/card";
@@ -124,26 +123,6 @@ describe("useStudyActions", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  it("starts from filtered Query cards before notifying its owner", () => {
-    const onHideBackText = vi.fn();
-    const onStarted = vi.fn(() => {
-      expect(getStudySession(deck.id)).toMatchObject({
-        deckId: deck.id,
-        cardOrderIds: [card1.id],
-        currentIndex: 0,
-        lastStudiedAt: 946684800000,
-      });
-    });
-    const { result } = renderHook(() => useStudyActions(deck.id, { onStarted, onHideBackText }));
-
-    act(() => {
-      result.current.start([card1]);
-    });
-
-    expect(onHideBackText).toHaveBeenCalledOnce();
-    expect(onStarted).toHaveBeenCalledOnce();
   });
 
   it("rejects a route and session mismatch before writing a card", async () => {

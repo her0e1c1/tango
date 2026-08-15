@@ -14,18 +14,16 @@ import {
   removeStudySession,
   restoreStudySession,
   setStudySessionIndex,
-  startStudySession,
   type StudySession,
 } from "@/entities/study-session";
 
 import React from "react";
 
-import { buildStudySession, calculateNextIndex } from "../model/session";
+import { calculateNextIndex } from "../model/session";
 import { createStudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
 
 export interface StudyActions {
-  start: (cards: Card[]) => void;
   swipeUp: () => Promise<void>;
   swipeDown: () => Promise<void>;
   swipeLeft: () => Promise<void>;
@@ -45,7 +43,6 @@ type SwipeRollback = () => void;
 interface UseStudyActionsOptions {
   cards?: readonly Card[] | undefined;
   cardMutation?: StudyCardMutation | undefined;
-  onStarted?: (() => void) | undefined;
   onSwipe?: ((direction: SwipeDirection) => SwipeRollback | undefined) | undefined;
   showBackText?: boolean | undefined;
   onHideBackText?: (() => void) | undefined;
@@ -165,7 +162,6 @@ export const useStudyActions = (
   {
     cardMutation,
     cards = [],
-    onStarted,
     onSwipe,
     showBackText,
     onHideBackText,
@@ -176,17 +172,6 @@ export const useStudyActions = (
 ): StudyActions => {
   const preferences = usePreferences();
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
-
-  /**
-   * Creates a new study session from the currently filtered cards.
-   * The saved UI preferences are applied before the Page is notified that the session is ready.
-   */
-  const start = (cards: Card[]) => {
-    const cardOrderIds = buildStudySession(cards, preferences.study);
-    startStudySession(deckId, cardOrderIds);
-    onHideBackText?.();
-    onStarted?.();
-  };
 
   /**
    * Runs the study workflow for one swipe direction.
@@ -209,7 +194,6 @@ export const useStudyActions = (
   };
 
   return {
-    start,
     swipeUp: () => swipe("cardSwipeUp"),
     swipeDown: () => swipe("cardSwipeDown"),
     swipeLeft: () => swipe("cardSwipeLeft"),

@@ -24,19 +24,17 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/deck", () => ({
   useDeck: () => mocks.deck ?? undefined,
 }));
-vi.mock("@/features/study/hooks/useStudyActions", () => ({
-  useStudyActions: (_deckId: string, options: { onStarted?: () => void } = {}) => ({
-    start: (_cards: Card[]) => {
-      mocks.start();
-      options.onStarted?.();
-    },
-  }),
-}));
-vi.mock("@/features/study/hooks/useStudyCards", () => ({ useStudyCards: () => mocks.cards }));
 vi.mock("@/features/deck-start", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/deck-start")>();
   return {
     ...actual,
+    useStudyCards: () => mocks.cards,
+    useStartStudySession:
+      (_deckId: string, options: { onStarted?: () => void } = {}) =>
+      (_cards: Card[]) => {
+        mocks.start();
+        options.onStarted?.();
+      },
     useDeckFilterState: () => ({
       scoreMax: 4,
       scoreMin: -2,
