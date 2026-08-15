@@ -61,7 +61,7 @@ describe("useAuthUid", () => {
 describe("useAuthAccount", () => {
   beforeEach(() => replaceAuthSession({ status: "initializing" }));
 
-  it("exposes identity and linked status for a linked account", () => {
+  it("returns a linked account", () => {
     replaceAuthSession({
       status: "authenticated",
       uid: "uid-a",
@@ -71,13 +71,10 @@ describe("useAuthAccount", () => {
 
     const { result } = renderHook(useAuthAccount);
 
-    expect(result.current).toEqual({
-      identity: { uid: "uid-a", displayName: "Test User" },
-      isLinked: true,
-    });
+    expect(result.current).toEqual({ uid: "uid-a", displayName: "Test User" });
   });
 
-  it("keeps anonymous identity without treating it as a linked account", () => {
+  it("does not return an anonymous user as an account", () => {
     replaceAuthSession({
       status: "authenticated",
       uid: "anonymous-uid",
@@ -87,18 +84,12 @@ describe("useAuthAccount", () => {
 
     const { result } = renderHook(useAuthAccount);
 
-    expect(result.current).toEqual({
-      identity: { uid: "anonymous-uid", displayName: null },
-      isLinked: false,
-    });
+    expect(result.current).toBeUndefined();
   });
 
-  it("returns an empty identity before authentication", () => {
+  it("returns no account before authentication", () => {
     const { result } = renderHook(useAuthAccount);
 
-    expect(result.current).toEqual({
-      identity: { uid: "", displayName: null },
-      isLinked: false,
-    });
+    expect(result.current).toBeUndefined();
   });
 });

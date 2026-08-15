@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useAuthAccount } from "@/entities/auth";
+import { useAuthAccount, useAuthUid } from "@/entities/auth";
 import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { SettingsForm, usePreferencesFormState } from "@/features/settings";
 import { useSignIn } from "@/features/sign-in";
@@ -18,9 +18,10 @@ interface SettingsPageProps {
 export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => {
   const preferences = usePreferences();
   const authAccount = useAuthAccount();
+  const authUid = useAuthUid();
   const navigate = useNavigate();
 
-  const isLoggedIn = authAccount.isLinked;
+  const isLoggedIn = authAccount != null;
 
   const signIn = useSignIn(login);
   const signOut = useSignOut(isLoggedIn ? logout : undefined);
@@ -51,7 +52,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
     <AppLayout showHeader>
       <SettingsForm
         {...formState}
-        identity={authAccount.identity}
+        identity={{ uid: authUid, displayName: authAccount?.displayName ?? null }}
         version={__APP_VERSION__}
         isLoggedIn={isLoggedIn}
         onLogin={runAccountOperation}

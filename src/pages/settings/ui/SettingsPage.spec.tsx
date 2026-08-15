@@ -9,14 +9,18 @@ import { createPreferences } from "@/test/factories";
 type AuthAccount = ReturnType<typeof useAuthAccount>;
 
 const mocks = vi.hoisted(() => ({
-  authAccount: { identity: { uid: "", displayName: null }, isLinked: false } as AuthAccount,
+  authAccount: undefined as AuthAccount,
+  authUid: "",
   preferences: null as unknown as Preferences,
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/auth", () => ({ useAuthAccount: () => mocks.authAccount }));
+vi.mock("@/entities/auth", () => ({
+  useAuthAccount: () => mocks.authAccount,
+  useAuthUid: () => mocks.authUid,
+}));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
@@ -29,7 +33,8 @@ import { SettingsPage } from "./SettingsPage";
 describe("SettingsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.authAccount = { identity: { uid: "", displayName: null }, isLinked: false };
+    mocks.authAccount = undefined;
+    mocks.authUid = "";
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
   });
 
@@ -43,10 +48,8 @@ describe("SettingsPage", () => {
   });
 
   it("displays an alert when sign-out fails and allows retrying sign-out", async () => {
-    mocks.authAccount = {
-      identity: { uid: "retry-uid-a", displayName: "Test User" },
-      isLinked: true,
-    };
+    mocks.authAccount = { uid: "retry-uid-a", displayName: "Test User" };
+    mocks.authUid = "retry-uid-a";
     const signOutError = new Error("sign out failed");
     const logout = vi.fn().mockRejectedValueOnce(signOutError).mockResolvedValueOnce(undefined);
 
