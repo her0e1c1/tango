@@ -31,6 +31,13 @@ export const cardSchema = cardCreateSchema.extend({
   updatedAt: z.number(),
 });
 
+const persistedDateSchema = z.preprocess(
+  (value) => (typeof value === "string" ? new Date(value) : value),
+  z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date")
+);
+
+export const persistedCardSchema = cardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
+
 export const cardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema, uid: cardUidSchema });
 const cardIdentitySchema = z.object({ id: cardIdSchema, uid: cardUidSchema });
 

@@ -49,6 +49,7 @@ import { DeckSwiperPage } from "./DeckSwiperPage";
 const deck: Deck = {
   id: "deck-id",
   uid: "user-id",
+  localMode: false,
   name: "Deck",
   isPublic: false,
   createdAt: 0,

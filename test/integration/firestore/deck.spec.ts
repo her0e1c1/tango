@@ -15,6 +15,8 @@ import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
 const uuid = UUID.v4;
 
+const toFirestoreDeck = ({ localMode: _localMode, ...deck }: Deck): Omit<Deck, "localMode"> => deck;
+
 vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn() }));
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
@@ -45,7 +47,8 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     } satisfies DeckCreateInput & { currentIndex: number; cardOrderIds: string[] };
     await createDeck("uid", d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
-    expect(data).toEqual({ ...newDeck, id: d.id });
+    expect(data).toEqual({ ...toFirestoreDeck(newDeck), id: d.id });
+    expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
     expect((await getDoc(doc(db, "deck", d.id))).exists()).toBe(true);
@@ -62,7 +65,8 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
     await editDeck("uid", n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
-    expect(data).toEqual({ ...d, name: "updated" });
+    expect(data).toEqual({ ...toFirestoreDeck(d), name: "updated" });
+    expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });

@@ -19,6 +19,7 @@ const editableDeckFieldsSchema = z.object({
 export const deckCreateSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
   uid: deckUidSchema,
+  localMode: z.boolean().default(false),
   isPublic: editableDeckFieldsSchema.shape.isPublic.default(false),
   scoreMax: editableDeckFieldsSchema.shape.scoreMax.default(null),
   scoreMin: editableDeckFieldsSchema.shape.scoreMin.default(null),
@@ -34,6 +35,10 @@ export const deckSchema = deckCreateSchema.extend({
   updatedAt: z.number(),
 });
 
+export const localDeckCreateSchema = deckCreateSchema.extend({ localMode: z.literal(true) });
+export const localDeckSchema = deckSchema.extend({ localMode: z.literal(true) });
+const remoteDeckCreateSchema = deckCreateSchema.extend({ localMode: z.literal(false).default(false) });
+
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({ id: deckIdSchema });
 const deckIdentitySchema = z.object({ id: deckIdSchema, uid: deckUidSchema });
 
@@ -48,7 +53,7 @@ const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, contex
 };
 
 export const createDeckSchema = z
-  .object({ uid: authenticatedUidSchema, deck: deckCreateSchema })
+  .object({ uid: authenticatedUidSchema, deck: remoteDeckCreateSchema })
   .superRefine(validateDeckOwner);
 
 export const editDeckSchema = z.object({
