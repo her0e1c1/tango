@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { parseCsv } from "./cardCsv";
 
@@ -26,14 +28,24 @@ describe("card CSV import", () => {
       expect(analysis.invalidCount).toBe(2);
       expect(analysis.rows).toEqual([]);
       expect(analysis.issues).toEqual([
-        { rowNumber: 1, message: "frontText is required.", context: '[" ","back",""," same "]' },
-        { rowNumber: 2, message: "backText is required.", context: '["front"," ","","same"]' },
+        { rowNumber: 1, message: "Front text is required.", context: '[" ","back",""," same "]' },
+        { rowNumber: 2, message: "Back text is required.", context: '["front"," ","","same"]' },
         {
           rowNumber: 2,
           message: 'uniqueKey "same" is duplicated in this file.',
           context: '["front"," ","","same"]',
         },
       ]);
+    });
+
+    it("rejects a blank Card unique key with CSV row context", async () => {
+      const analysis = await parseCsv('"front","back",""," "');
+
+      expect(analysis).toMatchObject({
+        rows: [],
+        invalidCount: 1,
+        issues: [{ rowNumber: 1, message: "Unique key is required.", context: '["front","back",""," "]' }],
+      });
     });
 
     it("rejects unsupported input at the parser boundary", async () => {

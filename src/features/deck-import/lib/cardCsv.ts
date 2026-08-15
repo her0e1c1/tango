@@ -1,9 +1,8 @@
-import type { CardRaw } from "@/entities/card";
+import { getCardContentValidationErrors, type CardRaw } from "@/entities/card";
 
 import * as Papa from "papaparse";
 
 import type { DeckImportAnalysis, DeckImportIssue, DeckImportRow } from "../model/deckImportTypes";
-import { isNonBlank } from "@/shared/lib/isNonBlank";
 
 const fromRow = (row: string[]): CardRaw => ({
   frontText: row[0] || "",
@@ -27,18 +26,17 @@ const rowContext = (columns: string[]) => JSON.stringify(columns);
 const validateCard = (columns: string[], rowNumber: number, uniqueKeys: Set<string>) => {
   const card = fromRow(columns);
   const context = rowContext(columns);
-  const issues: DeckImportIssue[] = [];
-  if (!isNonBlank(card.frontText)) {
-    issues.push({ rowNumber, message: "frontText is required.", context });
-  }
-  if (!isNonBlank(card.backText)) {
-    issues.push({ rowNumber, message: "backText is required.", context });
-  }
-  if (card.uniqueKey === "") {
-    issues.push({ rowNumber, message: "uniqueKey is required.", context });
-  } else if (uniqueKeys.has(card.uniqueKey)) {
+  const validationErrors = getCardContentValidationErrors(card);
+  const issues: DeckImportIssue[] = Object.values(validationErrors).map((message) => ({
+    rowNumber,
+    message,
+    context,
+  }));
+
+  const uniqueKeyIsValid = validationErrors.uniqueKey === undefined;
+  if (uniqueKeyIsValid && uniqueKeys.has(card.uniqueKey)) {
     issues.push({ rowNumber, message: `uniqueKey "${card.uniqueKey}" is duplicated in this file.`, context });
-  } else {
+  } else if (uniqueKeyIsValid) {
     uniqueKeys.add(card.uniqueKey);
   }
   return { card, issues };
