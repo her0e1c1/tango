@@ -70,21 +70,16 @@ describe("FirestoreSubscriptionsProvider", () => {
   it("updates the Card read state from subscription events", () => {
     render(<FirestoreSubscriptionsProvider />);
     const onError = mocks.subscribeCards.mock.calls[0]?.[1] as (error: Error) => void;
-    const onData = mocks.subscribeCards.mock.calls[0]?.[2] as (metadata: {
-      fromCache: boolean;
-      hasPendingWrites: boolean;
-    }) => void;
+    const onData = mocks.subscribeCards.mock.calls[0]?.[2] as (event: { serverConfirmed: boolean }) => void;
     const error = new Error("Card subscription failed");
 
     expect(mocks.setCardReadLoading).toHaveBeenCalledWith("test-user");
-    onData({ fromCache: true, hasPendingWrites: false });
-    onData({ fromCache: false, hasPendingWrites: true });
-    onData({ fromCache: false, hasPendingWrites: false });
+    onData({ serverConfirmed: false });
+    onData({ serverConfirmed: true });
     onError(error);
 
     expect(mocks.setCardReadReady).toHaveBeenNthCalledWith(1, "test-user", false);
-    expect(mocks.setCardReadReady).toHaveBeenNthCalledWith(2, "test-user", false);
-    expect(mocks.setCardReadReady).toHaveBeenNthCalledWith(3, "test-user", true);
+    expect(mocks.setCardReadReady).toHaveBeenNthCalledWith(2, "test-user", true);
     expect(mocks.setCardReadError).toHaveBeenCalledWith("test-user", error);
   });
 

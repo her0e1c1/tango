@@ -111,13 +111,42 @@ describe("Card Firestore subscription", () => {
         endLine: 9,
       }),
     ]);
-    expect(onData).toHaveBeenCalledWith(metadata);
+    expect(onData).toHaveBeenCalledWith({ serverConfirmed: true });
 
     act(() => mocks.next?.({ metadata, docs: [cardDocument("replacement", { frontText: "Current" })] }));
     expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" })]);
 
     unsubscribe();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it("evaluates serverConfirmed from Firestore snapshot metadata", () => {
+    const onData = vi.fn();
+    subscribeCards("uid-a", vi.fn(), onData);
+
+    act(() =>
+      mocks.next?.({
+        metadata: { fromCache: true, hasPendingWrites: false },
+        docs: [],
+      })
+    );
+    expect(onData).toHaveBeenNthCalledWith(1, { serverConfirmed: false });
+
+    act(() =>
+      mocks.next?.({
+        metadata: { fromCache: false, hasPendingWrites: true },
+        docs: [],
+      })
+    );
+    expect(onData).toHaveBeenNthCalledWith(2, { serverConfirmed: false });
+
+    act(() =>
+      mocks.next?.({
+        metadata: { fromCache: false, hasPendingWrites: false },
+        docs: [],
+      })
+    );
+    expect(onData).toHaveBeenNthCalledWith(3, { serverConfirmed: true });
   });
 
   it("reports invalid Firestore documents", () => {

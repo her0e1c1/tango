@@ -17,7 +17,7 @@ export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> =
         : subscribeCards(
             authenticatedUid,
             (error) => setCardReadError(authenticatedUid, error),
-            (metadata) => setCardReadReady(authenticatedUid, !metadata.fromCache && !metadata.hasPendingWrites)
+            ({ serverConfirmed }) => setCardReadReady(authenticatedUid, serverConfirmed)
           );
     const stopDecks = authenticatedUid == null ? undefined : subscribeDecks(authenticatedUid, console.error);
 
