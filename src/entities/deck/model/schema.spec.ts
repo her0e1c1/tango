@@ -51,6 +51,11 @@ describe("Deck operation schemas", () => {
       });
     });
 
+    it("uses null to distinguish clearing a URL from leaving it unchanged", () => {
+      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck" } }).deck).not.toHaveProperty("url");
+      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", url: null } }).deck).toHaveProperty("url", null);
+    });
+
     it.each([
       ["authenticated uid", { uid: "", deck: { id: "deck" } }, "confirmed user"],
       ["Deck id", { uid: "uid-a", deck: { id: "" } }, "Deck id"],

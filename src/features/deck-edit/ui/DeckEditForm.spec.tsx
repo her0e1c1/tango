@@ -77,7 +77,7 @@ describe("DeckEditForm", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
   });
 
-  it("submits a cleared optional URL as absent", async () => {
+  it("submits a cleared optional URL as an explicit deletion", async () => {
     render(
       <DeckEditForm deck={{ ...deck, url: "https://example.com/deck.csv" }} onCancel={vi.fn()} onSaved={vi.fn()} />
     );
@@ -85,9 +85,7 @@ describe("DeckEditForm", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    await waitFor(() =>
-      expect(mocks.editDeck).toHaveBeenCalledWith("user-id", expect.objectContaining({ url: undefined }))
-    );
+    await waitFor(() => expect(mocks.editDeck).toHaveBeenCalledWith("user-id", expect.objectContaining({ url: null })));
   });
 
   it("keeps edited values and allows another save after a failure", async () => {

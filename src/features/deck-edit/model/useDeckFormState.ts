@@ -44,6 +44,6 @@ export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateO
     },
     isSubmitting: formState.isSubmitting,
     onCancel,
-    onSubmit: handleSubmit((values) => onSubmit({ id: deck.id, ...values })),
+    onSubmit: handleSubmit((values) => onSubmit({ id: deck.id, ...values, url: values.url ?? null })),
   };
 };

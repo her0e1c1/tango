@@ -2,6 +2,7 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
+import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { deckEditSchema, deckIdSchema, localDeckCreateSchema, localDeckSchema } from "./schema";
 import type { Deck, DeckEdit, DeckId, LocalDeck, LocalDeckCreateInput, RemoteDeck } from "./types";
 
@@ -74,7 +75,14 @@ export const editLocalDeck = (input: DeckEdit): LocalDeck => {
   const currentDeck = localDecks.find(({ id }) => id === edit.id);
   if (currentDeck === undefined) throw new Error(`Local Deck "${edit.id}" was not found`);
 
-  const updatedDeck = localDeckSchema.parse({ ...currentDeck, ...edit, updatedAt: Date.now() });
+  // null is an edit command sentinel; stored Decks represent a missing URL by omitting the field.
+  const updatedValues = omitUndefined({
+    ...currentDeck,
+    ...edit,
+    url: edit.url === null ? undefined : (edit.url ?? currentDeck.url),
+    updatedAt: Date.now(),
+  });
+  const updatedDeck = localDeckSchema.parse(updatedValues);
   deckStore.setState({ localDecks: localDecks.map((deck) => (deck.id === updatedDeck.id ? updatedDeck : deck)) });
   return updatedDeck;
 };

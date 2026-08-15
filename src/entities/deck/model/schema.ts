@@ -54,7 +54,10 @@ export const localDeckSchema = localDeckCreateSchema.extend({
 
 export const deckSchema = z.discriminatedUnion("localMode", [remoteDeckSchema, localDeckSchema]);
 
-export const deckEditSchema = editableDeckFieldsSchema.partial().extend({ id: deckIdSchema });
+export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
+  id: deckIdSchema,
+  url: editableDeckFieldsSchema.shape.url.nullable(),
+});
 const deckIdentitySchema = z.object({ id: deckIdSchema, uid: deckUidSchema });
 
 const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, context: z.RefinementCtx): void => {
