@@ -19,9 +19,7 @@ export interface DeckImportAttempt {
   totals: Pick<DeckImportResult, "created" | "updated" | "skipped">;
 }
 
-export type DeckImportRequest =
-  | { kind: "content"; name: string; rows: DeckImportRow[]; attempt?: DeckImportAttempt }
-  | { kind: "sample"; attempt?: DeckImportAttempt };
+export type DeckImportRequest = { kind: "content"; name: string; rows: DeckImportRow[] } | { kind: "sample" };
 
 export interface DeckImportDependencies {
   uid: string;
@@ -99,8 +97,6 @@ export const prepareDeckImport = async (
   { uid, decks, cardsByDeckId, generateCardId, fetchDecks, fetchCards }: DeckImportDependencies
 ): Promise<DeckImportAttempt> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
-  // Reuse the prepared snapshot and generated IDs so confirmation and retries execute the same plan.
-  if (request.attempt?.uid === uid) return request.attempt;
 
   let activeDecks = decks;
   let getCardsByDeckId = cardsByDeckId;
@@ -114,14 +110,12 @@ export const prepareDeckImport = async (
     getCardsByDeckId = (deckId: DeckId) => remoteCards.filter((card) => card.deckId === deckId);
   }
 
-  const attempt = prepareDeckImportAttempt(request, {
+  return prepareDeckImportAttempt(request, {
     uid,
     decks: activeDecks,
     cardsByDeckId: getCardsByDeckId,
     generateCardId,
   });
-  request.attempt = attempt;
-  return attempt;
 };
 
 export const partialResultFrom = (error: unknown): DeckImportResult | undefined => {
