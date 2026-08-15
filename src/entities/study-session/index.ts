@@ -2,11 +2,10 @@ export { useStudySession, useStudySessions } from "./model/hooks";
 export {
   calculateStudySessionIndex,
   compareActiveDecks,
-  getCurrentStudySessionCardId,
   groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
+  planStudySessionSwipe,
   resolveStudySession,
-  resolveStudySessionSwipeEffect,
 } from "./model/rules";
 export type { StudySession } from "./model/types";
 export {

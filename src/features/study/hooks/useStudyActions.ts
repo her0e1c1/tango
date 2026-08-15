@@ -1,15 +1,14 @@
-import { mustFindCardById, type Card } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preferences";
 import { usePreferences } from "@/entities/preferences";
-import { recordCardStudyProgress, type StudyProgressEdit } from "@/entities/study-progress";
+import type { StudyProgressEdit } from "@/entities/study-progress";
 import {
-  getCurrentStudySessionCardId,
   getStudySession,
   isStudySessionPositionUnchanged,
   moveStudySession,
+  planStudySessionSwipe,
   removeStudySession,
-  resolveStudySessionSwipeEffect,
   setStudySessionIndex,
 } from "@/entities/study-session";
 
@@ -37,30 +36,22 @@ export const useStudyActions = (
   const preferences = usePreferences();
   const swipeState = React.useRef<{ inProgress: boolean }>({ inProgress: false });
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Keeping the persistence and transition order inline makes the swipe invariant auditable.
   const swipe = async (direction: SwipeDirection): Promise<void> => {
     // biome-ignore lint/suspicious/noUnnecessaryConditions: The awaited write lets another event enter this closure.
     if (swipeState.current.inProgress) return;
-    const session = getStudySession(deckId);
-    if (session == null) return;
 
     const swipeAction = preferences.controls[direction];
-    const sessionEffect = resolveStudySessionSwipeEffect(swipeAction);
-    if (sessionEffect === "none") return;
-    if (sessionEffect === "exit") {
+    const swipePlan = planStudySessionSwipe(getStudySession(deckId), cards, swipeAction, Date.now());
+    if (swipePlan.effect === "none") return;
+    if (swipePlan.effect === "exit") {
       onSwipe?.(direction);
       removeStudySession(deckId);
       return;
     }
 
-    const cardId = getCurrentStudySessionCardId(session);
-    if (cardId == null) return;
-    const card = mustFindCardById(cards, cardId);
-    const patch = recordCardStudyProgress(card, swipeAction, Date.now());
-
     swipeState.current.inProgress = true;
     // The visible card advances only after persistence succeeds, so failed writes need no session rollback.
-    const saved = await saveProgress(patch).then(
+    const saved = await saveProgress(swipePlan.progress).then(
       () => true,
       () => false
     );
@@ -69,11 +60,11 @@ export const useStudyActions = (
 
     const currentSession = getStudySession(deckId);
     // Position changes during the write own the newer card, while timestamp-only touches still allow advancement.
-    if (!isStudySessionPositionUnchanged(session, currentSession)) return;
+    if (!isStudySessionPositionUnchanged(swipePlan.session, currentSession)) return;
 
     onSwipe?.(direction);
     if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged?.();
-    moveStudySession(deckId, sessionEffect);
+    moveStudySession(deckId, swipePlan.effect);
   };
 
   return {

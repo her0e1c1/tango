@@ -1,19 +1,24 @@
 import type { Card } from "@/entities/card";
-import type { Deck, DeckCreateInput } from "@/entities/deck";
+import type { Deck, DeckCreateInput, LocalDeckCreateInput } from "@/entities/deck";
 
 import { useEffect, useRef, useState } from "react";
 
-import { fetchCards, filterCardsByDeckId, mutateCards } from "@/entities/card";
+import { fetchCards, mutateCards } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
 import { useAuthUid } from "@/entities/auth";
 import { parseCsv } from "../lib/cardCsv";
-import type { DeckImportAttempt, DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
+import type {
+  DeckImportAttempt,
+  DeckImportExecutionDependencies,
+  DeckImportRequest,
+} from "../model/deckImportExecution";
 import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
-import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
+import type { DeckImportPreview, DeckImportResult, DeckImportStorageMode } from "../model/deckImportTypes";
+import { prepareSampleDeck } from "../model/sampleDeck";
 
 export interface DeckImportOptions {
   cards: Card[];
-  createDeck: (uid: string, deck: DeckCreateInput) => Promise<unknown>;
+  createDeck: (uid: string, deck: DeckCreateInput | LocalDeckCreateInput) => Promise<unknown>;
   decks: Deck[];
   generateCardId: () => string;
 }
@@ -21,14 +26,14 @@ export interface DeckImportOptions {
 interface DeckImportSession {
   uid: string;
   running: boolean;
+  storageMode: DeckImportStorageMode;
   previewAttempt: DeckImportAttempt | undefined;
-  retryInput: DeckImportInput | undefined;
+  retryAttempt: DeckImportAttempt | undefined;
 }
-
-type DeckImportInput = DeckImportRequest | DeckImportAttempt;
 
 interface DeckImportState {
   uid: string;
+  storageMode: DeckImportStorageMode;
   pending: boolean;
   validating: boolean;
   preview: DeckImportPreview | undefined;
@@ -40,12 +45,14 @@ interface DeckImportState {
 const createSession = (uid: string): DeckImportSession => ({
   uid,
   running: false,
+  storageMode: "remote",
   previewAttempt: undefined,
-  retryInput: undefined,
+  retryAttempt: undefined,
 });
 
 const initialState = (uid: string): DeckImportState => ({
   uid,
+  storageMode: "remote",
   pending: false,
   validating: false,
   preview: undefined,
@@ -77,29 +84,20 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     if (target.running) throw new Error("A Deck import is already running");
     target.running = true;
   };
-  const dependencies: DeckImportDependencies = {
+  const executionDependencies: DeckImportExecutionDependencies = {
     uid,
-    decks,
-    cardsByDeckId: (deckId) => filterCardsByDeckId(cards, deckId),
     createDeck: (deck) => createDeck(uid, deck),
-    generateCardId,
     mutateCards: (mutations) => mutateCards(uid, mutations),
-    fetchDecks,
-    fetchCards,
   };
-  const prepareInput = (input: DeckImportInput) =>
-    "kind" in input ? prepareDeckImport(input, dependencies) : Promise.resolve(input);
 
-  const run = async (input: DeckImportInput, target: DeckImportSession) => {
+  const run = async (attempt: DeckImportAttempt, target: DeckImportSession) => {
     startSession(target);
-    target.retryInput = input;
+    // Retries reuse the prepared IDs and only retain mutations that still failed.
+    target.retryAttempt = attempt;
     publish(target, { pending: true, error: null });
     try {
-      const attempt = await prepareInput(input);
       if (!isCurrent(target)) throw new Error("Deck import user changed before the import could start");
-      // Once IDs and mutations are prepared, retries must reuse that exact attempt instead of replanning.
-      target.retryInput = attempt;
-      const result = await executePreparedDeckImport(attempt, dependencies);
+      const result = await executePreparedDeckImport(attempt, executionDependencies);
       publish(target, { data: result });
       return result;
     } catch (importError) {
@@ -115,8 +113,24 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
 
   const retry = () => {
     const target = sessionRef.current;
-    const input = target.retryInput;
-    if (input != null && !target.running) void run(input, target).catch(() => undefined);
+    const attempt = target.retryAttempt;
+    if (attempt != null && !target.running) void run(attempt, target).catch(() => undefined);
+  };
+
+  const setStorageMode = (nextStorageMode: DeckImportStorageMode) => {
+    const target = sessionRef.current;
+    if (target.running || target.storageMode === nextStorageMode) return;
+    // A prepared plan is destination-specific and must never execute after the user changes that destination.
+    target.storageMode = nextStorageMode;
+    target.previewAttempt = undefined;
+    target.retryAttempt = undefined;
+    publish(target, {
+      storageMode: nextStorageMode,
+      preview: undefined,
+      previewError: null,
+      error: null,
+      data: undefined,
+    });
   };
 
   const selectFile = async (file: File) => {
@@ -126,7 +140,7 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     }
     if (target.running) throw new Error("A Deck import is already running");
     target.previewAttempt = undefined;
-    target.retryInput = undefined;
+    target.retryAttempt = undefined;
     publish(target, {
       validating: true,
       preview: undefined,
@@ -137,9 +151,26 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     try {
       const analysis = await parseCsv(await file.text());
       if (!isCurrent(target)) throw new Error("Deck import user changed before the preview could finish");
-      const request = { kind: "content", name: file.name, rows: analysis.rows } satisfies DeckImportRequest;
-      const attempt = await prepareDeckImport(request, dependencies);
+
+      let activeDecks = decks;
+      let activeCards = cards;
+      if (target.storageMode === "remote") {
+        // Listener-backed stores can lag, so remote file imports are planned from authoritative server reads.
+        [activeDecks, activeCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
+      }
+
       if (!isCurrent(target)) throw new Error("Deck import user changed before the preview could finish");
+      const request = {
+        name: file.name,
+        rows: analysis.rows,
+        storageMode: target.storageMode,
+      } satisfies DeckImportRequest;
+      const attempt = prepareDeckImport(request, {
+        uid,
+        decks: activeDecks,
+        cards: activeCards,
+        generateCardId,
+      });
       const preview = {
         fileName: file.name,
         deckName: file.name,
@@ -157,7 +188,7 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     }
   };
 
-  const { preview, previewError, validating, pending, error, data } = currentState;
+  const { storageMode, preview, previewError, validating, pending, error, data } = currentState;
 
   const importPreview = () => {
     const target = sessionRef.current;
@@ -173,33 +204,12 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     return run(target.previewAttempt, target);
   };
 
-  const importUrl = async (url: string, name?: string) => {
-    const target = sessionRef.current;
-    const response = await fetch(new URL(url));
-    if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
-    const analysis = await parseCsv(await response.text());
-    if (!isCurrent(target)) throw new Error("Deck import user changed before the import could start");
-    if (analysis.invalidCount > 0) throw new Error("Fix invalid CSV rows before importing");
-    if (analysis.rows.length === 0) throw new Error("The CSV file has no valid rows");
-    return await run(
-      {
-        kind: "content",
-        name: name ?? url.split("/").pop() ?? "no name",
-        rows: analysis.rows,
-      },
-      target
-    );
-  };
-
   return {
     selectFile,
+    setStorageMode,
     importPreview,
-    addSample: () => run({ kind: "sample" }, sessionRef.current),
-    importUrl,
-    reimport: (deck: Deck) => {
-      if (deck.url == null || deck.url === "") return Promise.reject(new Error("Deck has no import URL"));
-      return importUrl(deck.url, deck.name);
-    },
+    addSample: () => run(prepareSampleDeck(uid, { cards, decks, generateCardId }), sessionRef.current),
+    storageMode,
     preview,
     validating,
     pending,

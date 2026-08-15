@@ -5,8 +5,8 @@ import {
   compareActiveDecks,
   groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
+  planStudySessionSwipe,
   resolveStudySession,
-  resolveStudySessionSwipeEffect,
 } from "./rules";
 import type { StudySession } from "./types";
 
@@ -85,17 +85,45 @@ describe("resolveStudySession", () => {
   });
 });
 
-describe("resolveStudySessionSwipeEffect", () => {
+describe("planStudySessionSwipe", () => {
+  const cards = [
+    { id: "card-1", score: 0, numberOfSeen: 0 },
+    { id: "card-2", score: 2, numberOfSeen: 3 },
+  ];
+
+  it("plans the progress edit and session movement for the active card", () => {
+    expect(planStudySessionSwipe(session, cards, "GoToNextCardMastered", 1_786_512_000_000)).toEqual({
+      effect: "next",
+      session,
+      progress: {
+        cardId: "card-2",
+        score: 3,
+        numberOfSeen: 4,
+        lastSeenAt: 1_786_512_000_000,
+      },
+    });
+  });
+
   it.each([
-    ["DoNothing", "none"],
-    ["GoBack", "exit"],
     ["GoToPrevCard", "previous"],
     ["GoToNextCard", "next"],
     ["GoToNextCardMastered", "next"],
     ["GoToNextCardNotMastered", "next"],
     ["GoToNextCardToggleMastered", "next"],
-  ] as const)("maps %s to the %s session effect", (swipeAction, effect) => {
-    expect(resolveStudySessionSwipeEffect(swipeAction)).toBe(effect);
+  ] as const)("plans %s to move %s after persistence", (swipeAction, effect) => {
+    expect(planStudySessionSwipe(session, cards, swipeAction, 0)).toMatchObject({ effect, session });
+  });
+
+  it.each([
+    ["DoNothing", "none"],
+    ["GoBack", "exit"],
+  ] as const)("plans %s as %s without a progress edit", (swipeAction, effect) => {
+    expect(planStudySessionSwipe(session, cards, swipeAction, 0)).toEqual({ effect });
+  });
+
+  it("ignores swipes without a resolvable active session", () => {
+    expect(planStudySessionSwipe(undefined, cards, "GoToNextCard", 0)).toEqual({ effect: "none" });
+    expect(planStudySessionSwipe(session, cards.slice(0, 1), "GoToNextCard", 0)).toEqual({ effect: "none" });
   });
 });
 

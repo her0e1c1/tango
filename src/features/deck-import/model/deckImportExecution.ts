@@ -1,111 +1,134 @@
-import type { Card, CardMutation, CardRaw, RemoteCard } from "@/entities/card";
-import type { Deck, DeckCreateInput, DeckId, RemoteDeck } from "@/entities/deck";
+import type { Card, CardMutation, RemoteCard } from "@/entities/card";
+import type { Deck, DeckCreateInput, DeckId, LocalDeckCreateInput, RemoteDeck } from "@/entities/deck";
 
-import { CardBulkMutationError } from "@/entities/card";
+import { CardBulkMutationError, hasSameEditableCardContent, indexCardsByUniqueKey } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
 
-import sampleCards from "../../../../sample/build/output.json";
-import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
-import type { DeckImportPlan, DeckImportResult, DeckImportRow } from "./deckImportTypes";
+import type {
+  DeckImportAction,
+  DeckImportPlan,
+  DeckImportPlanRow,
+  DeckImportResult,
+  DeckImportRow,
+  DeckImportStorageMode,
+} from "./deckImportTypes";
+
+type DeckImportCreateInput = DeckCreateInput | LocalDeckCreateInput;
 
 export interface DeckImportAttempt {
   uid: string;
-  deck: DeckCreateInput;
+  deck: DeckImportCreateInput;
   createDeckPending: boolean;
   remainingMutations: CardMutation[];
   plan: DeckImportPlan;
 }
 
-export type DeckImportRequest = { kind: "content"; name: string; rows: DeckImportRow[] } | { kind: "sample" };
-
-export interface DeckImportDependencies {
-  uid: string;
-  decks: Deck[];
-  cardsByDeckId: (id: DeckId) => Card[];
-  createDeck: (deck: DeckCreateInput) => Promise<unknown>;
-  generateCardId: () => string;
-  mutateCards: (mutations: CardMutation[]) => Promise<unknown>;
-  fetchDecks?: (uid: string) => Promise<RemoteDeck[]>;
-  fetchCards?: (uid: string) => Promise<RemoteCard[]>;
+export interface DeckImportRequest {
+  name: string;
+  preferredDeckId?: DeckId;
+  rows: DeckImportRow[];
+  storageMode?: DeckImportStorageMode;
 }
 
-type DeckImportPreparationDependencies = Pick<
-  DeckImportDependencies,
-  "uid" | "decks" | "cardsByDeckId" | "generateCardId"
->;
+export interface DeckImportPreparationDependencies {
+  uid: string;
+  decks: Deck[];
+  cards: Card[];
+  generateCardId: () => string;
+}
 
-const SAMPLE_DECK_NAME = "Sample Deck";
-const SAMPLE_VERSION = 1;
+export interface DeckImportExecutionDependencies {
+  uid: string;
+  createDeck: (deck: DeckImportCreateInput) => Promise<unknown>;
+  mutateCards: (mutations: CardMutation[]) => Promise<unknown>;
+}
 
-const sampleDeckId = (uid: string): DeckId => `sample-v${SAMPLE_VERSION}-${uid}`;
+const isRemoteDeck = (deck: Deck): deck is RemoteDeck => !deck.localMode;
+const isRemoteCard = (card: Card): card is RemoteCard => "uid" in card;
 
-const rowsFromCards = (cards: CardRaw[]): DeckImportRow[] =>
-  cards.map((card, index) => ({ rowNumber: index + 1, card }));
+const matchesImportDestination = (candidate: Deck, request: DeckImportRequest, localMode: boolean): boolean =>
+  isRemoteDeck(candidate) !== localMode &&
+  (request.preferredDeckId === undefined ? candidate.name === request.name : candidate.id === request.preferredDeckId);
 
-const prepareDeckImportAttempt = (
-  request: DeckImportRequest,
-  { uid, decks, cardsByDeckId, generateCardId }: DeckImportPreparationDependencies
-): DeckImportAttempt => {
-  const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
-  const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
-  const rows = request.kind === "sample" ? rowsFromCards(sampleCards) : request.rows;
-  let deck: DeckCreateInput | undefined = decks.find(
-    (candidate): candidate is RemoteDeck =>
-      !candidate.localMode &&
-      (preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId)
-  );
-  const createDeckPending = deck == null;
-  if (deck == null) {
-    deck = { id: preferredDeckId ?? generateDeckId(), uid, name };
-  }
+const createImportDeck = (request: DeckImportRequest, uid: string, localMode: boolean): DeckImportCreateInput => {
+  const id = request.preferredDeckId ?? generateDeckId();
+  return localMode ? { id, name: request.name, localMode: true } : { id, uid, name: request.name };
+};
 
-  const existing = cardsByDeckId(deck.id).filter((card): card is RemoteCard => "uid" in card);
-  const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
-  const plan = buildDeckImportPlan(rows, existing);
+const prepareCardMutations = ({
+  rows,
+  existing,
+  deckId,
+  uid,
+  localMode,
+  generateCardId,
+}: {
+  rows: DeckImportRow[];
+  existing: Card[];
+  deckId: DeckId;
+  uid: string;
+  localMode: boolean;
+  generateCardId: () => string;
+}): Pick<DeckImportAttempt, "plan" | "remainingMutations"> => {
+  const byUniqueKey = indexCardsByUniqueKey(existing);
+  const planRows: DeckImportPlanRow[] = [];
   const remainingMutations: CardMutation[] = [];
-  plan.rows.forEach((row) => {
+  const counts: Record<DeckImportAction, number> = { create: 0, update: 0, unchanged: 0 };
+  for (const row of rows) {
     const current = byUniqueKey.get(row.card.uniqueKey);
-    if (row.action === "create") {
-      const card = { ...row.card, id: generateCardId(), deckId: deck.id, uid: deck.uid };
+    const action = current == null ? "create" : hasSameEditableCardContent(current, row.card) ? "unchanged" : "update";
+    counts[action] += 1;
+    planRows.push({ ...row, action });
+    if (action === "create") {
+      const cardFields = { ...row.card, id: generateCardId(), deckId };
+      // Local persistence stays account-agnostic; Card mutation routing follows the parent Deck's localMode.
+      const card = localMode ? cardFields : { ...cardFields, uid };
       remainingMutations.push({ kind: "create", card });
-    } else if (row.action === "update" && current != null) {
+    } else if (action === "update" && current != null) {
       remainingMutations.push({ kind: "edit", card: { ...current, ...row.card } });
     }
+  }
+
+  return {
+    remainingMutations,
+    plan: {
+      rows: planRows,
+      created: counts.create,
+      updated: counts.update,
+      unchanged: counts.unchanged,
+    },
+  };
+};
+
+export const prepareDeckImport = (
+  request: DeckImportRequest,
+  { uid, decks, cards, generateCardId }: DeckImportPreparationDependencies
+): DeckImportAttempt => {
+  const localMode = request.storageMode === "local";
+  if (!localMode && uid === "") throw new Error("A confirmed user is required for remote imports");
+
+  let deck: DeckImportCreateInput | undefined = decks.find((candidate) =>
+    matchesImportDestination(candidate, request, localMode)
+  );
+  const createDeckPending = deck == null;
+  if (deck == null) deck = createImportDeck(request, uid, localMode);
+
+  const existing = cards.filter((card) => card.deckId === deck.id && isRemoteCard(card) !== localMode);
+  const preparedCards = prepareCardMutations({
+    rows: request.rows,
+    existing,
+    deckId: deck.id,
+    uid,
+    localMode,
+    generateCardId,
   });
 
   return {
     uid,
     deck,
     createDeckPending,
-    remainingMutations,
-    plan,
+    ...preparedCards,
   };
-};
-
-export const prepareDeckImport = async (
-  request: DeckImportRequest,
-  { uid, decks, cardsByDeckId, generateCardId, fetchDecks, fetchCards }: DeckImportDependencies
-): Promise<DeckImportAttempt> => {
-  if (uid === "") throw new Error("A confirmed user is required for imports");
-
-  let activeDecks = decks;
-  let getCardsByDeckId = cardsByDeckId;
-  if (request.kind === "content") {
-    if (fetchDecks == null || fetchCards == null) {
-      throw new Error("Server-backed Deck import dependencies are not available");
-    }
-    // Listener-backed stores can lag, so user-provided imports are planned from authoritative server reads.
-    const [remoteDecks, remoteCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
-    activeDecks = remoteDecks;
-    getCardsByDeckId = (deckId: DeckId) => remoteCards.filter((card) => card.deckId === deckId);
-  }
-
-  return prepareDeckImportAttempt(request, {
-    uid,
-    decks: activeDecks,
-    cardsByDeckId: getCardsByDeckId,
-    generateCardId,
-  });
 };
 
 class DeckImportExecutionError extends Error {
@@ -135,7 +158,7 @@ const resultFrom = (attempt: DeckImportAttempt, failedMutations: CardMutation[])
 
 export const executePreparedDeckImport = async (
   attempt: DeckImportAttempt,
-  { uid, createDeck, mutateCards }: DeckImportDependencies
+  { uid, createDeck, mutateCards }: DeckImportExecutionDependencies
 ): Promise<DeckImportResult> => {
   if (attempt.uid !== uid) throw new Error("The prepared Deck import belongs to a different user");
   if (attempt.createDeckPending) {

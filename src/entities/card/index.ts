@@ -16,5 +16,7 @@ export {
   countCardsByDeckId,
   filterCardsByDeckId,
   getCardContentValidationErrors,
+  hasSameEditableCardContent,
+  indexCardsByUniqueKey,
   mustFindCardById,
 } from "./model/rules";

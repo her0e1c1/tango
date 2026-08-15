@@ -138,12 +138,9 @@ export default [
       // Shorthand callbacks that intentionally return void are established project style, not ambiguous expressions.
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
       // Biome owns these checks, including promise handling and the Types domain rollout in #1013.
-      "@typescript-eslint/no-base-to-string": "off",
       "@typescript-eslint/no-floating-promises": "off",
       "@typescript-eslint/no-misused-promises": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
-      "@typescript-eslint/no-unnecessary-type-conversion": "off",
-      "@typescript-eslint/prefer-reduce-type-parameter": "off",
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/restrict-plus-operands": "off",
       // Primitive template interpolation and polymorphic `this` are project policy, not correctness constraints.

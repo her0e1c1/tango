@@ -7,6 +7,8 @@
 import type { CardRaw } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 
+export type DeckImportStorageMode = "local" | "remote";
+
 export interface DeckImportRow {
   rowNumber: number;
   card: CardRaw;
@@ -25,7 +27,7 @@ export interface DeckImportAnalysis {
   invalidCount: number;
 }
 
-type DeckImportAction = "create" | "update" | "unchanged";
+export type DeckImportAction = "create" | "update" | "unchanged";
 
 export interface DeckImportPlanRow extends DeckImportRow {
   action: DeckImportAction;
