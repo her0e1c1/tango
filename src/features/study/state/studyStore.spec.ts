@@ -11,10 +11,6 @@ import { createStudyStore, selectStudySessionForRoute } from "./studyStore";
 
 const STUDY_STORAGE_KEY = "tango-study";
 
-/**
- * Provides the create memory storage test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
 const createMemoryStorage = (initial: Record<string, string> = {}) => {
   const values = new Map(Object.entries(initial));
   return {
@@ -28,10 +24,6 @@ const createMemoryStorage = (initial: Record<string, string> = {}) => {
   };
 };
 
-/**
- * Provides the create versioned storage test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
 const createVersionedStorage = (state: unknown, version: number) =>
   createMemoryStorage({
     [STUDY_STORAGE_KEY]: JSON.stringify({ state, version }),
@@ -118,16 +110,6 @@ describe("study store", () => {
     expect(selectStudySessionForRoute("missing-deck")(store.getState())).toBeNull();
   });
 
-  it("initializes and toggles transient study UI state", () => {
-    const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
-
-    store.getState().initializeStudyUi(true);
-    expect(store.getState()).toMatchObject({ autoPlay: true });
-
-    store.getState().toggleAutoPlay();
-    expect(store.getState()).toMatchObject({ autoPlay: false });
-  });
-
   it("persists exactly the session map in a v3 envelope", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
@@ -150,8 +132,10 @@ describe("study store", () => {
       sessionsByDeckId: {
         "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
       },
-      autoPlay: false,
     });
+    expect(restored.getState()).not.toHaveProperty("autoPlay");
+    expect(restored.getState()).not.toHaveProperty("toggleAutoPlay");
+    expect(restored.getState()).not.toHaveProperty("initializeStudyUi");
     expect(restored.getState()).not.toHaveProperty("session");
   });
 
