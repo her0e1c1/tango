@@ -1,4 +1,4 @@
-import type { Category } from "./types";
+import type { Category, Deck, DeckId } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -47,4 +47,12 @@ export const getCategory = (category: Category, tags: string[]): Category => {
   const tagCategory = tags.find((tag) => APPLICATION_CATEGORIES.includes(tag) || isHighlightLanguage(tag));
 
   return tagCategory ?? category;
+};
+
+export const mustFindDeckById = (decks: readonly Deck[], id: DeckId): Deck => {
+  const deck = decks.find((deck) => deck.id === id);
+
+  if (deck == null) throw new Error(`Deck not found: ${id}`);
+
+  return deck;
 };
