@@ -1,6 +1,6 @@
 import { countCardsByDeckId, type Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import { orderDecksByStudyActivity, type StudySession } from "@/entities/study-session";
+import { groupDecksByStudyActivity, type StudySession } from "@/entities/study-session";
 
 export interface DeckListStudyProgress {
   currentIndex: number;
@@ -31,18 +31,14 @@ export const buildDeckListSections = (
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>
 ): DeckListSections => {
   const cardCounts = countCardsByDeckId(cards);
-  const items = orderDecksByStudyActivity(decks, sessionsByDeckId).map((deck): DeckListItem => {
-    const session = sessionsByDeckId[deck.id];
+  const createItem = (deck: Deck): DeckListItem => ({ deck, cardCount: cardCounts.get(deck.id) ?? 0 });
+  const { active, inactive } = groupDecksByStudyActivity(decks, sessionsByDeckId);
 
-    return {
-      deck,
-      cardCount: cardCounts.get(deck.id) ?? 0,
-      ...(session == null ? {} : { studyProgress: createDeckListStudyProgress(session) }),
-    };
-  });
-
-  const studying = items.filter((item) => item.studyProgress != null);
-  const other = items.filter((item) => item.studyProgress == null);
-
-  return { studying, other };
+  return {
+    studying: active.map(({ deck, session }) => ({
+      ...createItem(deck),
+      studyProgress: createDeckListStudyProgress(session),
+    })),
+    other: inactive.map(createItem),
+  };
 };

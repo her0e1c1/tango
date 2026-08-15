@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateStudySessionIndex,
+  groupDecksByStudyActivity,
   isStudySessionPositionUnchanged,
-  orderDecksByStudyActivity,
   resolveStudySession,
   resolveStudySessionSwipeEffect,
 } from "./rules";
@@ -16,8 +16,8 @@ const session: StudySession = {
   lastStudiedAt: 0,
 };
 
-describe("orderDecksByStudyActivity", () => {
-  it("orders active decks by recency and inactive decks by name", () => {
+describe("groupDecksByStudyActivity", () => {
+  it("groups active and inactive decks in their domain order", () => {
     const decks = [
       { id: "other-z", name: "Zulu" },
       { id: "active-old", name: "Bravo" },
@@ -29,12 +29,10 @@ describe("orderDecksByStudyActivity", () => {
       "active-new": { ...session, deckId: "active-new", lastStudiedAt: 200 },
     };
 
-    expect(orderDecksByStudyActivity(decks, sessions).map((deck) => deck.id)).toEqual([
-      "active-new",
-      "active-old",
-      "other-a",
-      "other-z",
-    ]);
+    const groups = groupDecksByStudyActivity(decks, sessions);
+
+    expect(groups.active.map(({ deck }) => deck.id)).toEqual(["active-new", "active-old"]);
+    expect(groups.inactive.map((deck) => deck.id)).toEqual(["other-a", "other-z"]);
   });
 
   it("uses deck name as the tie breaker for equally recent sessions", () => {
@@ -47,7 +45,7 @@ describe("orderDecksByStudyActivity", () => {
       b: { ...session, deckId: "b", lastStudiedAt: 100 },
     };
 
-    expect(orderDecksByStudyActivity(decks, sessions).map((deck) => deck.name)).toEqual(["Alpha", "Beta"]);
+    expect(groupDecksByStudyActivity(decks, sessions).active.map(({ deck }) => deck.name)).toEqual(["Alpha", "Beta"]);
   });
 });
 
