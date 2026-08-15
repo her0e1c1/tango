@@ -7,9 +7,11 @@ import {
 } from "eslint-plugin-boundaries/config";
 import reactHooks from "eslint-plugin-react-hooks";
 import testingLibrary from "eslint-plugin-testing-library";
+import vitest from "@vitest/eslint-plugin";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
+const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}"];
 const sliceLayers = ["entities", "features", "pages", "widgets"];
 const nonSliceLayers = ["app", "shared"];
 
@@ -136,5 +138,18 @@ export default [
   {
     ...testingLibrary.configs["flat/react"],
     files: ["src/**/*.spec.{ts,tsx}"],
+  },
+  {
+    ...vitest.configs.recommended,
+    files: vitestFiles,
+    rules: {
+      ...vitest.configs.recommended.rules,
+      // Biome already enforces these defects across the same test files.
+      "vitest/no-conditional-expect": "off",
+      "vitest/no-focused-tests": "off",
+      "vitest/no-identical-title": "off",
+      // expect.poll is Vitest-specific, so Biome's general promise checks cannot require this await.
+      "vitest/require-awaited-expect-poll": "error",
+    },
   },
 ];

@@ -104,8 +104,7 @@ describe("useDeckImport", () => {
     await actAsync(async () => {
       imported = await result.current.importPreview();
     });
-    expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.createDeck).toHaveBeenCalledWith({ id: "deck", uid: "uid-a", name: "deck.csv" });
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith({ id: "deck", uid: "uid-a", name: "deck.csv" });
     expect(mocks.bulkUpsert).toHaveBeenCalledWith([
       {
         kind: "create",
@@ -476,7 +475,9 @@ describe("useDeckImport", () => {
     const { result, rerender } = renderHook(useTestDeckImport);
 
     const operation = result.current.importUrl("https://example.test/deck.csv");
-    const rejection = expect(operation).rejects.toThrow("user changed");
+    const rejection = (async () => {
+      await expect(operation).rejects.toThrow("user changed");
+    })();
     mocks.uid = "uid-b";
     rerender();
     finishFetch(new Response('"front","back","","key"'));
@@ -500,7 +501,9 @@ describe("useDeckImport", () => {
     const { result, rerender } = renderHook(useTestDeckImport);
 
     const operation = result.current.importUrl("https://example.test/deck.csv");
-    const rejection = expect(operation).rejects.toThrow("user changed");
+    const rejection = (async () => {
+      await expect(operation).rejects.toThrow("user changed");
+    })();
     await waitFor(() => expect(mocks.fetchDecks).toHaveBeenCalledWith("uid-a"));
 
     mocks.uid = "uid-b";
@@ -531,7 +534,9 @@ describe("useDeckImport", () => {
     act(() => {
       selection = result.current.selectFile(file);
     });
-    const rejection = expect(selection).rejects.toThrow("user changed");
+    const rejection = (async () => {
+      await expect(selection).rejects.toThrow("user changed");
+    })();
     await waitFor(() => expect(result.current.validating).toBe(true));
     mocks.uid = "uid-b";
     rerender();
