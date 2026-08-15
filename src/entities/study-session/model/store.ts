@@ -131,8 +131,12 @@ export const removeStudySession = (deckId: DeckId): void => {
   });
 };
 
-export const clearStudySessions = async (): Promise<void> => {
-  // Publish the empty state before durable cleanup so auth changes cannot expose the previous user's sessions.
-  studySessionStore.setState({ sessionsByDeckId: {} });
-  await studySessionStore.persist.clearStorage();
+export const clearStudySessions = (): Promise<void> => {
+  // The executor runs immediately while converting synchronous cleanup failures into Promise rejections.
+  return new Promise((resolve) => {
+    // Publish the empty state before durable cleanup so auth changes cannot expose the previous user's sessions.
+    studySessionStore.setState({ sessionsByDeckId: {} });
+    studySessionStore.persist.clearStorage();
+    resolve();
+  });
 };

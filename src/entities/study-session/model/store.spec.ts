@@ -134,6 +134,15 @@ describe("study store", () => {
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
   });
 
+  it("rejects when persisted storage cleanup fails", async () => {
+    const failure = new Error("storage cleanup failed");
+    vi.spyOn(store.persist, "clearStorage").mockImplementationOnce(() => {
+      throw failure;
+    });
+
+    await expect(clearStudySessions()).rejects.toBe(failure);
+  });
+
   it("persists exactly the session map in a v3 envelope", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
