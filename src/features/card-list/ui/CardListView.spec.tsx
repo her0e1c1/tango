@@ -13,7 +13,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createCard } from "@/test/factories";
 
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
+vi.mock("@/shared/api", () => ({ auth: {} }));
 
 import { CardListView } from "./CardListView";
 

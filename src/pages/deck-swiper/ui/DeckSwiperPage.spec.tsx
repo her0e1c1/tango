@@ -48,7 +48,7 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
+vi.mock("@/shared/api", () => ({ auth: {} }));
 
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => {
@@ -67,9 +67,20 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     useDeck: (id: DeckId) => mocks.state?.deck[id],
   };
 });
-vi.mock("@/entities/card", () => ({
-  useCards: () => Object.values(mocks.state?.card ?? {}),
+vi.mock("@/entities/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/card")>();
+  return {
+    ...actual,
+    useCards: () => Object.values(mocks.state?.card ?? {}),
+  };
+});
+
+vi.mock("@/features/card/read", () => ({
+  useCardReadState: () => ({
+    status: mocks.cardReadStatus,
+  }),
 }));
+
 
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,

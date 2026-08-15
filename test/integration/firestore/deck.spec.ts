@@ -6,20 +6,15 @@
 import { createDeck, deleteDeck, editDeck, type Deck, type DeckCreateInput } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
-import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
+import { expect, it, describe, vi, beforeEach } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card";
-import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
 const uuid = UUID.v4;
 
-vi.mock("@/shared/firestore", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/shared/firestore")>()),
-  getTimestamp: vi.fn(),
-}));
-vi.mock("@/shared/firebase", async () => ({
+vi.mock("@/shared/api", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
@@ -34,8 +29,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
   });
 
   beforeEach(async () => {
-    // must return the same value (no need to reset mock in parallel)
-    (getTimestamp as Mock).mockReturnValue(timestamp);
+    vi.spyOn(Date, "now").mockReturnValue(timestamp);
   });
 
   it("should create a deck and check if exists", async () => {

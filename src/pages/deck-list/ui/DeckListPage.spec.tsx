@@ -81,7 +81,7 @@ vi.mock("@/features/deck-list", () => ({
   },
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/api", () => ({ auth: {}, db: {} }));
 
 import { DeckListPage } from "./DeckListPage";
 

@@ -53,7 +53,11 @@ vi.mock("@/features/deck-import", () => ({
     error: mocks.error,
   }),
 }));
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/features/card/read", () => ({
+  useCardReadState: () => ({ status: "ready", serverConfirmed: true }),
+}));
+vi.mock("@/shared/api", () => ({ auth: {}, db: {} }));
+
 
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: false } }),

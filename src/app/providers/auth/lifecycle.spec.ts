@@ -8,7 +8,7 @@ const singletonMocks = vi.hoisted(() => ({
   clearStudyStore: vi.fn(),
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: singletonMocks.auth }));
+vi.mock("@/shared/api", () => ({ auth: singletonMocks.auth }));
 vi.mock("@/features/study", () => ({ clearStudyStore: singletonMocks.clearStudyStore }));
 vi.mock("firebase/auth", () => ({
   onIdTokenChanged: singletonMocks.onIdTokenChanged,

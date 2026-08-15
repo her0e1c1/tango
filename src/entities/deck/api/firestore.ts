@@ -11,13 +11,39 @@ import type {
 import { collection, deleteDoc, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
 
-import { db } from "@/shared/firebase";
-import { getTimestamp, omitUndefined, parseFirestoreDocument } from "@/shared/firestore";
+import { db } from "@/shared/api";
 import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
 import { replaceDecks } from "../model/store";
 
 const DECK_COLLECTION = "deck";
 const CARD_COLLECTION = "card";
+
+class FirestoreDocumentValidationError extends Error {
+  constructor(
+    readonly collectionName: string,
+    readonly documentId: string,
+    readonly issues: z.core.$ZodIssue[]
+  ) {
+    const details = issues
+      .map((issue) => `${issue.path.length === 0 ? "<document>" : issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    super(`Invalid Firestore ${collectionName} document "${documentId}": ${details}`);
+    this.name = "FirestoreDocumentValidationError";
+  }
+}
+
+const parseFirestoreDocument = <T>(
+  schema: z.ZodType<T>,
+  collectionName: string,
+  documentId: string,
+  value: unknown
+): T => {
+  const result = schema.safeParse(value);
+  if (!result.success) {
+    throw new FirestoreDocumentValidationError(collectionName, documentId, result.error.issues);
+  }
+  return result.data;
+};
 
 const deckDtoSchema = z.object({
   id: z.string().optional(),
@@ -37,7 +63,7 @@ const deckDtoSchema = z.object({
 });
 
 const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
-  const dto = parseFirestoreDocument(deckDtoSchema, "deck", id, value);
+  const dto = parseFirestoreDocument(deckDtoSchema, DECK_COLLECTION, id, value);
   const deck: Deck = { ...dto, id };
   if (dto.url === undefined) delete deck.url;
   return deck;
@@ -69,8 +95,8 @@ export const fetchDecks = async (uid: string): Promise<Deck[]> => {
 export const generateDeckId = (): string => doc(collection(db, DECK_COLLECTION)).id;
 
 const createDeckDocument = async (deck: DeckCreate): Promise<void> => {
-  const createdAt = getTimestamp();
-  const document = omitUndefined({ ...deck, createdAt, updatedAt: createdAt } satisfies Deck);
+  const createdAt = Date.now();
+  const document = { ...deck, createdAt, updatedAt: createdAt } satisfies Deck;
   await setDoc(doc(db, DECK_COLLECTION, deck.id), document);
 };
 
@@ -80,18 +106,18 @@ export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<vo
 };
 
 const updateDeckDocument = async (deck: DeckEdit): Promise<void> => {
-  const document = omitUndefined({
+  const document = {
     name: deck.name,
     url: deck.url,
     isPublic: deck.isPublic,
-    updatedAt: getTimestamp(),
+    updatedAt: Date.now(),
     scoreMax: deck.scoreMax,
     scoreMin: deck.scoreMin,
     selectedTags: deck.selectedTags,
     tagAndFilter: deck.tagAndFilter,
     category: deck.category,
     convertToBr: deck.convertToBr,
-  });
+  };
   await updateDoc(doc(db, DECK_COLLECTION, deck.id), document);
 };
 

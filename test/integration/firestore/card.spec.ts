@@ -14,21 +14,16 @@ import {
 import { createDeck as createDeckCommand } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
-import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
+import { expect, it, describe, vi, beforeEach } from "vitest";
 import { collection, deleteDoc, getDocs, getFirestore, doc, getDoc, query, where } from "firebase/firestore";
 import { upsertImportedCards } from "@/features/deck-import/api/upsertImportedCards";
 import { editStudyProgress } from "@/features/study/api/editStudyProgress";
-import { getTimestamp } from "@/shared/firestore";
 import * as UUID from "uuid";
 import { createCard, createDeck } from "@/test/factories";
 
 const uuid = UUID.v4;
 
-vi.mock("@/shared/firestore", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/shared/firestore")>()),
-  getTimestamp: vi.fn(),
-}));
-vi.mock("@/shared/firebase", async () => ({
+vi.mock("@/shared/api", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
@@ -45,7 +40,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   });
 
   beforeEach(async () => {
-    (getTimestamp as Mock).mockReturnValue(timestamp);
+    vi.spyOn(Date, "now").mockReturnValue(timestamp);
   });
 
   // card needs to belong to its deck

@@ -18,11 +18,16 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/entities/card", () => ({
-  filterCardsByDeckId: () => mocks.cards,
-  filterTagsByDeckId: () => [],
-  useCards: () => mocks.cards,
-}));
+vi.mock("@/entities/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/card")>();
+  return {
+    ...actual,
+    filterCardsByDeckId: () => mocks.cards,
+    filterTagsByDeckId: () => [],
+    useCards: () => mocks.cards,
+  };
+});
+
 vi.mock("@/entities/deck", () => ({
   useDeck: () => mocks.deck ?? undefined,
 }));
@@ -50,7 +55,7 @@ vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/api", () => ({ auth: {}, db: {} }));
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,

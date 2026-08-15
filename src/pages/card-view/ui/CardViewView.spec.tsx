@@ -8,7 +8,7 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
+vi.mock("@/shared/api", () => ({ auth: {} }));
 
 import { CardViewView } from "./CardViewView";
 

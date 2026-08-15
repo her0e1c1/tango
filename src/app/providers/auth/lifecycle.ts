@@ -2,7 +2,7 @@ import { onIdTokenChanged, signInAnonymously, type User } from "firebase/auth";
 
 import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 import { clearStudyStore } from "@/features/study";
-import { auth } from "@/shared/firebase";
+import { auth } from "@/shared/api";
 
 const authSessionFromUser = (user: User) => ({
   status: "authenticated" as const,

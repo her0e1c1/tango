@@ -6,12 +6,12 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
+import { filterCardsByDeckId, filterTagsByDeckId, toCardsById, useCards } from "@/entities/card";
+import { useCardReadState } from "@/features/card/read";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-import { toRemoteById } from "@/shared/api";
 
 import { DeckStartView } from "./DeckStartView";
 
@@ -59,7 +59,10 @@ export const DeckStartPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
   const preferences = usePreferences();
   const allCards = useCards();
-  const cardsById = React.useMemo(() => toRemoteById(allCards), [allCards]);
+  const cardsById = React.useMemo(() => toCardsById(allCards), [allCards]);
+
+  const cardReadState = useCardReadState();
+
   const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(allCards, deckId), [allCards, deckId]);
   const cards = useStudyCards(deck, deckCards, preferences);

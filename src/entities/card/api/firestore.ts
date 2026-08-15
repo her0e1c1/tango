@@ -8,15 +8,72 @@ import type {
   EditCardInput,
 } from "../model/types";
 
-import { collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot, query, setDoc, type Timestamp, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
 
-import { db } from "@/shared/firebase";
-import { firestoreTimestampDateSchema, getTimestamp, omitUndefined, parseFirestoreDocument } from "@/shared/firestore";
+import { db } from "@/shared/api";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceCards } from "../model/store";
 
 const CARD_COLLECTION = "card";
+
+export interface CardSubscriptionEvent {
+  serverConfirmed: boolean;
+}
+
+const validJavaScriptDateSchema = z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date");
+const firestoreTimestampSchema = z.custom<Timestamp>(
+  (value) =>
+    typeof value === "object" &&
+    value !== null &&
+    typeof Reflect.get(value, "toDate") === "function" &&
+    Number.isInteger(Reflect.get(value, "seconds")) &&
+    Number.isInteger(Reflect.get(value, "nanoseconds")) &&
+    Reflect.get(value, "nanoseconds") >= 0 &&
+    Reflect.get(value, "nanoseconds") < 1_000_000_000,
+  "Expected a Firestore Timestamp"
+);
+
+const firestoreTimestampDateSchema = z
+  .union([validJavaScriptDateSchema, firestoreTimestampSchema])
+  .transform((value, context) => {
+    if (value instanceof Date) return value;
+    try {
+      const date = value.toDate();
+      if (!Number.isNaN(date.getTime())) return date;
+    } catch {
+      // Report malformed Timestamp implementations through the schema error boundary below.
+    }
+    context.addIssue({ code: "custom", message: "Invalid Firestore Timestamp" });
+    return z.NEVER;
+  });
+
+class FirestoreDocumentValidationError extends Error {
+  constructor(
+    readonly collectionName: string,
+    readonly documentId: string,
+    readonly issues: z.core.$ZodIssue[]
+  ) {
+    const details = issues
+      .map((issue) => `${issue.path.length === 0 ? "<document>" : issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    super(`Invalid Firestore ${collectionName} document "${documentId}": ${details}`);
+    this.name = "FirestoreDocumentValidationError";
+  }
+}
+
+const parseFirestoreDocument = <T>(
+  schema: z.ZodType<T>,
+  collectionName: string,
+  documentId: string,
+  value: unknown
+): T => {
+  const result = schema.safeParse(value);
+  if (!result.success) {
+    throw new FirestoreDocumentValidationError(collectionName, documentId, result.error.issues);
+  }
+  return result.data;
+};
 
 const cardDtoSchema = z.object({
   id: z.string().optional(),
@@ -42,7 +99,7 @@ const cardDtoSchema = z.object({
 type CardDto = z.infer<typeof cardDtoSchema>;
 
 const convertCardDtoToCard = (id: CardId, value: unknown): Card => {
-  const dto: CardDto = parseFirestoreDocument(cardDtoSchema, "card", id, value);
+  const dto: CardDto = parseFirestoreDocument(cardDtoSchema, CARD_COLLECTION, id, value);
   const card: Card = {
     id,
     frontText: dto.frontText,
@@ -66,15 +123,22 @@ const convertCardDtoToCard = (id: CardId, value: unknown): Card => {
   return card;
 };
 
-export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
+export const subscribeCards = (
+  uid: string,
+  onError: (error: Error) => void,
+  onData: (event: CardSubscriptionEvent) => void = () => undefined
+): (() => void) =>
   onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
+    { includeMetadataChanges: true },
     (snapshot) => {
       try {
         const cards = snapshot.docs
           .map((document) => convertCardDtoToCard(document.id, document.data()))
           .filter((card) => card.deletedAt === null);
         replaceCards(cards);
+        const serverConfirmed = !snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites;
+        onData({ serverConfirmed });
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
@@ -92,8 +156,8 @@ export const fetchCards = async (uid: string): Promise<Card[]> => {
 export const generateCardId = (): string => doc(collection(db, CARD_COLLECTION)).id;
 
 const createCardDocument = async (card: CardCreate): Promise<void> => {
-  const createdAt = getTimestamp();
-  const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies Card);
+  const createdAt = Date.now();
+  const document = { ...card, createdAt, updatedAt: createdAt } satisfies Card;
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 
@@ -103,7 +167,7 @@ export const createCard = async (uid: string, card: CardCreateInput): Promise<vo
 };
 
 const updateCardDocument = async (card: CardEdit): Promise<void> => {
-  const document = omitUndefined({
+  const document = {
     frontText: card.frontText,
     backText: card.backText,
     tags: card.tags,
@@ -111,8 +175,8 @@ const updateCardDocument = async (card: CardEdit): Promise<void> => {
     url: card.url,
     startLine: card.startLine,
     endLine: card.endLine,
-    updatedAt: getTimestamp(),
-  });
+    updatedAt: Date.now(),
+  };
   await updateDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 
@@ -122,7 +186,7 @@ export const editCard = async (uid: string, card: EditCardInput["card"]): Promis
 };
 
 const removeCardDocument = async (id: string): Promise<void> => {
-  const updatedAt = getTimestamp();
+  const updatedAt = Date.now();
   await updateDoc(doc(db, CARD_COLLECTION, id), { updatedAt, deletedAt: updatedAt });
 };
 

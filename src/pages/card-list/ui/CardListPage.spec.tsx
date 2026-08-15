@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   cardListProps: null as null | Record<string, unknown>,
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
+vi.mock("@/shared/api", () => ({ auth: {} }));
 vi.mock("@/entities/preferences", () => ({ usePreferences: () => mocks.preferences, setDarkMode: vi.fn() }));
 vi.mock("@/entities/card", () => ({
   filterCardsByDeckId: (cards: Card[], id: string) => cards.filter((card) => card.deckId === id),

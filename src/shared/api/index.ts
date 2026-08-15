@@ -1,1 +1,1 @@
-export { toRemoteById } from "./remoteSnapshot";
+export { auth, db } from "./firebase";

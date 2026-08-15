@@ -9,4 +9,4 @@ export type {
   CardId,
   CardRaw,
 } from "./model/types";
-export { filterCardsByDeckId, filterTagsByDeckId } from "./model/rules";
+export { filterCardsByDeckId, filterTagsByDeckId, toCardsById } from "./model/rules";

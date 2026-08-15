@@ -21,6 +21,7 @@ const app = initializeApp({
 export const auth = getAuth(app);
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache(),
+  ignoreUndefinedProperties: true,
 });
 
 const authHost = import.meta.env.VITE_AUTH_HOST;
