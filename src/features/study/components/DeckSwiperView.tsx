@@ -8,7 +8,9 @@ import type { SwipeDirection } from "@/entities/preferences";
 import cx from "classnames";
 import type * as React from "react";
 import { Overlay } from "@/shared/ui/feedback";
-import { Controller, type ControllerProps, SwipeButtonList, type SwipeButtonListProps } from "@/features/study";
+
+import { Controller, type ControllerProps } from "./Controller";
+import { SwipeButtonList, type SwipeButtonListProps } from "./SwipeButtonList";
 
 const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
   cardSwipeUp: "Swiped up",

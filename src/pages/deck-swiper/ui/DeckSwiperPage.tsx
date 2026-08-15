@@ -7,11 +7,9 @@ import { useKey } from "react-use";
 
 import { type Card, useCards } from "@/entities/card";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
-import { StudyWorkflow, type StudyWorkflowState } from "@/features/study";
+import { DeckSwiperView, StudyWorkflow, type StudyWorkflowState } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-
-import { DeckSwiperView } from "./DeckSwiperView";
 
 const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
 const isHistoryState = (value: unknown): value is Record<string, unknown> =>

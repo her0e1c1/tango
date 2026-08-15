@@ -1,18 +1,17 @@
 /**
- * @file Defines Storybook examples for the Deck Swiper Page view.
+ * @file Defines Storybook examples for the Deck Swiper view.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { BackText as BackTextComponent, CardOverlay, FrontText as FrontTextComponent } from "@/features/card-view";
 import * as fixture from "@/storybook/fixture";
 
 import { DeckSwiperView as Template } from "./DeckSwiperView";
 
 const meta = {
-  title: "Pages/Deck Swiper",
+  title: "Features/Study/DeckSwiperView",
   component: Template,
   tags: ["autodocs"],
   parameters: {
@@ -20,8 +19,7 @@ const meta = {
   },
   args: {
     showSwipeButtonList: true,
-    frontTextSlot: <FrontTextComponent text="front text" />,
-    cardOverlaySlot: <CardOverlay card={fixture.card.default} />,
+    frontTextSlot: <div>front text</div>,
   },
 } satisfies Meta<typeof Template>;
 
@@ -47,20 +45,20 @@ export const FrontTextAll: Story = {
 export const BackText: Story = {
   args: {
     showBackText: true,
-    backTextSlot: <BackTextComponent text="this is a back text" />,
+    backTextSlot: <div>this is a back text</div>,
   },
 };
 
 export const BackTextTooLong: Story = {
   args: {
     showBackText: true,
-    backTextSlot: <BackTextComponent text={fixture.code.longtext} />,
+    backTextSlot: <div>{fixture.code.longtext}</div>,
   },
 };
 
 export const BackTextCode: Story = {
   args: {
     showBackText: true,
-    backTextSlot: <BackTextComponent text={fixture.code.longtext} category="python" code />,
+    backTextSlot: <pre>{fixture.code.longtext}</pre>,
   },
 };

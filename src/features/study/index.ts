@@ -1,6 +1,5 @@
-export { Controller, type ControllerProps } from "./components/Controller";
+export { DeckSwiperView } from "./components/DeckSwiperView";
 export { StudyWorkflow, type StudyWorkflowState } from "./components/StudyWorkflow";
-export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";
 export { removeStudySession, touchStudySession } from "./commands/studySessionCommands";
 export { useStudyActions } from "./hooks/useStudyActions";
 export { useStudyCards } from "./hooks/useStudyCards";
