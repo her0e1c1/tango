@@ -16,9 +16,14 @@ const mocks = vi.hoisted(() => ({
   touchStudySession: vi.fn(),
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
+  fetchCardFromServer: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/entities/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/card")>();
+  return { ...actual, fetchCardFromServer: mocks.fetchCardFromServer };
+});
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => {
     if (mocks.preferences == null) throw new Error("Preferences not initialized");
@@ -59,6 +64,13 @@ const createCard = (id: string): Card => ({
 const cards = [createCard("card-1"), createCard("card-2"), createCard("card-3")];
 
 const WorkflowView = ({ state }: { state: StudyWorkflowState }) => {
+  if (state.status === "error") {
+    return (
+      <button type="button" onClick={state.retry}>
+        retry
+      </button>
+    );
+  }
   if (state.status !== "ready") return <div>{state.status}</div>;
   return (
     <div>
@@ -82,7 +94,7 @@ const WorkflowView = ({ state }: { state: StudyWorkflowState }) => {
 
 const renderWorkflow = (currentCards: readonly Card[] = cards) =>
   render(
-    <StudyWorkflow cards={currentCards} deckId={deckId} onUnavailable={mocks.onUnavailable}>
+    <StudyWorkflow cards={currentCards} deckId={deckId} uid="user-id" onUnavailable={mocks.onUnavailable}>
       {(state) => <WorkflowView state={state} />}
     </StudyWorkflow>
   );
@@ -93,6 +105,7 @@ describe("StudyWorkflow", () => {
     vi.clearAllMocks();
     mocks.hydrated = true;
     mocks.update.mockResolvedValue(undefined);
+    mocks.fetchCardFromServer.mockReturnValue(new Promise(() => undefined));
     mocks.preferences = createPreferences({
       cardInterval: 1,
       defaultAutoPlay: false,
@@ -116,6 +129,7 @@ describe("StudyWorkflow", () => {
     renderWorkflow();
 
     expect(screen.getByText("card-1")).toBeVisible();
+    expect(mocks.fetchCardFromServer).not.toHaveBeenCalled();
     expect(mocks.touchStudySession).toHaveBeenCalledWith(deckId);
     fireEvent.keyDown(window, { key: "Enter" });
     expect(screen.getByTestId("back")).toHaveTextContent("true");
@@ -143,12 +157,57 @@ describe("StudyWorkflow", () => {
 
     mocks.hydrated = true;
     view.rerender(
-      <StudyWorkflow cards={cards} deckId={deckId} onUnavailable={mocks.onUnavailable}>
+      <StudyWorkflow cards={cards} deckId={deckId} uid="user-id" onUnavailable={mocks.onUnavailable}>
         {(state) => <WorkflowView state={state} />}
       </StudyWorkflow>
     );
     await waitFor(() => expect(mocks.onUnavailable).toHaveBeenCalledOnce());
     expect(studyStore.getState().sessionsByDeckId[deckId]).toBeUndefined();
+  });
+
+  it("uses an active remote target without resetting the session", async () => {
+    mocks.fetchCardFromServer.mockResolvedValueOnce(cards[0]);
+    renderWorkflow([]);
+
+    expect(await screen.findByText("card-1")).toBeVisible();
+    expect(mocks.fetchCardFromServer).toHaveBeenCalledOnce();
+    expect(mocks.onUnavailable).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "swipe right" }));
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledOnce());
+  });
+
+  it("cleans up a missing remote target", async () => {
+    mocks.fetchCardFromServer.mockResolvedValueOnce(undefined);
+    renderWorkflow([]);
+
+    await waitFor(() => expect(mocks.onUnavailable).toHaveBeenCalledOnce());
+    expect(studyStore.getState().sessionsByDeckId[deckId]).toBeUndefined();
+  });
+
+  it.each([
+    ["deleted", { deletedAt: 1 }],
+    ["another Deck", { deckId: "other-deck" }],
+    ["another user", { uid: "other-user" }],
+  ])("cleans up a remote target belonging to %s", async (_label, overrides) => {
+    mocks.fetchCardFromServer.mockResolvedValueOnce({ ...cards[0], ...overrides });
+    renderWorkflow([]);
+
+    await waitFor(() => expect(mocks.onUnavailable).toHaveBeenCalledOnce());
+    expect(studyStore.getState().sessionsByDeckId[deckId]).toBeUndefined();
+  });
+
+  it("keeps the session and offers retry when the server read fails", async () => {
+    mocks.fetchCardFromServer.mockRejectedValueOnce(new Error("offline"));
+    renderWorkflow([]);
+
+    const retry = await screen.findByRole("button", { name: "retry" });
+    expect(mocks.onUnavailable).not.toHaveBeenCalled();
+    expect(studyStore.getState().sessionsByDeckId[deckId]).toBeDefined();
+
+    mocks.fetchCardFromServer.mockResolvedValueOnce(cards[0]);
+    fireEvent.click(retry);
+    expect(await screen.findByText("card-1")).toBeVisible();
+    expect(mocks.fetchCardFromServer).toHaveBeenCalledTimes(2);
   });
 
   it("restarts repeated swipe feedback timing", async () => {

@@ -35,11 +35,18 @@ const useStudyHistoryGuard = (deckId: string, navigate: ReturnType<typeof useNav
 
 const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
   if (state.status !== "ready") {
-    return state.status === "loading" ? (
-      <RouteFeedback title="Loading…" tone="loading" />
-    ) : (
-      <RouteFeedback title="Study session unavailable." tone="not-found" />
-    );
+    if (state.status === "loading") return <RouteFeedback title="Loading…" tone="loading" />;
+    if (state.status === "error") {
+      return (
+        <RouteFeedback
+          title="Unable to verify study session."
+          description="Check your connection and try again."
+          tone="error"
+          primaryAction={{ label: "Retry", onClick: state.retry }}
+        />
+      );
+    }
+    return <RouteFeedback title="Study session unavailable." tone="not-found" />;
   }
 
   const category = getCategory(deck.category, state.card.tags);
@@ -82,7 +89,7 @@ const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   }, [navigate]);
 
   return (
-    <StudyWorkflow key={deck.id} cards={cards} deckId={deck.id} onUnavailable={handleUnavailable}>
+    <StudyWorkflow key={deck.id} cards={cards} deckId={deck.id} uid={deck.uid} onUnavailable={handleUnavailable}>
       {(state) => renderStudyScreen(deck, state)}
     </StudyWorkflow>
   );

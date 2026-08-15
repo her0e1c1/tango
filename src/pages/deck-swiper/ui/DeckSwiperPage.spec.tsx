@@ -2,7 +2,7 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { StudyWorkflowState } from "@/features/study";
 
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -13,7 +13,9 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   navigate: vi.fn(),
   workflowState: { status: "unavailable" } as StudyWorkflowState,
-  workflowProps: undefined as { cards: readonly Card[]; deckId: string; onUnavailable: () => void } | undefined,
+  workflowProps: undefined as
+    | { cards: readonly Card[]; deckId: string; uid: string; onUnavailable: () => void }
+    | undefined,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -36,6 +38,7 @@ vi.mock("@/features/study", async (importOriginal) => {
     }: { children: (state: StudyWorkflowState) => React.ReactNode } & {
       cards: readonly Card[];
       deckId: string;
+      uid: string;
       onUnavailable: () => void;
     }) => {
       mocks.workflowProps = props;
@@ -115,7 +118,7 @@ describe("DeckSwiperPage", () => {
   it("passes Entity reads to StudyWorkflow and composes the application shell", () => {
     render(<DeckSwiperPage />);
 
-    expect(mocks.workflowProps).toMatchObject({ deckId: deck.id, cards: [card] });
+    expect(mocks.workflowProps).toMatchObject({ deckId: deck.id, uid: deck.uid, cards: [card] });
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     expect(screen.getByText(card.frontText)).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
@@ -128,6 +131,16 @@ describe("DeckSwiperPage", () => {
     mocks.workflowState = { status };
     render(<DeckSwiperPage />);
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
+  });
+
+  it("renders retryable feedback when target verification fails", () => {
+    const retry = vi.fn();
+    mocks.workflowState = { status: "error", retry };
+    render(<DeckSwiperPage />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to verify study session.");
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(retry).toHaveBeenCalledOnce();
   });
 
   it("converts unavailable intent into current route navigation", () => {

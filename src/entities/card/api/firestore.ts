@@ -8,7 +8,17 @@ import type {
   EditCardInput,
 } from "../model/types";
 
-import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocFromServer,
+  getDocsFromServer,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
@@ -65,6 +75,11 @@ export const fetchCards = async (uid: string): Promise<Card[]> => {
   return snapshot.docs
     .map((document) => convertCardDocumentToCard(document.id, document.data()))
     .filter((card) => card.deletedAt === null);
+};
+
+export const fetchCardFromServer = async (id: CardId): Promise<Card | undefined> => {
+  const snapshot = await getDocFromServer(doc(db, CARD_COLLECTION, id));
+  return snapshot.exists() ? convertCardDocumentToCard(snapshot.id, snapshot.data()) : undefined;
 };
 
 const createCardDocument = async (card: CardCreate): Promise<void> => {

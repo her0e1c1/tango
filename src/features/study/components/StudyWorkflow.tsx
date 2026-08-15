@@ -21,6 +21,7 @@ type PresentationActions = Pick<
 
 export type StudyWorkflowState =
   | { status: "loading" | "unavailable" }
+  | { status: "error"; retry: () => void }
   | {
       status: "ready";
       card: Card;
@@ -37,16 +38,20 @@ export type StudyWorkflowState =
 interface StudyWorkflowProps {
   cards: readonly Card[];
   deckId: DeckId;
+  uid: string;
   onUnavailable: () => void;
   children: (state: StudyWorkflowState) => React.ReactNode;
 }
 
-export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyWorkflowProps) => {
+export const StudyWorkflow = ({ cards, deckId, uid, onUnavailable, children }: StudyWorkflowProps) => {
   const display = useStudyDisplayState();
   const feedback = useSwipeFeedback(display.preferences.appearance.showSwipeFeedback);
   const cardMutation = useEditStudyProgress();
+  const session = useActiveStudySession(deckId, uid, cards);
+  const workflowCards =
+    session.status === "ready" && !cards.some(({ id }) => id === session.card.id) ? [...cards, session.card] : cards;
   const actions = useStudyActions(deckId, {
-    cards,
+    cards: workflowCards,
     cardMutation: { update: cardMutation.update },
     onSwipe: feedback.showSwipe,
     showBackText: display.showBackText,
@@ -55,7 +60,6 @@ export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyW
     onRestoreBackText: display.restoreBackText,
     onToggleAutoPlay: display.toggleAutoPlay,
   });
-  const session = useActiveStudySession(deckId, cards);
   useStudySessionLifecycle({ deckId, session, resetStudy: actions.resetStudy, onUnavailable });
   useStudyShortcuts(actions);
 
