@@ -10,7 +10,7 @@ import { Card as Template } from "./Card";
 import * as fixture from "@/storybook/fixture";
 
 const meta = {
-  title: "Card/Card",
+  title: "Features/Card List/Card",
   component: Template,
   tags: ["autodocs"],
   args: {
