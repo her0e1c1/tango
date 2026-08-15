@@ -6,7 +6,7 @@
 
 import { useEffect } from "react";
 
-import { useAuthSession } from "@/entities/auth";
+import { useAuthUid } from "@/entities/auth";
 import { useDeckImport } from "./useDeckImport";
 import type { DeckImportOptions } from "./useDeckImport";
 
@@ -49,9 +49,8 @@ const sampleDeckBootstrapController = createSampleDeckBootstrapController();
  * services themselves.
  */
 export const useSampleDeckBootstrap = (options: DeckImportOptions) => {
-  const auth = useAuthSession();
+  const uid = useAuthUid();
   const deckImport = useDeckImport(options);
-  const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useEffect(() => {
     if (uid === "" || options.decks.length > 0) {

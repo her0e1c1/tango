@@ -2,7 +2,7 @@ import type { CardEdit } from "@/entities/card";
 
 import * as React from "react";
 
-import { useAuthSession } from "@/entities/auth";
+import { useAuthUid } from "@/entities/auth";
 import { editCard } from "@/entities/card";
 
 interface UseCardEditActionOptions {
@@ -10,8 +10,7 @@ interface UseCardEditActionOptions {
 }
 
 export const useCardEditAction = ({ onSaved }: UseCardEditActionOptions = {}) => {
-  const auth = useAuthSession();
-  const uid = auth.status === "authenticated" ? auth.uid : "";
+  const uid = useAuthUid();
   const [error, setError] = React.useState<unknown>(null);
 
   const update = React.useCallback(

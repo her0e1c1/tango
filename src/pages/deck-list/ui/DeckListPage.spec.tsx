@@ -30,12 +30,7 @@ vi.mock("@/entities/preferences", () => ({
   setDarkMode: vi.fn(),
 }));
 vi.mock("@/entities/auth", () => ({
-  useAuthSession: () => ({
-    status: "authenticated",
-    uid: mocks.authUid,
-    isAnonymous: true,
-    displayName: null,
-  }),
+  useAuthUid: () => mocks.authUid,
 }));
 vi.mock("@/entities/card", () => ({
   createCard: vi.fn(),

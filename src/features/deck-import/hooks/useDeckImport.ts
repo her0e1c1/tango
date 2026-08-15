@@ -11,7 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { fetchCards, filterCardsByDeckId } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
-import { useAuthSession } from "@/entities/auth";
+import { useAuthUid } from "@/entities/auth";
 import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
@@ -146,9 +146,8 @@ export const useDeckImport = ({
   editCard,
   generateCardId,
 }: DeckImportOptions) => {
-  const auth = useAuthSession();
+  const uid = useAuthUid();
   const cardsByDeckId = useCallback((deckId: DeckId) => filterCardsByDeckId(cards, deckId), [cards]);
-  const uid = auth.status === "authenticated" ? auth.uid : "";
   const generation = useRef(0);
   const generationUid = useRef(uid);
   const runningRef = useRef(false);
