@@ -39,8 +39,8 @@ export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateO
       },
     },
     errors: {
-      ...(formState.errors.name?.message !== undefined ? { name: formState.errors.name.message } : {}),
-      ...(formState.errors.url?.message !== undefined ? { url: formState.errors.url.message } : {}),
+      name: formState.errors.name?.message,
+      url: formState.errors.url?.message,
     },
     isSubmitting: formState.isSubmitting,
     onCancel,
