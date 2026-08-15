@@ -106,7 +106,7 @@ export const Card: React.FC<{ className?: string; card: CardEntity } & CardActio
     onSwipedRight: withSwipeId(props.onSwipedRight),
     trackMouse: true,
   });
-  const seenCount = props.card.numberOfSeen ?? 0;
+  const seenCount = props.card.numberOfSeen;
 
   return (
     <article
