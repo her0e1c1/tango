@@ -1,10 +1,17 @@
 import { renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { createDeck } from "@/test/factories";
 import { useDeck, useDecks } from "./hooks";
-import { clearRemoteDecks, deckStore, replaceRemoteDecks } from "./store";
+import {
+  clearRemoteDecks,
+  createLocalDeck,
+  deckStore,
+  deleteLocalDeck,
+  editLocalDeck,
+  replaceRemoteDecks,
+} from "./store";
 
 const createMemoryStorage = (initial: Record<string, string> = {}): StateStorage => {
   const values = new Map(Object.entries(initial));
@@ -25,6 +32,7 @@ describe("Deck store", () => {
   beforeEach(() => {
     useMemoryStorage();
     deckStore.setState({ remoteDecks: [], localDecks: [] });
+    vi.useRealTimers();
   });
 
   it("replaces and clears only the remote Deck collection", () => {
@@ -76,6 +84,21 @@ describe("Deck store", () => {
 
     await deckStore.persist.rehydrate();
 
+    expect(deckStore.getState().localDecks).toEqual([]);
+  });
+
+  it("creates, edits, and deletes a local Deck synchronously", () => {
+    vi.spyOn(Date, "now").mockReturnValueOnce(10).mockReturnValueOnce(20);
+    const createdDeck = createLocalDeck({ id: "local", uid: "uid", name: "Local", localMode: true });
+
+    expect(createdDeck).toEqual(
+      expect.objectContaining({ id: "local", localMode: true, createdAt: 10, updatedAt: 10 })
+    );
+
+    const updatedDeck = editLocalDeck({ id: "local", name: "Renamed" });
+    expect(updatedDeck).toEqual(expect.objectContaining({ name: "Renamed", createdAt: 10, updatedAt: 20 }));
+
+    deleteLocalDeck("local");
     expect(deckStore.getState().localDecks).toEqual([]);
   });
 });

@@ -2,8 +2,8 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
-import { persistedCardSchema } from "./schema";
-import type { Card } from "./types";
+import { cardCreateSchema, cardEditSchema, cardIdSchema, cardSchema, persistedCardSchema } from "./schema";
+import type { Card, CardCreateInput, CardEdit, CardId } from "./types";
 
 interface CardState {
   remoteCards: Card[];
@@ -54,6 +54,36 @@ export const clearRemoteCards = (): void => {
   cardStore.setState({ remoteCards: [] });
 };
 
-export const replaceLocalCards = (localCards: Card[]): void => {
-  cardStore.setState({ localCards });
+/** @public */
+export const createLocalCard = (input: CardCreateInput): Card => {
+  const card = cardCreateSchema.parse(input);
+  const timestamp = Date.now();
+  const createdCard = cardSchema.parse({ ...card, createdAt: timestamp, updatedAt: timestamp });
+  const localCards = cardStore.getState().localCards.filter(({ id }) => id !== createdCard.id);
+  cardStore.setState({ localCards: [...localCards, createdCard] });
+  return createdCard;
+};
+
+/** @public */
+export const editLocalCard = (input: CardEdit): Card => {
+  const edit = cardEditSchema.parse(input);
+  const localCards = cardStore.getState().localCards;
+  const currentCard = localCards.find(({ id }) => id === edit.id);
+  if (currentCard === undefined) throw new Error(`Local Card "${edit.id}" was not found`);
+
+  const updatedCard = cardSchema.parse({ ...currentCard, ...edit, updatedAt: Date.now() });
+  cardStore.setState({ localCards: localCards.map((card) => (card.id === updatedCard.id ? updatedCard : card)) });
+  return updatedCard;
+};
+
+/** @public */
+export const deleteLocalCard = (input: CardId): void => {
+  const cardId = cardIdSchema.parse(input);
+  cardStore.setState({ localCards: cardStore.getState().localCards.filter(({ id }) => id !== cardId) });
+};
+
+/** @public */
+export const deleteLocalCardsByDeckId = (deckId: string): void => {
+  const parsedDeckId = z.string().min(1, "Card deck is required").parse(deckId);
+  cardStore.setState({ localCards: cardStore.getState().localCards.filter((card) => card.deckId !== parsedDeckId) });
 };

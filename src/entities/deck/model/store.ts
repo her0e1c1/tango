@@ -2,8 +2,8 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
-import { localDeckSchema } from "./schema";
-import type { Deck } from "./types";
+import { deckEditSchema, deckIdSchema, localDeckCreateSchema, localDeckSchema } from "./schema";
+import type { Deck, DeckEdit, DeckId, LocalDeckCreateInput } from "./types";
 
 interface DeckState {
   remoteDecks: Deck[];
@@ -54,6 +54,30 @@ export const clearRemoteDecks = (): void => {
   deckStore.setState({ remoteDecks: [] });
 };
 
-export const replaceLocalDecks = (localDecks: Deck[]): void => {
-  deckStore.setState({ localDecks });
+/** @public */
+export const createLocalDeck = (input: LocalDeckCreateInput): Deck => {
+  const deck = localDeckCreateSchema.parse(input);
+  const timestamp = Date.now();
+  const createdDeck = localDeckSchema.parse({ ...deck, createdAt: timestamp, updatedAt: timestamp });
+  const localDecks = deckStore.getState().localDecks.filter(({ id }) => id !== createdDeck.id);
+  deckStore.setState({ localDecks: [...localDecks, createdDeck] });
+  return createdDeck;
+};
+
+/** @public */
+export const editLocalDeck = (input: DeckEdit): Deck => {
+  const edit = deckEditSchema.parse(input);
+  const localDecks = deckStore.getState().localDecks;
+  const currentDeck = localDecks.find(({ id }) => id === edit.id);
+  if (currentDeck === undefined) throw new Error(`Local Deck "${edit.id}" was not found`);
+
+  const updatedDeck = localDeckSchema.parse({ ...currentDeck, ...edit, updatedAt: Date.now() });
+  deckStore.setState({ localDecks: localDecks.map((deck) => (deck.id === updatedDeck.id ? updatedDeck : deck)) });
+  return updatedDeck;
+};
+
+/** @public */
+export const deleteLocalDeck = (input: DeckId): void => {
+  const deckId = deckIdSchema.parse(input);
+  deckStore.setState({ localDecks: deckStore.getState().localDecks.filter(({ id }) => id !== deckId) });
 };

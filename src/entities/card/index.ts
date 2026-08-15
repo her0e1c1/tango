@@ -1,9 +1,14 @@
 export { createCard, deleteCard, editCard, fetchCards, subscribeCards } from "./api/firestore";
-/** @public */
-export { createLocalCard, deleteLocalCard, deleteLocalCardsByDeckId, editLocalCard } from "./api/local";
 export { generateCardId } from "./model/id";
 export { useCard, useCards, useCardsByDeckId } from "./model/hooks";
 export { clearRemoteCards } from "./model/store";
+/** @public */
+export {
+  createLocalCard,
+  deleteLocalCard,
+  deleteLocalCardsByDeckId,
+  editLocalCard,
+} from "./model/store";
 export type {
   Card,
   CardCreateInput,
