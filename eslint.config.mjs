@@ -11,14 +11,13 @@ import vitest from "@vitest/eslint-plugin";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
-const vitestFiles = ["src/**/*.spec.{ts,tsx}", "*.spec.{ts,tsx}", "test/integration/**/*.spec.{ts,tsx}"];
-const eslintFiles = [...sourceFiles, ...vitestFiles];
+const vitestFiles = ["{src,test/integration}/**/*.spec.{ts,tsx}", "*.spec.{ts,tsx}"];
 const sliceLayers = ["entities", "features", "pages", "widgets"];
 const nonSliceLayers = ["app", "shared"];
 
 export default [
   {
-    files: eslintFiles,
+    files: ["**/*.{ts,tsx}"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -148,7 +147,7 @@ export default [
       // Firebase security-rule assertions validate promise outcomes without Vitest's expect API.
       "vitest/expect-expect": [
         "error",
-        { assertFunctionNames: ["expect", "assert", "assertFails", "assertSucceeds"] },
+        { assertFunctionNames: ["expect", "assert*"] },
       ],
       // expect.poll is Vitest-specific, so Biome's general promise checks cannot require this await.
       "vitest/require-awaited-expect-poll": "error",
