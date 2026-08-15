@@ -141,7 +141,6 @@ export default [
       "@typescript-eslint/no-floating-promises": "off",
       "@typescript-eslint/no-misused-promises": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
-      "@typescript-eslint/require-await": "off",
       // Primitive template interpolation and polymorphic `this` are project policy, not correctness constraints.
       "@typescript-eslint/prefer-return-this-type": "off",
       "@typescript-eslint/restrict-template-expressions": "off",
