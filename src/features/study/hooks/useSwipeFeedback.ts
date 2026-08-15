@@ -5,18 +5,12 @@ import * as React from "react";
 const SWIPE_FEEDBACK_DURATION_MS = 900;
 
 export const useSwipeFeedback = (enabled: boolean) => {
-  const [lastSwipe, setLastSwipe] = React.useState<{ direction: SwipeDirection; eventId: number }>();
-  const nextEventId = React.useRef(0);
+  const [lastSwipe, setLastSwipe] = React.useState<{ direction: SwipeDirection }>();
 
   const showSwipe = React.useCallback(
     (direction: SwipeDirection) => {
       if (!enabled) return;
-      nextEventId.current += 1;
-      const eventId = nextEventId.current;
-      setLastSwipe({ direction, eventId });
-      return () => {
-        setLastSwipe((current) => (current?.eventId === eventId ? undefined : current));
-      };
+      setLastSwipe({ direction });
     },
     [enabled]
   );

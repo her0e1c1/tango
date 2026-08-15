@@ -89,7 +89,6 @@ const readyState = (): StudyState => ({
   showController: true,
   showSwipeButtonList: true,
   autoPlay: false,
-  cardInterval: 1,
   index: 0,
   numberOfCards: 1,
   updateIndex: noop,

@@ -73,7 +73,6 @@ const renderStudyScreen = (deck: Deck, state: StudyState) => {
         backTextSlot={<CardView card={state.card} deck={deck} onClick={state.toggleBackText} variant="bare" />}
         controller={{
           autoPlay: state.autoPlay,
-          cardInterval: state.cardInterval,
           index: state.index,
           numberOfCards: state.numberOfCards,
           onChange: state.updateIndex,

@@ -32,7 +32,6 @@ export type StudyState = StudyCommands &
         showSwipeButtonList: boolean;
         swipeFeedback?: SwipeDirection;
         autoPlay: boolean;
-        cardInterval: number;
         index: number;
         numberOfCards: number;
         updateIndex: (index: number) => void;
@@ -91,7 +90,6 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     showController: display.preferences.study.cardInterval > 0,
     showSwipeButtonList: display.preferences.controls.showSwipeButtonList,
     autoPlay: display.autoPlay,
-    cardInterval: display.preferences.study.cardInterval,
     index: session.index,
     numberOfCards: session.numberOfCards,
     updateIndex: actions.updateIndex,
