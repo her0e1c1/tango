@@ -1,14 +1,16 @@
 import type { SwipeAction } from "@/entities/preferences/@x/study-session";
+import { type CardProgressFields, recordCardStudyProgress } from "@/entities/study-progress/@x/study-session";
 
 import type {
   ResolvedStudySession,
   StudySession,
   StudySessionCard,
   StudySessionMovement,
+  StudySessionSwipePlan,
   StudySessionSwipeEffect,
 } from "./types";
 
-export const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
+const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];
 
 export const resolveStudySession = <Card extends StudySessionCard>(
@@ -24,10 +26,31 @@ export const resolveStudySession = <Card extends StudySessionCard>(
   return { status: cardId != null && cards.length === 0 ? "preparing" : "invalid" };
 };
 
-export const resolveStudySessionSwipeEffect = (swipeAction: SwipeAction): StudySessionSwipeEffect => {
+const resolveStudySessionSwipeEffect = (swipeAction: SwipeAction): StudySessionSwipeEffect => {
   if (swipeAction === "DoNothing") return "none";
   if (swipeAction === "GoBack") return "exit";
   return swipeAction === "GoToPrevCard" ? "previous" : "next";
+};
+
+export const planStudySessionSwipe = (
+  session: StudySession | undefined,
+  cards: readonly CardProgressFields[],
+  swipeAction: SwipeAction,
+  studiedAt: number
+): StudySessionSwipePlan => {
+  if (session == null) return { effect: "none" };
+
+  const effect = resolveStudySessionSwipeEffect(swipeAction);
+  if (effect === "none" || effect === "exit") return { effect };
+
+  const resolvedSession = resolveStudySession(session, cards);
+  if (resolvedSession.status !== "studying") return { effect: "none" };
+
+  return {
+    effect,
+    session,
+    progress: recordCardStudyProgress(resolvedSession.card, swipeAction, studiedAt),
+  };
 };
 
 export const isStudySessionPositionUnchanged = (previous: StudySession, current: StudySession | undefined): boolean =>
