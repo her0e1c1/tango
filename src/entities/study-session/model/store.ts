@@ -1,5 +1,10 @@
 import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
+import {
+  buildStudyCardOrder,
+  type CardProgressFields,
+  type StudyCardOrderOptions,
+} from "@/entities/study-progress/@x/study-session";
 
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
@@ -84,6 +89,15 @@ export const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void 
       lastStudiedAt: Date.now(),
     };
   });
+};
+
+// Session start owns the state mutation while study-progress owns how the card order is derived.
+export const startStudy = (
+  deckId: DeckId,
+  cards: CardProgressFields[],
+  studyPreferences: StudyCardOrderOptions
+): void => {
+  startStudySession(deckId, buildStudyCardOrder(cards, studyPreferences));
 };
 
 export const touchStudySession = (deckId: DeckId): void => {

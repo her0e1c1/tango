@@ -8,8 +8,9 @@ import { useKey } from "react-use";
 
 import { useCardsByDeckId } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
+import { startStudy } from "@/entities/study-session";
 import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
-import { startStudy, StudySessionStartView } from "@/features/study-session-start";
+import { StudySessionStartView } from "@/features/study-session-start";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 

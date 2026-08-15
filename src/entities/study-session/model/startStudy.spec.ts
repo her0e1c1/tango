@@ -1,11 +1,9 @@
-import { clearStudySessions, getStudySession } from "@/entities/study-session";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { createCard, createPreferences } from "@/test/factories";
-import { startStudy } from "./startStudy";
+import { clearStudySessions, getStudySession, startStudy } from "./store";
 
 describe("startStudy", () => {
   beforeEach(async () => {
