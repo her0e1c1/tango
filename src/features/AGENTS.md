@@ -6,3 +6,4 @@
 - If needed, expose Entity-owned logic from `entities` and consume it here.
 - Feature-specific workflows may coordinate multiple Entities.
 - For list/view Features, define UI-facing interfaces and map Entity data to them without reimplementing Entity rules.
+- For edit Features, define UI-facing form interfaces and map Entity data and constraints to form state/input without reimplementing Entity rules.
