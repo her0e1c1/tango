@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   navigate: vi.fn(),
   studyState: undefined as StudyState | undefined,
-  studyArgs: undefined as { cards: readonly Card[]; deckId: string; onUnavailable: () => void } | undefined,
+  studyArgs: undefined as { cards: readonly Card[]; deckId: string; onInvalid: () => void } | undefined,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -29,8 +29,8 @@ vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
-    useStudy: (deckId: string, cards: readonly Card[], onUnavailable: () => void) => {
-      mocks.studyArgs = { deckId, cards, onUnavailable };
+    useStudy: (deckId: string, cards: readonly Card[], onInvalid: () => void) => {
+      mocks.studyArgs = { deckId, cards, onInvalid };
       if (mocks.studyState == null) throw new Error("Study state not initialized");
       return mocks.studyState;
     },
@@ -79,8 +79,8 @@ const commands = () => ({
   toggleBackText: vi.fn(),
   toggleAutoPlay: vi.fn(),
 });
-const readyState = (): StudyState => ({
-  status: "ready",
+const studyingState = (): StudyState => ({
+  status: "studying",
   ...commands(),
   session: {
     deckId: deck.id,
@@ -103,7 +103,7 @@ describe("DeckStudyPage", () => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
     mocks.cards = [card];
-    mocks.studyState = readyState();
+    mocks.studyState = studyingState();
     mocks.studyArgs = undefined;
     window.history.replaceState(null, document.title, document.location.href);
   });
@@ -123,24 +123,24 @@ describe("DeckStudyPage", () => {
   });
 
   it.each([
-    ["loading", "Loading…"],
-    ["unavailable", "Study session unavailable."],
+    ["preparing", "Loading…"],
+    ["invalid", "Study session unavailable."],
   ] as const)("renders route feedback for %s workflow state", (status, title) => {
     mocks.studyState = { status, ...commands() };
     render(<DeckStudyPage />);
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
   });
 
-  it("converts unavailable intent into current route navigation", () => {
+  it("converts invalid session intent into current route navigation", () => {
     render(<DeckStudyPage />);
-    act(() => mocks.studyArgs?.onUnavailable());
+    act(() => mocks.studyArgs?.onInvalid());
     expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
   });
 
   it("delegates a representative Study shortcut to the workflow action", () => {
     render(<DeckStudyPage />);
     const state = mocks.studyState;
-    if (state?.status !== "ready") throw new Error("expected ready workflow state");
+    if (state?.status !== "studying") throw new Error("expected studying workflow state");
 
     fireEvent.keyDown(window, { key: "ArrowLeft" });
 

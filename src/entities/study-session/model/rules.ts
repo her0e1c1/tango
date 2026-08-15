@@ -1,15 +1,12 @@
 import type { SwipeAction } from "@/entities/preferences/@x/study-session";
 
-import type { StudySession } from "./types";
-
-export type StudySessionMovement = "previous" | "next";
-export type StudySessionSwipeEffect = "none" | "exit" | StudySessionMovement;
-
-type StudySessionCard = { id: StudySession["cardOrderIds"][number] };
-
-export type ResolvedStudySession<Card extends StudySessionCard> =
-  | { status: "loading" | "unavailable" }
-  | { status: "ready"; session: StudySession; card: Card };
+import type {
+  ResolvedStudySession,
+  StudySession,
+  StudySessionCard,
+  StudySessionMovement,
+  StudySessionSwipeEffect,
+} from "./types";
 
 export const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];
@@ -18,13 +15,13 @@ export const resolveStudySession = <Card extends StudySessionCard>(
   session: StudySession | undefined,
   cards: readonly Card[]
 ): ResolvedStudySession<Card> => {
-  if (session == null) return { status: "unavailable" };
+  if (session == null) return { status: "invalid" };
 
   const cardId = getCurrentStudySessionCardId(session);
   const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
-  if (card != null) return { status: "ready", session, card };
+  if (card != null) return { status: "studying", session, card };
   // An empty collection can still be an in-flight read; a populated collection proves the persisted card is absent.
-  return { status: cardId != null && cards.length === 0 ? "loading" : "unavailable" };
+  return { status: cardId != null && cards.length === 0 ? "preparing" : "invalid" };
 };
 
 export const resolveStudySessionSwipeEffect = (swipeAction: SwipeAction): StudySessionSwipeEffect => {

@@ -35,19 +35,19 @@ describe("resolveStudySession", () => {
 
   it("resolves the card at the persisted session position", () => {
     expect(resolveStudySession(session, cards)).toEqual({
-      status: "ready",
+      status: "studying",
       session,
       card: cards[1],
     });
   });
 
-  it("waits while cards for an active session are still loading", () => {
-    expect(resolveStudySession(session, [])).toEqual({ status: "loading" });
+  it("waits while cards for an active session are being prepared", () => {
+    expect(resolveStudySession(session, [])).toEqual({ status: "preparing" });
   });
 
-  it("reports unavailable when the session or its active card is missing", () => {
-    expect(resolveStudySession(undefined, cards)).toEqual({ status: "unavailable" });
-    expect(resolveStudySession(session, cards.slice(0, 1))).toEqual({ status: "unavailable" });
+  it("reports invalid when the session or its active card is missing", () => {
+    expect(resolveStudySession(undefined, cards)).toEqual({ status: "invalid" });
+    expect(resolveStudySession(session, cards.slice(0, 1))).toEqual({ status: "invalid" });
   });
 });
 

@@ -12,8 +12,8 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 const renderStudyScreen = (deck: Deck, state: StudyState) => {
-  if (state.status !== "ready") {
-    return state.status === "loading" ? (
+  if (state.status !== "studying") {
+    return state.status === "preparing" ? (
       <RouteFeedback title="Loading…" tone="loading" />
     ) : (
       <RouteFeedback title="Study session unavailable." tone="not-found" />
@@ -78,10 +78,10 @@ const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => 
 
 const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigate = useNavigate();
-  const handleUnavailable = () => {
+  const handleInvalidSession = () => {
     void navigate("/", { replace: true });
   };
-  const study = useStudy(deck.id, cards, handleUnavailable);
+  const study = useStudy(deck.id, cards, handleInvalidSession);
 
   return <DeckStudyScreen deck={deck} state={study} />;
 };

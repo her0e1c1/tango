@@ -28,9 +28,9 @@ interface StudyCommands {
 
 export type StudyState = StudyCommands &
   (
-    | { status: "loading" | "unavailable" }
+    | { status: "preparing" | "invalid" }
     | {
-        status: "ready";
+        status: "studying";
         session: StudySession;
         card: Card;
         showHeader: boolean;
@@ -43,7 +43,7 @@ export type StudyState = StudyCommands &
       }
   );
 
-export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: () => void): StudyState => {
+export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () => void): StudyState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
   const [showBackText, setShowBackText] = React.useState(false);
@@ -64,27 +64,27 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
   const exitingDeck = React.useRef<DeckId>(undefined);
 
   React.useEffect(() => {
-    if (resolvedSession.status !== "ready") return;
+    if (resolvedSession.status !== "studying") return;
     touchStudySession(deckId);
   }, [deckId, resolvedSession.status]);
 
   React.useEffect(() => {
-    if (resolvedSession.status === "ready") {
+    if (resolvedSession.status === "studying") {
       exitingDeck.current = undefined;
       return;
     }
-    if (resolvedSession.status === "loading" || exitingDeck.current === deckId) return;
+    if (resolvedSession.status === "preparing" || exitingDeck.current === deckId) return;
 
     // Invalid active progress must be removed before leaving so reopening the deck cannot repeat the same failure.
     exitingDeck.current = deckId;
     removeStudySession(deckId);
-    onUnavailable();
-  }, [deckId, onUnavailable, resolvedSession.status]);
+    onInvalid();
+  }, [deckId, onInvalid, resolvedSession.status]);
 
   React.useEffect(() => {
     const nextIndex = session == null ? undefined : calculateStudySessionIndex(session, "next");
     if (
-      resolvedSession.status !== "ready" ||
+      resolvedSession.status !== "studying" ||
       !autoPlay ||
       preferences.study.cardInterval <= 0 ||
       nextIndex === undefined
@@ -103,10 +103,10 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     toggleAutoPlay,
   };
 
-  if (resolvedSession.status !== "ready") return { status: resolvedSession.status, ...commands };
+  if (resolvedSession.status !== "studying") return { status: resolvedSession.status, ...commands };
 
   return {
-    status: "ready",
+    status: "studying",
     ...commands,
     session: resolvedSession.session,
     card: resolvedSession.card,

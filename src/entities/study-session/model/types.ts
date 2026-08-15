@@ -28,3 +28,12 @@ export interface StudySession {
  * so one corrupt session does not discard valid progress for other decks.
  */
 export type StudySessions = Partial<Record<DeckId, StudySession>>;
+
+export type StudySessionMovement = "previous" | "next";
+export type StudySessionSwipeEffect = "none" | "exit" | StudySessionMovement;
+
+export type StudySessionCard = { id: StudySession["cardOrderIds"][number] };
+
+export type ResolvedStudySession<Card extends StudySessionCard> =
+  | { status: "preparing" | "invalid" }
+  | { status: "studying"; session: StudySession; card: Card };
