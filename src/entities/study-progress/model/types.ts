@@ -26,9 +26,15 @@ export interface CardProgressFields {
   id: CardId;
   score: number;
   numberOfSeen: number;
-  lastSeenAt?: number;
-  nextSeeingAt?: Date;
-  interval?: number;
+  // Schema-derived Cards can retain explicit undefined values, so entity rules accept both optional forms.
+  lastSeenAt?: number | undefined;
+  nextSeeingAt?: Date | undefined;
+  interval?: number | undefined;
+}
+
+export interface StudyCardOrderOptions {
+  shuffled: boolean;
+  maxNumberOfCardsToLearn: number;
 }
 
 export type EditStudyProgressInput = z.infer<typeof editStudyProgressSchema>;
