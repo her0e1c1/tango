@@ -9,62 +9,38 @@ import type {
 } from "../model/types";
 
 import { collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
-import { z } from "zod";
 
 import { db } from "@/shared/firebase";
-import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/api";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceRemoteCards } from "../model/store";
+import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
-const cardDtoSchema = z.object({
-  id: z.string().optional(),
-  frontText: z.string(),
-  backText: z.string(),
-  tags: z.array(z.string()),
-  uniqueKey: z.string(),
-  deckId: z.string(),
-  uid: z.string(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
-  deletedAt: z.number().nullable(),
-  score: z.number(),
-  numberOfSeen: z.number(),
-  lastSeenAt: z.number().optional(),
-  nextSeeingAt: firestoreTimestampDateSchema.optional(),
-  interval: z.number().optional(),
-  url: z.string().optional(),
-  startLine: z.number().optional(),
-  endLine: z.number().optional(),
-});
-
-type CardDto = z.infer<typeof cardDtoSchema>;
-
-const convertCardDtoToCard = (id: CardId, value: unknown): Card => {
-  const dto: CardDto = parseFirestoreDocument(cardDtoSchema, "card", id, value);
+const convertCardDocumentToCard = (id: CardId, value: unknown): Card => {
+  const document = parseCardDocument(id, value);
   const card: Card = {
     id,
-    frontText: dto.frontText,
-    backText: dto.backText,
-    tags: dto.tags,
-    uniqueKey: dto.uniqueKey,
-    deckId: dto.deckId,
-    uid: dto.uid,
-    createdAt: dto.createdAt,
-    updatedAt: dto.updatedAt,
-    deletedAt: dto.deletedAt,
-    score: dto.score,
-    numberOfSeen: dto.numberOfSeen,
+    frontText: document.frontText,
+    backText: document.backText,
+    tags: document.tags,
+    uniqueKey: document.uniqueKey,
+    deckId: document.deckId,
+    uid: document.uid,
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+    deletedAt: document.deletedAt,
+    score: document.score,
+    numberOfSeen: document.numberOfSeen,
   };
-  if (dto.lastSeenAt !== undefined) card.lastSeenAt = dto.lastSeenAt;
-  if (dto.nextSeeingAt !== undefined) card.nextSeeingAt = dto.nextSeeingAt;
-  if (dto.interval !== undefined) card.interval = dto.interval;
-  if (dto.url !== undefined) card.url = dto.url;
-  if (dto.startLine !== undefined) card.startLine = dto.startLine;
-  if (dto.endLine !== undefined) card.endLine = dto.endLine;
+  if (document.lastSeenAt !== undefined) card.lastSeenAt = document.lastSeenAt;
+  if (document.nextSeeingAt !== undefined) card.nextSeeingAt = document.nextSeeingAt;
+  if (document.interval !== undefined) card.interval = document.interval;
+  if (document.url !== undefined) card.url = document.url;
+  if (document.startLine !== undefined) card.startLine = document.startLine;
+  if (document.endLine !== undefined) card.endLine = document.endLine;
   return card;
 };
 
@@ -74,7 +50,7 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
     (snapshot) => {
       try {
         const cards = snapshot.docs
-          .map((document) => convertCardDtoToCard(document.id, document.data()))
+          .map((document) => convertCardDocumentToCard(document.id, document.data()))
           .filter((card) => card.deletedAt === null);
         replaceRemoteCards(cards);
       } catch (cause) {
@@ -87,7 +63,7 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
 export const fetchCards = async (uid: string): Promise<Card[]> => {
   const snapshot = await getDocs(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
   return snapshot.docs
-    .map((document) => convertCardDtoToCard(document.id, document.data()))
+    .map((document) => convertCardDocumentToCard(document.id, document.data()))
     .filter((card) => card.deletedAt === null);
 };
 
