@@ -84,6 +84,6 @@ describe("DeckFormPage", () => {
 
   it("rejects a route without a deck id", () => {
     mocks.params.id = undefined;
-    expect(() => render(<DeckFormPage />)).toThrowError("Missing route parameter: id");
+    expect(() => render(<DeckFormPage />)).toThrowError("invalid deck id");
   });
 });
