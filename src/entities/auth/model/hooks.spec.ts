@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { useAuthSession, useAuthUid } from "./hooks";
+import { useAuthAccount, useAuthSession, useAuthUid } from "./hooks";
 import { replaceAuthSession } from "./store";
 
 describe("useAuthSession", () => {
@@ -55,5 +55,50 @@ describe("useAuthUid", () => {
     const { result } = renderHook(useAuthUid);
 
     expect(result.current).toBe("");
+  });
+});
+
+describe("useAuthAccount", () => {
+  beforeEach(() => replaceAuthSession({ status: "initializing" }));
+
+  it("exposes identity and linked status for a linked account", () => {
+    replaceAuthSession({
+      status: "authenticated",
+      uid: "uid-a",
+      isAnonymous: false,
+      displayName: "Test User",
+    });
+
+    const { result } = renderHook(useAuthAccount);
+
+    expect(result.current).toEqual({
+      identity: { uid: "uid-a", displayName: "Test User" },
+      isLinked: true,
+    });
+  });
+
+  it("keeps anonymous identity without treating it as a linked account", () => {
+    replaceAuthSession({
+      status: "authenticated",
+      uid: "anonymous-uid",
+      isAnonymous: true,
+      displayName: null,
+    });
+
+    const { result } = renderHook(useAuthAccount);
+
+    expect(result.current).toEqual({
+      identity: { uid: "anonymous-uid", displayName: null },
+      isLinked: false,
+    });
+  });
+
+  it("returns an empty identity before authentication", () => {
+    const { result } = renderHook(useAuthAccount);
+
+    expect(result.current).toEqual({
+      identity: { uid: "", displayName: null },
+      isLinked: false,
+    });
   });
 });

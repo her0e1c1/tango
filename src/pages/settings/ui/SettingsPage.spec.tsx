@@ -2,21 +2,21 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import type { useAuthSession } from "@/entities/auth";
+import type { useAuthAccount } from "@/entities/auth";
 import type { Preferences } from "@/entities/preferences";
 import { createPreferences } from "@/test/factories";
 
-type AuthSessionState = ReturnType<typeof useAuthSession>;
+type AuthAccount = ReturnType<typeof useAuthAccount>;
 
 const mocks = vi.hoisted(() => ({
-  authSession: { status: "initializing" } as AuthSessionState,
+  authAccount: { identity: { uid: "", displayName: null }, isLinked: false } as AuthAccount,
   preferences: null as unknown as Preferences,
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authSession }));
+vi.mock("@/entities/auth", () => ({ useAuthAccount: () => mocks.authAccount }));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
@@ -29,7 +29,7 @@ import { SettingsPage } from "./SettingsPage";
 describe("SettingsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.authSession = { status: "initializing" };
+    mocks.authAccount = { identity: { uid: "", displayName: null }, isLinked: false };
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
   });
 
@@ -43,11 +43,9 @@ describe("SettingsPage", () => {
   });
 
   it("displays an alert when sign-out fails and allows retrying sign-out", async () => {
-    mocks.authSession = {
-      status: "authenticated",
-      uid: "retry-uid-a",
-      isAnonymous: false,
-      displayName: "Test User",
+    mocks.authAccount = {
+      identity: { uid: "retry-uid-a", displayName: "Test User" },
+      isLinked: true,
     };
     const signOutError = new Error("sign out failed");
     const logout = vi.fn().mockRejectedValueOnce(signOutError).mockResolvedValueOnce(undefined);
