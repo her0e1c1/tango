@@ -7,7 +7,15 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { clearStudySessions, getStudySession, startStudySession, studySessionStore } from "./store";
+import {
+  clearStudySessions,
+  getStudySession,
+  removeStudySession,
+  setStudySessionIndex,
+  startStudySession,
+  studySessionStore,
+  touchStudySession,
+} from "./store";
 
 const STUDY_STORAGE_KEY = "tango-study";
 
@@ -31,7 +39,7 @@ describe("study store", () => {
   it("starts at index zero with a copied card order", () => {
     const cardOrderIds = ["card-1", "card-2"];
 
-    store.getState().start("deck-1", cardOrderIds);
+    startStudySession("deck-1", cardOrderIds);
     cardOrderIds.pop();
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({
@@ -44,9 +52,9 @@ describe("study store", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
 
-    store.getState().start("deck-1", ["card-1", "card-2"]);
+    startStudySession("deck-1", ["card-1", "card-2"]);
     vi.setSystemTime(2000);
-    store.getState().start("deck-2", ["card-3"]);
+    startStudySession("deck-2", ["card-3"]);
 
     expect(store.getState().sessionsByDeckId).toEqual({
       "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 0, lastStudiedAt: 1000 },
@@ -57,11 +65,11 @@ describe("study store", () => {
   it("updates only the requested session and its last studied time", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    store.getState().start("deck-1", ["card-1", "card-2"]);
-    store.getState().start("deck-2", ["card-3", "card-4"]);
+    startStudySession("deck-1", ["card-1", "card-2"]);
+    startStudySession("deck-2", ["card-3", "card-4"]);
 
     vi.setSystemTime(3000);
-    store.getState().setIndex("deck-1", 1);
+    setStudySessionIndex("deck-1", 1);
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({ currentIndex: 1, lastStudiedAt: 3000 });
     expect(store.getState().sessionsByDeckId["deck-2"]).toMatchObject({ currentIndex: 0, lastStudiedAt: 1000 });
@@ -70,10 +78,10 @@ describe("study store", () => {
   it.each([-1, 2, 0.5])("does not persist an invalid session index: %s", (currentIndex) => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    store.getState().start("deck-1", ["card-1", "card-2"]);
+    startStudySession("deck-1", ["card-1", "card-2"]);
 
     vi.setSystemTime(3000);
-    store.getState().setIndex("deck-1", currentIndex);
+    setStudySessionIndex("deck-1", currentIndex);
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({ currentIndex: 0, lastStudiedAt: 1000 });
   });
@@ -81,21 +89,21 @@ describe("study store", () => {
   it("touches only an existing requested session", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    store.getState().start("deck-1", ["card-1"]);
+    startStudySession("deck-1", ["card-1"]);
 
     vi.setSystemTime(4000);
-    store.getState().touch("deck-1");
-    store.getState().touch("missing-deck");
+    touchStudySession("deck-1");
+    touchStudySession("missing-deck");
 
     expect(store.getState().sessionsByDeckId["deck-1"]?.lastStudiedAt).toBe(4000);
     expect(store.getState().sessionsByDeckId).not.toHaveProperty("missing-deck");
   });
 
   it("removes only the requested session", () => {
-    store.getState().start("deck-1", ["card-1"]);
-    store.getState().start("deck-2", ["card-2"]);
+    startStudySession("deck-1", ["card-1"]);
+    startStudySession("deck-2", ["card-2"]);
 
-    store.getState().remove("deck-1");
+    removeStudySession("deck-1");
 
     expect(store.getState().sessionsByDeckId).toEqual({
       "deck-2": expect.objectContaining({ deckId: "deck-2" }),
@@ -118,7 +126,7 @@ describe("study store", () => {
   it("persists exactly the session map in a v3 envelope", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    store.getState().start("deck-1", ["card-1"]);
+    startStudySession("deck-1", ["card-1"]);
 
     const persistedSession = localStorage.getItem(STUDY_STORAGE_KEY);
     expect(JSON.parse(persistedSession ?? "{}")).toEqual({
