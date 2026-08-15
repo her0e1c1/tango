@@ -54,13 +54,16 @@ const e2eCards = [
 
 const persistedStudy = {
   state: {
-    session: {
-      deckId: e2eDeck.id,
-      cardOrderIds: e2eCards.map((card) => card.id),
-      currentIndex: 0,
+    sessionsByDeckId: {
+      [e2eDeck.id]: {
+        deckId: e2eDeck.id,
+        cardOrderIds: e2eCards.map((card) => card.id),
+        currentIndex: 0,
+        lastStudiedAt: 0,
+      },
     },
   },
-  version: 2,
+  version: 3,
 };
 
 const seedSwipeSession = async (page: Page) => {
