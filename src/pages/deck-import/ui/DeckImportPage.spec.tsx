@@ -53,7 +53,11 @@ vi.mock("@/features/deck-import", () => ({
     error: mocks.error,
   }),
 }));
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/api")>()),
+  auth: {},
+  db: {},
+}));
 
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: false } }),

@@ -34,7 +34,11 @@ vi.mock("@/entities/auth", () => ({
       ? { status: "signedOut" }
       : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
 }));
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/api")>()),
+  auth: {},
+  db: {},
+}));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {

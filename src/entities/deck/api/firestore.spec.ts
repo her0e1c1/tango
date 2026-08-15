@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createDeck as createDeckFixture } from "@/test/factories";
 
-vi.mock("@/shared/firebase", () => ({ db: {} }));
+vi.mock("@/shared/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/api")>()),
+  db: {},
+}));
 
 import { createDeck, deleteDeck, editDeck } from "./firestore";
 

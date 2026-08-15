@@ -12,13 +12,20 @@ const mocks = vi.hoisted(() => ({
   unsubscribe: vi.fn(),
 }));
 
-vi.mock("firebase/firestore", () => ({
-  collection: mocks.collection,
-  onSnapshot: mocks.onSnapshot,
-  query: mocks.query,
-  where: mocks.where,
+vi.mock("firebase/firestore", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("firebase/firestore")>();
+  return {
+    ...actual,
+    collection: mocks.collection,
+    onSnapshot: mocks.onSnapshot,
+    query: mocks.query,
+    where: mocks.where,
+  };
+});
+vi.mock("@/shared/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/api")>()),
+  db: "db",
 }));
-vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
 import { subscribeDecks } from "./firestore";
 

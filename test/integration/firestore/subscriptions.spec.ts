@@ -14,11 +14,9 @@ import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
-vi.mock("@/shared/firestore", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/shared/firestore")>()),
+vi.mock("@/shared/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/api")>()),
   getTimestamp: vi.fn(() => 100),
-}));
-vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 

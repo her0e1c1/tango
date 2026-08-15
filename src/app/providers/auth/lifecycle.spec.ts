@@ -8,9 +8,13 @@ const singletonMocks = vi.hoisted(() => ({
   clearStudyStore: vi.fn(),
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: singletonMocks.auth }));
+vi.mock("@/shared/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/api")>()),
+  auth: singletonMocks.auth,
+}));
 vi.mock("@/features/study", () => ({ clearStudyStore: singletonMocks.clearStudyStore }));
-vi.mock("firebase/auth", () => ({
+vi.mock("firebase/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("firebase/auth")>()),
   onIdTokenChanged: singletonMocks.onIdTokenChanged,
   signInAnonymously: singletonMocks.signInAnonymously,
 }));

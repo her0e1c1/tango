@@ -6,7 +6,10 @@ const mocks = vi.hoisted(() => ({
   auth: { currentUser: null as { isAnonymous: boolean } | null },
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
+vi.mock("@/shared/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/api")>()),
+  auth: mocks.auth,
+}));
 vi.mock("firebase/auth");
 
 import { loginGoogle } from "./signIn";
