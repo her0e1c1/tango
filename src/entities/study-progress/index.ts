@@ -1,3 +1,4 @@
+export { editStudyProgress } from "./api/firestore";
 export {
   compareStudyProgress,
   createStudyProgressFromCard,
@@ -5,5 +6,4 @@ export {
   isStudyProgressEligible,
   recordStudyProgress,
 } from "./model/rules";
-export { editStudyProgressSchema } from "./model/schema";
-export type { EditStudyProgressInput, StudyProgress, StudyProgressEdit, StudyRating } from "./model/types";
+export type { StudyProgress, StudyProgressEdit, StudyRating } from "./model/types";
