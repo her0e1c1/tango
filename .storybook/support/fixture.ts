@@ -7,9 +7,10 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
+import type { StudyCard } from "@/entities/study-progress";
 
 import type { Option } from "@/shared/ui/forms/Select";
-import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { createCard, createDeck, createPreferences, createStudyProgress } from "@/test/factories";
 
 export const form = {
   options: {
@@ -106,6 +107,17 @@ export const cards = {
     card.toolong,
   ].map((item, index) => ({ ...item, id: `long-card-${index + 1}` })),
 } as const satisfies Record<string, Card[]>;
+
+export const studyCards = {
+  default: cards.default.map((card) => ({
+    card,
+    progress: createStudyProgress({ cardId: card.id, score: 3, numberOfSeen: 5 }),
+  })),
+  long: cards.long.map((card) => ({
+    card,
+    progress: createStudyProgress({ cardId: card.id, score: 3, numberOfSeen: 5 }),
+  })),
+} as const satisfies Record<string, StudyCard[]>;
 
 export const preferences = {
   default: createPreferences({

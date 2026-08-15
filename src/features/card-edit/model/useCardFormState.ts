@@ -19,7 +19,7 @@ export const useCardFormState = ({
   categoryOptions,
   onCancel,
   onSubmit,
-}: UseCardFormStateOptions): CardFormProps => {
+}: UseCardFormStateOptions): Omit<CardFormProps, "progress"> => {
   const { formState, handleSubmit, register } = useForm<CardFormValues>({
     defaultValues: {
       frontText: card.frontText,

@@ -4,7 +4,6 @@
  * outside the view.
  */
 
-import type { Card } from "@/entities/card";
 import type { StudyProgress } from "@/entities/study-progress";
 
 import type * as React from "react";
@@ -13,18 +12,16 @@ import { Overlay } from "@/shared/ui/feedback";
 
 /**
  * Renders the Card Overlay user interface.
- * Shows the active card's score and tags in a compact overlay, falling back to neutral values
- * before a card is available.
+ * Shows the active card's score and study history in a compact overlay.
  */
-export const CardOverlay: React.FC<{ card?: Card; progress?: StudyProgress }> = (props) => {
-  const progress = props.progress;
+export const CardOverlay: React.FC<{ progress: StudyProgress }> = ({ progress }) => {
   return (
     <Overlay position="top">
       <div className="mx-auto flex max-w-reading flex-row items-center gap-2 bg-surface-elevated p-2 text-ink">
-        <Score score={progress?.score ?? 0} />
+        <Score score={progress.score} />
         <Description>
-          {progress != null && `${progress.numberOfSeen} times`}
-          {progress?.lastSeenAt != null && ` since ${new Date(progress.lastSeenAt).toLocaleDateString()}`}
+          {`${progress.numberOfSeen} times`}
+          {progress.lastSeenAt != null && ` since ${new Date(progress.lastSeenAt).toLocaleDateString()}`}
         </Description>
       </div>
     </Overlay>

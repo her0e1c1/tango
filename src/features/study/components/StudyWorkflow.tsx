@@ -1,7 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preferences";
-import type { StudyProgress } from "@/entities/study-progress";
+import type { StudyCard, StudyProgress } from "@/entities/study-progress";
 
 import type * as React from "react";
 
@@ -13,7 +13,6 @@ import { useStudyControllerState } from "../hooks/useStudyControllerState";
 import { useStudyDisplayState } from "../hooks/useStudyDisplayState";
 import { useStudyProgressMutation } from "../hooks/useStudyProgressMutation";
 import { useSwipeFeedback } from "../hooks/useSwipeFeedback";
-import type { StudyCard } from "../model/studyCard";
 
 type PresentationActions = Pick<
   StudyActions,

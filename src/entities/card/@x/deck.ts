@@ -1,1 +1,1 @@
-export { deleteLocalCardsByDeckId } from "../model/store";
+export { deleteLocalCardsByDeckId } from "../api/mutations";

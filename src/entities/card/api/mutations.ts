@@ -1,8 +1,19 @@
 import type { CardCreateInput, CardEditInput, CardId, LocalCardCreateInput, RemoteCard } from "../model/types";
 
 import { findDeckById } from "@/entities/deck/@x/card";
+import {
+  createLocalStudyProgress,
+  deleteLocalStudyProgress,
+  deleteLocalStudyProgresses,
+} from "@/entities/study-progress/@x/card";
 import { cardCreateSchema } from "../model/schema";
-import { createLocalCard, deleteLocalCard, editLocalCard, findCardById } from "../model/store";
+import {
+  createLocalCard,
+  deleteLocalCard,
+  deleteLocalCardsByDeckId as deleteLocalCardRecordsByDeckId,
+  editLocalCard,
+  findCardById,
+} from "../model/store";
 import {
   createCard as createRemoteCard,
   deleteCard as deleteRemoteCard,
@@ -42,7 +53,8 @@ const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput
 
 const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
   if (isLocalDeck(card.deckId)) {
-    createLocalCard(card);
+    const createdCard = createLocalCard(card);
+    createLocalStudyProgress(createdCard.id);
     return;
   }
   await createRemoteCard(uid, requireRemoteCardCreate(card));
@@ -80,7 +92,13 @@ export const deleteCard = async (uid: string, card: { id: CardId }): Promise<voi
   const currentCard = requireCard(card.id);
   if (requireLocalMode(currentCard.deckId)) {
     deleteLocalCard(card.id);
+    deleteLocalStudyProgress(card.id);
     return;
   }
   await deleteRemoteCard(uid, { id: card.id, uid: requireRemoteCard(currentCard).uid });
+};
+
+export const deleteLocalCardsByDeckId = (deckId: string): void => {
+  const deletedCardIds = deleteLocalCardRecordsByDeckId(deckId);
+  deleteLocalStudyProgresses(deletedCardIds);
 };

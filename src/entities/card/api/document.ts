@@ -41,8 +41,7 @@ export const buildCardCreateDocument = (card: CardCreate, createdAt: number): Ca
     })
   );
 
-export const mapCardDocument = (id: CardId, value: unknown): RemoteCard => {
-  const document = parseCardDocument(id, value);
+export const mapCardDocument = (id: CardId, document: CardDocument): RemoteCard => {
   const card: RemoteCard = {
     id,
     frontText: document.frontText,

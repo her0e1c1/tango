@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createCard } from "@/test/factories";
+import { createCard, createStudyProgress } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   editCard: vi.fn(),
@@ -27,6 +27,7 @@ describe("CardEditForm", () => {
     backText: "Back text",
     tags: ["language"],
   });
+  const progress = createStudyProgress({ cardId: card.id });
 
   beforeEach(() => {
     mocks.editCard.mockReset().mockResolvedValue(undefined);
@@ -34,7 +35,7 @@ describe("CardEditForm", () => {
 
   it("saves edited form values for the authenticated user and reports success", async () => {
     const onSaved = vi.fn();
-    render(<CardEditForm card={card} onCancel={vi.fn()} onSaved={onSaved} />);
+    render(<CardEditForm card={card} progress={progress} onCancel={vi.fn()} onSaved={onSaved} />);
 
     const frontText = screen.getByRole("textbox", { name: "Front text" });
     const backText = screen.getByRole("textbox", { name: "Back text" });
@@ -64,7 +65,7 @@ describe("CardEditForm", () => {
           finishSave = resolve;
         })
     );
-    render(<CardEditForm card={card} onCancel={vi.fn()} onSaved={vi.fn()} />);
+    render(<CardEditForm card={card} progress={progress} onCancel={vi.fn()} onSaved={vi.fn()} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
@@ -76,7 +77,7 @@ describe("CardEditForm", () => {
   it("keeps edited values and allows another save after a failure", async () => {
     mocks.editCard.mockRejectedValueOnce(new Error("write failed"));
     const onSaved = vi.fn();
-    render(<CardEditForm card={card} onCancel={vi.fn()} onSaved={onSaved} />);
+    render(<CardEditForm card={card} progress={progress} onCancel={vi.fn()} onSaved={onSaved} />);
     const frontText = screen.getByRole("textbox", { name: "Front text" });
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "Retry front");
@@ -96,7 +97,7 @@ describe("CardEditForm", () => {
 
   it("forwards cancellation from both navigation actions", async () => {
     const onCancel = vi.fn();
-    render(<CardEditForm card={card} onCancel={onCancel} onSaved={vi.fn()} />);
+    render(<CardEditForm card={card} progress={progress} onCancel={onCancel} onSaved={vi.fn()} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Back to cards" }));
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -105,7 +106,7 @@ describe("CardEditForm", () => {
   });
 
   it("validates fields before saving", async () => {
-    render(<CardEditForm card={card} onCancel={vi.fn()} onSaved={vi.fn()} />);
+    render(<CardEditForm card={card} progress={progress} onCancel={vi.fn()} onSaved={vi.fn()} />);
     await userEvent.clear(screen.getByRole("textbox", { name: "Front text" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Front text" }), "   ");
     await userEvent.clear(screen.getByRole("textbox", { name: "Back text" }));

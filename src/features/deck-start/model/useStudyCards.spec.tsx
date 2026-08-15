@@ -45,6 +45,13 @@ describe("useStudyCards", () => {
     expect(result.current).toEqual([]);
   });
 
+  it("does not make a Card selectable before its StudyProgress is available", () => {
+    const deck = createDeck({ id: "deck" });
+    const card = createCard({ id: "loading", deckId: deck.id });
+
+    expect(renderHook(() => useStudyCards(deck, [card], createPreferences())).result.current).toEqual([]);
+  });
+
   it("re-evaluates scheduled cards when their next review time arrives", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1_000);

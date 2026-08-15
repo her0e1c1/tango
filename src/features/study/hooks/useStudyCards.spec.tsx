@@ -27,11 +27,9 @@ describe("useStudyCardItems", () => {
     expect(renderHook(() => useStudyCardItems([card])).result.current).toEqual([{ card, progress }]);
   });
 
-  it("supplies default progress for a Card without persisted progress", () => {
+  it("omits a Card until its StudyProgress is available", () => {
     const card = createCard({ id: "local-card" });
 
-    expect(renderHook(() => useStudyCardItems([card])).result.current).toEqual([
-      { card, progress: createStudyProgress({ cardId: card.id }) },
-    ]);
+    expect(renderHook(() => useStudyCardItems([card])).result.current).toEqual([]);
   });
 });

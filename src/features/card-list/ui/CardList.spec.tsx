@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { createCard, createDeck, createPreferences, createStudyProgress } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({ deleteCard: vi.fn() }));
 
@@ -26,6 +26,7 @@ const card = createCard({
   backText: "Back",
   tags: [],
 });
+const studyCard = { card, progress: createStudyProgress({ cardId: card.id }) };
 const onEditCard = vi.fn();
 const onChangeScore = vi.fn(async () => undefined);
 const onChangeSelectedTags = vi.fn();
@@ -34,7 +35,7 @@ const renderCardList = (overrides: Partial<CardListProps> = {}) =>
   render(
     <CardList
       deck={deck}
-      cards={[card]}
+      cards={[studyCard]}
       preferences={createPreferences({ appearance: { darkMode: false } })}
       filter={{
         scoreMin: -2,
@@ -91,7 +92,7 @@ describe("CardList", () => {
     ));
 
     renderCardList({
-      cards: [languageCard],
+      cards: [{ card: languageCard, progress: createStudyProgress({ cardId: languageCard.id }) }],
       preferences: createPreferences({ appearance: { darkMode: true } }),
       renderBackText,
     });
@@ -149,7 +150,7 @@ describe("CardList", () => {
     swipe(article, 0, 100);
 
     await waitFor(() => expect(onChangeScore).toHaveBeenCalledTimes(2));
-    expect(onChangeScore).toHaveBeenLastCalledWith({ cardId: card.id, score: 0, numberOfSeen: 0 }, 1);
+    expect(onChangeScore).toHaveBeenLastCalledWith(studyCard.progress, 1);
     await waitFor(() => expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument());
   });
 });

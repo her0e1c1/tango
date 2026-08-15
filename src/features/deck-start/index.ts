@@ -3,4 +3,3 @@ export { DeckStartView } from "./ui/DeckStartView";
 export { useDeckFilterState } from "./model/useDeckFilterState";
 export { useStartStudySession } from "./model/useStartStudySession";
 export { useStudyCards } from "./model/useStudyCards";
-export type { SelectableStudyCard } from "./model/cardSelection";

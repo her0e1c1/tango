@@ -6,6 +6,7 @@
 import type { CardId } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
+import type { StudyCard } from "@/entities/study-progress";
 import {
   clearStudySessions,
   getStudySession,
@@ -21,7 +22,6 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { useStudyActions } from "./useStudyActions";
 import { actAsync } from "@/test/act";
-import type { StudyCard } from "../model/studyCard";
 
 const mocks = vi.hoisted(() => {
   const cardUpdate = vi.fn();

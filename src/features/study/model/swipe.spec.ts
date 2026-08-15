@@ -1,10 +1,10 @@
 import type { SwipeState } from "@/entities/preferences";
+import type { StudyCard } from "@/entities/study-progress";
 
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import type { StudyCard } from "./studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "./swipe";
 import { createCard } from "@/test/factories";
 

@@ -1,5 +1,6 @@
 import type { DeckId } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
+import type { StudyCard } from "@/entities/study-progress";
 import { clearStudySessions, getStudySession, startStudySession } from "@/entities/study-session";
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -31,7 +32,6 @@ vi.mock("@/entities/study-session", async (importOriginal) => ({
 }));
 
 import { StudyWorkflow, type StudyWorkflowState } from "./StudyWorkflow";
-import type { StudyCard } from "../model/studyCard";
 
 const deckId: DeckId = "deck-id";
 const createCard = (id: string): StudyCard => ({

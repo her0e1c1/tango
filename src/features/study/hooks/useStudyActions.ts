@@ -7,7 +7,7 @@
 import type { DeckId } from "@/entities/deck";
 import type { Preferences, SwipeDirection } from "@/entities/preferences";
 import { usePreferences } from "@/entities/preferences";
-import type { StudyProgressEdit } from "@/entities/study-progress";
+import type { StudyCard, StudyProgressEdit } from "@/entities/study-progress";
 import {
   getStudySession,
   removeStudySession,
@@ -19,7 +19,6 @@ import {
 import React from "react";
 
 import { calculateNextIndex } from "../model/session";
-import type { StudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
 
 export interface StudyActions {

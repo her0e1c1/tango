@@ -1,6 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { StudyCard, StudyWorkflowState } from "@/features/study";
+import type { StudyCard } from "@/entities/study-progress";
+import type { StudyWorkflowState } from "@/features/study";
 
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";

@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
   unsubscribe: vi.fn(),
+  replaceRemoteStudyProgresses: vi.fn(),
 }));
 
 vi.mock("firebase/firestore", async (importOriginal) => {
@@ -25,6 +26,10 @@ vi.mock("firebase/firestore", async (importOriginal) => {
   };
 });
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
+vi.mock("@/entities/study-progress/@x/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/study-progress/@x/card")>();
+  return { ...actual, replaceRemoteStudyProgresses: mocks.replaceRemoteStudyProgresses };
+});
 
 import { subscribeCards } from "./firestore";
 
@@ -95,9 +100,22 @@ describe("Card Firestore subscription", () => {
     expect(result.current[0]).not.toHaveProperty("score");
     expect(result.current[0]).not.toHaveProperty("numberOfSeen");
     expect(result.current[0]).not.toHaveProperty("lastSeenAt");
+    expect(mocks.replaceRemoteStudyProgresses).toHaveBeenLastCalledWith([
+      {
+        cardId: "active",
+        score: 3,
+        numberOfSeen: 4,
+        lastSeenAt: 50,
+        nextSeeingAt: new Date(60),
+        interval: 7,
+      },
+    ]);
 
     act(() => getSnapshotHandler()({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
     expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" }), localCard]);
+    expect(mocks.replaceRemoteStudyProgresses).toHaveBeenLastCalledWith([
+      { cardId: "replacement", score: 3, numberOfSeen: 4 },
+    ]);
 
     unsubscribe();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();

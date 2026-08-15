@@ -11,7 +11,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { createCard } from "@/test/factories";
+import { createCard, createStudyProgress } from "@/test/factories";
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
@@ -19,6 +19,8 @@ import { CardListView } from "./CardListView";
 
 const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
+const studyCard = { card, progress: createStudyProgress({ cardId: card.id }) };
+const otherStudyCard = { card: otherCard, progress: createStudyProgress({ cardId: otherCard.id }) };
 
 describe("CardListView", () => {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {
@@ -35,7 +37,7 @@ describe("CardListView", () => {
   it("formats score bounds, tag count, persistent chips, and singular card count", () => {
     const view = render(
       <CardListView
-        cards={[card]}
+        cards={[studyCard]}
         filter={{ scoreMin: -1, scoreMax: 3, selectedTags: ["one", "two"] }}
         filterSlot={<div>Controls</div>}
       />
@@ -47,16 +49,16 @@ describe("CardListView", () => {
     expect(screen.getByRole("list", { name: "Selected tags" })).toHaveTextContent("two");
     expect(screen.getByText("Controls")).not.toBeVisible();
 
-    view.rerender(<CardListView cards={[card]} filter={{ scoreMin: -1, scoreMax: null, selectedTags: [] }} />);
+    view.rerender(<CardListView cards={[studyCard]} filter={{ scoreMin: -1, scoreMax: null, selectedTags: [] }} />);
     expect(screen.getByText("score ≥ -1")).toBeInTheDocument();
 
-    view.rerender(<CardListView cards={[card]} filter={{ scoreMin: null, scoreMax: 3, selectedTags: [] }} />);
+    view.rerender(<CardListView cards={[studyCard]} filter={{ scoreMin: null, scoreMax: 3, selectedTags: [] }} />);
     expect(screen.getByText("score ≤ 3")).toBeInTheDocument();
   });
 
   it("constrains a long unbroken selected tag without changing its text", () => {
     const longTag = `tag-${"unbroken".repeat(30)}`;
-    render(<CardListView cards={[card]} filter={{ scoreMin: null, scoreMax: null, selectedTags: [longTag] }} />);
+    render(<CardListView cards={[studyCard]} filter={{ scoreMin: null, scoreMax: null, selectedTags: [longTag] }} />);
     const chip = screen.getByText(longTag);
 
     expect(chip).toHaveTextContent(longTag);
@@ -67,7 +69,7 @@ describe("CardListView", () => {
     const onRemoveTag = vi.fn();
     render(
       <CardListView
-        cards={[card]}
+        cards={[studyCard]}
         filter={{ scoreMin: null, scoreMax: null, selectedTags: ["one", "two"] }}
         onRemoveTag={onRemoveTag}
       />
@@ -78,12 +80,12 @@ describe("CardListView", () => {
   });
 
   it("shows filter disclosure state", () => {
-    render(<CardListView cards={[card]} />);
+    render(<CardListView cards={[studyCard]} />);
     expect(screen.getByText("Filters")).toBeVisible();
   });
 
   it("keeps only one menu open and removes it with a missing row", async () => {
-    const view = render(<CardListView cards={[card, otherCard]} />);
+    const view = render(<CardListView cards={[studyCard, otherStudyCard]} />);
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
     expect(screen.getByRole("menu", { name: "Actions for Front" })).toBeInTheDocument();
 
@@ -91,7 +93,7 @@ describe("CardListView", () => {
     expect(screen.queryByRole("menu", { name: "Actions for Front" })).not.toBeInTheDocument();
     expect(screen.getByRole("menu", { name: "Actions for Other" })).toBeInTheDocument();
 
-    view.rerender(<CardListView cards={[card]} />);
+    view.rerender(<CardListView cards={[studyCard]} />);
     await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
   });
 
@@ -99,7 +101,11 @@ describe("CardListView", () => {
     const onShowCard = vi.fn();
     const onClose = vi.fn();
     render(
-      <CardListView cards={[card]} onShowCard={onShowCard} overlay={{ content: <div>Overlay back</div>, onClose }} />
+      <CardListView
+        cards={[studyCard]}
+        onShowCard={onShowCard}
+        overlay={{ content: <div>Overlay back</div>, onClose }}
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "View Front" }));

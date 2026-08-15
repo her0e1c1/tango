@@ -1,9 +1,9 @@
 import type { DeckId } from "@/entities/deck";
+import type { StudyCard } from "@/entities/study-progress";
 import { touchStudySession, useStudySession } from "@/entities/study-session";
 
 import * as React from "react";
 
-import type { StudyCard } from "../model/studyCard";
 export type ActiveStudySession =
   | { status: "loading" | "unavailable" }
   | {

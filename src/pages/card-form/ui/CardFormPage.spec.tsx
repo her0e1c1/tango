@@ -1,17 +1,19 @@
 import type { Card } from "@/entities/card";
 import type { Preferences } from "@/entities/preferences";
+import type { StudyProgress } from "@/entities/study-progress";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createCard, createPreferences } from "@/test/factories";
+import { createCard, createPreferences, createStudyProgress } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
   preferences: null as unknown as Preferences,
   card: null as Card | null,
+  progress: null as StudyProgress | null,
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
@@ -22,6 +24,9 @@ vi.mock("@/entities/preferences", () => ({
 }));
 vi.mock("@/entities/card", () => ({
   useCard: () => mocks.card ?? undefined,
+}));
+vi.mock("@/entities/study-progress", () => ({
+  useStudyProgress: () => mocks.progress ?? undefined,
 }));
 vi.mock("@/features/card-edit", () => ({
   CardEditForm: (props: { card: Card; onCancel: () => void; onSaved: () => void }) => (
@@ -51,6 +56,7 @@ describe("CardFormPage", () => {
     mocks.params.id = card.id;
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.card = card;
+    mocks.progress = createStudyProgress({ cardId: card.id });
     mocks.navigate.mockReset();
     mocks.setDarkMode.mockReset();
   });
@@ -88,6 +94,13 @@ describe("CardFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, -1);
+  });
+
+  it("waits until StudyProgress is available", () => {
+    mocks.progress = null;
+    render(<CardFormPage />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Loading card…" })).toBeVisible();
   });
 
   it("rejects a route without a card id", () => {

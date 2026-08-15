@@ -84,7 +84,10 @@ export const deleteLocalCard = (input: CardId): void => {
   cardStore.setState({ localCards: cardStore.getState().localCards.filter(({ id }) => id !== cardId) });
 };
 
-export const deleteLocalCardsByDeckId = (deckId: string): void => {
+export const deleteLocalCardsByDeckId = (deckId: string): CardId[] => {
   const parsedDeckId = z.string().min(1, "Card deck is required").parse(deckId);
-  cardStore.setState({ localCards: cardStore.getState().localCards.filter((card) => card.deckId !== parsedDeckId) });
+  const localCards = cardStore.getState().localCards;
+  const deletedCardIds = localCards.filter((card) => card.deckId === parsedDeckId).map(({ id }) => id);
+  cardStore.setState({ localCards: localCards.filter((card) => card.deckId !== parsedDeckId) });
+  return deletedCardIds;
 };

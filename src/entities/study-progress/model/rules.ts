@@ -1,4 +1,16 @@
-import type { StudyProgress, StudyProgressEdit, StudyProgressFilter, StudyRating } from "./types";
+import type { Card } from "@/entities/card/@x/study-progress";
+import type { StudyCard, StudyProgress, StudyProgressEdit, StudyProgressFilter, StudyRating } from "./types";
+
+export const joinCardsWithStudyProgress = <TCard extends Card>(
+  cards: TCard[],
+  progresses: StudyProgress[]
+): StudyCard<TCard>[] => {
+  const progressesByCardId = new Map(progresses.map((progress) => [progress.cardId, progress]));
+  return cards.flatMap((card) => {
+    const progress = progressesByCardId.get(card.id);
+    return progress === undefined ? [] : [{ card, progress }];
+  });
+};
 
 const calculateScore = (score: number, rating: StudyRating): number => {
   if (rating === "mastered") return score >= 0 ? score + 1 : 0;

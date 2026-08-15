@@ -4,7 +4,7 @@ import { useAuthUid } from "@/entities/auth";
 import { deleteCard, type Card, type CardId } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
-import type { StudyProgress } from "@/entities/study-progress";
+import type { StudyCard, StudyProgress } from "@/entities/study-progress";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 
@@ -27,7 +27,7 @@ interface CardListBackTextProps {
 
 export interface CardListProps {
   deck: Deck;
-  cards: (Card | { card: Card; progress: StudyProgress })[];
+  cards: StudyCard[];
   preferences: Preferences;
   filter: CardListFilter;
   renderBackText: (props: CardListBackTextProps) => React.ReactNode;
@@ -44,14 +44,13 @@ export const CardList: React.FC<CardListProps> = (props) => {
   const [successMessage, setSuccessMessage] = React.useState<string>();
 
   const findStudyCard = (id: CardId) => {
-    const item = props.cards.find((candidate) => ("card" in candidate ? candidate.card.id : candidate.id) === id);
-    if (item == null) return undefined;
-    return "card" in item ? item : { card: item, progress: { cardId: item.id, score: 0, numberOfSeen: 0 } };
+    const studyCard = props.cards.find(({ card }) => card.id === id);
+    if (studyCard === undefined) throw new Error(`Study Card "${id}" was not found`);
+    return studyCard;
   };
 
   const changeScore = (id: CardId, offset: number) => {
     const studyCard = findStudyCard(id);
-    if (studyCard == null) return;
     void props
       .onChangeScore(studyCard.progress, studyCard.progress.score + offset)
       .then(() => setMutationError(null))
@@ -60,7 +59,6 @@ export const CardList: React.FC<CardListProps> = (props) => {
 
   const requestDeletion = (id: CardId) => {
     const studyCard = findStudyCard(id);
-    if (studyCard == null) return;
     setSuccessMessage(undefined);
     setDeletionErrorCardId(undefined);
     setDeletionTarget(studyCard.card);

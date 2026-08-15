@@ -6,14 +6,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useCardsByDeckId } from "@/entities/card";
+import type { StudyCard } from "@/entities/study-progress";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
-import {
-  DeckSwiperView,
-  StudyWorkflow,
-  type StudyCard,
-  type StudyWorkflowState,
-  useStudyCardItems,
-} from "@/features/study";
+import { DeckSwiperView, StudyWorkflow, type StudyWorkflowState, useStudyCardItems } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -68,7 +63,7 @@ const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
             onClick={state.actions.toggleShowBackText}
           />
         }
-        cardOverlaySlot={<CardOverlay card={state.card} progress={state.progress} />}
+        cardOverlaySlot={<CardOverlay progress={state.progress} />}
         backTextSlot={
           <CardView card={state.card} deck={deck} onClick={state.actions.toggleShowBackText} variant="bare" />
         }

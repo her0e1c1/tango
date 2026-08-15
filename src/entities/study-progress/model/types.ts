@@ -1,15 +1,13 @@
 import type { z } from "zod";
 
-import type { CardId } from "@/entities/card/@x/study-progress";
-import type { editStudyProgressSchema } from "./schema";
+import type { Card } from "@/entities/card/@x/study-progress";
+import type { editStudyProgressSchema, studyProgressSchema } from "./schema";
 
-export interface StudyProgress {
-  cardId: CardId;
-  score: number;
-  numberOfSeen: number;
-  lastSeenAt?: number;
-  nextSeeingAt?: Date;
-  interval?: number;
+export type StudyProgress = z.infer<typeof studyProgressSchema>;
+
+export interface StudyCard<TCard extends Card = Card> {
+  card: TCard;
+  progress: StudyProgress;
 }
 
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;

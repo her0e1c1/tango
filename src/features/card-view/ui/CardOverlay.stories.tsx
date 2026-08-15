@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { CardOverlay as Template } from "./CardOverlay";
-import * as fixture from "@/storybook/fixture";
+import { createStudyProgress } from "@/test/factories";
 
 const meta = {
   title: "Card/CardOverlay",
@@ -17,7 +17,7 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
-    card: fixture.card.default,
+    progress: createStudyProgress({ score: 3, numberOfSeen: 5 }),
   },
 } satisfies Meta<typeof Template>;
 

@@ -15,8 +15,8 @@ import { CardListView as Template } from "./CardListView";
 const activeFilter = { scoreMax: 1, scoreMin: -1, selectedTags: ["tag 1", "tag 2"] };
 const longUnbrokenTag =
   "tag_this_is_one_genuinely_long_unbroken_value_that_must_never_force_the_mobile_card_list_beyond_the_viewport_width_even_when_it_keeps_going_0123456789";
-const longUnbrokenCards = fixture.cards.long.map((card, index) =>
-  index === 0 ? { ...card, tags: [longUnbrokenTag] } : card
+const longUnbrokenCards = fixture.studyCards.long.map((studyCard, index) =>
+  index === 0 ? { ...studyCard, card: { ...studyCard.card, tags: [longUnbrokenTag] } } : studyCard
 );
 
 /**
@@ -29,7 +29,7 @@ const RemovableSelectedTagsExample: React.FC<{
   const [selectedTags, setSelectedTags] = React.useState(["TypeScript", "Accessibility"]);
   return (
     <Template
-      cards={fixture.cards.default}
+      cards={fixture.studyCards.default}
       filter={{ scoreMin: null, scoreMax: null, selectedTags }}
       onRemoveTag={(tag) => {
         props.onRemoveTag?.(tag);
@@ -77,7 +77,7 @@ const meta = {
     },
   },
   args: {
-    cards: fixture.cards.default,
+    cards: fixture.studyCards.default,
     filter: activeFilter,
     filterSlot: <div>Filter controls</div>,
   },
@@ -109,7 +109,7 @@ export const RemovableSelectedTags: Story = {
 export const Long: Story = {
   args: {
     filterSlot: <div>Many filter controls</div>,
-    cards: fixture.cards.long,
+    cards: fixture.studyCards.long,
   },
 };
 

@@ -44,7 +44,7 @@ const studiedText = (count: number) => {
  * Presents one study card's front, back, score, and tags according to its current reveal state.
  */
 export const Card: React.FC<
-  { className?: string; card: CardEntity; progress?: StudyProgress } & CardActionsProps & CardRowMenuProps
+  { className?: string; card: CardEntity; progress: StudyProgress } & CardActionsProps & CardRowMenuProps
 > = (props) => {
   const id = props.card.id;
   const disabled = Boolean(props.disabled);
@@ -107,8 +107,7 @@ export const Card: React.FC<
     onSwipedRight: withSwipeId(props.onSwipedRight),
     trackMouse: true,
   });
-  const progress = props.progress ?? { cardId: props.card.id, score: 0, numberOfSeen: 0 };
-  const seenCount = progress.numberOfSeen;
+  const seenCount = props.progress.numberOfSeen;
 
   return (
     <article
@@ -121,7 +120,7 @@ export const Card: React.FC<
         props.className
       )}
     >
-      <Score className="shrink-0" score={progress.score} />
+      <Score className="shrink-0" score={props.progress.score} />
       <div className="relative flex min-h-touch min-w-0 flex-1 flex-col justify-center rounded-control">
         <button
           type="button"

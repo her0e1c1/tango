@@ -12,7 +12,7 @@ import { CardForm } from "./CardForm";
 
 export interface CardEditFormProps {
   card: Card;
-  progress?: StudyProgress | undefined;
+  progress: StudyProgress;
   onCancel: () => void;
   onSaved: () => void;
 }

@@ -1,14 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { createCard } from "@/test/factories";
 
 import {
   compareStudyProgress,
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
+  joinCardsWithStudyProgress,
   recordStudyProgress,
 } from "./rules";
 import type { StudyProgress, StudyRating } from "./types";
 
 const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
+
+describe("joinCardsWithStudyProgress", () => {
+  it("returns only Cards with explicitly available StudyProgress", () => {
+    const readyCard = createCard({ id: "ready" });
+    const loadingCard = createCard({ id: "loading" });
+    const progress = initialStudyProgress(readyCard.id);
+
+    expect(joinCardsWithStudyProgress([readyCard, loadingCard], [progress])).toEqual([{ card: readyCard, progress }]);
+  });
+});
 
 describe("recordStudyProgress", () => {
   it.each<[number, StudyRating, number]>([

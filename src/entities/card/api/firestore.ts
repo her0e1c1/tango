@@ -3,11 +3,12 @@ import type { CardCreate, CardCreateInput, CardEdit, DeleteCardInput, EditCardIn
 import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
 import { db } from "@/shared/firebase";
+import { mapStudyProgressDocument, replaceRemoteStudyProgresses } from "@/entities/study-progress/@x/card";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceRemoteCards } from "../model/store";
-import { buildCardCreateDocument, mapCardDocument } from "./document";
+import { buildCardCreateDocument, mapCardDocument, parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
@@ -16,10 +17,19 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
     (snapshot) => {
       try {
-        const cards = snapshot.docs
-          .map((document) => mapCardDocument(document.id, document.data()))
-          .filter((card) => card.deletedAt === null);
-        replaceRemoteCards(cards);
+        const items = snapshot.docs.flatMap((snapshotDocument) => {
+          const document = parseCardDocument(snapshotDocument.id, snapshotDocument.data());
+          if (document.deletedAt !== null) return [];
+          return [
+            {
+              card: mapCardDocument(snapshotDocument.id, document),
+              progress: mapStudyProgressDocument(snapshotDocument.id, document),
+            },
+          ];
+        });
+        // Progress is committed first so a Card never becomes interactive before its matching progress exists.
+        replaceRemoteStudyProgresses(items.map(({ progress }) => progress));
+        replaceRemoteCards(items.map(({ card }) => card));
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
@@ -29,9 +39,10 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
 
 export const fetchCards = async (uid: string): Promise<RemoteCard[]> => {
   const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
-  return snapshot.docs
-    .map((document) => mapCardDocument(document.id, document.data()))
-    .filter((card) => card.deletedAt === null);
+  return snapshot.docs.flatMap((snapshotDocument) => {
+    const document = parseCardDocument(snapshotDocument.id, snapshotDocument.data());
+    return document.deletedAt === null ? [mapCardDocument(snapshotDocument.id, document)] : [];
+  });
 };
 
 const createCardDocument = async (card: CardCreate): Promise<void> => {

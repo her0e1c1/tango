@@ -20,7 +20,7 @@ interface CardFormFields {
 
 export interface CardFormProps {
   card: Card;
-  progress?: StudyProgress | undefined;
+  progress: StudyProgress;
   fields: CardFormFields;
   errors?: {
     frontText?: string;
@@ -130,7 +130,7 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
               <dd className="text-ink">{new Date(props.card.createdAt).toLocaleDateString()}</dd>
             </div>
           )}
-          {props.progress?.lastSeenAt != null && (
+          {props.progress.lastSeenAt != null && (
             <div>
               <dt className="font-medium text-ink-muted">Last seen</dt>
               <dd className="text-ink">{new Date(props.progress.lastSeenAt).toLocaleDateString()}</dd>

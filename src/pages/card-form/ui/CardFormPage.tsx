@@ -8,7 +8,7 @@ import { useRequiredRouteParam } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
-const CardFormContent = ({ card, progress }: { card: Card; progress?: StudyProgress | undefined }) => {
+const CardFormContent = ({ card, progress }: { card: Card; progress: StudyProgress }) => {
   const navigate = useNavigate();
   const goBack = () => void navigate(-1);
 
@@ -35,6 +35,10 @@ export const CardFormPage: React.FC = () => {
         secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
       />
     );
+  }
+
+  if (progress == null) {
+    return <RouteFeedback title="Loading card…" tone="loading" />;
   }
 
   return <CardFormContent card={card} progress={progress} />;

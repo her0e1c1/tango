@@ -7,7 +7,14 @@ import {
   createLocalDeck,
 } from "@/test/factories";
 
-import { type CardBulkMutationError, type CardMutation, deleteCard, editCard, mutateCards } from "./mutations";
+import {
+  type CardBulkMutationError,
+  type CardMutation,
+  deleteCard,
+  deleteLocalCardsByDeckId,
+  editCard,
+  mutateCards,
+} from "./mutations";
 import { cardStore, findCardById } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
@@ -15,6 +22,9 @@ const mocks = vi.hoisted(() => ({
   deleteRemoteCard: vi.fn(),
   editRemoteCard: vi.fn(),
   findDeckById: vi.fn(),
+  createLocalStudyProgress: vi.fn(),
+  deleteLocalStudyProgress: vi.fn(),
+  deleteLocalStudyProgresses: vi.fn(),
 }));
 
 vi.mock("./firestore", () => ({
@@ -25,6 +35,11 @@ vi.mock("./firestore", () => ({
 
 vi.mock("@/entities/deck/@x/card", () => ({
   findDeckById: mocks.findDeckById,
+}));
+vi.mock("@/entities/study-progress/@x/card", () => ({
+  createLocalStudyProgress: mocks.createLocalStudyProgress,
+  deleteLocalStudyProgress: mocks.deleteLocalStudyProgress,
+  deleteLocalStudyProgresses: mocks.deleteLocalStudyProgresses,
 }));
 
 describe("Card mutations", () => {
@@ -42,13 +57,29 @@ describe("Card mutations", () => {
     await editCard("", { id: card.id, frontText: "Updated" });
 
     expect(findCardById(card.id)).toMatchObject({ id: card.id, frontText: "Updated" });
+    expect(mocks.createLocalStudyProgress).toHaveBeenCalledExactlyOnceWith(card.id);
     expect(mocks.createRemoteCard).not.toHaveBeenCalled();
     expect(mocks.editRemoteCard).not.toHaveBeenCalled();
 
     await deleteCard("", card);
 
     expect(findCardById(card.id)).toBeUndefined();
+    expect(mocks.deleteLocalStudyProgress).toHaveBeenCalledExactlyOnceWith(card.id);
     expect(mocks.deleteRemoteCard).not.toHaveBeenCalled();
+  });
+
+  it("deletes local progress with every Card removed for a Deck", () => {
+    const deck = createLocalDeck({ id: "local-deck" });
+    cardStore.setState({
+      localCards: [
+        createLocalCard({ id: "first", deckId: deck.id }),
+        createLocalCard({ id: "second", deckId: deck.id }),
+      ],
+    });
+
+    deleteLocalCardsByDeckId(deck.id);
+
+    expect(mocks.deleteLocalStudyProgresses).toHaveBeenCalledExactlyOnceWith(["first", "second"]);
   });
 
   it("preserves remote Card mutation behavior", async () => {

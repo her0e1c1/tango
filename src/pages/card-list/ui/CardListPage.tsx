@@ -5,15 +5,16 @@ import { useKey } from "react-use";
 import { type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
+import type { StudyCard } from "@/entities/study-progress";
 import { CardList, useEditCardScore } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
-import { DeckStartForm, type SelectableStudyCard, useDeckFilterState, useStudyCards } from "@/features/deck-start";
+import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/deck-start";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 const CardListComposition = (props: {
   deck: Deck;
-  cards: SelectableStudyCard[];
+  cards: StudyCard[];
   tags: string[];
   preferences: Preferences;
   onEditCard: (id: CardId) => void;
