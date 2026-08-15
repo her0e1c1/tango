@@ -14,7 +14,7 @@ interface UseStartStudySessionOptions {
 export const useStartStudySession = (
   deckId: DeckId,
   { onStarted }: UseStartStudySessionOptions = {}
-): ((cards: Pick<Card, "id">[]) => void) => {
+): ((cards: Card[]) => void) => {
   const preferences = usePreferences();
   return useCallback(
     (cards) => {
