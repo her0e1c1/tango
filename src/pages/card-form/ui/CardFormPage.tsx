@@ -1,8 +1,9 @@
 import type * as React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
 import { CardEditForm } from "@/features/card-edit";
+import { useRequiredRouteParam } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -18,10 +19,8 @@ const CardFormContent = ({ card }: { card: Card }) => {
 };
 
 export const CardFormPage: React.FC = () => {
-  const params = useParams();
   const navigate = useNavigate();
-  const cardId = params.id;
-  if (cardId == null) throw Error("invalid card id");
+  const cardId = useRequiredRouteParam("id");
   const card = useCard(cardId);
 
   if (card == null) {
