@@ -1,14 +1,23 @@
 import { z } from "zod";
 
+import { isNonBlank } from "@/shared/lib/isNonBlank";
+
 const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Card writes");
 export const cardIdSchema = z.string().min(1, "Card id is required");
 const cardUidSchema = z.string().min(1, "Card owner is required");
 
-const editableCardFieldsSchema = z.object({
-  frontText: z.string(),
-  backText: z.string(),
+const cardFrontTextSchema = z.string().refine(isNonBlank, { message: "Front text is required." });
+const cardBackTextSchema = z.string().refine(isNonBlank, { message: "Back text is required." });
+const cardUniqueKeySchema = z.string().refine(isNonBlank, { message: "Unique key is required." });
+
+export const cardContentSchema = z.object({
+  frontText: cardFrontTextSchema,
+  backText: cardBackTextSchema,
   tags: z.array(z.string()),
-  uniqueKey: z.string(),
+  uniqueKey: cardUniqueKeySchema,
+});
+
+const editableCardFieldsSchema = cardContentSchema.extend({
   url: z.string().optional(),
   startLine: z.number().optional(),
   endLine: z.number().optional(),

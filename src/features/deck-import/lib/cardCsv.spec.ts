@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { parseCsv } from "./cardCsv";
 
@@ -34,6 +36,16 @@ describe("card CSV import", () => {
           context: '["front"," ","","same"]',
         },
       ]);
+    });
+
+    it("rejects a blank Card unique key with CSV row context", async () => {
+      const analysis = await parseCsv('"front","back",""," "');
+
+      expect(analysis).toMatchObject({
+        rows: [],
+        invalidCount: 1,
+        issues: [{ rowNumber: 1, message: "uniqueKey is required.", context: '["front","back",""," "]' }],
+      });
     });
 
     it("rejects unsupported input at the parser boundary", async () => {

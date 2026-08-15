@@ -1,9 +1,8 @@
-import type { CardRaw } from "@/entities/card";
+import { cardContentSchema, type CardRaw } from "@/entities/card";
 
 import * as Papa from "papaparse";
 
 import type { DeckImportAnalysis, DeckImportIssue, DeckImportRow } from "../model/deckImportTypes";
-import { isNonBlank } from "@/shared/lib/isNonBlank";
 
 const fromRow = (row: string[]): CardRaw => ({
   frontText: row[0] || "",
@@ -24,21 +23,29 @@ const fromRow = (row: string[]): CardRaw => ({
 
 const rowContext = (columns: string[]) => JSON.stringify(columns);
 
+const csvMessageByCardField: Record<string, string> = {
+  frontText: "frontText is required.",
+  backText: "backText is required.",
+  uniqueKey: "uniqueKey is required.",
+};
+
 const validateCard = (columns: string[], rowNumber: number, uniqueKeys: Set<string>) => {
   const card = fromRow(columns);
   const context = rowContext(columns);
-  const issues: DeckImportIssue[] = [];
-  if (!isNonBlank(card.frontText)) {
-    issues.push({ rowNumber, message: "frontText is required.", context });
-  }
-  if (!isNonBlank(card.backText)) {
-    issues.push({ rowNumber, message: "backText is required.", context });
-  }
-  if (card.uniqueKey === "") {
-    issues.push({ rowNumber, message: "uniqueKey is required.", context });
-  } else if (uniqueKeys.has(card.uniqueKey)) {
+  const validation = cardContentSchema.safeParse(card);
+  const issues: DeckImportIssue[] = validation.success
+    ? []
+    : validation.error.issues.map((issue) => ({
+        rowNumber,
+        // CSV errors keep their field-oriented wording while Entity schema owns the validity rule.
+        message: csvMessageByCardField[String(issue.path[0])] ?? issue.message,
+        context,
+      }));
+
+  const uniqueKeyIsValid = cardContentSchema.shape.uniqueKey.safeParse(card.uniqueKey).success;
+  if (uniqueKeyIsValid && uniqueKeys.has(card.uniqueKey)) {
     issues.push({ rowNumber, message: `uniqueKey "${card.uniqueKey}" is duplicated in this file.`, context });
-  } else {
+  } else if (uniqueKeyIsValid) {
     uniqueKeys.add(card.uniqueKey);
   }
   return { card, issues };

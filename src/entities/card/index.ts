@@ -3,6 +3,7 @@ export { CardBulkMutationError, deleteCard, editCard, mutateCards } from "./api/
 export type { CardMutation } from "./api/mutations";
 export { generateCardId } from "./model/id";
 export { useCard, useCards, useCardsByDeckId } from "./model/hooks";
+export { cardContentSchema } from "./model/schema";
 export { clearRemoteCards } from "./model/store";
 export type {
   Card,
