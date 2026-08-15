@@ -1,7 +1,7 @@
 export { editStudyProgress } from "./api/mutations";
 export { useStudyProgress, useStudyProgresses } from "./model/hooks";
 export {
-  compareStudyProgress,
+  buildStudyCardOrder,
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
   joinCardsWithStudyProgress,

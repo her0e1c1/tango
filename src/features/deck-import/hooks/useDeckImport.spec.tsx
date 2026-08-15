@@ -299,6 +299,22 @@ describe("useDeckImport", () => {
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
   });
 
+  it("retries server-backed preparation without fetching the URL again", async () => {
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"front","back","","key"'));
+    mocks.fetchCards.mockRejectedValueOnce(new Error("server read failed")).mockResolvedValueOnce([]);
+    const { result } = renderHook(useTestDeckImport);
+
+    await actAsync(async () => {
+      await expect(result.current.importUrl("https://example.test/deck.csv")).rejects.toThrow("server read failed");
+    });
+    act(() => result.current.retry());
+    await waitFor(() => expect(result.current.data).toMatchObject({ created: 1, failed: 0 }));
+
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(mocks.fetchCards).toHaveBeenCalledTimes(2);
+    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
+  });
+
   it("rejects a second import while the first is pending", async () => {
     let finish!: () => void;
     mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));

@@ -1,11 +1,9 @@
 import type { DeckId } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
-import type { StudyCard } from "@/entities/study-progress";
+import { buildStudyCardOrder, type StudyCard } from "@/entities/study-progress";
 import { startStudySession } from "@/entities/study-session";
 
 import { useCallback } from "react";
-
-import { buildStudyCardOrder } from "./buildStudyCardOrder";
 
 interface UseStartStudySessionOptions {
   onStarted?: (() => void) | undefined;

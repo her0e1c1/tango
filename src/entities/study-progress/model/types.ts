@@ -20,4 +20,9 @@ export interface StudyProgressFilter {
   respectNextSeeingAt: boolean;
 }
 
+export interface StudyCardOrderOptions {
+  shuffled: boolean;
+  maxNumberOfCardsToLearn: number;
+}
+
 export type EditStudyProgressInput = z.infer<typeof editStudyProgressSchema>;

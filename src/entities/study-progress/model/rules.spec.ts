@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
-import { createCard } from "@/test/factories";
+import { describe, expect, it, vi } from "vitest";
 
+const mocks = vi.hoisted(() => ({ shuffle: vi.fn((ids: string[]) => [...ids].reverse()) }));
+
+vi.mock("lodash", () => ({ shuffle: mocks.shuffle }));
+
+import { createCard, createStudyProgress } from "@/test/factories";
 import {
-  compareStudyProgress,
+  buildStudyCardOrder,
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
   joinCardsWithStudyProgress,
@@ -11,6 +15,11 @@ import {
 import type { StudyProgress, StudyRating } from "./types";
 
 const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
+
+const studyCard = (id: string, numberOfSeen = 0) => {
+  const card = createCard({ id });
+  return { card, progress: createStudyProgress({ cardId: card.id, numberOfSeen }) };
+};
 
 describe("joinCardsWithStudyProgress", () => {
   it("returns only Cards with explicitly available StudyProgress", () => {
@@ -59,13 +68,6 @@ describe("study progress selection", () => {
     ).toBe(false);
   });
 
-  it("orders progress by seen count", () => {
-    const first = { ...initialStudyProgress("first"), numberOfSeen: 1 };
-    const second = { ...initialStudyProgress("second"), numberOfSeen: 3 };
-
-    expect([second, first].sort(compareStudyProgress)).toEqual([first, second]);
-  });
-
   it("finds the nearest future seeing time", () => {
     const progresses = [
       { ...initialStudyProgress("past"), nextSeeingAt: new Date(900) },
@@ -74,5 +76,35 @@ describe("study progress selection", () => {
     ];
 
     expect(getNextStudyAvailabilityAt(progresses, 1_000)).toBe(1_500);
+  });
+});
+
+describe("buildStudyCardOrder", () => {
+  const cards = [studyCard("a"), studyCard("b"), studyCard("c"), studyCard("d")];
+
+  it("returns the progress-based card order when shuffle and maximum are disabled", () => {
+    expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual(["a", "b", "c", "d"]);
+  });
+
+  it("returns no card IDs for an empty selection", () => {
+    expect(buildStudyCardOrder([], { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual([]);
+  });
+
+  it("limits the number of cards", () => {
+    expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual(["a", "b"]);
+  });
+
+  it("orders cards by study progress before applying the maximum", () => {
+    const unorderedCards = [studyCard("seen", 5), studyCard("new", 1), studyCard("middle", 3)];
+
+    expect(buildStudyCardOrder(unorderedCards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual([
+      "new",
+      "middle",
+    ]);
+  });
+
+  it("shuffles before applying the maximum", () => {
+    expect(buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 2 })).toEqual(["d", "c"]);
+    expect(mocks.shuffle).toHaveBeenCalledWith(["a", "b", "c", "d"]);
   });
 });
