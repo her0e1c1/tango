@@ -137,12 +137,11 @@ export const partialResultFrom = (error: unknown): DeckImportResult | undefined 
   return result as DeckImportResult;
 };
 
-export const executeDeckImport = async (
-  request: DeckImportRequest,
-  dependencies: DeckImportDependencies
+export const executePreparedDeckImport = async (
+  attempt: DeckImportAttempt,
+  { uid, createDeck, bulkUpsert }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
-  const { createDeck, bulkUpsert } = dependencies;
-  const attempt = await prepareDeckImport(request, dependencies);
+  if (attempt.uid !== uid) throw new Error("The prepared Deck import belongs to a different user");
   if (attempt.createDeckPending) {
     await createDeck(attempt.deck);
     attempt.createDeckPending = false;

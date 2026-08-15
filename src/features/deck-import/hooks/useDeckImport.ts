@@ -16,7 +16,7 @@ import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTyp
 import { parseCsv } from "../lib/cardCsv";
 import { upsertImportedCards } from "../api/upsertImportedCards";
 import type { DeckImportAttempt, DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
-import { executeDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
+import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
 
 export interface DeckImportOptions {
   cards: Card[];
@@ -32,6 +32,7 @@ interface DeckImportState {
   running: boolean;
   validating: boolean;
   preview: DeckImportPreview | undefined;
+  previewError: unknown;
   error: unknown;
   data: DeckImportResult | undefined;
 }
@@ -41,6 +42,7 @@ const initialDeckImportState = (uid: string): DeckImportState => ({
   running: false,
   validating: false,
   preview: undefined,
+  previewError: null,
   error: null,
   data: undefined,
 });
@@ -80,6 +82,7 @@ interface FilePreviewDependencies {
   runningRef: { current: boolean };
   setValidating: (validating: boolean) => void;
   setPreview: (preview: DeckImportPreview | undefined) => void;
+  setPreviewError: (error: unknown) => void;
   reset: () => void;
   prepare: (request: DeckImportRequest) => Promise<DeckImportAttempt>;
   preparedRequest: { current: DeckImportRequest | undefined };
@@ -100,6 +103,7 @@ const previewDeckImportFile = async (
     runningRef,
     setValidating,
     setPreview,
+    setPreviewError,
     reset,
     prepare,
     preparedRequest,
@@ -129,6 +133,9 @@ const previewDeckImportFile = async (
     preparedRequest.current = request;
     setPreview(next);
     return next;
+  } catch (error) {
+    if (isCurrent()) setPreviewError(error);
+    throw error;
   } finally {
     if (isCurrent()) setValidating(false);
   }
@@ -194,6 +201,7 @@ export const useDeckImport = ({
   const setRunning = (running: boolean) => updateState({ running });
   const setValidating = (validating: boolean) => updateState({ validating });
   const setPreview = (preview: DeckImportPreview | undefined) => updateState({ preview });
+  const setPreviewError = (previewError: unknown) => updateState({ previewError });
   const setError = (error: unknown) => updateState({ error });
 
   const mutateAsync = async (request: DeckImportRequest) => {
@@ -203,7 +211,11 @@ export const useDeckImport = ({
       const dependencies = dependenciesRef.current;
       // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
       if (dependencies == null) throw new Error("Deck import dependencies are not available");
-      const result = await executeDeckImport(request, dependencies);
+      const attempt = await prepareDeckImport(request, dependencies);
+      if (generation.current !== operationGeneration || generationUid.current !== dependencies.uid) {
+        throw new Error("Deck import user changed before the import could start");
+      }
+      const result = await executePreparedDeckImport(attempt, dependencies);
       if (generation.current === operationGeneration) updateState({ data: result });
       return result;
     } catch (nextError) {
@@ -217,7 +229,7 @@ export const useDeckImport = ({
   const resetOperation = () => {
     lastRequest.current = undefined;
     preparedPreviewRequest.current = undefined;
-    updateState({ data: undefined, error: null });
+    updateState({ data: undefined, previewError: null, error: null });
   };
 
   /**
@@ -237,7 +249,7 @@ export const useDeckImport = ({
     runRef.current = run;
   });
 
-  const { preview, validating, running, error, data } = currentState;
+  const { preview, previewError, validating, running, error, data } = currentState;
 
   /**
    * Validates the selected CSV file and stores its import preview.
@@ -248,6 +260,7 @@ export const useDeckImport = ({
       runningRef,
       setValidating,
       setPreview,
+      setPreviewError,
       reset: resetOperation,
       prepare: async (request) => {
         const dependencies = dependenciesRef.current;
@@ -316,6 +329,7 @@ export const useDeckImport = ({
     validating,
     pending: running,
     error,
+    previewError,
     data,
     partialResult: partialResultFrom(error),
     retry,

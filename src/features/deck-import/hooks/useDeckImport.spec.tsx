@@ -137,9 +137,13 @@ describe("useDeckImport", () => {
     const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
-    await expect(result.current.selectFile(file)).rejects.toThrow("server read failed");
+    await actAsync(async () => {
+      await expect(result.current.selectFile(file)).rejects.toThrow("server read failed");
+    });
 
     expect(result.current.preview).toBeUndefined();
+    expect(result.current.previewError).toEqual(new Error("server read failed"));
+    expect(result.current.error).toBeNull();
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
   });
@@ -450,6 +454,28 @@ describe("useDeckImport", () => {
     mocks.uid = "uid-b";
     rerender();
     finishFetch(new Response('"front","back","","key"'));
+
+    await rejection;
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+    expect(result.current.pending).toBe(false);
+    expect(result.current.error).toBeNull();
+    expect(result.current.data).toBeUndefined();
+  });
+
+  it("does not write when the UID changes during server-backed preparation", async () => {
+    let finishServerRead!: (decks: Deck[]) => void;
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response('"front","back","","key"'));
+    mocks.fetchDecks.mockReturnValueOnce(new Promise<Deck[]>((resolve) => (finishServerRead = resolve)));
+    const { result, rerender } = renderHook(useTestDeckImport);
+
+    const operation = result.current.importUrl("https://example.test/deck.csv");
+    const rejection = expect(operation).rejects.toThrow("user changed");
+    await waitFor(() => expect(mocks.fetchDecks).toHaveBeenCalledWith("uid-a"));
+
+    mocks.uid = "uid-b";
+    rerender();
+    finishServerRead([]);
 
     await rejection;
     expect(mocks.createDeck).not.toHaveBeenCalled();

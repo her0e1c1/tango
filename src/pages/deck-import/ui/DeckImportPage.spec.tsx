@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => ({
   pending: false,
   validating: false,
   error: null as unknown,
+  previewError: null as unknown,
 }));
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
@@ -51,6 +52,7 @@ vi.mock("@/features/deck-import", () => ({
     pending: mocks.pending,
     validating: mocks.validating,
     error: mocks.error,
+    previewError: mocks.previewError,
   }),
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -102,6 +104,7 @@ describe("DeckImportPage", () => {
     mocks.pending = false;
     mocks.validating = false;
     mocks.error = null;
+    mocks.previewError = null;
   });
 
   it("selects a CSV without importing or navigating automatically", async () => {

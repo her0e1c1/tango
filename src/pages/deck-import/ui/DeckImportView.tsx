@@ -26,6 +26,7 @@ interface DeckImportViewProps {
   result?: DeckImportResult;
   partialResult?: DeckImportResult;
   error?: unknown;
+  previewError?: unknown;
 }
 
 /**
@@ -99,6 +100,18 @@ const ImportResult = (props: ImportResultProps) => {
       >
         Back to decks
       </Button>
+    </section>
+  );
+};
+
+const PreviewError = ({ error }: { error: unknown }) => {
+  if (error == null) return null;
+  const message = error instanceof Error ? error.message : "The import preview could not be prepared.";
+  return (
+    <section role="alert" className="rounded-surface border border-danger bg-surface-muted p-4 text-ink">
+      <h2 className="font-bold">Unable to prepare preview</h2>
+      <p className="mt-1 break-words text-caption text-ink-muted">{message}</p>
+      <p className="mt-2 text-caption text-ink-muted">Choose the CSV file again to retry.</p>
     </section>
   );
 };
@@ -248,6 +261,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
           onRetry={props.onRetry}
           onBack={props.onBack}
         />
+        <PreviewError error={props.previewError} />
         <section>
           <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>
           <Upload
