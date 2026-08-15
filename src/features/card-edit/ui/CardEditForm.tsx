@@ -1,11 +1,12 @@
-import type { Card } from "@/entities/card";
+import type { Card, CardEditInput } from "@/entities/card";
 
-import type * as React from "react";
+import * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 
+import { useAuthUid } from "@/entities/auth";
+import { editCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { Feedback } from "@/shared/ui/feedback";
-import { useCardEditAction } from "../model/useCardEditAction";
 import { useCardFormState } from "../model/useCardFormState";
 import { CardForm } from "./CardForm";
 
@@ -16,12 +17,25 @@ export interface CardEditFormProps {
 }
 
 export const CardEditForm: React.FC<CardEditFormProps> = ({ card, onCancel, onSaved }) => {
-  const editAction = useCardEditAction({ onSaved });
+  const uid = useAuthUid();
+  const [error, setError] = React.useState<unknown>(null);
+  const updateCard = React.useCallback(
+    async (input: CardEditInput) => {
+      setError(null);
+      try {
+        await editCard(uid, input);
+        onSaved();
+      } catch (nextError) {
+        setError(nextError);
+      }
+    },
+    [onSaved, uid]
+  );
   const cardForm = useCardFormState({
     card,
     categoryOptions: CATEGORY.map((category) => ({ label: category, value: category })),
     onCancel,
-    onSubmit: editAction.update,
+    onSubmit: updateCard,
   });
 
   return (
@@ -39,7 +53,7 @@ export const CardEditForm: React.FC<CardEditFormProps> = ({ card, onCancel, onSa
         <h1 className="mt-1 break-words text-display font-bold text-ink">Edit card</h1>
         <p className="mt-2 text-body text-ink-muted">Update the prompt, answer, and organization for this card.</p>
       </header>
-      <Feedback tone="error">{editAction.error == null ? null : "Unable to save changes. Try again."}</Feedback>
+      <Feedback tone="error">{error == null ? null : "Unable to save changes. Try again."}</Feedback>
       <CardForm {...cardForm} />
     </section>
   );
