@@ -5,8 +5,8 @@ import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
-import { calculateStudySessionIndex, type StudySessionMovement } from "./rules";
-import type { StudySession, StudySessions } from "./types";
+import { calculateStudySessionIndex } from "./rules";
+import type { StudySession, StudySessionMovement, StudySessions } from "./types";
 
 const STUDY_STORAGE_KEY = "tango-study";
 // No migration is registered: changing this version deliberately invalidates older state shapes.

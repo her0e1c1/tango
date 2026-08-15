@@ -12,7 +12,7 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 const renderStudyScreen = (deck: Deck, state: StudyState) => {
-  if (state.status !== "ready") {
+  if (state.status !== "studying") {
     return state.status === "loading" ? (
       <RouteFeedback title="Loading…" tone="loading" />
     ) : (

@@ -35,7 +35,7 @@ describe("resolveStudySession", () => {
 
   it("resolves the card at the persisted session position", () => {
     expect(resolveStudySession(session, cards)).toEqual({
-      status: "ready",
+      status: "studying",
       session,
       card: cards[1],
     });

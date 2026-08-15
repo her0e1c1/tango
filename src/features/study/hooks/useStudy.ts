@@ -30,7 +30,7 @@ export type StudyState = StudyCommands &
   (
     | { status: "loading" | "unavailable" }
     | {
-        status: "ready";
+        status: "studying";
         session: StudySession;
         card: Card;
         showHeader: boolean;
@@ -64,12 +64,12 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
   const exitingDeck = React.useRef<DeckId>(undefined);
 
   React.useEffect(() => {
-    if (resolvedSession.status !== "ready") return;
+    if (resolvedSession.status !== "studying") return;
     touchStudySession(deckId);
   }, [deckId, resolvedSession.status]);
 
   React.useEffect(() => {
-    if (resolvedSession.status === "ready") {
+    if (resolvedSession.status === "studying") {
       exitingDeck.current = undefined;
       return;
     }
@@ -84,7 +84,7 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
   React.useEffect(() => {
     const nextIndex = session == null ? undefined : calculateStudySessionIndex(session, "next");
     if (
-      resolvedSession.status !== "ready" ||
+      resolvedSession.status !== "studying" ||
       !autoPlay ||
       preferences.study.cardInterval <= 0 ||
       nextIndex === undefined
@@ -103,10 +103,10 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     toggleAutoPlay,
   };
 
-  if (resolvedSession.status !== "ready") return { status: resolvedSession.status, ...commands };
+  if (resolvedSession.status !== "studying") return { status: resolvedSession.status, ...commands };
 
   return {
-    status: "ready",
+    status: "studying",
     ...commands,
     session: resolvedSession.session,
     card: resolvedSession.card,

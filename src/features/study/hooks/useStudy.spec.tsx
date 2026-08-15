@@ -75,7 +75,7 @@ describe("useStudy", () => {
   it("coordinates display state, persistence, and session progression", async () => {
     const { result } = renderHook(() => useStudy(deckId, cards, mocks.onUnavailable));
     expect(result.current).toMatchObject({
-      status: "ready",
+      status: "studying",
       session: { deckId, cardOrderIds: ["card-1", "card-2"], currentIndex: 0 },
       card: { id: "card-1" },
       showBackText: false,
@@ -85,10 +85,10 @@ describe("useStudy", () => {
     expect(mocks.touchStudySession).toHaveBeenCalledWith(deckId);
 
     act(() => result.current.toggleBackText());
-    expect(result.current).toMatchObject({ status: "ready", showBackText: true });
+    expect(result.current).toMatchObject({ status: "studying", showBackText: true });
     await actAsync(() => result.current.swipeRight());
 
-    await waitFor(() => expect(result.current).toMatchObject({ status: "ready", card: { id: "card-2" } }));
+    await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { id: "card-2" } }));
     expect(result.current).toMatchObject({ showBackText: false, swipeFeedback: "cardSwipeRight" });
     expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }));
   });
@@ -106,7 +106,7 @@ describe("useStudy", () => {
 
     act(() => vi.advanceTimersByTime(1000));
 
-    expect(result.current).toMatchObject({ status: "ready", card: { id: "card-2" } });
+    expect(result.current).toMatchObject({ status: "studying", card: { id: "card-2" } });
   });
 
   it("reports and handles an unavailable session", async () => {
