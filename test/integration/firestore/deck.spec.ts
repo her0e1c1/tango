@@ -9,17 +9,17 @@ import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card";
-import { getTimestamp } from "@/shared/firestore";
+import { getTimestamp } from "@/shared/api/firestoreDocument";
 import * as UUID from "uuid";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
 const uuid = UUID.v4;
 
-vi.mock("@/shared/firestore", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/shared/firestore")>()),
+vi.mock("@/shared/api/firestoreDocument", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/api/firestoreDocument")>()),
   getTimestamp: vi.fn(),
 }));
-vi.mock("@/shared/firebase", async () => ({
+vi.mock("@/shared/api/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 

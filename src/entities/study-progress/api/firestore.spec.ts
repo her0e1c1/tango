@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/shared/firebase", () => ({ db: {} }));
+vi.mock("@/shared/api/firebase", () => ({ db: {} }));
 
 import { editStudyProgress } from "./firestore";
 
