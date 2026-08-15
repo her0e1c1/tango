@@ -54,6 +54,12 @@ export const clearRemoteCards = (): void => {
   cardStore.setState({ remoteCards: [] });
 };
 
+export const findCardById = (id: CardId): Card | undefined => {
+  const cardId = cardIdSchema.parse(id);
+  const state = cardStore.getState();
+  return state.remoteCards.find((card) => card.id === cardId) ?? state.localCards.find((card) => card.id === cardId);
+};
+
 /** @public */
 export const createLocalCard = (input: CardCreateInput): Card => {
   const card = cardCreateSchema.parse(input);

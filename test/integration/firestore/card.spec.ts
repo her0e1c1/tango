@@ -4,14 +4,16 @@
  * "should update a card", and "should import cards".
  */
 
-import { deleteCard, editCard, mutateCards, type Card } from "@/entities/card";
-import { createCard as createCardCommand } from "@/entities/card/api/firestore";
+import { mutateCards, type Card } from "@/entities/card";
 import type { CardCreateInput } from "@/entities/card/model/types";
-import { createDeck as createDeckCommand } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { collection, deleteDoc, getDocs, getFirestore, doc, getDoc, query, where } from "firebase/firestore";
+import { createCard as createCardCommand, deleteCard, editCard } from "@/entities/card/api/firestore";
+import { createDeck as createDeckCommand } from "@/entities/deck/api/firestore";
+import { replaceRemoteCards } from "@/entities/card/model/store";
+import { replaceRemoteDecks } from "@/entities/deck/model/store";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import * as UUID from "uuid";
@@ -134,6 +136,8 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     const deckId = await initDeck();
     const card = { ...newCard, deckId, id: uuid(), frontText: "planned update" };
     await createCardCommand("uid", card);
+    replaceRemoteDecks([createDeck({ id: deckId, uid: "uid", localMode: false })]);
+    replaceRemoteCards([card]);
     await deleteDoc(doc(db, "card", card.id));
 
     await expect(mutateCards("uid", [{ kind: "edit", card }])).rejects.toMatchObject({ failedIds: [card.id] });

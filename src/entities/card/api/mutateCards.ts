@@ -1,6 +1,6 @@
 import type { CardId, CardMutation } from "../model/types";
 
-import { createCard, editCard } from "./firestore";
+import { createCard, editCard } from "./mutations";
 
 export class CardBulkMutationError extends Error {
   constructor(

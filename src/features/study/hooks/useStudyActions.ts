@@ -4,7 +4,7 @@
  * coordinate services themselves.
  */
 
-import type { Card } from "@/entities/card";
+import { mustFindCardById, type Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { Preferences, SwipeDirection } from "@/entities/preferences";
@@ -125,8 +125,8 @@ const runStudySwipe = async (
   }
 
   const cardId = session.cardOrderIds[session.currentIndex];
-  const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
-  if (card == null) return;
+  if (cardId == null) return;
+  const card = mustFindCardById(cards, cardId);
 
   const previous = {
     session: { ...session },

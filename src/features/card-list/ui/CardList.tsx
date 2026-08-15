@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { deleteCard, type Card, type CardId } from "@/entities/card";
+import { deleteCard, mustFindCardById, type Card, type CardId } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
@@ -42,11 +42,8 @@ export const CardList: React.FC<CardListProps> = (props) => {
   const [mutationError, setMutationError] = React.useState<unknown>(null);
   const [successMessage, setSuccessMessage] = React.useState<string>();
 
-  const findCard = (id: CardId) => props.cards.find((card) => card.id === id);
-
   const changeScore = (id: CardId, offset: number) => {
-    const card = findCard(id);
-    if (card == null) return;
+    const card = mustFindCardById(props.cards, id);
     void props
       .onChangeScore(card, card.score + offset)
       .then(() => setMutationError(null))
@@ -54,8 +51,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
   };
 
   const requestDeletion = (id: CardId) => {
-    const card = findCard(id);
-    if (card == null) return;
+    const card = mustFindCardById(props.cards, id);
     setSuccessMessage(undefined);
     setDeletionErrorCardId(undefined);
     setDeletionTarget(card);

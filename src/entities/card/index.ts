@@ -1,4 +1,5 @@
-export { deleteCard, editCard, fetchCards, subscribeCards } from "./api/firestore";
+export { fetchCards, subscribeCards } from "./api/firestore";
+export { deleteCard, editCard } from "./api/mutations";
 export { CardBulkMutationError, mutateCards } from "./api/mutateCards";
 export { generateCardId } from "./model/id";
 export { useCard, useCards, useCardsByDeckId } from "./model/hooks";
@@ -17,4 +18,4 @@ export type {
   CardMutation,
   CardRaw,
 } from "./model/types";
-export { filterCardsByDeckId } from "./model/rules";
+export { filterCardsByDeckId, mustFindCardById } from "./model/rules";

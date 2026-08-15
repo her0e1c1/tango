@@ -1,6 +1,7 @@
-export { createDeck, deleteDeck, editDeck, fetchDecks, subscribeDecks } from "./api/firestore";
+export { fetchDecks, subscribeDecks } from "./api/firestore";
+export { createDeck, deleteDeck, editDeck } from "./api/mutations";
 export { generateDeckId } from "./model/id";
-export { CATEGORY, getCategory, isHighlightLanguage } from "./model/rules";
+export { CATEGORY, getCategory, isHighlightLanguage, mustFindDeckById } from "./model/rules";
 export { useDeck, useDecks } from "./model/hooks";
 export { clearRemoteDecks } from "./model/store";
 /** @public */

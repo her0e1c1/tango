@@ -6,7 +6,7 @@ import { createCard as createCardFixture } from "@/test/factories";
 
 const writers = vi.hoisted(() => ({ createCard: vi.fn(), editCard: vi.fn() }));
 
-vi.mock("./firestore", () => writers);
+vi.mock("./mutations", () => writers);
 
 import { type CardBulkMutationError, mutateCards } from "./mutateCards";
 

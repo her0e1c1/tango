@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { filterCardsByDeckId, type Card } from "@/entities/card";
-import type { Deck, DeckId } from "@/entities/deck";
+import { mustFindDeckById, type Deck, type DeckId } from "@/entities/deck";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 
@@ -38,12 +38,10 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
     []
   );
 
-  const findDeck = (id: DeckId) => props.decks.find((deck) => deck.id === id);
   const cardsForDeck = (id: DeckId) => filterCardsByDeckId(props.cards, id);
 
   const requestDeletion = (id: DeckId) => {
-    const deck = findDeck(id);
-    if (deck == null) return;
+    const deck = mustFindDeckById(props.decks, id);
     setSuccessMessage(undefined);
     setDeletionErrorDeckId(undefined);
     setDeletionTarget({ deck, cardCount: cardsForDeck(id).length });
@@ -100,8 +98,8 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
           onClickRestart: props.onStartDeck,
           onClickStudy: props.onStartDeck,
           onClickDownload: (id) => {
-            const deck = findDeck(id);
-            if (deck != null) downloadDeckCsv(deck, cardsForDeck(id));
+            const deck = mustFindDeckById(props.decks, id);
+            downloadDeckCsv(deck, cardsForDeck(id));
           },
           onClickDelete: requestDeletion,
         }}
