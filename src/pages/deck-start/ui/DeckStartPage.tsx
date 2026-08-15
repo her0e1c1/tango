@@ -7,7 +7,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
-import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
+import { DeckStartForm, useDeckFilterState } from "@/features/deck-start";
+import { useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
