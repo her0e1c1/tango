@@ -23,11 +23,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 vi.mock("@/entities/preferences", () => ({ usePreferences: () => mocks.preferences, setDarkMode: vi.fn() }));
 vi.mock("@/entities/card", () => ({
-  filterCardsByDeckId: (cards: Card[], id: string) => cards.filter((card) => card.deckId === id),
-  filterTagsByDeckId: (cards: Card[], id: string) => [
-    ...new Set(cards.filter((card) => card.deckId === id).flatMap((card) => card.tags)),
-  ],
-  useCards: () => mocks.cards,
+  useCardsByDeckId: (id: string) => {
+    const cards = mocks.cards.filter((card) => card.deckId === id);
+    return { cards, tags: [...new Set(cards.flatMap((card) => card.tags))] };
+  },
 }));
 vi.mock("@/entities/deck", () => ({ useDeck: () => mocks.deck ?? undefined }));
 vi.mock("@/features/card-list", () => ({

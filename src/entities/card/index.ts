@@ -1,5 +1,5 @@
 export { createCard, deleteCard, editCard, fetchCards, generateCardId, subscribeCards } from "./api/firestore";
-export { useCard, useCards } from "./model/hooks";
+export { useCard, useCards, useCardsByDeckId } from "./model/hooks";
 export { clearRemoteCards } from "./model/store";
 export type {
   Card,
@@ -8,4 +8,4 @@ export type {
   CardId,
   CardRaw,
 } from "./model/types";
-export { filterCardsByDeckId, filterTagsByDeckId } from "./model/rules";
+export { filterCardsByDeckId } from "./model/rules";
