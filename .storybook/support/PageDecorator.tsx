@@ -68,7 +68,13 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
 
   const decks = (parameters.decks ?? []).map(cloneDeck);
   const cards = (parameters.cards ?? []).map(cloneCard);
-  const preferences = preferencesSchema.parse(parameters.preferences);
+  const preferences = preferencesSchema.parse({
+    ...parameters.preferences,
+    study: {
+      ...(parameters.preferences?.study ?? {}),
+      ...(parameters.autoPlay !== undefined ? { defaultAutoPlay: parameters.autoPlay } : {}),
+    },
+  });
   preferencesStore.setState({
     preferences: {
       ...preferences,
@@ -80,7 +86,6 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   });
   studyStore.setState({
     sessionsByDeckId: cloneSessions(parameters.sessionsByDeckId ?? {}),
-    autoPlay: parameters.autoPlay ?? false,
   });
   replaceDecks(decks);
   replaceCards(cards);

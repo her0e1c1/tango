@@ -118,16 +118,6 @@ describe("study store", () => {
     expect(selectStudySessionForRoute("missing-deck")(store.getState())).toBeNull();
   });
 
-  it("initializes and toggles transient study UI state", () => {
-    const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
-
-    store.getState().initializeStudyUi(true);
-    expect(store.getState()).toMatchObject({ autoPlay: true });
-
-    store.getState().toggleAutoPlay();
-    expect(store.getState()).toMatchObject({ autoPlay: false });
-  });
-
   it("persists exactly the session map in a v3 envelope", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
@@ -150,7 +140,6 @@ describe("study store", () => {
       sessionsByDeckId: {
         "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
       },
-      autoPlay: false,
     });
     expect(restored.getState()).not.toHaveProperty("session");
   });

@@ -35,9 +35,7 @@ const mocks = vi.hoisted(() => ({
   },
   studyState: {
     sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
-    autoPlay: false,
   },
-  initializeStudySessionUi: vi.fn(),
   touchStudySession: vi.fn(),
   hydrated: true,
   toggleShowHeader: vi.fn(),
@@ -77,7 +75,6 @@ vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
-    initializeStudySessionUi: mocks.initializeStudySessionUi,
     touchStudySession: mocks.touchStudySession,
     useEditStudyProgress: () => mocks.cardMutation,
     useStudyActions: (
@@ -85,6 +82,7 @@ vi.mock("@/features/study", async (importOriginal) => {
       options?: {
         onSwipe?: (direction: SwipeDirection) => void;
         onToggleBackText?: () => void;
+        onToggleAutoPlay?: () => void;
       }
     ) => ({
       swipeUp: () => {
@@ -108,7 +106,10 @@ vi.mock("@/features/study", async (importOriginal) => {
         options?.onToggleBackText?.();
         mocks.toggleShowBackText();
       },
-      toggleAutoPlay: mocks.toggleAutoPlay,
+      toggleAutoPlay: () => {
+        options?.onToggleAutoPlay?.();
+        mocks.toggleAutoPlay();
+      },
       resetStudy: mocks.resetStudy,
     }),
     useStudyHydrated: () => mocks.hydrated,
@@ -181,10 +182,6 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
         lastStudiedAt: 0,
       },
     };
-    mocks.studyState.autoPlay = false;
-    mocks.initializeStudySessionUi.mockImplementation((defaultAutoPlay: boolean) => {
-      mocks.studyState.autoPlay = defaultAutoPlay;
-    });
     mocks.touchStudySession.mockImplementation((deckId: DeckId) => {
       const session = mocks.studyState.sessionsByDeckId[deckId];
       if (session != null) {
@@ -232,6 +229,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     expect(mocks.toggleShowHeader).toHaveBeenCalledOnce();
     expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
     expect(mocks.toggleAutoPlay).toHaveBeenCalledOnce();
+    expect(screen.getByTestId("pause")).toBeInTheDocument();
   });
 
   it("owns header visibility across front and back content", () => {
@@ -318,22 +316,25 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     const session = mocks.studyState.sessionsByDeckId[deck.id];
     if (session == null) throw new Error("Expected an active study session");
     mocks.studyState.sessionsByDeckId[deck.id] = { ...session, lastStudiedAt: 100 };
-    mocks.studyState.autoPlay = true;
     const now = vi.spyOn(Date, "now").mockReturnValue(9000);
 
     render(<DeckSwiperPage />);
 
-    expect(mocks.initializeStudySessionUi).toHaveBeenCalledWith(false);
     expect(mocks.touchStudySession).toHaveBeenCalledWith(deck.id);
     expect(mocks.studyState.sessionsByDeckId[deck.id]?.lastStudiedAt).toBe(9000);
-    expect(mocks.studyState).toMatchObject({ autoPlay: false });
     now.mockRestore();
   });
 
   it("renders back text and controlled auto-play", () => {
-    const view = render(<DeckSwiperPage />);
-    mocks.studyState.autoPlay = true;
-    view.rerender(<DeckSwiperPage />);
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    mocks.state.preferences = createPreferences({
+      ...mocks.state.preferences,
+      study: {
+        ...mocks.state.preferences.study,
+        defaultAutoPlay: true,
+      },
+    });
+    render(<DeckSwiperPage />);
 
     fireEvent.click(screen.getByText(card.frontText));
 
@@ -350,6 +351,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
     expect(mocks.toggleShowBackText).toHaveBeenCalled();
     expect(mocks.toggleAutoPlay).toHaveBeenCalledOnce();
+    expect(screen.getByTestId("play")).toBeInTheDocument();
     expect(mocks.swipeLeft).toHaveBeenCalledOnce();
     expect(mocks.swipeRight).toHaveBeenCalledOnce();
   });
