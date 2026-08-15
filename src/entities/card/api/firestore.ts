@@ -7,7 +7,6 @@ import type {
   DeleteCardInput,
   EditCardInput,
 } from "../model/types";
-import type { SnapshotMetadata } from "firebase/firestore";
 
 import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
@@ -18,6 +17,10 @@ import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/sch
 import { replaceCards } from "../model/store";
 
 const CARD_COLLECTION = "card";
+
+export interface CardSubscriptionEvent {
+  serverConfirmed: boolean;
+}
 
 const cardDtoSchema = z.object({
   id: z.string().optional(),
@@ -70,7 +73,7 @@ const convertCardDtoToCard = (id: CardId, value: unknown): Card => {
 export const subscribeCards = (
   uid: string,
   onError: (error: Error) => void,
-  onData: (metadata: SnapshotMetadata) => void = () => undefined
+  onData: (event: CardSubscriptionEvent) => void = () => undefined
 ): (() => void) =>
   onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
@@ -81,7 +84,8 @@ export const subscribeCards = (
           .map((document) => convertCardDtoToCard(document.id, document.data()))
           .filter((card) => card.deletedAt === null);
         replaceCards(cards);
-        onData(snapshot.metadata);
+        const serverConfirmed = !snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites;
+        onData({ serverConfirmed });
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
