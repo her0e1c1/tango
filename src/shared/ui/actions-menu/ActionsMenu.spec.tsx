@@ -184,10 +184,9 @@ describe("ActionsMenu", () => {
     const remove = screen.getByRole("menuitem", { name: "Delete" });
     await waitFor(() => expect(edit).toHaveFocus());
 
-    await actAsync(async () => {
+    act(() => {
       edit.blur();
       remove.focus();
-      await Promise.resolve();
     });
 
     expect(screen.getByRole("menu", { name: labels.menuLabel })).toBeInTheDocument();
@@ -228,11 +227,8 @@ describe("ActionsMenu", () => {
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
     try {
-      await actAsync(async () => {
-        firstEdit.blur();
-        fireEvent.click(screen.getByRole("button", { name: "Open second actions" }));
-        await Promise.resolve();
-      });
+      act(() => firstEdit.blur());
+      fireEvent.click(screen.getByRole("button", { name: "Open second actions" }));
 
       const secondMenu = screen.getByRole("menu", { name: `second ${labels.menuLabel}` });
       expect(secondMenu).toBeInTheDocument();
@@ -273,10 +269,9 @@ describe("ActionsMenu", () => {
     const external = screen.getByRole("button", { name: "External target" });
     await waitFor(() => expect(edit).toHaveFocus());
 
-    await actAsync(async () => {
+    act(() => {
       edit.blur();
       external.focus();
-      await Promise.resolve();
     });
 
     await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());

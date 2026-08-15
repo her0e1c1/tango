@@ -28,19 +28,16 @@
   "linter": {
     "rules": {
       "preset": "all",
+      // Exceptions preserve established test, orchestration, and fire-and-forget conventions.
       "complexity": {
-        // Test and orchestration functions stay cohesive even when they exceed generic size thresholds.
         "noExcessiveLinesPerFunction": "off",
-        // Array iteration is chosen for clarity when early exit and async sequencing are unnecessary.
         "noForEach": "off",
-        // Explicit void is the project convention for intentional fire-and-forget promises.
         "noVoid": "off"
       },
+      // Framework and Project domain rollouts remain scoped to #1011 and #1012.
       "correctness": {
-        // Domain-wide Project linting is handled separately in #1012.
         "useImportExtensions": "off",
         "useJsonImportAttributes": "off",
-        // Framework-domain rules are evaluated separately and must not run against this React codebase yet.
         "noSolidDestructuredProps": "off",
         "useExhaustiveDependencies": "off",
         "useJsxKeyInIterable": "off",
@@ -55,8 +52,7 @@
               "**/*.config.{js,mjs,ts}"
             ]
           }
-        },
-        "noUnresolvedImports": "error"
+        }
       },
       "nursery": {
         "noFloatingPromises": "error",
@@ -64,20 +60,17 @@
         "useAwaitThenable": "error",
         "useExhaustiveSwitchCases": "error"
       },
+      // FSD boundaries and current framework/test patterns are intentional outside performance-sensitive paths.
       "performance": {
-        // FSD public APIs intentionally use barrel files as architectural boundaries.
         "noBarrelFile": "off",
-        // Framework-domain rules are evaluated separately in #1011 and are not portable across React tooling.
         "noImgElement": "off",
         "noJsxPropsBind": "off",
         "useSolidForComponent": "off",
-        // Namespace imports are required by libraries and test mocks that expose module-shaped APIs.
         "noNamespaceImport": "off",
-        // These regular expressions are local to setup and test paths, not hot loops.
         "useTopLevelRegex": "off"
       },
+      // High-entropy domain labels and fixtures are allowed while credential-like values remain errors.
       "security": {
-        // Domain action names and deterministic test fixtures have higher entropy than prose but are not credentials.
         "noSecrets": {
           "level": "error",
           "options": {
@@ -85,36 +78,23 @@
           }
         }
       },
+      // Module, JSX, control-flow, file-layout, and naming settings follow established project conventions.
       "style": {
-        // Framework entry points and stories require or conventionally use default exports.
         "noDefaultExport": "off",
-        // Concise one-line guard clauses are an established project convention.
         "useBlockStatements": "off",
-        // Large test suites remain grouped by observable behavior instead of arbitrary file limits.
         "noExcessiveLinesPerFile": "off",
-        // CSS theme tokens intentionally use exact hexadecimal colors.
         "noHexColors": "off",
-        // JSX boolean shorthand is the established React convention in this codebase.
         "noImplicitBoolean": "off",
-        // The product has no localization layer, so user-facing JSX copy remains colocated with components.
         "noJsxLiterals": "off",
-        // Numeric values in tests, UI dimensions, and configuration are clearer inline than as distant constants.
         "noMagicNumbers": "off",
-        // Conditional-expression and branch layout remains a readability choice for each call site.
         "noNegationElse": "off",
         "noNestedTernary": "off",
         "noTernary": "off",
-        // Exhaustive discriminated-union switches must not hide future cases behind a default branch.
         "useDefaultSwitchClause": "off",
-        // TypeScript parameter properties are the concise project convention for small adapters.
         "noParameterProperties": "off",
-        // Framework-domain React rules are evaluated separately in #1011.
         "useComponentExportOnlyModules": "off",
-        // Interfaces and type aliases express different extension and composition intent.
         "useConsistentTypeDefinitions": "off",
-        // Export placement follows feature readability rather than a file-wide ordering policy.
         "useExportsLast": "off",
-        // Browser code names window and document directly when their browser semantics matter.
         "useGlobalThis": "off",
         "useFilenamingConvention": {
           "level": "error",
@@ -138,10 +118,9 @@
           }
         }
       },
+      // Existing cross-domain checks stay errors; nullish boundaries and non-React JSX rules remain exempt.
       "suspicious": {
-        // Loose null equality intentionally represents the null-or-undefined boundary.
         "noEqualsToNull": "off",
-        // Solid and Qwik JSX property rules are incompatible with React's className contract.
         "noReactSpecificProps": "off",
         "noDeprecatedImports": "error",
         "noImportCycles": "error",
