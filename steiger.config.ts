@@ -13,6 +13,13 @@ export default defineConfig([
     },
   },
   {
+    files: ["./src/shared/api/**", "./src/shared/lib/**"],
+    rules: {
+      "fsd/no-public-api-sidestep": "off",
+      "fsd/public-api": "off",
+    },
+  },
+  {
     files: [
       "./src/entities/study-progress/**",
       "./src/features/deck-list/**",

@@ -11,7 +11,7 @@ import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } fro
 import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-import { toRemoteById } from "@/shared/api";
+import { toRemoteById } from "@/shared/lib/remoteSnapshot";
 
 import { DeckStartView } from "./DeckStartView";
 

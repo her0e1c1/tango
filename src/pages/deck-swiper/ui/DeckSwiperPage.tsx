@@ -23,7 +23,7 @@ import {
   usePreferences,
   type SwipeDirection,
 } from "@/entities/preferences";
-import { toRemoteById } from "@/shared/api";
+import { toRemoteById } from "@/shared/lib/remoteSnapshot";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 

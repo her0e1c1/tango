@@ -5,7 +5,7 @@ import type { StudyPreferences } from "@/entities/preferences";
 
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/api/firebase", () => ({ auth: {}, db: {} }));
 
 import { filterCardsForDeck } from "./cardSelection";
 import { createCard, createDeck } from "@/test/factories";
