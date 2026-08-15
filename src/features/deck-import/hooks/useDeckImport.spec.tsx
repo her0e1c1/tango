@@ -366,6 +366,39 @@ describe("useDeckImport", () => {
     });
   });
 
+  it("reports successful creates separately from failed updates", async () => {
+    const deck = createDeck({ id: "deck", name: "deck.csv", uid: "uid-a" });
+    const existing = createCard({
+      id: "existing",
+      deckId: deck.id,
+      uid: deck.uid,
+      frontText: "old front",
+      backText: "back",
+      uniqueKey: "existing",
+    });
+    mocks.fetchDecks.mockResolvedValueOnce([deck]);
+    mocks.fetchCards.mockResolvedValueOnce([existing]);
+    mocks.generateCardId.mockReturnValueOnce("created");
+    mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([existing.id], 2));
+    const { result } = renderHook(useTestDeckImport);
+    const file = new File(['"new front","back","","existing"\n"front","back","","created"'], "deck.csv", {
+      type: "text/csv",
+    });
+
+    await actAsync(async () => result.current.selectFile(file));
+    await actAsync(async () => {
+      await expect(result.current.importPreview()).rejects.toThrow("did not complete");
+    });
+
+    expect(result.current.partialResult).toEqual({
+      created: 1,
+      updated: 0,
+      skipped: 0,
+      failed: 1,
+      deckId: deck.id,
+    });
+  });
+
   it("retries only failed prepared Cards with stable IDs before listener publication", async () => {
     const deck = createDeck({ id: "destination", uid: "uid-a" });
     const first = {
