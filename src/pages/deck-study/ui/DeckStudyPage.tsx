@@ -1,7 +1,7 @@
 import { getCategory, type Deck, useDeck } from "@/entities/deck";
 import { toggleShowHeader, toggleShowSwipeButtonList } from "@/entities/preferences";
 
-import * as React from "react";
+import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
@@ -78,9 +78,9 @@ const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => 
 
 const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigate = useNavigate();
-  const handleUnavailable = React.useCallback(() => {
+  const handleUnavailable = () => {
     void navigate("/", { replace: true });
-  }, [navigate]);
+  };
   const study = useStudy(deck.id, cards, handleUnavailable);
 
   return <DeckStudyScreen deck={deck} state={study} />;

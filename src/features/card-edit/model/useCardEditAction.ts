@@ -13,18 +13,15 @@ export const useCardEditAction = ({ onSaved }: UseCardEditActionOptions = {}) =>
   const uid = useAuthUid();
   const [error, setError] = React.useState<unknown>(null);
 
-  const update = React.useCallback(
-    async (card: CardEditInput) => {
-      setError(null);
-      try {
-        await editCard(uid, card);
-        onSaved?.();
-      } catch (nextError) {
-        setError(nextError);
-      }
-    },
-    [onSaved, uid]
-  );
+  const update = async (card: CardEditInput) => {
+    setError(null);
+    try {
+      await editCard(uid, card);
+      onSaved?.();
+    } catch (nextError) {
+      setError(nextError);
+    }
+  };
 
   return { error, update };
 };

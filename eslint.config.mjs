@@ -45,9 +45,16 @@ export default [
       "@eslint-react": eslintReact,
     },
     rules: {
-      // React Compiler owns routine memoization; manual memoization must have an observable reason to remain.
-      "@eslint-react/no-unnecessary-use-callback": "error",
+      // React Compiler owns routine memoization; manual useMemo must have an observable reason to remain.
       "@eslint-react/no-unnecessary-use-memo": "error",
+      // Reserve this identifier so imports and React-qualified calls cannot bypass the compiler policy.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Identifier[name='useCallback']",
+          message: "Do not use useCallback; rely on React Compiler memoization.",
+        },
+      ],
     },
   },
   createBoundariesConfig({
