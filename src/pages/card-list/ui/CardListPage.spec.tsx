@@ -16,7 +16,6 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   navigate: vi.fn(),
   onClickTag: vi.fn(),
-  updateScore: vi.fn(),
   cardListProps: null as null | Record<string, unknown>,
 }));
 
@@ -30,12 +29,10 @@ vi.mock("@/entities/card", () => ({
 }));
 vi.mock("@/entities/deck", () => ({ useDeck: () => mocks.deck ?? undefined }));
 vi.mock("@/features/card-list", () => ({
-  useEditCardScore: () => ({ updateScore: mocks.updateScore }),
   CardList: (props: {
     cards: Card[];
     filter: { selectedTags: string[]; onChangeSelectedTags: (tags: string[]) => void };
     onEditCard: (id: string) => void;
-    onChangeScore: (card: Card, score: number) => Promise<void>;
   }) => {
     mocks.cardListProps = props as unknown as Record<string, unknown>;
     return (
@@ -43,9 +40,6 @@ vi.mock("@/features/card-list", () => ({
         <span>Card list feature</span>
         <button type="button" onClick={() => props.onEditCard(props.cards[0]?.id ?? "missing")}>
           Edit card
-        </button>
-        <button type="button" onClick={() => void props.onChangeScore(props.cards[0] as Card, 3)}>
-          Change score
         </button>
         <button type="button" onClick={() => props.filter.onChangeSelectedTags(["react"])}>
           Change tags
@@ -87,7 +81,6 @@ describe("CardListPage", () => {
     mocks.preferences = createPreferences();
     mocks.navigate.mockReset();
     mocks.onClickTag.mockReset();
-    mocks.updateScore.mockReset().mockResolvedValue(undefined);
     mocks.cardListProps = null;
   });
 
@@ -99,9 +92,6 @@ describe("CardListPage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Edit card" }));
     expect(mocks.navigate).toHaveBeenCalledWith(`/card/${card.id}/edit`);
-
-    await userEvent.click(screen.getByRole("button", { name: "Change score" }));
-    expect(mocks.updateScore).toHaveBeenCalledExactlyOnceWith(card.id, 3);
 
     await userEvent.click(screen.getByRole("button", { name: "Change tags" }));
     expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);

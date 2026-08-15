@@ -4,6 +4,7 @@ import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
+import { editStudyProgress } from "@/entities/study-progress";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 
@@ -31,7 +32,6 @@ export interface CardListProps {
   filter: CardListFilter;
   renderBackText: (props: CardListBackTextProps) => React.ReactNode;
   onEditCard: (id: CardId) => void;
-  onChangeScore: (card: Card, score: number) => Promise<void>;
 }
 
 export const CardList: React.FC<CardListProps> = (props) => {
@@ -44,8 +44,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
 
   const changeScore = (id: CardId, offset: number) => {
     const card = mustFindCardById(props.cards, id);
-    void props
-      .onChangeScore(card, card.score + offset)
+    void editStudyProgress(uid, { cardId: card.id, score: card.score + offset })
       .then(() => setMutationError(null))
       .catch(setMutationError);
   };
