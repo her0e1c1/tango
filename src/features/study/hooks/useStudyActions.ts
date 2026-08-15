@@ -25,7 +25,6 @@ export interface StudyActions {
   swipeRight: () => Promise<void>;
   updateIndex: (currentIndex: number) => void;
   toggleShowBackText: () => void;
-  toggleAutoPlay: () => void;
   resetStudy: () => void;
 }
 
@@ -177,15 +176,10 @@ export const useStudyActions = (
   const preferences = usePreferences();
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
-  /**
-   * Creates a new study session from the currently filtered cards.
-   * The saved UI preferences are applied before the Page is notified that the session is ready.
-   */
+  /** Creates a new persisted study session from the currently filtered cards. */
   const start = (cards: Card[]) => {
     const cardOrderIds = buildStudySession(cards, preferences.study);
-    const state = studyStore.getState();
-    state.startStudy(deckId, cardOrderIds);
-    state.initializeStudyUi(preferences.study.defaultAutoPlay);
+    studyStore.getState().startStudy(deckId, cardOrderIds);
     onHideBackText?.();
     onStarted?.();
   };
@@ -223,7 +217,6 @@ export const useStudyActions = (
       state.setCurrentIndex(deckId, currentIndex);
     },
     toggleShowBackText: () => onToggleBackText?.(),
-    toggleAutoPlay: () => studyStore.getState().toggleAutoPlay(),
     resetStudy: () => studyStore.getState().removeStudy(deckId),
   };
 };
