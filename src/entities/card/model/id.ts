@@ -1,3 +1,5 @@
 import type { CardId } from "./types";
 
-export const generateCardId = (): CardId => crypto.randomUUID();
+import { generateId } from "@/shared/lib/generateId";
+
+export const generateCardId = (): CardId => generateId();

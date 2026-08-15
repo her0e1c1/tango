@@ -43,6 +43,6 @@ describe("local Card persistence", () => {
   });
 
   it("generates an ID without Firebase", () => {
-    expect(generateCardId()).toMatch(/^[0-9a-f-]{36}$/);
+    expect(generateCardId()).toMatch(/^[A-Za-z0-9]{20}$/);
   });
 });
