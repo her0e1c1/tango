@@ -15,19 +15,13 @@ type DeckFilterFormProps = ComponentProps<typeof Template>;
 const args: DeckFilterFormProps = {
   scoreMax: 1,
   scoreMin: -1,
-  scoreMaxSwitchProps: { name: "scoreMaxSwitch", checked: true, onChange: () => undefined },
-  scoreMinSwitchProps: { name: "scoreMinSwitch", checked: true, onChange: () => undefined },
-  scoreMaxSliderProps: { name: "scoreMax", value: "1", min: -10, max: 10, onChange: () => undefined },
-  scoreMinSliderProps: { name: "scoreMin", value: "-1", min: -10, max: 10, onChange: () => undefined },
-  tagFilterProps: {
-    tags: [...fixture.tags.default],
-    selectedTags: [],
-    tagAndFilter: false,
-    onClickFilter: () => undefined,
-    onClickAll: () => undefined,
-    onClickClear: () => undefined,
-    onClickTag: () => undefined,
-  },
+  tags: [...fixture.tags.default],
+  selectedTags: [],
+  tagAndFilter: false,
+  setScoreMax: () => undefined,
+  setScoreMin: () => undefined,
+  setSelectedTags: () => undefined,
+  setTagAndFilter: () => undefined,
 };
 
 const meta = {
@@ -44,18 +38,16 @@ export const Default: Story = {};
 
 export const ManyTagsSelected: Story = {
   args: {
-    tagFilterProps: {
-      ...args.tagFilterProps,
-      tags: Array.from({ length: 40 }, (_, index) => `study-tag-${index + 1}`),
-      selectedTags: ["study-tag-2", "study-tag-17", "study-tag-31"],
-      tagAndFilter: true,
-    },
+    tags: Array.from({ length: 40 }, (_, index) => `study-tag-${index + 1}`),
+    selectedTags: ["study-tag-2", "study-tag-17", "study-tag-31"],
+    tagAndFilter: true,
   },
 };
 
 export const NoMatchCompatible: Story = {
   args: {
-    tagFilterProps: { ...args.tagFilterProps, selectedTags: ["advanced", "review"], tagAndFilter: true },
+    selectedTags: ["advanced", "review"],
+    tagAndFilter: true,
   },
 };
 

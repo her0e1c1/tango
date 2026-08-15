@@ -18,7 +18,7 @@ const CardListComposition = (props: {
   preferences: Preferences;
   onEditCard: (id: CardId) => void;
 }) => {
-  const deckFilterForm = useDeckFilterState({ deck: props.deck, tags: props.tags });
+  const deckFilter = useDeckFilterState(props.deck);
   const editCardScore = useEditCardScore();
 
   return (
@@ -27,11 +27,11 @@ const CardListComposition = (props: {
       cards={props.cards}
       preferences={props.preferences}
       filter={{
-        scoreMax: deckFilterForm.scoreMax,
-        scoreMin: deckFilterForm.scoreMin,
-        selectedTags: deckFilterForm.tagFilterProps.selectedTags ?? [],
-        controls: <DeckFilterForm {...deckFilterForm} />,
-        onChangeSelectedTags: (selectedTags) => deckFilterForm.tagFilterProps.onClickTag?.(selectedTags),
+        scoreMax: deckFilter.scoreMax,
+        scoreMin: deckFilter.scoreMin,
+        selectedTags: deckFilter.selectedTags,
+        controls: <DeckFilterForm {...deckFilter} tags={props.tags} />,
+        onChangeSelectedTags: deckFilter.setSelectedTags,
       }}
       renderBackText={(backText) => <BackText {...backText} />}
       onEditCard={props.onEditCard}

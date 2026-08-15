@@ -1,103 +1,40 @@
-/**
- * @file Provides the deck-filter feature's Deck filter state hook.
- * The hook combines state and operations behind one interface so components do not need to
- * coordinate services themselves.
- */
-
-import type { Deck } from "@/entities/deck";
-
-import * as React from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { editDeck } from "@/entities/deck";
-import type { DeckFilterForm } from "../ui/DeckFilterForm";
+import { type Deck, editDeck } from "@/entities/deck";
 
-type DeckFilterFormProps = React.ComponentProps<typeof DeckFilterForm>;
-
-export interface UseDeckFilterStateOptions {
-  deck: Deck;
-  tags: string[];
+export interface DeckFilterState {
+  scoreMax: number | null;
+  scoreMin: number | null;
+  selectedTags: string[];
+  tagAndFilter: boolean;
+  setScoreMax: (value: number | null) => void;
+  setScoreMin: (value: number | null) => void;
+  setSelectedTags: (value: string[]) => void;
+  setTagAndFilter: (value: boolean) => void;
 }
 
-/**
- * Provides the form state and persistence callback used to edit a Deck's card filters.
- */
-export const useDeckFilterState = ({ deck, tags }: UseDeckFilterStateOptions): DeckFilterFormProps => {
+type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
+
+export const useDeckFilterState = (deck: Deck): DeckFilterState => {
   const uid = useAuthUid();
-  const [scoreMaxEnabled, setScoreMaxEnabled] = React.useState(deck.scoreMax != null);
-  const [scoreMinEnabled, setScoreMinEnabled] = React.useState(deck.scoreMin != null);
-  const { control, handleSubmit, register, setValue, subscribe } = useForm<Deck>({ defaultValues: deck });
-  const scoreMax = useWatch({ control, name: "scoreMax" });
-  const scoreMin = useWatch({ control, name: "scoreMin" });
-  const selectedTags = useWatch({ control, name: "selectedTags" });
-  const tagAndFilter = useWatch({ control, name: "tagAndFilter" });
+  const [filter, setFilter] = useState<DeckFilterValues>(() => ({
+    scoreMax: deck.scoreMax,
+    scoreMin: deck.scoreMin,
+    selectedTags: deck.selectedTags,
+    tagAndFilter: deck.tagAndFilter,
+  }));
 
-  React.useEffect(
-    () =>
-      subscribe({
-        formState: { values: true },
-        callback: () => void handleSubmit((data) => editDeck(uid, data).catch(() => undefined))(),
-      }),
-    [handleSubmit, subscribe, uid]
-  );
-
-  const onClickFilter = (value: boolean) => {
-    setValue("tagAndFilter", value);
-  };
-  const onClickAll = () => {
-    setValue("selectedTags", tags);
-  };
-  const onClickClear = () => {
-    setValue("selectedTags", []);
-  };
-  const onClickTag = (value: string[]) => {
-    setValue("selectedTags", value);
+  const updateFilter = <Key extends keyof DeckFilterValues>(key: Key, value: DeckFilterValues[Key]) => {
+    setFilter((current) => ({ ...current, [key]: value }));
+    void editDeck(uid, { id: deck.id, [key]: value }).catch(() => undefined);
   };
 
   return {
-    scoreMax,
-    scoreMin,
-    scoreMaxSwitchProps: {
-      name: "scoreMaxSwitch",
-      checked: scoreMaxEnabled,
-      onChange: (event) => {
-        const enabled = event.currentTarget.checked;
-        setValue("scoreMax", enabled ? 0 : null);
-        setScoreMaxEnabled(enabled);
-      },
-    },
-    scoreMinSwitchProps: {
-      name: "scoreMinSwitch",
-      checked: scoreMinEnabled,
-      onChange: (event) => {
-        const enabled = event.currentTarget.checked;
-        setValue("scoreMin", enabled ? 0 : null);
-        setScoreMinEnabled(enabled);
-      },
-    },
-    scoreMaxSliderProps: {
-      ...register("scoreMax", { valueAsNumber: true }),
-      step: 1,
-      max: 10,
-      min: -10,
-      disabled: !scoreMaxEnabled,
-    },
-    scoreMinSliderProps: {
-      ...register("scoreMin", { valueAsNumber: true }),
-      step: 1,
-      max: 10,
-      min: -10,
-      disabled: !scoreMinEnabled,
-    },
-    tagFilterProps: {
-      tags,
-      selectedTags: selectedTags ?? [],
-      tagAndFilter: tagAndFilter ?? false,
-      onClickFilter,
-      onClickAll,
-      onClickClear,
-      onClickTag,
-    },
+    ...filter,
+    setScoreMax: (value) => updateFilter("scoreMax", value),
+    setScoreMin: (value) => updateFilter("scoreMin", value),
+    setSelectedTags: (value) => updateFilter("selectedTags", value),
+    setTagAndFilter: (value) => updateFilter("tagAndFilter", value),
   };
 };
