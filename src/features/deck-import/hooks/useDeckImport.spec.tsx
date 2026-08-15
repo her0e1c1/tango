@@ -26,6 +26,8 @@ const mocks = vi.hoisted(() => ({
   editCard: vi.fn(),
   createDeck: vi.fn(),
   bulkUpsert: vi.fn(),
+  fetchDecks: vi.fn(),
+  fetchCards: vi.fn(),
 }));
 
 vi.mock("@/entities/auth", () => ({
@@ -37,6 +39,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
   return {
     ...actual,
     filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+    fetchCards: mocks.fetchCards,
   };
 });
 vi.mock("../api/upsertImportedCards", async (importOriginal) => {
@@ -51,6 +54,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...actual,
     generateDeckId: mocks.generateDeckId,
+    fetchDecks: mocks.fetchDecks,
   };
 });
 vi.mock("../lib/cardCsv", async (importOriginal) => {
@@ -85,6 +89,8 @@ describe("useDeckImport", () => {
     mocks.editCard.mockResolvedValue(undefined);
     mocks.createDeck.mockResolvedValue(undefined);
     mocks.bulkUpsert.mockResolvedValue(undefined);
+    mocks.fetchDecks.mockResolvedValue([]);
+    mocks.fetchCards.mockResolvedValue([]);
   });
 
   it("previews a file without writing until import is confirmed", async () => {
@@ -122,6 +128,53 @@ describe("useDeckImport", () => {
       },
     ]);
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
+    expect(mocks.fetchDecks).toHaveBeenCalledOnce();
+    expect(mocks.fetchCards).toHaveBeenCalledOnce();
+  });
+
+  it("does not mutate when server-backed preview reads fail", async () => {
+    mocks.fetchDecks.mockRejectedValueOnce(new Error("server read failed"));
+    const { result } = renderHook(useTestDeckImport);
+    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
+
+    await actAsync(async () => {
+      await expect(result.current.selectFile(file)).rejects.toThrow("server read failed");
+    });
+
+    expect(result.current.preview).toBeUndefined();
+    expect(result.current.previewError).toEqual(new Error("server read failed"));
+    expect(result.current.error).toBeNull();
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+  });
+
+  it("previews and executes the same server-backed plan when local state is stale", async () => {
+    const serverDeck = createDeck({ id: "server-deck", name: "deck.csv", uid: "uid-a" });
+    const serverCard = createCard({
+      id: "server-card",
+      deckId: serverDeck.id,
+      uid: "uid-a",
+      frontText: "front",
+      backText: "old back",
+      tags: [],
+      uniqueKey: "key",
+    });
+    mocks.fetchDecks.mockResolvedValueOnce([serverDeck]);
+    mocks.fetchCards.mockResolvedValueOnce([serverCard]);
+    const { result } = renderHook(useTestDeckImport);
+    const file = new File(['"front","new back","","key"'], "deck.csv", { type: "text/csv" });
+
+    await actAsync(async () => result.current.selectFile(file));
+    expect(result.current.preview?.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
+
+    await actAsync(async () => result.current.importPreview());
+
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).toHaveBeenCalledWith([
+      expect.objectContaining({ id: "server-card", backText: "new back" }),
+    ]);
+    expect(mocks.fetchDecks).toHaveBeenCalledOnce();
+    expect(mocks.fetchCards).toHaveBeenCalledOnce();
   });
 
   it("keeps invalid files in preview without mutating state", async () => {
@@ -156,6 +209,8 @@ describe("useDeckImport", () => {
         uniqueKey: "key",
       }),
     ];
+    mocks.fetchDecks.mockResolvedValueOnce(mocks.decks);
+    mocks.fetchCards.mockResolvedValueOnce(mocks.cards);
     const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     let imported: DeckImportResult | undefined;
@@ -233,6 +288,17 @@ describe("useDeckImport", () => {
     const { result } = renderHook(useTestDeckImport);
 
     await expect(result.current.importUrl("https://example.test/invalid.csv")).rejects.toThrow("Fix invalid CSV rows");
+
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+  });
+
+  it("does not mutate when URL import server reads fail", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('"front","back","","key"'));
+    mocks.fetchCards.mockRejectedValueOnce(new Error("server read failed"));
+    const { result } = renderHook(useTestDeckImport);
+
+    await expect(result.current.importUrl("https://example.test/deck.csv")).rejects.toThrow("server read failed");
 
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
@@ -388,6 +454,28 @@ describe("useDeckImport", () => {
     mocks.uid = "uid-b";
     rerender();
     finishFetch(new Response('"front","back","","key"'));
+
+    await rejection;
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+    expect(result.current.pending).toBe(false);
+    expect(result.current.error).toBeNull();
+    expect(result.current.data).toBeUndefined();
+  });
+
+  it("does not write when the UID changes during server-backed preparation", async () => {
+    let finishServerRead!: (decks: Deck[]) => void;
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response('"front","back","","key"'));
+    mocks.fetchDecks.mockReturnValueOnce(new Promise<Deck[]>((resolve) => (finishServerRead = resolve)));
+    const { result, rerender } = renderHook(useTestDeckImport);
+
+    const operation = result.current.importUrl("https://example.test/deck.csv");
+    const rejection = expect(operation).rejects.toThrow("user changed");
+    await waitFor(() => expect(mocks.fetchDecks).toHaveBeenCalledWith("uid-a"));
+
+    mocks.uid = "uid-b";
+    rerender();
+    finishServerRead([]);
 
     await rejection;
     expect(mocks.createDeck).not.toHaveBeenCalled();

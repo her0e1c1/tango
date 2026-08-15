@@ -8,7 +8,7 @@ import type {
   EditCardInput,
 } from "../model/types";
 
-import { collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
@@ -61,7 +61,7 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
   );
 
 export const fetchCards = async (uid: string): Promise<Card[]> => {
-  const snapshot = await getDocs(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
+  const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
   return snapshot.docs
     .map((document) => convertCardDocumentToCard(document.id, document.data()))
     .filter((card) => card.deletedAt === null);

@@ -14,10 +14,9 @@ import { fetchDecks } from "@/entities/deck";
 import { useAuthUid } from "@/entities/auth";
 import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
-import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import { upsertImportedCards } from "../api/upsertImportedCards";
-import type { DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
-import { executeDeckImport, partialResultFrom } from "../model/deckImportExecution";
+import type { DeckImportAttempt, DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
+import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
 
 export interface DeckImportOptions {
   cards: Card[];
@@ -33,6 +32,7 @@ interface DeckImportState {
   running: boolean;
   validating: boolean;
   preview: DeckImportPreview | undefined;
+  previewError: unknown;
   error: unknown;
   data: DeckImportResult | undefined;
 }
@@ -42,6 +42,7 @@ const initialDeckImportState = (uid: string): DeckImportState => ({
   running: false,
   validating: false,
   preview: undefined,
+  previewError: null,
   error: null,
   data: undefined,
 });
@@ -81,9 +82,10 @@ interface FilePreviewDependencies {
   runningRef: { current: boolean };
   setValidating: (validating: boolean) => void;
   setPreview: (preview: DeckImportPreview | undefined) => void;
+  setPreviewError: (error: unknown) => void;
   reset: () => void;
-  decks: Deck[];
-  cardsByDeckId: (id: DeckId) => Card[];
+  prepare: (request: DeckImportRequest) => Promise<DeckImportAttempt>;
+  preparedRequest: { current: DeckImportRequest | undefined };
   uid: string;
   currentUid: { current: string };
   generation: number;
@@ -101,9 +103,10 @@ const previewDeckImportFile = async (
     runningRef,
     setValidating,
     setPreview,
+    setPreviewError,
     reset,
-    decks,
-    cardsByDeckId,
+    prepare,
+    preparedRequest,
     uid,
     currentUid,
     generation,
@@ -118,16 +121,21 @@ const previewDeckImportFile = async (
   try {
     const analysis = await parseCsv(await file.text());
     if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
-    const deck = decks.find((candidate) => candidate.name === file.name);
-    const existing = deck == null ? [] : cardsByDeckId(deck.id);
+    const request = { kind: "content", name: file.name, rows: analysis.rows } satisfies DeckImportRequest;
+    const attempt = await prepare(request);
+    if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
     const next = {
       fileName: file.name,
       deckName: file.name,
       analysis,
-      plan: buildDeckImportPlan(analysis.rows, existing),
+      plan: attempt.plan,
     };
+    preparedRequest.current = request;
     setPreview(next);
     return next;
+  } catch (error) {
+    if (isCurrent()) setPreviewError(error);
+    throw error;
   } finally {
     if (isCurrent()) setValidating(false);
   }
@@ -155,6 +163,7 @@ export const useDeckImport = ({
   const currentState = state.uid === uid ? state : initialDeckImportState(uid);
   if (state.uid !== uid) setState(currentState);
   const lastRequest = useRef<DeckImportRequest>(undefined);
+  const preparedPreviewRequest = useRef<DeckImportRequest>(undefined);
   const dependenciesRef = useRef<DeckImportDependencies>(undefined);
   const runRef = useRef<(request: DeckImportRequest) => Promise<DeckImportResult>>(undefined);
   const [retry] = useState(() => () => {
@@ -169,6 +178,7 @@ export const useDeckImport = ({
     generation.current += 1;
     runningRef.current = false;
     lastRequest.current = undefined;
+    preparedPreviewRequest.current = undefined;
   }, [uid]);
   useEffect(() => {
     dependenciesRef.current = {
@@ -191,6 +201,7 @@ export const useDeckImport = ({
   const setRunning = (running: boolean) => updateState({ running });
   const setValidating = (validating: boolean) => updateState({ validating });
   const setPreview = (preview: DeckImportPreview | undefined) => updateState({ preview });
+  const setPreviewError = (previewError: unknown) => updateState({ previewError });
   const setError = (error: unknown) => updateState({ error });
 
   const mutateAsync = async (request: DeckImportRequest) => {
@@ -200,7 +211,11 @@ export const useDeckImport = ({
       const dependencies = dependenciesRef.current;
       // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
       if (dependencies == null) throw new Error("Deck import dependencies are not available");
-      const result = await executeDeckImport(request, dependencies);
+      const attempt = await prepareDeckImport(request, dependencies);
+      if (generation.current !== operationGeneration || generationUid.current !== dependencies.uid) {
+        throw new Error("Deck import user changed before the import could start");
+      }
+      const result = await executePreparedDeckImport(attempt, dependencies);
       if (generation.current === operationGeneration) updateState({ data: result });
       return result;
     } catch (nextError) {
@@ -213,7 +228,8 @@ export const useDeckImport = ({
 
   const resetOperation = () => {
     lastRequest.current = undefined;
-    updateState({ data: undefined, error: null });
+    preparedPreviewRequest.current = undefined;
+    updateState({ data: undefined, previewError: null, error: null });
   };
 
   /**
@@ -233,7 +249,7 @@ export const useDeckImport = ({
     runRef.current = run;
   });
 
-  const { preview, validating, running, error, data } = currentState;
+  const { preview, previewError, validating, running, error, data } = currentState;
 
   /**
    * Validates the selected CSV file and stores its import preview.
@@ -244,9 +260,15 @@ export const useDeckImport = ({
       runningRef,
       setValidating,
       setPreview,
+      setPreviewError,
       reset: resetOperation,
-      decks,
-      cardsByDeckId,
+      prepare: async (request) => {
+        const dependencies = dependenciesRef.current;
+        // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
+        if (dependencies == null) throw new Error("Deck import dependencies are not available");
+        return await prepareDeckImport(request, dependencies);
+      },
+      preparedRequest: preparedPreviewRequest,
       uid,
       currentUid: generationUid,
       generation: generation.current,
@@ -268,7 +290,10 @@ export const useDeckImport = ({
     if (preview.analysis.rows.length === 0) {
       return Promise.reject(new Error("The CSV file has no valid rows"));
     }
-    return run({ kind: "content", name: preview.deckName, rows: preview.analysis.rows });
+    const request = preparedPreviewRequest.current;
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
+    if (request == null) return Promise.reject(new Error("The prepared Deck import is not available"));
+    return run(request);
   };
 
   /** Downloads card CSV data from a public URL and runs it through the normal import workflow. */
@@ -304,6 +329,7 @@ export const useDeckImport = ({
     validating,
     pending: running,
     error,
+    previewError,
     data,
     partialResult: partialResultFrom(error),
     retry,

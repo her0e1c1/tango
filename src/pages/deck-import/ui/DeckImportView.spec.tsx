@@ -144,6 +144,15 @@ describe("DeckImportView", () => {
     expect(screen.getByText("Choose a corrected CSV file to continue.")).toBeVisible();
   });
 
+  it("shows preview preparation failures without an ineffective retry action", () => {
+    render(<DeckImportView sampleText="front,back,,key" previewError={new Error("server read failed")} />);
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Unable to prepare preview");
+    expect(alert).toHaveTextContent("server read failed");
+    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
+  });
+
   it("keeps success and partial failure results visible with recovery actions", async () => {
     const onBack = vi.fn();
     const onRetry = vi.fn();

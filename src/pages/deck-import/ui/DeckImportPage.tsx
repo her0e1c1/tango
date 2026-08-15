@@ -50,6 +50,7 @@ export const DeckImportPage: React.FC = () => {
         {...(deckImport.data !== undefined ? { result: deckImport.data } : {})}
         {...(deckImport.partialResult !== undefined ? { partialResult: deckImport.partialResult } : {})}
         error={deckImport.error}
+        previewError={deckImport.previewError}
         dark={preferences.appearance.darkMode}
         sampleText={SAMPLE_CSV_TEXT}
       />
