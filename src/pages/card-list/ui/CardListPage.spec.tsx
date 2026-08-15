@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   navigate: vi.fn(),
   onClickTag: vi.fn(),
-  updateBy: vi.fn(),
+  updateScore: vi.fn(),
   cardListProps: null as null | Record<string, unknown>,
 }));
 
@@ -30,6 +30,7 @@ vi.mock("@/entities/card", () => ({
 }));
 vi.mock("@/entities/deck", () => ({ useDeck: () => mocks.deck ?? undefined }));
 vi.mock("@/features/card-list", () => ({
+  useEditCardScore: () => ({ updateScore: mocks.updateScore }),
   CardList: (props: {
     cards: Card[];
     filter: { selectedTags: string[]; onChangeSelectedTags: (tags: string[]) => void };
@@ -62,9 +63,6 @@ vi.mock("@/features/deck-start", () => ({
     tagFilterProps: { selectedTags: ["typescript"], onClickTag: mocks.onClickTag },
   }),
 }));
-vi.mock("@/features/study", () => ({
-  useEditStudyProgress: () => ({ updateBy: mocks.updateBy }),
-}));
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
@@ -84,7 +82,7 @@ describe("CardListPage", () => {
     mocks.preferences = createPreferences();
     mocks.navigate.mockReset();
     mocks.onClickTag.mockReset();
-    mocks.updateBy.mockReset().mockResolvedValue(undefined);
+    mocks.updateScore.mockReset().mockResolvedValue(undefined);
     mocks.cardListProps = null;
   });
 
@@ -98,9 +96,7 @@ describe("CardListPage", () => {
     expect(mocks.navigate).toHaveBeenCalledWith(`/card/${card.id}/edit`);
 
     await userEvent.click(screen.getByRole("button", { name: "Change score" }));
-    const buildPatch = mocks.updateBy.mock.calls[0]?.[1] as (card: Card) => object;
-    expect(mocks.updateBy.mock.calls[0]?.[0]).toEqual(card);
-    expect(buildPatch(card)).toEqual({ score: 3 });
+    expect(mocks.updateScore).toHaveBeenCalledExactlyOnceWith(card.id, 3);
 
     await userEvent.click(screen.getByRole("button", { name: "Change tags" }));
     expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);

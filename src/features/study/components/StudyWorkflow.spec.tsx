@@ -23,8 +23,8 @@ vi.mock("@/entities/preferences", () => ({
     return mocks.preferences;
   },
 }));
-vi.mock("../hooks/useEditStudyProgress", () => ({
-  useEditStudyProgress: () => ({ update: mocks.update }),
+vi.mock("../hooks/useStudyProgressMutation", () => ({
+  useStudyProgressMutation: () => ({ save: mocks.update }),
 }));
 vi.mock("@/entities/study-session", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/study-session")>()),

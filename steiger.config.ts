@@ -33,6 +33,7 @@ export default defineConfig([
       "./src/features/card-list/**",
       "./src/features/deck-edit/**",
       "./src/features/settings/**",
+      "./src/features/study/**",
     ],
     rules: {
       // Route-specific features intentionally own their workflows while serving a single route adapter.

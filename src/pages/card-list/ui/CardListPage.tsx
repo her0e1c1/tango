@@ -5,10 +5,9 @@ import { useKey } from "react-use";
 import { type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
-import { CardList } from "@/features/card-list";
+import { CardList, useEditCardScore } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
 import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/deck-start";
-import { useEditStudyProgress } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -20,7 +19,7 @@ const CardListComposition = (props: {
   onEditCard: (id: CardId) => void;
 }) => {
   const deckStartForm = useDeckFilterState({ deck: props.deck, tags: props.tags });
-  const editMutation = useEditStudyProgress();
+  const editCardScore = useEditCardScore();
 
   return (
     <CardList
@@ -36,7 +35,7 @@ const CardListComposition = (props: {
       }}
       renderBackText={(backText) => <BackText {...backText} />}
       onEditCard={props.onEditCard}
-      onChangeScore={(card, score) => editMutation.updateBy(card, () => ({ score }))}
+      onChangeScore={(card, score) => editCardScore.updateScore(card.id, score)}
     />
   );
 };
