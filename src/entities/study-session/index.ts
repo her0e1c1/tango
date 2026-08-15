@@ -14,6 +14,5 @@ export {
   removeStudySession,
   setStudySessionIndex,
   startStudy,
-  startStudySession,
   touchStudySession,
 } from "./model/store";

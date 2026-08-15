@@ -79,7 +79,7 @@ export const studySessionStore = createStore<StudySessionState>()(
 export const getStudySession = (deckId: DeckId): StudySession | undefined =>
   studySessionStore.getState().sessionsByDeckId[deckId];
 
-export const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
+const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
   studySessionStore.setState((state) => {
     state.sessionsByDeckId[deckId] = {
       deckId,

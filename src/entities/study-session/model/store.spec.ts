@@ -12,12 +12,20 @@ import {
   moveStudySession,
   removeStudySession,
   setStudySessionIndex,
-  startStudySession,
+  startStudy,
   studySessionStore,
   touchStudySession,
 } from "./store";
 
 const STUDY_STORAGE_KEY = "tango-study";
+
+const startSession = (deckId: string, cardOrderIds: string[]): void => {
+  startStudy(
+    deckId,
+    cardOrderIds.map((id, numberOfSeen) => ({ id, score: 0, numberOfSeen })),
+    { shuffled: false, maxNumberOfCardsToLearn: 0 }
+  );
+};
 
 const setVersionedStorage = (state: unknown, version: number): void => {
   // Bypass store mutations so hydration tests model arbitrary browser payloads.
@@ -37,11 +45,8 @@ describe("study store", () => {
     await clearStudySessions();
   });
 
-  it("starts at index zero with a copied card order", () => {
-    const cardOrderIds = ["card-1", "card-2"];
-
-    startStudySession("deck-1", cardOrderIds);
-    cardOrderIds.pop();
+  it("starts at index zero with the configured card order", () => {
+    startSession("deck-1", ["card-1", "card-2"]);
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({
       cardOrderIds: ["card-1", "card-2"],
@@ -53,9 +58,9 @@ describe("study store", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
 
-    startStudySession("deck-1", ["card-1", "card-2"]);
+    startSession("deck-1", ["card-1", "card-2"]);
     vi.setSystemTime(2000);
-    startStudySession("deck-2", ["card-3"]);
+    startSession("deck-2", ["card-3"]);
 
     expect(store.getState().sessionsByDeckId).toEqual({
       "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 0, lastStudiedAt: 1000 },
@@ -66,8 +71,8 @@ describe("study store", () => {
   it("updates only the requested session and its last studied time", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    startStudySession("deck-1", ["card-1", "card-2"]);
-    startStudySession("deck-2", ["card-3", "card-4"]);
+    startSession("deck-1", ["card-1", "card-2"]);
+    startSession("deck-2", ["card-3", "card-4"]);
 
     vi.setSystemTime(3000);
     setStudySessionIndex("deck-1", 1);
@@ -77,7 +82,7 @@ describe("study store", () => {
   });
 
   it("moves within a session and removes it when movement reaches an edge", () => {
-    startStudySession("deck-1", ["card-1", "card-2"]);
+    startSession("deck-1", ["card-1", "card-2"]);
 
     moveStudySession("deck-1", "next");
     expect(getStudySession("deck-1")?.currentIndex).toBe(1);
@@ -89,7 +94,7 @@ describe("study store", () => {
   it.each([-1, 2, 0.5])("does not persist an invalid session index: %s", (currentIndex) => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    startStudySession("deck-1", ["card-1", "card-2"]);
+    startSession("deck-1", ["card-1", "card-2"]);
 
     vi.setSystemTime(3000);
     setStudySessionIndex("deck-1", currentIndex);
@@ -100,7 +105,7 @@ describe("study store", () => {
   it("touches only an existing requested session", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    startStudySession("deck-1", ["card-1"]);
+    startSession("deck-1", ["card-1"]);
 
     vi.setSystemTime(4000);
     touchStudySession("deck-1");
@@ -111,8 +116,8 @@ describe("study store", () => {
   });
 
   it("removes only the requested session", () => {
-    startStudySession("deck-1", ["card-1"]);
-    startStudySession("deck-2", ["card-2"]);
+    startSession("deck-1", ["card-1"]);
+    startSession("deck-2", ["card-2"]);
 
     removeStudySession("deck-1");
 
@@ -123,7 +128,7 @@ describe("study store", () => {
 
   it("clears both memory and persisted storage", async () => {
     localStorage.clear();
-    startStudySession("deck-1", ["card-1"]);
+    startSession("deck-1", ["card-1"]);
 
     expect(getStudySession("deck-1")).toBeDefined();
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).not.toBeNull();
@@ -146,7 +151,7 @@ describe("study store", () => {
   it("persists exactly the session map in a v3 envelope", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    startStudySession("deck-1", ["card-1"]);
+    startSession("deck-1", ["card-1"]);
 
     const persistedSession = localStorage.getItem(STUDY_STORAGE_KEY);
     expect(JSON.parse(persistedSession ?? "{}")).toEqual({

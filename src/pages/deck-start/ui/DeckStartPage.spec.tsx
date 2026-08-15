@@ -24,6 +24,9 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/deck", () => ({
   useDeck: () => mocks.deck ?? undefined,
 }));
+vi.mock("@/entities/study-session", () => ({
+  startStudy: () => mocks.start(),
+}));
 vi.mock("@/features/deck-filter", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/deck-filter")>();
   return {
@@ -39,13 +42,6 @@ vi.mock("@/features/deck-filter", async (importOriginal) => {
       setSelectedTags: vi.fn(),
       setTagAndFilter: vi.fn(),
     }),
-  };
-});
-vi.mock("@/features/study-session-start", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/study-session-start")>();
-  return {
-    ...actual,
-    startStudy: () => mocks.start(),
   };
 });
 vi.mock("@/entities/preferences", () => ({
