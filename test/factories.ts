@@ -8,9 +8,10 @@ import type { RemoteCard } from "@/entities/card";
 import type { LocalCard } from "@/entities/card/model/types";
 import type { RemoteDeck } from "@/entities/deck";
 import type { LocalDeck } from "@/entities/deck/model/types";
-import type { Preferences, StudyPreferences, SwipeAction } from "@/entities/preferences";
+import type { Preferences, SwipeAction } from "@/entities/preferences";
 
 type AppearancePreferences = Preferences["appearance"];
+type StudyPreferences = Preferences["study"];
 type ControlPreferences = Preferences["controls"];
 
 /**

@@ -49,7 +49,7 @@ const appearancePreferencesSchema = z
   })
   .catch(DEFAULT_APPEARANCE);
 
-export const studyPreferencesSchema = z
+const studyPreferencesSchema = z
   .object({
     maxNumberOfCardsToLearn: z.number().int().min(0).max(100).catch(DEFAULT_STUDY.maxNumberOfCardsToLearn),
     shuffled: z.boolean().catch(DEFAULT_STUDY.shuffled),
