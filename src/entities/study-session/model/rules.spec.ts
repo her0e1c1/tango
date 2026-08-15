@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateStudySessionIndex,
+  compareActiveDecks,
   groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
   resolveStudySession,
@@ -15,6 +16,18 @@ const session: StudySession = {
   currentIndex: 1,
   lastStudiedAt: 0,
 };
+
+describe("compareActiveDecks", () => {
+  it("orders recent sessions first and uses deck name as the tie breaker", () => {
+    const activeDecks = [
+      { deck: { name: "Bravo" }, session: { ...session, lastStudiedAt: 100 } },
+      { deck: { name: "Charlie" }, session: { ...session, lastStudiedAt: 200 } },
+      { deck: { name: "Alpha" }, session: { ...session, lastStudiedAt: 200 } },
+    ];
+
+    expect(activeDecks.sort(compareActiveDecks).map(({ deck }) => deck.name)).toEqual(["Alpha", "Charlie", "Bravo"]);
+  });
+});
 
 describe("groupDecksByStudyStatus", () => {
   it("groups decks by whether they have a study session", () => {

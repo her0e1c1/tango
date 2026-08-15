@@ -13,6 +13,10 @@ interface StudySessionDeck {
   id: StudySession["deckId"];
 }
 
+interface NamedDeck {
+  name: string;
+}
+
 interface ActiveDeck<TDeck> {
   deck: TDeck;
   session: StudySession;
@@ -22,6 +26,13 @@ interface DecksByStudyStatus<TDeck> {
   active: ActiveDeck<TDeck>[];
   inactive: TDeck[];
 }
+
+const compareDeckNames = (left: NamedDeck, right: NamedDeck): number => left.name.localeCompare(right.name);
+
+export const compareActiveDecks = <TDeck extends NamedDeck>(
+  left: ActiveDeck<TDeck>,
+  right: ActiveDeck<TDeck>
+): number => right.session.lastStudiedAt - left.session.lastStudiedAt || compareDeckNames(left.deck, right.deck);
 
 // Resolve study status here so presentation models cannot redefine which decks have active sessions.
 export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
