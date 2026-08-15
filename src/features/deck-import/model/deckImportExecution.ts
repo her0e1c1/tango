@@ -110,25 +110,15 @@ export const prepareDeckImport = (
   if (!localMode && uid === "") throw new Error("A confirmed user is required for remote imports");
 
   const existingDeck = decks.find((candidate) => matchesImportDestination(candidate, request, localMode));
-  const createDeckPending = existingDeck == null;
   // View models intentionally omit ownership metadata, so remote commands recover it from the active session.
   const deck = existingDeck == null ? createImportDeck(request, uid, localMode) : reuseImportDeck(existingDeck, uid);
 
   const existing = cards.filter((card) => card.deckId === deck.id && isRemoteCard(card) !== localMode);
-  const preparedCards = prepareCardMutations({
-    rows: request.rows,
-    existing,
-    deckId: deck.id,
-    uid,
-    localMode,
-    generateCardId,
-  });
-
   return {
     uid,
     deck,
-    createDeckPending,
-    ...preparedCards,
+    createDeckPending: existingDeck == null,
+    ...prepareCardMutations({ rows: request.rows, existing, deckId: deck.id, uid, localMode, generateCardId }),
   };
 };
 

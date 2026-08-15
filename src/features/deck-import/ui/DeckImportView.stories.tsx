@@ -1,9 +1,3 @@
-/**
- * @file Defines Storybook examples for the Deck Import Page view.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
@@ -13,7 +7,6 @@ import { SAMPLE_CSV_TEXT } from "../sampleCsv";
 import { DeckImportView as Template } from "./DeckImportView";
 
 const preview = {
-  fileName: "spanish-basics.csv",
   deckName: "spanish-basics.csv",
   analysis: {
     rows: [

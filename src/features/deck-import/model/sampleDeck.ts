@@ -1,17 +1,14 @@
-import type { Card, CardRaw } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { mutateCards } from "@/entities/card";
 import sampleCards from "../../../../sample/build/output.json";
 import { executePreparedDeckImport, prepareDeckImport } from "./deckImportExecution";
-import type { DeckImportRow } from "./deckImportTypes";
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
 
 const sampleDeckId = (uid: string): DeckId => `sample-v${SAMPLE_VERSION}-${uid}`;
-const rowsFromCards = (cards: CardRaw[]): DeckImportRow[] =>
-  cards.map((card, index) => ({ rowNumber: index + 1, card }));
 
 export interface SampleDeckOptions {
   cards: Card[];
@@ -25,7 +22,7 @@ export const prepareSampleDeck = (uid: string, options: Omit<SampleDeckOptions, 
     {
       name: SAMPLE_DECK_NAME,
       preferredDeckId: sampleDeckId(uid),
-      rows: rowsFromCards(sampleCards),
+      rows: sampleCards.map((card, index) => ({ rowNumber: index + 1, card })),
     },
     { uid, ...options }
   );

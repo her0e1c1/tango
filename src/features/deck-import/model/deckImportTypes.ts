@@ -1,9 +1,3 @@
-/**
- * @file Defines the data contracts shared by the deck-import screen, hook, and analysis logic.
- * Keeping preview, result, and row shapes here lets each layer exchange import data without
- * depending on another layer's implementation.
- */
-
 import type { CardRaw } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 
@@ -41,7 +35,6 @@ export interface DeckImportPlan {
 }
 
 export interface DeckImportPreview {
-  fileName: string;
   deckName: string;
   analysis: DeckImportAnalysis;
   plan: DeckImportPlan;
