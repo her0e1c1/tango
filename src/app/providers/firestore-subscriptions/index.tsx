@@ -1,7 +1,6 @@
 import React from "react";
 
 import { useAuthSession } from "@/entities/auth";
-import type { CardSubscriptionEvent } from "@/entities/card";
 import { clearCards, subscribeCards } from "@/entities/card";
 import { clearDecks, subscribeDecks } from "@/entities/deck";
 import { resetCardRead, setCardReadError, setCardReadLoading, setCardReadReady } from "@/features/card/read";
@@ -18,7 +17,7 @@ export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> =
         : subscribeCards(
             authenticatedUid,
             (error) => setCardReadError(authenticatedUid, error),
-            ({ serverConfirmed }: CardSubscriptionEvent) => setCardReadReady(authenticatedUid, serverConfirmed)
+            ({ serverConfirmed }) => setCardReadReady(authenticatedUid, serverConfirmed)
           );
     const stopDecks = authenticatedUid == null ? undefined : subscribeDecks(authenticatedUid, console.error);
 
