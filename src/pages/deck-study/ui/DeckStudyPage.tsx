@@ -104,7 +104,7 @@ const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
 export const DeckStudyPage: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
-  if (deckId == null) throw Error("invalid deck id");
+  if (deckId == null) throw new Error("invalid deck id");
 
   const cards = useCards();
   const deck = useDeck(deckId);

@@ -6,12 +6,11 @@
  */
 
 import * as React from "react";
-import { fireEvent, render, waitFor, screen } from "@testing-library/react";
+import { act, fireEvent, render, waitFor, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
-import { actAsync } from "@/test/act";
 
 type ControlledMenuProps = Omit<React.ComponentProps<typeof DeckActionsMenu>, "open" | "onToggle" | "onClose">;
 
@@ -131,9 +130,10 @@ describe("DeckActionsMenu", () => {
       fireEvent.click(trigger);
       const download = screen.getByRole("menuitem", { name: "Download" });
       const item = screen.getByRole("menuitem", { name: label });
+      // biome-ignore lint/performance/noAwaitInLoops: Each action reuses the same controlled menu and must finish in order.
       await waitFor(() => expect(download).toHaveFocus());
 
-      await actAsync(async () => {
+      act(() => {
         download.blur();
         item.focus();
       });
@@ -157,7 +157,7 @@ describe("DeckActionsMenu", () => {
     const download = screen.getByRole("menuitem", { name: "Download" });
     await waitFor(() => expect(download).toHaveFocus());
 
-    await actAsync(async () => {
+    act(() => {
       download.blur();
       externalTarget.focus();
     });

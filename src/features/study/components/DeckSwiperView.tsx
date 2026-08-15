@@ -98,7 +98,7 @@ const Controls: React.FC<{
   swipeButtonList: SwipeButtonListProps | undefined;
   controller: ControllerProps | undefined;
 }> = ({ showBackText, showSwipeButtonList, showController, swipeButtonList, controller }) => {
-  if (!showSwipeButtonList && !showController) return null;
+  if (!(showSwipeButtonList || showController)) return null;
   return (
     <div className={cx("fixed w-full bottom-2", "pb-5", showBackText && "invisible")}>
       {showSwipeButtonList ? <SwipeButtonList {...swipeButtonList} /> : null}

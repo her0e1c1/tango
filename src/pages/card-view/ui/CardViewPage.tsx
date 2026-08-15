@@ -11,7 +11,7 @@ export const CardViewPage: React.FC = () => {
   const params = useParams();
   const navigate = useNavigate();
   const cardId = params.id;
-  if (cardId == null) throw Error("invalid card id");
+  if (cardId == null) throw new Error("invalid card id");
   const card = useCard(cardId);
   const deck = useDeck(card?.deckId);
   const available = card != null && deck != null;

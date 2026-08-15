@@ -1,0 +1,157 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+  "files": {
+    "includes": ["**/*.{ts,tsx}", "src/**/*.{js,jsx,css}", "scripts/**/*.mjs", "*.{js,mjs}"]
+  },
+  "formatter": {
+    "includes": ["src/**", "test/**", ".storybook/**"],
+    "indentStyle": "space",
+    "lineWidth": 120
+  },
+  "javascript": {
+    "globals": ["__APP_VERSION__"],
+    "formatter": {
+      "trailingCommas": "es5"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "linter": {
+    "rules": {
+      "preset": "all",
+      // Exceptions preserve established test, orchestration, and fire-and-forget conventions.
+      "complexity": {
+        "noExcessiveLinesPerFunction": "off",
+        "noForEach": "off",
+        "noVoid": "off"
+      },
+      // Framework and Project domain rollouts remain scoped to #1011 and #1012.
+      "correctness": {
+        "useImportExtensions": "off",
+        "useJsonImportAttributes": "off",
+        "noSolidDestructuredProps": "off",
+        "useExhaustiveDependencies": "off",
+        "useJsxKeyInIterable": "off",
+        "useQwikValidLexicalScope": "off",
+        "useUniqueElementIds": "off",
+        "noUndeclaredDependencies": {
+          "level": "error",
+          "options": {
+            "devDependencies": [
+              "**/*.{spec,stories}.{ts,tsx}",
+              "**/{.storybook,scripts,test}/**",
+              "**/*.config.{js,mjs,ts}"
+            ]
+          }
+        }
+      },
+      "nursery": {
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "useAwaitThenable": "error",
+        "useExhaustiveSwitchCases": "error"
+      },
+      // FSD boundaries and current framework/test patterns are intentional outside performance-sensitive paths.
+      "performance": {
+        "noBarrelFile": "off",
+        "noImgElement": "off",
+        "noJsxPropsBind": "off",
+        "useSolidForComponent": "off",
+        "noNamespaceImport": "off",
+        "useTopLevelRegex": "off"
+      },
+      // High-entropy domain labels and fixtures are allowed while credential-like values remain errors.
+      "security": {
+        "noSecrets": {
+          "level": "error",
+          "options": {
+            "entropyThreshold": 60
+          }
+        }
+      },
+      // Module, JSX, control-flow, file-layout, and naming settings follow established project conventions.
+      "style": {
+        "noDefaultExport": "off",
+        "useBlockStatements": "off",
+        "noExcessiveLinesPerFile": "off",
+        "noHexColors": "off",
+        "noImplicitBoolean": "off",
+        "noJsxLiterals": "off",
+        "noMagicNumbers": "off",
+        "noNegationElse": "off",
+        "noNestedTernary": "off",
+        "noTernary": "off",
+        "useDefaultSwitchClause": "off",
+        "noParameterProperties": "off",
+        "useComponentExportOnlyModules": "off",
+        "useConsistentTypeDefinitions": "off",
+        "useExportsLast": "off",
+        "useGlobalThis": "off",
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "filenameCases": ["camelCase", "kebab-case", "PascalCase", "snake_case", "export"],
+            "strictCase": false
+          }
+        },
+        "useNamingConvention": {
+          "level": "error",
+          "options": {
+            "strictCase": false,
+            "conventions": [
+              {
+                "selector": {
+                  "kind": "objectLiteralMember"
+                },
+                "match": ".*"
+              }
+            ]
+          }
+        }
+      },
+      // Existing cross-domain checks stay errors; nullish boundaries and non-React JSX rules remain exempt.
+      "suspicious": {
+        "noEqualsToNull": "off",
+        "noReactSpecificProps": "off",
+        "noDeprecatedImports": "error",
+        "noImportCycles": "error",
+        "noLeakedRender": "error",
+        "noUnnecessaryConditions": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      // Tooling and integration tests execute in Node rather than the browser application runtime.
+      "includes": [".storybook/main.ts", "*.config.{js,mjs,ts}", "test/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off",
+            "noProcessGlobal": "off"
+          },
+          "style": {
+            "noCommonJs": "off",
+            "noProcessEnv": "off"
+          }
+        }
+      }
+    }
+  ],
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  }
+}

@@ -16,7 +16,7 @@ import { Overlay } from "@/shared/ui/feedback";
  * before a card is available.
  */
 export const CardOverlay: React.FC<{ card?: Card }> = (props) => {
-  const card = props.card;
+  const { card } = props;
   return (
     <Overlay position="top">
       <div className="mx-auto flex max-w-reading flex-row items-center gap-2 bg-surface-elevated p-2 text-ink">

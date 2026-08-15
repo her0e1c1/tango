@@ -25,7 +25,12 @@ export const ErrorState: Story = {
     title: "Unable to start Tango",
     description: "Authentication could not be initialized.",
     tone: "error",
-    primaryAction: { label: "Reload", onClick: () => {} },
+    primaryAction: {
+      label: "Reload",
+      onClick: () => {
+        // Story action placeholder.
+      },
+    },
   },
 };
 
@@ -33,8 +38,18 @@ export const NotFound: Story = {
   args: {
     title: "Page not found",
     tone: "not-found",
-    primaryAction: { label: "Go home", onClick: () => {} },
-    secondaryAction: { label: "Go back", onClick: () => {} },
+    primaryAction: {
+      label: "Go home",
+      onClick: () => {
+        // Story action placeholder.
+      },
+    },
+    secondaryAction: {
+      label: "Go back",
+      onClick: () => {
+        // Story action placeholder.
+      },
+    },
   },
 };
 

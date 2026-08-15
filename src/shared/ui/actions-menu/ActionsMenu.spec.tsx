@@ -184,7 +184,7 @@ describe("ActionsMenu", () => {
     const remove = screen.getByRole("menuitem", { name: "Delete" });
     await waitFor(() => expect(edit).toHaveFocus());
 
-    await actAsync(async () => {
+    act(() => {
       edit.blur();
       remove.focus();
     });
@@ -227,10 +227,8 @@ describe("ActionsMenu", () => {
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
     try {
-      await actAsync(async () => {
-        firstEdit.blur();
-        fireEvent.click(screen.getByRole("button", { name: "Open second actions" }));
-      });
+      act(() => firstEdit.blur());
+      fireEvent.click(screen.getByRole("button", { name: "Open second actions" }));
 
       const secondMenu = screen.getByRole("menu", { name: `second ${labels.menuLabel}` });
       expect(secondMenu).toBeInTheDocument();
@@ -241,7 +239,7 @@ describe("ActionsMenu", () => {
     }
   });
 
-  it("does not close after its root unmounts during an ambiguous blur", async () => {
+  it("does not close after its root unmounts during an ambiguous blur", () => {
     const onClose = vi.fn();
     const view = render(<ActionsMenu {...labels} items={items()} open onToggle={vi.fn()} onClose={onClose} />);
     const edit = screen.getByRole("menuitem", { name: "Edit" });
@@ -271,7 +269,7 @@ describe("ActionsMenu", () => {
     const external = screen.getByRole("button", { name: "External target" });
     await waitFor(() => expect(edit).toHaveFocus());
 
-    await actAsync(async () => {
+    act(() => {
       edit.blur();
       external.focus();
     });

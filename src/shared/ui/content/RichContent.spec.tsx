@@ -30,7 +30,7 @@ describe("shared rich content", () => {
       </>
     );
     const outside = screen.getByText("const outside = true;");
-    const code = screen.getAllByRole("code")[1];
+    const [, code] = screen.getAllByRole("code");
 
     await waitFor(() => expect(screen.getByText("const")).toHaveClass("hljs-keyword"));
     expect(outside).not.toHaveClass("hljs");
@@ -49,7 +49,10 @@ describe("shared rich content", () => {
   });
 
   it("keeps GFM and KaTeX rendering readable inside narrow surfaces", () => {
-    render(<MathContent text={"| A | B |\n| - | - |\n| 1 | 2 |\n\n$$x^2$$"} />);
+    render(
+      // biome-ignore lint/style/useConsistentCurlyBraces: JSX attributes preserve escapes literally, but Markdown needs line breaks.
+      <MathContent text={"| A | B |\n| - | - |\n| 1 | 2 |\n\n$$x^2$$"} />
+    );
 
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByText("x^2")).toBeDefined();

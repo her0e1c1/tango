@@ -13,9 +13,9 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { setDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import * as UUID from "uuid";
+import * as Uuid from "uuid";
 
-const uuid = UUID.v4;
+const uuid = Uuid.v4;
 
 describe("firestore/rule", () => {
   let testEnv: RulesTestEnvironment;
@@ -33,7 +33,7 @@ describe("firestore/rule", () => {
       firestore: {
         rules: fs.readFileSync("./firestore.rules", "utf8"),
         host: import.meta.env.VITE_DB_HOST,
-        port: parseInt(import.meta.env.VITE_DB_PORT, 10),
+        port: Number.parseInt(import.meta.env.VITE_DB_PORT, 10),
       },
     });
   });
@@ -49,7 +49,7 @@ describe("firestore/rule", () => {
   describe("authenticated context", () => {
     let db: firebase.default.firestore.Firestore;
 
-    beforeEach(async () => {
+    beforeEach(() => {
       db = testEnv.authenticatedContext("uid").firestore();
     });
 
@@ -109,7 +109,7 @@ describe("firestore/rule", () => {
   describe("invalid authenticated context", () => {
     let db: firebase.default.firestore.Firestore;
 
-    beforeEach(async () => {
+    beforeEach(() => {
       db = testEnv.authenticatedContext("invalid").firestore();
     });
 
@@ -180,7 +180,7 @@ describe("firestore/rule", () => {
   describe("unauthenticated context", () => {
     let db: firebase.default.firestore.Firestore;
 
-    beforeEach(async () => {
+    beforeEach(() => {
       db = testEnv.unauthenticatedContext().firestore();
     });
 

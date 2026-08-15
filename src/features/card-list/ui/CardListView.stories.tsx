@@ -90,7 +90,7 @@ export const Default: Story = {};
 
 export const HoverHighlight: Story = {
   play: async ({ canvas, userEvent }) => {
-    const firstCard = canvas.getAllByRole("button", { name: /^View / })[0];
+    const [firstCard] = canvas.getAllByRole("button", { name: /^View / });
     if (firstCard == null) throw new Error("HoverHighlight requires at least one card");
     await userEvent.hover(firstCard);
   },

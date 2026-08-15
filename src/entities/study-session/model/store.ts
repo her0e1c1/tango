@@ -20,7 +20,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 // Rebuild canonical sessions from untrusted browser storage so malformed fields cannot break resume logic.
 const sanitizeStudySession = (value: unknown): StudySession | undefined => {
-  if (!isRecord(value)) return undefined;
+  if (!isRecord(value)) return;
   const { deckId, cardOrderIds, currentIndex, lastStudiedAt } = value;
   if (
     typeof deckId !== "string" ||
@@ -35,14 +35,14 @@ const sanitizeStudySession = (value: unknown): StudySession | undefined => {
     !Number.isFinite(lastStudiedAt) ||
     lastStudiedAt < 0
   ) {
-    return undefined;
+    return;
   }
 
   return { deckId, cardOrderIds: [...cardOrderIds], currentIndex, lastStudiedAt };
 };
 
 const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
-  if (!isRecord(persistedState) || !isRecord(persistedState.sessionsByDeckId)) {
+  if (!(isRecord(persistedState) && isRecord(persistedState.sessionsByDeckId))) {
     return { sessionsByDeckId: {} };
   }
 

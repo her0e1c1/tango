@@ -11,10 +11,10 @@ import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card/api/firestore";
 import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
-import * as UUID from "uuid";
+import * as Uuid from "uuid";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
-const uuid = UUID.v4;
+const uuid = Uuid.v4;
 
 const toFirestoreDeck = ({ localMode: _localMode, ...deck }: Deck): Omit<Deck, "localMode"> => deck;
 
@@ -33,7 +33,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     updatedAt: timestamp,
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // must return the same value (no need to reset mock in parallel)
     (getCurrentTimeMillis as Mock).mockReturnValue(timestamp);
   });
@@ -84,8 +84,8 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await deleteDeck("uid", d);
 
     await expect(getDoc(doc(db, "deck", d.id))).rejects.toMatchObject({ code: "permission-denied" });
-    for (const card of cards) {
-      await expect(getDoc(doc(db, "card", card.id))).rejects.toMatchObject({ code: "permission-denied" });
-    }
+    await Promise.all(
+      cards.map((card) => expect(getDoc(doc(db, "card", card.id))).rejects.toMatchObject({ code: "permission-denied" }))
+    );
   });
 });

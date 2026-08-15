@@ -57,20 +57,29 @@ interface StudySwipeDependencies {
   onRestoreBackText?: ((showBackText: boolean) => void) | undefined;
 }
 
+interface OptimisticUpdateRollback {
+  deckId: DeckId;
+  mutationTokenRef: { current: symbol | undefined };
+  mutationToken: symbol;
+  optimisticSession: StudySession | undefined;
+  previous: { session: StudySession; showBackText: boolean };
+  onRestoreBackText?: ((showBackText: boolean) => void) | undefined;
+}
+
 const applyOptimisticUpdate = (deckId: DeckId, nextIndex: number) => {
   if (nextIndex < 0) removeStudySession(deckId);
   else setStudySessionIndex(deckId, nextIndex);
   return getStudySession(deckId);
 };
 
-const revertOptimisticUpdate = (
-  deckId: DeckId,
-  mutationTokenRef: { current: symbol | undefined },
-  mutationToken: symbol,
-  optimisticSession: StudySession | undefined,
-  previous: { session: StudySession; showBackText: boolean },
-  onRestoreBackText?: ((showBackText: boolean) => void) | undefined
-) => {
+const revertOptimisticUpdate = ({
+  deckId,
+  mutationTokenRef,
+  mutationToken,
+  optimisticSession,
+  previous,
+  onRestoreBackText,
+}: OptimisticUpdateRollback) => {
   const changeStillCurrent =
     mutationTokenRef.current === mutationToken && restoreStudySession(deckId, optimisticSession, previous.session);
   if (!changeStillCurrent) return false;
@@ -124,20 +133,20 @@ const runStudySwipe = async (
 
   const patch = buildStudyPatch(createStudyCard(card), swipeAction, Date.now());
   const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
-  const mutationToken = Symbol();
+  const mutationToken = Symbol("study-swipe-mutation");
   mutationTokenRef.current = mutationToken;
   const optimisticSession = applyOptimisticUpdate(deckId, nextIndex);
   try {
     await update(patch);
   } catch {
-    const reverted = revertOptimisticUpdate(
+    const reverted = revertOptimisticUpdate({
       deckId,
       mutationTokenRef,
       mutationToken,
       optimisticSession,
       previous,
-      onRestoreBackText
-    );
+      onRestoreBackText,
+    });
     if (reverted) rollbackSwipe?.();
   } finally {
     if (mutationTokenRef.current === mutationToken) mutationTokenRef.current = undefined;

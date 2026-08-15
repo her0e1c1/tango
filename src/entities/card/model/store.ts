@@ -76,7 +76,7 @@ export const createLocalCard = (input: LocalCardCreateInput): LocalCard => {
 
 export const editLocalCard = (input: LocalCardEdit): LocalCard => {
   const edit = localCardEditSchema.parse(input);
-  const localCards = cardStore.getState().localCards;
+  const { localCards } = cardStore.getState();
   const currentCard = localCards.find(({ id }) => id === edit.id);
   if (currentCard === undefined) throw new Error(`Local Card "${edit.id}" was not found`);
 

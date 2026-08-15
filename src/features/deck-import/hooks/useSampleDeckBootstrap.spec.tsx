@@ -67,7 +67,12 @@ describe("sample Deck bootstrap", () => {
 
   it("deduplicates concurrent starts for one user", async () => {
     let finish: () => void = () => undefined;
-    mocks.addSample.mockImplementation(() => new Promise<void>((resolve) => (finish = resolve)));
+    mocks.addSample.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        })
+    );
 
     renderHook(useTestSampleDeckBootstrap);
     renderHook(useTestSampleDeckBootstrap);

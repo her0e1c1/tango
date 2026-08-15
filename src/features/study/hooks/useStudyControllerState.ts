@@ -16,7 +16,7 @@ export const useStudyControllerState = (props: UseStudyControllerStateOptions): 
   const index = props.index ?? 0;
   const autoPlay = props.autoPlay ?? false;
   const enabled = props.enabled ?? true;
-  const onChange = props.onChange;
+  const { onChange } = props;
 
   React.useEffect(() => {
     if (!enabled) return;

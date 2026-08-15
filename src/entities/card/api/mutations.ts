@@ -15,7 +15,7 @@ export type CardMutation = { kind: "create"; card: CardMutationCreateInput } | {
 
 export class CardBulkMutationError extends Error {
   constructor(
-    public readonly failedIds: CardId[],
+    readonly failedIds: CardId[],
     total: number,
     options?: ErrorOptions
   ) {

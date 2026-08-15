@@ -47,7 +47,7 @@ const scoreRangeLabel = (filter: CardListFilterState) => {
   if (filter.scoreMin != null && filter.scoreMax != null) return `score ${filter.scoreMin}–${filter.scoreMax}`;
   if (filter.scoreMin != null) return `score ≥ ${filter.scoreMin}`;
   if (filter.scoreMax != null) return `score ≤ ${filter.scoreMax}`;
-  return undefined;
+  return null;
 };
 
 /**

@@ -33,9 +33,9 @@ describe("useFilteredStudyCards", () => {
 
   it("re-evaluates scheduled cards when their next review time arrives", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(1_000);
+    vi.setSystemTime(1000);
     const deck = createDeck({ id: "scheduled" });
-    const card = createCard({ id: "scheduled-card", deckId: deck.id, nextSeeingAt: new Date(1_500) });
+    const card = createCard({ id: "scheduled-card", deckId: deck.id, nextSeeingAt: new Date(1500) });
     const { result } = renderHook(() => ({
       enabled: useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: true })),
       disabled: useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: false })),
@@ -51,13 +51,13 @@ describe("useFilteredStudyCards", () => {
 
   it("reschedules review times beyond the browser timeout limit", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(1_000);
+    vi.setSystemTime(1000);
     const maxTimeout = 2_147_483_647;
     const deck = createDeck({ id: "scheduled" });
     const card = createCard({
       id: "scheduled-card",
       deckId: deck.id,
-      nextSeeingAt: new Date(1_000 + maxTimeout + 500),
+      nextSeeingAt: new Date(1000 + maxTimeout + 500),
     });
     const { result } = renderHook(() =>
       useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: true }))

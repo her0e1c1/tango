@@ -129,7 +129,7 @@ interface ImportPreviewProps {
  * Storybook.
  */
 const ImportPreview = (props: ImportPreviewProps) => {
-  const preview = props.preview;
+  const { preview } = props;
   if (preview == null) return null;
 
   const busy = props.pending === true || props.validating === true;

@@ -20,21 +20,19 @@ export interface BackTextProps {
  * Displays a card's answer content, including rich text and optional code or mathematical
  * notation.
  */
-export const BackText: React.FC<BackTextProps> = (props) => {
-  return (
-    <Style
-      div
-      className="mx-auto h-full w-full max-w-reading overflow-x-hidden p-section-gap"
-      {...(props.onClick !== undefined ? { onClick: props.onClick } : {})}
-    >
-      {props.category === "math" ? (
-        <MathContent text={props.text} />
-      ) : props.code ? (
-        <Code text={props.text} category={props.category ?? ""} dark={props.dark ?? false} />
-      ) : (
-        <pre className="whitespace-pre-wrap break-words font-sans">{props.text}</pre>
-      )}
-      <div className="h-10" />
-    </Style>
-  );
-};
+export const BackText: React.FC<BackTextProps> = (props) => (
+  <Style
+    div
+    className="mx-auto h-full w-full max-w-reading overflow-x-hidden p-section-gap"
+    {...(props.onClick !== undefined ? { onClick: props.onClick } : {})}
+  >
+    {props.category === "math" ? (
+      <MathContent text={props.text} />
+    ) : props.code ? (
+      <Code text={props.text} category={props.category ?? ""} dark={props.dark ?? false} />
+    ) : (
+      <pre className="whitespace-pre-wrap break-words font-sans">{props.text}</pre>
+    )}
+    <div className="h-10" />
+  </Style>
+);

@@ -51,9 +51,8 @@ const deckDtoSchema = z.object({
 
 const convertDeckDtoToDeck = (id: DeckId, value: unknown): RemoteDeck => {
   const dto = parseFirestoreDocument(deckDtoSchema, "deck", id, value);
-  const deck: RemoteDeck = { ...dto, id, localMode: false };
-  if (dto.url === undefined) delete deck.url;
-  return deck;
+  const { url, ...dtoWithoutUrl } = dto;
+  return url === undefined ? { ...dtoWithoutUrl, id, localMode: false } : { ...dto, id, localMode: false };
 };
 
 export const subscribeDecks = (uid: string, onError: (error: Error) => void): (() => void) =>

@@ -1,3 +1,4 @@
+// biome-ignore lint/security/noSecrets: This public character set is an ID alphabet, not a credential.
 const ID_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 export const generateId = (): string =>

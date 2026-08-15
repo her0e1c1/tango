@@ -12,7 +12,13 @@ const meta = {
   title: "Shared/Feedback/RemoteMutationNotice",
   component: Template,
   tags: ["autodocs"],
-  args: { pending: true, error: null, onRetry: () => {} },
+  args: {
+    pending: true,
+    error: null,
+    onRetry: () => {
+      // Story action placeholder.
+    },
+  },
 } satisfies Meta<typeof Template>;
 
 export default meta;
