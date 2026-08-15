@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateStudySessionIndex,
+  compareStudySessionsByLastStudiedAt,
   isStudySessionPositionUnchanged,
   resolveStudySession,
   resolveStudySessionSwipeEffect,
@@ -24,6 +25,18 @@ describe("calculateStudySessionIndex", () => {
   it("returns no index when movement completes the session", () => {
     expect(calculateStudySessionIndex({ ...session, currentIndex: 0 }, "previous")).toBeUndefined();
     expect(calculateStudySessionIndex({ ...session, currentIndex: 2 }, "next")).toBeUndefined();
+  });
+});
+
+describe("compareStudySessionsByLastStudiedAt", () => {
+  it("orders more recently studied sessions first", () => {
+    const older = { ...session, deckId: "older", lastStudiedAt: 100 };
+    const newer = { ...session, deckId: "newer", lastStudiedAt: 200 };
+
+    expect([older, newer].sort(compareStudySessionsByLastStudiedAt).map(({ deckId }) => deckId)).toEqual([
+      "newer",
+      "older",
+    ]);
   });
 });
 

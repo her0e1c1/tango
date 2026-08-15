@@ -1,6 +1,6 @@
 import { countCardsByDeckId, type Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import type { StudySession } from "@/entities/study-session";
+import { compareStudySessionsByLastStudiedAt, type StudySession } from "@/entities/study-session";
 
 export interface DeckListStudyProgress {
   currentIndex: number;
@@ -19,7 +19,11 @@ export interface DeckListSections {
   other: DeckListItem[];
 }
 
+type StudyingDeckListItem = DeckListItem & { studyProgress: DeckListStudyProgress };
+
 const compareNames = (left: DeckListItem, right: DeckListItem) => left.deck.name.localeCompare(right.deck.name);
+
+const isStudyingDeckListItem = (item: DeckListItem): item is StudyingDeckListItem => item.studyProgress != null;
 
 const createDeckListStudyProgress = (session: StudySession): DeckListStudyProgress => ({
   currentIndex: session.currentIndex,
@@ -44,11 +48,10 @@ export const buildDeckListSections = (
   });
 
   const studying = items
-    .filter((item) => item.studyProgress != null)
+    .filter(isStudyingDeckListItem)
     .sort(
       (left, right) =>
-        (right.studyProgress?.lastStudiedAt ?? 0) - (left.studyProgress?.lastStudiedAt ?? 0) ||
-        compareNames(left, right)
+        compareStudySessionsByLastStudiedAt(left.studyProgress, right.studyProgress) || compareNames(left, right)
     );
   const other = items.filter((item) => item.studyProgress == null).sort(compareNames);
 

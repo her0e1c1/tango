@@ -11,6 +11,11 @@ import type {
 export const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];
 
+export const compareStudySessionsByLastStudiedAt = (
+  left: Pick<StudySession, "lastStudiedAt">,
+  right: Pick<StudySession, "lastStudiedAt">
+): number => right.lastStudiedAt - left.lastStudiedAt;
+
 export const resolveStudySession = <Card extends StudySessionCard>(
   session: StudySession | undefined,
   cards: readonly Card[]
