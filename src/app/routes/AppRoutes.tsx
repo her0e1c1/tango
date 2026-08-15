@@ -16,7 +16,7 @@ import { DeckFormPage } from "@/pages/deck-form";
 import { DeckImportPage } from "@/pages/deck-import";
 import { DeckListPage } from "@/pages/deck-list";
 import { DeckStartPage } from "@/pages/deck-start";
-import { DeckSwiperPage } from "@/pages/deck-swiper";
+import { DeckStudyPage } from "@/pages/deck-study";
 import { SettingsPage } from "@/pages/settings";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -51,7 +51,7 @@ export const AppRoutes: React.FC = () => (
     <Route path="/deck/:id" element={<CardListPage />} />
     <Route path="/deck/:id/edit" element={<DeckFormPage />} />
     <Route path="/deck/:id/start" element={<DeckStartPage />} />
-    <Route path="/deck/:id/study" element={<DeckSwiperPage />} />
+    <Route path="/deck/:id/study" element={<DeckStudyPage />} />
     <Route path="/card/:id" element={<CardViewPage />} />
     <Route path="/card/:id/edit" element={<CardFormPage />} />
     <Route path="/settings" element={<SettingsPage login={login} logout={signOutCurrentUser} />} />

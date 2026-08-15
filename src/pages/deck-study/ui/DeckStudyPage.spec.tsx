@@ -44,7 +44,7 @@ vi.mock("@/features/study", async (importOriginal) => {
   };
 });
 
-import { DeckSwiperPage } from "./DeckSwiperPage";
+import { DeckStudyPage } from "./DeckStudyPage";
 
 const deck: Deck = {
   id: "deck-id",
@@ -104,7 +104,7 @@ const readyState = (): StudyWorkflowState => ({
   swipeActions: { disabled: false },
 });
 
-describe("DeckSwiperPage", () => {
+describe("DeckStudyPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.params.id = deck.id;
@@ -117,11 +117,11 @@ describe("DeckSwiperPage", () => {
 
   it("validates the route parameter", () => {
     mocks.params.id = undefined;
-    expect(() => render(<DeckSwiperPage />)).toThrow("invalid deck id");
+    expect(() => render(<DeckStudyPage />)).toThrow("invalid deck id");
   });
 
   it("passes Entity reads to StudyWorkflow and composes the application shell", () => {
-    render(<DeckSwiperPage />);
+    render(<DeckStudyPage />);
 
     expect(mocks.workflowProps).toMatchObject({ deckId: deck.id, cards: [card] });
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
@@ -134,18 +134,18 @@ describe("DeckSwiperPage", () => {
     ["unavailable", "Study session unavailable."],
   ] as const)("renders route feedback for %s workflow state", (status, title) => {
     mocks.workflowState = { status, shortcutActions: readyState().shortcutActions };
-    render(<DeckSwiperPage />);
+    render(<DeckStudyPage />);
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
   });
 
   it("converts unavailable intent into current route navigation", () => {
-    render(<DeckSwiperPage />);
+    render(<DeckStudyPage />);
     act(() => mocks.workflowProps?.onUnavailable());
     expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
   });
 
   it("delegates a representative Study shortcut to the workflow action", () => {
-    render(<DeckSwiperPage />);
+    render(<DeckStudyPage />);
     const state = mocks.workflowState;
     if (state.status !== "ready") throw new Error("expected ready workflow state");
 
@@ -156,7 +156,7 @@ describe("DeckSwiperPage", () => {
 
   it("shows route feedback when the Deck Entity is unavailable", () => {
     mocks.deck = undefined;
-    render(<DeckSwiperPage />);
+    render(<DeckStudyPage />);
     expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
   });
 
@@ -164,7 +164,7 @@ describe("DeckSwiperPage", () => {
     const pushState = vi.spyOn(window.history, "pushState");
     const view = render(
       <React.StrictMode>
-        <DeckSwiperPage />
+        <DeckStudyPage />
       </React.StrictMode>
     );
 

@@ -30,7 +30,7 @@ vi.mock("@/pages/deck-form", () => ({ DeckFormPage: () => null }));
 vi.mock("@/pages/deck-import", () => ({ DeckImportPage: () => null }));
 vi.mock("@/pages/deck-list", () => ({ DeckListPage: () => <div>Deck list</div> }));
 vi.mock("@/pages/deck-start", () => ({ DeckStartPage: () => null }));
-vi.mock("@/pages/deck-swiper", () => ({ DeckSwiperPage: () => null }));
+vi.mock("@/pages/deck-study", () => ({ DeckStudyPage: () => null }));
 vi.mock("@/pages/settings", () => ({ SettingsPage: () => null }));
 
 import App from "./App";
