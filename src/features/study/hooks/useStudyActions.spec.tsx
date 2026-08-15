@@ -11,6 +11,8 @@ import type { Preferences } from "@/entities/preferences";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+
 import { useStudyActions } from "./useStudyActions";
 import { studyStore } from "../state/studyStoreInstance";
 import { actAsync } from "@/test/act";

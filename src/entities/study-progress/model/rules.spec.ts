@@ -6,10 +6,8 @@ import {
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
   recordStudyProgress,
-  type StudyProgress,
-  type StudyProgressEdit,
-  type StudyRating,
-} from "../index";
+} from "./rules";
+import type { StudyProgress, StudyProgressEdit, StudyRating } from "./types";
 
 const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
 

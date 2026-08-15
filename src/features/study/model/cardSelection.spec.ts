@@ -3,7 +3,9 @@ import type { StudyProgress } from "@/entities/study-progress";
 import type { StudyCard } from "./studyCard";
 import type { StudyPreferences } from "@/entities/preferences";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { filterCardsForDeck } from "./cardSelection";
 import { createCard, createDeck } from "@/test/factories";
