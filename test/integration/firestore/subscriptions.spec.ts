@@ -39,15 +39,17 @@ describe("Query realtime subscriptions", () => {
       await createDeckCommand(uid, deck);
       await createCardCommand(uid, card);
       await vi.waitFor(() => {
-        expect(deckStore.getState().decks).toContainEqual(expect.objectContaining({ id: deck.id }));
-        expect(cardStore.getState().cards).toContainEqual(expect.objectContaining({ id: card.id }));
+        expect(deckStore.getState().remoteDecks).toContainEqual(expect.objectContaining({ id: deck.id }));
+        expect(cardStore.getState().remoteCards).toContainEqual(expect.objectContaining({ id: card.id }));
       });
 
       await editDeck(uid, { ...deck, name: "Updated" });
       await editCard(uid, { ...card, frontText: "Updated" });
       await vi.waitFor(() => {
-        expect(deckStore.getState().decks).toContainEqual(expect.objectContaining({ id: deck.id, name: "Updated" }));
-        expect(cardStore.getState().cards).toContainEqual(
+        expect(deckStore.getState().remoteDecks).toContainEqual(
+          expect.objectContaining({ id: deck.id, name: "Updated" })
+        );
+        expect(cardStore.getState().remoteCards).toContainEqual(
           expect.objectContaining({ id: card.id, frontText: "Updated" })
         );
       });
@@ -55,8 +57,8 @@ describe("Query realtime subscriptions", () => {
       await deleteCard(uid, card);
       await deleteDeck(uid, deck);
       await vi.waitFor(() => {
-        expect(deckStore.getState().decks.find((candidate) => candidate.id === deck.id)).toBeUndefined();
-        expect(cardStore.getState().cards.find((candidate) => candidate.id === card.id)).toBeUndefined();
+        expect(deckStore.getState().remoteDecks.find((candidate) => candidate.id === deck.id)).toBeUndefined();
+        expect(cardStore.getState().remoteCards.find((candidate) => candidate.id === card.id)).toBeUndefined();
       });
       expect(errors).toEqual([]);
     } finally {

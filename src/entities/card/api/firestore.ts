@@ -14,7 +14,7 @@ import { z } from "zod";
 import { db } from "@/shared/firebase";
 import { firestoreTimestampDateSchema, getTimestamp, omitUndefined, parseFirestoreDocument } from "@/shared/api";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
-import { replaceCards } from "../model/store";
+import { replaceRemoteCards } from "../model/store";
 
 const CARD_COLLECTION = "card";
 
@@ -74,7 +74,7 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
         const cards = snapshot.docs
           .map((document) => convertCardDtoToCard(document.id, document.data()))
           .filter((card) => card.deletedAt === null);
-        replaceCards(cards);
+        replaceRemoteCards(cards);
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

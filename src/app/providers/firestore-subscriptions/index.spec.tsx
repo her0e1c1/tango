@@ -14,11 +14,11 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authState }));
 vi.mock("@/entities/card", () => ({
-  clearCards: () => mocks.operations.push("clear Cards"),
+  clearRemoteCards: () => mocks.operations.push("clear remote Cards"),
   subscribeCards: mocks.subscribeCards,
 }));
 vi.mock("@/entities/deck", () => ({
-  clearDecks: () => mocks.operations.push("clear Decks"),
+  clearRemoteDecks: () => mocks.operations.push("clear remote Decks"),
   subscribeDecks: mocks.subscribeDecks,
 }));
 
@@ -52,8 +52,8 @@ describe("FirestoreSubscriptionsProvider", () => {
       "start Decks test-user",
       "stop Cards test-user",
       "stop Decks test-user",
-      "clear Cards",
-      "clear Decks",
+      "clear remote Cards",
+      "clear remote Decks",
     ]);
   });
 
@@ -67,8 +67,8 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(mocks.operations).toEqual([
       "stop Cards test-user",
       "stop Decks test-user",
-      "clear Cards",
-      "clear Decks",
+      "clear remote Cards",
+      "clear remote Decks",
       "start Cards next-user",
       "start Decks next-user",
     ]);
@@ -93,6 +93,11 @@ describe("FirestoreSubscriptionsProvider", () => {
     mocks.authState = { status: "unauthenticated" };
     view.rerender(<FirestoreSubscriptionsProvider />);
 
-    expect(mocks.operations).toEqual(["stop Cards test-user", "stop Decks test-user", "clear Cards", "clear Decks"]);
+    expect(mocks.operations).toEqual([
+      "stop Cards test-user",
+      "stop Decks test-user",
+      "clear remote Cards",
+      "clear remote Decks",
+    ]);
   });
 });

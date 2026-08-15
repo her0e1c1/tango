@@ -4,9 +4,10 @@
  * normal containers, hooks, and route parameters.
  */
 
-import { replaceCards, type Card } from "@/entities/card";
+import type { Card } from "@/entities/card";
+import { replaceRemoteCards } from "@/entities/card/model/store";
 import type { Deck } from "@/entities/deck";
-import { replaceDecks } from "@/entities/deck/model/store";
+import { replaceRemoteDecks } from "@/entities/deck/model/store";
 
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
@@ -87,8 +88,8 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   studyStore.setState({
     sessionsByDeckId: cloneSessions(parameters.sessionsByDeckId ?? {}),
   });
-  replaceDecks(decks);
-  replaceCards(cards);
+  replaceRemoteDecks(decks);
+  replaceRemoteCards(cards);
 };
 
 /** Wraps a page story with the providers normally supplied by the application entry point. */

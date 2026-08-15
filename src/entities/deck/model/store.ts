@@ -3,15 +3,16 @@ import { createStore } from "zustand/vanilla";
 import type { Deck } from "./types";
 
 interface DeckState {
-  decks: Deck[];
+  remoteDecks: Deck[];
+  localDecks: Deck[];
 }
 
-export const deckStore = createStore<DeckState>()(() => ({ decks: [] }));
+export const deckStore = createStore<DeckState>()(() => ({ remoteDecks: [], localDecks: [] }));
 
-export const replaceDecks = (decks: Deck[]): void => {
-  deckStore.setState({ decks });
+export const replaceRemoteDecks = (remoteDecks: Deck[]): void => {
+  deckStore.setState({ remoteDecks });
 };
 
-export const clearDecks = (): void => {
-  deckStore.setState({ decks: [] });
+export const clearRemoteDecks = (): void => {
+  deckStore.setState({ remoteDecks: [] });
 };
