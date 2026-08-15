@@ -74,7 +74,14 @@ describe("useStudy", () => {
 
   it("coordinates display state, persistence, and session progression", async () => {
     const { result } = renderHook(() => useStudy(deckId, cards, mocks.onUnavailable));
-    expect(result.current).toMatchObject({ status: "ready", card: { id: "card-1" }, showBackText: false });
+    expect(result.current).toMatchObject({
+      status: "ready",
+      session: { deckId, cardOrderIds: ["card-1", "card-2"], currentIndex: 0 },
+      card: { id: "card-1" },
+      showBackText: false,
+    });
+    expect(result.current).not.toHaveProperty("index");
+    expect(result.current).not.toHaveProperty("numberOfCards");
     expect(mocks.touchStudySession).toHaveBeenCalledWith(deckId);
 
     act(() => result.current.toggleBackText());

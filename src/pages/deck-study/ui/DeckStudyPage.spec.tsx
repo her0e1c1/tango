@@ -82,14 +82,18 @@ const commands = () => ({
 const readyState = (): StudyState => ({
   status: "ready",
   ...commands(),
+  session: {
+    deckId: deck.id,
+    cardOrderIds: [card.id],
+    currentIndex: 0,
+    lastStudiedAt: 0,
+  },
   card,
   showHeader: true,
   showBackText: false,
   showController: true,
   showSwipeButtonList: true,
   autoPlay: false,
-  index: 0,
-  numberOfCards: 1,
   updateIndex: noop,
 });
 

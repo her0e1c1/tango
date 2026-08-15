@@ -6,4 +6,4 @@ export {
   recordStudyProgress,
   resolveStudyRating,
 } from "./model/rules";
-export type { StudyProgress, StudyProgressEdit } from "./model/types";
+export type { StudyProgressEdit } from "./model/types";
