@@ -1,8 +1,8 @@
 export { useStudySession, useStudySessions } from "./model/hooks";
-export { calculateNextIndex } from "./model/rules";
 export {
   clearStudySessions,
   getStudySession,
+  moveStudySession,
   removeStudySession,
   setStudySessionIndex,
   startStudySession,

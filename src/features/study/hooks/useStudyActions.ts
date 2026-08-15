@@ -3,12 +3,7 @@ import type { DeckId } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preferences";
 import { usePreferences } from "@/entities/preferences";
 import { createStudyProgressFromCard, type StudyProgressEdit } from "@/entities/study-progress";
-import {
-  calculateNextIndex,
-  getStudySession,
-  removeStudySession,
-  setStudySessionIndex,
-} from "@/entities/study-session";
+import { getStudySession, moveStudySession, removeStudySession, setStudySessionIndex } from "@/entities/study-session";
 
 import React from "react";
 
@@ -76,9 +71,7 @@ export const useStudyActions = (
 
     onSwipe?.(direction);
     if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged?.();
-    const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
-    if (nextIndex < 0) removeStudySession(deckId);
-    else setStudySessionIndex(deckId, nextIndex);
+    moveStudySession(deckId, swipeAction === "GoToPrevCard" ? "previous" : "next");
   };
 
   return {
