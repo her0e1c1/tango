@@ -1,6 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({ shuffle: vi.fn((ids: string[]) => [...ids].reverse()) }));
+
+vi.mock("lodash", () => ({ shuffle: mocks.shuffle }));
 
 import {
+  buildStudyCardOrder,
   calculateStudySessionIndex,
   isStudySessionPositionUnchanged,
   resolveStudySession,
@@ -8,12 +13,44 @@ import {
 } from "./rules";
 import type { StudySession } from "./types";
 
+const studyCard = (id: string, numberOfSeen = 0) => ({ id, numberOfSeen });
+
 const session: StudySession = {
   deckId: "deck-1",
   cardOrderIds: ["card-1", "card-2", "card-3"],
   currentIndex: 1,
   lastStudiedAt: 0,
 };
+
+describe("buildStudyCardOrder", () => {
+  const cards = [studyCard("a"), studyCard("b"), studyCard("c"), studyCard("d")];
+
+  it("returns the progress-based card order when shuffle and maximum are disabled", () => {
+    expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual(["a", "b", "c", "d"]);
+  });
+
+  it("returns no card IDs for an empty selection", () => {
+    expect(buildStudyCardOrder([], { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual([]);
+  });
+
+  it("limits the number of cards", () => {
+    expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual(["a", "b"]);
+  });
+
+  it("orders cards by study progress before applying the maximum", () => {
+    const unorderedCards = [studyCard("seen", 5), studyCard("new", 1), studyCard("middle", 3)];
+
+    expect(buildStudyCardOrder(unorderedCards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual([
+      "new",
+      "middle",
+    ]);
+  });
+
+  it("shuffles before applying the maximum", () => {
+    expect(buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 2 })).toEqual(["d", "c"]);
+    expect(mocks.shuffle).toHaveBeenCalledWith(["a", "b", "c", "d"]);
+  });
+});
 
 describe("calculateStudySessionIndex", () => {
   it("moves within the session card order", () => {

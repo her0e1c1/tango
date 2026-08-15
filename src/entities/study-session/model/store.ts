@@ -1,17 +1,18 @@
 import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
-import {
-  buildStudyCardOrder,
-  type CardProgressFields,
-  type StudyCardOrderOptions,
-} from "@/entities/study-progress/@x/study-session";
 
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
-import { calculateStudySessionIndex } from "./rules";
-import type { StudySession, StudySessionMovement, StudySessions } from "./types";
+import { buildStudyCardOrder, calculateStudySessionIndex } from "./rules";
+import type {
+  StudySession,
+  StudySessionMovement,
+  StudySessions,
+  StudySessionStartCard,
+  StudySessionStartOptions,
+} from "./types";
 
 const STUDY_STORAGE_KEY = "tango-study";
 // No migration is registered: changing this version deliberately invalidates older state shapes.
@@ -91,11 +92,10 @@ const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
   });
 };
 
-// Session start owns the state mutation while study-progress owns how the card order is derived.
 export const startStudy = (
   deckId: DeckId,
-  cards: CardProgressFields[],
-  studyPreferences: StudyCardOrderOptions
+  cards: StudySessionStartCard[],
+  studyPreferences: StudySessionStartOptions
 ): void => {
   startStudySession(deckId, buildStudyCardOrder(cards, studyPreferences));
 };

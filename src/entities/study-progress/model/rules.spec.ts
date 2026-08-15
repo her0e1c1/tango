@@ -1,13 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { SwipeAction } from "@/entities/preferences/@x/study-progress";
 
-const mocks = vi.hoisted(() => ({ shuffle: vi.fn((ids: string[]) => [...ids].reverse()) }));
-
-vi.mock("lodash", () => ({ shuffle: mocks.shuffle }));
-
 import {
-  buildStudyCardOrder,
   createStudyProgressFromCard,
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
@@ -108,35 +103,5 @@ describe("study progress selection", () => {
     ];
 
     expect(getNextStudyAvailabilityAt(progresses, 1000)).toBe(1500);
-  });
-});
-
-describe("buildStudyCardOrder", () => {
-  const cards = [cardProgress("a"), cardProgress("b"), cardProgress("c"), cardProgress("d")];
-
-  it("returns the progress-based card order when shuffle and maximum are disabled", () => {
-    expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual(["a", "b", "c", "d"]);
-  });
-
-  it("returns no card IDs for an empty selection", () => {
-    expect(buildStudyCardOrder([], { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual([]);
-  });
-
-  it("limits the number of cards", () => {
-    expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual(["a", "b"]);
-  });
-
-  it("orders cards by study progress before applying the maximum", () => {
-    const unorderedCards = [cardProgress("seen", 5), cardProgress("new", 1), cardProgress("middle", 3)];
-
-    expect(buildStudyCardOrder(unorderedCards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual([
-      "new",
-      "middle",
-    ]);
-  });
-
-  it("shuffles before applying the maximum", () => {
-    expect(buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 2 })).toEqual(["d", "c"]);
-    expect(mocks.shuffle).toHaveBeenCalledWith(["a", "b", "c", "d"]);
   });
 });

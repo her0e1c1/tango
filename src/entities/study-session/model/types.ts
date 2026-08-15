@@ -34,6 +34,15 @@ export type StudySessionSwipeEffect = "none" | "exit" | StudySessionMovement;
 
 export type StudySessionCard = { id: StudySession["cardOrderIds"][number] };
 
+export interface StudySessionStartCard extends StudySessionCard {
+  numberOfSeen: number;
+}
+
+export interface StudySessionStartOptions {
+  shuffled: boolean;
+  maxNumberOfCardsToLearn: number;
+}
+
 export type ResolvedStudySession<Card extends StudySessionCard> =
   | { status: "preparing" | "invalid" }
   | { status: "studying"; session: StudySession; card: Card };

@@ -1,3 +1,5 @@
+import * as lodash from "lodash";
+
 import type { SwipeAction } from "@/entities/preferences/@x/study-session";
 
 import type {
@@ -5,8 +7,24 @@ import type {
   StudySession,
   StudySessionCard,
   StudySessionMovement,
+  StudySessionStartCard,
+  StudySessionStartOptions,
   StudySessionSwipeEffect,
 } from "./types";
+
+const compareStudySessionStartCards = (first: StudySessionStartCard, second: StudySessionStartCard): number =>
+  first.numberOfSeen - second.numberOfSeen;
+
+export const buildStudyCardOrder = (
+  cards: StudySessionStartCard[],
+  options: StudySessionStartOptions
+): StudySession["cardOrderIds"] => {
+  let cardOrderIds = [...cards].sort(compareStudySessionStartCards).map((card) => card.id);
+  // The maximum follows shuffling so a limited randomized session can draw from the complete card set.
+  if (options.shuffled) cardOrderIds = lodash.shuffle(cardOrderIds);
+  if (options.maxNumberOfCardsToLearn > 0) cardOrderIds = cardOrderIds.slice(0, options.maxNumberOfCardsToLearn);
+  return cardOrderIds;
+};
 
 export const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];

@@ -32,9 +32,4 @@ export interface CardProgressFields {
   interval?: number | undefined;
 }
 
-export interface StudyCardOrderOptions {
-  shuffled: boolean;
-  maxNumberOfCardsToLearn: number;
-}
-
 export type EditStudyProgressInput = z.infer<typeof editStudyProgressSchema>;

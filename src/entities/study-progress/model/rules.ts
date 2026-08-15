@@ -1,16 +1,7 @@
-import * as lodash from "lodash";
-
 import type { SwipeAction } from "@/entities/preferences/@x/study-progress";
 
 import { createStudyProgress } from "./defaults";
-import type {
-  CardProgressFields,
-  StudyCardOrderOptions,
-  StudyProgress,
-  StudyProgressEdit,
-  StudyProgressFilter,
-  StudyRating,
-} from "./types";
+import type { CardProgressFields, StudyProgress, StudyProgressEdit, StudyProgressFilter, StudyRating } from "./types";
 
 const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
   if (swipeAction === "GoToNextCardMastered") return "mastered";
@@ -58,23 +49,6 @@ export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyPr
     return false;
   }
   return true;
-};
-
-const compareStudyProgress = (first: StudyProgress, second: StudyProgress): number =>
-  first.numberOfSeen - second.numberOfSeen;
-
-export const buildStudyCardOrder = (
-  cards: CardProgressFields[],
-  options: StudyCardOrderOptions
-): StudyProgress["cardId"][] => {
-  let cardOrderIds = cards
-    .map(createStudyProgressFromCard)
-    .sort(compareStudyProgress)
-    .map((progress) => progress.cardId);
-  // The maximum follows shuffling so a limited randomized session can draw from the complete card set.
-  if (options.shuffled) cardOrderIds = lodash.shuffle(cardOrderIds);
-  if (options.maxNumberOfCardsToLearn > 0) cardOrderIds = cardOrderIds.slice(0, options.maxNumberOfCardsToLearn);
-  return cardOrderIds;
 };
 
 export const getNextStudyAvailabilityAt = (
