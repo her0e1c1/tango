@@ -1,31 +1,11 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { type Card, useCard } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck, useDeck } from "@/entities/deck";
-import { usePreferences } from "@/entities/preferences";
+import { useCard } from "@/entities/card";
+import { useDeck } from "@/entities/deck";
+import { CardView } from "@/features/card-view";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-
-import { CardViewView } from "./CardViewView";
-
-const CardViewContent = ({ card, deck }: { card: Card; deck: Deck }) => {
-  const preferences = usePreferences();
-  const category = getCategory(deck.category, card.tags);
-
-  return (
-    <AppLayout showHeader>
-      <CardViewView
-        backText={{
-          category,
-          code: isHighlightLanguage(category),
-          dark: preferences.appearance.darkMode,
-          text: card.backText,
-        }}
-      />
-    </AppLayout>
-  );
-};
 
 export const CardViewPage: React.FC = () => {
   const params = useParams();
@@ -48,5 +28,9 @@ export const CardViewPage: React.FC = () => {
     );
   }
 
-  return <CardViewContent card={card} deck={deck} />;
+  return (
+    <AppLayout showHeader>
+      <CardView card={card} deck={deck} />
+    </AppLayout>
+  );
 };

@@ -1,5 +1,3 @@
-import type { Preferences } from "@/entities/preferences";
-
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,22 +5,16 @@ import "@testing-library/jest-dom/vitest";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { createCard, createPreferences, createDeck } from "@/test/factories";
+import { createCard, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
-  preferences: null as unknown as Preferences,
   card: null as Card | null,
   deck: null as Deck | null,
   navigate: vi.fn(),
-  setDarkMode: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/preferences", () => ({
-  usePreferences: () => mocks.preferences,
-  setDarkMode: mocks.setDarkMode,
-}));
 vi.mock("@/entities/card", () => ({
   useCard: () => mocks.card ?? undefined,
 }));
@@ -33,6 +25,9 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     useDeck: () => mocks.deck ?? undefined,
   };
 });
+vi.mock("@/features/card-view", () => ({
+  CardView: ({ card, deck }: { card: Card; deck: Deck }) => <div>{`Card view: ${card.id} / ${deck.id}`}</div>,
+}));
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
   useNavigate: () => mocks.navigate,
@@ -44,23 +39,19 @@ describe("CardViewPage", () => {
   const card = createCard({
     id: "card-id",
     deckId: "deck-id",
-    backText: "const answer = 42;",
-    tags: ["typescript"],
   });
 
   beforeEach(() => {
     mocks.params.id = "card-id";
-    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.card = card;
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
     mocks.navigate.mockReset();
-    mocks.setDarkMode.mockReset();
   });
 
-  it("renders the card answer using its resolved category", () => {
+  it("connects the available card and deck to the feature", () => {
     render(<CardViewPage />);
 
-    expect(screen.getByText(/answer =/)).toHaveTextContent("const answer = 42;");
+    expect(screen.getByText("Card view: card-id / deck-id")).toBeVisible();
   });
 
   it("renders the ready screen in the application shell", () => {
