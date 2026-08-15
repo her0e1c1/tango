@@ -222,7 +222,7 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     setStorageMode,
     importPreview,
     // The bundled sample keeps its stable per-user identity and existing account-synced behavior.
-    addSample: () => run({ kind: "sample", storageMode: "remote" }, sessionRef.current),
+    addSample: () => run({ kind: "sample" }, sessionRef.current),
     importUrl,
     reimport: (deck: Deck) => {
       if (deck.url == null || deck.url === "") return Promise.reject(new Error("Deck has no import URL"));

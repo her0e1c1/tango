@@ -31,7 +31,6 @@ const preview = {
     invalidCount: 0,
   },
   plan: {
-    storageMode: "remote",
     rows: [
       {
         rowNumber: 1,
@@ -91,7 +90,7 @@ export const Invalid: Story = {
           },
         ],
       },
-      plan: { storageMode: "remote", rows: [], created: 0, updated: 0, unchanged: 0 },
+      plan: { rows: [], created: 0, updated: 0, unchanged: 0 },
     },
   },
 };

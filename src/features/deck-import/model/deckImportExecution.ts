@@ -20,7 +20,7 @@ export interface DeckImportAttempt {
 
 export type DeckImportRequest =
   | { kind: "content"; name: string; rows: DeckImportRow[]; storageMode: DeckImportStorageMode }
-  | { kind: "sample"; storageMode: "remote" };
+  | { kind: "sample" };
 
 export interface DeckImportDependencies {
   uid: string;
@@ -53,7 +53,7 @@ const prepareDeckImportAttempt = (
   const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
   const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
   const rows = request.kind === "sample" ? rowsFromCards(sampleCards) : request.rows;
-  const localMode = request.storageMode === "local";
+  const localMode = request.kind === "content" && request.storageMode === "local";
   let deck: DeckImportCreateInput | undefined = decks.find(
     (candidate) =>
       candidate.localMode === localMode &&
@@ -67,7 +67,7 @@ const prepareDeckImportAttempt = (
 
   const existing = cardsByDeckId(deck.id).filter((card) => "uid" in card !== localMode);
   const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
-  const plan = buildDeckImportPlan(rows, existing, request.storageMode);
+  const plan = buildDeckImportPlan(rows, existing);
   const remainingMutations: CardMutation[] = [];
   plan.rows.forEach((row) => {
     const current = byUniqueKey.get(row.card.uniqueKey);
@@ -94,13 +94,14 @@ export const prepareDeckImport = async (
   request: DeckImportRequest,
   { uid, decks, cardsByDeckId, generateCardId, fetchDecks, fetchCards }: DeckImportDependencies
 ): Promise<DeckImportAttempt> => {
-  if (request.storageMode === "remote" && uid === "") {
+  const remoteStorage = request.kind === "sample" || request.storageMode === "remote";
+  if (remoteStorage && uid === "") {
     throw new Error("A confirmed user is required for remote imports");
   }
 
   let activeDecks = decks;
   let getCardsByDeckId = cardsByDeckId;
-  if (request.kind === "content" && request.storageMode === "remote") {
+  if (request.kind === "content" && remoteStorage) {
     if (fetchDecks == null || fetchCards == null) {
       throw new Error("Server-backed Deck import dependencies are not available");
     }

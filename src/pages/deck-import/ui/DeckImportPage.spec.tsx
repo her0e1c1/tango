@@ -88,7 +88,6 @@ const preview = {
     invalidCount: 0,
   },
   plan: {
-    storageMode: "remote",
     rows: [
       {
         rowNumber: 1,

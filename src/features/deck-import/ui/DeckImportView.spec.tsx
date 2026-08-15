@@ -5,7 +5,7 @@
  * busy", "documents uniqueKey and exposes sample add, download, and code controls".
  */
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
@@ -29,7 +29,6 @@ const preview = {
     invalidCount: 0,
   },
   plan: {
-    storageMode: "remote",
     rows: [
       {
         rowNumber: 1,
@@ -75,11 +74,14 @@ describe("DeckImportView", () => {
     const view = render(
       <DeckImportView sampleText="front,back,,key" storageMode="remote" onStorageModeChange={onStorageModeChange} />
     );
+    const csvStorage = screen.getByRole("group", { name: "Save this CSV import" });
+    const localMode = within(csvStorage).getByRole("radio", { name: /Local only/ });
+    const remoteMode = within(csvStorage).getByRole("radio", { name: /Sync with account/ });
 
-    expect(screen.getByRole("radio", { name: /Local only/ })).not.toBeChecked();
-    expect(screen.getByRole("radio", { name: /Sync with account/ })).toBeChecked();
+    expect(localMode).not.toBeChecked();
+    expect(remoteMode).toBeChecked();
 
-    await userEvent.click(screen.getByRole("radio", { name: /Local only/ }));
+    await userEvent.click(localMode);
     expect(onStorageModeChange).toHaveBeenCalledExactlyOnceWith("local");
 
     view.rerender(
@@ -158,7 +160,7 @@ describe("DeckImportView", () => {
           },
         ],
       },
-      plan: { storageMode: "remote", rows: [], created: 0, updated: 0, unchanged: 0 },
+      plan: { rows: [], created: 0, updated: 0, unchanged: 0 },
     };
     render(<DeckImportView sampleText="front,back,,key" preview={invalidPreview} />);
 

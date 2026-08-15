@@ -265,37 +265,37 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
           onBack={props.onBack}
         />
         <PreviewError error={props.previewError} />
-        <fieldset className="space-y-2" disabled={busy}>
-          <legend className="mb-3 break-words text-title font-bold text-ink">Save imported decks</legend>
-          <label className="flex cursor-pointer items-start gap-2 text-body text-ink">
-            <input
-              type="radio"
-              name="deck-import-storage-mode"
-              value="local"
-              checked={storageMode === "local"}
-              onChange={() => props.onStorageModeChange?.("local")}
-            />
-            <span>
-              <span className="block font-semibold">Local only</span>
-              <span className="block text-caption text-ink-muted">Keep this Deck and its Cards on this device.</span>
-            </span>
-          </label>
-          <label className="flex cursor-pointer items-start gap-2 text-body text-ink">
-            <input
-              type="radio"
-              name="deck-import-storage-mode"
-              value="remote"
-              checked={storageMode === "remote"}
-              onChange={() => props.onStorageModeChange?.("remote")}
-            />
-            <span>
-              <span className="block font-semibold">Sync with account</span>
-              <span className="block text-caption text-ink-muted">Save to your account and sync across devices.</span>
-            </span>
-          </label>
-        </fieldset>
-        <section>
+        <section className="space-y-4">
           <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>
+          <fieldset className="space-y-2" disabled={busy}>
+            <legend className="mb-2 font-semibold text-ink">Save this CSV import</legend>
+            <label className="flex cursor-pointer items-start gap-2 text-body text-ink">
+              <input
+                type="radio"
+                name="deck-import-storage-mode"
+                value="local"
+                checked={storageMode === "local"}
+                onChange={() => props.onStorageModeChange?.("local")}
+              />
+              <span>
+                <span className="block font-semibold">Local only</span>
+                <span className="block text-caption text-ink-muted">Keep this Deck and its Cards on this device.</span>
+              </span>
+            </label>
+            <label className="flex cursor-pointer items-start gap-2 text-body text-ink">
+              <input
+                type="radio"
+                name="deck-import-storage-mode"
+                value="remote"
+                checked={storageMode === "remote"}
+                onChange={() => props.onStorageModeChange?.("remote")}
+              />
+              <span>
+                <span className="block font-semibold">Sync with account</span>
+                <span className="block text-caption text-ink-muted">Save to your account and sync across devices.</span>
+              </span>
+            </label>
+          </fieldset>
           <Upload
             disabled={busy}
             {...(props.preview !== undefined ? { fileName: props.preview.fileName } : {})}

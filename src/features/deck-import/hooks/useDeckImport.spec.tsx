@@ -96,7 +96,7 @@ describe("useDeckImport", () => {
       fileName: "deck.csv",
       deckName: "deck.csv",
       analysis: { invalidCount: 0 },
-      plan: { storageMode: "remote", created: 1, updated: 0, unchanged: 0 },
+      plan: { created: 1, updated: 0, unchanged: 0 },
     });
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
@@ -136,7 +136,6 @@ describe("useDeckImport", () => {
     act(() => result.current.setStorageMode("local"));
     await actAsync(async () => result.current.selectFile(file));
     expect(result.current.preview?.plan).toMatchObject({
-      storageMode: "local",
       created: 1,
       updated: 0,
       unchanged: 0,

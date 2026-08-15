@@ -15,8 +15,7 @@ describe("buildDeckImportPlan", () => {
   const rows = [row];
 
   it("plans an initial import as a create", () => {
-    expect(buildDeckImportPlan(rows, [], "local")).toMatchObject({
-      storageMode: "local",
+    expect(buildDeckImportPlan(rows, [])).toMatchObject({
       created: 1,
       updated: 0,
       unchanged: 0,
@@ -24,8 +23,7 @@ describe("buildDeckImportPlan", () => {
   });
 
   it("plans an identical re-import as unchanged", () => {
-    expect(buildDeckImportPlan(rows, [createCard(row.card)], "remote")).toMatchObject({
-      storageMode: "remote",
+    expect(buildDeckImportPlan(rows, [createCard(row.card)])).toMatchObject({
       created: 0,
       updated: 0,
       unchanged: 1,
@@ -34,11 +32,7 @@ describe("buildDeckImportPlan", () => {
 
   it("plans changed content with the same unique key as an update", () => {
     expect(
-      buildDeckImportPlan(
-        rows,
-        [createCard({ ...row.card, frontText: "previous front", uniqueKey: "key-1" })],
-        "remote"
-      )
+      buildDeckImportPlan(rows, [createCard({ ...row.card, frontText: "previous front", uniqueKey: "key-1" })])
     ).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
   });
 });

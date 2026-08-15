@@ -34,7 +34,6 @@ export interface DeckImportPlanRow extends DeckImportRow {
 }
 
 export interface DeckImportPlan {
-  storageMode: DeckImportStorageMode;
   rows: DeckImportPlanRow[];
   created: number;
   updated: number;
