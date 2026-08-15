@@ -19,6 +19,8 @@ export interface DeckListSections {
   other: DeckListItem[];
 }
 
+const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
+
 const createDeckListStudyProgress = (session: StudySession): DeckListStudyProgress => ({
   currentIndex: session.currentIndex,
   cardCount: session.cardOrderIds.length,
@@ -33,6 +35,10 @@ export const buildDeckListSections = (
   const cardCounts = countCardsByDeckId(cards);
   const createItem = (deck: Deck): DeckListItem => ({ deck, cardCount: cardCounts.get(deck.id) ?? 0 });
   const { studying: studyingDecks, notStudying: otherDecks } = groupDecksByStudyStatus(decks, sessionsByDeckId);
+  studyingDecks.sort(
+    (left, right) => right.session.lastStudiedAt - left.session.lastStudiedAt || compareDeckNames(left.deck, right.deck)
+  );
+  otherDecks.sort(compareDeckNames);
 
   return {
     studying: studyingDecks.map(({ deck, session }) => ({

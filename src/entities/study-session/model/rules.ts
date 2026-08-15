@@ -9,9 +9,8 @@ import type {
   StudySessionSwipeEffect,
 } from "./types";
 
-interface StudyStatusDeck {
+interface StudySessionDeck {
   id: StudySession["deckId"];
-  name: string;
 }
 
 interface StudyingDeck<TDeck> {
@@ -24,13 +23,8 @@ interface DecksByStudyStatus<TDeck> {
   notStudying: TDeck[];
 }
 
-const compareDeckNames = (left: StudyStatusDeck, right: StudyStatusDeck): number => left.name.localeCompare(right.name);
-
-const compareStudyingDecks = (left: StudyingDeck<StudyStatusDeck>, right: StudyingDeck<StudyStatusDeck>): number =>
-  right.session.lastStudiedAt - left.session.lastStudiedAt || compareDeckNames(left.deck, right.deck);
-
-// Keep session-based status and ordering together so presentation models cannot redefine which decks are being studied.
-export const groupDecksByStudyStatus = <TDeck extends StudyStatusDeck>(
+// Resolve study status here so presentation models cannot redefine which decks are being studied.
+export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
   decks: readonly TDeck[],
   sessionsByDeckId: StudySessions
 ): DecksByStudyStatus<TDeck> => {
@@ -42,9 +36,6 @@ export const groupDecksByStudyStatus = <TDeck extends StudyStatusDeck>(
     if (session == null) notStudying.push(deck);
     else studying.push({ deck, session });
   }
-
-  studying.sort(compareStudyingDecks);
-  notStudying.sort(compareDeckNames);
 
   return { studying, notStudying };
 };

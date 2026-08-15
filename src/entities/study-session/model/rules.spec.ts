@@ -17,7 +17,7 @@ const session: StudySession = {
 };
 
 describe("groupDecksByStudyStatus", () => {
-  it("groups studying and not-studying decks in their domain order", () => {
+  it("groups decks by whether they have a study session", () => {
     const decks = [
       { id: "not-studying-z", name: "Zulu" },
       { id: "studying-old", name: "Bravo" },
@@ -31,21 +31,8 @@ describe("groupDecksByStudyStatus", () => {
 
     const groups = groupDecksByStudyStatus(decks, sessions);
 
-    expect(groups.studying.map(({ deck }) => deck.id)).toEqual(["studying-new", "studying-old"]);
-    expect(groups.notStudying.map((deck) => deck.id)).toEqual(["not-studying-a", "not-studying-z"]);
-  });
-
-  it("uses deck name as the tie breaker for equally recent sessions", () => {
-    const decks = [
-      { id: "b", name: "Beta" },
-      { id: "a", name: "Alpha" },
-    ];
-    const sessions = {
-      a: { ...session, deckId: "a", lastStudiedAt: 100 },
-      b: { ...session, deckId: "b", lastStudiedAt: 100 },
-    };
-
-    expect(groupDecksByStudyStatus(decks, sessions).studying.map(({ deck }) => deck.name)).toEqual(["Alpha", "Beta"]);
+    expect(groups.studying.map(({ deck }) => deck.id)).toEqual(["studying-old", "studying-new"]);
+    expect(groups.notStudying.map((deck) => deck.id)).toEqual(["not-studying-z", "not-studying-a"]);
   });
 });
 

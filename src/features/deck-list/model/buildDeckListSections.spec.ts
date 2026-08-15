@@ -1,3 +1,5 @@
+import type { DeckId } from "@/entities/deck";
+
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -50,5 +52,20 @@ describe("buildDeckListSections", () => {
     });
     expect(sections.other.map((item) => item.deck.id)).toEqual(["other-a", "other-z"]);
     expect(sections.other.map((item) => item.cardCount)).toEqual([1, 2]);
+  });
+
+  it("uses deck name as the tie breaker for equally recent sessions", () => {
+    const decks = [createDeck({ id: "b", name: "Beta" }), createDeck({ id: "a", name: "Alpha" })];
+    const session = (deckId: DeckId) => ({
+      deckId,
+      cardOrderIds: [`${deckId}-card`],
+      currentIndex: 0,
+      lastStudiedAt: 100,
+    });
+
+    const sections = buildDeckListSections(decks, [], { a: session("a"), b: session("b") });
+
+    expect(sections.studying.map((item) => item.deck.name)).toEqual(["Alpha", "Beta"]);
+    expect(sections.other).toEqual([]);
   });
 });
