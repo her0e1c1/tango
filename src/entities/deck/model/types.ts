@@ -12,7 +12,7 @@ export type Category = string;
 export type DeckId = string;
 
 /** Entity-internal Deck data without ownership, persistence, or presentation metadata. */
-type DeckDomain = {
+export type DeckDomain = {
   /** Stable identity referenced by Cards, routes, study sessions, and persistence boundaries. */
   id: DeckId;
   /** Human-readable label shown wherever a Deck is selected or summarized. */
@@ -44,6 +44,14 @@ export type RemoteDeck = DeckDomain & { uid: string; localMode: false };
 export type DeckStore = RemoteDeck | LocalDeck;
 export type DeckView = DeckDomain & { localMode: boolean };
 export type Deck = DeckView;
+export type DeckDocument = Omit<DeckDomain, "id" | "url"> & {
+  /** Legacy documents may duplicate the Firestore document id in their stored fields. */
+  id?: DeckId | undefined;
+  /** Boundary validation may preserve an explicit undefined before the DTO mapper removes it. */
+  url?: string | undefined;
+  uid: string;
+  deletedAt: number | null;
+};
 export type DeckCreate = z.infer<typeof deckCreateSchema>;
 export type DeckCreateInput = z.input<typeof deckCreateSchema>;
 export type LocalDeckCreateInput = z.input<typeof localDeckCreateSchema>;

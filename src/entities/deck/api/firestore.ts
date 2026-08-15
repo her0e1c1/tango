@@ -25,10 +25,10 @@ import {
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
-import { toDeckView } from "../model/rules";
+import { toDeckDocument, toDeckView, toRemoteDeckStore } from "../model/dto";
 import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
 import { replaceRemoteDecks } from "../model/store";
-import { parseDeckDocument, toDeckDocument, toRemoteDeckStore } from "./document";
+import { parseDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
 const CARD_COLLECTION = "card";

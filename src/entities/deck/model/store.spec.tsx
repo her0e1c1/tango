@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { createDeck, createLocalDeck as createLocalDeckFixture } from "@/test/factories";
+import { toDeckView } from "./dto";
 import { useDeck, useDecks } from "./hooks";
-import { toDeckView } from "./rules";
 import {
   clearRemoteDecks,
   createLocalDeck,

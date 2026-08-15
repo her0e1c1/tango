@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { createDeck } from "@/test/factories";
-import { parseDeckDocument, toDeckDocument, toRemoteDeckStore } from "./document";
+import { toDeckDocument, toRemoteDeckStore } from "../model/dto";
+import { parseDeckDocument } from "./document";
 
 describe("Deck Firestore document mapping", () => {
   it("maps a remote create command to the Firestore boundary", () => {

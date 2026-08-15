@@ -1,6 +1,6 @@
 import { useStore } from "zustand";
 
-import { toDeckView } from "./rules";
+import { toDeckView } from "./dto";
 import { deckStore } from "./store";
 import type { Deck, DeckId } from "./types";
 

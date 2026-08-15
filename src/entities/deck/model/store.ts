@@ -3,6 +3,7 @@ import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
 import { omitUndefined } from "@/shared/lib/omitUndefined";
+import { toLocalDeckStore } from "./dto";
 import { deckEditSchema, deckIdSchema, localDeckCreateSchema, localDeckSchema } from "./schema";
 import type { DeckEdit, DeckId, DeckStore, LocalDeck, LocalDeckCreateInput, RemoteDeck } from "./types";
 
@@ -21,22 +22,6 @@ interface CreateDeckStoreOptions {
 }
 
 const persistedDeckStateSchema = z.object({ localDecks: z.array(localDeckSchema) });
-
-const toLocalDeckStore = (deck: z.infer<typeof localDeckSchema>): LocalDeck => ({
-  id: deck.id,
-  localMode: true,
-  name: deck.name,
-  ...(deck.url === undefined ? {} : { url: deck.url }),
-  isPublic: deck.isPublic,
-  scoreMax: deck.scoreMax,
-  scoreMin: deck.scoreMin,
-  selectedTags: [...deck.selectedTags],
-  tagAndFilter: deck.tagAndFilter,
-  category: deck.category,
-  convertToBr: deck.convertToBr,
-  createdAt: deck.createdAt,
-  updatedAt: deck.updatedAt,
-});
 
 const parsePersistedDeckState = (value: unknown): PersistedDeckState => {
   const result = persistedDeckStateSchema.safeParse(value);

@@ -3,28 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { createCard, createDeck } from "@/test/factories";
-import { CATEGORY, filterCardsForDeck, getCategory, isHighlightLanguage, mustFindDeckById, toDeckView } from "./rules";
-
-describe("toDeckView", () => {
-  it("exposes domain fields and local mode without remote persistence metadata", () => {
-    const storedDeck = createDeck({ id: "remote", uid: "owner" });
-
-    expect(toDeckView(storedDeck)).toEqual({
-      id: "remote",
-      localMode: false,
-      name: "Deck",
-      isPublic: false,
-      createdAt: 0,
-      updatedAt: 0,
-      scoreMax: null,
-      scoreMin: null,
-      selectedTags: [],
-      tagAndFilter: false,
-      category: "",
-      convertToBr: false,
-    });
-  });
-});
+import { CATEGORY, filterCardsForDeck, getCategory, isHighlightLanguage, mustFindDeckById } from "./rules";
 
 describe("category", () => {
   it("defines supported categories including application categories and major languages", () => {
