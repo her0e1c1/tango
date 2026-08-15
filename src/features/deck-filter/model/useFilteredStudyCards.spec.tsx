@@ -49,6 +49,24 @@ describe("useFilteredStudyCards", () => {
     expect(result.current.enabled).toEqual([card]);
   });
 
+  it("re-evaluates a changed card list against the current time", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
+    const deck = createDeck({ id: "scheduled" });
+    const initial = createCard({ id: "initial", deckId: deck.id, nextSeeingAt: new Date(2000) });
+    const current = createCard({ id: "current", deckId: deck.id, nextSeeingAt: new Date(1500) });
+    const preferences = createPreferences({ useCardInterval: true });
+    const { result, rerender } = renderHook(({ cards }) => useFilteredStudyCards(deck, cards, preferences), {
+      initialProps: { cards: [initial] },
+    });
+
+    vi.setSystemTime(1600);
+    rerender({ cards: [current] });
+    act(() => vi.advanceTimersByTime(0));
+
+    expect(result.current).toEqual([current]);
+  });
+
   it("reschedules review times beyond the browser timeout limit", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
