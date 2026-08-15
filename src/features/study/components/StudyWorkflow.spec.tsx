@@ -10,7 +10,6 @@ import { createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   preferences: null as Preferences | null,
-  hydrated: true,
   update: vi.fn(),
   onUnavailable: vi.fn(),
   touchStudySession: vi.fn(),
@@ -25,9 +24,6 @@ vi.mock("@/entities/preferences", () => ({
 }));
 vi.mock("../hooks/useEditStudyProgress", () => ({
   useEditStudyProgress: () => ({ update: mocks.update }),
-}));
-vi.mock("../hooks/useStudyHydrated", () => ({
-  useStudyHydrated: () => mocks.hydrated,
 }));
 vi.mock("../commands/studySessionCommands", () => ({
   touchStudySession: mocks.touchStudySession,
@@ -87,7 +83,6 @@ describe("StudyWorkflow", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
-    mocks.hydrated = true;
     mocks.update.mockResolvedValue(undefined);
     mocks.preferences = createPreferences({
       cardInterval: 1,
@@ -121,24 +116,15 @@ describe("StudyWorkflow", () => {
     expect(mocks.update).toHaveBeenCalledOnce();
   });
 
-  it("waits for Card readiness and exits only after hydration confirms unavailability", async () => {
+  it("waits for Card readiness and exits when the session is unavailable", async () => {
     const { unmount } = renderWorkflow([]);
     expect(screen.getByText("loading")).toBeVisible();
     expect(mocks.onUnavailable).not.toHaveBeenCalled();
     unmount();
 
     studyStore.setState({ sessionsByDeckId: {} });
-    mocks.hydrated = false;
-    const view = renderWorkflow();
+    renderWorkflow();
     expect(screen.getByText("unavailable")).toBeVisible();
-    expect(mocks.onUnavailable).not.toHaveBeenCalled();
-
-    mocks.hydrated = true;
-    view.rerender(
-      <StudyWorkflow cards={cards} deckId={deckId} onUnavailable={mocks.onUnavailable}>
-        {(state) => <WorkflowView state={state} />}
-      </StudyWorkflow>
-    );
     await waitFor(() => expect(mocks.onUnavailable).toHaveBeenCalledOnce());
     expect(studyStore.getState().sessionsByDeckId[deckId]).toBeUndefined();
   });

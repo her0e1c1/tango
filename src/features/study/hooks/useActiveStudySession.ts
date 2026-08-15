@@ -5,7 +5,6 @@ import * as React from "react";
 
 import { touchStudySession } from "../commands/studySessionCommands";
 import { selectStudySessionForRoute } from "../state/studyStore";
-import { useStudyHydrated } from "./useStudyHydrated";
 import { useStudyStore } from "./useStudyStore";
 
 export type ActiveStudySession =
@@ -42,7 +41,6 @@ export const useStudySessionLifecycle = ({
   resetStudy: () => void;
   onUnavailable: () => void;
 }) => {
-  const hydrated = useStudyHydrated();
   const exitingDeck = React.useRef<DeckId>(undefined);
 
   React.useEffect(() => {
@@ -55,10 +53,10 @@ export const useStudySessionLifecycle = ({
       exitingDeck.current = undefined;
       return;
     }
-    if (!hydrated || session.status === "loading" || exitingDeck.current === deckId) return;
+    if (session.status === "loading" || exitingDeck.current === deckId) return;
 
     exitingDeck.current = deckId;
     resetStudy();
     onUnavailable();
-  }, [deckId, hydrated, onUnavailable, resetStudy, session.status]);
+  }, [deckId, onUnavailable, resetStudy, session.status]);
 };
