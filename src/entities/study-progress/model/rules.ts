@@ -1,5 +1,7 @@
 import * as lodash from "lodash";
 
+import type { SwipeAction } from "@/entities/preferences/@x/study-progress";
+
 import { createStudyProgress } from "./defaults";
 import type {
   CardProgressFields,
@@ -9,6 +11,15 @@ import type {
   StudyProgressFilter,
   StudyRating,
 } from "./types";
+
+export const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
+  if (swipeAction === "GoToNextCardMastered") return "mastered";
+  // Toggle remains a negative rating because changing this mapping would alter the existing persisted-score behavior.
+  if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {
+    return "not-mastered";
+  }
+  return "unrated";
+};
 
 export const createStudyProgressFromCard = (card: CardProgressFields): StudyProgress => {
   const progress = createStudyProgress(card.id);
