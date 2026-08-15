@@ -58,7 +58,6 @@ vi.mock("@/features/card/read", () => ({
 }));
 vi.mock("@/shared/api", () => ({ auth: {}, db: {} }));
 
-
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => ({ appearance: { darkMode: false } }),
   setDarkMode: mocks.setDarkMode,

@@ -8,7 +8,17 @@ import type {
   EditCardInput,
 } from "../model/types";
 
-import { collection, doc, getDocs, onSnapshot, query, setDoc, type Timestamp, updateDoc, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  onSnapshot,
+  query,
+  setDoc,
+  type Timestamp,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { z } from "zod";
 
 import { db } from "@/shared/api";

@@ -75,13 +75,6 @@ vi.mock("@/entities/card", async (importOriginal) => {
   };
 });
 
-vi.mock("@/features/card/read", () => ({
-  useCardReadState: () => ({
-    status: mocks.cardReadStatus,
-  }),
-}));
-
-
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,

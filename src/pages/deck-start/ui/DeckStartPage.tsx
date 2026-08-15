@@ -7,7 +7,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { filterCardsByDeckId, filterTagsByDeckId, toCardsById, useCards } from "@/entities/card";
-import { useCardReadState } from "@/features/card/read";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -61,9 +60,8 @@ export const DeckStartPage: React.FC = () => {
   const allCards = useCards();
   const cardsById = React.useMemo(() => toCardsById(allCards), [allCards]);
 
-  const cardReadState = useCardReadState();
-
   const deck = useDeck(deckId);
+
   const deckCards = React.useMemo(() => filterCardsByDeckId(allCards, deckId), [allCards, deckId]);
   const cards = useStudyCards(deck, deckCards, preferences);
   const tags = filterTagsByDeckId(allCards, deckId);

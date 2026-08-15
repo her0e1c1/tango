@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, toCardsById, useCards } from "@/entities/card";
-import { useCardReadState } from "@/features/card/read";
 import { BackText, CardOverlay, FrontText } from "@/features/card-view";
 import {
   initializeStudySessionUi,
@@ -19,7 +18,6 @@ import {
   useStudyStore,
 } from "@/features/study";
 import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
-import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 import { AppLayout } from "@/widgets/app-layout";
@@ -183,7 +181,6 @@ export const DeckSwiperPage: React.FC = () => {
 
   const cards = useCards();
   const cardsById = React.useMemo(() => toCardsById(cards), [cards]);
-  const readState = useCardReadState();
 
   const deck = useDeck(deckId);
 

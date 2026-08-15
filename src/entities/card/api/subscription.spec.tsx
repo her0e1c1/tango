@@ -46,8 +46,11 @@ const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
 });
 
 const getSnapshotHandler = () =>
-  mocks.onSnapshot.mock.calls[0]?.[1] as (snapshot: { docs: ReturnType<typeof cardDocument>[] }) => void;
-const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
+  mocks.onSnapshot.mock.calls[0]?.[2] as (snapshot: {
+    metadata: { fromCache: boolean; hasPendingWrites: boolean };
+    docs: ReturnType<typeof cardDocument>[];
+  }) => void;
+const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[3] as (error: Error) => void;
 
 describe("Card Firestore subscription", () => {
   beforeEach(() => {
@@ -62,10 +65,16 @@ describe("Card Firestore subscription", () => {
 
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
-    expect(mocks.onSnapshot).toHaveBeenCalledWith(expect.anything(), expect.any(Function), expect.any(Function));
+    expect(mocks.onSnapshot).toHaveBeenCalledWith(
+      expect.anything(),
+      { includeMetadataChanges: true },
+      expect.any(Function),
+      expect.any(Function)
+    );
 
     act(() =>
       getSnapshotHandler()({
+        metadata: { fromCache: false, hasPendingWrites: false },
         docs: [
           cardDocument("active", {
             lastSeenAt: 50,
@@ -92,7 +101,12 @@ describe("Card Firestore subscription", () => {
       }),
     ]);
 
-    act(() => getSnapshotHandler()({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
+    act(() =>
+      getSnapshotHandler()({
+        metadata: { fromCache: false, hasPendingWrites: false },
+        docs: [cardDocument("replacement", { frontText: "Current" })],
+      })
+    );
     expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" })]);
 
     unsubscribe();
@@ -103,7 +117,12 @@ describe("Card Firestore subscription", () => {
     const onError = vi.fn();
     subscribeCards("uid-a", onError);
 
-    act(() => getSnapshotHandler()({ docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
+    act(() =>
+      getSnapshotHandler()({
+        metadata: { fromCache: false, hasPendingWrites: false },
+        docs: [cardDocument("invalid", { nextSeeingAt: null })],
+      })
+    );
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ name: "FirestoreDocumentValidationError", documentId: "invalid" })
