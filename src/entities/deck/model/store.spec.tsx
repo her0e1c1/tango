@@ -3,27 +3,31 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { createDeck } from "@/test/factories";
 import { useDeck, useDecks } from "./hooks";
-import { clearDecks, deckStore, replaceDecks } from "./store";
+import { clearRemoteDecks, deckStore, replaceRemoteDecks } from "./store";
 
 describe("Deck store", () => {
-  beforeEach(clearDecks);
+  beforeEach(() => deckStore.setState({ remoteDecks: [], localDecks: [] }));
 
-  it("replaces and clears the Deck collection", () => {
-    const deck = createDeck({ id: "deck" });
+  it("replaces and clears only the remote Deck collection", () => {
+    const remoteDeck = createDeck({ id: "remote" });
+    const localDeck = createDeck({ id: "local" });
+    deckStore.setState({ localDecks: [localDeck] });
 
-    replaceDecks([deck]);
-    expect(deckStore.getState().decks).toEqual([deck]);
+    replaceRemoteDecks([remoteDeck]);
+    expect(deckStore.getState()).toEqual({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
 
-    clearDecks();
-    expect(deckStore.getState().decks).toEqual([]);
+    clearRemoteDecks();
+    expect(deckStore.getState()).toEqual({ remoteDecks: [], localDecks: [localDeck] });
   });
 
-  it("exposes collection and individual Deck selectors", () => {
-    const deck = createDeck({ id: "deck" });
-    replaceDecks([deck]);
+  it("exposes combined collection and individual Deck selectors", () => {
+    const remoteDeck = createDeck({ id: "remote" });
+    const localDeck = createDeck({ id: "local" });
+    deckStore.setState({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
 
-    expect(renderHook(useDecks).result.current).toEqual([deck]);
-    expect(renderHook(() => useDeck("deck")).result.current).toEqual(deck);
+    expect(renderHook(useDecks).result.current).toEqual([remoteDeck, localDeck]);
+    expect(renderHook(() => useDeck("remote")).result.current).toEqual(remoteDeck);
+    expect(renderHook(() => useDeck("local")).result.current).toEqual(localDeck);
     expect(renderHook(() => useDeck("missing")).result.current).toBeUndefined();
   });
 });

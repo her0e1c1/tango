@@ -14,7 +14,7 @@ import { z } from "zod";
 import { db } from "@/shared/api/firebase";
 import { getTimestamp, omitUndefined, parseFirestoreDocument } from "@/shared/api/firestoreDocument";
 import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
-import { replaceDecks } from "../model/store";
+import { replaceRemoteDecks } from "../model/store";
 
 const DECK_COLLECTION = "deck";
 const CARD_COLLECTION = "card";
@@ -51,7 +51,7 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
         const decks = snapshot.docs
           .map((document) => convertDeckDtoToDeck(document.id, document.data()))
           .filter((deck) => deck.deletedAt === null);
-        replaceDecks(decks);
+        replaceRemoteDecks(decks);
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }

@@ -3,15 +3,16 @@ import { createStore } from "zustand/vanilla";
 import type { Card } from "./types";
 
 interface CardState {
-  cards: Card[];
+  remoteCards: Card[];
+  localCards: Card[];
 }
 
-export const cardStore = createStore<CardState>()(() => ({ cards: [] }));
+export const cardStore = createStore<CardState>()(() => ({ remoteCards: [], localCards: [] }));
 
-export const replaceCards = (cards: Card[]): void => {
-  cardStore.setState({ cards });
+export const replaceRemoteCards = (remoteCards: Card[]): void => {
+  cardStore.setState({ remoteCards });
 };
 
-export const clearCards = (): void => {
-  cardStore.setState({ cards: [] });
+export const clearRemoteCards = (): void => {
+  cardStore.setState({ remoteCards: [] });
 };

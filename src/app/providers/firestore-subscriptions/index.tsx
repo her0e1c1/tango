@@ -1,8 +1,8 @@
 import React from "react";
 
 import { useAuthSession } from "@/entities/auth";
-import { clearCards, subscribeCards } from "@/entities/card";
-import { clearDecks, subscribeDecks } from "@/entities/deck";
+import { clearRemoteCards, subscribeCards } from "@/entities/card";
+import { clearRemoteDecks, subscribeDecks } from "@/entities/deck";
 
 export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const authState = useAuthSession();
@@ -15,8 +15,8 @@ export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> =
     return () => {
       stopCards?.();
       stopDecks?.();
-      clearCards();
-      clearDecks();
+      clearRemoteCards();
+      clearRemoteDecks();
     };
   }, [authenticatedUid]);
 

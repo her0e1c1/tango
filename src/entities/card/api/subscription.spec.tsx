@@ -2,8 +2,9 @@ import { act, renderHook } from "@testing-library/react";
 import { Timestamp } from "firebase/firestore";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createCard } from "@/test/factories";
 import { useCards } from "../model/hooks";
-import { clearCards } from "../model/store";
+import { cardStore } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
@@ -51,12 +52,14 @@ const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Err
 
 describe("Card Firestore subscription", () => {
   beforeEach(() => {
-    clearCards();
+    cardStore.setState({ remoteCards: [], localCards: [] });
     vi.clearAllMocks();
     mocks.onSnapshot.mockReturnValue(mocks.unsubscribe);
   });
 
   it("subscribes by UID and fully replaces active Cards from each snapshot", () => {
+    const localCard = createCard({ id: "local", frontText: "Local front" });
+    cardStore.setState({ localCards: [localCard] });
     const { result } = renderHook(useCards);
     const unsubscribe = subscribeCards("uid-a", vi.fn());
 
@@ -90,10 +93,11 @@ describe("Card Firestore subscription", () => {
         startLine: 8,
         endLine: 9,
       }),
+      localCard,
     ]);
 
     act(() => getSnapshotHandler()({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
-    expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" })]);
+    expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" }), localCard]);
 
     unsubscribe();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();

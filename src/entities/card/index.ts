@@ -1,7 +1,6 @@
 export { createCard, deleteCard, editCard, fetchCards, generateCardId, subscribeCards } from "./api/firestore";
 export { useCard, useCards } from "./model/hooks";
-/** @public */
-export { clearCards, replaceCards } from "./model/store";
+export { clearRemoteCards } from "./model/store";
 export type {
   Card,
   CardCreateInput,
