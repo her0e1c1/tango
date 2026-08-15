@@ -142,7 +142,6 @@ export default [
       "@typescript-eslint/no-misused-promises": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
       "@typescript-eslint/no-unnecessary-type-conversion": "off",
-      "@typescript-eslint/prefer-reduce-type-parameter": "off",
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/restrict-plus-operands": "off",
       // Primitive template interpolation and polymorphic `this` are project policy, not correctness constraints.
