@@ -2,7 +2,7 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { StudyWorkflowState } from "@/features/study";
 
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -80,6 +80,14 @@ const card: Card = {
 const noop = vi.fn();
 const readyState = (): StudyWorkflowState => ({
   status: "ready",
+  shortcutActions: {
+    swipeUp: vi.fn(),
+    swipeDown: vi.fn(),
+    swipeLeft: vi.fn(),
+    swipeRight: vi.fn(),
+    toggleShowBackText: vi.fn(),
+    toggleAutoPlay: vi.fn(),
+  },
   card,
   showHeader: true,
   showBackText: false,
@@ -125,7 +133,7 @@ describe("DeckSwiperPage", () => {
     ["loading", "Loading…"],
     ["unavailable", "Study session unavailable."],
   ] as const)("renders route feedback for %s workflow state", (status, title) => {
-    mocks.workflowState = { status };
+    mocks.workflowState = { status, shortcutActions: readyState().shortcutActions };
     render(<DeckSwiperPage />);
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
   });
@@ -134,6 +142,16 @@ describe("DeckSwiperPage", () => {
     render(<DeckSwiperPage />);
     act(() => mocks.workflowProps?.onUnavailable());
     expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
+  });
+
+  it("delegates a representative Study shortcut to the workflow action", () => {
+    render(<DeckSwiperPage />);
+    const state = mocks.workflowState;
+    if (state.status !== "ready") throw new Error("expected ready workflow state");
+
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+
+    expect(state.shortcutActions.swipeLeft).toHaveBeenCalledOnce();
   });
 
   it("shows route feedback when the Deck Entity is unavailable", () => {
