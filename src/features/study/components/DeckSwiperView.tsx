@@ -1,5 +1,5 @@
 /**
- * @file Composes the Deck Swiper Page's presentation.
+ * @file Composes the deck study screen's swipe-based presentation.
  * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
