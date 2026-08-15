@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthUid } from "@/entities/auth";
-import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
+import { generateCardId, useCards } from "@/entities/card";
 import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
@@ -20,10 +20,8 @@ export const DeckListPage: React.FC = () => {
 
   useSampleDeckBootstrap({
     cards,
-    createCard,
     createDeck,
     decks,
-    editCard,
     generateCardId,
   });
   useKey("s", () => void navigate("/settings"));

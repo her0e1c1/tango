@@ -1,10 +1,10 @@
-import type { Card, CardCreateInput, CardId, CardRaw } from "@/entities/card";
+import type { Card, CardId, CardMutation, CardRaw } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
+import { CardBulkMutationError } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
 
 import sampleCards from "../../../../sample/build/output.json";
-import { CardBulkMutationError } from "../api/upsertImportedCards";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import type { DeckImportPlan, DeckImportResult, DeckImportRow } from "./deckImportTypes";
 
@@ -12,7 +12,7 @@ export interface DeckImportAttempt {
   uid: string;
   deck: DeckCreateInput;
   createDeckPending: boolean;
-  remainingUpserts: CardCreateInput[];
+  remainingMutations: CardMutation[];
   createdIds: CardId[];
   updatedIds: CardId[];
   plan: DeckImportPlan;
@@ -29,7 +29,7 @@ export interface DeckImportDependencies {
   cardsByDeckId: (id: DeckId) => Card[];
   createDeck: (deck: DeckCreateInput) => Promise<unknown>;
   generateCardId: () => string;
-  bulkUpsert: (cards: CardCreateInput[], createdIds: CardId[]) => Promise<unknown>;
+  mutateCards: (mutations: CardMutation[]) => Promise<unknown>;
   fetchDecks?: (uid: string) => Promise<Deck[]>;
   fetchCards?: (uid: string) => Promise<Card[]>;
 }
@@ -65,17 +65,17 @@ const prepareDeckImportAttempt = (
   const existing = cardsByDeckId(deck.id);
   const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
   const plan = buildDeckImportPlan(rows, existing);
-  const remainingUpserts: CardCreateInput[] = [];
+  const remainingMutations: CardMutation[] = [];
   const createdIds: CardId[] = [];
   const updatedIds: CardId[] = [];
   plan.rows.forEach((row) => {
     const current = byUniqueKey.get(row.card.uniqueKey);
     if (row.action === "create") {
-      const card = { ...row.card, id: generateCardId(), deckId: deck.id, uid: deck.uid } satisfies CardCreateInput;
-      remainingUpserts.push(card);
+      const card = { ...row.card, id: generateCardId(), deckId: deck.id, uid: deck.uid };
+      remainingMutations.push({ kind: "create", card });
       createdIds.push(card.id);
     } else if (row.action === "update" && current != null) {
-      remainingUpserts.push({ ...current, ...row.card });
+      remainingMutations.push({ kind: "edit", card: { ...current, ...row.card } });
       updatedIds.push(current.id);
     }
   });
@@ -84,7 +84,7 @@ const prepareDeckImportAttempt = (
     uid,
     deck,
     createDeckPending,
-    remainingUpserts,
+    remainingMutations,
     createdIds,
     updatedIds,
     plan,
@@ -139,7 +139,7 @@ export const partialResultFrom = (error: unknown): DeckImportResult | undefined 
 
 export const executePreparedDeckImport = async (
   attempt: DeckImportAttempt,
-  { uid, createDeck, bulkUpsert }: DeckImportDependencies
+  { uid, createDeck, mutateCards }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (attempt.uid !== uid) throw new Error("The prepared Deck import belongs to a different user");
   if (attempt.createDeckPending) {
@@ -147,25 +147,26 @@ export const executePreparedDeckImport = async (
     attempt.createDeckPending = false;
   }
 
-  const upserts = attempt.remainingUpserts;
+  const mutations = attempt.remainingMutations;
   try {
-    if (upserts.length > 0) await bulkUpsert(upserts, attempt.createdIds);
+    if (mutations.length > 0) await mutateCards(mutations);
   } catch (error) {
-    const failedIds = error instanceof CardBulkMutationError ? error.failedIds : upserts.map((card) => card.id);
+    const failedIds =
+      error instanceof CardBulkMutationError ? error.failedIds : mutations.map((mutation) => mutation.card.id);
     const failed = new Set(failedIds);
-    attempt.remainingUpserts = upserts.filter((card) => failed.has(card.id));
+    attempt.remainingMutations = mutations.filter((mutation) => failed.has(mutation.card.id));
     throw Object.assign(new Error(`Deck import did not complete: ${String(error)}`), {
       result: {
         created: attempt.createdIds.filter((id) => !failed.has(id)).length,
         updated: attempt.updatedIds.filter((id) => !failed.has(id)).length,
         skipped: attempt.totals.skipped,
-        failed: attempt.remainingUpserts.length,
+        failed: attempt.remainingMutations.length,
         deckId: attempt.deck.id,
       },
     });
   }
 
-  attempt.remainingUpserts = [];
+  attempt.remainingMutations = [];
   return {
     ...attempt.totals,
     failed: 0,

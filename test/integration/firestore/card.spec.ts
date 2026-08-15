@@ -4,19 +4,14 @@
  * "should update a card", and "should import cards".
  */
 
-import {
-  createCard as createCardCommand,
-  deleteCard,
-  editCard,
-  type Card,
-  type CardCreateInput,
-} from "@/entities/card";
+import { deleteCard, editCard, mutateCards, type Card } from "@/entities/card";
+import { createCard as createCardCommand } from "@/entities/card/api/firestore";
+import type { CardCreateInput } from "@/entities/card/model/types";
 import { createDeck as createDeckCommand } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { collection, deleteDoc, getDocs, getFirestore, doc, getDoc, query, where } from "firebase/firestore";
-import { upsertImportedCards } from "@/features/deck-import/api/upsertImportedCards";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import * as UUID from "uuid";
@@ -112,7 +107,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
 
-    await upsertImportedCards("uid", [c], [c.id], { createCard: createCardCommand, editCard });
+    await mutateCards("uid", [{ kind: "create", card: c }]);
 
     expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(c);
   });
@@ -123,10 +118,10 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     const invalid = { ...newCard, deckId, id: uuid(), frontText: 42 } as unknown as Card;
 
     await expect(
-      upsertImportedCards("uid", [valid, invalid], [valid.id, invalid.id], {
-        createCard: createCardCommand,
-        editCard,
-      })
+      mutateCards("uid", [
+        { kind: "create", card: valid },
+        { kind: "create", card: invalid },
+      ])
     ).rejects.toMatchObject({
       failedIds: [invalid.id],
       message: "1 of 2 Card writes failed",
@@ -141,9 +136,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     await createCardCommand("uid", card);
     await deleteDoc(doc(db, "card", card.id));
 
-    await expect(
-      upsertImportedCards("uid", [card], [], { createCard: createCardCommand, editCard })
-    ).rejects.toMatchObject({ failedIds: [card.id] });
+    await expect(mutateCards("uid", [{ kind: "edit", card }])).rejects.toMatchObject({ failedIds: [card.id] });
     const ownedCards = await getDocs(query(collection(db, "card"), where("uid", "==", "uid")));
     expect(ownedCards.docs.some((snapshot) => snapshot.id === card.id)).toBe(false);
   });
