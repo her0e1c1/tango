@@ -26,6 +26,7 @@ export interface DeckImportOptions {
   decks: Deck[];
   editCard: (uid: string, card: CardEdit) => Promise<unknown>;
   generateCardId: () => string;
+  fetchDecks?: (uid: string) => Promise<Deck[]>;
 }
 
 interface DeckImportState {
@@ -145,6 +146,7 @@ export const useDeckImport = ({
   decks,
   editCard,
   generateCardId,
+  fetchDecks: fetchDecksOption,
 }: DeckImportOptions) => {
   const auth = useAuthSession();
   const cardsByDeckId = useCallback((deckId: DeckId) => filterCardsByDeckId(cards, deckId), [cards]);
@@ -179,10 +181,10 @@ export const useDeckImport = ({
       createDeck: (deck) => createDeck(uid, deck),
       generateCardId,
       bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
-      fetchDecks,
+      fetchDecks: fetchDecksOption ?? fetchDecks,
       fetchCards,
     };
-  }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, uid]);
+  }, [cardsByDeckId, createCard, createDeck, decks, editCard, fetchDecksOption, generateCardId, uid]);
   const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
     setState((current) => ({
       ...(current.uid === uid ? current : initialDeckImportState(uid)),

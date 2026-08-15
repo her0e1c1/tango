@@ -1,16 +1,13 @@
-/**
- * @file Provides the import feature's Use Sample Deck Bootstrap React hook.
- * The hook combines state and operations behind one interface so components do not need to
- * coordinate services themselves.
- */
-
 import { useEffect } from "react";
 
 import { useAuthSession } from "@/entities/auth";
+import type { Deck } from "@/entities/deck";
+import { fetchDecks } from "@/entities/deck";
 import { useDeckImport } from "./useDeckImport";
 import type { DeckImportOptions } from "./useDeckImport";
 
 type AddSample = () => Promise<unknown>;
+type FetchDecks = (uid: string) => Promise<Deck[]>;
 
 /**
  * Creates and configures a sample deck bootstrap controller.
@@ -22,12 +19,18 @@ const createSampleDeckBootstrapController = () => {
   const pendingByUid = new Map<string, Promise<unknown>>();
 
   return {
-    start: (uid: string, addSample: AddSample) => {
+    start: (uid: string, addSample: AddSample, fetchDecksFn: FetchDecks) => {
       if (completedUids.has(uid)) return;
       const pending = pendingByUid.get(uid);
       if (pending != null) return pending;
 
-      const operation = Promise.resolve().then(addSample);
+      const operation = (async () => {
+        const remoteDecks = await fetchDecksFn(uid);
+        if (remoteDecks.length === 0) {
+          await addSample();
+        }
+      })();
+
       pendingByUid.set(uid, operation);
       void operation.then(
         () => {
@@ -52,11 +55,12 @@ export const useSampleDeckBootstrap = (options: DeckImportOptions) => {
   const auth = useAuthSession();
   const deckImport = useDeckImport(options);
   const uid = auth.status === "authenticated" ? auth.uid : "";
+  const fetchDecksFn = options.fetchDecks ?? fetchDecks;
 
   useEffect(() => {
     if (uid === "" || options.decks.length > 0) {
       return;
     }
-    void sampleDeckBootstrapController.start(uid, deckImport.addSample)?.catch(() => undefined);
-  }, [deckImport.addSample, options.decks.length, uid]);
+    void sampleDeckBootstrapController.start(uid, deckImport.addSample, fetchDecksFn)?.catch(() => undefined);
+  }, [deckImport.addSample, fetchDecksFn, options.decks.length, uid]);
 };
