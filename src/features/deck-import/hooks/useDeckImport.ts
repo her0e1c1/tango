@@ -1,23 +1,20 @@
-import type { Card, CardCreateInput, CardEdit } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import type { Deck, DeckCreateInput } from "@/entities/deck";
 
 import { useEffect, useRef, useState } from "react";
 
-import { fetchCards, filterCardsByDeckId } from "@/entities/card";
+import { fetchCards, filterCardsByDeckId, mutateCards } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
 import { useAuthUid } from "@/entities/auth";
 import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
-import { upsertImportedCards } from "../api/upsertImportedCards";
 import type { DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
 import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
 
 export interface DeckImportOptions {
   cards: Card[];
-  createCard: (uid: string, card: CardCreateInput) => Promise<unknown>;
   createDeck: (uid: string, deck: DeckCreateInput) => Promise<unknown>;
   decks: Deck[];
-  editCard: (uid: string, card: CardEdit) => Promise<unknown>;
   generateCardId: () => string;
 }
 
@@ -55,14 +52,7 @@ const initialState = (uid: string): DeckImportState => ({
   data: undefined,
 });
 
-export const useDeckImport = ({
-  cards,
-  createCard,
-  createDeck,
-  decks,
-  editCard,
-  generateCardId,
-}: DeckImportOptions) => {
+export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: DeckImportOptions) => {
   const uid = useAuthUid();
   const sessionRef = useRef(createSession(uid));
   const [state, setState] = useState(() => initialState(uid));
@@ -85,7 +75,7 @@ export const useDeckImport = ({
     cardsByDeckId: (deckId) => filterCardsByDeckId(cards, deckId),
     createDeck: (deck) => createDeck(uid, deck),
     generateCardId,
-    bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
+    mutateCards: (mutations) => mutateCards(uid, mutations),
     fetchDecks,
     fetchCards,
   };

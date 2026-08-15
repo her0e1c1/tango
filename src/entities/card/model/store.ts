@@ -60,7 +60,6 @@ export const findCardById = (id: CardId): Card | undefined => {
   return state.remoteCards.find((card) => card.id === cardId) ?? state.localCards.find((card) => card.id === cardId);
 };
 
-/** @public */
 export const createLocalCard = (input: CardCreateInput): Card => {
   const card = cardCreateSchema.parse(input);
   const timestamp = Date.now();
@@ -70,7 +69,6 @@ export const createLocalCard = (input: CardCreateInput): Card => {
   return createdCard;
 };
 
-/** @public */
 export const editLocalCard = (input: CardEdit): Card => {
   const edit = cardEditSchema.parse(input);
   const localCards = cardStore.getState().localCards;
@@ -82,13 +80,11 @@ export const editLocalCard = (input: CardEdit): Card => {
   return updatedCard;
 };
 
-/** @public */
 export const deleteLocalCard = (input: CardId): void => {
   const cardId = cardIdSchema.parse(input);
   cardStore.setState({ localCards: cardStore.getState().localCards.filter(({ id }) => id !== cardId) });
 };
 
-/** @public */
 export const deleteLocalCardsByDeckId = (deckId: string): void => {
   const parsedDeckId = z.string().min(1, "Card deck is required").parse(deckId);
   cardStore.setState({ localCards: cardStore.getState().localCards.filter((card) => card.deckId !== parsedDeckId) });

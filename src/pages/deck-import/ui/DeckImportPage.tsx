@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { createDeck, useDecks } from "@/entities/deck";
-import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
+import { generateCardId, useCards } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { DeckImportView, downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck-import";
 import { AppLayout } from "@/widgets/app-layout";
@@ -15,10 +15,8 @@ export const DeckImportPage: React.FC = () => {
   const decks = useDecks();
   const deckImport = useDeckImport({
     cards,
-    createCard,
     createDeck,
     decks,
-    editCard,
     generateCardId,
   });
   useKey("t", () => void navigate("/"));

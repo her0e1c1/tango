@@ -32,10 +32,8 @@ const createDeck = vi.fn<(uid: string, deck: DeckCreateInput) => Promise<unknown
 const useTestSampleDeckBootstrap = () =>
   useSampleDeckBootstrap({
     cards: [],
-    createCard: vi.fn(),
     createDeck,
     decks: mocks.remote.decks,
-    editCard: vi.fn(),
     generateCardId: vi.fn(() => "card-id"),
   });
 

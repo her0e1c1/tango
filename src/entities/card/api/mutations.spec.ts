@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard as createCardFixture, createDeck as createDeckFixture } from "@/test/factories";
 
-import { createCard, deleteCard, editCard } from "./mutations";
+import { type CardBulkMutationError, type CardMutation, deleteCard, editCard, mutateCards } from "./mutations";
 import { cardStore, findCardById } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
@@ -33,7 +33,7 @@ describe("Card mutations", () => {
     const card = createCardFixture({ id: "local-card", deckId: deck.id });
     mocks.findDeckById.mockReturnValue(deck);
 
-    await createCard("", card);
+    await mutateCards("", [{ kind: "create", card }]);
     await editCard("", { id: card.id, uid: card.uid, frontText: "Updated" });
 
     expect(findCardById(card.id)).toMatchObject({ id: card.id, frontText: "Updated" });
@@ -53,13 +53,50 @@ describe("Card mutations", () => {
     mocks.findDeckById.mockReturnValue(deck);
     cardStore.setState({ remoteCards: [card] });
 
-    await createCard("uid", card);
+    await mutateCards("uid", [{ kind: "create", card }]);
     await editCard("uid", edit);
     await deleteCard("uid", card);
 
     expect(mocks.createRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", card);
     expect(mocks.editRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", edit);
     expect(mocks.deleteRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", card);
+  });
+
+  it("executes each explicit Card mutation through the existing routing", async () => {
+    const deck = createDeckFixture({ id: "remote-deck", localMode: false });
+    const created = createCardFixture({ id: "created", deckId: deck.id });
+    const edited = createCardFixture({ id: "edited", deckId: deck.id });
+    const mutations = [
+      { kind: "create", card: created },
+      { kind: "edit", card: edited },
+    ] satisfies CardMutation[];
+    mocks.findDeckById.mockReturnValue(deck);
+    cardStore.setState({ remoteCards: [edited], localCards: [] });
+
+    await mutateCards("uid-a", mutations);
+
+    expect(mocks.createRemoteCard).toHaveBeenCalledWith("uid-a", created);
+    expect(mocks.editRemoteCard).toHaveBeenCalledWith("uid-a", edited);
+  });
+
+  it("reports every failed Card while allowing other writes to finish", async () => {
+    const deck = createDeckFixture({ id: "remote-deck", localMode: false });
+    const first = createCardFixture({ id: "first", deckId: deck.id });
+    const second = createCardFixture({ id: "second", deckId: deck.id });
+    mocks.findDeckById.mockReturnValue(deck);
+    cardStore.setState({ remoteCards: [second], localCards: [] });
+    mocks.createRemoteCard.mockRejectedValueOnce(new Error("create failed"));
+    mocks.editRemoteCard.mockRejectedValueOnce(new Error("edit failed"));
+
+    await expect(
+      mutateCards("uid-a", [
+        { kind: "create", card: first },
+        { kind: "edit", card: second },
+      ])
+    ).rejects.toMatchObject({
+      failedIds: [first.id, second.id],
+      message: "2 of 2 Card writes failed",
+    } satisfies Partial<CardBulkMutationError>);
   });
 
   it("rejects edit and delete when the Card cannot be resolved", async () => {
