@@ -3,14 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { createCard, createDeck } from "@/test/factories";
-import {
-  CATEGORY,
-  createSelectableStudyCard,
-  filterCardsForDeck,
-  getCategory,
-  isHighlightLanguage,
-  mustFindDeckById,
-} from "./rules";
+import { CATEGORY, filterCardsForDeck, getCategory, isHighlightLanguage, mustFindDeckById } from "./rules";
 
 describe("category", () => {
   it("defines supported categories including application categories and major languages", () => {
@@ -59,35 +52,34 @@ describe("mustFindDeckById", () => {
 
 describe("filterCardsForDeck", () => {
   const now = 1000;
-  const makeCard = (overrides: Parameters<typeof createCard>[0]) => createSelectableStudyCard(createCard(overrides));
   const baseDeck = createDeck({ selectedTags: [], tagAndFilter: false, scoreMax: null, scoreMin: null });
   const basePreferences = { useCardInterval: false };
 
   it("returns all cards when no filters are active", () => {
-    const cards = [makeCard({ id: "a" }), makeCard({ id: "b" })];
+    const cards = [createCard({ id: "a" }), createCard({ id: "b" })];
     expect(filterCardsForDeck(cards, baseDeck, basePreferences, now)).toHaveLength(2);
   });
 
   it("filters tags with OR semantics", () => {
-    const cards = [makeCard({ id: "a", tags: ["x"] }), makeCard({ id: "b", tags: ["y"] })];
+    const cards = [createCard({ id: "a", tags: ["x"] }), createCard({ id: "b", tags: ["y"] })];
     const deck = { ...baseDeck, selectedTags: ["x"], tagAndFilter: false };
-    expect(filterCardsForDeck(cards, deck, basePreferences, now).map(({ card }) => card.id)).toEqual(["a"]);
+    expect(filterCardsForDeck(cards, deck, basePreferences, now).map((card) => card.id)).toEqual(["a"]);
   });
 
   it("filters tags with AND semantics", () => {
-    const cards = [makeCard({ id: "a", tags: ["x", "y"] }), makeCard({ id: "b", tags: ["x"] })];
+    const cards = [createCard({ id: "a", tags: ["x", "y"] }), createCard({ id: "b", tags: ["x"] })];
     const deck = { ...baseDeck, selectedTags: ["x", "y"], tagAndFilter: true };
-    expect(filterCardsForDeck(cards, deck, basePreferences, now).map(({ card }) => card.id)).toEqual(["a"]);
+    expect(filterCardsForDeck(cards, deck, basePreferences, now).map((card) => card.id)).toEqual(["a"]);
   });
 
   it("includes the configured score boundaries", () => {
     const cards = [
-      makeCard({ id: "low", score: 1 }),
-      makeCard({ id: "middle", score: 2 }),
-      makeCard({ id: "high", score: 3 }),
+      createCard({ id: "low", score: 1 }),
+      createCard({ id: "middle", score: 2 }),
+      createCard({ id: "high", score: 3 }),
     ];
     const deck = { ...baseDeck, scoreMin: 1, scoreMax: 3 };
-    expect(filterCardsForDeck(cards, deck, basePreferences, now).map(({ card }) => card.id)).toEqual([
+    expect(filterCardsForDeck(cards, deck, basePreferences, now).map((card) => card.id)).toEqual([
       "low",
       "middle",
       "high",
@@ -96,26 +88,23 @@ describe("filterCardsForDeck", () => {
 
   it("excludes scores outside the configured range", () => {
     const cards = [
-      makeCard({ id: "low", score: 1 }),
-      makeCard({ id: "middle", score: 2 }),
-      makeCard({ id: "high", score: 3 }),
+      createCard({ id: "low", score: 1 }),
+      createCard({ id: "middle", score: 2 }),
+      createCard({ id: "high", score: 3 }),
     ];
     const deck = { ...baseDeck, scoreMin: 2, scoreMax: 2 };
-    expect(filterCardsForDeck(cards, deck, basePreferences, now).map(({ card }) => card.id)).toEqual(["middle"]);
+    expect(filterCardsForDeck(cards, deck, basePreferences, now).map((card) => card.id)).toEqual(["middle"]);
   });
 
   it("filters unavailable cards when intervals are enabled", () => {
-    const cards = [makeCard({ id: "future", nextSeeingAt: new Date(now + 1) }), makeCard({ id: "available" })];
-    expect(filterCardsForDeck(cards, baseDeck, { useCardInterval: true }, now).map(({ card }) => card.id)).toEqual([
+    const cards = [createCard({ id: "future", nextSeeingAt: new Date(now + 1) }), createCard({ id: "available" })];
+    expect(filterCardsForDeck(cards, baseDeck, { useCardInterval: true }, now).map((card) => card.id)).toEqual([
       "available",
     ]);
   });
 
   it("preserves input order while filtering", () => {
-    const cards = [makeCard({ id: "seen", numberOfSeen: 5 }), makeCard({ id: "new", numberOfSeen: 1 })];
-    expect(filterCardsForDeck(cards, baseDeck, basePreferences, now).map(({ card }) => card.id)).toEqual([
-      "seen",
-      "new",
-    ]);
+    const cards = [createCard({ id: "seen", numberOfSeen: 5 }), createCard({ id: "new", numberOfSeen: 1 })];
+    expect(filterCardsForDeck(cards, baseDeck, basePreferences, now).map((card) => card.id)).toEqual(["seen", "new"]);
   });
 });

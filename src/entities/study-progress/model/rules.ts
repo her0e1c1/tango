@@ -74,10 +74,13 @@ export const buildStudyCardOrder = (
   return cardOrderIds;
 };
 
-export const getNextStudyAvailabilityAt = (progresses: StudyProgress[], now: number): number | undefined => {
+export const getNextStudyAvailabilityAt = (
+  scheduledItems: readonly { nextSeeingAt?: Date | undefined }[],
+  now: number
+): number | undefined => {
   let next: number | undefined;
-  for (const progress of progresses) {
-    const candidate = progress.nextSeeingAt?.getTime();
+  for (const item of scheduledItems) {
+    const candidate = item.nextSeeingAt?.getTime();
     if (candidate !== undefined && candidate > now && (next === undefined || candidate < next)) {
       next = candidate;
     }
