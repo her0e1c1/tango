@@ -13,6 +13,6 @@ export {
   moveStudySession,
   removeStudySession,
   setStudySessionIndex,
-  startStudySession,
+  startStudy,
   touchStudySession,
 } from "./model/store";

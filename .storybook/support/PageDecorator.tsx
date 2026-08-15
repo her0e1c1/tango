@@ -16,7 +16,7 @@ import { replaceAuthSession } from "@/entities/auth";
 import type { Preferences } from "@/entities/preferences";
 import { preferencesSchema } from "@/entities/preferences/model/schema";
 import { preferencesStore } from "@/entities/preferences/model/store";
-import { clearStudySessions, setStudySessionIndex, startStudySession } from "@/entities/study-session";
+import { clearStudySessions, setStudySessionIndex, startStudy } from "@/entities/study-session";
 
 export const PAGE_STORY_UID = "storybook-user";
 
@@ -80,7 +80,11 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   });
   Object.entries(parameters.sessionsByDeckId ?? {}).forEach(([deckId, session]) => {
     if (session == null) return;
-    startStudySession(deckId, session.cardOrderIds);
+    startStudy(
+      deckId,
+      session.cardOrderIds.map((id, numberOfSeen) => ({ id, score: 0, numberOfSeen })),
+      { shuffled: false, maxNumberOfCardsToLearn: 0 }
+    );
     setStudySessionIndex(deckId, session.currentIndex);
   });
   replaceRemoteDecks(decks);

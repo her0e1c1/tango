@@ -4,7 +4,7 @@ import {
   clearStudySessions,
   getStudySession,
   setStudySessionIndex,
-  startStudySession,
+  startStudy,
   touchStudySession,
 } from "@/entities/study-session";
 
@@ -43,6 +43,10 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   lastSeenAt: 0,
 }));
 
+const startSession = (sessionCards: Card[] = cards): void => {
+  startStudy(deckId, sessionCards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+};
+
 describe("useStudyActions", () => {
   const saveProgress = vi.fn();
   const onSwipe = vi.fn();
@@ -68,10 +72,7 @@ describe("useStudyActions", () => {
     renderHook(() => useStudyActions(deckId, { cards, saveProgress, onSwipe, onCardChanged }));
 
   it("persists the current card before advancing the session", async () => {
-    startStudySession(
-      deckId,
-      cards.map(({ id }) => id)
-    );
+    startSession();
     let finishWrite: () => void = () => undefined;
     saveProgress.mockReturnValueOnce(
       new Promise<void>((resolve) => {
@@ -101,10 +102,7 @@ describe("useStudyActions", () => {
   });
 
   it("keeps the visible session unchanged when persistence fails", async () => {
-    startStudySession(
-      deckId,
-      cards.map(({ id }) => id)
-    );
+    startSession();
     saveProgress.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderActions();
 
@@ -116,10 +114,7 @@ describe("useStudyActions", () => {
   });
 
   it("blocks a second swipe while the first write is unresolved", async () => {
-    startStudySession(
-      deckId,
-      cards.map(({ id }) => id)
-    );
+    startSession();
     let finishWrite: () => void = () => undefined;
     saveProgress.mockReturnValueOnce(
       new Promise<void>((resolve) => {
@@ -139,10 +134,7 @@ describe("useStudyActions", () => {
   });
 
   it("does not advance a session changed by the controller during the write", async () => {
-    startStudySession(
-      deckId,
-      cards.map(({ id }) => id)
-    );
+    startSession();
     let finishWrite: () => void = () => undefined;
     saveProgress.mockReturnValueOnce(
       new Promise<void>((resolve) => {
@@ -163,10 +155,7 @@ describe("useStudyActions", () => {
   });
 
   it("advances after a timestamp-only session touch during the write", async () => {
-    startStudySession(
-      deckId,
-      cards.map(({ id }) => id)
-    );
+    startSession();
     let finishWrite: () => void = () => undefined;
     saveProgress.mockReturnValueOnce(
       new Promise<void>((resolve) => {
@@ -188,10 +177,7 @@ describe("useStudyActions", () => {
   });
 
   it("handles DoNothing and GoBack without writing progress", async () => {
-    startStudySession(
-      deckId,
-      cards.map(({ id }) => id)
-    );
+    startSession();
     const { result } = renderActions();
 
     await actAsync(() => result.current.swipeDown());
@@ -204,7 +190,7 @@ describe("useStudyActions", () => {
   });
 
   it("removes the session after the final card is persisted", async () => {
-    startStudySession(deckId, ["card-1"]);
+    startSession(cards.slice(0, 1));
     const { result } = renderActions();
 
     await actAsync(() => result.current.swipeRight());
