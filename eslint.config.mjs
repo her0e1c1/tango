@@ -48,6 +48,15 @@ export default [
       // React Compiler owns routine memoization; manual memoization must have an observable reason to remain.
       "@eslint-react/no-unnecessary-use-callback": "error",
       "@eslint-react/no-unnecessary-use-memo": "error",
+      // Keep exceptional manual callbacks visually explicit without blocking the React namespace import.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "ImportDeclaration[source.value='react'] > ImportSpecifier[imported.name='useCallback']",
+          message: "Use React.useCallback when manual memoization is necessary.",
+        },
+      ],
     },
   },
   createBoundariesConfig({
