@@ -34,7 +34,7 @@ export const buildDeckListSections = (
 ): DeckListSections => {
   const cardCounts = countCardsByDeckId(cards);
   const createItem = (deck: Deck): DeckListItem => ({ deck, cardCount: cardCounts.get(deck.id) ?? 0 });
-  const { studying: studyingDecks, notStudying: otherDecks } = groupDecksByStudyStatus(decks, sessionsByDeckId);
+  const { active: studyingDecks, inactive: otherDecks } = groupDecksByStudyStatus(decks, sessionsByDeckId);
   studyingDecks.sort(
     (left, right) => right.session.lastStudiedAt - left.session.lastStudiedAt || compareDeckNames(left.deck, right.deck)
   );

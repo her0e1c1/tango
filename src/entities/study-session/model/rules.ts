@@ -13,31 +13,31 @@ interface StudySessionDeck {
   id: StudySession["deckId"];
 }
 
-interface StudyingDeck<TDeck> {
+interface ActiveDeck<TDeck> {
   deck: TDeck;
   session: StudySession;
 }
 
 interface DecksByStudyStatus<TDeck> {
-  studying: StudyingDeck<TDeck>[];
-  notStudying: TDeck[];
+  active: ActiveDeck<TDeck>[];
+  inactive: TDeck[];
 }
 
-// Resolve study status here so presentation models cannot redefine which decks are being studied.
+// Resolve study status here so presentation models cannot redefine which decks have active sessions.
 export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
   decks: readonly TDeck[],
   sessionsByDeckId: StudySessions
 ): DecksByStudyStatus<TDeck> => {
-  const studying: StudyingDeck<TDeck>[] = [];
-  const notStudying: TDeck[] = [];
+  const active: ActiveDeck<TDeck>[] = [];
+  const inactive: TDeck[] = [];
 
   for (const deck of decks) {
     const session = sessionsByDeckId[deck.id];
-    if (session == null) notStudying.push(deck);
-    else studying.push({ deck, session });
+    if (session == null) inactive.push(deck);
+    else active.push({ deck, session });
   }
 
-  return { studying, notStudying };
+  return { active, inactive };
 };
 
 export const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>

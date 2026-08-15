@@ -31,8 +31,8 @@ describe("groupDecksByStudyStatus", () => {
 
     const groups = groupDecksByStudyStatus(decks, sessions);
 
-    expect(groups.studying.map(({ deck }) => deck.id)).toEqual(["studying-old", "studying-new"]);
-    expect(groups.notStudying.map((deck) => deck.id)).toEqual(["not-studying-z", "not-studying-a"]);
+    expect(groups.active.map(({ deck }) => deck.id)).toEqual(["studying-old", "studying-new"]);
+    expect(groups.inactive.map((deck) => deck.id)).toEqual(["not-studying-z", "not-studying-a"]);
   });
 });
 
