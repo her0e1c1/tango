@@ -1,7 +1,6 @@
 import type { Card } from "@/entities/card/@x/deck";
 import { createStudyProgressFromCard, isStudyProgressEligible } from "@/entities/study-progress/@x/deck";
 
-import { deckViewSchema } from "./schema";
 import type { Category, Deck, DeckId, DeckStore, DeckView } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
@@ -53,8 +52,22 @@ export const getCategory = (category: Category, tags: string[]): Category => {
   return tagCategory ?? category;
 };
 
-/** Keep ownership and persistence metadata inside the store boundary. */
-export const toDeckView = (deck: DeckStore): DeckView => deckViewSchema.parse(deck);
+/** Keep persistence metadata and mutable store collections behind the Entity boundary. */
+export const toDeckView = (deck: DeckStore): DeckView => ({
+  id: deck.id,
+  name: deck.name,
+  ...(deck.url === undefined ? {} : { url: deck.url }),
+  isPublic: deck.isPublic,
+  scoreMax: deck.scoreMax,
+  scoreMin: deck.scoreMin,
+  selectedTags: [...deck.selectedTags],
+  tagAndFilter: deck.tagAndFilter,
+  category: deck.category,
+  convertToBr: deck.convertToBr,
+  createdAt: deck.createdAt,
+  updatedAt: deck.updatedAt,
+  localMode: deck.localMode,
+});
 
 const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
   const tags = deck.selectedTags;

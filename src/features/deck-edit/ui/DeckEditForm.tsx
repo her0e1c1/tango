@@ -1,4 +1,4 @@
-import type { DeckDomain } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
@@ -9,7 +9,7 @@ import { useDeckFormState } from "../model/useDeckFormState";
 import { DeckForm } from "./DeckForm";
 
 export interface DeckEditFormProps {
-  deck: DeckDomain;
+  deck: Deck;
   onCancel: () => void;
   onSaved: () => void;
 }

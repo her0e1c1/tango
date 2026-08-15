@@ -1,4 +1,4 @@
-import type { DeckDomain } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 
 import type * as React from "react";
 import { useId } from "react";
@@ -14,7 +14,7 @@ interface DeckFormFields {
 }
 
 export interface DeckFormProps {
-  deck: DeckDomain;
+  deck: Deck;
   fields: DeckFormFields;
   errors: {
     name: string | undefined;

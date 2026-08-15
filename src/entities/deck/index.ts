@@ -14,7 +14,6 @@ export { clearRemoteDecks } from "./model/store";
 export type {
   Deck,
   DeckCreateInput,
-  DeckDomain,
   DeckEdit,
   DeckId,
   LocalDeckCreateInput,

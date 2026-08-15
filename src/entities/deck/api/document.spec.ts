@@ -5,7 +5,7 @@ import { parseDeckDocument, toDeckDocument, toRemoteDeckStore } from "./document
 
 describe("Deck Firestore document mapping", () => {
   it("maps a remote create command to the Firestore boundary", () => {
-    const deck = createDeck({ id: "deck", uid: "owner", url: undefined });
+    const deck = createDeck({ id: "deck", uid: "owner" });
 
     expect(toDeckDocument(deck, 10)).toEqual({
       id: "deck",

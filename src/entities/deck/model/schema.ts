@@ -41,22 +41,12 @@ export const deckCreateSchema = deckCreateFieldsSchema.extend({
 
 export const localDeckCreateSchema = deckCreateFieldsSchema.extend({ localMode: z.literal(true) });
 
-export const deckDomainSchema = editableDeckFieldsSchema.extend({
+export const localDeckSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
   createdAt: z.number(),
   updatedAt: z.number(),
+  localMode: z.literal(true),
 });
-
-export const deckViewSchema = deckDomainSchema.extend({ localMode: z.boolean() });
-
-export const remoteDeckSchema = deckDomainSchema.extend({
-  uid: deckUidSchema,
-  localMode: z.literal(false),
-});
-
-export const localDeckSchema = deckDomainSchema.extend({ localMode: z.literal(true) });
-
-export const deckStoreSchema = z.discriminatedUnion("localMode", [remoteDeckSchema, localDeckSchema]);
 
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   id: deckIdSchema,
