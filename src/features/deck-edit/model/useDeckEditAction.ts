@@ -13,18 +13,15 @@ export const useDeckEditAction = ({ onSaved }: UseDeckEditActionOptions = {}) =>
   const uid = useAuthUid();
   const [error, setError] = React.useState<unknown>(null);
 
-  const update = React.useCallback(
-    async (deck: DeckEdit) => {
-      setError(null);
-      try {
-        await editDeck(uid, deck);
-        onSaved?.();
-      } catch (nextError) {
-        setError(nextError);
-      }
-    },
-    [onSaved, uid]
-  );
+  const update = async (deck: DeckEdit) => {
+    setError(null);
+    try {
+      await editDeck(uid, deck);
+      onSaved?.();
+    } catch (nextError) {
+      setError(nextError);
+    }
+  };
 
   return { error, update };
 };

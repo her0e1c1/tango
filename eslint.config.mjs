@@ -45,16 +45,14 @@ export default [
       "@eslint-react": eslintReact,
     },
     rules: {
-      // React Compiler owns routine memoization; manual memoization must have an observable reason to remain.
-      "@eslint-react/no-unnecessary-use-callback": "error",
+      // React Compiler owns routine memoization; manual useMemo must have an observable reason to remain.
       "@eslint-react/no-unnecessary-use-memo": "error",
-      // Keep exceptional manual callbacks visually explicit without blocking the React namespace import.
+      // Reserve this identifier so imports and React-qualified calls cannot bypass the compiler policy.
       "no-restricted-syntax": [
         "error",
         {
-          selector:
-            "ImportDeclaration[source.value='react'] > ImportSpecifier[imported.name='useCallback']",
-          message: "Use React.useCallback when manual memoization is necessary.",
+          selector: "Identifier[name='useCallback']",
+          message: "Do not use useCallback; rely on React Compiler memoization.",
         },
       ],
     },

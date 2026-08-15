@@ -4,22 +4,14 @@ import { usePreferences } from "@/entities/preferences";
 import { startStudySession } from "@/entities/study-session";
 import { buildStudyCardOrder } from "@/entities/study-progress";
 
-import * as React from "react";
-
 interface UseStartStudySessionOptions {
   onStarted?: (() => void) | undefined;
 }
 
-export const useStartStudySession = (
-  deckId: DeckId,
-  { onStarted }: UseStartStudySessionOptions = {}
-): ((cards: Card[]) => void) => {
-  const preferences = usePreferences();
-  return React.useCallback(
-    (cards) => {
-      startStudySession(deckId, buildStudyCardOrder(cards, preferences.study));
-      onStarted?.();
-    },
-    [deckId, onStarted, preferences.study]
-  );
+export const useStartStudySession = (deckId: DeckId, { onStarted }: UseStartStudySessionOptions = {}) => {
+  const { study } = usePreferences();
+  return (cards: Card[]) => {
+    startStudySession(deckId, buildStudyCardOrder(cards, study));
+    onStarted?.();
+  };
 };

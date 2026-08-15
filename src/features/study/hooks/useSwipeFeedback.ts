@@ -7,13 +7,10 @@ const SWIPE_FEEDBACK_DURATION_MS = 900;
 export const useSwipeFeedback = (enabled: boolean) => {
   const [lastSwipe, setLastSwipe] = React.useState<{ direction: SwipeDirection }>();
 
-  const showSwipe = React.useCallback(
-    (direction: SwipeDirection) => {
-      if (!enabled) return;
-      setLastSwipe({ direction });
-    },
-    [enabled]
-  );
+  const showSwipe = (direction: SwipeDirection) => {
+    if (!enabled) return;
+    setLastSwipe({ direction });
+  };
 
   React.useEffect(() => {
     if (lastSwipe === undefined) return;

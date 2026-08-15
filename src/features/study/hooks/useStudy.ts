@@ -41,14 +41,11 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
   const preferences = usePreferences();
   const [showBackText, setShowBackText] = React.useState(false);
   const [autoPlay, setAutoPlay] = React.useState(preferences.study.defaultAutoPlay);
-  const hideBackText = React.useCallback(() => setShowBackText(false), []);
-  const toggleBackText = React.useCallback(() => setShowBackText((visible) => !visible), []);
-  const toggleAutoPlay = React.useCallback(() => setAutoPlay((playing) => !playing), []);
+  const hideBackText = () => setShowBackText(false);
+  const toggleBackText = () => setShowBackText((visible) => !visible);
+  const toggleAutoPlay = () => setAutoPlay((playing) => !playing);
   const feedback = useSwipeFeedback(preferences.appearance.showSwipeFeedback);
-  const saveProgress = React.useCallback(
-    (progress: Parameters<typeof editStudyProgress>[1]) => editStudyProgress(uid, progress),
-    [uid]
-  );
+  const saveProgress = (progress: Parameters<typeof editStudyProgress>[1]) => editStudyProgress(uid, progress);
   const actions = useStudyActions(deckId, {
     cards,
     saveProgress,
