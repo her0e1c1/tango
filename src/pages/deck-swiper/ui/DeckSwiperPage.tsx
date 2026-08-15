@@ -7,7 +7,6 @@ import { useKey } from "react-use";
 import { type Card, type CardId, useCards } from "@/entities/card";
 import { BackText, CardOverlay, FrontText } from "@/features/card-view";
 import {
-  initializeStudySessionUi,
   selectStudySessionForRoute,
   type SwipeButtonListProps,
   touchStudySession,
@@ -41,7 +40,7 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   const allCards = useCards();
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const [showBackText, setShowBackText] = React.useState(false);
-  const autoPlay = useStudyStore((state) => state.autoPlay);
+  const [autoPlay, setAutoPlay] = React.useState(preferences.study.defaultAutoPlay);
   const [lastSwipe, setLastSwipe] = React.useState<{ direction: SwipeDirection; eventId: number } | undefined>(
     undefined
   );
@@ -55,6 +54,9 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   }, []);
   const handleRestoreBackText = React.useCallback((show: boolean) => {
     setShowBackText(show);
+  }, []);
+  const handleToggleAutoPlay = React.useCallback(() => {
+    setAutoPlay((prev) => !prev);
   }, []);
 
   const handleSwipe = React.useCallback(
@@ -93,7 +95,7 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   useKey("Enter", studyActions.toggleShowBackText);
   useKey("h", toggleShowHeader);
   useKey("b", toggleShowSwipeButtonList);
-  useKey(" ", studyActions.toggleAutoPlay);
+  useKey(" ", handleToggleAutoPlay);
 
   React.useEffect(() => {
     if (lastSwipe === undefined) return;
@@ -113,15 +115,14 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
     index,
     numberOfCards: session?.cardOrderIds.length ?? 0,
     onChange: studyActions.updateIndex,
-    onToggleAutoPlay: studyActions.toggleAutoPlay,
+    onToggleAutoPlay: handleToggleAutoPlay,
   });
 
   const exitingDeck = React.useRef<DeckId>(undefined);
   React.useEffect(() => {
     if (!valid) return;
-    initializeStudySessionUi(preferences.study.defaultAutoPlay);
     touchStudySession(deckId);
-  }, [preferences.study.defaultAutoPlay, deckId, valid]);
+  }, [deckId, valid]);
 
   React.useEffect(() => {
     if (valid) {
