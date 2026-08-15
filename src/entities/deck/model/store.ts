@@ -54,6 +54,12 @@ export const clearRemoteDecks = (): void => {
   deckStore.setState({ remoteDecks: [] });
 };
 
+export const findDeckById = (id: DeckId): Deck | undefined => {
+  const deckId = deckIdSchema.parse(id);
+  const state = deckStore.getState();
+  return state.remoteDecks.find((deck) => deck.id === deckId) ?? state.localDecks.find((deck) => deck.id === deckId);
+};
+
 /** @public */
 export const createLocalDeck = (input: LocalDeckCreateInput): Deck => {
   const deck = localDeckCreateSchema.parse(input);

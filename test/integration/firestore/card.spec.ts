@@ -4,18 +4,13 @@
  * "should update a card", and "should import cards".
  */
 
-import {
-  createCard as createCardCommand,
-  deleteCard,
-  editCard,
-  type Card,
-  type CardCreateInput,
-} from "@/entities/card";
-import { createDeck as createDeckCommand } from "@/entities/deck";
+import type { Card, CardCreateInput } from "@/entities/card";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { collection, deleteDoc, getDocs, getFirestore, doc, getDoc, query, where } from "firebase/firestore";
+import { createCard as createCardCommand, deleteCard, editCard } from "@/entities/card/api/firestore";
+import { createDeck as createDeckCommand } from "@/entities/deck/api/firestore";
 import { upsertImportedCards } from "@/features/deck-import/api/upsertImportedCards";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
