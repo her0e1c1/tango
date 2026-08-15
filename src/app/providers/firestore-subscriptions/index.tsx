@@ -9,12 +9,16 @@ export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> =
   const authenticatedUid = authState.status === "authenticated" ? authState.uid : null;
 
   React.useEffect(() => {
-    const stopCards = authenticatedUid == null ? undefined : subscribeCards(authenticatedUid, console.error);
-    const stopDecks = authenticatedUid == null ? undefined : subscribeDecks(authenticatedUid, console.error);
+    if (authenticatedUid === null) {
+      return;
+    }
+
+    const stopCards = subscribeCards(authenticatedUid, console.error);
+    const stopDecks = subscribeDecks(authenticatedUid, console.error);
 
     return () => {
-      stopCards?.();
-      stopDecks?.();
+      stopCards();
+      stopDecks();
       clearRemoteCards();
       clearRemoteDecks();
     };

@@ -57,6 +57,15 @@ describe("FirestoreSubscriptionsProvider", () => {
     ]);
   });
 
+  it("does not subscribe or clear remote state before authentication", () => {
+    mocks.authState = { status: "initializing" };
+
+    const view = render(<FirestoreSubscriptionsProvider />);
+    view.unmount();
+
+    expect(mocks.operations).toEqual([]);
+  });
+
   it("replaces subscriptions when the authenticated UID changes", () => {
     const view = render(<FirestoreSubscriptionsProvider />);
     mocks.operations.length = 0;
