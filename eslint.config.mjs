@@ -7,9 +7,11 @@ import {
 } from "eslint-plugin-boundaries/config";
 import reactHooks from "eslint-plugin-react-hooks";
 import testingLibrary from "eslint-plugin-testing-library";
+import vitest from "@vitest/eslint-plugin";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
+const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}"];
 const sliceLayers = ["entities", "features", "pages", "widgets"];
 const nonSliceLayers = ["app", "shared"];
 
@@ -135,6 +137,10 @@ export default [
   },
   {
     ...testingLibrary.configs["flat/react"],
-    files: ["src/**/*.spec.{ts,tsx}"],
+    files: vitestFiles,
+  },
+  {
+    ...vitest.configs.recommended,
+    files: vitestFiles,
   },
 ];

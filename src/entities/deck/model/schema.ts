@@ -5,8 +5,8 @@ export const deckIdSchema = z.string().min(1, "Deck id is required");
 const deckUidSchema = z.string().min(1, "Deck owner is required");
 
 const editableDeckFieldsSchema = z.object({
-  name: z.string().min(1, "Deck name is required"),
-  url: z.string().optional(),
+  name: z.string().trim().min(1, "Deck name is required."),
+  url: z.url("Enter a valid URL.").optional(),
   isPublic: z.boolean(),
   scoreMax: z.number().nullable(),
   scoreMin: z.number().nullable(),
@@ -14,6 +14,13 @@ const editableDeckFieldsSchema = z.object({
   tagAndFilter: z.boolean(),
   category: z.string(),
   convertToBr: z.boolean(),
+});
+
+export const deckFormSchema = editableDeckFieldsSchema.pick({
+  name: true,
+  category: true,
+  url: true,
+  convertToBr: true,
 });
 
 const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
@@ -47,7 +54,10 @@ export const localDeckSchema = localDeckCreateSchema.extend({
 
 export const deckSchema = z.discriminatedUnion("localMode", [remoteDeckSchema, localDeckSchema]);
 
-export const deckEditSchema = editableDeckFieldsSchema.partial().extend({ id: deckIdSchema });
+export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
+  id: deckIdSchema,
+  url: editableDeckFieldsSchema.shape.url.nullable(),
+});
 const deckIdentitySchema = z.object({ id: deckIdSchema, uid: deckUidSchema });
 
 const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, context: z.RefinementCtx): void => {

@@ -14,7 +14,11 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/auth", () => ({
   useAuthUid: () => "user-id",
 }));
-vi.mock("@/entities/card", () => ({ editCard: mocks.editCard }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/entities/card", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/card")>()),
+  editCard: mocks.editCard,
+}));
 vi.mock("@/entities/deck", () => ({ CATEGORY: ["language", "math"] }));
 
 import { CardEditForm } from "./CardEditForm";

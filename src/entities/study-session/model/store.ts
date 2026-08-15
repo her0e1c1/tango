@@ -5,7 +5,6 @@ import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
-import { calculateStudySessionIndex, type StudySessionMovement } from "./rules";
 import type { StudySession, StudySessions } from "./types";
 
 const STUDY_STORAGE_KEY = "tango-study";
@@ -106,21 +105,6 @@ export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): void
       return;
     }
     session.currentIndex = currentIndex;
-    session.lastStudiedAt = Date.now();
-  });
-};
-
-export const moveStudySession = (deckId: DeckId, movement: StudySessionMovement): void => {
-  studySessionStore.setState((state) => {
-    const session = state.sessionsByDeckId[deckId];
-    if (session == null) return;
-
-    const nextIndex = calculateStudySessionIndex(session, movement);
-    if (nextIndex === undefined) {
-      delete state.sessionsByDeckId[deckId];
-      return;
-    }
-    session.currentIndex = nextIndex;
     session.lastStudiedAt = Date.now();
   });
 };

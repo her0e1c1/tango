@@ -14,7 +14,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/auth", () => ({
   useAuthUid: () => "user-id",
 }));
-vi.mock("@/entities/deck", () => ({
+vi.mock("@/shared/firebase", () => ({ db: {} }));
+vi.mock("@/entities/deck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/deck")>()),
   CATEGORY: ["language", "science"],
   editDeck: mocks.editDeck,
 }));
@@ -73,6 +75,17 @@ describe("DeckEditForm", () => {
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     finishSave?.();
     await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
+  });
+
+  it("submits a cleared optional URL as an explicit deletion", async () => {
+    render(
+      <DeckEditForm deck={{ ...deck, url: "https://example.com/deck.csv" }} onCancel={vi.fn()} onSaved={vi.fn()} />
+    );
+    await userEvent.clear(screen.getByRole("textbox", { name: "Source URL" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => expect(mocks.editDeck).toHaveBeenCalledWith("user-id", expect.objectContaining({ url: null })));
   });
 
   it("keeps edited values and allows another save after a failure", async () => {

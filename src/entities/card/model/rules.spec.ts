@@ -1,7 +1,23 @@
 import { describe, expect, it } from "vitest";
 
 import { createCard } from "@/test/factories";
-import { filterCardsByDeckId, filterTagsByDeckId, mustFindCardById } from "./rules";
+import { filterCardsByDeckId, filterTagsByDeckId, getCardContentValidationErrors, mustFindCardById } from "./rules";
+
+describe("getCardContentValidationErrors", () => {
+  it("returns field errors from the Card content schema", () => {
+    expect(getCardContentValidationErrors({ frontText: " ", backText: "\n", tags: [], uniqueKey: "\t" })).toEqual({
+      frontText: "Front text is required.",
+      backText: "Back text is required.",
+      uniqueKey: "Unique key is required.",
+    });
+  });
+
+  it("returns no errors for valid Card content", () => {
+    expect(
+      getCardContentValidationErrors({ frontText: "front", backText: "back", tags: [], uniqueKey: "key" })
+    ).toEqual({});
+  });
+});
 
 describe("filterCardsByDeckId", () => {
   it("returns cards matching the specified deckId", () => {

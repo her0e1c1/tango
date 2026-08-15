@@ -104,15 +104,21 @@ describe("Deck store", () => {
 
   it("creates, edits, and deletes a local Deck synchronously", () => {
     vi.spyOn(Date, "now").mockReturnValueOnce(10).mockReturnValueOnce(20);
-    const createdDeck = createLocalDeck({ id: "local", name: "Local", localMode: true });
+    const createdDeck = createLocalDeck({
+      id: "local",
+      name: "Local",
+      url: "https://example.com/deck.csv",
+      localMode: true,
+    });
 
     expect(createdDeck).toEqual(
       expect.objectContaining({ id: "local", localMode: true, createdAt: 10, updatedAt: 10 })
     );
     expect(createdDeck).not.toHaveProperty("uid");
 
-    const updatedDeck = editLocalDeck({ id: "local", name: "Renamed" });
+    const updatedDeck = editLocalDeck({ id: "local", name: "Renamed", url: null });
     expect(updatedDeck).toEqual(expect.objectContaining({ name: "Renamed", createdAt: 10, updatedAt: 20 }));
+    expect(updatedDeck).not.toHaveProperty("url");
 
     deleteLocalDeck("local");
     expect(deckStore.getState().localDecks).toEqual([]);

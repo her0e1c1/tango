@@ -21,11 +21,13 @@ type DeckFilterFormProps = ComponentProps<typeof DeckFilterForm>;
 const createProps = (): DeckFilterFormProps => ({
   scoreMax: 4,
   scoreMin: -2,
-  scoreMaxSwitchProps: { name: "maximum-enabled", checked: true, onChange: vi.fn() },
-  scoreMinSwitchProps: { name: "minimum-enabled", checked: true, onChange: vi.fn() },
-  scoreMaxSliderProps: { name: "maximum", value: "4", min: -10, max: 10, onChange: vi.fn() },
-  scoreMinSliderProps: { name: "minimum", value: "-2", min: -10, max: 10, onChange: vi.fn() },
-  tagFilterProps: { tags: ["one", "two"], selectedTags: ["one"], tagAndFilter: true },
+  tags: ["one", "two"],
+  selectedTags: ["one"],
+  tagAndFilter: true,
+  setScoreMax: vi.fn(),
+  setScoreMin: vi.fn(),
+  setSelectedTags: vi.fn(),
+  setTagAndFilter: vi.fn(),
 });
 
 describe("DeckFilterForm", () => {
@@ -50,10 +52,10 @@ describe("DeckFilterForm", () => {
     fireEvent.change(maxSlider, { target: { value: "5" } });
     fireEvent.change(minSlider, { target: { value: "-3" } });
 
-    expect(props.scoreMaxSwitchProps.onChange).toHaveBeenCalledOnce();
-    expect(props.scoreMinSwitchProps.onChange).toHaveBeenCalledOnce();
-    expect(props.scoreMaxSliderProps.onChange).toHaveBeenCalledOnce();
-    expect(props.scoreMinSliderProps.onChange).toHaveBeenCalledOnce();
+    expect(props.setScoreMax).toHaveBeenNthCalledWith(1, null);
+    expect(props.setScoreMin).toHaveBeenNthCalledWith(1, null);
+    expect(props.setScoreMax).toHaveBeenNthCalledWith(2, 5);
+    expect(props.setScoreMin).toHaveBeenNthCalledWith(2, -3);
   });
 
   it("shows unrestricted disabled limits", () => {

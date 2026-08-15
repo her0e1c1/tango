@@ -11,28 +11,6 @@ import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
-const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
-const isHistoryState = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value != null && !Array.isArray(value);
-
-const useStudyHistoryGuard = (deckId: string, navigate: ReturnType<typeof useNavigate>) => {
-  // Keep the active study session on the route when browser history moves backward.
-  React.useEffect(() => {
-    const currentState: unknown = window.history.state;
-    const state = isHistoryState(currentState) ? currentState : {};
-    if (state[STUDY_HISTORY_GUARD] !== deckId) {
-      window.history.pushState({ ...state, [STUDY_HISTORY_GUARD]: deckId }, document.title, document.location.href);
-    }
-    const handlePopState = () => {
-      void navigate(1);
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [deckId, navigate]);
-};
-
 const renderStudyScreen = (deck: Deck, state: StudyState) => {
   if (state.status !== "ready") {
     return state.status === "loading" ? (
@@ -100,7 +78,6 @@ const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => 
 
 const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigate = useNavigate();
-  useStudyHistoryGuard(deck.id, navigate);
   const handleUnavailable = React.useCallback(() => {
     void navigate("/", { replace: true });
   }, [navigate]);

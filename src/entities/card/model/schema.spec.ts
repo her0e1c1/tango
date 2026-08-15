@@ -2,7 +2,27 @@ import { describe, expect, it } from "vitest";
 
 import { createCard as createCardFixture } from "@/test/factories";
 
-import { createCardSchema, deleteCardSchema, editCardSchema } from "./schema";
+import { cardContentSchema, createCardSchema, deleteCardSchema, editCardSchema } from "./schema";
+
+describe("Card content schema", () => {
+  it.each(["", "   ", "\n\t"])("rejects blank front text: %j", (frontText) => {
+    expect(() => cardContentSchema.parse({ frontText, backText: "back", tags: [], uniqueKey: "key" })).toThrow(
+      "Front text is required."
+    );
+  });
+
+  it.each(["", "   ", "\n\t"])("rejects blank back text: %j", (backText) => {
+    expect(() => cardContentSchema.parse({ frontText: "front", backText, tags: [], uniqueKey: "key" })).toThrow(
+      "Back text is required."
+    );
+  });
+
+  it.each(["", "   ", "\n\t"])("rejects blank unique keys: %j", (uniqueKey) => {
+    expect(() => cardContentSchema.parse({ frontText: "front", backText: "back", tags: [], uniqueKey })).toThrow(
+      "Unique key is required."
+    );
+  });
+});
 
 describe("Card operation schemas", () => {
   const card = createCardFixture({ id: "card", deckId: "deck", uid: "uid-a" });
@@ -40,6 +60,15 @@ describe("Card operation schemas", () => {
 
   it("validates create ownership", () => {
     expect(() => createCardSchema.parse({ uid: "uid-b", card })).toThrow("owner does not match");
+  });
+
+  it("applies Card content validation to creates and edits", () => {
+    expect(() => createCardSchema.parse({ uid: "uid-a", card: { ...card, uniqueKey: " " } })).toThrow(
+      "Unique key is required."
+    );
+    expect(() => editCardSchema.parse({ uid: "uid-a", card: { id: card.id, uid: card.uid, frontText: " " } })).toThrow(
+      "Front text is required."
+    );
   });
 
   it("keeps ordinary edits within Card-owned editable fields", () => {

@@ -9,7 +9,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearStudySessions,
   getStudySession,
-  moveStudySession,
   removeStudySession,
   setStudySessionIndex,
   startStudySession,
@@ -74,16 +73,6 @@ describe("study store", () => {
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({ currentIndex: 1, lastStudiedAt: 3000 });
     expect(store.getState().sessionsByDeckId["deck-2"]).toMatchObject({ currentIndex: 0, lastStudiedAt: 1000 });
-  });
-
-  it("moves within a session and removes it when movement reaches an edge", () => {
-    startStudySession("deck-1", ["card-1", "card-2"]);
-
-    moveStudySession("deck-1", "next");
-    expect(getStudySession("deck-1")?.currentIndex).toBe(1);
-
-    moveStudySession("deck-1", "next");
-    expect(getStudySession("deck-1")).toBeUndefined();
   });
 
   it.each([-1, 2, 0.5])("does not persist an invalid session index: %s", (currentIndex) => {
