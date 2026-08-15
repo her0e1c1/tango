@@ -7,20 +7,20 @@ import { render, fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect, it, describe, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { SettingsView } from "../ui/SettingsView";
+import { SettingsForm } from "../../ui/components/SettingsForm";
 import { usePreferencesFormState } from "./usePreferencesFormState";
 
-const SettingsViewHarness: React.FC<{
+const SettingsFormHarness: React.FC<{
   preferences: Preferences;
   onSubmit: (preferences: Preferences) => void;
 }> = ({ preferences, onSubmit }) => {
-  const preferencesForm = usePreferencesFormState({ preferences, onSubmit });
-  return <SettingsView {...preferencesForm} />;
+  const formState = usePreferencesFormState({ preferences, onSubmit });
+  return <SettingsForm {...formState} />;
 };
 
 import { createPreferences } from "@/test/factories";
 
-describe("SettingsView with usePreferencesFormState", () => {
+describe("SettingsForm with usePreferencesFormState", () => {
   const preferences = createPreferences({
     showHeader: false,
     showSwipeButtonList: false,
@@ -36,7 +36,7 @@ describe("SettingsView with usePreferencesFormState", () => {
 
   it("auto-submits boolean and numeric field changes", async () => {
     const onSubmit = vi.fn();
-    render(<SettingsViewHarness preferences={preferences} onSubmit={onSubmit} />);
+    render(<SettingsFormHarness preferences={preferences} onSubmit={onSubmit} />);
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
     await waitFor(() => {
@@ -69,12 +69,12 @@ describe("SettingsView with usePreferencesFormState", () => {
 
   it("synchronizes dark mode when the preferences prop changes", async () => {
     const onSubmit = vi.fn();
-    const { rerender } = render(<SettingsViewHarness preferences={preferences} onSubmit={onSubmit} />);
+    const { rerender } = render(<SettingsFormHarness preferences={preferences} onSubmit={onSubmit} />);
     const darkModeInput = screen.getByRole("checkbox", { name: "Dark mode" });
     expect(darkModeInput).not.toBeChecked();
 
     const updatedPreferences = { ...preferences, appearance: { ...preferences.appearance, darkMode: true } };
-    rerender(<SettingsViewHarness preferences={updatedPreferences} onSubmit={onSubmit} />);
+    rerender(<SettingsFormHarness preferences={updatedPreferences} onSubmit={onSubmit} />);
 
     await waitFor(() => {
       expect(darkModeInput).toBeChecked();

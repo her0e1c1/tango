@@ -18,7 +18,7 @@ interface SettingsFields {
   cardInterval: React.ComponentProps<typeof Slider>;
 }
 
-export interface SettingsViewProps {
+export interface SettingsFormProps {
   isLoggedIn?: boolean;
   identity?: { uid: string; displayName: string | null };
   fields: SettingsFields;
@@ -31,7 +31,7 @@ export interface SettingsViewProps {
   version?: string;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = (props) => {
+export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
   const idPrefix = useId();
   const inputIds = {
     showHeader: `${idPrefix}-show-header`,

@@ -4,9 +4,9 @@ import type { ComponentProps } from "react";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import { SettingsView as View } from "./SettingsView";
+import { SettingsForm as Form } from "./SettingsForm";
 
-type SettingsFields = ComponentProps<typeof View>["fields"];
+type SettingsFields = ComponentProps<typeof Form>["fields"];
 
 const fields: SettingsFields = {
   showHeader: { checked: fixture.preferences.default.appearance.showHeader, onChange: () => undefined },
@@ -30,7 +30,7 @@ const fields: SettingsFields = {
   },
 };
 
-const settingsViewProps = {
+const settingsFormProps = {
   fields,
   maxNumberOfCardsToLearn: fixture.preferences.default.study.maxNumberOfCardsToLearn,
   cardInterval: fixture.preferences.default.study.cardInterval,
@@ -38,12 +38,12 @@ const settingsViewProps = {
 };
 
 const meta = {
-  title: "Pages/Settings",
-  component: View,
+  title: "Features/Settings/SettingsForm",
+  component: Form,
   tags: ["autodocs"],
   parameters: { viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" } },
-  args: settingsViewProps,
-} satisfies Meta<typeof View>;
+  args: settingsFormProps,
+} satisfies Meta<typeof Form>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -51,14 +51,14 @@ type Story = StoryObj<typeof meta>;
 export const LoggedOut: Story = {};
 export const LoggedIn: Story = {
   args: {
-    ...settingsViewProps,
+    ...settingsFormProps,
     isLoggedIn: true,
     identity: { uid: "settings-user", displayName: "Settings User" },
   },
 };
 export const LongContent: Story = {
   args: {
-    ...settingsViewProps,
+    ...settingsFormProps,
     isLoggedIn: true,
     identity: {
       uid: "settings-user-with-an-intentionally-long-identifier-for-responsive-review-1234567890",
