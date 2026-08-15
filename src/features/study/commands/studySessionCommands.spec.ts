@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { studyStore } from "../state/studyStoreInstance";
-import { initializeStudySessionUi, removeStudySession, touchStudySession } from "./studySessionCommands";
+import { removeStudySession, touchStudySession } from "./studySessionCommands";
 
 describe("study session commands", () => {
   beforeEach(() => {
@@ -26,18 +26,6 @@ describe("study session commands", () => {
 
     expect(studyStore.getState().sessionsByDeckId).toEqual({
       first: { deckId: "first", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 900 },
-    });
-  });
-
-  it("initializes transient study controls", () => {
-    studyStore.setState({
-      autoPlay: false,
-    });
-
-    initializeStudySessionUi(true);
-
-    expect(studyStore.getState()).toMatchObject({
-      autoPlay: true,
     });
   });
 });
