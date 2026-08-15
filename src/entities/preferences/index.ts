@@ -1,4 +1,5 @@
 export { usePreferences } from "./model/hooks";
+export { studyPreferencesLimits } from "./model/rules";
 export type {
   Preferences,
   StudyPreferences,
