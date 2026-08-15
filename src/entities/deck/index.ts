@@ -10,6 +10,6 @@ export {
   mustFindDeckById,
 } from "./model/rules";
 export { useDeck, useDecks } from "./model/hooks";
-export { editableDeckFieldsSchema } from "./model/schema";
+export { deckFormSchema } from "./model/schema";
 export { clearRemoteDecks } from "./model/store";
 export type { Deck, DeckCreateInput, DeckEdit, DeckId, RemoteDeck } from "./model/types";

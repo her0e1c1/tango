@@ -1,11 +1,13 @@
 import type { Deck, DeckEdit } from "@/entities/deck";
+import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { CATEGORY } from "@/entities/deck";
+import { CATEGORY, deckFormSchema } from "@/entities/deck";
 import type { DeckFormProps } from "../ui/DeckForm";
-import { deckFormSchema, type DeckFormValues } from "./deckFormSchema";
+
+type DeckFormValues = z.infer<typeof deckFormSchema>;
 
 interface UseDeckFormStateOptions {
   deck: Deck;
