@@ -2,17 +2,19 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
+import { useDeck } from "@/entities/deck";
 import { CardEditForm } from "@/features/card-edit";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 const CardFormContent = ({ card }: { card: Card }) => {
   const navigate = useNavigate();
+  const deck = useDeck(card.deckId);
   const goBack = () => void navigate(-1);
 
   return (
     <AppLayout showHeader>
-      <CardEditForm card={card} onSaved={goBack} onCancel={goBack} />
+      <CardEditForm card={card} localMode={deck?.localMode ?? false} onSaved={goBack} onCancel={goBack} />
     </AppLayout>
   );
 };

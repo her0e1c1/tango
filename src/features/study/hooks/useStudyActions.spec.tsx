@@ -46,6 +46,7 @@ const deck: Deck = {
   deletedAt: null,
   category: "",
   convertToBr: false,
+  localMode: false,
   selectedTags: [],
   tagAndFilter: false,
   scoreMax: null,

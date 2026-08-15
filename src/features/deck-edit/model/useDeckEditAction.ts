@@ -3,13 +3,14 @@ import type { DeckEdit } from "@/entities/deck";
 import * as React from "react";
 
 import { useAuthSession } from "@/entities/auth";
-import { editDeck } from "@/entities/deck";
+import { editDeck, editLocalDeck } from "@/entities/deck";
 
 interface UseDeckEditActionOptions {
+  localMode: boolean;
   onSaved?: () => void;
 }
 
-export const useDeckEditAction = ({ onSaved }: UseDeckEditActionOptions = {}) => {
+export const useDeckEditAction = ({ localMode, onSaved }: UseDeckEditActionOptions) => {
   const auth = useAuthSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const [error, setError] = React.useState<unknown>(null);
@@ -18,13 +19,13 @@ export const useDeckEditAction = ({ onSaved }: UseDeckEditActionOptions = {}) =>
     async (deck: DeckEdit) => {
       setError(null);
       try {
-        await editDeck(uid, deck);
+        await (localMode ? editLocalDeck(deck) : editDeck(uid, deck));
         onSaved?.();
       } catch (nextError) {
         setError(nextError);
       }
     },
-    [onSaved, uid]
+    [localMode, onSaved, uid]
   );
 
   return { error, update };

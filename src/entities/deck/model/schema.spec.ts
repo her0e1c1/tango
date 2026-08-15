@@ -22,6 +22,7 @@ describe("Deck operation schemas", () => {
           tagAndFilter: false,
           category: "",
           convertToBr: false,
+          localMode: false,
           deletedAt: null,
         },
       });

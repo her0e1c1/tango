@@ -9,10 +9,10 @@ import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { fetchCards, filterCardsByDeckId } from "@/entities/card";
-import { fetchDecks } from "@/entities/deck";
+import { createLocalCard, editLocalCard, fetchCards, filterCardsByDeckId } from "@/entities/card";
+import { createLocalDeck, fetchDecks } from "@/entities/deck";
 import { useAuthSession } from "@/entities/auth";
-import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
+import type { DeckImportPreview, DeckImportResult, DeckImportStorageMode } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import { upsertImportedCards } from "../api/upsertImportedCards";
@@ -88,6 +88,7 @@ interface FilePreviewDependencies {
   currentUid: { current: string };
   generation: number;
   currentGeneration: { current: number };
+  storageMode: DeckImportStorageMode;
 }
 
 /**
@@ -108,6 +109,7 @@ const previewDeckImportFile = async (
     currentUid,
     generation,
     currentGeneration,
+    storageMode,
   }: FilePreviewDependencies
 ) => {
   const isCurrent = () => currentGeneration.current === generation && currentUid.current === uid;
@@ -118,13 +120,16 @@ const previewDeckImportFile = async (
   try {
     const analysis = await parseCsv(await file.text());
     if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
-    const deck = decks.find((candidate) => candidate.name === file.name);
+    const deck = decks.find(
+      (candidate) => candidate.name === file.name && candidate.localMode === (storageMode === "local")
+    );
     const existing = deck == null ? [] : cardsByDeckId(deck.id);
     const next = {
       fileName: file.name,
       deckName: file.name,
       analysis,
       plan: buildDeckImportPlan(analysis.rows, existing),
+      storageMode,
     };
     setPreview(next);
     return next;
@@ -176,9 +181,14 @@ export const useDeckImport = ({
       uid,
       decks,
       cardsByDeckId,
-      createDeck: (deck) => createDeck(uid, deck),
+      createDeck: (deck) => (deck.localMode ? createLocalDeck(deck) : createDeck(uid, deck)),
       generateCardId,
-      bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
+      bulkUpsert: (cards, createdIds, localMode) =>
+        localMode
+          ? Promise.all(
+              cards.map((card) => (createdIds.includes(card.id) ? createLocalCard(card) : editLocalCard(card)))
+            )
+          : upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
       fetchDecks,
       fetchCards,
     };
@@ -240,7 +250,7 @@ export const useDeckImport = ({
    * Validates the selected CSV file and stores its import preview.
    * No remote data is changed until the user confirms that preview.
    */
-  const selectFile = (file: File) =>
+  const selectFile = (file: File, storageMode: DeckImportStorageMode = "remote") =>
     previewDeckImportFile(file, {
       runningRef,
       setValidating,
@@ -252,6 +262,7 @@ export const useDeckImport = ({
       currentUid: generationUid,
       generation: generation.current,
       currentGeneration: generation,
+      storageMode,
     });
 
   /**
@@ -269,11 +280,16 @@ export const useDeckImport = ({
     if (preview.analysis.rows.length === 0) {
       return Promise.reject(new Error("The CSV file has no valid rows"));
     }
-    return run({ kind: "content", name: preview.deckName, rows: preview.analysis.rows });
+    return run({
+      kind: "content",
+      name: preview.deckName,
+      rows: preview.analysis.rows,
+      storageMode: preview.storageMode ?? "remote",
+    });
   };
 
   /** Downloads card CSV data from a public URL and runs it through the normal import workflow. */
-  const importUrl = async (url: string, name?: string) => {
+  const importUrl = async (url: string, name?: string, storageMode: DeckImportStorageMode = "remote") => {
     const operationGeneration = generation.current;
     const operationUid = uid;
     const parsedUrl = new URL(url);
@@ -289,17 +305,18 @@ export const useDeckImport = ({
       kind: "content",
       name: name ?? url.split("/").pop() ?? "no name",
       rows: analysis.rows,
+      storageMode,
     });
   };
 
   return {
     selectFile,
     importPreview,
-    addSample: () => run({ kind: "sample" }),
+    addSample: () => run({ kind: "sample", storageMode: "remote" }),
     importUrl,
     reimport: (deck: Deck) => {
       if (deck.url == null || deck.url === "") return Promise.reject(new Error("Deck has no import URL"));
-      return importUrl(deck.url, deck.name);
+      return importUrl(deck.url, deck.name, deck.localMode ? "local" : "remote");
     },
     preview,
     validating,

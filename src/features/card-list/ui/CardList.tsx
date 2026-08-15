@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { useAuthSession } from "@/entities/auth";
-import { deleteCard, type Card, type CardId } from "@/entities/card";
+import { deleteCard, deleteLocalCard, type Card, type CardId } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
@@ -67,7 +67,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
     const card = deletionTarget;
     setDeletionErrorCardId(undefined);
     try {
-      await deleteCard(uid, card);
+      await (props.deck.localMode ? deleteLocalCard(card) : deleteCard(uid, card));
       setDeletionTarget(undefined);
       setSuccessMessage(`Deleted card “${card.frontText}”.`);
     } catch {

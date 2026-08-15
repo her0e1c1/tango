@@ -10,7 +10,7 @@ import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { useAuthSession } from "@/entities/auth";
-import { editDeck } from "@/entities/deck";
+import { editDeck, editLocalDeck } from "@/entities/deck";
 import type { DeckStartForm } from "../ui/DeckStartForm";
 
 type DeckStartFormProps = React.ComponentProps<typeof DeckStartForm>;
@@ -37,9 +37,12 @@ export const useDeckFilterState = ({ deck, tags }: UseDeckFilterStateOptions): D
   React.useEffect(() => {
     return subscribe({
       formState: { values: true },
-      callback: () => void handleSubmit((data) => editDeck(uid, data).catch(() => undefined))(),
+      callback: () =>
+        void handleSubmit((data) =>
+          (deck.localMode ? editLocalDeck(data) : editDeck(uid, data)).catch(() => undefined)
+        )(),
     });
-  }, [handleSubmit, subscribe, uid]);
+  }, [deck.localMode, handleSubmit, subscribe, uid]);
 
   const onClickFilter = (value: boolean) => {
     setValue("tagAndFilter", value);

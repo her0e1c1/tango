@@ -15,7 +15,7 @@ export interface DeckEditFormProps {
 }
 
 export const DeckEditForm: React.FC<DeckEditFormProps> = ({ deck, onCancel, onSaved }) => {
-  const editAction = useDeckEditAction({ onSaved });
+  const editAction = useDeckEditAction({ localMode: deck.localMode, onSaved });
   const deckForm = useDeckFormState({ deck, onCancel, onSubmit: editAction.update });
 
   return (

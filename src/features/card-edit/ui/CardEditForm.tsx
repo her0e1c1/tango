@@ -11,12 +11,13 @@ import { CardForm } from "./CardForm";
 
 export interface CardEditFormProps {
   card: Card;
+  localMode?: boolean;
   onCancel: () => void;
   onSaved: () => void;
 }
 
-export const CardEditForm: React.FC<CardEditFormProps> = ({ card, onCancel, onSaved }) => {
-  const editAction = useCardEditAction({ onSaved });
+export const CardEditForm: React.FC<CardEditFormProps> = ({ card, localMode = false, onCancel, onSaved }) => {
+  const editAction = useCardEditAction({ localMode, onSaved });
   const cardForm = useCardFormState({
     card,
     categoryOptions: CATEGORY.map((category) => ({ label: category, value: category })),

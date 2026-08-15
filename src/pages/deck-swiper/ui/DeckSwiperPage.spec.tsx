@@ -130,6 +130,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     deletedAt: null,
     category: "raw",
     convertToBr: false,
+    localMode: false,
     selectedTags: [],
     tagAndFilter: false,
     scoreMax: null,

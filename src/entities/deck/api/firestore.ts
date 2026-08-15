@@ -38,7 +38,7 @@ const deckDtoSchema = z.object({
 
 const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
   const dto = parseFirestoreDocument(deckDtoSchema, "deck", id, value);
-  const deck: Deck = { ...dto, id };
+  const deck: Deck = { ...dto, id, localMode: false };
   if (dto.url === undefined) delete deck.url;
   return deck;
 };
@@ -66,11 +66,10 @@ export const fetchDecks = async (uid: string): Promise<Deck[]> => {
     .filter((deck) => deck.deletedAt === null);
 };
 
-export const generateDeckId = (): string => doc(collection(db, DECK_COLLECTION)).id;
-
 const createDeckDocument = async (deck: DeckCreate): Promise<void> => {
   const createdAt = getTimestamp();
-  const document = omitUndefined({ ...deck, createdAt, updatedAt: createdAt } satisfies Deck);
+  const { localMode: _localMode, ...remoteDeck } = deck;
+  const document = omitUndefined({ ...remoteDeck, createdAt, updatedAt: createdAt });
   await setDoc(doc(db, DECK_COLLECTION, deck.id), document);
 };
 

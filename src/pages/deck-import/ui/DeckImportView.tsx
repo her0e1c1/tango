@@ -9,7 +9,7 @@ import { AiOutlineCloudDownload } from "react-icons/ai";
 import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
 import { Upload } from "@/shared/ui/forms";
-import type { DeckImportPreview, DeckImportResult } from "@/features/deck-import";
+import type { DeckImportPreview, DeckImportResult, DeckImportStorageMode } from "@/features/deck-import";
 
 interface DeckImportViewProps {
   onChange?: (file: File) => void;
@@ -26,6 +26,8 @@ interface DeckImportViewProps {
   result?: DeckImportResult;
   partialResult?: DeckImportResult;
   error?: unknown;
+  storageMode?: DeckImportStorageMode;
+  onStorageModeChange?: (mode: DeckImportStorageMode) => void;
 }
 
 /**
@@ -250,6 +252,29 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
         />
         <section>
           <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>
+          <fieldset className="mb-4 flex flex-wrap gap-4" disabled={busy || props.preview != null}>
+            <legend className="mb-2 text-caption font-semibold text-ink">Storage</legend>
+            <label className="flex items-center gap-2 text-caption text-ink">
+              <input
+                type="radio"
+                name="storage-mode"
+                value="remote"
+                checked={(props.storageMode ?? "remote") === "remote"}
+                onChange={() => props.onStorageModeChange?.("remote")}
+              />
+              Sync with account
+            </label>
+            <label className="flex items-center gap-2 text-caption text-ink">
+              <input
+                type="radio"
+                name="storage-mode"
+                value="local"
+                checked={props.storageMode === "local"}
+                onChange={() => props.onStorageModeChange?.("local")}
+              />
+              Local only
+            </label>
+          </fieldset>
           <Upload
             disabled={busy}
             {...(props.preview !== undefined ? { fileName: props.preview.fileName } : {})}

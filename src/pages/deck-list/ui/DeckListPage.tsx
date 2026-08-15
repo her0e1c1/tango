@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthSession } from "@/entities/auth";
-import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
-import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
+import { createCard, deleteLocalCardsByDeckId, editCard, generateCardId, useCards } from "@/entities/card";
+import { createDeck, deleteDeck, deleteLocalDeck, useDecks } from "@/entities/deck";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
 import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
@@ -52,7 +52,11 @@ export const DeckListPage: React.FC = () => {
         onStartDeck={(id) => void navigate(`/deck/${id}/start`)}
         onEditDeck={(id) => void navigate(`/deck/${id}/edit`)}
         onDeleteDeck={async (deck) => {
-          await deleteDeck(uid, deck);
+          if (deck.localMode) {
+            await Promise.all([deleteLocalDeck(deck), deleteLocalCardsByDeckId(deck.id)]);
+          } else {
+            await deleteDeck(uid, deck);
+          }
           removeStudySession(deck.id);
         }}
       />

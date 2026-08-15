@@ -3,13 +3,14 @@ import type { CardEdit } from "@/entities/card";
 import * as React from "react";
 
 import { useAuthSession } from "@/entities/auth";
-import { editCard } from "@/entities/card";
+import { editCard, editLocalCard } from "@/entities/card";
 
 interface UseCardEditActionOptions {
+  localMode: boolean;
   onSaved?: () => void;
 }
 
-export const useCardEditAction = ({ onSaved }: UseCardEditActionOptions = {}) => {
+export const useCardEditAction = ({ localMode, onSaved }: UseCardEditActionOptions) => {
   const auth = useAuthSession();
   const uid = auth.status === "authenticated" ? auth.uid : "";
   const [error, setError] = React.useState<unknown>(null);
@@ -18,13 +19,13 @@ export const useCardEditAction = ({ onSaved }: UseCardEditActionOptions = {}) =>
     async (card: CardEdit) => {
       setError(null);
       try {
-        await editCard(uid, card);
+        await (localMode ? editLocalCard(card) : editCard(uid, card));
         onSaved?.();
       } catch (nextError) {
         setError(nextError);
       }
     },
-    [onSaved, uid]
+    [localMode, onSaved, uid]
   );
 
   return { error, update };

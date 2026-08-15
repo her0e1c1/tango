@@ -6,7 +6,7 @@ import { generateDeckId } from "@/entities/deck";
 import sampleCards from "../../../../sample/build/output.json";
 import { CardBulkMutationError } from "../api/upsertImportedCards";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
-import type { DeckImportResult, DeckImportRow } from "./deckImportTypes";
+import type { DeckImportResult, DeckImportRow, DeckImportStorageMode } from "./deckImportTypes";
 
 interface DeckImportAttempt {
   uid: string;
@@ -19,8 +19,14 @@ interface DeckImportAttempt {
 }
 
 export type DeckImportRequest =
-  | { kind: "content"; name: string; rows: DeckImportRow[]; attempt?: DeckImportAttempt }
-  | { kind: "sample"; attempt?: DeckImportAttempt };
+  | {
+      kind: "content";
+      name: string;
+      rows: DeckImportRow[];
+      storageMode: DeckImportStorageMode;
+      attempt?: DeckImportAttempt;
+    }
+  | { kind: "sample"; storageMode: DeckImportStorageMode; attempt?: DeckImportAttempt };
 
 export interface DeckImportDependencies {
   uid: string;
@@ -28,7 +34,7 @@ export interface DeckImportDependencies {
   cardsByDeckId: (id: DeckId) => Card[];
   createDeck: (deck: DeckCreateInput) => Promise<unknown>;
   generateCardId: () => string;
-  bulkUpsert: (cards: CardCreateInput[], createdIds: CardId[]) => Promise<unknown>;
+  bulkUpsert: (cards: CardCreateInput[], createdIds: CardId[], localMode: boolean) => Promise<unknown>;
   fetchDecks?: (uid: string) => Promise<Deck[]>;
   fetchCards?: (uid: string) => Promise<Card[]>;
 }
@@ -51,14 +57,18 @@ const prepareDeckImportAttempt = (
   { uid, decks, cardsByDeckId, generateCardId }: DeckImportPreparationDependencies
 ): DeckImportAttempt => {
   const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
+  const localMode = request.storageMode === "local";
+  const ownerUid = uid === "" && localMode ? "local" : uid;
   const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
   const rows = request.kind === "sample" ? rowsFromCards(sampleCards as CardRaw[]) : request.rows;
-  let deck: DeckCreateInput | undefined = decks.find((candidate) =>
-    preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
+  let deck: DeckCreateInput | undefined = decks.find(
+    (candidate) =>
+      candidate.localMode === localMode &&
+      (preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId)
   );
   const createDeckPending = deck == null;
   if (deck == null) {
-    deck = { id: preferredDeckId ?? generateDeckId(), uid, name };
+    deck = { id: preferredDeckId ?? generateDeckId(), uid: ownerUid, name, localMode };
   }
 
   const existing = cardsByDeckId(deck.id);
@@ -111,11 +121,11 @@ export const executeDeckImport = async (
   request: DeckImportRequest,
   { uid, decks, cardsByDeckId, createDeck, generateCardId, bulkUpsert, fetchDecks, fetchCards }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
-  if (uid === "") throw new Error("A confirmed user is required for imports");
+  if (uid === "" && request.storageMode === "remote") throw new Error("A confirmed user is required for imports");
 
   let activeDecks = decks;
   let getCardsByDeckId = cardsByDeckId;
-  if (fetchDecks != null && fetchCards != null) {
+  if (request.storageMode === "remote" && fetchDecks != null && fetchCards != null) {
     try {
       const [remoteDecks, remoteCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
       activeDecks = remoteDecks;
@@ -142,7 +152,7 @@ export const executeDeckImport = async (
 
   const upserts = attempt.remainingUpserts;
   try {
-    if (upserts.length > 0) await bulkUpsert(upserts, attempt.createdIds);
+    if (upserts.length > 0) await bulkUpsert(upserts, attempt.createdIds, attempt.deck.localMode === true);
   } catch (error) {
     const failedIds = error instanceof CardBulkMutationError ? error.failedIds : upserts.map((card) => card.id);
     const failed = new Set(failedIds);

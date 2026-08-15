@@ -29,6 +29,7 @@ export const createDeck = (overrides: Partial<Deck> = {}): Deck => ({
   tagAndFilter: false,
   category: "",
   convertToBr: false,
+  localMode: false,
   ...overrides,
 });
 

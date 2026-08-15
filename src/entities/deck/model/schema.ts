@@ -27,6 +27,7 @@ export const deckCreateSchema = editableDeckFieldsSchema.extend({
   category: editableDeckFieldsSchema.shape.category.default(""),
   convertToBr: editableDeckFieldsSchema.shape.convertToBr.default(false),
   deletedAt: z.number().nullable().default(null),
+  localMode: z.boolean().default(false),
 });
 
 export const deckSchema = deckCreateSchema.extend({

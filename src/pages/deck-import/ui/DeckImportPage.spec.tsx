@@ -119,6 +119,16 @@ describe("DeckImportPage", () => {
     expect(mocks.downloadSampleCsv).toHaveBeenCalledOnce();
   });
 
+  it("passes the local-only selection to CSV preview", async () => {
+    render(<DeckImportPage />);
+    const file = new File(["front,back,,key"], "deck.csv", { type: "text/csv" });
+
+    await userEvent.click(screen.getByRole("radio", { name: "Local only" }));
+    fireEvent.change(screen.getByLabelText("Upload a csv file"), { target: { files: [file] } });
+
+    expect(mocks.selectFile).toHaveBeenCalledWith(file, "local");
+  });
+
   it("renders the import screen in the application shell", () => {
     render(<DeckImportPage />);
 

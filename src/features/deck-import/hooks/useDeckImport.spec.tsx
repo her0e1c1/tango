@@ -4,8 +4,8 @@
  * writing until import is confirmed" and "keeps invalid files in preview without mutating state".
  */
 
-import type { Card, CardCreateInput } from "@/entities/card";
-import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
+import { type Card, type CardCreateInput, useCards } from "@/entities/card";
+import { type Deck, type DeckCreateInput, type DeckId, useDecks } from "@/entities/deck";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -112,7 +112,7 @@ describe("useDeckImport", () => {
       imported = await result.current.importPreview();
     });
     expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.createDeck).toHaveBeenCalledWith({ id: "deck", uid: "uid-a", name: "deck.csv" });
+    expect(mocks.createDeck).toHaveBeenCalledWith({ id: "deck", uid: "uid-a", name: "deck.csv", localMode: false });
     expect(mocks.bulkUpsert).toHaveBeenCalledWith([
       {
         id: "card",
@@ -145,6 +145,24 @@ describe("useDeckImport", () => {
     await expect(result.current.importPreview()).rejects.toThrow("Fix invalid CSV rows");
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+  });
+
+  it("imports local-only data without remote writers or an authenticated user", async () => {
+    mocks.uid = "";
+    const { result } = renderHook(useTestDeckImport);
+    const file = new File(['"front","back","","key"'], "local.csv", { type: "text/csv" });
+
+    await actAsync(async () => result.current.selectFile(file, "local"));
+    await actAsync(async () => result.current.importPreview());
+
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+    expect(renderHook(useDecks).result.current).toContainEqual(
+      expect.objectContaining({ id: "deck", uid: "local", localMode: true })
+    );
+    expect(renderHook(useCards).result.current).toContainEqual(
+      expect.objectContaining({ id: "card", deckId: "deck", uid: "local" })
+    );
   });
 
   it("skips an identical CSV re-import by uniqueKey", async () => {
@@ -185,6 +203,7 @@ describe("useDeckImport", () => {
       id: "sample-v1-uid-a",
       name: "Sample Deck",
       uid: "uid-a",
+      localMode: false,
     });
     expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
   });
