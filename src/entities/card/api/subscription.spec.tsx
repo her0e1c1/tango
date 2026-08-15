@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { Timestamp } from "firebase/firestore";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard } from "@/test/factories";
+import { createLocalCard } from "@/test/factories";
 import { useCards } from "../model/hooks";
 import { cardStore } from "../model/store";
 
@@ -58,7 +58,7 @@ describe("Card Firestore subscription", () => {
   });
 
   it("subscribes by UID and fully replaces active Cards from each snapshot", () => {
-    const localCard = createCard({ id: "local", frontText: "Local front" });
+    const localCard = createLocalCard({ id: "local", frontText: "Local front" });
     cardStore.setState({ localCards: [localCard] });
     const { result } = renderHook(useCards);
     const unsubscribe = subscribeCards("uid-a", vi.fn());

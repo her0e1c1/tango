@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createDeck as createDeckFixture } from "@/test/factories";
+import { createDeck as createDeckFixture, createLocalDeck } from "@/test/factories";
 
 import { createDeck, deleteDeck, editDeck } from "./mutations";
 import { deckStore, findDeckById } from "../model/store";
@@ -29,7 +29,7 @@ describe("Deck mutations", () => {
   });
 
   it("routes local Deck create, edit, and delete to local persistence", async () => {
-    const deck = createDeckFixture({ id: "local", localMode: true });
+    const deck = createLocalDeck({ id: "local" });
 
     await createDeck("", deck);
     await editDeck("", { id: deck.id, name: "Renamed" });
@@ -56,7 +56,7 @@ describe("Deck mutations", () => {
 
     expect(mocks.createRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", deck);
     expect(mocks.editRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", edit);
-    expect(mocks.deleteRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", deck);
+    expect(mocks.deleteRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", { id: deck.id, uid: deck.uid });
     expect(mocks.deleteLocalCardsByDeckId).not.toHaveBeenCalled();
   });
 

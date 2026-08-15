@@ -1,4 +1,4 @@
-import type { Card } from "@/entities/card";
+import type { RemoteCard } from "@/entities/card";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -20,7 +20,7 @@ vi.mock("@/entities/deck", () => ({ CATEGORY: ["language", "math"] }));
 import { CardEditForm } from "./CardEditForm";
 
 describe("CardEditForm", () => {
-  const card: Card = createCard({
+  const card: RemoteCard = createCard({
     id: "card-id",
     uid: "user-id",
     frontText: "Front text",
@@ -48,7 +48,6 @@ describe("CardEditForm", () => {
     await waitFor(() =>
       expect(mocks.editCard).toHaveBeenCalledWith("user-id", {
         id: card.id,
-        uid: card.uid,
         frontText: "Updated front",
         backText: "Updated back",
         tags: ["language", "math"],

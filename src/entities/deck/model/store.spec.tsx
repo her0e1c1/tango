@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
-import { createDeck } from "@/test/factories";
+import { createDeck, createLocalDeck as createLocalDeckFixture } from "@/test/factories";
 import { useDeck, useDecks } from "./hooks";
 import {
   clearRemoteDecks,
@@ -37,7 +37,7 @@ describe("Deck store", () => {
 
   it("replaces and clears only the remote Deck collection", () => {
     const remoteDeck = createDeck({ id: "remote" });
-    const localDeck = createDeck({ id: "local", localMode: true });
+    const localDeck = createLocalDeckFixture({ id: "local" });
     deckStore.setState({ localDecks: [localDeck] });
 
     replaceRemoteDecks([remoteDeck]);
@@ -49,7 +49,7 @@ describe("Deck store", () => {
 
   it("exposes combined collection and individual Deck selectors", () => {
     const remoteDeck = createDeck({ id: "remote" });
-    const localDeck = createDeck({ id: "local", localMode: true });
+    const localDeck = createLocalDeckFixture({ id: "local" });
     deckStore.setState({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
 
     expect(renderHook(useDecks).result.current).toEqual([remoteDeck, localDeck]);
@@ -61,7 +61,7 @@ describe("Deck store", () => {
   it("persists only local Decks and restores them after hydration", async () => {
     const storage = useMemoryStorage();
     const remoteDeck = createDeck({ id: "remote" });
-    const localDeck = createDeck({ id: "local", localMode: true });
+    const localDeck = createLocalDeckFixture({ id: "local" });
     deckStore.setState({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
 
     const persistedValue = (await storage.getItem("tango-local-decks")) ?? "{}";
@@ -74,6 +74,21 @@ describe("Deck store", () => {
     useMemoryStorage({ "tango-local-decks": persistedValue });
     await deckStore.persist.rehydrate();
     expect(deckStore.getState()).toEqual({ remoteDecks: [], localDecks: [localDeck] });
+  });
+
+  it("hydrates version 1 local Decks without retaining a UID", async () => {
+    const localDeck = createLocalDeckFixture({ id: "persisted-local" });
+    useMemoryStorage({
+      "tango-local-decks": JSON.stringify({
+        state: { localDecks: [{ ...localDeck, uid: "previous-user" }] },
+        version: 1,
+      }),
+    });
+
+    await deckStore.persist.rehydrate();
+
+    expect(deckStore.getState().localDecks).toEqual([localDeck]);
+    expect(deckStore.getState().localDecks[0]).not.toHaveProperty("uid");
   });
 
   it("rejects invalid persisted Decks", async () => {
@@ -89,11 +104,12 @@ describe("Deck store", () => {
 
   it("creates, edits, and deletes a local Deck synchronously", () => {
     vi.spyOn(Date, "now").mockReturnValueOnce(10).mockReturnValueOnce(20);
-    const createdDeck = createLocalDeck({ id: "local", uid: "uid", name: "Local", localMode: true });
+    const createdDeck = createLocalDeck({ id: "local", name: "Local", localMode: true });
 
     expect(createdDeck).toEqual(
       expect.objectContaining({ id: "local", localMode: true, createdAt: 10, updatedAt: 10 })
     );
+    expect(createdDeck).not.toHaveProperty("uid");
 
     const updatedDeck = editLocalDeck({ id: "local", name: "Renamed" });
     expect(updatedDeck).toEqual(expect.objectContaining({ name: "Renamed", createdAt: 10, updatedAt: 20 }));

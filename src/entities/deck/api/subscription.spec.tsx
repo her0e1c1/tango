@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createDeck } from "@/test/factories";
+import { createLocalDeck } from "@/test/factories";
 import { useDecks } from "../model/hooks";
 import { deckStore } from "../model/store";
 
@@ -54,7 +54,7 @@ describe("Deck Firestore subscription", () => {
   });
 
   it("subscribes by UID and replaces the store with active Decks", () => {
-    const localDeck = createDeck({ id: "local", name: "Local Deck", localMode: true });
+    const localDeck = createLocalDeck({ id: "local", name: "Local Deck" });
     deckStore.setState({ localDecks: [localDeck] });
     const { result } = renderHook(useDecks);
     const unsubscribe = subscribeDecks("uid-a", vi.fn());

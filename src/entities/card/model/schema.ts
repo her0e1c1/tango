@@ -14,10 +14,9 @@ const editableCardFieldsSchema = z.object({
   endLine: z.number().optional(),
 });
 
-export const cardCreateSchema = editableCardFieldsSchema.extend({
+const cardCreateFieldsSchema = editableCardFieldsSchema.extend({
   id: cardIdSchema,
   deckId: z.string().min(1, "Card deck is required"),
-  uid: cardUidSchema,
   deletedAt: z.number().nullable().default(null),
   score: z.number().default(0),
   numberOfSeen: z.number().default(0),
@@ -26,7 +25,15 @@ export const cardCreateSchema = editableCardFieldsSchema.extend({
   interval: z.number().optional(),
 });
 
+export const cardCreateSchema = cardCreateFieldsSchema.extend({ uid: cardUidSchema });
+export const localCardCreateSchema = cardCreateFieldsSchema;
+
 export const cardSchema = cardCreateSchema.extend({
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
+export const localCardSchema = localCardCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
 });
@@ -36,9 +43,10 @@ const persistedDateSchema = z.preprocess(
   z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date")
 );
 
-export const persistedCardSchema = cardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
+export const persistedCardSchema = localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
 
-export const cardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema, uid: cardUidSchema });
+export const localCardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });
+export const cardEditSchema = localCardEditSchema.extend({ uid: cardUidSchema });
 const cardIdentitySchema = z.object({ id: cardIdSchema, uid: cardUidSchema });
 
 const validateCardOwner = (input: { uid: string; card: { uid: string } }, context: z.RefinementCtx): void => {

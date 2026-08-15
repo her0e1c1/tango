@@ -4,7 +4,4 @@ export { generateDeckId } from "./model/id";
 export { CATEGORY, getCategory, isHighlightLanguage, mustFindDeckById } from "./model/rules";
 export { useDeck, useDecks } from "./model/hooks";
 export { clearRemoteDecks } from "./model/store";
-/** @public */
-export { createLocalDeck, deleteLocalDeck, editLocalDeck } from "./model/store";
-/** @public */
-export type { Deck, DeckCreateInput, DeckEdit, DeckId, LocalDeckCreateInput } from "./model/types";
+export type { Deck, DeckCreateInput, DeckEdit, DeckId, RemoteDeck } from "./model/types";

@@ -4,9 +4,9 @@
  * normal containers, hooks, and route parameters.
  */
 
-import type { Card } from "@/entities/card";
+import type { RemoteCard } from "@/entities/card";
 import { replaceRemoteCards } from "@/entities/card/model/store";
-import type { Deck, DeckId } from "@/entities/deck";
+import type { DeckId, RemoteDeck } from "@/entities/deck";
 import { replaceRemoteDecks } from "@/entities/deck/model/store";
 
 import type { Decorator } from "@storybook/react";
@@ -28,19 +28,19 @@ type PartialPreferences = {
 
 export interface PageStoryParameters {
   path: string;
-  decks?: Deck[];
-  cards?: Card[];
+  decks?: RemoteDeck[];
+  cards?: RemoteCard[];
   preferences?: PartialPreferences;
   sessionsByDeckId?: StudySessions;
   autoPlay?: boolean;
 }
 
-const cloneDeck = (deck: Deck): Deck => ({
+const cloneDeck = (deck: RemoteDeck): RemoteDeck => ({
   ...deck,
   selectedTags: [...deck.selectedTags],
 });
 
-const cloneCard = (card: Card): Card => ({
+const cloneCard = (card: RemoteCard): RemoteCard => ({
   ...card,
   tags: [...card.tags],
   ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(card.nextSeeingAt.getTime()) }),

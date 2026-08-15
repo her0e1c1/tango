@@ -4,7 +4,7 @@
  * "should update a card", and "should import cards".
  */
 
-import { mutateCards, type Card } from "@/entities/card";
+import { mutateCards, type Card, type RemoteCard } from "@/entities/card";
 import type { CardCreateInput } from "@/entities/card/model/types";
 
 import "@/test/initializeTestFirestore";
@@ -117,7 +117,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   it("reports failed imported Cards while persisting valid Cards", async () => {
     const deckId = await initDeck();
     const valid = { ...newCard, deckId, id: uuid(), frontText: "valid" };
-    const invalid = { ...newCard, deckId, id: uuid(), frontText: 42 } as unknown as Card;
+    const invalid = { ...newCard, deckId, id: uuid(), frontText: 42 } as unknown as RemoteCard;
 
     await expect(
       mutateCards("uid", [

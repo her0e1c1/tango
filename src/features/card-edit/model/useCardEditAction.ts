@@ -1,4 +1,4 @@
-import type { CardEdit } from "@/entities/card";
+import type { CardEditInput } from "@/entities/card";
 
 import * as React from "react";
 
@@ -14,7 +14,7 @@ export const useCardEditAction = ({ onSaved }: UseCardEditActionOptions = {}) =>
   const [error, setError] = React.useState<unknown>(null);
 
   const update = React.useCallback(
-    async (card: CardEdit) => {
+    async (card: CardEditInput) => {
       setError(null);
       try {
         await editCard(uid, card);

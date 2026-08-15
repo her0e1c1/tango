@@ -1,5 +1,5 @@
-import type { Card, CardId, CardMutation, CardRaw } from "@/entities/card";
-import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
+import type { Card, CardId, CardMutation, CardRaw, RemoteCard } from "@/entities/card";
+import type { Deck, DeckCreateInput, DeckId, RemoteDeck } from "@/entities/deck";
 
 import { CardBulkMutationError } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
@@ -30,8 +30,8 @@ export interface DeckImportDependencies {
   createDeck: (deck: DeckCreateInput) => Promise<unknown>;
   generateCardId: () => string;
   mutateCards: (mutations: CardMutation[]) => Promise<unknown>;
-  fetchDecks?: (uid: string) => Promise<Deck[]>;
-  fetchCards?: (uid: string) => Promise<Card[]>;
+  fetchDecks?: (uid: string) => Promise<RemoteDeck[]>;
+  fetchCards?: (uid: string) => Promise<RemoteCard[]>;
 }
 
 type DeckImportPreparationDependencies = Pick<
@@ -54,15 +54,17 @@ const prepareDeckImportAttempt = (
   const name = request.kind === "sample" ? SAMPLE_DECK_NAME : request.name;
   const preferredDeckId = request.kind === "sample" ? sampleDeckId(uid) : undefined;
   const rows = request.kind === "sample" ? rowsFromCards(sampleCards as CardRaw[]) : request.rows;
-  let deck: DeckCreateInput | undefined = decks.find((candidate) =>
-    preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId
+  let deck: DeckCreateInput | undefined = decks.find(
+    (candidate): candidate is RemoteDeck =>
+      !candidate.localMode &&
+      (preferredDeckId === undefined ? candidate.name === name : candidate.id === preferredDeckId)
   );
   const createDeckPending = deck == null;
   if (deck == null) {
     deck = { id: preferredDeckId ?? generateDeckId(), uid, name };
   }
 
-  const existing = cardsByDeckId(deck.id);
+  const existing = cardsByDeckId(deck.id).filter((card): card is RemoteCard => "uid" in card);
   const byUniqueKey = new Map(existing.map((card) => [card.uniqueKey, card]));
   const plan = buildDeckImportPlan(rows, existing);
   const remainingMutations: CardMutation[] = [];

@@ -1,11 +1,11 @@
 import type {
-  Card,
   CardCreate,
   CardCreateInput,
   CardEdit,
   CardId,
   DeleteCardInput,
   EditCardInput,
+  RemoteCard,
 } from "../model/types";
 
 import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
@@ -19,9 +19,9 @@ import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
-const convertCardDocumentToCard = (id: CardId, value: unknown): Card => {
+const convertCardDocumentToCard = (id: CardId, value: unknown): RemoteCard => {
   const document = parseCardDocument(id, value);
-  const card: Card = {
+  const card: RemoteCard = {
     id,
     frontText: document.frontText,
     backText: document.backText,
@@ -60,7 +60,7 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
     onError
   );
 
-export const fetchCards = async (uid: string): Promise<Card[]> => {
+export const fetchCards = async (uid: string): Promise<RemoteCard[]> => {
   const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
   return snapshot.docs
     .map((document) => convertCardDocumentToCard(document.id, document.data()))
@@ -69,7 +69,7 @@ export const fetchCards = async (uid: string): Promise<Card[]> => {
 
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();
-  const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies Card);
+  const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 

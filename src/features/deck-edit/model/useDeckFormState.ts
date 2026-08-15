@@ -1,4 +1,4 @@
-import type { Deck } from "@/entities/deck";
+import type { Deck, DeckEdit } from "@/entities/deck";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -10,7 +10,7 @@ import { deckFormSchema, type DeckFormValues } from "./deckFormSchema";
 interface UseDeckFormStateOptions {
   deck: Deck;
   onCancel: () => void;
-  onSubmit: (deck: Deck) => Promise<void>;
+  onSubmit: (deck: DeckEdit) => Promise<void>;
 }
 
 export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateOptions): DeckFormProps => {
@@ -41,6 +41,6 @@ export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateO
     },
     isSubmitting: formState.isSubmitting,
     onCancel,
-    onSubmit: handleSubmit((values) => onSubmit({ ...deck, ...values, url: values.url ?? "" })),
+    onSubmit: handleSubmit((values) => onSubmit({ id: deck.id, ...values, url: values.url ?? "" })),
   };
 };

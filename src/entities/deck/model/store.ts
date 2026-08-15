@@ -3,15 +3,15 @@ import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
 import { deckEditSchema, deckIdSchema, localDeckCreateSchema, localDeckSchema } from "./schema";
-import type { Deck, DeckEdit, DeckId, LocalDeckCreateInput } from "./types";
+import type { Deck, DeckEdit, DeckId, LocalDeck, LocalDeckCreateInput, RemoteDeck } from "./types";
 
 interface DeckState {
-  remoteDecks: Deck[];
-  localDecks: Deck[];
+  remoteDecks: RemoteDeck[];
+  localDecks: LocalDeck[];
 }
 
 interface PersistedDeckState {
-  localDecks: Deck[];
+  localDecks: LocalDeck[];
 }
 
 interface CreateDeckStoreOptions {
@@ -34,7 +34,6 @@ const createDeckStore = ({ storage, skipHydration }: CreateDeckStoreOptions = {}
       version: 1,
       ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
       ...(skipHydration !== undefined ? { skipHydration } : {}),
-      migrate: parsePersistedDeckState,
       merge: (persistedState, currentState) => ({
         ...currentState,
         ...parsePersistedDeckState(persistedState),
@@ -46,7 +45,7 @@ const createDeckStore = ({ storage, skipHydration }: CreateDeckStoreOptions = {}
 
 export const deckStore = createDeckStore();
 
-export const replaceRemoteDecks = (remoteDecks: Deck[]): void => {
+export const replaceRemoteDecks = (remoteDecks: RemoteDeck[]): void => {
   deckStore.setState({ remoteDecks });
 };
 
@@ -60,8 +59,7 @@ export const findDeckById = (id: DeckId): Deck | undefined => {
   return state.remoteDecks.find((deck) => deck.id === deckId) ?? state.localDecks.find((deck) => deck.id === deckId);
 };
 
-/** @public */
-export const createLocalDeck = (input: LocalDeckCreateInput): Deck => {
+export const createLocalDeck = (input: LocalDeckCreateInput): LocalDeck => {
   const deck = localDeckCreateSchema.parse(input);
   const timestamp = Date.now();
   const createdDeck = localDeckSchema.parse({ ...deck, createdAt: timestamp, updatedAt: timestamp });
@@ -70,8 +68,7 @@ export const createLocalDeck = (input: LocalDeckCreateInput): Deck => {
   return createdDeck;
 };
 
-/** @public */
-export const editLocalDeck = (input: DeckEdit): Deck => {
+export const editLocalDeck = (input: DeckEdit): LocalDeck => {
   const edit = deckEditSchema.parse(input);
   const localDecks = deckStore.getState().localDecks;
   const currentDeck = localDecks.find(({ id }) => id === edit.id);
@@ -82,7 +79,6 @@ export const editLocalDeck = (input: DeckEdit): Deck => {
   return updatedDeck;
 };
 
-/** @public */
 export const deleteLocalDeck = (input: DeckId): void => {
   const deckId = deckIdSchema.parse(input);
   deckStore.setState({ localDecks: deckStore.getState().localDecks.filter(({ id }) => id !== deckId) });
