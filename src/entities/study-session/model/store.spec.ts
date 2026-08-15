@@ -173,38 +173,4 @@ describe("study store", () => {
     });
     expect(store.getState()).not.toHaveProperty("unknownRootMetadata");
   });
-
-  it.each([1, 2])("migrates a valid v%s session into the v3 map", async (version) => {
-    setVersionedStorage(
-      { session: { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 1 } },
-      version
-    );
-
-    await store.persist.rehydrate();
-
-    expect(store.getState().sessionsByDeckId).toEqual({
-      "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 1, lastStudiedAt: 0 },
-    });
-    expect(JSON.parse(localStorage.getItem(STUDY_STORAGE_KEY) ?? "{}")).toEqual({
-      state: {
-        sessionsByDeckId: {
-          "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 1, lastStudiedAt: 0 },
-        },
-      },
-      version: 3,
-    });
-  });
-
-  it.each([
-    ["a missing session", {}],
-    ["an empty card order", { session: { deckId: "deck-1", cardOrderIds: [], currentIndex: 0 } }],
-    ["a negative index", { session: { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: -1 } }],
-    ["a terminal index", { session: { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 1 } }],
-  ])("drops invalid legacy state with %s", async (_label, state) => {
-    setVersionedStorage(state, 2);
-
-    await store.persist.rehydrate();
-
-    expect(store.getState().sessionsByDeckId).toEqual({});
-  });
 });

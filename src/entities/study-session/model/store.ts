@@ -17,10 +17,9 @@ interface StudySessionState {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
-const sanitizeStudySession = (value: unknown, fallbackLastStudiedAt?: number): StudySession | undefined => {
+const sanitizeStudySession = (value: unknown): StudySession | undefined => {
   if (!isRecord(value)) return undefined;
-  const { deckId, cardOrderIds, currentIndex } = value;
-  const lastStudiedAt = value.lastStudiedAt ?? fallbackLastStudiedAt;
+  const { deckId, cardOrderIds, currentIndex, lastStudiedAt } = value;
   if (
     typeof deckId !== "string" ||
     !Array.isArray(cardOrderIds) ||
@@ -53,19 +52,12 @@ const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
   return { sessionsByDeckId };
 };
 
-const migratePersistedState = (persistedState: unknown, version: number): StudySessionState => {
-  if ((version !== 1 && version !== 2) || !isRecord(persistedState)) return { sessionsByDeckId: {} };
-  const session = sanitizeStudySession(persistedState.session, 0);
-  return session == null ? { sessionsByDeckId: {} } : { sessionsByDeckId: { [session.deckId]: session } };
-};
-
 export const studySessionStore = createStore<StudySessionState>()(
   persist(
     immer(() => ({ sessionsByDeckId: {} })),
     {
       name: STUDY_STORAGE_KEY,
       version: STUDY_STORAGE_VERSION,
-      migrate: migratePersistedState,
       merge: (persistedState, currentState) => ({
         ...currentState,
         ...sanitizePersistedState(persistedState),
