@@ -116,7 +116,7 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
         <dl className="mt-4 grid gap-3 text-caption">
           <div className="min-w-0">
             <dt className="font-medium text-ink-muted">Unique key</dt>
-            <dd className="break-all text-ink">{props.card.uniqueKey ?? ""}</dd>
+            <dd className="break-all text-ink">{props.card.uniqueKey}</dd>
           </div>
           <div className="min-w-0">
             <dt className="font-medium text-ink-muted">ID</dt>

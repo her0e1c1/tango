@@ -140,7 +140,6 @@ export default [
       // Biome owns these checks, including promise handling and the Types domain rollout in #1013.
       "@typescript-eslint/no-floating-promises": "off",
       "@typescript-eslint/no-misused-promises": "off",
-      "@typescript-eslint/no-unnecessary-condition": "off",
       // Primitive template interpolation and polymorphic `this` are project policy, not correctness constraints.
       "@typescript-eslint/prefer-return-this-type": "off",
       "@typescript-eslint/restrict-template-expressions": "off",
