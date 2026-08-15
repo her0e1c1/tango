@@ -1,12 +1,10 @@
 export { Controller, type ControllerProps } from "./components/Controller";
+export { StudyWorkflow, type StudyWorkflowState } from "./components/StudyWorkflow";
 export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";
 export { removeStudySession, touchStudySession } from "./commands/studySessionCommands";
 export { useStudyHydrated } from "./hooks/useStudyHydrated";
 export { useStudyActions } from "./hooks/useStudyActions";
 export { useStudyCards } from "./hooks/useStudyCards";
-export { useStudyControllerState } from "./hooks/useStudyControllerState";
 export { useStudySessions } from "./hooks/useStudySessions";
-export { useStudyStore } from "./hooks/useStudyStore";
-export { selectStudySessionForRoute } from "./state/studyStore";
 export { clearStudyStore } from "./state/studyStoreInstance";
 export { useEditStudyProgress } from "./hooks/useEditStudyProgress";
