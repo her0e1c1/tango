@@ -114,6 +114,7 @@ export const restoreStudySession = (
   expectedSession: StudySession | undefined,
   previousSession: StudySession
 ): boolean => {
+  // Reference equality makes rollback conditional: a newer session change must always win.
   if (getStudySession(deckId) !== expectedSession) return false;
   studySessionStore.setState((state) => {
     state.sessionsByDeckId[deckId] = previousSession;

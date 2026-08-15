@@ -13,9 +13,11 @@
 
 ## Coding Style
 
-- Prefer clear names and small functions over comments.
-- Comment only non-obvious intent, constraints, and behavior—especially concurrency, retries, migrations, and workarounds. Explain why, not what.
-- Remove stale comments and commented-out code.
+- Prefer clear names and small functions; use comments to preserve intent that the code cannot express on its own.
+- Add an intent comment whenever a future maintainer could understand what the code does but not why it must work that way.
+- Comments are required for non-obvious constraints and invariants, especially cross-layer decisions, asynchronous ordering, concurrency, retries, migrations, and compatibility workarounds.
+- Explain why a choice is necessary and what must remain true. Do not narrate syntax or restate names.
+- Update nearby intent comments when behavior changes, and remove stale comments and commented-out code.
 
 ## Testing
 

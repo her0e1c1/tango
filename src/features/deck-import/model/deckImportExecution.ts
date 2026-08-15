@@ -99,6 +99,7 @@ export const prepareDeckImport = async (
   { uid, decks, cardsByDeckId, generateCardId, fetchDecks, fetchCards }: DeckImportDependencies
 ): Promise<DeckImportAttempt> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
+  // Reuse the prepared snapshot and generated IDs so confirmation and retries execute the same plan.
   if (request.attempt?.uid === uid) return request.attempt;
 
   let activeDecks = decks;
@@ -107,6 +108,7 @@ export const prepareDeckImport = async (
     if (fetchDecks == null || fetchCards == null) {
       throw new Error("Server-backed Deck import dependencies are not available");
     }
+    // Listener-backed stores can lag, so user-provided imports are planned from authoritative server reads.
     const [remoteDecks, remoteCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
     activeDecks = remoteDecks;
     getCardsByDeckId = (deckId: DeckId) => remoteCards.filter((card) => card.deckId === deckId);
@@ -156,6 +158,7 @@ export const executePreparedDeckImport = async (
     const failedIds =
       error instanceof CardBulkMutationError ? error.failedIds : mutations.map((mutation) => mutation.card.id);
     const failed = new Set(failedIds);
+    // Preserve only failed writes so a retry keeps stable IDs without replaying writes that already succeeded.
     attempt.remainingMutations = mutations.filter((mutation) => failed.has(mutation.card.id));
     throw Object.assign(new Error(`Deck import did not complete: ${String(error)}`), {
       result: {

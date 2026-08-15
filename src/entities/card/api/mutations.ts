@@ -63,6 +63,7 @@ export const editCard = async (uid: string, card: CardEditInput): Promise<void> 
 };
 
 export const mutateCards = async (uid: string, mutations: CardMutation[]): Promise<void> => {
+  // Let every independent write settle so callers can retry only failures without replaying successful writes.
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
       mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)

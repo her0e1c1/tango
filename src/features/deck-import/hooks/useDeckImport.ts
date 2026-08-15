@@ -56,11 +56,13 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
   const uid = useAuthUid();
   const sessionRef = useRef(createSession(uid));
   const [state, setState] = useState(() => initialState(uid));
+  // Reset during rendering so results from the previous identity are never exposed for an extra frame.
   const currentState = state.uid === uid ? state : initialState(uid);
   if (state.uid !== uid) setState(currentState);
   useEffect(() => {
     if (sessionRef.current.uid !== uid) sessionRef.current = createSession(uid);
   }, [uid]);
+  // Object identity rejects stale work even across an A-to-B-to-A user transition where the UID matches again.
   const isCurrent = (session: DeckImportSession) => sessionRef.current === session;
   const updateState = (session: DeckImportSession, update: Partial<Omit<DeckImportState, "uid">>) => {
     if (!isCurrent(session)) return;

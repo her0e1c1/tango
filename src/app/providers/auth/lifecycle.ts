@@ -14,6 +14,7 @@ const authSessionFromUser = (user: User) => ({
 const startAnonymousBootstrap = () => {
   if (getAuthSession().status !== "unauthenticated") return;
 
+  // Bind failures to this attempt so a late rejection cannot overwrite a newer authenticated session.
   const attemptId = Symbol("anonymous-auth-attempt");
   replaceAuthSession({ status: "authenticating", attemptId });
   void signInAnonymously(auth).catch((error) => {
@@ -31,9 +32,11 @@ export const startAuthSession = () =>
       return;
     }
 
+    // Firebase may repeat the signed-out event while anonymous sign-in is pending; keep one bootstrap active.
     if (getAuthSession().status === "authenticating") return;
 
     replaceAuthSession({ status: "unauthenticated" });
+    // A new anonymous identity must not inherit persisted study state from the identity that signed out.
     void clearStudySessions()
       .then(startAnonymousBootstrap)
       .catch((error) => {
