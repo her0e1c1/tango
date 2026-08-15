@@ -1,13 +1,7 @@
-/**
- * @file Provides the import feature's Use Deck Import React hook.
- * The hook combines state and operations behind one interface so components do not need to
- * coordinate services themselves.
- */
-
 import type { Card, CardCreateInput, CardEdit } from "@/entities/card";
-import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
+import type { Deck, DeckCreateInput } from "@/entities/deck";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { fetchCards, filterCardsByDeckId } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
@@ -15,7 +9,7 @@ import { useAuthUid } from "@/entities/auth";
 import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
 import { upsertImportedCards } from "../api/upsertImportedCards";
-import type { DeckImportAttempt, DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
+import type { DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
 import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
 
 export interface DeckImportOptions {
@@ -25,6 +19,13 @@ export interface DeckImportOptions {
   decks: Deck[];
   editCard: (uid: string, card: CardEdit) => Promise<unknown>;
   generateCardId: () => string;
+}
+
+interface DeckImportSession {
+  uid: string;
+  running: boolean;
+  lastRequest: DeckImportRequest | undefined;
+  preparedRequest: DeckImportRequest | undefined;
 }
 
 interface DeckImportState {
@@ -37,7 +38,14 @@ interface DeckImportState {
   data: DeckImportResult | undefined;
 }
 
-const initialDeckImportState = (uid: string): DeckImportState => ({
+const createSession = (uid: string): DeckImportSession => ({
+  uid,
+  running: false,
+  lastRequest: undefined,
+  preparedRequest: undefined,
+});
+
+const initialState = (uid: string): DeckImportState => ({
   uid,
   running: false,
   validating: false,
@@ -47,105 +55,6 @@ const initialDeckImportState = (uid: string): DeckImportState => ({
   data: undefined,
 });
 
-interface ImportRunDependencies {
-  runningRef: { current: boolean };
-  setRunning: (running: boolean) => void;
-  lastRequest: { current: DeckImportRequest | undefined };
-  mutateAsync: (request: DeckImportRequest) => Promise<DeckImportResult>;
-  generation: number;
-  currentGeneration: { current: number };
-}
-
-/**
- * Runs the deck import workflow for the import feature.
- * The sequence and its cleanup remain together so partial failures can be handled consistently.
- */
-const runDeckImport = async (
-  request: DeckImportRequest,
-  { runningRef, setRunning, lastRequest, mutateAsync, generation, currentGeneration }: ImportRunDependencies
-) => {
-  if (runningRef.current) throw new Error("A Deck import is already running");
-  runningRef.current = true;
-  setRunning(true);
-  lastRequest.current = request;
-  try {
-    return await mutateAsync(request);
-  } finally {
-    if (currentGeneration.current === generation) {
-      runningRef.current = false;
-      setRunning(false);
-    }
-  }
-};
-
-interface FilePreviewDependencies {
-  runningRef: { current: boolean };
-  setValidating: (validating: boolean) => void;
-  setPreview: (preview: DeckImportPreview | undefined) => void;
-  setPreviewError: (error: unknown) => void;
-  reset: () => void;
-  prepare: (request: DeckImportRequest) => Promise<DeckImportAttempt>;
-  preparedRequest: { current: DeckImportRequest | undefined };
-  uid: string;
-  currentUid: { current: string };
-  generation: number;
-  currentGeneration: { current: number };
-}
-
-/**
- * Parses a selected CSV file and builds the preview shown before import.
- * Existing cards are included in the plan so users can see which rows will be created, updated, or
- * skipped.
- */
-const previewDeckImportFile = async (
-  file: File,
-  {
-    runningRef,
-    setValidating,
-    setPreview,
-    setPreviewError,
-    reset,
-    prepare,
-    preparedRequest,
-    uid,
-    currentUid,
-    generation,
-    currentGeneration,
-  }: FilePreviewDependencies
-) => {
-  const isCurrent = () => currentGeneration.current === generation && currentUid.current === uid;
-  if (runningRef.current) throw new Error("A Deck import is already running");
-  setValidating(true);
-  setPreview(undefined);
-  reset();
-  try {
-    const analysis = await parseCsv(await file.text());
-    if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
-    const request = { kind: "content", name: file.name, rows: analysis.rows } satisfies DeckImportRequest;
-    const attempt = await prepare(request);
-    if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
-    const next = {
-      fileName: file.name,
-      deckName: file.name,
-      analysis,
-      plan: attempt.plan,
-    };
-    preparedRequest.current = request;
-    setPreview(next);
-    return next;
-  } catch (error) {
-    if (isCurrent()) setPreviewError(error);
-    throw error;
-  } finally {
-    if (isCurrent()) setValidating(false);
-  }
-};
-
-/**
- * Provides the deck import values and operations needed by React components.
- * Callers receive one focused interface without coordinating the import feature's stores and
- * services themselves.
- */
 export const useDeckImport = ({
   cards,
   createCard,
@@ -155,134 +64,104 @@ export const useDeckImport = ({
   generateCardId,
 }: DeckImportOptions) => {
   const uid = useAuthUid();
-  const cardsByDeckId = useCallback((deckId: DeckId) => filterCardsByDeckId(cards, deckId), [cards]);
-  const generation = useRef(0);
-  const generationUid = useRef(uid);
-  const runningRef = useRef(false);
-  const [state, setState] = useState(() => initialDeckImportState(uid));
-  const currentState = state.uid === uid ? state : initialDeckImportState(uid);
+  const sessionRef = useRef(createSession(uid));
+  const [state, setState] = useState(() => initialState(uid));
+  const currentState = state.uid === uid ? state : initialState(uid);
   if (state.uid !== uid) setState(currentState);
-  const lastRequest = useRef<DeckImportRequest>(undefined);
-  const preparedPreviewRequest = useRef<DeckImportRequest>(undefined);
-  const dependenciesRef = useRef<DeckImportDependencies>(undefined);
-  const runRef = useRef<(request: DeckImportRequest) => Promise<DeckImportResult>>(undefined);
-  const [retry] = useState(() => () => {
-    const request = lastRequest.current;
-    const currentRun = runRef.current;
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
-    if (request != null && currentRun != null && !runningRef.current) void currentRun(request).catch(() => undefined);
-  });
   useEffect(() => {
-    if (generationUid.current === uid) return;
-    generationUid.current = uid;
-    generation.current += 1;
-    runningRef.current = false;
-    lastRequest.current = undefined;
-    preparedPreviewRequest.current = undefined;
+    if (sessionRef.current.uid !== uid) sessionRef.current = createSession(uid);
   }, [uid]);
-  useEffect(() => {
-    dependenciesRef.current = {
-      uid,
-      decks,
-      cardsByDeckId,
-      createDeck: (deck) => createDeck(uid, deck),
-      generateCardId,
-      bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
-      fetchDecks,
-      fetchCards,
-    };
-  }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, uid]);
-  const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
-    setState((current) => ({
-      ...(current.uid === uid ? current : initialDeckImportState(uid)),
-      ...update,
-    }));
+  const isCurrent = (session: DeckImportSession) => sessionRef.current === session;
+  const updateState = (session: DeckImportSession, update: Partial<Omit<DeckImportState, "uid">>) => {
+    if (!isCurrent(session)) return;
+    setState((current) => {
+      if (current.uid !== session.uid) return current;
+      return { ...current, ...update };
+    });
   };
-  const setRunning = (running: boolean) => updateState({ running });
-  const setValidating = (validating: boolean) => updateState({ validating });
-  const setPreview = (preview: DeckImportPreview | undefined) => updateState({ preview });
-  const setPreviewError = (previewError: unknown) => updateState({ previewError });
-  const setError = (error: unknown) => updateState({ error });
+  const dependencies: DeckImportDependencies = {
+    uid,
+    decks,
+    cardsByDeckId: (deckId) => filterCardsByDeckId(cards, deckId),
+    createDeck: (deck) => createDeck(uid, deck),
+    generateCardId,
+    bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
+    fetchDecks,
+    fetchCards,
+  };
 
-  const mutateAsync = async (request: DeckImportRequest) => {
-    const operationGeneration = generation.current;
-    setError(null);
+  const run = async (request: DeckImportRequest, session: DeckImportSession) => {
+    if (session.uid !== uid || !isCurrent(session)) {
+      throw new Error("Deck import user changed before the import could start");
+    }
+    if (session.running) throw new Error("A Deck import is already running");
+    session.running = true;
+    session.lastRequest = request;
+    updateState(session, { running: true, error: null });
     try {
-      const dependencies = dependenciesRef.current;
-      // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
-      if (dependencies == null) throw new Error("Deck import dependencies are not available");
       const attempt = await prepareDeckImport(request, dependencies);
-      if (generation.current !== operationGeneration || generationUid.current !== dependencies.uid) {
-        throw new Error("Deck import user changed before the import could start");
-      }
+      if (!isCurrent(session)) throw new Error("Deck import user changed before the import could start");
       const result = await executePreparedDeckImport(attempt, dependencies);
-      if (generation.current === operationGeneration) updateState({ data: result });
+      updateState(session, { data: result });
       return result;
-    } catch (nextError) {
-      if (generation.current === operationGeneration) {
-        updateState({ data: undefined, error: nextError });
+    } catch (error) {
+      updateState(session, { data: undefined, error });
+      throw error;
+    } finally {
+      if (isCurrent(session)) {
+        session.running = false;
+        updateState(session, { running: false });
       }
-      throw nextError;
     }
   };
 
-  const resetOperation = () => {
-    lastRequest.current = undefined;
-    preparedPreviewRequest.current = undefined;
-    updateState({ data: undefined, previewError: null, error: null });
+  const retry = () => {
+    const session = sessionRef.current;
+    const request = session.lastRequest;
+    if (request != null && !session.running) void run(request, session).catch(() => undefined);
   };
 
-  /**
-   * Runs the current import feature operation and returns its result.
-   * Progress and failure cleanup stay in one place so callers observe a consistent workflow state.
-   */
-  const run = (request: DeckImportRequest) =>
-    runDeckImport(request, {
-      runningRef,
-      setRunning,
-      lastRequest,
-      mutateAsync,
-      generation: generation.current,
-      currentGeneration: generation,
+  const selectFile = async (file: File) => {
+    const session = sessionRef.current;
+    if (session.uid !== uid) throw new Error("Deck import user changed before the preview could start");
+    if (session.running) throw new Error("A Deck import is already running");
+    session.lastRequest = undefined;
+    session.preparedRequest = undefined;
+    updateState(session, {
+      validating: true,
+      preview: undefined,
+      previewError: null,
+      error: null,
+      data: undefined,
     });
-  useEffect(() => {
-    runRef.current = run;
-  });
+    try {
+      const analysis = await parseCsv(await file.text());
+      if (!isCurrent(session)) throw new Error("Deck import user changed before the preview could finish");
+      const request = { kind: "content", name: file.name, rows: analysis.rows } satisfies DeckImportRequest;
+      const attempt = await prepareDeckImport(request, dependencies);
+      if (!isCurrent(session)) throw new Error("Deck import user changed before the preview could finish");
+      const preview = {
+        fileName: file.name,
+        deckName: file.name,
+        analysis,
+        plan: attempt.plan,
+      };
+      session.preparedRequest = request;
+      updateState(session, { preview });
+      return preview;
+    } catch (previewError) {
+      updateState(session, { previewError });
+      throw previewError;
+    } finally {
+      updateState(session, { validating: false });
+    }
+  };
 
   const { preview, previewError, validating, running, error, data } = currentState;
 
-  /**
-   * Validates the selected CSV file and stores its import preview.
-   * No remote data is changed until the user confirms that preview.
-   */
-  const selectFile = (file: File) =>
-    previewDeckImportFile(file, {
-      runningRef,
-      setValidating,
-      setPreview,
-      setPreviewError,
-      reset: resetOperation,
-      prepare: async (request) => {
-        const dependencies = dependenciesRef.current;
-        // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
-        if (dependencies == null) throw new Error("Deck import dependencies are not available");
-        return await prepareDeckImport(request, dependencies);
-      },
-      preparedRequest: preparedPreviewRequest,
-      uid,
-      currentUid: generationUid,
-      generation: generation.current,
-      currentGeneration: generation,
-    });
-
-  /**
-   * Imports the currently validated preview after checking that it contains usable rows.
-   * Concurrent imports and previews with validation errors are rejected before any remote mutation
-   * starts.
-   */
   const importPreview = () => {
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
-    if (runningRef.current) return Promise.reject(new Error("A Deck import is already running"));
+    const session = sessionRef.current;
+    if (session.running) return Promise.reject(new Error("A Deck import is already running"));
     if (preview == null) return Promise.reject(new Error("Select a CSV file before importing"));
     if (preview.analysis.invalidCount > 0) {
       return Promise.reject(new Error("Fix invalid CSV rows before importing"));
@@ -290,36 +169,33 @@ export const useDeckImport = ({
     if (preview.analysis.rows.length === 0) {
       return Promise.reject(new Error("The CSV file has no valid rows"));
     }
-    const request = preparedPreviewRequest.current;
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
+    const request = session.preparedRequest;
     if (request == null) return Promise.reject(new Error("The prepared Deck import is not available"));
-    return run(request);
+    return run(request, session);
   };
 
-  /** Downloads card CSV data from a public URL and runs it through the normal import workflow. */
   const importUrl = async (url: string, name?: string) => {
-    const operationGeneration = generation.current;
-    const operationUid = uid;
-    const parsedUrl = new URL(url);
-    const response = await fetch(parsedUrl);
+    const session = sessionRef.current;
+    const response = await fetch(new URL(url));
     if (!response.ok) throw new Error(`Unable to fetch Deck CSV (${response.status})`);
     const analysis = await parseCsv(await response.text());
-    if (generation.current !== operationGeneration || dependenciesRef.current?.uid !== operationUid) {
-      throw new Error("Deck import user changed before the import could start");
-    }
+    if (!isCurrent(session)) throw new Error("Deck import user changed before the import could start");
     if (analysis.invalidCount > 0) throw new Error("Fix invalid CSV rows before importing");
     if (analysis.rows.length === 0) throw new Error("The CSV file has no valid rows");
-    return await run({
-      kind: "content",
-      name: name ?? url.split("/").pop() ?? "no name",
-      rows: analysis.rows,
-    });
+    return await run(
+      {
+        kind: "content",
+        name: name ?? url.split("/").pop() ?? "no name",
+        rows: analysis.rows,
+      },
+      session
+    );
   };
 
   return {
     selectFile,
     importPreview,
-    addSample: () => run({ kind: "sample" }),
+    addSample: () => run({ kind: "sample" }, sessionRef.current),
     importUrl,
     reimport: (deck: Deck) => {
       if (deck.url == null || deck.url === "") return Promise.reject(new Error("Deck has no import URL"));
