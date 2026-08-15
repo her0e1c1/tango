@@ -12,7 +12,9 @@ import { collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where }
 import { z } from "zod";
 
 import { db } from "@/shared/firebase";
-import { firestoreTimestampDateSchema, getTimestamp, omitUndefined, parseFirestoreDocument } from "@/shared/api";
+import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/api";
+import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
+import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceRemoteCards } from "../model/store";
 
@@ -92,7 +94,7 @@ export const fetchCards = async (uid: string): Promise<Card[]> => {
 export const generateCardId = (): string => doc(collection(db, CARD_COLLECTION)).id;
 
 const createCardDocument = async (card: CardCreate): Promise<void> => {
-  const createdAt = getTimestamp();
+  const createdAt = getCurrentTimeMillis();
   const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies Card);
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
@@ -111,7 +113,7 @@ const updateCardDocument = async (card: CardEdit): Promise<void> => {
     url: card.url,
     startLine: card.startLine,
     endLine: card.endLine,
-    updatedAt: getTimestamp(),
+    updatedAt: getCurrentTimeMillis(),
   });
   await updateDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
@@ -122,7 +124,7 @@ export const editCard = async (uid: string, card: EditCardInput["card"]): Promis
 };
 
 const removeCardDocument = async (id: string): Promise<void> => {
-  const updatedAt = getTimestamp();
+  const updatedAt = getCurrentTimeMillis();
   await updateDoc(doc(db, CARD_COLLECTION, id), { updatedAt, deletedAt: updatedAt });
 };
 

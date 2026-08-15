@@ -1,12 +1,8 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 
-import { firestoreTimestampDateSchema, getTimestamp, omitUndefined, parseFirestoreDocument } from "./firestoreDocument";
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
+import { firestoreTimestampDateSchema, parseFirestoreDocument } from "./firestoreDocument";
 
 describe("Firestore document utilities", () => {
   it("parses an arbitrary collection document", () => {
@@ -16,14 +12,15 @@ describe("Firestore document utilities", () => {
   });
 
   it("reports validation details for an arbitrary collection", () => {
-    const schema = z.object({ title: z.string() });
+    const schema = z.object({ metadata: z.object({ title: z.string() }) });
 
-    expect(() => parseFirestoreDocument(schema, "note", "note-a", { title: 42 })).toThrowError(
+    expect(() => parseFirestoreDocument(schema, "note", "note-a", { metadata: { title: 42 } })).toThrowError(
       expect.objectContaining({
         name: "FirestoreDocumentValidationError",
         collectionName: "note",
         documentId: "note-a",
-        message: expect.stringContaining("title"),
+        message: expect.stringContaining('Invalid Firestore note document "note-a": metadata.title'),
+        issues: [expect.objectContaining({ path: ["metadata", "title"] })],
       })
     );
     expect(() => parseFirestoreDocument(schema, "note", "note-a", {})).toThrowError(
@@ -38,35 +35,26 @@ describe("Firestore document utilities", () => {
     expect(firestoreTimestampDateSchema.parse(date)).toBe(date);
   });
 
-  it("rejects malformed timestamp values", () => {
-    const malformed = { seconds: 0, nanoseconds: 0, toDate: () => new Date(Number.NaN) };
-
-    expect(() => firestoreTimestampDateSchema.parse(malformed)).toThrow();
-  });
-
-  it("returns the current numeric timestamp", () => {
-    vi.spyOn(Date, "now").mockReturnValue(123);
-
-    expect(getTimestamp()).toBe(123);
-  });
-
-  it("omits undefined fields while preserving null and concrete values", () => {
-    const input = {
-      keepNull: null,
-      keepString: "text",
-      keepNumber: 0,
-      keepBoolean: false,
-      keepArray: [1, 2],
-      omitThis: undefined,
-    };
-
-    expect(omitUndefined(input)).toEqual({
-      keepNull: null,
-      keepString: "text",
-      keepNumber: 0,
-      keepBoolean: false,
-      keepArray: [1, 2],
-    });
-    expect(omitUndefined(input)).not.toHaveProperty("omitThis");
+  it.each([
+    new Date(Number.NaN),
+    { seconds: 0, nanoseconds: 0, toDate: () => new Date(Number.NaN) },
+    { seconds: 0, nanoseconds: 0, toDate: () => "not a date" },
+    { seconds: 0, nanoseconds: 1_000_000_000, toDate: () => new Date(0) },
+    {
+      get seconds(): number {
+        throw new Error("malformed");
+      },
+      nanoseconds: 0,
+      toDate: () => new Date(0),
+    },
+    {
+      seconds: 0,
+      nanoseconds: 0,
+      toDate: () => {
+        throw new Error("malformed");
+      },
+    },
+  ])("rejects malformed dates and timestamps through the schema boundary", (value) => {
+    expect(firestoreTimestampDateSchema.safeParse(value).success).toBe(false);
   });
 });
