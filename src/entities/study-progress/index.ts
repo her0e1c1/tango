@@ -1,6 +1,6 @@
 export { editStudyProgress } from "./api/firestore";
 export {
-  compareStudyProgress,
+  buildStudyCardOrder,
   createStudyProgressFromCard,
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
