@@ -41,7 +41,7 @@ vi.mock("@/entities/deck", () => ({
   useDecks: () => mocks.decks,
 }));
 vi.mock("@/features/deck-import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
-vi.mock("@/features/study", () => ({
+vi.mock("@/entities/study-session", () => ({
   removeStudySession: mocks.removeStudySession,
   touchStudySession: mocks.touchStudySession,
   useStudySessions: () => ({}),

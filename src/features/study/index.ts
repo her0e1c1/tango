@@ -1,8 +1,5 @@
 export { DeckSwiperView } from "./components/DeckSwiperView";
 export { StudyWorkflow, type StudyWorkflowState } from "./components/StudyWorkflow";
-export { removeStudySession, touchStudySession } from "./commands/studySessionCommands";
 export { useStudyActions } from "./hooks/useStudyActions";
 export { useStudyCards } from "./hooks/useStudyCards";
-export { useStudySessions } from "./hooks/useStudySessions";
-export { clearStudyStore } from "./state/studyStoreInstance";
 export { useEditStudyProgress } from "./hooks/useEditStudyProgress";

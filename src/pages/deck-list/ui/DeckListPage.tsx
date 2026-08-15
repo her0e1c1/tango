@@ -5,9 +5,9 @@ import { useKey } from "react-use";
 import { useAuthUid } from "@/entities/auth";
 import { generateCardId, useCards } from "@/entities/card";
 import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
+import { removeStudySession, touchStudySession, useStudySessions } from "@/entities/study-session";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
-import { removeStudySession, touchStudySession, useStudySessions } from "@/features/study";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckListPage: React.FC = () => {

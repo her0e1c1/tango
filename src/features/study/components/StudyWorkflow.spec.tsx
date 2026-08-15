@@ -1,6 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
+import { clearStudySessions, getStudySession, startStudySession } from "@/entities/study-session";
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -25,12 +26,12 @@ vi.mock("@/entities/preferences", () => ({
 vi.mock("../hooks/useEditStudyProgress", () => ({
   useEditStudyProgress: () => ({ update: mocks.update }),
 }));
-vi.mock("../commands/studySessionCommands", () => ({
+vi.mock("@/entities/study-session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/study-session")>()),
   touchStudySession: mocks.touchStudySession,
 }));
 
 import { StudyWorkflow, type StudyWorkflowState } from "./StudyWorkflow";
-import { studyStore } from "../state/studyStoreInstance";
 
 const deckId: DeckId = "deck-id";
 const createCard = (id: string): Card => ({
@@ -80,7 +81,8 @@ const renderWorkflow = (currentCards: readonly Card[] = cards) =>
   );
 
 describe("StudyWorkflow", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await clearStudySessions();
     localStorage.clear();
     vi.clearAllMocks();
     mocks.update.mockResolvedValue(undefined);
@@ -92,8 +94,7 @@ describe("StudyWorkflow", () => {
       cardSwipeLeft: "GoToNextCardMastered",
       cardSwipeRight: "GoToNextCardMastered",
     });
-    studyStore.setState({ sessionsByDeckId: {} });
-    studyStore.getState().startStudy(
+    startStudySession(
       deckId,
       cards.map(({ id }) => id)
     );
@@ -122,11 +123,11 @@ describe("StudyWorkflow", () => {
     expect(mocks.onUnavailable).not.toHaveBeenCalled();
     unmount();
 
-    studyStore.setState({ sessionsByDeckId: {} });
+    await clearStudySessions();
     renderWorkflow();
     expect(screen.getByText("unavailable")).toBeVisible();
     await waitFor(() => expect(mocks.onUnavailable).toHaveBeenCalledOnce());
-    expect(studyStore.getState().sessionsByDeckId[deckId]).toBeUndefined();
+    expect(getStudySession(deckId)).toBeUndefined();
   });
 
   it("restarts repeated swipe feedback timing", async () => {

@@ -6,16 +6,23 @@
 
 import { mustFindCardById, type Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { Preferences, SwipeDirection } from "@/entities/preferences";
+import { usePreferences } from "@/entities/preferences";
+import type { StudyProgressEdit } from "@/entities/study-progress";
+import {
+  getStudySession,
+  removeStudySession,
+  restoreStudySession,
+  setStudySessionIndex,
+  startStudySession,
+  type StudySession,
+} from "@/entities/study-session";
 
 import React from "react";
 
 import { buildStudySession, calculateNextIndex } from "../model/session";
 import { createStudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
-import { studyStore } from "../state/studyStoreInstance";
-import { usePreferences } from "@/entities/preferences";
 
 export interface StudyActions {
   start: (cards: Card[]) => void;
@@ -60,34 +67,23 @@ interface StudySwipeDependencies {
 }
 
 const applyOptimisticUpdate = (deckId: DeckId, nextIndex: number) => {
-  const state = studyStore.getState();
-  if (nextIndex < 0) state.removeStudy(deckId);
-  else state.setCurrentIndex(deckId, nextIndex);
-  return studyStore.getState().sessionsByDeckId[deckId];
+  if (nextIndex < 0) removeStudySession(deckId);
+  else setStudySessionIndex(deckId, nextIndex);
+  return getStudySession(deckId);
 };
-
-type StudyState = ReturnType<typeof studyStore.getState>;
-type Session = StudyState["sessionsByDeckId"][string];
 
 const revertOptimisticUpdate = (
   deckId: DeckId,
-  nextIndex: number,
   mutationTokenRef: { current: symbol | undefined },
   mutationToken: symbol,
-  optimisticSession: Session,
-  previous: { session: Session; showBackText: boolean },
+  optimisticSession: StudySession | undefined,
+  previous: { session: StudySession; showBackText: boolean },
   onRestoreBackText?: ((showBackText: boolean) => void) | undefined
 ) => {
-  const current = studyStore.getState();
-  const currentSession = current.sessionsByDeckId[deckId];
   const changeStillCurrent =
-    mutationTokenRef.current === mutationToken &&
-    (nextIndex < 0 ? currentSession == null : currentSession === optimisticSession);
+    mutationTokenRef.current === mutationToken && restoreStudySession(deckId, optimisticSession, previous.session);
   if (!changeStillCurrent) return false;
 
-  studyStore.setState((state) => ({
-    sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: previous.session },
-  }));
   onRestoreBackText?.(previous.showBackText);
   return true;
 };
@@ -111,8 +107,7 @@ const runStudySwipe = async (
   }: StudySwipeDependencies
 ): Promise<void> => {
   if (mutationTokenRef.current !== undefined) return;
-  const state = studyStore.getState();
-  const session = state.sessionsByDeckId[deckId];
+  const session = getStudySession(deckId);
   if (session == null) return;
 
   const swipeAction = resolveSwipeAction(preferences.controls, direction);
@@ -120,7 +115,7 @@ const runStudySwipe = async (
 
   if (swipeAction === "GoBack") {
     onSwipe?.(direction);
-    state.removeStudy(deckId);
+    removeStudySession(deckId);
     return;
   }
 
@@ -148,7 +143,6 @@ const runStudySwipe = async (
   } catch {
     const reverted = revertOptimisticUpdate(
       deckId,
-      nextIndex,
       mutationTokenRef,
       mutationToken,
       optimisticSession,
@@ -189,8 +183,7 @@ export const useStudyActions = (
    */
   const start = (cards: Card[]) => {
     const cardOrderIds = buildStudySession(cards, preferences.study);
-    const state = studyStore.getState();
-    state.startStudy(deckId, cardOrderIds);
+    startStudySession(deckId, cardOrderIds);
     onHideBackText?.();
     onStarted?.();
   };
@@ -222,13 +215,12 @@ export const useStudyActions = (
     swipeLeft: () => swipe("cardSwipeLeft"),
     swipeRight: () => swipe("cardSwipeRight"),
     updateIndex: (currentIndex: number) => {
-      const state = studyStore.getState();
-      if (state.sessionsByDeckId[deckId] == null) return;
+      if (getStudySession(deckId) == null) return;
       onHideBackText?.();
-      state.setCurrentIndex(deckId, currentIndex);
+      setStudySessionIndex(deckId, currentIndex);
     },
     toggleShowBackText: () => onToggleBackText?.(),
     toggleAutoPlay: () => onToggleAutoPlay?.(),
-    resetStudy: () => studyStore.getState().removeStudy(deckId),
+    resetStudy: () => removeStudySession(deckId),
   };
 };

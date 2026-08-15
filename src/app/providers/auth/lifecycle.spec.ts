@@ -5,11 +5,11 @@ const singletonMocks = vi.hoisted(() => ({
   auth: { currentUser: null },
   onIdTokenChanged: vi.fn((_auth: Auth, _onUser: (user: User | null) => void) => vi.fn()),
   signInAnonymously: vi.fn(),
-  clearStudyStore: vi.fn(),
+  clearStudySessions: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: singletonMocks.auth }));
-vi.mock("@/features/study", () => ({ clearStudyStore: singletonMocks.clearStudyStore }));
+vi.mock("@/entities/study-session", () => ({ clearStudySessions: singletonMocks.clearStudySessions }));
 vi.mock("firebase/auth", () => ({
   onIdTokenChanged: singletonMocks.onIdTokenChanged,
   signInAnonymously: singletonMocks.signInAnonymously,
@@ -34,7 +34,7 @@ const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCre
     return unsubscribe;
   });
   singletonMocks.signInAnonymously.mockImplementation(signInAnonymously);
-  singletonMocks.clearStudyStore.mockResolvedValue(undefined);
+  singletonMocks.clearStudySessions.mockResolvedValue(undefined);
 
   const authSession = await import("@/entities/auth");
   const lifecycle = await import("./lifecycle");
@@ -88,7 +88,7 @@ describe("lifecycle", () => {
     publishUser(null);
 
     expect(getAuthSession()).toEqual({ status: "unauthenticated" });
-    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
+    expect(singletonMocks.clearStudySessions).toHaveBeenCalledOnce();
     await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
     expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
   });
@@ -100,11 +100,11 @@ describe("lifecycle", () => {
     });
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { publishUser } = await createHarness(signInAnonymously);
-    singletonMocks.clearStudyStore.mockReturnValue(cleanup);
+    singletonMocks.clearStudySessions.mockReturnValue(cleanup);
 
     publishUser(null);
 
-    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
+    expect(singletonMocks.clearStudySessions).toHaveBeenCalledOnce();
     expect(signInAnonymously).not.toHaveBeenCalled();
 
     finishCleanup();
@@ -118,7 +118,7 @@ describe("lifecycle", () => {
     });
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { publishUser } = await createHarness(signInAnonymously);
-    singletonMocks.clearStudyStore.mockReturnValue(cleanup);
+    singletonMocks.clearStudySessions.mockReturnValue(cleanup);
 
     publishUser(createUser("uid-a"));
     publishUser(null);
@@ -154,7 +154,7 @@ describe("lifecycle", () => {
     await Promise.resolve();
 
     expect(signInAnonymously).toHaveBeenCalledOnce();
-    expect(singletonMocks.clearStudyStore).toHaveBeenCalledOnce();
+    expect(singletonMocks.clearStudySessions).toHaveBeenCalledOnce();
     expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
   });
 
@@ -165,11 +165,11 @@ describe("lifecycle", () => {
     });
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
-    singletonMocks.clearStudyStore.mockReturnValue(cleanup);
+    singletonMocks.clearStudySessions.mockReturnValue(cleanup);
 
     publishUser(null);
     publishUser(null);
-    expect(singletonMocks.clearStudyStore).toHaveBeenCalledTimes(2);
+    expect(singletonMocks.clearStudySessions).toHaveBeenCalledTimes(2);
 
     finishCleanup();
     await vi.waitFor(() =>
@@ -183,7 +183,7 @@ describe("lifecycle", () => {
     const cleanupError = new Error("Study cleanup failed");
     const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
     const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
-    singletonMocks.clearStudyStore.mockRejectedValue(cleanupError);
+    singletonMocks.clearStudySessions.mockRejectedValue(cleanupError);
 
     publishUser(createUser("uid-a"));
     publishUser(null);

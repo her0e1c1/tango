@@ -1,7 +1,7 @@
 import { onIdTokenChanged, signInAnonymously, type User } from "firebase/auth";
 
 import { getAuthSession, replaceAuthSession } from "@/entities/auth";
-import { clearStudyStore } from "@/features/study";
+import { clearStudySessions } from "@/entities/study-session";
 import { auth } from "@/shared/firebase";
 
 const authSessionFromUser = (user: User) => ({
@@ -34,7 +34,7 @@ export const startAuthSession = () =>
     if (getAuthSession().status === "authenticating") return;
 
     replaceAuthSession({ status: "unauthenticated" });
-    void clearStudyStore()
+    void clearStudySessions()
       .then(startAnonymousBootstrap)
       .catch((error) => {
         if (getAuthSession().status === "unauthenticated") replaceAuthSession({ status: "error", error });

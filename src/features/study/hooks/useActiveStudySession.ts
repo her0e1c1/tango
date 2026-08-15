@@ -1,11 +1,8 @@
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
+import { touchStudySession, useStudySession } from "@/entities/study-session";
 
 import * as React from "react";
-
-import { touchStudySession } from "../commands/studySessionCommands";
-import { selectStudySessionForRoute } from "../state/studyStore";
-import { useStudyStore } from "./useStudyStore";
 
 export type ActiveStudySession =
   | { status: "loading" | "unavailable" }
@@ -17,7 +14,7 @@ export type ActiveStudySession =
     };
 
 export const useActiveStudySession = (deckId: DeckId, cards: readonly Card[]): ActiveStudySession => {
-  const session = useStudyStore(selectStudySessionForRoute(deckId));
+  const session = useStudySession(deckId);
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
   const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
