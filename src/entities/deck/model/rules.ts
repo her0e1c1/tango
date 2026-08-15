@@ -63,14 +63,7 @@ export const getCategory = (category: Category, tags: string[]): Category => {
 
 export const createSelectableStudyCard = <TCard extends Card>(card: TCard): SelectableStudyCard<TCard> => ({
   card,
-  progress: createStudyProgressFromCard({
-    id: card.id,
-    score: card.score,
-    numberOfSeen: card.numberOfSeen,
-    ...(card.lastSeenAt === undefined ? {} : { lastSeenAt: card.lastSeenAt }),
-    ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: card.nextSeeingAt }),
-    ...(card.interval === undefined ? {} : { interval: card.interval }),
-  }),
+  progress: createStudyProgressFromCard(card),
 });
 
 const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
