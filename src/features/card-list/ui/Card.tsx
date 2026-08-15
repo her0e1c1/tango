@@ -92,6 +92,7 @@ export const Card: React.FC<{ className?: string; card: CardEntity } & CardActio
   const withSwipeId = (action?: (id: CardId) => void) => () => {
     if (disabled) return;
 
+    // Mouse swipes emit a trailing click; suppress it through this task so swiping never also opens the Card.
     suppressViewClick.current = true;
     if (suppressViewClickTimer.current !== undefined) clearTimeout(suppressViewClickTimer.current);
     suppressViewClickTimer.current = setTimeout(() => {

@@ -7,6 +7,7 @@ import { filterCardsForDeck } from "../model/cardSelection";
 import { createStudyCard } from "../model/studyCard";
 import type { Preferences } from "@/entities/preferences";
 
+// Browsers clamp longer delays; capped timers reschedule until the actual availability time is reached.
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
 export const useStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): Card[] => {
@@ -14,6 +15,7 @@ export const useStudyCards = (deck: Deck | undefined, cards: Card[], preferences
   const studyCards = useMemo(() => cards.map(createStudyCard), [cards]);
 
   useEffect(() => {
+    // Refresh after rendering so a changed card list is filtered against current time, not the previous clock.
     const current = Date.now();
     const refresh = window.setTimeout(() => setScheduleClock(current), 0);
     return () => window.clearTimeout(refresh);

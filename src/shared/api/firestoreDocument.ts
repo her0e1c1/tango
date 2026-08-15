@@ -9,6 +9,7 @@ type FirestoreTimestamp = {
 const isFirestoreTimestamp = (value: unknown): value is FirestoreTimestamp => {
   if (typeof value !== "object" || value === null) return false;
 
+  // Unknown Firestore-shaped objects may expose throwing accessors, so validation must stay non-throwing.
   try {
     const { seconds, nanoseconds, toDate } = value as Partial<FirestoreTimestamp>;
     return (

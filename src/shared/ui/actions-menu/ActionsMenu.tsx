@@ -138,6 +138,7 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
     if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
     const menu = root.querySelector<HTMLElement>('[role="menu"]');
 
+    // Defer closing until a pending click can run; closing during blur would unmount its menu item first.
     setTimeout(() => {
       if (root.isConnected && menu?.isConnected && root.contains(menu) && !root.contains(document.activeElement)) {
         props.onClose();
