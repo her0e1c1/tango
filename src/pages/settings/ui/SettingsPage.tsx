@@ -31,30 +31,34 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
   const signOut = useSignOut(linkedUser ? logout : undefined);
   const account = linkedUser ? { ...signOut, kind: "logout" as const } : { ...signIn, kind: "login" as const };
   const retryAccountOperation = account.kind === "logout" ? signOut.signOut : signIn.signIn;
-  const preferencesForm = usePreferencesFormState({
+  const preferencesFormState = usePreferencesFormState({
     preferences,
-    identity,
-    version: __APP_VERSION__,
-    isLoggedIn: linkedUser != null,
-    onLogin: () => void signIn.signIn().catch(() => undefined),
-    ...(linkedUser ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {}),
-    accountPending: account.pending,
-    accountFeedback: (
-      <RemoteMutationNotice
-        pending={account.pending}
-        error={account.error}
-        onRetry={() => void retryAccountOperation().catch(() => undefined)}
-        pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
-        errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
-      />
-    ),
     onSubmit: updatePreferences,
   });
   useKey("t", () => void navigate("/"));
 
   return (
     <AppLayout showHeader>
-      <SettingsView preferencesForm={preferencesForm} />
+      <SettingsView
+        preferencesForm={{
+          ...preferencesFormState,
+          identity,
+          version: __APP_VERSION__,
+          isLoggedIn: linkedUser != null,
+          onLogin: () => void signIn.signIn().catch(() => undefined),
+          ...(linkedUser ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {}),
+          accountPending: account.pending,
+          accountFeedback: (
+            <RemoteMutationNotice
+              pending={account.pending}
+              error={account.error}
+              onRetry={() => void retryAccountOperation().catch(() => undefined)}
+              pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
+              errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
+            />
+          ),
+        }}
+      />
     </AppLayout>
   );
 };

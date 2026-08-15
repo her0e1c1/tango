@@ -14,13 +14,13 @@ import type { PreferencesFormProps } from "../../ui/components/PreferencesForm";
 export interface UsePreferencesFormStateOptions {
   preferences: Preferences;
   onSubmit?: (preferences: Preferences) => void;
-  isLoggedIn?: boolean;
-  identity?: PreferencesFormProps["identity"];
-  onLogin?: () => void;
-  onLogout?: () => void;
-  accountPending?: boolean;
-  accountFeedback?: React.ReactNode;
-  version?: string;
+}
+
+export interface UsePreferencesFormStateReturn {
+  preferences: Preferences;
+  fields: PreferencesFormProps["fields"];
+  maxNumberOfCardsToLearn: number;
+  cardInterval: number;
 }
 
 /**
@@ -31,14 +31,7 @@ export interface UsePreferencesFormStateOptions {
 export const usePreferencesFormState = ({
   preferences,
   onSubmit,
-  isLoggedIn,
-  identity,
-  onLogin,
-  onLogout,
-  accountPending,
-  accountFeedback,
-  version,
-}: UsePreferencesFormStateOptions): PreferencesFormProps => {
+}: UsePreferencesFormStateOptions): UsePreferencesFormStateReturn => {
   const { control, handleSubmit, register, setValue, subscribe } = useForm<Preferences>({
     defaultValues: preferences,
   });
@@ -56,35 +49,30 @@ export const usePreferencesFormState = ({
     setValue("appearance.darkMode", preferences.appearance.darkMode);
   }, [preferences.appearance.darkMode, setValue]);
 
+  const fields: PreferencesFormProps["fields"] = {
+    showHeader: register("appearance.showHeader"),
+    showSwipeButtonList: register("controls.showSwipeButtonList"),
+    showSwipeFeedback: register("appearance.showSwipeFeedback"),
+    darkMode: register("appearance.darkMode"),
+    shuffled: register("study.shuffled"),
+    useCardInterval: register("study.useCardInterval"),
+    maxNumberOfCardsToLearn: {
+      ...register("study.maxNumberOfCardsToLearn", { valueAsNumber: true }),
+      min: 0,
+      max: 100,
+    },
+    defaultAutoPlay: register("study.defaultAutoPlay"),
+    cardInterval: {
+      ...register("study.cardInterval", { valueAsNumber: true }),
+      min: 0,
+      max: 60,
+    },
+  };
+
   return {
     preferences,
-    ...(isLoggedIn !== undefined ? { isLoggedIn } : {}),
-    ...(identity !== undefined ? { identity } : {}),
-    ...(onLogin !== undefined ? { onLogin } : {}),
-    ...(onLogout !== undefined ? { onLogout } : {}),
-    ...(accountPending !== undefined ? { accountPending } : {}),
-    ...(accountFeedback !== undefined ? { accountFeedback } : {}),
-    ...(version !== undefined ? { version } : {}),
     maxNumberOfCardsToLearn,
     cardInterval,
-    fields: {
-      showHeader: register("appearance.showHeader"),
-      showSwipeButtonList: register("controls.showSwipeButtonList"),
-      showSwipeFeedback: register("appearance.showSwipeFeedback"),
-      darkMode: register("appearance.darkMode"),
-      shuffled: register("study.shuffled"),
-      useCardInterval: register("study.useCardInterval"),
-      maxNumberOfCardsToLearn: {
-        ...register("study.maxNumberOfCardsToLearn", { valueAsNumber: true }),
-        min: 0,
-        max: 100,
-      },
-      defaultAutoPlay: register("study.defaultAutoPlay"),
-      cardInterval: {
-        ...register("study.cardInterval", { valueAsNumber: true }),
-        min: 0,
-        max: 60,
-      },
-    },
+    fields,
   };
 };
