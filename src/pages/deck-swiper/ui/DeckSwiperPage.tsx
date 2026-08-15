@@ -1,11 +1,11 @@
-import { getCategory, isHighlightLanguage, type Deck, type DeckId, useDeck } from "@/entities/deck";
+import { getCategory, type Deck, type DeckId, useDeck } from "@/entities/deck";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, useCards } from "@/entities/card";
-import { BackText, CardOverlay, FrontText } from "@/features/card-view";
+import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import {
   selectStudySessionForRoute,
   type SwipeButtonListProps,
@@ -190,15 +190,7 @@ const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
           />
         }
         cardOverlaySlot={<CardOverlay card={card} />}
-        backTextSlot={
-          <BackText
-            category={category}
-            code={isHighlightLanguage(category)}
-            dark={preferences.appearance.darkMode}
-            text={card.backText}
-            onClick={studyActions.toggleShowBackText}
-          />
-        }
+        backTextSlot={<CardView card={card} deck={deck} onClick={studyActions.toggleShowBackText} variant="bare" />}
         controller={controller}
         swipeButtonList={swipeActions}
         swipeOverlay={swipeActions}
