@@ -16,4 +16,4 @@ export type {
   CardId,
   CardRaw,
 } from "./model/types";
-export { filterCardsByDeckId } from "./model/rules";
+export { filterCardsByDeckId, mustFindCardById } from "./model/rules";
