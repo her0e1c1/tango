@@ -7,7 +7,6 @@ import { Slider } from "@/shared/ui/forms";
 export interface ControllerProps {
   autoPlay?: boolean;
   index?: number;
-  cardInterval?: number;
   numberOfCards?: number;
   onToggleAutoPlay?: () => void;
   onChange?: (index: number) => void;

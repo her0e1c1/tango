@@ -27,6 +27,5 @@ export const AutoPlay: Story = {
   args: {
     numberOfCards: 10,
     autoPlay: true,
-    cardInterval: 1,
   },
 };

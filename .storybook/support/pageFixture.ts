@@ -96,10 +96,8 @@ export const pageStoryState = {
   }),
   sessionsByDeckId: {
     [PAGE_STORY_DECK_ID]: {
-      deckId: PAGE_STORY_DECK_ID,
       cardOrderIds: pageStoryCards.filter((card) => card.deckId === PAGE_STORY_DECK_ID).map((card) => card.id),
       currentIndex: 1,
-      lastStudiedAt: timestamp - 30 * 60 * 1000,
     },
   },
 } satisfies Omit<PageStoryParameters, "path">;

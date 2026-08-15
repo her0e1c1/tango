@@ -7,11 +7,11 @@ import { useKey } from "react-use";
 
 import { type Card, useCards } from "@/entities/card";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
-import { DeckSwiperView, StudyWorkflow, type StudyWorkflowState } from "@/features/study";
+import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
-const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
+const renderStudyScreen = (deck: Deck, state: StudyState) => {
   if (state.status !== "ready") {
     return state.status === "loading" ? (
       <RouteFeedback title="Loading…" tone="loading" />
@@ -21,6 +21,13 @@ const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
   }
 
   const category = getCategory(deck.category, state.card.tags);
+  const swipeActions = {
+    disabled: false,
+    onClickUp: state.swipeUp,
+    onClickDown: state.swipeDown,
+    onClickLeft: state.swipeLeft,
+    onClickRight: state.swipeRight,
+  };
 
   return (
     <AppLayout fullscreen scroll={state.showBackText} showHeader={state.showHeader}>
@@ -33,34 +40,38 @@ const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
           <FrontText
             category={category}
             text={state.card.frontText}
-            onSwipeUp={state.actions.swipeUp}
-            onSwipeDown={state.actions.swipeDown}
-            onSwipeLeft={state.actions.swipeLeft}
-            onSwipeRight={state.actions.swipeRight}
-            onClick={state.actions.toggleShowBackText}
+            onSwipeUp={state.swipeUp}
+            onSwipeDown={state.swipeDown}
+            onSwipeLeft={state.swipeLeft}
+            onSwipeRight={state.swipeRight}
+            onClick={state.toggleBackText}
           />
         }
         cardOverlaySlot={<CardOverlay card={state.card} />}
-        backTextSlot={
-          <CardView card={state.card} deck={deck} onClick={state.actions.toggleShowBackText} variant="bare" />
-        }
-        controller={state.controller}
-        swipeButtonList={state.swipeActions}
-        swipeOverlay={state.swipeActions}
+        backTextSlot={<CardView card={state.card} deck={deck} onClick={state.toggleBackText} variant="bare" />}
+        controller={{
+          autoPlay: state.autoPlay,
+          index: state.index,
+          numberOfCards: state.numberOfCards,
+          onChange: state.updateIndex,
+          onToggleAutoPlay: state.toggleAutoPlay,
+        }}
+        swipeButtonList={swipeActions}
+        swipeOverlay={swipeActions}
       />
     </AppLayout>
   );
 };
 
-const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyWorkflowState }) => {
-  useKey("ArrowUp", state.shortcutActions.swipeUp);
-  useKey("ArrowDown", state.shortcutActions.swipeDown);
-  useKey("ArrowLeft", state.shortcutActions.swipeLeft);
-  useKey("ArrowRight", state.shortcutActions.swipeRight);
-  useKey("Enter", state.shortcutActions.toggleShowBackText);
+const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => {
+  useKey("ArrowUp", state.swipeUp);
+  useKey("ArrowDown", state.swipeDown);
+  useKey("ArrowLeft", state.swipeLeft);
+  useKey("ArrowRight", state.swipeRight);
+  useKey("Enter", state.toggleBackText);
   useKey("h", toggleShowHeader);
   useKey("b", toggleShowSwipeButtonList);
-  useKey(" ", state.shortcutActions.toggleAutoPlay);
+  useKey(" ", state.toggleAutoPlay);
 
   return renderStudyScreen(deck, state);
 };
@@ -70,12 +81,9 @@ const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const handleUnavailable = React.useCallback(() => {
     void navigate("/", { replace: true });
   }, [navigate]);
+  const study = useStudy(deck.id, cards, handleUnavailable);
 
-  return (
-    <StudyWorkflow key={deck.id} cards={cards} deckId={deck.id} onUnavailable={handleUnavailable}>
-      {(state) => <DeckStudyScreen deck={deck} state={state} />}
-    </StudyWorkflow>
-  );
+  return <DeckStudyScreen deck={deck} state={study} />;
 };
 
 export const DeckStudyPage: React.FC = () => {
