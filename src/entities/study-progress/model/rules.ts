@@ -1,4 +1,4 @@
-import * as lodash from "lodash";
+import shuffle from "lodash/shuffle";
 
 import { createStudyProgress } from "./defaults";
 import type {
@@ -58,7 +58,7 @@ export const buildStudyCardOrder = (
     .sort(compareStudyProgress)
     .map((progress) => progress.cardId);
   // The maximum follows shuffling so a limited randomized session can draw from the complete card set.
-  if (options.shuffled) cardOrderIds = lodash.shuffle(cardOrderIds);
+  if (options.shuffled) cardOrderIds = shuffle(cardOrderIds);
   if (options.maxNumberOfCardsToLearn > 0) cardOrderIds = cardOrderIds.slice(0, options.maxNumberOfCardsToLearn);
   return cardOrderIds;
 };

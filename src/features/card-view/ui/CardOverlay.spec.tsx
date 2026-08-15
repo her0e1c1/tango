@@ -8,13 +8,15 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 import { CardOverlay } from "./CardOverlay";
+
+const STUDY_COUNT_PATTERN = /4 times/;
 import { createCard } from "@/test/factories";
 
 describe("CardOverlay", () => {
   it("preserves score and seen metadata", () => {
     render(<CardOverlay card={createCard({ score: -2, numberOfSeen: 4, lastSeenAt: Date.UTC(2024, 0, 2) })} />);
     expect(screen.getByLabelText("Score -2, negative")).toBeInTheDocument();
-    expect(screen.getByText(/4 times/)).toBeInTheDocument();
-    expect(screen.getByText(/4 times/)).toBeVisible();
+    expect(screen.getByText(STUDY_COUNT_PATTERN)).toBeInTheDocument();
+    expect(screen.getByText(STUDY_COUNT_PATTERN)).toBeVisible();
   });
 });

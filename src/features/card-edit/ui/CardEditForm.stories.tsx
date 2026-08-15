@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import * as fixture from "@/storybook/fixture";
+import { card, tags } from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 import { CardEditForm } from "./CardEditForm";
 
 const longCard = {
-  ...fixture.card.long,
-  tags: [...fixture.tags.toolong],
+  ...card.long,
+  tags: [...tags.toolong],
 };
 
 const meta = {
@@ -17,7 +17,7 @@ const meta = {
     viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" },
   },
   args: {
-    card: fixture.card.default,
+    card: card.default,
     onCancel: () => undefined,
     onSaved: () => undefined,
   },

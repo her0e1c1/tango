@@ -9,6 +9,13 @@ import type * as React from "react";
 
 import { tagClassName } from "@/shared/ui/content";
 
+const tagSizeClass = (small: boolean | undefined, large: boolean | undefined): string | undefined => {
+  let className: string | undefined;
+  if (large) className = "px-4 text-lg";
+  else if (small) className = "px-2 text-xs";
+  return className;
+};
+
 /**
  * Renders the Tag user interface.
  * Displays a tag-shaped control with optional size and selection styles and forwards click
@@ -74,7 +81,7 @@ export const Tag: React.FC<{
         "peer-checked:before:bg-accent-primary peer-checked:before:ring-2 peer-checked:before:ring-accent-primary/20",
         "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
         "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-        large ? "px-4 text-lg" : small ? "px-2 text-xs" : undefined
+        tagSizeClass(small, large)
       )}
     >
       <span className={cx("min-w-0", wrap ? "break-all" : "truncate")}>{label ?? children}</span>

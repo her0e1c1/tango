@@ -8,7 +8,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 import { DeckListCard as Template } from "./DeckListCard";
-import * as fixture from "@/storybook/fixture";
+import { deck } from "@/storybook/fixture";
 
 const meta = {
   title: "Features/DeckList/DeckListCard",
@@ -21,7 +21,7 @@ const meta = {
     },
   },
   args: {
-    deck: fixture.deck.default,
+    deck: deck.default,
     cardCount: 24,
   },
 } satisfies Meta<typeof Template>;
@@ -47,7 +47,7 @@ export const Active: Story = WithStudyProgress;
 
 export const TooLongName: Story = {
   args: {
-    deck: fixture.deck.tooLongName,
+    deck: deck.tooLongName,
   },
 };
 

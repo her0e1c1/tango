@@ -8,21 +8,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { useButtonInteraction } from "./buttonInteraction";
-
-function TestButton({ onClick }: { onClick?: () => void }) {
-  const props = useButtonInteraction(onClick);
-  return <div {...props}>Test Button</div>;
-}
-
-function NestedTestButton({ onClick }: { onClick?: () => void }) {
-  const props = useButtonInteraction(onClick);
-  return (
-    <div {...props}>
-      <input aria-label="Nested input" />
-    </div>
-  );
-}
+import { NestedTestButton, TestButton } from "./ButtonInteractionTestComponents";
 
 describe("useButtonInteraction", () => {
   it("activates a custom button once for a direct Enter key press", () => {

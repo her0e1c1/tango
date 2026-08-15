@@ -16,10 +16,8 @@ import { replaceRemoteCards } from "@/entities/card/model/store";
 import { replaceRemoteDecks } from "@/entities/deck/model/store";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
-import * as Uuid from "uuid";
+import { v4 as uuid } from "uuid";
 import { createCard, createDeck } from "@/test/factories";
-
-const uuid = Uuid.v4;
 
 vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn() }));
 vi.mock("@/shared/firebase", async () => ({

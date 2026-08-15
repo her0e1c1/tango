@@ -5,9 +5,9 @@
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
-import * as React from "react";
 import { expect, fn } from "storybook/test";
 
+import { InteractiveTagFilter } from "./InteractiveTagFilter";
 import { TagFilter as Template } from "./TagFilter";
 
 const meta = {
@@ -23,25 +23,6 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-/**
- * Renders the Interactive Tag Filter Storybook example with local interactive state.
- * Local state lets readers try the component without connecting it to the full application.
- */
-const InteractiveTagFilter: React.FC<React.ComponentProps<typeof Template>> = (props) => {
-  const [selectedTags, setSelectedTags] = React.useState(props.selectedTags ?? []);
-
-  return (
-    <Template
-      {...props}
-      selectedTags={selectedTags}
-      onClickTag={(tags) => {
-        props.onClickTag?.(tags);
-        setSelectedTags(tags);
-      }}
-    />
-  );
-};
 
 export const Default: Story = {};
 

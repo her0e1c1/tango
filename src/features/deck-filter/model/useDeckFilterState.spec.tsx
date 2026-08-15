@@ -5,18 +5,16 @@
  * all, and clear changes".
  */
 
-import type { Deck } from "@/entities/deck";
-
-import type React from "react";
-
 import userEvent from "@testing-library/user-event";
 import { fireEvent, render, waitFor, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckFilterForm } from "../ui/DeckFilterForm";
-import { useDeckFilterState } from "./useDeckFilterState";
 import { createDeck } from "@/test/factories";
+import { DeckFilterHarness } from "./DeckFilterHarness";
+
+const ALL_BUTTON_PATTERN = /all/i;
+const CLEAR_BUTTON_PATTERN = /clear/i;
 
 const mocks = vi.hoisted(() => ({ editDeck: vi.fn() }));
 
@@ -29,14 +27,6 @@ vi.mock("@/entities/deck", () => ({ editDeck: mocks.editDeck }));
  * Renders the test-only Deck Filter Harness component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const DeckFilterHarness: React.FC<{
-  deck: Deck;
-  tags: string[];
-}> = ({ deck, tags }) => {
-  const deckFilterForm = useDeckFilterState({ deck, tags });
-  return <DeckFilterForm {...deckFilterForm} />;
-};
-
 describe("DeckFilterForm with useDeckFilterState", () => {
   const deck = createDeck({
     scoreMax: 1,
@@ -60,7 +50,7 @@ describe("DeckFilterForm with useDeckFilterState", () => {
       target: { value: -2 },
     });
     await userEvent.click(screen.getByRole("checkbox", { name: "Match all selected tags" }));
-    await userEvent.click(screen.getByRole("button", { name: /all/i }));
+    await userEvent.click(screen.getByRole("button", { name: ALL_BUTTON_PATTERN }));
 
     await waitFor(() => {
       expect(mocks.editDeck).toHaveBeenLastCalledWith(
@@ -116,12 +106,12 @@ describe("DeckFilterForm with useDeckFilterState", () => {
       expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ selectedTags: ["tag2"] }));
     });
 
-    await userEvent.click(screen.getByRole("button", { name: /all/i }));
+    await userEvent.click(screen.getByRole("button", { name: ALL_BUTTON_PATTERN }));
     await waitFor(() => {
       expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ selectedTags: tags }));
     });
 
-    await userEvent.click(screen.getByRole("button", { name: /clear/i }));
+    await userEvent.click(screen.getByRole("button", { name: CLEAR_BUTTON_PATTERN }));
     await waitFor(() => {
       expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ selectedTags: [] }));
     });

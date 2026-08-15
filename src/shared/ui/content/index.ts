@@ -6,5 +6,5 @@ export { Score } from "./Score";
 export { Style } from "./Style";
 export { TagLabel } from "./TagLabel";
 export { TagList } from "./TagList";
-export { tagClassName } from "./tagStyles";
+export { tagClassName } from "./tagClassName";
 export { Title } from "./Title";

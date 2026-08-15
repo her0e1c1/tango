@@ -8,6 +8,7 @@ import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList, useEditCardScore } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
 import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
+import { discardPromise } from "@/shared/lib/discardPromise";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -50,8 +51,12 @@ export const CardListPage: React.FC = () => {
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
   const cards = useFilteredStudyCards(deck, deckCards, preferences);
 
-  useKey("t", () => void navigate("/"));
-  useKey("s", () => void navigate("/settings"));
+  useKey("t", () => {
+    discardPromise(navigate("/"));
+  });
+  useKey("s", () => {
+    discardPromise(navigate("/settings"));
+  });
 
   if (deck == null) {
     return (
@@ -59,8 +64,18 @@ export const CardListPage: React.FC = () => {
         title="Deck not found"
         description="The requested deck is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        primaryAction={{
+          label: "Go home",
+          onClick: () => {
+            discardPromise(navigate("/"));
+          },
+        }}
+        secondaryAction={{
+          label: "Go back",
+          onClick: () => {
+            discardPromise(navigate(-1));
+          },
+        }}
       />
     );
   }
@@ -72,7 +87,9 @@ export const CardListPage: React.FC = () => {
         cards={cards}
         tags={tags}
         preferences={preferences}
-        onEditCard={(id) => void navigate(`/card/${id}/edit`)}
+        onEditCard={(id) => {
+          discardPromise(navigate(`/card/${id}/edit`));
+        }}
       />
     </AppLayout>
   );

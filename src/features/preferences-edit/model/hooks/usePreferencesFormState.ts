@@ -1,7 +1,9 @@
 import { studyPreferencesLimits, type Preferences } from "@/entities/preferences";
 
-import * as React from "react";
+import React from "react";
 import { useForm, useWatch } from "react-hook-form";
+
+import { discardPromise } from "@/shared/lib/discardPromise";
 
 export interface UsePreferencesFormStateOptions {
   preferences: Preferences;
@@ -19,7 +21,9 @@ export const usePreferencesFormState = ({ preferences, onSubmit }: UsePreference
     () =>
       subscribe({
         formState: { values: true },
-        callback: () => void handleSubmit((data) => onSubmit?.(data))(),
+        callback: () => {
+          discardPromise(handleSubmit((data) => onSubmit?.(data))());
+        },
       }),
     [handleSubmit, onSubmit, subscribe]
   );

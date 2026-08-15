@@ -1,6 +1,6 @@
 import type { CardRaw } from "@/entities/card";
 
-import * as Papa from "papaparse";
+import { parse, type ParseResult } from "papaparse";
 
 import type { DeckImportAnalysis, DeckImportIssue, DeckImportRow } from "../model/deckImportTypes";
 import { isNonBlank } from "@/shared/lib/isNonBlank";
@@ -47,8 +47,8 @@ const validateCard = (columns: string[], rowNumber: number, uniqueKeys: Set<stri
 export const parseCsv = async (content: string): Promise<DeckImportAnalysis> => {
   if (typeof content !== "string") throw new TypeError("CSV content must be a string");
 
-  const parsed = await new Promise<Papa.ParseResult<string[]>>((resolve, reject) => {
-    Papa.parse<string[]>(content, { delimiter: ",", complete: resolve, error: reject });
+  const parsed = await new Promise<ParseResult<string[]>>((resolve, reject) => {
+    parse<string[]>(content, { delimiter: ",", complete: resolve, error: reject });
   });
   const rows: DeckImportRow[] = [];
   const skippedRows: number[] = [];
@@ -58,17 +58,17 @@ export const parseCsv = async (content: string): Promise<DeckImportAnalysis> => 
   const uniqueKeys = new Set<string>();
   let fileIssueCount = 0;
 
-  parsed.errors.forEach((error) => {
+  for (const error of parsed.errors) {
     if (error.row == null) {
       fileIssueCount += 1;
       issues.push({ message: error.message });
-      return;
+    } else {
+      const rowNumber = error.row + 1;
+      invalidRows.add(rowNumber);
+      parseErrorRows.add(error.row);
+      issues.push({ rowNumber, message: error.message, context: rowContext(parsed.data[error.row] ?? []) });
     }
-    const rowNumber = error.row + 1;
-    invalidRows.add(rowNumber);
-    parseErrorRows.add(error.row);
-    issues.push({ rowNumber, message: error.message, context: rowContext(parsed.data[error.row] ?? []) });
-  });
+  }
 
   parsed.data.forEach((columns, index) => {
     const rowNumber = index + 1;

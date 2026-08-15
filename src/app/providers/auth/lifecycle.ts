@@ -17,7 +17,7 @@ const startAnonymousBootstrap = () => {
   // Bind failures to this attempt so a late rejection cannot overwrite a newer authenticated session.
   const attemptId = Symbol("anonymous-auth-attempt");
   replaceAuthSession({ status: "authenticating", attemptId });
-  void signInAnonymously(auth).catch((error) => {
+  signInAnonymously(auth).catch((error) => {
     const currentSession = getAuthSession();
     if (currentSession.status === "authenticating" && currentSession.attemptId === attemptId) {
       replaceAuthSession({ status: "error", error });
@@ -37,7 +37,7 @@ export const startAuthSession = () =>
 
     replaceAuthSession({ status: "unauthenticated" });
     // A new anonymous identity must not inherit persisted study state from the identity that signed out.
-    void clearStudySessions()
+    clearStudySessions()
       .then(startAnonymousBootstrap)
       .catch((error) => {
         if (getAuthSession().status === "unauthenticated") replaceAuthSession({ status: "error", error });

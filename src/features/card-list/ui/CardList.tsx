@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId } from "@/entities/card";
@@ -44,7 +44,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
 
   const changeScore = (id: CardId, offset: number) => {
     const card = mustFindCardById(props.cards, id);
-    void props
+    props
       .onChangeScore(card, card.score + offset)
       .then(() => setMutationError(null))
       .catch(setMutationError);

@@ -5,13 +5,13 @@
  * singular study counts", "keeps study and tag metadata outside the View button".
  */
 
-import * as React from "react";
 import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
 import type { Card as CardEntity } from "@/entities/card";
 import { Card } from "./Card";
+import { ControlledCard } from "./ControlledCard";
 
 const card = {
   id: "card-id",
@@ -26,21 +26,6 @@ const card = {
  * Renders the test-only Controlled Card component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const ControlledCard: React.FC<React.ComponentProps<typeof Card>> = (props) => {
-  const [menuOpen, setMenuOpen] = React.useState(false);
-  return (
-    <Card
-      {...props}
-      menuOpen={menuOpen}
-      onToggleMenu={(id) => {
-        props.onToggleMenu?.(id);
-        setMenuOpen((value) => !value);
-      }}
-      onCloseMenu={() => setMenuOpen(false)}
-    />
-  );
-};
-
 /**
  * Provides the swipe test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.

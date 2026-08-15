@@ -17,6 +17,8 @@ vi.mock("@/entities/preferences", () => ({
 
 import { CardView } from "./CardView";
 
+const CODE_ANSWER_PATTERN = /answer =/;
+
 describe("CardView", () => {
   beforeEach(() => {
     mocks.preferences = createPreferences({ appearance: { darkMode: true } });
@@ -28,7 +30,7 @@ describe("CardView", () => {
 
     render(<CardView card={card} deck={deck} />);
 
-    const code = screen.getByText(/answer =/);
+    const code = screen.getByText(CODE_ANSWER_PATTERN);
     expect(code).toHaveTextContent("const answer = 42;");
     expect(code).toHaveAttribute("data-language", "typescript");
     expect(code).toHaveAttribute("data-theme", "dark");

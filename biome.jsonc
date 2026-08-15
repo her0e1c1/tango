@@ -30,19 +30,13 @@
       "preset": "all",
       // Exceptions preserve established test, orchestration, and fire-and-forget conventions.
       "complexity": {
-        "noExcessiveLinesPerFunction": "off",
-        "noForEach": "off",
-        "noVoid": "off"
+        "noExcessiveLinesPerFunction": "off"
       },
       // Framework and Project domain rollouts remain scoped to #1011 and #1012.
       "correctness": {
         "useImportExtensions": "off",
-        "useJsonImportAttributes": "off",
         "noSolidDestructuredProps": "off",
-        "useExhaustiveDependencies": "off",
-        "useJsxKeyInIterable": "off",
         "useQwikValidLexicalScope": "off",
-        "useUniqueElementIds": "off",
         "noUndeclaredDependencies": {
           "level": "error",
           "options": {
@@ -65,9 +59,7 @@
         "noBarrelFile": "off",
         "noImgElement": "off",
         "noJsxPropsBind": "off",
-        "useSolidForComponent": "off",
-        "noNamespaceImport": "off",
-        "useTopLevelRegex": "off"
+        "useSolidForComponent": "off"
       },
       // High-entropy domain labels and fixtures are allowed while credential-like values remain errors.
       "security": {
@@ -82,20 +74,12 @@
       "style": {
         "noDefaultExport": "off",
         "useBlockStatements": "off",
-        "noExcessiveLinesPerFile": "off",
-        "noHexColors": "off",
         "noImplicitBoolean": "off",
         "noJsxLiterals": "off",
         "noMagicNumbers": "off",
         "noNegationElse": "off",
-        "noNestedTernary": "off",
         "noTernary": "off",
-        "useDefaultSwitchClause": "off",
-        "noParameterProperties": "off",
-        "useComponentExportOnlyModules": "off",
-        "useConsistentTypeDefinitions": "off",
         "useExportsLast": "off",
-        "useGlobalThis": "off",
         "useFilenamingConvention": {
           "level": "error",
           "options": {
@@ -140,7 +124,6 @@
             "noProcessGlobal": "off"
           },
           "style": {
-            "noCommonJs": "off",
             "noProcessEnv": "off"
           }
         }

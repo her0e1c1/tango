@@ -1,13 +1,14 @@
 import { getCategory, type Deck, useDeck } from "@/entities/deck";
 import { toggleShowHeader, toggleShowSwipeButtonList } from "@/entities/preferences";
 
-import * as React from "react";
+import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, useCards } from "@/entities/card";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { DeckSwiperView, StudyWorkflow, type StudyWorkflowState } from "@/features/study";
+import { discardPromise } from "@/shared/lib/discardPromise";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -18,17 +19,17 @@ const isHistoryState = (value: unknown): value is Record<string, unknown> =>
 const useStudyHistoryGuard = (deckId: string, navigate: ReturnType<typeof useNavigate>) => {
   // Keep the active study session on the route when browser history moves backward.
   React.useEffect(() => {
-    const currentState: unknown = window.history.state;
+    const currentState: unknown = globalThis.history.state;
     const state = isHistoryState(currentState) ? currentState : {};
     if (state[STUDY_HISTORY_GUARD] !== deckId) {
-      window.history.pushState({ ...state, [STUDY_HISTORY_GUARD]: deckId }, document.title, document.location.href);
+      globalThis.history.pushState({ ...state, [STUDY_HISTORY_GUARD]: deckId }, document.title, document.location.href);
     }
     const handlePopState = () => {
-      void navigate(1);
+      navigate(1);
     };
-    window.addEventListener("popstate", handlePopState);
+    globalThis.addEventListener("popstate", handlePopState);
     return () => {
-      window.removeEventListener("popstate", handlePopState);
+      globalThis.removeEventListener("popstate", handlePopState);
     };
   }, [deckId, navigate]);
 };
@@ -91,7 +92,7 @@ const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigate = useNavigate();
   useStudyHistoryGuard(deck.id, navigate);
   const handleUnavailable = React.useCallback(() => {
-    void navigate("/", { replace: true });
+    discardPromise(navigate("/", { replace: true }));
   }, [navigate]);
 
   return (

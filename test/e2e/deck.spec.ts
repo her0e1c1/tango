@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { routeAnonymousAuth, seedConfig, seedDeckAndCards } from "./fixtures";
 
+const ROOT_URL_PATTERN = /\/$/;
+
 const e2eDeck = {
   id: "deck-e2e-deck",
   name: "E2E Deck",
@@ -65,7 +67,7 @@ test("navigates from the deck list to the card list", async ({ page }) => {
 
   await expect(page).toHaveURL(new RegExp(`/deck/${e2eDeck.id}$`));
   await expect(page.getByText("apple")).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("saves deck edits and returns to the deck list", async ({ page }) => {
@@ -78,9 +80,9 @@ test("saves deck edits and returns to the deck list", async ({ page }) => {
   await page.locator('input[name="name"]').fill("Updated E2E Deck");
   await page.getByRole("button", { name: "Save" }).click();
 
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(ROOT_URL_PATTERN);
   await expect(page.getByText("Updated E2E Deck")).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("deletes a deck from the deck list", async ({ page }) => {
@@ -93,5 +95,5 @@ test("deletes a deck from the deck list", async ({ page }) => {
 
   await expect(page.getByRole("button", { name: "View E2E Deck", exact: true })).toHaveCount(0);
   await expect(page.getByText("Deleted deck “E2E Deck”.")).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });

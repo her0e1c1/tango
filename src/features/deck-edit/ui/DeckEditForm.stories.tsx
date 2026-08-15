@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import * as fixture from "@/storybook/fixture";
+import { deck } from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 import { DeckEditForm } from "./DeckEditForm";
 
 const longDeck = {
-  ...fixture.deck.tooLongName,
+  ...deck.tooLongName,
   url: `https://example.com/${"deeply-nested/".repeat(12)}deck.csv`,
   category: "value 3",
 };
@@ -18,7 +18,7 @@ const meta = {
     viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" },
   },
   args: {
-    deck: fixture.deck.default,
+    deck: deck.default,
     onCancel: () => undefined,
     onSaved: () => undefined,
   },

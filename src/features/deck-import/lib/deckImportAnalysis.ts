@@ -26,7 +26,14 @@ export const buildDeckImportPlan = (rows: DeckImportRow[], existingCards: Card[]
   const existingByUniqueKey = new Map(existingCards.map((card) => [card.uniqueKey, card]));
   const plannedRows = rows.map((row): DeckImportPlanRow => {
     const existing = existingByUniqueKey.get(row.card.uniqueKey);
-    const plannedAction = existing == null ? "create" : sameCardContent(existing, row.card) ? "unchanged" : "update";
+    let plannedAction: DeckImportPlanRow["action"];
+    if (existing == null) {
+      plannedAction = "create";
+    } else if (sameCardContent(existing, row.card)) {
+      plannedAction = "unchanged";
+    } else {
+      plannedAction = "update";
+    }
     return { ...row, action: plannedAction };
   });
 

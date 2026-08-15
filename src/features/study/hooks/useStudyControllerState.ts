@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import type { ControllerProps } from "../components/Controller";
 
 export interface UseStudyControllerStateOptions extends ControllerProps {

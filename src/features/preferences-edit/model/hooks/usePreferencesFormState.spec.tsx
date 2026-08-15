@@ -1,24 +1,10 @@
-import type { Preferences } from "@/entities/preferences";
-
-import type React from "react";
-
 import userEvent from "@testing-library/user-event";
 import { render, fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect, it, describe, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { SettingsForm } from "../../ui/components/SettingsForm";
-import { usePreferencesFormState } from "./usePreferencesFormState";
-
-const SettingsFormHarness: React.FC<{
-  preferences: Preferences;
-  onSubmit: (preferences: Preferences) => void;
-}> = ({ preferences, onSubmit }) => {
-  const formState = usePreferencesFormState({ preferences, onSubmit });
-  return <SettingsForm {...formState} />;
-};
-
 import { createPreferences } from "@/test/factories";
+import { SettingsFormHarness } from "./SettingsFormHarness";
 
 describe("SettingsForm with usePreferencesFormState", () => {
   const preferences = createPreferences({

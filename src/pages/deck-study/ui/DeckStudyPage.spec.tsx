@@ -77,6 +77,7 @@ const card: Card = {
   deletedAt: null,
   lastSeenAt: 1,
 };
+const STUDY_COUNT_PATTERN = /3 times/;
 const noop = vi.fn();
 const readyState = (): StudyWorkflowState => ({
   status: "ready",
@@ -112,7 +113,7 @@ describe("DeckStudyPage", () => {
     mocks.cards = [card];
     mocks.workflowState = readyState();
     mocks.workflowProps = undefined;
-    window.history.replaceState(null, document.title, document.location.href);
+    globalThis.history.replaceState(null, document.title, document.location.href);
   });
 
   it("validates the route parameter", () => {
@@ -126,7 +127,7 @@ describe("DeckStudyPage", () => {
     expect(mocks.workflowProps).toMatchObject({ deckId: deck.id, cards: [card] });
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     expect(screen.getByText(card.frontText)).toBeVisible();
-    expect(screen.getByText(/3 times/)).toBeVisible();
+    expect(screen.getByText(STUDY_COUNT_PATTERN)).toBeVisible();
   });
 
   it.each([
@@ -149,7 +150,7 @@ describe("DeckStudyPage", () => {
     const state = mocks.workflowState;
     if (state.status !== "ready") throw new Error("expected ready workflow state");
 
-    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    fireEvent.keyDown(globalThis.window, { key: "ArrowLeft" });
 
     expect(state.shortcutActions.swipeLeft).toHaveBeenCalledOnce();
   });
@@ -161,7 +162,7 @@ describe("DeckStudyPage", () => {
   });
 
   it("installs one back-navigation guard when StrictMode replays the effect", () => {
-    const pushState = vi.spyOn(window.history, "pushState");
+    const pushState = vi.spyOn(globalThis.history, "pushState");
     const view = render(
       <React.StrictMode>
         <DeckStudyPage />
@@ -169,12 +170,12 @@ describe("DeckStudyPage", () => {
     );
 
     expect(pushState).toHaveBeenCalledOnce();
-    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
+    act(() => globalThis.dispatchEvent(new PopStateEvent("popstate")));
     expect(mocks.navigate).toHaveBeenCalledWith(1);
 
     view.unmount();
     mocks.navigate.mockClear();
-    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
+    act(() => globalThis.dispatchEvent(new PopStateEvent("popstate")));
     expect(mocks.navigate).not.toHaveBeenCalled();
   });
 });

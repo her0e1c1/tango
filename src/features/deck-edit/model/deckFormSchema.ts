@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 
 export const deckFormSchema = z.object({
   name: z.string().trim().min(1, "Deck name is required."),

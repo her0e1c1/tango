@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { MathContent as Template } from "@/shared/ui/content/Math";
-import * as fixture from "@/storybook/fixture";
+import { math } from "@/storybook/fixture";
 
 // github-markdown-css follows the browser preference, so the story canvas must use the same theme.
 const preferredTheme = globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -25,21 +25,21 @@ type Story = StoryObj<typeof meta>;
 
 export const Inline: Story = {
   args: {
-    text: fixture.math.inline,
+    text: math.inline,
   },
   globals: preferredThemeGlobals,
 };
 
 export const Block: Story = {
   args: {
-    text: fixture.math.block,
+    text: math.block,
   },
   globals: preferredThemeGlobals,
 };
 
 export const Markdown: Story = {
   args: {
-    text: fixture.math.markdown,
+    text: math.markdown,
   },
   globals: preferredThemeGlobals,
 };

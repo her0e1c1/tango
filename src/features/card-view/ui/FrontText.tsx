@@ -35,7 +35,6 @@ export const FrontText: React.FC<FrontTextProps> = (props) => {
   const clickInteraction = useButtonInteraction<HTMLDivElement>(props.onClick);
   return (
     <div
-      id="frontText"
       className={cx(
         "mx-auto flex h-full w-full max-w-reading min-w-0 items-center justify-center break-words p-section-gap text-ink"
       )}

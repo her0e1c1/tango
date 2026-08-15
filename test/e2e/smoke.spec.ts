@@ -24,7 +24,7 @@ test("shows the deck list smoke screen", async ({ page }) => {
 
   await expect(page.getByText("tango")).toBeVisible();
   await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("shows settings and persists a device setting", async ({ page }) => {
@@ -38,11 +38,12 @@ test("shows settings and persists a device setting", async ({ page }) => {
   await expect
     .poll(() =>
       page.evaluate(
-        () => JSON.parse(window.localStorage.getItem("tango-config") ?? "{}").state?.preferences?.appearance?.darkMode
+        () =>
+          JSON.parse(globalThis.localStorage.getItem("tango-config") ?? "{}").state?.preferences?.appearance?.darkMode
       )
     )
     .toBe(true);
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("shows the import screen", async ({ page }) => {
@@ -53,7 +54,7 @@ test("shows the import screen", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 2, name: "CSV format", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Sample", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Add sample deck" })).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("read: recovers from an unknown route", async ({ page }) => {
@@ -62,7 +63,7 @@ test("read: recovers from an unknown route", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
   await page.getByRole("button", { name: "Go home" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("read: recovers from a missing Deck", async ({ page }) => {
@@ -71,7 +72,7 @@ test("read: recovers from a missing Deck", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
   await page.getByRole("button", { name: "Go home" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("read: recovers from a missing Card", async ({ page }) => {
@@ -80,5 +81,5 @@ test("read: recovers from a missing Card", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
   await page.getByRole("button", { name: "Go home" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });

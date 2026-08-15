@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useCard } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
 import { CardView } from "@/features/card-view";
+import { discardPromise } from "@/shared/lib/discardPromise";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -22,8 +23,18 @@ export const CardViewPage: React.FC = () => {
         title="Card not found"
         description="The requested card is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        primaryAction={{
+          label: "Go home",
+          onClick: () => {
+            discardPromise(navigate("/"));
+          },
+        }}
+        secondaryAction={{
+          label: "Go back",
+          onClick: () => {
+            discardPromise(navigate(-1));
+          },
+        }}
       />
     );
   }

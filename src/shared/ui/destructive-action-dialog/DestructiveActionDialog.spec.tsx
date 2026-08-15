@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
-import * as React from "react";
+import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DestructiveActionDialog } from "./DestructiveActionDialog";
@@ -72,13 +72,13 @@ describe("DestructiveActionDialog", () => {
   it.each([
     [
       "hidden",
-      <div hidden>
+      <div key="hidden" hidden>
         <button type="button">Hidden detail</button>
       </div>,
     ],
     [
       "inert",
-      <div inert>
+      <div key="inert" inert>
         <button type="button">Inert detail</button>
       </div>,
     ],
@@ -151,7 +151,7 @@ describe("DestructiveActionDialog", () => {
     const listener = (event: PromiseRejectionEvent) => {
       unhandledRejection = event.reason;
     };
-    window.addEventListener("unhandledrejection", listener);
+    globalThis.addEventListener("unhandledrejection", listener);
 
     const rejectionReason = new Error("Async failure");
     const onConfirm = vi.fn(() => Promise.reject(rejectionReason));
@@ -164,7 +164,7 @@ describe("DestructiveActionDialog", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    window.removeEventListener("unhandledrejection", listener);
+    globalThis.removeEventListener("unhandledrejection", listener);
     expect(unhandledRejection).toBeUndefined();
   });
 });

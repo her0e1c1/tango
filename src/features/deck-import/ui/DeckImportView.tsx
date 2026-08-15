@@ -3,7 +3,7 @@
  * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
-import type * as React from "react";
+import React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
 
 import { Button } from "@/shared/ui/button";
@@ -129,6 +129,7 @@ interface ImportPreviewProps {
  * Storybook.
  */
 const ImportPreview = (props: ImportPreviewProps) => {
+  const headingId = React.useId();
   const { preview } = props;
   if (preview == null) return null;
 
@@ -138,9 +139,9 @@ const ImportPreview = (props: ImportPreviewProps) => {
   const hiddenRowCount = preview.plan.rows.length - visibleRows.length;
 
   return (
-    <section aria-labelledby="import-preview-heading" className="space-y-4">
+    <section aria-labelledby={headingId} className="space-y-4">
       <div>
-        <h2 id="import-preview-heading" className="text-title font-bold text-ink">
+        <h2 id={headingId} className="text-title font-bold text-ink">
           Review import
         </h2>
         <p className="mt-1 break-words text-caption text-ink-muted">
@@ -249,7 +250,8 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
           <p role="status" className="text-caption text-ink-muted">
             Validating CSV…
           </p>
-        ) : props.pending ? (
+        ) : null}
+        {!props.validating && props.pending ? (
           <p role="status" className="text-caption text-ink-muted">
             Importing…
           </p>

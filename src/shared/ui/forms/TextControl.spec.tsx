@@ -13,6 +13,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Input } from "@/shared/ui/forms/Input";
 import { Select } from "@/shared/ui/forms/Select";
 import { Textarea } from "@/shared/ui/forms/Textarea";
+import { ExternallyLabelledInput } from "./ExternallyLabelledInput";
 
 const sharedVisualClasses = [
   "border-border",
@@ -29,14 +30,11 @@ const sharedVisualClasses = [
 
 describe("shared text controls", () => {
   it("forwards an id so external labels can name the input", () => {
-    render(
-      <>
-        <label htmlFor="github-token">GitHub access token</label>
-        <Input id="github-token" />
-      </>
-    );
+    render(<ExternallyLabelledInput />);
 
-    expect(screen.getByRole("textbox", { name: "GitHub access token" })).toHaveAttribute("id", "github-token");
+    const input = screen.getByRole("textbox", { name: "GitHub access token" });
+    expect(input.id).not.toBe("");
+    expect(screen.getByText("GitHub access token")).toHaveAttribute("for", input.id);
   });
 
   it("keeps native input values, refs, and handlers", () => {

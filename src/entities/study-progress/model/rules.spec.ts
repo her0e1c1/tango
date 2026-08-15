@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ shuffle: vi.fn((ids: string[]) => [...ids].reverse()) }));
 
-vi.mock("lodash", () => ({ shuffle: mocks.shuffle }));
+vi.mock("lodash/shuffle", () => ({ default: mocks.shuffle }));
 
 import {
   buildStudyCardOrder,

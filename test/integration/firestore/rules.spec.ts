@@ -5,7 +5,7 @@
  */
 
 import { it, describe, beforeEach, beforeAll, afterAll } from "vitest";
-import * as fs from "node:fs";
+import { readFileSync } from "node:fs";
 import {
   assertFails,
   assertSucceeds,
@@ -13,9 +13,7 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { setDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import * as Uuid from "uuid";
-
-const uuid = Uuid.v4;
+import { v4 as uuid } from "uuid";
 
 describe("firestore/rule", () => {
   let testEnv: RulesTestEnvironment;
@@ -31,7 +29,7 @@ describe("firestore/rule", () => {
     testEnv = await initializeTestEnvironment({
       projectId: "test-rule",
       firestore: {
-        rules: fs.readFileSync("./firestore.rules", "utf8"),
+        rules: readFileSync("./firestore.rules", "utf8"),
         host: import.meta.env.VITE_DB_HOST,
         port: Number.parseInt(import.meta.env.VITE_DB_PORT, 10),
       },

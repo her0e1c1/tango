@@ -8,6 +8,7 @@ import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { discardPromise } from "@/shared/lib/discardPromise";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
@@ -44,7 +45,12 @@ vi.mock("@/features/card-list", () => ({
         <button type="button" onClick={() => props.onEditCard(props.cards[0]?.id ?? "missing")}>
           Edit card
         </button>
-        <button type="button" onClick={() => void props.onChangeScore(props.cards[0] as Card, 3)}>
+        <button
+          type="button"
+          onClick={() => {
+            discardPromise(props.onChangeScore(props.cards[0] as Card, 3));
+          }}
+        >
           Change score
         </button>
         <button type="button" onClick={() => props.filter.onChangeSelectedTags(["react"])}>
@@ -105,8 +111,8 @@ describe("CardListPage", () => {
   it("keeps route shortcuts in the page adapter", () => {
     render(<CardListPage />);
 
-    fireEvent.keyDown(window, { key: "t" });
-    fireEvent.keyDown(window, { key: "s" });
+    fireEvent.keyDown(globalThis.window, { key: "t" });
+    fireEvent.keyDown(globalThis.window, { key: "s" });
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
   });

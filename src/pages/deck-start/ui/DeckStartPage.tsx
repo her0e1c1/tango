@@ -10,6 +10,7 @@ import { useCardsByDeckId } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
 import { StudySessionStartView, useStartStudySession } from "@/features/study-session-start";
+import { discardPromise } from "@/shared/lib/discardPromise";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -20,7 +21,9 @@ const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Prefe
   const { deck, cards, preferences, tags } = props;
   const navigate = useNavigate();
   const startStudy = useStartStudySession(deck.id, {
-    onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
+    onStarted: () => {
+      discardPromise(navigate(`/deck/${deck.id}/study`, { replace: true }));
+    },
   });
   const deckFilterForm = useDeckFilterState({ deck, tags });
   const start = () => startStudy(cards);
@@ -59,8 +62,18 @@ export const DeckStartPage: React.FC = () => {
         title="Deck not found"
         description="The requested deck is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        primaryAction={{
+          label: "Go home",
+          onClick: () => {
+            discardPromise(navigate("/"));
+          },
+        }}
+        secondaryAction={{
+          label: "Go back",
+          onClick: () => {
+            discardPromise(navigate(-1));
+          },
+        }}
       />
     );
   }

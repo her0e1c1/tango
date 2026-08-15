@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
 import { Button } from "@/shared/ui/button";
@@ -74,7 +74,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     if (props.pending || confirmingRef.current) return;
     confirmingRef.current = true;
     try {
-      void Promise.resolve(props.onConfirm())
+      Promise.resolve(props.onConfirm())
         .catch(() => {
           // Prevent unhandled floating promise rejections. Callers manage error state via props.
         })

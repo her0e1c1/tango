@@ -14,6 +14,9 @@ import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTyp
 
 import { DeckImportView } from "./DeckImportView";
 
+const CSV_INSTRUCTIONS_PATTERN = /Four columns without a header/;
+const UNIQUE_KEY_REQUIRED_PATTERN = /uniqueKey is required/;
+
 const preview = {
   fileName: "deck.csv",
   deckName: "deck.csv",
@@ -75,8 +78,8 @@ describe("DeckImportView", () => {
     const sampleText = "front,back,tag,key";
     render(<DeckImportView sampleText={sampleText} onAddSample={onAddSample} onDownloadSample={onDownloadSample} />);
 
-    expect(screen.getByText(/Four columns without a header/)).toHaveTextContent("uniqueKey");
-    expect(screen.getByText(/uniqueKey is required/)).toBeInTheDocument();
+    expect(screen.getByText(CSV_INSTRUCTIONS_PATTERN)).toHaveTextContent("uniqueKey");
+    expect(screen.getByText(UNIQUE_KEY_REQUIRED_PATTERN)).toBeInTheDocument();
     expect(screen.getAllByText("front").length).toBeGreaterThan(0);
 
     await userEvent.click(screen.getByRole("button", { name: "Add sample deck" }));

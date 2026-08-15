@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import type { ComponentProps } from "react";
 
-import * as fixture from "@/storybook/fixture";
+import { preferences } from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 import { SettingsForm as Form } from "./SettingsForm";
@@ -9,21 +9,21 @@ import { SettingsForm as Form } from "./SettingsForm";
 type SettingsFields = ComponentProps<typeof Form>["fields"];
 
 const fields: SettingsFields = {
-  showHeader: { checked: fixture.preferences.default.appearance.showHeader, onChange: () => undefined },
-  showSwipeButtonList: { checked: fixture.preferences.default.controls.showSwipeButtonList, onChange: () => undefined },
-  showSwipeFeedback: { checked: fixture.preferences.default.appearance.showSwipeFeedback, onChange: () => undefined },
-  darkMode: { checked: fixture.preferences.default.appearance.darkMode, onChange: () => undefined },
-  shuffled: { checked: fixture.preferences.default.study.shuffled, onChange: () => undefined },
-  useCardInterval: { checked: fixture.preferences.default.study.useCardInterval, onChange: () => undefined },
+  showHeader: { checked: preferences.default.appearance.showHeader, onChange: () => undefined },
+  showSwipeButtonList: { checked: preferences.default.controls.showSwipeButtonList, onChange: () => undefined },
+  showSwipeFeedback: { checked: preferences.default.appearance.showSwipeFeedback, onChange: () => undefined },
+  darkMode: { checked: preferences.default.appearance.darkMode, onChange: () => undefined },
+  shuffled: { checked: preferences.default.study.shuffled, onChange: () => undefined },
+  useCardInterval: { checked: preferences.default.study.useCardInterval, onChange: () => undefined },
   maxNumberOfCardsToLearn: {
-    value: String(fixture.preferences.default.study.maxNumberOfCardsToLearn),
+    value: String(preferences.default.study.maxNumberOfCardsToLearn),
     min: 0,
     max: 100,
     onChange: () => undefined,
   },
-  defaultAutoPlay: { checked: fixture.preferences.default.study.defaultAutoPlay, onChange: () => undefined },
+  defaultAutoPlay: { checked: preferences.default.study.defaultAutoPlay, onChange: () => undefined },
   cardInterval: {
-    value: String(fixture.preferences.default.study.cardInterval),
+    value: String(preferences.default.study.cardInterval),
     min: 0,
     max: 60,
     onChange: () => undefined,
@@ -32,8 +32,8 @@ const fields: SettingsFields = {
 
 const settingsFormProps = {
   fields,
-  maxNumberOfCardsToLearn: fixture.preferences.default.study.maxNumberOfCardsToLearn,
-  cardInterval: fixture.preferences.default.study.cardInterval,
+  maxNumberOfCardsToLearn: preferences.default.study.maxNumberOfCardsToLearn,
+  cardInterval: preferences.default.study.cardInterval,
   version: "1.2.3",
 };
 

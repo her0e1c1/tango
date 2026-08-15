@@ -48,9 +48,9 @@ const cloneCard = (card: RemoteCard): RemoteCard => ({
 
 const cloneSessions = (sessionsByDeckId: StudySessions): StudySessions => {
   const sessions: StudySessions = {};
-  Object.entries(sessionsByDeckId).forEach(([deckId, session]) => {
+  for (const [deckId, session] of Object.entries(sessionsByDeckId)) {
     if (session != null) sessions[deckId] = { ...session, cardOrderIds: [...session.cardOrderIds] };
-  });
+  }
   return sessions;
 };
 
@@ -86,9 +86,9 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
       },
     },
   });
-  Object.entries(cloneSessions(parameters.sessionsByDeckId ?? {})).forEach(([deckId, session]) => {
+  for (const [deckId, session] of Object.entries(cloneSessions(parameters.sessionsByDeckId ?? {}))) {
     if (session != null) restoreStudySession(deckId, undefined, session);
-  });
+  }
   replaceRemoteDecks(decks);
   replaceRemoteCards(cards);
 };

@@ -43,7 +43,7 @@ describe("SettingsPage", () => {
     render(<SettingsPage login={vi.fn()} logout={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
-    fireEvent.keyDown(window, { key: "t" });
+    fireEvent.keyDown(globalThis.window, { key: "t" });
 
     expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/");
   });

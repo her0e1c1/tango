@@ -6,11 +6,12 @@
 
 import type { Deck } from "@/entities/deck";
 
-import * as React from "react";
+import React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
 import { editDeck } from "@/entities/deck";
+import { discardPromise } from "@/shared/lib/discardPromise";
 import type { DeckFilterForm } from "../ui/DeckFilterForm";
 
 type DeckFilterFormProps = React.ComponentProps<typeof DeckFilterForm>;
@@ -37,7 +38,9 @@ export const useDeckFilterState = ({ deck, tags }: UseDeckFilterStateOptions): D
     () =>
       subscribe({
         formState: { values: true },
-        callback: () => void handleSubmit((data) => editDeck(uid, data).catch(() => undefined))(),
+        callback: () => {
+          discardPromise(handleSubmit((data) => editDeck(uid, data).catch(() => undefined))());
+        },
       }),
     [handleSubmit, subscribe, uid]
   );

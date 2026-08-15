@@ -5,33 +5,18 @@
  * deck id to navigation and management actions".
  */
 
-import type { DeckId } from "@/entities/deck";
-
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as React from "react";
-
-import { DeckListCard, type DeckListCardProps } from "./DeckListCard";
+import { DeckListCard } from "./DeckListCard";
+import { ControlledDeckListCard } from "./ControlledDeckListCard";
 import { createDeck } from "@/test/factories";
 
 /**
  * Renders the test-only Controlled Deck Card component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const ControlledDeckListCard: React.FC<DeckListCardProps> = (props) => {
-  const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
-  return (
-    <DeckListCard
-      {...props}
-      openMenuDeckId={openMenuDeckId}
-      onToggleMenu={(id) => setOpenMenuDeckId((value) => (value === id ? undefined : id))}
-      onCloseMenu={() => setOpenMenuDeckId(undefined)}
-    />
-  );
-};
-
 const deck = createDeck({
   id: "deck-id",
   name: "Deck name",

@@ -64,7 +64,12 @@ vi.mock("@/features/deck-list", () => ({
         <button type="button" onClick={() => props.onEditDeck(deck.id)}>
           Edit deck
         </button>
-        <button type="button" onClick={() => void props.onDeleteDeck(deck)}>
+        <button
+          type="button"
+          onClick={() => {
+            props.onDeleteDeck(deck);
+          }}
+        >
           Delete deck
         </button>
       </section>
@@ -109,8 +114,8 @@ describe("DeckListPage", () => {
   it("keeps route shortcuts and sample bootstrap wiring", () => {
     render(<DeckListPage />);
 
-    fireEvent.keyDown(window, { key: "s" });
-    fireEvent.keyDown(window, { key: "i" });
+    fireEvent.keyDown(globalThis.window, { key: "s" });
+    fireEvent.keyDown(globalThis.window, { key: "i" });
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");

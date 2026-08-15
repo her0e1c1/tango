@@ -1,5 +1,5 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
-import * as tsParser from "@typescript-eslint/parser";
+import { meta as tsParserMeta, parseForESLint } from "@typescript-eslint/parser";
 import eslintReact from "@eslint-react/eslint-plugin";
 import {
   createConfig as createBoundariesConfig,
@@ -12,6 +12,7 @@ const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 const sliceLayers = ["entities", "features", "pages", "widgets"];
 const nonSliceLayers = ["app", "shared"];
+const tsParser = { meta: tsParserMeta, parseForESLint };
 
 export default [
   {

@@ -9,6 +9,18 @@ import type * as React from "react";
 
 const scoreDisplayLimit = 99;
 
+const formatScore = (score: number): number | string => {
+  if (score > scoreDisplayLimit) return `>${scoreDisplayLimit}`;
+  if (score < -scoreDisplayLimit) return `<-${scoreDisplayLimit}`;
+  return score;
+};
+
+const scoreCue = (score: number): "negative" | "neutral" | "positive" => {
+  if (score > 0) return "positive";
+  if (score < 0) return "negative";
+  return "neutral";
+};
+
 /**
  * Renders the Score user interface.
  * Formats a numeric score as an accessible status and changes its visual cue for positive,
@@ -16,10 +28,9 @@ const scoreDisplayLimit = 99;
  */
 export const Score: React.FC<{ score?: number; large?: boolean; className?: string }> = (props) => {
   const score = props.score ?? 0;
-  const displayScore =
-    score > scoreDisplayLimit ? `>${scoreDisplayLimit}` : score < -scoreDisplayLimit ? `<-${scoreDisplayLimit}` : score;
+  const displayScore = formatScore(score);
   const isDisplayBounded = Math.abs(score) > scoreDisplayLimit;
-  const cue = score > 0 ? "positive" : score < 0 ? "negative" : "neutral";
+  const cue = scoreCue(score);
   return (
     <div
       role="status"

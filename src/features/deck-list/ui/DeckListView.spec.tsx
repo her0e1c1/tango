@@ -4,10 +4,8 @@
  * both compact sections", "omits empty sections", "opens one deck actions menu at a time".
  */
 
-import type { DeckId } from "@/entities/deck";
 import type { DeckListSections } from "../model/buildDeckListSections";
 
-import * as React from "react";
 import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
@@ -15,9 +13,11 @@ import { describe, expect, it } from "vitest";
 import { createDeck } from "@/test/factories";
 
 import { DeckListView } from "./DeckListView";
+import { ControlledDeckList } from "./ControlledDeckList";
 
 const activeDeck = createDeck({ id: "active", name: "Active deck", category: "math" });
 const otherDeck = createDeck({ id: "other", name: "Other deck", category: "history" });
+const NO_DECKS_PATTERN = /no decks/i;
 
 const sections: DeckListSections = {
   studying: [
@@ -34,20 +34,6 @@ const sections: DeckListSections = {
  * Renders the test-only Controlled Deck List component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const ControlledDeckList = () => {
-  const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
-  return (
-    <DeckListView
-      sections={sections}
-      deckCard={{
-        openMenuDeckId,
-        onToggleMenu: (id) => setOpenMenuDeckId((value) => (value === id ? undefined : id)),
-        onCloseMenu: () => setOpenMenuDeckId(undefined),
-      }}
-    />
-  );
-};
-
 describe("DeckListView", () => {
   it("renders the page count and both compact sections", () => {
     render(<DeckListView sections={sections} />);
@@ -72,7 +58,7 @@ describe("DeckListView", () => {
   });
 
   it("opens one deck actions menu at a time", () => {
-    render(<ControlledDeckList />);
+    render(<ControlledDeckList sections={sections} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Active deck" }));
     expect(screen.getByRole("menu", { name: "Actions for Active deck" })).toBeInTheDocument();
@@ -87,6 +73,6 @@ describe("DeckListView", () => {
 
     expect(screen.getByText("0 decks")).toBeInTheDocument();
     expect(screen.queryByRole("region")).not.toBeInTheDocument();
-    expect(screen.queryByText(/no decks/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(NO_DECKS_PATTERN)).not.toBeInTheDocument();
   });
 });

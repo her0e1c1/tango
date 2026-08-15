@@ -4,7 +4,7 @@ import type { Deck, DeckCreateInput, DeckId, RemoteDeck } from "@/entities/deck"
 import { CardBulkMutationError } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
 
-import sampleCards from "../../../../sample/build/output.json";
+import sampleCards from "../../../../sample/build/output.json" with { type: "json" };
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import type { DeckImportPlan, DeckImportResult, DeckImportRow } from "./deckImportTypes";
 
@@ -68,7 +68,7 @@ const prepareDeckImportAttempt = (
   const remainingMutations: CardMutation[] = [];
   const createdIds: CardId[] = [];
   const updatedIds: CardId[] = [];
-  plan.rows.forEach((row) => {
+  for (const row of plan.rows) {
     const current = byUniqueKey.get(row.card.uniqueKey);
     if (row.action === "create") {
       const card = { ...row.card, id: generateCardId(), deckId: deck.id, uid: deck.uid };
@@ -78,7 +78,7 @@ const prepareDeckImportAttempt = (
       remainingMutations.push({ kind: "edit", card: { ...current, ...row.card } });
       updatedIds.push(current.id);
     }
-  });
+  }
 
   return {
     uid,

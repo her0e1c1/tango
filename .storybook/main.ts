@@ -4,6 +4,7 @@ import { mergeConfig } from "vite";
 import { withoutPwaPlugins } from "./vitePlugins";
 
 const storybookFirebase = fileURLToPath(new URL("./support/firebase.ts", import.meta.url));
+const STORYBOOK_FIREBASE_ALIAS = /^@\/shared\/firebase$/;
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.tsx"],
@@ -27,7 +28,7 @@ const config: StorybookConfig = {
       },
       {
         resolve: {
-          alias: [{ find: /^@\/shared\/firebase$/, replacement: storybookFirebase }],
+          alias: [{ find: STORYBOOK_FIREBASE_ALIAS, replacement: storybookFirebase }],
         },
       }
     ),

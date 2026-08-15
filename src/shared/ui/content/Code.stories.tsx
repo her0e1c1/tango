@@ -7,14 +7,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { Code as Template } from "@/shared/ui/content/Code";
-import * as fixture from "@/storybook/fixture";
+import { code } from "@/storybook/fixture";
 
 const meta = {
   title: "Shared/Content/Code",
   component: Template,
   tags: ["autodocs"],
   args: {
-    text: fixture.code.default,
+    text: code.default,
   },
 } satisfies Meta<typeof Template>;
 

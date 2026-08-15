@@ -40,7 +40,7 @@ describe("App", () => {
     vi.clearAllMocks();
     mocks.darkMode = false;
     document.documentElement.classList.remove("dark");
-    window.history.replaceState({}, "", "/");
+    globalThis.history.replaceState({}, "", "/");
   });
 
   it("updates only the theme when the setting changes", () => {
@@ -60,12 +60,12 @@ describe("App", () => {
   });
 
   it("recovers from unknown routes", () => {
-    window.history.replaceState({}, "", "/unknown");
+    globalThis.history.replaceState({}, "", "/unknown");
     render(<App />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Page not found" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Go home" }));
-    expect(window.location.pathname).toBe("/");
+    expect(globalThis.location.pathname).toBe("/");
     expect(screen.getByText("Deck list")).toBeInTheDocument();
   });
 });

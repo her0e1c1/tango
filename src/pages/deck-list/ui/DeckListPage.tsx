@@ -8,6 +8,7 @@ import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
 import { removeStudySession, touchStudySession, useStudySessions } from "@/entities/study-session";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
+import { discardPromise } from "@/shared/lib/discardPromise";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckListPage: React.FC = () => {
@@ -23,8 +24,12 @@ export const DeckListPage: React.FC = () => {
     decks,
     generateCardId,
   });
-  useKey("s", () => void navigate("/settings"));
-  useKey("i", () => void navigate("/import"));
+  useKey("s", () => {
+    discardPromise(navigate("/settings"));
+  });
+  useKey("i", () => {
+    discardPromise(navigate("/import"));
+  });
 
   return (
     <AppLayout showHeader>
@@ -32,13 +37,19 @@ export const DeckListPage: React.FC = () => {
         decks={decks}
         cards={cards}
         sessionsByDeckId={sessionsByDeckId}
-        onViewDeck={(id) => void navigate(`/deck/${id}`)}
+        onViewDeck={(id) => {
+          discardPromise(navigate(`/deck/${id}`));
+        }}
         onContinueDeck={(id) => {
           touchStudySession(id);
-          void navigate(`/deck/${id}/study`);
+          discardPromise(navigate(`/deck/${id}/study`));
         }}
-        onStartDeck={(id) => void navigate(`/deck/${id}/start`)}
-        onEditDeck={(id) => void navigate(`/deck/${id}/edit`)}
+        onStartDeck={(id) => {
+          discardPromise(navigate(`/deck/${id}/start`));
+        }}
+        onEditDeck={(id) => {
+          discardPromise(navigate(`/deck/${id}/edit`));
+        }}
         onDeleteDeck={async (deck) => {
           await deleteDeck(uid, deck);
           removeStudySession(deck.id);

@@ -14,12 +14,11 @@ type CardMutationCreateInput = CardCreateInput | LocalCardCreateInput;
 export type CardMutation = { kind: "create"; card: CardMutationCreateInput } | { kind: "edit"; card: CardEditInput };
 
 export class CardBulkMutationError extends Error {
-  constructor(
-    readonly failedIds: CardId[],
-    total: number,
-    options?: ErrorOptions
-  ) {
+  readonly failedIds: CardId[];
+
+  constructor(failedIds: CardId[], total: number, options?: ErrorOptions) {
     super(`${failedIds.length} of ${total} Card writes failed`, options);
+    this.failedIds = failedIds;
   }
 }
 

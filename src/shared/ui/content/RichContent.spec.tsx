@@ -12,11 +12,13 @@ import { describe, expect, it } from "vitest";
 import { Code } from "@/shared/ui/content/Code";
 import { MathContent } from "@/shared/ui/content/Math";
 
+const WIDE_VALUE_PATTERN = /veryWideValue/;
+
 describe("shared rich content", () => {
   it("keeps code copyable, categorized, and horizontally scrollable", async () => {
     const text = "const veryWideValue = 'copy me without clipping';";
     render(<Code text={text} category="typescript" />);
-    const code = screen.getByText(/veryWideValue/);
+    const code = screen.getByText(WIDE_VALUE_PATTERN);
 
     expect(code).toHaveTextContent(text);
     await waitFor(() => expect(screen.getByText("const")).toHaveClass("hljs-keyword"));

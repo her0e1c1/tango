@@ -88,7 +88,7 @@ export const createLocalCard = (overrides: Partial<LocalCard> = {}): LocalCard =
   ...overrides,
 });
 
-export type PreferencesOverrides = {
+export interface PreferencesOverrides {
   appearance?: Partial<AppearancePreferences>;
   study?: Partial<StudyPreferences>;
   controls?: Partial<ControlPreferences>;
@@ -111,7 +111,7 @@ export type PreferencesOverrides = {
   cardSwipeDown?: SwipeAction;
   cardSwipeLeft?: SwipeAction;
   cardSwipeRight?: SwipeAction;
-};
+}
 
 const createAppearance = (
   appearance?: Partial<AppearancePreferences>,

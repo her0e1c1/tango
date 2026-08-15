@@ -8,7 +8,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { Tag } from "@/shared/ui/forms";
 import { TagList as Template } from "@/shared/ui/content/TagList";
-import * as fixture from "@/storybook/fixture";
+import { tags } from "@/storybook/fixture";
 
 const meta = {
   title: "Shared/Content/TagList",
@@ -21,20 +21,20 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    children: fixture.tags.default.map((t) => <Tag key={t} label={t} />),
+    children: tags.default.map((t) => <Tag key={t} label={t} />),
   },
 };
 
 export const TooLong: Story = {
   args: {
-    children: fixture.tags.toolong.map((t) => <Tag key={t} label={t} />),
+    children: tags.toolong.map((t) => <Tag key={t} label={t} />),
   },
 };
 
 export const TooLongWithScroll: Story = {
   args: {
     hasManyItems: true,
-    children: fixture.tags.toolong.map((t) => <Tag key={t} label={t} />),
+    children: tags.toolong.map((t) => <Tag key={t} label={t} />),
   },
   parameters: { viewport: { defaultViewport: "iphone5" } },
 };

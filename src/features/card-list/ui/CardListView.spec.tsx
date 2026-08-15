@@ -17,6 +17,8 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { CardListView } from "./CardListView";
 
+const NO_CARDS_PATTERN = /no cards/i;
+
 const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", score: 0, tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
@@ -29,7 +31,7 @@ describe("CardListView", () => {
     expect(screen.getByText("0 cards")).toBeInTheDocument();
     expect(screen.getByText("No filters")).toBeInTheDocument();
     expect(screen.getByText("Filters")).toBeVisible();
-    expect(screen.queryByText(/no cards/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(NO_CARDS_PATTERN)).not.toBeInTheDocument();
   });
 
   it("formats score bounds, tag count, persistent chips, and singular card count", () => {

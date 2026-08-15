@@ -5,7 +5,7 @@
  */
 
 import cx from "classnames";
-import * as React from "react";
+import React from "react";
 import { useSwipeable } from "react-swipeable";
 
 import type { Card as CardEntity, CardId } from "@/entities/card";

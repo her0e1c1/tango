@@ -6,6 +6,7 @@ import { createDeck, useDecks } from "@/entities/deck";
 import { generateCardId, useCards } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { DeckImportView, downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck-import";
+import { discardPromise } from "@/shared/lib/discardPromise";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckImportPage: React.FC = () => {
@@ -19,20 +20,24 @@ export const DeckImportPage: React.FC = () => {
     decks,
     generateCardId,
   });
-  useKey("t", () => void navigate("/"));
-  useKey("s", () => void navigate("/settings"));
+  useKey("t", () => {
+    discardPromise(navigate("/"));
+  });
+  useKey("s", () => {
+    discardPromise(navigate("/settings"));
+  });
 
   return (
     <AppLayout showHeader>
       <DeckImportView
         onChange={(file) => {
-          void deckImport.selectFile(file).catch(() => undefined);
+          deckImport.selectFile(file).catch(() => undefined);
         }}
         onAddSample={() => {
-          void deckImport.addSample().catch(() => undefined);
+          deckImport.addSample().catch(() => undefined);
         }}
         onImport={() => {
-          void deckImport
+          deckImport
             .importPreview()
             .then(() => navigate("/"))
             .catch(() => undefined);

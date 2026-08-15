@@ -7,6 +7,12 @@
 import cx from "classnames";
 import type * as React from "react";
 
+const switchSizeClasses = (small: boolean | undefined, large: boolean | undefined): string[] => {
+  if (small) return ["w-8 h-5", "after:w-4 after:h-4", "peer-checked:after:translate-x-2"];
+  if (large) return ["w-16 h-10", "after:w-8 after:h-8", "peer-checked:after:translate-x-6"];
+  return ["w-10 h-6", "after:w-5 after:h-5", "peer-checked:after:translate-x-3"];
+};
+
 /**
  * Renders the Switch user interface.
  * Renders an accessible checkbox switch whose size, checked state, disabled state, and change
@@ -63,11 +69,7 @@ export const Switch: React.FC<{
         "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
         "peer-checked:border-accent-secondary peer-checked:bg-accent-secondary",
         "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-        small
-          ? ["w-8 h-5", "after:w-4 after:h-4", "peer-checked:after:translate-x-2"]
-          : large
-            ? ["w-16 h-10", "after:w-8 after:h-8", "peer-checked:after:translate-x-6"]
-            : ["w-10 h-6", "after:w-5 after:h-5", "peer-checked:after:translate-x-3"],
+        switchSizeClasses(small, large),
         "after:rounded-full after:bg-surface-elevated after:shadow-surface",
         "after:transition-transform after:duration-normal after:ease-calm"
       )}

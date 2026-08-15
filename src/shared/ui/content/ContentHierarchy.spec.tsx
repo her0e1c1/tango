@@ -11,11 +11,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import { Description, Style, TagList, Title } from "@/shared/ui/content";
 
+const CONTINUOUS_TITLE_PATTERN = /continuous-title/;
+
 describe("shared content hierarchy", () => {
   it("wraps long titles and retains keyboard click behavior", () => {
     const onClick = vi.fn();
     render(<Title onClick={onClick}>A continuous-title-that-must-wrap-on-narrow-screens</Title>);
-    const title = screen.getByText(/continuous-title/);
+    const title = screen.getByText(CONTINUOUS_TITLE_PATTERN);
     expect(title).toHaveClass("text-title", "text-ink", "min-w-0", "break-words");
     fireEvent.keyDown(title, { key: "Enter" });
     expect(onClick).toHaveBeenCalledOnce();

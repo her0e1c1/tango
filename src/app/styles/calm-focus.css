@@ -6,21 +6,21 @@
 
 :root {
   color-scheme: light;
-  --calm-color-canvas: #f7f8fa;
-  --calm-color-surface: #ffffff;
-  --calm-color-surface-elevated: #ffffff;
-  --calm-color-surface-muted: #eef1f5;
-  --calm-color-ink: #202936;
-  --calm-color-ink-muted: #5f6b7a;
-  --calm-color-ink-inverse: #f8fafc;
-  --calm-color-accent-primary: #4f63b8;
-  --calm-color-accent-secondary: #2f7f78;
-  --calm-color-border: #d8dee8;
-  --calm-color-focus: #5267c6;
-  --calm-color-success: #2f7d55;
-  --calm-color-warning: #9a6418;
-  --calm-color-danger: #b44848;
-  --calm-color-info: #3477a8;
+  --calm-color-canvas: rgb(247 248 250);
+  --calm-color-surface: rgb(255 255 255);
+  --calm-color-surface-elevated: rgb(255 255 255);
+  --calm-color-surface-muted: rgb(238 241 245);
+  --calm-color-ink: rgb(32 41 54);
+  --calm-color-ink-muted: rgb(95 107 122);
+  --calm-color-ink-inverse: rgb(248 250 252);
+  --calm-color-accent-primary: rgb(79 99 184);
+  --calm-color-accent-secondary: rgb(47 127 120);
+  --calm-color-border: rgb(216 222 232);
+  --calm-color-focus: rgb(82 103 198);
+  --calm-color-success: rgb(47 125 85);
+  --calm-color-warning: rgb(154 100 24);
+  --calm-color-danger: rgb(180 72 72);
+  --calm-color-info: rgb(52 119 168);
   --calm-font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --calm-text-display: clamp(2rem, 4vw, 3rem);
   --calm-text-title: clamp(1.5rem, 2vw, 2rem);
@@ -49,21 +49,21 @@
 
 .dark {
   color-scheme: dark;
-  --calm-color-canvas: #000000;
-  --calm-color-surface: #000000;
-  --calm-color-surface-elevated: #000000;
-  --calm-color-surface-muted: #273447;
-  --calm-color-ink: #edf2f7;
-  --calm-color-ink-muted: #aeb9c8;
-  --calm-color-ink-inverse: #17202c;
-  --calm-color-accent-primary: #aab8ff;
-  --calm-color-accent-secondary: #80cbc4;
-  --calm-color-border: #3a485b;
-  --calm-color-focus: #bdc7ff;
-  --calm-color-success: #72c493;
-  --calm-color-warning: #e5b566;
-  --calm-color-danger: #f09a9a;
-  --calm-color-info: #82bde4;
+  --calm-color-canvas: rgb(0 0 0);
+  --calm-color-surface: rgb(0 0 0);
+  --calm-color-surface-elevated: rgb(0 0 0);
+  --calm-color-surface-muted: rgb(39 52 71);
+  --calm-color-ink: rgb(237 242 247);
+  --calm-color-ink-muted: rgb(174 185 200);
+  --calm-color-ink-inverse: rgb(23 32 44);
+  --calm-color-accent-primary: rgb(170 184 255);
+  --calm-color-accent-secondary: rgb(128 203 196);
+  --calm-color-border: rgb(58 72 91);
+  --calm-color-focus: rgb(189 199 255);
+  --calm-color-success: rgb(114 196 147);
+  --calm-color-warning: rgb(229 181 102);
+  --calm-color-danger: rgb(240 154 154);
+  --calm-color-info: rgb(130 189 228);
   --calm-shadow-surface: none;
 }
 

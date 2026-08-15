@@ -73,7 +73,7 @@ const seedSwipeSession = async (page: Page) => {
   await page.goto("/");
   await expect(page.getByText(e2eDeck.name)).toBeVisible();
   await page.evaluate((study) => {
-    window.localStorage.setItem("tango-study", JSON.stringify(study));
+    globalThis.localStorage.setItem("tango-study", JSON.stringify(study));
   }, persistedStudy);
 };
 
@@ -88,11 +88,11 @@ const persistedCard = async (cardId: string) => {
 };
 
 const persistedStudyEnvelope = async (page: Page) =>
-  page.evaluate(() => JSON.parse(window.localStorage.getItem("tango-study") ?? "{}"));
+  page.evaluate(() => JSON.parse(globalThis.localStorage.getItem("tango-study") ?? "{}"));
 
 const persistedStateBoundaries = async (page: Page) =>
   page.evaluate(() => {
-    const root = JSON.parse(window.localStorage.getItem("tango-config") ?? "{}");
+    const root = JSON.parse(globalThis.localStorage.getItem("tango-config") ?? "{}");
     const state = root.state ?? {};
     const preferences = state.preferences ?? {};
     const hasOwn = (value: object, key: PropertyKey) => Object.getOwnPropertyDescriptor(value, key) !== undefined;
@@ -125,7 +125,7 @@ test("shows the front and back text in the deck study screen", async ({ page }) 
   await page.keyboard.press("Enter");
 
   await expect(page.getByText("りんご")).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("updates study progress with a mastered deck swipe", async ({ page }) => {
@@ -159,5 +159,5 @@ test("updates study progress with a mastered deck swipe", async ({ page }) => {
       preferencesAutoPlay: false,
       preferencesLastSwipe: false,
     });
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });

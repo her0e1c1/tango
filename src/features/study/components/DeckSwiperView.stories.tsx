@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import * as fixture from "@/storybook/fixture";
+import { code } from "@/storybook/fixture";
 
 import { DeckSwiperView as Template } from "./DeckSwiperView";
 
@@ -52,13 +52,13 @@ export const BackText: Story = {
 export const BackTextTooLong: Story = {
   args: {
     showBackText: true,
-    backTextSlot: <div>{fixture.code.longtext}</div>,
+    backTextSlot: <div>{code.longtext}</div>,
   },
 };
 
 export const BackTextCode: Story = {
   args: {
     showBackText: true,
-    backTextSlot: <pre>{fixture.code.longtext}</pre>,
+    backTextSlot: <pre>{code.longtext}</pre>,
   },
 };

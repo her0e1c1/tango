@@ -81,7 +81,7 @@ test("shows cards for the deck", async ({ page }) => {
   await expect(page.getByText("apple")).toBeVisible();
   await expect(cardItem(page, "apple").getByText("not studied yet")).toBeVisible();
   await expectScore(page, "apple", 0);
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("opens and closes the card back text overlay", async ({ page }) => {
@@ -100,7 +100,7 @@ test("opens and closes the card back text overlay", async ({ page }) => {
 
   await page.touchscreen.tap(tapPoint.x, tapPoint.y);
   await expect(page.getByText("りんご")).not.toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("saves card edits and returns to the card list", async ({ page }) => {
@@ -121,7 +121,7 @@ test("saves card edits and returns to the card list", async ({ page }) => {
 
   await page.getByRole("button", { name: "View updated apple" }).click();
   await expect(page.getByText("updated りんご")).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("deletes a card from the card list", async ({ page }) => {
@@ -145,7 +145,7 @@ test("deletes a card from the card list", async ({ page }) => {
 
   await expect(page.getByRole("button", { name: "View apple", exact: true })).toHaveCount(0);
   await expect(page.getByText("Deleted card “apple”.")).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("updates the card score with swipe gestures", async ({ page }) => {
@@ -170,5 +170,5 @@ test("updates the card score with swipe gestures", async ({ page }) => {
   await page.mouse.up();
   await expectScore(page, "apple", 0);
   await expect.poll(persistedScore).toBe(0);
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });

@@ -2,7 +2,7 @@
  * @file Renders the Deck List presentation from prepared sections and callbacks.
  */
 
-import * as React from "react";
+import React from "react";
 
 import type { DeckListItem, DeckListSections } from "../model/buildDeckListSections";
 

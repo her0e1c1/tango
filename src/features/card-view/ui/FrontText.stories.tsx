@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { FrontText as Template } from "./FrontText";
-import * as fixture from "@/storybook/fixture";
+import { card, math } from "@/storybook/fixture";
 
 const meta = {
   title: "Card/FrontText",
@@ -26,13 +26,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: { text: fixture.card.default.frontText },
+  args: { text: card.default.frontText },
 };
 
 export const TooLong: Story = {
-  args: { text: fixture.card.toolong.frontText },
+  args: { text: card.toolong.frontText },
 };
 
-export const LongMath: Story = { args: { text: `${fixture.math.block}\n${fixture.math.block}`, category: "math" } };
+export const LongMath: Story = { args: { text: `${math.block}\n${math.block}`, category: "math" } };
 export const Mobile: Story = { ...TooLong, parameters: { viewport: { defaultViewport: "iphonex" } } };
 export const Dark: Story = { ...TooLong, globals: { theme: "dark" } };

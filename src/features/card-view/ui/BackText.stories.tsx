@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { BackText as Template } from "./BackText";
-import * as fixture from "@/storybook/fixture";
+import { code, math } from "@/storybook/fixture";
 
 const meta = {
   title: "Card/BackText",
@@ -31,14 +31,14 @@ export const Default: Story = {};
 
 export const MathContent: Story = {
   args: {
-    text: fixture.math.block,
+    text: math.block,
     category: "math",
   },
 };
 
 export const Python: Story = {
   args: {
-    text: fixture.code.default,
+    text: code.default,
     category: "python",
     code: true,
   },
@@ -46,18 +46,18 @@ export const Python: Story = {
 
 export const Golang: Story = {
   args: {
-    text: fixture.code.default,
+    text: code.default,
     category: "golang",
     code: true,
   },
 };
 export const LongText: Story = {
   args: {
-    text: fixture.code.longtext,
+    text: code.longtext,
   },
 };
 
-export const LongCode: Story = { args: { text: fixture.code.default.repeat(40), category: "python", code: true } };
-export const LongMath: Story = { args: { text: `${fixture.math.block}\n${fixture.math.block}`, category: "math" } };
+export const LongCode: Story = { args: { text: code.default.repeat(40), category: "python", code: true } };
+export const LongMath: Story = { args: { text: `${math.block}\n${math.block}`, category: "math" } };
 export const Mobile: Story = { ...LongText, parameters: { viewport: { defaultViewport: "iphonex" } } };
 export const Dark: Story = { ...LongCode, globals: { theme: "dark" } };

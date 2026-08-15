@@ -1,6 +1,6 @@
 import type { CardEditInput } from "@/entities/card";
 
-import * as React from "react";
+import React from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { editCard } from "@/entities/card";

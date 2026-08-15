@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { routeAnonymousAuth, seedConfig, seedDeckAndCards } from "./fixtures";
 
 const uid = "deck-list-e2e-user";
+const ROOT_URL_PATTERN = /\/$/;
 
 const createDeck = (id: string, name: string) => ({
   id,
@@ -84,10 +85,10 @@ test("keeps independent progress for multiple studying decks", async ({ page }) 
   await expect(page.getByText("B only")).toBeVisible();
   await page.getByRole("button", { name: "Swipe up" }).click();
 
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(ROOT_URL_PATTERN);
   await expect(page.getByRole("button", { name: "Continue Deck A" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue Deck B" })).not.toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });
 
 test("explains and confirms deck deletion", async ({ page }) => {
@@ -112,5 +113,5 @@ test("explains and confirms deck deletion", async ({ page }) => {
 
   await expect(page.getByRole("button", { name: "View Deck A" })).not.toBeVisible();
   await expect(page.getByText("Deleted deck “Deck A”.")).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
+  await page.evaluate(() => globalThis.window.assertNoBrowserErrors());
 });

@@ -10,7 +10,7 @@ import type * as React from "react";
 export type ButtonVariant = "primary" | "secondary" | "quiet" | "destructive";
 type ButtonSize = "sm" | "md" | "lg";
 
-export type ButtonProps = {
+export interface ButtonProps {
   label?: string;
   type?: "button" | "submit";
   className?: string;
@@ -21,7 +21,7 @@ export type ButtonProps = {
   size?: ButtonSize;
   children?: React.ReactNode;
   onClick?: () => void;
-};
+}
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: "bg-accent-primary text-ink-inverse hover:opacity-90",

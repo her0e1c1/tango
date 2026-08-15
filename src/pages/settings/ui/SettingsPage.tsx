@@ -7,6 +7,7 @@ import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { SettingsForm, usePreferencesFormState } from "@/features/preferences-edit";
 import { useSignIn } from "@/features/sign-in";
 import { useSignOut } from "@/features/sign-out";
+import { discardPromise } from "@/shared/lib/discardPromise";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -40,13 +41,17 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
         pendingLabel: "Signing in…",
         errorLabel: "Unable to sign in.",
       };
-  const runAccountOperation = () => void accountOperation.run().catch(() => undefined);
+  const runAccountOperation = () => {
+    accountOperation.run().catch(() => undefined);
+  };
 
   const formState = usePreferencesFormState({
     preferences,
     onSubmit: updatePreferences,
   });
-  useKey("t", () => void navigate("/"));
+  useKey("t", () => {
+    discardPromise(navigate("/"));
+  });
 
   return (
     <AppLayout showHeader>

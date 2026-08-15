@@ -15,32 +15,25 @@ import { Slider } from "@/shared/ui/forms/Slider";
 import { Switch } from "@/shared/ui/forms/Switch";
 import { Tag } from "@/shared/ui/forms/Tag";
 import { Upload } from "@/shared/ui/forms/Upload";
+import { UniqueSlider, UniqueSwitch } from "./SelectionControlTestComponents";
+
+const UPLOAD_INPUT_NAME_PATTERN = /Upload a csv file/;
 
 describe("shared selection controls", () => {
   it("forwards accessible naming props to the switch input", () => {
-    render(<Switch id="dark-mode" aria-label="Dark mode" aria-describedby="dark-mode-description" />);
+    render(<UniqueSwitch />);
 
-    expect(screen.getByRole("checkbox", { name: "Dark mode" })).toHaveAttribute("id", "dark-mode");
-    expect(screen.getByRole("checkbox")).toHaveAttribute("aria-describedby", "dark-mode-description");
+    const input = screen.getByRole("checkbox", { name: "Dark mode" });
+    expect(input.id).not.toBe("");
+    expect(input).toHaveAttribute("aria-describedby", screen.getByText("Switch description").id);
   });
 
   it("forwards accessible naming and value text to the slider input", () => {
-    render(
-      <Slider
-        id="autoplay-interval"
-        aria-label="Autoplay interval"
-        aria-describedby="autoplay-interval-description"
-        aria-valuetext="7 seconds"
-        min={0}
-        max={60}
-        value="7"
-        onChange={() => undefined}
-      />
-    );
+    render(<UniqueSlider />);
 
     const slider = screen.getByRole("slider", { name: "Autoplay interval" });
-    expect(slider).toHaveAttribute("id", "autoplay-interval");
-    expect(slider).toHaveAttribute("aria-describedby", "autoplay-interval-description");
+    expect(slider.id).not.toBe("");
+    expect(slider).toHaveAttribute("aria-describedby", screen.getByText("Slider description").id);
     expect(slider).toHaveAttribute("aria-valuetext", "7 seconds");
   });
 
@@ -152,7 +145,7 @@ describe("shared selection controls", () => {
     const view = render(<Upload fileName="biology.csv" />);
 
     expect(screen.getByText("biology.csv")).toHaveClass("font-semibold", "text-ink");
-    expect(screen.getByLabelText(/Upload a csv file/)).toHaveValue("");
+    expect(screen.getByLabelText(UPLOAD_INPUT_NAME_PATTERN)).toHaveValue("");
 
     view.rerender(<Upload />);
     expect(screen.queryByText("biology.csv")).not.toBeInTheDocument();

@@ -11,10 +11,8 @@ import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card/api/firestore";
 import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
-import * as Uuid from "uuid";
+import { v4 as uuid } from "uuid";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
-
-const uuid = Uuid.v4;
 
 const toFirestoreDeck = ({ localMode: _localMode, ...deck }: Deck): Omit<Deck, "localMode"> => deck;
 

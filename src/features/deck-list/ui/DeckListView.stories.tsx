@@ -8,7 +8,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import type { Deck } from "@/entities/deck";
 import type { DeckListItem, DeckListSections } from "../model/buildDeckListSections";
-import * as fixture from "@/storybook/fixture";
+import { decks as fixtureDecks } from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 import { DeckListView as Template } from "./DeckListView";
@@ -36,13 +36,14 @@ const studyingItems = (decks: Deck[]): DeckListItem[] =>
   }));
 
 const mixed: DeckListSections = {
-  studying: studyingItems(fixture.decks.default.slice(0, 3)),
-  other: otherItems(fixture.decks.default.slice(3)),
+  studying: studyingItems(fixtureDecks.default.slice(0, 3)),
+  other: otherItems(fixtureDecks.default.slice(3)),
 };
 const longSections: DeckListSections = {
-  studying: studyingItems(fixture.decks.long.slice(0, 4)),
-  other: otherItems(fixture.decks.long.slice(4)),
+  studying: studyingItems(fixtureDecks.long.slice(0, 4)),
+  other: otherItems(fixtureDecks.long.slice(4)),
 };
+const VIEW_BUTTON_NAME_PATTERN = /^View /;
 
 const meta = {
   title: "Features/DeckList/DeckListView",
@@ -67,18 +68,18 @@ export const Default: Story = {};
 
 export const HoverHighlight: Story = {
   play: async ({ canvas, userEvent }) => {
-    const [firstDeck] = canvas.getAllByRole("button", { name: /^View / });
+    const [firstDeck] = canvas.getAllByRole("button", { name: VIEW_BUTTON_NAME_PATTERN });
     if (firstDeck == null) throw new Error("HoverHighlight requires at least one deck");
     await userEvent.hover(firstDeck);
   },
 };
 
 export const Inactive: Story = {
-  args: { sections: { studying: [], other: otherItems(fixture.decks.default) } },
+  args: { sections: { studying: [], other: otherItems(fixtureDecks.default) } },
 };
 
 export const WithStudyProgress: Story = {
-  args: { sections: { studying: studyingItems(fixture.decks.default), other: [] } },
+  args: { sections: { studying: studyingItems(fixtureDecks.default), other: [] } },
 };
 
 export const Active: Story = WithStudyProgress;

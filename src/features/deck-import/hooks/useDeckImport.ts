@@ -116,7 +116,7 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
   const retry = () => {
     const target = sessionRef.current;
     const input = target.retryInput;
-    if (input != null && !target.running) void run(input, target).catch(() => undefined);
+    if (input != null && !target.running) run(input, target).catch(() => undefined);
   };
 
   const selectFile = async (file: File) => {

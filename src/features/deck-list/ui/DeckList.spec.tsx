@@ -15,6 +15,8 @@ import { DeckList } from "./DeckList";
 const recentDeck = createDeck({ id: "recent", name: "Recent deck", category: "math" });
 const oldDeck = createDeck({ id: "old", name: "Old deck", category: "design" });
 const otherDeck = createDeck({ id: "other", name: "Alpha deck", category: "history" });
+const VIEW_BUTTON_NAME_PATTERN = /^View /;
+const STUDY_PROGRESS_PATTERN = /2 \/ 3/;
 const cards = [
   createCard({ id: "other-1", deckId: otherDeck.id }),
   createCard({ id: "other-2", deckId: otherDeck.id }),
@@ -58,10 +60,10 @@ describe("DeckList", () => {
     const studying = screen.getByRole("region", { name: "Studying" });
     expect(
       within(studying)
-        .getAllByRole("button", { name: /^View / })
+        .getAllByRole("button", { name: VIEW_BUTTON_NAME_PATTERN })
         .map((button) => button.getAttribute("aria-label"))
     ).toEqual(["View Recent deck", "View Old deck"]);
-    expect(within(studying).getByText(/2 \/ 3/)).toBeInTheDocument();
+    expect(within(studying).getByText(STUDY_PROGRESS_PATTERN)).toBeInTheDocument();
 
     const other = screen.getByRole("region", { name: "Other decks" });
     expect(within(other).getByRole("button", { name: "View Alpha deck" })).toBeInTheDocument();

@@ -5,54 +5,24 @@
  * returns focus to the trigger on Escape".
  */
 
-import * as React from "react";
 import { act, fireEvent, render, waitFor, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
-
-type ControlledMenuProps = Omit<React.ComponentProps<typeof DeckActionsMenu>, "open" | "onToggle" | "onClose">;
+import {
+  ControlledDeckActionsMenu as ControlledMenu,
+  DisableableDeckActionsMenu as DisableableMenu,
+} from "./DeckActionsMenuTestComponents";
 
 /**
  * Renders the test-only Controlled Menu component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
-  const [open, setOpen] = React.useState(false);
-  return (
-    <DeckActionsMenu
-      {...props}
-      open={open}
-      onToggle={() => setOpen((value) => !value)}
-      onClose={() => setOpen(false)}
-    />
-  );
-};
-
 /**
  * Renders the test-only Disableable Menu component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const DisableableMenu: React.FC = () => {
-  const [open, setOpen] = React.useState(false);
-  const [disabled, setDisabled] = React.useState(false);
-  return (
-    <>
-      <button type="button" onClick={() => setDisabled((value) => !value)}>
-        Toggle disabled
-      </button>
-      <DeckActionsMenu
-        deckName="Physics"
-        open={open}
-        disabled={disabled}
-        onToggle={() => setOpen((value) => !value)}
-        onClose={() => setOpen(false)}
-      />
-    </>
-  );
-};
-
 describe("DeckActionsMenu", () => {
   it("opens an accessible menu and routes each action", () => {
     const actions = {

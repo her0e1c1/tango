@@ -7,14 +7,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { Select as Template } from "@/shared/ui/forms/Select";
-import * as fixture from "@/storybook/fixture";
+import { form } from "@/storybook/fixture";
 
 const meta = {
   title: "Shared/Forms/Select",
   component: Template,
   tags: ["autodocs"],
   args: {
-    options: fixture.form.options.default,
+    options: form.options.default,
   },
 } satisfies Meta<typeof Template>;
 
@@ -34,9 +34,9 @@ export const Invalid: Story = {
 export const States: Story = {
   render: () => (
     <div className="grid gap-4">
-      <Template options={fixture.form.options.default} />
-      <Template options={fixture.form.options.default} empty />
-      <Template options={fixture.form.options.default} disabled />
+      <Template options={form.options.default} />
+      <Template options={form.options.default} empty />
+      <Template options={form.options.default} disabled />
     </div>
   ),
 };
@@ -57,10 +57,10 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4 text-ink">
-        <Template options={fixture.form.options.default} />
+        <Template options={form.options.default} />
       </div>
       <div className="dark bg-canvas p-4 text-ink">
-        <Template options={fixture.form.options.default} />
+        <Template options={form.options.default} />
       </div>
     </div>
   ),

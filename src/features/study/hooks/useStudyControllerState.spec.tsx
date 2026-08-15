@@ -5,24 +5,16 @@
  * playing", "reflects a rerendered controlled autoPlay value immediately".
  */
 
-import type React from "react";
-
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Controller, type ControllerProps } from "../components/Controller";
-import { useStudyControllerState } from "./useStudyControllerState";
+import { ControllerHarness } from "./ControllerHarness";
 
 /**
  * Renders the test-only Controller Harness component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const ControllerHarness: React.FC<ControllerProps> = (props) => {
-  const controller = useStudyControllerState(props);
-  return <Controller {...controller} />;
-};
-
 describe("Controller with useStudyControllerState", () => {
   afterEach(() => {
     vi.clearAllTimers();

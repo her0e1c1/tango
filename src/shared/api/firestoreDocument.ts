@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-type FirestoreTimestamp = {
+interface FirestoreTimestamp {
   readonly seconds: number;
   readonly nanoseconds: number;
   toDate: () => Date;
-};
+}
 
 const isFirestoreTimestamp = (value: unknown): value is FirestoreTimestamp => {
   if (typeof value !== "object" || value === null) return false;
@@ -44,16 +44,19 @@ export const firestoreTimestampDateSchema = z
 type FirestoreDocumentIssues = z.ZodError["issues"];
 
 class FirestoreDocumentValidationError extends Error {
-  constructor(
-    readonly collectionName: string,
-    readonly documentId: string,
-    readonly issues: FirestoreDocumentIssues
-  ) {
+  readonly collectionName: string;
+  readonly documentId: string;
+  readonly issues: FirestoreDocumentIssues;
+
+  constructor(collectionName: string, documentId: string, issues: FirestoreDocumentIssues) {
     const details = issues
       .map((issue) => `${issue.path.length === 0 ? "<document>" : issue.path.join(".")}: ${issue.message}`)
       .join("; ");
     super(`Invalid Firestore ${collectionName} document "${documentId}": ${details}`);
     this.name = "FirestoreDocumentValidationError";
+    this.collectionName = collectionName;
+    this.documentId = documentId;
+    this.issues = issues;
   }
 }
 

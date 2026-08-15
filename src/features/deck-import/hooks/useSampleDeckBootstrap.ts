@@ -29,7 +29,7 @@ const createSampleDeckBootstrapController = () => {
 
       const operation = Promise.resolve().then(addSample);
       pendingByUid.set(uid, operation);
-      void operation.then(
+      operation.then(
         () => {
           pendingByUid.delete(uid);
           completedUids.add(uid);
@@ -56,6 +56,6 @@ export const useSampleDeckBootstrap = (options: DeckImportOptions) => {
     if (uid === "" || options.decks.length > 0) {
       return;
     }
-    void sampleDeckBootstrapController.start(uid, deckImport.addSample)?.catch(() => undefined);
+    sampleDeckBootstrapController.start(uid, deckImport.addSample)?.catch(() => undefined);
   }, [deckImport.addSample, options.decks.length, uid]);
 };

@@ -8,7 +8,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import type { ComponentProps } from "react";
 
 import { DeckFilterForm as Template } from "./DeckFilterForm";
-import * as fixture from "@/storybook/fixture";
+import { tags } from "@/storybook/fixture";
 
 type DeckFilterFormProps = ComponentProps<typeof Template>;
 
@@ -20,7 +20,7 @@ const args: DeckFilterFormProps = {
   scoreMaxSliderProps: { name: "scoreMax", value: "1", min: -10, max: 10, onChange: () => undefined },
   scoreMinSliderProps: { name: "scoreMin", value: "-1", min: -10, max: 10, onChange: () => undefined },
   tagFilterProps: {
-    tags: [...fixture.tags.default],
+    tags: [...tags.default],
     selectedTags: [],
     tagAndFilter: false,
     onClickFilter: () => undefined,

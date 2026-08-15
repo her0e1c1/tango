@@ -152,7 +152,7 @@ const seedAuth = async (page: Page, uid: string, options: { linked?: boolean; ne
     });
   });
   await page.addInitScript((config) => {
-    window.localStorage.setItem("tango-config", JSON.stringify({ state: { preferences: config }, version: 0 }));
+    globalThis.localStorage.setItem("tango-config", JSON.stringify({ state: { preferences: config }, version: 0 }));
   }, persistedConfig);
 };
 
@@ -206,7 +206,7 @@ test("loads UID-scoped remote Decks and Cards again after reload", async ({ page
   await expect(page.getByRole("button", { name: "View Updated Remote Query Deck", exact: true })).toHaveCount(0);
 
   const persistedEntityState = await page.evaluate(() => {
-    const root = JSON.parse(window.localStorage.getItem("tango-config") ?? "{}") as {
+    const root = JSON.parse(globalThis.localStorage.getItem("tango-config") ?? "{}") as {
       state?: Record<string, unknown>;
     };
     const state = root.state ?? {};

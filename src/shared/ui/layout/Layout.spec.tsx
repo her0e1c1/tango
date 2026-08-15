@@ -15,6 +15,7 @@ import { Outer } from "@/shared/ui/outer";
 import { Layout } from "./Layout";
 
 const fixedHeaderOffsetClass = "pt-[calc(var(--spacing-touch)+1rem+env(safe-area-inset-top))]";
+const FULLSCREEN_CONTENT_PATTERN = /Fullscreen content/;
 
 describe("shared app shell", () => {
   it("keeps Outer as the standard dynamic-viewport scroll owner", () => {
@@ -70,7 +71,7 @@ describe("shared app shell", () => {
         <span>Fullscreen content</span>
       </Layout>
     );
-    const fullScreen = screen.getByRole("button", { name: /Fullscreen content/ });
+    const fullScreen = screen.getByRole("button", { name: FULLSCREEN_CONTENT_PATTERN });
     const content = screen.getByText("Fullscreen content");
 
     expect(fullScreen).not.toHaveClass(fixedHeaderOffsetClass);

@@ -136,8 +136,8 @@ describe("DeckImportPage", () => {
   it("navigates from top and settings keyboard shortcuts", () => {
     render(<DeckImportPage />);
 
-    fireEvent.keyDown(window, { key: "t" });
-    fireEvent.keyDown(window, { key: "s" });
+    fireEvent.keyDown(globalThis.window, { key: "t" });
+    fireEvent.keyDown(globalThis.window, { key: "s" });
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");

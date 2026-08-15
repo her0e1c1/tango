@@ -1,6 +1,6 @@
 import type { SwipeDirection } from "@/entities/preferences";
 
-import * as React from "react";
+import React from "react";
 
 const SWIPE_FEEDBACK_DURATION_MS = 900;
 
@@ -23,8 +23,8 @@ export const useSwipeFeedback = (enabled: boolean) => {
 
   React.useEffect(() => {
     if (lastSwipe === undefined) return;
-    const timeout = window.setTimeout(() => setLastSwipe(undefined), SWIPE_FEEDBACK_DURATION_MS);
-    return () => window.clearTimeout(timeout);
+    const timeout = globalThis.setTimeout(() => setLastSwipe(undefined), SWIPE_FEEDBACK_DURATION_MS);
+    return () => globalThis.clearTimeout(timeout);
   }, [lastSwipe]);
 
   return { lastSwipe: enabled ? lastSwipe?.direction : undefined, showSwipe };

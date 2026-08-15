@@ -12,6 +12,9 @@ import { describe, expect, it } from "vitest";
 import { Form } from "@/shared/ui/forms/Form";
 import { FormItem } from "@/shared/ui/forms/FormItem";
 
+const LONG_LABEL_PATTERN = /deliberately long label/;
+const WRAPPING_VALUE_PATTERN = /value that can also wrap/;
+
 const appearsBefore = (first: Node, second: Node): boolean => {
   // biome-ignore lint/suspicious/noBitwiseOperators: compareDocumentPosition returns a DOM bitmask by contract.
   return Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
@@ -48,8 +51,8 @@ describe("shared form layout", () => {
       </FormItem>
     );
 
-    expect(screen.getByText(/deliberately long label/)).toHaveClass("min-w-0", "break-words", "md:basis-48");
-    expect(screen.getByText(/value that can also wrap/)).toHaveClass("min-w-0", "break-words");
+    expect(screen.getByText(LONG_LABEL_PATTERN)).toHaveClass("min-w-0", "break-words", "md:basis-48");
+    expect(screen.getByText(WRAPPING_VALUE_PATTERN)).toHaveClass("min-w-0", "break-words");
   });
 
   it("keeps legacy extra copy and stacks column items on mobile", () => {

@@ -5,12 +5,12 @@
  * menu items out of the Tab sequence and moves Tab to the next external control".
  */
 
-import * as React from "react";
 import { act, fireEvent, render, waitFor, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
 import { ActionsMenu, type ActionsMenuItem } from "./ActionsMenu";
+import { ControlledActionsMenu as ControlledMenu, SharedOpenMenus } from "./ActionsMenuTestComponents";
 import { actAsync } from "@/test/act";
 
 /**
@@ -22,44 +22,14 @@ const items = (edit = vi.fn(), remove = vi.fn()): ActionsMenuItem[] => [
   { key: "delete", label: "Delete", icon: <span aria-hidden="true">D</span>, danger: true, onSelect: remove },
 ];
 
-type ControlledMenuProps = Omit<React.ComponentProps<typeof ActionsMenu>, "open" | "onToggle" | "onClose">;
-
 /**
  * Renders the test-only Controlled Menu component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
-  const [open, setOpen] = React.useState(false);
-  return (
-    <ActionsMenu {...props} open={open} onToggle={() => setOpen((value) => !value)} onClose={() => setOpen(false)} />
-  );
-};
-
 /**
  * Renders the test-only Shared Open Menus component with controlled state or providers.
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
-const SharedOpenMenus: React.FC = () => {
-  const [openMenu, setOpenMenu] = React.useState<"first" | "second" | null>(null);
-  const menu = (id: "first" | "second") => ({
-    ...labels,
-    groupLabel: `${id} ${labels.groupLabel}`,
-    triggerLabel: `Open ${id} actions`,
-    menuLabel: `${id} ${labels.menuLabel}`,
-    items: items(),
-    open: openMenu === id,
-    onToggle: () => setOpenMenu((current) => (current === id ? null : id)),
-    onClose: () => setOpenMenu(null),
-  });
-
-  return (
-    <>
-      <ActionsMenu {...menu("first")} />
-      <ActionsMenu {...menu("second")} />
-    </>
-  );
-};
-
 const labels = {
   groupLabel: "Card actions for Binary search",
   triggerLabel: "Open actions for Binary search",
@@ -220,7 +190,7 @@ describe("ActionsMenu", () => {
   });
 
   it("keeps a newly opened sibling menu open after a stale blur timer runs", async () => {
-    render(<SharedOpenMenus />);
+    render(<SharedOpenMenus labels={labels} createItems={items} />);
     fireEvent.click(screen.getByRole("button", { name: "Open first actions" }));
     const firstEdit = screen.getByRole("menuitem", { name: "Edit" });
     await waitFor(() => expect(firstEdit).toHaveFocus());

@@ -6,7 +6,8 @@
 
 import type * as React from "react";
 
-import { TagMarker, tagClassName } from "@/shared/ui/content/tagStyles";
+import { TagMarker } from "@/shared/ui/content/TagMarker";
+import { tagClassName } from "@/shared/ui/content/tagClassName";
 
 export interface TagLabelProps {
   className?: string;

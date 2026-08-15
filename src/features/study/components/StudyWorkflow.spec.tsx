@@ -31,7 +31,8 @@ vi.mock("@/entities/study-session", async (importOriginal) => ({
   touchStudySession: mocks.touchStudySession,
 }));
 
-import { StudyWorkflow, type StudyWorkflowState } from "./StudyWorkflow";
+import { StudyWorkflow } from "./StudyWorkflow";
+import { WorkflowView } from "./WorkflowView";
 
 const deckId: DeckId = "deck-id";
 const createCard = (id: string): Card => ({
@@ -50,28 +51,6 @@ const createCard = (id: string): Card => ({
   lastSeenAt: 0,
 });
 const cards = [createCard("card-1"), createCard("card-2"), createCard("card-3")];
-
-const WorkflowView = ({ state }: { state: StudyWorkflowState }) => {
-  if (state.status !== "ready") return <div>{state.status}</div>;
-  return (
-    <div>
-      <div>{state.card.id}</div>
-      <div data-testid="back">{String(state.showBackText)}</div>
-      <div data-testid="autoplay">{String(state.controller.autoPlay)}</div>
-      <div data-testid="index">{state.controller.index}</div>
-      <div data-testid="feedback">{state.swipeFeedback ?? "none"}</div>
-      <button type="button" onClick={state.shortcutActions.toggleShowBackText}>
-        toggle back
-      </button>
-      <button type="button" onClick={state.actions.swipeLeft}>
-        swipe left
-      </button>
-      <button type="button" onClick={state.shortcutActions.swipeRight}>
-        swipe right
-      </button>
-    </div>
-  );
-};
 
 const renderWorkflow = (currentCards: readonly Card[] = cards) =>
   render(

@@ -2,7 +2,8 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 
-import { SettingsRow, SettingsSection } from "./SettingsSection";
+import { SettingsSection } from "./SettingsSection";
+import { SettingsRowFixture } from "./SettingsRowFixture";
 
 describe("settings presentation", () => {
   it("relates a settings section to its unique heading", () => {
@@ -18,22 +19,18 @@ describe("settings presentation", () => {
   });
 
   it("relates a settings row label and description to its input id", () => {
-    render(
-      <SettingsRow inputId="dark-mode" label="Dark mode" description="Use the darker Calm Focus palette">
-        <input id="dark-mode" aria-describedby="dark-mode-description" />
-      </SettingsRow>
-    );
+    render(<SettingsRowFixture described />);
 
-    expect(screen.getByText("Dark mode")).toHaveAttribute("for", "dark-mode");
-    expect(screen.getByText("Use the darker Calm Focus palette")).toHaveAttribute("id", "dark-mode-description");
+    const input = screen.getByRole("textbox", { name: "Dark mode" });
+    expect(screen.getByText("Dark mode")).toHaveAttribute("for", input.id);
+    expect(screen.getByText("Use the darker Calm Focus palette")).toHaveAttribute(
+      "id",
+      input.getAttribute("aria-describedby")
+    );
   });
 
   it("keeps the row control reachable through its label", () => {
-    render(
-      <SettingsRow inputId="dark-mode" label="Dark mode" description="Use the darker Calm Focus palette">
-        <input id="dark-mode" />
-      </SettingsRow>
-    );
+    render(<SettingsRowFixture />);
 
     expect(screen.getByRole("textbox", { name: "Dark mode" })).toBeVisible();
   });
