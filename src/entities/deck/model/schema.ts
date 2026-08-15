@@ -4,9 +4,9 @@ const authenticatedUidSchema = z.string().min(1, "A confirmed user is required f
 export const deckIdSchema = z.string().min(1, "Deck id is required");
 const deckUidSchema = z.string().min(1, "Deck owner is required");
 
-const editableDeckFieldsSchema = z.object({
-  name: z.string().min(1, "Deck name is required"),
-  url: z.string().optional(),
+export const editableDeckFieldsSchema = z.object({
+  name: z.string().trim().min(1, "Deck name is required."),
+  url: z.union([z.literal(""), z.url("Enter a valid URL.")]).optional(),
   isPublic: z.boolean(),
   scoreMax: z.number().nullable(),
   scoreMin: z.number().nullable(),

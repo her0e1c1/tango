@@ -14,7 +14,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/auth", () => ({
   useAuthUid: () => "user-id",
 }));
-vi.mock("@/entities/deck", () => ({
+vi.mock("@/shared/firebase", () => ({ db: {} }));
+vi.mock("@/entities/deck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/deck")>()),
   CATEGORY: ["language", "science"],
   editDeck: mocks.editDeck,
 }));
