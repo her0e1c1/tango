@@ -13,17 +13,29 @@ export type DeckId = string;
 
 /** Entity-internal Deck data without ownership, persistence, or presentation metadata. */
 type DeckDomain = {
+  /** Stable identity referenced by Cards, routes, study sessions, and persistence boundaries. */
   id: DeckId;
+  /** Human-readable label shown wherever a Deck is selected or summarized. */
   name: string;
+  /** Optional source location retained for Decks whose content originates from an external resource. */
   url?: string;
+  /** Whether the Deck is marked for public visibility; local Decks normally keep this disabled. */
   isPublic: boolean;
+  /** Inclusive upper Card-score boundary, or `null` when the Deck has no upper score restriction. */
   scoreMax: number | null;
+  /** Inclusive lower Card-score boundary, or `null` when the Deck has no lower score restriction. */
   scoreMin: number | null;
+  /** Card tags used by the Deck filter; an empty collection means that tags do not restrict Cards. */
   selectedTags: string[];
+  /** Uses AND matching when true and OR matching when false for {@link selectedTags}. */
   tagAndFilter: boolean;
+  /** Fallback rendering category when no supported Card tag supplies a more specific category. */
   category: Category;
+  /** Whether imported text should convert two consecutive line breaks into one HTML `<br />`. */
   convertToBr: boolean;
+  /** Unix epoch time in milliseconds when the Deck was created. */
   createdAt: number;
+  /** Unix epoch time in milliseconds when the Deck was last changed. */
   updatedAt: number;
 };
 
