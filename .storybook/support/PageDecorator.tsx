@@ -6,7 +6,7 @@
 
 import type { Card } from "@/entities/card";
 import { replaceRemoteCards } from "@/entities/card/model/store";
-import type { Deck } from "@/entities/deck";
+import type { Deck, DeckId } from "@/entities/deck";
 import { replaceRemoteDecks } from "@/entities/deck/model/store";
 
 import type { Decorator } from "@storybook/react";
@@ -16,10 +16,11 @@ import { replaceAuthSession } from "@/entities/auth";
 import type { Preferences } from "@/entities/preferences";
 import { preferencesSchema } from "@/entities/preferences/model/schema";
 import { preferencesStore } from "@/entities/preferences/model/store";
-import type { StudyState } from "@/features/study/state/studyStore";
-import { studyStore } from "@/features/study/state/studyStoreInstance";
+import { clearStudySessions, restoreStudySession, type StudySession } from "@/entities/study-session";
 
 export const PAGE_STORY_UID = "storybook-user";
+
+type StudySessions = Partial<Record<DeckId, StudySession>>;
 
 type PartialPreferences = {
   [K in keyof Preferences]?: Partial<Preferences[K]>;
@@ -30,7 +31,7 @@ export interface PageStoryParameters {
   decks?: Deck[];
   cards?: Card[];
   preferences?: PartialPreferences;
-  sessionsByDeckId?: StudyState["sessionsByDeckId"];
+  sessionsByDeckId?: StudySessions;
   autoPlay?: boolean;
 }
 
@@ -45,8 +46,8 @@ const cloneCard = (card: Card): Card => ({
   ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(card.nextSeeingAt.getTime()) }),
 });
 
-const cloneSessions = (sessionsByDeckId: StudyState["sessionsByDeckId"]): StudyState["sessionsByDeckId"] => {
-  const sessions: StudyState["sessionsByDeckId"] = {};
+const cloneSessions = (sessionsByDeckId: StudySessions): StudySessions => {
+  const sessions: StudySessions = {};
   Object.entries(sessionsByDeckId).forEach(([deckId, session]) => {
     if (session != null) sessions[deckId] = { ...session, cardOrderIds: [...session.cardOrderIds] };
   });
@@ -58,7 +59,7 @@ const cloneSessions = (sessionsByDeckId: StudyState["sessionsByDeckId"]): StudyS
  * Running this in a Storybook loader guarantees study hydration is complete before the route renders.
  */
 export const preparePageStory = async (parameters: PageStoryParameters): Promise<void> => {
-  await studyStore.persist.rehydrate();
+  await clearStudySessions();
 
   replaceAuthSession({
     status: "authenticated",
@@ -85,8 +86,8 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
       },
     },
   });
-  studyStore.setState({
-    sessionsByDeckId: cloneSessions(parameters.sessionsByDeckId ?? {}),
+  Object.entries(cloneSessions(parameters.sessionsByDeckId ?? {})).forEach(([deckId, session]) => {
+    if (session != null) restoreStudySession(deckId, undefined, session);
   });
   replaceRemoteDecks(decks);
   replaceRemoteCards(cards);

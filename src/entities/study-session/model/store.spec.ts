@@ -5,51 +5,48 @@
  * "touches only an existing requested session".
  */
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createStudyStore, selectStudySessionForRoute } from "./studyStore";
+import { clearStudySessions, getStudySession, startStudySession, studySessionStore } from "./store";
 
 const STUDY_STORAGE_KEY = "tango-study";
 
-/**
- * Provides the create memory storage test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
-const createMemoryStorage = (initial: Record<string, string> = {}) => {
-  const values = new Map(Object.entries(initial));
-  return {
-    getItem: (name: string) => values.get(name) ?? null,
-    setItem: (name: string, value: string) => {
-      values.set(name, value);
-    },
-    removeItem: (name: string) => {
-      values.delete(name);
-    },
-  };
+const setVersionedStorage = (state: unknown, version: number): void => {
+  localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify({ state, version }));
 };
 
-/**
- * Provides the create versioned storage test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
-const createVersionedStorage = (state: unknown, version: number) =>
-  createMemoryStorage({
-    [STUDY_STORAGE_KEY]: JSON.stringify({ state, version }),
+describe("study store", () => {
+  const store = studySessionStore;
+
+  beforeEach(() => {
+    store.setState({ sessionsByDeckId: {} });
+    localStorage.clear();
   });
 
-describe("study store", () => {
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
+    await clearStudySessions();
+  });
+
+  it("starts at index zero with a copied card order", () => {
+    const cardOrderIds = ["card-1", "card-2"];
+
+    store.getState().start("deck-1", cardOrderIds);
+    cardOrderIds.pop();
+
+    expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({
+      cardOrderIds: ["card-1", "card-2"],
+      currentIndex: 0,
+    });
   });
 
   it("keeps independent study sessions for multiple decks", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
 
-    store.getState().startStudy("deck-1", ["card-1", "card-2"]);
+    store.getState().start("deck-1", ["card-1", "card-2"]);
     vi.setSystemTime(2000);
-    store.getState().startStudy("deck-2", ["card-3"]);
+    store.getState().start("deck-2", ["card-3"]);
 
     expect(store.getState().sessionsByDeckId).toEqual({
       "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 0, lastStudiedAt: 1000 },
@@ -60,12 +57,11 @@ describe("study store", () => {
   it("updates only the requested session and its last studied time", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
-    store.getState().startStudy("deck-1", ["card-1", "card-2"]);
-    store.getState().startStudy("deck-2", ["card-3", "card-4"]);
+    store.getState().start("deck-1", ["card-1", "card-2"]);
+    store.getState().start("deck-2", ["card-3", "card-4"]);
 
     vi.setSystemTime(3000);
-    store.getState().setCurrentIndex("deck-1", 1);
+    store.getState().setIndex("deck-1", 1);
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({ currentIndex: 1, lastStudiedAt: 3000 });
     expect(store.getState().sessionsByDeckId["deck-2"]).toMatchObject({ currentIndex: 0, lastStudiedAt: 1000 });
@@ -74,11 +70,10 @@ describe("study store", () => {
   it.each([-1, 2, 0.5])("does not persist an invalid session index: %s", (currentIndex) => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
-    store.getState().startStudy("deck-1", ["card-1", "card-2"]);
+    store.getState().start("deck-1", ["card-1", "card-2"]);
 
     vi.setSystemTime(3000);
-    store.getState().setCurrentIndex("deck-1", currentIndex);
+    store.getState().setIndex("deck-1", currentIndex);
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({ currentIndex: 0, lastStudiedAt: 1000 });
   });
@@ -86,46 +81,47 @@ describe("study store", () => {
   it("touches only an existing requested session", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
-    store.getState().startStudy("deck-1", ["card-1"]);
+    store.getState().start("deck-1", ["card-1"]);
 
     vi.setSystemTime(4000);
-    store.getState().touchStudy("deck-1");
-    store.getState().touchStudy("missing-deck");
+    store.getState().touch("deck-1");
+    store.getState().touch("missing-deck");
 
     expect(store.getState().sessionsByDeckId["deck-1"]?.lastStudiedAt).toBe(4000);
     expect(store.getState().sessionsByDeckId).not.toHaveProperty("missing-deck");
   });
 
   it("removes only the requested session", () => {
-    const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
-    store.getState().startStudy("deck-1", ["card-1"]);
-    store.getState().startStudy("deck-2", ["card-2"]);
+    store.getState().start("deck-1", ["card-1"]);
+    store.getState().start("deck-2", ["card-2"]);
 
-    store.getState().removeStudy("deck-1");
+    store.getState().remove("deck-1");
 
     expect(store.getState().sessionsByDeckId).toEqual({
       "deck-2": expect.objectContaining({ deckId: "deck-2" }),
     });
   });
 
-  it("returns the session for the requested route deck", () => {
-    const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
-    store.getState().startStudy("deck-1", ["card-1"]);
-    store.getState().startStudy("deck-2", ["card-2"]);
+  it("clears both memory and persisted storage", async () => {
+    localStorage.clear();
+    startStudySession("deck-1", ["card-1"]);
 
-    expect(selectStudySessionForRoute("deck-1")(store.getState())).toEqual(store.getState().sessionsByDeckId["deck-1"]);
-    expect(selectStudySessionForRoute("missing-deck")(store.getState())).toBeNull();
+    expect(getStudySession("deck-1")).toBeDefined();
+    expect(localStorage.getItem(STUDY_STORAGE_KEY)).not.toBeNull();
+
+    await clearStudySessions();
+
+    expect(getStudySession("deck-1")).toBeUndefined();
+    expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
   });
 
   it("persists exactly the session map in a v3 envelope", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
-    const storage = createMemoryStorage();
-    const store = createStudyStore({ storage, skipHydration: true });
-    store.getState().startStudy("deck-1", ["card-1"]);
+    store.getState().start("deck-1", ["card-1"]);
 
-    expect(JSON.parse(storage.getItem(STUDY_STORAGE_KEY) ?? "{}")).toEqual({
+    const persistedSession = localStorage.getItem(STUDY_STORAGE_KEY);
+    expect(JSON.parse(persistedSession ?? "{}")).toEqual({
       state: {
         sessionsByDeckId: {
           "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
@@ -134,18 +130,19 @@ describe("study store", () => {
       version: 3,
     });
 
-    const restored = createStudyStore({ storage, skipHydration: true });
-    await restored.persist.rehydrate();
-    expect(restored.getState()).toMatchObject({
+    store.setState({ sessionsByDeckId: {} });
+    if (persistedSession != null) localStorage.setItem(STUDY_STORAGE_KEY, persistedSession);
+    await store.persist.rehydrate();
+    expect(store.getState()).toMatchObject({
       sessionsByDeckId: {
         "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
       },
     });
-    expect(restored.getState()).not.toHaveProperty("session");
+    expect(store.getState()).not.toHaveProperty("session");
   });
 
   it("hydrates valid v3 sessions independently and drops unknown metadata", async () => {
-    const storage = createVersionedStorage(
+    setVersionedStorage(
       {
         sessionsByDeckId: {
           "deck-1": {
@@ -161,8 +158,6 @@ describe("study store", () => {
       },
       3
     );
-    const store = createStudyStore({ storage, skipHydration: true });
-
     await store.persist.rehydrate();
 
     expect(store.getState().sessionsByDeckId).toEqual({
@@ -172,18 +167,17 @@ describe("study store", () => {
   });
 
   it.each([1, 2])("migrates a valid v%s session into the v3 map", async (version) => {
-    const storage = createVersionedStorage(
+    setVersionedStorage(
       { session: { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 1 } },
       version
     );
-    const store = createStudyStore({ storage, skipHydration: true });
 
     await store.persist.rehydrate();
 
     expect(store.getState().sessionsByDeckId).toEqual({
       "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 1, lastStudiedAt: 0 },
     });
-    expect(JSON.parse(storage.getItem(STUDY_STORAGE_KEY) ?? "{}")).toEqual({
+    expect(JSON.parse(localStorage.getItem(STUDY_STORAGE_KEY) ?? "{}")).toEqual({
       state: {
         sessionsByDeckId: {
           "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 1, lastStudiedAt: 0 },
@@ -199,8 +193,7 @@ describe("study store", () => {
     ["a negative index", { session: { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: -1 } }],
     ["a terminal index", { session: { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 1 } }],
   ])("drops invalid legacy state with %s", async (_label, state) => {
-    const storage = createVersionedStorage(state, 2);
-    const store = createStudyStore({ storage, skipHydration: true });
+    setVersionedStorage(state, 2);
 
     await store.persist.rehydrate();
 
