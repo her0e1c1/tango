@@ -6,7 +6,7 @@ import type { Card, CardId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 import type { Preferences, SwipeDirection } from "@/entities/preferences";
 
-import { act, fireEvent, render, waitFor, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -63,12 +63,27 @@ vi.mock("@/features/study", async (importOriginal) => {
       _deckId: DeckId,
       options?: { onSwipe?: (direction: SwipeDirection) => void; onToggleBackText?: () => void }
     ) => ({
-      swipeUp: () => { options?.onSwipe?.("cardSwipeUp"); mocks.swipeUp(); },
-      swipeDown: () => { options?.onSwipe?.("cardSwipeDown"); mocks.swipeDown(); },
-      swipeLeft: () => { options?.onSwipe?.("cardSwipeLeft"); mocks.swipeLeft(); },
-      swipeRight: () => { options?.onSwipe?.("cardSwipeRight"); mocks.swipeRight(); },
+      swipeUp: () => {
+        options?.onSwipe?.("cardSwipeUp");
+        mocks.swipeUp();
+      },
+      swipeDown: () => {
+        options?.onSwipe?.("cardSwipeDown");
+        mocks.swipeDown();
+      },
+      swipeLeft: () => {
+        options?.onSwipe?.("cardSwipeLeft");
+        mocks.swipeLeft();
+      },
+      swipeRight: () => {
+        options?.onSwipe?.("cardSwipeRight");
+        mocks.swipeRight();
+      },
       updateIndex: mocks.updateIndex,
-      toggleShowBackText: () => { options?.onToggleBackText?.(); mocks.toggleShowBackText(); },
+      toggleShowBackText: () => {
+        options?.onToggleBackText?.();
+        mocks.toggleShowBackText();
+      },
       resetStudy: mocks.resetStudy,
     }),
     useStudyHydrated: () => mocks.hydrated,
@@ -80,21 +95,47 @@ import { DeckSwiperPage } from "./DeckSwiperPage";
 
 describe("DeckSwiperPage with DeckSwiperView", () => {
   const deck: Deck = {
-    id: "deck-id", uid: "user-id", name: "Deck", isPublic: false, createdAt: 0, updatedAt: 0,
-    deletedAt: null, category: "raw", convertToBr: false, selectedTags: [], tagAndFilter: false,
-    scoreMax: null, scoreMin: null,
+    id: "deck-id",
+    uid: "user-id",
+    name: "Deck",
+    isPublic: false,
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+    category: "raw",
+    convertToBr: false,
+    selectedTags: [],
+    tagAndFilter: false,
+    scoreMax: null,
+    scoreMin: null,
   };
   const card: Card = {
-    id: "card-id", deckId: deck.id, uid: "user-id", frontText: "FRONT SLOT",
-    backText: "const answer = 42;", tags: ["typescript"], uniqueKey: "unique-key", score: 2,
-    numberOfSeen: 3, createdAt: 0, updatedAt: 0, deletedAt: null, lastSeenAt: 1,
+    id: "card-id",
+    deckId: deck.id,
+    uid: "user-id",
+    frontText: "FRONT SLOT",
+    backText: "const answer = 42;",
+    tags: ["typescript"],
+    uniqueKey: "unique-key",
+    score: 2,
+    numberOfSeen: 3,
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+    lastSeenAt: 1,
   };
   const legacyCard: Card = { ...card, id: "legacy-card-id", frontText: "LEGACY FRONT", uniqueKey: "legacy-key" };
 
   const createState = (currentDeck: Deck = deck, defaultAutoPlay = false) => ({
     deck: { [currentDeck.id]: currentDeck },
     card: { [card.id]: card, [legacyCard.id]: legacyCard },
-    preferences: createPreferences({ cardInterval: 1, darkMode: false, showHeader: true, showSwipeButtonList: true, defaultAutoPlay }),
+    preferences: createPreferences({
+      cardInterval: 1,
+      darkMode: false,
+      showHeader: true,
+      showSwipeButtonList: true,
+      defaultAutoPlay,
+    }),
   });
 
   beforeEach(() => {
@@ -183,7 +224,10 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   it("shows the last swipe briefly only when feedback is enabled", () => {
     vi.useFakeTimers();
     if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.preferences = createPreferences({ ...mocks.state.preferences, appearance: { ...mocks.state.preferences.appearance, showSwipeFeedback: true } });
+    mocks.state.preferences = createPreferences({
+      ...mocks.state.preferences,
+      appearance: { ...mocks.state.preferences.appearance, showSwipeFeedback: true },
+    });
     render(<DeckSwiperPage />);
     fireEvent.keyDown(window, { key: "ArrowLeft" });
     expect(screen.getByText("Swiped left")).toHaveAttribute("role", "status");
@@ -193,7 +237,11 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
   it("installs one back-navigation guard when StrictMode replays the effect", () => {
     const pushState = vi.spyOn(window.history, "pushState");
-    const view = render(<React.StrictMode><DeckSwiperPage /></React.StrictMode>);
+    const view = render(
+      <React.StrictMode>
+        <DeckSwiperPage />
+      </React.StrictMode>
+    );
     expect(pushState).toHaveBeenCalledOnce();
     act(() => window.dispatchEvent(new PopStateEvent("popstate")));
     expect(mocks.navigate).toHaveBeenCalledWith(1);
@@ -215,7 +263,12 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
   it("exits without removing a session that belongs to another deck", async () => {
     delete mocks.studyState.sessionsByDeckId[deck.id];
-    mocks.studyState.sessionsByDeckId["other-deck"] = { deckId: "other-deck", cardOrderIds: [card.id], currentIndex: 0, lastStudiedAt: 0 };
+    mocks.studyState.sessionsByDeckId["other-deck"] = {
+      deckId: "other-deck",
+      cardOrderIds: [card.id],
+      currentIndex: 0,
+      lastStudiedAt: 0,
+    };
     render(<DeckSwiperPage />);
     await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
     expect(mocks.studyState.sessionsByDeckId["other-deck"]).toMatchObject({ deckId: "other-deck" });
