@@ -11,4 +11,11 @@ export {
 export { useDeck, useDecks } from "./model/hooks";
 export { deckFormSchema } from "./model/schema";
 export { clearRemoteDecks } from "./model/store";
-export type { Deck, DeckCreateInput, DeckEdit, DeckId, LocalDeckCreateInput, RemoteDeck } from "./model/types";
+export type {
+  Deck,
+  DeckCreateInput,
+  DeckDomain,
+  DeckEdit,
+  DeckId,
+  LocalDeckCreateInput,
+} from "./model/types";

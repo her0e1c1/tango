@@ -1,5 +1,5 @@
 import type { Card, CardMutation, RemoteCard } from "@/entities/card";
-import type { Deck, DeckCreateInput, DeckId, LocalDeckCreateInput, RemoteDeck } from "@/entities/deck";
+import type { Deck, DeckCreateInput, DeckId, LocalDeckCreateInput } from "@/entities/deck";
 
 import { CardBulkMutationError, hasSameEditableCardContent, indexCardsByUniqueKey } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
@@ -43,17 +43,19 @@ export interface DeckImportExecutionDependencies {
   mutateCards: (mutations: CardMutation[]) => Promise<unknown>;
 }
 
-const isRemoteDeck = (deck: Deck): deck is RemoteDeck => !deck.localMode;
 const isRemoteCard = (card: Card): card is RemoteCard => "uid" in card;
 
 const matchesImportDestination = (candidate: Deck, request: DeckImportRequest, localMode: boolean): boolean =>
-  isRemoteDeck(candidate) !== localMode &&
+  candidate.localMode === localMode &&
   (request.preferredDeckId === undefined ? candidate.name === request.name : candidate.id === request.preferredDeckId);
 
 const createImportDeck = (request: DeckImportRequest, uid: string, localMode: boolean): DeckImportCreateInput => {
   const id = request.preferredDeckId ?? generateDeckId();
   return localMode ? { id, name: request.name, localMode: true } : { id, uid, name: request.name };
 };
+
+const reuseImportDeck = (deck: Deck, uid: string): DeckImportCreateInput =>
+  deck.localMode ? { id: deck.id, name: deck.name, localMode: true } : { id: deck.id, uid, name: deck.name };
 
 const prepareCardMutations = ({
   rows,
@@ -107,11 +109,10 @@ export const prepareDeckImport = (
   const localMode = request.storageMode === "local";
   if (!localMode && uid === "") throw new Error("A confirmed user is required for remote imports");
 
-  let deck: DeckImportCreateInput | undefined = decks.find((candidate) =>
-    matchesImportDestination(candidate, request, localMode)
-  );
-  const createDeckPending = deck == null;
-  if (deck == null) deck = createImportDeck(request, uid, localMode);
+  const existingDeck = decks.find((candidate) => matchesImportDestination(candidate, request, localMode));
+  const createDeckPending = existingDeck == null;
+  // View models intentionally omit ownership metadata, so remote commands recover it from the active session.
+  const deck = existingDeck == null ? createImportDeck(request, uid, localMode) : reuseImportDeck(existingDeck, uid);
 
   const existing = cards.filter((card) => card.deckId === deck.id && isRemoteCard(card) !== localMode);
   const preparedCards = prepareCardMutations({

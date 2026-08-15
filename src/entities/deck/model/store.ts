@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { deckEditSchema, deckIdSchema, localDeckCreateSchema, localDeckSchema } from "./schema";
-import type { Deck, DeckEdit, DeckId, LocalDeck, LocalDeckCreateInput, RemoteDeck } from "./types";
+import type { DeckEdit, DeckId, DeckStore, LocalDeck, LocalDeckCreateInput, RemoteDeck } from "./types";
 
 interface DeckState {
   remoteDecks: RemoteDeck[];
@@ -54,7 +54,7 @@ export const clearRemoteDecks = (): void => {
   deckStore.setState({ remoteDecks: [] });
 };
 
-export const findDeckById = (id: DeckId): Deck | undefined => {
+export const findDeckById = (id: DeckId): DeckStore | undefined => {
   const deckId = deckIdSchema.parse(id);
   const state = deckStore.getState();
   return state.remoteDecks.find((deck) => deck.id === deckId) ?? state.localDecks.find((deck) => deck.id === deckId);

@@ -1,7 +1,8 @@
 /** @file Defines deterministic application data shared by route-level Storybook stories. */
 
 import type { CardId, RemoteCard } from "@/entities/card";
-import type { DeckId, RemoteDeck } from "@/entities/deck";
+import type { DeckId } from "@/entities/deck";
+import type { RemoteDeck } from "@/entities/deck/model/types";
 
 import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";

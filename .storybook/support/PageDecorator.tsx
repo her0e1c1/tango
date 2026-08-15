@@ -6,8 +6,9 @@
 
 import type { CardId, RemoteCard } from "@/entities/card";
 import { replaceRemoteCards } from "@/entities/card/model/store";
-import type { DeckId, RemoteDeck } from "@/entities/deck";
+import type { DeckId } from "@/entities/deck";
 import { replaceRemoteDecks } from "@/entities/deck/model/store";
+import type { RemoteDeck } from "@/entities/deck/model/types";
 
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";

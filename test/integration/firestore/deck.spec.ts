@@ -4,6 +4,7 @@
  */
 
 import type { Deck, DeckCreateInput } from "@/entities/deck";
+import type { RemoteDeck } from "@/entities/deck/model/types";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
@@ -16,7 +17,7 @@ import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
 const uuid = Uuid.v4;
 
-const toFirestoreDeck = ({ localMode: _localMode, ...deck }: Deck): Omit<Deck, "localMode"> => deck;
+const toFirestoreDeck = ({ localMode: _localMode, ...deck }: RemoteDeck) => ({ ...deck, deletedAt: null });
 
 vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn() }));
 vi.mock("@/shared/firebase", async () => ({

@@ -1,4 +1,4 @@
-import type { Deck, DeckEdit } from "@/entities/deck";
+import type { DeckDomain, DeckEdit } from "@/entities/deck";
 import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +10,7 @@ import type { DeckFormProps } from "../ui/DeckForm";
 type DeckFormValues = z.infer<typeof deckFormSchema>;
 
 interface UseDeckFormStateOptions {
-  deck: Deck;
+  deck: DeckDomain;
   onCancel: () => void;
   onSubmit: (deck: DeckEdit) => Promise<void>;
 }

@@ -6,8 +6,7 @@
 
 import type { RemoteCard } from "@/entities/card";
 import type { LocalCard } from "@/entities/card/model/types";
-import type { RemoteDeck } from "@/entities/deck";
-import type { LocalDeck } from "@/entities/deck/model/types";
+import type { LocalDeck, RemoteDeck } from "@/entities/deck/model/types";
 import type { Preferences } from "@/entities/preferences";
 
 type AppearancePreferences = Preferences["appearance"];
@@ -27,7 +26,6 @@ export const createDeck = (overrides: Partial<RemoteDeck> = {}): RemoteDeck => (
   isPublic: false,
   createdAt: 0,
   updatedAt: 0,
-  deletedAt: null,
   scoreMax: null,
   scoreMin: null,
   selectedTags: [],
@@ -44,7 +42,6 @@ export const createLocalDeck = (overrides: Partial<LocalDeck> = {}): LocalDeck =
   isPublic: false,
   createdAt: 0,
   updatedAt: 0,
-  deletedAt: null,
   scoreMax: null,
   scoreMin: null,
   selectedTags: [],

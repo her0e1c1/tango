@@ -1,7 +1,8 @@
 import type { Card } from "@/entities/card/@x/deck";
 import { createStudyProgressFromCard, isStudyProgressEligible } from "@/entities/study-progress/@x/deck";
 
-import type { Category, Deck, DeckId } from "./types";
+import { deckViewSchema } from "./schema";
+import type { Category, Deck, DeckId, DeckStore, DeckView } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -51,6 +52,9 @@ export const getCategory = (category: Category, tags: string[]): Category => {
 
   return tagCategory ?? category;
 };
+
+/** Keep ownership and persistence metadata inside the store boundary. */
+export const toDeckView = (deck: DeckStore): DeckView => deckViewSchema.parse(deck);
 
 const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
   const tags = deck.selectedTags;
