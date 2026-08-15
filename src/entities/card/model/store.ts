@@ -2,16 +2,22 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
-import { cardCreateSchema, cardEditSchema, cardIdSchema, cardSchema, persistedCardSchema } from "./schema";
-import type { Card, CardCreateInput, CardEdit, CardId } from "./types";
+import {
+  cardIdSchema,
+  localCardCreateSchema,
+  localCardEditSchema,
+  localCardSchema,
+  persistedCardSchema,
+} from "./schema";
+import type { Card, CardId, LocalCard, LocalCardCreateInput, LocalCardEdit, RemoteCard } from "./types";
 
 interface CardState {
-  remoteCards: Card[];
-  localCards: Card[];
+  remoteCards: RemoteCard[];
+  localCards: LocalCard[];
 }
 
 interface PersistedCardState {
-  localCards: Card[];
+  localCards: LocalCard[];
 }
 
 interface CreateCardStoreOptions {
@@ -34,7 +40,6 @@ const createCardStore = ({ storage, skipHydration }: CreateCardStoreOptions = {}
       version: 1,
       ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
       ...(skipHydration !== undefined ? { skipHydration } : {}),
-      migrate: parsePersistedCardState,
       merge: (persistedState, currentState) => ({
         ...currentState,
         ...parsePersistedCardState(persistedState),
@@ -46,7 +51,7 @@ const createCardStore = ({ storage, skipHydration }: CreateCardStoreOptions = {}
 
 export const cardStore = createCardStore();
 
-export const replaceRemoteCards = (remoteCards: Card[]): void => {
+export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
   cardStore.setState({ remoteCards });
 };
 
@@ -60,22 +65,22 @@ export const findCardById = (id: CardId): Card | undefined => {
   return state.remoteCards.find((card) => card.id === cardId) ?? state.localCards.find((card) => card.id === cardId);
 };
 
-export const createLocalCard = (input: CardCreateInput): Card => {
-  const card = cardCreateSchema.parse(input);
+export const createLocalCard = (input: LocalCardCreateInput): LocalCard => {
+  const card = localCardCreateSchema.parse(input);
   const timestamp = Date.now();
-  const createdCard = cardSchema.parse({ ...card, createdAt: timestamp, updatedAt: timestamp });
+  const createdCard = localCardSchema.parse({ ...card, createdAt: timestamp, updatedAt: timestamp });
   const localCards = cardStore.getState().localCards.filter(({ id }) => id !== createdCard.id);
   cardStore.setState({ localCards: [...localCards, createdCard] });
   return createdCard;
 };
 
-export const editLocalCard = (input: CardEdit): Card => {
-  const edit = cardEditSchema.parse(input);
+export const editLocalCard = (input: LocalCardEdit): LocalCard => {
+  const edit = localCardEditSchema.parse(input);
   const localCards = cardStore.getState().localCards;
   const currentCard = localCards.find(({ id }) => id === edit.id);
   if (currentCard === undefined) throw new Error(`Local Card "${edit.id}" was not found`);
 
-  const updatedCard = cardSchema.parse({ ...currentCard, ...edit, updatedAt: Date.now() });
+  const updatedCard = localCardSchema.parse({ ...currentCard, ...edit, updatedAt: Date.now() });
   cardStore.setState({ localCards: localCards.map((card) => (card.id === updatedCard.id ? updatedCard : card)) });
   return updatedCard;
 };

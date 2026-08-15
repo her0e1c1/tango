@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
-import { createCard } from "@/test/factories";
+import { createCard, createLocalCard as createLocalCardFixture } from "@/test/factories";
 import { useCard, useCards, useCardsByDeckId } from "./hooks";
 import {
   cardStore,
@@ -17,7 +17,6 @@ import {
 const cardInput = (id: string, deckId = "deck") => ({
   id,
   deckId,
-  uid: "uid",
   frontText: "front",
   backText: "back",
   tags: [],
@@ -48,7 +47,7 @@ describe("Card store", () => {
 
   it("replaces and clears only the remote Card collection", () => {
     const remoteCard = createCard({ id: "remote" });
-    const localCard = createCard({ id: "local" });
+    const localCard = createLocalCardFixture({ id: "local" });
     cardStore.setState({ localCards: [localCard] });
 
     replaceRemoteCards([remoteCard]);
@@ -60,7 +59,7 @@ describe("Card store", () => {
 
   it("exposes combined collection and individual Card selectors", () => {
     const remoteCard = createCard({ id: "remote" });
-    const localCard = createCard({ id: "local" });
+    const localCard = createLocalCardFixture({ id: "local" });
     cardStore.setState({ remoteCards: [remoteCard], localCards: [localCard] });
 
     expect(renderHook(useCards).result.current).toEqual([remoteCard, localCard]);
@@ -71,7 +70,7 @@ describe("Card store", () => {
 
   it("selects cards and tags for a deck", () => {
     const remoteCard = createCard({ id: "remote", deckId: "deck-a", tags: ["verb", "n5"] });
-    const localCard = createCard({ id: "local", deckId: "deck-a", tags: ["n5", "kanji"] });
+    const localCard = createLocalCardFixture({ id: "local", deckId: "deck-a", tags: ["n5", "kanji"] });
     const otherCard = createCard({ id: "other", deckId: "deck-b", tags: ["other"] });
     cardStore.setState({ remoteCards: [remoteCard, otherCard], localCards: [localCard] });
 
@@ -84,7 +83,7 @@ describe("Card store", () => {
   it("persists only local Cards and restores dates after hydration", async () => {
     const storage = useMemoryStorage();
     const remoteCard = createCard({ id: "remote" });
-    const localCard = createCard({ id: "local", nextSeeingAt: new Date(1_000) });
+    const localCard = createLocalCardFixture({ id: "local", nextSeeingAt: new Date(1_000) });
     cardStore.setState({ remoteCards: [remoteCard], localCards: [localCard] });
 
     const persistedValue = (await storage.getItem("tango-local-cards")) ?? "{}";
@@ -97,6 +96,23 @@ describe("Card store", () => {
     useMemoryStorage({ "tango-local-cards": persistedValue });
     await cardStore.persist.rehydrate();
     expect(cardStore.getState()).toEqual({ remoteCards: [], localCards: [localCard] });
+  });
+
+  it("hydrates version 1 local Cards without retaining a UID", async () => {
+    const localCard = createLocalCardFixture({ id: "persisted-local", nextSeeingAt: new Date(1_000) });
+    useMemoryStorage({
+      "tango-local-cards": JSON.stringify({
+        state: {
+          localCards: [{ ...localCard, uid: "previous-user", nextSeeingAt: localCard.nextSeeingAt?.toISOString() }],
+        },
+        version: 1,
+      }),
+    });
+
+    await cardStore.persist.rehydrate();
+
+    expect(cardStore.getState().localCards).toEqual([localCard]);
+    expect(cardStore.getState().localCards[0]).not.toHaveProperty("uid");
   });
 
   it("rejects invalid persisted Cards", async () => {
@@ -118,7 +134,9 @@ describe("Card store", () => {
 
     expect(createdCard).toEqual(expect.objectContaining({ id: "local", createdAt: 10, updatedAt: 10 }));
 
-    const updatedCard = editLocalCard({ id: "local", uid: "uid", frontText: "updated" });
+    expect(createdCard).not.toHaveProperty("uid");
+
+    const updatedCard = editLocalCard({ id: "local", frontText: "updated" });
     expect(updatedCard).toEqual(expect.objectContaining({ frontText: "updated", createdAt: 10, updatedAt: 20 }));
 
     deleteLocalCard("local");

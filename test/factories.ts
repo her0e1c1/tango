@@ -4,8 +4,10 @@
  * objects.
  */
 
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import type { RemoteCard } from "@/entities/card";
+import type { LocalCard } from "@/entities/card/model/types";
+import type { RemoteDeck } from "@/entities/deck";
+import type { LocalDeck } from "@/entities/deck/model/types";
 import type { Preferences, StudyPreferences, SwipeAction } from "@/entities/preferences";
 
 type AppearancePreferences = Preferences["appearance"];
@@ -15,7 +17,7 @@ type ControlPreferences = Preferences["controls"];
  * Builds a complete test deck with predictable defaults and optional field overrides.
  * Tests can describe only the deck fields relevant to their scenario.
  */
-export const createDeck = (overrides: Partial<Deck> = {}): Deck => ({
+export const createDeck = (overrides: Partial<RemoteDeck> = {}): RemoteDeck => ({
   id: "deck-id",
   uid: "user-id",
   localMode: false,
@@ -33,14 +35,46 @@ export const createDeck = (overrides: Partial<Deck> = {}): Deck => ({
   ...overrides,
 });
 
+export const createLocalDeck = (overrides: Partial<LocalDeck> = {}): LocalDeck => ({
+  id: "local-deck-id",
+  localMode: true,
+  name: "Local Deck",
+  isPublic: false,
+  createdAt: 0,
+  updatedAt: 0,
+  deletedAt: null,
+  scoreMax: null,
+  scoreMin: null,
+  selectedTags: [],
+  tagAndFilter: false,
+  category: "",
+  convertToBr: false,
+  ...overrides,
+});
+
 /**
  * Builds a complete test card with predictable defaults and optional field overrides.
  * Tests can describe only the card fields relevant to their scenario.
  */
-export const createCard = (overrides: Partial<Card> = {}): Card => ({
+export const createCard = (overrides: Partial<RemoteCard> = {}): RemoteCard => ({
   id: "card-id",
   deckId: "deck-id",
   uid: "user-id",
+  frontText: "front",
+  backText: "back",
+  tags: [],
+  uniqueKey: "unique-key",
+  createdAt: 0,
+  updatedAt: 0,
+  deletedAt: null,
+  score: 0,
+  numberOfSeen: 0,
+  ...overrides,
+});
+
+export const createLocalCard = (overrides: Partial<LocalCard> = {}): LocalCard => ({
+  id: "local-card-id",
+  deckId: "local-deck-id",
   frontText: "front",
   backText: "back",
   tags: [],

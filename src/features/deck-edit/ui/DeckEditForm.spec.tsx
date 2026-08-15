@@ -48,7 +48,7 @@ describe("DeckEditForm", () => {
 
     await waitFor(() =>
       expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
-        ...deck,
+        id: deck.id,
         name: "Updated deck",
         url: "https://example.com/deck.csv",
         convertToBr: true,

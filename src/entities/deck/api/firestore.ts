@@ -1,11 +1,11 @@
 import type {
-  Deck,
   DeckCreate,
   DeckCreateInput,
   DeckEdit,
   DeckId,
   DeleteDeckInput,
   EditDeckInput,
+  RemoteDeck,
 } from "../model/types";
 
 import {
@@ -49,9 +49,9 @@ const deckDtoSchema = z.object({
   convertToBr: z.boolean(),
 });
 
-const convertDeckDtoToDeck = (id: DeckId, value: unknown): Deck => {
+const convertDeckDtoToDeck = (id: DeckId, value: unknown): RemoteDeck => {
   const dto = parseFirestoreDocument(deckDtoSchema, "deck", id, value);
-  const deck: Deck = { ...dto, id, localMode: false };
+  const deck: RemoteDeck = { ...dto, id, localMode: false };
   if (dto.url === undefined) delete deck.url;
   return deck;
 };
@@ -72,7 +72,7 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     onError
   );
 
-export const fetchDecks = async (uid: string): Promise<Deck[]> => {
+export const fetchDecks = async (uid: string): Promise<RemoteDeck[]> => {
   const snapshot = await getDocsFromServer(query(collection(db, DECK_COLLECTION), where("uid", "==", uid)));
   return snapshot.docs
     .map((document) => convertDeckDtoToDeck(document.id, document.data()))

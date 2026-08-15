@@ -6,8 +6,9 @@ export { useCard, useCards, useCardsByDeckId } from "./model/hooks";
 export { clearRemoteCards } from "./model/store";
 export type {
   Card,
-  CardEdit,
+  CardEditInput,
   CardId,
   CardRaw,
+  RemoteCard,
 } from "./model/types";
 export { filterCardsByDeckId, mustFindCardById } from "./model/rules";

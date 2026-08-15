@@ -1,6 +1,7 @@
-import type { CardCreateInput, CardEdit, CardId, DeleteCardInput, EditCardInput } from "../model/types";
+import type { CardCreateInput, CardEditInput, CardId, LocalCardCreateInput, RemoteCard } from "../model/types";
 
 import { findDeckById } from "@/entities/deck/@x/card";
+import { cardCreateSchema } from "../model/schema";
 import { createLocalCard, deleteLocalCard, editLocalCard, findCardById } from "../model/store";
 import {
   createCard as createRemoteCard,
@@ -8,7 +9,9 @@ import {
   editCard as editRemoteCard,
 } from "./firestore";
 
-export type CardMutation = { kind: "create"; card: CardCreateInput } | { kind: "edit"; card: CardEdit };
+type CardMutationCreateInput = CardCreateInput | LocalCardCreateInput;
+
+export type CardMutation = { kind: "create"; card: CardMutationCreateInput } | { kind: "edit"; card: CardEditInput };
 
 export class CardBulkMutationError extends Error {
   constructor(
@@ -34,21 +37,29 @@ const requireLocalMode = (deckId: string): boolean => {
   return deck.localMode;
 };
 
-const createCard = async (uid: string, card: CardCreateInput): Promise<void> => {
+const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput =>
+  "uid" in card ? card : cardCreateSchema.parse(card);
+
+const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
   if (isLocalDeck(card.deckId)) {
     createLocalCard(card);
     return;
   }
-  await createRemoteCard(uid, card);
+  await createRemoteCard(uid, requireRemoteCardCreate(card));
 };
 
-export const editCard = async (uid: string, card: EditCardInput["card"]): Promise<void> => {
+const requireRemoteCard = (card: ReturnType<typeof requireCard>): RemoteCard => {
+  if (!("uid" in card)) throw new Error(`Card "${card.id}" is not owned by a remote Deck`);
+  return card;
+};
+
+export const editCard = async (uid: string, card: CardEditInput): Promise<void> => {
   const currentCard = requireCard(card.id);
   if (requireLocalMode(currentCard.deckId)) {
     editLocalCard(card);
     return;
   }
-  await editRemoteCard(uid, card);
+  await editRemoteCard(uid, { ...card, uid: requireRemoteCard(currentCard).uid });
 };
 
 export const mutateCards = async (uid: string, mutations: CardMutation[]): Promise<void> => {
@@ -64,11 +75,11 @@ export const mutateCards = async (uid: string, mutations: CardMutation[]): Promi
   if (failedIds.length > 0) throw new CardBulkMutationError(failedIds, mutations.length);
 };
 
-export const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Promise<void> => {
+export const deleteCard = async (uid: string, card: { id: CardId }): Promise<void> => {
   const currentCard = requireCard(card.id);
   if (requireLocalMode(currentCard.deckId)) {
     deleteLocalCard(card.id);
     return;
   }
-  await deleteRemoteCard(uid, card);
+  await deleteRemoteCard(uid, { id: card.id, uid: requireRemoteCard(currentCard).uid });
 };

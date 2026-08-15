@@ -1,4 +1,4 @@
-import type { Card, CardEdit } from "@/entities/card";
+import type { Card, CardEditInput } from "@/entities/card";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -11,7 +11,7 @@ interface UseCardFormStateOptions {
   card: Card;
   categoryOptions: Option[];
   onCancel: () => void;
-  onSubmit: (card: CardEdit) => Promise<void>;
+  onSubmit: (card: CardEditInput) => Promise<void>;
 }
 
 export const useCardFormState = ({
@@ -46,6 +46,6 @@ export const useCardFormState = ({
     },
     isSubmitting: formState.isSubmitting,
     onCancel,
-    onSubmit: handleSubmit((values) => onSubmit({ id: card.id, uid: card.uid, ...values })),
+    onSubmit: handleSubmit((values) => onSubmit({ id: card.id, ...values })),
   };
 };

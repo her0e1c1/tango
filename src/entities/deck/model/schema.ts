@@ -16,10 +16,8 @@ const editableDeckFieldsSchema = z.object({
   convertToBr: z.boolean(),
 });
 
-export const deckCreateSchema = editableDeckFieldsSchema.extend({
+const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
-  uid: deckUidSchema,
-  localMode: z.boolean().default(false),
   isPublic: editableDeckFieldsSchema.shape.isPublic.default(false),
   scoreMax: editableDeckFieldsSchema.shape.scoreMax.default(null),
   scoreMin: editableDeckFieldsSchema.shape.scoreMin.default(null),
@@ -30,14 +28,24 @@ export const deckCreateSchema = editableDeckFieldsSchema.extend({
   deletedAt: z.number().nullable().default(null),
 });
 
-export const deckSchema = deckCreateSchema.extend({
+export const deckCreateSchema = deckCreateFieldsSchema.extend({
+  uid: deckUidSchema,
+  localMode: z.literal(false).default(false),
+});
+
+export const localDeckCreateSchema = deckCreateFieldsSchema.extend({ localMode: z.literal(true) });
+
+export const remoteDeckSchema = deckCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
 });
 
-export const localDeckCreateSchema = deckCreateSchema.extend({ localMode: z.literal(true) });
-export const localDeckSchema = deckSchema.extend({ localMode: z.literal(true) });
-const remoteDeckCreateSchema = deckCreateSchema.extend({ localMode: z.literal(false).default(false) });
+export const localDeckSchema = localDeckCreateSchema.extend({
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
+export const deckSchema = z.discriminatedUnion("localMode", [remoteDeckSchema, localDeckSchema]);
 
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({ id: deckIdSchema });
 const deckIdentitySchema = z.object({ id: deckIdSchema, uid: deckUidSchema });
@@ -53,7 +61,7 @@ const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, contex
 };
 
 export const createDeckSchema = z
-  .object({ uid: authenticatedUidSchema, deck: remoteDeckCreateSchema })
+  .object({ uid: authenticatedUidSchema, deck: deckCreateSchema })
   .superRefine(validateDeckOwner);
 
 export const editDeckSchema = z.object({

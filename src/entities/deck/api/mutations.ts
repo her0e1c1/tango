@@ -1,4 +1,4 @@
-import type { DeckCreateInput, DeckId, DeleteDeckInput, EditDeckInput } from "../model/types";
+import type { DeckCreateInput, DeckId, EditDeckInput, LocalDeckCreateInput } from "../model/types";
 
 import { deleteLocalCardsByDeckId } from "@/entities/card/@x/deck";
 import { createLocalDeck, deleteLocalDeck, editLocalDeck, findDeckById } from "../model/store";
@@ -14,7 +14,7 @@ const requireDeck = (id: DeckId) => {
   return deck;
 };
 
-export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<void> => {
+export const createDeck = async (uid: string, deck: DeckCreateInput | LocalDeckCreateInput): Promise<void> => {
   if (deck.localMode === true) {
     createLocalDeck({ ...deck, localMode: true });
     return;
@@ -30,11 +30,12 @@ export const editDeck = async (uid: string, deck: EditDeckInput["deck"]): Promis
   await editRemoteDeck(uid, deck);
 };
 
-export const deleteDeck = async (uid: string, deck: DeleteDeckInput["deck"]): Promise<void> => {
-  if (requireDeck(deck.id).localMode) {
+export const deleteDeck = async (uid: string, deck: { id: DeckId }): Promise<void> => {
+  const currentDeck = requireDeck(deck.id);
+  if (currentDeck.localMode) {
     deleteLocalCardsByDeckId(deck.id);
     deleteLocalDeck(deck.id);
     return;
   }
-  await deleteRemoteDeck(uid, deck);
+  await deleteRemoteDeck(uid, { id: deck.id, uid: currentDeck.uid });
 };

@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard as createCardFixture, createDeck as createDeckFixture } from "@/test/factories";
+import {
+  createCard as createCardFixture,
+  createDeck as createDeckFixture,
+  createLocalCard,
+  createLocalDeck,
+} from "@/test/factories";
 
 import { type CardBulkMutationError, type CardMutation, deleteCard, editCard, mutateCards } from "./mutations";
 import { cardStore, findCardById } from "../model/store";
@@ -29,12 +34,12 @@ describe("Card mutations", () => {
   });
 
   it("routes Card create, edit, and delete by its local parent Deck", async () => {
-    const deck = createDeckFixture({ id: "local-deck", localMode: true });
-    const card = createCardFixture({ id: "local-card", deckId: deck.id });
+    const deck = createLocalDeck({ id: "local-deck" });
+    const card = createLocalCard({ id: "local-card", deckId: deck.id });
     mocks.findDeckById.mockReturnValue(deck);
 
     await mutateCards("", [{ kind: "create", card }]);
-    await editCard("", { id: card.id, uid: card.uid, frontText: "Updated" });
+    await editCard("", { id: card.id, frontText: "Updated" });
 
     expect(findCardById(card.id)).toMatchObject({ id: card.id, frontText: "Updated" });
     expect(mocks.createRemoteCard).not.toHaveBeenCalled();
@@ -49,7 +54,7 @@ describe("Card mutations", () => {
   it("preserves remote Card mutation behavior", async () => {
     const deck = createDeckFixture({ id: "remote-deck", localMode: false });
     const card = createCardFixture({ id: "remote-card", deckId: deck.id });
-    const edit = { id: card.id, uid: card.uid, frontText: "Updated" };
+    const edit = { id: card.id, frontText: "Updated" };
     mocks.findDeckById.mockReturnValue(deck);
     cardStore.setState({ remoteCards: [card] });
 
@@ -58,8 +63,20 @@ describe("Card mutations", () => {
     await deleteCard("uid", card);
 
     expect(mocks.createRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", card);
-    expect(mocks.editRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", edit);
-    expect(mocks.deleteRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", card);
+    expect(mocks.editRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", { ...edit, uid: card.uid });
+    expect(mocks.deleteRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", { id: card.id, uid: card.uid });
+  });
+
+  it("rejects a remote Card create without an owner UID", async () => {
+    const deck = createDeckFixture({ id: "remote-deck", localMode: false });
+    const card = createLocalCard({ id: "ownerless-card", deckId: deck.id });
+    mocks.findDeckById.mockReturnValue(deck);
+
+    await expect(mutateCards("uid", [{ kind: "create", card }])).rejects.toMatchObject({
+      failedIds: [card.id],
+    });
+
+    expect(mocks.createRemoteCard).not.toHaveBeenCalled();
   });
 
   it("executes each explicit Card mutation through the existing routing", async () => {
@@ -102,7 +119,7 @@ describe("Card mutations", () => {
   it("rejects edit and delete when the Card cannot be resolved", async () => {
     const card = createCardFixture({ id: "missing" });
 
-    await expect(editCard("uid", { id: card.id, uid: card.uid, frontText: "Updated" })).rejects.toThrow(
+    await expect(editCard("uid", { id: card.id, frontText: "Updated" })).rejects.toThrow(
       'Card "missing" was not found'
     );
     await expect(deleteCard("uid", card)).rejects.toThrow('Card "missing" was not found');
@@ -115,7 +132,7 @@ describe("Card mutations", () => {
     const card = createCardFixture({ id: "orphan", deckId: "missing-deck" });
     cardStore.setState({ remoteCards: [card] });
 
-    await expect(editCard("uid", { id: card.id, uid: card.uid, frontText: "Updated" })).rejects.toThrow(
+    await expect(editCard("uid", { id: card.id, frontText: "Updated" })).rejects.toThrow(
       'Deck "missing-deck" was not found'
     );
     await expect(deleteCard("uid", card)).rejects.toThrow('Deck "missing-deck" was not found');
