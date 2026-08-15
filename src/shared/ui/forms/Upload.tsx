@@ -39,7 +39,7 @@ export const Upload: React.FC<{
         disabled={props.disabled}
         onChange={(e) => {
           if (e.target.files != null) {
-            const file = e.target.files[0];
+            const [file] = e.target.files;
             if (file != null) {
               props.onChange?.(file);
             }

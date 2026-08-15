@@ -122,7 +122,12 @@ describe("DestructiveActionDialog", () => {
   });
 
   it("prevents duplicate confirmation before pending props update", () => {
-    const onConfirm = vi.fn(() => new Promise<void>(() => {}));
+    const onConfirm = vi.fn(
+      () =>
+        new Promise<void>(() => {
+          // This promise intentionally remains pending to exercise duplicate-submit protection.
+        })
+    );
     render(<DestructiveActionDialog {...defaultProps} onConfirm={onConfirm} />);
     const confirm = screen.getByRole("button", { name: "Delete deck" });
 

@@ -70,7 +70,7 @@ export const createLocalDeck = (input: LocalDeckCreateInput): LocalDeck => {
 
 export const editLocalDeck = (input: DeckEdit): LocalDeck => {
   const edit = deckEditSchema.parse(input);
-  const localDecks = deckStore.getState().localDecks;
+  const { localDecks } = deckStore.getState();
   const currentDeck = localDecks.find(({ id }) => id === edit.id);
   if (currentDeck === undefined) throw new Error(`Local Deck "${edit.id}" was not found`);
 

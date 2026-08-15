@@ -67,7 +67,7 @@ export const Default: Story = {};
 
 export const HoverHighlight: Story = {
   play: async ({ canvas, userEvent }) => {
-    const firstDeck = canvas.getAllByRole("button", { name: /^View / })[0];
+    const [firstDeck] = canvas.getAllByRole("button", { name: /^View / });
     if (firstDeck == null) throw new Error("HoverHighlight requires at least one deck");
     await userEvent.hover(firstDeck);
   },

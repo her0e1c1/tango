@@ -47,7 +47,7 @@ export const DeckStartPage: React.FC = () => {
   const params = useParams();
   const navigate = useNavigate();
   const deckId = params.id;
-  if (deckId == null) throw Error("invalid deck id");
+  if (deckId == null) throw new Error("invalid deck id");
   const preferences = usePreferences();
   const deck = useDeck(deckId);
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);

@@ -131,11 +131,13 @@ describe("DeckActionsMenu", () => {
       fireEvent.click(trigger);
       const download = screen.getByRole("menuitem", { name: "Download" });
       const item = screen.getByRole("menuitem", { name: label });
+      // biome-ignore lint/performance/noAwaitInLoops: Each action reuses the same controlled menu and must finish in order.
       await waitFor(() => expect(download).toHaveFocus());
 
       await actAsync(async () => {
         download.blur();
         item.focus();
+        await Promise.resolve();
       });
       fireEvent.click(item);
 
@@ -160,6 +162,7 @@ describe("DeckActionsMenu", () => {
     await actAsync(async () => {
       download.blur();
       externalTarget.focus();
+      await Promise.resolve();
     });
 
     await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());

@@ -317,7 +317,11 @@ describe("useDeckImport", () => {
 
   it("rejects a second import while the first is pending", async () => {
     let finish!: () => void;
-    mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
+    mocks.bulkUpsert.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      })
+    );
     const { result } = renderHook(useTestDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
@@ -439,7 +443,11 @@ describe("useDeckImport", () => {
 
   it("ignores completion from an old UID operation", async () => {
     let finishOld!: () => void;
-    mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finishOld = resolve)));
+    mocks.bulkUpsert.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishOld = resolve;
+      })
+    );
     const { result, rerender } = renderHook(useTestDeckImport);
 
     let oldOperation!: Promise<DeckImportResult>;
@@ -460,7 +468,11 @@ describe("useDeckImport", () => {
 
   it("does not write a slow URL import after the initiating UID changes", async () => {
     let finishFetch!: (response: Response) => void;
-    vi.spyOn(globalThis, "fetch").mockReturnValueOnce(new Promise<Response>((resolve) => (finishFetch = resolve)));
+    vi.spyOn(globalThis, "fetch").mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        finishFetch = resolve;
+      })
+    );
     const { result, rerender } = renderHook(useTestDeckImport);
 
     const operation = result.current.importUrl("https://example.test/deck.csv");
@@ -480,7 +492,11 @@ describe("useDeckImport", () => {
   it("does not write when the UID changes during server-backed preparation", async () => {
     let finishServerRead!: (decks: Deck[]) => void;
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response('"front","back","","key"'));
-    mocks.fetchDecks.mockReturnValueOnce(new Promise<Deck[]>((resolve) => (finishServerRead = resolve)));
+    mocks.fetchDecks.mockReturnValueOnce(
+      new Promise<Deck[]>((resolve) => {
+        finishServerRead = resolve;
+      })
+    );
     const { result, rerender } = renderHook(useTestDeckImport);
 
     const operation = result.current.importUrl("https://example.test/deck.csv");
@@ -558,7 +574,11 @@ describe("useDeckImport", () => {
 
   it("does not resurrect import running state after an A-to-B-to-A UID transition", async () => {
     let finish!: () => void;
-    mocks.bulkUpsert.mockReturnValueOnce(new Promise<void>((resolve) => (finish = resolve)));
+    mocks.bulkUpsert.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      })
+    );
     const { result, rerender } = renderHook(useTestDeckImport);
 
     let operation!: Promise<DeckImportResult>;

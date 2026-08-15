@@ -33,12 +33,14 @@ export const useDeckFilterState = ({ deck, tags }: UseDeckFilterStateOptions): D
   const selectedTags = useWatch({ control, name: "selectedTags" });
   const tagAndFilter = useWatch({ control, name: "tagAndFilter" });
 
-  React.useEffect(() => {
-    return subscribe({
-      formState: { values: true },
-      callback: () => void handleSubmit((data) => editDeck(uid, data).catch(() => undefined))(),
-    });
-  }, [handleSubmit, subscribe, uid]);
+  React.useEffect(
+    () =>
+      subscribe({
+        formState: { values: true },
+        callback: () => void handleSubmit((data) => editDeck(uid, data).catch(() => undefined))(),
+      }),
+    [handleSubmit, subscribe, uid]
+  );
 
   const onClickFilter = (value: boolean) => {
     setValue("tagAndFilter", value);

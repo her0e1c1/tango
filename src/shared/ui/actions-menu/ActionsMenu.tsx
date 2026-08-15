@@ -149,6 +149,7 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
   const isOpen = props.open && !props.disabled;
 
   return (
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: The fieldset observes focus leaving its composite menu.
     <fieldset aria-label={props.groupLabel} className="relative min-w-0 shrink-0 border-0 p-0" onBlur={handleBlur}>
       <button
         type="button"

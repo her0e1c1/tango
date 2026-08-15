@@ -67,8 +67,9 @@ export const getNextStudyAvailabilityAt = (progresses: StudyProgress[], now: num
   let next: number | undefined;
   for (const progress of progresses) {
     const candidate = progress.nextSeeingAt?.getTime();
-    if (candidate === undefined || candidate <= now || (next !== undefined && candidate >= next)) continue;
-    next = candidate;
+    if (candidate !== undefined && candidate > now && (next === undefined || candidate < next)) {
+      next = candidate;
+    }
   }
   return next;
 };

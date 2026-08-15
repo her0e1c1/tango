@@ -45,7 +45,7 @@ const studiedText = (count: number) => {
 export const Card: React.FC<{ className?: string; card: CardEntity } & CardActionsProps & CardRowMenuProps> = (
   props
 ) => {
-  const id = props.card.id;
+  const { id } = props.card;
   const disabled = Boolean(props.disabled);
   const suppressViewClick = React.useRef(false);
   const suppressViewClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -127,7 +127,7 @@ export const Card: React.FC<{ className?: string; card: CardEntity } & CardActio
           aria-label={`View ${props.card.frontText}`}
           className="absolute inset-0 z-10 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed"
           onClick={() => {
-            if (!disabled && !suppressViewClick.current) props.goToView?.(id);
+            if (!(disabled || suppressViewClick.current)) props.goToView?.(id);
           }}
         />
         <span className="w-full truncate px-1 text-body font-semibold text-ink">{props.card.frontText}</span>

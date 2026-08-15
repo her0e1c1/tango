@@ -33,7 +33,7 @@ export const Controller: React.FC<ControllerProps> = (props) => {
             disabled={index === numberOfCards}
             value={String(index)}
             onChange={(e) => {
-              props.onChange?.(parseInt(e.target.value, 10));
+              props.onChange?.(Number.parseInt(e.target.value, 10));
             }}
           />
         </div>

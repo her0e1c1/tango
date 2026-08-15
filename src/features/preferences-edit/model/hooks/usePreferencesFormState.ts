@@ -15,12 +15,14 @@ export const usePreferencesFormState = ({ preferences, onSubmit }: UsePreference
   const maxNumberOfCardsToLearn = useWatch({ control, name: "study.maxNumberOfCardsToLearn" });
   const cardInterval = useWatch({ control, name: "study.cardInterval" });
 
-  React.useEffect(() => {
-    return subscribe({
-      formState: { values: true },
-      callback: () => void handleSubmit((data) => onSubmit?.(data))(),
-    });
-  }, [handleSubmit, onSubmit, subscribe]);
+  React.useEffect(
+    () =>
+      subscribe({
+        formState: { values: true },
+        callback: () => void handleSubmit((data) => onSubmit?.(data))(),
+      }),
+    [handleSubmit, onSubmit, subscribe]
+  );
 
   React.useEffect(() => {
     setValue("appearance.darkMode", preferences.appearance.darkMode);

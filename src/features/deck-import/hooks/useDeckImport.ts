@@ -102,9 +102,9 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
       const result = await executePreparedDeckImport(attempt, dependencies);
       publish(target, { data: result });
       return result;
-    } catch (error) {
-      publish(target, { data: undefined, error });
-      throw error;
+    } catch (importError) {
+      publish(target, { data: undefined, error: importError });
+      throw importError;
     } finally {
       if (isCurrent(target)) {
         target.running = false;
@@ -149,9 +149,9 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
       target.previewAttempt = attempt;
       publish(target, { preview });
       return preview;
-    } catch (previewError) {
-      publish(target, { previewError });
-      throw previewError;
+    } catch (caughtPreviewError) {
+      publish(target, { previewError: caughtPreviewError });
+      throw caughtPreviewError;
     } finally {
       publish(target, { validating: false });
     }

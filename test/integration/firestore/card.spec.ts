@@ -16,10 +16,10 @@ import { replaceRemoteCards } from "@/entities/card/model/store";
 import { replaceRemoteDecks } from "@/entities/deck/model/store";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
-import * as UUID from "uuid";
+import * as Uuid from "uuid";
 import { createCard, createDeck } from "@/test/factories";
 
-const uuid = UUID.v4;
+const uuid = Uuid.v4;
 
 vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn() }));
 vi.mock("@/shared/firebase", async () => ({
@@ -38,7 +38,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     deletedAt: null,
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     (getCurrentTimeMillis as Mock).mockReturnValue(timestamp);
   });
 

@@ -49,7 +49,7 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
 
   const confirmDeletion = async () => {
     if (deletionTarget == null) return;
-    const deck = deletionTarget.deck;
+    const { deck } = deletionTarget;
     setDeletionErrorDeckId(undefined);
     try {
       await props.onDeleteDeck(deck);

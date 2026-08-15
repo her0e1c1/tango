@@ -58,7 +58,7 @@ describe("mustFindDeckById", () => {
 });
 
 describe("filterCardsForDeck", () => {
-  const now = 1_000;
+  const now = 1000;
   const makeCard = (overrides: Parameters<typeof createCard>[0]) => createSelectableStudyCard(createCard(overrides));
   const baseDeck = createDeck({ selectedTags: [], tagAndFilter: false, scoreMax: null, scoreMin: null });
   const basePreferences = { useCardInterval: false };

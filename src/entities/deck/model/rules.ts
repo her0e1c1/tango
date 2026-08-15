@@ -100,7 +100,7 @@ export const filterCardsForDeck = <TCard extends Card>(
   });
 
 export const mustFindDeckById = (decks: readonly Deck[], id: DeckId): Deck => {
-  const deck = decks.find((deck) => deck.id === id);
+  const deck = decks.find((candidate) => candidate.id === id);
 
   if (deck == null) throw new Error(`Deck not found: ${id}`);
 

@@ -25,36 +25,34 @@ export interface SwipeButtonListProps {
   onClickRight?: () => void;
 }
 
-export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => {
-  return (
-    <div className="flex">
-      {directions.map((d) => (
-        <button
-          type="button"
-          aria-label={labels[d]}
-          key={d}
-          className="flex-1 items-center content-center hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-          disabled={props.disabled}
-          onClick={() => {
-            if (d === "cardSwipeUp") {
-              props.onClickUp?.();
-            } else if (d === "cardSwipeDown") {
-              props.onClickDown?.();
-            } else if (d === "cardSwipeLeft") {
-              props.onClickLeft?.();
-            } else {
-              props.onClickRight?.();
-            }
-          }}
-        >
-          <span className="flex justify-center text-4xl lg:text-6xl">
-            {(() => {
-              const Icon = icons[d];
-              return <Icon />;
-            })()}
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-};
+export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => (
+  <div className="flex">
+    {directions.map((d) => (
+      <button
+        type="button"
+        aria-label={labels[d]}
+        key={d}
+        className="flex-1 items-center content-center hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        disabled={props.disabled}
+        onClick={() => {
+          if (d === "cardSwipeUp") {
+            props.onClickUp?.();
+          } else if (d === "cardSwipeDown") {
+            props.onClickDown?.();
+          } else if (d === "cardSwipeLeft") {
+            props.onClickLeft?.();
+          } else {
+            props.onClickRight?.();
+          }
+        }}
+      >
+        <span className="flex justify-center text-4xl lg:text-6xl">
+          {(() => {
+            const Icon = icons[d];
+            return <Icon />;
+          })()}
+        </span>
+      </button>
+    ))}
+  </div>
+);

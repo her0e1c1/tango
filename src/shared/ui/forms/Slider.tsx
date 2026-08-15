@@ -39,30 +39,28 @@ export const Slider: React.FC<{
   "aria-label": ariaLabel,
   "aria-describedby": ariaDescribedBy,
   "aria-valuetext": ariaValueText,
-}) => {
-  return (
-    <div className="relative min-h-touch w-full">
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 h-2 w-full -translate-y-1/2 rounded-pill bg-surface-muted"
-      />
-      <input
-        id={id}
-        type="range"
-        min={min}
-        max={max}
-        step={step ?? 1}
-        disabled={disabled}
-        ref={ref}
-        name={name}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        aria-label={ariaLabel}
-        aria-describedby={ariaDescribedBy}
-        aria-valuetext={ariaValueText}
-        className="absolute inset-0 min-h-touch w-full appearance-none bg-transparent accent-accent-primary transition-opacity duration-fast ease-calm disabled:cursor-not-allowed disabled:opacity-50"
-      />
-    </div>
-  );
-};
+}) => (
+  <div className="relative min-h-touch w-full">
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute top-1/2 h-2 w-full -translate-y-1/2 rounded-pill bg-surface-muted"
+    />
+    <input
+      id={id}
+      type="range"
+      min={min}
+      max={max}
+      step={step ?? 1}
+      disabled={disabled}
+      ref={ref}
+      name={name}
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      aria-label={ariaLabel}
+      aria-describedby={ariaDescribedBy}
+      aria-valuetext={ariaValueText}
+      className="absolute inset-0 min-h-touch w-full appearance-none bg-transparent accent-accent-primary transition-opacity duration-fast ease-calm disabled:cursor-not-allowed disabled:opacity-50"
+    />
+  </div>
+);

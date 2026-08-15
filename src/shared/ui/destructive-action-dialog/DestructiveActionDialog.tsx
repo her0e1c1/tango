@@ -42,7 +42,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
       event.preventDefault();
       return;
     }
-    const first = focusable[0];
+    const [first] = focusable;
     const last = focusable.at(-1);
     if (first == null || last == null) return;
 
@@ -89,6 +89,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-canvas/70 px-shell-gutter py-6">
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: The alertdialog owns Escape and focus-trap keyboard handling. */}
       <div
         ref={dialogRef}
         role="alertdialog"

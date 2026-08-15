@@ -4,7 +4,7 @@ import { GoogleAuthProvider, linkWithPopup, signInWithCredential, type User, typ
 import { auth } from "@/shared/firebase";
 
 export const loginGoogle = async (): Promise<User> => {
-  const currentUser = auth.currentUser;
+  const { currentUser } = auth;
   if (!currentUser?.isAnonymous) throw new Error("Anonymous user is required before Google sign-in");
 
   let result: UserCredential;

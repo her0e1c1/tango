@@ -1,0 +1,178 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+  "files": {
+    "includes": ["**/*.{ts,tsx}", "src/**/*.{js,jsx,css}", "scripts/**/*.mjs", "*.{js,mjs}"]
+  },
+  "formatter": {
+    "includes": ["src/**", "test/**", ".storybook/**"],
+    "indentStyle": "space",
+    "lineWidth": 120
+  },
+  "javascript": {
+    "globals": ["__APP_VERSION__"],
+    "formatter": {
+      "trailingCommas": "es5"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "linter": {
+    "rules": {
+      "preset": "all",
+      "complexity": {
+        // Test and orchestration functions stay cohesive even when they exceed generic size thresholds.
+        "noExcessiveLinesPerFunction": "off",
+        // Array iteration is chosen for clarity when early exit and async sequencing are unnecessary.
+        "noForEach": "off",
+        // Explicit void is the project convention for intentional fire-and-forget promises.
+        "noVoid": "off"
+      },
+      "correctness": {
+        // Domain-wide Project linting is handled separately in #1012.
+        "useImportExtensions": "off",
+        "useJsonImportAttributes": "off",
+        // Framework-domain rules are evaluated separately and must not run against this React codebase yet.
+        "noSolidDestructuredProps": "off",
+        "useExhaustiveDependencies": "off",
+        "useJsxKeyInIterable": "off",
+        "useQwikValidLexicalScope": "off",
+        "useUniqueElementIds": "off",
+        "noUndeclaredDependencies": {
+          "level": "error",
+          "options": {
+            "devDependencies": [
+              "**/*.{spec,stories}.{ts,tsx}",
+              "**/{.storybook,scripts,test}/**",
+              "**/*.config.{js,mjs,ts}"
+            ]
+          }
+        },
+        "noUnresolvedImports": "error"
+      },
+      "nursery": {
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "useAwaitThenable": "error",
+        "useExhaustiveSwitchCases": "error"
+      },
+      "performance": {
+        // FSD public APIs intentionally use barrel files as architectural boundaries.
+        "noBarrelFile": "off",
+        // Framework-domain rules are evaluated separately in #1011 and are not portable across React tooling.
+        "noImgElement": "off",
+        "noJsxPropsBind": "off",
+        "useSolidForComponent": "off",
+        // Namespace imports are required by libraries and test mocks that expose module-shaped APIs.
+        "noNamespaceImport": "off",
+        // These regular expressions are local to setup and test paths, not hot loops.
+        "useTopLevelRegex": "off"
+      },
+      "security": {
+        // Domain action names and deterministic test fixtures have higher entropy than prose but are not credentials.
+        "noSecrets": {
+          "level": "error",
+          "options": {
+            "entropyThreshold": 60
+          }
+        }
+      },
+      "style": {
+        // Framework entry points and stories require or conventionally use default exports.
+        "noDefaultExport": "off",
+        // Concise one-line guard clauses are an established project convention.
+        "useBlockStatements": "off",
+        // Large test suites remain grouped by observable behavior instead of arbitrary file limits.
+        "noExcessiveLinesPerFile": "off",
+        // CSS theme tokens intentionally use exact hexadecimal colors.
+        "noHexColors": "off",
+        // JSX boolean shorthand is the established React convention in this codebase.
+        "noImplicitBoolean": "off",
+        // The product has no localization layer, so user-facing JSX copy remains colocated with components.
+        "noJsxLiterals": "off",
+        // Numeric values in tests, UI dimensions, and configuration are clearer inline than as distant constants.
+        "noMagicNumbers": "off",
+        // Conditional-expression and branch layout remains a readability choice for each call site.
+        "noNegationElse": "off",
+        "noNestedTernary": "off",
+        "noTernary": "off",
+        // Exhaustive discriminated-union switches must not hide future cases behind a default branch.
+        "useDefaultSwitchClause": "off",
+        // TypeScript parameter properties are the concise project convention for small adapters.
+        "noParameterProperties": "off",
+        // Framework-domain React rules are evaluated separately in #1011.
+        "useComponentExportOnlyModules": "off",
+        // Interfaces and type aliases express different extension and composition intent.
+        "useConsistentTypeDefinitions": "off",
+        // Export placement follows feature readability rather than a file-wide ordering policy.
+        "useExportsLast": "off",
+        // Browser code names window and document directly when their browser semantics matter.
+        "useGlobalThis": "off",
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "filenameCases": ["camelCase", "kebab-case", "PascalCase", "snake_case", "export"],
+            "strictCase": false
+          }
+        },
+        "useNamingConvention": {
+          "level": "error",
+          "options": {
+            "strictCase": false,
+            "conventions": [
+              {
+                "selector": {
+                  "kind": "objectLiteralMember"
+                },
+                "match": ".*"
+              }
+            ]
+          }
+        }
+      },
+      "suspicious": {
+        // Loose null equality intentionally represents the null-or-undefined boundary.
+        "noEqualsToNull": "off",
+        // Solid and Qwik JSX property rules are incompatible with React's className contract.
+        "noReactSpecificProps": "off",
+        "noDeprecatedImports": "error",
+        "noImportCycles": "error",
+        "noLeakedRender": "error",
+        "noUnnecessaryConditions": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      // Tooling and integration tests execute in Node rather than the browser application runtime.
+      "includes": [".storybook/main.ts", "*.config.{js,mjs,ts}", "test/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off",
+            "noProcessGlobal": "off"
+          },
+          "style": {
+            "noCommonJs": "off",
+            "noProcessEnv": "off"
+          }
+        }
+      }
+    }
+  ],
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  }
+}

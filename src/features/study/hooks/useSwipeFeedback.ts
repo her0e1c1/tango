@@ -11,7 +11,8 @@ export const useSwipeFeedback = (enabled: boolean) => {
   const showSwipe = React.useCallback(
     (direction: SwipeDirection) => {
       if (!enabled) return;
-      const eventId = ++nextEventId.current;
+      nextEventId.current += 1;
+      const eventId = nextEventId.current;
       setLastSwipe({ direction, eventId });
       return () => {
         setLastSwipe((current) => (current?.eventId === eventId ? undefined : current));

@@ -119,8 +119,8 @@ export const prepareDeckImport = async (
 };
 
 export const partialResultFrom = (error: unknown): DeckImportResult | undefined => {
-  if (error == null || typeof error !== "object" || !("result" in error)) return undefined;
-  const result = error.result;
+  if (error == null || typeof error !== "object" || !("result" in error)) return;
+  const { result } = error;
   if (
     result == null ||
     typeof result !== "object" ||
@@ -130,7 +130,7 @@ export const partialResultFrom = (error: unknown): DeckImportResult | undefined 
     !("failed" in result) ||
     !("deckId" in result)
   ) {
-    return undefined;
+    return;
   }
   return result as DeckImportResult;
 };

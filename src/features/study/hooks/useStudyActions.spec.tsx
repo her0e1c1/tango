@@ -116,7 +116,7 @@ describe("useStudyActions", () => {
     await clearStudySessions();
     localStorage.clear();
     vi.clearAllMocks();
-    vi.spyOn(Date, "now").mockReturnValue(946684800000);
+    vi.spyOn(Date, "now").mockReturnValue(946_684_800_000);
     mocks.cardUpdate.mockResolvedValue(undefined);
     mocks.state = createState();
   });
@@ -162,7 +162,7 @@ describe("useStudyActions", () => {
       cardId: card1.id,
       score: 1,
       numberOfSeen: 1,
-      lastSeenAt: 946684800000,
+      lastSeenAt: 946_684_800_000,
     };
     expect(mocks.cardUpdate).toHaveBeenCalledWith(patch);
     expect(onSwipe).toHaveBeenCalledWith("cardSwipeRight");
@@ -172,7 +172,7 @@ describe("useStudyActions", () => {
       deckId: deck.id,
       cardOrderIds: [card1.id, card2.id],
       currentIndex: 1,
-      lastStudiedAt: 946684800000,
+      lastStudiedAt: 946_684_800_000,
     });
   });
 
@@ -220,14 +220,14 @@ describe("useStudyActions", () => {
     );
 
     const swipe = result.current.swipeRight();
-    vi.mocked(Date.now).mockReturnValue(946684800100);
+    vi.mocked(Date.now).mockReturnValue(946_684_800_100);
     act(() => touchStudySession(deck.id));
     rejectWrite?.(new Error("write failed"));
     await actAsync(async () => swipe);
 
     expect(getStudySession(deck.id)).toMatchObject({
       currentIndex: 1,
-      lastStudiedAt: 946684800100,
+      lastStudiedAt: 946_684_800_100,
     });
     expect(rollbackSwipe).not.toHaveBeenCalled();
   });

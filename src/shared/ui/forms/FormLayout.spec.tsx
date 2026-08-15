@@ -12,6 +12,11 @@ import { describe, expect, it } from "vitest";
 import { Form } from "@/shared/ui/forms/Form";
 import { FormItem } from "@/shared/ui/forms/FormItem";
 
+const appearsBefore = (first: Node, second: Node): boolean => {
+  // biome-ignore lint/suspicious/noBitwiseOperators: compareDocumentPosition returns a DOM bitmask by contract.
+  return Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
+};
+
 describe("shared form layout", () => {
   it("presents label, value, help, and error with a clear visual hierarchy", () => {
     render(
@@ -31,9 +36,9 @@ describe("shared form layout", () => {
     expect(value).toHaveClass("text-ink-muted");
     expect(help).toHaveClass("text-caption", "text-ink-muted");
     expect(error).toHaveClass("text-caption", "font-medium", "text-danger");
-    expect(label.compareDocumentPosition(value) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(value.compareDocumentPosition(help) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(help.compareDocumentPosition(error) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(appearsBefore(label, value)).toBe(true);
+    expect(appearsBefore(value, help)).toBe(true);
+    expect(appearsBefore(help, error)).toBe(true);
   });
 
   it("allows long labels and values to wrap without widening the form", () => {

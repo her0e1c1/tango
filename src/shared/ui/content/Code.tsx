@@ -59,10 +59,8 @@ export const Code: React.FC<{ text: string; category: string; dark?: boolean }> 
   text,
   category,
   dark = false,
-}) => {
-  return (
-    <Style div className="max-w-full overflow-hidden">
-      <Highlight category={category} dark={dark} text={text} />
-    </Style>
-  );
-};
+}) => (
+  <Style div className="max-w-full overflow-hidden">
+    <Highlight category={category} dark={dark} text={text} />
+  </Style>
+);

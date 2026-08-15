@@ -17,9 +17,8 @@ import { Switch, Tag } from "@/shared/ui/forms";
 const updateTags = (tags: string[], tag: string) => {
   if (tags.includes(tag)) {
     return tags.filter((t) => t !== tag);
-  } else {
-    return [...tags, tag];
   }
+  return [...tags, tag];
 };
 
 export interface TagFilterProps {

@@ -12,26 +12,24 @@ import type * as React from "react";
  * Provides the application-wide canvas, text colors, minimum height, and optional caller styling
  * around its children.
  */
-export const Outer: React.FC<{ children?: React.ReactNode; className?: string }> = (props) => {
-  return (
-    <section
-      aria-label="Application shell"
-      className={cx(
-        "bg-canvas",
-        "text-ink",
-        "cursor-default",
-        "select-none",
-        "h-dvh",
-        "min-h-dvh",
-        "w-full",
-        "overflow-x-hidden",
-        "overflow-y-auto",
-        "flex",
-        "flex-col",
-        props.className
-      )}
-    >
-      {props.children}
-    </section>
-  );
-};
+export const Outer: React.FC<{ children?: React.ReactNode; className?: string }> = (props) => (
+  <section
+    aria-label="Application shell"
+    className={cx(
+      "bg-canvas",
+      "text-ink",
+      "cursor-default",
+      "select-none",
+      "h-dvh",
+      "min-h-dvh",
+      "w-full",
+      "overflow-x-hidden",
+      "overflow-y-auto",
+      "flex",
+      "flex-col",
+      props.className
+    )}
+  >
+    {props.children}
+  </section>
+);

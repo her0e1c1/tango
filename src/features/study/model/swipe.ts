@@ -3,9 +3,7 @@ import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { StudyCard } from "./studyCard";
 import type { SwipeAction, SwipeDirection, SwipeState } from "@/entities/preferences";
 
-export const resolveSwipeAction = (controls: SwipeState, direction: SwipeDirection): SwipeAction => {
-  return controls[direction];
-};
+export const resolveSwipeAction = (controls: SwipeState, direction: SwipeDirection): SwipeAction => controls[direction];
 
 const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
   if (swipeAction === "GoToNextCardMastered") return "mastered";
@@ -15,6 +13,5 @@ const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
   return "unrated";
 };
 
-export const buildStudyPatch = (studyCard: StudyCard, swipeAction: SwipeAction, now: number): StudyProgressEdit => {
-  return recordStudyProgress(studyCard.progress, resolveStudyRating(swipeAction), now);
-};
+export const buildStudyPatch = (studyCard: StudyCard, swipeAction: SwipeAction, now: number): StudyProgressEdit =>
+  recordStudyProgress(studyCard.progress, resolveStudyRating(swipeAction), now);

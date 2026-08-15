@@ -187,6 +187,7 @@ describe("ActionsMenu", () => {
     await actAsync(async () => {
       edit.blur();
       remove.focus();
+      await Promise.resolve();
     });
 
     expect(screen.getByRole("menu", { name: labels.menuLabel })).toBeInTheDocument();
@@ -230,6 +231,7 @@ describe("ActionsMenu", () => {
       await actAsync(async () => {
         firstEdit.blur();
         fireEvent.click(screen.getByRole("button", { name: "Open second actions" }));
+        await Promise.resolve();
       });
 
       const secondMenu = screen.getByRole("menu", { name: `second ${labels.menuLabel}` });
@@ -241,7 +243,7 @@ describe("ActionsMenu", () => {
     }
   });
 
-  it("does not close after its root unmounts during an ambiguous blur", async () => {
+  it("does not close after its root unmounts during an ambiguous blur", () => {
     const onClose = vi.fn();
     const view = render(<ActionsMenu {...labels} items={items()} open onToggle={vi.fn()} onClose={onClose} />);
     const edit = screen.getByRole("menuitem", { name: "Edit" });
@@ -274,6 +276,7 @@ describe("ActionsMenu", () => {
     await actAsync(async () => {
       edit.blur();
       external.focus();
+      await Promise.resolve();
     });
 
     await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());

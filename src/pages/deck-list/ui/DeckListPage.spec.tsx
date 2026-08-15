@@ -48,7 +48,7 @@ vi.mock("@/entities/study-session", () => ({
 }));
 vi.mock("@/features/deck-list", () => ({
   DeckList: (props: DeckListProps) => {
-    const deck = props.decks[0];
+    const [deck] = props.decks;
     if (deck == null) return null;
     return (
       <section aria-label="Deck list feature">

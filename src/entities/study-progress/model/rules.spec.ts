@@ -89,22 +89,22 @@ describe("study progress selection", () => {
   };
 
   it("applies score bounds and the next seeing time", () => {
-    expect(isStudyProgressEligible({ ...initialStudyProgress("eligible"), score: 2 }, filter, 1_000)).toBe(true);
-    expect(isStudyProgressEligible({ ...initialStudyProgress("high"), score: 3 }, filter, 1_000)).toBe(false);
-    expect(isStudyProgressEligible({ ...initialStudyProgress("low"), score: -2 }, filter, 1_000)).toBe(false);
+    expect(isStudyProgressEligible({ ...initialStudyProgress("eligible"), score: 2 }, filter, 1000)).toBe(true);
+    expect(isStudyProgressEligible({ ...initialStudyProgress("high"), score: 3 }, filter, 1000)).toBe(false);
+    expect(isStudyProgressEligible({ ...initialStudyProgress("low"), score: -2 }, filter, 1000)).toBe(false);
     expect(
-      isStudyProgressEligible({ ...initialStudyProgress("future"), nextSeeingAt: new Date(1_001) }, filter, 1_000)
+      isStudyProgressEligible({ ...initialStudyProgress("future"), nextSeeingAt: new Date(1001) }, filter, 1000)
     ).toBe(false);
   });
 
   it("finds the nearest future seeing time", () => {
     const progresses = [
       { ...initialStudyProgress("past"), nextSeeingAt: new Date(900) },
-      { ...initialStudyProgress("later"), nextSeeingAt: new Date(2_000) },
-      { ...initialStudyProgress("next"), nextSeeingAt: new Date(1_500) },
+      { ...initialStudyProgress("later"), nextSeeingAt: new Date(2000) },
+      { ...initialStudyProgress("next"), nextSeeingAt: new Date(1500) },
     ];
 
-    expect(getNextStudyAvailabilityAt(progresses, 1_000)).toBe(1_500);
+    expect(getNextStudyAvailabilityAt(progresses, 1000)).toBe(1500);
   });
 });
 

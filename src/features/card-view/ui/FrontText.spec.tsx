@@ -11,7 +11,7 @@ import "@testing-library/jest-dom";
 import { FrontText } from "./FrontText";
 
 describe("FrontText", () => {
-  it("should swipe", async () => {
+  it("should swipe", () => {
     const onSwipe = vi.fn();
     render(<FrontText text="text" onSwipeLeft={onSwipe} />);
     expect(screen.getByText("text")).toBeVisible();
