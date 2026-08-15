@@ -1,6 +1,6 @@
 import { countCardsByDeckId, type Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import type { StudySession } from "@/entities/study-session";
+import { orderDecksByStudyActivity, type StudySession } from "@/entities/study-session";
 
 export interface DeckListStudyProgress {
   currentIndex: number;
@@ -19,8 +19,6 @@ export interface DeckListSections {
   other: DeckListItem[];
 }
 
-const compareNames = (left: DeckListItem, right: DeckListItem) => left.deck.name.localeCompare(right.deck.name);
-
 const createDeckListStudyProgress = (session: StudySession): DeckListStudyProgress => ({
   currentIndex: session.currentIndex,
   cardCount: session.cardOrderIds.length,
@@ -33,7 +31,7 @@ export const buildDeckListSections = (
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>
 ): DeckListSections => {
   const cardCounts = countCardsByDeckId(cards);
-  const items = decks.map((deck): DeckListItem => {
+  const items = orderDecksByStudyActivity(decks, sessionsByDeckId).map((deck): DeckListItem => {
     const session = sessionsByDeckId[deck.id];
 
     return {
@@ -43,14 +41,8 @@ export const buildDeckListSections = (
     };
   });
 
-  const studying = items
-    .filter((item) => item.studyProgress != null)
-    .sort(
-      (left, right) =>
-        (right.studyProgress?.lastStudiedAt ?? 0) - (left.studyProgress?.lastStudiedAt ?? 0) ||
-        compareNames(left, right)
-    );
-  const other = items.filter((item) => item.studyProgress == null).sort(compareNames);
+  const studying = items.filter((item) => item.studyProgress != null);
+  const other = items.filter((item) => item.studyProgress == null);
 
   return { studying, other };
 };

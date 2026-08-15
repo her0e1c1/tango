@@ -5,8 +5,30 @@ import type {
   StudySession,
   StudySessionCard,
   StudySessionMovement,
+  StudySessions,
   StudySessionSwipeEffect,
 } from "./types";
+
+interface StudyActivityDeck {
+  id: StudySession["deckId"];
+  name: string;
+}
+
+const compareDeckNames = (left: StudyActivityDeck, right: StudyActivityDeck): number =>
+  left.name.localeCompare(right.name);
+
+export const orderDecksByStudyActivity = <TDeck extends StudyActivityDeck>(
+  decks: readonly TDeck[],
+  sessionsByDeckId: StudySessions
+): TDeck[] =>
+  [...decks].sort((left, right) => {
+    const leftSession = sessionsByDeckId[left.id];
+    const rightSession = sessionsByDeckId[right.id];
+
+    if (leftSession == null) return rightSession == null ? compareDeckNames(left, right) : 1;
+    if (rightSession == null) return -1;
+    return rightSession.lastStudiedAt - leftSession.lastStudiedAt || compareDeckNames(left, right);
+  });
 
 export const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];

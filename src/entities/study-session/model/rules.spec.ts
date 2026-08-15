@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateStudySessionIndex,
   isStudySessionPositionUnchanged,
+  orderDecksByStudyActivity,
   resolveStudySession,
   resolveStudySessionSwipeEffect,
 } from "./rules";
@@ -14,6 +15,41 @@ const session: StudySession = {
   currentIndex: 1,
   lastStudiedAt: 0,
 };
+
+describe("orderDecksByStudyActivity", () => {
+  it("orders active decks by recency and inactive decks by name", () => {
+    const decks = [
+      { id: "other-z", name: "Zulu" },
+      { id: "active-old", name: "Bravo" },
+      { id: "other-a", name: "Alpha" },
+      { id: "active-new", name: "Charlie" },
+    ];
+    const sessions = {
+      "active-old": { ...session, deckId: "active-old", lastStudiedAt: 100 },
+      "active-new": { ...session, deckId: "active-new", lastStudiedAt: 200 },
+    };
+
+    expect(orderDecksByStudyActivity(decks, sessions).map((deck) => deck.id)).toEqual([
+      "active-new",
+      "active-old",
+      "other-a",
+      "other-z",
+    ]);
+  });
+
+  it("uses deck name as the tie breaker for equally recent sessions", () => {
+    const decks = [
+      { id: "b", name: "Beta" },
+      { id: "a", name: "Alpha" },
+    ];
+    const sessions = {
+      a: { ...session, deckId: "a", lastStudiedAt: 100 },
+      b: { ...session, deckId: "b", lastStudiedAt: 100 },
+    };
+
+    expect(orderDecksByStudyActivity(decks, sessions).map((deck) => deck.name)).toEqual(["Alpha", "Beta"]);
+  });
+});
 
 describe("calculateStudySessionIndex", () => {
   it("moves within the session card order", () => {

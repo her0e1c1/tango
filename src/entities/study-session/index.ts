@@ -3,6 +3,7 @@ export {
   calculateStudySessionIndex,
   getCurrentStudySessionCardId,
   isStudySessionPositionUnchanged,
+  orderDecksByStudyActivity,
   resolveStudySession,
   resolveStudySessionSwipeEffect,
 } from "./model/rules";
