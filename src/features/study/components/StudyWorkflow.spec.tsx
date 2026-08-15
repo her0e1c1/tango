@@ -14,8 +14,6 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   onUnavailable: vi.fn(),
   touchStudySession: vi.fn(),
-  toggleShowHeader: vi.fn(),
-  toggleShowSwipeButtonList: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -24,8 +22,6 @@ vi.mock("@/entities/preferences", () => ({
     if (mocks.preferences == null) throw new Error("Preferences not initialized");
     return mocks.preferences;
   },
-  toggleShowHeader: mocks.toggleShowHeader,
-  toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
 }));
 vi.mock("../hooks/useEditStudyProgress", () => ({
   useEditStudyProgress: () => ({ update: mocks.update }),
@@ -67,13 +63,13 @@ const WorkflowView = ({ state }: { state: StudyWorkflowState }) => {
       <div data-testid="autoplay">{String(state.controller.autoPlay)}</div>
       <div data-testid="index">{state.controller.index}</div>
       <div data-testid="feedback">{state.swipeFeedback ?? "none"}</div>
-      <button type="button" onClick={state.actions.toggleShowBackText}>
+      <button type="button" onClick={state.shortcutActions.toggleShowBackText}>
         toggle back
       </button>
       <button type="button" onClick={state.actions.swipeLeft}>
         swipe left
       </button>
-      <button type="button" onClick={state.actions.swipeRight}>
+      <button type="button" onClick={state.shortcutActions.swipeRight}>
         swipe right
       </button>
     </div>
@@ -112,19 +108,15 @@ describe("StudyWorkflow", () => {
     vi.useRealTimers();
   });
 
-  it("selects the active Card and connects shortcuts to current actions", async () => {
+  it("selects the active Card and exposes current actions to the Page", async () => {
     renderWorkflow();
 
     expect(screen.getByText("card-1")).toBeVisible();
     expect(mocks.touchStudySession).toHaveBeenCalledWith(deckId);
-    fireEvent.keyDown(window, { key: "Enter" });
+    fireEvent.click(screen.getByRole("button", { name: "toggle back" }));
     expect(screen.getByTestId("back")).toHaveTextContent("true");
-    fireEvent.keyDown(window, { key: "h" });
-    fireEvent.keyDown(window, { key: "b" });
-    expect(mocks.toggleShowHeader).toHaveBeenCalledOnce();
-    expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
 
-    fireEvent.keyDown(window, { key: "ArrowRight" });
+    fireEvent.click(screen.getByRole("button", { name: "swipe right" }));
     await waitFor(() => expect(screen.getByText("card-2")).toBeVisible());
     expect(mocks.update).toHaveBeenCalledOnce();
   });

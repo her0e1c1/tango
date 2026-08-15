@@ -11,7 +11,6 @@ import { useEditStudyProgress } from "../hooks/useEditStudyProgress";
 import { useStudyActions, type StudyActions } from "../hooks/useStudyActions";
 import { useStudyControllerState } from "../hooks/useStudyControllerState";
 import { useStudyDisplayState } from "../hooks/useStudyDisplayState";
-import { useStudyShortcuts } from "../hooks/useStudyShortcuts";
 import { useSwipeFeedback } from "../hooks/useSwipeFeedback";
 
 type PresentationActions = Pick<
@@ -19,7 +18,9 @@ type PresentationActions = Pick<
   "swipeUp" | "swipeDown" | "swipeLeft" | "swipeRight" | "toggleShowBackText"
 >;
 
-export type StudyWorkflowState =
+type ShortcutActions = PresentationActions & Pick<StudyActions, "toggleAutoPlay">;
+
+export type StudyWorkflowState = { shortcutActions: ShortcutActions } & (
   | { status: "loading" | "unavailable" }
   | {
       status: "ready";
@@ -32,7 +33,8 @@ export type StudyWorkflowState =
       actions: PresentationActions;
       controller: ControllerProps;
       swipeActions: SwipeButtonListProps;
-    };
+    }
+);
 
 interface StudyWorkflowProps {
   cards: readonly Card[];
@@ -57,7 +59,6 @@ export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyW
   });
   const session = useActiveStudySession(deckId, cards);
   useStudySessionLifecycle({ deckId, session, resetStudy: actions.resetStudy, onUnavailable });
-  useStudyShortcuts(actions);
 
   const controller = useStudyControllerState({
     autoPlay: display.autoPlay,
@@ -69,7 +70,7 @@ export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyW
     onToggleAutoPlay: actions.toggleAutoPlay,
   });
 
-  if (session.status !== "ready") return children(session);
+  if (session.status !== "ready") return children({ ...session, shortcutActions: actions });
 
   const swipeActions: SwipeButtonListProps = {
     disabled: false,
@@ -80,6 +81,7 @@ export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyW
   };
   const state: StudyWorkflowState = {
     status: "ready",
+    shortcutActions: actions,
     card: session.card,
     showHeader: display.preferences.appearance.showHeader && !display.showBackText,
     showBackText: display.showBackText,

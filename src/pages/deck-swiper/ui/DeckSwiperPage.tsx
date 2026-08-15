@@ -1,7 +1,9 @@
 import { getCategory, type Deck, useDeck } from "@/entities/deck";
+import { toggleShowHeader, toggleShowSwipeButtonList } from "@/entities/preferences";
 
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useKey } from "react-use";
 
 import { type Card, useCards } from "@/entities/card";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
@@ -74,6 +76,19 @@ const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
   );
 };
 
+const DeckSwiperScreen = ({ deck, state }: { deck: Deck; state: StudyWorkflowState }) => {
+  useKey("ArrowUp", state.shortcutActions.swipeUp);
+  useKey("ArrowDown", state.shortcutActions.swipeDown);
+  useKey("ArrowLeft", state.shortcutActions.swipeLeft);
+  useKey("ArrowRight", state.shortcutActions.swipeRight);
+  useKey("Enter", state.shortcutActions.toggleShowBackText);
+  useKey("h", toggleShowHeader);
+  useKey("b", toggleShowSwipeButtonList);
+  useKey(" ", state.shortcutActions.toggleAutoPlay);
+
+  return renderStudyScreen(deck, state);
+};
+
 const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigate = useNavigate();
   useStudyHistoryGuard(deck.id, navigate);
@@ -83,7 +98,7 @@ const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
 
   return (
     <StudyWorkflow key={deck.id} cards={cards} deckId={deck.id} onUnavailable={handleUnavailable}>
-      {(state) => renderStudyScreen(deck, state)}
+      {(state) => <DeckSwiperScreen deck={deck} state={state} />}
     </StudyWorkflow>
   );
 };
