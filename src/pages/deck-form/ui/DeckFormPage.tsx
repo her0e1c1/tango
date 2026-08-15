@@ -1,8 +1,9 @@
 import type * as React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { type Deck, useDeck } from "@/entities/deck";
 import { DeckEditForm } from "@/features/deck-edit";
+import { useRequiredRouteParam } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -18,10 +19,8 @@ const DeckFormContent = ({ deck }: { deck: Deck }) => {
 };
 
 export const DeckFormPage: React.FC = () => {
-  const params = useParams();
   const navigate = useNavigate();
-  const deckId = params.id;
-  if (deckId == null) throw Error("invalid deck id");
+  const deckId = useRequiredRouteParam("id");
   const deck = useDeck(deckId);
 
   if (deck != null) return <DeckFormContent deck={deck} />;
