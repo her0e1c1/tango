@@ -16,9 +16,9 @@ interface DeckFormFields {
 export interface DeckFormProps {
   deck: Deck;
   fields: DeckFormFields;
-  errors?: {
-    name?: string;
-    url?: string;
+  errors: {
+    name: string | undefined;
+    url: string | undefined;
   };
   isSubmitting: boolean;
   onCancel: () => void;
@@ -51,13 +51,13 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           label="Name"
           inputId={nameInputId}
           errorId={nameErrorId}
-          {...(props.errors?.name !== undefined ? { error: props.errors.name } : {})}
+          {...(props.errors.name !== undefined ? { error: props.errors.name } : {})}
         >
           <Input
             {...props.fields.name}
             id={nameInputId}
-            aria-invalid={props.errors?.name != null || undefined}
-            aria-describedby={props.errors?.name !== undefined ? nameErrorId : undefined}
+            aria-invalid={props.errors.name != null || undefined}
+            aria-describedby={props.errors.name !== undefined ? nameErrorId : undefined}
           />
         </FormItem>
         <FormItem col label="Category">
@@ -79,13 +79,13 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           label="Source URL"
           inputId={urlInputId}
           errorId={urlErrorId}
-          {...(props.errors?.url !== undefined ? { error: props.errors.url } : {})}
+          {...(props.errors.url !== undefined ? { error: props.errors.url } : {})}
         >
           <Input
             {...props.fields.url}
             id={urlInputId}
-            aria-invalid={props.errors?.url != null || undefined}
-            aria-describedby={props.errors?.url !== undefined ? urlErrorId : undefined}
+            aria-invalid={props.errors.url != null || undefined}
+            aria-describedby={props.errors.url !== undefined ? urlErrorId : undefined}
           />
         </FormItem>
         <FormItem label="Convert line breaks" help="Convert two line breaks to one <br />.">
