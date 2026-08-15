@@ -4,7 +4,7 @@
  * coordinate services themselves.
  */
 
-import type { Card, CardId } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { Preferences, SwipeDirection } from "@/entities/preferences";
@@ -34,7 +34,7 @@ interface StudyCardMutation {
 }
 
 interface UseStudyActionsOptions {
-  cardsById: Partial<Record<CardId, Card>>;
+  cards?: readonly Card[] | undefined;
   cardMutation?: StudyCardMutation | undefined;
   onStarted?: (() => void) | undefined;
   onSwipe?: ((direction: SwipeDirection) => void) | undefined;
@@ -49,7 +49,7 @@ interface StudySwipeDependencies {
   mutationTokenRef: { current: symbol | undefined };
   deckId: DeckId;
   preferences: Preferences;
-  cardsById: Partial<Record<CardId, Card>>;
+  cards: readonly Card[];
   update: (progress: StudyProgressEdit) => Promise<void>;
   onSwipe?: ((direction: SwipeDirection) => void) | undefined;
   showBackText?: boolean | undefined;
@@ -99,7 +99,7 @@ const runStudySwipe = async (
     mutationTokenRef,
     deckId,
     preferences,
-    cardsById,
+    cards,
     update,
     onSwipe,
     showBackText,
@@ -122,7 +122,7 @@ const runStudySwipe = async (
   }
 
   const cardId = session.cardOrderIds[session.currentIndex];
-  const card = cardId == null ? undefined : cardsById[cardId];
+  const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
   if (card == null) return;
 
   const previous = {
@@ -166,7 +166,7 @@ export const useStudyActions = (
   deckId: DeckId,
   {
     cardMutation,
-    cardsById,
+    cards = [],
     onStarted,
     onSwipe,
     showBackText,
@@ -202,7 +202,7 @@ export const useStudyActions = (
       mutationTokenRef,
       deckId,
       preferences,
-      cardsById,
+      cards,
       update: cardMutation.update,
       onSwipe,
       showBackText,

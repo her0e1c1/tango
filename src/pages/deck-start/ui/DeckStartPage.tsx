@@ -1,4 +1,4 @@
-import type { Card, CardId } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
@@ -12,24 +12,16 @@ import { useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-import { toRemoteById } from "@/shared/lib/remoteSnapshot";
 
 import { DeckStartView } from "./DeckStartView";
 
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
-const DeckStartContent = (props: {
-  cardsById: Partial<Record<CardId, Card>>;
-  deck: Deck;
-  cards: Card[];
-  preferences: Preferences;
-  tags: string[];
-}) => {
-  const { cardsById, deck, cards, preferences, tags } = props;
+const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Preferences; tags: string[] }) => {
+  const { deck, cards, preferences, tags } = props;
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {
-    cardsById,
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
   });
   const deckStartForm = useDeckFilterState({ deck, tags });
@@ -60,7 +52,6 @@ export const DeckStartPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
   const preferences = usePreferences();
   const allCards = useCards();
-  const cardsById = React.useMemo(() => toRemoteById(allCards), [allCards]);
   const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(allCards, deckId), [allCards, deckId]);
   const cards = useStudyCards(deck, deckCards, preferences);
@@ -78,5 +69,5 @@ export const DeckStartPage: React.FC = () => {
     );
   }
 
-  return <DeckStartContent cardsById={cardsById} deck={deck} cards={cards} preferences={preferences} tags={tags} />;
+  return <DeckStartContent deck={deck} cards={cards} preferences={preferences} tags={tags} />;
 };
