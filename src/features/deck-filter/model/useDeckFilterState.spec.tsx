@@ -33,8 +33,8 @@ const DeckFilterHarness: React.FC<{
   deck: Deck;
   tags: string[];
 }> = ({ deck, tags }) => {
-  const deckFilterForm = useDeckFilterState({ deck, tags });
-  return <DeckFilterForm {...deckFilterForm} />;
+  const deckFilter = useDeckFilterState(deck);
+  return <DeckFilterForm {...deckFilter} tags={tags} />;
 };
 
 describe("DeckFilterForm with useDeckFilterState", () => {
@@ -62,12 +62,11 @@ describe("DeckFilterForm with useDeckFilterState", () => {
     await userEvent.click(screen.getByRole("checkbox", { name: "Match all selected tags" }));
     await userEvent.click(screen.getByRole("button", { name: /all/i }));
 
-    await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith(
-        "user-id",
-        expect.objectContaining({ scoreMax: 2, scoreMin: -2, tagAndFilter: true, selectedTags: tags })
-      );
-    });
+    await waitFor(() => expect(mocks.editDeck).toHaveBeenCalledTimes(4));
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", { id: deck.id, scoreMax: 2 });
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", { id: deck.id, scoreMin: -2 });
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", { id: deck.id, tagAndFilter: true });
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", { id: deck.id, selectedTags: tags });
   });
 
   it("persists score toggle and slider changes", async () => {
@@ -75,14 +74,11 @@ describe("DeckFilterForm with useDeckFilterState", () => {
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable maximum score" }));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith(
-        "user-id",
-        expect.objectContaining({ scoreMax: 0, scoreMin: null })
-      );
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", { id: deck.id, scoreMax: 0 });
     });
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable minimum score" }));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ scoreMax: 0, scoreMin: 0 }));
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", { id: deck.id, scoreMin: 0 });
     });
 
     fireEvent.change(screen.getByRole("slider", { name: "Maximum score value" }), {
@@ -92,19 +88,13 @@ describe("DeckFilterForm with useDeckFilterState", () => {
       target: { value: -2 },
     });
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith(
-        "user-id",
-        expect.objectContaining({ scoreMax: 2, scoreMin: -2 })
-      );
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", { id: deck.id, scoreMin: -2 });
     });
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable maximum score" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable minimum score" }));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith(
-        "user-id",
-        expect.objectContaining({ scoreMax: null, scoreMin: null })
-      );
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", { id: deck.id, scoreMin: null });
     });
   });
 
@@ -113,17 +103,17 @@ describe("DeckFilterForm with useDeckFilterState", () => {
 
     await userEvent.click(screen.getByText("tag2"));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ selectedTags: ["tag2"] }));
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", { id: deck.id, selectedTags: ["tag2"] });
     });
 
     await userEvent.click(screen.getByRole("button", { name: /all/i }));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ selectedTags: tags }));
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", { id: deck.id, selectedTags: tags });
     });
 
     await userEvent.click(screen.getByRole("button", { name: /clear/i }));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ selectedTags: [] }));
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", { id: deck.id, selectedTags: [] });
     });
   });
 });

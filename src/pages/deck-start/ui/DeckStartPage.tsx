@@ -22,7 +22,7 @@ const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Prefe
   const startStudy = useStartStudySession(deck.id, {
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
   });
-  const deckFilterForm = useDeckFilterState({ deck, tags });
+  const deckFilter = useDeckFilterState(deck);
   const start = () => startStudy(cards);
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
@@ -37,7 +37,7 @@ const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Prefe
         maxNumberOfCardsToLearn={preferences.study.maxNumberOfCardsToLearn}
         cardsLength={cards.length}
         onClickStart={start}
-        filterSlot={<DeckFilterForm {...deckFilterForm} />}
+        filterSlot={<DeckFilterForm {...deckFilter} tags={tags} />}
       />
     </AppLayout>
   );

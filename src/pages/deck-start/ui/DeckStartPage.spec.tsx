@@ -32,11 +32,12 @@ vi.mock("@/features/deck-filter", async (importOriginal) => {
     useDeckFilterState: () => ({
       scoreMax: 4,
       scoreMin: -2,
-      scoreMaxSwitchProps: { name: "maximum-enabled", checked: true, onChange: vi.fn() },
-      scoreMinSwitchProps: { name: "minimum-enabled", checked: true, onChange: vi.fn() },
-      scoreMaxSliderProps: { name: "maximum", value: "4", min: -10, max: 10, onChange: vi.fn() },
-      scoreMinSliderProps: { name: "minimum", value: "-2", min: -10, max: 10, onChange: vi.fn() },
-      tagFilterProps: { tags: [], selectedTags: [], tagAndFilter: false },
+      selectedTags: [],
+      tagAndFilter: false,
+      setScoreMax: vi.fn(),
+      setScoreMin: vi.fn(),
+      setSelectedTags: vi.fn(),
+      setTagAndFilter: vi.fn(),
     }),
   };
 });

@@ -60,7 +60,12 @@ vi.mock("@/features/deck-filter", () => ({
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,
-    tagFilterProps: { selectedTags: ["typescript"], onClickTag: mocks.onClickTag },
+    selectedTags: ["typescript"],
+    tagAndFilter: false,
+    setScoreMax: vi.fn(),
+    setScoreMin: vi.fn(),
+    setSelectedTags: mocks.onClickTag,
+    setTagAndFilter: vi.fn(),
   }),
 }));
 vi.mock("react-router-dom", () => ({

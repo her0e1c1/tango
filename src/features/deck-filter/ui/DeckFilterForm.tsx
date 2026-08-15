@@ -1,45 +1,25 @@
-/**
- * @file Defines the deck-filter feature's form presentation component.
- * The component renders props and reports user intent through callbacks while data access stays
- * outside the view.
- */
-
 import { useId } from "react";
 import type * as React from "react";
-import { Form, Slider, Switch } from "@/shared/ui/forms";
-import { TagFilter, type TagFilterProps } from "./TagFilter";
 
-interface DeckFilterFormProps {
-  scoreMax: number | null;
-  scoreMin: number | null;
-  scoreMaxSwitchProps: React.ComponentProps<typeof Switch>;
-  scoreMinSwitchProps: React.ComponentProps<typeof Switch>;
-  scoreMaxSliderProps: React.ComponentProps<typeof Slider>;
-  scoreMinSliderProps: React.ComponentProps<typeof Slider>;
-  tagFilterProps: TagFilterProps;
+import { Form, Slider, Switch } from "@/shared/ui/forms";
+import type { DeckFilterState } from "../model/useDeckFilterState";
+import { TagFilter } from "./TagFilter";
+
+interface DeckFilterFormProps extends DeckFilterState {
+  tags: string[];
 }
 
 interface ScoreLimitProps {
   label: "Maximum score" | "Minimum score";
-  enabledLabel: string;
   value: number | null;
   switchId: string;
   sliderId: string;
   descriptionId: string;
-  switchProps: React.ComponentProps<typeof Switch>;
-  sliderProps: React.ComponentProps<typeof Slider>;
+  onChange: (value: number | null) => void;
 }
 
-/**
- * Converts an optional score limit into the value displayed by the deck filter form.
- * Missing limits use the form's boundary value so the slider remains controlled.
- */
 const displayScore = (value: number): string => `${value}`.replace("-", "−");
 
-/**
- * Formats the score range label text shown to the user.
- * The helper keeps wording and singular or plural rules consistent across the screen.
- */
 const scoreRangeLabel = (min: number | null, max: number | null): string => {
   if (min != null && max != null) return `${displayScore(min)} to ${displayScore(max)}`;
   if (min != null) return `${displayScore(min)} and above`;
@@ -47,11 +27,6 @@ const scoreRangeLabel = (min: number | null, max: number | null): string => {
   return "Any score";
 };
 
-/**
- * Renders the Score Limit user interface.
- * Lets the user set an optional score threshold and reports a parsed numeric limit or an empty
- * value.
- */
 const ScoreLimit: React.FC<ScoreLimitProps> = (props) => {
   const boundary = props.label === "Maximum score" ? "upper" : "lower";
   return (
@@ -66,19 +41,27 @@ const ScoreLimit: React.FC<ScoreLimitProps> = (props) => {
           </p>
         </div>
         <Switch
-          {...props.switchProps}
           id={props.switchId}
-          aria-label={props.enabledLabel}
+          name={`${props.sliderId}-enabled`}
+          checked={props.value != null}
+          aria-label={`Enable ${props.label.toLowerCase()}`}
           aria-describedby={props.descriptionId}
+          onChange={(event) => props.onChange(event.currentTarget.checked ? 0 : null)}
         />
       </div>
       <div className="mt-3 flex items-center gap-3">
         <Slider
-          {...props.sliderProps}
           id={props.sliderId}
+          name={props.sliderId}
+          value={`${props.value ?? 0}`}
+          step={1}
+          max={10}
+          min={-10}
+          disabled={props.value == null}
           aria-label={`${props.label} value`}
           aria-describedby={props.descriptionId}
           aria-valuetext={props.value == null ? `${props.label} disabled` : displayScore(props.value)}
+          onChange={(event) => props.onChange(event.currentTarget.valueAsNumber)}
         />
         <span className="min-w-12 rounded-control bg-surface px-2 py-1 text-center text-caption font-bold text-accent-primary">
           {props.value == null ? "Any" : displayScore(props.value)}
@@ -88,10 +71,6 @@ const ScoreLimit: React.FC<ScoreLimitProps> = (props) => {
   );
 };
 
-/**
- * Renders the Deck Filter Form user interface.
- * Collects score and tag filters while persistence remains outside the presentation component.
- */
 export const DeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
   const idPrefix = useId();
   const headingId = `${idPrefix}-score-heading`;
@@ -122,27 +101,31 @@ export const DeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
         <div className="space-y-3">
           <ScoreLimit
             label="Maximum score"
-            enabledLabel="Enable maximum score"
             value={props.scoreMax}
             switchId={maximumSwitchId}
             sliderId={maximumSliderId}
             descriptionId={maximumDescriptionId}
-            switchProps={props.scoreMaxSwitchProps}
-            sliderProps={props.scoreMaxSliderProps}
+            onChange={props.setScoreMax}
           />
           <ScoreLimit
             label="Minimum score"
-            enabledLabel="Enable minimum score"
             value={props.scoreMin}
             switchId={minimumSwitchId}
             sliderId={minimumSliderId}
             descriptionId={minimumDescriptionId}
-            switchProps={props.scoreMinSwitchProps}
-            sliderProps={props.scoreMinSliderProps}
+            onChange={props.setScoreMin}
           />
         </div>
       </section>
-      <TagFilter {...props.tagFilterProps} />
+      <TagFilter
+        tags={props.tags}
+        selectedTags={props.selectedTags}
+        tagAndFilter={props.tagAndFilter}
+        onClickFilter={props.setTagAndFilter}
+        onClickAll={() => props.setSelectedTags(props.tags)}
+        onClickClear={() => props.setSelectedTags([])}
+        onClickTag={props.setSelectedTags}
+      />
     </Form>
   );
 };
