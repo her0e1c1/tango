@@ -1,5 +1,5 @@
 /**
- * @file Provides the deck-start feature's Deck filter state hook.
+ * @file Provides the Deck Start page's Deck filter state hook.
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */

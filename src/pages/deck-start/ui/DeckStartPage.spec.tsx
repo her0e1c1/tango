@@ -35,21 +35,17 @@ vi.mock("@/features/study/hooks/useStudyActions", () => ({
   }),
 }));
 vi.mock("@/features/study/hooks/useStudyCards", () => ({ useStudyCards: () => mocks.cards }));
-vi.mock("@/features/deck-start", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/deck-start")>();
-  return {
-    ...actual,
-    useDeckFilterState: () => ({
-      scoreMax: 4,
-      scoreMin: -2,
-      scoreMaxSwitchProps: { name: "maximum-enabled", checked: true, onChange: vi.fn() },
-      scoreMinSwitchProps: { name: "minimum-enabled", checked: true, onChange: vi.fn() },
-      scoreMaxSliderProps: { name: "maximum", value: "4", min: -10, max: 10, onChange: vi.fn() },
-      scoreMinSliderProps: { name: "minimum", value: "-2", min: -10, max: 10, onChange: vi.fn() },
-      tagFilterProps: { tags: [], selectedTags: [], tagAndFilter: false },
-    }),
-  };
-});
+vi.mock("../model/useDeckFilterState", () => ({
+  useDeckFilterState: () => ({
+    scoreMax: 4,
+    scoreMin: -2,
+    scoreMaxSwitchProps: { name: "maximum-enabled", checked: true, onChange: vi.fn() },
+    scoreMinSwitchProps: { name: "minimum-enabled", checked: true, onChange: vi.fn() },
+    scoreMaxSliderProps: { name: "maximum", value: "4", min: -10, max: 10, onChange: vi.fn() },
+    scoreMinSliderProps: { name: "minimum", value: "-2", min: -10, max: 10, onChange: vi.fn() },
+    tagFilterProps: { tags: [], selectedTags: [], tagAndFilter: false },
+  }),
+}));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,

@@ -54,7 +54,7 @@ vi.mock("@/features/card-list", () => ({
     );
   },
 }));
-vi.mock("@/features/deck-start", () => ({
+vi.mock("@/pages/deck-start", () => ({
   DeckStartForm: () => <div>Filter controls</div>,
   useDeckFilterState: () => ({
     scoreMax: 4,

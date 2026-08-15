@@ -1,5 +1,5 @@
 /**
- * @file Defines the deck-start feature's Tag Filter presentation component.
+ * @file Defines the Deck Start page's tag filter presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */

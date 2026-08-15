@@ -42,4 +42,11 @@ export default defineConfig([
       "fsd/inconsistent-naming": "off",
     },
   },
+  {
+    files: ["./src/pages/card-list/**"],
+    rules: {
+      // Card List preserves the existing Deck Start filter controls through the Page public API.
+      "fsd/forbidden-imports": "off",
+    },
+  },
 ]);

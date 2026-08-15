@@ -11,7 +11,7 @@ import { expect, fn } from "storybook/test";
 import { TagFilter as Template } from "./TagFilter";
 
 const meta = {
-  title: "Deck Start/TagFilter",
+  title: "Pages/Deck Start/TagFilter",
   component: Template,
   tags: ["autodocs"],
   args: {
