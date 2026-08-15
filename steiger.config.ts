@@ -40,6 +40,13 @@ export default defineConfig([
     },
   },
   {
+    files: ["./src/widgets/settings-account/**"],
+    rules: {
+      // The route-specific widget keeps sign-in and sign-out features independent while composing the account workflow.
+      "fsd/insignificant-slice": "off",
+    },
+  },
+  {
     files: ["./src/entities/preferences/**"],
     rules: {
       // Preferences is the domain concept's established name, not a plural collection of entities.

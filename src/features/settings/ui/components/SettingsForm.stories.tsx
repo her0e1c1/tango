@@ -34,7 +34,6 @@ const settingsFormProps = {
   fields,
   maxNumberOfCardsToLearn: fixture.preferences.default.study.maxNumberOfCardsToLearn,
   cardInterval: fixture.preferences.default.study.cardInterval,
-  version: "1.2.3",
 };
 
 const meta = {
@@ -48,24 +47,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const LoggedOut: Story = {};
-export const LoggedIn: Story = {
-  args: {
-    ...settingsFormProps,
-    isLoggedIn: true,
-    identity: { uid: "settings-user", displayName: "Settings User" },
-  },
-};
-export const LongContent: Story = {
-  args: {
-    ...settingsFormProps,
-    isLoggedIn: true,
-    identity: {
-      uid: "settings-user-with-an-intentionally-long-identifier-for-responsive-review-1234567890",
-      displayName: "A settings user with an intentionally long display name for responsive review",
-    },
-    version: "2026.07.16-calm-focus-settings-presentation-long-metadata",
-  },
-};
-export const Dark: Story = { ...LoggedIn, globals: { theme: "dark" } };
-export const Mobile: Story = { ...LongContent, parameters: { viewport: { defaultViewport: "iphonex" } } };
+export const Default: Story = {};
+export const Dark: Story = { globals: { theme: "dark" } };
+export const Mobile: Story = { parameters: { viewport: { defaultViewport: "iphonex" } } };

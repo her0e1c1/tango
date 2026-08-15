@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -16,7 +16,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authSession }));
+vi.mock("@/entities/auth", () => ({
+  useAuthSession: () => mocks.authSession,
+  useAuthUid: () => (mocks.authSession.status === "authenticated" ? mocks.authSession.uid : ""),
+}));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
@@ -42,26 +45,18 @@ describe("SettingsPage", () => {
     expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/");
   });
 
-  it("displays an alert when sign-out fails and allows retrying sign-out", async () => {
+  it("composes account, preferences, and page metadata", () => {
     mocks.authSession = {
       status: "authenticated",
       uid: "retry-uid-a",
       isAnonymous: false,
       displayName: "Test User",
     };
-    const signOutError = new Error("sign out failed");
-    const logout = vi.fn().mockRejectedValueOnce(signOutError).mockResolvedValueOnce(undefined);
+    render(<SettingsPage login={vi.fn()} logout={vi.fn()} />);
 
-    render(<SettingsPage login={vi.fn()} logout={logout} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Logout" }));
-
-    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
-    expect(logout).toHaveBeenCalledOnce();
-
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-
-    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
-    expect(logout).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("region", { name: "Account" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "Appearance" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "Study" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Advanced" })).toHaveTextContent("retry-uid-a");
   });
 });
