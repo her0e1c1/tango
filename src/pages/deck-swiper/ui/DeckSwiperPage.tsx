@@ -40,12 +40,22 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   const preferences = usePreferences();
   const allCards = useCards();
   const session = useStudyStore(selectStudySessionForRoute(deckId));
-  const showBackText = useStudyStore((state) => state.showBackText);
+  const [showBackText, setShowBackText] = React.useState(false);
   const autoPlay = useStudyStore((state) => state.autoPlay);
   const [lastSwipe, setLastSwipe] = React.useState<{ direction: SwipeDirection; eventId: number } | undefined>(
     undefined
   );
   const hydrated = useStudyHydrated();
+
+  const handleHideBackText = React.useCallback(() => {
+    setShowBackText(false);
+  }, []);
+  const handleToggleBackText = React.useCallback(() => {
+    setShowBackText((prev) => !prev);
+  }, []);
+  const handleRestoreBackText = React.useCallback((show: boolean) => {
+    setShowBackText(show);
+  }, []);
 
   const handleSwipe = React.useCallback(
     (direction: SwipeDirection) => {
@@ -71,6 +81,10 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
       update: cardMutation.update,
     },
     onSwipe: handleSwipe,
+    showBackText,
+    onHideBackText: handleHideBackText,
+    onToggleBackText: handleToggleBackText,
+    onRestoreBackText: handleRestoreBackText,
   });
   useKey("ArrowUp", studyActions.swipeUp);
   useKey("ArrowDown", studyActions.swipeDown);
@@ -204,5 +218,5 @@ export const DeckSwiperPage: React.FC = () => {
     return <RouteFeedback title="Study session unavailable." tone="not-found" />;
   }
 
-  return <DeckSwiperContent cardsById={cardsById} deck={deck} />;
+  return <DeckSwiperContent key={deck.id} cardsById={cardsById} deck={deck} />;
 };

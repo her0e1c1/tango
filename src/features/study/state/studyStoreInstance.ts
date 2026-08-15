@@ -9,7 +9,6 @@ export const studyStore = createStudyStore();
 export const clearStudyStore = async (): Promise<void> => {
   studyStore.setState({
     sessionsByDeckId: {},
-    showBackText: false,
     autoPlay: false,
   });
   await studyStore.persist.clearStorage();

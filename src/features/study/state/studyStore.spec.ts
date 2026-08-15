@@ -120,20 +120,12 @@ describe("study store", () => {
 
   it("initializes and toggles transient study UI state", () => {
     const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
-    store.getState().toggleShowBackText();
 
     store.getState().initializeStudyUi(true);
-    expect(store.getState()).toMatchObject({ showBackText: false, autoPlay: true });
+    expect(store.getState()).toMatchObject({ autoPlay: true });
 
-    store.getState().toggleShowBackText();
     store.getState().toggleAutoPlay();
-    expect(store.getState()).toMatchObject({
-      showBackText: true,
-      autoPlay: false,
-    });
-
-    store.getState().hideBackText();
-    expect(store.getState().showBackText).toBe(false);
+    expect(store.getState()).toMatchObject({ autoPlay: false });
   });
 
   it("persists exactly the session map in a v3 envelope", async () => {
@@ -142,7 +134,6 @@ describe("study store", () => {
     const storage = createMemoryStorage();
     const store = createStudyStore({ storage, skipHydration: true });
     store.getState().startStudy("deck-1", ["card-1"]);
-    store.getState().toggleShowBackText();
 
     expect(JSON.parse(storage.getItem(STUDY_STORAGE_KEY) ?? "{}")).toEqual({
       state: {
@@ -159,7 +150,6 @@ describe("study store", () => {
       sessionsByDeckId: {
         "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
       },
-      showBackText: false,
       autoPlay: false,
     });
     expect(restored.getState()).not.toHaveProperty("session");
@@ -178,7 +168,6 @@ describe("study store", () => {
           },
           broken: { deckId: "broken", cardOrderIds: [], currentIndex: 0, lastStudiedAt: 2000 },
         },
-        showBackText: true,
         unknownRootMetadata: "drop",
       },
       3
@@ -191,7 +180,6 @@ describe("study store", () => {
       "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 1, lastStudiedAt: 1000 },
     });
     expect(store.getState()).not.toHaveProperty("unknownRootMetadata");
-    expect(store.getState().showBackText).toBe(false);
   });
 
   it.each([1, 2])("migrates a valid v%s session into the v3 map", async (version) => {
