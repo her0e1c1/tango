@@ -33,6 +33,10 @@ export const prepareSampleDeck = (uid: string, options: Omit<SampleDeckOptions, 
 export const addSampleDeck = (uid: string, options: SampleDeckOptions) =>
   executePreparedDeckImport(prepareSampleDeck(uid, options), {
     uid,
-    createDeck: (deck) => options.createDeck(uid, deck),
+    createDeck: (deck) => {
+      // Samples remain account-synced even when CSV imports support a local destination.
+      if (deck.localMode === true) throw new Error("The sample Deck cannot use local storage");
+      return options.createDeck(uid, deck);
+    },
     mutateCards: (mutations) => mutateCards(uid, mutations),
   });

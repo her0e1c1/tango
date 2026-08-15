@@ -1,5 +1,5 @@
 import type { Card } from "@/entities/card";
-import type { Deck, DeckCreateInput } from "@/entities/deck";
+import type { Deck, DeckCreateInput, LocalDeckCreateInput } from "@/entities/deck";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -13,12 +13,12 @@ import type {
   DeckImportRequest,
 } from "../model/deckImportExecution";
 import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
-import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
+import type { DeckImportPreview, DeckImportResult, DeckImportStorageMode } from "../model/deckImportTypes";
 import { prepareSampleDeck } from "../model/sampleDeck";
 
 export interface DeckImportOptions {
   cards: Card[];
-  createDeck: (uid: string, deck: DeckCreateInput) => Promise<unknown>;
+  createDeck: (uid: string, deck: DeckCreateInput | LocalDeckCreateInput) => Promise<unknown>;
   decks: Deck[];
   generateCardId: () => string;
 }
@@ -26,12 +26,14 @@ export interface DeckImportOptions {
 interface DeckImportSession {
   uid: string;
   running: boolean;
+  storageMode: DeckImportStorageMode;
   previewAttempt: DeckImportAttempt | undefined;
   retryAttempt: DeckImportAttempt | undefined;
 }
 
 interface DeckImportState {
   uid: string;
+  storageMode: DeckImportStorageMode;
   pending: boolean;
   validating: boolean;
   preview: DeckImportPreview | undefined;
@@ -43,12 +45,14 @@ interface DeckImportState {
 const createSession = (uid: string): DeckImportSession => ({
   uid,
   running: false,
+  storageMode: "remote",
   previewAttempt: undefined,
   retryAttempt: undefined,
 });
 
 const initialState = (uid: string): DeckImportState => ({
   uid,
+  storageMode: "remote",
   pending: false,
   validating: false,
   preview: undefined,
@@ -113,6 +117,22 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     if (attempt != null && !target.running) void run(attempt, target).catch(() => undefined);
   };
 
+  const setStorageMode = (nextStorageMode: DeckImportStorageMode) => {
+    const target = sessionRef.current;
+    if (target.running || target.storageMode === nextStorageMode) return;
+    // A prepared plan is destination-specific and must never execute after the user changes that destination.
+    target.storageMode = nextStorageMode;
+    target.previewAttempt = undefined;
+    target.retryAttempt = undefined;
+    publish(target, {
+      storageMode: nextStorageMode,
+      preview: undefined,
+      previewError: null,
+      error: null,
+      data: undefined,
+    });
+  };
+
   const selectFile = async (file: File) => {
     const target = sessionRef.current;
     if (target.uid !== uid || !isCurrent(target)) {
@@ -131,14 +151,24 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     try {
       const analysis = await parseCsv(await file.text());
       if (!isCurrent(target)) throw new Error("Deck import user changed before the preview could finish");
-      // Listener-backed stores can lag, so file imports are planned from authoritative server reads.
-      const [remoteDecks, remoteCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
+
+      let activeDecks = decks;
+      let activeCards = cards;
+      if (target.storageMode === "remote") {
+        // Listener-backed stores can lag, so remote file imports are planned from authoritative server reads.
+        [activeDecks, activeCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
+      }
+
       if (!isCurrent(target)) throw new Error("Deck import user changed before the preview could finish");
-      const request = { name: file.name, rows: analysis.rows } satisfies DeckImportRequest;
+      const request = {
+        name: file.name,
+        rows: analysis.rows,
+        storageMode: target.storageMode,
+      } satisfies DeckImportRequest;
       const attempt = prepareDeckImport(request, {
         uid,
-        decks: remoteDecks,
-        cards: remoteCards,
+        decks: activeDecks,
+        cards: activeCards,
         generateCardId,
       });
       const preview = {
@@ -158,7 +188,7 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     }
   };
 
-  const { preview, previewError, validating, pending, error, data } = currentState;
+  const { storageMode, preview, previewError, validating, pending, error, data } = currentState;
 
   const importPreview = () => {
     const target = sessionRef.current;
@@ -176,8 +206,10 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
 
   return {
     selectFile,
+    setStorageMode,
     importPreview,
     addSample: () => run(prepareSampleDeck(uid, { cards, decks, generateCardId }), sessionRef.current),
+    storageMode,
     preview,
     validating,
     pending,
