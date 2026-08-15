@@ -1,12 +1,23 @@
 import { useEffect, useState } from "react";
 
 import type { Card } from "@/entities/card";
-import { type Deck, filterCardsForDeck } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
-import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
+import { filterStudyCards } from "./filterStudyCards";
 
 // Browsers clamp longer delays; capped timers reschedule until the actual availability time is reached.
 const MAX_TIMEOUT_MS = 2_147_483_647;
+
+const getNextStudyAvailabilityAt = (cards: Card[], now: number): number | undefined => {
+  let next: number | undefined;
+  for (const card of cards) {
+    const candidate = card.nextSeeingAt?.getTime();
+    if (candidate !== undefined && candidate > now && (next === undefined || candidate < next)) {
+      next = candidate;
+    }
+  }
+  return next;
+};
 
 export const useFilteredStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): Card[] => {
   const [now, setNow] = useState(() => Date.now());
@@ -21,5 +32,5 @@ export const useFilteredStudyCards = (deck: Deck | undefined, cards: Card[], pre
     return () => window.clearTimeout(availability);
   }, [cards, now]);
 
-  return deck == null ? [] : filterCardsForDeck(cards, deck, preferences.study, now);
+  return deck == null ? [] : filterStudyCards(cards, deck, preferences.study, now);
 };

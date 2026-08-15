@@ -1,3 +1,3 @@
 export { editStudyProgress } from "./api/firestore";
-export { getNextStudyAvailabilityAt } from "./model/rules";
+export { createStudyProgressFromCard, isStudyProgressEligible } from "./model/rules";
 export type { StudyProgressEdit } from "./model/types";

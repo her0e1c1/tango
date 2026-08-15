@@ -35,18 +35,22 @@ describe("useFilteredStudyCards", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
     const deck = createDeck({ id: "scheduled" });
-    const card = createCard({ id: "scheduled-card", deckId: deck.id, nextSeeingAt: new Date(1500) });
+    const next = createCard({ id: "next", deckId: deck.id, nextSeeingAt: new Date(1500) });
+    const later = createCard({ id: "later", deckId: deck.id, nextSeeingAt: new Date(2000) });
+    const cards = [next, later];
     const { result } = renderHook(() => ({
-      enabled: useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: true })),
-      disabled: useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: false })),
+      enabled: useFilteredStudyCards(deck, cards, createPreferences({ useCardInterval: true })),
+      disabled: useFilteredStudyCards(deck, cards, createPreferences({ useCardInterval: false })),
     }));
 
     expect(result.current.enabled).toEqual([]);
-    expect(result.current.disabled).toEqual([card]);
+    expect(result.current.disabled).toEqual(cards);
     act(() => vi.advanceTimersByTime(499));
     expect(result.current.enabled).toEqual([]);
     act(() => vi.advanceTimersByTime(1));
-    expect(result.current.enabled).toEqual([card]);
+    expect(result.current.enabled).toEqual([next]);
+    act(() => vi.advanceTimersByTime(500));
+    expect(result.current.enabled).toEqual(cards);
   });
 
   it("re-evaluates a changed card list against the current time", () => {

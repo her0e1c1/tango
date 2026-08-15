@@ -1,6 +1,3 @@
-import type { Card } from "@/entities/card/@x/deck";
-import { createStudyProgressFromCard, isStudyProgressEligible } from "@/entities/study-progress/@x/deck";
-
 import type { Category, Deck, DeckId } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
@@ -51,32 +48,6 @@ export const getCategory = (category: Category, tags: string[]): Category => {
 
   return tagCategory ?? category;
 };
-
-const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
-  const tags = deck.selectedTags;
-  if (tags.length === 0) return true;
-  if (deck.tagAndFilter) return tags.every((tag) => card.tags.includes(tag));
-  return tags.some((tag) => card.tags.includes(tag));
-};
-
-export const filterCardsForDeck = <TCard extends Card>(
-  cards: TCard[],
-  deck: Pick<Deck, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
-  study: { useCardInterval: boolean },
-  now: number
-): TCard[] =>
-  cards.filter((card) => {
-    if (!isCardMatchingTags(card, deck)) return false;
-    return isStudyProgressEligible(
-      createStudyProgressFromCard(card),
-      {
-        maximumScore: deck.scoreMax,
-        minimumScore: deck.scoreMin,
-        respectNextSeeingAt: study.useCardInterval,
-      },
-      now
-    );
-  });
 
 export const mustFindDeckById = (decks: readonly Deck[], id: DeckId): Deck => {
   const deck = decks.find((candidate) => candidate.id === id);
