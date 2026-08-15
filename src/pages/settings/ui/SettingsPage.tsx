@@ -24,7 +24,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
   const isLoggedIn = authAccount != null;
 
   const signIn = useSignIn(login);
-  const signOut = useSignOut(isLoggedIn ? logout : undefined);
+  const signOut = useSignOut(logout);
   const accountOperation = isLoggedIn
     ? {
         run: signOut.signOut,
