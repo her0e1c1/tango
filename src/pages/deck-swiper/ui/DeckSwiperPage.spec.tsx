@@ -331,8 +331,9 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   });
 
   it("renders back text and controlled auto-play", () => {
+    const view = render(<DeckSwiperPage />);
     mocks.studyState.autoPlay = true;
-    render(<DeckSwiperPage />);
+    view.rerender(<DeckSwiperPage />);
 
     fireEvent.click(screen.getByText(card.frontText));
 

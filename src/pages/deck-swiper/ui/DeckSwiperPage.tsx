@@ -120,7 +120,6 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   React.useEffect(() => {
     if (!valid) return;
     initializeStudySessionUi(preferences.study.defaultAutoPlay);
-    setShowBackText(false);
     touchStudySession(deckId);
   }, [preferences.study.defaultAutoPlay, deckId, valid]);
 
@@ -219,5 +218,5 @@ export const DeckSwiperPage: React.FC = () => {
     return <RouteFeedback title="Study session unavailable." tone="not-found" />;
   }
 
-  return <DeckSwiperContent cardsById={cardsById} deck={deck} />;
+  return <DeckSwiperContent key={deck.id} cardsById={cardsById} deck={deck} />;
 };
