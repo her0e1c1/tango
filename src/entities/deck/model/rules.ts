@@ -1,4 +1,16 @@
+import type { Card } from "@/entities/card/@x/deck";
+import {
+  createStudyProgressFromCard,
+  isStudyProgressEligible,
+  type StudyProgress,
+} from "@/entities/study-progress/@x/deck";
+
 import type { Category, Deck, DeckId } from "./types";
+
+interface SelectableStudyCard<TCard extends Card = Card> {
+  card: TCard;
+  progress: StudyProgress;
+}
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -48,6 +60,44 @@ export const getCategory = (category: Category, tags: string[]): Category => {
 
   return tagCategory ?? category;
 };
+
+export const createSelectableStudyCard = <TCard extends Card>(card: TCard): SelectableStudyCard<TCard> => ({
+  card,
+  progress: createStudyProgressFromCard({
+    id: card.id,
+    score: card.score,
+    numberOfSeen: card.numberOfSeen,
+    ...(card.lastSeenAt === undefined ? {} : { lastSeenAt: card.lastSeenAt }),
+    ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: card.nextSeeingAt }),
+    ...(card.interval === undefined ? {} : { interval: card.interval }),
+  }),
+});
+
+const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
+  const tags = deck.selectedTags;
+  if (tags.length === 0) return true;
+  if (deck.tagAndFilter) return tags.every((tag) => card.tags.includes(tag));
+  return tags.some((tag) => card.tags.includes(tag));
+};
+
+export const filterCardsForDeck = <TCard extends Card>(
+  cards: SelectableStudyCard<TCard>[],
+  deck: Pick<Deck, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
+  study: { useCardInterval: boolean },
+  now: number
+): SelectableStudyCard<TCard>[] =>
+  cards.filter(({ card, progress }) => {
+    if (!isCardMatchingTags(card, deck)) return false;
+    return isStudyProgressEligible(
+      progress,
+      {
+        maximumScore: deck.scoreMax,
+        minimumScore: deck.scoreMin,
+        respectNextSeeingAt: study.useCardInterval,
+      },
+      now
+    );
+  });
 
 export const mustFindDeckById = (decks: readonly Deck[], id: DeckId): Deck => {
   const deck = decks.find((deck) => deck.id === id);

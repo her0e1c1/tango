@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import { createSelectableStudyCard, type Deck, filterCardsForDeck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
-import { createSelectableStudyCard, filterCardsForDeck } from "./cardSelection";
 
 // Browsers clamp longer delays; capped timers reschedule until the actual availability time is reached.
 const MAX_TIMEOUT_MS = 2_147_483_647;
