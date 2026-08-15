@@ -6,18 +6,17 @@ import type { SampleDeckOptions } from "../model/sampleDeck";
 
 type AddSample = () => Promise<unknown>;
 
-const bootstrapsByUid = new Map<string, Promise<unknown>>();
+const pendingBootstrapsByUid = new Map<string, Promise<unknown>>();
 
 const startSampleDeckBootstrap = (uid: string, addSample: AddSample) => {
-  const existing = bootstrapsByUid.get(uid);
+  const existing = pendingBootstrapsByUid.get(uid);
   if (existing != null) return existing;
 
-  const operation = Promise.resolve().then(addSample);
-  bootstrapsByUid.set(uid, operation);
-  // Successful operations stay cached across StrictMode remounts; failures are removed so a later render can retry.
-  void operation.catch(() => {
-    bootstrapsByUid.delete(uid);
-  });
+  // Only overlapping effects share work; Deck state remains the source of truth for later bootstrap decisions.
+  const operation = Promise.resolve()
+    .then(addSample)
+    .finally(() => pendingBootstrapsByUid.delete(uid));
+  pendingBootstrapsByUid.set(uid, operation);
   return operation;
 };
 

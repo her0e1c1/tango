@@ -52,6 +52,25 @@ describe("sample Deck bootstrap", () => {
     expect(mocks.addSample).not.toHaveBeenCalled();
   });
 
+  it("adds the sample again when Decks become empty after a completed bootstrap", async () => {
+    const { unmount } = renderHook(useTestSampleDeckBootstrap);
+    await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    unmount();
+
+    mocks.remote.decks = [{ id: "sample" } as Deck];
+    const { unmount: unmountPopulated } = renderHook(useTestSampleDeckBootstrap);
+    expect(mocks.addSample).toHaveBeenCalledOnce();
+    unmountPopulated();
+
+    mocks.remote.decks = [];
+    renderHook(useTestSampleDeckBootstrap);
+
+    await waitFor(() => expect(mocks.addSample).toHaveBeenCalledTimes(2));
+  });
+
   it("deduplicates concurrent starts for one user", async () => {
     let finish: () => void = () => undefined;
     mocks.addSample.mockImplementation(
