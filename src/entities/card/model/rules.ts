@@ -5,6 +5,12 @@ const cardContentFields: ReadonlySet<string> = new Set(["frontText", "backText",
 const isCardContentField = (field: PropertyKey | undefined): field is keyof CardRaw =>
   typeof field === "string" && cardContentFields.has(field);
 
+export const countCardsByDeckId = (cards: readonly Card[]): Map<string, number> => {
+  const counts = new Map<string, number>();
+  for (const card of cards) counts.set(card.deckId, (counts.get(card.deckId) ?? 0) + 1);
+  return counts;
+};
+
 export const getCardContentValidationErrors = (card: CardRaw): Partial<Record<keyof CardRaw, string>> => {
   const validation = cardContentSchema.safeParse(card);
   if (validation.success) return {};

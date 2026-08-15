@@ -1,4 +1,4 @@
-import type { Card } from "@/entities/card";
+import { countCardsByDeckId, type Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 
 interface DeckListStudySession {
@@ -31,8 +31,7 @@ export const buildDeckListSections = (
   cards: Card[],
   sessionsByDeckId: Partial<Record<DeckId, DeckListStudySession>>
 ): DeckListSections => {
-  const cardCounts = new Map<DeckId, number>();
-  for (const card of cards) cardCounts.set(card.deckId, (cardCounts.get(card.deckId) ?? 0) + 1);
+  const cardCounts = countCardsByDeckId(cards);
 
   const studying: DeckListItem[] = [];
   const other: DeckListItem[] = [];

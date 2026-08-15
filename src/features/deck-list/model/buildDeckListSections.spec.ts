@@ -1,6 +1,8 @@
 import type { DeckId } from "@/entities/deck";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { createCard, createDeck } from "@/test/factories";
 

@@ -12,4 +12,9 @@ export type {
   CardRaw,
   RemoteCard,
 } from "./model/types";
-export { filterCardsByDeckId, getCardContentValidationErrors, mustFindCardById } from "./model/rules";
+export {
+  countCardsByDeckId,
+  filterCardsByDeckId,
+  getCardContentValidationErrors,
+  mustFindCardById,
+} from "./model/rules";
