@@ -4,26 +4,23 @@
  * coordinate services themselves.
  */
 
-import type { Card, CardCreateInput, CardEdit } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { fetchCards, filterCardsByDeckId } from "@/entities/card";
+import { fetchCards, filterCardsByDeckId, mutateCards } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
 import { useAuthUid } from "@/entities/auth";
 import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
-import { upsertImportedCards } from "../api/upsertImportedCards";
 import type { DeckImportAttempt, DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
 import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
 
 export interface DeckImportOptions {
   cards: Card[];
-  createCard: (uid: string, card: CardCreateInput) => Promise<unknown>;
   createDeck: (uid: string, deck: DeckCreateInput) => Promise<unknown>;
   decks: Deck[];
-  editCard: (uid: string, card: CardEdit) => Promise<unknown>;
   generateCardId: () => string;
 }
 
@@ -146,14 +143,7 @@ const previewDeckImportFile = async (
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useDeckImport = ({
-  cards,
-  createCard,
-  createDeck,
-  decks,
-  editCard,
-  generateCardId,
-}: DeckImportOptions) => {
+export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: DeckImportOptions) => {
   const uid = useAuthUid();
   const cardsByDeckId = useCallback((deckId: DeckId) => filterCardsByDeckId(cards, deckId), [cards]);
   const generation = useRef(0);
@@ -187,11 +177,11 @@ export const useDeckImport = ({
       cardsByDeckId,
       createDeck: (deck) => createDeck(uid, deck),
       generateCardId,
-      bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
+      mutateCards: (mutations) => mutateCards(uid, mutations),
       fetchDecks,
       fetchCards,
     };
-  }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, uid]);
+  }, [cardsByDeckId, createDeck, decks, generateCardId, uid]);
   const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
     setState((current) => ({
       ...(current.uid === uid ? current : initialDeckImportState(uid)),

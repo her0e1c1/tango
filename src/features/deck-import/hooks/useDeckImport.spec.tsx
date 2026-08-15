@@ -4,16 +4,18 @@
  * writing until import is confirmed" and "keeps invalid files in preview without mutating state".
  */
 
-import type { Card, CardCreateInput } from "@/entities/card";
+import type { Card, CardMutation } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck } from "@/test/factories";
+import { CardBulkMutationError } from "@/entities/card";
 import type { DeckImportResult } from "../model/deckImportTypes";
-import { CardBulkMutationError } from "../api/upsertImportedCards";
 import { actAsync } from "@/test/act";
+
+type CardCreateInput = Extract<CardMutation, { kind: "create" }>["card"];
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
@@ -22,8 +24,6 @@ const mocks = vi.hoisted(() => ({
   parseCsv: vi.fn(),
   generateDeckId: vi.fn(() => "deck"),
   generateCardId: vi.fn(() => "card"),
-  createCardWrite: vi.fn(),
-  editCard: vi.fn(),
   createDeck: vi.fn(),
   bulkUpsert: vi.fn(),
   fetchDecks: vi.fn(),
@@ -40,13 +40,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
     ...actual,
     filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
     fetchCards: mocks.fetchCards,
-  };
-});
-vi.mock("../api/upsertImportedCards", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../api/upsertImportedCards")>();
-  return {
-    ...actual,
-    upsertImportedCards: (_uid: string, cards: CardCreateInput[]) => mocks.bulkUpsert(cards),
+    mutateCards: (_uid: string, mutations: CardMutation[]) => mocks.bulkUpsert(mutations),
   };
 });
 vi.mock("@/entities/deck", async (importOriginal) => {
@@ -66,10 +60,8 @@ import { useDeckImport } from "./useDeckImport";
 const useTestDeckImport = () =>
   useDeckImport({
     cards: mocks.cards,
-    createCard: mocks.createCardWrite,
     createDeck: (_uid: string, deck: DeckCreateInput) => mocks.createDeck(deck),
     decks: mocks.decks,
-    editCard: mocks.editCard,
     generateCardId: mocks.generateCardId,
   });
 
@@ -85,8 +77,6 @@ describe("useDeckImport", () => {
     });
     mocks.generateDeckId.mockReturnValue("deck");
     mocks.generateCardId.mockReturnValue("card");
-    mocks.createCardWrite.mockResolvedValue(undefined);
-    mocks.editCard.mockResolvedValue(undefined);
     mocks.createDeck.mockResolvedValue(undefined);
     mocks.bulkUpsert.mockResolvedValue(undefined);
     mocks.fetchDecks.mockResolvedValue([]);
@@ -118,13 +108,16 @@ describe("useDeckImport", () => {
     expect(mocks.createDeck).toHaveBeenCalledWith({ id: "deck", uid: "uid-a", name: "deck.csv" });
     expect(mocks.bulkUpsert).toHaveBeenCalledWith([
       {
-        id: "card",
-        deckId: "deck",
-        uid: "uid-a",
-        frontText: "front",
-        backText: "back",
-        tags: [],
-        uniqueKey: "key",
+        kind: "create",
+        card: {
+          id: "card",
+          deckId: "deck",
+          uid: "uid-a",
+          frontText: "front",
+          backText: "back",
+          tags: [],
+          uniqueKey: "key",
+        },
       },
     ]);
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
@@ -171,7 +164,7 @@ describe("useDeckImport", () => {
 
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).toHaveBeenCalledWith([
-      expect.objectContaining({ id: "server-card", backText: "new back" }),
+      { kind: "edit", card: expect.objectContaining({ id: "server-card", backText: "new back" }) },
     ]);
     expect(mocks.fetchDecks).toHaveBeenCalledOnce();
     expect(mocks.fetchCards).toHaveBeenCalledOnce();
@@ -280,7 +273,9 @@ describe("useDeckImport", () => {
     expect(result.current.preview?.analysis.rows).toEqual([{ rowNumber: 1, card: normalizedCard }]);
 
     await actAsync(async () => result.current.importUrl("https://example.test/deck.csv"));
-    expect(mocks.bulkUpsert).toHaveBeenLastCalledWith([expect.objectContaining(normalizedCard)]);
+    expect(mocks.bulkUpsert).toHaveBeenLastCalledWith([
+      { kind: "create", card: expect.objectContaining(normalizedCard) },
+    ]);
   });
 
   it("does not write when URL CSV validation fails", async () => {
@@ -402,8 +397,11 @@ describe("useDeckImport", () => {
     expect(mocks.decks).toEqual([]);
     expect(mocks.cards).toEqual([]);
     expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(1, [first, second]);
-    expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(2, [second]);
+    expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(1, [
+      { kind: "create", card: first },
+      { kind: "create", card: second },
+    ]);
+    expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(2, [{ kind: "create", card: second }]);
   });
 
   it("clears operation data and error when a new file is selected", async () => {

@@ -33,8 +33,6 @@ vi.mock("@/entities/auth", () => ({
   useAuthUid: () => mocks.authUid,
 }));
 vi.mock("@/entities/card", () => ({
-  createCard: vi.fn(),
-  editCard: vi.fn(),
   generateCardId: vi.fn(),
   useCards: () => mocks.cards,
 }));

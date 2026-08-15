@@ -1,5 +1,6 @@
 export { fetchCards, subscribeCards } from "./api/firestore";
-export { createCard, deleteCard, editCard } from "./api/mutations";
+export { CardBulkMutationError, deleteCard, editCard, mutateCards } from "./api/mutations";
+export type { CardMutation } from "./api/mutations";
 export { generateCardId } from "./model/id";
 export { useCard, useCards, useCardsByDeckId } from "./model/hooks";
 export { clearRemoteCards } from "./model/store";
@@ -12,7 +13,6 @@ export {
 } from "./model/store";
 export type {
   Card,
-  CardCreateInput,
   CardEdit,
   CardId,
   CardRaw,
