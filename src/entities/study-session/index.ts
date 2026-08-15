@@ -2,10 +2,9 @@ export { useStudySession, useStudySessions } from "./model/hooks";
 export {
   clearStudySessions,
   getStudySession,
+  moveStudySession,
   removeStudySession,
-  restoreStudySession,
   setStudySessionIndex,
   startStudySession,
   touchStudySession,
 } from "./model/store";
-export type { StudySession } from "./model/types";

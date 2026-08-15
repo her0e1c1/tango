@@ -1,257 +1,130 @@
-/**
- * @file Verifies the "useStudyActions" contract with automated examples.
- * The examples make the expected behavior concrete with active-session transition cases.
- */
-
-import type { Card, CardId } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import type { Card } from "@/entities/card";
 import type { Preferences } from "@/entities/preferences";
-import {
-  clearStudySessions,
-  getStudySession,
-  setStudySessionIndex,
-  startStudySession,
-  touchStudySession,
-} from "@/entities/study-session";
+import { clearStudySessions, getStudySession, setStudySessionIndex, startStudySession } from "@/entities/study-session";
 
-import { act, renderHook } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { actAsync } from "@/test/act";
+import { createPreferences } from "@/test/factories";
+
+import { useStudyActions } from "./useStudyActions";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { useStudyActions } from "./useStudyActions";
-import { actAsync } from "@/test/act";
-
-const mocks = vi.hoisted(() => {
-  const cardUpdate = vi.fn();
-
-  return {
-    state: null as { cards: Card[]; preferences: Preferences } | null,
-    cardUpdate,
-    cardMutations: {
-      update: cardUpdate,
-    },
-  };
-});
-
+const mocks = vi.hoisted(() => ({ preferences: null as Preferences | null }));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => {
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
-    return mocks.state.preferences;
+    if (mocks.preferences == null) throw new Error("Preferences not initialized");
+    return mocks.preferences;
   },
 }));
 
-const deck: Deck = {
-  id: "deck-1",
-  uid: "user-1",
-  localMode: false,
-  name: "Deck",
-  isPublic: false,
-  createdAt: 0,
-  updatedAt: 0,
-  deletedAt: null,
-  category: "",
-  convertToBr: false,
-  selectedTags: [],
-  tagAndFilter: false,
-  scoreMax: null,
-  scoreMin: null,
-};
-
-/**
- * Provides the create card test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
-const createCard = (id: CardId, numberOfSeen: number): Card => ({
+const deckId = "deck-1";
+const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   id,
-  deckId: deck.id,
+  deckId,
   uid: "user-1",
   frontText: id,
   backText: `${id}-back`,
   tags: [],
   uniqueKey: id,
   score: 0,
-  numberOfSeen,
+  numberOfSeen: 0,
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-});
-
-const card1 = createCard("card-1", 0);
-const card2 = createCard("card-2", 1);
-
-import { createPreferences as factoryCreateConfig, type PreferencesOverrides } from "@/test/factories";
-
-/**
- * Provides the create preferences test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
-const createPreferences = (overrides: PreferencesOverrides = {}): Preferences =>
-  factoryCreateConfig({
-    shuffled: false,
-    maxNumberOfCardsToLearn: 1,
-    useCardInterval: false,
-    defaultAutoPlay: true,
-    hideBodyWhenCardChanged: true,
-    cardSwipeUp: "GoToNextCardNotMastered",
-    cardSwipeDown: "DoNothing",
-    cardSwipeLeft: "GoBack",
-    cardSwipeRight: "GoToNextCardMastered",
-    ...overrides,
-  });
-
-/**
- * Provides the create state test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
-const createState = (preferences = createPreferences()) => ({
-  cards: [card1, card2],
-  preferences,
-});
-
-const getCards = () => mocks.state?.cards ?? [];
+  lastSeenAt: 0,
+}));
 
 describe("useStudyActions", () => {
+  const saveProgress = vi.fn();
+  const onSwipe = vi.fn();
+  const onCardChanged = vi.fn();
+
   beforeEach(async () => {
     await clearStudySessions();
     localStorage.clear();
     vi.clearAllMocks();
     vi.spyOn(Date, "now").mockReturnValue(946_684_800_000);
-    mocks.cardUpdate.mockResolvedValue(undefined);
-    mocks.state = createState();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it("rejects a route and session mismatch before writing a card", async () => {
-    startStudySession("deck-2", [card1.id]);
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations })
-    );
-
-    await actAsync(async () => {
-      await result.current.swipeRight();
+    saveProgress.mockResolvedValue(undefined);
+    mocks.preferences = createPreferences({
+      hideBodyWhenCardChanged: true,
+      cardSwipeDown: "DoNothing",
+      cardSwipeLeft: "GoBack",
+      cardSwipeRight: "GoToNextCardMastered",
     });
-
-    expect(mocks.cardUpdate).not.toHaveBeenCalled();
-    expect(getStudySession("deck-2")?.deckId).toBe("deck-2");
-    expect(getStudySession(deck.id)).toBeUndefined();
   });
 
-  it("writes a card patch, notifies onSwipe and onHideBackText, and advances the Zustand session", async () => {
-    const rollbackSwipe = vi.fn();
-    const onSwipe = vi.fn(() => rollbackSwipe);
-    const onHideBackText = vi.fn();
-    startStudySession(deck.id, [card1.id, card2.id]);
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, {
-        cards: getCards(),
-        cardMutation: mocks.cardMutations,
-        onSwipe,
-        onHideBackText,
+  afterEach(() => vi.restoreAllMocks());
+
+  const renderActions = () =>
+    renderHook(() => useStudyActions(deckId, { cards, saveProgress, onSwipe, onCardChanged }));
+
+  it("persists the current card before advancing the session", async () => {
+    startStudySession(
+      deckId,
+      cards.map(({ id }) => id)
+    );
+    let finishWrite: () => void = () => undefined;
+    saveProgress.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishWrite = resolve;
       })
     );
+    const { result } = renderActions();
+
+    const swipe = result.current.swipeRight();
+    expect(getStudySession(deckId)?.currentIndex).toBe(0);
+    expect(onSwipe).not.toHaveBeenCalled();
 
     await actAsync(async () => {
-      await result.current.swipeRight();
+      finishWrite();
+      await swipe;
     });
 
-    const patch = {
-      cardId: card1.id,
+    expect(saveProgress).toHaveBeenCalledWith({
+      cardId: "card-1",
       score: 1,
       numberOfSeen: 1,
       lastSeenAt: 946_684_800_000,
-    };
-    expect(mocks.cardUpdate).toHaveBeenCalledWith(patch);
+    });
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(onSwipe).toHaveBeenCalledWith("cardSwipeRight");
-    expect(rollbackSwipe).not.toHaveBeenCalled();
-    expect(onHideBackText).toHaveBeenCalledOnce();
-    expect(getStudySession(deck.id)).toMatchObject({
-      deckId: deck.id,
-      cardOrderIds: [card1.id, card2.id],
-      currentIndex: 1,
-      lastStudiedAt: 946_684_800_000,
-    });
+    expect(onCardChanged).toHaveBeenCalledOnce();
   });
 
-  it("rolls the optimistic study index back and restores back text when the Card write fails", async () => {
-    const onRestoreBackText = vi.fn();
-    const rollbackSwipe = vi.fn();
-    const onSwipe = vi.fn(() => rollbackSwipe);
-    startStudySession(deck.id, [card1.id, card2.id]);
-    mocks.cardUpdate.mockRejectedValueOnce(new Error("write failed"));
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, {
-        cards: getCards(),
-        cardMutation: mocks.cardMutations,
-        onSwipe,
-        showBackText: true,
-        onRestoreBackText,
-      })
+  it("keeps the visible session unchanged when persistence fails", async () => {
+    startStudySession(
+      deckId,
+      cards.map(({ id }) => id)
     );
+    saveProgress.mockRejectedValueOnce(new Error("write failed"));
+    const { result } = renderActions();
 
-    await actAsync(async () => {
-      await result.current.swipeRight();
-    });
+    await actAsync(() => result.current.swipeRight());
 
-    expect(getStudySession(deck.id)).toMatchObject({ currentIndex: 0 });
-    expect(onSwipe).toHaveBeenCalledWith("cardSwipeRight");
-    expect(rollbackSwipe).toHaveBeenCalledOnce();
-    expect(onRestoreBackText).toHaveBeenCalledWith(true);
+    expect(getStudySession(deckId)?.currentIndex).toBe(0);
+    expect(onSwipe).not.toHaveBeenCalled();
+    expect(onCardChanged).not.toHaveBeenCalled();
   });
 
-  it("does not roll back a newer same-index session update", async () => {
-    const rollbackSwipe = vi.fn();
-    startStudySession(deck.id, [card1.id, card2.id]);
-    let rejectWrite: ((error: Error) => void) | undefined;
-    mocks.cardUpdate.mockReturnValueOnce(
-      new Promise<void>((_resolve, reject) => {
-        rejectWrite = reject;
-      })
+  it("blocks a second swipe while the first write is unresolved", async () => {
+    startStudySession(
+      deckId,
+      cards.map(({ id }) => id)
     );
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, {
-        cards: getCards(),
-        cardMutation: mocks.cardMutations,
-        onSwipe: () => rollbackSwipe,
-      })
-    );
-
-    const swipe = result.current.swipeRight();
-    vi.mocked(Date.now).mockReturnValue(946_684_800_100);
-    act(() => touchStudySession(deck.id));
-    rejectWrite?.(new Error("write failed"));
-    await actAsync(async () => swipe);
-
-    expect(getStudySession(deck.id)).toMatchObject({
-      currentIndex: 1,
-      lastStudiedAt: 946_684_800_100,
-    });
-    expect(rollbackSwipe).not.toHaveBeenCalled();
-  });
-
-  it("blocks a second swipe while the first Card write is unresolved", async () => {
-    startStudySession(deck.id, [card1.id, card2.id]);
     let finishWrite: () => void = () => undefined;
-    mocks.cardUpdate.mockImplementationOnce(
-      () =>
-        new Promise<void>((resolve) => {
-          finishWrite = resolve;
-        })
+    saveProgress.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishWrite = resolve;
+      })
     );
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations })
-    );
+    const { result } = renderActions();
 
     const firstSwipe = result.current.swipeRight();
-    await actAsync(async () => {
-      await result.current.swipeRight();
-    });
-
-    expect(mocks.cardUpdate).toHaveBeenCalledOnce();
-    expect(getStudySession(deck.id)?.currentIndex).toBe(1);
+    await actAsync(() => result.current.swipeRight());
+    expect(saveProgress).toHaveBeenCalledOnce();
 
     await actAsync(async () => {
       finishWrite();
@@ -259,114 +132,53 @@ describe("useStudyActions", () => {
     });
   });
 
-  it("keeps back text visible when the long-lived preferences allows it", async () => {
-    const onHideBackText = vi.fn();
-    mocks.state = createState(createPreferences({ appearance: { hideBodyWhenCardChanged: false } }));
-    startStudySession(deck.id, [card1.id, card2.id]);
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, {
-        cards: getCards(),
-        cardMutation: mocks.cardMutations,
-        showBackText: true,
-        onHideBackText,
+  it("does not advance a session changed by the controller during the write", async () => {
+    startStudySession(
+      deckId,
+      cards.map(({ id }) => id)
+    );
+    let finishWrite: () => void = () => undefined;
+    saveProgress.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishWrite = resolve;
       })
     );
+    const { result } = renderActions();
 
+    const swipe = result.current.swipeRight();
+    setStudySessionIndex(deckId, 1);
     await actAsync(async () => {
-      await result.current.swipeRight();
+      finishWrite();
+      await swipe;
     });
 
-    expect(onHideBackText).not.toHaveBeenCalled();
-  });
-
-  it("leaves all study and card state unchanged for DoNothing", async () => {
-    const onSwipe = vi.fn();
-    startStudySession(deck.id, [card1.id, card2.id]);
-    const before = getStudySession(deck.id);
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations, onSwipe })
-    );
-
-    await actAsync(async () => {
-      await result.current.swipeDown();
-    });
-
-    expect(mocks.cardUpdate).not.toHaveBeenCalled();
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(onSwipe).not.toHaveBeenCalled();
-    expect(getStudySession(deck.id)).toEqual(before);
   });
 
-  it("removes only the route session for GoBack without a card write", async () => {
-    const rollbackSwipe = vi.fn();
-    const onSwipe = vi.fn(() => rollbackSwipe);
-    startStudySession(deck.id, [card1.id, card2.id]);
-    startStudySession("deck-2", ["other-card"]);
-    setStudySessionIndex(deck.id, 1);
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations, onSwipe })
+  it("handles DoNothing and GoBack without writing progress", async () => {
+    startStudySession(
+      deckId,
+      cards.map(({ id }) => id)
     );
+    const { result } = renderActions();
 
-    await actAsync(async () => {
-      await result.current.swipeLeft();
-    });
+    await actAsync(() => result.current.swipeDown());
+    expect(getStudySession(deckId)).toBeDefined();
+    await actAsync(() => result.current.swipeLeft());
 
-    expect(mocks.cardUpdate).not.toHaveBeenCalled();
+    expect(saveProgress).not.toHaveBeenCalled();
     expect(onSwipe).toHaveBeenCalledWith("cardSwipeLeft");
-    expect(rollbackSwipe).not.toHaveBeenCalled();
-    expect(getStudySession("deck-2")).toMatchObject({ deckId: "deck-2" });
-    expect(getStudySession(deck.id)).toBeUndefined();
+    expect(getStudySession(deckId)).toBeUndefined();
   });
 
-  it("updates the session index and notifies onHideBackText", () => {
-    const onHideBackText = vi.fn();
-    startStudySession(deck.id, [card1.id, card2.id]);
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations, onHideBackText })
-    );
+  it("removes the session after the final card is persisted", async () => {
+    startStudySession(deckId, ["card-1"]);
+    const { result } = renderActions();
 
-    act(() => {
-      result.current.updateIndex(1);
-    });
+    await actAsync(() => result.current.swipeRight());
 
-    expect(getStudySession(deck.id)?.currentIndex).toBe(1);
-    expect(onHideBackText).toHaveBeenCalledOnce();
-  });
-
-  it("calls onToggleBackText when toggleShowBackText is invoked", () => {
-    const onToggleBackText = vi.fn();
-    const { result } = renderHook(() => useStudyActions(deck.id, { onToggleBackText }));
-
-    act(() => {
-      result.current.toggleShowBackText();
-    });
-
-    expect(onToggleBackText).toHaveBeenCalledOnce();
-  });
-
-  it("calls onToggleAutoPlay when toggleAutoPlay is invoked", () => {
-    const onToggleAutoPlay = vi.fn();
-    const { result } = renderHook(() => useStudyActions(deck.id, { onToggleAutoPlay }));
-
-    act(() => {
-      result.current.toggleAutoPlay();
-    });
-
-    expect(onToggleAutoPlay).toHaveBeenCalledOnce();
-  });
-
-  it("finishes only the route session after the final card", async () => {
-    startStudySession(deck.id, [card1.id]);
-    startStudySession("deck-2", ["other-card"]);
-    const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations })
-    );
-
-    await actAsync(async () => {
-      await result.current.swipeRight();
-    });
-
-    expect(mocks.cardUpdate).toHaveBeenCalledOnce();
-    expect(getStudySession(deck.id)).toBeUndefined();
-    expect(getStudySession("deck-2")).toMatchObject({ deckId: "deck-2" });
+    expect(saveProgress).toHaveBeenCalledOnce();
+    expect(getStudySession(deckId)).toBeUndefined();
   });
 });

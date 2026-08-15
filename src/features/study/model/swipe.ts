@@ -1,8 +1,6 @@
 import { recordStudyProgress, type StudyRating } from "@/entities/study-progress";
 import type { StudyProgress, StudyProgressEdit } from "@/entities/study-progress";
-import type { SwipeAction, SwipeDirection, SwipeState } from "@/entities/preferences";
-
-export const resolveSwipeAction = (controls: SwipeState, direction: SwipeDirection): SwipeAction => controls[direction];
+import type { SwipeAction } from "@/entities/preferences";
 
 const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
   if (swipeAction === "GoToNextCardMastered") return "mastered";

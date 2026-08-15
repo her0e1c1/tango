@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
+import { calculateStudySessionIndex, type StudySessionMovement } from "./rules";
 import type { StudySession, StudySessions } from "./types";
 
 const STUDY_STORAGE_KEY = "tango-study";
@@ -109,23 +110,25 @@ export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): void
   });
 };
 
+export const moveStudySession = (deckId: DeckId, movement: StudySessionMovement): void => {
+  studySessionStore.setState((state) => {
+    const session = state.sessionsByDeckId[deckId];
+    if (session == null) return;
+
+    const nextIndex = calculateStudySessionIndex(session, movement);
+    if (nextIndex === undefined) {
+      delete state.sessionsByDeckId[deckId];
+      return;
+    }
+    session.currentIndex = nextIndex;
+    session.lastStudiedAt = Date.now();
+  });
+};
+
 export const removeStudySession = (deckId: DeckId): void => {
   studySessionStore.setState((state) => {
     delete state.sessionsByDeckId[deckId];
   });
-};
-
-export const restoreStudySession = (
-  deckId: DeckId,
-  expectedSession: StudySession | undefined,
-  previousSession: StudySession
-): boolean => {
-  // Reference equality makes rollback conditional: a newer session change must always win.
-  if (getStudySession(deckId) !== expectedSession) return false;
-  studySessionStore.setState((state) => {
-    state.sessionsByDeckId[deckId] = previousSession;
-  });
-  return true;
 };
 
 export const clearStudySessions = async (): Promise<void> => {

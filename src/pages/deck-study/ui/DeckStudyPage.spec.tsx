@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { StudyWorkflowState } from "@/features/study";
+import type { StudyState } from "@/features/study";
 
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -12,8 +12,8 @@ const mocks = vi.hoisted(() => ({
   deck: undefined as Deck | undefined,
   cards: [] as Card[],
   navigate: vi.fn(),
-  workflowState: { status: "unavailable" } as StudyWorkflowState,
-  workflowProps: undefined as { cards: readonly Card[]; deckId: string; onUnavailable: () => void } | undefined,
+  studyState: undefined as StudyState | undefined,
+  studyArgs: undefined as { cards: readonly Card[]; deckId: string; onUnavailable: () => void } | undefined,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -30,16 +30,10 @@ vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
-    StudyWorkflow: ({
-      children,
-      ...props
-    }: { children: (state: StudyWorkflowState) => React.ReactNode } & {
-      cards: readonly Card[];
-      deckId: string;
-      onUnavailable: () => void;
-    }) => {
-      mocks.workflowProps = props;
-      return children(mocks.workflowState);
+    useStudy: (deckId: string, cards: readonly Card[], onUnavailable: () => void) => {
+      mocks.studyArgs = { deckId, cards, onUnavailable };
+      if (mocks.studyState == null) throw new Error("Study state not initialized");
+      return mocks.studyState;
     },
   };
 });
@@ -78,30 +72,24 @@ const card: Card = {
   lastSeenAt: 1,
 };
 const noop = vi.fn();
-const readyState = (): StudyWorkflowState => ({
+const commands = () => ({
+  swipeUp: vi.fn(),
+  swipeDown: vi.fn(),
+  swipeLeft: vi.fn(),
+  swipeRight: vi.fn(),
+  toggleBackText: vi.fn(),
+  toggleAutoPlay: vi.fn(),
+});
+const readyState = (): StudyState => ({
   status: "ready",
-  shortcutActions: {
-    swipeUp: vi.fn(),
-    swipeDown: vi.fn(),
-    swipeLeft: vi.fn(),
-    swipeRight: vi.fn(),
-    toggleShowBackText: vi.fn(),
-    toggleAutoPlay: vi.fn(),
-  },
+  ...commands(),
   card,
   showHeader: true,
   showBackText: false,
   showController: true,
   showSwipeButtonList: true,
-  actions: {
-    swipeUp: noop,
-    swipeDown: noop,
-    swipeLeft: noop,
-    swipeRight: noop,
-    toggleShowBackText: noop,
-  },
   controller: { autoPlay: false, cardInterval: 1, index: 0, numberOfCards: 1, onToggleAutoPlay: noop },
-  swipeActions: { disabled: false },
+  swipeButtonList: { disabled: false },
 });
 
 describe("DeckStudyPage", () => {
@@ -110,8 +98,8 @@ describe("DeckStudyPage", () => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
     mocks.cards = [card];
-    mocks.workflowState = readyState();
-    mocks.workflowProps = undefined;
+    mocks.studyState = readyState();
+    mocks.studyArgs = undefined;
     window.history.replaceState(null, document.title, document.location.href);
   });
 
@@ -120,10 +108,10 @@ describe("DeckStudyPage", () => {
     expect(() => render(<DeckStudyPage />)).toThrow("invalid deck id");
   });
 
-  it("passes Entity reads to StudyWorkflow and composes the application shell", () => {
+  it("passes Entity reads to useStudy and composes the application shell", () => {
     render(<DeckStudyPage />);
 
-    expect(mocks.workflowProps).toMatchObject({ deckId: deck.id, cards: [card] });
+    expect(mocks.studyArgs).toMatchObject({ deckId: deck.id, cards: [card] });
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     expect(screen.getByText(card.frontText)).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
@@ -133,25 +121,25 @@ describe("DeckStudyPage", () => {
     ["loading", "Loading…"],
     ["unavailable", "Study session unavailable."],
   ] as const)("renders route feedback for %s workflow state", (status, title) => {
-    mocks.workflowState = { status, shortcutActions: readyState().shortcutActions };
+    mocks.studyState = { status, ...commands() };
     render(<DeckStudyPage />);
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
   });
 
   it("converts unavailable intent into current route navigation", () => {
     render(<DeckStudyPage />);
-    act(() => mocks.workflowProps?.onUnavailable());
+    act(() => mocks.studyArgs?.onUnavailable());
     expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
   });
 
   it("delegates a representative Study shortcut to the workflow action", () => {
     render(<DeckStudyPage />);
-    const state = mocks.workflowState;
-    if (state.status !== "ready") throw new Error("expected ready workflow state");
+    const state = mocks.studyState;
+    if (state?.status !== "ready") throw new Error("expected ready workflow state");
 
     fireEvent.keyDown(window, { key: "ArrowLeft" });
 
-    expect(state.shortcutActions.swipeLeft).toHaveBeenCalledOnce();
+    expect(state.swipeLeft).toHaveBeenCalledOnce();
   });
 
   it("shows route feedback when the Deck Entity is unavailable", () => {

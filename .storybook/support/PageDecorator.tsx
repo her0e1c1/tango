@@ -16,7 +16,9 @@ import { replaceAuthSession } from "@/entities/auth";
 import type { Preferences } from "@/entities/preferences";
 import { preferencesSchema } from "@/entities/preferences/model/schema";
 import { preferencesStore } from "@/entities/preferences/model/store";
-import { clearStudySessions, restoreStudySession, type StudySession } from "@/entities/study-session";
+import { clearStudySessions } from "@/entities/study-session";
+import { studySessionStore } from "@/entities/study-session/model/store";
+import type { StudySession } from "@/entities/study-session/model/types";
 
 export const PAGE_STORY_UID = "storybook-user";
 
@@ -87,7 +89,10 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
     },
   });
   Object.entries(cloneSessions(parameters.sessionsByDeckId ?? {})).forEach(([deckId, session]) => {
-    if (session != null) restoreStudySession(deckId, undefined, session);
+    if (session == null) return;
+    studySessionStore.setState((state) => ({
+      sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: session },
+    }));
   });
   replaceRemoteDecks(decks);
   replaceRemoteCards(cards);
