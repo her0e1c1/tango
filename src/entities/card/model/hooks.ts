@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useStore } from "zustand";
 
 import { filterCardsByDeckId, filterTagsByDeckId } from "./rules";
@@ -18,11 +17,8 @@ export const useCard = (id: CardId | undefined): Card | undefined =>
 
 export const useCardsByDeckId = (deckId: string): { cards: Card[]; tags: string[] } => {
   const allCards = useCards();
-  return useMemo(
-    () => ({
-      cards: filterCardsByDeckId(allCards, deckId),
-      tags: filterTagsByDeckId(allCards, deckId),
-    }),
-    [allCards, deckId]
-  );
+  return {
+    cards: filterCardsByDeckId(allCards, deckId),
+    tags: filterTagsByDeckId(allCards, deckId),
+  };
 };
