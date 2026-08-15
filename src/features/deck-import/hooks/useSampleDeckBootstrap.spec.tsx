@@ -19,7 +19,9 @@ const mocks = vi.hoisted(() => ({
   addSample: vi.fn<() => Promise<unknown>>(),
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.auth }));
+vi.mock("@/entities/auth", () => ({
+  useAuthUid: () => (mocks.auth.status === "authenticated" ? mocks.auth.uid : ""),
+}));
 vi.mock("./useDeckImport", () => ({
   useDeckImport: () => ({ addSample: mocks.addSample }),
 }));

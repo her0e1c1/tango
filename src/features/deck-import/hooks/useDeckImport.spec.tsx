@@ -29,10 +29,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/auth", () => ({
-  useAuthSession: () =>
-    mocks.uid === ""
-      ? { status: "signedOut" }
-      : { status: "authenticated", uid: mocks.uid, isAnonymous: true, displayName: null },
+  useAuthUid: () => mocks.uid,
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/card", async (importOriginal) => {

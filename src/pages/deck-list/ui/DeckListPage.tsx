@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useAuthSession } from "@/entities/auth";
+import { useAuthUid } from "@/entities/auth";
 import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
 import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
@@ -12,12 +12,11 @@ import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
-  const auth = useAuthSession();
+  const uid = useAuthUid();
   const cards = useCards();
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
-  const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useSampleDeckBootstrap({
     cards,

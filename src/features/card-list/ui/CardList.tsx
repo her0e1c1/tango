@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { useAuthSession } from "@/entities/auth";
+import { useAuthUid } from "@/entities/auth";
 import { deleteCard, type Card, type CardId } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
@@ -35,8 +35,7 @@ export interface CardListProps {
 }
 
 export const CardList: React.FC<CardListProps> = (props) => {
-  const auth = useAuthSession();
-  const uid = auth.status === "authenticated" ? auth.uid : "";
+  const uid = useAuthUid();
   const [shownCard, setShownCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();

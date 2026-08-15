@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/auth", () => ({
-  useAuthSession: () => ({ status: "authenticated" as const, uid: "user-id", isAnonymous: false, displayName: null }),
+  useAuthUid: () => "user-id",
 }));
 vi.mock("@/entities/deck", () => ({
   CATEGORY: ["language", "science"],

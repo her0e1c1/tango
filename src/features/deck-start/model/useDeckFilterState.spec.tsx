@@ -21,7 +21,7 @@ import { createDeck } from "@/test/factories";
 const mocks = vi.hoisted(() => ({ editDeck: vi.fn() }));
 
 vi.mock("@/entities/auth", () => ({
-  useAuthSession: () => ({ status: "authenticated" as const, uid: "user-id", isAnonymous: false, displayName: null }),
+  useAuthUid: () => "user-id",
 }));
 vi.mock("@/entities/deck", () => ({ editDeck: mocks.editDeck }));
 

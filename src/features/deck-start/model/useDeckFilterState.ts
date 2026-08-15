@@ -9,7 +9,7 @@ import type { Deck } from "@/entities/deck";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import { useAuthSession } from "@/entities/auth";
+import { useAuthUid } from "@/entities/auth";
 import { editDeck } from "@/entities/deck";
 import type { DeckStartForm } from "../ui/DeckStartForm";
 
@@ -24,8 +24,7 @@ export interface UseDeckFilterStateOptions {
  * Provides the filter state and persistence callback used to configure a study session.
  */
 export const useDeckFilterState = ({ deck, tags }: UseDeckFilterStateOptions): DeckStartFormProps => {
-  const auth = useAuthSession();
-  const uid = auth.status === "authenticated" ? auth.uid : "";
+  const uid = useAuthUid();
   const [scoreMaxEnabled, setScoreMaxEnabled] = React.useState(deck.scoreMax != null);
   const [scoreMinEnabled, setScoreMinEnabled] = React.useState(deck.scoreMin != null);
   const { control, handleSubmit, register, setValue, subscribe } = useForm<Deck>({ defaultValues: deck });
