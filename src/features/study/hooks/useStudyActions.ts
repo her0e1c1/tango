@@ -33,6 +33,15 @@ interface PersistedSwipe {
   onCardChanged: (() => void) | undefined;
 }
 
+const hasSameStudyPosition = (
+  expected: NonNullable<ReturnType<typeof getStudySession>>,
+  current: ReturnType<typeof getStudySession>
+): boolean =>
+  current != null &&
+  current.currentIndex === expected.currentIndex &&
+  current.cardOrderIds.length === expected.cardOrderIds.length &&
+  current.cardOrderIds.every((cardId, index) => cardId === expected.cardOrderIds[index]);
+
 const applyPersistedSwipe = ({
   deckId,
   session,
@@ -42,8 +51,8 @@ const applyPersistedSwipe = ({
   onSwipe,
   onCardChanged,
 }: PersistedSwipe): void => {
-  // A controller or lifecycle change during the write owns the newer position and must not be advanced again.
-  if (getStudySession(deckId) !== session) return;
+  // Position changes during the write own the newer card, while timestamp-only touches must still allow advancement.
+  if (!hasSameStudyPosition(session, getStudySession(deckId))) return;
   onSwipe?.(direction);
   if (hideBackText) onCardChanged?.();
   moveStudySession(deckId, swipeAction === "GoToPrevCard" ? "previous" : "next");
@@ -55,7 +64,6 @@ export interface StudyActions {
   swipeLeft: () => Promise<void>;
   swipeRight: () => Promise<void>;
   updateIndex: (currentIndex: number) => void;
-  resetStudy: () => void;
 }
 
 interface UseStudyActionsOptions {
@@ -116,6 +124,5 @@ export const useStudyActions = (
       onCardChanged?.();
       setStudySessionIndex(deckId, currentIndex);
     },
-    resetStudy: () => removeStudySession(deckId),
   };
 };

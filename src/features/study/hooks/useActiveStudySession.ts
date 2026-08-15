@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import { touchStudySession, useStudySession } from "@/entities/study-session";
+import { removeStudySession, touchStudySession, useStudySession } from "@/entities/study-session";
 
 import * as React from "react";
 
@@ -30,12 +30,10 @@ export const useActiveStudySession = (deckId: DeckId, cards: readonly Card[]): A
 export const useStudySessionLifecycle = ({
   deckId,
   session,
-  resetStudy,
   onUnavailable,
 }: {
   deckId: DeckId;
   session: ActiveStudySession;
-  resetStudy: () => void;
   onUnavailable: () => void;
 }) => {
   const exitingDeck = React.useRef<DeckId>(undefined);
@@ -53,7 +51,7 @@ export const useStudySessionLifecycle = ({
     if (session.status === "loading" || exitingDeck.current === deckId) return;
 
     exitingDeck.current = deckId;
-    resetStudy();
+    removeStudySession(deckId);
     onUnavailable();
-  }, [deckId, onUnavailable, resetStudy, session.status]);
+  }, [deckId, onUnavailable, session.status]);
 };

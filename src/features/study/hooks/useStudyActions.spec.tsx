@@ -1,6 +1,12 @@
 import type { Card } from "@/entities/card";
 import type { Preferences } from "@/entities/preferences";
-import { clearStudySessions, getStudySession, setStudySessionIndex, startStudySession } from "@/entities/study-session";
+import {
+  clearStudySessions,
+  getStudySession,
+  setStudySessionIndex,
+  startStudySession,
+  touchStudySession,
+} from "@/entities/study-session";
 
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -154,6 +160,31 @@ describe("useStudyActions", () => {
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(onSwipe).not.toHaveBeenCalled();
+  });
+
+  it("advances after a timestamp-only session touch during the write", async () => {
+    startStudySession(
+      deckId,
+      cards.map(({ id }) => id)
+    );
+    let finishWrite: () => void = () => undefined;
+    saveProgress.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishWrite = resolve;
+      })
+    );
+    const { result } = renderActions();
+
+    const swipe = result.current.swipeRight();
+    vi.mocked(Date.now).mockReturnValue(946_684_800_100);
+    touchStudySession(deckId);
+    await actAsync(async () => {
+      finishWrite();
+      await swipe;
+    });
+
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+    expect(onSwipe).toHaveBeenCalledWith("cardSwipeRight");
   });
 
   it("handles DoNothing and GoBack without writing progress", async () => {

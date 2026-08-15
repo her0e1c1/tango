@@ -54,7 +54,7 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     onCardChanged: display.hideBackText,
   });
   const session = useActiveStudySession(deckId, cards);
-  useStudySessionLifecycle({ deckId, session, resetStudy: actions.resetStudy, onUnavailable });
+  useStudySessionLifecycle({ deckId, session, onUnavailable });
 
   const controller = useStudyControllerState({
     autoPlay: display.autoPlay,
