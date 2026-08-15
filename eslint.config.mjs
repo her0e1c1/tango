@@ -137,7 +137,6 @@ export default [
       "@typescript-eslint/no-base-to-string": "off",
       "@typescript-eslint/no-floating-promises": "off",
       "@typescript-eslint/no-misused-promises": "off",
-      "@typescript-eslint/no-unnecessary-boolean-literal-compare": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
       "@typescript-eslint/no-unnecessary-template-expression": "off",
       "@typescript-eslint/no-unnecessary-type-conversion": "off",

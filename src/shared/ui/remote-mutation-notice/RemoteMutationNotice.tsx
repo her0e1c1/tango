@@ -23,6 +23,7 @@ export interface RemoteMutationNoticeProps {
 export const RemoteMutationNotice = (props: RemoteMutationNoticeProps) => {
   const pendingLabel = props.pendingLabel ?? "Saving…";
   const errorLabel = props.errorLabel ?? "Unable to save changes.";
+  const showPending = props.showPending ?? true;
 
   if (props.error != null) {
     return (
@@ -34,7 +35,8 @@ export const RemoteMutationNotice = (props: RemoteMutationNoticeProps) => {
       </div>
     );
   }
-  if (!props.pending || props.showPending === false) return null;
+  if (!props.pending) return null;
+  if (!showPending) return null;
   return (
     <div role="status" className="my-2 text-sm text-gray-500">
       {pendingLabel}
