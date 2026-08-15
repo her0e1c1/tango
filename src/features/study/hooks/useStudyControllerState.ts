@@ -1,9 +1,3 @@
-/**
- * @file Provides the study feature's Use Study Controller State React hook.
- * The hook combines state and operations behind one interface so components do not need to
- * coordinate services themselves.
- */
-
 import * as React from "react";
 import type { ControllerProps } from "../components/Controller";
 
@@ -16,11 +10,6 @@ export type StudyControllerState = ControllerProps & {
   onToggleAutoPlay: () => void;
 };
 
-/**
- * Provides the study controller state values and operations needed by React components.
- * Callers receive one focused interface without coordinating the study feature's stores and
- * services themselves.
- */
 export const useStudyControllerState = (props: UseStudyControllerStateOptions): StudyControllerState => {
   const cardInterval = props.cardInterval ?? 10;
   const numberOfCards = props.numberOfCards ?? 0;

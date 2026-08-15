@@ -12,9 +12,9 @@ vi.mock("@/entities/study-progress", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/study-progress")>();
   return { ...actual, useStudyProgresses: () => mocks.progresses };
 });
-import { useStudyCards } from "./useStudyCards";
+import { useFilteredStudyCards } from "./useFilteredStudyCards";
 
-describe("useStudyCards", () => {
+describe("useFilteredStudyCards", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     mocks.progresses = [];
@@ -33,7 +33,7 @@ describe("useStudyCards", () => {
     mocks.progresses = [availableProgress, futureProgress];
 
     const { result } = renderHook(() =>
-      useStudyCards(deck, [available, future], createPreferences({ useCardInterval: true }))
+      useFilteredStudyCards(deck, [available, future], createPreferences({ useCardInterval: true }))
     );
 
     expect(result.current).toEqual([{ card: available, progress: availableProgress }]);
@@ -41,7 +41,7 @@ describe("useStudyCards", () => {
 
   it("returns no cards when the deck is unavailable", () => {
     const cards = [createCard({ deckId: "missing" })];
-    const { result } = renderHook(() => useStudyCards(undefined, cards, createPreferences()));
+    const { result } = renderHook(() => useFilteredStudyCards(undefined, cards, createPreferences()));
     expect(result.current).toEqual([]);
   });
 
@@ -49,7 +49,7 @@ describe("useStudyCards", () => {
     const deck = createDeck({ id: "deck" });
     const card = createCard({ id: "loading", deckId: deck.id });
 
-    expect(renderHook(() => useStudyCards(deck, [card], createPreferences())).result.current).toEqual([]);
+    expect(renderHook(() => useFilteredStudyCards(deck, [card], createPreferences())).result.current).toEqual([]);
   });
 
   it("re-evaluates scheduled cards when their next review time arrives", () => {
@@ -60,8 +60,8 @@ describe("useStudyCards", () => {
     const progress = createStudyProgress({ cardId: card.id, nextSeeingAt: new Date(1_500) });
     mocks.progresses = [progress];
     const { result } = renderHook(() => ({
-      enabled: useStudyCards(deck, [card], createPreferences({ useCardInterval: true })),
-      disabled: useStudyCards(deck, [card], createPreferences({ useCardInterval: false })),
+      enabled: useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: true })),
+      disabled: useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: false })),
     }));
 
     expect(result.current.enabled).toEqual([]);
@@ -87,7 +87,7 @@ describe("useStudyCards", () => {
     });
     mocks.progresses = [progress];
     const config = createPreferences({ useCardInterval: true });
-    const { result } = renderHook(() => useStudyCards(deck, [card], config));
+    const { result } = renderHook(() => useFilteredStudyCards(deck, [card], config));
 
     expect(result.current).toEqual([]);
     act(() => vi.advanceTimersByTime(maxTimeout));

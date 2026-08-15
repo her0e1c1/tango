@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckStartForm" contract with automated examples.
+ * @file Verifies the "DeckFilterForm" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "labels score controls and
  * preserves values and callbacks", "shows unrestricted disabled limits".
  */
@@ -10,15 +10,15 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartForm } from "./DeckStartForm";
+import { DeckFilterForm } from "./DeckFilterForm";
 
-type DeckStartFormProps = ComponentProps<typeof DeckStartForm>;
+type DeckFilterFormProps = ComponentProps<typeof DeckFilterForm>;
 
 /**
  * Provides the create props test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const createProps = (): DeckStartFormProps => ({
+const createProps = (): DeckFilterFormProps => ({
   scoreMax: 4,
   scoreMin: -2,
   scoreMaxSwitchProps: { name: "maximum-enabled", checked: true, onChange: vi.fn() },
@@ -28,10 +28,10 @@ const createProps = (): DeckStartFormProps => ({
   tagFilterProps: { tags: ["one", "two"], selectedTags: ["one"], tagAndFilter: true },
 });
 
-describe("DeckStartForm", () => {
+describe("DeckFilterForm", () => {
   it("labels score controls and preserves values and callbacks", async () => {
     const props = createProps();
-    render(<DeckStartForm {...props} />);
+    render(<DeckFilterForm {...props} />);
     const scoreRegion = screen.getByRole("region", { name: "Score range" });
     const maxSwitch = within(scoreRegion).getByRole("checkbox", { name: "Enable maximum score" });
     const minSwitch = within(scoreRegion).getByRole("checkbox", { name: "Enable minimum score" });
@@ -57,7 +57,7 @@ describe("DeckStartForm", () => {
   });
 
   it("shows unrestricted disabled limits", () => {
-    render(<DeckStartForm {...createProps()} scoreMax={null} scoreMin={null} />);
+    render(<DeckFilterForm {...createProps()} scoreMax={null} scoreMin={null} />);
     expect(screen.getByText("Any score")).toBeInTheDocument();
     expect(screen.getByText("No upper limit")).toBeInTheDocument();
     expect(screen.getByText("No lower limit")).toBeInTheDocument();

@@ -1,6 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
+import type { StudyCard } from "@/entities/study-progress";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -24,17 +25,12 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/deck", () => ({
   useDeck: () => mocks.deck ?? undefined,
 }));
-vi.mock("@/features/deck-start", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/deck-start")>();
+vi.mock("@/features/deck-filter", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/deck-filter")>();
   return {
     ...actual,
-    useStudyCards: () => mocks.cards,
-    useStartStudySession:
-      (_deckId: string, options: { onStarted?: () => void } = {}) =>
-      (_cards: Card[]) => {
-        mocks.start();
-        options.onStarted?.();
-      },
+    useFilteredStudyCards: () =>
+      mocks.cards.map((card) => ({ card, progress: { cardId: card.id, score: 0, numberOfSeen: 0 } })),
     useDeckFilterState: () => ({
       scoreMax: 4,
       scoreMin: -2,
@@ -44,6 +40,18 @@ vi.mock("@/features/deck-start", async (importOriginal) => {
       scoreMinSliderProps: { name: "minimum", value: "-2", min: -10, max: 10, onChange: vi.fn() },
       tagFilterProps: { tags: [], selectedTags: [], tagAndFilter: false },
     }),
+  };
+});
+vi.mock("@/features/study-session-start", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/study-session-start")>();
+  return {
+    ...actual,
+    useStartStudySession:
+      (_deckId: string, options: { onStarted?: () => void } = {}) =>
+      (_cards: StudyCard[]) => {
+        mocks.start();
+        options.onStarted?.();
+      },
   };
 });
 vi.mock("@/entities/preferences", () => ({

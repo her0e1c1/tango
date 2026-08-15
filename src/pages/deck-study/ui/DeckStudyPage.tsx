@@ -75,7 +75,7 @@ const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
   );
 };
 
-const DeckSwiperScreen = ({ deck, state }: { deck: Deck; state: StudyWorkflowState }) => {
+const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyWorkflowState }) => {
   useKey("ArrowUp", state.shortcutActions.swipeUp);
   useKey("ArrowDown", state.shortcutActions.swipeDown);
   useKey("ArrowLeft", state.shortcutActions.swipeLeft);
@@ -88,7 +88,7 @@ const DeckSwiperScreen = ({ deck, state }: { deck: Deck; state: StudyWorkflowSta
   return renderStudyScreen(deck, state);
 };
 
-const DeckSwiperContent = ({ cards, deck }: { cards: StudyCard[]; deck: Deck }) => {
+const DeckStudyContent = ({ cards, deck }: { cards: StudyCard[]; deck: Deck }) => {
   const navigate = useNavigate();
   useStudyHistoryGuard(deck.id, navigate);
   const handleUnavailable = React.useCallback(() => {
@@ -97,12 +97,12 @@ const DeckSwiperContent = ({ cards, deck }: { cards: StudyCard[]; deck: Deck }) 
 
   return (
     <StudyWorkflow key={deck.id} cards={cards} deckId={deck.id} onUnavailable={handleUnavailable}>
-      {(state) => <DeckSwiperScreen deck={deck} state={state} />}
+      {(state) => <DeckStudyScreen deck={deck} state={state} />}
     </StudyWorkflow>
   );
 };
 
-export const DeckSwiperPage: React.FC = () => {
+export const DeckStudyPage: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
@@ -115,5 +115,5 @@ export const DeckSwiperPage: React.FC = () => {
     return <RouteFeedback title="Study session unavailable." tone="not-found" />;
   }
 
-  return <DeckSwiperContent key={deck.id} cards={cards} deck={deck} />;
+  return <DeckStudyContent key={deck.id} cards={cards} deck={deck} />;
 };

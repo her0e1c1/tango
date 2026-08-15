@@ -1,11 +1,11 @@
-import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
+import type { StudyCard } from "@/entities/study-progress";
 import { startStudySession } from "@/entities/study-session";
 
 import { useCallback } from "react";
 
-import { buildStudySession } from "./buildStudySession";
+import { buildStudyCardOrder } from "./buildStudyCardOrder";
 
 interface UseStartStudySessionOptions {
   onStarted?: (() => void) | undefined;
@@ -14,11 +14,11 @@ interface UseStartStudySessionOptions {
 export const useStartStudySession = (
   deckId: DeckId,
   { onStarted }: UseStartStudySessionOptions = {}
-): ((cards: Pick<Card, "id">[]) => void) => {
+): ((cards: StudyCard[]) => void) => {
   const preferences = usePreferences();
   return useCallback(
     (cards) => {
-      startStudySession(deckId, buildStudySession(cards, preferences.study));
+      startStudySession(deckId, buildStudyCardOrder(cards, preferences.study));
       onStarted?.();
     },
     [deckId, onStarted, preferences.study]

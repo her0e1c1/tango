@@ -7,14 +7,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useCardsByDeckId } from "@/entities/card";
-import {
-  DeckStartForm,
-  DeckStartView,
-  useDeckFilterState,
-  useStartStudySession,
-  useStudyCards,
-} from "@/features/deck-start";
 import { usePreferences } from "@/entities/preferences";
+import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
+import { StudySessionStartView, useStartStudySession } from "@/features/study-session-start";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -27,8 +22,8 @@ const DeckStartContent = (props: { deck: Deck; cards: StudyCard[]; preferences: 
   const startStudy = useStartStudySession(deck.id, {
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
   });
-  const deckStartForm = useDeckFilterState({ deck, tags });
-  const start = () => startStudy(cards.map(({ card }) => card));
+  const deckFilterForm = useDeckFilterState({ deck, tags });
+  const start = () => startStudy(cards);
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
     start();
@@ -37,12 +32,12 @@ const DeckStartContent = (props: { deck: Deck; cards: StudyCard[]; preferences: 
 
   return (
     <AppLayout showHeader>
-      <DeckStartView
+      <StudySessionStartView
         deckName={deck.name}
         maxNumberOfCardsToLearn={preferences.study.maxNumberOfCardsToLearn}
         cardsLength={cards.length}
         onClickStart={start}
-        filterSlot={<DeckStartForm {...deckStartForm} />}
+        filterSlot={<DeckFilterForm {...deckFilterForm} />}
       />
     </AppLayout>
   );
@@ -56,7 +51,7 @@ export const DeckStartPage: React.FC = () => {
   const preferences = usePreferences();
   const deck = useDeck(deckId);
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
-  const cards = useStudyCards(deck, deckCards, preferences);
+  const cards = useFilteredStudyCards(deck, deckCards, preferences);
 
   if (deck == null) {
     return (

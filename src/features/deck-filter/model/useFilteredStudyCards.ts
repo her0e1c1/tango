@@ -19,7 +19,7 @@ const useStudyCardItems = (cards: Card[]): StudyCard[] => {
   return useMemo(() => joinCardsWithStudyProgress(cards, progresses), [cards, progresses]);
 };
 
-export const useStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): StudyCard[] => {
+export const useFilteredStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): StudyCard[] => {
   const [scheduleClock, setScheduleClock] = useState(() => Date.now());
   const studyCards = useStudyCardItems(cards);
 

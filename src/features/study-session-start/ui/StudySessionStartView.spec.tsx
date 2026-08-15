@@ -4,12 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartView } from "./DeckStartView";
+import { StudySessionStartView } from "./StudySessionStartView";
 
-const renderView = (overrides: Partial<React.ComponentProps<typeof DeckStartView>> = {}) => {
+const renderView = (overrides: Partial<React.ComponentProps<typeof StudySessionStartView>> = {}) => {
   const onClickStart = vi.fn();
   const view = render(
-    <DeckStartView
+    <StudySessionStartView
       deckName="Japanese vocabulary"
       maxNumberOfCardsToLearn={24}
       cardsLength={123}
@@ -21,7 +21,7 @@ const renderView = (overrides: Partial<React.ComponentProps<typeof DeckStartView
   return { ...view, onClickStart };
 };
 
-describe("DeckStartView", () => {
+describe("StudySessionStartView", () => {
   it("shows deck context, capped session size, matching count, and filters", async () => {
     const view = renderView();
 

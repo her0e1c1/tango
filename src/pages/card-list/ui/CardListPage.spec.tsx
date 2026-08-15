@@ -61,9 +61,9 @@ vi.mock("@/features/card-list", () => ({
     );
   },
 }));
-vi.mock("@/features/deck-start", () => ({
-  DeckStartForm: () => <div>Filter controls</div>,
-  useStudyCards: (deck: Deck | undefined, cards: Card[]) =>
+vi.mock("@/features/deck-filter", () => ({
+  DeckFilterForm: () => <div>Filter controls</div>,
+  useFilteredStudyCards: (deck: Deck | undefined, cards: Card[]) =>
     deck == null ? [] : cards.map((card) => ({ card, progress: { cardId: card.id, score: 0, numberOfSeen: 0 } })),
   useDeckFilterState: () => ({
     scoreMax: 4,

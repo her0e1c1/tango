@@ -4,7 +4,7 @@ import { useKey } from "react-use";
 
 import { useAuthAccount, useAuthUid } from "@/entities/auth";
 import { updatePreferences, usePreferences } from "@/entities/preferences";
-import { SettingsForm, usePreferencesFormState } from "@/features/settings";
+import { SettingsForm, usePreferencesFormState } from "@/features/preferences-edit";
 import { useSignIn } from "@/features/sign-in";
 import { useSignOut } from "@/features/sign-out";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
@@ -24,7 +24,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
   const isLoggedIn = authAccount != null;
 
   const signIn = useSignIn(login);
-  const signOut = useSignOut(isLoggedIn ? logout : undefined);
+  const signOut = useSignOut(logout);
   const accountOperation = isLoggedIn
     ? {
         run: signOut.signOut,

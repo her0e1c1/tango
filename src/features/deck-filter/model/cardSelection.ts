@@ -1,7 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { StudyPreferences } from "@/entities/preferences";
-import { compareStudyProgress, isStudyProgressEligible, type StudyCard } from "@/entities/study-progress";
+import { isStudyProgressEligible, type StudyCard } from "@/entities/study-progress";
 
 const isCardMatchingTags = (card: Card, deck: Pick<Deck, "selectedTags" | "tagAndFilter">) => {
   const tags = deck.selectedTags;
@@ -15,8 +15,8 @@ export const filterCardsForDeck = <TCard extends Card>(
   deck: Pick<Deck, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
   study: Pick<StudyPreferences, "useCardInterval">,
   now: number
-): StudyCard<TCard>[] => {
-  const filtered = cards.filter(({ card, progress }) => {
+): StudyCard<TCard>[] =>
+  cards.filter(({ card, progress }) => {
     if (!isCardMatchingTags(card, deck)) return false;
     return isStudyProgressEligible(
       progress,
@@ -28,6 +28,3 @@ export const filterCardsForDeck = <TCard extends Card>(
       now
     );
   });
-  filtered.sort((first, second) => compareStudyProgress(first.progress, second.progress));
-  return filtered;
-};

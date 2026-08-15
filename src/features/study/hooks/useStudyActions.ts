@@ -1,9 +1,3 @@
-/**
- * @file Provides the study feature's Use Study Actions React hook.
- * The hook combines state and operations behind one interface so components do not need to
- * coordinate services themselves.
- */
-
 import type { DeckId } from "@/entities/deck";
 import type { Preferences, SwipeDirection } from "@/entities/preferences";
 import { usePreferences } from "@/entities/preferences";
@@ -83,10 +77,8 @@ const revertOptimisticUpdate = (
   return true;
 };
 
-/**
- * Runs the study swipe workflow for the study feature.
- * The sequence and its cleanup remain together so partial failures can be handled consistently.
- */
+// Keep the transition, mutation, and rollback in one sequence so a failed write cannot leave the
+// persisted session and transient feedback describing different cards.
 const runStudySwipe = async (
   direction: SwipeDirection,
   {
@@ -115,8 +107,9 @@ const runStudySwipe = async (
   }
 
   const cardId = session.cardOrderIds[session.currentIndex];
-  const studyCard = cardId == null ? undefined : cards.find(({ card }) => card.id === cardId);
-  if (studyCard == null) return;
+  if (cardId == null) return;
+  const studyCard = cards.find(({ card }) => card.id === cardId);
+  if (studyCard === undefined) throw new Error(`Study Card "${cardId}" was not found`);
 
   const previous = {
     session: { ...session },
@@ -150,11 +143,6 @@ const runStudySwipe = async (
   }
 };
 
-/**
- * Provides the study actions values and operations needed by React components.
- * Callers receive one focused interface without coordinating the study feature's stores and
- * services themselves.
- */
 export const useStudyActions = (
   deckId: DeckId,
   {
@@ -171,11 +159,6 @@ export const useStudyActions = (
   const preferences = usePreferences();
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
 
-  /**
-   * Runs the study workflow for one swipe direction.
-   * Direction-specific callbacks reuse this function so pending checks, optimistic state, and
-   * persistence stay identical.
-   */
   const swipe = (direction: SwipeDirection) => {
     if (cardMutation == null) return Promise.resolve();
     return runStudySwipe(direction, {
