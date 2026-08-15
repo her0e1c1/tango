@@ -1,4 +1,4 @@
-import { DeckStartForm } from "@/features/study";
+import { DeckStartForm } from "./DeckStartForm";
 
 import type { Meta, StoryObj } from "@storybook/react";
 import type { ComponentProps } from "react";

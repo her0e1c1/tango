@@ -31,7 +31,7 @@ const args: DeckStartFormProps = {
 };
 
 const meta = {
-  title: "Study/DeckStartForm",
+  title: "Pages/Deck Start/DeckStartForm",
   component: Template,
   tags: ["autodocs"],
   args,

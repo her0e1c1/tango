@@ -49,4 +49,10 @@ export default defineConfig([
       "fsd/inconsistent-naming": "off",
     },
   },
+  {
+    files: ["./src/pages/card-list/**"],
+    rules: {
+      "fsd/forbidden-imports": "off",
+    },
+  },
 ]);

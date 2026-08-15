@@ -35,7 +35,7 @@ vi.mock("@/features/study/hooks/useStudyActions", () => ({
   }),
 }));
 vi.mock("@/features/study/hooks/useStudyCards", () => ({ useStudyCards: () => mocks.cards }));
-vi.mock("@/features/study/hooks/useDeckFilterState", () => ({
+vi.mock("../model/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,

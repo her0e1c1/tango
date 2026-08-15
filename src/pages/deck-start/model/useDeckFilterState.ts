@@ -11,7 +11,7 @@ import { useForm, useWatch } from "react-hook-form";
 
 import { useAuthSession } from "@/entities/auth";
 import { editDeck } from "@/entities/deck";
-import type { DeckStartForm } from "../components/DeckStartForm";
+import type { DeckStartForm } from "../ui/DeckStartForm";
 
 type DeckStartFormProps = React.ComponentProps<typeof DeckStartForm>;
 

@@ -7,7 +7,8 @@ import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
-import { DeckStartForm, useDeckFilterState, useEditStudyProgress, useStudyCards } from "@/features/study";
+import { useEditStudyProgress, useStudyCards } from "@/features/study";
+import { DeckStartForm, useDeckFilterState } from "@/pages/deck-start";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
