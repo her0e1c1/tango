@@ -4,6 +4,7 @@ import type { Preferences, SwipeDirection } from "@/entities/preferences";
 import { usePreferences } from "@/entities/preferences";
 import { createStudyProgressFromCard, type StudyProgressEdit } from "@/entities/study-progress";
 import {
+  calculateNextIndex,
   getStudySession,
   removeStudySession,
   restoreStudySession,
@@ -13,7 +14,6 @@ import {
 
 import React from "react";
 
-import { calculateNextIndex } from "../model/session";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
 
 export interface StudyActions {
