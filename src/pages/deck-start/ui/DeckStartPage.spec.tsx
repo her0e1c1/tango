@@ -19,9 +19,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/card", () => ({
-  filterCardsByDeckId: () => mocks.cards,
-  filterTagsByDeckId: () => [],
-  useCards: () => mocks.cards,
+  useCardsByDeckId: () => ({ cards: mocks.cards, tags: [] }),
 }));
 vi.mock("@/entities/deck", () => ({
   useDeck: () => mocks.deck ?? undefined,

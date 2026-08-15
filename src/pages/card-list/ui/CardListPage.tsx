@@ -1,8 +1,8 @@
-import * as React from "react";
+import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { filterCardsByDeckId, filterTagsByDeckId, type Card, type CardId, useCards } from "@/entities/card";
+import { type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList } from "@/features/card-list";
@@ -47,11 +47,9 @@ export const CardListPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
   const preferences = usePreferences();
-  const allCards = useCards();
   const deck = useDeck(deckId);
-  const deckCards = React.useMemo(() => filterCardsByDeckId(allCards, deckId), [allCards, deckId]);
+  const { cards: deckCards, tags } = useCardsByDeckId(deckId);
   const cards = useStudyCards(deck, deckCards, preferences);
-  const tags = filterTagsByDeckId(allCards, deckId);
 
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));
