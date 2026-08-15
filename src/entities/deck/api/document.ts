@@ -6,10 +6,11 @@ import type { DeckDocument, DeckId } from "../model/types";
 const deckDocumentSchema = z.object({
   // Older documents duplicate the Firestore document id in their data.
   id: z.string().optional(),
-  name: z.string().trim().min(1, "Deck name is required."),
-  url: z.url("Enter a valid URL.").optional(),
+  // Read validation remains permissive for legacy data; command schemas enforce current write constraints.
+  name: z.string(),
+  url: z.string().optional(),
   isPublic: z.boolean(),
-  uid: z.string().min(1, "Deck owner is required"),
+  uid: z.string(),
   createdAt: z.number(),
   updatedAt: z.number(),
   deletedAt: z.number().nullable(),

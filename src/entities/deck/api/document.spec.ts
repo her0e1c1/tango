@@ -5,6 +5,40 @@ import { toDeckDocument, toRemoteDeckStore } from "../model/dto";
 import { parseDeckDocument } from "./document";
 
 describe("Deck Firestore document mapping", () => {
+  it("accepts legacy strings without applying current command validation", () => {
+    expect(
+      parseDeckDocument("deck", {
+        uid: "",
+        name: "",
+        url: "legacy-value",
+        isPublic: false,
+        scoreMax: null,
+        scoreMin: null,
+        selectedTags: [],
+        tagAndFilter: false,
+        category: "",
+        convertToBr: false,
+        deletedAt: null,
+        createdAt: 1,
+        updatedAt: 2,
+      })
+    ).toEqual({
+      uid: "",
+      name: "",
+      url: "legacy-value",
+      isPublic: false,
+      scoreMax: null,
+      scoreMin: null,
+      selectedTags: [],
+      tagAndFilter: false,
+      category: "",
+      convertToBr: false,
+      deletedAt: null,
+      createdAt: 1,
+      updatedAt: 2,
+    });
+  });
+
   it("maps a remote create command to the Firestore boundary", () => {
     const deck = createDeck({ id: "deck", uid: "owner" });
 

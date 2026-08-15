@@ -41,11 +41,10 @@ export const deckCreateSchema = deckCreateFieldsSchema.extend({
 
 export const localDeckCreateSchema = deckCreateFieldsSchema.extend({ localMode: z.literal(true) });
 
-export const localDeckSchema = editableDeckFieldsSchema.extend({
-  id: deckIdSchema,
+// Persisted v1 Decks may predate defaulted filtering fields, so hydration must reuse the create defaults.
+export const localDeckSchema = localDeckCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
-  localMode: z.literal(true),
 });
 
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
