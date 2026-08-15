@@ -1,15 +1,16 @@
 import type { Card } from "@/entities/card";
 import type { Deck, DeckCreateInput } from "@/entities/deck";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
 import { fetchCards, filterCardsByDeckId, mutateCards } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
 import { useAuthUid } from "@/entities/auth";
-import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
 import { parseCsv } from "../lib/cardCsv";
 import type { DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
 import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
+import type { DeckImportInput } from "../model/deckImportState";
+import { deckImportReducer, initialDeckImportState } from "../model/deckImportState";
 
 export interface DeckImportOptions {
   cards: Card[];
@@ -21,55 +22,38 @@ export interface DeckImportOptions {
 interface DeckImportSession {
   uid: string;
   running: boolean;
-  lastRequest: DeckImportRequest | undefined;
-  preparedRequest: DeckImportRequest | undefined;
-}
-
-interface DeckImportState {
-  uid: string;
-  running: boolean;
-  validating: boolean;
-  preview: DeckImportPreview | undefined;
-  previewError: unknown;
-  error: unknown;
-  data: DeckImportResult | undefined;
 }
 
 const createSession = (uid: string): DeckImportSession => ({
   uid,
   running: false,
-  lastRequest: undefined,
-  preparedRequest: undefined,
-});
-
-const initialState = (uid: string): DeckImportState => ({
-  uid,
-  running: false,
-  validating: false,
-  preview: undefined,
-  previewError: null,
-  error: null,
-  data: undefined,
 });
 
 export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: DeckImportOptions) => {
   const uid = useAuthUid();
   const sessionRef = useRef(createSession(uid));
-  const [state, setState] = useState(() => initialState(uid));
-  // Reset during rendering so results from the previous identity are never exposed for an extra frame.
-  const currentState = state.uid === uid ? state : initialState(uid);
-  if (state.uid !== uid) setState(currentState);
+  const [state, dispatch] = useReducer(deckImportReducer, uid, initialDeckImportState);
+  // Derivation hides the previous user's values until the post-commit scope reset is applied.
+  const currentState = state.uid === uid ? state : initialDeckImportState(uid);
   useEffect(() => {
-    if (sessionRef.current.uid !== uid) sessionRef.current = createSession(uid);
+    if (sessionRef.current.uid === uid) return;
+    sessionRef.current = createSession(uid);
+    dispatch({ type: "userChanged", uid });
   }, [uid]);
   // Object identity rejects stale work even across an A-to-B-to-A user transition where the UID matches again.
   const isCurrent = (session: DeckImportSession) => sessionRef.current === session;
-  const updateState = (session: DeckImportSession, update: Partial<Omit<DeckImportState, "uid">>) => {
-    if (!isCurrent(session)) return;
-    setState((current) => {
-      if (current.uid !== session.uid) return current;
-      return { ...current, ...update };
-    });
+  const publish = (session: DeckImportSession, event: Parameters<typeof dispatch>[0]) => {
+    if (isCurrent(session)) dispatch(event);
+  };
+  const startSession = (session: DeckImportSession) => {
+    if (session.uid !== uid || !isCurrent(session)) {
+      throw new Error("Deck import user changed before the import could start");
+    }
+    if (session.running) throw new Error("A Deck import is already running");
+    session.running = true;
+  };
+  const finishSession = (session: DeckImportSession) => {
+    if (isCurrent(session)) session.running = false;
   };
   const dependencies: DeckImportDependencies = {
     uid,
@@ -81,51 +65,40 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     fetchDecks,
     fetchCards,
   };
+  const prepareInput = (input: DeckImportInput) =>
+    "kind" in input ? prepareDeckImport(input, dependencies) : Promise.resolve(input);
 
-  const run = async (request: DeckImportRequest, session: DeckImportSession) => {
-    if (session.uid !== uid || !isCurrent(session)) {
-      throw new Error("Deck import user changed before the import could start");
-    }
-    if (session.running) throw new Error("A Deck import is already running");
-    session.running = true;
-    session.lastRequest = request;
-    updateState(session, { running: true, error: null });
+  const run = async (input: DeckImportInput, session: DeckImportSession) => {
+    startSession(session);
+    let retryInput = input;
+    dispatch({ type: "importStarted", uid: session.uid, input });
     try {
-      const attempt = await prepareDeckImport(request, dependencies);
+      const attempt = await prepareInput(input);
       if (!isCurrent(session)) throw new Error("Deck import user changed before the import could start");
+      // Once IDs and mutations are prepared, retries must reuse that exact attempt instead of replanning.
+      retryInput = attempt;
       const result = await executePreparedDeckImport(attempt, dependencies);
-      updateState(session, { data: result });
+      publish(session, { type: "importSucceeded", uid: session.uid, result, attempt });
       return result;
     } catch (error) {
-      updateState(session, { data: undefined, error });
+      publish(session, { type: "importFailed", uid: session.uid, error, input: retryInput });
       throw error;
     } finally {
-      if (isCurrent(session)) {
-        session.running = false;
-        updateState(session, { running: false });
-      }
+      finishSession(session);
     }
   };
 
   const retry = () => {
     const session = sessionRef.current;
-    const request = session.lastRequest;
-    if (request != null && !session.running) void run(request, session).catch(() => undefined);
+    const input = currentState.retryInput;
+    if (input != null && !session.running) void run(input, session).catch(() => undefined);
   };
 
   const selectFile = async (file: File) => {
     const session = sessionRef.current;
     if (session.uid !== uid) throw new Error("Deck import user changed before the preview could start");
     if (session.running) throw new Error("A Deck import is already running");
-    session.lastRequest = undefined;
-    session.preparedRequest = undefined;
-    updateState(session, {
-      validating: true,
-      preview: undefined,
-      previewError: null,
-      error: null,
-      data: undefined,
-    });
+    dispatch({ type: "validationStarted", uid: session.uid });
     try {
       const analysis = await parseCsv(await file.text());
       if (!isCurrent(session)) throw new Error("Deck import user changed before the preview could finish");
@@ -138,18 +111,15 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
         analysis,
         plan: attempt.plan,
       };
-      session.preparedRequest = request;
-      updateState(session, { preview });
+      dispatch({ type: "validationSucceeded", uid: session.uid, preview, attempt });
       return preview;
     } catch (previewError) {
-      updateState(session, { previewError });
+      publish(session, { type: "validationFailed", uid: session.uid, error: previewError });
       throw previewError;
-    } finally {
-      updateState(session, { validating: false });
     }
   };
 
-  const { preview, previewError, validating, running, error, data } = currentState;
+  const { preview, previewAttempt, previewError, validating, pending, error, data } = currentState;
 
   const importPreview = () => {
     const session = sessionRef.current;
@@ -161,9 +131,8 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     if (preview.analysis.rows.length === 0) {
       return Promise.reject(new Error("The CSV file has no valid rows"));
     }
-    const request = session.preparedRequest;
-    if (request == null) return Promise.reject(new Error("The prepared Deck import is not available"));
-    return run(request, session);
+    if (previewAttempt == null) return Promise.reject(new Error("The prepared Deck import is not available"));
+    return run(previewAttempt, session);
   };
 
   const importUrl = async (url: string, name?: string) => {
@@ -195,7 +164,7 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     },
     preview,
     validating,
-    pending: running,
+    pending,
     error,
     previewError,
     data,
