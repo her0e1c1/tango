@@ -136,7 +136,6 @@ export default [
       "@typescript-eslint/await-thenable": "off",
       "@typescript-eslint/no-base-to-string": "off",
       "@typescript-eslint/no-floating-promises": "off",
-      "@typescript-eslint/no-implied-eval": "off",
       "@typescript-eslint/no-misused-promises": "off",
       "@typescript-eslint/no-unnecessary-boolean-literal-compare": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
