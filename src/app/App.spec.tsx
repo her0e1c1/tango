@@ -29,7 +29,7 @@ vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));
 vi.mock("@/pages/deck-form", () => ({ DeckFormPage: () => null }));
 vi.mock("@/pages/deck-import", () => ({ DeckImportPage: () => null }));
 vi.mock("@/pages/deck-list", () => ({ DeckListPage: () => <div>Deck list</div> }));
-vi.mock("@/pages/deck-start", () => ({ DeckStartPage: () => null }));
+vi.mock("@/pages/deck-study-start", () => ({ DeckStudyStartPage: () => null }));
 vi.mock("@/pages/deck-study", () => ({ DeckStudyPage: () => null }));
 vi.mock("@/pages/settings", () => ({ SettingsPage: () => null }));
 
