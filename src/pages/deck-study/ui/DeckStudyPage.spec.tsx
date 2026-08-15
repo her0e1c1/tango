@@ -88,8 +88,11 @@ const readyState = (): StudyState => ({
   showBackText: false,
   showController: true,
   showSwipeButtonList: true,
-  controller: { autoPlay: false, cardInterval: 1, index: 0, numberOfCards: 1, onToggleAutoPlay: noop },
-  swipeButtonList: { disabled: false },
+  autoPlay: false,
+  cardInterval: 1,
+  index: 0,
+  numberOfCards: 1,
+  updateIndex: noop,
 });
 
 describe("DeckStudyPage", () => {

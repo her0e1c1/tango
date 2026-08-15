@@ -4,7 +4,7 @@
  * normal containers, hooks, and route parameters.
  */
 
-import type { RemoteCard } from "@/entities/card";
+import type { CardId, RemoteCard } from "@/entities/card";
 import { replaceRemoteCards } from "@/entities/card/model/store";
 import type { DeckId, RemoteDeck } from "@/entities/deck";
 import { replaceRemoteDecks } from "@/entities/deck/model/store";
@@ -16,13 +16,11 @@ import { replaceAuthSession } from "@/entities/auth";
 import type { Preferences } from "@/entities/preferences";
 import { preferencesSchema } from "@/entities/preferences/model/schema";
 import { preferencesStore } from "@/entities/preferences/model/store";
-import { clearStudySessions } from "@/entities/study-session";
-import { studySessionStore } from "@/entities/study-session/model/store";
-import type { StudySession } from "@/entities/study-session/model/types";
+import { clearStudySessions, setStudySessionIndex, startStudySession } from "@/entities/study-session";
 
 export const PAGE_STORY_UID = "storybook-user";
 
-type StudySessions = Partial<Record<DeckId, StudySession>>;
+type StudySessionFixtures = Partial<Record<DeckId, { cardOrderIds: CardId[]; currentIndex: number }>>;
 
 type PartialPreferences = {
   [K in keyof Preferences]?: Partial<Preferences[K]>;
@@ -33,7 +31,7 @@ export interface PageStoryParameters {
   decks?: RemoteDeck[];
   cards?: RemoteCard[];
   preferences?: PartialPreferences;
-  sessionsByDeckId?: StudySessions;
+  sessionsByDeckId?: StudySessionFixtures;
   autoPlay?: boolean;
 }
 
@@ -47,14 +45,6 @@ const cloneCard = (card: RemoteCard): RemoteCard => ({
   tags: [...card.tags],
   ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(card.nextSeeingAt.getTime()) }),
 });
-
-const cloneSessions = (sessionsByDeckId: StudySessions): StudySessions => {
-  const sessions: StudySessions = {};
-  Object.entries(sessionsByDeckId).forEach(([deckId, session]) => {
-    if (session != null) sessions[deckId] = { ...session, cardOrderIds: [...session.cardOrderIds] };
-  });
-  return sessions;
-};
 
 /**
  * Rehydrates persisted stores and replaces their values with one story's deterministic fixture.
@@ -88,11 +78,10 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
       },
     },
   });
-  Object.entries(cloneSessions(parameters.sessionsByDeckId ?? {})).forEach(([deckId, session]) => {
+  Object.entries(parameters.sessionsByDeckId ?? {}).forEach(([deckId, session]) => {
     if (session == null) return;
-    studySessionStore.setState((state) => ({
-      sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: session },
-    }));
+    startStudySession(deckId, session.cardOrderIds);
+    setStudySessionIndex(deckId, session.currentIndex);
   });
   replaceRemoteDecks(decks);
   replaceRemoteCards(cards);

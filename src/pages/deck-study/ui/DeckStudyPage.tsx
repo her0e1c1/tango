@@ -43,6 +43,13 @@ const renderStudyScreen = (deck: Deck, state: StudyState) => {
   }
 
   const category = getCategory(deck.category, state.card.tags);
+  const swipeActions = {
+    disabled: false,
+    onClickUp: state.swipeUp,
+    onClickDown: state.swipeDown,
+    onClickLeft: state.swipeLeft,
+    onClickRight: state.swipeRight,
+  };
 
   return (
     <AppLayout fullscreen scroll={state.showBackText} showHeader={state.showHeader}>
@@ -64,9 +71,16 @@ const renderStudyScreen = (deck: Deck, state: StudyState) => {
         }
         cardOverlaySlot={<CardOverlay card={state.card} />}
         backTextSlot={<CardView card={state.card} deck={deck} onClick={state.toggleBackText} variant="bare" />}
-        controller={state.controller}
-        swipeButtonList={state.swipeButtonList}
-        swipeOverlay={state.swipeButtonList}
+        controller={{
+          autoPlay: state.autoPlay,
+          cardInterval: state.cardInterval,
+          index: state.index,
+          numberOfCards: state.numberOfCards,
+          onChange: state.updateIndex,
+          onToggleAutoPlay: state.toggleAutoPlay,
+        }}
+        swipeButtonList={swipeActions}
+        swipeOverlay={swipeActions}
       />
     </AppLayout>
   );

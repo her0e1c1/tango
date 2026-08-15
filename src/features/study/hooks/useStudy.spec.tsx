@@ -3,7 +3,7 @@ import type { Preferences } from "@/entities/preferences";
 import { clearStudySessions, startStudySession } from "@/entities/study-session";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
 import { createPreferences } from "@/test/factories";
@@ -70,6 +70,8 @@ describe("useStudy", () => {
     );
   });
 
+  afterEach(() => vi.useRealTimers());
+
   it("coordinates display state, persistence, and session progression", async () => {
     const { result } = renderHook(() => useStudy(deckId, cards, mocks.onUnavailable));
     expect(result.current).toMatchObject({ status: "ready", card: { id: "card-1" }, showBackText: false });
@@ -88,6 +90,16 @@ describe("useStudy", () => {
     const { result } = renderHook(() => useStudy(deckId, [], mocks.onUnavailable));
     expect(result.current.status).toBe("loading");
     expect(mocks.onUnavailable).not.toHaveBeenCalled();
+  });
+
+  it("advances the session while autoplay is enabled", () => {
+    vi.useFakeTimers();
+    mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
+    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onUnavailable));
+
+    act(() => vi.advanceTimersByTime(1000));
+
+    expect(result.current).toMatchObject({ status: "ready", card: { id: "card-2" } });
   });
 
   it("reports and handles an unavailable session", async () => {

@@ -6,11 +6,8 @@ import { editStudyProgress } from "@/entities/study-progress";
 
 import * as React from "react";
 
-import type { ControllerProps } from "../components/Controller";
-import type { SwipeButtonListProps } from "../components/SwipeButtonList";
 import { useActiveStudySession, useStudySessionLifecycle } from "./useActiveStudySession";
 import { useStudyActions } from "./useStudyActions";
-import { useStudyControllerState } from "./useStudyControllerState";
 import { useStudyDisplayState } from "./useStudyDisplayState";
 import { useSwipeFeedback } from "./useSwipeFeedback";
 
@@ -34,8 +31,11 @@ export type StudyState = StudyCommands &
         showController: boolean;
         showSwipeButtonList: boolean;
         swipeFeedback?: SwipeDirection;
-        controller: ControllerProps;
-        swipeButtonList: SwipeButtonListProps;
+        autoPlay: boolean;
+        cardInterval: number;
+        index: number;
+        numberOfCards: number;
+        updateIndex: (index: number) => void;
       }
   );
 
@@ -56,15 +56,21 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
   const session = useActiveStudySession(deckId, cards);
   useStudySessionLifecycle({ deckId, session, onUnavailable });
 
-  const controller = useStudyControllerState({
-    autoPlay: display.autoPlay,
-    cardInterval: display.preferences.study.cardInterval,
-    enabled: session.status === "ready" && display.preferences.study.cardInterval > 0,
-    index: session.status === "ready" ? session.index : -1,
-    numberOfCards: session.status === "ready" ? session.numberOfCards : 0,
-    onChange: actions.updateIndex,
-    onToggleAutoPlay: display.toggleAutoPlay,
-  });
+  React.useEffect(() => {
+    if (
+      session.status !== "ready" ||
+      !display.autoPlay ||
+      display.preferences.study.cardInterval <= 0 ||
+      session.index + 1 >= session.numberOfCards
+    ) {
+      return;
+    }
+    const timeout = window.setTimeout(
+      () => actions.updateIndex(session.index + 1),
+      display.preferences.study.cardInterval * 1000
+    );
+    return () => window.clearTimeout(timeout);
+  }, [actions, display.autoPlay, display.preferences.study.cardInterval, session]);
   const commands: StudyCommands = {
     swipeUp: actions.swipeUp,
     swipeDown: actions.swipeDown,
@@ -84,14 +90,11 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     showBackText: display.showBackText,
     showController: display.preferences.study.cardInterval > 0,
     showSwipeButtonList: display.preferences.controls.showSwipeButtonList,
-    controller,
-    swipeButtonList: {
-      disabled: false,
-      onClickUp: actions.swipeUp,
-      onClickDown: actions.swipeDown,
-      onClickLeft: actions.swipeLeft,
-      onClickRight: actions.swipeRight,
-    },
+    autoPlay: display.autoPlay,
+    cardInterval: display.preferences.study.cardInterval,
+    index: session.index,
+    numberOfCards: session.numberOfCards,
+    updateIndex: actions.updateIndex,
     ...(feedback.lastSwipe !== undefined ? { swipeFeedback: feedback.lastSwipe } : {}),
   };
 };
