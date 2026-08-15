@@ -3,14 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthSession } from "@/entities/auth";
+import { updatePreferences, usePreferences } from "@/entities/preferences";
+import { SettingsForm, usePreferencesFormState } from "@/features/settings";
 import { useSignIn } from "@/features/sign-in";
 import { useSignOut } from "@/features/sign-out";
-import { usePreferencesFormState } from "@/features/settings";
-import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
-
-import { SettingsView } from "./SettingsView";
 
 interface SettingsPageProps {
   login: () => Promise<void>;
@@ -31,7 +29,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
   const signOut = useSignOut(linkedUser ? logout : undefined);
   const account = linkedUser ? { ...signOut, kind: "logout" as const } : { ...signIn, kind: "login" as const };
   const retryAccountOperation = account.kind === "logout" ? signOut.signOut : signIn.signIn;
-  const preferencesFormState = usePreferencesFormState({
+  const formState = usePreferencesFormState({
     preferences,
     onSubmit: updatePreferences,
   });
@@ -39,25 +37,23 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
 
   return (
     <AppLayout showHeader>
-      <SettingsView
-        preferencesForm={{
-          ...preferencesFormState,
-          identity,
-          version: __APP_VERSION__,
-          isLoggedIn: linkedUser != null,
-          onLogin: () => void signIn.signIn().catch(() => undefined),
-          ...(linkedUser ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {}),
-          accountPending: account.pending,
-          accountFeedback: (
-            <RemoteMutationNotice
-              pending={account.pending}
-              error={account.error}
-              onRetry={() => void retryAccountOperation().catch(() => undefined)}
-              pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
-              errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
-            />
-          ),
-        }}
+      <SettingsForm
+        {...formState}
+        identity={identity}
+        version={__APP_VERSION__}
+        isLoggedIn={linkedUser != null}
+        onLogin={() => void signIn.signIn().catch(() => undefined)}
+        {...(linkedUser ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {})}
+        accountPending={account.pending}
+        accountFeedback={
+          <RemoteMutationNotice
+            pending={account.pending}
+            error={account.error}
+            onRetry={() => void retryAccountOperation().catch(() => undefined)}
+            pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
+            errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
+          />
+        }
       />
     </AppLayout>
   );

@@ -1,18 +1,14 @@
-/**
- * @file Defines Storybook examples for Preferences Form.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 import type { ComponentProps } from "react";
 
-import { PreferencesForm as Template } from "./PreferencesForm";
 import * as fixture from "@/storybook/fixture";
+import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-type PreferencesFormFields = ComponentProps<typeof Template>["fields"];
+import { SettingsForm as Form } from "./SettingsForm";
 
-const fields: PreferencesFormFields = {
+type SettingsFields = ComponentProps<typeof Form>["fields"];
+
+const fields: SettingsFields = {
   showHeader: { checked: fixture.preferences.default.appearance.showHeader, onChange: () => undefined },
   showSwipeButtonList: { checked: fixture.preferences.default.controls.showSwipeButtonList, onChange: () => undefined },
   showSwipeFeedback: { checked: fixture.preferences.default.appearance.showSwipeFeedback, onChange: () => undefined },
@@ -34,53 +30,42 @@ const fields: PreferencesFormFields = {
   },
 };
 
+const settingsFormProps = {
+  fields,
+  maxNumberOfCardsToLearn: fixture.preferences.default.study.maxNumberOfCardsToLearn,
+  cardInterval: fixture.preferences.default.study.cardInterval,
+  version: "1.2.3",
+};
+
 const meta = {
-  title: "Settings/PreferencesForm",
-  component: Template,
+  title: "Features/Settings/SettingsForm",
+  component: Form,
   tags: ["autodocs"],
-  argTypes: {
-    onLogin: { action: "onLogin" },
-    onLogout: { action: "onLogout" },
-  },
-  args: {
-    preferences: fixture.preferences.default,
-    fields,
-    maxNumberOfCardsToLearn: fixture.preferences.default.study.maxNumberOfCardsToLearn,
-    cardInterval: fixture.preferences.default.study.cardInterval,
-  },
-} satisfies Meta<typeof Template>;
+  parameters: { viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" } },
+  args: settingsFormProps,
+} satisfies Meta<typeof Form>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const LoggedOut: Story = {};
-
 export const LoggedIn: Story = {
   args: {
+    ...settingsFormProps,
     isLoggedIn: true,
     identity: { uid: "settings-user", displayName: "Settings User" },
-    version: "1.2.3",
   },
 };
-
 export const LongContent: Story = {
   args: {
+    ...settingsFormProps,
     isLoggedIn: true,
     identity: {
       uid: "settings-user-with-an-intentionally-long-identifier-for-responsive-review-1234567890",
       displayName: "A settings user with an intentionally long display name for responsive review",
     },
-    fields,
     version: "2026.07.16-calm-focus-settings-presentation-long-metadata",
   },
 };
-
-export const Dark: Story = {
-  ...LoggedIn,
-  globals: { theme: "dark" },
-};
-
-export const Mobile: Story = {
-  ...LongContent,
-  parameters: { viewport: { defaultViewport: "iphonex" } },
-};
+export const Dark: Story = { ...LoggedIn, globals: { theme: "dark" } };
+export const Mobile: Story = { ...LongContent, parameters: { viewport: { defaultViewport: "iphonex" } } };
