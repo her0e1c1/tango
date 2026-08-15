@@ -23,11 +23,13 @@ const cards = [
 ];
 const sessionsByDeckId: DeckListProps["sessionsByDeckId"] = {
   [oldDeck.id]: {
+    status: "studying",
     cardOrderIds: ["old-1", "old-2"],
     currentIndex: 0,
     lastStudiedAt: 1000,
   },
   [recentDeck.id]: {
+    status: "studying",
     cardOrderIds: ["recent-1", "recent-2", "recent-3"],
     currentIndex: 1,
     lastStudiedAt: 2000,

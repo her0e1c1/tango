@@ -21,18 +21,21 @@ describe("buildDeckListSections", () => {
     ];
     const sessionsByDeckId = {
       "active-old": {
+        status: "studying" as const,
         deckId: "active-old",
         cardOrderIds: ["old-1", "old-2"],
         currentIndex: 0,
         lastStudiedAt: 100,
       },
       "active-new": {
+        status: "studying" as const,
         deckId: "active-new",
         cardOrderIds: ["new-1", "new-2", "new-3"],
         currentIndex: 1,
         lastStudiedAt: 200,
       },
       missing: {
+        status: "studying" as const,
         deckId: "missing",
         cardOrderIds: ["missing-card"],
         currentIndex: 0,
@@ -55,6 +58,7 @@ describe("buildDeckListSections", () => {
   it("uses deck name as a stable tie breaker for equally recent sessions", () => {
     const decks = [createDeck({ id: "b", name: "Beta" }), createDeck({ id: "a", name: "Alpha" })];
     const session = (deckId: DeckId) => ({
+      status: "studying" as const,
       deckId,
       cardOrderIds: [`${deckId}-card`],
       currentIndex: 0,
@@ -65,5 +69,20 @@ describe("buildDeckListSections", () => {
 
     expect(sections.studying.map((item) => item.deck.name)).toEqual(["Alpha", "Beta"]);
     expect(sections.other).toEqual([]);
+  });
+
+  it("does not present completed sessions as in-progress study", () => {
+    const deck = createDeck({ id: "completed", name: "Completed" });
+    const sections = buildDeckListSections([deck], [], {
+      completed: {
+        status: "completed",
+        cardOrderIds: ["card-1"],
+        currentIndex: 0,
+        lastStudiedAt: 100,
+      },
+    });
+
+    expect(sections.studying).toEqual([]);
+    expect(sections.other).toEqual([{ deck, cardCount: 0 }]);
   });
 });

@@ -2,6 +2,7 @@ import type { Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 
 interface DeckListStudySession {
+  status: "studying" | "completed";
   cardOrderIds: string[];
   currentIndex: number;
   lastStudiedAt: number;
@@ -39,20 +40,21 @@ export const buildDeckListSections = (
 
   for (const deck of decks) {
     const session = sessionsByDeckId[deck.id];
+    const studyingSession = session?.status === "studying" ? session : undefined;
     const item: DeckListItem = {
       deck,
       cardCount: cardCounts.get(deck.id) ?? 0,
-      ...(session == null
+      ...(studyingSession == null
         ? {}
         : {
             studyProgress: {
-              currentIndex: session.currentIndex,
-              cardCount: session.cardOrderIds.length,
-              lastStudiedAt: session.lastStudiedAt,
+              currentIndex: studyingSession.currentIndex,
+              cardCount: studyingSession.cardOrderIds.length,
+              lastStudiedAt: studyingSession.lastStudiedAt,
             },
           }),
     };
-    if (session == null) other.push(item);
+    if (studyingSession == null) other.push(item);
     else studying.push(item);
   }
 

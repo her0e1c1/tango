@@ -79,8 +79,8 @@ const commands = () => ({
   toggleBackText: vi.fn(),
   toggleAutoPlay: vi.fn(),
 });
-const readyState = (): StudyState => ({
-  status: "ready",
+const studyingState = (): StudyState => ({
+  status: "studying",
   ...commands(),
   card,
   showHeader: true,
@@ -99,7 +99,7 @@ describe("DeckStudyPage", () => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
     mocks.cards = [card];
-    mocks.studyState = readyState();
+    mocks.studyState = studyingState();
     mocks.studyArgs = undefined;
     window.history.replaceState(null, document.title, document.location.href);
   });
@@ -136,7 +136,7 @@ describe("DeckStudyPage", () => {
   it("delegates a representative Study shortcut to the workflow action", () => {
     render(<DeckStudyPage />);
     const state = mocks.studyState;
-    if (state?.status !== "ready") throw new Error("expected ready workflow state");
+    if (state?.status !== "studying") throw new Error("expected studying workflow state");
 
     fireEvent.keyDown(window, { key: "ArrowLeft" });
 

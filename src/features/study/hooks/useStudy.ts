@@ -22,9 +22,9 @@ interface StudyCommands {
 
 export type StudyState = StudyCommands &
   (
-    | { status: "loading" | "unavailable" }
+    | { status: "loading" | "unavailable" | "completed" }
     | {
-        status: "ready";
+        status: "studying";
         card: Card;
         showHeader: boolean;
         showBackText: boolean;
@@ -57,7 +57,7 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
 
   React.useEffect(() => {
     if (
-      session.status !== "ready" ||
+      session.status !== "studying" ||
       !display.autoPlay ||
       display.preferences.study.cardInterval <= 0 ||
       session.index + 1 >= session.numberOfCards
@@ -79,10 +79,10 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     toggleAutoPlay: display.toggleAutoPlay,
   };
 
-  if (session.status !== "ready") return { ...session, ...commands };
+  if (session.status !== "studying") return { ...session, ...commands };
 
   return {
-    status: "ready",
+    status: "studying",
     ...commands,
     card: session.card,
     showHeader: display.preferences.appearance.showHeader && !display.showBackText,

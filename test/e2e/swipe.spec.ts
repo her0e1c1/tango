@@ -56,6 +56,7 @@ const persistedStudy = {
   state: {
     sessionsByDeckId: {
       [e2eDeck.id]: {
+        status: "studying",
         deckId: e2eDeck.id,
         cardOrderIds: e2eCards.map((card) => card.id),
         currentIndex: 0,
@@ -63,7 +64,7 @@ const persistedStudy = {
       },
     },
   },
-  version: 3,
+  version: 4,
 };
 
 const seedSwipeSession = async (page: Page) => {
@@ -142,13 +143,14 @@ test("updates study progress with a mastered deck swipe", async ({ page }) => {
       state: {
         sessionsByDeckId: {
           [e2eDeck.id]: {
+            status: "studying",
             deckId: e2eDeck.id,
             cardOrderIds: e2eCards.map((card) => card.id),
             currentIndex: 1,
           },
         },
       },
-      version: 3,
+      version: 4,
     });
   await expect
     .poll(async () => persistedStateBoundaries(page))

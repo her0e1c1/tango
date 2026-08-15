@@ -36,7 +36,7 @@ export const useStudyActions = (
     // biome-ignore lint/suspicious/noUnnecessaryConditions: The awaited write lets another event enter this closure.
     if (swipeState.current.inProgress) return;
     const session = getStudySession(deckId);
-    if (session == null) return;
+    if (session?.status !== "studying") return;
 
     const swipeAction = preferences.controls[direction];
     if (swipeAction === "DoNothing") return;
@@ -63,7 +63,8 @@ export const useStudyActions = (
     const currentSession = getStudySession(deckId);
     // Position changes during the write own the newer card, while timestamp-only touches still allow advancement.
     if (
-      currentSession?.currentIndex !== session.currentIndex ||
+      currentSession?.status !== "studying" ||
+      currentSession.currentIndex !== session.currentIndex ||
       currentSession.cardOrderIds[currentSession.currentIndex] !== cardId
     ) {
       return;
@@ -80,7 +81,7 @@ export const useStudyActions = (
     swipeLeft: () => swipe("cardSwipeLeft"),
     swipeRight: () => swipe("cardSwipeRight"),
     updateIndex: (currentIndex: number) => {
-      if (getStudySession(deckId) == null) return;
+      if (getStudySession(deckId)?.status !== "studying") return;
       onCardChanged?.();
       setStudySessionIndex(deckId, currentIndex);
     },

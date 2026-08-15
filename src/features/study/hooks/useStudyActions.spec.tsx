@@ -203,13 +203,13 @@ describe("useStudyActions", () => {
     expect(getStudySession(deckId)).toBeUndefined();
   });
 
-  it("removes the session after the final card is persisted", async () => {
+  it("completes the session after the final card is persisted", async () => {
     startStudySession(deckId, ["card-1"]);
     const { result } = renderActions();
 
     await actAsync(() => result.current.swipeRight());
 
     expect(saveProgress).toHaveBeenCalledOnce();
-    expect(getStudySession(deckId)).toBeUndefined();
+    expect(getStudySession(deckId)).toMatchObject({ status: "completed", currentIndex: 0 });
   });
 });

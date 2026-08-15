@@ -4,6 +4,7 @@ import { calculateStudySessionIndex } from "./rules";
 import type { StudySession } from "./types";
 
 const session: StudySession = {
+  status: "studying",
   deckId: "deck-1",
   cardOrderIds: ["card-1", "card-2", "card-3"],
   currentIndex: 1,

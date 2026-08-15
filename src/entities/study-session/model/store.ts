@@ -10,7 +10,7 @@ import type { StudySession, StudySessions } from "./types";
 
 const STUDY_STORAGE_KEY = "tango-study";
 // No migration is registered: changing this version deliberately invalidates older state shapes.
-const STUDY_STORAGE_VERSION = 3;
+const STUDY_STORAGE_VERSION = 4;
 
 interface StudySessionState {
   sessionsByDeckId: StudySessions;
@@ -22,8 +22,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 // Rebuild canonical sessions from untrusted browser storage so malformed fields cannot break resume logic.
 const sanitizeStudySession = (value: unknown): StudySession | undefined => {
   if (!isRecord(value)) return;
-  const { deckId, cardOrderIds, currentIndex, lastStudiedAt } = value;
+  const { status, deckId, cardOrderIds, currentIndex, lastStudiedAt } = value;
   if (
+    (status !== "studying" && status !== "completed") ||
     typeof deckId !== "string" ||
     !Array.isArray(cardOrderIds) ||
     cardOrderIds.length === 0 ||
@@ -39,7 +40,7 @@ const sanitizeStudySession = (value: unknown): StudySession | undefined => {
     return;
   }
 
-  return { deckId, cardOrderIds: [...cardOrderIds], currentIndex, lastStudiedAt };
+  return { status, deckId, cardOrderIds: [...cardOrderIds], currentIndex, lastStudiedAt };
 };
 
 const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
@@ -77,6 +78,7 @@ export const getStudySession = (deckId: DeckId): StudySession | undefined =>
 export const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
   studySessionStore.setState((state) => {
     state.sessionsByDeckId[deckId] = {
+      status: "studying",
       deckId,
       // The store owns this ordering snapshot even if the caller later reuses its array.
       cardOrderIds: [...cardOrderIds],
@@ -89,7 +91,7 @@ export const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void 
 export const touchStudySession = (deckId: DeckId): void => {
   studySessionStore.setState((state) => {
     const session = state.sessionsByDeckId[deckId];
-    if (session != null) session.lastStudiedAt = Date.now();
+    if (session?.status === "studying") session.lastStudiedAt = Date.now();
   });
 };
 
@@ -99,6 +101,7 @@ export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): void
     // Never persist a resume point that cannot identify an active card.
     if (
       session == null ||
+      session.status !== "studying" ||
       !Number.isInteger(currentIndex) ||
       currentIndex < 0 ||
       currentIndex >= session.cardOrderIds.length
@@ -113,11 +116,13 @@ export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): void
 export const moveStudySession = (deckId: DeckId, movement: StudySessionMovement): void => {
   studySessionStore.setState((state) => {
     const session = state.sessionsByDeckId[deckId];
-    if (session == null) return;
+    if (session?.status !== "studying") return;
 
     const nextIndex = calculateStudySessionIndex(session, movement);
     if (nextIndex === undefined) {
-      delete state.sessionsByDeckId[deckId];
+      // Keep completion observable so consumers do not infer lifecycle state from a missing session.
+      session.status = "completed";
+      session.lastStudiedAt = Date.now();
       return;
     }
     session.currentIndex = nextIndex;
