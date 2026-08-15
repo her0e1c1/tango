@@ -4,7 +4,7 @@
  * outside the view.
  */
 
-import * as React from "react";
+import React from "react";
 import { AiOutlineCloudDownload, AiOutlineDelete, AiOutlineEdit, AiOutlineReload } from "react-icons/ai";
 import { ActionsMenu, type ActionsMenuItem } from "@/shared/ui/actions-menu";
 

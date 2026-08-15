@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import { filterCardsByDeckId, type Card } from "@/entities/card";
 import { mustFindDeckById, type Deck, type DeckId } from "@/entities/deck";

@@ -3,7 +3,7 @@
  * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
  */
 
-import * as React from "react";
+import React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
 import type { Card as CardEntity, CardId } from "@/entities/card";

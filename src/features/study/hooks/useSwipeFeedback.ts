@@ -1,6 +1,6 @@
 import type { SwipeDirection } from "@/entities/preferences";
 
-import * as React from "react";
+import React from "react";
 
 const SWIPE_FEEDBACK_DURATION_MS = 900;
 

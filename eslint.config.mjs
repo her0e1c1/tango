@@ -1,6 +1,5 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
 import * as tsParser from "@typescript-eslint/parser";
-import eslintReact from "@eslint-react/eslint-plugin";
 import {
   createConfig as createBoundariesConfig,
   recommended as boundariesRecommended,
@@ -12,6 +11,13 @@ const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 const sliceLayers = ["entities", "features", "pages", "widgets"];
 const nonSliceLayers = ["app", "shared"];
+// React Compiler owns routine memoization; React-qualified calls keep exceptional manual memoization explicit.
+const restrictedReactMemoImports = {
+  name: "react",
+  importNames: ["useCallback", "useMemo"],
+  allowTypeImports: true,
+  message: "Use React.useMemo or React.useCallback when manual memoization is necessary.",
+};
 
 export default [
   {
@@ -37,13 +43,13 @@ export default [
   },
   {
     files: sourceFiles,
-    plugins: {
-      "@eslint-react": eslintReact,
-    },
     rules: {
-      // React Compiler owns routine memoization; manual memoization must have an observable reason to remain.
-      "@eslint-react/no-unnecessary-use-callback": "error",
-      "@eslint-react/no-unnecessary-use-memo": "error",
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [restrictedReactMemoImports],
+        },
+      ],
     },
   },
   createBoundariesConfig({
@@ -108,6 +114,7 @@ export default [
       "no-restricted-imports": [
         "error",
         {
+          paths: [restrictedReactMemoImports],
           patterns: [
             {
               group: ["@/features/*/*", "@/features/*/*/**"],

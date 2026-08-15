@@ -5,7 +5,7 @@
  * returns focus to the trigger on Escape".
  */
 
-import * as React from "react";
+import React from "react";
 import { act, fireEvent, render, waitFor, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";

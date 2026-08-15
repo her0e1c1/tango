@@ -7,7 +7,7 @@
 import type { DeckId } from "@/entities/deck";
 import type { DeckListSections } from "../model/buildDeckListSections";
 
-import * as React from "react";
+import React from "react";
 import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";

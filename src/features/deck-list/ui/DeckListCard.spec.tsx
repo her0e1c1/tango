@@ -11,7 +11,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as React from "react";
+import React from "react";
 
 import { DeckListCard, type DeckListCardProps } from "./DeckListCard";
 import { createDeck } from "@/test/factories";

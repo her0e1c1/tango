@@ -5,7 +5,7 @@
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 import { expect, fn } from "storybook/test";
 
 import { TagFilter as Template } from "./TagFilter";

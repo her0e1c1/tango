@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
 import { Button } from "@/shared/ui/button";

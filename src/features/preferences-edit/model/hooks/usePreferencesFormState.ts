@@ -1,6 +1,6 @@
 import { studyPreferencesLimits, type Preferences } from "@/entities/preferences";
 
-import * as React from "react";
+import React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 export interface UsePreferencesFormStateOptions {

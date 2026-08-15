@@ -1,6 +1,6 @@
 import type { DeckEdit } from "@/entities/deck";
 
-import * as React from "react";
+import React from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { editDeck } from "@/entities/deck";

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React from "react";
 
 import type { Card } from "@/entities/card";
 import { createSelectableStudyCard, type Deck, filterCardsForDeck } from "@/entities/deck";
@@ -9,17 +9,17 @@ import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
 export const useFilteredStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): Card[] => {
-  const [scheduleClock, setScheduleClock] = useState(() => Date.now());
-  const studyCards = useMemo(() => cards.map(createSelectableStudyCard), [cards]);
+  const [scheduleClock, setScheduleClock] = React.useState(() => Date.now());
+  const studyCards = React.useMemo(() => cards.map(createSelectableStudyCard), [cards]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Refresh after rendering so a changed card list is filtered against current time, not the previous clock.
     const current = Date.now();
     const refresh = window.setTimeout(() => setScheduleClock(current), 0);
     return () => window.clearTimeout(refresh);
   }, [cards]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const current = Date.now();
     const next = getNextStudyAvailabilityAt(
       studyCards.map((card) => card.progress),

@@ -4,7 +4,7 @@
  * actions", "disables the trigger and hides an open menu".
  */
 
-import * as React from "react";
+import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";

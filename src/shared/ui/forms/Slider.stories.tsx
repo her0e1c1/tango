@@ -5,7 +5,7 @@
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 import { expect, fireEvent, fn } from "storybook/test";
 
 import { Slider as Template } from "@/shared/ui/forms/Slider";

@@ -5,7 +5,7 @@
  */
 
 import cx from "classnames";
-import * as React from "react";
+import React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
 import type { Deck, DeckId } from "@/entities/deck";
