@@ -80,26 +80,26 @@ vi.mock("@/features/study", async (importOriginal) => {
     useStudyActions: (
       _deckId: DeckId,
       options?: {
-        onSwipe?: (direction: SwipeDirection) => void;
+        onSwipe?: (direction: SwipeDirection) => (() => void) | undefined;
         onToggleBackText?: () => void;
         onToggleAutoPlay?: () => void;
       }
     ) => ({
       swipeUp: () => {
-        options?.onSwipe?.("cardSwipeUp");
-        mocks.swipeUp();
+        const rollback = options?.onSwipe?.("cardSwipeUp");
+        mocks.swipeUp(rollback);
       },
       swipeDown: () => {
-        options?.onSwipe?.("cardSwipeDown");
-        mocks.swipeDown();
+        const rollback = options?.onSwipe?.("cardSwipeDown");
+        mocks.swipeDown(rollback);
       },
       swipeLeft: () => {
-        options?.onSwipe?.("cardSwipeLeft");
-        mocks.swipeLeft();
+        const rollback = options?.onSwipe?.("cardSwipeLeft");
+        mocks.swipeLeft(rollback);
       },
       swipeRight: () => {
-        options?.onSwipe?.("cardSwipeRight");
-        mocks.swipeRight();
+        const rollback = options?.onSwipe?.("cardSwipeRight");
+        mocks.swipeRight(rollback);
       },
       updateIndex: mocks.updateIndex,
       toggleShowBackText: () => {
@@ -292,6 +292,26 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
 
     act(() => vi.advanceTimersByTime(1));
     expect(screen.queryByText("Swiped left")).not.toBeInTheDocument();
+  });
+
+  it("rolls back only the feedback event associated with a failed swipe", () => {
+    if (mocks.state == null) throw new Error("Mock state is not initialized");
+    mocks.state.preferences = createPreferences({
+      ...mocks.state.preferences,
+      appearance: { ...mocks.state.preferences.appearance, showSwipeFeedback: true },
+    });
+    render(<DeckSwiperPage />);
+
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    const rollbackLeft = mocks.swipeLeft.mock.calls[0]?.[0] as (() => void) | undefined;
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+
+    act(() => rollbackLeft?.());
+    expect(screen.getByText("Swiped right")).toBeInTheDocument();
+
+    const rollbackRight = mocks.swipeRight.mock.calls[0]?.[0] as (() => void) | undefined;
+    act(() => rollbackRight?.());
+    expect(screen.queryByText("Swiped right")).not.toBeInTheDocument();
   });
 
   it("installs one back-navigation guard when StrictMode replays the effect", () => {

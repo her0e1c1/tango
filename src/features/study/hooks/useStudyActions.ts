@@ -33,11 +33,13 @@ interface StudyCardMutation {
   update: (progress: StudyProgressEdit) => Promise<void>;
 }
 
+type SwipeRollback = () => void;
+
 interface UseStudyActionsOptions {
   cards?: readonly Card[] | undefined;
   cardMutation?: StudyCardMutation | undefined;
   onStarted?: (() => void) | undefined;
-  onSwipe?: ((direction: SwipeDirection) => void) | undefined;
+  onSwipe?: ((direction: SwipeDirection) => SwipeRollback | undefined) | undefined;
   showBackText?: boolean | undefined;
   onHideBackText?: (() => void) | undefined;
   onToggleBackText?: (() => void) | undefined;
@@ -51,7 +53,7 @@ interface StudySwipeDependencies {
   preferences: Preferences;
   cards: readonly Card[];
   update: (progress: StudyProgressEdit) => Promise<void>;
-  onSwipe?: ((direction: SwipeDirection) => void) | undefined;
+  onSwipe?: ((direction: SwipeDirection) => SwipeRollback | undefined) | undefined;
   showBackText?: boolean | undefined;
   onHideBackText?: (() => void) | undefined;
   onRestoreBackText?: ((showBackText: boolean) => void) | undefined;
@@ -81,12 +83,13 @@ const revertOptimisticUpdate = (
   const changeStillCurrent =
     mutationTokenRef.current === mutationToken &&
     (nextIndex < 0 ? currentSession == null : currentSession === optimisticSession);
-  if (changeStillCurrent) {
-    studyStore.setState((state) => ({
-      sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: previous.session },
-    }));
-    onRestoreBackText?.(previous.showBackText);
-  }
+  if (!changeStillCurrent) return false;
+
+  studyStore.setState((state) => ({
+    sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: previous.session },
+  }));
+  onRestoreBackText?.(previous.showBackText);
+  return true;
 };
 
 /**
@@ -130,7 +133,7 @@ const runStudySwipe = async (
     showBackText: showBackText ?? false,
   };
 
-  onSwipe?.(direction);
+  const rollbackSwipe = onSwipe?.(direction);
   if (preferences.appearance.hideBodyWhenCardChanged) {
     onHideBackText?.();
   }
@@ -143,7 +146,7 @@ const runStudySwipe = async (
   try {
     await update(patch);
   } catch {
-    revertOptimisticUpdate(
+    const reverted = revertOptimisticUpdate(
       deckId,
       nextIndex,
       mutationTokenRef,
@@ -152,6 +155,7 @@ const runStudySwipe = async (
       previous,
       onRestoreBackText
     );
+    if (reverted) rollbackSwipe?.();
   } finally {
     if (mutationTokenRef.current === mutationToken) mutationTokenRef.current = undefined;
   }

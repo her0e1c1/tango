@@ -42,6 +42,7 @@ const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const [lastSwipe, setLastSwipe] = React.useState<{ direction: SwipeDirection; eventId: number } | undefined>(
     undefined
   );
+  const nextSwipeEventId = React.useRef(0);
   const hydrated = useStudyHydrated();
 
   const handleHideBackText = React.useCallback(() => {
@@ -60,10 +61,11 @@ const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const handleSwipe = React.useCallback(
     (direction: SwipeDirection) => {
       if (!preferences.appearance.showSwipeFeedback) return;
-      setLastSwipe((prev) => ({
-        direction,
-        eventId: (prev?.eventId ?? 0) + 1,
-      }));
+      const eventId = ++nextSwipeEventId.current;
+      setLastSwipe({ direction, eventId });
+      return () => {
+        setLastSwipe((current) => (current?.eventId === eventId ? undefined : current));
+      };
     },
     [preferences.appearance.showSwipeFeedback]
   );
