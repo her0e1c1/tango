@@ -28,8 +28,8 @@ describe("card CSV import", () => {
       expect(analysis.invalidCount).toBe(2);
       expect(analysis.rows).toEqual([]);
       expect(analysis.issues).toEqual([
-        { rowNumber: 1, message: "frontText is required.", context: '[" ","back",""," same "]' },
-        { rowNumber: 2, message: "backText is required.", context: '["front"," ","","same"]' },
+        { rowNumber: 1, message: "Front text is required.", context: '[" ","back",""," same "]' },
+        { rowNumber: 2, message: "Back text is required.", context: '["front"," ","","same"]' },
         {
           rowNumber: 2,
           message: 'uniqueKey "same" is duplicated in this file.',
@@ -44,7 +44,7 @@ describe("card CSV import", () => {
       expect(analysis).toMatchObject({
         rows: [],
         invalidCount: 1,
-        issues: [{ rowNumber: 1, message: "uniqueKey is required.", context: '["front","back",""," "]' }],
+        issues: [{ rowNumber: 1, message: "Unique key is required.", context: '["front","back",""," "]' }],
       });
     });
 

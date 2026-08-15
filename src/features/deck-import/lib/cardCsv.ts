@@ -1,4 +1,4 @@
-import { cardContentSchema, type CardRaw } from "@/entities/card";
+import { getCardContentValidationErrors, type CardRaw } from "@/entities/card";
 
 import * as Papa from "papaparse";
 
@@ -23,26 +23,17 @@ const fromRow = (row: string[]): CardRaw => ({
 
 const rowContext = (columns: string[]) => JSON.stringify(columns);
 
-const csvMessageByCardField: Record<string, string> = {
-  frontText: "frontText is required.",
-  backText: "backText is required.",
-  uniqueKey: "uniqueKey is required.",
-};
-
 const validateCard = (columns: string[], rowNumber: number, uniqueKeys: Set<string>) => {
   const card = fromRow(columns);
   const context = rowContext(columns);
-  const validation = cardContentSchema.safeParse(card);
-  const issues: DeckImportIssue[] = validation.success
-    ? []
-    : validation.error.issues.map((issue) => ({
-        rowNumber,
-        // CSV errors keep their field-oriented wording while Entity schema owns the validity rule.
-        message: csvMessageByCardField[String(issue.path[0])] ?? issue.message,
-        context,
-      }));
+  const validationErrors = getCardContentValidationErrors(card);
+  const issues: DeckImportIssue[] = Object.values(validationErrors).map((message) => ({
+    rowNumber,
+    message,
+    context,
+  }));
 
-  const uniqueKeyIsValid = cardContentSchema.shape.uniqueKey.safeParse(card.uniqueKey).success;
+  const uniqueKeyIsValid = validationErrors.uniqueKey === undefined;
   if (uniqueKeyIsValid && uniqueKeys.has(card.uniqueKey)) {
     issues.push({ rowNumber, message: `uniqueKey "${card.uniqueKey}" is duplicated in this file.`, context });
   } else if (uniqueKeyIsValid) {

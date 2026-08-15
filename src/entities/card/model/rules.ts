@@ -1,4 +1,22 @@
-import type { Card, CardId } from "./types";
+import { cardContentSchema } from "./schema";
+import type { Card, CardId, CardRaw } from "./types";
+
+const cardContentFields: ReadonlySet<string> = new Set(["frontText", "backText", "tags", "uniqueKey"]);
+const isCardContentField = (field: PropertyKey | undefined): field is keyof CardRaw =>
+  typeof field === "string" && cardContentFields.has(field);
+
+export const getCardContentValidationErrors = (card: CardRaw): Partial<Record<keyof CardRaw, string>> => {
+  const validation = cardContentSchema.safeParse(card);
+  if (validation.success) return {};
+
+  // Keep Zod issue paths inside the Entity boundary so feature adapters only handle Card fields.
+  const errors: Partial<Record<keyof CardRaw, string>> = {};
+  for (const issue of validation.error.issues) {
+    const [field] = issue.path;
+    if (isCardContentField(field) && errors[field] === undefined) errors[field] = issue.message;
+  }
+  return errors;
+};
 
 export const filterCardsByDeckId = (cards: Card[], deckId: string): Card[] =>
   cards.filter((card) => card.deckId === deckId);
