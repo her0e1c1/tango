@@ -33,7 +33,6 @@ describe("study session commands", () => {
     studyStore.setState({
       showBackText: true,
       autoPlay: false,
-      lastSwipe: { direction: "cardSwipeLeft", eventId: 1 },
     });
 
     initializeStudySessionUi(true);
@@ -41,7 +40,6 @@ describe("study session commands", () => {
     expect(studyStore.getState()).toMatchObject({
       showBackText: false,
       autoPlay: true,
-      lastSwipe: undefined,
     });
   });
 });
