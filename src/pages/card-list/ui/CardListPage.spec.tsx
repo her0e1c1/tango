@@ -55,14 +55,18 @@ vi.mock("@/features/card-list", () => ({
   },
 }));
 vi.mock("@/features/study", () => ({
+  useEditStudyProgress: () => ({ updateBy: mocks.updateBy }),
+  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
+}));
+vi.mock("@/pages/deck-start/ui/DeckStartForm", () => ({
   DeckStartForm: () => <div>Filter controls</div>,
+}));
+vi.mock("@/pages/deck-start/model/useDeckFilterState", () => ({
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,
     tagFilterProps: { selectedTags: ["typescript"], onClickTag: mocks.onClickTag },
   }),
-  useEditStudyProgress: () => ({ updateBy: mocks.updateBy }),
-  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
 }));
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
