@@ -2,12 +2,15 @@ import { mustFindCardById, type Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preferences";
 import { usePreferences } from "@/entities/preferences";
-import { createStudyProgressFromCard, type StudyProgressEdit } from "@/entities/study-progress";
+import {
+  createStudyProgressFromCard,
+  recordStudyProgress,
+  resolveStudyRating,
+  type StudyProgressEdit,
+} from "@/entities/study-progress";
 import { getStudySession, moveStudySession, removeStudySession, setStudySessionIndex } from "@/entities/study-session";
 
 import React from "react";
-
-import { buildStudyPatch } from "../model/swipe";
 
 export interface StudyActions {
   swipeUp: () => Promise<void>;
@@ -49,7 +52,7 @@ export const useStudyActions = (
     const cardId = session.cardOrderIds[session.currentIndex];
     if (cardId == null) return;
     const card = mustFindCardById(cards, cardId);
-    const patch = buildStudyPatch(createStudyProgressFromCard(card), swipeAction, Date.now());
+    const patch = recordStudyProgress(createStudyProgressFromCard(card), resolveStudyRating(swipeAction), Date.now());
 
     swipeState.current.inProgress = true;
     // The visible card advances only after persistence succeeds, so failed writes need no session rollback.
