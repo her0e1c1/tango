@@ -74,13 +74,47 @@ describe("Controller with useStudyControllerState", () => {
     expect(onChange).toHaveBeenLastCalledWith(3);
   });
 
-  it("does not advance past the existing terminal index behavior", () => {
+  it("stops autoplay on the last Card without advancing to an invalid index", () => {
     const onChange = vi.fn();
-    render(<ControllerHarness onChange={onChange} autoPlay index={5} numberOfCards={5} cardInterval={1} />);
+    const onStopAutoPlay = vi.fn();
+    const LastCardHarness = () => {
+      const controller = useStudyControllerState({
+        onChange,
+        onStopAutoPlay,
+        autoPlay: true,
+        index: 4,
+        numberOfCards: 5,
+        cardInterval: 1,
+      });
+      return <Controller {...controller} />;
+    };
+    render(<LastCardHarness />);
 
     act(() => {
       vi.advanceTimersByTime(1000);
     });
     expect(onChange).not.toHaveBeenCalled();
+    expect(onStopAutoPlay).toHaveBeenCalledOnce();
+  });
+
+  it("uses the same terminal behavior for a one-Card session", () => {
+    const onChange = vi.fn();
+    const onStopAutoPlay = vi.fn();
+    const OneCardHarness = () => {
+      const controller = useStudyControllerState({
+        onChange,
+        onStopAutoPlay,
+        autoPlay: true,
+        index: 0,
+        numberOfCards: 1,
+        cardInterval: 1,
+      });
+      return <Controller {...controller} />;
+    };
+    render(<OneCardHarness />);
+
+    act(() => vi.advanceTimersByTime(1000));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onStopAutoPlay).toHaveBeenCalledOnce();
   });
 });

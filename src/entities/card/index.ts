@@ -1,4 +1,12 @@
-export { createCard, deleteCard, editCard, fetchCards, generateCardId, subscribeCards } from "./api/firestore";
+export {
+  createCard,
+  deleteCard,
+  editCard,
+  fetchCardFromServer,
+  fetchCards,
+  generateCardId,
+  subscribeCards,
+} from "./api/firestore";
 export { useCard, useCards, useCardsByDeckId } from "./model/hooks";
 export { clearRemoteCards } from "./model/store";
 export type {

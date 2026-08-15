@@ -11,7 +11,7 @@ import type { Preferences, SwipeDirection } from "@/entities/preferences";
 
 import React from "react";
 
-import { buildStudySession, calculateNextIndex } from "../model/session";
+import { buildStudySession, resolveStudyTransition } from "../model/session";
 import { createStudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
 import { studyStore } from "../state/studyStoreInstance";
@@ -19,6 +19,8 @@ import { usePreferences } from "@/entities/preferences";
 
 export interface StudyActions {
   start: (cards: Card[]) => void;
+  restart: (cardOrderIds: string[]) => void;
+  exitStudy: () => void;
   swipeUp: () => Promise<void>;
   swipeDown: () => Promise<void>;
   swipeLeft: () => Promise<void>;
@@ -45,10 +47,14 @@ interface UseStudyActionsOptions {
   onToggleBackText?: (() => void) | undefined;
   onRestoreBackText?: ((showBackText: boolean) => void) | undefined;
   onToggleAutoPlay?: (() => void) | undefined;
+  onStopAutoPlay?: (() => void) | undefined;
+  onExit?: ((deckId: DeckId) => void) | undefined;
+  onCompleted?: ((completion: { deckId: DeckId; cardOrderIds: string[] }) => void) | undefined;
 }
 
 interface StudySwipeDependencies {
   mutationTokenRef: { current: symbol | undefined };
+  exitGenerationRef: { current: number };
   deckId: DeckId;
   preferences: Preferences;
   cards: readonly Card[];
@@ -57,12 +63,14 @@ interface StudySwipeDependencies {
   showBackText?: boolean | undefined;
   onHideBackText?: (() => void) | undefined;
   onRestoreBackText?: ((showBackText: boolean) => void) | undefined;
+  onStopAutoPlay?: (() => void) | undefined;
+  onExit?: ((deckId: DeckId) => void) | undefined;
+  onCompleted?: ((completion: { deckId: DeckId; cardOrderIds: string[] }) => void) | undefined;
 }
 
-const applyOptimisticUpdate = (deckId: DeckId, nextIndex: number) => {
+const applyOptimisticMove = (deckId: DeckId, nextIndex: number) => {
   const state = studyStore.getState();
-  if (nextIndex < 0) state.removeStudy(deckId);
-  else state.setCurrentIndex(deckId, nextIndex);
+  state.setCurrentIndex(deckId, nextIndex);
   return studyStore.getState().sessionsByDeckId[deckId];
 };
 
@@ -71,7 +79,6 @@ type Session = StudyState["sessionsByDeckId"][string];
 
 const revertOptimisticUpdate = (
   deckId: DeckId,
-  nextIndex: number,
   mutationTokenRef: { current: symbol | undefined },
   mutationToken: symbol,
   optimisticSession: Session,
@@ -80,9 +87,7 @@ const revertOptimisticUpdate = (
 ) => {
   const current = studyStore.getState();
   const currentSession = current.sessionsByDeckId[deckId];
-  const changeStillCurrent =
-    mutationTokenRef.current === mutationToken &&
-    (nextIndex < 0 ? currentSession == null : currentSession === optimisticSession);
+  const changeStillCurrent = mutationTokenRef.current === mutationToken && currentSession === optimisticSession;
   if (!changeStillCurrent) return false;
 
   studyStore.setState((state) => ({
@@ -90,6 +95,28 @@ const revertOptimisticUpdate = (
   }));
   onRestoreBackText?.(previous.showBackText);
   return true;
+};
+
+const completeStudyIfCurrent = (
+  deckId: DeckId,
+  session: NonNullable<Session>,
+  mutationTokenRef: { current: symbol | undefined },
+  mutationToken: symbol,
+  exitGenerationRef: { current: number },
+  exitGeneration: number,
+  onStopAutoPlay: (() => void) | undefined,
+  onCompleted: ((completion: { deckId: DeckId; cardOrderIds: string[] }) => void) | undefined
+) => {
+  if (
+    mutationTokenRef.current !== mutationToken ||
+    exitGenerationRef.current !== exitGeneration ||
+    studyStore.getState().sessionsByDeckId[deckId] !== session
+  ) {
+    return;
+  }
+  studyStore.getState().removeStudy(deckId);
+  onStopAutoPlay?.();
+  onCompleted?.({ deckId, cardOrderIds: [...session.cardOrderIds] });
 };
 
 /**
@@ -100,6 +127,7 @@ const runStudySwipe = async (
   direction: SwipeDirection,
   {
     mutationTokenRef,
+    exitGenerationRef,
     deckId,
     preferences,
     cards,
@@ -108,6 +136,9 @@ const runStudySwipe = async (
     showBackText,
     onHideBackText,
     onRestoreBackText,
+    onStopAutoPlay,
+    onExit,
+    onCompleted,
   }: StudySwipeDependencies
 ): Promise<void> => {
   if (mutationTokenRef.current !== undefined) return;
@@ -116,11 +147,13 @@ const runStudySwipe = async (
   if (session == null) return;
 
   const swipeAction = resolveSwipeAction(preferences.controls, direction);
-  if (swipeAction === "DoNothing") return;
-
-  if (swipeAction === "GoBack") {
+  const transition = resolveStudyTransition(session.currentIndex, session.cardOrderIds.length, swipeAction);
+  if (transition.type === "no-op") return;
+  if (transition.type === "exit") {
     onSwipe?.(direction);
-    state.removeStudy(deckId);
+    exitGenerationRef.current += 1;
+    onStopAutoPlay?.();
+    onExit?.(deckId);
     return;
   }
 
@@ -139,16 +172,30 @@ const runStudySwipe = async (
   }
 
   const patch = buildStudyPatch(createStudyCard(card), swipeAction, Date.now());
-  const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
   const mutationToken = Symbol();
+  const exitGeneration = exitGenerationRef.current;
   mutationTokenRef.current = mutationToken;
-  const optimisticSession = applyOptimisticUpdate(deckId, nextIndex);
+  const optimisticSession =
+    transition.type === "move"
+      ? applyOptimisticMove(deckId, transition.index)
+      : studyStore.getState().sessionsByDeckId[deckId];
   try {
     await update(patch);
+    if (transition.type === "complete") {
+      completeStudyIfCurrent(
+        deckId,
+        session,
+        mutationTokenRef,
+        mutationToken,
+        exitGenerationRef,
+        exitGeneration,
+        onStopAutoPlay,
+        onCompleted
+      );
+    }
   } catch {
     const reverted = revertOptimisticUpdate(
       deckId,
-      nextIndex,
       mutationTokenRef,
       mutationToken,
       optimisticSession,
@@ -178,10 +225,14 @@ export const useStudyActions = (
     onToggleBackText,
     onRestoreBackText,
     onToggleAutoPlay,
+    onStopAutoPlay,
+    onExit,
+    onCompleted,
   }: UseStudyActionsOptions
 ): StudyActions => {
   const preferences = usePreferences();
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
+  const exitGenerationRef = React.useRef(0);
 
   /**
    * Creates a new study session from the currently filtered cards.
@@ -195,6 +246,18 @@ export const useStudyActions = (
     onStarted?.();
   };
 
+  const restart = (cardOrderIds: string[]) => {
+    studyStore.getState().startStudy(deckId, cardOrderIds);
+    onHideBackText?.();
+    onStopAutoPlay?.();
+  };
+
+  const exitStudy = () => {
+    exitGenerationRef.current += 1;
+    onStopAutoPlay?.();
+    onExit?.(deckId);
+  };
+
   /**
    * Runs the study workflow for one swipe direction.
    * Direction-specific callbacks reuse this function so pending checks, optimistic state, and
@@ -204,6 +267,7 @@ export const useStudyActions = (
     if (cardMutation == null) return Promise.resolve();
     return runStudySwipe(direction, {
       mutationTokenRef,
+      exitGenerationRef,
       deckId,
       preferences,
       cards,
@@ -212,11 +276,16 @@ export const useStudyActions = (
       showBackText,
       onHideBackText,
       onRestoreBackText,
+      onStopAutoPlay,
+      onExit,
+      onCompleted,
     });
   };
 
   return {
     start,
+    restart,
+    exitStudy,
     swipeUp: () => swipe("cardSwipeUp"),
     swipeDown: () => swipe("cardSwipeDown"),
     swipeLeft: () => swipe("cardSwipeLeft"),

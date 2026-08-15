@@ -3,17 +3,33 @@ import * as lodash from "lodash";
 import type { Card } from "@/entities/card";
 import type { StudyPreferences, SwipeAction } from "@/entities/preferences";
 
-export const calculateNextIndex = (currentIndex: number, cardCount: number, swipeAction: SwipeAction): number => {
-  let nextIndex = currentIndex;
+export type StudyTransition =
+  | { type: "no-op" }
+  | { type: "move"; index: number }
+  | { type: "complete" }
+  | { type: "exit" };
+
+const forwardActions = new Set<SwipeAction>([
+  "GoToNextCard",
+  "GoToNextCardMastered",
+  "GoToNextCardNotMastered",
+  "GoToNextCardToggleMastered",
+]);
+
+export const resolveStudyTransition = (
+  currentIndex: number,
+  cardCount: number,
+  swipeAction: SwipeAction
+): StudyTransition => {
+  if (swipeAction === "DoNothing") return { type: "no-op" };
+  if (swipeAction === "GoBack") return { type: "exit" };
   if (swipeAction === "GoToPrevCard") {
-    nextIndex -= 1;
-  } else {
-    nextIndex += 1;
+    return currentIndex > 0 ? { type: "move", index: currentIndex - 1 } : { type: "no-op" };
   }
-  if (nextIndex >= 0 && nextIndex < cardCount) {
-    return nextIndex;
+  if (!forwardActions.has(swipeAction) || currentIndex < 0 || currentIndex >= cardCount) {
+    return { type: "no-op" };
   }
-  return -1;
+  return currentIndex === cardCount - 1 ? { type: "complete" } : { type: "move", index: currentIndex + 1 };
 };
 
 export const buildStudySession = (

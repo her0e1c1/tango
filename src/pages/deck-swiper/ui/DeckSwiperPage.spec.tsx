@@ -1,19 +1,28 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { StudyWorkflowState } from "@/features/study";
+import type { ActiveStudyWorkflowState } from "@/features/study";
 
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import React from "react";
+import type React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+interface WorkflowProps {
+  cards: readonly Card[];
+  deckId: string;
+  deckName: string;
+  onExit: (deckId: string) => void;
+  onSetupStudy: (deckId: string) => void;
+  onBackToDeck: (deckId: string) => void;
+}
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
   deck: undefined as Deck | undefined,
   cards: [] as Card[],
   navigate: vi.fn(),
-  workflowState: { status: "unavailable" } as StudyWorkflowState,
-  workflowProps: undefined as { cards: readonly Card[]; deckId: string; onUnavailable: () => void } | undefined,
+  workflowState: undefined as ActiveStudyWorkflowState | undefined,
+  workflowProps: undefined as WorkflowProps | undefined,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -33,12 +42,9 @@ vi.mock("@/features/study", async (importOriginal) => {
     StudyWorkflow: ({
       children,
       ...props
-    }: { children: (state: StudyWorkflowState) => React.ReactNode } & {
-      cards: readonly Card[];
-      deckId: string;
-      onUnavailable: () => void;
-    }) => {
+    }: { children: (state: ActiveStudyWorkflowState) => React.ReactNode } & WorkflowProps) => {
       mocks.workflowProps = props;
+      if (mocks.workflowState == null) throw new Error("Workflow state not initialized");
       return children(mocks.workflowState);
     },
   };
@@ -77,8 +83,8 @@ const card: Card = {
   lastSeenAt: 1,
 };
 const noop = vi.fn();
-const readyState = (): StudyWorkflowState => ({
-  status: "ready",
+const activeState = (): ActiveStudyWorkflowState => ({
+  status: "active",
   card,
   showHeader: true,
   showBackText: false,
@@ -101,9 +107,8 @@ describe("DeckSwiperPage", () => {
     mocks.params.id = deck.id;
     mocks.deck = deck;
     mocks.cards = [card];
-    mocks.workflowState = readyState();
+    mocks.workflowState = activeState();
     mocks.workflowProps = undefined;
-    window.history.replaceState(null, document.title, document.location.href);
   });
 
   it("validates the route parameter", () => {
@@ -111,51 +116,34 @@ describe("DeckSwiperPage", () => {
     expect(() => render(<DeckSwiperPage />)).toThrow("invalid deck id");
   });
 
-  it("passes Entity reads to StudyWorkflow and composes the application shell", () => {
+  it("passes Entity reads and Deck presentation to StudyWorkflow", () => {
     render(<DeckSwiperPage />);
 
-    expect(mocks.workflowProps).toMatchObject({ deckId: deck.id, cards: [card] });
+    expect(mocks.workflowProps).toMatchObject({ deckId: deck.id, deckName: deck.name, cards: [card] });
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     expect(screen.getByText(card.frontText)).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
 
-  it.each([
-    ["loading", "Loading…"],
-    ["unavailable", "Study session unavailable."],
-  ] as const)("renders route feedback for %s workflow state", (status, title) => {
-    mocks.workflowState = { status };
+  it("maps Study navigation intents without installing a browser Back trap", () => {
+    const pushState = vi.spyOn(window.history, "pushState");
     render(<DeckSwiperPage />);
-    expect(screen.getByRole("heading", { name: title })).toBeVisible();
+
+    act(() => mocks.workflowProps?.onExit(deck.id));
+    expect(mocks.navigate).toHaveBeenCalledWith(`/deck/${deck.id}`, { replace: true });
+    act(() => mocks.workflowProps?.onSetupStudy(deck.id));
+    expect(mocks.navigate).toHaveBeenCalledWith(`/deck/${deck.id}/start`);
+    act(() => mocks.workflowProps?.onBackToDeck(deck.id));
+    expect(mocks.navigate).toHaveBeenLastCalledWith(`/deck/${deck.id}`, { replace: true });
+    expect(pushState).not.toHaveBeenCalled();
   });
 
-  it("converts unavailable intent into current route navigation", () => {
-    render(<DeckSwiperPage />);
-    act(() => mocks.workflowProps?.onUnavailable());
-    expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
-  });
-
-  it("shows route feedback when the Deck Entity is unavailable", () => {
+  it("shows missing Deck recovery with only Go home", () => {
     mocks.deck = undefined;
     render(<DeckSwiperPage />);
-    expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
-  });
-
-  it("installs one back-navigation guard when StrictMode replays the effect", () => {
-    const pushState = vi.spyOn(window.history, "pushState");
-    const view = render(
-      <React.StrictMode>
-        <DeckSwiperPage />
-      </React.StrictMode>
-    );
-
-    expect(pushState).toHaveBeenCalledOnce();
-    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
-    expect(mocks.navigate).toHaveBeenCalledWith(1);
-
-    view.unmount();
-    mocks.navigate.mockClear();
-    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
-    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "Deck not found" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Back to deck" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+    expect(mocks.navigate).toHaveBeenCalledWith("/");
   });
 });

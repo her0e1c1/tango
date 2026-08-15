@@ -1,47 +1,17 @@
 import { getCategory, type Deck, useDeck } from "@/entities/deck";
 
-import * as React from "react";
+import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCards } from "@/entities/card";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
-import { StudyWorkflow, type StudyWorkflowState } from "@/features/study";
+import { StudyWorkflow, type ActiveStudyWorkflowState } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckSwiperView } from "./DeckSwiperView";
 
-const STUDY_HISTORY_GUARD = "tangoStudyDeckId";
-const isHistoryState = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value != null && !Array.isArray(value);
-
-const useStudyHistoryGuard = (deckId: string, navigate: ReturnType<typeof useNavigate>) => {
-  // Keep the active study session on the route when browser history moves backward.
-  React.useEffect(() => {
-    const currentState: unknown = window.history.state;
-    const state = isHistoryState(currentState) ? currentState : {};
-    if (state[STUDY_HISTORY_GUARD] !== deckId) {
-      window.history.pushState({ ...state, [STUDY_HISTORY_GUARD]: deckId }, document.title, document.location.href);
-    }
-    const handlePopState = () => {
-      void navigate(1);
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [deckId, navigate]);
-};
-
-const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
-  if (state.status !== "ready") {
-    return state.status === "loading" ? (
-      <RouteFeedback title="Loading…" tone="loading" />
-    ) : (
-      <RouteFeedback title="Study session unavailable." tone="not-found" />
-    );
-  }
-
+const renderStudyScreen = (deck: Deck, state: ActiveStudyWorkflowState) => {
   const category = getCategory(deck.category, state.card.tags);
 
   return (
@@ -76,13 +46,17 @@ const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
 
 const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigate = useNavigate();
-  useStudyHistoryGuard(deck.id, navigate);
-  const handleUnavailable = React.useCallback(() => {
-    void navigate("/", { replace: true });
-  }, [navigate]);
 
   return (
-    <StudyWorkflow key={deck.id} cards={cards} deckId={deck.id} onUnavailable={handleUnavailable}>
+    <StudyWorkflow
+      key={deck.id}
+      cards={cards}
+      deckId={deck.id}
+      deckName={deck.name}
+      onExit={(deckId) => void navigate(`/deck/${deckId}`, { replace: true })}
+      onSetupStudy={(deckId) => void navigate(`/deck/${deckId}/start`)}
+      onBackToDeck={(deckId) => void navigate(`/deck/${deckId}`, { replace: true })}
+    >
       {(state) => renderStudyScreen(deck, state)}
     </StudyWorkflow>
   );
@@ -90,6 +64,7 @@ const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
 
 export const DeckSwiperPage: React.FC = () => {
   const params = useParams();
+  const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
 
@@ -97,7 +72,14 @@ export const DeckSwiperPage: React.FC = () => {
   const deck = useDeck(deckId);
 
   if (deck == null) {
-    return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+    return (
+      <RouteFeedback
+        title="Deck not found"
+        description="The requested deck is unavailable or has been removed."
+        tone="not-found"
+        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+      />
+    );
   }
 
   return <DeckSwiperContent key={deck.id} cards={cards} deck={deck} />;

@@ -2,15 +2,19 @@ import { toggleShowHeader, toggleShowSwipeButtonList } from "@/entities/preferen
 
 import { useKey } from "react-use";
 
+import { isInteractiveShortcutTarget } from "@/shared/lib/isInteractiveShortcutTarget";
 import type { StudyActions } from "./useStudyActions";
 
-export const useStudyShortcuts = (actions: StudyActions) => {
-  useKey("ArrowUp", actions.swipeUp);
-  useKey("ArrowDown", actions.swipeDown);
-  useKey("ArrowLeft", actions.swipeLeft);
-  useKey("ArrowRight", actions.swipeRight);
-  useKey("Enter", actions.toggleShowBackText);
-  useKey("h", toggleShowHeader);
-  useKey("b", toggleShowSwipeButtonList);
-  useKey(" ", actions.toggleAutoPlay);
+export const useStudyShortcuts = (actions: StudyActions, enabled = true) => {
+  const runUnlessInteractive = (action: () => void | Promise<void>) => (event: KeyboardEvent) => {
+    if (enabled && !isInteractiveShortcutTarget(event.target)) void action();
+  };
+  useKey("ArrowUp", runUnlessInteractive(actions.swipeUp));
+  useKey("ArrowDown", runUnlessInteractive(actions.swipeDown));
+  useKey("ArrowLeft", runUnlessInteractive(actions.swipeLeft));
+  useKey("ArrowRight", runUnlessInteractive(actions.swipeRight));
+  useKey("Enter", runUnlessInteractive(actions.toggleShowBackText));
+  useKey("h", runUnlessInteractive(toggleShowHeader));
+  useKey("b", runUnlessInteractive(toggleShowSwipeButtonList));
+  useKey(" ", runUnlessInteractive(actions.toggleAutoPlay));
 };

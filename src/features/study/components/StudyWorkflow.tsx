@@ -1,10 +1,13 @@
-import type { Card } from "@/entities/card";
+import type { Card, CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preferences";
 
-import type * as React from "react";
+import * as React from "react";
 
+import { RouteFeedback } from "@/shared/ui/route-feedback";
 import type { ControllerProps } from "./Controller";
+import { StudyActionsBar } from "./StudyHelpDialog";
+import { StudyCompletionScreen, StudyUnavailableScreen, StudyVerificationErrorScreen } from "./StudyStatusScreen";
 import type { SwipeButtonListProps } from "./SwipeButtonList";
 import { useActiveStudySession, useStudySessionLifecycle } from "../hooks/useActiveStudySession";
 import { useEditStudyProgress } from "../hooks/useEditStudyProgress";
@@ -19,31 +22,41 @@ type PresentationActions = Pick<
   "swipeUp" | "swipeDown" | "swipeLeft" | "swipeRight" | "toggleShowBackText"
 >;
 
-export type StudyWorkflowState =
-  | { status: "loading" | "unavailable" }
-  | {
-      status: "ready";
-      card: Card;
-      showHeader: boolean;
-      showBackText: boolean;
-      showController: boolean;
-      showSwipeButtonList: boolean;
-      swipeFeedback?: SwipeDirection;
-      actions: PresentationActions;
-      controller: ControllerProps;
-      swipeActions: SwipeButtonListProps;
-    };
+export interface ActiveStudyWorkflowState {
+  status: "active";
+  card: Card;
+  showHeader: boolean;
+  showBackText: boolean;
+  showController: boolean;
+  showSwipeButtonList: boolean;
+  swipeFeedback?: SwipeDirection;
+  actions: PresentationActions;
+  controller: ControllerProps;
+  swipeActions: SwipeButtonListProps;
+}
 
 interface StudyWorkflowProps {
   cards: readonly Card[];
   deckId: DeckId;
-  onUnavailable: () => void;
-  children: (state: StudyWorkflowState) => React.ReactNode;
+  deckName: string;
+  onExit: (deckId: DeckId) => void;
+  onSetupStudy: (deckId: DeckId) => void;
+  onBackToDeck: (deckId: DeckId) => void;
+  children: (state: ActiveStudyWorkflowState) => React.ReactNode;
 }
 
-export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyWorkflowProps) => {
+export const StudyWorkflow = ({
+  cards,
+  deckId,
+  deckName,
+  onExit,
+  onSetupStudy,
+  onBackToDeck,
+  children,
+}: StudyWorkflowProps) => {
   const display = useStudyDisplayState();
   const feedback = useSwipeFeedback(display.preferences.appearance.showSwipeFeedback);
+  const [completedOrder, setCompletedOrder] = React.useState<CardId[] | undefined>(undefined);
   const cardMutation = useEditStudyProgress();
   const actions = useStudyActions(deckId, {
     cards,
@@ -54,22 +67,47 @@ export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyW
     onToggleBackText: display.toggleBackText,
     onRestoreBackText: display.restoreBackText,
     onToggleAutoPlay: display.toggleAutoPlay,
+    onStopAutoPlay: display.stopAutoPlay,
+    onExit,
+    onCompleted: ({ cardOrderIds }) => setCompletedOrder(cardOrderIds),
   });
   const session = useActiveStudySession(deckId, cards);
-  useStudySessionLifecycle({ deckId, session, resetStudy: actions.resetStudy, onUnavailable });
-  useStudyShortcuts(actions);
+  useStudySessionLifecycle({ deckId, session, resetStudy: actions.resetStudy });
+  useStudyShortcuts(actions, session.status === "active" && completedOrder == null);
 
   const controller = useStudyControllerState({
     autoPlay: display.autoPlay,
     cardInterval: display.preferences.study.cardInterval,
-    enabled: session.status === "ready" && display.preferences.study.cardInterval > 0,
-    index: session.status === "ready" ? session.index : -1,
-    numberOfCards: session.status === "ready" ? session.numberOfCards : 0,
+    enabled: session.status === "active" && completedOrder == null && display.preferences.study.cardInterval > 0,
+    index: session.status === "active" ? session.index : -1,
+    numberOfCards: session.status === "active" ? session.cardOrderIds.length : 0,
     onChange: actions.updateIndex,
     onToggleAutoPlay: actions.toggleAutoPlay,
+    onStopAutoPlay: display.stopAutoPlay,
   });
 
-  if (session.status !== "ready") return children(session);
+  if (completedOrder != null) {
+    return (
+      <StudyCompletionScreen
+        deckName={deckName}
+        cardCount={completedOrder.length}
+        onRestart={() => {
+          actions.restart(completedOrder);
+          setCompletedOrder(undefined);
+        }}
+        onBackToDeck={() => onBackToDeck(deckId)}
+      />
+    );
+  }
+  if (session.status === "loading") return <RouteFeedback title="Loading…" tone="loading" />;
+  if (session.status === "unavailable") {
+    return (
+      <StudyUnavailableScreen onSetupStudy={() => onSetupStudy(deckId)} onBackToDeck={() => onBackToDeck(deckId)} />
+    );
+  }
+  if (session.status === "error") {
+    return <StudyVerificationErrorScreen retry={session.retry} onBackToDeck={() => onBackToDeck(deckId)} />;
+  }
 
   const swipeActions: SwipeButtonListProps = {
     disabled: false,
@@ -78,8 +116,8 @@ export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyW
     onClickLeft: actions.swipeLeft,
     onClickRight: actions.swipeRight,
   };
-  const state: StudyWorkflowState = {
-    status: "ready",
+  const state: ActiveStudyWorkflowState = {
+    status: "active",
     card: session.card,
     showHeader: display.preferences.appearance.showHeader && !display.showBackText,
     showBackText: display.showBackText,
@@ -90,5 +128,11 @@ export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyW
     swipeActions,
     ...(feedback.lastSwipe !== undefined ? { swipeFeedback: feedback.lastSwipe } : {}),
   };
-  return children(state);
+
+  return (
+    <>
+      {children(state)}
+      <StudyActionsBar controls={display.preferences.controls} onExit={actions.exitStudy} />
+    </>
+  );
 };

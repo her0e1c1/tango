@@ -1,5 +1,5 @@
 export { Controller, type ControllerProps } from "./components/Controller";
-export { StudyWorkflow, type StudyWorkflowState } from "./components/StudyWorkflow";
+export { StudyWorkflow, type ActiveStudyWorkflowState } from "./components/StudyWorkflow";
 export { SwipeButtonList, type SwipeButtonListProps } from "./components/SwipeButtonList";
 export { removeStudySession, touchStudySession } from "./commands/studySessionCommands";
 export { useStudyHydrated } from "./hooks/useStudyHydrated";

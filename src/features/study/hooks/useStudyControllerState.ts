@@ -9,6 +9,7 @@ import type { ControllerProps } from "../components/Controller";
 
 export interface UseStudyControllerStateOptions extends ControllerProps {
   enabled?: boolean;
+  onStopAutoPlay?: () => void;
 }
 
 export type StudyControllerState = ControllerProps & {
@@ -28,19 +29,22 @@ export const useStudyControllerState = (props: UseStudyControllerStateOptions): 
   const autoPlay = props.autoPlay ?? false;
   const enabled = props.enabled ?? true;
   const onChange = props.onChange;
+  const onStopAutoPlay = props.onStopAutoPlay;
 
   React.useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !autoPlay || numberOfCards <= 0 || index < 0 || index >= numberOfCards) return;
 
     const timeout = setTimeout(() => {
-      if (autoPlay && index < numberOfCards) {
+      if (index < numberOfCards - 1) {
         onChange?.(index + 1);
+      } else {
+        onStopAutoPlay?.();
       }
     }, cardInterval * 1000);
     return () => {
       clearTimeout(timeout);
     };
-  }, [autoPlay, cardInterval, enabled, index, numberOfCards, onChange]);
+  }, [autoPlay, cardInterval, enabled, index, numberOfCards, onChange, onStopAutoPlay]);
 
   const onToggleAutoPlay = props.onToggleAutoPlay ?? (() => undefined);
 

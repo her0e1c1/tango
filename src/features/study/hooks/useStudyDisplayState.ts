@@ -15,5 +15,6 @@ export const useStudyDisplayState = () => {
     toggleBackText: React.useCallback(() => setShowBackText((visible) => !visible), []),
     restoreBackText: React.useCallback((visible: boolean) => setShowBackText(visible), []),
     toggleAutoPlay: React.useCallback(() => setAutoPlay((playing) => !playing), []),
+    stopAutoPlay: React.useCallback(() => setAutoPlay(false), []),
   };
 };

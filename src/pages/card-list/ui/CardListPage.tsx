@@ -10,6 +10,7 @@ import { BackText } from "@/features/card-view";
 import { DeckStartForm, useDeckFilterState } from "@/features/deck-start";
 import { useEditStudyProgress, useStudyCards } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
+import { isInteractiveShortcutTarget } from "@/shared/lib/isInteractiveShortcutTarget";
 import { AppLayout } from "@/widgets/app-layout";
 
 const CardListComposition = (props: {
@@ -51,8 +52,12 @@ export const CardListPage: React.FC = () => {
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
   const cards = useStudyCards(deck, deckCards, preferences);
 
-  useKey("t", () => void navigate("/"));
-  useKey("s", () => void navigate("/settings"));
+  useKey("t", (event) => {
+    if (!isInteractiveShortcutTarget(event.target)) void navigate("/");
+  });
+  useKey("s", (event) => {
+    if (!isInteractiveShortcutTarget(event.target)) void navigate("/settings");
+  });
 
   if (deck == null) {
     return (

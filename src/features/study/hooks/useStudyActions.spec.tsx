@@ -322,14 +322,15 @@ describe("useStudyActions", () => {
     expect(studyStore.getState()).toEqual(before);
   });
 
-  it("removes only the route session for GoBack without a card write", async () => {
+  it("preserves the route session and emits Exit for GoBack without a card write", async () => {
     const rollbackSwipe = vi.fn();
     const onSwipe = vi.fn(() => rollbackSwipe);
+    const onExit = vi.fn();
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.getState().startStudy("deck-2", ["other-card"]);
     studyStore.getState().setCurrentIndex(deck.id, 1);
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations, onSwipe })
+      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations, onSwipe, onExit })
     );
 
     await actAsync(async () => {
@@ -339,10 +340,13 @@ describe("useStudyActions", () => {
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
     expect(onSwipe).toHaveBeenCalledWith("cardSwipeLeft");
     expect(rollbackSwipe).not.toHaveBeenCalled();
+    expect(onExit).toHaveBeenCalledWith(deck.id);
     expect(studyStore.getState()).toMatchObject({
-      sessionsByDeckId: { "deck-2": { deckId: "deck-2" } },
+      sessionsByDeckId: {
+        [deck.id]: { deckId: deck.id, currentIndex: 1 },
+        "deck-2": { deckId: "deck-2" },
+      },
     });
-    expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
   });
 
   it("updates the session index and notifies onHideBackText", () => {
@@ -382,11 +386,44 @@ describe("useStudyActions", () => {
     expect(onToggleAutoPlay).toHaveBeenCalledOnce();
   });
 
-  it("finishes only the route session after the final card", async () => {
+  it("preserves a final session when explicit Exit wins a pending completion", async () => {
+    let finishWrite: () => void = () => undefined;
+    mocks.cardUpdate.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishWrite = resolve;
+        })
+    );
+    const onCompleted = vi.fn();
+    const onExit = vi.fn();
+    studyStore.getState().startStudy(deck.id, [card1.id]);
+    const { result } = renderHook(() =>
+      useStudyActions(deck.id, {
+        cards: getCards(),
+        cardMutation: mocks.cardMutations,
+        onCompleted,
+        onExit,
+      })
+    );
+
+    const completion = result.current.swipeRight();
+    act(() => result.current.exitStudy());
+    await actAsync(async () => {
+      finishWrite();
+      await completion;
+    });
+
+    expect(onExit).toHaveBeenCalledWith(deck.id);
+    expect(onCompleted).not.toHaveBeenCalled();
+    expect(studyStore.getState().sessionsByDeckId[deck.id]?.currentIndex).toBe(0);
+  });
+
+  it("completes only the route session after the final Card mutation succeeds", async () => {
+    const onCompleted = vi.fn();
     studyStore.getState().startStudy(deck.id, [card1.id]);
     studyStore.getState().startStudy("deck-2", ["other-card"]);
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cards: getCards(), cardMutation: mocks.cardMutations, onCompleted })
     );
 
     await actAsync(async () => {
@@ -394,6 +431,7 @@ describe("useStudyActions", () => {
     });
 
     expect(mocks.cardUpdate).toHaveBeenCalledOnce();
+    expect(onCompleted).toHaveBeenCalledWith({ deckId: deck.id, cardOrderIds: [card1.id] });
     expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
     expect(studyStore.getState().sessionsByDeckId["deck-2"]).toMatchObject({ deckId: "deck-2" });
   });
