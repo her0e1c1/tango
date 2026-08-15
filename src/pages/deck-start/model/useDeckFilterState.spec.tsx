@@ -59,7 +59,10 @@ describe("DeckStartForm with useDeckFilterState", () => {
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable maximum score" }));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ scoreMax: 0, scoreMin: null }));
+      expect(mocks.editDeck).toHaveBeenLastCalledWith(
+        "user-id",
+        expect.objectContaining({ scoreMax: 0, scoreMin: null })
+      );
     });
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable minimum score" }));
     await waitFor(() => {
@@ -69,13 +72,19 @@ describe("DeckStartForm with useDeckFilterState", () => {
     fireEvent.change(screen.getByRole("slider", { name: "Maximum score value" }), { target: { value: 2 } });
     fireEvent.change(screen.getByRole("slider", { name: "Minimum score value" }), { target: { value: -2 } });
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ scoreMax: 2, scoreMin: -2 }));
+      expect(mocks.editDeck).toHaveBeenLastCalledWith(
+        "user-id",
+        expect.objectContaining({ scoreMax: 2, scoreMin: -2 })
+      );
     });
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable maximum score" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable minimum score" }));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ scoreMax: null, scoreMin: null }));
+      expect(mocks.editDeck).toHaveBeenLastCalledWith(
+        "user-id",
+        expect.objectContaining({ scoreMax: null, scoreMin: null })
+      );
     });
   });
 
