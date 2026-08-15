@@ -116,7 +116,6 @@ describe("useStudyActions", () => {
       sessionsByDeckId: {},
       showBackText: false,
       autoPlay: false,
-      lastSwipe: undefined,
     });
   });
 
@@ -125,7 +124,7 @@ describe("useStudyActions", () => {
   });
 
   it("starts from filtered Query cards before notifying its owner", () => {
-    studyStore.setState({ showBackText: true, lastSwipe: { direction: "cardSwipeLeft", eventId: 1 } });
+    studyStore.setState({ showBackText: true });
     const onStarted = vi.fn(() => {
       expect(studyStore.getState()).toMatchObject({
         sessionsByDeckId: {
@@ -138,7 +137,6 @@ describe("useStudyActions", () => {
         },
         showBackText: false,
         autoPlay: true,
-        lastSwipe: undefined,
       });
     });
     const { result } = renderHook(() => useStudyActions(deck.id, { cardsById: getCardsById(), onStarted }));
@@ -163,14 +161,14 @@ describe("useStudyActions", () => {
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
     expect(studyStore.getState().sessionsByDeckId["deck-2"]?.deckId).toBe("deck-2");
     expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();
-    expect(studyStore.getState().lastSwipe).toBeUndefined();
   });
 
-  it("writes a card patch and advances the Zustand session", async () => {
+  it("writes a card patch, notifies onSwipe, and advances the Zustand session", async () => {
+    const onSwipe = vi.fn();
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations, onSwipe })
     );
 
     await actAsync(async () => {
@@ -184,6 +182,7 @@ describe("useStudyActions", () => {
       lastSeenAt: 946684800000,
     };
     expect(mocks.cardUpdate).toHaveBeenCalledWith(patch);
+    expect(onSwipe).toHaveBeenCalledWith("cardSwipeRight");
     expect(studyStore.getState()).toMatchObject({
       sessionsByDeckId: {
         [deck.id]: {
@@ -193,7 +192,6 @@ describe("useStudyActions", () => {
           lastStudiedAt: 946684800000,
         },
       },
-      lastSwipe: { direction: "cardSwipeRight" },
       showBackText: false,
     });
   });
@@ -213,7 +211,6 @@ describe("useStudyActions", () => {
     expect(studyStore.getState()).toMatchObject({
       sessionsByDeckId: { [deck.id]: { currentIndex: 0 } },
       showBackText: true,
-      lastSwipe: undefined,
     });
   });
 
@@ -300,12 +297,13 @@ describe("useStudyActions", () => {
   });
 
   it("removes only the route session for GoBack without a card write", async () => {
+    const onSwipe = vi.fn();
     studyStore.getState().startStudy(deck.id, [card1.id, card2.id]);
     studyStore.getState().startStudy("deck-2", ["other-card"]);
     studyStore.getState().setCurrentIndex(deck.id, 1);
     studyStore.setState({ showBackText: true });
     const { result } = renderHook(() =>
-      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations })
+      useStudyActions(deck.id, { cardsById: getCardsById(), cardMutation: mocks.cardMutations, onSwipe })
     );
 
     await actAsync(async () => {
@@ -313,9 +311,9 @@ describe("useStudyActions", () => {
     });
 
     expect(mocks.cardUpdate).not.toHaveBeenCalled();
+    expect(onSwipe).toHaveBeenCalledWith("cardSwipeLeft");
     expect(studyStore.getState()).toMatchObject({
       sessionsByDeckId: { "deck-2": { deckId: "deck-2" } },
-      lastSwipe: { direction: "cardSwipeLeft" },
       showBackText: true,
     });
     expect(studyStore.getState().sessionsByDeckId[deck.id]).toBeUndefined();

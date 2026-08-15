@@ -83,7 +83,6 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
     sessionsByDeckId: cloneSessions(parameters.sessionsByDeckId ?? {}),
     showBackText: parameters.showBackText ?? false,
     autoPlay: parameters.autoPlay ?? false,
-    lastSwipe: undefined,
   });
   replaceDecks(decks);
   replaceCards(cards);

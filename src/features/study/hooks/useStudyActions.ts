@@ -35,8 +35,9 @@ interface StudyCardMutation {
 
 interface UseStudyActionsOptions {
   cardsById: Partial<Record<CardId, Card>>;
-  cardMutation?: StudyCardMutation;
-  onStarted?: () => void;
+  cardMutation?: StudyCardMutation | undefined;
+  onStarted?: (() => void) | undefined;
+  onSwipe?: ((direction: SwipeDirection) => void) | undefined;
 }
 
 interface StudySwipeDependencies {
@@ -45,6 +46,7 @@ interface StudySwipeDependencies {
   preferences: Preferences;
   cardsById: Partial<Record<CardId, Card>>;
   update: (progress: StudyProgressEdit) => Promise<void>;
+  onSwipe?: ((direction: SwipeDirection) => void) | undefined;
 }
 
 const applyOptimisticUpdate = (deckId: DeckId, nextIndex: number) => {
@@ -63,7 +65,7 @@ const revertOptimisticUpdate = (
   mutationTokenRef: { current: symbol | undefined },
   mutationToken: symbol,
   optimisticSession: Session,
-  previous: { session: Session; showBackText: boolean; lastSwipe: StudyState["lastSwipe"] }
+  previous: { session: Session; showBackText: boolean }
 ) => {
   const current = studyStore.getState();
   const currentSession = current.sessionsByDeckId[deckId];
@@ -74,7 +76,6 @@ const revertOptimisticUpdate = (
     studyStore.setState((state) => ({
       sessionsByDeckId: { ...state.sessionsByDeckId, [deckId]: previous.session },
       showBackText: previous.showBackText,
-      lastSwipe: previous.lastSwipe,
     }));
   }
 };
@@ -85,7 +86,7 @@ const revertOptimisticUpdate = (
  */
 const runStudySwipe = async (
   direction: SwipeDirection,
-  { mutationTokenRef, deckId, preferences, cardsById, update }: StudySwipeDependencies
+  { mutationTokenRef, deckId, preferences, cardsById, update, onSwipe }: StudySwipeDependencies
 ): Promise<void> => {
   if (mutationTokenRef.current !== undefined) return;
   const state = studyStore.getState();
@@ -96,7 +97,7 @@ const runStudySwipe = async (
   if (swipeAction === "DoNothing") return;
 
   if (swipeAction === "GoBack") {
-    state.setLastSwipe(direction);
+    onSwipe?.(direction);
     state.removeStudy(deckId);
     return;
   }
@@ -108,10 +109,9 @@ const runStudySwipe = async (
   const previous = {
     session: { ...session },
     showBackText: state.showBackText,
-    lastSwipe: state.lastSwipe,
   };
 
-  state.setLastSwipe(direction);
+  onSwipe?.(direction);
   if (preferences.appearance.hideBodyWhenCardChanged) {
     state.hideBackText();
   }
@@ -137,7 +137,7 @@ const runStudySwipe = async (
  */
 export const useStudyActions = (
   deckId: DeckId,
-  { cardMutation, cardsById, onStarted }: UseStudyActionsOptions
+  { cardMutation, cardsById, onStarted, onSwipe }: UseStudyActionsOptions
 ): StudyActions => {
   const preferences = usePreferences();
   const mutationTokenRef = React.useRef<symbol | undefined>(undefined);
@@ -167,6 +167,7 @@ export const useStudyActions = (
       preferences,
       cardsById,
       update: cardMutation.update,
+      onSwipe,
     });
   };
 

@@ -121,18 +121,15 @@ describe("study store", () => {
   it("initializes and toggles transient study UI state", () => {
     const store = createStudyStore({ storage: createMemoryStorage(), skipHydration: true });
     store.getState().toggleShowBackText();
-    store.getState().setLastSwipe("cardSwipeLeft");
 
     store.getState().initializeStudyUi(true);
-    expect(store.getState()).toMatchObject({ showBackText: false, autoPlay: true, lastSwipe: undefined });
+    expect(store.getState()).toMatchObject({ showBackText: false, autoPlay: true });
 
     store.getState().toggleShowBackText();
     store.getState().toggleAutoPlay();
-    store.getState().setLastSwipe("cardSwipeRight");
     expect(store.getState()).toMatchObject({
       showBackText: true,
       autoPlay: false,
-      lastSwipe: { direction: "cardSwipeRight" },
     });
 
     store.getState().hideBackText();
@@ -164,7 +161,6 @@ describe("study store", () => {
       },
       showBackText: false,
       autoPlay: false,
-      lastSwipe: undefined,
     });
     expect(restored.getState()).not.toHaveProperty("session");
   });

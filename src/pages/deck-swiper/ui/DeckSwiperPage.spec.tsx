@@ -37,8 +37,6 @@ const mocks = vi.hoisted(() => ({
     sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
     showBackText: false,
     autoPlay: false,
-    lastSwipe: undefined as { direction: SwipeDirection; eventId: number } | undefined,
-    clearLastSwipe: vi.fn(),
   },
   initializeStudySessionUi: vi.fn(),
   touchStudySession: vi.fn(),
@@ -83,11 +81,23 @@ vi.mock("@/features/study", async (importOriginal) => {
     initializeStudySessionUi: mocks.initializeStudySessionUi,
     touchStudySession: mocks.touchStudySession,
     useEditStudyProgress: () => mocks.cardMutation,
-    useStudyActions: () => ({
-      swipeUp: mocks.swipeUp,
-      swipeDown: mocks.swipeDown,
-      swipeLeft: mocks.swipeLeft,
-      swipeRight: mocks.swipeRight,
+    useStudyActions: (_deckId: DeckId, options?: { onSwipe?: (direction: SwipeDirection) => void }) => ({
+      swipeUp: () => {
+        options?.onSwipe?.("cardSwipeUp");
+        mocks.swipeUp();
+      },
+      swipeDown: () => {
+        options?.onSwipe?.("cardSwipeDown");
+        mocks.swipeDown();
+      },
+      swipeLeft: () => {
+        options?.onSwipe?.("cardSwipeLeft");
+        mocks.swipeLeft();
+      },
+      swipeRight: () => {
+        options?.onSwipe?.("cardSwipeRight");
+        mocks.swipeRight();
+      },
       updateIndex: mocks.updateIndex,
       toggleShowBackText: mocks.toggleShowBackText,
       toggleAutoPlay: mocks.toggleAutoPlay,
@@ -165,14 +175,9 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     };
     mocks.studyState.showBackText = false;
     mocks.studyState.autoPlay = false;
-    mocks.studyState.lastSwipe = undefined;
-    mocks.studyState.clearLastSwipe.mockImplementation(() => {
-      mocks.studyState.lastSwipe = undefined;
-    });
     mocks.initializeStudySessionUi.mockImplementation((defaultAutoPlay: boolean) => {
       mocks.studyState.showBackText = false;
       mocks.studyState.autoPlay = defaultAutoPlay;
-      mocks.studyState.lastSwipe = undefined;
     });
     mocks.touchStudySession.mockImplementation((deckId: DeckId) => {
       const session = mocks.studyState.sessionsByDeckId[deckId];
@@ -257,25 +262,22 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
       ...mocks.state.preferences,
       appearance: { ...mocks.state.preferences.appearance, showSwipeFeedback: true },
     });
-    const view = render(<DeckSwiperPage />);
+    render(<DeckSwiperPage />);
 
-    mocks.studyState.lastSwipe = { direction: "cardSwipeLeft", eventId: 1 };
-    view.rerender(<DeckSwiperPage />);
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
     expect(screen.getByText("Swiped left")).toHaveAttribute("role", "status");
 
     act(() => vi.advanceTimersByTime(899));
     expect(screen.getByText("Swiped left")).toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(1));
-    view.rerender(<DeckSwiperPage />);
     expect(screen.queryByText("Swiped left")).not.toBeInTheDocument();
 
     mocks.state.preferences = createPreferences({
       ...mocks.state.preferences,
       appearance: { ...mocks.state.preferences.appearance, showSwipeFeedback: false },
     });
-    mocks.studyState.lastSwipe = { direction: "cardSwipeRight", eventId: 2 };
-    view.rerender(<DeckSwiperPage />);
+    fireEvent.keyDown(window, { key: "ArrowRight" });
     expect(screen.queryByText("Swiped right")).not.toBeInTheDocument();
   });
 
@@ -286,19 +288,16 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
       ...mocks.state.preferences,
       appearance: { ...mocks.state.preferences.appearance, showSwipeFeedback: true },
     });
-    const view = render(<DeckSwiperPage />);
+    render(<DeckSwiperPage />);
 
-    mocks.studyState.lastSwipe = { direction: "cardSwipeLeft", eventId: 1 };
-    view.rerender(<DeckSwiperPage />);
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
     act(() => vi.advanceTimersByTime(500));
-    mocks.studyState.lastSwipe = { direction: "cardSwipeLeft", eventId: 2 };
-    view.rerender(<DeckSwiperPage />);
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
 
     act(() => vi.advanceTimersByTime(899));
     expect(screen.getByText("Swiped left")).toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(1));
-    view.rerender(<DeckSwiperPage />);
     expect(screen.queryByText("Swiped left")).not.toBeInTheDocument();
   });
 
@@ -326,7 +325,6 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     mocks.studyState.sessionsByDeckId[deck.id] = { ...session, lastStudiedAt: 100 };
     mocks.studyState.showBackText = true;
     mocks.studyState.autoPlay = true;
-    mocks.studyState.lastSwipe = { direction: "cardSwipeLeft", eventId: 1 };
     const now = vi.spyOn(Date, "now").mockReturnValue(9000);
 
     render(<DeckSwiperPage />);
@@ -334,7 +332,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     expect(mocks.initializeStudySessionUi).toHaveBeenCalledWith(false);
     expect(mocks.touchStudySession).toHaveBeenCalledWith(deck.id);
     expect(mocks.studyState.sessionsByDeckId[deck.id]?.lastStudiedAt).toBe(9000);
-    expect(mocks.studyState).toMatchObject({ showBackText: false, autoPlay: false, lastSwipe: undefined });
+    expect(mocks.studyState).toMatchObject({ showBackText: false, autoPlay: false });
     now.mockRestore();
   });
 

@@ -6,7 +6,6 @@
 
 import type { CardId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import type { SwipeDirection } from "@/entities/preferences";
 
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
@@ -20,11 +19,6 @@ interface StudySession {
   lastStudiedAt: number;
 }
 
-interface StudySwipeFeedback {
-  direction: SwipeDirection;
-  eventId: number;
-}
-
 interface PersistedStudyState {
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
 }
@@ -32,7 +26,6 @@ interface PersistedStudyState {
 export interface StudyState extends PersistedStudyState {
   showBackText: boolean;
   autoPlay: boolean;
-  lastSwipe?: StudySwipeFeedback | undefined;
   startStudy: (deckId: DeckId, cardOrderIds: CardId[]) => void;
   touchStudy: (deckId: DeckId) => void;
   setCurrentIndex: (deckId: DeckId, currentIndex: number) => void;
@@ -40,8 +33,6 @@ export interface StudyState extends PersistedStudyState {
   initializeStudyUi: (defaultAutoPlay: boolean) => void;
   toggleShowBackText: () => void;
   toggleAutoPlay: () => void;
-  setLastSwipe: (lastSwipe: SwipeDirection) => void;
-  clearLastSwipe: () => void;
   hideBackText: () => void;
 }
 
@@ -131,7 +122,6 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
         sessionsByDeckId: {},
         showBackText: false,
         autoPlay: false,
-        lastSwipe: undefined,
         startStudy: (deckId, cardOrderIds) =>
           set((state) => ({
             sessionsByDeckId: {
@@ -182,18 +172,9 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
           set({
             showBackText: false,
             autoPlay: defaultAutoPlay,
-            lastSwipe: undefined,
           }),
         toggleShowBackText: () => set((state) => ({ showBackText: !state.showBackText })),
         toggleAutoPlay: () => set((state) => ({ autoPlay: !state.autoPlay })),
-        setLastSwipe: (direction) =>
-          set((state) => ({
-            lastSwipe: {
-              direction,
-              eventId: (state.lastSwipe?.eventId ?? 0) + 1,
-            },
-          })),
-        clearLastSwipe: () => set({ lastSwipe: undefined }),
         hideBackText: () => set({ showBackText: false }),
       }),
       {

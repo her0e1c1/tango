@@ -17,7 +17,12 @@ import {
   useStudyHydrated,
   useStudyStore,
 } from "@/features/study";
-import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
+import {
+  toggleShowHeader,
+  toggleShowSwipeButtonList,
+  usePreferences,
+  type SwipeDirection,
+} from "@/entities/preferences";
 import { toRemoteById } from "@/shared/api";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -37,9 +42,24 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   const session = useStudyStore(selectStudySessionForRoute(deckId));
   const showBackText = useStudyStore((state) => state.showBackText);
   const autoPlay = useStudyStore((state) => state.autoPlay);
-  const lastSwipe = useStudyStore((state) => state.lastSwipe);
-  const clearLastSwipe = useStudyStore((state) => state.clearLastSwipe);
+  const [lastSwipe, setLastSwipe] = React.useState<{ direction: SwipeDirection; eventId: number } | undefined>(
+    undefined
+  );
   const hydrated = useStudyHydrated();
+
+  const handleSwipe = React.useCallback(
+    (direction: SwipeDirection) => {
+      if (!preferences.appearance.showSwipeFeedback) return;
+      setLastSwipe((prev) => ({
+        direction,
+        eventId: (prev?.eventId ?? 0) + 1,
+      }));
+    },
+    [preferences.appearance.showSwipeFeedback]
+  );
+  const clearLastSwipe = React.useCallback(() => {
+    setLastSwipe(undefined);
+  }, []);
 
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
@@ -50,6 +70,7 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
     cardMutation: {
       update: cardMutation.update,
     },
+    onSwipe: handleSwipe,
   });
   useKey("ArrowUp", studyActions.swipeUp);
   useKey("ArrowDown", studyActions.swipeDown);
@@ -61,15 +82,11 @@ const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<Card
   useKey(" ", studyActions.toggleAutoPlay);
 
   React.useEffect(() => {
-    if (!preferences.appearance.showSwipeFeedback) {
-      if (lastSwipe !== undefined) clearLastSwipe();
-      return;
-    }
     if (lastSwipe === undefined) return;
 
     const timeout = window.setTimeout(clearLastSwipe, SWIPE_FEEDBACK_DURATION_MS);
     return () => window.clearTimeout(timeout);
-  }, [clearLastSwipe, preferences.appearance.showSwipeFeedback, lastSwipe]);
+  }, [clearLastSwipe, lastSwipe]);
 
   const valid = session != null && index >= 0 && index < session.cardOrderIds.length && card != null;
   const sessionHasTargetCard = session != null && index >= 0 && index < session.cardOrderIds.length;

@@ -11,7 +11,6 @@ export const clearStudyStore = async (): Promise<void> => {
     sessionsByDeckId: {},
     showBackText: false,
     autoPlay: false,
-    lastSwipe: undefined,
   });
   await studyStore.persist.clearStorage();
 };
