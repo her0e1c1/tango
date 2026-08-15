@@ -26,6 +26,8 @@ const mocks = vi.hoisted(() => ({
   editCard: vi.fn(),
   createDeck: vi.fn(),
   bulkUpsert: vi.fn(),
+  fetchDecks: vi.fn<(uid: string) => Promise<Deck[]>>(),
+  fetchCards: vi.fn<(uid: string) => Promise<Card[]>>(),
 }));
 
 vi.mock("@/entities/auth", () => ({
@@ -40,6 +42,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
   return {
     ...actual,
     filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
+    fetchCards: (uid: string) => mocks.fetchCards(uid),
   };
 });
 vi.mock("../api/upsertImportedCards", async (importOriginal) => {
@@ -54,6 +57,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...actual,
     generateDeckId: mocks.generateDeckId,
+    fetchDecks: (uid: string) => mocks.fetchDecks(uid),
   };
 });
 vi.mock("../lib/cardCsv", async (importOriginal) => {
@@ -78,6 +82,8 @@ describe("useDeckImport", () => {
     mocks.uid = "uid-a";
     mocks.decks = [];
     mocks.cards = [];
+    mocks.fetchDecks.mockImplementation(async () => mocks.decks);
+    mocks.fetchCards.mockImplementation(async () => mocks.cards);
     mocks.parseCsv.mockImplementation(async (content: string) => {
       const { parseCsv } = await vi.importActual<typeof import("../lib/cardCsv")>("../lib/cardCsv");
       return parseCsv(content);
@@ -189,14 +195,14 @@ describe("useDeckImport", () => {
     expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
   });
 
-  it("reuses the same sample Deck for the active user", async () => {
+  it("does not add a sample Deck when the user already has a Deck", async () => {
     mocks.decks = [createDeck({ id: "sample-v1-uid-a", name: "Renamed sample" })];
     const { result } = renderHook(useTestDeckImport);
 
     await actAsync(async () => result.current.addSample());
 
     expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
   });
 
   it("treats a non-2xx URL response as an error", async () => {

@@ -29,8 +29,8 @@ export interface DeckImportDependencies {
   createDeck: (deck: DeckCreateInput) => Promise<unknown>;
   generateCardId: () => string;
   bulkUpsert: (cards: CardCreateInput[], createdIds: CardId[]) => Promise<unknown>;
-  fetchDecks?: (uid: string) => Promise<Deck[]>;
-  fetchCards?: (uid: string) => Promise<Card[]>;
+  fetchDecks?: ((uid: string) => Promise<Deck[]>) | undefined;
+  fetchCards?: ((uid: string) => Promise<Card[]>) | undefined;
 }
 
 type DeckImportPreparationDependencies = Pick<
@@ -107,22 +107,64 @@ export const partialResultFrom = (error: unknown): DeckImportResult | undefined 
   return result as DeckImportResult;
 };
 
+interface ResolvedImportData {
+  activeDecks: Deck[];
+  getCardsByDeckId: (deckId: DeckId) => Card[];
+}
+
+const resolveActiveImportData = async (
+  uid: string,
+  requestKind: DeckImportRequest["kind"],
+  defaults: { decks: Deck[]; cardsByDeckId: (id: DeckId) => Card[] },
+  fetchers: {
+    fetchDecks?: ((uid: string) => Promise<Deck[]>) | undefined;
+    fetchCards?: ((uid: string) => Promise<Card[]>) | undefined;
+  }
+): Promise<ResolvedImportData> => {
+  if (fetchers.fetchDecks == null && fetchers.fetchCards == null) {
+    return { activeDecks: defaults.decks, getCardsByDeckId: defaults.cardsByDeckId };
+  }
+  try {
+    const [remoteDecks, remoteCards] = await Promise.all([
+      fetchers.fetchDecks != null ? fetchers.fetchDecks(uid) : Promise.resolve(defaults.decks),
+      fetchers.fetchCards != null ? fetchers.fetchCards(uid) : Promise.resolve([]),
+    ]);
+    return {
+      activeDecks: fetchers.fetchDecks != null ? remoteDecks : defaults.decks,
+      getCardsByDeckId:
+        fetchers.fetchCards != null
+          ? (deckId: DeckId) => remoteCards.filter((card) => card.deckId === deckId)
+          : defaults.cardsByDeckId,
+    };
+  } catch (cause) {
+    if (requestKind === "sample") {
+      throw cause;
+    }
+    return { activeDecks: defaults.decks, getCardsByDeckId: defaults.cardsByDeckId };
+  }
+};
+
 export const executeDeckImport = async (
   request: DeckImportRequest,
   { uid, decks, cardsByDeckId, createDeck, generateCardId, bulkUpsert, fetchDecks, fetchCards }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
 
-  let activeDecks = decks;
-  let getCardsByDeckId = cardsByDeckId;
-  if (fetchDecks != null && fetchCards != null) {
-    try {
-      const [remoteDecks, remoteCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
-      activeDecks = remoteDecks;
-      getCardsByDeckId = (deckId: DeckId) => remoteCards.filter((card) => card.deckId === deckId);
-    } catch {
-      // Fall back to passed dependencies if remote fetch fails
-    }
+  const { activeDecks, getCardsByDeckId } = await resolveActiveImportData(
+    uid,
+    request.kind,
+    { decks, cardsByDeckId },
+    { fetchDecks, fetchCards }
+  );
+
+  if (request.kind === "sample" && activeDecks.length > 0) {
+    return {
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      failed: 0,
+      deckId: "",
+    };
   }
 
   let attempt = request.attempt;

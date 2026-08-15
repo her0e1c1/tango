@@ -13,28 +13,46 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   auth: { status: "authenticated", uid: "uid-a" } as { status: "authenticated"; uid: string } | { status: "loading" },
-  remote: {
-    decks: [] as Deck[],
-  },
-  addSample: vi.fn<() => Promise<unknown>>(),
+  fetchDecks: vi.fn<(uid: string) => Promise<Deck[]>>(),
+  createDeck: vi.fn<(uid: string, deck: DeckCreateInput) => Promise<unknown>>(),
+  bulkUpsert: vi.fn(),
 }));
 
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.auth }));
-vi.mock("./useDeckImport", () => ({
-  useDeckImport: () => ({ addSample: mocks.addSample }),
-}));
+vi.mock("@/entities/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/card")>();
+  return {
+    ...actual,
+    fetchCards: vi.fn(async () => []),
+  };
+});
+vi.mock("@/entities/deck", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/deck")>();
+  return {
+    ...actual,
+    fetchDecks: (uid: string) => mocks.fetchDecks(uid),
+  };
+});
+vi.mock("../api/upsertImportedCards", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../api/upsertImportedCards")>();
+  return {
+    ...actual,
+    upsertImportedCards: (_uid: string, cards: unknown[]) => mocks.bulkUpsert(cards),
+  };
+});
 
 import { useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
 
-const createDeck = vi.fn<(uid: string, deck: DeckCreateInput) => Promise<unknown>>();
-const useTestSampleDeckBootstrap = () =>
+const useTestSampleDeckBootstrap = (localDecks: Deck[] = []) =>
   useSampleDeckBootstrap({
     cards: [],
     createCard: vi.fn(),
-    createDeck,
-    decks: mocks.remote.decks,
+    createDeck: mocks.createDeck,
+    decks: localDecks,
     editCard: vi.fn(),
     generateCardId: vi.fn(() => "card-id"),
+    fetchDecks: mocks.fetchDecks,
   });
 
 /**
@@ -47,32 +65,53 @@ describe("sample Deck bootstrap", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.auth = { status: "authenticated", uid: crypto.randomUUID() };
-    mocks.remote = { decks: [] };
-    mocks.addSample.mockResolvedValue(undefined);
+    mocks.fetchDecks.mockResolvedValue([]);
+    mocks.createDeck.mockResolvedValue(undefined);
+    mocks.bulkUpsert.mockResolvedValue(undefined);
   });
 
-  it("adds the sample once for an empty user under StrictMode", async () => {
-    renderHook(useTestSampleDeckBootstrap, { wrapper: strictMode });
+  it("adds the sample once for a server-confirmed empty user under StrictMode", async () => {
+    renderHook(() => useTestSampleDeckBootstrap([]), { wrapper: strictMode });
 
-    await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
+    await waitFor(() => expect(mocks.createDeck).toHaveBeenCalledOnce());
+    expect(mocks.fetchDecks).toHaveBeenCalled();
   });
 
-  it("does not add the sample when the user already has a Deck", () => {
-    mocks.remote.decks = [{ id: "existing" } as Deck];
+  it("does not add the sample when remote Decks exist during the initial empty cache loading window", async () => {
+    mocks.fetchDecks.mockResolvedValue([{ id: "existing-remote-deck" } as Deck]);
 
-    renderHook(useTestSampleDeckBootstrap);
+    renderHook(() => useTestSampleDeckBootstrap([]));
 
-    expect(mocks.addSample).not.toHaveBeenCalled();
+    await waitFor(() => expect(mocks.fetchDecks).toHaveBeenCalled());
+    expect(mocks.createDeck).not.toHaveBeenCalled();
+    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+  });
+
+  it("does not trigger remote read when the local store already has a Deck", () => {
+    renderHook(() => useTestSampleDeckBootstrap([{ id: "local-deck" } as Deck]));
+
+    expect(mocks.fetchDecks).not.toHaveBeenCalled();
+    expect(mocks.createDeck).not.toHaveBeenCalled();
   });
 
   it("deduplicates concurrent starts for one user", async () => {
-    let finish: () => void = () => undefined;
-    mocks.addSample.mockImplementation(() => new Promise<void>((resolve) => (finish = resolve)));
+    let finish!: (decks: Deck[]) => void;
+    mocks.fetchDecks.mockImplementation(() => new Promise((resolve) => (finish = resolve)));
 
-    renderHook(useTestSampleDeckBootstrap);
-    renderHook(useTestSampleDeckBootstrap);
+    renderHook(() => useTestSampleDeckBootstrap([]));
+    renderHook(() => useTestSampleDeckBootstrap([]));
 
-    await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
-    finish();
+    await waitFor(() => expect(mocks.fetchDecks).toHaveBeenCalled());
+    finish([]);
+    await waitFor(() => expect(mocks.createDeck).toHaveBeenCalledOnce());
+  });
+
+  it("does not add the sample when remote Deck read fails", async () => {
+    mocks.fetchDecks.mockRejectedValue(new Error("Network error"));
+
+    renderHook(() => useTestSampleDeckBootstrap([]));
+
+    await waitFor(() => expect(mocks.fetchDecks).toHaveBeenCalled());
+    expect(mocks.createDeck).not.toHaveBeenCalled();
   });
 });
