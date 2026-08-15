@@ -64,12 +64,7 @@ const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
         }
         cardOverlaySlot={<CardOverlay card={state.card} />}
         backTextSlot={
-          <CardView
-            card={state.card}
-            deck={deck}
-            onClick={state.actions.toggleShowBackText}
-            variant="bare"
-          />
+          <CardView card={state.card} deck={deck} onClick={state.actions.toggleShowBackText} variant="bare" />
         }
         controller={state.controller}
         swipeButtonList={state.swipeActions}
