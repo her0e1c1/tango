@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateStudySessionIndex,
-  groupDecksByStudyActivity,
+  groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
   resolveStudySession,
   resolveStudySessionSwipeEffect,
@@ -16,23 +16,23 @@ const session: StudySession = {
   lastStudiedAt: 0,
 };
 
-describe("groupDecksByStudyActivity", () => {
-  it("groups active and inactive decks in their domain order", () => {
+describe("groupDecksByStudyStatus", () => {
+  it("groups studying and not-studying decks in their domain order", () => {
     const decks = [
-      { id: "other-z", name: "Zulu" },
-      { id: "active-old", name: "Bravo" },
-      { id: "other-a", name: "Alpha" },
-      { id: "active-new", name: "Charlie" },
+      { id: "not-studying-z", name: "Zulu" },
+      { id: "studying-old", name: "Bravo" },
+      { id: "not-studying-a", name: "Alpha" },
+      { id: "studying-new", name: "Charlie" },
     ];
     const sessions = {
-      "active-old": { ...session, deckId: "active-old", lastStudiedAt: 100 },
-      "active-new": { ...session, deckId: "active-new", lastStudiedAt: 200 },
+      "studying-old": { ...session, deckId: "studying-old", lastStudiedAt: 100 },
+      "studying-new": { ...session, deckId: "studying-new", lastStudiedAt: 200 },
     };
 
-    const groups = groupDecksByStudyActivity(decks, sessions);
+    const groups = groupDecksByStudyStatus(decks, sessions);
 
-    expect(groups.active.map(({ deck }) => deck.id)).toEqual(["active-new", "active-old"]);
-    expect(groups.inactive.map((deck) => deck.id)).toEqual(["other-a", "other-z"]);
+    expect(groups.studying.map(({ deck }) => deck.id)).toEqual(["studying-new", "studying-old"]);
+    expect(groups.notStudying.map((deck) => deck.id)).toEqual(["not-studying-a", "not-studying-z"]);
   });
 
   it("uses deck name as the tie breaker for equally recent sessions", () => {
@@ -45,7 +45,7 @@ describe("groupDecksByStudyActivity", () => {
       b: { ...session, deckId: "b", lastStudiedAt: 100 },
     };
 
-    expect(groupDecksByStudyActivity(decks, sessions).active.map(({ deck }) => deck.name)).toEqual(["Alpha", "Beta"]);
+    expect(groupDecksByStudyStatus(decks, sessions).studying.map(({ deck }) => deck.name)).toEqual(["Alpha", "Beta"]);
   });
 });
 

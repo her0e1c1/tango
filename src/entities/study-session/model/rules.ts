@@ -9,39 +9,44 @@ import type {
   StudySessionSwipeEffect,
 } from "./types";
 
-interface StudyActivityDeck {
+interface StudyStatusDeck {
   id: StudySession["deckId"];
   name: string;
 }
 
-interface ActiveDeck<TDeck> {
+interface StudyingDeck<TDeck> {
   deck: TDeck;
   session: StudySession;
 }
 
-const compareDeckNames = (left: StudyActivityDeck, right: StudyActivityDeck): number =>
-  left.name.localeCompare(right.name);
+interface DecksByStudyStatus<TDeck> {
+  studying: StudyingDeck<TDeck>[];
+  notStudying: TDeck[];
+}
 
-// Keep session-based classification and ordering together so presentation models cannot redefine active decks.
-export const groupDecksByStudyActivity = <TDeck extends StudyActivityDeck>(
+const compareDeckNames = (left: StudyStatusDeck, right: StudyStatusDeck): number => left.name.localeCompare(right.name);
+
+const compareStudyingDecks = (left: StudyingDeck<StudyStatusDeck>, right: StudyingDeck<StudyStatusDeck>): number =>
+  right.session.lastStudiedAt - left.session.lastStudiedAt || compareDeckNames(left.deck, right.deck);
+
+// Keep session-based status and ordering together so presentation models cannot redefine which decks are being studied.
+export const groupDecksByStudyStatus = <TDeck extends StudyStatusDeck>(
   decks: readonly TDeck[],
   sessionsByDeckId: StudySessions
-): { active: ActiveDeck<TDeck>[]; inactive: TDeck[] } => {
-  const active: ActiveDeck<TDeck>[] = [];
-  const inactive: TDeck[] = [];
+): DecksByStudyStatus<TDeck> => {
+  const studying: StudyingDeck<TDeck>[] = [];
+  const notStudying: TDeck[] = [];
 
   for (const deck of decks) {
     const session = sessionsByDeckId[deck.id];
-    if (session == null) inactive.push(deck);
-    else active.push({ deck, session });
+    if (session == null) notStudying.push(deck);
+    else studying.push({ deck, session });
   }
 
-  active.sort(
-    (left, right) => right.session.lastStudiedAt - left.session.lastStudiedAt || compareDeckNames(left.deck, right.deck)
-  );
-  inactive.sort(compareDeckNames);
+  studying.sort(compareStudyingDecks);
+  notStudying.sort(compareDeckNames);
 
-  return { active, inactive };
+  return { studying, notStudying };
 };
 
 export const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
