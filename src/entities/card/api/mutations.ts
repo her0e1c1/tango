@@ -1,4 +1,4 @@
-import type { CardCreateInput, DeleteCardInput, EditCardInput } from "../model/types";
+import type { CardCreateInput, CardId, DeleteCardInput, EditCardInput } from "../model/types";
 
 import { findDeckById } from "@/entities/deck/@x/card";
 import { createLocalCard, deleteLocalCard, editLocalCard, findCardById } from "../model/store";
@@ -10,6 +10,18 @@ import {
 
 const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode === true;
 
+const requireCard = (id: CardId) => {
+  const card = findCardById(id);
+  if (card === undefined) throw new Error(`Card "${id}" was not found`);
+  return card;
+};
+
+const requireLocalMode = (deckId: string): boolean => {
+  const deck = findDeckById(deckId);
+  if (deck === undefined) throw new Error(`Deck "${deckId}" was not found`);
+  return deck.localMode;
+};
+
 export const createCard = async (uid: string, card: CardCreateInput): Promise<void> => {
   if (isLocalDeck(card.deckId)) {
     createLocalCard(card);
@@ -19,8 +31,8 @@ export const createCard = async (uid: string, card: CardCreateInput): Promise<vo
 };
 
 export const editCard = async (uid: string, card: EditCardInput["card"]): Promise<void> => {
-  const currentCard = findCardById(card.id);
-  if (currentCard !== undefined && isLocalDeck(currentCard.deckId)) {
+  const currentCard = requireCard(card.id);
+  if (requireLocalMode(currentCard.deckId)) {
     editLocalCard(card);
     return;
   }
@@ -28,8 +40,8 @@ export const editCard = async (uid: string, card: EditCardInput["card"]): Promis
 };
 
 export const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Promise<void> => {
-  const currentCard = findCardById(card.id);
-  if (currentCard !== undefined && isLocalDeck(currentCard.deckId)) {
+  const currentCard = requireCard(card.id);
+  if (requireLocalMode(currentCard.deckId)) {
     deleteLocalCard(card.id);
     return;
   }

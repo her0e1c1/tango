@@ -1,4 +1,4 @@
-import type { DeckCreateInput, DeleteDeckInput, EditDeckInput } from "../model/types";
+import type { DeckCreateInput, DeckId, DeleteDeckInput, EditDeckInput } from "../model/types";
 
 import { deleteLocalCardsByDeckId } from "@/entities/card/@x/deck";
 import { createLocalDeck, deleteLocalDeck, editLocalDeck, findDeckById } from "../model/store";
@@ -7,6 +7,12 @@ import {
   deleteDeck as deleteRemoteDeck,
   editDeck as editRemoteDeck,
 } from "./firestore";
+
+const requireDeck = (id: DeckId) => {
+  const deck = findDeckById(id);
+  if (deck === undefined) throw new Error(`Deck "${id}" was not found`);
+  return deck;
+};
 
 export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<void> => {
   if (deck.localMode === true) {
@@ -17,7 +23,7 @@ export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<vo
 };
 
 export const editDeck = async (uid: string, deck: EditDeckInput["deck"]): Promise<void> => {
-  if (findDeckById(deck.id)?.localMode === true) {
+  if (requireDeck(deck.id).localMode) {
     editLocalDeck(deck);
     return;
   }
@@ -25,7 +31,7 @@ export const editDeck = async (uid: string, deck: EditDeckInput["deck"]): Promis
 };
 
 export const deleteDeck = async (uid: string, deck: DeleteDeckInput["deck"]): Promise<void> => {
-  if (findDeckById(deck.id)?.localMode === true) {
+  if (requireDeck(deck.id).localMode) {
     deleteLocalCardsByDeckId(deck.id);
     deleteLocalDeck(deck.id);
     return;

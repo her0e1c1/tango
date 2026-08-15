@@ -25,7 +25,7 @@ vi.mock("@/entities/deck/@x/card", () => ({
 describe("Card mutations", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("routes Card create, edit, and delete by its local parent Deck", async () => {
@@ -51,6 +51,7 @@ describe("Card mutations", () => {
     const card = createCardFixture({ id: "remote-card", deckId: deck.id });
     const edit = { id: card.id, uid: card.uid, frontText: "Updated" };
     mocks.findDeckById.mockReturnValue(deck);
+    cardStore.setState({ remoteCards: [card] });
 
     await createCard("uid", card);
     await editCard("uid", edit);
@@ -59,5 +60,30 @@ describe("Card mutations", () => {
     expect(mocks.createRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", card);
     expect(mocks.editRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", edit);
     expect(mocks.deleteRemoteCard).toHaveBeenCalledExactlyOnceWith("uid", card);
+  });
+
+  it("rejects edit and delete when the Card cannot be resolved", async () => {
+    const card = createCardFixture({ id: "missing" });
+
+    await expect(editCard("uid", { id: card.id, uid: card.uid, frontText: "Updated" })).rejects.toThrow(
+      'Card "missing" was not found'
+    );
+    await expect(deleteCard("uid", card)).rejects.toThrow('Card "missing" was not found');
+
+    expect(mocks.editRemoteCard).not.toHaveBeenCalled();
+    expect(mocks.deleteRemoteCard).not.toHaveBeenCalled();
+  });
+
+  it("rejects edit and delete when the Card parent Deck cannot be resolved", async () => {
+    const card = createCardFixture({ id: "orphan", deckId: "missing-deck" });
+    cardStore.setState({ remoteCards: [card] });
+
+    await expect(editCard("uid", { id: card.id, uid: card.uid, frontText: "Updated" })).rejects.toThrow(
+      'Deck "missing-deck" was not found'
+    );
+    await expect(deleteCard("uid", card)).rejects.toThrow('Deck "missing-deck" was not found');
+
+    expect(mocks.editRemoteCard).not.toHaveBeenCalled();
+    expect(mocks.deleteRemoteCard).not.toHaveBeenCalled();
   });
 });

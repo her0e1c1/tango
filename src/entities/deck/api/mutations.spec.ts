@@ -48,6 +48,7 @@ describe("Deck mutations", () => {
   it("preserves remote Deck mutation behavior", async () => {
     const deck = createDeckFixture({ id: "remote", localMode: false });
     const edit = { id: deck.id, name: "Renamed" };
+    deckStore.setState({ remoteDecks: [deck] });
 
     await createDeck("uid", deck);
     await editDeck("uid", edit);
@@ -57,5 +58,15 @@ describe("Deck mutations", () => {
     expect(mocks.editRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", edit);
     expect(mocks.deleteRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", deck);
     expect(mocks.deleteLocalCardsByDeckId).not.toHaveBeenCalled();
+  });
+
+  it("rejects edit and delete when the Deck cannot be resolved", async () => {
+    const deck = createDeckFixture({ id: "missing" });
+
+    await expect(editDeck("uid", { id: deck.id, name: "Renamed" })).rejects.toThrow('Deck "missing" was not found');
+    await expect(deleteDeck("uid", deck)).rejects.toThrow('Deck "missing" was not found');
+
+    expect(mocks.editRemoteDeck).not.toHaveBeenCalled();
+    expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
   });
 });
