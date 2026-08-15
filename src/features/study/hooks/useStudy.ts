@@ -28,7 +28,7 @@ interface StudyCommands {
 
 export type StudyState = StudyCommands &
   (
-    | { status: "loading" | "unavailable" }
+    | { status: "preparing" | "invalid" }
     | {
         status: "studying";
         session: StudySession;
@@ -43,7 +43,7 @@ export type StudyState = StudyCommands &
       }
   );
 
-export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: () => void): StudyState => {
+export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () => void): StudyState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
   const [showBackText, setShowBackText] = React.useState(false);
@@ -73,13 +73,13 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
       exitingDeck.current = undefined;
       return;
     }
-    if (resolvedSession.status === "loading" || exitingDeck.current === deckId) return;
+    if (resolvedSession.status === "preparing" || exitingDeck.current === deckId) return;
 
     // Invalid active progress must be removed before leaving so reopening the deck cannot repeat the same failure.
     exitingDeck.current = deckId;
     removeStudySession(deckId);
-    onUnavailable();
-  }, [deckId, onUnavailable, resolvedSession.status]);
+    onInvalid();
+  }, [deckId, onInvalid, resolvedSession.status]);
 
   React.useEffect(() => {
     const nextIndex = session == null ? undefined : calculateStudySessionIndex(session, "next");

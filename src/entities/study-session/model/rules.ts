@@ -15,13 +15,13 @@ export const resolveStudySession = <Card extends StudySessionCard>(
   session: StudySession | undefined,
   cards: readonly Card[]
 ): ResolvedStudySession<Card> => {
-  if (session == null) return { status: "unavailable" };
+  if (session == null) return { status: "invalid" };
 
   const cardId = getCurrentStudySessionCardId(session);
   const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
   if (card != null) return { status: "studying", session, card };
   // An empty collection can still be an in-flight read; a populated collection proves the persisted card is absent.
-  return { status: cardId != null && cards.length === 0 ? "loading" : "unavailable" };
+  return { status: cardId != null && cards.length === 0 ? "preparing" : "invalid" };
 };
 
 export const resolveStudySessionSwipeEffect = (swipeAction: SwipeAction): StudySessionSwipeEffect => {

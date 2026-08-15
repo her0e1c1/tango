@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   navigate: vi.fn(),
   studyState: undefined as StudyState | undefined,
-  studyArgs: undefined as { cards: readonly Card[]; deckId: string; onUnavailable: () => void } | undefined,
+  studyArgs: undefined as { cards: readonly Card[]; deckId: string; onInvalid: () => void } | undefined,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -29,8 +29,8 @@ vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
-    useStudy: (deckId: string, cards: readonly Card[], onUnavailable: () => void) => {
-      mocks.studyArgs = { deckId, cards, onUnavailable };
+    useStudy: (deckId: string, cards: readonly Card[], onInvalid: () => void) => {
+      mocks.studyArgs = { deckId, cards, onInvalid };
       if (mocks.studyState == null) throw new Error("Study state not initialized");
       return mocks.studyState;
     },
@@ -123,17 +123,17 @@ describe("DeckStudyPage", () => {
   });
 
   it.each([
-    ["loading", "Loading…"],
-    ["unavailable", "Study session unavailable."],
+    ["preparing", "Loading…"],
+    ["invalid", "Study session unavailable."],
   ] as const)("renders route feedback for %s workflow state", (status, title) => {
     mocks.studyState = { status, ...commands() };
     render(<DeckStudyPage />);
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
   });
 
-  it("converts unavailable intent into current route navigation", () => {
+  it("converts invalid session intent into current route navigation", () => {
     render(<DeckStudyPage />);
-    act(() => mocks.studyArgs?.onUnavailable());
+    act(() => mocks.studyArgs?.onInvalid());
     expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
   });
 

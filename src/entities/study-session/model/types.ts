@@ -35,5 +35,5 @@ export type StudySessionSwipeEffect = "none" | "exit" | StudySessionMovement;
 export type StudySessionCard = { id: StudySession["cardOrderIds"][number] };
 
 export type ResolvedStudySession<Card extends StudySessionCard> =
-  | { status: "loading" | "unavailable" }
+  | { status: "preparing" | "invalid" }
   | { status: "studying"; session: StudySession; card: Card };

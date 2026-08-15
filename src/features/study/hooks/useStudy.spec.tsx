@@ -11,7 +11,7 @@ import { createPreferences } from "@/test/factories";
 const mocks = vi.hoisted(() => ({
   preferences: null as Preferences | null,
   editStudyProgress: vi.fn(),
-  onUnavailable: vi.fn(),
+  onInvalid: vi.fn(),
   touchStudySession: vi.fn(),
 }));
 
@@ -73,7 +73,7 @@ describe("useStudy", () => {
   afterEach(() => vi.useRealTimers());
 
   it("coordinates display state, persistence, and session progression", async () => {
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onUnavailable));
+    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
     expect(result.current).toMatchObject({
       status: "studying",
       session: { deckId, cardOrderIds: ["card-1", "card-2"], currentIndex: 0 },
@@ -93,27 +93,27 @@ describe("useStudy", () => {
     expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }));
   });
 
-  it("reports loading while the session card is not available", () => {
-    const { result } = renderHook(() => useStudy(deckId, [], mocks.onUnavailable));
-    expect(result.current.status).toBe("loading");
-    expect(mocks.onUnavailable).not.toHaveBeenCalled();
+  it("reports preparing while the session card is not available", () => {
+    const { result } = renderHook(() => useStudy(deckId, [], mocks.onInvalid));
+    expect(result.current.status).toBe("preparing");
+    expect(mocks.onInvalid).not.toHaveBeenCalled();
   });
 
   it("advances the session while autoplay is enabled", () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onUnavailable));
+    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
 
     act(() => vi.advanceTimersByTime(1000));
 
     expect(result.current).toMatchObject({ status: "studying", card: { id: "card-2" } });
   });
 
-  it("reports and handles an unavailable session", async () => {
+  it("reports and handles an invalid session", async () => {
     await clearStudySessions();
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onUnavailable));
+    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
 
-    expect(result.current.status).toBe("unavailable");
-    await waitFor(() => expect(mocks.onUnavailable).toHaveBeenCalledOnce());
+    expect(result.current.status).toBe("invalid");
+    await waitFor(() => expect(mocks.onInvalid).toHaveBeenCalledOnce());
   });
 });
