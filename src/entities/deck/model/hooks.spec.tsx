@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { createCard, createDeck, createPreferences } from "@/test/factories";
-import { useFilteredStudyCards } from "./useFilteredStudyCards";
+import { useFilteredStudyCards } from "./hooks";
 
 describe("useFilteredStudyCards", () => {
   beforeEach(() => vi.restoreAllMocks());

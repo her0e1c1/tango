@@ -1,5 +1,5 @@
 import type { Card } from "@/entities/card";
-import { type Deck, useDeck } from "@/entities/deck";
+import { type Deck, useDeck, useFilteredStudyCards } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
 import type * as React from "react";
@@ -9,7 +9,7 @@ import { useKey } from "react-use";
 import { useCardsByDeckId } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { startStudy } from "@/entities/study-session";
-import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
+import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { StudySessionStartView } from "@/features/study-session-start";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";

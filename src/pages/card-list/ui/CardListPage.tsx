@@ -3,11 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, useCardsByDeckId } from "@/entities/card";
-import { type Deck, useDeck } from "@/entities/deck";
+import { type Deck, useDeck, useFilteredStudyCards } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
-import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
+import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
