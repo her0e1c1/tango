@@ -1,18 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { useAuthSession } from "@/entities/auth";
-
-type AuthSessionState = ReturnType<typeof useAuthSession>;
-
 const mocks = vi.hoisted(() => ({
-  authState: { status: "initializing" } as AuthSessionState,
+  authUid: "",
   subscribeCards: vi.fn(),
   subscribeDecks: vi.fn(),
   operations: [] as string[],
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthSession: () => mocks.authState }));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => mocks.authUid }));
 vi.mock("@/entities/card", () => ({
   clearRemoteCards: () => mocks.operations.push("clear remote Cards"),
   subscribeCards: mocks.subscribeCards,
@@ -36,7 +32,7 @@ describe("FirestoreSubscriptionsProvider", () => {
       return () => mocks.operations.push(`stop Decks ${uid}`);
     });
     mocks.operations.length = 0;
-    mocks.authState = { status: "authenticated", uid: "test-user", isAnonymous: true, displayName: null };
+    mocks.authUid = "test-user";
   });
 
   it("starts subscriptions for the authenticated UID and cleans them up on unmount", () => {
@@ -58,7 +54,7 @@ describe("FirestoreSubscriptionsProvider", () => {
   });
 
   it("does not subscribe or clear remote state before authentication", () => {
-    mocks.authState = { status: "initializing" };
+    mocks.authUid = "";
 
     const view = render(<FirestoreSubscriptionsProvider />);
     view.unmount();
@@ -70,7 +66,7 @@ describe("FirestoreSubscriptionsProvider", () => {
     const view = render(<FirestoreSubscriptionsProvider />);
     mocks.operations.length = 0;
 
-    mocks.authState = { status: "authenticated", uid: "next-user", isAnonymous: false, displayName: "Ada" };
+    mocks.authUid = "next-user";
     view.rerender(<FirestoreSubscriptionsProvider />);
 
     expect(mocks.operations).toEqual([
@@ -83,11 +79,10 @@ describe("FirestoreSubscriptionsProvider", () => {
     ]);
   });
 
-  it("keeps subscriptions when authentication metadata changes for the same UID", () => {
+  it("keeps subscriptions when the authenticated UID is unchanged", () => {
     const view = render(<FirestoreSubscriptionsProvider />);
     mocks.operations.length = 0;
 
-    mocks.authState = { status: "authenticated", uid: "test-user", isAnonymous: false, displayName: "Ada" };
     view.rerender(<FirestoreSubscriptionsProvider />);
 
     expect(mocks.operations).toEqual([]);
@@ -99,7 +94,7 @@ describe("FirestoreSubscriptionsProvider", () => {
     const view = render(<FirestoreSubscriptionsProvider />);
     mocks.operations.length = 0;
 
-    mocks.authState = { status: "unauthenticated" };
+    mocks.authUid = "";
     view.rerender(<FirestoreSubscriptionsProvider />);
 
     expect(mocks.operations).toEqual([
