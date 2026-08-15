@@ -1,5 +1,5 @@
 /**
- * @file Provides the deck-start feature's Deck filter state hook.
+ * @file Provides the deck-filter feature's Deck filter state hook.
  * The hook combines state and operations behind one interface so components do not need to
  * coordinate services themselves.
  */
@@ -11,9 +11,9 @@ import { useForm, useWatch } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
 import { editDeck } from "@/entities/deck";
-import type { DeckStartForm } from "../ui/DeckStartForm";
+import type { DeckFilterForm } from "../ui/DeckFilterForm";
 
-type DeckStartFormProps = React.ComponentProps<typeof DeckStartForm>;
+type DeckFilterFormProps = React.ComponentProps<typeof DeckFilterForm>;
 
 export interface UseDeckFilterStateOptions {
   deck: Deck;
@@ -21,9 +21,9 @@ export interface UseDeckFilterStateOptions {
 }
 
 /**
- * Provides the filter state and persistence callback used to configure a study session.
+ * Provides the form state and persistence callback used to edit a Deck's card filters.
  */
-export const useDeckFilterState = ({ deck, tags }: UseDeckFilterStateOptions): DeckStartFormProps => {
+export const useDeckFilterState = ({ deck, tags }: UseDeckFilterStateOptions): DeckFilterFormProps => {
   const uid = useAuthUid();
   const [scoreMaxEnabled, setScoreMaxEnabled] = React.useState(deck.scoreMax != null);
   const [scoreMinEnabled, setScoreMinEnabled] = React.useState(deck.scoreMin != null);

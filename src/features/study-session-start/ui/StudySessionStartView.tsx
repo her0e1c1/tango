@@ -2,7 +2,7 @@ import type React from "react";
 
 import { Button } from "@/shared/ui/button";
 
-export interface DeckStartViewProps {
+export interface StudySessionStartViewProps {
   deckName: string;
   maxNumberOfCardsToLearn: number;
   cardsLength: number;
@@ -12,7 +12,7 @@ export interface DeckStartViewProps {
 
 const cardsLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
 
-export const DeckStartView: React.FC<DeckStartViewProps> = (props) => {
+export const StudySessionStartView: React.FC<StudySessionStartViewProps> = (props) => {
   const sessionCardsLength =
     props.maxNumberOfCardsToLearn <= 0 ? props.cardsLength : Math.min(props.cardsLength, props.maxNumberOfCardsToLearn);
   const hasCards = props.cardsLength > 0;

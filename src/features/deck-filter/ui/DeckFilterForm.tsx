@@ -1,5 +1,5 @@
 /**
- * @file Defines the deck-start feature's Deck Start Form presentation component.
+ * @file Defines the deck-filter feature's form presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
@@ -9,7 +9,7 @@ import type * as React from "react";
 import { Form, Slider, Switch } from "@/shared/ui/forms";
 import { TagFilter, type TagFilterProps } from "./TagFilter";
 
-interface DeckStartFormProps {
+interface DeckFilterFormProps {
   scoreMax: number | null;
   scoreMin: number | null;
   scoreMaxSwitchProps: React.ComponentProps<typeof Switch>;
@@ -31,7 +31,7 @@ interface ScoreLimitProps {
 }
 
 /**
- * Converts an optional score limit into the value displayed by the deck-start form.
+ * Converts an optional score limit into the value displayed by the deck filter form.
  * Missing limits use the form's boundary value so the slider remains controlled.
  */
 const displayScore = (value: number): string => `${value}`.replace("-", "−");
@@ -89,11 +89,10 @@ const ScoreLimit: React.FC<ScoreLimitProps> = (props) => {
 };
 
 /**
- * Renders the Deck Start Form user interface.
- * Collects study order and score-limit options, then reports whether the user starts or cancels
- * the session.
+ * Renders the Deck Filter Form user interface.
+ * Collects score and tag filters while persistence remains outside the presentation component.
  */
-export const DeckStartForm: React.FC<DeckStartFormProps> = (props) => {
+export const DeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
   const idPrefix = useId();
   const headingId = `${idPrefix}-score-heading`;
   const maximumSwitchId = `${idPrefix}-maximum-enabled`;

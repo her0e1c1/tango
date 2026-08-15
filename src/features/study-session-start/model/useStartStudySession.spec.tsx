@@ -21,10 +21,14 @@ describe("useStartStudySession", () => {
   });
 
   it("starts at index zero with the configured card order before notifying the page", () => {
-    const cards = [createCard({ id: "first" }), createCard({ id: "second" }), createCard({ id: "third" })];
+    const cards = [
+      createCard({ id: "first", numberOfSeen: 3 }),
+      createCard({ id: "second", numberOfSeen: 2 }),
+      createCard({ id: "third", numberOfSeen: 1 }),
+    ];
     const onStarted = vi.fn(() => {
       expect(getStudySession("deck")?.currentIndex).toBe(0);
-      expect(getStudySession("deck")?.cardOrderIds).toEqual(["first", "second"]);
+      expect(getStudySession("deck")?.cardOrderIds).toEqual(["third", "second"]);
     });
     const { result } = renderHook(() => useStartStudySession("deck", { onStarted }));
 

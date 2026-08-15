@@ -59,11 +59,11 @@ describe("filterCardsForDeck", () => {
     ]);
   });
 
-  it("orders cards by study progress", () => {
+  it("preserves input order while filtering", () => {
     const cards = [makeCard({ id: "seen", numberOfSeen: 5 }), makeCard({ id: "new", numberOfSeen: 1 })];
     expect(filterCardsForDeck(cards, baseDeck, basePreferences, now).map(({ card }) => card.id)).toEqual([
-      "new",
       "seen",
+      "new",
     ]);
   });
 });

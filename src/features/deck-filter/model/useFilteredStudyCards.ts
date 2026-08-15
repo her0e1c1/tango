@@ -9,7 +9,7 @@ import { createSelectableStudyCard, filterCardsForDeck } from "./cardSelection";
 // Browsers clamp longer delays; capped timers reschedule until the actual availability time is reached.
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
-export const useStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): Card[] => {
+export const useFilteredStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): Card[] => {
   const [scheduleClock, setScheduleClock] = useState(() => Date.now());
   const studyCards = useMemo(() => cards.map(createSelectableStudyCard), [cards]);
 

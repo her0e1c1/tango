@@ -54,9 +54,9 @@ vi.mock("@/features/card-list", () => ({
     );
   },
 }));
-vi.mock("@/features/deck-start", () => ({
-  DeckStartForm: () => <div>Filter controls</div>,
-  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
+vi.mock("@/features/deck-filter", () => ({
+  DeckFilterForm: () => <div>Filter controls</div>,
+  useFilteredStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,
