@@ -1,7 +1,7 @@
 # Pages Instructions
 
-- Treat `src/pages` as route adapters: read route state, compose lower layers, and handle route-level navigation and feedback.
-- Routing hooks such as `useParams` and `useNavigate` may be used directly. Do not call business or application hooks from pages.
-- Own route- and screen-level keyboard shortcut mappings and registration in `src/pages`, using `useKey` directly by default.
-- Lower layers must not register global listeners for Page shortcuts. They expose actions or callbacks that Page shortcut handlers call without adding business or workflow logic.
-- Keep business logic, mutations, workflows, store coordination, view-model construction, and non-route effects in lower FSD layers.
+- Keep URL routes and Page components one-to-one: each route renders one dedicated Page, and each Page serves one route.
+- Keep Pages UI-only. Import containers or components from lower layers and compose them into the Page layout.
+- Keep Page components concise. Limit them to simple UI composition, and move complex business logic, state coordination, data fetching, and workflows to the appropriate lower layers.
+- Do not define custom hooks in `src/pages`. Use framework or library hooks such as `useParams`, `useNavigate`, and `useKey`, or existing hooks exposed by lower layers.
+- Own screen-level keyboard shortcut mappings and registration in `src/pages`. Use `useKey` directly and delegate shortcut actions to lower layers.
