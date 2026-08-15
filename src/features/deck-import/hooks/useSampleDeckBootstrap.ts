@@ -7,8 +7,8 @@
 import { useEffect } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { useDeckImport } from "./useDeckImport";
-import type { DeckImportOptions } from "./useDeckImport";
+import { addSampleDeck } from "../model/sampleDeck";
+import type { SampleDeckOptions } from "../model/sampleDeck";
 
 type AddSample = () => Promise<unknown>;
 
@@ -48,14 +48,16 @@ const sampleDeckBootstrapController = createSampleDeckBootstrapController();
  * Callers receive one focused interface without coordinating the import feature's stores and
  * services themselves.
  */
-export const useSampleDeckBootstrap = (options: DeckImportOptions) => {
+export const useSampleDeckBootstrap = (options: SampleDeckOptions) => {
   const uid = useAuthUid();
-  const deckImport = useDeckImport(options);
+  const { cards, createDeck, decks, generateCardId } = options;
 
   useEffect(() => {
-    if (uid === "" || options.decks.length > 0) {
+    if (uid === "" || decks.length > 0) {
       return;
     }
-    void sampleDeckBootstrapController.start(uid, deckImport.addSample)?.catch(() => undefined);
-  }, [deckImport.addSample, options.decks.length, uid]);
+    void sampleDeckBootstrapController
+      .start(uid, () => addSampleDeck(uid, { cards, createDeck, decks, generateCardId }))
+      ?.catch(() => undefined);
+  }, [cards, createDeck, decks, generateCardId, uid]);
 };
