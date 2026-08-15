@@ -31,8 +31,8 @@ const UnknownRoute = () => {
     <RouteFeedback
       title="Page not found"
       tone="not-found"
-      primaryAction={{ label: "Go home", onClick: () => navigate("/") }}
-      secondaryAction={{ label: "Go back", onClick: () => navigate(-1) }}
+      primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
+      secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
     />
   );
 };

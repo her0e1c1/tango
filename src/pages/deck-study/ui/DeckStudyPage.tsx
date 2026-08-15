@@ -23,10 +23,10 @@ const renderStudyScreen = (deck: Deck, state: StudyState) => {
   const category = getCategory(deck.category, state.card.tags);
   const swipeActions = {
     disabled: false,
-    onClickUp: state.swipeUp,
-    onClickDown: state.swipeDown,
-    onClickLeft: state.swipeLeft,
-    onClickRight: state.swipeRight,
+    onClickUp: () => void state.swipeUp(),
+    onClickDown: () => void state.swipeDown(),
+    onClickLeft: () => void state.swipeLeft(),
+    onClickRight: () => void state.swipeRight(),
   };
 
   return (
@@ -40,10 +40,10 @@ const renderStudyScreen = (deck: Deck, state: StudyState) => {
           <FrontText
             category={category}
             text={state.card.frontText}
-            onSwipeUp={state.swipeUp}
-            onSwipeDown={state.swipeDown}
-            onSwipeLeft={state.swipeLeft}
-            onSwipeRight={state.swipeRight}
+            onSwipeUp={swipeActions.onClickUp}
+            onSwipeDown={swipeActions.onClickDown}
+            onSwipeLeft={swipeActions.onClickLeft}
+            onSwipeRight={swipeActions.onClickRight}
             onClick={state.toggleBackText}
           />
         }
@@ -64,10 +64,10 @@ const renderStudyScreen = (deck: Deck, state: StudyState) => {
 };
 
 const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => {
-  useKey("ArrowUp", state.swipeUp);
-  useKey("ArrowDown", state.swipeDown);
-  useKey("ArrowLeft", state.swipeLeft);
-  useKey("ArrowRight", state.swipeRight);
+  useKey("ArrowUp", () => void state.swipeUp());
+  useKey("ArrowDown", () => void state.swipeDown());
+  useKey("ArrowLeft", () => void state.swipeLeft());
+  useKey("ArrowRight", () => void state.swipeRight());
   useKey("Enter", state.toggleBackText);
   useKey("h", toggleShowHeader);
   useKey("b", toggleShowSwipeButtonList);

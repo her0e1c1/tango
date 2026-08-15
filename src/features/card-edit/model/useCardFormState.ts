@@ -31,6 +31,10 @@ export const useCardFormState = ({
     },
     resolver: zodResolver(cardFormSchema),
   });
+  const submit = handleSubmit((values) => onSubmit({ id: card.id, ...values }));
+  const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
+    void submit(event);
+  };
 
   return {
     card,
@@ -49,6 +53,6 @@ export const useCardFormState = ({
     },
     isSubmitting: formState.isSubmitting,
     onCancel,
-    onSubmit: handleSubmit((values) => onSubmit({ id: card.id, ...values })),
+    onSubmit: onFormSubmit,
   };
 };
