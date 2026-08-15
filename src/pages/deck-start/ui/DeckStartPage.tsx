@@ -9,7 +9,7 @@ import { useKey } from "react-use";
 import { useCardsByDeckId } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
-import { StudySessionStartView, useStartStudySession } from "@/features/study-session-start";
+import { startStudy, StudySessionStartView } from "@/features/study-session-start";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -23,11 +23,11 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
 const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Preferences; tags: string[] }) => {
   const { deck, cards, preferences, tags } = props;
   const navigate = useNavigate();
-  const startStudy = useStartStudySession(deck.id, {
-    onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
-  });
   const deckFilter = useDeckFilterState(deck);
-  const start = () => startStudy(cards);
+  const start = () => {
+    startStudy(deck.id, cards, preferences.study);
+    void navigate(`/deck/${deck.id}/study`, { replace: true });
+  };
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
     start();

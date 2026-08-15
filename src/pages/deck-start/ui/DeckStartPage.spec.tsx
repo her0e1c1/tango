@@ -45,12 +45,7 @@ vi.mock("@/features/study-session-start", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study-session-start")>();
   return {
     ...actual,
-    useStartStudySession:
-      (_deckId: string, options: { onStarted?: () => void } = {}) =>
-      (_cards: Card[]) => {
-        mocks.start();
-        options.onStarted?.();
-      },
+    startStudy: () => mocks.start(),
   };
 });
 vi.mock("@/entities/preferences", () => ({
@@ -94,6 +89,7 @@ describe("DeckStartPage", () => {
   });
 
   it("owns navigation after the study session starts", () => {
+    mocks.start.mockImplementationOnce(() => expect(mocks.navigate).not.toHaveBeenCalled());
     render(<DeckStartPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Start 1 card" }));
