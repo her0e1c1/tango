@@ -1,9 +1,3 @@
-/**
- * @file Defines the study feature's Swipe Button List presentation component.
- * The component renders props and reports user intent through callbacks while data access stays
- * outside the view.
- */
-
 import type { SwipeDirection } from "@/entities/preferences";
 
 import type * as React from "react";
@@ -31,11 +25,6 @@ export interface SwipeButtonListProps {
   onClickRight?: () => void;
 }
 
-/**
- * Renders the Swipe Button List user interface.
- * Displays one grading button per swipe direction and reports the chosen direction unless controls
- * are disabled.
- */
 export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => {
   return (
     <div className="flex">
