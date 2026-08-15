@@ -1,7 +1,5 @@
 /**
  * @file Verifies the "DeckStartForm" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "labels score controls and
- * preserves values and callbacks", "shows unrestricted disabled limits".
  */
 
 import { fireEvent, render, within, screen } from "@testing-library/react";
@@ -14,10 +12,6 @@ import { DeckStartForm } from "./DeckStartForm";
 
 type DeckStartFormProps = ComponentProps<typeof DeckStartForm>;
 
-/**
- * Provides the create props test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
 const createProps = (): DeckStartFormProps => ({
   scoreMax: 4,
   scoreMin: -2,

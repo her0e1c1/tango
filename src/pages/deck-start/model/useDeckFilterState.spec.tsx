@@ -1,8 +1,5 @@
 /**
  * @file Verifies the "DeckStartForm with useDeckFilterState" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "auto-submits score and tag
- * filter changes", "auto-submits score toggle and slider changes", "auto-submits individual tag,
- * all, and clear changes".
  */
 
 import type { Deck } from "@/entities/deck";
@@ -14,7 +11,7 @@ import { fireEvent, render, waitFor, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartForm } from "../components/DeckStartForm";
+import { DeckStartForm } from "../ui/DeckStartForm";
 import { useDeckFilterState } from "./useDeckFilterState";
 import { createDeck } from "@/test/factories";
 
@@ -25,10 +22,6 @@ vi.mock("@/entities/auth", () => ({
 }));
 vi.mock("@/entities/deck", () => ({ editDeck: mocks.editDeck }));
 
-/**
- * Renders the test-only Deck Filter Harness component with controlled state or providers.
- * Individual tests reuse it to exercise realistic interactions without repeating setup code.
- */
 const DeckFilterHarness: React.FC<{
   deck: Deck;
   tags: string[];
@@ -38,12 +31,7 @@ const DeckFilterHarness: React.FC<{
 };
 
 describe("DeckStartForm with useDeckFilterState", () => {
-  const deck = createDeck({
-    scoreMax: 1,
-    scoreMin: -1,
-    tagAndFilter: false,
-    selectedTags: [],
-  });
+  const deck = createDeck({ scoreMax: 1, scoreMin: -1, tagAndFilter: false, selectedTags: [] });
   const tags = ["tag1", "tag2", "tag3"];
 
   beforeEach(() => {
@@ -53,12 +41,8 @@ describe("DeckStartForm with useDeckFilterState", () => {
   it("persists score and tag filter changes", async () => {
     render(<DeckFilterHarness deck={deck} tags={tags} />);
 
-    fireEvent.change(screen.getByRole("slider", { name: "Maximum score value" }), {
-      target: { value: 2 },
-    });
-    fireEvent.change(screen.getByRole("slider", { name: "Minimum score value" }), {
-      target: { value: -2 },
-    });
+    fireEvent.change(screen.getByRole("slider", { name: "Maximum score value" }), { target: { value: 2 } });
+    fireEvent.change(screen.getByRole("slider", { name: "Minimum score value" }), { target: { value: -2 } });
     await userEvent.click(screen.getByRole("checkbox", { name: "Match all selected tags" }));
     await userEvent.click(screen.getByRole("button", { name: /all/i }));
 
@@ -75,36 +59,23 @@ describe("DeckStartForm with useDeckFilterState", () => {
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable maximum score" }));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith(
-        "user-id",
-        expect.objectContaining({ scoreMax: 0, scoreMin: null })
-      );
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ scoreMax: 0, scoreMin: null }));
     });
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable minimum score" }));
     await waitFor(() => {
       expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ scoreMax: 0, scoreMin: 0 }));
     });
 
-    fireEvent.change(screen.getByRole("slider", { name: "Maximum score value" }), {
-      target: { value: 2 },
-    });
-    fireEvent.change(screen.getByRole("slider", { name: "Minimum score value" }), {
-      target: { value: -2 },
-    });
+    fireEvent.change(screen.getByRole("slider", { name: "Maximum score value" }), { target: { value: 2 } });
+    fireEvent.change(screen.getByRole("slider", { name: "Minimum score value" }), { target: { value: -2 } });
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith(
-        "user-id",
-        expect.objectContaining({ scoreMax: 2, scoreMin: -2 })
-      );
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ scoreMax: 2, scoreMin: -2 }));
     });
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable maximum score" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable minimum score" }));
     await waitFor(() => {
-      expect(mocks.editDeck).toHaveBeenLastCalledWith(
-        "user-id",
-        expect.objectContaining({ scoreMax: null, scoreMin: null })
-      );
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", expect.objectContaining({ scoreMax: null, scoreMin: null }));
     });
   });
 

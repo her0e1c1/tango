@@ -1,5 +1,5 @@
 /**
- * @file Defines the study feature's Deck Start Form presentation component.
+ * @file Defines the deck-start page's Deck Start Form presentation component.
  * The component renders props and reports user intent through callbacks while data access stays
  * outside the view.
  */
@@ -30,16 +30,8 @@ interface ScoreLimitProps {
   sliderProps: React.ComponentProps<typeof Slider>;
 }
 
-/**
- * Converts an optional score limit into the value displayed by the deck-start form.
- * Missing limits use the form's boundary value so the slider remains controlled.
- */
 const displayScore = (value: number): string => `${value}`.replace("-", "−");
 
-/**
- * Formats the score range label text shown to the user.
- * The helper keeps wording and singular or plural rules consistent across the screen.
- */
 const scoreRangeLabel = (min: number | null, max: number | null): string => {
   if (min != null && max != null) return `${displayScore(min)} to ${displayScore(max)}`;
   if (min != null) return `${displayScore(min)} and above`;
@@ -47,11 +39,6 @@ const scoreRangeLabel = (min: number | null, max: number | null): string => {
   return "Any score";
 };
 
-/**
- * Renders the Score Limit user interface.
- * Lets the user set an optional score threshold and reports a parsed numeric limit or an empty
- * value.
- */
 const ScoreLimit: React.FC<ScoreLimitProps> = (props) => {
   const boundary = props.label === "Maximum score" ? "upper" : "lower";
   return (
@@ -88,11 +75,6 @@ const ScoreLimit: React.FC<ScoreLimitProps> = (props) => {
   );
 };
 
-/**
- * Renders the Deck Start Form user interface.
- * Collects study order and score-limit options, then reports whether the user starts or cancels
- * the session.
- */
 export const DeckStartForm: React.FC<DeckStartFormProps> = (props) => {
   const idPrefix = useId();
   const headingId = `${idPrefix}-score-heading`;

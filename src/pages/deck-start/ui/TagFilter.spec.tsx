@@ -1,8 +1,5 @@
 /**
  * @file Verifies the "TagFilter" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "groups tag controls and
- * exposes the active mode and selected tags", "preserves tag, mode, all, and clear callbacks",
- * "contains and breaks a single long unbroken tag".
  */
 
 import { render, within, screen } from "@testing-library/react";

@@ -7,12 +7,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
-import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
+import { useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 import { toRemoteById } from "@/shared/lib/remoteSnapshot";
 
+import { useDeckFilterState } from "../model/useDeckFilterState";
+import { DeckStartForm } from "./DeckStartForm";
 import { DeckStartView } from "./DeckStartView";
 
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>

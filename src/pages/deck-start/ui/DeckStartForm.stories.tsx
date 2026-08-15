@@ -1,7 +1,5 @@
 /**
  * @file Defines Storybook examples for Deck Start Form.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
@@ -31,7 +29,7 @@ const args: DeckStartFormProps = {
 };
 
 const meta = {
-  title: "Study/DeckStartForm",
+  title: "Pages/DeckStart/DeckStartForm",
   component: Template,
   tags: ["autodocs"],
   args,
@@ -41,7 +39,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-
 export const ManyTagsSelected: Story = {
   args: {
     tagFilterProps: {
@@ -52,16 +49,8 @@ export const ManyTagsSelected: Story = {
     },
   },
 };
-
 export const NoMatchCompatible: Story = {
-  args: {
-    tagFilterProps: { ...args.tagFilterProps, selectedTags: ["advanced", "review"], tagAndFilter: true },
-  },
+  args: { tagFilterProps: { ...args.tagFilterProps, selectedTags: ["advanced", "review"], tagAndFilter: true } },
 };
-
-export const Mobile: Story = {
-  ...ManyTagsSelected,
-  parameters: { viewport: { defaultViewport: "iphone5" } },
-};
-
+export const Mobile: Story = { ...ManyTagsSelected, parameters: { viewport: { defaultViewport: "iphone5" } } };
 export const Dark: Story = { ...ManyTagsSelected, globals: { theme: "dark" } };

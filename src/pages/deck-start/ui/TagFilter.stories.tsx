@@ -1,7 +1,5 @@
 /**
  * @file Defines Storybook examples for Tag Filter.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
@@ -11,7 +9,7 @@ import { expect, fn } from "storybook/test";
 import { TagFilter as Template } from "./TagFilter";
 
 const meta = {
-  title: "Study/TagFilter",
+  title: "Pages/DeckStart/TagFilter",
   component: Template,
   tags: ["autodocs"],
   args: {
@@ -24,10 +22,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/**
- * Renders the Interactive Tag Filter Storybook example with local interactive state.
- * Local state lets readers try the component without connecting it to the full application.
- */
 const InteractiveTagFilter: React.FC<React.ComponentProps<typeof Template>> = (props) => {
   const [selectedTags, setSelectedTags] = React.useState(props.selectedTags ?? []);
 
@@ -44,7 +38,6 @@ const InteractiveTagFilter: React.FC<React.ComponentProps<typeof Template>> = (p
 };
 
 export const Default: Story = {};
-
 export const Interaction: Story = {
   args: { onClickTag: fn() },
   render: (args) => <InteractiveTagFilter {...args} />,
@@ -59,28 +52,15 @@ export const Interaction: Story = {
     await expect(args.onClickTag).toHaveBeenLastCalledWith([]);
   },
 };
-
-export const AndFilter: Story = {
-  args: { tagAndFilter: true },
-};
-
-export const Selected: Story = {
-  args: { selectedTags: ["tag1", "tag3"] },
-};
-
-export const ManyTags: Story = {
-  args: { tags: Array.from({ length: 40 }, (_, index) => `tag-${index + 1}`) },
-};
-
+export const AndFilter: Story = { args: { tagAndFilter: true } };
+export const Selected: Story = { args: { selectedTags: ["tag1", "tag3"] } };
+export const ManyTags: Story = { args: { tags: Array.from({ length: 40 }, (_, index) => `tag-${index + 1}`) } };
 export const NoMatchCompatible: Story = {
   args: { tags: ["advanced", "review"], selectedTags: ["advanced", "review"], tagAndFilter: true },
 };
-
 export const Mobile: Story = { ...ManyTags, parameters: { viewport: { defaultViewport: "iphone5" } } };
-
 export const LongTagMobile: Story = {
   args: { tags: ["averylongunbrokentag".repeat(12)] },
   parameters: { viewport: { defaultViewport: "iphone5" } },
 };
-
 export const Dark: Story = { ...Selected, globals: { theme: "dark" } };
