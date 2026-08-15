@@ -6,16 +6,17 @@ import type { DeckId } from "@/entities/deck/@x/study-session";
  *
  * Starting the same deck again replaces its existing session. A session keeps
  * the original card order so resuming does not reshuffle cards midway through
- * the run.
+ * the run. Hydration treats persisted values as untrusted and restores only
+ * sessions that preserve the invariants documented below.
  */
 export interface StudySession {
-  /** Deck that owns the session and also keys it in {@link StudySessions}. */
+  /** Must match its key in {@link StudySessions}; hydration drops mismatches. */
   deckId: DeckId;
-  /** Card identifiers in the exact order presented during this run. */
+  /** Snapshot fixed at start so later caller mutations cannot reorder the run. */
   cardOrderIds: CardId[];
-  /** Zero-based position of the active card within {@link cardOrderIds}. */
+  /** Valid index into {@link cardOrderIds}; completed runs are removed instead of using a terminal index. */
   currentIndex: number;
-  /** Unix time in milliseconds when this session was last started or used. */
+  /** Drives recent-deck ordering and advances only when the session is started or used. */
   lastStudiedAt: number;
 }
 
@@ -23,6 +24,7 @@ export interface StudySession {
  * Active study sessions indexed by deck identifier.
  *
  * A deck is absent until study starts and after its session is completed,
- * reset, or removed with the deck.
+ * reset, or removed with the deck. Persisted entries are validated independently
+ * so one corrupt session does not discard valid progress for other decks.
  */
 export type StudySessions = Partial<Record<DeckId, StudySession>>;

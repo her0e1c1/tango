@@ -8,6 +8,7 @@ import { createStore } from "zustand/vanilla";
 import type { StudySession, StudySessions } from "./types";
 
 const STUDY_STORAGE_KEY = "tango-study";
+// No migration is registered: changing this version deliberately invalidates older state shapes.
 const STUDY_STORAGE_VERSION = 3;
 
 interface StudySessionState {
@@ -17,6 +18,7 @@ interface StudySessionState {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
+// Rebuild canonical sessions from untrusted browser storage so malformed fields cannot break resume logic.
 const sanitizeStudySession = (value: unknown): StudySession | undefined => {
   if (!isRecord(value)) return undefined;
   const { deckId, cardOrderIds, currentIndex, lastStudiedAt } = value;
@@ -45,6 +47,7 @@ const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
   }
 
   const sessionsByDeckId: StudySessions = {};
+  // Validate entries independently and reject key/value mismatches so one bad payload cannot affect other decks.
   for (const [deckId, value] of Object.entries(persistedState.sessionsByDeckId)) {
     const session = sanitizeStudySession(value);
     if (session?.deckId === deckId) sessionsByDeckId[deckId] = session;
@@ -58,6 +61,7 @@ export const studySessionStore = createStore<StudySessionState>()(
     {
       name: STUDY_STORAGE_KEY,
       version: STUDY_STORAGE_VERSION,
+      // Only sanitized fields enter live state; incompatible shapes and unknown metadata are intentionally discarded.
       merge: (persistedState, currentState) => ({
         ...currentState,
         ...sanitizePersistedState(persistedState),
@@ -73,6 +77,7 @@ export const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void 
   studySessionStore.setState((state) => {
     state.sessionsByDeckId[deckId] = {
       deckId,
+      // The store owns this ordering snapshot even if the caller later reuses its array.
       cardOrderIds: [...cardOrderIds],
       currentIndex: 0,
       lastStudiedAt: Date.now(),
@@ -90,6 +95,7 @@ export const touchStudySession = (deckId: DeckId): void => {
 export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): void => {
   studySessionStore.setState((state) => {
     const session = state.sessionsByDeckId[deckId];
+    // Never persist a resume point that cannot identify an active card.
     if (
       session == null ||
       !Number.isInteger(currentIndex) ||
@@ -123,6 +129,7 @@ export const restoreStudySession = (
 };
 
 export const clearStudySessions = async (): Promise<void> => {
+  // Publish the empty state before durable cleanup so auth changes cannot expose the previous user's sessions.
   studySessionStore.setState({ sessionsByDeckId: {} });
   await studySessionStore.persist.clearStorage();
 };

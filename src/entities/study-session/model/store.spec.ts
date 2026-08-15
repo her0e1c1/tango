@@ -1,8 +1,7 @@
 /**
- * @file Verifies the "study store" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "keeps independent study
- * sessions for multiple decks", "updates only the requested session and its last studied time",
- * "touches only an existing requested session".
+ * @file Exercises the singleton store with its real persistence middleware.
+ * Memory and localStorage are reset together because leaking either layer would
+ * make hydration and mutation results depend on test order.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,6 +19,7 @@ import {
 const STUDY_STORAGE_KEY = "tango-study";
 
 const setVersionedStorage = (state: unknown, version: number): void => {
+  // Bypass store mutations so hydration tests model arbitrary browser payloads.
   localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify({ state, version }));
 };
 
