@@ -4,24 +4,30 @@
  * instance.
  */
 
-import { initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
-import { connectFirestoreEmulator, initializeFirestore, persistentLocalCache } from "firebase/firestore";
+import { connectFirestoreEmulator, getFirestore, initializeFirestore, persistentLocalCache } from "firebase/firestore";
 
 const projectId = import.meta.env.VITE_PROJECT_ID || "demo-project";
 const apiKey = import.meta.env.VITE_WEB_API_KEY || "demo-key";
 
-const app = initializeApp({
-  apiKey,
-  projectId,
-  authDomain: `${projectId}.firebaseapp.com`,
-  databaseURL: `https://${projectId}.firebaseio.com`,
-  storageBucket: `${projectId}.appspot.com`,
-});
+const app =
+  getApps().length === 0
+    ? initializeApp({
+        apiKey,
+        projectId,
+        authDomain: `${projectId}.firebaseapp.com`,
+        databaseURL: `https://${projectId}.firebaseio.com`,
+        storageBucket: `${projectId}.appspot.com`,
+      })
+    : getApp();
 export const auth = getAuth(app);
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache(),
-});
+export const db =
+  getApps().length > 0 && app.options.projectId === "test"
+    ? getFirestore(app)
+    : initializeFirestore(app, {
+        localCache: persistentLocalCache(),
+      });
 
 const authHost = import.meta.env.VITE_AUTH_HOST;
 const authPort = import.meta.env.VITE_AUTH_PORT;
