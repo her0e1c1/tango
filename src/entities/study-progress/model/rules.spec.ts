@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { SwipeAction } from "@/entities/preferences/@x/study-progress";
+
 const mocks = vi.hoisted(() => ({ shuffle: vi.fn((ids: string[]) => [...ids].reverse()) }));
 
 vi.mock("lodash", () => ({ shuffle: mocks.shuffle }));
@@ -10,6 +12,7 @@ import {
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
   recordStudyProgress,
+  resolveStudyRating,
 } from "./rules";
 import type { CardProgressFields, StudyProgress, StudyProgressEdit, StudyRating } from "./types";
 
@@ -19,6 +22,20 @@ const cardProgress = (id: string, numberOfSeen = 0): CardProgressFields => ({
   id,
   score: 0,
   numberOfSeen,
+});
+
+describe("resolveStudyRating", () => {
+  it.each<[SwipeAction, StudyRating]>([
+    ["GoToNextCardMastered", "mastered"],
+    ["GoToNextCardNotMastered", "not-mastered"],
+    ["GoToNextCardToggleMastered", "not-mastered"],
+    ["DoNothing", "unrated"],
+    ["GoBack", "unrated"],
+    ["GoToPrevCard", "unrated"],
+    ["GoToNextCard", "unrated"],
+  ])("maps %s to %s", (action, expectedRating) => {
+    expect(resolveStudyRating(action)).toBe(expectedRating);
+  });
 });
 
 describe("createStudyProgressFromCard", () => {
