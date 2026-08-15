@@ -2,16 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
-import { filterCardsForDeck } from "../model/cardSelection";
-import { createStudyCard } from "../model/studyCard";
 import type { Preferences } from "@/entities/preferences";
+import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
+import { createSelectableStudyCard, filterCardsForDeck } from "./cardSelection";
 
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
 export const useStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): Card[] => {
   const [scheduleClock, setScheduleClock] = useState(() => Date.now());
-  const studyCards = useMemo(() => cards.map(createStudyCard), [cards]);
+  const studyCards = useMemo(() => cards.map(createSelectableStudyCard), [cards]);
 
   useEffect(() => {
     const current = Date.now();
