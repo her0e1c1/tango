@@ -21,6 +21,13 @@ import { createCard, createDeck } from "@/test/factories";
 
 const uuid = UUID.v4;
 
+// Card creation must preserve the combined physical document contract even though progress is a separate read model.
+const withInitialStudyProgress = <T extends Card>(card: T): T & { score: 0; numberOfSeen: 0 } => ({
+  ...card,
+  score: 0,
+  numberOfSeen: 0,
+});
+
 vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn() }));
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
@@ -64,7 +71,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     } satisfies CardCreateInput & { currentIndex: number; cardOrderIds: string[] };
     await createCardCommand("uid", c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
-    expect(data).toEqual({ ...newCard, deckId, id: c.id });
+    expect(data).toEqual(withInitialStudyProgress({ ...newCard, deckId, id: c.id }));
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });
@@ -81,7 +88,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
     await editCard("uid", n);
     const data = (await getDoc(doc(db, "card", n.id))).data();
-    expect(data).toEqual({ ...c, frontText: "updated" });
+    expect(data).toEqual(withInitialStudyProgress({ ...c, frontText: "updated" }));
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });
@@ -111,7 +118,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
 
     await mutateCards("uid", [{ kind: "create", card: c }]);
 
-    expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(c);
+    expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(withInitialStudyProgress(c));
   });
 
   it("reports failed imported Cards while persisting valid Cards", async () => {
@@ -129,7 +136,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
       message: "1 of 2 Card writes failed",
     });
 
-    expect((await getDoc(doc(db, "card", valid.id))).data()).toEqual(valid);
+    expect((await getDoc(doc(db, "card", valid.id))).data()).toEqual(withInitialStudyProgress(valid));
   });
 
   it("does not recreate an existing Card deleted after import planning", async () => {
@@ -151,7 +158,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     await createCardCommand("uid", c);
     await deleteCard("uid", c);
     const d = { ...c, deckId, deletedAt: timestamp } as Card;
-    expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(d);
+    expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(withInitialStudyProgress(d));
   });
 
   it("should exists a card", async () => {
