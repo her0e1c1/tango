@@ -11,13 +11,8 @@ import type {
 import { collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
 
-import { db } from "@/shared/api/firebase";
-import {
-  firestoreTimestampDateSchema,
-  getTimestamp,
-  omitUndefined,
-  parseFirestoreDocument,
-} from "@/shared/api/firestoreDocument";
+import { db } from "@/shared/firebase";
+import { firestoreTimestampDateSchema, getTimestamp, omitUndefined, parseFirestoreDocument } from "@/shared/api";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceCards } from "../model/store";
 
