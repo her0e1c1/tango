@@ -20,6 +20,12 @@ export interface StudySession {
   lastStudiedAt: number;
 }
 
+export interface StudySessionSummary {
+  currentIndex: number;
+  cardCount: number;
+  lastStudiedAt: number;
+}
+
 /**
  * Active study sessions indexed by deck identifier.
  *

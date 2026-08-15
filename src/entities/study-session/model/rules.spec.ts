@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { calculateStudySessionIndex } from "./rules";
+import { calculateStudySessionIndex, summarizeStudySession } from "./rules";
 import type { StudySession } from "./types";
 
 const session: StudySession = {
@@ -19,5 +19,11 @@ describe("calculateStudySessionIndex", () => {
   it("returns no index when movement completes the session", () => {
     expect(calculateStudySessionIndex({ ...session, currentIndex: 0 }, "previous")).toBeUndefined();
     expect(calculateStudySessionIndex({ ...session, currentIndex: 2 }, "next")).toBeUndefined();
+  });
+});
+
+describe("summarizeStudySession", () => {
+  it("summarizes the current position, card count, and activity time", () => {
+    expect(summarizeStudySession(session)).toEqual({ currentIndex: 1, cardCount: 3, lastStudiedAt: 0 });
   });
 });

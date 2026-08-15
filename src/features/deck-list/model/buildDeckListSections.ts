@@ -1,5 +1,6 @@
-import type { Card } from "@/entities/card";
-import type { Deck, DeckId } from "@/entities/deck";
+import { countCardsByDeckId, type Card } from "@/entities/card";
+import { compareDeckNames, type Deck, type DeckId } from "@/entities/deck";
+import { summarizeStudySession, type StudySessionSummary } from "@/entities/study-session";
 
 interface DeckListStudySession {
   cardOrderIds: string[];
@@ -7,11 +8,7 @@ interface DeckListStudySession {
   lastStudiedAt: number;
 }
 
-export interface DeckListStudyProgress {
-  currentIndex: number;
-  cardCount: number;
-  lastStudiedAt: number;
-}
+export type DeckListStudyProgress = StudySessionSummary;
 
 export interface DeckListItem {
   deck: Deck;
@@ -24,15 +21,14 @@ export interface DeckListSections {
   other: DeckListItem[];
 }
 
-const compareNames = (left: DeckListItem, right: DeckListItem) => left.deck.name.localeCompare(right.deck.name);
+const compareNames = (left: DeckListItem, right: DeckListItem) => compareDeckNames(left.deck, right.deck);
 
 export const buildDeckListSections = (
   decks: Deck[],
   cards: Card[],
   sessionsByDeckId: Partial<Record<DeckId, DeckListStudySession>>
 ): DeckListSections => {
-  const cardCounts = new Map<DeckId, number>();
-  for (const card of cards) cardCounts.set(card.deckId, (cardCounts.get(card.deckId) ?? 0) + 1);
+  const cardCounts = countCardsByDeckId(cards);
 
   const studying: DeckListItem[] = [];
   const other: DeckListItem[] = [];
@@ -42,15 +38,7 @@ export const buildDeckListSections = (
     const item: DeckListItem = {
       deck,
       cardCount: cardCounts.get(deck.id) ?? 0,
-      ...(session == null
-        ? {}
-        : {
-            studyProgress: {
-              currentIndex: session.currentIndex,
-              cardCount: session.cardOrderIds.length,
-              lastStudiedAt: session.lastStudiedAt,
-            },
-          }),
+      ...(session == null ? {} : { studyProgress: summarizeStudySession(session) }),
     };
     if (session == null) other.push(item);
     else studying.push(item);

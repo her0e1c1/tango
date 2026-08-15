@@ -3,6 +3,7 @@ export { createDeck, deleteDeck, editDeck } from "./api/mutations";
 export { generateDeckId } from "./model/id";
 export {
   CATEGORY,
+  compareDeckNames,
   filterCardsForDeck,
   getCategory,
   isHighlightLanguage,
