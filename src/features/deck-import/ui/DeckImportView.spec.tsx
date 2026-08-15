@@ -1,10 +1,3 @@
-/**
- * @file Verifies the "DeckImportView" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "composes a bounded semantic
- * import route surface", "passes a real file to the upload callback and disables upload while
- * busy", "documents uniqueKey and exposes sample add, download, and code controls".
- */
-
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
@@ -15,7 +8,6 @@ import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTyp
 import { DeckImportView } from "./DeckImportView";
 
 const preview = {
-  fileName: "deck.csv",
   deckName: "deck.csv",
   analysis: {
     rows: [

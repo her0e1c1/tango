@@ -7,11 +7,7 @@ import { fetchCards, mutateCards } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
 import { useAuthUid } from "@/entities/auth";
 import { parseCsv } from "../lib/cardCsv";
-import type {
-  DeckImportAttempt,
-  DeckImportExecutionDependencies,
-  DeckImportRequest,
-} from "../model/deckImportExecution";
+import type { DeckImportAttempt, DeckImportExecutionDependencies } from "../model/deckImportExecution";
 import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
 import type { DeckImportPreview, DeckImportResult, DeckImportStorageMode } from "../model/deckImportTypes";
 import { prepareSampleDeck } from "../model/sampleDeck";
@@ -96,7 +92,6 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
     target.retryAttempt = attempt;
     publish(target, { pending: true, error: null });
     try {
-      if (!isCurrent(target)) throw new Error("Deck import user changed before the import could start");
       const result = await executePreparedDeckImport(attempt, executionDependencies);
       publish(target, { data: result });
       return result;
@@ -152,27 +147,16 @@ export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: Deck
       const analysis = await parseCsv(await file.text());
       if (!isCurrent(target)) throw new Error("Deck import user changed before the preview could finish");
 
-      let activeDecks = decks;
-      let activeCards = cards;
-      if (target.storageMode === "remote") {
-        // Listener-backed stores can lag, so remote file imports are planned from authoritative server reads.
-        [activeDecks, activeCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
-      }
+      // Listener-backed stores can lag, so remote file imports are planned from authoritative server reads.
+      const [activeDecks, activeCards]: [Deck[], Card[]] =
+        target.storageMode === "remote" ? await Promise.all([fetchDecks(uid), fetchCards(uid)]) : [decks, cards];
 
       if (!isCurrent(target)) throw new Error("Deck import user changed before the preview could finish");
-      const request = {
-        name: file.name,
-        rows: analysis.rows,
-        storageMode: target.storageMode,
-      } satisfies DeckImportRequest;
-      const attempt = prepareDeckImport(request, {
-        uid,
-        decks: activeDecks,
-        cards: activeCards,
-        generateCardId,
-      });
+      const attempt = prepareDeckImport(
+        { name: file.name, rows: analysis.rows, storageMode: target.storageMode },
+        { uid, decks: activeDecks, cards: activeCards, generateCardId }
+      );
       const preview = {
-        fileName: file.name,
         deckName: file.name,
         analysis,
         plan: attempt.plan,

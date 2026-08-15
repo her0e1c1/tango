@@ -1,8 +1,3 @@
-/**
- * @file Composes the Deck Import Page's presentation.
- * Data and callbacks arrive through props, which keeps this presentation usable in Storybook.
- */
-
 import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
 
@@ -31,10 +26,6 @@ interface DeckImportViewProps {
   storageMode?: DeckImportStorageMode;
 }
 
-/**
- * Renders the created, updated, skipped, and failed totals for an import result.
- * The same compact summary is used for successful and partially failed imports.
- */
 const resultCounts = (result: DeckImportResult) => (
   <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption">
     <li>{result.created} created</li>
@@ -52,11 +43,6 @@ interface ImportResultProps {
   onBack: (() => void) | undefined;
 }
 
-/**
- * Composes the complete Import Result screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in tests and
- * Storybook.
- */
 const ImportResult = (props: ImportResultProps) => {
   if (props.partialResult != null) {
     return (
@@ -125,11 +111,6 @@ interface ImportPreviewProps {
   onImport: (() => void) | undefined;
 }
 
-/**
- * Composes the complete Import Preview screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in tests and
- * Storybook.
- */
 const ImportPreview = (props: ImportPreviewProps) => {
   const { preview } = props;
   if (preview == null) return null;
@@ -235,11 +216,6 @@ const ImportPreview = (props: ImportPreviewProps) => {
   );
 };
 
-/**
- * Composes the Deck Import screen from reusable UI components.
- * All data and callbacks arrive through props, allowing the same screen to run in tests and
- * Storybook.
- */
 export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
   const busy = Boolean(props.pending || props.validating);
   const storageMode = props.storageMode ?? "remote";
@@ -298,7 +274,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
           </fieldset>
           <Upload
             disabled={busy}
-            {...(props.preview !== undefined ? { fileName: props.preview.fileName } : {})}
+            {...(props.preview !== undefined ? { fileName: props.preview.deckName } : {})}
             {...(props.onChange !== undefined ? { onChange: props.onChange } : {})}
           />
         </section>

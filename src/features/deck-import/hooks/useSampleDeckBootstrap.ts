@@ -1,9 +1,3 @@
-/**
- * @file Provides the import feature's Use Sample Deck Bootstrap React hook.
- * The hook combines state and operations behind one interface so components do not need to
- * coordinate services themselves.
- */
-
 import { useEffect } from "react";
 
 import { useAuthUid } from "@/entities/auth";
@@ -12,52 +6,29 @@ import type { SampleDeckOptions } from "../model/sampleDeck";
 
 type AddSample = () => Promise<unknown>;
 
-/**
- * Creates and configures a sample deck bootstrap controller.
- * Optional dependencies or settings let production code and tests reuse the same behavior in
- * different environments.
- */
-const createSampleDeckBootstrapController = () => {
-  const completedUids = new Set<string>();
-  const pendingByUid = new Map<string, Promise<unknown>>();
+const bootstrapsByUid = new Map<string, Promise<unknown>>();
 
-  return {
-    start: (uid: string, addSample: AddSample) => {
-      if (completedUids.has(uid)) return;
-      const pending = pendingByUid.get(uid);
-      if (pending != null) return pending;
+const startSampleDeckBootstrap = (uid: string, addSample: AddSample) => {
+  const existing = bootstrapsByUid.get(uid);
+  if (existing != null) return existing;
 
-      const operation = Promise.resolve().then(addSample);
-      pendingByUid.set(uid, operation);
-      void operation.then(
-        () => {
-          pendingByUid.delete(uid);
-          completedUids.add(uid);
-        },
-        () => pendingByUid.delete(uid)
-      );
-      return operation;
-    },
-  };
+  const operation = Promise.resolve().then(addSample);
+  bootstrapsByUid.set(uid, operation);
+  // Successful operations stay cached across StrictMode remounts; failures are removed so a later render can retry.
+  void operation.catch(() => {
+    bootstrapsByUid.delete(uid);
+  });
+  return operation;
 };
 
-const sampleDeckBootstrapController = createSampleDeckBootstrapController();
-
-/**
- * Provides the sample deck bootstrap values and operations needed by React components.
- * Callers receive one focused interface without coordinating the import feature's stores and
- * services themselves.
- */
 export const useSampleDeckBootstrap = (options: SampleDeckOptions) => {
   const uid = useAuthUid();
   const { cards, createDeck, decks, generateCardId } = options;
 
   useEffect(() => {
-    if (uid === "" || decks.length > 0) {
-      return;
-    }
-    void sampleDeckBootstrapController
-      .start(uid, () => addSampleDeck(uid, { cards, createDeck, decks, generateCardId }))
-      ?.catch(() => undefined);
+    if (uid === "" || decks.length > 0) return;
+    void startSampleDeckBootstrap(uid, () => addSampleDeck(uid, { cards, createDeck, decks, generateCardId })).catch(
+      () => undefined
+    );
   }, [cards, createDeck, decks, generateCardId, uid]);
 };

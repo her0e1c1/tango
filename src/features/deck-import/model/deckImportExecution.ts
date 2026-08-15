@@ -107,27 +107,15 @@ export const prepareDeckImport = (
   const localMode = request.storageMode === "local";
   if (!localMode && uid === "") throw new Error("A confirmed user is required for remote imports");
 
-  let deck: DeckImportCreateInput | undefined = decks.find((candidate) =>
-    matchesImportDestination(candidate, request, localMode)
-  );
-  const createDeckPending = deck == null;
-  if (deck == null) deck = createImportDeck(request, uid, localMode);
+  const existingDeck = decks.find((candidate) => matchesImportDestination(candidate, request, localMode));
+  const deck = existingDeck ?? createImportDeck(request, uid, localMode);
 
   const existing = cards.filter((card) => card.deckId === deck.id && isRemoteCard(card) !== localMode);
-  const preparedCards = prepareCardMutations({
-    rows: request.rows,
-    existing,
-    deckId: deck.id,
-    uid,
-    localMode,
-    generateCardId,
-  });
-
   return {
     uid,
     deck,
-    createDeckPending,
-    ...preparedCards,
+    createDeckPending: existingDeck == null,
+    ...prepareCardMutations({ rows: request.rows, existing, deckId: deck.id, uid, localMode, generateCardId }),
   };
 };
 
