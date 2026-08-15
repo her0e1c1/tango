@@ -1,5 +1,6 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
 import * as tsParser from "@typescript-eslint/parser";
+import eslintReact from "@eslint-react/eslint-plugin";
 import {
   createConfig as createBoundariesConfig,
   recommended as boundariesRecommended,
@@ -33,6 +34,17 @@ export default [
   {
     ...reactHooks.configs.flat["recommended-latest"],
     files: sourceFiles,
+  },
+  {
+    files: sourceFiles,
+    plugins: {
+      "@eslint-react": eslintReact,
+    },
+    rules: {
+      // React Compiler owns routine memoization; manual memoization must have an observable reason to remain.
+      "@eslint-react/no-unnecessary-use-callback": "error",
+      "@eslint-react/no-unnecessary-use-memo": "error",
+    },
   },
   createBoundariesConfig({
     ...boundariesRecommended,
