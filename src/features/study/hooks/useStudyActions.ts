@@ -42,6 +42,7 @@ interface UseStudyActionsOptions {
   onHideBackText?: (() => void) | undefined;
   onToggleBackText?: (() => void) | undefined;
   onRestoreBackText?: ((showBackText: boolean) => void) | undefined;
+  onToggleAutoPlay?: (() => void) | undefined;
 }
 
 interface StudySwipeDependencies {
@@ -172,6 +173,7 @@ export const useStudyActions = (
     onHideBackText,
     onToggleBackText,
     onRestoreBackText,
+    onToggleAutoPlay,
   }: UseStudyActionsOptions
 ): StudyActions => {
   const preferences = usePreferences();
@@ -185,7 +187,6 @@ export const useStudyActions = (
     const cardOrderIds = buildStudySession(cards, preferences.study);
     const state = studyStore.getState();
     state.startStudy(deckId, cardOrderIds);
-    state.initializeStudyUi(preferences.study.defaultAutoPlay);
     onHideBackText?.();
     onStarted?.();
   };
@@ -223,7 +224,7 @@ export const useStudyActions = (
       state.setCurrentIndex(deckId, currentIndex);
     },
     toggleShowBackText: () => onToggleBackText?.(),
-    toggleAutoPlay: () => studyStore.getState().toggleAutoPlay(),
+    toggleAutoPlay: () => onToggleAutoPlay?.(),
     resetStudy: () => studyStore.getState().removeStudy(deckId),
   };
 };

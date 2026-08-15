@@ -114,7 +114,6 @@ describe("useStudyActions", () => {
     mocks.state = createState();
     studyStore.setState({
       sessionsByDeckId: {},
-      autoPlay: false,
     });
   });
 
@@ -134,7 +133,6 @@ describe("useStudyActions", () => {
             lastStudiedAt: 946684800000,
           },
         },
-        autoPlay: true,
       });
     });
     const { result } = renderHook(() =>
@@ -356,6 +354,17 @@ describe("useStudyActions", () => {
     });
 
     expect(onToggleBackText).toHaveBeenCalledOnce();
+  });
+
+  it("calls onToggleAutoPlay when toggleAutoPlay is invoked", () => {
+    const onToggleAutoPlay = vi.fn();
+    const { result } = renderHook(() => useStudyActions(deck.id, { cardsById: getCardsById(), onToggleAutoPlay }));
+
+    act(() => {
+      result.current.toggleAutoPlay();
+    });
+
+    expect(onToggleAutoPlay).toHaveBeenCalledOnce();
   });
 
   it("finishes only the route session after the final card", async () => {
