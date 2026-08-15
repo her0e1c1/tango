@@ -7,10 +7,10 @@ import type * as React from "react";
 import type { ControllerProps } from "./Controller";
 import type { SwipeButtonListProps } from "./SwipeButtonList";
 import { useActiveStudySession, useStudySessionLifecycle } from "../hooks/useActiveStudySession";
-import { useEditStudyProgress } from "../hooks/useEditStudyProgress";
 import { useStudyActions, type StudyActions } from "../hooks/useStudyActions";
 import { useStudyControllerState } from "../hooks/useStudyControllerState";
 import { useStudyDisplayState } from "../hooks/useStudyDisplayState";
+import { useStudyProgressMutation } from "../hooks/useStudyProgressMutation";
 import { useSwipeFeedback } from "../hooks/useSwipeFeedback";
 
 type PresentationActions = Pick<
@@ -46,10 +46,10 @@ interface StudyWorkflowProps {
 export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyWorkflowProps) => {
   const display = useStudyDisplayState();
   const feedback = useSwipeFeedback(display.preferences.appearance.showSwipeFeedback);
-  const cardMutation = useEditStudyProgress();
+  const progressMutation = useStudyProgressMutation();
   const actions = useStudyActions(deckId, {
     cards,
-    cardMutation: { update: cardMutation.update },
+    cardMutation: { update: progressMutation.save },
     onSwipe: feedback.showSwipe,
     showBackText: display.showBackText,
     onHideBackText: display.hideBackText,
