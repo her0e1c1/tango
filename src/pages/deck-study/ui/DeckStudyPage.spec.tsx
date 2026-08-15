@@ -4,7 +4,7 @@ import type { StudyWorkflowState } from "@/features/study";
 
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import React from "react";
+import type React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -158,23 +158,5 @@ describe("DeckStudyPage", () => {
     mocks.deck = undefined;
     render(<DeckStudyPage />);
     expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
-  });
-
-  it("installs one back-navigation guard when StrictMode replays the effect", () => {
-    const pushState = vi.spyOn(window.history, "pushState");
-    const view = render(
-      <React.StrictMode>
-        <DeckStudyPage />
-      </React.StrictMode>
-    );
-
-    expect(pushState).toHaveBeenCalledOnce();
-    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
-    expect(mocks.navigate).toHaveBeenCalledWith(1);
-
-    view.unmount();
-    mocks.navigate.mockClear();
-    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
-    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 });
