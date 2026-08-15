@@ -43,7 +43,6 @@ const mocks = vi.hoisted(() => ({
   initializeStudySessionUi: vi.fn(),
   touchStudySession: vi.fn(),
   hydrated: true,
-  cardReadStatus: "ready" as "loading" | "ready" | "error" | "blocked",
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
   setDarkMode: vi.fn(),
@@ -70,11 +69,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 vi.mock("@/entities/card", () => ({
   useCards: () => Object.values(mocks.state?.card ?? {}),
-}));
-vi.mock("@/features/card/read", () => ({
-  useCardReadState: () => ({
-    status: mocks.cardReadStatus,
-  }),
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -161,7 +155,6 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     mocks.params.id = deck.id;
     mocks.state = createState();
     mocks.hydrated = true;
-    mocks.cardReadStatus = "ready";
     mocks.studyState.sessionsByDeckId = {
       [deck.id]: {
         deckId: deck.id,
@@ -454,8 +447,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     expect(mocks.resetStudy).toHaveBeenCalledOnce();
   });
 
-  it("keeps the study session while Card reads are still loading", () => {
-    mocks.cardReadStatus = "loading";
+  it("keeps the study session while Card store is empty before initial snapshot arrives", () => {
     if (mocks.state == null) throw new Error("Mock state is not initialized");
     mocks.state.card = {};
 

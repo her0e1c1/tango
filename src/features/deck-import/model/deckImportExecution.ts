@@ -24,12 +24,13 @@ export type DeckImportRequest =
 
 export interface DeckImportDependencies {
   uid: string;
-  synchronized: boolean;
   decks: Deck[];
   cardsByDeckId: (id: DeckId) => Card[];
   createDeck: (deck: DeckCreateInput) => Promise<unknown>;
   generateCardId: () => string;
   bulkUpsert: (cards: CardCreateInput[], createdIds: CardId[]) => Promise<unknown>;
+  fetchDecks?: (uid: string) => Promise<Deck[]>;
+  fetchCards?: (uid: string) => Promise<Card[]>;
 }
 
 type DeckImportPreparationDependencies = Pick<
@@ -89,9 +90,6 @@ const prepareDeckImportAttempt = (
   };
 };
 
-export const synchronizationError = () =>
-  new Error("Deck import requires a synchronized connection. Check your connection and retry.");
-
 export const partialResultFrom = (error: unknown): DeckImportResult | undefined => {
   if (error == null || typeof error !== "object" || !("result" in error)) return undefined;
   const result = error.result;
@@ -111,14 +109,30 @@ export const partialResultFrom = (error: unknown): DeckImportResult | undefined 
 
 export const executeDeckImport = async (
   request: DeckImportRequest,
-  { uid, synchronized, decks, cardsByDeckId, createDeck, generateCardId, bulkUpsert }: DeckImportDependencies
+  { uid, decks, cardsByDeckId, createDeck, generateCardId, bulkUpsert, fetchDecks, fetchCards }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
-  if (!synchronized) throw synchronizationError();
+
+  let activeDecks = decks;
+  let getCardsByDeckId = cardsByDeckId;
+  if (fetchDecks != null && fetchCards != null) {
+    try {
+      const [remoteDecks, remoteCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
+      activeDecks = remoteDecks;
+      getCardsByDeckId = (deckId: DeckId) => remoteCards.filter((card) => card.deckId === deckId);
+    } catch {
+      // Fall back to passed dependencies if remote fetch fails
+    }
+  }
 
   let attempt = request.attempt;
   if (attempt == null || attempt.uid !== uid) {
-    attempt = prepareDeckImportAttempt(request, { uid, decks, cardsByDeckId, generateCardId });
+    attempt = prepareDeckImportAttempt(request, {
+      uid,
+      decks: activeDecks,
+      cardsByDeckId: getCardsByDeckId,
+      generateCardId,
+    });
     request.attempt = attempt;
   }
   if (attempt.createDeckPending) {

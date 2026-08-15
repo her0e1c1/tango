@@ -17,8 +17,6 @@ const mocks = vi.hoisted(() => ({
   decks: [] as Deck[],
   cards: [] as Card[],
   authUid: "user-1",
-  readStatus: "ready" as "idle" | "loading" | "ready" | "error",
-  serverConfirmed: true,
   hydrated: true,
   deleteDeck: vi.fn(async (_uid: string, _deck: Deck) => undefined),
   removeStudySession: vi.fn(),
@@ -49,12 +47,6 @@ vi.mock("@/entities/deck", () => ({
   createDeck: vi.fn(),
   deleteDeck: mocks.deleteDeck,
   useDecks: () => mocks.decks,
-}));
-vi.mock("@/features/card/read", () => ({
-  useCardReadState: () => ({
-    status: mocks.readStatus,
-    serverConfirmed: mocks.serverConfirmed,
-  }),
 }));
 vi.mock("@/features/deck-import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
 vi.mock("@/features/study", () => ({
@@ -103,8 +95,6 @@ describe("DeckListPage", () => {
     mocks.decks = [deck];
     mocks.cards = [card];
     mocks.authUid = "user-1";
-    mocks.readStatus = "ready";
-    mocks.serverConfirmed = true;
     mocks.hydrated = true;
   });
 
@@ -134,20 +124,13 @@ describe("DeckListPage", () => {
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
-    expect(mocks.sampleBootstrap).toHaveBeenCalledWith(
-      expect.objectContaining({ decks: [deck], cards: [card], synchronized: true })
-    );
+    expect(mocks.sampleBootstrap).toHaveBeenCalledWith(expect.objectContaining({ decks: [deck], cards: [card] }));
   });
 
-  it("owns loading and empty remote-read feedback", () => {
-    mocks.readStatus = "loading";
-    const view = render(<DeckListPage />);
-    expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
-
-    mocks.readStatus = "ready";
+  it("renders empty list when no decks exist", () => {
     mocks.decks = [];
-    view.rerender(<DeckListPage />);
-    expect(screen.getByRole("heading", { name: "No decks yet." })).toBeVisible();
+    render(<DeckListPage />);
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("waits for study hydration before composing the feature", () => {

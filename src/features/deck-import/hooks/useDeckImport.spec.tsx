@@ -17,10 +17,6 @@ import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
-  cardRemoteStatus: "ready" as "idle" | "loading" | "ready" | "error" | "blocked",
-  cardSyncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
-  deckRemoteStatus: "ready" as "idle" | "loading" | "ready" | "error" | "blocked",
-  deckSyncStatus: "synced" as "cached" | "pending" | "synced" | undefined,
   decks: [] as Deck[],
   cards: [] as Card[],
   parseCsv: vi.fn(),
@@ -66,7 +62,7 @@ vi.mock("../lib/cardCsv", async (importOriginal) => {
 });
 import { useDeckImport } from "./useDeckImport";
 
-const useTestDeckImport = (props?: { synchronized?: boolean }) =>
+const useTestDeckImport = () =>
   useDeckImport({
     cards: mocks.cards,
     createCard: mocks.createCardWrite,
@@ -74,22 +70,12 @@ const useTestDeckImport = (props?: { synchronized?: boolean }) =>
     decks: mocks.decks,
     editCard: mocks.editCard,
     generateCardId: mocks.generateCardId,
-    synchronized:
-      props?.synchronized ??
-      (mocks.cardRemoteStatus === "ready" &&
-        mocks.cardSyncStatus === "synced" &&
-        mocks.deckRemoteStatus === "ready" &&
-        mocks.deckSyncStatus === "synced"),
   });
 
 describe("useDeckImport", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.uid = "uid-a";
-    mocks.cardRemoteStatus = "ready";
-    mocks.cardSyncStatus = "synced";
-    mocks.deckRemoteStatus = "ready";
-    mocks.deckSyncStatus = "synced";
     mocks.decks = [];
     mocks.cards = [];
     mocks.parseCsv.mockImplementation(async (content: string) => {
@@ -139,43 +125,6 @@ describe("useDeckImport", () => {
       },
     ]);
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
-  });
-
-  it("rejects a preview before planning when Card reads are not synchronized", async () => {
-    mocks.cardSyncStatus = "cached";
-    const { result } = renderHook(useTestDeckImport);
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-
-    await actAsync(async () => {
-      await expect(result.current.selectFile(file)).rejects.toThrow("synchronized connection");
-    });
-
-    expect(result.current.preview).toBeUndefined();
-    expect(result.current.pending).toBe(false);
-    expect(result.current.error).toEqual(
-      new Error("Deck import requires a synchronized connection. Check your connection and retry.")
-    );
-    expect(mocks.generateDeckId).not.toHaveBeenCalled();
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
-  });
-
-  it("allows a new preview after Card reads synchronize", async () => {
-    mocks.cardSyncStatus = "cached";
-    const initialProps: Parameters<typeof useTestDeckImport>[0] = { synchronized: false };
-    const { result, rerender } = renderHook(useTestDeckImport, { initialProps });
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-
-    await actAsync(async () => {
-      await expect(result.current.selectFile(file)).rejects.toThrow("synchronized connection");
-    });
-    rerender({ synchronized: true });
-    await actAsync(async () => result.current.selectFile(file));
-    await actAsync(async () => result.current.importPreview());
-
-    expect(result.current.data).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
-    expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
   });
 
   it("keeps invalid files in preview without mutating state", async () => {

@@ -59,6 +59,13 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     onError
   );
 
+export const fetchDecks = async (uid: string): Promise<Deck[]> => {
+  const snapshot = await getDocs(query(collection(db, DECK_COLLECTION), where("uid", "==", uid)));
+  return snapshot.docs
+    .map((document) => convertDeckDtoToDeck(document.id, document.data()))
+    .filter((deck) => deck.deletedAt === null);
+};
+
 export const generateDeckId = (): string => doc(collection(db, DECK_COLLECTION)).id;
 
 const createDeckDocument = async (deck: DeckCreate): Promise<void> => {

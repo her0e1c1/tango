@@ -26,12 +26,6 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/deck", () => ({
   useDeck: () => mocks.deck ?? undefined,
 }));
-vi.mock("@/features/card/read", () => ({
-  useCardReadState: () => ({
-    status: "ready" as const,
-    retry: vi.fn(),
-  }),
-}));
 vi.mock("@/features/study/hooks/useStudyActions", () => ({
   useStudyActions: (_deckId: string, options: { onStarted?: () => void } = {}) => ({
     start: (_cards: Card[]) => {

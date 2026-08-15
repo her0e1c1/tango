@@ -8,7 +8,7 @@ import type {
   EditCardInput,
 } from "../model/types";
 
-import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { z } from "zod";
 
 import { db } from "@/shared/firebase";
@@ -17,10 +17,6 @@ import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/sch
 import { replaceCards } from "../model/store";
 
 const CARD_COLLECTION = "card";
-
-export interface CardSubscriptionEvent {
-  serverConfirmed: boolean;
-}
 
 const cardDtoSchema = z.object({
   id: z.string().optional(),
@@ -70,28 +66,28 @@ const convertCardDtoToCard = (id: CardId, value: unknown): Card => {
   return card;
 };
 
-export const subscribeCards = (
-  uid: string,
-  onError: (error: Error) => void,
-  onData: (event: CardSubscriptionEvent) => void = () => undefined
-): (() => void) =>
+export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
   onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
-    { includeMetadataChanges: true },
     (snapshot) => {
       try {
         const cards = snapshot.docs
           .map((document) => convertCardDtoToCard(document.id, document.data()))
           .filter((card) => card.deletedAt === null);
         replaceCards(cards);
-        const serverConfirmed = !snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites;
-        onData({ serverConfirmed });
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
     },
     onError
   );
+
+export const fetchCards = async (uid: string): Promise<Card[]> => {
+  const snapshot = await getDocs(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
+  return snapshot.docs
+    .map((document) => convertCardDtoToCard(document.id, document.data()))
+    .filter((card) => card.deletedAt === null);
+};
 
 export const generateCardId = (): string => doc(collection(db, CARD_COLLECTION)).id;
 

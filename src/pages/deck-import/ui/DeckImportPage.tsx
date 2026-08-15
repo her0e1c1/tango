@@ -5,7 +5,6 @@ import { useKey } from "react-use";
 import { createDeck, useDecks } from "@/entities/deck";
 import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
-import { useCardReadState } from "@/features/card/read";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck-import";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -15,9 +14,7 @@ export const DeckImportPage: React.FC = () => {
   const preferences = usePreferences();
   const navigate = useNavigate();
   const cards = useCards();
-  const cardReadState = useCardReadState();
   const decks = useDecks();
-  const synchronized = cardReadState.serverConfirmed;
   const deckImport = useDeckImport({
     cards,
     createCard,
@@ -25,7 +22,6 @@ export const DeckImportPage: React.FC = () => {
     decks,
     editCard,
     generateCardId,
-    synchronized,
   });
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));

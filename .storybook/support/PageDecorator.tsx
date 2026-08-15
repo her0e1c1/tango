@@ -15,7 +15,6 @@ import { replaceAuthSession } from "@/entities/auth";
 import type { Preferences } from "@/entities/preferences";
 import { preferencesSchema } from "@/entities/preferences/model/schema";
 import { preferencesStore } from "@/entities/preferences/model/store";
-import { setCardReadLoading, setCardReadReady } from "@/features/card/read";
 import type { StudyState } from "@/features/study/state/studyStore";
 import { studyStore } from "@/features/study/state/studyStoreInstance";
 
@@ -88,8 +87,6 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   });
   replaceDecks(decks);
   replaceCards(cards);
-  setCardReadLoading(PAGE_STORY_UID);
-  setCardReadReady(PAGE_STORY_UID, true);
 };
 
 /** Wraps a page story with the providers normally supplied by the application entry point. */

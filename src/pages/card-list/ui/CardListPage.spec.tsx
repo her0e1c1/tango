@@ -14,7 +14,6 @@ const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
   deck: null as Deck | null,
   cards: [] as Card[],
-  readState: { status: "ready" as "loading" | "ready" | "error" },
   navigate: vi.fn(),
   onClickTag: vi.fn(),
   updateBy: vi.fn(),
@@ -31,7 +30,6 @@ vi.mock("@/entities/card", () => ({
   useCards: () => mocks.cards,
 }));
 vi.mock("@/entities/deck", () => ({ useDeck: () => mocks.deck ?? undefined }));
-vi.mock("@/features/card/read", () => ({ useCardReadState: () => mocks.readState }));
 vi.mock("@/features/card-list", () => ({
   CardList: (props: {
     cards: Card[];
@@ -83,7 +81,6 @@ describe("CardListPage", () => {
     mocks.deck = deck;
     mocks.cards = [card, otherCard];
     mocks.preferences = createPreferences();
-    mocks.readState.status = "ready";
     mocks.navigate.mockReset();
     mocks.onClickTag.mockReset();
     mocks.updateBy.mockReset().mockResolvedValue(undefined);
@@ -115,18 +112,6 @@ describe("CardListPage", () => {
     fireEvent.keyDown(window, { key: "s" });
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
-  });
-
-  it("renders loading and error feedback outside the application shell", () => {
-    mocks.readState.status = "loading";
-    const view = render(<CardListPage />);
-    expect(screen.getByRole("heading", { name: "Loading…" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-
-    mocks.readState.status = "error";
-    view.rerender(<CardListPage />);
-    expect(screen.getByRole("heading", { name: "Unable to load data." })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 
   it("renders not-found feedback with route navigation", async () => {

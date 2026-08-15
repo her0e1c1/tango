@@ -23,7 +23,7 @@ export default defineConfig([
     },
   },
   {
-    files: ["./src/features/card/read/**", "./src/features/deck/*/**"],
+    files: ["./src/features/deck/*/**"],
     rules: {
       "fsd/insignificant-slice": "off",
     },
