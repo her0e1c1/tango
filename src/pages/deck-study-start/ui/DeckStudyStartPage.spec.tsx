@@ -54,9 +54,9 @@ vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
 }));
 
-import { DeckStartPage } from "./DeckStartPage";
+import { DeckStudyStartPage } from "./DeckStudyStartPage";
 
-describe("DeckStartPage", () => {
+describe("DeckStudyStartPage", () => {
   beforeEach(() => {
     mocks.params.id = "deck-id";
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
@@ -66,7 +66,7 @@ describe("DeckStartPage", () => {
   });
 
   it("composes route data, the application shell, and the study view", () => {
-    render(<DeckStartPage />);
+    render(<DeckStudyStartPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
@@ -74,7 +74,7 @@ describe("DeckStartPage", () => {
   });
 
   it("starts from Enter only outside interactive controls", () => {
-    render(<DeckStartPage />);
+    render(<DeckStudyStartPage />);
 
     fireEvent.keyDown(document.body, { key: "Enter" });
     expect(mocks.start).toHaveBeenCalledOnce();
@@ -86,7 +86,7 @@ describe("DeckStartPage", () => {
 
   it("owns navigation after the study session starts", () => {
     mocks.start.mockImplementationOnce(() => expect(mocks.navigate).not.toHaveBeenCalled());
-    render(<DeckStartPage />);
+    render(<DeckStudyStartPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Start 1 card" }));
 
@@ -96,7 +96,7 @@ describe("DeckStartPage", () => {
 
   it("does not start when no cards match", () => {
     mocks.cards = [];
-    render(<DeckStartPage />);
+    render(<DeckStudyStartPage />);
 
     fireEvent.keyDown(document.body, { key: "Enter" });
     expect(mocks.start).not.toHaveBeenCalled();
@@ -105,7 +105,7 @@ describe("DeckStartPage", () => {
 
   it("renders missing-deck recovery outside the application shell", () => {
     mocks.deck = null;
-    render(<DeckStartPage />);
+    render(<DeckStudyStartPage />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
@@ -113,6 +113,6 @@ describe("DeckStartPage", () => {
 
   it("rejects a route without a deck id", () => {
     mocks.params.id = undefined;
-    expect(() => render(<DeckStartPage />)).toThrowError("invalid deck id");
+    expect(() => render(<DeckStudyStartPage />)).toThrowError("invalid deck id");
   });
 });

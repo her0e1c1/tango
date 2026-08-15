@@ -48,7 +48,7 @@ export const DeckForm: Story = {
   parameters: { page: page(`/deck/${PAGE_STORY_DECK_ID}/edit`) },
 };
 
-export const DeckStart: Story = {
+export const DeckStudyStart: Story = {
   parameters: { page: page(`/deck/${PAGE_STORY_DECK_ID}/start`) },
 };
 

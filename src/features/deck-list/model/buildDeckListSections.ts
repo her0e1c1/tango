@@ -1,11 +1,6 @@
 import { countCardsByDeckId, type Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-
-interface DeckListStudySession {
-  cardOrderIds: string[];
-  currentIndex: number;
-  lastStudiedAt: number;
-}
+import type { StudySession } from "@/entities/study-session";
 
 export interface DeckListStudyProgress {
   currentIndex: number;
@@ -26,40 +21,36 @@ export interface DeckListSections {
 
 const compareNames = (left: DeckListItem, right: DeckListItem) => left.deck.name.localeCompare(right.deck.name);
 
+const createDeckListStudyProgress = (session: StudySession): DeckListStudyProgress => ({
+  currentIndex: session.currentIndex,
+  cardCount: session.cardOrderIds.length,
+  lastStudiedAt: session.lastStudiedAt,
+});
+
 export const buildDeckListSections = (
   decks: Deck[],
   cards: Card[],
-  sessionsByDeckId: Partial<Record<DeckId, DeckListStudySession>>
+  sessionsByDeckId: Partial<Record<DeckId, StudySession>>
 ): DeckListSections => {
   const cardCounts = countCardsByDeckId(cards);
-
-  const studying: DeckListItem[] = [];
-  const other: DeckListItem[] = [];
-
-  for (const deck of decks) {
+  const items = decks.map((deck): DeckListItem => {
     const session = sessionsByDeckId[deck.id];
-    const item: DeckListItem = {
+
+    return {
       deck,
       cardCount: cardCounts.get(deck.id) ?? 0,
-      ...(session == null
-        ? {}
-        : {
-            studyProgress: {
-              currentIndex: session.currentIndex,
-              cardCount: session.cardOrderIds.length,
-              lastStudiedAt: session.lastStudiedAt,
-            },
-          }),
+      ...(session == null ? {} : { studyProgress: createDeckListStudyProgress(session) }),
     };
-    if (session == null) other.push(item);
-    else studying.push(item);
-  }
+  });
 
-  studying.sort(
-    (left, right) =>
-      (right.studyProgress?.lastStudiedAt ?? 0) - (left.studyProgress?.lastStudiedAt ?? 0) || compareNames(left, right)
-  );
-  other.sort(compareNames);
+  const studying = items
+    .filter((item) => item.studyProgress != null)
+    .sort(
+      (left, right) =>
+        (right.studyProgress?.lastStudiedAt ?? 0) - (left.studyProgress?.lastStudiedAt ?? 0) ||
+        compareNames(left, right)
+    );
+  const other = items.filter((item) => item.studyProgress == null).sort(compareNames);
 
   return { studying, other };
 };
