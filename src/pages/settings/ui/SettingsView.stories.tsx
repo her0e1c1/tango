@@ -6,9 +6,9 @@ import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 import { SettingsView as View } from "./SettingsView";
 
-type PreferencesFormFields = NonNullable<ComponentProps<typeof View>["preferencesForm"]>["fields"];
+type SettingsFields = ComponentProps<typeof View>["fields"];
 
-const fields: PreferencesFormFields = {
+const fields: SettingsFields = {
   showHeader: { checked: fixture.preferences.default.appearance.showHeader, onChange: () => undefined },
   showSwipeButtonList: { checked: fixture.preferences.default.controls.showSwipeButtonList, onChange: () => undefined },
   showSwipeFeedback: { checked: fixture.preferences.default.appearance.showSwipeFeedback, onChange: () => undefined },
@@ -30,8 +30,7 @@ const fields: PreferencesFormFields = {
   },
 };
 
-const preferencesForm = {
-  preferences: fixture.preferences.default,
+const settingsViewProps = {
   fields,
   maxNumberOfCardsToLearn: fixture.preferences.default.study.maxNumberOfCardsToLearn,
   cardInterval: fixture.preferences.default.study.cardInterval,
@@ -43,7 +42,7 @@ const meta = {
   component: View,
   tags: ["autodocs"],
   parameters: { viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" } },
-  args: { preferencesForm },
+  args: settingsViewProps,
 } satisfies Meta<typeof View>;
 
 export default meta;
@@ -52,24 +51,20 @@ type Story = StoryObj<typeof meta>;
 export const LoggedOut: Story = {};
 export const LoggedIn: Story = {
   args: {
-    preferencesForm: {
-      ...preferencesForm,
-      isLoggedIn: true,
-      identity: { uid: "settings-user", displayName: "Settings User" },
-    },
+    ...settingsViewProps,
+    isLoggedIn: true,
+    identity: { uid: "settings-user", displayName: "Settings User" },
   },
 };
 export const LongContent: Story = {
   args: {
-    preferencesForm: {
-      ...preferencesForm,
-      isLoggedIn: true,
-      identity: {
-        uid: "settings-user-with-an-intentionally-long-identifier-for-responsive-review-1234567890",
-        displayName: "A settings user with an intentionally long display name for responsive review",
-      },
-      version: "2026.07.16-calm-focus-settings-presentation-long-metadata",
+    ...settingsViewProps,
+    isLoggedIn: true,
+    identity: {
+      uid: "settings-user-with-an-intentionally-long-identifier-for-responsive-review-1234567890",
+      displayName: "A settings user with an intentionally long display name for responsive review",
     },
+    version: "2026.07.16-calm-focus-settings-presentation-long-metadata",
   },
 };
 export const Dark: Story = { ...LoggedIn, globals: { theme: "dark" } };

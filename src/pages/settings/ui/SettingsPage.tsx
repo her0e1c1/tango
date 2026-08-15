@@ -5,11 +5,11 @@ import { useKey } from "react-use";
 import { useAuthSession } from "@/entities/auth";
 import { useSignIn } from "@/features/sign-in";
 import { useSignOut } from "@/features/sign-out";
-import { usePreferencesFormState } from "@/features/settings";
 import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 
+import { usePreferencesFormState } from "../model/usePreferencesFormState";
 import { SettingsView } from "./SettingsView";
 
 interface SettingsPageProps {
@@ -40,24 +40,22 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
   return (
     <AppLayout showHeader>
       <SettingsView
-        preferencesForm={{
-          ...preferencesFormState,
-          identity,
-          version: __APP_VERSION__,
-          isLoggedIn: linkedUser != null,
-          onLogin: () => void signIn.signIn().catch(() => undefined),
-          ...(linkedUser ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {}),
-          accountPending: account.pending,
-          accountFeedback: (
-            <RemoteMutationNotice
-              pending={account.pending}
-              error={account.error}
-              onRetry={() => void retryAccountOperation().catch(() => undefined)}
-              pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
-              errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
-            />
-          ),
-        }}
+        {...preferencesFormState}
+        identity={identity}
+        version={__APP_VERSION__}
+        isLoggedIn={linkedUser != null}
+        onLogin={() => void signIn.signIn().catch(() => undefined)}
+        {...(linkedUser ? { onLogout: () => void signOut.signOut().catch(() => undefined) } : {})}
+        accountPending={account.pending}
+        accountFeedback={
+          <RemoteMutationNotice
+            pending={account.pending}
+            error={account.error}
+            onRetry={() => void retryAccountOperation().catch(() => undefined)}
+            pendingLabel={account.kind === "logout" ? "Signing out…" : "Signing in…"}
+            errorLabel={account.kind === "logout" ? "Unable to sign out." : "Unable to sign in."}
+          />
+        }
       />
     </AppLayout>
   );
