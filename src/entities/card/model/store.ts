@@ -9,6 +9,7 @@ import {
   localCardSchema,
   persistedCardSchema,
 } from "./schema";
+import { mustFindCardById } from "./rules";
 import type { Card, CardId, LocalCard, LocalCardCreateInput, LocalCardEdit, RemoteCard } from "./types";
 
 interface CardState {
@@ -77,8 +78,7 @@ export const createLocalCard = (input: LocalCardCreateInput): LocalCard => {
 export const editLocalCard = (input: LocalCardEdit): LocalCard => {
   const edit = localCardEditSchema.parse(input);
   const localCards = cardStore.getState().localCards;
-  const currentCard = localCards.find(({ id }) => id === edit.id);
-  if (currentCard === undefined) throw new Error(`Local Card "${edit.id}" was not found`);
+  const currentCard = mustFindCardById(localCards, edit.id);
 
   const updatedCard = localCardSchema.parse({ ...currentCard, ...edit, updatedAt: Date.now() });
   cardStore.setState({ localCards: localCards.map((card) => (card.id === updatedCard.id ? updatedCard : card)) });

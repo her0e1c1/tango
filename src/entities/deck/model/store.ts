@@ -2,6 +2,7 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
+import { mustFindDeckById } from "./rules";
 import { deckEditSchema, deckIdSchema, localDeckCreateSchema, localDeckSchema } from "./schema";
 import type { Deck, DeckEdit, DeckId, LocalDeck, LocalDeckCreateInput, RemoteDeck } from "./types";
 
@@ -71,8 +72,7 @@ export const createLocalDeck = (input: LocalDeckCreateInput): LocalDeck => {
 export const editLocalDeck = (input: DeckEdit): LocalDeck => {
   const edit = deckEditSchema.parse(input);
   const localDecks = deckStore.getState().localDecks;
-  const currentDeck = localDecks.find(({ id }) => id === edit.id);
-  if (currentDeck === undefined) throw new Error(`Local Deck "${edit.id}" was not found`);
+  const currentDeck = mustFindDeckById(localDecks, edit.id);
 
   const updatedDeck = localDeckSchema.parse({ ...currentDeck, ...edit, updatedAt: Date.now() });
   deckStore.setState({ localDecks: localDecks.map((deck) => (deck.id === updatedDeck.id ? updatedDeck : deck)) });
