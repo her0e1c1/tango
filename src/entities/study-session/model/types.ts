@@ -1,5 +1,6 @@
 import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
+import type { StudyProgressEdit } from "@/entities/study-progress/@x/study-session";
 
 /**
  * Persisted progress for one deck's active study run.
@@ -31,6 +32,15 @@ export type StudySessions = Partial<Record<DeckId, StudySession>>;
 
 export type StudySessionMovement = "previous" | "next";
 export type StudySessionSwipeEffect = "none" | "exit" | StudySessionMovement;
+
+export type StudySessionSwipePlan =
+  | { effect: "none" }
+  | { effect: "exit" }
+  | {
+      effect: StudySessionMovement;
+      session: StudySession;
+      progress: StudyProgressEdit;
+    };
 
 export type StudySessionCard = { id: StudySession["cardOrderIds"][number] };
 
