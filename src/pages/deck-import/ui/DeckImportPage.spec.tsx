@@ -53,9 +53,6 @@ vi.mock("@/features/deck-import", () => ({
     error: mocks.error,
   }),
 }));
-vi.mock("@/features/card/read", () => ({
-  useCardReadState: () => ({ status: "ready", serverConfirmed: true }),
-}));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 vi.mock("@/entities/preferences", () => ({

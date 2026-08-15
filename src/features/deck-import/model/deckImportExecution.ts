@@ -24,7 +24,6 @@ export type DeckImportRequest =
 
 export interface DeckImportDependencies {
   uid: string;
-  synchronized: boolean;
   decks: Deck[];
   cardsByDeckId: (id: DeckId) => Card[];
   createDeck: (deck: DeckCreateInput) => Promise<unknown>;
@@ -89,9 +88,6 @@ const prepareDeckImportAttempt = (
   };
 };
 
-export const synchronizationError = () =>
-  new Error("Deck import requires a synchronized connection. Check your connection and retry.");
-
 export const partialResultFrom = (error: unknown): DeckImportResult | undefined => {
   if (error == null || typeof error !== "object" || !("result" in error)) return undefined;
   const result = error.result;
@@ -111,10 +107,9 @@ export const partialResultFrom = (error: unknown): DeckImportResult | undefined 
 
 export const executeDeckImport = async (
   request: DeckImportRequest,
-  { uid, synchronized, decks, cardsByDeckId, createDeck, generateCardId, bulkUpsert }: DeckImportDependencies
+  { uid, decks, cardsByDeckId, createDeck, generateCardId, bulkUpsert }: DeckImportDependencies
 ): Promise<DeckImportResult> => {
   if (uid === "") throw new Error("A confirmed user is required for imports");
-  if (!synchronized) throw synchronizationError();
 
   let attempt = request.attempt;
   if (attempt == null || attempt.uid !== uid) {

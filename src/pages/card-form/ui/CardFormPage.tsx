@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
 import { CardEditForm } from "@/features/card-edit";
-import { useCardReadState } from "@/features/card/read";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -25,11 +24,10 @@ export const CardFormPage: React.FC = () => {
   const cardId = params.id;
   if (cardId == null) throw Error("invalid card id");
   const card = useCard(cardId);
-  const cardReadState = useCardReadState();
 
   return (
     <RemoteReadBoundary
-      status={cardReadState.status}
+      status="ready"
       hasData={card != null}
       emptyContent={
         <RouteFeedback

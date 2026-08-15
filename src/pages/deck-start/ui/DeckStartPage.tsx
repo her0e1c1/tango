@@ -7,7 +7,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { filterCardsByDeckId, filterTagsByDeckId, useCards } from "@/entities/card";
-import { useCardReadState } from "@/features/card/read";
 import { DeckStartForm, useDeckFilterState, useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
 import { RemoteReadBoundary } from "@/shared/ui/remote-read-boundary";
@@ -62,7 +61,6 @@ export const DeckStartPage: React.FC = () => {
   const preferences = usePreferences();
   const allCards = useCards();
   const cardsById = React.useMemo(() => toRemoteById(allCards), [allCards]);
-  const cardReadState = useCardReadState();
   const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(allCards, deckId), [allCards, deckId]);
   const cards = useStudyCards(deck, deckCards, preferences);
@@ -70,8 +68,8 @@ export const DeckStartPage: React.FC = () => {
 
   return (
     <RemoteReadBoundary
-      status={cardReadState.status}
-      hasData={cardReadState.status === "ready" && deck != null}
+      status="ready"
+      hasData={deck != null}
       emptyContent={
         <RouteFeedback
           title="Deck not found"

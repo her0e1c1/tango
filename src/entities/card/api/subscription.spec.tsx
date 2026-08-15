@@ -5,26 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCards } from "../model/hooks";
 import { clearCards } from "../model/store";
 
-type TestDocument = { id: string; data: () => Record<string, unknown> };
-type TestSnapshot = {
-  docs: TestDocument[];
-  metadata: { fromCache: boolean; hasPendingWrites: boolean };
-};
-
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
+  onSnapshot: vi.fn(),
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
-  next: undefined as ((snapshot: TestSnapshot) => void) | undefined,
-  error: undefined as ((error: Error) => void) | undefined,
   unsubscribe: vi.fn(),
-  onSnapshot: vi.fn(
-    (_query: unknown, _options: unknown, next: (snapshot: TestSnapshot) => void, error: (cause: Error) => void) => {
-      mocks.next = next;
-      mocks.error = error;
-      return mocks.unsubscribe;
-    }
-  ),
 }));
 
 vi.mock("firebase/firestore", async (importOriginal) => {
@@ -41,7 +27,7 @@ vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
 import { subscribeCards } from "./firestore";
 
-const cardDocument = (id: string, overrides: Record<string, unknown> = {}): TestDocument => ({
+const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
   data: () => ({
     frontText: "Remote front",
@@ -59,33 +45,27 @@ const cardDocument = (id: string, overrides: Record<string, unknown> = {}): Test
   }),
 });
 
-const metadata = { fromCache: false, hasPendingWrites: false };
+const getSnapshotHandler = () =>
+  mocks.onSnapshot.mock.calls[0]?.[1] as (snapshot: { docs: ReturnType<typeof cardDocument>[] }) => void;
+const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
 describe("Card Firestore subscription", () => {
   beforeEach(() => {
     clearCards();
     vi.clearAllMocks();
-    mocks.next = undefined;
-    mocks.error = undefined;
+    mocks.onSnapshot.mockReturnValue(mocks.unsubscribe);
   });
 
   it("subscribes by UID and fully replaces active Cards from each snapshot", () => {
-    const onData = vi.fn();
     const { result } = renderHook(useCards);
-    const unsubscribe = subscribeCards("uid-a", vi.fn(), onData);
+    const unsubscribe = subscribeCards("uid-a", vi.fn());
 
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
-    expect(mocks.onSnapshot).toHaveBeenCalledWith(
-      expect.anything(),
-      { includeMetadataChanges: true },
-      expect.any(Function),
-      expect.any(Function)
-    );
+    expect(mocks.onSnapshot).toHaveBeenCalledWith(expect.anything(), expect.any(Function), expect.any(Function));
 
     act(() =>
-      mocks.next?.({
-        metadata,
+      getSnapshotHandler()({
         docs: [
           cardDocument("active", {
             lastSeenAt: 50,
@@ -111,9 +91,8 @@ describe("Card Firestore subscription", () => {
         endLine: 9,
       }),
     ]);
-    expect(onData).toHaveBeenCalledWith(metadata);
 
-    act(() => mocks.next?.({ metadata, docs: [cardDocument("replacement", { frontText: "Current" })] }));
+    act(() => getSnapshotHandler()({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
     expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" })]);
 
     unsubscribe();
@@ -124,7 +103,7 @@ describe("Card Firestore subscription", () => {
     const onError = vi.fn();
     subscribeCards("uid-a", onError);
 
-    act(() => mocks.next?.({ metadata, docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
+    act(() => getSnapshotHandler()({ docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ name: "FirestoreDocumentValidationError", documentId: "invalid" })
@@ -136,7 +115,7 @@ describe("Card Firestore subscription", () => {
     const error = new Error("listener failed");
     subscribeCards("uid-a", onError);
 
-    mocks.error?.(error);
+    getErrorHandler()(error);
 
     expect(onError).toHaveBeenCalledWith(error);
   });

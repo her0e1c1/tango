@@ -16,7 +16,7 @@ import { parseCsv } from "../lib/cardCsv";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
 import { upsertImportedCards } from "../api/upsertImportedCards";
 import type { DeckImportDependencies, DeckImportRequest } from "../model/deckImportExecution";
-import { executeDeckImport, partialResultFrom, synchronizationError } from "../model/deckImportExecution";
+import { executeDeckImport, partialResultFrom } from "../model/deckImportExecution";
 
 export interface DeckImportOptions {
   cards: Card[];
@@ -25,7 +25,6 @@ export interface DeckImportOptions {
   decks: Deck[];
   editCard: (uid: string, card: CardEdit) => Promise<unknown>;
   generateCardId: () => string;
-  synchronized: boolean;
 }
 
 interface DeckImportState {
@@ -81,9 +80,7 @@ interface FilePreviewDependencies {
   runningRef: { current: boolean };
   setValidating: (validating: boolean) => void;
   setPreview: (preview: DeckImportPreview | undefined) => void;
-  setError: (error: unknown) => void;
   reset: () => void;
-  synchronized: boolean;
   decks: Deck[];
   cardsByDeckId: (id: DeckId) => Card[];
   uid: string;
@@ -103,9 +100,7 @@ const previewDeckImportFile = async (
     runningRef,
     setValidating,
     setPreview,
-    setError,
     reset,
-    synchronized,
     decks,
     cardsByDeckId,
     uid,
@@ -116,12 +111,6 @@ const previewDeckImportFile = async (
 ) => {
   const isCurrent = () => currentGeneration.current === generation && currentUid.current === uid;
   if (runningRef.current) throw new Error("A Deck import is already running");
-  if (!synchronized) {
-    const error = synchronizationError();
-    reset();
-    setError(error);
-    throw error;
-  }
   setValidating(true);
   setPreview(undefined);
   reset();
@@ -155,7 +144,6 @@ export const useDeckImport = ({
   decks,
   editCard,
   generateCardId,
-  synchronized,
 }: DeckImportOptions) => {
   const auth = useAuthSession();
   const cardsByDeckId = useCallback((deckId: DeckId) => filterCardsByDeckId(cards, deckId), [cards]);
@@ -185,14 +173,13 @@ export const useDeckImport = ({
   useEffect(() => {
     dependenciesRef.current = {
       uid,
-      synchronized,
       decks,
       cardsByDeckId,
       createDeck: (deck) => createDeck(uid, deck),
       generateCardId,
       bulkUpsert: (cards, createdIds) => upsertImportedCards(uid, cards, createdIds, { createCard, editCard }),
     };
-  }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, synchronized, uid]);
+  }, [cardsByDeckId, createCard, createDeck, decks, editCard, generateCardId, uid]);
   const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
     setState((current) => ({
       ...(current.uid === uid ? current : initialDeckImportState(uid)),
@@ -255,9 +242,7 @@ export const useDeckImport = ({
       runningRef,
       setValidating,
       setPreview,
-      setError,
       reset: resetOperation,
-      synchronized,
       decks,
       cardsByDeckId,
       uid,

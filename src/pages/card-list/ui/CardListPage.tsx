@@ -5,7 +5,6 @@ import { useKey } from "react-use";
 import { filterCardsByDeckId, filterTagsByDeckId, type Card, type CardId, useCards } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
-import { useCardReadState } from "@/features/card/read";
 import { CardList } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
 import { DeckStartForm, useDeckFilterState, useEditStudyProgress, useStudyCards } from "@/features/study";
@@ -49,7 +48,6 @@ export const CardListPage: React.FC = () => {
   if (deckId == null) throw Error("invalid deck id");
   const preferences = usePreferences();
   const allCards = useCards();
-  const cardReadState = useCardReadState();
   const deck = useDeck(deckId);
   const deckCards = React.useMemo(() => filterCardsByDeckId(allCards, deckId), [allCards, deckId]);
   const cards = useStudyCards(deck, deckCards, preferences);
@@ -60,8 +58,8 @@ export const CardListPage: React.FC = () => {
 
   return (
     <RemoteReadBoundary
-      status={cardReadState.status}
-      hasData={cardReadState.status === "ready" && deck != null}
+      status="ready"
+      hasData={deck != null}
       emptyContent={
         <RouteFeedback
           title="Deck not found"

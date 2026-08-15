@@ -12,7 +12,6 @@ const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
   preferences: null as unknown as Preferences,
   card: null as Card | null,
-  cardStatus: "ready" as "idle" | "loading" | "ready" | "error" | "blocked",
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
@@ -23,9 +22,6 @@ vi.mock("@/entities/preferences", () => ({
 }));
 vi.mock("@/entities/card", () => ({
   useCard: () => mocks.card ?? undefined,
-}));
-vi.mock("@/features/card/read", () => ({
-  useCardReadState: () => ({ status: mocks.cardStatus }),
 }));
 vi.mock("@/features/card-edit", () => ({
   CardEditForm: (props: { card: Card; onCancel: () => void; onSaved: () => void }) => (
@@ -55,7 +51,6 @@ describe("CardFormPage", () => {
     mocks.params.id = card.id;
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.card = card;
-    mocks.cardStatus = "ready";
     mocks.navigate.mockReset();
     mocks.setDarkMode.mockReset();
   });
@@ -81,24 +76,6 @@ describe("CardFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
-  });
-
-  it("shows loading feedback while the route target is unresolved", () => {
-    mocks.card = null;
-    mocks.cardStatus = "loading";
-
-    render(<CardFormPage />);
-
-    expect(screen.getByRole("heading", { level: 1, name: "Loading…" })).toBeVisible();
-  });
-
-  it("shows a failed route target read", () => {
-    mocks.card = null;
-    mocks.cardStatus = "error";
-    render(<CardFormPage />);
-
-    expect(screen.getByRole("heading", { level: 1, name: "Unable to load data." })).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 
   it("shows recovery actions when the card is unavailable", async () => {

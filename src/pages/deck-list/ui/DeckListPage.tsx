@@ -5,7 +5,6 @@ import { useKey } from "react-use";
 import { useAuthSession } from "@/entities/auth";
 import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
 import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
-import { useCardReadState } from "@/features/card/read";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
 import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
@@ -16,11 +15,9 @@ export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
   const auth = useAuthSession();
   const cards = useCards();
-  const cardReadState = useCardReadState();
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
   const hydrated = useStudyHydrated();
-  const synchronized = cardReadState.serverConfirmed;
   const uid = auth.status === "authenticated" ? auth.uid : "";
 
   useSampleDeckBootstrap({
@@ -30,17 +27,12 @@ export const DeckListPage: React.FC = () => {
     decks,
     editCard,
     generateCardId,
-    synchronized,
   });
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
 
   return (
-    <RemoteReadBoundary
-      status={cardReadState.status}
-      hasData={cardReadState.status === "ready" && decks.length > 0}
-      emptyLabel="No decks yet."
-    >
+    <RemoteReadBoundary status="ready" hasData={decks.length > 0} emptyLabel="No decks yet.">
       {hydrated ? (
         <AppLayout showHeader>
           <DeckList

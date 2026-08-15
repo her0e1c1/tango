@@ -14,7 +14,6 @@ const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
   card: null as Card | null,
   deck: null as Deck | null,
-  cardStatus: "ready" as "loading" | "ready" | "error" | "blocked",
   navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
@@ -26,11 +25,6 @@ vi.mock("@/entities/preferences", () => ({
 }));
 vi.mock("@/entities/card", () => ({
   useCard: () => mocks.card ?? undefined,
-}));
-vi.mock("@/features/card/read", () => ({
-  useCardReadState: () => ({
-    status: mocks.cardStatus,
-  }),
 }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
@@ -59,7 +53,6 @@ describe("CardViewPage", () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.card = card;
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
-    mocks.cardStatus = "ready";
     mocks.navigate.mockReset();
     mocks.setDarkMode.mockReset();
   });

@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, useCards } from "@/entities/card";
-import { useCardReadState } from "@/features/card/read";
 import { BackText, CardOverlay, FrontText } from "@/features/card-view";
 import {
   initializeStudySessionUi,
@@ -30,17 +29,7 @@ const SWIPE_FEEDBACK_DURATION_MS = 900;
 const isHistoryState = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
-type CardReadState = ReturnType<typeof useCardReadState>;
-
-const DeckSwiperContent = ({
-  cardsById,
-  deck,
-  readState,
-}: {
-  cardsById: Partial<Record<CardId, Card>>;
-  deck: Deck;
-  readState: CardReadState;
-}) => {
+const DeckSwiperContent = ({ cardsById, deck }: { cardsById: Partial<Record<CardId, Card>>; deck: Deck }) => {
   const navigate = useNavigate();
   const deckId = deck.id;
   const preferences = usePreferences();
@@ -104,12 +93,12 @@ const DeckSwiperContent = ({
       exitingDeck.current = undefined;
       return;
     }
-    if (!hydrated || readState.status !== "ready" || exitingDeck.current === deckId) return;
+    if (!hydrated || exitingDeck.current === deckId) return;
 
     exitingDeck.current = deckId;
     studyActions.resetStudy();
     void navigate("/", { replace: true });
-  }, [deckId, hydrated, navigate, readState.status, studyActions, valid]);
+  }, [deckId, hydrated, navigate, studyActions, valid]);
 
   // Keep the active study session on the route when browser history moves backward.
   React.useEffect(() => {
@@ -129,7 +118,7 @@ const DeckSwiperContent = ({
 
   if (card == null) {
     return (
-      <RemoteReadBoundary status={readState.status} hasData={false} emptyLabel="Study session unavailable.">
+      <RemoteReadBoundary status="ready" hasData={false} emptyLabel="Study session unavailable.">
         {null}
       </RemoteReadBoundary>
     );
@@ -189,12 +178,11 @@ export const DeckSwiperPage: React.FC = () => {
 
   const cards = useCards();
   const cardsById = React.useMemo(() => toRemoteById(cards), [cards]);
-  const readState = useCardReadState();
   const deck = useDeck(deckId);
 
   return (
-    <RemoteReadBoundary status={readState.status} hasData={deck != null} emptyLabel="Study session unavailable.">
-      {deck != null ? <DeckSwiperContent cardsById={cardsById} deck={deck} readState={readState} /> : null}
+    <RemoteReadBoundary status="ready" hasData={deck != null} emptyLabel="Study session unavailable.">
+      {deck != null ? <DeckSwiperContent cardsById={cardsById} deck={deck} /> : null}
     </RemoteReadBoundary>
   );
 };
