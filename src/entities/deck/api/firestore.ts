@@ -11,6 +11,7 @@ import type {
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDocs,
   getDocsFromServer,
@@ -107,7 +108,7 @@ export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<vo
 const updateDeckDocument = async (deck: DeckEdit): Promise<void> => {
   const document = omitUndefined({
     name: deck.name,
-    url: deck.url,
+    url: deck.url === null ? deleteField() : deck.url,
     isPublic: deck.isPublic,
     updatedAt: getCurrentTimeMillis(),
     scoreMax: deck.scoreMax,

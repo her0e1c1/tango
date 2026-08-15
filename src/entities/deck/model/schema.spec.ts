@@ -9,7 +9,7 @@ describe("Deck operation schemas", () => {
 
   describe("createDeckSchema", () => {
     it("applies entity defaults without adding persistence timestamps", () => {
-      expect(createDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", uid: "uid-a", name: "Deck" } })).toEqual({
+      expect(createDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", uid: "uid-a", name: " Deck " } })).toEqual({
         uid: "uid-a",
         deck: {
           id: "deck",
@@ -32,7 +32,8 @@ describe("Deck operation schemas", () => {
       ["authenticated uid", { uid: "", deck }, "confirmed user"],
       ["Deck id", { uid: "uid-a", deck: { ...deck, id: "" } }, "Deck id"],
       ["Deck uid", { uid: "uid-a", deck: { ...deck, uid: "" } }, "Deck owner"],
-      ["Deck name", { uid: "uid-a", deck: { ...deck, name: "" } }, "Deck name"],
+      ["Deck name", { uid: "uid-a", deck: { ...deck, name: "   " } }, "Deck name"],
+      ["Deck URL", { uid: "uid-a", deck: { ...deck, url: "not-a-url" } }, "valid URL"],
       ["local mode", { uid: "uid-a", deck: { ...deck, localMode: true } }, "Invalid input"],
       ["owner relationship", { uid: "uid-b", deck }, "owner does not match"],
     ])("rejects an invalid %s", (_case, input, message) => {
@@ -42,16 +43,24 @@ describe("Deck operation schemas", () => {
 
   describe("editDeckSchema", () => {
     it("accepts a partial edit with a non-empty Deck id", () => {
-      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", name: "Renamed" } })).toEqual({
+      expect(
+        editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", name: " Renamed ", url: "https://example.com" } })
+      ).toEqual({
         uid: "uid-a",
-        deck: { id: "deck", name: "Renamed" },
+        deck: { id: "deck", name: "Renamed", url: "https://example.com" },
       });
+    });
+
+    it("uses null to distinguish clearing a URL from leaving it unchanged", () => {
+      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck" } }).deck).not.toHaveProperty("url");
+      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", url: null } }).deck).toHaveProperty("url", null);
     });
 
     it.each([
       ["authenticated uid", { uid: "", deck: { id: "deck" } }, "confirmed user"],
       ["Deck id", { uid: "uid-a", deck: { id: "" } }, "Deck id"],
-      ["provided Deck name", { uid: "uid-a", deck: { id: "deck", name: "" } }, "Deck name"],
+      ["provided Deck name", { uid: "uid-a", deck: { id: "deck", name: "   " } }, "Deck name"],
+      ["provided Deck URL", { uid: "uid-a", deck: { id: "deck", url: "not-a-url" } }, "valid URL"],
     ])("rejects an invalid %s", (_case, input, message) => {
       expect(() => editDeckSchema.parse(input)).toThrow(message);
     });
