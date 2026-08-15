@@ -18,6 +18,7 @@ type ControlPreferences = Preferences["controls"];
 export const createDeck = (overrides: Partial<Deck> = {}): Deck => ({
   id: "deck-id",
   uid: "user-id",
+  localMode: false,
   name: "Deck",
   isPublic: false,
   createdAt: 0,

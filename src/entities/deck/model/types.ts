@@ -7,12 +7,14 @@ import type {
   deckSchema,
   deleteDeckSchema,
   editDeckSchema,
+  localDeckCreateSchema,
 } from "./schema";
 
 export type Category = string;
 export type Deck = z.infer<typeof deckSchema>;
 export type DeckCreate = z.infer<typeof deckCreateSchema>;
 export type DeckCreateInput = z.input<typeof deckCreateSchema>;
+export type LocalDeckCreateInput = z.input<typeof localDeckCreateSchema>;
 export type DeckId = z.infer<typeof deckIdSchema>;
 export type DeckEdit = z.infer<typeof deckEditSchema>;
 export type EditDeckInput = z.infer<typeof editDeckSchema>;

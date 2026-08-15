@@ -67,8 +67,6 @@ export const fetchCards = async (uid: string): Promise<Card[]> => {
     .filter((card) => card.deletedAt === null);
 };
 
-export const generateCardId = (): string => doc(collection(db, CARD_COLLECTION)).id;
-
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();
   const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies Card);

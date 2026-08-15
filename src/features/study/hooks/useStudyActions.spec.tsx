@@ -39,6 +39,7 @@ vi.mock("@/entities/preferences", () => ({
 const deck: Deck = {
   id: "deck-1",
   uid: "user-1",
+  localMode: false,
   name: "Deck",
   isPublic: false,
   createdAt: 0,

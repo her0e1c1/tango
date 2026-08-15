@@ -15,6 +15,7 @@ describe("Deck operation schemas", () => {
           id: "deck",
           uid: "uid-a",
           name: "Deck",
+          localMode: false,
           isPublic: false,
           scoreMax: null,
           scoreMin: null,
@@ -32,6 +33,7 @@ describe("Deck operation schemas", () => {
       ["Deck id", { uid: "uid-a", deck: { ...deck, id: "" } }, "Deck id"],
       ["Deck uid", { uid: "uid-a", deck: { ...deck, uid: "" } }, "Deck owner"],
       ["Deck name", { uid: "uid-a", deck: { ...deck, name: "" } }, "Deck name"],
+      ["local mode", { uid: "uid-a", deck: { ...deck, localMode: true } }, "Invalid input"],
       ["owner relationship", { uid: "uid-b", deck }, "owner does not match"],
     ])("rejects an invalid %s", (_case, input, message) => {
       expect(() => createDeckSchema.parse(input)).toThrow(message);

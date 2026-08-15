@@ -1,5 +1,9 @@
-export { createDeck, deleteDeck, editDeck, fetchDecks, generateDeckId, subscribeDecks } from "./api/firestore";
+export { createDeck, deleteDeck, editDeck, fetchDecks, subscribeDecks } from "./api/firestore";
+/** @public */
+export { createLocalDeck, deleteLocalDeck, editLocalDeck } from "./api/local";
+export { generateDeckId } from "./model/id";
 export { CATEGORY, getCategory, isHighlightLanguage } from "./model/rules";
 export { useDeck, useDecks } from "./model/hooks";
 export { clearRemoteDecks } from "./model/store";
-export type { Deck, DeckCreateInput, DeckEdit, DeckId } from "./model/types";
+/** @public */
+export type { Deck, DeckCreateInput, DeckEdit, DeckId, LocalDeckCreateInput } from "./model/types";

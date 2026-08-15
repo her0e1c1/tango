@@ -54,7 +54,7 @@ describe("Deck Firestore subscription", () => {
   });
 
   it("subscribes by UID and replaces the store with active Decks", () => {
-    const localDeck = createDeck({ id: "local", name: "Local Deck" });
+    const localDeck = createDeck({ id: "local", name: "Local Deck", localMode: true });
     deckStore.setState({ localDecks: [localDeck] });
     const { result } = renderHook(useDecks);
     const unsubscribe = subscribeDecks("uid-a", vi.fn());
@@ -67,7 +67,10 @@ describe("Deck Firestore subscription", () => {
       })
     );
 
-    expect(result.current).toEqual([expect.objectContaining({ id: "active", url: "https://example.com" }), localDeck]);
+    expect(result.current).toEqual([
+      expect.objectContaining({ id: "active", url: "https://example.com", localMode: false }),
+      localDeck,
+    ]);
     unsubscribe();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
