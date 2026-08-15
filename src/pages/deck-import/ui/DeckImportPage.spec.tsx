@@ -136,6 +136,12 @@ describe("DeckImportPage", () => {
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
+
+    mocks.navigate.mockClear();
+    const fileInput = screen.getByLabelText("Upload a csv file");
+    fireEvent.keyDown(fileInput, { key: "t" });
+    fireEvent.keyDown(fileInput, { key: "s" });
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
   it("adds the bundled sample without navigating automatically", async () => {

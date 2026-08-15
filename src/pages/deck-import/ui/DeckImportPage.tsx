@@ -6,6 +6,7 @@ import { createDeck, useDecks } from "@/entities/deck";
 import { createCard, editCard, generateCardId, useCards } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck-import";
+import { isInteractiveShortcutTarget } from "@/shared/lib/isInteractiveShortcutTarget";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckImportView } from "./DeckImportView";
@@ -23,8 +24,14 @@ export const DeckImportPage: React.FC = () => {
     editCard,
     generateCardId,
   });
-  useKey("t", () => void navigate("/"));
-  useKey("s", () => void navigate("/settings"));
+  useKey("t", (event) => {
+    if (isInteractiveShortcutTarget(event.target)) return;
+    void navigate("/");
+  });
+  useKey("s", (event) => {
+    if (isInteractiveShortcutTarget(event.target)) return;
+    void navigate("/settings");
+  });
 
   return (
     <AppLayout showHeader>

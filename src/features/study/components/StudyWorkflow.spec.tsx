@@ -76,6 +76,7 @@ const WorkflowView = ({ state }: { state: StudyWorkflowState }) => {
       <button type="button" onClick={state.actions.swipeRight}>
         swipe right
       </button>
+      <input type="range" aria-label="Study position" />
     </div>
   );
 };
@@ -127,6 +128,22 @@ describe("StudyWorkflow", () => {
     fireEvent.keyDown(window, { key: "ArrowRight" });
     await waitFor(() => expect(screen.getByText("card-2")).toBeVisible());
     expect(mocks.update).toHaveBeenCalledOnce();
+  });
+
+  it("leaves keyboard interaction to focused Study controls", () => {
+    renderWorkflow();
+
+    const toggleBackButton = screen.getByRole("button", { name: "toggle back" });
+    fireEvent.keyDown(toggleBackButton, { key: "Enter" });
+    fireEvent.keyDown(toggleBackButton, { key: " " });
+    fireEvent.keyDown(toggleBackButton, { key: "h" });
+    expect(screen.getByTestId("back")).toHaveTextContent("false");
+    expect(screen.getByTestId("autoplay")).toHaveTextContent("false");
+    expect(mocks.toggleShowHeader).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(screen.getByRole("slider", { name: "Study position" }), { key: "ArrowRight" });
+    expect(screen.getByTestId("index")).toHaveTextContent("0");
+    expect(mocks.update).not.toHaveBeenCalled();
   });
 
   it("waits for Card readiness and exits only after hydration confirms unavailability", async () => {

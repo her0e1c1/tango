@@ -8,6 +8,7 @@ import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
 import { removeStudySession, touchStudySession, useStudyHydrated, useStudySessions } from "@/features/study";
+import { isInteractiveShortcutTarget } from "@/shared/lib/isInteractiveShortcutTarget";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckListPage: React.FC = () => {
@@ -26,8 +27,14 @@ export const DeckListPage: React.FC = () => {
     editCard,
     generateCardId,
   });
-  useKey("s", () => void navigate("/settings"));
-  useKey("i", () => void navigate("/import"));
+  useKey("s", (event) => {
+    if (isInteractiveShortcutTarget(event.target)) return;
+    void navigate("/settings");
+  });
+  useKey("i", (event) => {
+    if (isInteractiveShortcutTarget(event.target)) return;
+    void navigate("/import");
+  });
 
   if (!hydrated) {
     return (

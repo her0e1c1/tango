@@ -38,8 +38,11 @@ describe("SettingsPage", () => {
 
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     fireEvent.keyDown(window, { key: "t" });
-
     expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/");
+
+    mocks.navigate.mockClear();
+    fireEvent.keyDown(screen.getByRole("button", { name: "Login" }), { key: "t" });
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
   it("displays an alert when sign-out fails and allows retrying sign-out", async () => {

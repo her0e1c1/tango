@@ -71,6 +71,14 @@ vi.mock("@/features/deck-list", () => ({
         <button type="button" onClick={() => void props.onDeleteDeck(deck)}>
           Delete deck
         </button>
+        <div role="menu">
+          <button type="button" role="menuitem">
+            Menu action
+          </button>
+        </div>
+        <div role="alertdialog" aria-label="Delete deck dialog">
+          <button type="button">Cancel delete</button>
+        </div>
       </section>
     );
   },
@@ -120,6 +128,11 @@ describe("DeckListPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
     expect(mocks.sampleBootstrap).toHaveBeenCalledWith(expect.objectContaining({ decks: [deck], cards: [card] }));
+
+    mocks.navigate.mockClear();
+    fireEvent.keyDown(screen.getByRole("menuitem", { name: "Menu action" }), { key: "s" });
+    fireEvent.keyDown(screen.getByRole("button", { name: "Cancel delete" }), { key: "i" });
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
   it("renders empty list when no decks exist", () => {

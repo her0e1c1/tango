@@ -113,6 +113,12 @@ describe("CardListPage", () => {
     fireEvent.keyDown(window, { key: "s" });
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
+
+    mocks.navigate.mockClear();
+    const editButton = screen.getByRole("button", { name: "Edit card" });
+    fireEvent.keyDown(editButton, { key: "t" });
+    fireEvent.keyDown(editButton, { key: "s" });
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
   it("renders not-found feedback with route navigation", async () => {

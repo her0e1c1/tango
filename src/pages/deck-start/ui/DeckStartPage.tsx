@@ -10,13 +10,11 @@ import { useCardsByDeckId } from "@/entities/card";
 import { DeckStartForm, useDeckFilterState } from "@/features/deck-start";
 import { useStudyActions, useStudyCards } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
+import { isInteractiveShortcutTarget } from "@/shared/lib/isInteractiveShortcutTarget";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { DeckStartView } from "./DeckStartView";
-
-const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
-  target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
 const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Preferences; tags: string[] }) => {
   const { deck, cards, preferences, tags } = props;
@@ -27,7 +25,7 @@ const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Prefe
   const deckStartForm = useDeckFilterState({ deck, tags });
   const start = () => studyActions.start(cards);
   const startFromEnter = (event: KeyboardEvent) => {
-    if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
+    if (cards.length === 0 || isInteractiveShortcutTarget(event.target)) return;
     start();
   };
   useKey("Enter", startFromEnter, {}, [startFromEnter]);

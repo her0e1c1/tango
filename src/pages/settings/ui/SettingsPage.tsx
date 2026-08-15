@@ -7,6 +7,7 @@ import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { SettingsForm, usePreferencesFormState } from "@/features/settings";
 import { useSignIn } from "@/features/sign-in";
 import { useSignOut } from "@/features/sign-out";
+import { isInteractiveShortcutTarget } from "@/shared/lib/isInteractiveShortcutTarget";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -33,7 +34,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
     preferences,
     onSubmit: updatePreferences,
   });
-  useKey("t", () => void navigate("/"));
+  useKey("t", (event) => {
+    if (isInteractiveShortcutTarget(event.target)) return;
+    void navigate("/");
+  });
 
   return (
     <AppLayout showHeader>
