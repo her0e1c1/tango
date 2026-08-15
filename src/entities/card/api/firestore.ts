@@ -27,10 +27,6 @@ import { replaceCards } from "../model/store";
 
 const CARD_COLLECTION = "card";
 
-export interface CardSubscriptionEvent {
-  serverConfirmed: boolean;
-}
-
 const validJavaScriptDateSchema = z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date");
 const firestoreTimestampSchema = z.custom<Timestamp>(
   (value) =>
@@ -133,22 +129,15 @@ const convertCardDtoToCard = (id: CardId, value: unknown): Card => {
   return card;
 };
 
-export const subscribeCards = (
-  uid: string,
-  onError: (error: Error) => void,
-  onData: (event: CardSubscriptionEvent) => void = () => undefined
-): (() => void) =>
+export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
   onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
-    { includeMetadataChanges: true },
     (snapshot) => {
       try {
         const cards = snapshot.docs
           .map((document) => convertCardDtoToCard(document.id, document.data()))
           .filter((card) => card.deletedAt === null);
         replaceCards(cards);
-        const serverConfirmed = !snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites;
-        onData({ serverConfirmed });
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
