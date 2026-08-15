@@ -1,6 +1,5 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
 import * as tsParser from "@typescript-eslint/parser";
-import eslintReact from "@eslint-react/eslint-plugin";
 import {
   createConfig as createBoundariesConfig,
   recommended as boundariesRecommended,
@@ -41,18 +40,17 @@ export default [
   },
   {
     files: sourceFiles,
-    plugins: {
-      "@eslint-react": eslintReact,
-    },
     rules: {
-      // React Compiler owns routine memoization; manual useMemo must have an observable reason to remain.
-      "@eslint-react/no-unnecessary-use-memo": "error",
       // Reserve this identifier so imports and React-qualified calls cannot bypass the compiler policy.
       "no-restricted-syntax": [
         "error",
         {
           selector: "Identifier[name='useCallback']",
           message: "Do not use useCallback; rely on React Compiler memoization.",
+        },
+        {
+          selector: "Identifier[name='useMemo']",
+          message: "Do not use useMemo; rely on React Compiler memoization.",
         },
       ],
     },
