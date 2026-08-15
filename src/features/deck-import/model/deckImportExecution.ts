@@ -6,15 +6,16 @@ import { generateDeckId } from "@/entities/deck";
 import sampleCards from "../../../../sample/build/output.json";
 import { CardBulkMutationError } from "../api/upsertImportedCards";
 import { buildDeckImportPlan } from "../lib/deckImportAnalysis";
-import type { DeckImportResult, DeckImportRow } from "./deckImportTypes";
+import type { DeckImportPlan, DeckImportResult, DeckImportRow } from "./deckImportTypes";
 
-interface DeckImportAttempt {
+export interface DeckImportAttempt {
   uid: string;
   deck: DeckCreateInput;
   createDeckPending: boolean;
   remainingUpserts: CardCreateInput[];
   createdIds: CardId[];
   updatedIds: CardId[];
+  plan: DeckImportPlan;
   totals: Pick<DeckImportResult, "created" | "updated" | "skipped">;
 }
 
@@ -86,8 +87,37 @@ const prepareDeckImportAttempt = (
     remainingUpserts,
     createdIds,
     updatedIds,
+    plan,
     totals: { created: plan.created, updated: plan.updated, skipped: plan.unchanged },
   };
+};
+
+export const prepareDeckImport = async (
+  request: DeckImportRequest,
+  { uid, decks, cardsByDeckId, generateCardId, fetchDecks, fetchCards }: DeckImportDependencies
+): Promise<DeckImportAttempt> => {
+  if (uid === "") throw new Error("A confirmed user is required for imports");
+  if (request.attempt?.uid === uid) return request.attempt;
+
+  let activeDecks = decks;
+  let getCardsByDeckId = cardsByDeckId;
+  if (request.kind === "content") {
+    if (fetchDecks == null || fetchCards == null) {
+      throw new Error("Server-backed Deck import dependencies are not available");
+    }
+    const [remoteDecks, remoteCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
+    activeDecks = remoteDecks;
+    getCardsByDeckId = (deckId: DeckId) => remoteCards.filter((card) => card.deckId === deckId);
+  }
+
+  const attempt = prepareDeckImportAttempt(request, {
+    uid,
+    decks: activeDecks,
+    cardsByDeckId: getCardsByDeckId,
+    generateCardId,
+  });
+  request.attempt = attempt;
+  return attempt;
 };
 
 export const partialResultFrom = (error: unknown): DeckImportResult | undefined => {
@@ -109,32 +139,10 @@ export const partialResultFrom = (error: unknown): DeckImportResult | undefined 
 
 export const executeDeckImport = async (
   request: DeckImportRequest,
-  { uid, decks, cardsByDeckId, createDeck, generateCardId, bulkUpsert, fetchDecks, fetchCards }: DeckImportDependencies
+  dependencies: DeckImportDependencies
 ): Promise<DeckImportResult> => {
-  if (uid === "") throw new Error("A confirmed user is required for imports");
-
-  let activeDecks = decks;
-  let getCardsByDeckId = cardsByDeckId;
-  if (fetchDecks != null && fetchCards != null) {
-    try {
-      const [remoteDecks, remoteCards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
-      activeDecks = remoteDecks;
-      getCardsByDeckId = (deckId: DeckId) => remoteCards.filter((card) => card.deckId === deckId);
-    } catch {
-      // Fall back to passed dependencies if remote fetch fails
-    }
-  }
-
-  let attempt = request.attempt;
-  if (attempt == null || attempt.uid !== uid) {
-    attempt = prepareDeckImportAttempt(request, {
-      uid,
-      decks: activeDecks,
-      cardsByDeckId: getCardsByDeckId,
-      generateCardId,
-    });
-    request.attempt = attempt;
-  }
+  const { createDeck, bulkUpsert } = dependencies;
+  const attempt = await prepareDeckImport(request, dependencies);
   if (attempt.createDeckPending) {
     await createDeck(attempt.deck);
     attempt.createDeckPending = false;
