@@ -31,14 +31,12 @@ describe("study session commands", () => {
 
   it("initializes transient study controls", () => {
     studyStore.setState({
-      showBackText: true,
       autoPlay: false,
     });
 
     initializeStudySessionUi(true);
 
     expect(studyStore.getState()).toMatchObject({
-      showBackText: false,
       autoPlay: true,
     });
   });

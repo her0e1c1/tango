@@ -24,16 +24,13 @@ interface PersistedStudyState {
 }
 
 export interface StudyState extends PersistedStudyState {
-  showBackText: boolean;
   autoPlay: boolean;
   startStudy: (deckId: DeckId, cardOrderIds: CardId[]) => void;
   touchStudy: (deckId: DeckId) => void;
   setCurrentIndex: (deckId: DeckId, currentIndex: number) => void;
   removeStudy: (deckId: DeckId) => void;
   initializeStudyUi: (defaultAutoPlay: boolean) => void;
-  toggleShowBackText: () => void;
   toggleAutoPlay: () => void;
-  hideBackText: () => void;
 }
 
 interface CreateStudyStoreOptions {
@@ -120,7 +117,6 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
     persist<StudyState, [], [], PersistedStudyState>(
       (set) => ({
         sessionsByDeckId: {},
-        showBackText: false,
         autoPlay: false,
         startStudy: (deckId, cardOrderIds) =>
           set((state) => ({
@@ -170,12 +166,9 @@ export const createStudyStore = ({ storage, skipHydration }: CreateStudyStoreOpt
           }),
         initializeStudyUi: (defaultAutoPlay) =>
           set({
-            showBackText: false,
             autoPlay: defaultAutoPlay,
           }),
-        toggleShowBackText: () => set((state) => ({ showBackText: !state.showBackText })),
         toggleAutoPlay: () => set((state) => ({ autoPlay: !state.autoPlay })),
-        hideBackText: () => set({ showBackText: false }),
       }),
       {
         name: STUDY_STORAGE_KEY,

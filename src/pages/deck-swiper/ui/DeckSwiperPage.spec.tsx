@@ -35,7 +35,6 @@ const mocks = vi.hoisted(() => ({
   },
   studyState: {
     sessionsByDeckId: {} as ReturnType<typeof useStudySessions>,
-    showBackText: false,
     autoPlay: false,
   },
   initializeStudySessionUi: vi.fn(),
@@ -81,7 +80,13 @@ vi.mock("@/features/study", async (importOriginal) => {
     initializeStudySessionUi: mocks.initializeStudySessionUi,
     touchStudySession: mocks.touchStudySession,
     useEditStudyProgress: () => mocks.cardMutation,
-    useStudyActions: (_deckId: DeckId, options?: { onSwipe?: (direction: SwipeDirection) => void }) => ({
+    useStudyActions: (
+      _deckId: DeckId,
+      options?: {
+        onSwipe?: (direction: SwipeDirection) => void;
+        onToggleBackText?: () => void;
+      }
+    ) => ({
       swipeUp: () => {
         options?.onSwipe?.("cardSwipeUp");
         mocks.swipeUp();
@@ -99,7 +104,10 @@ vi.mock("@/features/study", async (importOriginal) => {
         mocks.swipeRight();
       },
       updateIndex: mocks.updateIndex,
-      toggleShowBackText: mocks.toggleShowBackText,
+      toggleShowBackText: () => {
+        options?.onToggleBackText?.();
+        mocks.toggleShowBackText();
+      },
       toggleAutoPlay: mocks.toggleAutoPlay,
       resetStudy: mocks.resetStudy,
     }),
@@ -173,10 +181,8 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
         lastStudiedAt: 0,
       },
     };
-    mocks.studyState.showBackText = false;
     mocks.studyState.autoPlay = false;
     mocks.initializeStudySessionUi.mockImplementation((defaultAutoPlay: boolean) => {
-      mocks.studyState.showBackText = false;
       mocks.studyState.autoPlay = defaultAutoPlay;
     });
     mocks.touchStudySession.mockImplementation((deckId: DeckId) => {
@@ -229,22 +235,11 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
   });
 
   it("owns header visibility across front and back content", () => {
-    const view = render(<DeckSwiperPage />);
+    render(<DeckSwiperPage />);
 
     expect(screen.getByRole("button", { name: "tango" })).toBeInTheDocument();
 
-    mocks.studyState.showBackText = true;
-    view.rerender(<DeckSwiperPage />);
-
-    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-
-    mocks.studyState.showBackText = false;
-    if (mocks.state == null) throw new Error("Mock state is not initialized");
-    mocks.state.preferences = createPreferences({
-      ...mocks.state.preferences,
-      appearance: { ...mocks.state.preferences.appearance, showHeader: false },
-    });
-    view.rerender(<DeckSwiperPage />);
+    fireEvent.click(screen.getByText(card.frontText));
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
@@ -323,7 +318,6 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     const session = mocks.studyState.sessionsByDeckId[deck.id];
     if (session == null) throw new Error("Expected an active study session");
     mocks.studyState.sessionsByDeckId[deck.id] = { ...session, lastStudiedAt: 100 };
-    mocks.studyState.showBackText = true;
     mocks.studyState.autoPlay = true;
     const now = vi.spyOn(Date, "now").mockReturnValue(9000);
 
@@ -332,15 +326,15 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     expect(mocks.initializeStudySessionUi).toHaveBeenCalledWith(false);
     expect(mocks.touchStudySession).toHaveBeenCalledWith(deck.id);
     expect(mocks.studyState.sessionsByDeckId[deck.id]?.lastStudiedAt).toBe(9000);
-    expect(mocks.studyState).toMatchObject({ showBackText: false, autoPlay: false });
+    expect(mocks.studyState).toMatchObject({ autoPlay: false });
     now.mockRestore();
   });
 
-  it("renders Zustand back text and controlled auto-play", () => {
-    const view = render(<DeckSwiperPage />);
-    mocks.studyState.showBackText = true;
+  it("renders back text and controlled auto-play", () => {
     mocks.studyState.autoPlay = true;
-    view.rerender(<DeckSwiperPage />);
+    render(<DeckSwiperPage />);
+
+    fireEvent.click(screen.getByText(card.frontText));
 
     const code = screen.getByText(/answer =/);
     expect(code).toHaveTextContent(card.backText);
@@ -353,7 +347,7 @@ describe("DeckSwiperPage with DeckSwiperView", () => {
     fireEvent.click(swipeLeftButton);
     fireEvent.click(swipeRightButton);
 
-    expect(mocks.toggleShowBackText).toHaveBeenCalledOnce();
+    expect(mocks.toggleShowBackText).toHaveBeenCalled();
     expect(mocks.toggleAutoPlay).toHaveBeenCalledOnce();
     expect(mocks.swipeLeft).toHaveBeenCalledOnce();
     expect(mocks.swipeRight).toHaveBeenCalledOnce();

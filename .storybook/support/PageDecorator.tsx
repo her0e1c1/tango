@@ -30,7 +30,6 @@ export interface PageStoryParameters {
   cards?: Card[];
   preferences?: PartialPreferences;
   sessionsByDeckId?: StudyState["sessionsByDeckId"];
-  showBackText?: boolean;
   autoPlay?: boolean;
 }
 
@@ -81,7 +80,6 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   });
   studyStore.setState({
     sessionsByDeckId: cloneSessions(parameters.sessionsByDeckId ?? {}),
-    showBackText: parameters.showBackText ?? false,
     autoPlay: parameters.autoPlay ?? false,
   });
   replaceDecks(decks);
