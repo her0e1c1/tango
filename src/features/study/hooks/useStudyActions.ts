@@ -2,7 +2,7 @@ import { mustFindCardById, type Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { Preferences, SwipeDirection } from "@/entities/preferences";
 import { usePreferences } from "@/entities/preferences";
-import type { StudyProgressEdit } from "@/entities/study-progress";
+import { createStudyProgressFromCard, type StudyProgressEdit } from "@/entities/study-progress";
 import {
   getStudySession,
   removeStudySession,
@@ -14,7 +14,6 @@ import {
 import React from "react";
 
 import { calculateNextIndex } from "../model/session";
-import { createStudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
 
 export interface StudyActions {
@@ -131,7 +130,7 @@ const runStudySwipe = async (
     onHideBackText?.();
   }
 
-  const patch = buildStudyPatch(createStudyCard(card), swipeAction, Date.now());
+  const patch = buildStudyPatch(createStudyProgressFromCard(card), swipeAction, Date.now());
   const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
   const mutationToken = Symbol("study-swipe-mutation");
   mutationTokenRef.current = mutationToken;
