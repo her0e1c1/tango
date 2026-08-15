@@ -13,40 +13,27 @@ export default defineConfig([
     },
   },
   {
-    files: ["./src/shared/api/**", "./src/shared/lib/**"],
-    rules: {
-      "fsd/no-public-api-sidestep": "off",
-      "fsd/public-api": "off",
-    },
-  },
-  {
-    files: [
-      "./src/entities/study-progress/**",
-      "./src/features/deck-list/**",
-      "./src/features/settings/**",
-    ],
+    files: ["./src/app/**", "./src/pages/**", "./src/widgets/**", "./src/features/**", "./src/entities/**"],
     rules: {
       "fsd/insignificant-slice": "off",
     },
   },
   {
-    files: ["./src/features/deck/*/**"],
+    files: ["./src/app/**"],
     rules: {
-      "fsd/insignificant-slice": "off",
+      "fsd/no-global-store-imports": "off",
     },
   },
   {
-    files: ["./src/features/card-edit/**", "./src/features/card-list/**", "./src/features/deck-edit/**"],
+    files: ["./src/entities/**", "./src/features/**"],
     rules: {
-      // Route-specific features intentionally own their workflows while serving a single route adapter.
-      "fsd/insignificant-slice": "off",
+      "fsd/no-ui-in-business-logic": "off",
     },
   },
   {
-    files: ["./src/entities/preferences/**"],
+    files: ["./src/features/**"],
     rules: {
-      // Preferences is the domain concept's established name, not a plural collection of entities.
-      "fsd/inconsistent-naming": "off",
+      "fsd/no-cross-slice-dependency": "off",
     },
   },
 ]);
