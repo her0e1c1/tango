@@ -1,7 +1,7 @@
 import { FirebaseError } from "firebase/app";
 import { GoogleAuthProvider, linkWithPopup, signInWithCredential, type User, type UserCredential } from "firebase/auth";
 
-import { auth } from "@/shared/api/firebase";
+import { auth } from "@/shared/firebase";
 
 export const loginGoogle = async (): Promise<User> => {
   const currentUser = auth.currentUser;

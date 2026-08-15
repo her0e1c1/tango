@@ -7,7 +7,7 @@ import { createCard, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({ downloadTextFile: vi.fn() }));
 
-vi.mock("@/shared/api/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.downloadTextFile }));
 
 import { DeckList } from "./DeckList";
