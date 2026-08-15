@@ -1,6 +1,6 @@
 import { countCardsByDeckId, type Card } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import type { StudySession } from "@/entities/study-session";
+import { compareActiveDecks, groupDecksByStudyStatus, type StudySession } from "@/entities/study-session";
 
 export interface DeckListStudyProgress {
   currentIndex: number;
@@ -19,7 +19,7 @@ export interface DeckListSections {
   other: DeckListItem[];
 }
 
-const compareNames = (left: DeckListItem, right: DeckListItem) => left.deck.name.localeCompare(right.deck.name);
+const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
 const createDeckListStudyProgress = (session: StudySession): DeckListStudyProgress => ({
   currentIndex: session.currentIndex,
@@ -33,24 +33,16 @@ export const buildDeckListSections = (
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>
 ): DeckListSections => {
   const cardCounts = countCardsByDeckId(cards);
-  const items = decks.map((deck): DeckListItem => {
-    const session = sessionsByDeckId[deck.id];
+  const createItem = (deck: Deck): DeckListItem => ({ deck, cardCount: cardCounts.get(deck.id) ?? 0 });
+  const { active: studyingDecks, inactive: otherDecks } = groupDecksByStudyStatus(decks, sessionsByDeckId);
+  studyingDecks.sort(compareActiveDecks);
+  otherDecks.sort(compareDeckNames);
 
-    return {
-      deck,
-      cardCount: cardCounts.get(deck.id) ?? 0,
-      ...(session == null ? {} : { studyProgress: createDeckListStudyProgress(session) }),
-    };
-  });
-
-  const studying = items
-    .filter((item) => item.studyProgress != null)
-    .sort(
-      (left, right) =>
-        (right.studyProgress?.lastStudiedAt ?? 0) - (left.studyProgress?.lastStudiedAt ?? 0) ||
-        compareNames(left, right)
-    );
-  const other = items.filter((item) => item.studyProgress == null).sort(compareNames);
-
-  return { studying, other };
+  return {
+    studying: studyingDecks.map(({ deck, session }) => ({
+      ...createItem(deck),
+      studyProgress: createDeckListStudyProgress(session),
+    })),
+    other: otherDecks.map(createItem),
+  };
 };
