@@ -4,7 +4,7 @@
  * the HTML page.
  */
 
-import "@/shared/api/firebase";
+import "@/shared/firebase";
 import "./styles/index.css";
 
 import React from "react";

@@ -3,7 +3,7 @@ import type { CardRaw } from "@/entities/card";
 import * as Papa from "papaparse";
 
 import type { DeckImportAnalysis, DeckImportIssue, DeckImportRow } from "../model/deckImportTypes";
-import { isNonBlank } from "@/shared/lib/isNonBlank";
+import { isNonBlank } from "@/shared/lib";
 
 const fromRow = (row: string[]): CardRaw => ({
   frontText: row[0] || "",

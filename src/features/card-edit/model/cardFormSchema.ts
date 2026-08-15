@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-import { isNonBlank } from "@/shared/lib/isNonBlank";
+import { isNonBlank } from "@/shared/lib";
 
 const requiredCardText = (message: string) => z.string().refine(isNonBlank, { message });
 

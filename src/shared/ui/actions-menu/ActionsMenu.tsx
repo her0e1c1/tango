@@ -7,7 +7,7 @@
 import type * as React from "react";
 import { AiOutlineMore } from "react-icons/ai";
 
-import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
+import { focusableElementSelector } from "@/shared/lib";
 
 export interface ActionsMenuItem {
   key: string;

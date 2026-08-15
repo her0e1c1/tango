@@ -2,7 +2,7 @@ import type { SwipeState } from "@/entities/preferences";
 
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/shared/api/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import type { StudyCard } from "./studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "./swipe";

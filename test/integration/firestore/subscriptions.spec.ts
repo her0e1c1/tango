@@ -14,11 +14,11 @@ import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
-vi.mock("@/shared/api/firestoreDocument", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/shared/api/firestoreDocument")>()),
+vi.mock("@/shared/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/api")>()),
   getTimestamp: vi.fn(() => 100),
 }));
-vi.mock("@/shared/api/firebase", async () => ({
+vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
