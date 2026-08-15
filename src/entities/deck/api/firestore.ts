@@ -12,7 +12,9 @@ import { collection, deleteDoc, doc, getDocs, onSnapshot, query, setDoc, updateD
 import { z } from "zod";
 
 import { db } from "@/shared/firebase";
-import { getTimestamp, omitUndefined, parseFirestoreDocument } from "@/shared/api";
+import { parseFirestoreDocument } from "@/shared/api";
+import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
+import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
 import { replaceRemoteDecks } from "../model/store";
 
@@ -69,7 +71,7 @@ export const fetchDecks = async (uid: string): Promise<Deck[]> => {
 export const generateDeckId = (): string => doc(collection(db, DECK_COLLECTION)).id;
 
 const createDeckDocument = async (deck: DeckCreate): Promise<void> => {
-  const createdAt = getTimestamp();
+  const createdAt = getCurrentTimeMillis();
   const document = omitUndefined({ ...deck, createdAt, updatedAt: createdAt } satisfies Deck);
   await setDoc(doc(db, DECK_COLLECTION, deck.id), document);
 };
@@ -84,7 +86,7 @@ const updateDeckDocument = async (deck: DeckEdit): Promise<void> => {
     name: deck.name,
     url: deck.url,
     isPublic: deck.isPublic,
-    updatedAt: getTimestamp(),
+    updatedAt: getCurrentTimeMillis(),
     scoreMax: deck.scoreMax,
     scoreMin: deck.scoreMin,
     selectedTags: deck.selectedTags,

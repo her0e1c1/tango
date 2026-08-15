@@ -1,38 +1,52 @@
-import type { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 
-const validJavaScriptDateSchema = z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date");
-const firestoreTimestampSchema = z.custom<Timestamp>(
-  (value) =>
-    typeof value === "object" &&
-    value !== null &&
-    typeof Reflect.get(value, "toDate") === "function" &&
-    Number.isInteger(Reflect.get(value, "seconds")) &&
-    Number.isInteger(Reflect.get(value, "nanoseconds")) &&
-    Reflect.get(value, "nanoseconds") >= 0 &&
-    Reflect.get(value, "nanoseconds") < 1_000_000_000,
-  "Expected a Firestore Timestamp"
-);
+type FirestoreTimestamp = {
+  readonly seconds: number;
+  readonly nanoseconds: number;
+  toDate: () => Date;
+};
+
+const isFirestoreTimestamp = (value: unknown): value is FirestoreTimestamp => {
+  if (typeof value !== "object" || value === null) return false;
+
+  try {
+    const { seconds, nanoseconds, toDate } = value as Partial<FirestoreTimestamp>;
+    return (
+      Number.isInteger(seconds) &&
+      Number.isInteger(nanoseconds) &&
+      nanoseconds !== undefined &&
+      nanoseconds >= 0 &&
+      nanoseconds < 1_000_000_000 &&
+      typeof toDate === "function"
+    );
+  } catch {
+    return false;
+  }
+};
+
+const javascriptDateSchema = z.date();
+const firestoreTimestampSchema = z.custom<FirestoreTimestamp>(isFirestoreTimestamp, "Expected a Firestore Timestamp");
 
 export const firestoreTimestampDateSchema = z
-  .union([validJavaScriptDateSchema, firestoreTimestampSchema])
+  .union([javascriptDateSchema, firestoreTimestampSchema])
   .transform((value, context) => {
     if (value instanceof Date) return value;
     try {
-      const date = value.toDate();
-      if (!Number.isNaN(date.getTime())) return date;
+      return value.toDate();
     } catch {
-      // Report malformed Timestamp implementations through the schema error boundary below.
+      context.addIssue({ code: "custom", message: "Invalid Firestore Timestamp" });
+      return z.NEVER;
     }
-    context.addIssue({ code: "custom", message: "Invalid Firestore Timestamp" });
-    return z.NEVER;
-  });
+  })
+  .pipe(javascriptDateSchema);
+
+type FirestoreDocumentIssues = z.ZodError["issues"];
 
 class FirestoreDocumentValidationError extends Error {
   constructor(
     readonly collectionName: string,
     readonly documentId: string,
-    readonly issues: z.core.$ZodIssue[]
+    readonly issues: FirestoreDocumentIssues
   ) {
     const details = issues
       .map((issue) => `${issue.path.length === 0 ? "<document>" : issue.path.join(".")}: ${issue.message}`)
@@ -54,14 +68,3 @@ export const parseFirestoreDocument = <T>(
   }
   return result.data;
 };
-
-export const getTimestamp = (): number => Date.now();
-
-export type OmitUndefined<T extends Record<string, unknown>> = {
-  [K in keyof T as undefined extends T[K] ? never : K]: T[K];
-} & {
-  [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>;
-};
-
-export const omitUndefined = <T extends Record<string, unknown>>(value: T): OmitUndefined<T> =>
-  Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as OmitUndefined<T>;

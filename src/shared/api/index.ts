@@ -1,6 +1,1 @@
-export {
-  firestoreTimestampDateSchema,
-  getTimestamp,
-  omitUndefined,
-  parseFirestoreDocument,
-} from "./firestoreDocument";
+export { firestoreTimestampDateSchema, parseFirestoreDocument } from "./firestoreDocument";
