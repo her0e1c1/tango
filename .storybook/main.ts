@@ -27,7 +27,7 @@ const config: StorybookConfig = {
       },
       {
         resolve: {
-          alias: [{ find: /^@\/shared\/firebase$/, replacement: storybookFirebase }],
+          alias: [{ find: /^@\/shared\/api\/firebase$/, replacement: storybookFirebase }],
         },
       }
     ),
