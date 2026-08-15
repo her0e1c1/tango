@@ -13,25 +13,16 @@ export const useFilteredStudyCards = (deck: Deck | undefined, cards: Card[], pre
   const studyCards = useMemo(() => cards.map(createSelectableStudyCard), [cards]);
 
   useEffect(() => {
-    // Refresh after rendering so a changed card list is filtered against current time, not the previous clock.
-    const current = Date.now();
-    const refresh = window.setTimeout(() => setScheduleClock(current), 0);
-    return () => window.clearTimeout(refresh);
-  }, [cards]);
-
-  useEffect(() => {
-    const current = Date.now();
+    // Using the rendered clock makes an overdue review in a changed card list trigger an immediate refresh.
     const next = getNextStudyAvailabilityAt(
       studyCards.map((card) => card.progress),
-      current
+      scheduleClock
     );
-    const availability =
-      next === undefined
-        ? undefined
-        : window.setTimeout(() => setScheduleClock(Date.now()), Math.min(next - current, MAX_TIMEOUT_MS));
-    return () => {
-      if (availability !== undefined) window.clearTimeout(availability);
-    };
+    if (next === undefined) return;
+
+    const delay = Math.min(Math.max(next - Date.now(), 0), MAX_TIMEOUT_MS);
+    const availability = window.setTimeout(() => setScheduleClock(Date.now()), delay);
+    return () => window.clearTimeout(availability);
   }, [scheduleClock, studyCards]);
 
   return deck == null

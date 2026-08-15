@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck, createPreferences } from "@/test/factories";
 
-const mocks = vi.hoisted(() => ({ deleteCard: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  deleteCard: vi.fn(),
+  editStudyProgress: vi.fn(),
+}));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({
@@ -15,6 +18,7 @@ vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   deleteCard: mocks.deleteCard,
 }));
+vi.mock("@/entities/study-progress", () => ({ editStudyProgress: mocks.editStudyProgress }));
 
 import { CardList, type CardListProps } from "./CardList";
 
@@ -28,7 +32,6 @@ const card = createCard({
   tags: [],
 });
 const onEditCard = vi.fn();
-const onChangeScore = vi.fn(async () => undefined);
 const onChangeSelectedTags = vi.fn();
 
 const renderCardList = (overrides: Partial<CardListProps> = {}) =>
@@ -46,7 +49,6 @@ const renderCardList = (overrides: Partial<CardListProps> = {}) =>
       }}
       renderBackText={(backText) => <div>{backText.text}</div>}
       onEditCard={onEditCard}
-      onChangeScore={onChangeScore}
       {...overrides}
     />
   );
@@ -61,7 +63,7 @@ describe("CardList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.deleteCard.mockResolvedValue(undefined);
-    onChangeScore.mockResolvedValue(undefined);
+    mocks.editStudyProgress.mockResolvedValue(undefined);
   });
 
   it("builds the list presentation and coordinates filter, view, and edit interactions", async () => {
@@ -141,7 +143,7 @@ describe("CardList", () => {
   });
 
   it("keeps score mutation feedback retryable", async () => {
-    onChangeScore.mockRejectedValueOnce(new Error("edit failed"));
+    mocks.editStudyProgress.mockRejectedValueOnce(new Error("edit failed"));
     renderCardList();
     const article = screen.getByRole("article");
 
@@ -149,8 +151,8 @@ describe("CardList", () => {
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
     swipe(article, 0, 100);
 
-    await waitFor(() => expect(onChangeScore).toHaveBeenCalledTimes(2));
-    expect(onChangeScore).toHaveBeenLastCalledWith(card, 1);
+    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
+    expect(mocks.editStudyProgress).toHaveBeenLastCalledWith("user-id", { cardId: card.id, score: 1 });
     await waitFor(() => expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument());
   });
 });

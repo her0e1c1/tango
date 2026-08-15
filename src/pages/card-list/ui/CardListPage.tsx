@@ -5,7 +5,7 @@ import { useKey } from "react-use";
 import { type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
-import { CardList, useEditCardScore } from "@/features/card-list";
+import { CardList } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
 import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -19,7 +19,6 @@ const CardListComposition = (props: {
   onEditCard: (id: CardId) => void;
 }) => {
   const deckFilter = useDeckFilterState(props.deck);
-  const editCardScore = useEditCardScore();
 
   return (
     <CardList
@@ -35,7 +34,6 @@ const CardListComposition = (props: {
       }}
       renderBackText={(backText) => <BackText {...backText} />}
       onEditCard={props.onEditCard}
-      onChangeScore={(card, score) => editCardScore.updateScore(card.id, score)}
     />
   );
 };
