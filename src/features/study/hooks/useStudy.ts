@@ -3,7 +3,14 @@ import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preferences";
 import { editStudyProgress } from "@/entities/study-progress";
-import { removeStudySession, type StudySession, touchStudySession, useStudySession } from "@/entities/study-session";
+import {
+  calculateStudySessionIndex,
+  removeStudySession,
+  resolveStudySession,
+  type StudySession,
+  touchStudySession,
+  useStudySession,
+} from "@/entities/study-session";
 
 import * as React from "react";
 
@@ -56,46 +63,40 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     onCardChanged: hideBackText,
   });
   const session = useStudySession(deckId);
-  const cardId = session?.cardOrderIds[session.currentIndex];
-  const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
-  const status =
-    card != null ? "ready" : session != null && cardId != null && cards.length === 0 ? "loading" : "unavailable";
+  const resolvedSession = resolveStudySession(session, cards);
   const exitingDeck = React.useRef<DeckId>(undefined);
 
   React.useEffect(() => {
-    if (status !== "ready") return;
+    if (resolvedSession.status !== "ready") return;
     touchStudySession(deckId);
-  }, [deckId, status]);
+  }, [deckId, resolvedSession.status]);
 
   React.useEffect(() => {
-    if (status === "ready") {
+    if (resolvedSession.status === "ready") {
       exitingDeck.current = undefined;
       return;
     }
-    if (status === "loading" || exitingDeck.current === deckId) return;
+    if (resolvedSession.status === "loading" || exitingDeck.current === deckId) return;
 
     // Invalid active progress must be removed before leaving so reopening the deck cannot repeat the same failure.
     exitingDeck.current = deckId;
     removeStudySession(deckId);
     onUnavailable();
-  }, [deckId, onUnavailable, status]);
+  }, [deckId, onUnavailable, resolvedSession.status]);
 
   React.useEffect(() => {
+    const nextIndex = session == null ? undefined : calculateStudySessionIndex(session, "next");
     if (
-      status !== "ready" ||
-      session == null ||
+      resolvedSession.status !== "ready" ||
       !autoPlay ||
       preferences.study.cardInterval <= 0 ||
-      session.currentIndex + 1 >= session.cardOrderIds.length
+      nextIndex === undefined
     ) {
       return;
     }
-    const timeout = window.setTimeout(
-      () => actions.updateIndex(session.currentIndex + 1),
-      preferences.study.cardInterval * 1000
-    );
+    const timeout = window.setTimeout(() => actions.updateIndex(nextIndex), preferences.study.cardInterval * 1000);
     return () => window.clearTimeout(timeout);
-  }, [actions, autoPlay, preferences.study.cardInterval, session, status]);
+  }, [actions, autoPlay, preferences.study.cardInterval, resolvedSession.status, session]);
   const commands: StudyCommands = {
     swipeUp: actions.swipeUp,
     swipeDown: actions.swipeDown,
@@ -105,16 +106,13 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onUnavailable: 
     toggleAutoPlay,
   };
 
-  if (session == null || card == null) {
-    const inactiveStatus = session != null && cardId != null && cards.length === 0 ? "loading" : "unavailable";
-    return { status: inactiveStatus, ...commands };
-  }
+  if (resolvedSession.status !== "ready") return { status: resolvedSession.status, ...commands };
 
   return {
     status: "ready",
     ...commands,
-    session,
-    card,
+    session: resolvedSession.session,
+    card: resolvedSession.card,
     showHeader: preferences.appearance.showHeader && !showBackText,
     showBackText,
     showController: preferences.study.cardInterval > 0,

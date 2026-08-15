@@ -11,10 +11,9 @@ import {
   createStudyProgressFromCard,
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
-  recordStudyProgress,
-  resolveStudyRating,
+  recordCardStudyProgress,
 } from "./rules";
-import type { CardProgressFields, StudyProgress, StudyProgressEdit, StudyRating } from "./types";
+import type { CardProgressFields, StudyProgress, StudyProgressEdit } from "./types";
 
 const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
 
@@ -22,20 +21,6 @@ const cardProgress = (id: string, numberOfSeen = 0): CardProgressFields => ({
   id,
   score: 0,
   numberOfSeen,
-});
-
-describe("resolveStudyRating", () => {
-  it.each<[SwipeAction, StudyRating]>([
-    ["GoToNextCardMastered", "mastered"],
-    ["GoToNextCardNotMastered", "not-mastered"],
-    ["GoToNextCardToggleMastered", "not-mastered"],
-    ["DoNothing", "unrated"],
-    ["GoBack", "unrated"],
-    ["GoToPrevCard", "unrated"],
-    ["GoToNextCard", "unrated"],
-  ])("maps %s to %s", (action, expectedRating) => {
-    expect(resolveStudyRating(action)).toBe(expectedRating);
-  });
 });
 
 describe("createStudyProgressFromCard", () => {
@@ -77,19 +62,20 @@ describe("createStudyProgressFromCard", () => {
   });
 });
 
-describe("recordStudyProgress", () => {
-  it.each<[number, StudyRating, number]>([
-    [0, "mastered", 1],
-    [3, "mastered", 4],
-    [-1, "mastered", 0],
-    [0, "not-mastered", -1],
-    [-2, "not-mastered", -3],
-    [2, "not-mastered", 0],
-    [3, "unrated", 3],
-  ])("updates score %i for a %s rating", (score, rating, expectedScore) => {
-    const progress = { ...initialStudyProgress("card-id"), score, numberOfSeen: 2 };
+describe("recordCardStudyProgress", () => {
+  it.each<[number, SwipeAction, number]>([
+    [0, "GoToNextCardMastered", 1],
+    [3, "GoToNextCardMastered", 4],
+    [-1, "GoToNextCardMastered", 0],
+    [0, "GoToNextCardNotMastered", -1],
+    [-2, "GoToNextCardToggleMastered", -3],
+    [2, "GoToNextCardNotMastered", 0],
+    [3, "GoToNextCard", 3],
+    [3, "GoToPrevCard", 3],
+  ])("records score %i for %s as %i", (score, swipeAction, expectedScore) => {
+    const card = { ...cardProgress("card-id", 2), score };
 
-    expect(recordStudyProgress(progress, rating, 1_786_512_000_000)).toEqual({
+    expect(recordCardStudyProgress(card, swipeAction, 1_786_512_000_000)).toEqual({
       cardId: "card-id",
       score: expectedScore,
       numberOfSeen: 3,
