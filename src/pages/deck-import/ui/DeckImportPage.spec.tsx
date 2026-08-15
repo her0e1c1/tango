@@ -34,6 +34,8 @@ const mocks = vi.hoisted(() => ({
   validating: false,
   error: null as unknown,
   previewError: null as unknown,
+  storageMode: "remote" as "local" | "remote",
+  setStorageMode: vi.fn(),
 }));
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
@@ -58,6 +60,8 @@ vi.mock("@/features/deck-import", async (importOriginal) => ({
     validating: mocks.validating,
     error: mocks.error,
     previewError: mocks.previewError,
+    storageMode: mocks.storageMode,
+    setStorageMode: mocks.setStorageMode,
   }),
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -84,6 +88,7 @@ const preview = {
     invalidCount: 0,
   },
   plan: {
+    storageMode: "remote",
     rows: [
       {
         rowNumber: 1,
@@ -110,6 +115,7 @@ describe("DeckImportPage", () => {
     mocks.validating = false;
     mocks.error = null;
     mocks.previewError = null;
+    mocks.storageMode = "remote";
   });
 
   it("selects a CSV without importing or navigating automatically", async () => {
@@ -125,6 +131,14 @@ describe("DeckImportPage", () => {
     expect(mocks.importPreview).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
     expect(mocks.downloadSampleCsv).toHaveBeenCalledOnce();
+  });
+
+  it("forwards the selected import storage mode to the import controller", async () => {
+    render(<DeckImportPage />);
+
+    await userEvent.click(screen.getByRole("radio", { name: /Local only/ }));
+
+    expect(mocks.setStorageMode).toHaveBeenCalledExactlyOnceWith("local");
   });
 
   it("renders the import screen in the application shell", () => {

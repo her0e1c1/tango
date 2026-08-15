@@ -29,6 +29,7 @@ const preview = {
     invalidCount: 0,
   },
   plan: {
+    storageMode: "remote",
     rows: [
       {
         rowNumber: 1,
@@ -67,6 +68,31 @@ describe("DeckImportView", () => {
     expect(onChange).toHaveBeenCalledWith(file);
     view.rerender(<DeckImportView sampleText="front,back,,key" onChange={onChange} pending />);
     expect(screen.getByLabelText("Upload a csv file")).toBeDisabled();
+  });
+
+  it("selects whether imported Decks stay local or sync with the account", async () => {
+    const onStorageModeChange = vi.fn();
+    const view = render(
+      <DeckImportView sampleText="front,back,,key" storageMode="remote" onStorageModeChange={onStorageModeChange} />
+    );
+
+    expect(screen.getByRole("radio", { name: /Local only/ })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: /Sync with account/ })).toBeChecked();
+
+    await userEvent.click(screen.getByRole("radio", { name: /Local only/ }));
+    expect(onStorageModeChange).toHaveBeenCalledExactlyOnceWith("local");
+
+    view.rerender(
+      <DeckImportView
+        sampleText="front,back,,key"
+        storageMode="local"
+        onStorageModeChange={onStorageModeChange}
+        pending
+      />
+    );
+    expect(screen.getByRole("radio", { name: /Local only/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /Local only/ })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
   });
 
   it("documents uniqueKey and exposes sample add, download, and code controls", async () => {
@@ -132,7 +158,7 @@ describe("DeckImportView", () => {
           },
         ],
       },
-      plan: { rows: [], created: 0, updated: 0, unchanged: 0 },
+      plan: { storageMode: "remote", rows: [], created: 0, updated: 0, unchanged: 0 },
     };
     render(<DeckImportView sampleText="front,back,,key" preview={invalidPreview} />);
 

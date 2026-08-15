@@ -6,7 +6,7 @@
 
 import type { Card, CardRaw } from "@/entities/card";
 
-import type { DeckImportPlan, DeckImportPlanRow, DeckImportRow } from "../model/deckImportTypes";
+import type { DeckImportPlan, DeckImportPlanRow, DeckImportRow, DeckImportStorageMode } from "../model/deckImportTypes";
 
 /**
  * Checks whether two imported card values contain the same user-editable content.
@@ -22,7 +22,11 @@ const sameCardContent = (left: CardRaw, right: CardRaw) =>
  * The returned value is ready for the next layer, so callers do not need to repeat assembly or
  * defaulting rules.
  */
-export const buildDeckImportPlan = (rows: DeckImportRow[], existingCards: Card[]): DeckImportPlan => {
+export const buildDeckImportPlan = (
+  rows: DeckImportRow[],
+  existingCards: Card[],
+  storageMode: DeckImportStorageMode
+): DeckImportPlan => {
   const existingByUniqueKey = new Map(existingCards.map((card) => [card.uniqueKey, card]));
   const plannedRows = rows.map((row): DeckImportPlanRow => {
     const existing = existingByUniqueKey.get(row.card.uniqueKey);
@@ -31,6 +35,7 @@ export const buildDeckImportPlan = (rows: DeckImportRow[], existingCards: Card[]
   });
 
   return {
+    storageMode,
     rows: plannedRows,
     created: plannedRows.filter((row) => row.action === "create").length,
     updated: plannedRows.filter((row) => row.action === "update").length,
