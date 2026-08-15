@@ -93,6 +93,6 @@ describe("CardFormPage", () => {
   it("rejects a route without a card id", () => {
     mocks.params.id = undefined;
 
-    expect(() => render(<CardFormPage />)).toThrowError("Missing route parameter: id");
+    expect(() => render(<CardFormPage />)).toThrowError("invalid card id");
   });
 });
