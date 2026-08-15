@@ -19,24 +19,12 @@ export const cardCreateSchema = editableCardFieldsSchema.extend({
   deckId: z.string().min(1, "Card deck is required"),
   uid: cardUidSchema,
   deletedAt: z.number().nullable().default(null),
-  score: z.number().default(0),
-  numberOfSeen: z.number().default(0),
-  lastSeenAt: z.number().optional(),
-  nextSeeingAt: z.date().optional(),
-  interval: z.number().optional(),
 });
 
 export const cardSchema = cardCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
 });
-
-const persistedDateSchema = z.preprocess(
-  (value) => (typeof value === "string" ? new Date(value) : value),
-  z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date")
-);
-
-export const persistedCardSchema = cardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
 
 export const cardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema, uid: cardUidSchema });
 const cardIdentitySchema = z.object({ id: cardIdSchema, uid: cardUidSchema });

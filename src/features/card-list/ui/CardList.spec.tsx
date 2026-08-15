@@ -150,7 +150,7 @@ describe("CardList", () => {
     swipe(article, 0, 100);
 
     await waitFor(() => expect(onChangeScore).toHaveBeenCalledTimes(2));
-    expect(onChangeScore).toHaveBeenLastCalledWith(card, 1);
+    expect(onChangeScore).toHaveBeenLastCalledWith({ cardId: card.id, score: 0, numberOfSeen: 0 }, 1);
     await waitFor(() => expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument());
   });
 });

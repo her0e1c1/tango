@@ -3,9 +3,9 @@ import { getCategory, type Deck, useDeck } from "@/entities/deck";
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { type Card, useCards } from "@/entities/card";
+import { useCardsByDeckId } from "@/entities/card";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
-import { StudyWorkflow, type StudyWorkflowState } from "@/features/study";
+import { StudyWorkflow, type StudyCard, type StudyWorkflowState, useStudyCardItems } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -62,7 +62,7 @@ const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
             onClick={state.actions.toggleShowBackText}
           />
         }
-        cardOverlaySlot={<CardOverlay card={state.card} />}
+        cardOverlaySlot={<CardOverlay card={state.card} progress={state.progress} />}
         backTextSlot={
           <CardView card={state.card} deck={deck} onClick={state.actions.toggleShowBackText} variant="bare" />
         }
@@ -74,7 +74,7 @@ const renderStudyScreen = (deck: Deck, state: StudyWorkflowState) => {
   );
 };
 
-const DeckSwiperContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
+const DeckSwiperContent = ({ cards, deck }: { cards: StudyCard[]; deck: Deck }) => {
   const navigate = useNavigate();
   useStudyHistoryGuard(deck.id, navigate);
   const handleUnavailable = React.useCallback(() => {
@@ -93,8 +93,9 @@ export const DeckSwiperPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw Error("invalid deck id");
 
-  const cards = useCards();
   const deck = useDeck(deckId);
+  const { cards: deckCards } = useCardsByDeckId(deckId);
+  const cards = useStudyCardItems(deckCards);
 
   if (deck == null) {
     return <RouteFeedback title="Study session unavailable." tone="not-found" />;

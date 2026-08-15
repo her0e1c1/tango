@@ -1,4 +1,3 @@
-import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
@@ -38,23 +37,25 @@ vi.mock("../commands/studySessionCommands", () => ({
 }));
 
 import { StudyWorkflow, type StudyWorkflowState } from "./StudyWorkflow";
+import type { StudyCard } from "../model/studyCard";
 import { studyStore } from "../state/studyStoreInstance";
 
 const deckId: DeckId = "deck-id";
-const createCard = (id: string): Card => ({
+const createCard = (id: string): StudyCard & { id: string } => ({
   id,
-  deckId,
-  uid: "user-id",
-  frontText: id,
-  backText: `${id}-back`,
-  tags: [],
-  uniqueKey: id,
-  score: 0,
-  numberOfSeen: 0,
-  createdAt: 0,
-  updatedAt: 0,
-  deletedAt: null,
-  lastSeenAt: 0,
+  card: {
+    id,
+    deckId,
+    uid: "user-id",
+    frontText: id,
+    backText: `${id}-back`,
+    tags: [],
+    uniqueKey: id,
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+  },
+  progress: { cardId: id, score: 0, numberOfSeen: 0, lastSeenAt: 0 },
 });
 const cards = [createCard("card-1"), createCard("card-2"), createCard("card-3")];
 
@@ -80,7 +81,7 @@ const WorkflowView = ({ state }: { state: StudyWorkflowState }) => {
   );
 };
 
-const renderWorkflow = (currentCards: readonly Card[] = cards) =>
+const renderWorkflow = (currentCards: readonly StudyCard[] = cards) =>
   render(
     <StudyWorkflow cards={currentCards} deckId={deckId} onUnavailable={mocks.onUnavailable}>
       {(state) => <WorkflowView state={state} />}

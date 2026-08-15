@@ -42,7 +42,6 @@ const cloneDeck = (deck: Deck): Deck => ({
 const cloneCard = (card: Card): Card => ({
   ...card,
   tags: [...card.tags],
-  ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(card.nextSeeingAt.getTime()) }),
 });
 
 const cloneSessions = (sessionsByDeckId: StudyState["sessionsByDeckId"]): StudyState["sessionsByDeckId"] => {

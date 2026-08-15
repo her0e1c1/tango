@@ -1,4 +1,3 @@
-import type { Card } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
@@ -8,7 +7,7 @@ import { useKey } from "react-use";
 
 import { useCardsByDeckId } from "@/entities/card";
 import { DeckStartForm, useDeckFilterState } from "@/features/deck-start";
-import { useStudyActions, useStudyCards } from "@/features/study";
+import { useStudyActions, useStudyCards, type StudyCard } from "@/features/study";
 import { usePreferences } from "@/entities/preferences";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -18,7 +17,7 @@ import { DeckStartView } from "./DeckStartView";
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
-const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Preferences; tags: string[] }) => {
+const DeckStartContent = (props: { deck: Deck; cards: StudyCard[]; preferences: Preferences; tags: string[] }) => {
   const { deck, cards, preferences, tags } = props;
   const navigate = useNavigate();
   const studyActions = useStudyActions(deck.id, {

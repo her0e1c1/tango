@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { StudyWorkflowState } from "@/features/study";
+import type { StudyCard, StudyWorkflowState } from "@/features/study";
 
 import { act, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   navigate: vi.fn(),
   workflowState: { status: "unavailable" } as StudyWorkflowState,
-  workflowProps: undefined as { cards: readonly Card[]; deckId: string; onUnavailable: () => void } | undefined,
+  workflowProps: undefined as { cards: readonly StudyCard[]; deckId: string; onUnavailable: () => void } | undefined,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -21,7 +21,11 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return { ...actual, useDeck: () => mocks.deck };
 });
-vi.mock("@/entities/card", () => ({ useCards: () => mocks.cards }));
+vi.mock("@/entities/card", () => ({ useCardsByDeckId: () => ({ cards: mocks.cards, tags: [] }) }));
+vi.mock("@/entities/preferences", () => ({
+  setDarkMode: vi.fn(),
+  usePreferences: () => ({ appearance: { darkMode: false } }),
+}));
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,
@@ -30,11 +34,16 @@ vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
+    useStudyCardItems: (cards: Card[]) =>
+      cards.map((card) => ({
+        card,
+        progress: { cardId: card.id, score: 2, numberOfSeen: 3, lastSeenAt: 1 },
+      })),
     StudyWorkflow: ({
       children,
       ...props
     }: { children: (state: StudyWorkflowState) => React.ReactNode } & {
-      cards: readonly Card[];
+      cards: readonly StudyCard[];
       deckId: string;
       onUnavailable: () => void;
     }) => {
@@ -70,17 +79,16 @@ const card: Card = {
   backText: "const answer = 42;",
   tags: ["typescript"],
   uniqueKey: "unique-key",
-  score: 2,
-  numberOfSeen: 3,
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  lastSeenAt: 1,
 };
+const progress = { cardId: card.id, score: 2, numberOfSeen: 3, lastSeenAt: 1 };
 const noop = vi.fn();
 const readyState = (): StudyWorkflowState => ({
   status: "ready",
   card,
+  progress,
   showHeader: true,
   showBackText: false,
   showController: true,
@@ -115,7 +123,7 @@ describe("DeckSwiperPage", () => {
   it("passes Entity reads to StudyWorkflow and composes the application shell", () => {
     render(<DeckSwiperPage />);
 
-    expect(mocks.workflowProps).toMatchObject({ deckId: deck.id, cards: [card] });
+    expect(mocks.workflowProps).toMatchObject({ deckId: deck.id, cards: [{ card, progress }] });
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     expect(screen.getByText(card.frontText)).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();

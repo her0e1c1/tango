@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   authState: { status: "initializing" } as AuthSessionState,
   subscribeCards: vi.fn(),
   subscribeDecks: vi.fn(),
+  subscribeStudyProgresses: vi.fn(),
   operations: [] as string[],
 }));
 
@@ -20,6 +21,10 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/deck", () => ({
   clearRemoteDecks: () => mocks.operations.push("clear remote Decks"),
   subscribeDecks: mocks.subscribeDecks,
+}));
+vi.mock("@/entities/study-progress", () => ({
+  clearRemoteStudyProgresses: () => mocks.operations.push("clear remote StudyProgresses"),
+  subscribeStudyProgresses: mocks.subscribeStudyProgresses,
 }));
 
 import { FirestoreSubscriptionsProvider } from ".";
@@ -35,6 +40,10 @@ describe("FirestoreSubscriptionsProvider", () => {
       mocks.operations.push(`start Decks ${uid}`);
       return () => mocks.operations.push(`stop Decks ${uid}`);
     });
+    mocks.subscribeStudyProgresses.mockImplementation((uid: string) => {
+      mocks.operations.push(`start StudyProgresses ${uid}`);
+      return () => mocks.operations.push(`stop StudyProgresses ${uid}`);
+    });
     mocks.operations.length = 0;
     mocks.authState = { status: "authenticated", uid: "test-user", isAnonymous: true, displayName: null };
   });
@@ -42,7 +51,11 @@ describe("FirestoreSubscriptionsProvider", () => {
   it("starts subscriptions for the authenticated UID and cleans them up on unmount", () => {
     const view = render(<FirestoreSubscriptionsProvider>content</FirestoreSubscriptionsProvider>);
 
-    expect(mocks.operations).toEqual(["start Cards test-user", "start Decks test-user"]);
+    expect(mocks.operations).toEqual([
+      "start Cards test-user",
+      "start Decks test-user",
+      "start StudyProgresses test-user",
+    ]);
     expect(screen.getByText("content")).toBeDefined();
 
     view.unmount();
@@ -50,10 +63,13 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(mocks.operations).toEqual([
       "start Cards test-user",
       "start Decks test-user",
+      "start StudyProgresses test-user",
       "stop Cards test-user",
       "stop Decks test-user",
+      "stop StudyProgresses test-user",
       "clear remote Cards",
       "clear remote Decks",
+      "clear remote StudyProgresses",
     ]);
   });
 
@@ -67,10 +83,13 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(mocks.operations).toEqual([
       "stop Cards test-user",
       "stop Decks test-user",
+      "stop StudyProgresses test-user",
       "clear remote Cards",
       "clear remote Decks",
+      "clear remote StudyProgresses",
       "start Cards next-user",
       "start Decks next-user",
+      "start StudyProgresses next-user",
     ]);
   });
 
@@ -84,6 +103,7 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(mocks.operations).toEqual([]);
     expect(mocks.subscribeCards).toHaveBeenCalledOnce();
     expect(mocks.subscribeDecks).toHaveBeenCalledOnce();
+    expect(mocks.subscribeStudyProgresses).toHaveBeenCalledOnce();
   });
 
   it("stops subscriptions and clears related state on logout", () => {
@@ -96,8 +116,10 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(mocks.operations).toEqual([
       "stop Cards test-user",
       "stop Decks test-user",
+      "stop StudyProgresses test-user",
       "clear remote Cards",
       "clear remote Decks",
+      "clear remote StudyProgresses",
     ]);
   });
 });

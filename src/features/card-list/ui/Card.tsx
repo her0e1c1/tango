@@ -9,6 +9,7 @@ import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
 import type { Card as CardEntity, CardId } from "@/entities/card";
+import type { StudyProgress } from "@/entities/study-progress";
 import { CardActionsMenu } from "./CardActionsMenu";
 import { Score, TagLabel } from "@/shared/ui/content";
 
@@ -42,9 +43,9 @@ const studiedText = (count: number) => {
  * Renders the Card user interface.
  * Presents one study card's front, back, score, and tags according to its current reveal state.
  */
-export const Card: React.FC<{ className?: string; card: CardEntity } & CardActionsProps & CardRowMenuProps> = (
-  props
-) => {
+export const Card: React.FC<
+  { className?: string; card: CardEntity; progress?: StudyProgress } & CardActionsProps & CardRowMenuProps
+> = (props) => {
   const id = props.card.id;
   const disabled = Boolean(props.disabled);
   const suppressViewClick = React.useRef(false);
@@ -105,7 +106,8 @@ export const Card: React.FC<{ className?: string; card: CardEntity } & CardActio
     onSwipedRight: withSwipeId(props.onSwipedRight),
     trackMouse: true,
   });
-  const seenCount = props.card.numberOfSeen ?? 0;
+  const progress = props.progress ?? { cardId: props.card.id, score: 0, numberOfSeen: 0 };
+  const seenCount = progress.numberOfSeen;
 
   return (
     <article
@@ -118,7 +120,7 @@ export const Card: React.FC<{ className?: string; card: CardEntity } & CardActio
         props.className
       )}
     >
-      <Score className="shrink-0" score={props.card.score} />
+      <Score className="shrink-0" score={progress.score} />
       <div className="relative flex min-h-touch min-w-0 flex-1 flex-col justify-center rounded-control">
         <button
           type="button"

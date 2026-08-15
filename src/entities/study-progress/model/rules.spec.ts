@@ -2,53 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import {
   compareStudyProgress,
-  createStudyProgressFromCard,
   getNextStudyAvailabilityAt,
   isStudyProgressEligible,
   recordStudyProgress,
 } from "./rules";
-import type { StudyProgress, StudyProgressEdit, StudyRating } from "./types";
+import type { StudyProgress, StudyRating } from "./types";
 
 const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
-
-describe("createStudyProgressFromCard", () => {
-  it("allows editing selected progress fields while retaining the card id", () => {
-    const edit: StudyProgressEdit = {
-      cardId: "card-id",
-      score: 3,
-      lastSeenAt: 1_786_512_000_000,
-    };
-
-    expect(edit).toEqual({
-      cardId: "card-id",
-      score: 3,
-      lastSeenAt: 1_786_512_000_000,
-    });
-  });
-
-  it("restores progress from a Card without copying Card content", () => {
-    const card = {
-      id: "card-id",
-      score: 3,
-      numberOfSeen: 4,
-      lastSeenAt: 1_786_512_000_000,
-      nextSeeingAt: new Date(1_786_598_400_000),
-      interval: 86_400,
-      frontText: "not part of progress",
-    };
-    const progress = createStudyProgressFromCard(card);
-
-    expect(progress).toEqual({
-      cardId: "card-id",
-      score: 3,
-      numberOfSeen: 4,
-      lastSeenAt: 1_786_512_000_000,
-      nextSeeingAt: new Date(1_786_598_400_000),
-      interval: 86_400,
-    });
-    expect(progress).not.toHaveProperty("frontText");
-  });
-});
 
 describe("recordStudyProgress", () => {
   it.each<[number, StudyRating, number]>([

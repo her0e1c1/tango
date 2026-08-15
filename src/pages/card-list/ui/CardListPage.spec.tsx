@@ -1,6 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
+import type { StudyProgress } from "@/entities/study-progress";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -16,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   navigate: vi.fn(),
   onClickTag: vi.fn(),
-  updateBy: vi.fn(),
+  update: vi.fn(),
   cardListProps: null as null | Record<string, unknown>,
 }));
 
@@ -31,19 +32,25 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/deck", () => ({ useDeck: () => mocks.deck ?? undefined }));
 vi.mock("@/features/card-list", () => ({
   CardList: (props: {
-    cards: Card[];
+    cards: { card: Card; progress: StudyProgress }[];
     filter: { selectedTags: string[]; onChangeSelectedTags: (tags: string[]) => void };
     onEditCard: (id: string) => void;
-    onChangeScore: (card: Card, score: number) => Promise<void>;
+    onChangeScore: (progress: StudyProgress, score: number) => Promise<void>;
   }) => {
     mocks.cardListProps = props as unknown as Record<string, unknown>;
     return (
       <div>
         <span>Card list feature</span>
-        <button type="button" onClick={() => props.onEditCard(props.cards[0]?.id ?? "missing")}>
+        <button type="button" onClick={() => props.onEditCard(props.cards[0]?.card.id ?? "missing")}>
           Edit card
         </button>
-        <button type="button" onClick={() => void props.onChangeScore(props.cards[0] as Card, 3)}>
+        <button
+          type="button"
+          onClick={() => {
+            const progress = props.cards[0]?.progress;
+            if (progress !== undefined) void props.onChangeScore(progress, 3);
+          }}
+        >
           Change score
         </button>
         <button type="button" onClick={() => props.filter.onChangeSelectedTags(["react"])}>
@@ -62,8 +69,9 @@ vi.mock("@/features/deck-start", () => ({
   }),
 }));
 vi.mock("@/features/study", () => ({
-  useEditStudyProgress: () => ({ updateBy: mocks.updateBy }),
-  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
+  useEditStudyProgress: () => ({ update: mocks.update }),
+  useStudyCards: (deck: Deck | undefined, cards: Card[]) =>
+    deck == null ? [] : cards.map((card) => ({ card, progress: { cardId: card.id, score: 0, numberOfSeen: 0 } })),
 }));
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
@@ -84,7 +92,7 @@ describe("CardListPage", () => {
     mocks.preferences = createPreferences();
     mocks.navigate.mockReset();
     mocks.onClickTag.mockReset();
-    mocks.updateBy.mockReset().mockResolvedValue(undefined);
+    mocks.update.mockReset().mockResolvedValue(undefined);
     mocks.cardListProps = null;
   });
 
@@ -98,9 +106,7 @@ describe("CardListPage", () => {
     expect(mocks.navigate).toHaveBeenCalledWith(`/card/${card.id}/edit`);
 
     await userEvent.click(screen.getByRole("button", { name: "Change score" }));
-    const buildPatch = mocks.updateBy.mock.calls[0]?.[1] as (card: Card) => object;
-    expect(mocks.updateBy.mock.calls[0]?.[0]).toEqual(card);
-    expect(buildPatch(card)).toEqual({ score: 3 });
+    expect(mocks.update).toHaveBeenCalledWith({ cardId: card.id, score: 3 });
 
     await userEvent.click(screen.getByRole("button", { name: "Change tags" }));
     expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);

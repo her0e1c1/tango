@@ -8,6 +8,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { Card as Template } from "./Card";
 import * as fixture from "@/storybook/fixture";
+import { createStudyProgress } from "@/test/factories";
 
 const meta = {
   title: "Features/Card List/Card",
@@ -15,6 +16,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     card: fixture.card.default,
+    progress: createStudyProgress({ cardId: fixture.card.default.id, score: 3, numberOfSeen: 5 }),
   },
 } satisfies Meta<typeof Template>;
 
@@ -24,7 +26,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Unstudied: Story = {
-  args: { card: { ...fixture.card.default, numberOfSeen: 0, score: 0 } },
+  args: { progress: createStudyProgress({ cardId: fixture.card.default.id }) },
 };
 
 export const LongText: Story = { args: { card: fixture.card.long } };

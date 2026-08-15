@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseCardDocument } from "./document";
+import { mapCardDocument, parseCardDocument } from "./document";
 
 const requiredDocument = {
   frontText: "Front",
@@ -40,6 +40,30 @@ describe("Card document", () => {
     const nextSeeingAt = { seconds: 0, nanoseconds: 60_000_000, toDate: () => date };
 
     expect(parseCardDocument("card-a", { ...requiredDocument, nextSeeingAt }).nextSeeingAt).toBe(date);
+  });
+
+  it("maps Card content without StudyProgress fields", () => {
+    const card = mapCardDocument("card-a", {
+      ...requiredDocument,
+      lastSeenAt: 5,
+      nextSeeingAt: new Date(6),
+      interval: 7,
+    });
+
+    expect(card).toEqual({
+      id: "card-a",
+      frontText: "Front",
+      backText: "Back",
+      tags: ["science"],
+      uniqueKey: "key-card-a",
+      deckId: "deck-a",
+      uid: "uid-a",
+      createdAt: 1,
+      updatedAt: 2,
+      deletedAt: null,
+    });
+    expect(card).not.toHaveProperty("score");
+    expect(card).not.toHaveProperty("numberOfSeen");
   });
 
   it.each([

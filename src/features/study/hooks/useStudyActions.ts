@@ -4,7 +4,6 @@
  * coordinate services themselves.
  */
 
-import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { StudyProgressEdit } from "@/entities/study-progress";
 import type { Preferences, SwipeDirection } from "@/entities/preferences";
@@ -12,13 +11,13 @@ import type { Preferences, SwipeDirection } from "@/entities/preferences";
 import React from "react";
 
 import { buildStudySession, calculateNextIndex } from "../model/session";
-import { createStudyCard } from "../model/studyCard";
+import type { StudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
 import { studyStore } from "../state/studyStoreInstance";
 import { usePreferences } from "@/entities/preferences";
 
 export interface StudyActions {
-  start: (cards: Card[]) => void;
+  start: (cards: StudyCard[]) => void;
   swipeUp: () => Promise<void>;
   swipeDown: () => Promise<void>;
   swipeLeft: () => Promise<void>;
@@ -36,7 +35,7 @@ interface StudyCardMutation {
 type SwipeRollback = () => void;
 
 interface UseStudyActionsOptions {
-  cards?: readonly Card[] | undefined;
+  cards?: readonly StudyCard[] | undefined;
   cardMutation?: StudyCardMutation | undefined;
   onStarted?: (() => void) | undefined;
   onSwipe?: ((direction: SwipeDirection) => SwipeRollback | undefined) | undefined;
@@ -51,7 +50,7 @@ interface StudySwipeDependencies {
   mutationTokenRef: { current: symbol | undefined };
   deckId: DeckId;
   preferences: Preferences;
-  cards: readonly Card[];
+  cards: readonly StudyCard[];
   update: (progress: StudyProgressEdit) => Promise<void>;
   onSwipe?: ((direction: SwipeDirection) => SwipeRollback | undefined) | undefined;
   showBackText?: boolean | undefined;
@@ -125,8 +124,8 @@ const runStudySwipe = async (
   }
 
   const cardId = session.cardOrderIds[session.currentIndex];
-  const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
-  if (card == null) return;
+  const studyCard = cardId == null ? undefined : cards.find(({ card }) => card.id === cardId);
+  if (studyCard == null) return;
 
   const previous = {
     session: { ...session },
@@ -138,7 +137,7 @@ const runStudySwipe = async (
     onHideBackText?.();
   }
 
-  const patch = buildStudyPatch(createStudyCard(card), swipeAction, Date.now());
+  const patch = buildStudyPatch(studyCard, swipeAction, Date.now());
   const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
   const mutationToken = Symbol();
   mutationTokenRef.current = mutationToken;
@@ -187,8 +186,11 @@ export const useStudyActions = (
    * Creates a new study session from the currently filtered cards.
    * The saved UI preferences are applied before the Page is notified that the session is ready.
    */
-  const start = (cards: Card[]) => {
-    const cardOrderIds = buildStudySession(cards, preferences.study);
+  const start = (cards: StudyCard[]) => {
+    const cardOrderIds = buildStudySession(
+      cards.map(({ card }) => card),
+      preferences.study
+    );
     const state = studyStore.getState();
     state.startStudy(deckId, cardOrderIds);
     onHideBackText?.();

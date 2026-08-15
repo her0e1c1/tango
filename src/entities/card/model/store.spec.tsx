@@ -81,15 +81,15 @@ describe("Card store", () => {
     });
   });
 
-  it("persists only local Cards and restores dates after hydration", async () => {
+  it("persists only local Cards", async () => {
     const storage = useMemoryStorage();
     const remoteCard = createCard({ id: "remote" });
-    const localCard = createCard({ id: "local", nextSeeingAt: new Date(1_000) });
+    const localCard = createCard({ id: "local" });
     cardStore.setState({ remoteCards: [remoteCard], localCards: [localCard] });
 
     const persistedValue = (await storage.getItem("tango-local-cards")) ?? "{}";
     expect(JSON.parse(persistedValue)).toEqual({
-      state: { localCards: [{ ...localCard, nextSeeingAt: new Date(1_000).toISOString() }] },
+      state: { localCards: [localCard] },
       version: 1,
     });
 
@@ -102,7 +102,7 @@ describe("Card store", () => {
   it("rejects invalid persisted Cards", async () => {
     useMemoryStorage({
       "tango-local-cards": JSON.stringify({
-        state: { localCards: [{ ...createCard(), nextSeeingAt: "invalid" }] },
+        state: { localCards: [{ ...createCard(), frontText: 42 }] },
         version: 1,
       }),
     });

@@ -5,6 +5,7 @@
  */
 
 import type { Card } from "@/entities/card";
+import type { StudyProgress } from "@/entities/study-progress";
 
 import type * as React from "react";
 import { Description, Score } from "@/shared/ui/content";
@@ -15,15 +16,15 @@ import { Overlay } from "@/shared/ui/feedback";
  * Shows the active card's score and tags in a compact overlay, falling back to neutral values
  * before a card is available.
  */
-export const CardOverlay: React.FC<{ card?: Card }> = (props) => {
-  const card = props.card;
+export const CardOverlay: React.FC<{ card?: Card; progress?: StudyProgress }> = (props) => {
+  const progress = props.progress;
   return (
     <Overlay position="top">
       <div className="mx-auto flex max-w-reading flex-row items-center gap-2 bg-surface-elevated p-2 text-ink">
-        <Score score={card?.score ?? 0} />
+        <Score score={progress?.score ?? 0} />
         <Description>
-          {card?.numberOfSeen != null && `${card.numberOfSeen} times`}
-          {card?.lastSeenAt != null && ` since ${new Date(card.lastSeenAt).toLocaleDateString()}`}
+          {progress != null && `${progress.numberOfSeen} times`}
+          {progress?.lastSeenAt != null && ` since ${new Date(progress.lastSeenAt).toLocaleDateString()}`}
         </Description>
       </div>
     </Overlay>

@@ -1,4 +1,5 @@
 import type { Card } from "@/entities/card";
+import type { StudyProgress } from "@/entities/study-progress";
 
 import type * as React from "react";
 import { useId } from "react";
@@ -19,6 +20,7 @@ interface CardFormFields {
 
 export interface CardFormProps {
   card: Card;
+  progress?: StudyProgress | undefined;
   fields: CardFormFields;
   errors?: {
     frontText?: string;
@@ -128,10 +130,10 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
               <dd className="text-ink">{new Date(props.card.createdAt).toLocaleDateString()}</dd>
             </div>
           )}
-          {props.card.lastSeenAt != null && (
+          {props.progress?.lastSeenAt != null && (
             <div>
               <dt className="font-medium text-ink-muted">Last seen</dt>
-              <dd className="text-ink">{new Date(props.card.lastSeenAt).toLocaleDateString()}</dd>
+              <dd className="text-ink">{new Date(props.progress.lastSeenAt).toLocaleDateString()}</dd>
             </div>
           )}
         </dl>

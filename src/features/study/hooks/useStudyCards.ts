@@ -2,22 +2,34 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { getNextStudyAvailabilityAt } from "@/entities/study-progress";
+import { createStudyProgress, getNextStudyAvailabilityAt, useStudyProgresses } from "@/entities/study-progress";
 import { filterCardsForDeck } from "../model/cardSelection";
-import { createStudyCard } from "../model/studyCard";
+import { createStudyCard, type StudyCard } from "../model/studyCard";
 import type { Preferences } from "@/entities/preferences";
 
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
-export const useStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): Card[] => {
+export const useStudyCardItems = (cards: Card[]): StudyCard[] => {
+  const progresses = useStudyProgresses();
+  const progressesByCardId = useMemo(
+    () => new Map(progresses.map((progress) => [progress.cardId, progress])),
+    [progresses]
+  );
+  return useMemo(
+    () => cards.map((card) => createStudyCard(card, progressesByCardId.get(card.id) ?? createStudyProgress(card.id))),
+    [cards, progressesByCardId]
+  );
+};
+
+export const useStudyCards = (deck: Deck | undefined, cards: Card[], preferences: Preferences): StudyCard[] => {
   const [scheduleClock, setScheduleClock] = useState(() => Date.now());
-  const studyCards = useMemo(() => cards.map(createStudyCard), [cards]);
+  const studyCards = useStudyCardItems(cards);
 
   useEffect(() => {
     const current = Date.now();
     const refresh = window.setTimeout(() => setScheduleClock(current), 0);
     return () => window.clearTimeout(refresh);
-  }, [cards]);
+  }, [studyCards]);
 
   useEffect(() => {
     const current = Date.now();
@@ -34,7 +46,5 @@ export const useStudyCards = (deck: Deck | undefined, cards: Card[], preferences
     };
   }, [scheduleClock, studyCards]);
 
-  return deck == null
-    ? []
-    : filterCardsForDeck(studyCards, deck, preferences.study, scheduleClock).map(({ card }) => card);
+  return deck == null ? [] : filterCardsForDeck(studyCards, deck, preferences.study, scheduleClock);
 };

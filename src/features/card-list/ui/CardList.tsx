@@ -4,6 +4,7 @@ import { useAuthUid } from "@/entities/auth";
 import { deleteCard, type Card, type CardId } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
+import type { StudyProgress } from "@/entities/study-progress";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 
@@ -26,12 +27,12 @@ interface CardListBackTextProps {
 
 export interface CardListProps {
   deck: Deck;
-  cards: Card[];
+  cards: (Card | { card: Card; progress: StudyProgress })[];
   preferences: Preferences;
   filter: CardListFilter;
   renderBackText: (props: CardListBackTextProps) => React.ReactNode;
   onEditCard: (id: CardId) => void;
-  onChangeScore: (card: Card, score: number) => Promise<void>;
+  onChangeScore: (progress: StudyProgress, score: number) => Promise<void>;
 }
 
 export const CardList: React.FC<CardListProps> = (props) => {
@@ -42,23 +43,27 @@ export const CardList: React.FC<CardListProps> = (props) => {
   const [mutationError, setMutationError] = React.useState<unknown>(null);
   const [successMessage, setSuccessMessage] = React.useState<string>();
 
-  const findCard = (id: CardId) => props.cards.find((card) => card.id === id);
+  const findStudyCard = (id: CardId) => {
+    const item = props.cards.find((candidate) => ("card" in candidate ? candidate.card.id : candidate.id) === id);
+    if (item == null) return undefined;
+    return "card" in item ? item : { card: item, progress: { cardId: item.id, score: 0, numberOfSeen: 0 } };
+  };
 
   const changeScore = (id: CardId, offset: number) => {
-    const card = findCard(id);
-    if (card == null) return;
+    const studyCard = findStudyCard(id);
+    if (studyCard == null) return;
     void props
-      .onChangeScore(card, card.score + offset)
+      .onChangeScore(studyCard.progress, studyCard.progress.score + offset)
       .then(() => setMutationError(null))
       .catch(setMutationError);
   };
 
   const requestDeletion = (id: CardId) => {
-    const card = findCard(id);
-    if (card == null) return;
+    const studyCard = findStudyCard(id);
+    if (studyCard == null) return;
     setSuccessMessage(undefined);
     setDeletionErrorCardId(undefined);
-    setDeletionTarget(card);
+    setDeletionTarget(studyCard.card);
   };
 
   const confirmDeletion = async () => {
