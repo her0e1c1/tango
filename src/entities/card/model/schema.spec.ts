@@ -32,8 +32,6 @@ describe("Card operation schemas", () => {
         tags: ["tag"],
         uniqueKey: "key",
         deletedAt: null,
-        score: 0,
-        numberOfSeen: 0,
       },
     });
   });

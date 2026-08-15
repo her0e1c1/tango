@@ -17,7 +17,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { CardListView } from "./CardListView";
 
-const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", score: 0, tags: [] });
+const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
 describe("CardListView", () => {

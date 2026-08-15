@@ -1,4 +1,3 @@
-import type { Card } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
@@ -10,6 +9,7 @@ import { useCardsByDeckId } from "@/entities/card";
 import {
   DeckStartForm,
   DeckStartView,
+  type SelectableStudyCard,
   useDeckFilterState,
   useStartStudySession,
   useStudyCards,
@@ -21,14 +21,19 @@ import { AppLayout } from "@/widgets/app-layout";
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
-const DeckStartContent = (props: { deck: Deck; cards: Card[]; preferences: Preferences; tags: string[] }) => {
+const DeckStartContent = (props: {
+  deck: Deck;
+  cards: SelectableStudyCard[];
+  preferences: Preferences;
+  tags: string[];
+}) => {
   const { deck, cards, preferences, tags } = props;
   const navigate = useNavigate();
   const startStudy = useStartStudySession(deck.id, {
     onStarted: () => void navigate(`/deck/${deck.id}/study`, { replace: true }),
   });
   const deckStartForm = useDeckFilterState({ deck, tags });
-  const start = () => startStudy(cards);
+  const start = () => startStudy(cards.map(({ card }) => card));
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
     start();

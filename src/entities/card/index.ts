@@ -11,4 +11,4 @@ export type {
   CardRaw,
   RemoteCard,
 } from "./model/types";
-export { filterCardsByDeckId, mustFindCardById } from "./model/rules";
+export { filterCardsByDeckId } from "./model/rules";

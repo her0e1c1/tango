@@ -70,34 +70,22 @@ export const card = {
   default: createCard({
     frontText: "front text",
     backText: "back test",
-    score: 3,
-    numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: Date.now(),
   }),
   long: createCard({
     frontText: "too long front text ".repeat(20),
     backText: "back test".repeat(100),
-    score: 3,
-    numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: Date.now(),
   }),
   toolong: createCard({
     frontText: "too long front text ".repeat(20),
     backText: "back test".repeat(100),
-    score: 3,
-    numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: Date.now(),
   }),
   longTags: createCard({
     frontText: "front text",
     backText: "back test",
-    score: 3,
-    numberOfSeen: 5,
     tags: tags.toolong,
-    lastSeenAt: Date.now(),
   }),
 } as const satisfies Record<string, Card>;
 

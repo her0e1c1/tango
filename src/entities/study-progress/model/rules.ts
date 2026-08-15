@@ -1,15 +1,4 @@
-import { createStudyProgress } from "./defaults";
-import type { CardProgressFields, StudyProgress, StudyProgressEdit, StudyProgressFilter, StudyRating } from "./types";
-
-export const createStudyProgressFromCard = (card: CardProgressFields): StudyProgress => {
-  const progress = createStudyProgress(card.id);
-  progress.score = card.score;
-  progress.numberOfSeen = card.numberOfSeen;
-  if (card.lastSeenAt !== undefined) progress.lastSeenAt = card.lastSeenAt;
-  if (card.nextSeeingAt !== undefined) progress.nextSeeingAt = card.nextSeeingAt;
-  if (card.interval !== undefined) progress.interval = card.interval;
-  return progress;
-};
+import type { StudyProgress, StudyProgressEdit, StudyProgressFilter, StudyRating } from "./types";
 
 const calculateScore = (score: number, rating: StudyRating): number => {
   if (rating === "mastered") return score >= 0 ? score + 1 : 0;

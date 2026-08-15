@@ -9,6 +9,7 @@ import type { LocalCard } from "@/entities/card/model/types";
 import type { RemoteDeck } from "@/entities/deck";
 import type { LocalDeck } from "@/entities/deck/model/types";
 import type { Preferences, StudyPreferences, SwipeAction } from "@/entities/preferences";
+import type { StudyProgress } from "@/entities/study-progress";
 
 type AppearancePreferences = Preferences["appearance"];
 type ControlPreferences = Preferences["controls"];
@@ -67,6 +68,11 @@ export const createCard = (overrides: Partial<RemoteCard> = {}): RemoteCard => (
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
+  ...overrides,
+});
+
+export const createStudyProgress = (overrides: Partial<StudyProgress> = {}): StudyProgress => ({
+  cardId: "card-id",
   score: 0,
   numberOfSeen: 0,
   ...overrides,
@@ -82,8 +88,6 @@ export const createLocalCard = (overrides: Partial<LocalCard> = {}): LocalCard =
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  score: 0,
-  numberOfSeen: 0,
   ...overrides,
 });
 

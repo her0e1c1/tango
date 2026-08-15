@@ -1,6 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
+import type { StudyProgress } from "@/entities/study-progress";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -32,19 +33,25 @@ vi.mock("@/entities/deck", () => ({ useDeck: () => mocks.deck ?? undefined }));
 vi.mock("@/features/card-list", () => ({
   useEditCardScore: () => ({ updateScore: mocks.updateScore }),
   CardList: (props: {
-    cards: Card[];
+    cards: { card: Card; progress: StudyProgress }[];
     filter: { selectedTags: string[]; onChangeSelectedTags: (tags: string[]) => void };
     onEditCard: (id: string) => void;
-    onChangeScore: (card: Card, score: number) => Promise<void>;
+    onChangeScore: (progress: StudyProgress, score: number) => Promise<void>;
   }) => {
     mocks.cardListProps = props as unknown as Record<string, unknown>;
     return (
       <div>
         <span>Card list feature</span>
-        <button type="button" onClick={() => props.onEditCard(props.cards[0]?.id ?? "missing")}>
+        <button type="button" onClick={() => props.onEditCard(props.cards[0]?.card.id ?? "missing")}>
           Edit card
         </button>
-        <button type="button" onClick={() => void props.onChangeScore(props.cards[0] as Card, 3)}>
+        <button
+          type="button"
+          onClick={() => {
+            const progress = props.cards[0]?.progress;
+            if (progress !== undefined) void props.onChangeScore(progress, 3);
+          }}
+        >
           Change score
         </button>
         <button type="button" onClick={() => props.filter.onChangeSelectedTags(["react"])}>
@@ -56,7 +63,8 @@ vi.mock("@/features/card-list", () => ({
 }));
 vi.mock("@/features/deck-start", () => ({
   DeckStartForm: () => <div>Filter controls</div>,
-  useStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
+  useStudyCards: (deck: Deck | undefined, cards: Card[]) =>
+    deck == null ? [] : cards.map((card) => ({ card, progress: { cardId: card.id, score: 0, numberOfSeen: 0 } })),
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,

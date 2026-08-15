@@ -16,6 +16,8 @@ import { replaceAuthSession } from "@/entities/auth";
 import type { Preferences } from "@/entities/preferences";
 import { preferencesSchema } from "@/entities/preferences/model/schema";
 import { preferencesStore } from "@/entities/preferences/model/store";
+import type { StudyProgress } from "@/entities/study-progress";
+import { replaceRemoteStudyProgresses } from "@/entities/study-progress/model/store";
 import { clearStudySessions, restoreStudySession, type StudySession } from "@/entities/study-session";
 
 export const PAGE_STORY_UID = "storybook-user";
@@ -30,6 +32,7 @@ export interface PageStoryParameters {
   path: string;
   decks?: RemoteDeck[];
   cards?: RemoteCard[];
+  progresses?: StudyProgress[];
   preferences?: PartialPreferences;
   sessionsByDeckId?: StudySessions;
   autoPlay?: boolean;
@@ -43,7 +46,6 @@ const cloneDeck = (deck: RemoteDeck): RemoteDeck => ({
 const cloneCard = (card: RemoteCard): RemoteCard => ({
   ...card,
   tags: [...card.tags],
-  ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(card.nextSeeingAt.getTime()) }),
 });
 
 const cloneSessions = (sessionsByDeckId: StudySessions): StudySessions => {
@@ -70,6 +72,7 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
 
   const decks = (parameters.decks ?? []).map(cloneDeck);
   const cards = (parameters.cards ?? []).map(cloneCard);
+  const progresses = parameters.progresses ?? [];
   const preferences = preferencesSchema.parse({
     ...parameters.preferences,
     study: {
@@ -91,6 +94,7 @@ export const preparePageStory = async (parameters: PageStoryParameters): Promise
   });
   replaceRemoteDecks(decks);
   replaceRemoteCards(cards);
+  replaceRemoteStudyProgresses(progresses);
 };
 
 /** Wraps a page story with the providers normally supplied by the application entry point. */

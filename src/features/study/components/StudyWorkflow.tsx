@@ -1,6 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preferences";
+import type { StudyProgress } from "@/entities/study-progress";
 
 import type * as React from "react";
 
@@ -12,6 +13,7 @@ import { useStudyControllerState } from "../hooks/useStudyControllerState";
 import { useStudyDisplayState } from "../hooks/useStudyDisplayState";
 import { useStudyProgressMutation } from "../hooks/useStudyProgressMutation";
 import { useSwipeFeedback } from "../hooks/useSwipeFeedback";
+import type { StudyCard } from "../model/studyCard";
 
 type PresentationActions = Pick<
   StudyActions,
@@ -25,6 +27,7 @@ export type StudyWorkflowState = { shortcutActions: ShortcutActions } & (
   | {
       status: "ready";
       card: Card;
+      progress: StudyProgress;
       showHeader: boolean;
       showBackText: boolean;
       showController: boolean;
@@ -37,7 +40,7 @@ export type StudyWorkflowState = { shortcutActions: ShortcutActions } & (
 );
 
 interface StudyWorkflowProps {
-  cards: readonly Card[];
+  cards: readonly StudyCard[];
   deckId: DeckId;
   onUnavailable: () => void;
   children: (state: StudyWorkflowState) => React.ReactNode;
@@ -83,6 +86,7 @@ export const StudyWorkflow = ({ cards, deckId, onUnavailable, children }: StudyW
     status: "ready",
     shortcutActions: actions,
     card: session.card,
+    progress: session.progress,
     showHeader: display.preferences.appearance.showHeader && !display.showBackText,
     showBackText: display.showBackText,
     showController: display.preferences.study.cardInterval > 0,

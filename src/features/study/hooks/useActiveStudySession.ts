@@ -1,27 +1,34 @@
-import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { touchStudySession, useStudySession } from "@/entities/study-session";
 
 import * as React from "react";
 
+import type { StudyCard } from "../model/studyCard";
 export type ActiveStudySession =
   | { status: "loading" | "unavailable" }
   | {
       status: "ready";
-      card: Card;
+      card: StudyCard["card"];
+      progress: StudyCard["progress"];
       index: number;
       numberOfCards: number;
     };
 
-export const useActiveStudySession = (deckId: DeckId, cards: readonly Card[]): ActiveStudySession => {
+export const useActiveStudySession = (deckId: DeckId, cards: readonly StudyCard[]): ActiveStudySession => {
   const session = useStudySession(deckId);
   const index = session?.currentIndex ?? -1;
   const cardId = index >= 0 ? session?.cardOrderIds[index] : undefined;
-  const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
+  const studyCard = cardId == null ? undefined : cards.find(({ card }) => card.id === cardId);
   const sessionHasTargetCard = session != null && index >= 0 && index < session.cardOrderIds.length;
 
-  if (card != null && sessionHasTargetCard) {
-    return { status: "ready", card, index, numberOfCards: session.cardOrderIds.length };
+  if (studyCard != null && sessionHasTargetCard) {
+    return {
+      status: "ready",
+      card: studyCard.card,
+      progress: studyCard.progress,
+      index,
+      numberOfCards: session.cardOrderIds.length,
+    };
   }
   if (sessionHasTargetCard && cards.length === 0) return { status: "loading" };
   return { status: "unavailable" };

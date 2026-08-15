@@ -7,6 +7,7 @@ import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
 import type { Card as CardEntity, CardId } from "@/entities/card";
+import type { StudyProgress } from "@/entities/study-progress";
 import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
 
@@ -24,7 +25,7 @@ interface CardListFilterState {
 }
 
 export interface CardListViewProps {
-  cards: CardEntity[];
+  cards: (CardEntity | { card: CardEntity; progress: StudyProgress })[];
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
   card?: CardProps;
@@ -66,6 +67,9 @@ const filterLabel = (filter: CardListFilterState) => {
 
 const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selectedTags: [] };
 
+const splitCardListItem = (item: CardListViewProps["cards"][number]) =>
+  "card" in item ? item : { card: item, progress: undefined };
+
 /**
  * Composes the complete Card List Rows screen from reusable UI components.
  * All data and callbacks arrive through props, allowing the same screen to run in tests and
@@ -76,23 +80,27 @@ const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowC
 
   return (
     <div className="overflow-visible rounded-surface border border-border bg-surface shadow-surface dark:border-black">
-      {props.cards.map((card) => (
-        <Card
-          key={card.id}
-          card={card}
-          menuOpen={openMenuCardId === card.id}
-          onToggleMenu={(id) => setOpenMenuCardId((value) => (value === id ? undefined : id))}
-          onCloseMenu={() => setOpenMenuCardId(undefined)}
-          {...(props.card?.onSwipedLeft !== undefined ? { onSwipedLeft: props.card.onSwipedLeft } : {})}
-          {...(props.card?.onSwipedRight !== undefined ? { onSwipedRight: props.card.onSwipedRight } : {})}
-          {...(props.card?.onDelete !== undefined ? { onDelete: props.card.onDelete } : {})}
-          {...(props.card?.goToEdit !== undefined ? { goToEdit: props.card.goToEdit } : {})}
-          goToView={() => {
-            setOpenMenuCardId(undefined);
-            props.onShowCard?.(card);
-          }}
-        />
-      ))}
+      {props.cards.map((item) => {
+        const { card, progress } = splitCardListItem(item);
+        return (
+          <Card
+            key={card.id}
+            card={card}
+            {...(progress !== undefined ? { progress } : {})}
+            menuOpen={openMenuCardId === card.id}
+            onToggleMenu={(id) => setOpenMenuCardId((value) => (value === id ? undefined : id))}
+            onCloseMenu={() => setOpenMenuCardId(undefined)}
+            {...(props.card?.onSwipedLeft !== undefined ? { onSwipedLeft: props.card.onSwipedLeft } : {})}
+            {...(props.card?.onSwipedRight !== undefined ? { onSwipedRight: props.card.onSwipedRight } : {})}
+            {...(props.card?.onDelete !== undefined ? { onDelete: props.card.onDelete } : {})}
+            {...(props.card?.goToEdit !== undefined ? { goToEdit: props.card.goToEdit } : {})}
+            goToView={() => {
+              setOpenMenuCardId(undefined);
+              props.onShowCard?.(card);
+            }}
+          />
+        );
+      })}
     </div>
   );
 };
@@ -151,7 +159,7 @@ export const CardListView: React.FC<CardListViewProps> = (props) => {
 
       {props.cards.length > 0 && (
         <CardListRows
-          key={JSON.stringify(props.cards.map((card) => card.id))}
+          key={JSON.stringify(props.cards.map((item) => splitCardListItem(item).card.id))}
           cards={props.cards}
           {...(props.card !== undefined ? { card: props.card } : {})}
           {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}

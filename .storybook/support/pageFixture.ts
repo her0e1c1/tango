@@ -3,7 +3,7 @@
 import type { CardId, RemoteCard } from "@/entities/card";
 import type { DeckId, RemoteDeck } from "@/entities/deck";
 
-import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { createCard, createDeck, createPreferences, createStudyProgress } from "@/test/factories";
 import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";
 import { PAGE_STORY_UID, type PageStoryParameters } from "@/storybook/PageDecorator";
 
@@ -43,8 +43,6 @@ const pageStoryCards: RemoteCard[] = [
     backText: "こんにちは",
     tags: ["greeting"],
     uniqueKey: "storybook-hello",
-    score: 3,
-    numberOfSeen: 8,
     createdAt: timestamp - 10 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp,
   }),
@@ -56,8 +54,6 @@ const pageStoryCards: RemoteCard[] = [
     backText: "おはようございます",
     tags: ["greeting", "polite"],
     uniqueKey: "storybook-good-morning",
-    score: 1,
-    numberOfSeen: 4,
     createdAt: timestamp - 9 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp - 60 * 60 * 1000,
   }),
@@ -69,8 +65,6 @@ const pageStoryCards: RemoteCard[] = [
     backText: "ありがとうございます",
     tags: ["polite"],
     uniqueKey: "storybook-thank-you",
-    score: 0,
-    numberOfSeen: 2,
     createdAt: timestamp - 8 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp - 2 * 60 * 60 * 1000,
   }),
@@ -87,9 +81,17 @@ const pageStoryCards: RemoteCard[] = [
   }),
 ];
 
+const pageStoryProgresses = [
+  createStudyProgress({ cardId: PAGE_STORY_CARD_ID, score: 3, numberOfSeen: 8 }),
+  createStudyProgress({ cardId: "storybook-good-morning", score: 1, numberOfSeen: 4 }),
+  createStudyProgress({ cardId: "storybook-thank-you", numberOfSeen: 2 }),
+  createStudyProgress({ cardId: "storybook-circle-area" }),
+];
+
 export const pageStoryState = {
   decks: pageStoryDecks,
   cards: pageStoryCards,
+  progresses: pageStoryProgresses,
   preferences: createPreferences({
     maxNumberOfCardsToLearn: 20,
     showScoreSlider: true,

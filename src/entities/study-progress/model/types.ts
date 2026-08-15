@@ -22,13 +22,4 @@ export interface StudyProgressFilter {
   respectNextSeeingAt: boolean;
 }
 
-export interface CardProgressFields {
-  id: CardId;
-  score: number;
-  numberOfSeen: number;
-  lastSeenAt?: number;
-  nextSeeingAt?: Date;
-  interval?: number;
-}
-
 export type EditStudyProgressInput = z.infer<typeof editStudyProgressSchema>;

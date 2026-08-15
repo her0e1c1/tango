@@ -1,4 +1,5 @@
 import type { Card } from "@/entities/card";
+import type { StudyProgress } from "@/entities/study-progress";
 
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
@@ -11,11 +12,12 @@ import { CardForm } from "./CardForm";
 
 export interface CardEditFormProps {
   card: Card;
+  progress?: StudyProgress | undefined;
   onCancel: () => void;
   onSaved: () => void;
 }
 
-export const CardEditForm: React.FC<CardEditFormProps> = ({ card, onCancel, onSaved }) => {
+export const CardEditForm: React.FC<CardEditFormProps> = ({ card, progress, onCancel, onSaved }) => {
   const editAction = useCardEditAction({ onSaved });
   const cardForm = useCardFormState({
     card,
@@ -40,7 +42,7 @@ export const CardEditForm: React.FC<CardEditFormProps> = ({ card, onCancel, onSa
         <p className="mt-2 text-body text-ink-muted">Update the prompt, answer, and organization for this card.</p>
       </header>
       <Feedback tone="error">{editAction.error == null ? null : "Unable to save changes. Try again."}</Feedback>
-      <CardForm {...cardForm} />
+      <CardForm {...cardForm} progress={progress} />
     </section>
   );
 };

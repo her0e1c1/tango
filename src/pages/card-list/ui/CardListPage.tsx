@@ -2,18 +2,18 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { type Card, type CardId, useCardsByDeckId } from "@/entities/card";
+import { type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList, useEditCardScore } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
-import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/deck-start";
+import { DeckStartForm, type SelectableStudyCard, useDeckFilterState, useStudyCards } from "@/features/deck-start";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 const CardListComposition = (props: {
   deck: Deck;
-  cards: Card[];
+  cards: SelectableStudyCard[];
   tags: string[];
   preferences: Preferences;
   onEditCard: (id: CardId) => void;
@@ -35,7 +35,7 @@ const CardListComposition = (props: {
       }}
       renderBackText={(backText) => <BackText {...backText} />}
       onEditCard={props.onEditCard}
-      onChangeScore={(card, score) => editCardScore.updateScore(card.id, score)}
+      onChangeScore={(progress, score) => editCardScore.updateScore(progress.cardId, score)}
     />
   );
 };

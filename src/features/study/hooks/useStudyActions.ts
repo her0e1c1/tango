@@ -4,7 +4,6 @@
  * coordinate services themselves.
  */
 
-import { mustFindCardById, type Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { Preferences, SwipeDirection } from "@/entities/preferences";
 import { usePreferences } from "@/entities/preferences";
@@ -20,7 +19,7 @@ import {
 import React from "react";
 
 import { calculateNextIndex } from "../model/session";
-import { createStudyCard } from "../model/studyCard";
+import type { StudyCard } from "../model/studyCard";
 import { buildStudyPatch, resolveSwipeAction } from "../model/swipe";
 
 export interface StudyActions {
@@ -41,7 +40,7 @@ interface StudyCardMutation {
 type SwipeRollback = () => void;
 
 interface UseStudyActionsOptions {
-  cards?: readonly Card[] | undefined;
+  cards?: readonly StudyCard[] | undefined;
   cardMutation?: StudyCardMutation | undefined;
   onSwipe?: ((direction: SwipeDirection) => SwipeRollback | undefined) | undefined;
   showBackText?: boolean | undefined;
@@ -55,7 +54,7 @@ interface StudySwipeDependencies {
   mutationTokenRef: { current: symbol | undefined };
   deckId: DeckId;
   preferences: Preferences;
-  cards: readonly Card[];
+  cards: readonly StudyCard[];
   update: (progress: StudyProgressEdit) => Promise<void>;
   onSwipe?: ((direction: SwipeDirection) => SwipeRollback | undefined) | undefined;
   showBackText?: boolean | undefined;
@@ -117,8 +116,8 @@ const runStudySwipe = async (
   }
 
   const cardId = session.cardOrderIds[session.currentIndex];
-  if (cardId == null) return;
-  const card = mustFindCardById(cards, cardId);
+  const studyCard = cardId == null ? undefined : cards.find(({ card }) => card.id === cardId);
+  if (studyCard == null) return;
 
   const previous = {
     session: { ...session },
@@ -130,7 +129,7 @@ const runStudySwipe = async (
     onHideBackText?.();
   }
 
-  const patch = buildStudyPatch(createStudyCard(card), swipeAction, Date.now());
+  const patch = buildStudyPatch(studyCard, swipeAction, Date.now());
   const nextIndex = calculateNextIndex(session.currentIndex, session.cardOrderIds.length, swipeAction);
   const mutationToken = Symbol();
   mutationTokenRef.current = mutationToken;

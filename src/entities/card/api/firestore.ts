@@ -1,12 +1,4 @@
-import type {
-  CardCreate,
-  CardCreateInput,
-  CardEdit,
-  CardId,
-  DeleteCardInput,
-  EditCardInput,
-  RemoteCard,
-} from "../model/types";
+import type { CardCreate, CardCreateInput, CardEdit, DeleteCardInput, EditCardInput, RemoteCard } from "../model/types";
 
 import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
@@ -15,34 +7,9 @@ import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceRemoteCards } from "../model/store";
-import { parseCardDocument } from "./document";
+import { buildCardCreateDocument, mapCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
-
-const convertCardDocumentToCard = (id: CardId, value: unknown): RemoteCard => {
-  const document = parseCardDocument(id, value);
-  const card: RemoteCard = {
-    id,
-    frontText: document.frontText,
-    backText: document.backText,
-    tags: document.tags,
-    uniqueKey: document.uniqueKey,
-    deckId: document.deckId,
-    uid: document.uid,
-    createdAt: document.createdAt,
-    updatedAt: document.updatedAt,
-    deletedAt: document.deletedAt,
-    score: document.score,
-    numberOfSeen: document.numberOfSeen,
-  };
-  if (document.lastSeenAt !== undefined) card.lastSeenAt = document.lastSeenAt;
-  if (document.nextSeeingAt !== undefined) card.nextSeeingAt = document.nextSeeingAt;
-  if (document.interval !== undefined) card.interval = document.interval;
-  if (document.url !== undefined) card.url = document.url;
-  if (document.startLine !== undefined) card.startLine = document.startLine;
-  if (document.endLine !== undefined) card.endLine = document.endLine;
-  return card;
-};
 
 export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
   onSnapshot(
@@ -50,7 +17,7 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
     (snapshot) => {
       try {
         const cards = snapshot.docs
-          .map((document) => convertCardDocumentToCard(document.id, document.data()))
+          .map((document) => mapCardDocument(document.id, document.data()))
           .filter((card) => card.deletedAt === null);
         replaceRemoteCards(cards);
       } catch (cause) {
@@ -63,13 +30,13 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
 export const fetchCards = async (uid: string): Promise<RemoteCard[]> => {
   const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
   return snapshot.docs
-    .map((document) => convertCardDocumentToCard(document.id, document.data()))
+    .map((document) => mapCardDocument(document.id, document.data()))
     .filter((card) => card.deletedAt === null);
 };
 
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();
-  const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
+  const document = buildCardCreateDocument(card, createdAt);
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 

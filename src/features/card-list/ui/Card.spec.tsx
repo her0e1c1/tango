@@ -13,14 +13,19 @@ import { describe, expect, it, vi } from "vitest";
 import type { Card as CardEntity } from "@/entities/card";
 import { Card } from "./Card";
 
-const card = {
+const card: CardEntity = {
   id: "card-id",
+  deckId: "deck-id",
+  uid: "user-id",
   frontText: "A long front",
   backText: "Back",
-  score: 3,
-  numberOfSeen: 7,
   tags: ["one", "two"],
-} as CardEntity;
+  uniqueKey: "card-id",
+  createdAt: 0,
+  updatedAt: 0,
+  deletedAt: null,
+};
+const progress = { cardId: card.id, score: 3, numberOfSeen: 7 };
 
 /**
  * Renders the test-only Controlled Card component with controlled state or providers.
@@ -74,7 +79,7 @@ describe("Card", () => {
       onSwipedRight: vi.fn(),
       onToggleMenu: vi.fn(),
     };
-    render(<ControlledCard card={card} {...actions} />);
+    render(<ControlledCard card={card} progress={progress} {...actions} />);
     const article = screen.getByRole("article");
 
     expect(screen.getByLabelText("Score 3, positive")).toBeInTheDocument();
@@ -99,15 +104,15 @@ describe("Card", () => {
   });
 
   it("uses explicit copy for unstudied and singular study counts", () => {
-    const view = render(<Card card={{ ...card, numberOfSeen: 0 }} />);
+    const view = render(<Card card={card} progress={{ ...progress, numberOfSeen: 0 }} />);
     expect(screen.getByText("not studied yet")).toBeInTheDocument();
 
-    view.rerender(<Card card={{ ...card, numberOfSeen: 1 }} />);
+    view.rerender(<Card card={card} progress={{ ...progress, numberOfSeen: 1 }} />);
     expect(screen.getByText("studied 1 time")).toBeInTheDocument();
   });
 
   it("keeps study and tag metadata outside the View button", () => {
-    render(<Card card={card} />);
+    render(<Card card={card} progress={progress} />);
     const viewButton = screen.getByRole("button", { name: "View A long front" });
     const studyText = screen.getByText("studied 7 times");
     const tags = screen.getByLabelText("Tags: one, two");
@@ -117,7 +122,7 @@ describe("Card", () => {
   });
 
   it("renders card tags as compact read-only markers", () => {
-    render(<Card card={card} />);
+    render(<Card card={card} progress={progress} />);
     const metadata = screen.getByLabelText("Tags: one, two");
 
     expect(within(metadata).queryByRole("button")).not.toBeInTheDocument();
@@ -125,7 +130,7 @@ describe("Card", () => {
   });
 
   it("covers the complete central region with View without owning its metadata", () => {
-    render(<Card card={card} />);
+    render(<Card card={card} progress={progress} />);
     const viewButton = screen.getByRole("button", { name: "View A long front" });
 
     expect(viewButton).toHaveClass("absolute", "inset-0");
@@ -136,7 +141,7 @@ describe("Card", () => {
     vi.useFakeTimers();
     const goToView = vi.fn();
     const onSwipedLeft = vi.fn();
-    render(<Card card={card} goToView={goToView} onSwipedLeft={onSwipedLeft} />);
+    render(<Card card={card} progress={progress} goToView={goToView} onSwipedLeft={onSwipedLeft} />);
     const viewButton = screen.getByRole("button", { name: "View A long front" });
 
     swipe(viewButton, 100, 0);
@@ -152,7 +157,7 @@ describe("Card", () => {
 
   it("does not start swipe tracking from the actions menu trigger", () => {
     const onSwipedLeft = vi.fn();
-    render(<ControlledCard card={card} onSwipedLeft={onSwipedLeft} />);
+    render(<ControlledCard card={card} progress={progress} onSwipedLeft={onSwipedLeft} />);
     const trigger = screen.getByRole("button", { name: "Open actions for A long front" });
 
     swipe(trigger, 100, 0);
@@ -165,7 +170,9 @@ describe("Card", () => {
   it("isolates complete touch sequences on the actions trigger while preserving its click", () => {
     const onSwipedLeft = vi.fn();
     const onSwipedRight = vi.fn();
-    render(<ControlledCard card={card} onSwipedLeft={onSwipedLeft} onSwipedRight={onSwipedRight} />);
+    render(
+      <ControlledCard card={card} progress={progress} onSwipedLeft={onSwipedLeft} onSwipedRight={onSwipedRight} />
+    );
     const trigger = screen.getByRole("button", { name: "Open actions for A long front" });
 
     touchGesture(trigger, 240, 80);
@@ -188,7 +195,7 @@ describe("Card", () => {
       onSwipedRight: vi.fn(),
       onToggleMenu: vi.fn(),
     };
-    render(<ControlledCard card={card} disabled {...actions} />);
+    render(<ControlledCard card={card} progress={progress} disabled {...actions} />);
     const article = screen.getByRole("article");
 
     expect(article).toHaveAttribute("aria-busy", "true");

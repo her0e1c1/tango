@@ -2,13 +2,7 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
-import {
-  cardIdSchema,
-  localCardCreateSchema,
-  localCardEditSchema,
-  localCardSchema,
-  persistedCardSchema,
-} from "./schema";
+import { cardIdSchema, localCardCreateSchema, localCardEditSchema, localCardSchema } from "./schema";
 import type { Card, CardId, LocalCard, LocalCardCreateInput, LocalCardEdit, RemoteCard } from "./types";
 
 interface CardState {
@@ -25,7 +19,7 @@ interface CreateCardStoreOptions {
   skipHydration?: boolean;
 }
 
-const persistedCardStateSchema = z.object({ localCards: z.array(persistedCardSchema) });
+const persistedCardStateSchema = z.object({ localCards: z.array(localCardSchema) });
 
 const parsePersistedCardState = (value: unknown): PersistedCardState => {
   const result = persistedCardStateSchema.safeParse(value);

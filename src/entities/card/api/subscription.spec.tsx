@@ -86,15 +86,15 @@ describe("Card Firestore subscription", () => {
     expect(result.current).toEqual([
       expect.objectContaining({
         id: "active",
-        lastSeenAt: 50,
-        nextSeeingAt: new Date(60),
-        interval: 7,
         url: "https://example.com/card",
         startLine: 8,
         endLine: 9,
       }),
       localCard,
     ]);
+    expect(result.current[0]).not.toHaveProperty("score");
+    expect(result.current[0]).not.toHaveProperty("numberOfSeen");
+    expect(result.current[0]).not.toHaveProperty("lastSeenAt");
 
     act(() => getSnapshotHandler()({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
     expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" }), localCard]);

@@ -3,7 +3,7 @@
  * The examples make the expected behavior concrete with active-session transition cases.
  */
 
-import type { Card, CardId } from "@/entities/card";
+import type { CardId } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 import {
@@ -21,12 +21,13 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { useStudyActions } from "./useStudyActions";
 import { actAsync } from "@/test/act";
+import type { StudyCard } from "../model/studyCard";
 
 const mocks = vi.hoisted(() => {
   const cardUpdate = vi.fn();
 
   return {
-    state: null as { cards: Card[]; preferences: Preferences } | null,
+    state: null as { cards: (StudyCard & { id: CardId })[]; preferences: Preferences } | null,
     cardUpdate,
     cardMutations: {
       update: cardUpdate,
@@ -62,19 +63,21 @@ const deck: Deck = {
  * Provides the create card test helper used by this file.
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
-const createCard = (id: CardId, numberOfSeen: number): Card => ({
+const createCard = (id: CardId, numberOfSeen: number): StudyCard & { id: CardId } => ({
   id,
-  deckId: deck.id,
-  uid: "user-1",
-  frontText: id,
-  backText: `${id}-back`,
-  tags: [],
-  uniqueKey: id,
-  score: 0,
-  numberOfSeen,
-  createdAt: 0,
-  updatedAt: 0,
-  deletedAt: null,
+  card: {
+    id,
+    deckId: deck.id,
+    uid: "user-1",
+    frontText: id,
+    backText: `${id}-back`,
+    tags: [],
+    uniqueKey: id,
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+  },
+  progress: { cardId: id, score: 0, numberOfSeen },
 });
 
 const card1 = createCard("card-1", 0);
