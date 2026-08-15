@@ -5,7 +5,7 @@ import { startStudySession } from "@/entities/study-session";
 
 import { useCallback } from "react";
 
-import { buildStudySession } from "./buildStudySession";
+import { buildStudyCardOrder } from "./buildStudyCardOrder";
 
 interface UseStartStudySessionOptions {
   onStarted?: (() => void) | undefined;
@@ -18,7 +18,7 @@ export const useStartStudySession = (
   const preferences = usePreferences();
   return useCallback(
     (cards) => {
-      startStudySession(deckId, buildStudySession(cards, preferences.study));
+      startStudySession(deckId, buildStudyCardOrder(cards, preferences.study));
       onStarted?.();
     },
     [deckId, onStarted, preferences.study]

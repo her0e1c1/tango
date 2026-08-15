@@ -3,7 +3,7 @@ import * as lodash from "lodash";
 import type { Card } from "@/entities/card";
 import type { StudyPreferences } from "@/entities/preferences";
 
-export const buildStudySession = (
+export const buildStudyCardOrder = (
   cards: Pick<Card, "id">[],
   study: Pick<StudyPreferences, "shuffled" | "maxNumberOfCardsToLearn">
 ): string[] => {

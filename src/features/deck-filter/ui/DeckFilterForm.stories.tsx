@@ -1,5 +1,5 @@
 /**
- * @file Defines Storybook examples for Deck Start Form.
+ * @file Defines Storybook examples for Deck Filter Form.
  * These isolated scenarios show developers how the component looks, which props it accepts, and
  * how it responds to interaction.
  */
@@ -7,12 +7,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import type { ComponentProps } from "react";
 
-import { DeckStartForm as Template } from "./DeckStartForm";
+import { DeckFilterForm as Template } from "./DeckFilterForm";
 import * as fixture from "@/storybook/fixture";
 
-type DeckStartFormProps = ComponentProps<typeof Template>;
+type DeckFilterFormProps = ComponentProps<typeof Template>;
 
-const args: DeckStartFormProps = {
+const args: DeckFilterFormProps = {
   scoreMax: 1,
   scoreMin: -1,
   scoreMaxSwitchProps: { name: "scoreMaxSwitch", checked: true, onChange: () => undefined },
@@ -31,7 +31,7 @@ const args: DeckStartFormProps = {
 };
 
 const meta = {
-  title: "Deck Start/DeckStartForm",
+  title: "Deck Filter/DeckFilterForm",
   component: Template,
   tags: ["autodocs"],
   args,

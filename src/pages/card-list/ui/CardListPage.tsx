@@ -7,7 +7,7 @@ import { type Deck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList, useEditCardScore } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
-import { DeckStartForm, useDeckFilterState, useStudyCards } from "@/features/deck-start";
+import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -18,7 +18,7 @@ const CardListComposition = (props: {
   preferences: Preferences;
   onEditCard: (id: CardId) => void;
 }) => {
-  const deckStartForm = useDeckFilterState({ deck: props.deck, tags: props.tags });
+  const deckFilterForm = useDeckFilterState({ deck: props.deck, tags: props.tags });
   const editCardScore = useEditCardScore();
 
   return (
@@ -27,11 +27,11 @@ const CardListComposition = (props: {
       cards={props.cards}
       preferences={props.preferences}
       filter={{
-        scoreMax: deckStartForm.scoreMax,
-        scoreMin: deckStartForm.scoreMin,
-        selectedTags: deckStartForm.tagFilterProps.selectedTags ?? [],
-        controls: <DeckStartForm {...deckStartForm} />,
-        onChangeSelectedTags: (selectedTags) => deckStartForm.tagFilterProps.onClickTag?.(selectedTags),
+        scoreMax: deckFilterForm.scoreMax,
+        scoreMin: deckFilterForm.scoreMin,
+        selectedTags: deckFilterForm.tagFilterProps.selectedTags ?? [],
+        controls: <DeckFilterForm {...deckFilterForm} />,
+        onChangeSelectedTags: (selectedTags) => deckFilterForm.tagFilterProps.onClickTag?.(selectedTags),
       }}
       renderBackText={(backText) => <BackText {...backText} />}
       onEditCard={props.onEditCard}
@@ -48,7 +48,7 @@ export const CardListPage: React.FC = () => {
   const preferences = usePreferences();
   const deck = useDeck(deckId);
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
-  const cards = useStudyCards(deck, deckCards, preferences);
+  const cards = useFilteredStudyCards(deck, deckCards, preferences);
 
   useKey("t", () => void navigate("/"));
   useKey("s", () => void navigate("/settings"));

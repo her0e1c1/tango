@@ -4,9 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { createCard, createDeck, createPreferences } from "@/test/factories";
-import { useStudyCards } from "./useStudyCards";
+import { useFilteredStudyCards } from "./useFilteredStudyCards";
 
-describe("useStudyCards", () => {
+describe("useFilteredStudyCards", () => {
   beforeEach(() => vi.restoreAllMocks());
 
   afterEach(() => vi.useRealTimers());
@@ -19,7 +19,7 @@ describe("useStudyCards", () => {
     const future = createCard({ id: "future", deckId: deck.id, nextSeeingAt: new Date(now + 1) });
 
     const { result } = renderHook(() =>
-      useStudyCards(deck, [available, future], createPreferences({ useCardInterval: true }))
+      useFilteredStudyCards(deck, [available, future], createPreferences({ useCardInterval: true }))
     );
 
     expect(result.current).toEqual([available]);
@@ -27,7 +27,7 @@ describe("useStudyCards", () => {
 
   it("returns no cards when the deck is unavailable", () => {
     const cards = [createCard({ deckId: "missing" })];
-    const { result } = renderHook(() => useStudyCards(undefined, cards, createPreferences()));
+    const { result } = renderHook(() => useFilteredStudyCards(undefined, cards, createPreferences()));
     expect(result.current).toEqual([]);
   });
 
@@ -37,8 +37,8 @@ describe("useStudyCards", () => {
     const deck = createDeck({ id: "scheduled" });
     const card = createCard({ id: "scheduled-card", deckId: deck.id, nextSeeingAt: new Date(1_500) });
     const { result } = renderHook(() => ({
-      enabled: useStudyCards(deck, [card], createPreferences({ useCardInterval: true })),
-      disabled: useStudyCards(deck, [card], createPreferences({ useCardInterval: false })),
+      enabled: useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: true })),
+      disabled: useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: false })),
     }));
 
     expect(result.current.enabled).toEqual([]);
@@ -59,7 +59,9 @@ describe("useStudyCards", () => {
       deckId: deck.id,
       nextSeeingAt: new Date(1_000 + maxTimeout + 500),
     });
-    const { result } = renderHook(() => useStudyCards(deck, [card], createPreferences({ useCardInterval: true })));
+    const { result } = renderHook(() =>
+      useFilteredStudyCards(deck, [card], createPreferences({ useCardInterval: true }))
+    );
 
     expect(result.current).toEqual([]);
     act(() => vi.advanceTimersByTime(maxTimeout));

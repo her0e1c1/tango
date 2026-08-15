@@ -34,6 +34,7 @@ export default defineConfig([
       "./src/features/deck-edit/**",
       "./src/features/settings/**",
       "./src/features/study/**",
+      "./src/features/study-session-start/**",
     ],
     rules: {
       // Route-specific features intentionally own their workflows while serving a single route adapter.

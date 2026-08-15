@@ -7,28 +7,28 @@ const mocks = vi.hoisted(() => ({ shuffle: vi.fn((ids: string[]) => [...ids].rev
 
 vi.mock("lodash", () => ({ shuffle: mocks.shuffle }));
 
-import { buildStudySession } from "./buildStudySession";
+import { buildStudyCardOrder } from "./buildStudyCardOrder";
 
-describe("buildStudySession", () => {
+describe("buildStudyCardOrder", () => {
   const cards = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }] as Card[];
 
   it("returns a copied card order when shuffle and maximum are disabled", () => {
     const study = { shuffled: false, maxNumberOfCardsToLearn: 0 } as StudyPreferences;
-    const result = buildStudySession(cards, study);
+    const result = buildStudyCardOrder(cards, study);
     expect(result).toEqual(["a", "b", "c", "d"]);
     expect(result).not.toBe(cards);
   });
 
   it("returns no card IDs for an empty selection", () => {
-    expect(buildStudySession([], { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual([]);
+    expect(buildStudyCardOrder([], { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual([]);
   });
 
   it("limits the number of cards", () => {
-    expect(buildStudySession(cards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual(["a", "b"]);
+    expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual(["a", "b"]);
   });
 
   it("shuffles before applying the maximum", () => {
-    expect(buildStudySession(cards, { shuffled: true, maxNumberOfCardsToLearn: 2 })).toEqual(["d", "c"]);
+    expect(buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 2 })).toEqual(["d", "c"]);
     expect(mocks.shuffle).toHaveBeenCalledWith(["a", "b", "c", "d"]);
   });
 });

@@ -1,5 +1,5 @@
 /**
- * @file Verifies the "DeckStartForm with useDeckFilterState" contract with automated examples.
+ * @file Verifies the "DeckFilterForm with useDeckFilterState" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "auto-submits score and tag
  * filter changes", "auto-submits score toggle and slider changes", "auto-submits individual tag,
  * all, and clear changes".
@@ -14,7 +14,7 @@ import { fireEvent, render, waitFor, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { DeckStartForm } from "../ui/DeckStartForm";
+import { DeckFilterForm } from "../ui/DeckFilterForm";
 import { useDeckFilterState } from "./useDeckFilterState";
 import { createDeck } from "@/test/factories";
 
@@ -33,11 +33,11 @@ const DeckFilterHarness: React.FC<{
   deck: Deck;
   tags: string[];
 }> = ({ deck, tags }) => {
-  const deckStartForm = useDeckFilterState({ deck, tags });
-  return <DeckStartForm {...deckStartForm} />;
+  const deckFilterForm = useDeckFilterState({ deck, tags });
+  return <DeckFilterForm {...deckFilterForm} />;
 };
 
-describe("DeckStartForm with useDeckFilterState", () => {
+describe("DeckFilterForm with useDeckFilterState", () => {
   const deck = createDeck({
     scoreMax: 1,
     scoreMin: -1,
