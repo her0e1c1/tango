@@ -21,7 +21,7 @@ interface DeckImportState {
   status: DeckImportStatus;
   preview: DeckImportPreview | undefined;
   failure: DeckImportFailure | undefined;
-  data: DeckImportResult | undefined;
+  result: DeckImportResult | undefined;
 }
 
 const INITIAL_STATE: DeckImportState = {
@@ -29,7 +29,7 @@ const INITIAL_STATE: DeckImportState = {
   status: "idle",
   preview: undefined,
   failure: undefined,
-  data: undefined,
+  result: undefined,
 };
 
 export const useDeckImport = () => {
@@ -73,10 +73,10 @@ export const useDeckImport = () => {
         createDeck: (deck) => createDeck(uid, deck),
         mutateCards: (mutations) => mutateCards(uid, mutations),
       });
-      if (isCurrent(generation)) updateState({ data: result });
+      if (isCurrent(generation)) updateState({ result });
       return result;
     } catch (error) {
-      if (isCurrent(generation)) updateState({ data: undefined, failure: { stage: "import", error } });
+      if (isCurrent(generation)) updateState({ result: undefined, failure: { stage: "import", error } });
       throw error;
     } finally {
       if (isCurrent(generation)) {
@@ -96,7 +96,7 @@ export const useDeckImport = () => {
 
     previewAttemptRef.current = undefined;
     retryAttemptRef.current = undefined;
-    updateState({ storageMode, preview: undefined, failure: undefined, data: undefined });
+    updateState({ storageMode, preview: undefined, failure: undefined, result: undefined });
   };
 
   const selectFile = async (file: File) => {
@@ -107,7 +107,7 @@ export const useDeckImport = () => {
     busyRef.current = true;
     previewAttemptRef.current = undefined;
     retryAttemptRef.current = undefined;
-    updateState({ status: "validating", preview: undefined, failure: undefined, data: undefined });
+    updateState({ status: "validating", preview: undefined, failure: undefined, result: undefined });
 
     try {
       const analysis = await parseCsv(await file.text());
@@ -170,7 +170,7 @@ export const useDeckImport = () => {
     pending: state.status === "importing",
     error,
     previewError: state.failure?.stage === "preview" ? state.failure.error : null,
-    data: state.data,
+    result: state.result,
     partialResult: partialResultFrom(error),
     retry,
   };

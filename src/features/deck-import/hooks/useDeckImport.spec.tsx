@@ -437,7 +437,7 @@ describe("useDeckImport", () => {
 
     act(() => result.current.retry());
     await waitFor(() =>
-      expect(result.current.data).toEqual({
+      expect(result.current.result).toEqual({
         created: 2,
         updated: 0,
         skipped: 0,
@@ -460,7 +460,7 @@ describe("useDeckImport", () => {
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     await actAsync(async () => result.current.addSample());
-    expect(result.current.data).toBeDefined();
+    expect(result.current.result).toBeDefined();
 
     mocks.bulkUpsert.mockRejectedValueOnce(new Error("failed"));
     await actAsync(async () => {
@@ -469,7 +469,7 @@ describe("useDeckImport", () => {
     expect(result.current.error).toBeDefined();
 
     await actAsync(async () => result.current.selectFile(file));
-    expect(result.current.data).toBeUndefined();
+    expect(result.current.result).toBeUndefined();
     expect(result.current.error).toBeNull();
   });
 
@@ -493,7 +493,7 @@ describe("useDeckImport", () => {
 
     finishOld();
     await oldOperation;
-    expect(result.current.data).toBeUndefined();
+    expect(result.current.result).toBeUndefined();
     expect(result.current.error).toBeNull();
     expect(result.current.pending).toBe(false);
   });
@@ -520,7 +520,7 @@ describe("useDeckImport", () => {
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
     expect(result.current.pending).toBe(false);
     expect(result.current.error).toBeNull();
-    expect(result.current.data).toBeUndefined();
+    expect(result.current.result).toBeUndefined();
   });
 
   it("does not publish or import a file preview after an A-to-B-to-A UID transition", async () => {
@@ -568,14 +568,14 @@ describe("useDeckImport", () => {
   it("does not resurrect import data after an A-to-B-to-A UID transition", async () => {
     const { result, rerender } = renderHook(useDeckImport);
     await actAsync(async () => result.current.addSample());
-    expect(result.current.data).toBeDefined();
+    expect(result.current.result).toBeDefined();
 
     mocks.uid = "uid-b";
     rerender();
     mocks.uid = "uid-a";
     rerender();
 
-    expect(result.current.data).toBeUndefined();
+    expect(result.current.result).toBeUndefined();
     expect(result.current.error).toBeNull();
   });
 
