@@ -63,7 +63,7 @@ export const filterCardsForDeck = <TCard extends Card>(
   cards: TCard[],
   deck: Pick<DeckDomain, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
   study: { useCardInterval: boolean },
-  now: number
+  now = Date.now()
 ): TCard[] =>
   cards.filter((card) => {
     if (!isCardMatchingTags(card, deck)) return false;

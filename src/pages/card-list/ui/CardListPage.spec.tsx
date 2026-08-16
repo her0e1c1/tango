@@ -27,7 +27,10 @@ vi.mock("@/entities/card", () => ({
     return { cards, tags: [...new Set(cards.flatMap((card) => card.tags))] };
   },
 }));
-vi.mock("@/entities/deck", () => ({ useDeck: () => mocks.deck ?? undefined }));
+vi.mock("@/entities/deck", () => ({
+  filterCardsForDeck: (cards: Card[]) => cards,
+  useDeck: () => mocks.deck ?? undefined,
+}));
 vi.mock("@/features/card-list", () => ({
   CardList: (props: {
     cards: Card[];
@@ -50,7 +53,6 @@ vi.mock("@/features/card-list", () => ({
 }));
 vi.mock("@/features/deck-filter", () => ({
   DeckFilterForm: () => <div>Filter controls</div>,
-  useFilteredStudyCards: (deck: Deck | undefined, cards: Card[]) => (deck == null ? [] : cards),
   useDeckFilterState: () => ({
     scoreMax: 4,
     scoreMin: -2,
