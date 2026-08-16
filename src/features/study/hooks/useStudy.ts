@@ -55,7 +55,6 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[]): StudyState => 
   };
   const session = useStudySession(deckId);
   const resolvedSession = resolveStudySession(session, cards);
-  const exitingDeck = React.useRef<DeckId>(undefined);
 
   React.useEffect(() => {
     if (resolvedSession.status !== "studying") return;
@@ -63,14 +62,9 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[]): StudyState => 
   }, [deckId, resolvedSession.status]);
 
   React.useEffect(() => {
-    if (resolvedSession.status === "studying") {
-      exitingDeck.current = undefined;
-      return;
-    }
-    if (resolvedSession.status === "preparing" || exitingDeck.current === deckId) return;
+    if (resolvedSession.status !== "invalid") return;
 
     // Invalid active progress must be removed before leaving so reopening the deck cannot repeat the same failure.
-    exitingDeck.current = deckId;
     removeStudySession(deckId);
   }, [deckId, resolvedSession.status]);
 

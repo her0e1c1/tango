@@ -1,13 +1,14 @@
 import { getCategory, type Deck, useDeck } from "@/entities/deck";
 import { toggleShowHeader, toggleShowSwipeButtonList } from "@/entities/preferences";
 
-import type * as React from "react";
+import * as React from "react";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, useCards } from "@/entities/card";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
+import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -77,7 +78,13 @@ const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => 
 };
 
 const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
+  const navigation = useNavigation();
   const study = useStudy(deck.id, cards);
+
+  React.useEffect(() => {
+    if (study.status !== "invalid") return;
+    void navigation.to(routes.deckList.to(), { replace: true });
+  }, [navigation, study.status]);
 
   return <DeckStudyScreen deck={deck} state={study} />;
 };

@@ -2,7 +2,7 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { StudyState } from "@/features/study";
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
   deck: undefined as Deck | undefined,
   cards: [] as Card[],
+  navigate: vi.fn(),
   studyState: undefined as StudyState | undefined,
   studyArgs: undefined as { cards: readonly Card[]; deckId: string } | undefined,
 }));
@@ -21,7 +22,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 vi.mock("@/entities/card", () => ({ useCards: () => mocks.cards }));
 vi.mock("react-router-dom", () => ({
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,
 }));
 vi.mock("@/features/study", async (importOriginal) => {
@@ -127,6 +128,13 @@ describe("DeckStudyPage", () => {
     mocks.studyState = { status, ...commands() };
     render(<DeckStudyPage />);
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
+  });
+
+  it("returns to the deck list when the study session is invalid", async () => {
+    mocks.studyState = { status: "invalid", ...commands() };
+    render(<DeckStudyPage />);
+
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
   });
 
   it("delegates a representative Study shortcut to the workflow action", () => {
