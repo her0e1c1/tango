@@ -4,7 +4,7 @@ import { mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import type { DeckImportResult, PreparedDeckImport } from "./deckImportExecution";
 import { executePreparedDeckImport } from "./deckImportExecution";
-import type { DeckImportOperation } from "./useDeckImportOperation";
+import type { DeckImportOperationScope } from "./useDeckImportOperation";
 
 interface DeckImportExecutionState {
   uid: string;
@@ -12,13 +12,9 @@ interface DeckImportExecutionState {
   result: DeckImportResult | undefined;
 }
 
-const initialState = (uid: string): DeckImportExecutionState => ({
-  uid,
-  error: null,
-  result: undefined,
-});
+const initialState = (uid: string): DeckImportExecutionState => ({ uid, error: null, result: undefined });
 
-export const useDeckImportExecution = (uid: string, operation: DeckImportOperation) => {
+export const useDeckImportExecution = (uid: string) => {
   const [state, setState] = useState<DeckImportExecutionState>(() => initialState(uid));
 
   if (state.uid !== uid) setState(initialState(uid));
@@ -27,23 +23,19 @@ export const useDeckImportExecution = (uid: string, operation: DeckImportOperati
     setState((current) => ({ ...(current.uid === uid ? current : initialState(uid)), ...update }));
   };
 
-  const run = async (preparedImport: PreparedDeckImport) => {
-    const generation = operation.start("importing");
+  const run = async (preparedImport: PreparedDeckImport, { isCurrent }: DeckImportOperationScope) => {
     updateState({ error: null });
-
     try {
-      const result = await executePreparedDeckImport(preparedImport, {
+      const importResult = await executePreparedDeckImport(preparedImport, {
         uid,
         createDeck: (deck) => createDeck(uid, deck),
         mutateCards: (mutations) => mutateCards(uid, mutations),
       });
-      if (operation.isCurrent(generation)) updateState({ result });
-      return result;
+      if (isCurrent()) updateState({ result: importResult });
+      return importResult;
     } catch (caughtError) {
-      if (operation.isCurrent(generation)) updateState({ result: undefined, error: caughtError });
+      if (isCurrent()) updateState({ result: undefined, error: caughtError });
       throw caughtError;
-    } finally {
-      operation.finish(generation);
     }
   };
 

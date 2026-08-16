@@ -12,47 +12,48 @@ interface DeckImportLock {
   running: boolean;
 }
 
+export interface DeckImportOperationScope {
+  isCurrent: () => boolean;
+}
+
 const initialState = (uid: string): DeckImportOperationState => ({ uid, status: "idle" });
 const createLock = (): DeckImportLock => ({ running: false });
 
 export const useDeckImportOperation = (uid: string) => {
-  // The generation invalidates stale async work even when auth changes A-to-B-to-A.
+  // A generation distinguishes stale async work even after an A-to-B-to-A auth transition.
   const generationRef = useRef(0);
-  // The lock updates synchronously so operations cannot overlap before React publishes status.
+  // The lock changes synchronously so callers cannot overlap before React publishes status.
   const lockRef = useRef<DeckImportLock>(createLock());
   const [state, setState] = useState<DeckImportOperationState>(() => initialState(uid));
 
   if (state.uid !== uid) setState(initialState(uid));
-  const currentState = state.uid === uid ? state : initialState(uid);
+  const status = state.uid === uid ? state.status : "idle";
 
   useEffect(() => {
     generationRef.current += 1;
     lockRef.current.running = false;
   }, [uid]);
 
-  const isCurrent = (generation: number) => generation === generationRef.current;
+  const run = async <Result>(
+    nextStatus: ActiveDeckImportStatus,
+    task: (scope: DeckImportOperationScope) => Promise<Result>
+  ) => {
+    if (lockRef.current.running) throw new Error("A Deck import is already running");
 
-  return {
-    status: currentState.status,
-    isRunning: () => lockRef.current.running,
-    isCurrent,
-    assertCurrent: (generation: number) => {
-      if (!isCurrent(generation)) throw new Error("Deck import user changed before the preview could finish");
-    },
-    start: (status: ActiveDeckImportStatus) => {
-      if (lockRef.current.running) throw new Error("A Deck import is already running");
+    const generation = generationRef.current;
+    const isCurrent = () => generation === generationRef.current;
+    lockRef.current.running = true;
+    setState({ uid, status: nextStatus });
 
-      lockRef.current.running = true;
-      setState((current) => ({ ...(current.uid === uid ? current : initialState(uid)), status }));
-      return generationRef.current;
-    },
-    finish: (generation: number) => {
-      if (!isCurrent(generation)) return;
-
-      lockRef.current.running = false;
-      setState((current) => ({ ...(current.uid === uid ? current : initialState(uid)), status: "idle" }));
-    },
+    try {
+      return await task({ isCurrent });
+    } finally {
+      if (isCurrent()) {
+        lockRef.current.running = false;
+        setState({ uid, status: "idle" });
+      }
+    }
   };
-};
 
-export type DeckImportOperation = ReturnType<typeof useDeckImportOperation>;
+  return { status, isRunning: () => lockRef.current.running, run };
+};

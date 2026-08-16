@@ -6,9 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { fetchCards, generateCardId } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
 import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
-import type { DeckImportResult, DeckImportStorageMode, PreparedDeckImport } from "./deckImportExecution";
+import type { DeckImportStorageMode, PreparedDeckImport } from "./deckImportExecution";
 import { prepareDeckImport } from "./deckImportExecution";
-import type { DeckImportOperation } from "./useDeckImportOperation";
+import type { DeckImportOperationScope } from "./useDeckImportOperation";
 
 export interface DeckImportPreview {
   deckName: string;
@@ -20,7 +20,7 @@ interface DeckImportPreviewState {
   uid: string;
   storageMode: DeckImportStorageMode;
   preview: DeckImportPreview | undefined;
-  previewError: unknown;
+  error: unknown;
 }
 
 interface PreparedDeckImportState {
@@ -31,16 +31,13 @@ interface UseDeckImportPreviewOptions {
   uid: string;
   decks: Deck[];
   cards: Card[];
-  operation: DeckImportOperation;
-  run: (preparedImport: PreparedDeckImport) => Promise<DeckImportResult>;
-  clearExecution: () => void;
 }
 
 const initialState = (uid: string): DeckImportPreviewState => ({
   uid,
   storageMode: "remote",
   preview: undefined,
-  previewError: null,
+  error: null,
 });
 const createPreparedImportState = (): PreparedDeckImportState => ({ preparedImport: undefined });
 
@@ -48,7 +45,7 @@ const loadDestinationData = async (
   storageMode: DeckImportStorageMode,
   uid: string,
   localData: { decks: Deck[]; cards: Card[] }
-): Promise<{ decks: Deck[]; cards: Card[] }> => {
+) => {
   if (storageMode === "local") return localData;
 
   // Listener-backed stores may lag, so remote plans must use authoritative server reads.
@@ -56,14 +53,7 @@ const loadDestinationData = async (
   return { decks, cards };
 };
 
-export const useDeckImportPreview = ({
-  uid,
-  decks,
-  cards,
-  operation,
-  run,
-  clearExecution,
-}: UseDeckImportPreviewOptions) => {
+export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreviewOptions) => {
   const preparedImportRef = useRef<PreparedDeckImportState>(createPreparedImportState());
   const [state, setState] = useState<DeckImportPreviewState>(() => initialState(uid));
 
@@ -77,29 +67,20 @@ export const useDeckImportPreview = ({
     preparedImportRef.current.preparedImport = undefined;
   }, [uid]);
 
-  const clearPreviewError = () => updateState({ previewError: null });
-
-  const setStorageMode = (storageMode: DeckImportStorageMode) => {
-    if (operation.isRunning() || currentState.storageMode === storageMode) return;
-
-    preparedImportRef.current.preparedImport = undefined;
-    clearExecution();
-    updateState({ storageMode, preview: undefined, previewError: null });
-  };
-
-  const selectFile = async (file: File) => {
-    const generation = operation.start("validating");
+  const selectFile = async (file: File, { isCurrent }: DeckImportOperationScope) => {
     const { storageMode } = currentState;
     preparedImportRef.current.preparedImport = undefined;
-    clearExecution();
-    updateState({ preview: undefined, previewError: null });
+    updateState({ preview: undefined, error: null });
+
+    const assertCurrent = () => {
+      if (!isCurrent()) throw new Error("Deck import user changed before the preview could finish");
+    };
 
     try {
       const analysis = await parseCsv(await file.text());
-      operation.assertCurrent(generation);
-
+      assertCurrent();
       const destinationData = await loadDestinationData(storageMode, uid, { decks, cards });
-      operation.assertCurrent(generation);
+      assertCurrent();
 
       const preparedImport = prepareDeckImport(
         { name: file.name, rows: analysis.rows, storageMode },
@@ -110,39 +91,40 @@ export const useDeckImportPreview = ({
       updateState({ preview });
       return preview;
     } catch (caughtError) {
-      if (operation.isCurrent(generation)) updateState({ previewError: caughtError });
+      if (isCurrent()) updateState({ error: caughtError });
       throw caughtError;
-    } finally {
-      operation.finish(generation);
     }
   };
 
-  const importPreview = () => {
-    if (operation.isRunning()) return Promise.reject(new Error("A Deck import is already running"));
-    if (currentState.preview == null) return Promise.reject(new Error("Select a CSV file before importing"));
-    if (currentState.preview.analysis.invalidCount > 0) {
-      return Promise.reject(new Error("Fix invalid CSV rows before importing"));
-    }
-    if (currentState.preview.analysis.rows.length === 0) {
-      return Promise.reject(new Error("The CSV file has no valid rows"));
-    }
+  const setStorageMode = (storageMode: DeckImportStorageMode) => {
+    if (currentState.storageMode === storageMode) return false;
+
+    preparedImportRef.current.preparedImport = undefined;
+    updateState({ storageMode, preview: undefined, error: null });
+    return true;
+  };
+
+  const takePreparedImport = () => {
+    const { preview } = currentState;
+    if (preview == null) throw new Error("Select a CSV file before importing");
+    if (preview.analysis.invalidCount > 0) throw new Error("Fix invalid CSV rows before importing");
+    if (preview.analysis.rows.length === 0) throw new Error("The CSV file has no valid rows");
     if (preparedImportRef.current.preparedImport == null) {
-      return Promise.reject(new Error("The prepared Deck import is not available"));
+      throw new Error("The prepared Deck import is not available");
     }
 
     const { preparedImport } = preparedImportRef.current;
     preparedImportRef.current.preparedImport = undefined;
-    clearPreviewError();
-    return run(preparedImport);
+    return preparedImport;
   };
 
   return {
     selectFile,
     setStorageMode,
-    importPreview,
-    clearPreviewError,
+    takePreparedImport,
+    clearError: () => updateState({ error: null }),
     storageMode: currentState.storageMode,
     preview: currentState.preview,
-    previewError: currentState.previewError,
+    error: currentState.error,
   };
 };
