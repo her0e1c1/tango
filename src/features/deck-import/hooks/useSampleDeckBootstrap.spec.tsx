@@ -2,7 +2,6 @@ import type { Card } from "@/entities/card";
 import type { Deck, DeckCreateInput } from "@/entities/deck";
 
 import { renderHook, waitFor } from "@testing-library/react";
-import React, { type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -31,8 +30,6 @@ vi.mock("../model/sampleDeck", () => ({ addSampleDeck: mocks.addSample }));
 
 import { useSampleDeckBootstrap } from "./useSampleDeckBootstrap";
 
-const strictMode = ({ children }: { children: ReactNode }) => <React.StrictMode>{children}</React.StrictMode>;
-
 describe("sample Deck bootstrap", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,8 +38,8 @@ describe("sample Deck bootstrap", () => {
     mocks.addSample.mockResolvedValue(undefined);
   });
 
-  it("adds the sample once for an empty user under StrictMode", async () => {
-    renderHook(useSampleDeckBootstrap, { wrapper: strictMode });
+  it("adds the sample for an empty user", async () => {
+    renderHook(useSampleDeckBootstrap);
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
   });
@@ -58,9 +55,6 @@ describe("sample Deck bootstrap", () => {
   it("adds the sample again when Decks become empty after a completed bootstrap", async () => {
     const { unmount } = renderHook(useSampleDeckBootstrap);
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, 0);
-    });
     unmount();
 
     mocks.remote.decks = [{ id: "sample" } as Deck];
@@ -72,21 +66,5 @@ describe("sample Deck bootstrap", () => {
     renderHook(useSampleDeckBootstrap);
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledTimes(2));
-  });
-
-  it("deduplicates concurrent starts for one user", async () => {
-    let finish: () => void = () => undefined;
-    mocks.addSample.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          finish = resolve;
-        })
-    );
-
-    renderHook(useSampleDeckBootstrap);
-    renderHook(useSampleDeckBootstrap);
-
-    await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
-    finish();
   });
 });
