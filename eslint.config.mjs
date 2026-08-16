@@ -61,12 +61,6 @@ export default [
     settings: {
       ...boundariesRecommended.settings,
       "boundaries/elements": [
-        {
-          type: "grouped-feature",
-          pattern: "src/features/*/*",
-          mode: "folder",
-          capture: ["group", "slice"],
-        },
         ...sliceLayers.map((layer) => ({
           type: layer,
           pattern: `src/${layer}/*`,
@@ -111,22 +105,6 @@ export default [
       "boundaries/no-unknown-files": "error",
     },
   }),
-  {
-    files: ["src/features/**/*.{ts,tsx}"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@/features/*/*", "@/features/*/*/**"],
-              message: "Grouped feature slices must be composed in a page or app layer.",
-            },
-          ],
-        },
-      ],
-    },
-  },
   {
     files: sourceFiles,
     ignores: testFiles,
