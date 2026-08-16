@@ -1,99 +1,76 @@
-import type { Preferences } from "@/entities/preferences";
-
 import type React from "react";
 
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { render, fireEvent, screen, waitFor } from "@testing-library/react";
-import { expect, it, describe, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-const mocks = vi.hoisted(() => ({
-  preferences: undefined as Preferences | undefined,
-  onSubmit: (() => undefined) as (preferences: Preferences) => void,
-}));
-
-vi.mock("@/entities/preferences", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/preferences")>()),
-  usePreferences: () => mocks.preferences,
-  updatePreferences: (preferences: Preferences) => mocks.onSubmit(preferences),
-}));
+import { setDarkMode, updatePreferences, usePreferences } from "@/entities/preferences";
+import { createPreferences } from "@/test/factories";
 
 import { SettingsForm } from "../../ui/components/SettingsForm";
 import { usePreferencesFormState } from "./usePreferencesFormState";
 
+const preferences = createPreferences({
+  showHeader: false,
+  showSwipeButtonList: false,
+  showSwipeFeedback: false,
+  fullscreen: false,
+  darkMode: false,
+  shuffled: false,
+  useCardInterval: false,
+  defaultAutoPlay: false,
+  maxNumberOfCardsToLearn: 0,
+  cardInterval: 0,
+});
+
 const SettingsFormHarness: React.FC = () => {
   const formState = usePreferencesFormState();
-  return <SettingsForm {...formState} />;
-};
+  const savedPreferences = usePreferences();
 
-const renderSettingsForm = (preferences: Preferences, onSubmit: (preferences: Preferences) => void) => {
-  mocks.preferences = preferences;
-  mocks.onSubmit = onSubmit;
-  return render(<SettingsFormHarness />);
+  return (
+    <>
+      <SettingsForm {...formState} />
+      <output aria-label="Saved header preference">{String(savedPreferences.appearance.showHeader)}</output>
+      <output aria-label="Saved maximum cards">{savedPreferences.study.maxNumberOfCardsToLearn}</output>
+      <output aria-label="Saved autoplay interval">{savedPreferences.study.cardInterval}</output>
+    </>
+  );
 };
-
-import { createPreferences } from "@/test/factories";
 
 describe("SettingsForm with usePreferencesFormState", () => {
-  const preferences = createPreferences({
-    showHeader: false,
-    showSwipeButtonList: false,
-    showSwipeFeedback: false,
-    fullscreen: false,
-    darkMode: false,
-    shuffled: false,
-    useCardInterval: false,
-    defaultAutoPlay: false,
-    maxNumberOfCardsToLearn: 0,
-    cardInterval: 0,
+  beforeEach(() => {
+    updatePreferences(preferences);
   });
 
-  it("auto-submits boolean and numeric field changes", async () => {
-    const onSubmit = vi.fn();
-    renderSettingsForm(preferences, onSubmit);
+  it("saves boolean and numeric changes as the user edits them", async () => {
+    render(<SettingsFormHarness />);
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
-    await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({
-        ...preferences,
-        appearance: { ...preferences.appearance, showHeader: true },
-      });
-    });
-
     fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
       target: { value: 10 },
     });
-    await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({
-        ...preferences,
-        appearance: { ...preferences.appearance, showHeader: true },
-        study: { ...preferences.study, maxNumberOfCardsToLearn: 10 },
-      });
+    fireEvent.change(screen.getByRole("slider", { name: "Autoplay interval" }), {
+      target: { value: 10 },
     });
 
-    fireEvent.change(screen.getByRole("slider", { name: "Autoplay interval" }), { target: { value: 10 } });
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenLastCalledWith({
-        ...preferences,
-        appearance: { ...preferences.appearance, showHeader: true },
-        study: { ...preferences.study, maxNumberOfCardsToLearn: 10, cardInterval: 10 },
-      });
+      expect(screen.getByLabelText("Saved header preference")).toHaveTextContent("true");
+      expect(screen.getByLabelText("Saved maximum cards")).toHaveTextContent("10");
+      expect(screen.getByLabelText("Saved autoplay interval")).toHaveTextContent("10");
     });
   });
 
-  it("synchronizes dark mode when the preferences prop changes", async () => {
-    const onSubmit = vi.fn();
-    const { rerender } = renderSettingsForm(preferences, onSubmit);
-    const darkModeInput = screen.getByRole("checkbox", { name: "Dark mode" });
-    expect(darkModeInput).not.toBeChecked();
+  it("reflects a theme change saved elsewhere in the application", async () => {
+    render(<SettingsFormHarness />);
+    expect(screen.getByRole("checkbox", { name: "Dark mode" })).not.toBeChecked();
 
-    const updatedPreferences = { ...preferences, appearance: { ...preferences.appearance, darkMode: true } };
-    mocks.preferences = updatedPreferences;
-    rerender(<SettingsFormHarness />);
+    act(() => {
+      setDarkMode(true);
+    });
 
     await waitFor(() => {
-      expect(darkModeInput).toBeChecked();
-      expect(onSubmit).toHaveBeenLastCalledWith(updatedPreferences);
+      expect(screen.getByRole("checkbox", { name: "Dark mode" })).toBeChecked();
     });
   });
 });

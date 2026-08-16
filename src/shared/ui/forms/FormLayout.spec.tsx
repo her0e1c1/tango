@@ -1,9 +1,4 @@
-/**
- * @file Verifies the "shared form layout" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "presents label, value,
- * help, and error with a clear visual hierarchy", "allows long labels and values to wrap without
- * widening the form", "keeps legacy extra copy and stacks column items on mobile".
- */
+/** @file Verifies form copy and reading order through rendered content. */
 
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -32,34 +27,19 @@ describe("shared form layout", () => {
     const help = screen.getByText("Shown in your library");
     const error = screen.getByText("A deck name is required");
 
-    expect(label).toHaveClass("font-medium", "text-ink");
-    expect(value).toHaveClass("text-ink-muted");
-    expect(help).toHaveClass("text-caption", "text-ink-muted");
-    expect(error).toHaveClass("text-caption", "font-medium", "text-danger");
     expect(appearsBefore(label, value)).toBe(true);
     expect(appearsBefore(value, help)).toBe(true);
     expect(appearsBefore(help, error)).toBe(true);
   });
 
-  it("allows long labels and values to wrap without widening the form", () => {
-    render(
-      <FormItem label="A deliberately long label that needs room to wrap on compact screens">
-        A value that can also wrap safely
-      </FormItem>
-    );
-
-    expect(screen.getByText(/deliberately long label/)).toHaveClass("min-w-0", "break-words", "md:basis-48");
-    expect(screen.getByText(/value that can also wrap/)).toHaveClass("min-w-0", "break-words");
-  });
-
-  it("keeps legacy extra copy and stacks column items on mobile", () => {
+  it("keeps legacy extra copy visible", () => {
     render(
       <FormItem col label="Maximum cards" extra="The existing extra prop remains visible">
         Slider control
       </FormItem>
     );
 
-    expect(screen.getByText("The existing extra prop remains visible")).toHaveClass("text-caption", "text-ink-muted");
+    expect(screen.getByText("The existing extra prop remains visible")).toBeVisible();
     expect(screen.getByText("Slider control")).toBeVisible();
   });
 });

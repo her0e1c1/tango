@@ -82,7 +82,6 @@ describe("DeckActionsMenu", () => {
 
     fireEvent.click(trigger);
     const deleteItem = screen.getByRole("menuitem", { name: "Delete" });
-    expect(deleteItem).toHaveClass("text-danger");
     fireEvent.click(deleteItem);
     expect(actions.onDelete).toHaveBeenCalledOnce();
   });

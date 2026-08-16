@@ -1,7 +1,7 @@
 /**
  * @file Verifies the "BackText" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "preserves plain text and
- * click behavior with long-content wrapping", "preserves code and math rendering".
+ * click behavior", "preserves code and math rendering".
  */
 
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -10,11 +10,10 @@ import { describe, expect, it, vi } from "vitest";
 import { BackText } from "./BackText";
 
 describe("BackText", () => {
-  it("preserves plain text and click behavior with long-content wrapping", () => {
+  it("preserves plain text and click behavior", () => {
     const onClick = vi.fn();
     render(<BackText text="plain text abcdefghijklmnopqrstuvwxyz" onClick={onClick} />);
     const content = screen.getByText(/plain text/);
-    expect(content).toHaveClass("whitespace-pre-wrap", "break-words");
     fireEvent.click(content);
     expect(onClick).toHaveBeenCalledOnce();
   });

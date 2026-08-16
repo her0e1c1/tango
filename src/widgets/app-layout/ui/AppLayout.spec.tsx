@@ -1,45 +1,65 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { createMemoryRouter, RouterProvider, useLocation } from "react-router-dom";
+import { beforeEach, describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-const mocks = vi.hoisted(() => ({
-  darkMode: false,
-  navigate: vi.fn(),
-  setDarkMode: vi.fn(),
-}));
-
-vi.mock("@/entities/preferences", () => ({
-  usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
-  setDarkMode: mocks.setDarkMode,
-}));
-vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
+import { updatePreferences } from "@/entities/preferences";
+import { createPreferences } from "@/test/factories";
 
 import { AppLayout } from "./AppLayout";
 
+const CurrentLocation = () => {
+  const location = useLocation();
+  return <output aria-label="Current location">{location.pathname}</output>;
+};
+
+const renderLayout = () => {
+  const router = createMemoryRouter(
+    [
+      {
+        path: "*",
+        element: (
+          <AppLayout showHeader>
+            <CurrentLocation />
+          </AppLayout>
+        ),
+      },
+    ],
+    { initialEntries: ["/source"] }
+  );
+
+  return render(<RouterProvider router={router} />);
+};
+
 describe("AppLayout", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.darkMode = false;
+    updatePreferences(createPreferences({ appearance: { darkMode: false } }));
   });
 
-  it("owns application header navigation and theme actions", () => {
-    const view = render(<AppLayout showHeader>Page content</AppLayout>);
+  it("navigates from every application header destination", async () => {
+    const user = userEvent.setup();
+    renderLayout();
+    const location = screen.getByLabelText("Current location");
 
-    expect(screen.getByText("Page content")).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "tango" }));
-    fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
-    fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
+    await user.click(screen.getByRole("button", { name: "tango" }));
+    expect(location).toHaveTextContent("/");
 
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import", undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings", undefined);
-    expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
+    await user.click(screen.getByRole("button", { name: "Import decks" }));
+    expect(location).toHaveTextContent("/import");
 
-    mocks.darkMode = true;
-    view.rerender(<AppLayout showHeader>Page content</AppLayout>);
-    fireEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
+    await user.click(screen.getByRole("button", { name: "Open settings" }));
+    expect(location).toHaveTextContent("/settings");
+  });
 
-    expect(mocks.setDarkMode).toHaveBeenNthCalledWith(2, false);
+  it("toggles the saved theme through the application header", async () => {
+    const user = userEvent.setup();
+    renderLayout();
+
+    await user.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    expect(screen.getByRole("button", { name: "Switch to light mode" })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Switch to light mode" }));
+    expect(screen.getByRole("button", { name: "Switch to dark mode" })).toBeVisible();
   });
 });

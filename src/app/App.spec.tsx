@@ -1,25 +1,19 @@
 /**
- * @file Verifies the "App" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "updates only the theme when
- * the setting changes" and "renders normal routes".
+ * @file Verifies the application shell through user-visible routing and theme behavior.
  */
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  darkMode: false,
-}));
+import { setDarkMode, updatePreferences } from "@/entities/preferences";
+import { createPreferences } from "@/test/factories";
 
 vi.mock("@/app/providers/auth", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 vi.mock("@/app/providers/firestore-subscriptions", () => ({
   FirestoreSubscriptionsProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
-vi.mock("@/entities/preferences", () => ({
-  usePreferences: () => ({ appearance: { darkMode: mocks.darkMode } }),
 }));
 vi.mock("@/features/sign-in", () => ({ loginGoogle: vi.fn() }));
 vi.mock("@/features/sign-out", () => ({ signOutCurrentUser: vi.fn() }));
@@ -37,23 +31,23 @@ import App from "./App";
 
 describe("App", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.darkMode = false;
+    updatePreferences(createPreferences({ appearance: { darkMode: false } }));
     document.documentElement.classList.remove("dark");
     window.history.replaceState({}, "", "/");
   });
 
-  it("updates only the theme when the setting changes", () => {
-    const view = render(<App />);
-    expect(document.documentElement.classList.contains("dark")).toBe(false);
+  it("follows the saved theme while the application is mounted", () => {
+    render(<App />);
+    expect(document.documentElement).not.toHaveClass("dark");
 
-    mocks.darkMode = true;
-    view.rerender(<App />);
+    act(() => {
+      setDarkMode(true);
+    });
 
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(document.documentElement).toHaveClass("dark");
   });
 
-  it("renders normal routes", () => {
+  it("renders the home route", () => {
     render(<App />);
 
     expect(screen.getByText("Deck list")).toBeInTheDocument();

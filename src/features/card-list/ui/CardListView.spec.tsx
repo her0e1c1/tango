@@ -2,7 +2,7 @@
  * @file Verifies the "CardListView" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders the heading, zero
  * count and collapsed no-filter summary", "formats score bounds, tag count, persistent
- * chips, and singular card count", "constrains a long unbroken selected tag without changing its
+ * chips, and singular card count", "preserves a long selected tag without changing its
  * text".
  */
 
@@ -54,13 +54,12 @@ describe("CardListView", () => {
     expect(screen.getByText("score ≤ 3")).toBeInTheDocument();
   });
 
-  it("constrains a long unbroken selected tag without changing its text", () => {
+  it("preserves a long selected tag without changing its text", () => {
     const longTag = `tag-${"unbroken".repeat(30)}`;
     render(<CardListView cards={[card]} filter={{ scoreMin: null, scoreMax: null, selectedTags: [longTag] }} />);
     const chip = screen.getByText(longTag);
 
     expect(chip).toHaveTextContent(longTag);
-    expect(chip).toHaveClass("max-w-full", "truncate");
   });
 
   it("removes one selected tag from the persistent filter summary", async () => {

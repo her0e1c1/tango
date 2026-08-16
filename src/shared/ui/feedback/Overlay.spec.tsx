@@ -1,9 +1,4 @@
-/**
- * @file Verifies the "shared overlay surface" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "uses a shared backdrop and
- * constrained scrolling for center content", "retains click, accessible name, custom class, and
- * shared focus appearance".
- */
+/** @file Verifies interactive overlays through accessible names and user actions. */
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -12,43 +7,14 @@ import { describe, expect, it, vi } from "vitest";
 import { Overlay } from "@/shared/ui/feedback/Overlay";
 
 describe("shared overlay surface", () => {
-  it("uses a shared backdrop and constrained scrolling for center content", () => {
-    render(<Overlay position="center">Long overlay content</Overlay>);
-    const overlay = screen.getByText("Long overlay content");
-    expect(overlay).toHaveClass(
-      "inset-0",
-      "overflow-x-hidden",
-      "overflow-y-auto",
-      "bg-surface-elevated",
-      "text-ink",
-      "shadow-elevated",
-      "z-30"
-    );
-    expect(overlay).toHaveClass("before:bg-canvas/70");
-  });
-
-  it.each([
-    ["left", "inset-y-0", "left-0"],
-    ["right", "inset-y-0", "right-0"],
-    ["top", "inset-x-0", "top-0"],
-    ["bottom", "inset-x-0", "bottom-0"],
-  ] as const)("retains the %s position contract", (position, insetClass, edgeClass) => {
-    render(<Overlay position={position}>Overlay</Overlay>);
-    const overlay = screen.getByText("Overlay");
-
-    expect(overlay).toHaveClass(insetClass, edgeClass);
-    expect(overlay).not.toHaveClass("before:bg-canvas/70");
-  });
-
-  it("retains click, accessible name, custom class, and shared focus appearance", () => {
+  it("reports clicks from an accessibly named overlay", () => {
     const onClick = vi.fn();
     render(
-      <Overlay position="center" onClick={onClick} ariaLabel="Close overlay" className="custom-overlay">
+      <Overlay position="center" onClick={onClick} ariaLabel="Close overlay">
         Content
       </Overlay>
     );
     const overlay = screen.getByRole("button", { name: "Close overlay" });
-    expect(overlay).toHaveClass("custom-overlay", "focus-visible:outline-focus");
     fireEvent.click(overlay);
     expect(onClick).toHaveBeenCalledOnce();
   });

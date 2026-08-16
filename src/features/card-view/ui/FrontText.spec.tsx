@@ -1,24 +1,33 @@
 /**
- * @file Verifies the "FrontText" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "should swipe", "preserves
- * the front hook, content, and click interaction", "renders math content".
+ * @file Verifies the FrontText component through rendered content and user interactions.
  */
 
 import { fireEvent, render, screen } from "@testing-library/react";
-import { expect, it, describe, vi } from "vitest";
-import "@testing-library/jest-dom";
+import { describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
 
 import { FrontText } from "./FrontText";
 
+const swipeLeft = (target: HTMLElement) => {
+  const start = { identifier: 1, target, clientX: 200, clientY: 24 };
+  const end = { identifier: 1, target, clientX: 20, clientY: 24 };
+
+  fireEvent.touchStart(target, { touches: [start], targetTouches: [start], changedTouches: [start] });
+  fireEvent.touchMove(target, { touches: [end], targetTouches: [end], changedTouches: [end] });
+  fireEvent.touchEnd(target, { touches: [], targetTouches: [], changedTouches: [end] });
+};
+
 describe("FrontText", () => {
-  it("should swipe", () => {
-    const onSwipe = vi.fn();
-    render(<FrontText text="text" onSwipeLeft={onSwipe} />);
-    expect(screen.getByText("text")).toBeVisible();
-    // TODO: await waitFor(() => expect(onSwipe).toHaveBeenCalledTimes(1))
+  it("reports a left swipe", () => {
+    const onSwipeLeft = vi.fn();
+    render(<FrontText text="Front" onSwipeLeft={onSwipeLeft} />);
+
+    swipeLeft(screen.getByText("Front"));
+
+    expect(onSwipeLeft).toHaveBeenCalledOnce();
   });
 
-  it("preserves the front hook, content, and click interaction", () => {
+  it("preserves content and click interaction", () => {
     const onClick = vi.fn();
     render(<FrontText text="A very long front without spaces: abcdefghijklmnopqrstuvwxyz" onClick={onClick} />);
     const front = screen.getByText("A very long front without spaces: abcdefghijklmnopqrstuvwxyz");
