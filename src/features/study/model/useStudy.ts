@@ -13,7 +13,7 @@ import {
 
 import * as React from "react";
 
-import { useSwipe } from "../model/useSwipe";
+import { useSwipe } from "./useSwipe";
 
 interface StudyCommands {
   swipeUp: () => Promise<void>;
