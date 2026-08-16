@@ -42,7 +42,7 @@ export type StudyState = StudyCommands &
       }
   );
 
-export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () => void): StudyState => {
+export const useStudy = (deckId: DeckId, cards: readonly Card[]): StudyState => {
   const preferences = usePreferences();
   const [showBackText, setShowBackText] = React.useState(false);
   const [autoPlay, setAutoPlay] = React.useState(preferences.study.defaultAutoPlay);
@@ -62,7 +62,6 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
   });
   const autoPlaySession = autoPlayPlan?.session;
   const autoPlayIntervalSeconds = autoPlayPlan?.intervalSeconds;
-  const exitingDeck = React.useRef<DeckId>(undefined);
 
   React.useEffect(() => {
     if (resolvedSession.status !== "studying") return;
@@ -70,17 +69,11 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
   }, [deckId, resolvedSession.status]);
 
   React.useEffect(() => {
-    if (resolvedSession.status === "studying") {
-      exitingDeck.current = undefined;
-      return;
-    }
-    if (resolvedSession.status === "preparing" || exitingDeck.current === deckId) return;
+    if (resolvedSession.status !== "invalid") return;
 
     // Invalid active progress must be removed before leaving so reopening the deck cannot repeat the same failure.
-    exitingDeck.current = deckId;
     removeStudySession(deckId);
-    onInvalid();
-  }, [deckId, onInvalid, resolvedSession.status]);
+  }, [deckId, resolvedSession.status]);
 
   React.useEffect(() => {
     if (autoPlaySession === undefined || autoPlayIntervalSeconds === undefined) return;

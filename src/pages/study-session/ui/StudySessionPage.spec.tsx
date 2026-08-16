@@ -2,7 +2,7 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { StudyState } from "@/features/study";
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   navigate: vi.fn(),
   studyState: undefined as StudyState | undefined,
-  studyArgs: undefined as { cards: readonly Card[]; deckId: string; onInvalid: () => void } | undefined,
+  studyArgs: undefined as { cards: readonly Card[]; deckId: string } | undefined,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -29,8 +29,8 @@ vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
-    useStudy: (deckId: string, cards: readonly Card[], onInvalid: () => void) => {
-      mocks.studyArgs = { deckId, cards, onInvalid };
+    useStudy: (deckId: string, cards: readonly Card[]) => {
+      mocks.studyArgs = { deckId, cards };
       if (mocks.studyState == null) throw new Error("Study state not initialized");
       return mocks.studyState;
     },
@@ -130,10 +130,11 @@ describe("StudySessionPage", () => {
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
   });
 
-  it("converts invalid session intent into current route navigation", () => {
+  it("returns to the deck list when the study session is invalid", async () => {
+    mocks.studyState = { status: "invalid", ...commands() };
     render(<StudySessionPage />);
-    act(() => mocks.studyArgs?.onInvalid());
-    expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
+
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
   });
 
   it("delegates a representative Study shortcut to the workflow action", () => {

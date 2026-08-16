@@ -1,7 +1,7 @@
 import { getCategory, type Deck, useDeck } from "@/entities/deck";
 import { toggleShowHeader, toggleShowSwipeButtonList } from "@/entities/preferences";
 
-import type * as React from "react";
+import * as React from "react";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
@@ -79,10 +79,12 @@ const StudySessionScreen = ({ deck, state }: { deck: Deck; state: StudyState }) 
 
 const StudySessionContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigation = useNavigation();
-  const handleInvalidSession = () => {
+  const study = useStudy(deck.id, cards);
+
+  React.useEffect(() => {
+    if (study.status !== "invalid") return;
     void navigation.to(routes.deckList.to(), { replace: true });
-  };
-  const study = useStudy(deck.id, cards, handleInvalidSession);
+  }, [navigation, study.status]);
 
   return <StudySessionScreen deck={deck} state={study} />;
 };
