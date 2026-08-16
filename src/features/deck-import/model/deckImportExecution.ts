@@ -4,22 +4,24 @@ import type { Deck, DeckCreateInput, DeckId, LocalDeckCreateInput } from "@/enti
 import { hasSameEditableCardContent, indexCardsByUniqueKey } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
 
-import type {
-  DeckImportPlan,
-  DeckImportPlanRow,
-  DeckImportResult,
-  DeckImportRow,
-  DeckImportStorageMode,
-} from "./deckImportTypes";
+import type { DeckImportRow } from "../lib/cardCsv";
 
 type DeckImportCreateInput = DeckCreateInput | LocalDeckCreateInput;
+export type DeckImportStorageMode = "local" | "remote";
 
-export interface DeckImportAttempt {
+type DeckImportAction = "create" | "update" | "unchanged";
+
+interface DeckImportAttempt {
   uid: string;
   deck: DeckImportCreateInput;
   createDeck: boolean;
   mutations: CardMutation[];
-  plan: DeckImportPlan;
+  plan: {
+    rows: (DeckImportRow & { action: DeckImportAction })[];
+    created: number;
+    updated: number;
+    unchanged: number;
+  };
 }
 
 interface DeckImportRequest {
@@ -72,9 +74,9 @@ const prepareCardMutations = ({
   generateCardId: () => string;
 }): Pick<DeckImportAttempt, "plan" | "mutations"> => {
   const byUniqueKey = indexCardsByUniqueKey(existing);
-  const planRows: DeckImportPlanRow[] = [];
+  const planRows: DeckImportAttempt["plan"]["rows"] = [];
   const mutations: CardMutation[] = [];
-  const counts: Record<DeckImportPlanRow["action"], number> = { create: 0, update: 0, unchanged: 0 };
+  const counts: Record<DeckImportAction, number> = { create: 0, update: 0, unchanged: 0 };
   for (const row of rows) {
     const current = byUniqueKey.get(row.card.uniqueKey);
     const action = current == null ? "create" : hasSameEditableCardContent(current, row.card) ? "unchanged" : "update";
@@ -124,7 +126,7 @@ export const prepareDeckImport = (
 export const executePreparedDeckImport = async (
   attempt: DeckImportAttempt,
   { uid, createDeck, mutateCards }: DeckImportExecutionDependencies
-): Promise<DeckImportResult> => {
+) => {
   if (attempt.uid !== uid) throw new Error("The prepared Deck import belongs to a different user");
   if (attempt.createDeck) await createDeck(attempt.deck);
   if (attempt.mutations.length > 0) await mutateCards(attempt.mutations);
@@ -136,3 +138,5 @@ export const executePreparedDeckImport = async (
     deckId: attempt.deck.id,
   };
 };
+
+export type DeckImportResult = Awaited<ReturnType<typeof executePreparedDeckImport>>;

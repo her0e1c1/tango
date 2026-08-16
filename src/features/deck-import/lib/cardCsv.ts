@@ -2,7 +2,17 @@ import { getCardContentValidationErrors, type CardRaw } from "@/entities/card";
 
 import * as Papa from "papaparse";
 
-import type { DeckImportAnalysis, DeckImportIssue, DeckImportRow } from "../model/deckImportTypes";
+export interface DeckImportRow {
+  rowNumber: number;
+  card: CardRaw;
+}
+
+export interface DeckImportAnalysis {
+  rows: DeckImportRow[];
+  skippedRows: number[];
+  issues: { rowNumber?: number; message: string; context?: string }[];
+  invalidCount: number;
+}
 
 const fromRow = (row: string[]): CardRaw => ({
   frontText: row[0] ?? "",
@@ -24,7 +34,7 @@ const validateCard = (columns: string[], rowNumber: number, uniqueKeys: Set<stri
   const card = fromRow(columns);
   const context = rowContext(columns);
   const validationErrors = getCardContentValidationErrors(card);
-  const issues: DeckImportIssue[] = Object.values(validationErrors).map((message) => ({
+  const issues: DeckImportAnalysis["issues"] = Object.values(validationErrors).map((message) => ({
     rowNumber,
     message,
     context,
@@ -47,7 +57,7 @@ export const parseCsv = async (content: string): Promise<DeckImportAnalysis> => 
   });
   const rows: DeckImportRow[] = [];
   const skippedRows: number[] = [];
-  const issues: DeckImportIssue[] = [];
+  const issues: DeckImportAnalysis["issues"] = [];
   const invalidRows = new Set<number>();
   const uniqueKeys = new Set<string>();
 

@@ -6,11 +6,18 @@ import { useEffect, useRef, useState } from "react";
 import { useAuthUid } from "@/entities/auth";
 import { fetchCards, generateCardId, mutateCards, useCards } from "@/entities/card";
 import { createDeck, fetchDecks, useDecks } from "@/entities/deck";
-import { parseCsv } from "../lib/cardCsv";
-import type { DeckImportAttempt } from "../model/deckImportExecution";
+import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
+import type { DeckImportResult, DeckImportStorageMode } from "../model/deckImportExecution";
 import { executePreparedDeckImport, prepareDeckImport } from "../model/deckImportExecution";
-import type { DeckImportPreview, DeckImportResult, DeckImportStorageMode } from "../model/deckImportTypes";
 import { prepareSampleDeck } from "../model/sampleDeck";
+
+type DeckImportAttempt = ReturnType<typeof prepareDeckImport>;
+
+export interface DeckImportPreview {
+  deckName: string;
+  analysis: DeckImportAnalysis;
+  plan: DeckImportAttempt["plan"];
+}
 
 type DeckImportStatus = "idle" | "validating" | "importing";
 
