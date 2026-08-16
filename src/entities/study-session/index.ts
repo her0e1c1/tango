@@ -10,7 +10,7 @@ export type { StudySession } from "./model/types";
 export {
   clearStudySessions,
   getStudySession,
-  moveStudySessionIfPositionUnchanged,
+  moveStudySession,
   removeStudySession,
   setStudySessionIndex,
   startStudy,

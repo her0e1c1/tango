@@ -6,7 +6,7 @@ import { editStudyProgress } from "@/entities/study-progress";
 import {
   calculateStudySessionIndex,
   getStudySession,
-  moveStudySessionIfPositionUnchanged,
+  moveStudySession,
   planStudySessionSwipe,
   removeStudySession,
   resolveStudySession,
@@ -79,7 +79,7 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
     swipeState.current.inProgress = false;
     if (!saved) return;
 
-    if (!moveStudySessionIfPositionUnchanged(deckId, swipePlan.session, swipePlan.effect)) return;
+    if (!moveStudySession(swipePlan.session, swipePlan.effect)) return;
 
     feedback.showSwipe(direction);
     if (preferences.appearance.hideBodyWhenCardChanged) hideBackText();
