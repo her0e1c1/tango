@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 
 import { useAuthUid } from "@/entities/auth";
+import { generateCardId, useCards } from "@/entities/card";
+import { createDeck, useDecks } from "@/entities/deck";
 import { addSampleDeck } from "../model/sampleDeck";
-import type { SampleDeckOptions } from "../model/sampleDeck";
 
 type AddSample = () => Promise<unknown>;
 
@@ -20,14 +21,15 @@ const startSampleDeckBootstrap = (uid: string, addSample: AddSample) => {
   return operation;
 };
 
-export const useSampleDeckBootstrap = (options: SampleDeckOptions) => {
+export const useSampleDeckBootstrap = () => {
   const uid = useAuthUid();
-  const { cards, createDeck, decks, generateCardId } = options;
+  const cards = useCards();
+  const decks = useDecks();
 
   useEffect(() => {
     if (uid === "" || decks.length > 0) return;
     void startSampleDeckBootstrap(uid, () => addSampleDeck(uid, { cards, createDeck, decks, generateCardId })).catch(
       () => undefined
     );
-  }, [cards, createDeck, decks, generateCardId, uid]);
+  }, [cards, decks, uid]);
 };

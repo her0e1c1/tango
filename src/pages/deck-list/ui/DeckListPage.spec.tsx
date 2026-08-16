@@ -114,7 +114,7 @@ describe("DeckListPage", () => {
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
-    expect(mocks.sampleBootstrap).toHaveBeenCalledWith(expect.objectContaining({ decks: [deck], cards: [card] }));
+    expect(mocks.sampleBootstrap).toHaveBeenCalledWith();
   });
 
   it("renders empty list when no decks exist", () => {

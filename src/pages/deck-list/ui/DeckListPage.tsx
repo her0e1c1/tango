@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthUid } from "@/entities/auth";
-import { generateCardId, useCards } from "@/entities/card";
-import { createDeck, deleteDeck, useDecks } from "@/entities/deck";
+import { useCards } from "@/entities/card";
+import { deleteDeck, useDecks } from "@/entities/deck";
 import { removeStudySession, touchStudySession, useStudySessions } from "@/entities/study-session";
 import { useSampleDeckBootstrap } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
@@ -17,12 +17,7 @@ export const DeckListPage: React.FC = () => {
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
 
-  useSampleDeckBootstrap({
-    cards,
-    createDeck,
-    decks,
-    generateCardId,
-  });
+  useSampleDeckBootstrap();
   useKey("s", () => void navigate("/settings"));
   useKey("i", () => void navigate("/import"));
 
