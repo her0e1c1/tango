@@ -4,7 +4,7 @@ import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preferences";
 import { editStudyProgress } from "@/entities/study-progress";
 import {
-  calculateStudySessionIndex,
+  calculateStudySessionAutoPlayIndex,
   getStudySession,
   moveStudySession,
   planStudySessionSwipe,
@@ -111,15 +111,13 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
   }, [deckId, onInvalid, resolvedSession.status]);
 
   React.useEffect(() => {
-    const nextIndex = session == null ? undefined : calculateStudySessionIndex(session, "next");
-    if (
-      resolvedSession.status !== "studying" ||
-      !autoPlay ||
-      preferences.study.cardInterval <= 0 ||
-      nextIndex === undefined
-    ) {
-      return;
-    }
+    const nextIndex = calculateStudySessionAutoPlayIndex(
+      session,
+      resolvedSession.status,
+      autoPlay,
+      preferences.study.cardInterval
+    );
+    if (nextIndex === undefined) return;
     const timeout = window.setTimeout(() => {
       if (setStudySessionIndex(deckId, nextIndex)) setShowBackText(false);
     }, preferences.study.cardInterval * 1000);

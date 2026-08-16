@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  calculateStudySessionAutoPlayIndex,
   calculateStudySessionIndex,
   compareActiveDecks,
   groupDecksByStudyStatus,
@@ -59,6 +60,23 @@ describe("calculateStudySessionIndex", () => {
   it("returns no index when movement completes the session", () => {
     expect(calculateStudySessionIndex({ ...session, currentIndex: 0 }, "previous")).toBeUndefined();
     expect(calculateStudySessionIndex({ ...session, currentIndex: 2 }, "next")).toBeUndefined();
+  });
+});
+
+describe("calculateStudySessionAutoPlayIndex", () => {
+  it("returns the next index when autoplay can continue", () => {
+    expect(calculateStudySessionAutoPlayIndex(session, "studying", true, 1)).toBe(2);
+  });
+
+  it("returns no index when autoplay is disabled, has no interval, or reaches the final card", () => {
+    expect(calculateStudySessionAutoPlayIndex(session, "studying", false, 1)).toBeUndefined();
+    expect(calculateStudySessionAutoPlayIndex(session, "studying", true, 0)).toBeUndefined();
+    expect(calculateStudySessionAutoPlayIndex({ ...session, currentIndex: 2 }, "studying", true, 1)).toBeUndefined();
+  });
+
+  it("returns no index without an active study session", () => {
+    expect(calculateStudySessionAutoPlayIndex(session, "preparing", true, 1)).toBeUndefined();
+    expect(calculateStudySessionAutoPlayIndex(undefined, "invalid", true, 1)).toBeUndefined();
   });
 });
 

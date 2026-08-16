@@ -109,3 +109,13 @@ export const calculateStudySessionIndex = (
   const nextIndex = session.currentIndex + (movement === "previous" ? -1 : 1);
   return nextIndex >= 0 && nextIndex < session.cardOrderIds.length ? nextIndex : undefined;
 };
+
+export const calculateStudySessionAutoPlayIndex = (
+  session: StudySession | undefined,
+  status: ResolvedStudySession<StudySessionCard>["status"],
+  autoPlay: boolean,
+  cardInterval: number
+): number | undefined => {
+  if (session == null || status !== "studying" || !autoPlay || cardInterval <= 0) return;
+  return calculateStudySessionIndex(session, "next");
+};
