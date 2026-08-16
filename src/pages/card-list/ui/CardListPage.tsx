@@ -69,7 +69,9 @@ export const CardListPage: React.FC = () => {
 
   return (
     <AppLayout showHeader>
+      {/* Filters, dialogs, and the shown card belong to one deck and must not survive a route change. */}
       <CardListComposition
+        key={deck.id}
         deck={deck}
         cards={cards}
         tags={tags}

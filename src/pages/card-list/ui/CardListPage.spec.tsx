@@ -2,6 +2,7 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
+import * as React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
@@ -51,10 +52,15 @@ vi.mock("@/features/card-list", () => ({
     filter: { selectedTags: string[]; onRemoveTag: (tag: string) => void };
     onEditCard: (id: string) => void;
   }) => {
+    const [shownDeckId, setShownDeckId] = React.useState<string>();
     mocks.cardListProps = props as unknown as Record<string, unknown>;
     return (
       <div>
         <span>Card list feature</span>
+        <span>{shownDeckId == null ? "No card shown" : `Card shown for ${shownDeckId}`}</span>
+        <button type="button" onClick={() => setShownDeckId(props.state.cards[0]?.deckId)}>
+          Show card
+        </button>
         <button type="button" onClick={() => props.onEditCard(props.state.cards[0]?.id ?? "missing")}>
           Edit card
         </button>
@@ -120,6 +126,23 @@ describe("CardListPage", () => {
     fireEvent.keyDown(window, { key: "s" });
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings", undefined);
+  });
+
+  it("resets deck-local feature state when the route deck changes", async () => {
+    const user = userEvent.setup();
+    const nextDeck = createDeck({ id: "next-deck" });
+    const nextCard = createCard({ id: "next-card", deckId: nextDeck.id });
+    const { rerender } = render(<CardListPage />);
+
+    await user.click(screen.getByRole("button", { name: "Show card" }));
+    expect(screen.getByText(`Card shown for ${deck.id}`)).toBeInTheDocument();
+
+    mocks.params.id = nextDeck.id;
+    mocks.deck = nextDeck;
+    mocks.cards = [nextCard];
+    rerender(<CardListPage />);
+
+    expect(screen.getByText("No card shown")).toBeInTheDocument();
   });
 
   it("renders not-found feedback with route navigation", async () => {

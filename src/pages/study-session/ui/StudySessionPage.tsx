@@ -110,5 +110,6 @@ export const StudySessionPage: React.FC = () => {
     return <RouteFeedback title="Study session unavailable." tone="not-found" />;
   }
 
+  // Study state belongs to one deck, so route changes use a fresh session lifecycle.
   return <StudySessionContent key={deck.id} cards={cards} deck={deck} />;
 };

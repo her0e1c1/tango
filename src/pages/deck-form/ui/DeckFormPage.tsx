@@ -27,7 +27,8 @@ export const DeckFormPage: React.FC = () => {
   if (deckId == null) throw new Error("invalid deck id");
   const deck = useDeck(deckId);
 
-  if (deck != null) return <DeckFormContent deck={deck} />;
+  // Form state belongs to one route entity and must start fresh when navigation replaces the deck.
+  if (deck != null) return <DeckFormContent key={deck.id} deck={deck} />;
 
   return (
     <RouteFeedback

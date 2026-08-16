@@ -71,5 +71,6 @@ export const StudySessionStartPage: React.FC = () => {
     );
   }
 
-  return <StudySessionStartContent deck={deck} cards={cards} preferences={preferences} tags={tags} />;
+  // Deck filters are session setup state and must not carry into a different route deck.
+  return <StudySessionStartContent key={deck.id} deck={deck} cards={cards} preferences={preferences} tags={tags} />;
 };
