@@ -51,7 +51,7 @@ export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormState
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<CardFormValues>({
     ...(card && {
-      defaultValues: {
+      values: {
         frontText: card.frontText,
         backText: card.backText,
         tags: card.tags,

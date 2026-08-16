@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck } from "@/entities/deck";
+import { actAsync } from "@/test/act";
 import { createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -48,6 +49,18 @@ describe("DeckFormPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Deck name" })).toBeVisible();
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
+  });
+
+  it("initializes the editor when the route Deck arrives after mount", async () => {
+    const delayedDeckId = "delayed-deck";
+    renderPage(`/deck/${delayedDeckId}/edit`);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
+    await actAsync(async () => {
+      await createDeck("", createLocalDeck({ id: delayedDeckId, name: "Delayed deck" }));
+    });
+
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Delayed deck");
   });
 
   it("navigates to the deck list after saving", async () => {

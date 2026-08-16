@@ -8,6 +8,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
+import { actAsync } from "@/test/act";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -56,6 +57,24 @@ describe("CardFormPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Edit card" })).toBeVisible();
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front text");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
+  });
+
+  it("initializes the editor when the route Card arrives after mount", async () => {
+    const delayedCardId = "delayed-card";
+    renderPage(`/card/${delayedCardId}/edit`);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
+    await actAsync(async () => {
+      await mutateCards("", [
+        {
+          kind: "create",
+          card: createLocalCard({ id: delayedCardId, deckId, frontText: "Delayed front", backText: "Delayed back" }),
+        },
+      ]);
+    });
+
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Delayed front");
+    expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Delayed back");
   });
 
   it("returns to the previous page after saving", async () => {

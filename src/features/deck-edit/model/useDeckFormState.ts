@@ -45,7 +45,7 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
     ...(deck && {
-      defaultValues: {
+      values: {
         name: deck.name,
         category: deck.category,
         url: deck.url || undefined,
