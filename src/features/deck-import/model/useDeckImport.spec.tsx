@@ -1,7 +1,7 @@
 import type { Card, CardMutation } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck, createLocalCard, createLocalDeck } from "@/test/factories";
@@ -311,33 +311,6 @@ describe("useDeckImport", () => {
     expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
   });
 
-  it("rejects a second import while the first is pending", async () => {
-    let finish!: () => void;
-    mocks.bulkUpsert.mockReturnValueOnce(
-      new Promise<void>((resolve) => {
-        finish = resolve;
-      })
-    );
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-
-    await actAsync(async () => {
-      await result.current.selectFile(file);
-    });
-
-    let first: Promise<DeckImportResult> | undefined;
-    act(() => {
-      first = result.current.importPreview();
-    });
-    await waitFor(() => expect(result.current.pending).toBe(true));
-    await expect(result.current.importPreview()).rejects.toThrow("already running");
-    await actAsync(async () => {
-      finish();
-      await first;
-    });
-    expect(result.current.pending).toBe(false);
-  });
-
   it("requires a new preview before retrying a failed import", async () => {
     const createdDeck = createDeck({ id: "deck", name: "deck.csv", uid: "uid-a" });
     mocks.fetchDecks.mockResolvedValueOnce([]).mockResolvedValueOnce([createdDeck]);
@@ -378,137 +351,5 @@ describe("useDeckImport", () => {
     await actAsync(async () => result.current.selectFile(file));
     expect(result.current.result).toBeUndefined();
     expect(result.current.error).toBeNull();
-  });
-
-  it("ignores completion from an old UID operation", async () => {
-    let finishOld!: () => void;
-    mocks.bulkUpsert.mockReturnValueOnce(
-      new Promise<void>((resolve) => {
-        finishOld = resolve;
-      })
-    );
-    const { result, rerender } = renderHook(useDeckImport);
-
-    let oldOperation!: Promise<DeckImportResult>;
-    act(() => {
-      oldOperation = result.current.addSample();
-    });
-    await waitFor(() => expect(result.current.pending).toBe(true));
-    mocks.uid = "uid-b";
-    rerender();
-    await waitFor(() => expect(result.current.pending).toBe(false));
-
-    finishOld();
-    await oldOperation;
-    expect(result.current.result).toBeUndefined();
-    expect(result.current.error).toBeNull();
-    expect(result.current.pending).toBe(false);
-  });
-
-  it("does not write when the UID changes during server-backed preparation", async () => {
-    let finishServerRead!: (decks: Deck[]) => void;
-    mocks.fetchDecks.mockReturnValueOnce(
-      new Promise<Deck[]>((resolve) => {
-        finishServerRead = resolve;
-      })
-    );
-    const { result, rerender } = renderHook(useDeckImport);
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-
-    const operation = result.current.selectFile(file);
-    await waitFor(() => expect(mocks.fetchDecks).toHaveBeenCalledWith("uid-a"));
-
-    mocks.uid = "uid-b";
-    rerender();
-    finishServerRead([]);
-
-    await expect(operation).rejects.toThrow("user changed");
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
-    expect(result.current.pending).toBe(false);
-    expect(result.current.error).toBeNull();
-    expect(result.current.result).toBeUndefined();
-  });
-
-  it("does not publish or import a file preview after an A-to-B-to-A UID transition", async () => {
-    let finishParse!: (analysis: Awaited<ReturnType<typeof mocks.parseCsv>>) => void;
-    mocks.parseCsv.mockReturnValueOnce(
-      new Promise((resolve) => {
-        finishParse = resolve;
-      })
-    );
-    const { result, rerender } = renderHook(useDeckImport);
-    const file = new File(['"stale-front","stale-back","","stale-key"'], "stale.csv", {
-      type: "text/csv",
-    });
-
-    let selection!: ReturnType<typeof result.current.selectFile>;
-    act(() => {
-      selection = result.current.selectFile(file);
-    });
-    await waitFor(() => expect(result.current.validating).toBe(true));
-    mocks.uid = "uid-b";
-    rerender();
-    mocks.uid = "uid-a";
-    rerender();
-    await actAsync(async () => {
-      finishParse({
-        rows: [
-          {
-            rowNumber: 1,
-            card: { frontText: "stale-front", backText: "stale-back", tags: [], uniqueKey: "stale-key" },
-          },
-        ],
-        skippedRows: [],
-        issues: [],
-        invalidCount: 0,
-      });
-      await expect(selection).rejects.toThrow("user changed");
-    });
-    expect(result.current.preview).toBeUndefined();
-    expect(result.current.validating).toBe(false);
-    await expect(result.current.importPreview()).rejects.toThrow("Select a CSV file");
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
-  });
-
-  it("does not resurrect import data after an A-to-B-to-A UID transition", async () => {
-    const { result, rerender } = renderHook(useDeckImport);
-    await actAsync(async () => result.current.addSample());
-    expect(result.current.result).toBeDefined();
-
-    mocks.uid = "uid-b";
-    rerender();
-    mocks.uid = "uid-a";
-    rerender();
-
-    expect(result.current.result).toBeUndefined();
-    expect(result.current.error).toBeNull();
-  });
-
-  it("does not resurrect import running state after an A-to-B-to-A UID transition", async () => {
-    let finish!: () => void;
-    mocks.bulkUpsert.mockReturnValueOnce(
-      new Promise<void>((resolve) => {
-        finish = resolve;
-      })
-    );
-    const { result, rerender } = renderHook(useDeckImport);
-
-    let operation!: Promise<DeckImportResult>;
-    act(() => {
-      operation = result.current.addSample();
-    });
-    await waitFor(() => expect(result.current.pending).toBe(true));
-    mocks.uid = "uid-b";
-    rerender();
-    mocks.uid = "uid-a";
-    rerender();
-
-    expect(result.current.pending).toBe(false);
-    await actAsync(async () => {
-      finish();
-      await operation;
-    });
   });
 });

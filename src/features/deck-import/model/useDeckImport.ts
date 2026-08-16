@@ -1,39 +1,49 @@
+import { useState } from "react";
+
 import { useAuthUid } from "@/entities/auth";
 import { generateCardId, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./deckImportExecution";
 import { prepareSampleDeck } from "./sampleDeck";
 import { useDeckImportExecution } from "./useDeckImportExecution";
-import { useDeckImportOperation } from "./useDeckImportOperation";
 import { useDeckImportPreview } from "./useDeckImportPreview";
 
 export type { DeckImportPreview } from "./useDeckImportPreview";
+
+type DeckImportStatus = "idle" | "validating" | "importing";
 
 export const useDeckImport = () => {
   const uid = useAuthUid();
   const cards = useCards();
   const decks = useDecks();
-  const operation = useDeckImportOperation(uid);
   const execution = useDeckImportExecution(uid);
   const preview = useDeckImportPreview({ uid, cards, decks });
+  const [status, setStatus] = useState<DeckImportStatus>("idle");
 
-  const selectFile = (file: File) =>
-    operation.run("validating", (scope) => {
-      execution.clear();
-      return preview.selectFile(file, scope);
-    });
+  const selectFile = async (file: File) => {
+    execution.clear();
+    setStatus("validating");
+    try {
+      return await preview.selectFile(file);
+    } finally {
+      setStatus("idle");
+    }
+  };
 
   const setStorageMode = (storageMode: DeckImportStorageMode) => {
-    if (operation.isRunning()) return;
     if (preview.setStorageMode(storageMode)) execution.clear();
   };
 
-  const runImport = (prepare: () => PreparedDeckImport) =>
-    operation.run("importing", (scope) => {
-      const preparedImport = prepare();
-      preview.clearError();
-      return execution.run(preparedImport, scope);
-    });
+  const runImport = async (prepare: () => PreparedDeckImport) => {
+    const preparedImport = prepare();
+    preview.clearError();
+    setStatus("importing");
+    try {
+      return await execution.run(preparedImport);
+    } finally {
+      setStatus("idle");
+    }
+  };
 
   return {
     selectFile,
@@ -42,8 +52,8 @@ export const useDeckImport = () => {
     addSample: () => runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId })),
     storageMode: preview.storageMode,
     preview: preview.preview,
-    validating: operation.status === "validating",
-    pending: operation.status === "importing",
+    validating: status === "validating",
+    pending: status === "importing",
     error: execution.error,
     previewError: preview.error,
     result: execution.result,
