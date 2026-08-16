@@ -32,7 +32,6 @@ const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   tagAndFilter: editableDeckFieldsSchema.shape.tagAndFilter.default(false),
   category: editableDeckFieldsSchema.shape.category.default(""),
   convertToBr: editableDeckFieldsSchema.shape.convertToBr.default(false),
-  deletedAt: z.number().nullable().default(null),
 });
 
 export const deckCreateSchema = deckCreateFieldsSchema.extend({
@@ -42,17 +41,11 @@ export const deckCreateSchema = deckCreateFieldsSchema.extend({
 
 export const localDeckCreateSchema = deckCreateFieldsSchema.extend({ localMode: z.literal(true) });
 
-export const remoteDeckSchema = deckCreateSchema.extend({
-  createdAt: z.number(),
-  updatedAt: z.number(),
-});
-
+// Persisted v1 Decks may predate defaulted filtering fields, so hydration must reuse the create defaults.
 export const localDeckSchema = localDeckCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
 });
-
-export const deckSchema = z.discriminatedUnion("localMode", [remoteDeckSchema, localDeckSchema]);
 
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   id: deckIdSchema,

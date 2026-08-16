@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { createDeck, createLocalDeck as createLocalDeckFixture } from "@/test/factories";
+import { toDeckView } from "./dto";
 import { useDeck, useDecks } from "./hooks";
 import {
   clearRemoteDecks,
@@ -52,9 +53,9 @@ describe("Deck store", () => {
     const localDeck = createLocalDeckFixture({ id: "local" });
     deckStore.setState({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
 
-    expect(renderHook(useDecks).result.current).toEqual([remoteDeck, localDeck]);
-    expect(renderHook(() => useDeck("remote")).result.current).toEqual(remoteDeck);
-    expect(renderHook(() => useDeck("local")).result.current).toEqual(localDeck);
+    expect(renderHook(useDecks).result.current).toEqual([toDeckView(remoteDeck), toDeckView(localDeck)]);
+    expect(renderHook(() => useDeck("remote")).result.current).toEqual(toDeckView(remoteDeck));
+    expect(renderHook(() => useDeck("local")).result.current).toEqual(toDeckView(localDeck));
     expect(renderHook(() => useDeck("missing")).result.current).toBeUndefined();
   });
 
@@ -89,6 +90,36 @@ describe("Deck store", () => {
 
     expect(deckStore.getState().localDecks).toEqual([localDeck]);
     expect(deckStore.getState().localDecks[0]).not.toHaveProperty("uid");
+  });
+
+  it("hydrates version 1 local Decks with create defaults", async () => {
+    useMemoryStorage({
+      "tango-local-decks": JSON.stringify({
+        state: {
+          localDecks: [{ id: "legacy-local", localMode: true, name: "Legacy", createdAt: 1, updatedAt: 2 }],
+        },
+        version: 1,
+      }),
+    });
+
+    await deckStore.persist.rehydrate();
+
+    expect(deckStore.getState().localDecks).toEqual([
+      {
+        id: "legacy-local",
+        localMode: true,
+        name: "Legacy",
+        isPublic: false,
+        scoreMax: null,
+        scoreMin: null,
+        selectedTags: [],
+        tagAndFilter: false,
+        category: "",
+        convertToBr: false,
+        createdAt: 1,
+        updatedAt: 2,
+      },
+    ]);
   });
 
   it("rejects invalid persisted Decks", async () => {

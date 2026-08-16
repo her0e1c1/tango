@@ -3,8 +3,9 @@ import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
 import { omitUndefined } from "@/shared/lib/omitUndefined";
+import { toLocalDeckStore } from "./dto";
 import { deckEditSchema, deckIdSchema, localDeckCreateSchema, localDeckSchema } from "./schema";
-import type { Deck, DeckEdit, DeckId, LocalDeck, LocalDeckCreateInput, RemoteDeck } from "./types";
+import type { DeckEdit, DeckId, DeckStore, LocalDeck, LocalDeckCreateInput, RemoteDeck } from "./types";
 
 interface DeckState {
   remoteDecks: RemoteDeck[];
@@ -24,7 +25,7 @@ const persistedDeckStateSchema = z.object({ localDecks: z.array(localDeckSchema)
 
 const parsePersistedDeckState = (value: unknown): PersistedDeckState => {
   const result = persistedDeckStateSchema.safeParse(value);
-  return result.success ? result.data : { localDecks: [] };
+  return result.success ? { localDecks: result.data.localDecks.map(toLocalDeckStore) } : { localDecks: [] };
 };
 
 const createDeckStore = ({ storage, skipHydration }: CreateDeckStoreOptions = {}) => {
@@ -54,7 +55,7 @@ export const clearRemoteDecks = (): void => {
   deckStore.setState({ remoteDecks: [] });
 };
 
-export const findDeckById = (id: DeckId): Deck | undefined => {
+export const findDeckById = (id: DeckId): DeckStore | undefined => {
   const deckId = deckIdSchema.parse(id);
   const state = deckStore.getState();
   return state.remoteDecks.find((deck) => deck.id === deckId) ?? state.localDecks.find((deck) => deck.id === deckId);
@@ -63,7 +64,7 @@ export const findDeckById = (id: DeckId): Deck | undefined => {
 export const createLocalDeck = (input: LocalDeckCreateInput): LocalDeck => {
   const deck = localDeckCreateSchema.parse(input);
   const timestamp = Date.now();
-  const createdDeck = localDeckSchema.parse({ ...deck, createdAt: timestamp, updatedAt: timestamp });
+  const createdDeck = toLocalDeckStore(localDeckSchema.parse({ ...deck, createdAt: timestamp, updatedAt: timestamp }));
   const localDecks = deckStore.getState().localDecks.filter(({ id }) => id !== createdDeck.id);
   deckStore.setState({ localDecks: [...localDecks, createdDeck] });
   return createdDeck;
@@ -82,7 +83,7 @@ export const editLocalDeck = (input: DeckEdit): LocalDeck => {
     url: edit.url === null ? undefined : (edit.url ?? currentDeck.url),
     updatedAt: Date.now(),
   });
-  const updatedDeck = localDeckSchema.parse(updatedValues);
+  const updatedDeck = toLocalDeckStore(localDeckSchema.parse(updatedValues));
   deckStore.setState({ localDecks: localDecks.map((deck) => (deck.id === updatedDeck.id ? updatedDeck : deck)) });
   return updatedDeck;
 };

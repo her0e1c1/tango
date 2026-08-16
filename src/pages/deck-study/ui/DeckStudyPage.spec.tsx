@@ -41,13 +41,11 @@ import { DeckStudyPage } from "./DeckStudyPage";
 
 const deck: Deck = {
   id: "deck-id",
-  uid: "user-id",
   localMode: false,
   name: "Deck",
   isPublic: false,
   createdAt: 0,
   updatedAt: 0,
-  deletedAt: null,
   category: "raw",
   convertToBr: false,
   selectedTags: [],

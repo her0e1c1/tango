@@ -5,7 +5,7 @@ import type {
   DeckId,
   DeleteDeckInput,
   EditDeckInput,
-  RemoteDeck,
+  Deck,
 } from "../model/types";
 
 import {
@@ -21,39 +21,21 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { z } from "zod";
 
 import { db } from "@/shared/firebase";
-import { parseFirestoreDocument } from "@/shared/api";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
+import { toDeckDocument, toDeckView, toRemoteDeckStore } from "../model/dto";
 import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
 import { replaceRemoteDecks } from "../model/store";
+import { parseDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
 const CARD_COLLECTION = "card";
 
-const deckDtoSchema = z.object({
-  id: z.string().optional(),
-  name: z.string(),
-  url: z.string().optional(),
-  isPublic: z.boolean(),
-  uid: z.string(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
-  deletedAt: z.number().nullable(),
-  scoreMax: z.number().nullable(),
-  scoreMin: z.number().nullable(),
-  selectedTags: z.array(z.string()),
-  tagAndFilter: z.boolean(),
-  category: z.string(),
-  convertToBr: z.boolean(),
-});
-
-const convertDeckDtoToDeck = (id: DeckId, value: unknown): RemoteDeck => {
-  const dto = parseFirestoreDocument(deckDtoSchema, "deck", id, value);
-  const { url, ...dtoWithoutUrl } = dto;
-  return url === undefined ? { ...dtoWithoutUrl, id, localMode: false } : { ...dto, id, localMode: false };
+const readActiveRemoteDeck = (id: DeckId, value: unknown) => {
+  const document = parseDeckDocument(id, value);
+  return document.deletedAt === null ? toRemoteDeckStore(id, document) : undefined;
 };
 
 export const subscribeDecks = (uid: string, onError: (error: Error) => void): (() => void) =>
@@ -61,9 +43,10 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     query(collection(db, DECK_COLLECTION), where("uid", "==", uid)),
     (snapshot) => {
       try {
-        const decks = snapshot.docs
-          .map((document) => convertDeckDtoToDeck(document.id, document.data()))
-          .filter((deck) => deck.deletedAt === null);
+        const decks = snapshot.docs.flatMap((document) => {
+          const deck = readActiveRemoteDeck(document.id, document.data());
+          return deck === undefined ? [] : [deck];
+        });
         replaceRemoteDecks(decks);
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
@@ -72,31 +55,17 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     onError
   );
 
-export const fetchDecks = async (uid: string): Promise<RemoteDeck[]> => {
+export const fetchDecks = async (uid: string): Promise<Deck[]> => {
   const snapshot = await getDocsFromServer(query(collection(db, DECK_COLLECTION), where("uid", "==", uid)));
-  return snapshot.docs
-    .map((document) => convertDeckDtoToDeck(document.id, document.data()))
-    .filter((deck) => deck.deletedAt === null);
+  return snapshot.docs.flatMap((document) => {
+    const deck = readActiveRemoteDeck(document.id, document.data());
+    return deck === undefined ? [] : [toDeckView(deck)];
+  });
 };
 
 const createDeckDocument = async (deck: DeckCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();
-  const document = omitUndefined({
-    id: deck.id,
-    uid: deck.uid,
-    name: deck.name,
-    url: deck.url,
-    isPublic: deck.isPublic,
-    scoreMax: deck.scoreMax,
-    scoreMin: deck.scoreMin,
-    selectedTags: deck.selectedTags,
-    tagAndFilter: deck.tagAndFilter,
-    category: deck.category,
-    convertToBr: deck.convertToBr,
-    deletedAt: deck.deletedAt,
-    createdAt,
-    updatedAt: createdAt,
-  });
+  const document = toDeckDocument(deck, createdAt);
   await setDoc(doc(db, DECK_COLLECTION, deck.id), document);
 };
 
