@@ -23,8 +23,8 @@ const meta = {
   component: AppRoutes,
   decorators: [withPageStory],
   loaders: [
-    async ({ parameters }) => {
-      await preparePageStory(parameters.page as PageStoryParameters);
+    ({ parameters }) => {
+      preparePageStory(parameters.page as PageStoryParameters);
       return {};
     },
   ],

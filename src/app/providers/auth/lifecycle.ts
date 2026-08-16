@@ -37,9 +37,10 @@ export const startAuthSession = () =>
 
     replaceAuthSession({ status: "unauthenticated" });
     // A new anonymous identity must not inherit persisted study state from the identity that signed out.
-    void clearStudySessions()
-      .then(startAnonymousBootstrap)
-      .catch((error: unknown) => {
-        if (getAuthSession().status === "unauthenticated") replaceAuthSession({ status: "error", error });
-      });
+    try {
+      clearStudySessions();
+      startAnonymousBootstrap();
+    } catch (error) {
+      if (getAuthSession().status === "unauthenticated") replaceAuthSession({ status: "error", error });
+    }
   });

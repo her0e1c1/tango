@@ -6,8 +6,8 @@ import { createCard, createPreferences } from "@/test/factories";
 import { clearStudySessions, getStudySession, startStudy } from "./store";
 
 describe("startStudy", () => {
-  beforeEach(async () => {
-    await clearStudySessions();
+  beforeEach(() => {
+    clearStudySessions();
     localStorage.clear();
   });
 

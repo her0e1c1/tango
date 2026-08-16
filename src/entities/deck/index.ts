@@ -1,6 +1,6 @@
 export { fetchDecks, subscribeDecks } from "./api/firestore";
+export { generateDeckId } from "./api/id";
 export { createDeck, deleteDeck, editDeck } from "./api/mutations";
-export { generateDeckId } from "./model/id";
 export {
   CATEGORY,
   filterCardsForDeck,
