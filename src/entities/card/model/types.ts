@@ -1,8 +1,6 @@
 import type { z } from "zod";
 
-import type { StudyProgress } from "@/entities/study-progress/@x/card";
 import type {
-  cardDocumentSchema,
   cardCreateSchema,
   cardEditSchema,
   cardIdSchema,
@@ -23,13 +21,6 @@ type StudyProgressField = "score" | "numberOfSeen" | "lastSeenAt" | "nextSeeingA
 export type RemoteCardRead = Omit<RemoteCard, StudyProgressField>;
 /** Card-owned fields read from the shared physical Firestore document. */
 export type CardDocumentFields = Omit<RemoteCardRead, "id">;
-/** Validated field shape stored in one physical Card Firestore document. */
-export type CardDocument = z.infer<typeof cardDocumentSchema>;
-/** Cross-Entity read contract for the two models sharing one physical Card document. */
-export interface CardRead {
-  card: RemoteCardRead;
-  progress: StudyProgress;
-}
 /** Browser-persisted Card data owned by a local-mode Deck and therefore intentionally lacking a uid. */
 export type LocalCard = z.infer<typeof localCardSchema>;
 /** Browser-persisted subset of Card state. */

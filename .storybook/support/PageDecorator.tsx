@@ -4,8 +4,7 @@
  * normal containers, hooks, and route parameters.
  */
 
-import type { CardId } from "@/entities/card";
-import type { RemoteCard } from "@/entities/card/model/types";
+import type { CardId, RemoteCard } from "@/entities/card";
 import { replaceRemoteCards } from "@/entities/card/model/store";
 import type { DeckId } from "@/entities/deck";
 import { replaceRemoteDecks } from "@/entities/deck/model/store";

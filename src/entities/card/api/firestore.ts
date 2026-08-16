@@ -3,15 +3,15 @@ import type {
   CardCreateInput,
   CardEdit,
   CardId,
-  CardRead,
   DeleteCardInput,
   EditCardInput,
   RemoteCard,
+  RemoteCardRead,
 } from "../model/types";
 
 import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
-import { mapStudyProgressDocument } from "@/entities/study-progress/@x/card";
+import { mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
@@ -21,6 +21,12 @@ import { replaceRemoteCards } from "../model/store";
 import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
+
+/** @public Cross-Entity read contract for the two models sharing one physical Card document. */
+export interface CardRead {
+  card: RemoteCardRead;
+  progress: StudyProgress;
+}
 
 /** Maps one physical Card document into independent Card and StudyProgress read models. */
 const mapCardRead = (id: CardId, value: unknown): CardRead => {
