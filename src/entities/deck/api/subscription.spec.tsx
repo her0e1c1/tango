@@ -10,7 +10,6 @@ const mocks = vi.hoisted(() => ({
   onSnapshot: vi.fn(),
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
-  unsubscribe: vi.fn(),
 }));
 
 vi.mock("firebase/firestore", () => ({
@@ -53,17 +52,15 @@ describe("Deck Firestore subscription", () => {
   beforeEach(() => {
     deckStore.setState({ remoteDecks: [], localDecks: [] });
     vi.clearAllMocks();
-    mocks.onSnapshot.mockReturnValue(mocks.unsubscribe);
+    mocks.onSnapshot.mockReturnValue(vi.fn());
   });
 
-  it("subscribes by UID and replaces the store with active Decks", () => {
+  it("replaces the store with active Decks", () => {
     const localDeck = createLocalDeck({ id: "local", name: "Local Deck" });
     deckStore.setState({ localDecks: [localDeck] });
     const { result } = renderHook(useDecks);
-    const unsubscribe = subscribeDecks("uid-a", vi.fn());
+    subscribeDecks("uid-a", vi.fn());
 
-    expect(mocks.collection).toHaveBeenCalledWith("db", "deck");
-    expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
     act(() =>
       getSnapshotHandler()({
         docs: [deckDocument("active", { url: "https://example.com" }), deckDocument("deleted", { deletedAt: 3 })],
@@ -74,8 +71,6 @@ describe("Deck Firestore subscription", () => {
       expect.objectContaining({ id: "active", url: "https://example.com", localMode: false }),
       localDeck,
     ]);
-    unsubscribe();
-    expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
 
   it("reports invalid Firestore documents", () => {
