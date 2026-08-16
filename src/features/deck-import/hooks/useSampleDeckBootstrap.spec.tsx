@@ -58,9 +58,6 @@ describe("sample Deck bootstrap", () => {
   it("adds the sample again when Decks become empty after a completed bootstrap", async () => {
     const { unmount } = renderHook(useSampleDeckBootstrap);
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, 0);
-    });
     unmount();
 
     mocks.remote.decks = [{ id: "sample" } as Deck];
@@ -69,6 +66,17 @@ describe("sample Deck bootstrap", () => {
     unmountPopulated();
 
     mocks.remote.decks = [];
+    renderHook(useSampleDeckBootstrap);
+
+    await waitFor(() => expect(mocks.addSample).toHaveBeenCalledTimes(2));
+  });
+
+  it("adds the sample again after a failed bootstrap", async () => {
+    mocks.addSample.mockRejectedValueOnce(new Error("failed"));
+    const { unmount } = renderHook(useSampleDeckBootstrap);
+    await waitFor(() => expect(mocks.addSample).toHaveBeenCalledOnce());
+    unmount();
+
     renderHook(useSampleDeckBootstrap);
 
     await waitFor(() => expect(mocks.addSample).toHaveBeenCalledTimes(2));

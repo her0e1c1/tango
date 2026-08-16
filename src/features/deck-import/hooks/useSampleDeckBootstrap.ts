@@ -5,20 +5,18 @@ import { generateCardId, useCards } from "@/entities/card";
 import { createDeck, useDecks } from "@/entities/deck";
 import { addSampleDeck } from "../model/sampleDeck";
 
-type AddSample = () => Promise<unknown>;
+const bootstrappingUids = new Set<string>();
 
-const pendingBootstrapsByUid = new Map<string, Promise<unknown>>();
-
-const startSampleDeckBootstrap = (uid: string, addSample: AddSample) => {
-  const existing = pendingBootstrapsByUid.get(uid);
-  if (existing != null) return existing;
+const startSampleDeckBootstrap = async (uid: string, addSample: () => Promise<unknown>) => {
+  if (bootstrappingUids.has(uid)) return;
 
   // Only overlapping effects share work; Deck state remains the source of truth for later bootstrap decisions.
-  const operation = Promise.resolve()
-    .then(addSample)
-    .finally(() => pendingBootstrapsByUid.delete(uid));
-  pendingBootstrapsByUid.set(uid, operation);
-  return operation;
+  bootstrappingUids.add(uid);
+  try {
+    await addSample();
+  } finally {
+    bootstrappingUids.delete(uid);
+  }
 };
 
 export const useSampleDeckBootstrap = () => {
