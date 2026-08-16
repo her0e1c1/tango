@@ -6,6 +6,7 @@
 ## Comments
 
 - Add a brief leading comment to every function, including small helpers, that states what it does.
+- Add a brief leading comment to every interface and type alias that states what it represents.
 - Include non-obvious intent and invariants when relevant, and update comments when behavior changes.
 
 ## `model/schema.ts`

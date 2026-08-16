@@ -44,14 +44,17 @@ const MAJOR_LANGUAGES: Category[] = [
 
 export const CATEGORY: Category[] = [...new Set([...APPLICATION_CATEGORIES, ...MAJOR_LANGUAGES])];
 
+// Reports whether a category names a language alias supported by syntax highlighting.
 export const isHighlightLanguage = (category: Category): boolean => MAJOR_LANGUAGES.includes(category);
 
+// Uses the first supported tag as the rendering category and falls back to the Deck category when none qualifies.
 export const getCategory = (category: Category, tags: string[]): Category => {
   const tagCategory = tags.find((tag) => APPLICATION_CATEGORIES.includes(tag) || isHighlightLanguage(tag));
 
   return tagCategory ?? category;
 };
 
+// Applies the Deck's all-or-any tag mode; an empty selection deliberately leaves every Card eligible.
 const isCardMatchingTags = (card: Card, deck: Pick<DeckDomain, "selectedTags" | "tagAndFilter">) => {
   const tags = deck.selectedTags;
   if (tags.length === 0) return true;
@@ -59,6 +62,7 @@ const isCardMatchingTags = (card: Card, deck: Pick<DeckDomain, "selectedTags" | 
   return tags.some((tag) => card.tags.includes(tag));
 };
 
+// Selects Cards that satisfy tag, score, and optional due-time rules while preserving the caller's order.
 export const filterCardsForDeck = <TCard extends Card>(
   cards: TCard[],
   deck: Pick<DeckDomain, "selectedTags" | "tagAndFilter" | "scoreMax" | "scoreMin">,
@@ -78,6 +82,7 @@ export const filterCardsForDeck = <TCard extends Card>(
     );
   });
 
+// Returns the requested Deck or throws when a caller's Deck reference no longer resolves.
 export const mustFindDeckById = <TDeck extends DeckDomain>(decks: readonly TDeck[], id: DeckId): TDeck => {
   const deck = decks.find((candidate) => candidate.id === id);
 
