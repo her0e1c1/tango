@@ -6,70 +6,102 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDeck } from "@/test/factories";
 
-const mocks = vi.hoisted(() => ({
+const repository = vi.hoisted(() => ({
   uid: "uid-a",
   cards: [] as Card[],
   decks: [] as Deck[],
-  createDeck: vi.fn<(_uid: string, _deck: DeckCreateInput) => Promise<unknown>>(),
-  generateCardId: vi.fn(() => crypto.randomUUID()),
-  mutateCards: vi.fn<(_uid: string, _mutations: CardMutation[]) => Promise<void>>(),
+  nextCardNumber: 1,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => mocks.uid }));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => repository.uid }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    generateCardId: mocks.generateCardId,
-    mutateCards: mocks.mutateCards,
-    useCards: () => mocks.cards,
+    generateCardId: () => {
+      const cardNumber = repository.nextCardNumber;
+      repository.nextCardNumber += 1;
+      return `sample-card-${String(cardNumber)}`;
+    },
+    mutateCards: (_uid: string, mutations: CardMutation[]) => {
+      repository.cards = [
+        ...repository.cards,
+        ...mutations.flatMap((mutation) => (mutation.kind === "create" ? [mutation.card as Card] : [])),
+      ];
+      return Promise.resolve();
+    },
+    useCards: () => repository.cards,
   };
 });
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
-  return { ...actual, createDeck: mocks.createDeck, useDecks: () => mocks.decks };
+  return {
+    ...actual,
+    createDeck: (_uid: string, deck: DeckCreateInput) => {
+      const savedDeck: Deck = {
+        id: deck.id,
+        name: deck.name,
+        isPublic: deck.isPublic ?? false,
+        scoreMax: deck.scoreMax ?? null,
+        scoreMin: deck.scoreMin ?? null,
+        selectedTags: deck.selectedTags ?? [],
+        tagAndFilter: deck.tagAndFilter ?? false,
+        category: deck.category ?? "",
+        convertToBr: deck.convertToBr ?? false,
+        createdAt: 0,
+        updatedAt: 0,
+        localMode: false,
+      };
+      repository.decks = [...repository.decks, savedDeck];
+      return Promise.resolve();
+    },
+    useDecks: () => repository.decks,
+  };
 });
 
 import { useAddSampleDeck } from "./useAddSampleDeck";
 
 describe("useAddSampleDeck", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.uid = "uid-a";
-    mocks.cards = [];
-    mocks.decks = [];
-    mocks.createDeck.mockResolvedValue(undefined);
-    mocks.mutateCards.mockResolvedValue(undefined);
+    repository.uid = "uid-a";
+    repository.cards = [];
+    repository.decks = [];
+    repository.nextCardNumber = 1;
   });
 
-  it("does not add a sample for a signed-out user", () => {
-    mocks.uid = "";
+  it("leaves storage empty for a signed-out user", () => {
+    repository.uid = "";
 
     renderHook(useAddSampleDeck);
 
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.mutateCards).not.toHaveBeenCalled();
+    expect(repository.decks).toEqual([]);
+    expect(repository.cards).toEqual([]);
   });
 
-  it("does not add a sample when the user already has a Deck", () => {
-    mocks.decks = [createDeck({ uid: "uid-a" })];
+  it("preserves existing storage without adding a sample", () => {
+    const existingDeck = createDeck({ id: "existing-deck", uid: repository.uid, name: "Existing Deck" });
+    repository.decks = [existingDeck];
 
     renderHook(useAddSampleDeck);
 
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.mutateCards).not.toHaveBeenCalled();
+    expect(repository.decks).toEqual([existingDeck]);
+    expect(repository.cards).toEqual([]);
   });
 
-  it("adds the sample when the user has no Decks", async () => {
+  it("persists one account-synced sample when storage has no Decks", async () => {
     renderHook(useAddSampleDeck);
 
-    await waitFor(() =>
-      expect(mocks.createDeck).toHaveBeenCalledWith(
-        "uid-a",
-        expect.objectContaining({ id: "sample-v1-uid-a", name: "Sample Deck", uid: "uid-a" })
-      )
-    );
-    expect(mocks.mutateCards).toHaveBeenCalledOnce();
+    await waitFor(() => expect(repository.cards.length).toBeGreaterThan(0));
+
+    expect(repository.decks).toEqual([
+      expect.objectContaining({
+        id: "sample-v1-uid-a",
+        name: "Sample Deck",
+        localMode: false,
+      }),
+    ]);
+    expect(repository.cards.every((card) => card.deckId === "sample-v1-uid-a")).toBe(true);
+    expect(repository.cards.every((card) => "uid" in card && card.uid === "uid-a")).toBe(true);
   });
 });
