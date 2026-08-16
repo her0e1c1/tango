@@ -13,16 +13,6 @@ type CardMutationCreateInput = CardCreateInput | LocalCardCreateInput;
 
 export type CardMutation = { kind: "create"; card: CardMutationCreateInput } | { kind: "edit"; card: CardEditInput };
 
-export class CardBulkMutationError extends Error {
-  constructor(
-    readonly failedIds: CardId[],
-    total: number,
-    options?: ErrorOptions
-  ) {
-    super(`${String(failedIds.length)} of ${String(total)} Card writes failed`, options);
-  }
-}
-
 const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode ?? false;
 
 const requireCard = (id: CardId) => {
@@ -63,17 +53,13 @@ export const editCard = async (uid: string, card: CardEditInput): Promise<void> 
 };
 
 export const mutateCards = async (uid: string, mutations: CardMutation[]): Promise<void> => {
-  // Let every independent write settle so callers can retry only failures without replaying successful writes.
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
       mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
     )
   );
-  const failedIds = results.flatMap((result, index) => {
-    const mutation = mutations[index];
-    return result.status === "rejected" && mutation != null ? [mutation.card.id] : [];
-  });
-  if (failedIds.length > 0) throw new CardBulkMutationError(failedIds, mutations.length);
+  const failure = results.find((result) => result.status === "rejected");
+  if (failure?.status === "rejected") throw failure.reason;
 };
 
 export const deleteCard = async (uid: string, card: { id: CardId }): Promise<void> => {

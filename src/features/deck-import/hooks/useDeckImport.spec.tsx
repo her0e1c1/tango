@@ -5,11 +5,8 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck, createLocalCard, createLocalDeck } from "@/test/factories";
-import { CardBulkMutationError } from "@/entities/card";
 import type { DeckImportResult } from "../model/deckImportTypes";
 import { actAsync } from "@/test/act";
-
-type CardCreateInput = Extract<CardMutation, { kind: "create" }>["card"];
 
 const mocks = vi.hoisted(() => ({
   uid: "uid-a",
@@ -112,7 +109,7 @@ describe("useDeckImport", () => {
         },
       },
     ]);
-    expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
+    expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, deckId: "deck" });
     expect(mocks.fetchDecks).toHaveBeenCalledOnce();
     expect(mocks.fetchCards).toHaveBeenCalledOnce();
   });
@@ -274,7 +271,7 @@ describe("useDeckImport", () => {
     expect(result.current.preview?.plan).toMatchObject({ created: 0, updated: 0, unchanged: 1 });
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).not.toHaveBeenCalled();
-    expect(imported).toEqual({ created: 0, updated: 0, skipped: 1, failed: 0, deckId: "deck" });
+    expect(imported).toEqual({ created: 0, updated: 0, skipped: 1, deckId: "deck" });
   });
 
   it("adds the bundled sample with a stable per-user Deck id", async () => {
@@ -339,121 +336,6 @@ describe("useDeckImport", () => {
       await first;
     });
     expect(result.current.pending).toBe(false);
-  });
-
-  it("retains successful and failed counts after a partial Card write failure", async () => {
-    mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError(["card"], 1));
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-
-    await actAsync(async () => {
-      await result.current.selectFile(file);
-    });
-    await actAsync(async () => {
-      await expect(result.current.importPreview()).rejects.toThrow("did not complete");
-    });
-
-    expect(result.current.partialResult).toEqual({
-      created: 0,
-      updated: 0,
-      skipped: 0,
-      failed: 1,
-      deckId: "deck",
-    });
-  });
-
-  it("reports successful creates separately from failed updates", async () => {
-    const deck = createDeck({ id: "deck", name: "deck.csv", uid: "uid-a" });
-    const existing = createCard({
-      id: "existing",
-      deckId: deck.id,
-      uid: deck.uid,
-      frontText: "old front",
-      backText: "back",
-      uniqueKey: "existing",
-    });
-    mocks.fetchDecks.mockResolvedValueOnce([deck]);
-    mocks.fetchCards.mockResolvedValueOnce([existing]);
-    mocks.generateCardId.mockReturnValueOnce("created");
-    mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([existing.id], 2));
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"new front","back","","existing"\n"front","back","","created"'], "deck.csv", {
-      type: "text/csv",
-    });
-
-    await actAsync(async () => result.current.selectFile(file));
-    await actAsync(async () => {
-      await expect(result.current.importPreview()).rejects.toThrow("did not complete");
-    });
-
-    expect(result.current.partialResult).toEqual({
-      created: 1,
-      updated: 0,
-      skipped: 0,
-      failed: 1,
-      deckId: deck.id,
-    });
-  });
-
-  it("retries only failed prepared Cards with stable IDs before listener publication", async () => {
-    const deck = createDeck({ id: "destination", uid: "uid-a" });
-    const first = {
-      id: "prepared-first",
-      deckId: deck.id,
-      uid: deck.uid,
-      frontText: "front-1",
-      backText: "back-1",
-      tags: [],
-      uniqueKey: "first",
-    } satisfies CardCreateInput;
-    const second = {
-      id: "prepared-second",
-      deckId: deck.id,
-      uid: deck.uid,
-      frontText: "front-2",
-      backText: "back-2",
-      tags: [],
-      uniqueKey: "second",
-    } satisfies CardCreateInput;
-    mocks.generateDeckId.mockReturnValueOnce(deck.id);
-    mocks.generateCardId.mockReturnValueOnce(first.id).mockReturnValueOnce(second.id);
-    mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([second.id], 2)).mockResolvedValueOnce(undefined);
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {
-      type: "text/csv",
-    });
-
-    await actAsync(async () => result.current.selectFile(file));
-    await actAsync(async () => {
-      await expect(result.current.importPreview()).rejects.toThrow("did not complete");
-    });
-    expect(result.current.partialResult).toEqual({
-      created: 1,
-      updated: 0,
-      skipped: 0,
-      failed: 1,
-      deckId: deck.id,
-    });
-
-    act(() => result.current.retry());
-    await waitFor(() =>
-      expect(result.current.result).toEqual({
-        created: 2,
-        updated: 0,
-        skipped: 0,
-        failed: 0,
-        deckId: deck.id,
-      })
-    );
-
-    expect(mocks.decks).toEqual([]);
-    expect(mocks.cards).toEqual([]);
-    expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(1, [
-      { kind: "create", card: first },
-      { kind: "create", card: second },
-    ]);
-    expect(mocks.bulkUpsert).toHaveBeenNthCalledWith(2, [{ kind: "create", card: second }]);
   });
 
   it("clears operation data and error when a new file is selected", async () => {
@@ -602,30 +484,6 @@ describe("useDeckImport", () => {
     await actAsync(async () => {
       finish();
       await operation;
-    });
-  });
-
-  it("keeps successful import rows successful when authoritative recovery fails", async () => {
-    mocks.generateCardId.mockReturnValueOnce("first").mockReturnValueOnce("second");
-    mocks.bulkUpsert.mockRejectedValueOnce(
-      new CardBulkMutationError(["second"], 2, { cause: new Error("authoritative read failed") })
-    );
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {
-      type: "text/csv",
-    });
-
-    await actAsync(async () => result.current.selectFile(file));
-    await actAsync(async () => {
-      await expect(result.current.importPreview()).rejects.toThrow("did not complete");
-    });
-
-    expect(result.current.partialResult).toEqual({
-      created: 1,
-      updated: 0,
-      skipped: 0,
-      failed: 1,
-      deckId: "deck",
     });
   });
 });
