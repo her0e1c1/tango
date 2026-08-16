@@ -137,8 +137,7 @@ export default [
       ...strictTypeCheckedRules,
       // Shorthand callbacks that intentionally return void are established project style, not ambiguous expressions.
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
-      // Primitive template interpolation and polymorphic `this` are project policy, not correctness constraints.
-      "@typescript-eslint/prefer-return-this-type": "off",
+      // Primitive template interpolation is project policy, not a correctness constraint.
       "@typescript-eslint/restrict-template-expressions": "off",
       // Keep the unsafe-any boundary introduced by #533 explicit as the preset expands around it.
       "@typescript-eslint/no-unsafe-argument": "error",
