@@ -7,7 +7,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { CardOverlay as Template } from "./CardOverlay";
-import * as fixture from "@/storybook/fixture";
 
 const meta = {
   title: "Card/CardOverlay",
@@ -17,7 +16,9 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
-    card: fixture.card.default,
+    score: 1,
+    numberOfSeen: 4,
+    lastSeenAt: Date.now(),
   },
 } satisfies Meta<typeof Template>;
 

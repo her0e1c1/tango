@@ -23,13 +23,19 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 vi.mock("@/features/deck-edit", () => ({
-  DeckEditForm: (props: { deck: Deck; onCancel: () => void; onSaved: () => void }) => (
+  useDeckEditAction: ({ onSaved }: { onSaved: () => void }) => ({ error: null, update: onSaved }),
+  useDeckFormState: ({ deck, onCancel, onSubmit }: { deck: Deck; onCancel: () => void; onSubmit: () => void }) => ({
+    deck,
+    onCancel,
+    onSubmit,
+  }),
+  DeckEditForm: (props: { deckName: string; form: { onCancel: () => void; onSubmit: () => void } }) => (
     <section>
-      <h1>{props.deck.name}</h1>
-      <button type="button" onClick={props.onSaved}>
+      <h1>{props.deckName}</h1>
+      <button type="button" onClick={props.form.onSubmit}>
         Save changes
       </button>
-      <button type="button" onClick={props.onCancel}>
+      <button type="button" onClick={props.form.onCancel}>
         Cancel
       </button>
     </section>

@@ -32,9 +32,23 @@ vi.mock("@/entities/deck", () => ({
   useDeck: () => mocks.deck ?? undefined,
 }));
 vi.mock("@/features/card-list", () => ({
+  useCardListState: ({ cards }: { cards: Card[] }) => ({
+    cards,
+    answer: undefined,
+    deletionTarget: undefined,
+    mutationError: null,
+    successMessage: undefined,
+    onShowCard: vi.fn(),
+    onCloseCard: vi.fn(),
+    onSwipedLeft: vi.fn(),
+    onSwipedRight: vi.fn(),
+    onRequestDeletion: vi.fn(),
+    onCancelDeletion: vi.fn(),
+    onConfirmDeletion: vi.fn(),
+  }),
   CardList: (props: {
     cards: Card[];
-    filter: { selectedTags: string[]; onChangeSelectedTags: (tags: string[]) => void };
+    filter: { selectedTags: string[]; onRemoveTag: (tag: string) => void };
     onEditCard: (id: string) => void;
   }) => {
     mocks.cardListProps = props as unknown as Record<string, unknown>;
@@ -44,7 +58,7 @@ vi.mock("@/features/card-list", () => ({
         <button type="button" onClick={() => props.onEditCard(props.cards[0]?.id ?? "missing")}>
           Edit card
         </button>
-        <button type="button" onClick={() => props.filter.onChangeSelectedTags(["react"])}>
+        <button type="button" onClick={() => props.filter.onRemoveTag("typescript")}>
           Change tags
         </button>
       </div>
@@ -96,7 +110,7 @@ describe("CardListPage", () => {
     expect(mocks.navigate).toHaveBeenCalledWith(`/card/${card.id}/edit`, undefined);
 
     await userEvent.click(screen.getByRole("button", { name: "Change tags" }));
-    expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);
+    expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith([]);
   });
 
   it("keeps route shortcuts in the page adapter", () => {

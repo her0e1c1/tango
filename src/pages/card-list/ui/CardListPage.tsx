@@ -5,7 +5,7 @@ import { useKey } from "react-use";
 import { type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, filterCardsForDeck, useDeck } from "@/entities/deck";
 import { type Preferences, usePreferences } from "@/entities/preferences";
-import { CardList } from "@/features/card-list";
+import { CardList, useCardListState } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { routes, useNavigation } from "@/shared/routes";
@@ -20,21 +20,34 @@ const CardListComposition = (props: {
   onEditCard: (id: CardId) => void;
 }) => {
   const deckFilter = useDeckFilterState(props.deck);
+  const cardList = useCardListState({
+    cards: props.cards,
+    deck: props.deck,
+    dark: props.preferences.appearance.darkMode,
+  });
 
   return (
     <CardList
-      deck={props.deck}
-      cards={props.cards}
-      preferences={props.preferences}
+      cards={cardList.cards}
       filter={{
         scoreMax: deckFilter.scoreMax,
         scoreMin: deckFilter.scoreMin,
         selectedTags: deckFilter.selectedTags,
         controls: <DeckFilterForm {...deckFilter} tags={props.tags} />,
-        onChangeSelectedTags: deckFilter.setSelectedTags,
+        onRemoveTag: (tag) => deckFilter.setSelectedTags(deckFilter.selectedTags.filter((value) => value !== tag)),
       }}
-      renderBackText={(backText) => <BackText {...backText} />}
+      {...(cardList.answer !== undefined ? { answerSlot: <BackText {...cardList.answer} /> } : {})}
+      {...(cardList.deletionTarget !== undefined ? { deletionTarget: cardList.deletionTarget } : {})}
+      mutationError={cardList.mutationError}
+      {...(cardList.successMessage !== undefined ? { successMessage: cardList.successMessage } : {})}
+      onShowCard={cardList.onShowCard}
+      onCloseCard={cardList.onCloseCard}
+      onSwipedLeft={cardList.onSwipedLeft}
+      onSwipedRight={cardList.onSwipedRight}
       onEditCard={props.onEditCard}
+      onRequestDeletion={cardList.onRequestDeletion}
+      onCancelDeletion={cardList.onCancelDeletion}
+      onConfirmDeletion={cardList.onConfirmDeletion}
     />
   );
 };

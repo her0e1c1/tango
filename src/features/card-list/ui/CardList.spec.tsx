@@ -1,3 +1,7 @@
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+import type { Preferences } from "@/entities/preferences";
+
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
@@ -20,7 +24,16 @@ vi.mock("@/entities/card", async (importOriginal) => ({
 }));
 vi.mock("@/entities/study-progress", () => ({ editStudyProgress: mocks.editStudyProgress }));
 
-import { CardList, type CardListProps } from "./CardList";
+import type * as React from "react";
+import { useCardListState } from "../model/useCardListState";
+import { CardList } from "./CardList";
+
+interface CardListAnswer {
+  text: string;
+  category: string;
+  code: boolean;
+  dark: boolean;
+}
 
 const deck = createDeck({ id: "deck-id", category: "raw" });
 const card = createCard({
@@ -34,24 +47,61 @@ const card = createCard({
 const onEditCard = vi.fn();
 const onChangeSelectedTags = vi.fn();
 
-const renderCardList = (overrides: Partial<CardListProps> = {}) =>
-  render(
+interface CardListHarnessProps {
+  deck: Deck;
+  cards: Card[];
+  preferences: Preferences;
+  filter: {
+    scoreMin: number | null;
+    scoreMax: number | null;
+    selectedTags: string[];
+    controls: React.ReactNode;
+    onRemoveTag: (tag: string) => void;
+  };
+  renderBackText: (answer: CardListAnswer) => React.ReactNode;
+  onEditCard: (id: string) => void;
+}
+
+const CardListHarness = (props: CardListHarnessProps) => {
+  const state = useCardListState({ cards: props.cards, deck: props.deck, dark: props.preferences.appearance.darkMode });
+
+  return (
     <CardList
-      deck={deck}
-      cards={[card]}
-      preferences={createPreferences({ appearance: { darkMode: false } })}
-      filter={{
-        scoreMin: -2,
-        scoreMax: 4,
-        selectedTags: ["typescript", "react"],
-        controls: <div>Filter controls</div>,
-        onChangeSelectedTags,
-      }}
-      renderBackText={(backText) => <div>{backText.text}</div>}
-      onEditCard={onEditCard}
-      {...overrides}
+      cards={state.cards}
+      filter={props.filter}
+      {...(state.answer !== undefined ? { answerSlot: props.renderBackText(state.answer) } : {})}
+      {...(state.deletionTarget !== undefined ? { deletionTarget: state.deletionTarget } : {})}
+      mutationError={state.mutationError}
+      {...(state.successMessage !== undefined ? { successMessage: state.successMessage } : {})}
+      onShowCard={state.onShowCard}
+      onCloseCard={state.onCloseCard}
+      onSwipedLeft={state.onSwipedLeft}
+      onSwipedRight={state.onSwipedRight}
+      onEditCard={props.onEditCard}
+      onRequestDeletion={state.onRequestDeletion}
+      onCancelDeletion={state.onCancelDeletion}
+      onConfirmDeletion={state.onConfirmDeletion}
     />
   );
+};
+
+const defaultProps: CardListHarnessProps = {
+  deck,
+  cards: [card],
+  preferences: createPreferences({ appearance: { darkMode: false } }),
+  filter: {
+    scoreMin: -2,
+    scoreMax: 4,
+    selectedTags: ["typescript", "react"],
+    controls: <div>Filter controls</div>,
+    onRemoveTag: onChangeSelectedTags,
+  },
+  renderBackText: (answer) => <div>{answer.text}</div>,
+  onEditCard,
+};
+
+const renderCardList = (overrides: Partial<CardListHarnessProps> = {}) =>
+  render(<CardListHarness {...defaultProps} {...overrides} />);
 
 const swipe = (article: HTMLElement, from: number, to: number) => {
   fireEvent.mouseDown(article, { clientX: from, clientY: 0 });
@@ -71,7 +121,7 @@ describe("CardList", () => {
 
     expect(screen.getByText("score -2–4 · 2 tags")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
-    expect(onChangeSelectedTags).toHaveBeenCalledExactlyOnceWith(["react"]);
+    expect(onChangeSelectedTags).toHaveBeenCalledExactlyOnceWith("typescript");
 
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
     expect(screen.getByText("Back")).toBeVisible();
@@ -89,9 +139,7 @@ describe("CardList", () => {
       backText: "const answer = 42;",
       tags: ["typescript"],
     });
-    const renderBackText = vi.fn((backText: Parameters<CardListProps["renderBackText"]>[0]) => (
-      <div>{backText.text}</div>
-    ));
+    const renderBackText = vi.fn((backText: CardListAnswer) => <div>{backText.text}</div>);
 
     renderCardList({
       cards: [languageCard],

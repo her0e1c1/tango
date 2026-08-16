@@ -103,7 +103,7 @@ describe("CardListView", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "View Front" }));
-    expect(onShowCard).toHaveBeenCalledExactlyOnceWith(card);
+    expect(onShowCard).toHaveBeenCalledExactlyOnceWith(card.id);
     fireEvent.click(screen.getByRole("button", { name: "Close card" }));
     expect(onClose).toHaveBeenCalledOnce();
     expect(screen.getByText("Overlay back")).toBeInTheDocument();

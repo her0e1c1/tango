@@ -1,18 +1,18 @@
 import { getCategory, type Deck, useDeck } from "@/entities/deck";
-import { toggleShowHeader, toggleShowSwipeButtonList } from "@/entities/preferences";
+import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
 
 import type * as React from "react";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, useCards } from "@/entities/card";
-import { CardOverlay, CardView, FrontText } from "@/features/card-view";
+import { buildCardViewContent, CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
 import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
-const renderStudyScreen = (deck: Deck, state: StudyState) => {
+const renderStudyScreen = (deck: Deck, state: StudyState, dark: boolean) => {
   if (state.status !== "studying") {
     return state.status === "preparing" ? (
       <RouteFeedback title="Loading…" tone="loading" />
@@ -48,8 +48,16 @@ const renderStudyScreen = (deck: Deck, state: StudyState) => {
             onClick={state.toggleBackText}
           />
         }
-        cardOverlaySlot={<CardOverlay card={state.card} />}
-        backTextSlot={<CardView card={state.card} deck={deck} onClick={state.toggleBackText} variant="bare" />}
+        cardOverlaySlot={
+          <CardOverlay
+            score={state.card.score}
+            numberOfSeen={state.card.numberOfSeen}
+            {...(state.card.lastSeenAt !== undefined ? { lastSeenAt: state.card.lastSeenAt } : {})}
+          />
+        }
+        backTextSlot={
+          <CardView {...buildCardViewContent(state.card, deck, dark)} onClick={state.toggleBackText} variant="bare" />
+        }
         controller={{
           autoPlay: state.autoPlay,
           index: state.session.currentIndex,
@@ -65,6 +73,7 @@ const renderStudyScreen = (deck: Deck, state: StudyState) => {
 };
 
 const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => {
+  const preferences = usePreferences();
   useKey("ArrowUp", () => void state.swipeUp());
   useKey("ArrowDown", () => void state.swipeDown());
   useKey("ArrowLeft", () => void state.swipeLeft());
@@ -74,7 +83,7 @@ const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => 
   useKey("b", toggleShowSwipeButtonList);
   useKey(" ", state.toggleAutoPlay);
 
-  return renderStudyScreen(deck, state);
+  return renderStudyScreen(deck, state, preferences.appearance.darkMode);
 };
 
 const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {

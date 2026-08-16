@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { cardContentSchema, type Card, type CardEditInput } from "@/entities/card";
-import type { Option } from "@/shared/ui/forms";
+import { CATEGORY } from "@/entities/deck";
 import type { CardFormProps } from "../ui/CardForm";
 
 const cardFormSchema = cardContentSchema.omit({ uniqueKey: true });
@@ -12,17 +12,11 @@ type CardFormValues = z.infer<typeof cardFormSchema>;
 
 interface UseCardFormStateOptions {
   card: Card;
-  categoryOptions: Option[];
   onCancel: () => void;
   onSubmit: (card: CardEditInput) => Promise<void>;
 }
 
-export const useCardFormState = ({
-  card,
-  categoryOptions,
-  onCancel,
-  onSubmit,
-}: UseCardFormStateOptions): CardFormProps => {
+export const useCardFormState = ({ card, onCancel, onSubmit }: UseCardFormStateOptions): CardFormProps => {
   const { formState, handleSubmit, register } = useForm<CardFormValues>({
     defaultValues: {
       frontText: card.frontText,
@@ -37,14 +31,19 @@ export const useCardFormState = ({
   };
 
   return {
-    card,
+    cardInfo: {
+      id: card.id,
+      uniqueKey: card.uniqueKey,
+      ...(card.createdAt ? { createdAt: new Date(card.createdAt).toLocaleDateString() } : {}),
+      ...(card.lastSeenAt != null ? { lastSeenAt: new Date(card.lastSeenAt).toLocaleDateString() } : {}),
+    },
     fields: {
       frontText: register("frontText"),
       backText: register("backText"),
-      tags: categoryOptions.map(({ label, value }) => ({
-        label,
-        value,
-        input: { ...register("tags"), value },
+      tags: CATEGORY.map((category) => ({
+        label: category,
+        value: category,
+        input: { ...register("tags"), value: category },
       })),
     },
     errors: {

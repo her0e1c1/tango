@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useParams } from "react-router-dom";
 
 import { type Deck, useDeck } from "@/entities/deck";
-import { DeckEditForm } from "@/features/deck-edit";
+import { DeckEditForm, useDeckEditAction, useDeckFormState } from "@/features/deck-edit";
 import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -10,10 +10,12 @@ import { AppLayout } from "@/widgets/app-layout";
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const navigation = useNavigation();
   const goToList = () => void navigation.to(routes.deckList.to(), { replace: true });
+  const editAction = useDeckEditAction({ onSaved: goToList });
+  const form = useDeckFormState({ deck, onCancel: goToList, onSubmit: editAction.update });
 
   return (
     <AppLayout showHeader>
-      <DeckEditForm deck={deck} onSaved={goToList} onCancel={goToList} />
+      <DeckEditForm deckName={deck.name} form={form} saveError={editAction.error} />
     </AppLayout>
   );
 };

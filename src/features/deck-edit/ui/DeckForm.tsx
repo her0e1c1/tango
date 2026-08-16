@@ -1,5 +1,3 @@
-import type { Deck } from "@/entities/deck";
-
 import type * as React from "react";
 import { useId } from "react";
 
@@ -14,7 +12,11 @@ interface DeckFormFields {
 }
 
 export interface DeckFormProps {
-  deck: Deck;
+  deckInfo: {
+    id: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
   fields: DeckFormFields;
   errors: {
     name: string | undefined;
@@ -99,18 +101,18 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
         <dl className="mt-4 grid gap-3 text-caption">
           <div className="min-w-0">
             <dt className="font-medium text-ink-muted">ID</dt>
-            <dd className="break-all text-ink">{props.deck.id}</dd>
+            <dd className="break-all text-ink">{props.deckInfo.id}</dd>
           </div>
-          {Boolean(props.deck.createdAt) && (
+          {props.deckInfo.createdAt !== undefined && (
             <div>
               <dt className="font-medium text-ink-muted">Created</dt>
-              <dd className="text-ink">{new Date(props.deck.createdAt).toLocaleDateString()}</dd>
+              <dd className="text-ink">{props.deckInfo.createdAt}</dd>
             </div>
           )}
-          {Boolean(props.deck.updatedAt) && (
+          {props.deckInfo.updatedAt !== undefined && (
             <div>
               <dt className="font-medium text-ink-muted">Updated</dt>
-              <dd className="text-ink">{new Date(props.deck.updatedAt).toLocaleDateString()}</dd>
+              <dd className="text-ink">{props.deckInfo.updatedAt}</dd>
             </div>
           )}
         </dl>

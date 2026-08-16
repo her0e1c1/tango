@@ -24,13 +24,19 @@ vi.mock("@/entities/card", () => ({
   useCard: () => mocks.card ?? undefined,
 }));
 vi.mock("@/features/card-edit", () => ({
-  CardEditForm: (props: { card: Card; onCancel: () => void; onSaved: () => void }) => (
+  useCardEditAction: ({ onSaved }: { onSaved: () => void }) => ({ error: null, update: onSaved }),
+  useCardFormState: ({ card, onCancel, onSubmit }: { card: Card; onCancel: () => void; onSubmit: () => void }) => ({
+    card,
+    onCancel,
+    onSubmit,
+  }),
+  CardEditForm: (props: { form: { card: Card; onCancel: () => void; onSubmit: () => void } }) => (
     <section>
-      <h1>{props.card.frontText}</h1>
-      <button type="button" onClick={props.onSaved}>
+      <h1>{props.form.card.frontText}</h1>
+      <button type="button" onClick={props.form.onSubmit}>
         Save changes
       </button>
-      <button type="button" onClick={props.onCancel}>
+      <button type="button" onClick={props.form.onCancel}>
         Cancel
       </button>
     </section>

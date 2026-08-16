@@ -31,7 +31,11 @@ export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateO
   };
 
   return {
-    deck,
+    deckInfo: {
+      id: deck.id,
+      ...(deck.createdAt ? { createdAt: new Date(deck.createdAt).toLocaleDateString() } : {}),
+      ...(deck.updatedAt ? { updatedAt: new Date(deck.updatedAt).toLocaleDateString() } : {}),
+    },
     fields: {
       name: register("name"),
       convertToBr: register("convertToBr"),

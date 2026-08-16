@@ -8,27 +8,26 @@ import cx from "classnames";
 import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
-import type { Deck, DeckId } from "@/entities/deck";
-import type { DeckListStudyProgress } from "../model/buildDeckListSections";
+import type { DeckListDeck, DeckListStudyProgress } from "../model/buildDeckListSections";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
 
 export interface DeckListCardActions {
-  onClickName?: (id: DeckId) => void;
-  onClickContinue?: (id: DeckId) => void;
-  onClickStudy?: (id: DeckId) => void;
-  onClickRestart?: (id: DeckId) => void;
-  onClickDownload?: (id: DeckId) => void;
-  onClickEdit?: (id: DeckId) => void;
-  onClickDelete?: (id: DeckId) => void;
-  isPending?: (id: DeckId) => boolean;
-  openMenuDeckId?: DeckId | undefined;
-  onToggleMenu?: (id: DeckId) => void;
+  onClickName?: (id: string) => void;
+  onClickContinue?: (id: string) => void;
+  onClickStudy?: (id: string) => void;
+  onClickRestart?: (id: string) => void;
+  onClickDownload?: (id: string) => void;
+  onClickEdit?: (id: string) => void;
+  onClickDelete?: (id: string) => void;
+  isPending?: (id: string) => boolean;
+  openMenuDeckId?: string | undefined;
+  onToggleMenu?: (id: string) => void;
   onCloseMenu?: () => void;
 }
 
 export interface DeckListCardProps extends DeckListCardActions {
-  deck: Deck;
+  deck: DeckListDeck;
   cardCount: number;
   studyProgress?: DeckListStudyProgress;
 }
@@ -55,7 +54,7 @@ const primaryActionClassName =
   "inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 const DeckListCardStatus: React.FC<{
-  deck: Deck;
+  deck: DeckListDeck;
   active: boolean;
   studyProgress: DeckListStudyProgress | undefined;
   progressValue: number;
@@ -114,7 +113,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
    * Presentation markup can pass a parameterless callback while domain actions still receive the
    * item they should change.
    */
-  const withId = (action?: (id: DeckId) => void) => () => action?.(deck.id);
+  const withId = (action?: (id: string) => void) => () => action?.(deck.id);
   const statusId = React.useId();
 
   return (

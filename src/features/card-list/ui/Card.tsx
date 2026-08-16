@@ -8,22 +8,22 @@ import cx from "classnames";
 import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
-import type { Card as CardEntity, CardId } from "@/entities/card";
+import type { CardListItem } from "../model/useCardListState";
 import { CardActionsMenu } from "./CardActionsMenu";
 import { Score, TagLabel } from "@/shared/ui/content";
 
 export interface CardActionsProps {
   disabled?: boolean;
-  onSwipedLeft?: (id: CardId) => void;
-  onSwipedRight?: (id: CardId) => void;
-  onDelete?: (id: CardId) => void;
-  goToEdit?: (id: CardId) => void;
-  goToView?: (id: CardId) => void;
+  onSwipedLeft?: (id: string) => void;
+  onSwipedRight?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  goToEdit?: (id: string) => void;
+  goToView?: (id: string) => void;
 }
 
 export interface CardRowMenuProps {
   menuOpen?: boolean;
-  onToggleMenu?: (id: CardId) => void;
+  onToggleMenu?: (id: string) => void;
   onCloseMenu?: () => void;
 }
 
@@ -42,7 +42,7 @@ const studiedText = (count: number) => {
  * Renders the Card user interface.
  * Presents one study card's front, back, score, and tags according to its current reveal state.
  */
-export const Card: React.FC<{ className?: string; card: CardEntity } & CardActionsProps & CardRowMenuProps> = (
+export const Card: React.FC<{ className?: string; card: CardListItem } & CardActionsProps & CardRowMenuProps> = (
   props
 ) => {
   const { id } = props.card;
@@ -82,14 +82,14 @@ export const Card: React.FC<{ className?: string; card: CardEntity } & CardActio
    * Presentation markup can pass a parameterless callback while domain actions still receive the
    * item they should change.
    */
-  const withId = (action?: (id: CardId) => void) => () => {
+  const withId = (action?: (id: string) => void) => () => {
     if (!disabled) action?.(id);
   };
   /**
    * Wraps an optional swipe action so it receives the current card identifier.
    * The wrapper also keeps swipe callbacks independent from the card component's event details.
    */
-  const withSwipeId = (action?: (id: CardId) => void) => () => {
+  const withSwipeId = (action?: (id: string) => void) => () => {
     if (disabled) return;
 
     // Mouse swipes emit a trailing click; suppress it through this task so swiping never also opens the Card.

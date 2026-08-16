@@ -6,10 +6,10 @@
 import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
-import type { Card as CardEntity, CardId } from "@/entities/card";
 import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
 
+import type { CardListItem } from "../model/useCardListState";
 import { Card, type CardProps } from "./Card";
 
 interface CardListOverlayProps {
@@ -24,12 +24,12 @@ interface CardListFilterState {
 }
 
 export interface CardListViewProps {
-  cards: CardEntity[];
+  cards: CardListItem[];
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
   card?: CardProps;
   overlay?: CardListOverlayProps;
-  onShowCard?: (card: CardEntity) => void;
+  onShowCard?: (id: string) => void;
   onRemoveTag?: (tag: string) => void;
 }
 
@@ -74,7 +74,7 @@ const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selec
  * Storybook.
  */
 const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowCard">> = (props) => {
-  const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
+  const [openMenuCardId, setOpenMenuCardId] = React.useState<string>();
 
   return (
     <div className="overflow-visible rounded-surface border border-border bg-surface shadow-surface dark:border-black">
@@ -91,7 +91,7 @@ const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowC
           {...(props.card?.goToEdit !== undefined ? { goToEdit: props.card.goToEdit } : {})}
           goToView={() => {
             setOpenMenuCardId(undefined);
-            props.onShowCard?.(card);
+            props.onShowCard?.(card.id);
           }}
         />
       ))}

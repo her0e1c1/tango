@@ -8,8 +8,15 @@ export interface DeckListStudyProgress {
   lastStudiedAt: number;
 }
 
+export interface DeckListDeck {
+  id: string;
+  name: string;
+  category: string;
+  isPublic: boolean;
+}
+
 export interface DeckListItem {
-  deck: Deck;
+  deck: DeckListDeck;
   cardCount: number;
   studyProgress?: DeckListStudyProgress;
 }
@@ -27,13 +34,23 @@ const createDeckListStudyProgress = (session: StudySession): DeckListStudyProgre
   lastStudiedAt: session.lastStudiedAt,
 });
 
+const createDeckListDeck = (deck: Deck): DeckListDeck => ({
+  id: deck.id,
+  name: deck.name,
+  category: deck.category,
+  isPublic: deck.isPublic,
+});
+
 export const buildDeckListSections = (
   decks: Deck[],
   cards: Card[],
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>
 ): DeckListSections => {
   const cardCounts = countCardsByDeckId(cards);
-  const createItem = (deck: Deck): DeckListItem => ({ deck, cardCount: cardCounts.get(deck.id) ?? 0 });
+  const createItem = (deck: Deck): DeckListItem => ({
+    deck: createDeckListDeck(deck),
+    cardCount: cardCounts.get(deck.id) ?? 0,
+  });
   const { active: studyingDecks, inactive: otherDecks } = groupDecksByStudyStatus(decks, sessionsByDeckId);
   studyingDecks.sort(compareActiveDecks);
   otherDecks.sort(compareDeckNames);

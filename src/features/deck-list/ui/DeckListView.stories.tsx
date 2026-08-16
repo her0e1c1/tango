@@ -6,8 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import type { Deck } from "@/entities/deck";
-import type { DeckListItem, DeckListSections } from "../model/buildDeckListSections";
+import type { DeckListDeck, DeckListItem, DeckListSections } from "../model/buildDeckListSections";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
@@ -18,13 +17,14 @@ import { DeckListView as Template } from "./DeckListView";
  * The helper keeps sample setup separate from the component configuration readers are meant to
  * inspect.
  */
-const otherItems = (decks: Deck[]): DeckListItem[] => decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
+const otherItems = (decks: DeckListDeck[]): DeckListItem[] =>
+  decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
 /**
  * Prepares studying items data for the Storybook examples in this file.
  * The helper keeps sample setup separate from the component configuration readers are meant to
  * inspect.
  */
-const studyingItems = (decks: Deck[]): DeckListItem[] =>
+const studyingItems = (decks: DeckListDeck[]): DeckListItem[] =>
   decks.map((deck, index) => ({
     deck,
     cardCount: 30 + index,

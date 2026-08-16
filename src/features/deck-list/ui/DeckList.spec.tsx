@@ -2,14 +2,20 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DeckListProps } from "./DeckList";
+import type { StudySession } from "@/entities/study-session";
 import { createCard, createDeck } from "@/test/factories";
 
-const mocks = vi.hoisted(() => ({ downloadTextFile: vi.fn() }));
+const mocks = vi.hoisted(() => ({ deleteDeck: vi.fn(), downloadTextFile: vi.fn() }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.downloadTextFile }));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/deck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/deck")>()),
+  deleteDeck: mocks.deleteDeck,
+}));
 
+import { useDeckListState } from "../model/useDeckListState";
 import { DeckList } from "./DeckList";
 
 const recentDeck = createDeck({ id: "recent", name: "Recent deck", category: "math" });
@@ -21,7 +27,7 @@ const cards = [
   createCard({ id: "recent-1", deckId: recentDeck.id }),
   createCard({ id: "recent-2", deckId: recentDeck.id }),
 ];
-const sessionsByDeckId: DeckListProps["sessionsByDeckId"] = {
+const sessionsByDeckId: Partial<Record<string, StudySession>> = {
   [oldDeck.id]: {
     sessionId: "session-old",
     deckId: oldDeck.id,
@@ -43,17 +49,31 @@ const actions = {
   onContinueDeck: vi.fn(),
   onStartDeck: vi.fn(),
   onEditDeck: vi.fn(),
-  onDeleteDeck: vi.fn(async () => undefined),
 };
 
-const renderDeckList = () =>
-  render(
-    <DeckList decks={[otherDeck, oldDeck, recentDeck]} cards={cards} sessionsByDeckId={sessionsByDeckId} {...actions} />
+const DeckListHarness = () => {
+  const state = useDeckListState({ decks: [otherDeck, oldDeck, recentDeck], cards, sessionsByDeckId });
+
+  return (
+    <DeckList
+      sections={state.sections}
+      {...(state.deletionTarget !== undefined ? { deletionTarget: state.deletionTarget } : {})}
+      {...(state.successMessage !== undefined ? { successMessage: state.successMessage } : {})}
+      {...actions}
+      onDownload={state.onDownload}
+      onRequestDeletion={state.onRequestDeletion}
+      onCancelDeletion={state.onCancelDeletion}
+      onConfirmDeletion={state.onConfirmDeletion}
+    />
   );
+};
+
+const renderDeckList = () => render(<DeckListHarness />);
 
 describe("DeckList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.deleteDeck.mockResolvedValue(undefined);
   });
 
   it("builds studying and other sections from its inputs", () => {
@@ -109,19 +129,19 @@ describe("DeckList", () => {
     expect(dialog).toHaveTextContent("in-progress study session");
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(actions.onDeleteDeck).not.toHaveBeenCalled();
+    expect(mocks.deleteDeck).not.toHaveBeenCalled();
     expect(trigger).toHaveFocus();
 
     fireEvent.click(trigger);
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    await waitFor(() => expect(actions.onDeleteDeck).toHaveBeenCalledExactlyOnceWith(recentDeck));
+    await waitFor(() => expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith("user-id", recentDeck));
     expect(screen.getByRole("status")).toHaveTextContent("Deleted deck “Recent deck”.");
   });
 
   it("keeps the deletion target available for retry after failure", async () => {
-    actions.onDeleteDeck.mockRejectedValueOnce(new Error("delete failed"));
+    mocks.deleteDeck.mockRejectedValueOnce(new Error("delete failed"));
     renderDeckList();
 
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Recent deck" }));
@@ -131,7 +151,7 @@ describe("DeckList", () => {
     expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    await waitFor(() => expect(actions.onDeleteDeck).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mocks.deleteDeck).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
   });
 });

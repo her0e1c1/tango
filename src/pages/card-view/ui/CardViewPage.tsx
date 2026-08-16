@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom";
 
 import { useCard } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
-import { CardView } from "@/features/card-view";
+import { usePreferences } from "@/entities/preferences";
+import { buildCardViewContent, CardView } from "@/features/card-view";
 import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -15,6 +16,7 @@ export const CardViewPage: React.FC = () => {
   if (cardId == null) throw new Error("invalid card id");
   const card = useCard(cardId);
   const deck = useDeck(card?.deckId);
+  const preferences = usePreferences();
   const available = card != null && deck != null;
 
   if (!available) {
@@ -31,7 +33,7 @@ export const CardViewPage: React.FC = () => {
 
   return (
     <AppLayout showHeader>
-      <CardView card={card} deck={deck} />
+      <CardView {...buildCardViewContent(card, deck, preferences.appearance.darkMode)} />
     </AppLayout>
   );
 };

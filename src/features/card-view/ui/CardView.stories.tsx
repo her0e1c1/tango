@@ -8,7 +8,7 @@ const meta = {
   component: Template,
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
-  args: { card: fixture.card.default, deck: fixture.deck.default },
+  args: { text: fixture.card.default.backText, category: "raw", code: false, dark: false },
 } satisfies Meta<typeof Template>;
 
 export default meta;
@@ -16,20 +16,23 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const LongPlainText: Story = {
   args: {
-    card: { ...fixture.card.default, backText: fixture.code.longtext },
-    deck: { ...fixture.deck.default, category: "raw" },
+    text: fixture.code.longtext,
+    category: "raw",
+    code: false,
   },
 };
 export const LongCode: Story = {
   args: {
-    card: { ...fixture.card.default, backText: fixture.code.default.repeat(40), tags: ["python"] },
-    deck: { ...fixture.deck.default, category: "raw" },
+    text: fixture.code.default.repeat(40),
+    category: "python",
+    code: true,
   },
 };
 export const LongMath: Story = {
   args: {
-    card: { ...fixture.card.default, backText: `${fixture.math.block}\n${fixture.math.block}` },
-    deck: { ...fixture.deck.default, category: "math" },
+    text: `${fixture.math.block}\n${fixture.math.block}`,
+    category: "math",
+    code: false,
   },
 };
 export const Mobile: Story = { ...LongPlainText, parameters: { viewport: { defaultViewport: "iphonex" } } };
