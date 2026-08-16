@@ -12,7 +12,7 @@ import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
-const CardListComposition = (props: {
+const CardListPageContent = (props: {
   deck: Deck;
   cards: Card[];
   tags: string[];
@@ -69,7 +69,7 @@ export const CardListPage: React.FC = () => {
 
   return (
     <AppLayout showHeader>
-      <CardListComposition
+      <CardListPageContent
         deck={deck}
         cards={cards}
         tags={tags}
