@@ -22,6 +22,7 @@ vi.mock("@/entities/card", () => ({
   useCardsByDeckId: () => ({ cards: mocks.cards, tags: [] }),
 }));
 vi.mock("@/entities/deck", () => ({
+  filterCardsForDeck: (cards: Card[]) => cards,
   useDeck: () => mocks.deck ?? undefined,
 }));
 vi.mock("@/entities/study-session", () => ({
@@ -31,7 +32,6 @@ vi.mock("@/features/deck-filter", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/deck-filter")>();
   return {
     ...actual,
-    useFilteredStudyCards: () => mocks.cards,
     useDeckFilterState: () => ({
       scoreMax: 4,
       scoreMin: -2,

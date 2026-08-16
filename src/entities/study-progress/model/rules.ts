@@ -76,17 +76,3 @@ export const buildStudyCardOrder = (
   if (options.maxNumberOfCardsToLearn > 0) cardOrderIds = cardOrderIds.slice(0, options.maxNumberOfCardsToLearn);
   return cardOrderIds;
 };
-
-export const getNextStudyAvailabilityAt = (
-  scheduledItems: readonly { nextSeeingAt?: Date | undefined }[],
-  now: number
-): number | undefined => {
-  let next: number | undefined;
-  for (const item of scheduledItems) {
-    const candidate = item.nextSeeingAt?.getTime();
-    if (candidate !== undefined && candidate > now && (next === undefined || candidate < next)) {
-      next = candidate;
-    }
-  }
-  return next;
-};

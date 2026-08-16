@@ -9,7 +9,6 @@ vi.mock("lodash", () => ({ shuffle: mocks.shuffle }));
 import {
   buildStudyCardOrder,
   createStudyProgressFromCard,
-  getNextStudyAvailabilityAt,
   isStudyProgressEligible,
   recordCardStudyProgress,
 } from "./rules";
@@ -98,16 +97,6 @@ describe("study progress selection", () => {
     expect(
       isStudyProgressEligible({ ...initialStudyProgress("future"), nextSeeingAt: new Date(1001) }, filter, 1000)
     ).toBe(false);
-  });
-
-  it("finds the nearest future seeing time", () => {
-    const progresses = [
-      { ...initialStudyProgress("past"), nextSeeingAt: new Date(900) },
-      { ...initialStudyProgress("later"), nextSeeingAt: new Date(2000) },
-      { ...initialStudyProgress("next"), nextSeeingAt: new Date(1500) },
-    ];
-
-    expect(getNextStudyAvailabilityAt(progresses, 1000)).toBe(1500);
   });
 });
 
