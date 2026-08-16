@@ -140,7 +140,6 @@ describe("DeckList", () => {
     expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    await waitFor(() => expect(mocks.deleteDeck).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
   });
 });

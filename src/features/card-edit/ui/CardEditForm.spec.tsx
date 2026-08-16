@@ -1,53 +1,90 @@
-import type { RemoteCard } from "@/entities/card";
+import type { Card, CardId } from "@/entities/card";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createCard } from "@/test/factories";
+import { mutateCards, useCard } from "@/entities/card";
+import { createDeck } from "@/entities/deck";
+import { createLocalCard, createLocalDeck } from "@/test/factories";
 
-const mocks = vi.hoisted(() => ({
-  editCard: vi.fn(),
+const writeControls = vi.hoisted(() => ({
+  beforeWrite: undefined as (() => Promise<void>) | undefined,
+  nextError: undefined as unknown,
 }));
 
 vi.mock("@/entities/auth", () => ({
   useAuthUid: () => "user-id",
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/card", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/card")>()),
-  editCard: mocks.editCard,
+vi.mock("@/entities/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/card")>();
+  return {
+    ...actual,
+    // Keep successful writes on the real local Entity path while controlling only failure and timing.
+    editCard: async (...args: Parameters<typeof actual.editCard>) => {
+      if (writeControls.nextError !== undefined) {
+        const error = writeControls.nextError;
+        writeControls.nextError = undefined;
+        throw error;
+      }
+      await writeControls.beforeWrite?.();
+      return actual.editCard(...args);
+    },
+  };
+});
+vi.mock("@/entities/deck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/deck")>()),
+  CATEGORY: ["language", "math"],
 }));
-vi.mock("@/entities/deck", () => ({ CATEGORY: ["language", "math"] }));
 
 import { CardEditForm } from "./CardEditForm";
 import { useCardEditAction } from "../model/useCardEditAction";
 import { useCardFormState } from "../model/useCardFormState";
 
-const CardEditFormHarness = (props: { card: RemoteCard; onCancel: () => void; onSaved: () => void }) => {
+const CardEditFormHarness = (props: { card: Card; onCancel: () => void; onSaved: () => void }) => {
   const editAction = useCardEditAction({ onSaved: props.onSaved });
   const form = useCardFormState({ card: props.card, onCancel: props.onCancel, onSubmit: editAction.update });
 
   return <CardEditForm form={form} saveError={editAction.error} />;
 };
 
+// A fresh Entity read after remount proves that the form displays the last successful edit.
+const StoredCardEditFormHarness = (props: { cardId: CardId; onCancel: () => void; onSaved: () => void }) => {
+  const card = useCard(props.cardId);
+  return card === undefined ? null : (
+    <CardEditFormHarness card={card} onCancel={props.onCancel} onSaved={props.onSaved} />
+  );
+};
+
 describe("CardEditForm", () => {
-  const card: RemoteCard = createCard({
-    id: "card-id",
-    uid: "user-id",
-    frontText: "Front text",
-    backText: "Back text",
-    tags: ["language"],
+  const deckId = "card-edit-deck";
+  const cardId = "card-id";
+  const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
+    render(<StoredCardEditFormHarness cardId={cardId} onCancel={onCancel} onSaved={onSaved} />);
+
+  beforeEach(async () => {
+    writeControls.beforeWrite = undefined;
+    writeControls.nextError = undefined;
+    await createDeck("", createLocalDeck({ id: deckId }));
+    await mutateCards("", [
+      {
+        kind: "create",
+        card: createLocalCard({
+          id: cardId,
+          deckId,
+          frontText: "Front text",
+          backText: "Back text",
+          tags: ["language"],
+        }),
+      },
+    ]);
   });
 
-  beforeEach(() => {
-    mocks.editCard.mockReset().mockResolvedValue(undefined);
-  });
-
-  it("saves edited form values for the authenticated user and reports success", async () => {
+  it("restores successfully saved form values from the Card Entity", async () => {
     const onSaved = vi.fn();
-    render(<CardEditFormHarness card={card} onCancel={vi.fn()} onSaved={onSaved} />);
+    const view = renderForm(onSaved);
 
     const frontText = screen.getByRole("textbox", { name: "Front text" });
     const backText = screen.getByRole("textbox", { name: "Back text" });
@@ -58,38 +95,35 @@ describe("CardEditForm", () => {
     await userEvent.click(screen.getByRole("checkbox", { name: "math" }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    await waitFor(() =>
-      expect(mocks.editCard).toHaveBeenCalledWith("user-id", {
-        id: card.id,
-        frontText: "Updated front",
-        backText: "Updated back",
-        tags: ["language", "math"],
-      })
-    );
-    expect(onSaved).toHaveBeenCalledOnce();
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    view.unmount();
+    renderForm();
+
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Updated front");
+    expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Updated back");
+    expect(screen.getByRole("checkbox", { name: "language" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "math" })).toBeChecked();
   });
 
   it("uses the form submit state while saving", async () => {
-    let finishSave: (() => void) | undefined;
-    mocks.editCard.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          finishSave = resolve;
-        })
-    );
-    render(<CardEditFormHarness card={card} onCancel={vi.fn()} onSaved={vi.fn()} />);
+    let finishSave: () => void = () => undefined;
+    writeControls.beforeWrite = () =>
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      });
+    renderForm();
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
-    finishSave?.();
+    finishSave();
     await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
   });
 
-  it("keeps edited values and allows another save after a failure", async () => {
-    mocks.editCard.mockRejectedValueOnce(new Error("write failed"));
+  it("keeps edited values and saves them after retrying a failure", async () => {
+    writeControls.nextError = new Error("write failed");
     const onSaved = vi.fn();
-    render(<CardEditFormHarness card={card} onCancel={vi.fn()} onSaved={onSaved} />);
+    const view = renderForm(onSaved);
     const frontText = screen.getByRole("textbox", { name: "Front text" });
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "Retry front");
@@ -102,14 +136,16 @@ describe("CardEditForm", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    await waitFor(() => expect(mocks.editCard).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument());
     expect(onSaved).toHaveBeenCalledOnce();
+    view.unmount();
+    renderForm();
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Retry front");
   });
 
   it("forwards cancellation from both navigation actions", async () => {
     const onCancel = vi.fn();
-    render(<CardEditFormHarness card={card} onCancel={onCancel} onSaved={vi.fn()} />);
+    renderForm(vi.fn(), onCancel);
 
     await userEvent.click(screen.getByRole("button", { name: "Back to cards" }));
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -117,8 +153,8 @@ describe("CardEditForm", () => {
     expect(onCancel).toHaveBeenCalledTimes(2);
   });
 
-  it("validates fields before saving", async () => {
-    render(<CardEditFormHarness card={card} onCancel={vi.fn()} onSaved={vi.fn()} />);
+  it("keeps stored values unchanged when validation rejects the form", async () => {
+    const view = renderForm();
     await userEvent.clear(screen.getByRole("textbox", { name: "Front text" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Front text" }), "   ");
     await userEvent.clear(screen.getByRole("textbox", { name: "Back text" }));
@@ -127,6 +163,9 @@ describe("CardEditForm", () => {
 
     expect(await screen.findByText("Front text is required.")).toBeVisible();
     expect(screen.getByText("Back text is required.")).toBeVisible();
-    expect(mocks.editCard).not.toHaveBeenCalled();
+    view.unmount();
+    renderForm();
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front text");
+    expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Back text");
   });
 });
