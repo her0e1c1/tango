@@ -4,7 +4,6 @@ import {
   calculateStudySessionIndex,
   canMoveStudySession,
   compareActiveDecks,
-  findCurrentStudySessionCard,
   groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
   planStudySessionSwipe,
@@ -72,23 +71,6 @@ describe("canMoveStudySession", () => {
   });
 });
 
-describe("findCurrentStudySessionCard", () => {
-  const cards = [
-    { id: "card-1", label: "one" },
-    { id: "card-2", label: "two" },
-  ];
-
-  it("returns the Card at the persisted session position", () => {
-    expect(findCurrentStudySessionCard(session, cards)).toEqual(cards[1]);
-  });
-
-  it("returns no Card when the session or active Card is unavailable", () => {
-    expect(findCurrentStudySessionCard(undefined, cards)).toBeUndefined();
-    expect(findCurrentStudySessionCard(session, [])).toBeUndefined();
-    expect(findCurrentStudySessionCard(session, cards.slice(0, 1))).toBeUndefined();
-  });
-});
-
 describe("planStudySessionSwipe", () => {
   const cards = [
     { id: "card-1", score: 0, numberOfSeen: 0 },
@@ -128,6 +110,7 @@ describe("planStudySessionSwipe", () => {
   it("ignores swipes without a resolvable active session", () => {
     expect(planStudySessionSwipe(undefined, cards, "GoToNextCard", 0)).toEqual({ effect: "none" });
     expect(planStudySessionSwipe(session, cards.slice(0, 1), "GoToNextCard", 0)).toEqual({ effect: "none" });
+    expect(planStudySessionSwipe({ ...session, currentIndex: 3 }, cards, "GoToNextCard", 0)).toEqual({ effect: "none" });
   });
 });
 
