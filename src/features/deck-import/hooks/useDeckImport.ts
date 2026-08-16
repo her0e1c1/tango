@@ -8,7 +8,7 @@ import { fetchCards, generateCardId, mutateCards, useCards } from "@/entities/ca
 import { createDeck, fetchDecks, useDecks } from "@/entities/deck";
 import { parseCsv } from "../lib/cardCsv";
 import type { DeckImportAttempt } from "../model/deckImportExecution";
-import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
+import { executePreparedDeckImport, prepareDeckImport } from "../model/deckImportExecution";
 import type { DeckImportPreview, DeckImportResult, DeckImportStorageMode } from "../model/deckImportTypes";
 import { prepareSampleDeck } from "../model/sampleDeck";
 
@@ -28,7 +28,6 @@ interface DeckImportState {
 interface DeckImportExecutionState {
   running: boolean;
   previewAttempt: DeckImportAttempt | undefined;
-  retryAttempt: DeckImportAttempt | undefined;
 }
 
 const initialState = (uid: string): DeckImportState => ({
@@ -43,7 +42,6 @@ const initialState = (uid: string): DeckImportState => ({
 const createExecutionState = (): DeckImportExecutionState => ({
   running: false,
   previewAttempt: undefined,
-  retryAttempt: undefined,
 });
 
 export const useDeckImport = () => {
@@ -80,7 +78,6 @@ export const useDeckImport = () => {
 
     const generation = generationRef.current;
     execution.running = true;
-    execution.retryAttempt = attempt;
     updateState({ status: "importing", failure: undefined });
 
     try {
@@ -104,17 +101,11 @@ export const useDeckImport = () => {
     }
   };
 
-  const retry = () => {
-    const { retryAttempt, running } = executionRef.current;
-    if (retryAttempt != null && !running) void run(retryAttempt).catch(() => undefined);
-  };
-
   const setStorageMode = (storageMode: DeckImportStorageMode) => {
     const execution = executionRef.current;
     if (execution.running || currentState.storageMode === storageMode) return;
 
     execution.previewAttempt = undefined;
-    execution.retryAttempt = undefined;
     updateState({ storageMode, preview: undefined, failure: undefined, result: undefined });
   };
 
@@ -126,7 +117,6 @@ export const useDeckImport = () => {
     const { storageMode } = currentState;
     execution.running = true;
     execution.previewAttempt = undefined;
-    execution.retryAttempt = undefined;
     updateState({ status: "validating", preview: undefined, failure: undefined, result: undefined });
 
     try {
@@ -178,8 +168,6 @@ export const useDeckImport = () => {
     return run(execution.previewAttempt);
   };
 
-  const importError = currentState.failure?.stage === "import" ? currentState.failure.error : null;
-
   return {
     selectFile,
     setStorageMode,
@@ -189,10 +177,8 @@ export const useDeckImport = () => {
     preview: currentState.preview,
     validating: currentState.status === "validating",
     pending: currentState.status === "importing",
-    error: importError,
+    error: currentState.failure?.stage === "import" ? currentState.failure.error : null,
     previewError: currentState.failure?.stage === "preview" ? currentState.failure.error : null,
     result: currentState.result,
-    partialResult: partialResultFrom(importError),
-    retry,
   };
 };
