@@ -8,6 +8,7 @@ import { cardStore } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
+  getDocsFromServer: vi.fn(),
   onSnapshot: vi.fn(),
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
@@ -19,6 +20,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
   return {
     ...actual,
     collection: mocks.collection,
+    getDocsFromServer: mocks.getDocsFromServer,
     onSnapshot: mocks.onSnapshot,
     query: mocks.query,
     where: mocks.where,
@@ -26,7 +28,8 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
-import { replaceRemoteCardsFromReads, subscribeCardReads } from "./firestore";
+import { replaceRemoteCardsFromReads } from "../model/store";
+import { fetchCardReads, subscribeCardReads } from "./firestore";
 
 const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
@@ -55,6 +58,20 @@ describe("Card Firestore subscription", () => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     vi.clearAllMocks();
     mocks.onSnapshot.mockReturnValue(mocks.unsubscribe);
+  });
+
+  it("fetches the same separated read contract as subscriptions", async () => {
+    mocks.getDocsFromServer.mockResolvedValue({
+      docs: [cardDocument("active"), cardDocument("deleted", { deletedAt: 3 })],
+    });
+
+    await expect(fetchCardReads("uid-a")).resolves.toEqual([
+      {
+        card: expect.objectContaining({ id: "active", frontText: "Remote front" }),
+        progress: expect.objectContaining({ cardId: "active", score: 3, numberOfSeen: 4 }),
+      },
+    ]);
+    expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
   });
 
   it("exposes separate Card and StudyProgress reads from each snapshot", () => {

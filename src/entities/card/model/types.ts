@@ -1,5 +1,7 @@
 import type { z } from "zod";
 
+import type { StudyProgress } from "@/entities/study-progress/@x/card";
+
 import type {
   cardCreateSchema,
   cardEditSchema,
@@ -15,6 +17,10 @@ import type {
 export type RemoteCard = z.infer<typeof cardSchema>;
 type StudyProgressField = "score" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval";
 export type RemoteCardRead = Omit<RemoteCard, StudyProgressField>;
+export interface CardRead {
+  card: RemoteCardRead;
+  progress: StudyProgress;
+}
 export type CardDocumentFields = Omit<RemoteCardRead, "id">;
 export type LocalCard = z.infer<typeof localCardSchema>;
 export type Card = RemoteCard | LocalCard;

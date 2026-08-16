@@ -8,11 +8,13 @@ import "@/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
+import type { CardRead } from "@/entities/card";
 import { deleteCard, editCard, replaceRemoteCardsFromReads, subscribeCardReads } from "@/entities/card";
 import { createCard as createCardCommand } from "@/entities/card/api/firestore";
 import { createDeck as createDeckCommand, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
+import { replaceRemoteStudyProgresses, studyProgressStore } from "@/entities/study-progress/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
 vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn(() => 100) }));
@@ -29,7 +31,11 @@ describe("Query realtime subscriptions", () => {
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
-    const stopCards = subscribeCardReads(uid, replaceRemoteCardsFromReads, (error) => errors.push(error));
+    const publishCardReads = (reads: CardRead[]): void => {
+      replaceRemoteCardsFromReads(reads);
+      replaceRemoteStudyProgresses(reads.map(({ progress }) => progress));
+    };
+    const stopCards = subscribeCardReads(uid, publishCardReads, (error) => errors.push(error));
 
     try {
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
@@ -39,6 +45,9 @@ describe("Query realtime subscriptions", () => {
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(expect.objectContaining({ id: deck.id }));
         expect(cardStore.getState().remoteCards).toContainEqual(expect.objectContaining({ id: card.id }));
+        expect(studyProgressStore.getState().remoteProgressByCardId[card.id]).toEqual(
+          expect.objectContaining({ cardId: card.id })
+        );
       });
 
       await editDeck(uid, { ...deck, name: "Updated" });
@@ -57,6 +66,7 @@ describe("Query realtime subscriptions", () => {
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks.find((candidate) => candidate.id === deck.id)).toBeUndefined();
         expect(cardStore.getState().remoteCards.find((candidate) => candidate.id === card.id)).toBeUndefined();
+        expect(studyProgressStore.getState().remoteProgressByCardId[card.id]).toBeUndefined();
       });
       expect(errors).toEqual([]);
     } finally {

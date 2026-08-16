@@ -11,7 +11,7 @@ import {
   deleteLocalCard,
   deleteLocalCardsByDeckId,
   editLocalCard,
-  replaceRemoteCards,
+  replaceRemoteCardsFromReads,
 } from "./store";
 
 const cardInput = (id: string, deckId = "deck") => ({
@@ -50,7 +50,8 @@ describe("Card store", () => {
     const localCard = createLocalCardFixture({ id: "local" });
     cardStore.setState({ localCards: [localCard] });
 
-    replaceRemoteCards([remoteCard]);
+    const { score, numberOfSeen, ...card } = remoteCard;
+    replaceRemoteCardsFromReads([{ card, progress: { cardId: card.id, score, numberOfSeen } }]);
     expect(cardStore.getState()).toEqual({ remoteCards: [remoteCard], localCards: [localCard] });
 
     clearRemoteCards();

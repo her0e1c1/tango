@@ -1,9 +1,11 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   authUid: "",
+  onCardReads: undefined as ((reads: unknown[]) => void) | undefined,
   replaceRemoteCardsFromReads: vi.fn(),
+  replaceRemoteStudyProgresses: vi.fn(),
   subscribeCardReads: vi.fn(),
   subscribeDecks: vi.fn(),
   operations: [] as string[],
@@ -19,13 +21,19 @@ vi.mock("@/entities/deck", () => ({
   clearRemoteDecks: () => mocks.operations.push("clear remote Decks"),
   subscribeDecks: mocks.subscribeDecks,
 }));
+vi.mock("@/entities/study-progress", () => ({
+  clearRemoteStudyProgresses: () => mocks.operations.push("clear remote StudyProgress"),
+  replaceRemoteStudyProgresses: mocks.replaceRemoteStudyProgresses,
+}));
 
 import { FirestoreSubscriptionsProvider } from ".";
 
 describe("FirestoreSubscriptionsProvider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.subscribeCardReads.mockImplementation((uid: string) => {
+    mocks.onCardReads = undefined;
+    mocks.subscribeCardReads.mockImplementation((uid: string, onReads: (reads: unknown[]) => void) => {
+      mocks.onCardReads = onReads;
       mocks.operations.push(`start Cards ${uid}`);
       return () => mocks.operations.push(`stop Cards ${uid}`);
     });
@@ -41,11 +49,12 @@ describe("FirestoreSubscriptionsProvider", () => {
     const view = render(<FirestoreSubscriptionsProvider>content</FirestoreSubscriptionsProvider>);
 
     expect(mocks.operations).toEqual(["start Cards test-user", "start Decks test-user"]);
-    expect(mocks.subscribeCardReads).toHaveBeenCalledWith(
-      "test-user",
-      mocks.replaceRemoteCardsFromReads,
-      expect.any(Function)
-    );
+    expect(mocks.subscribeCardReads).toHaveBeenCalledWith("test-user", expect.any(Function), expect.any(Function));
+    const progress = { cardId: "card-a", score: 1, numberOfSeen: 2 };
+    const reads = [{ card: { id: "card-a" }, progress }];
+    act(() => mocks.onCardReads?.(reads));
+    expect(mocks.replaceRemoteCardsFromReads).toHaveBeenCalledWith(reads);
+    expect(mocks.replaceRemoteStudyProgresses).toHaveBeenCalledWith([progress]);
     expect(screen.getByText("content")).toBeDefined();
 
     view.unmount();
@@ -56,6 +65,7 @@ describe("FirestoreSubscriptionsProvider", () => {
       "stop Cards test-user",
       "stop Decks test-user",
       "clear remote Cards",
+      "clear remote StudyProgress",
       "clear remote Decks",
     ]);
   });
@@ -80,6 +90,7 @@ describe("FirestoreSubscriptionsProvider", () => {
       "stop Cards test-user",
       "stop Decks test-user",
       "clear remote Cards",
+      "clear remote StudyProgress",
       "clear remote Decks",
       "start Cards next-user",
       "start Decks next-user",
@@ -108,6 +119,7 @@ describe("FirestoreSubscriptionsProvider", () => {
       "stop Cards test-user",
       "stop Decks test-user",
       "clear remote Cards",
+      "clear remote StudyProgress",
       "clear remote Decks",
     ]);
   });
