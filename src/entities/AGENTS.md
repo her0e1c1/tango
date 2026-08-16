@@ -13,6 +13,7 @@
 - Define Entity domain types and boundary-specific types.
 - Keep types separate when domain, store, persistence, or public API meanings differ.
 - Derive types from Zod when Zod defines the validation boundary.
+- Do not export domain types from the Entity Public API.
 
 ## `model/dto.ts`
 
@@ -26,6 +27,7 @@
 ## `model/rules.ts`
 
 - Define pure domain rules, calculations, relationships, selections, and transformations.
+- Express rules using Entity domain types, not store, persistence, or public API types.
 - Do not access stores, React, browser APIs, or external systems.
 
 ## `model/store.ts`
