@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { useAuthUid } from "@/entities/auth";
 import { cardContentSchema, editCard, type CardId, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
-import { mustExist } from "@/shared/lib/mustExist";
 import type { Form, Option, Tag, Textarea } from "@/shared/ui/forms";
 
 interface CardFormTagField extends Option {
@@ -48,16 +47,20 @@ interface UseCardFormStateOptions {
 
 export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormStateOptions) => {
   const uid = useAuthUid();
-  const card = mustExist(useCard(cardId), "Card form rendered outside RouteEntityBoundary");
+  const card = useCard(cardId);
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<CardFormValues>({
-    values: {
-      frontText: card.frontText,
-      backText: card.backText,
-      tags: card.tags,
-    },
+    ...(card && {
+      defaultValues: {
+        frontText: card.frontText,
+        backText: card.backText,
+        tags: card.tags,
+      },
+    }),
     resolver: zodResolver(cardFormSchema),
   });
+
+  if (card == null) return;
 
   const submit = handleSubmit(async (values) => {
     setSaveError(null);

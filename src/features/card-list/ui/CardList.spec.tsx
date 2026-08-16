@@ -80,6 +80,7 @@ interface CardListHarnessProps {
 const CardListHarness = (props: CardListHarnessProps) => {
   const state = useCardListState(props.deck.id);
 
+  if (state == null) return null;
   return (
     <CardList
       state={state}

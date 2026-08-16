@@ -41,6 +41,7 @@ import { useDeckFormState } from "../model/useDeckFormState";
 const DeckEditFormHarness = (props: { deckId: string; onCancel: () => void; onSaved: () => void }) => {
   const editor = useDeckFormState({ deckId: props.deckId, onCancel: props.onCancel, onSaved: props.onSaved });
 
+  if (editor == null) return null;
   return <DeckEditForm deckName={editor.deckName} form={editor.form} saveError={editor.saveError} />;
 };
 

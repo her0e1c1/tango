@@ -4,15 +4,22 @@ import { useKey } from "react-use";
 
 import { CardList, useCardListState } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
-import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
+import { DeckFilterForm } from "@/features/deck-filter";
 import { routes, useNavigation } from "@/features/navigate";
 import { AppLayout } from "@/widgets/app-layout";
-import { RouteEntityBoundary } from "@/widgets/route-entity-boundary";
+import { RouteNotFound } from "@/widgets/route-not-found";
 
 const CardListContent = ({ deckId }: { deckId: string }) => {
   const navigation = useNavigation();
   const cardList = useCardListState(deckId);
-  const deckFilter = useDeckFilterState(deckId);
+
+  if (cardList == null) {
+    return (
+      <RouteNotFound title="Deck not found" description="The requested deck is unavailable or has been removed." />
+    );
+  }
+
+  const deckFilter = cardList.filter;
 
   return (
     <AppLayout showHeader>
@@ -41,10 +48,6 @@ export const CardListPage: React.FC = () => {
   useKey("t", () => void navigation.to(routes.deckList.to()));
   useKey("s", () => void navigation.to(routes.settings.to()));
 
-  return (
-    <RouteEntityBoundary entity="Deck" id={deckId}>
-      {/* Route-scoped Feature state must not survive navigation to another Deck. */}
-      <CardListContent key={deckId} deckId={deckId} />
-    </RouteEntityBoundary>
-  );
+  // Route-scoped Feature state must not survive navigation to another Deck.
+  return <CardListContent key={deckId} deckId={deckId} />;
 };

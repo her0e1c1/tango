@@ -4,7 +4,6 @@ import { useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
 import { setStudySessionIndex } from "@/entities/study-session";
-import { mustExist } from "@/shared/lib/mustExist";
 
 import { useAutoPlay } from "./useAutoPlay";
 import { useStudySessionState } from "./useStudySessionState";
@@ -12,7 +11,7 @@ import { useSwipe } from "./useSwipe";
 
 export const useStudy = (deckId: string) => {
   const cards = useCards();
-  const deck = mustExist(useDeck(deckId), "Study session rendered outside RouteEntityBoundary");
+  const deck = useDeck(deckId);
   const preferences = usePreferences();
   const sessionState = useStudySessionState(deckId, cards);
   const [showBackText, setShowBackText] = React.useState(false);
@@ -42,6 +41,7 @@ export const useStudy = (deckId: string) => {
     updateIndex,
   };
 
+  if (deck == null) return;
   if (sessionState.status !== "studying") return { ...controls, status: sessionState.status };
 
   const category = getCategory(deck.category, sessionState.card.tags);
@@ -68,4 +68,4 @@ export const useStudy = (deckId: string) => {
   };
 };
 
-export type StudyState = ReturnType<typeof useStudy>;
+export type StudyState = NonNullable<ReturnType<typeof useStudy>>;

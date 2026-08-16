@@ -24,7 +24,9 @@ vi.mock("@/entities/card", () => ({
     return { cards: mocks.cards, tags: mocks.tags };
   },
 }));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/deck", () => ({
+  editDeck: vi.fn(),
   filterCardsForDeck: (cards: Card[]) => cards.filter(({ tags }) => tags.includes("eligible")),
   useDeck: (deckId: string) => {
     mocks.deckId = deckId;
@@ -54,7 +56,7 @@ describe("useStudySessionStartState", () => {
     mocks.cards = [eligibleCard, createCard({ id: "later-card", deckId: "deck-id", tags: ["later"] })];
 
     const { result } = renderHook(() => useStudySessionStartState("deck-id"));
-    result.current.onStart();
+    result.current?.onStart();
 
     expect(mocks.deckId).toBe("deck-id");
     expect(mocks.cardsDeckId).toBe("deck-id");

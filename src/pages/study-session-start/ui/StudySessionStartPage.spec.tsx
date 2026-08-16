@@ -19,29 +19,14 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/card", () => ({
-  useCard: () => undefined,
   useCardsByDeckId: () => ({ cards: mocks.cards, tags: [] }),
 }));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/deck", () => ({
+  editDeck: vi.fn(),
   filterCardsForDeck: (cards: Card[]) => cards,
   useDeck: () => mocks.deck ?? undefined,
 }));
-vi.mock("@/features/deck-filter", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/deck-filter")>();
-  return {
-    ...actual,
-    useDeckFilterState: () => ({
-      scoreMax: 4,
-      scoreMin: -2,
-      selectedTags: [],
-      tagAndFilter: false,
-      setScoreMax: vi.fn(),
-      setScoreMin: vi.fn(),
-      setSelectedTags: vi.fn(),
-      setTagAndFilter: vi.fn(),
-    }),
-  };
-});
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,

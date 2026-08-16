@@ -7,7 +7,6 @@ import { routes, useNavigation } from "@/features/navigate";
 import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
-import { RouteEntityBoundary } from "@/widgets/route-entity-boundary";
 
 type StudyShortcutAction =
   | "swipeUp"
@@ -19,7 +18,9 @@ type StudyShortcutAction =
   | "toggleSwipeButtonList"
   | "toggleAutoPlay";
 
-const renderStudyScreen = (state: StudyState) => {
+const renderStudyScreen = (state: StudyState | undefined) => {
+  if (state == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+
   if (state.status !== "studying") {
     return state.status === "preparing" ? (
       <RouteFeedback title="Loading…" tone="loading" />
@@ -82,7 +83,7 @@ const StudySessionContent = ({ deckId }: { deckId: string }) => {
   const latestStudy = useLatest(study);
   const runWhileStudying = (action: StudyShortcutAction) => () => {
     const currentStudy = latestStudy.current;
-    if (currentStudy.status === "studying") void currentStudy[action]();
+    if (currentStudy?.status === "studying") void currentStudy[action]();
   };
 
   // useKey retains its initial handler, so that handler reads current Feature state through one stable ref.
@@ -96,9 +97,9 @@ const StudySessionContent = ({ deckId }: { deckId: string }) => {
   useKey(" ", runWhileStudying("toggleAutoPlay"));
 
   React.useEffect(() => {
-    if (study.status !== "invalid") return;
+    if (study?.status !== "invalid") return;
     void navigation.to(routes.deckList.to(), { replace: true });
-  }, [navigation, study.status]);
+  }, [navigation, study?.status]);
 
   return renderStudyScreen(study);
 };
@@ -108,10 +109,6 @@ export const StudySessionPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
 
-  return (
-    <RouteEntityBoundary entity="Deck" id={deckId} title="Study session unavailable.">
-      {/* Study state belongs to one route Deck, so id changes start a fresh Feature lifecycle. */}
-      <StudySessionContent key={deckId} deckId={deckId} />
-    </RouteEntityBoundary>
-  );
+  // Study state belongs to one route Deck, so id changes start a fresh Feature lifecycle.
+  return <StudySessionContent key={deckId} deckId={deckId} />;
 };

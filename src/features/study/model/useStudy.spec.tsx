@@ -55,7 +55,13 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
   };
 });
 
-import { useStudy } from "./useStudy";
+import { useStudy as useStudyState } from "./useStudy";
+
+const useStudy = (routeDeckId: string) => {
+  const study = useStudyState(routeDeckId);
+  if (study == null) throw new Error("Expected the test Deck to exist");
+  return study;
+};
 
 const deckId = "deck-1";
 const cards: Card[] = ["card-1", "card-2"].map((id) => ({

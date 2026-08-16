@@ -1,1 +1,1 @@
-export { RouteFeedback } from "./RouteFeedback";
+export { RouteFeedback, type RouteFeedbackProps } from "./RouteFeedback";

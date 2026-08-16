@@ -45,6 +45,7 @@ import { useCardFormState } from "../model/useCardFormState";
 const CardEditFormHarness = (props: { cardId: string; onCancel: () => void; onSaved: () => void }) => {
   const editor = useCardFormState({ cardId: props.cardId, onCancel: props.onCancel, onSaved: props.onSaved });
 
+  if (editor == null) return null;
   return <CardEditForm form={editor.form} saveError={editor.saveError} />;
 };
 

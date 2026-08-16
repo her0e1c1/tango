@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, deckFormSchema, editDeck, type DeckId, useDeck } from "@/entities/deck";
-import { mustExist } from "@/shared/lib/mustExist";
 import type { Form, Input, Select, Switch } from "@/shared/ui/forms";
 
 interface DeckFormFields {
@@ -42,17 +41,21 @@ interface UseDeckFormStateOptions {
 
 export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormStateOptions) => {
   const uid = useAuthUid();
-  const deck = mustExist(useDeck(deckId), "Deck form rendered outside RouteEntityBoundary");
+  const deck = useDeck(deckId);
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
-    values: {
-      name: deck.name,
-      category: deck.category,
-      url: deck.url || undefined,
-      convertToBr: deck.convertToBr,
-    },
+    ...(deck && {
+      defaultValues: {
+        name: deck.name,
+        category: deck.category,
+        url: deck.url || undefined,
+        convertToBr: deck.convertToBr,
+      },
+    }),
     resolver: zodResolver(deckFormSchema),
   });
+
+  if (deck == null) return;
 
   const submit = handleSubmit(async (values) => {
     setSaveError(null);

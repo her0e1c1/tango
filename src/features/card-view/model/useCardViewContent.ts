@@ -1,13 +1,13 @@
 import { useCard } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
-import { mustExist } from "@/shared/lib/mustExist";
 
 import { buildCardViewContent } from "./buildCardViewContent";
 
 export const useCardViewContent = (cardId: string) => {
-  const card = mustExist(useCard(cardId), "Card view rendered outside RouteEntityBoundary");
-  const deck = mustExist(useDeck(card.deckId), "Card view requires its parent Deck");
+  const card = useCard(cardId);
+  const deck = useDeck(card?.deckId);
   const preferences = usePreferences();
+  if (card == null || deck == null) return;
   return buildCardViewContent(card, deck, preferences.appearance.darkMode);
 };
