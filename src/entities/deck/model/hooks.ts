@@ -4,11 +4,13 @@ import { toDeckView } from "./dto";
 import { deckStore } from "./store";
 import type { Deck, DeckId } from "./types";
 
+// Reads remote and local Decks as persistence-neutral views.
 export const useDecks = (): Deck[] => {
   const state = useStore(deckStore);
   return [...state.remoteDecks, ...state.localDecks].map(toDeckView);
 };
 
+// Reads one persistence-neutral Deck view by identifier.
 export const useDeck = (id: DeckId | undefined): Deck | undefined => {
   const storedDeck = useStore(
     deckStore,

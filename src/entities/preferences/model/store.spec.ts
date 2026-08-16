@@ -4,10 +4,12 @@ import { createJSONStorage, type StateStorage } from "zustand/middleware";
 import { defaultPreferences } from "./defaults";
 import { preferencesStore, setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, updatePreferences } from "./store";
 
+/** Synchronous storage contract used by preferences persistence scenarios. */
 type MemoryStorage = Omit<StateStorage, "getItem"> & {
   getItem: (name: string) => string | null;
 };
 
+// Creates a synchronous in-memory implementation of Zustand storage.
 const createMemoryStorage = (initial: Record<string, string> = {}): MemoryStorage => {
   const values = new Map(Object.entries(initial));
   return {
@@ -17,6 +19,7 @@ const createMemoryStorage = (initial: Record<string, string> = {}): MemoryStorag
   };
 };
 
+// Replaces the preferences store's persistence backend with isolated memory storage.
 const useMemoryStorage = (initial: Record<string, string> = {}): MemoryStorage => {
   const storage = createMemoryStorage(initial);
   preferencesStore.persist.setOptions({ storage: createJSONStorage(() => storage) });

@@ -21,10 +21,12 @@ const STUDY_STORAGE_VERSION = 4;
 const createStudySessionId = (): string =>
   typeof crypto.randomUUID === "function" ? crypto.randomUUID() : crypto.getRandomValues(new Uint32Array(4)).join("-");
 
+/** Persisted study sessions indexed by their owning Deck. */
 interface StudySessionState {
   sessionsByDeckId: StudySessions;
 }
 
+// Narrows unknown persisted data to a non-array object record.
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value != null && !Array.isArray(value);
 
@@ -53,6 +55,7 @@ const sanitizeStudySession = (value: unknown): StudySession | undefined => {
   return { sessionId, deckId, cardOrderIds: [...cardOrderIds], currentIndex, lastStudiedAt };
 };
 
+// Restores only independently valid sessions whose Deck key matches their payload.
 const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
   if (!(isRecord(persistedState) && isRecord(persistedState.sessionsByDeckId))) {
     return { sessionsByDeckId: {} };
@@ -82,9 +85,11 @@ export const studySessionStore = createStore<StudySessionState>()(
   )
 );
 
+// Reads the active study session for one Deck outside React.
 export const getStudySession = (deckId: DeckId): StudySession | undefined =>
   studySessionStore.getState().sessionsByDeckId[deckId];
 
+// Replaces one Deck's study session with a new identity and owned Card order.
 const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
   studySessionStore.setState((state) => {
     state.sessionsByDeckId[deckId] = {
@@ -108,6 +113,7 @@ export const startStudy = (
   startStudySession(deckId, buildStudyCardOrder(cards, studyPreferences));
 };
 
+// Advances one session's recent-study timestamp without changing its position.
 export const touchStudySession = (deckId: DeckId): void => {
   studySessionStore.setState((state) => {
     const session = state.sessionsByDeckId[deckId];
@@ -115,6 +121,7 @@ export const touchStudySession = (deckId: DeckId): void => {
   });
 };
 
+// Moves one session to an explicit valid Card index and reports whether it changed.
 export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): boolean => {
   let updated = false;
   studySessionStore.setState((state) => {
@@ -135,6 +142,7 @@ export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): bool
   return updated;
 };
 
+// Applies a position-checked movement and removes a session when it crosses either boundary.
 export const moveStudySession = (previous: StudySession, movement: StudySessionMovement): boolean => {
   let moved = false;
   studySessionStore.setState((state) => {
@@ -155,12 +163,14 @@ export const moveStudySession = (previous: StudySession, movement: StudySessionM
   return moved;
 };
 
+// Removes the active study session owned by one Deck.
 export const removeStudySession = (deckId: DeckId): void => {
   studySessionStore.setState((state) => {
     delete state.sessionsByDeckId[deckId];
   });
 };
 
+// Clears every live and persisted study session.
 export const clearStudySessions = (): void => {
   // Publish the empty state before durable cleanup so auth changes cannot expose the previous user's sessions.
   studySessionStore.setState({ sessionsByDeckId: {} });

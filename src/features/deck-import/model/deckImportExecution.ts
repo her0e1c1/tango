@@ -1,4 +1,4 @@
-import type { Card, CardMutation, RemoteCard } from "@/entities/card";
+import type { Card, CardMutation } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId, LocalDeckCreateInput } from "@/entities/deck";
 
 import { hasSameEditableCardContent, indexCardsByUniqueKey } from "@/entities/card";
@@ -44,7 +44,7 @@ interface DeckImportExecutionDependencies {
   mutateCards: (mutations: CardMutation[]) => Promise<unknown>;
 }
 
-const isRemoteCard = (card: Card): card is RemoteCard => "uid" in card;
+const isRemoteCard = (card: Card): card is Card & { uid: string } => "uid" in card;
 
 const matchesImportDestination = (candidate: Deck, request: DeckImportRequest, localMode: boolean): boolean =>
   candidate.localMode === localMode &&

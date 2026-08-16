@@ -9,12 +9,14 @@ import {
   editDeck as editRemoteDeck,
 } from "./firestore";
 
+// Returns the current Deck or rejects a stale Deck reference.
 const requireDeck = (id: DeckId) => {
   const deck = findDeckById(id);
   if (deck === undefined) throw new Error(`Deck "${id}" was not found`);
   return deck;
 };
 
+// Routes a Deck create through the payload's persistence mode.
 export const createDeck = async (uid: string, deck: DeckCreateInput | LocalDeckCreateInput): Promise<void> => {
   if (deck.localMode) {
     createLocalDeck({ ...deck, localMode: true });
@@ -23,6 +25,7 @@ export const createDeck = async (uid: string, deck: DeckCreateInput | LocalDeckC
   await createRemoteDeck(uid, deck);
 };
 
+// Routes a Deck edit through the stored Deck's persistence mode.
 export const editDeck = async (uid: string, deck: EditDeckInput["deck"]): Promise<void> => {
   if (requireDeck(deck.id).localMode) {
     editLocalDeck(deck);
@@ -31,6 +34,7 @@ export const editDeck = async (uid: string, deck: EditDeckInput["deck"]): Promis
   await editRemoteDeck(uid, deck);
 };
 
+// Deletes a Deck and its owned local or remote resources before clearing its study session.
 export const deleteDeck = async (uid: string, deck: { id: DeckId }): Promise<void> => {
   const currentDeck = requireDeck(deck.id);
   if (currentDeck.localMode) {

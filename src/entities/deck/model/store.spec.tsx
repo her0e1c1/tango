@@ -14,6 +14,7 @@ import {
   replaceRemoteDecks,
 } from "./store";
 
+// Creates a synchronous in-memory implementation of Zustand storage.
 const createMemoryStorage = (initial: Record<string, string> = {}): StateStorage => {
   const values = new Map(Object.entries(initial));
   return {
@@ -23,6 +24,7 @@ const createMemoryStorage = (initial: Record<string, string> = {}): StateStorage
   };
 };
 
+// Replaces the Deck store's persistence backend with isolated memory storage.
 const useMemoryStorage = (initial: Record<string, string> = {}): StateStorage => {
   const storage = createMemoryStorage(initial);
   deckStore.persist.setOptions({ storage: createJSONStorage(() => storage) });

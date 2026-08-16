@@ -7,8 +7,9 @@ import {
   createLocalDeck,
 } from "@/test/factories";
 
-import { type CardMutation, deleteCard, editCard, mutateCards } from "./mutations";
+import type { CardMutation } from "../model/types";
 import { cardStore, findCardById } from "../model/store";
+import { deleteCard, editCard, mutateCards } from "./mutations";
 
 const mocks = vi.hoisted(() => ({
   createRemoteCard: vi.fn(),

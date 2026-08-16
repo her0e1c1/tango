@@ -32,9 +32,12 @@ export interface StudySession {
  */
 export type StudySessions = Partial<Record<DeckId, StudySession>>;
 
+/** Direction of one valid study-session cursor movement. */
 export type StudySessionMovement = "previous" | "next";
+/** No-op, exit, or cursor movement produced by a study swipe. */
 export type StudySessionSwipeEffect = "none" | "exit" | StudySessionMovement;
 
+/** Pure swipe plan describing its session effect and optional progress patch. */
 export type StudySessionSwipePlan =
   | { effect: "none" }
   | { effect: "exit" }
@@ -44,8 +47,10 @@ export type StudySessionSwipePlan =
       progress: StudyProgressEdit;
     };
 
+/** Minimal Card identity needed to resolve a study session position. */
 export type StudySessionCard = { id: StudySession["cardOrderIds"][number] };
 
+/** Resolution state for a session and its currently selected Card. */
 export type ResolvedStudySession<Card extends StudySessionCard> =
   | { status: "preparing" | "invalid" }
   | { status: "studying"; session: StudySession; card: Card };

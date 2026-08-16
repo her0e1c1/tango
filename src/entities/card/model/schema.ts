@@ -1,9 +1,11 @@
 import { z } from "zod";
 
+import { firestoreTimestampDateSchema } from "@/shared/api";
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
 const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Card writes");
 export const cardIdSchema = z.string().min(1, "Card id is required");
+export const cardDeckIdSchema = z.string().min(1, "Card deck is required");
 const cardUidSchema = z.string().min(1, "Card owner is required");
 
 const cardFrontTextSchema = z.string().refine(isNonBlank, { message: "Front text is required." });
@@ -25,7 +27,7 @@ const editableCardFieldsSchema = cardContentSchema.extend({
 
 const cardCreateFieldsSchema = editableCardFieldsSchema.extend({
   id: cardIdSchema,
-  deckId: z.string().min(1, "Card deck is required"),
+  deckId: cardDeckIdSchema,
   deletedAt: z.number().nullable().default(null),
   score: z.number().default(0),
   numberOfSeen: z.number().default(0),
@@ -47,13 +49,37 @@ export const localCardSchema = localCardCreateSchema.extend({
   updatedAt: z.number(),
 });
 
+// Reads accept compatible legacy values; command schemas enforce the stricter invariants required for new writes.
+export const cardDocumentSchema = z.object({
+  // Older documents may duplicate the Firestore document id in their stored fields.
+  id: z.string().optional(),
+  frontText: z.string(),
+  backText: z.string(),
+  tags: z.array(z.string()),
+  uniqueKey: z.string(),
+  deckId: z.string(),
+  uid: z.string(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+  deletedAt: z.number().nullable(),
+  score: z.number(),
+  numberOfSeen: z.number(),
+  lastSeenAt: z.number().optional(),
+  nextSeeingAt: firestoreTimestampDateSchema.optional(),
+  interval: z.number().optional(),
+  url: z.string().optional(),
+  startLine: z.number().optional(),
+  endLine: z.number().optional(),
+});
+
 // Zustand JSON storage serializes Dates as strings; hydration accepts only strings that restore to valid Dates.
 const persistedDateSchema = z.preprocess(
   (value) => (typeof value === "string" ? new Date(value) : value),
   z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date")
 );
 
-export const persistedCardSchema = localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
+const persistedCardSchema = localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
+export const persistedCardStateSchema = z.object({ localCards: z.array(persistedCardSchema) });
 
 export const localCardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });
 export const cardEditSchema = localCardEditSchema.extend({ uid: cardUidSchema });

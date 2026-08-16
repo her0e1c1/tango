@@ -23,6 +23,7 @@ vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
 import { subscribeDecks } from "./firestore";
 
+// Builds a Firestore-like Deck document with optional field overrides.
 const deckDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
   data: () => ({
@@ -42,8 +43,10 @@ const deckDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   }),
 });
 
+// Returns the snapshot callback registered by the Deck subscription.
 const getSnapshotHandler = () =>
   mocks.onSnapshot.mock.calls[0]?.[1] as (snapshot: { docs: ReturnType<typeof deckDocument>[] }) => void;
+// Returns the error callback registered by the Deck subscription.
 const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
 describe("Deck Firestore subscription", () => {

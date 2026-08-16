@@ -1,4 +1,4 @@
-import type { RemoteCard } from "@/entities/card";
+import type { Card } from "@/entities/card";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -25,7 +25,7 @@ import { CardEditForm } from "./CardEditForm";
 import { useCardEditAction } from "../model/useCardEditAction";
 import { useCardFormState } from "../model/useCardFormState";
 
-const CardEditFormHarness = (props: { card: RemoteCard; onCancel: () => void; onSaved: () => void }) => {
+const CardEditFormHarness = (props: { card: Card; onCancel: () => void; onSaved: () => void }) => {
   const editAction = useCardEditAction({ onSaved: props.onSaved });
   const form = useCardFormState({ card: props.card, onCancel: props.onCancel, onSubmit: editAction.update });
 
@@ -33,7 +33,7 @@ const CardEditFormHarness = (props: { card: RemoteCard; onCancel: () => void; on
 };
 
 describe("CardEditForm", () => {
-  const card: RemoteCard = createCard({
+  const card: Card = createCard({
     id: "card-id",
     uid: "user-id",
     frontText: "Front text",
