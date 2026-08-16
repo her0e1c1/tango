@@ -1,159 +1,153 @@
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
-import * as React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import "@testing-library/jest-dom/vitest";
+import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
 
-import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { mutateCards } from "@/entities/card";
+import { createDeck } from "@/entities/deck";
+import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  params: { id: "deck-id" as string | undefined },
   preferences: null as unknown as Preferences,
-  deck: null as Deck | null,
-  cards: [] as Card[],
-  navigate: vi.fn(),
-  onClickTag: vi.fn(),
-  cardListProps: null as null | Record<string, unknown>,
+  setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/preferences", () => ({ usePreferences: () => mocks.preferences, setDarkMode: vi.fn() }));
-vi.mock("@/entities/card", () => ({
-  useCardsByDeckId: (id: string) => {
-    const cards = mocks.cards.filter((card) => card.deckId === id);
-    return { cards, tags: [...new Set(cards.flatMap((card) => card.tags))] };
-  },
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
+  setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("@/entities/deck", () => ({
-  filterCardsForDeck: (cards: Card[]) => cards,
-  useDeck: () => mocks.deck ?? undefined,
-}));
-vi.mock("@/features/card-list", () => ({
-  useCardListState: ({ cards }: { cards: Card[] }) => ({
-    cards,
-    answer: undefined,
-    deletionTarget: undefined,
-    mutationError: null,
-    successMessage: undefined,
-    onShowCard: vi.fn(),
-    onCloseCard: vi.fn(),
-    onSwipedLeft: vi.fn(),
-    onSwipedRight: vi.fn(),
-    onRequestDeletion: vi.fn(),
-    onCancelDeletion: vi.fn(),
-    onConfirmDeletion: vi.fn(),
-  }),
-  CardList: (props: {
-    state: { cards: Card[] };
-    filter: { selectedTags: string[]; onRemoveTag: (tag: string) => void };
-    onEditCard: (id: string) => void;
-  }) => {
-    const [shownDeckId, setShownDeckId] = React.useState<string>();
-    mocks.cardListProps = props as unknown as Record<string, unknown>;
-    return (
-      <div>
-        <span>Card list feature</span>
-        <span>{shownDeckId == null ? "No card shown" : `Card shown for ${shownDeckId}`}</span>
-        <button type="button" onClick={() => setShownDeckId(props.state.cards[0]?.deckId)}>
-          Show card
-        </button>
-        <button type="button" onClick={() => props.onEditCard(props.state.cards[0]?.id ?? "missing")}>
-          Edit card
-        </button>
-        <button type="button" onClick={() => props.filter.onRemoveTag("typescript")}>
-          Change tags
-        </button>
-      </div>
-    );
-  },
-}));
-vi.mock("@/features/deck-filter", () => ({
-  DeckFilterForm: () => <div>Filter controls</div>,
-  useDeckFilterState: () => ({
-    scoreMax: 4,
-    scoreMin: -2,
-    selectedTags: ["typescript"],
-    tagAndFilter: false,
-    setScoreMax: vi.fn(),
-    setScoreMin: vi.fn(),
-    setSelectedTags: mocks.onClickTag,
-    setTagAndFilter: vi.fn(),
-  }),
-}));
-vi.mock("react-router-dom", () => ({
-  useParams: () => mocks.params,
-  useNavigate: () => mocks.navigate,
-}));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardListPage } from "./CardListPage";
 
-describe("CardListPage", () => {
-  const deck = createDeck({ id: "deck-id" });
-  const card = createCard({ id: "card-id", deckId: deck.id, tags: ["typescript"] });
-  const otherCard = createCard({ id: "other-card", deckId: "other-deck" });
+const NextDeckButton = () => {
+  const navigate = useNavigate();
+  return (
+    <button type="button" onClick={() => void navigate("/deck/next-deck")}>
+      Open next deck
+    </button>
+  );
+};
 
-  beforeEach(() => {
-    mocks.params.id = deck.id;
-    mocks.deck = deck;
-    mocks.cards = [card, otherCard];
+describe("CardListPage", () => {
+  const deckId = "deck-id";
+  const nextDeckId = "next-deck";
+  const cardId = "card-id";
+  const nextCardId = "next-card";
+  const renderPage = (path = `/deck/${deckId}`) =>
+    render(
+      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+        <NextDeckButton />
+        <Routes>
+          <Route path="/previous" element={<h1>Previous page</h1>} />
+          <Route path="/" element={<h1>Deck list destination</h1>} />
+          <Route path="/settings" element={<h1>Settings destination</h1>} />
+          <Route path="/card/:id/edit" element={<h1>Card editor destination</h1>} />
+          <Route path="/deck/:id" element={<CardListPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+  beforeEach(async () => {
     mocks.preferences = createPreferences();
-    mocks.navigate.mockReset();
-    mocks.onClickTag.mockReset();
-    mocks.cardListProps = null;
+    mocks.setDarkMode.mockReset();
+    await createDeck("", createLocalDeck({ id: deckId, name: "First deck", selectedTags: ["typescript"] }));
+    await createDeck("", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
+    await mutateCards("", [
+      {
+        kind: "create",
+        card: createLocalCard({
+          id: cardId,
+          deckId,
+          frontText: "Front one",
+          backText: "Back one",
+          tags: ["typescript"],
+          uniqueKey: "card-one",
+        }),
+      },
+      {
+        kind: "create",
+        card: createLocalCard({
+          id: nextCardId,
+          deckId: nextDeckId,
+          frontText: "Front two",
+          backText: "Back two",
+          uniqueKey: "card-two",
+        }),
+      },
+    ]);
   });
 
-  it("composes the feature from the resolved route data and route callbacks", async () => {
-    render(<CardListPage />);
+  it("renders stored cards and navigates to the selected card editor", async () => {
+    renderPage();
 
-    expect(screen.getByText("Card list feature")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Cards" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "View Front one" })).toBeVisible();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
 
-    await userEvent.click(screen.getByRole("button", { name: "Edit card" }));
-    expect(mocks.navigate).toHaveBeenCalledWith(`/card/${card.id}/edit`, undefined);
-
-    await userEvent.click(screen.getByRole("button", { name: "Change tags" }));
-    expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith([]);
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front one" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Card editor destination" })).toBeVisible();
   });
 
-  it("keeps route shortcuts in the page adapter", () => {
-    render(<CardListPage />);
+  it("removes a selected tag from the visible filter", async () => {
+    renderPage();
 
+    await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Remove typescript filter" })).not.toBeInTheDocument()
+    );
+    expect(screen.getByText("No filters")).toBeVisible();
+  });
+
+  it("navigates from both route shortcuts", async () => {
+    const view = renderPage();
     fireEvent.keyDown(window, { key: "t" });
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+
+    view.unmount();
+    renderPage();
     fireEvent.keyDown(window, { key: "s" });
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings", undefined);
+    expect(await screen.findByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
   });
 
-  it("resets deck-local feature state when the route deck changes", async () => {
-    const user = userEvent.setup();
-    const nextDeck = createDeck({ id: "next-deck" });
-    const nextCard = createCard({ id: "next-card", deckId: nextDeck.id });
-    const { rerender } = render(<CardListPage />);
+  it("resets the shown card when navigation changes the route deck", async () => {
+    renderPage();
 
-    await user.click(screen.getByRole("button", { name: "Show card" }));
-    expect(screen.getByText(`Card shown for ${deck.id}`)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "View Front one" }));
+    expect(screen.getByLabelText("Close card")).toHaveTextContent("Back one");
 
-    mocks.params.id = nextDeck.id;
-    mocks.deck = nextDeck;
-    mocks.cards = [nextCard];
-    rerender(<CardListPage />);
+    await userEvent.click(screen.getByRole("button", { name: "Open next deck" }));
 
-    expect(screen.getByText("No card shown")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "View Front two" })).toBeVisible();
+    expect(screen.queryByLabelText("Close card")).not.toBeInTheDocument();
   });
 
-  it("renders not-found feedback with route navigation", async () => {
-    mocks.deck = null;
-    render(<CardListPage />);
+  it("navigates with both recovery actions when the deck is unavailable", async () => {
+    const view = renderPage("/deck/missing-deck");
 
-    expect(screen.getByRole("heading", { name: "Deck not found" })).toBeInTheDocument();
-    expect(screen.queryByText("Card list feature")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Deck not found" })).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+
+    view.unmount();
+    renderPage("/deck/missing-deck");
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, -1);
+    expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
+  });
+
+  it("rejects a route without a deck id", () => {
+    expect(() =>
+      render(
+        <MemoryRouter>
+          <CardListPage />
+        </MemoryRouter>
+      )
+    ).toThrowError("invalid deck id");
   });
 });

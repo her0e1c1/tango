@@ -1,124 +1,125 @@
 import type { Preferences } from "@/entities/preferences";
-import type { ComponentProps } from "react";
-import type { DeckList } from "@/features/deck-list";
 
-import { fireEvent, render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom/vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
 
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
-import { createCard, createDeck, createPreferences } from "@/test/factories";
-
-type DeckListProps = ComponentProps<typeof DeckList>;
+import { mutateCards } from "@/entities/card";
+import { createDeck, deleteDeck } from "@/entities/deck";
+import { clearStudySessions, startStudy } from "@/entities/study-session";
+import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  preferences: {} as Preferences,
-  decks: [] as Deck[],
-  cards: [] as Card[],
-  useAddSampleDeck: vi.fn(),
-  requestDeletion: vi.fn(),
-  touchStudySession: vi.fn(),
-  navigate: vi.fn(),
-}));
-
-vi.mock("@/entities/preferences", () => ({
-  usePreferences: () => mocks.preferences,
+  preferences: null as unknown as Preferences,
   setDarkMode: vi.fn(),
 }));
-vi.mock("@/entities/card", () => ({
-  useCards: () => mocks.cards,
+
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
+  setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("@/entities/deck", () => ({
-  useDecks: () => mocks.decks,
-}));
-vi.mock("@/features/deck-import", () => ({ useAddSampleDeck: mocks.useAddSampleDeck }));
-vi.mock("@/entities/study-session", () => ({
-  touchStudySession: mocks.touchStudySession,
-  useStudySessions: () => ({}),
-}));
-vi.mock("@/features/deck-list", () => ({
-  useDeckListState: ({ decks }: { decks: Deck[] }) => ({
-    sections: { studying: [], other: decks.map((deck) => ({ deck, cardCount: 0 })) },
-    deletionTarget: undefined,
-    successMessage: undefined,
-    onDownload: vi.fn(),
-    onRequestDeletion: mocks.requestDeletion,
-    onCancelDeletion: vi.fn(),
-    onConfirmDeletion: vi.fn(),
-  }),
-  DeckList: (props: DeckListProps) => {
-    const [item] = props.state.sections.other;
-    const deck = item?.deck;
-    if (deck == null) return null;
-    return (
-      <section aria-label="Deck list feature">
-        <button type="button" onClick={() => props.onViewDeck(deck.id)}>
-          View deck
-        </button>
-        <button type="button" onClick={() => props.onContinueDeck(deck.id)}>
-          Continue deck
-        </button>
-        <button type="button" onClick={() => props.onStartDeck(deck.id)}>
-          Start deck
-        </button>
-        <button type="button" onClick={() => props.onEditDeck(deck.id)}>
-          Edit deck
-        </button>
-        <button type="button" onClick={() => props.state.onRequestDeletion(deck.id)}>
-          Delete deck
-        </button>
-      </section>
-    );
-  },
-}));
-vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
+vi.mock("@/features/deck-import", () => ({ useAddSampleDeck: () => undefined }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { DeckListPage } from "./DeckListPage";
 
 describe("DeckListPage", () => {
-  const deck = createDeck({ id: "deck-1", name: "Deck" });
-  const card = createCard({ id: "card-1", deckId: deck.id });
+  const activeDeck = createLocalDeck({ id: "active-deck", name: "Active deck" });
+  const freshDeck = createLocalDeck({ id: "fresh-deck", name: "Fresh deck" });
+  const activeCard = createLocalCard({
+    id: "active-card",
+    deckId: activeDeck.id,
+    frontText: "Active front",
+    uniqueKey: "active-card",
+  });
+  const freshCard = createLocalCard({
+    id: "fresh-card",
+    deckId: freshDeck.id,
+    frontText: "Fresh front",
+    uniqueKey: "fresh-card",
+  });
+  const renderPage = () =>
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route path="/" element={<DeckListPage />} />
+          <Route path="/settings" element={<h1>Settings destination</h1>} />
+          <Route path="/import" element={<h1>Import destination</h1>} />
+          <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
+          <Route path="/deck/:id/study" element={<h1>Study destination</h1>} />
+          <Route path="/deck/:id/start" element={<h1>Study start destination</h1>} />
+          <Route path="/deck/:id/edit" element={<h1>Deck editor destination</h1>} />
+        </Routes>
+      </MemoryRouter>
+    );
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.preferences = createPreferences({ darkMode: false });
-    mocks.decks = [deck];
-    mocks.cards = [card];
+  beforeEach(async () => {
+    clearStudySessions();
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
+    mocks.setDarkMode.mockReset();
+    await createDeck("", activeDeck);
+    await createDeck("", freshDeck);
+    await mutateCards("", [
+      { kind: "create", card: activeCard },
+      { kind: "create", card: freshCard },
+    ]);
+    startStudy(activeDeck.id, [activeCard], mocks.preferences.study);
   });
 
-  it("composes route and reusable feature actions around the Deck List Feature", () => {
-    render(<DeckListPage />);
+  it("navigates from each visible Deck action", async () => {
+    let view = renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "View Active deck" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "View deck" }));
-    fireEvent.click(screen.getByRole("button", { name: "Continue deck" }));
-    fireEvent.click(screen.getByRole("button", { name: "Start deck" }));
-    fireEvent.click(screen.getByRole("button", { name: "Edit deck" }));
-    fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    view.unmount();
+    view = renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Continue Active deck" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Study destination" })).toBeVisible();
 
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, `/deck/${deck.id}`, undefined);
-    expect(mocks.touchStudySession).toHaveBeenCalledExactlyOnceWith(deck.id);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, `/deck/${deck.id}/study`, undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, `/deck/${deck.id}/start`, undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(4, `/deck/${deck.id}/edit`, undefined);
-    expect(mocks.requestDeletion).toHaveBeenCalledExactlyOnceWith(deck.id);
+    view.unmount();
+    view = renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Study Fresh deck" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Study start destination" })).toBeVisible();
+
+    view.unmount();
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck editor destination" })).toBeVisible();
   });
 
-  it("keeps route shortcuts and sample Deck wiring", () => {
-    render(<DeckListPage />);
+  it("deletes a local Deck and reports the visible result", async () => {
+    renderPage();
 
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+
+    expect(await screen.findByText("Deleted deck “Fresh deck”.")).toBeVisible();
+    await waitFor(() => expect(screen.queryByRole("button", { name: "View Fresh deck" })).not.toBeInTheDocument());
+  });
+
+  it("navigates from both route shortcuts", async () => {
+    const view = renderPage();
     fireEvent.keyDown(window, { key: "s" });
-    fireEvent.keyDown(window, { key: "i" });
+    expect(await screen.findByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
 
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings", undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import", undefined);
-    expect(mocks.useAddSampleDeck).toHaveBeenCalledWith();
+    view.unmount();
+    renderPage();
+    fireEvent.keyDown(window, { key: "i" });
+    expect(await screen.findByRole("heading", { level: 1, name: "Import destination" })).toBeVisible();
   });
 
-  it("renders empty list when no decks exist", () => {
-    mocks.decks = [];
-    render(<DeckListPage />);
+  it("renders an empty list after all Decks are removed", async () => {
+    await deleteDeck("", activeDeck);
+    await deleteDeck("", freshDeck);
+    renderPage();
+
+    expect(screen.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+    expect(screen.getByText("0 decks")).toBeVisible();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 });
