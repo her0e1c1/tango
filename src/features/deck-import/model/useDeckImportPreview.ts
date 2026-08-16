@@ -6,8 +6,8 @@ import { useRef, useState } from "react";
 import { fetchCards, generateCardId } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
 import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
-import type { DeckImportStorageMode, PreparedDeckImport } from "./deckImportExecution";
-import { prepareDeckImport } from "./deckImportExecution";
+import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
+import { prepareDeckImport } from "./useDeckImportExecution";
 
 export interface DeckImportPreview {
   deckName: string;

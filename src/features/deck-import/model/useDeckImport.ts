@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useAuthUid } from "@/entities/auth";
 import { generateCardId, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
-import type { DeckImportStorageMode, PreparedDeckImport } from "./deckImportExecution";
-import { prepareSampleDeck } from "./sampleDeck";
+import { prepareSampleDeck } from "./useAddSampleDeck";
+import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { useDeckImportExecution } from "./useDeckImportExecution";
 import { useDeckImportPreview } from "./useDeckImportPreview";
 

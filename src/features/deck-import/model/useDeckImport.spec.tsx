@@ -5,7 +5,7 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck, createLocalCard, createLocalDeck } from "@/test/factories";
-import type { DeckImportResult } from "./deckImportExecution";
+import type { DeckImportResult } from "./useDeckImportExecution";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
