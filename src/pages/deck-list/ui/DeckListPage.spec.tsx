@@ -38,11 +38,12 @@ vi.mock("@/entities/study-session", () => ({
   useStudySessions: () => ({}),
 }));
 vi.mock("@/features/deck-list", () => ({
-  useDeckListState: ({ decks }: { decks: Deck[] }) => ({
-    sections: { studying: [], other: decks.map((deck) => ({ deck, cardCount: 0 })) },
+  useDeckListState: () => ({
+    sections: { studying: [], other: mocks.decks.map((deck) => ({ deck, cardCount: 0 })) },
     deletionTarget: undefined,
     successMessage: undefined,
     onDownload: vi.fn(),
+    onContinueStudy: mocks.touchStudySession,
     onRequestDeletion: mocks.requestDeletion,
     onCancelDeletion: vi.fn(),
     onConfirmDeletion: vi.fn(),
@@ -56,7 +57,13 @@ vi.mock("@/features/deck-list", () => ({
         <button type="button" onClick={() => props.onViewDeck(deck.id)}>
           View deck
         </button>
-        <button type="button" onClick={() => props.onContinueDeck(deck.id)}>
+        <button
+          type="button"
+          onClick={() => {
+            props.state.onContinueStudy(deck.id);
+            props.onContinueDeck(deck.id);
+          }}
+        >
           Continue deck
         </button>
         <button type="button" onClick={() => props.onStartDeck(deck.id)}>

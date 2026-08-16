@@ -1,4 +1,4 @@
-export { buildCardViewContent } from "./model/buildCardViewContent";
+export { useCardViewState } from "./model/useCardViewState";
 export { BackText } from "./ui/BackText";
 export { CardOverlay } from "./ui/CardOverlay";
 export { CardView } from "./ui/CardView";

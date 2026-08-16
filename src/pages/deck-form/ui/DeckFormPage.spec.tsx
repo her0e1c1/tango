@@ -23,11 +23,11 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 vi.mock("@/features/deck-edit", () => ({
-  useDeckEditAction: ({ onSaved }: { onSaved: () => void }) => ({ error: null, update: onSaved }),
-  useDeckFormState: ({ deck, onCancel, onSubmit }: { deck: Deck; onCancel: () => void; onSubmit: () => void }) => ({
-    deck,
-    onCancel,
-    onSubmit,
+  useDeckFormState: ({ onCancel, onSaved }: { onCancel: () => void; onSaved: () => void }) => ({
+    available: mocks.deck != null,
+    deckName: mocks.deck?.name ?? "",
+    form: { onCancel, onSubmit: onSaved },
+    saveError: null,
   }),
   DeckEditForm: (props: { deckName: string; form: { onCancel: () => void; onSubmit: () => void } }) => (
     <section>

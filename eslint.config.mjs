@@ -148,6 +148,24 @@ export default [
     },
   },
   {
+    files: ["src/pages/**/*.{ts,tsx}"],
+    ignores: testFiles,
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/entities", "@/entities/*"],
+              message:
+                "Pages must not import Entities directly. Pass route parameters to Features and let Features own Entity access.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     ...testingLibrary.configs["flat/react"],
     files: vitestFiles,
   },

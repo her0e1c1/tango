@@ -7,15 +7,29 @@ import { render, fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect, it, describe, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
+const mocks = vi.hoisted(() => ({
+  preferences: undefined as Preferences | undefined,
+  onSubmit: (() => undefined) as (preferences: Preferences) => void,
+}));
+
+vi.mock("@/entities/preferences", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/preferences")>()),
+  usePreferences: () => mocks.preferences,
+  updatePreferences: (preferences: Preferences) => mocks.onSubmit(preferences),
+}));
+
 import { SettingsForm } from "../../ui/components/SettingsForm";
 import { usePreferencesFormState } from "./usePreferencesFormState";
 
-const SettingsFormHarness: React.FC<{
-  preferences: Preferences;
-  onSubmit: (preferences: Preferences) => void;
-}> = ({ preferences, onSubmit }) => {
-  const formState = usePreferencesFormState({ preferences, onSubmit });
+const SettingsFormHarness: React.FC = () => {
+  const formState = usePreferencesFormState();
   return <SettingsForm {...formState} />;
+};
+
+const renderSettingsForm = (preferences: Preferences, onSubmit: (preferences: Preferences) => void) => {
+  mocks.preferences = preferences;
+  mocks.onSubmit = onSubmit;
+  return render(<SettingsFormHarness />);
 };
 
 import { createPreferences } from "@/test/factories";
@@ -36,7 +50,7 @@ describe("SettingsForm with usePreferencesFormState", () => {
 
   it("auto-submits boolean and numeric field changes", async () => {
     const onSubmit = vi.fn();
-    render(<SettingsFormHarness preferences={preferences} onSubmit={onSubmit} />);
+    renderSettingsForm(preferences, onSubmit);
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
     await waitFor(() => {
@@ -69,12 +83,13 @@ describe("SettingsForm with usePreferencesFormState", () => {
 
   it("synchronizes dark mode when the preferences prop changes", async () => {
     const onSubmit = vi.fn();
-    const { rerender } = render(<SettingsFormHarness preferences={preferences} onSubmit={onSubmit} />);
+    const { rerender } = renderSettingsForm(preferences, onSubmit);
     const darkModeInput = screen.getByRole("checkbox", { name: "Dark mode" });
     expect(darkModeInput).not.toBeChecked();
 
     const updatedPreferences = { ...preferences, appearance: { ...preferences.appearance, darkMode: true } };
-    rerender(<SettingsFormHarness preferences={updatedPreferences} onSubmit={onSubmit} />);
+    mocks.preferences = updatedPreferences;
+    rerender(<SettingsFormHarness />);
 
     await waitFor(() => {
       expect(darkModeInput).toBeChecked();

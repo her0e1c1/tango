@@ -1,4 +1,4 @@
-import type { Card, CardId } from "@/entities/card";
+import type { CardId } from "@/entities/card";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -40,21 +40,19 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 }));
 
 import { CardEditForm } from "./CardEditForm";
-import { useCardEditAction } from "../model/useCardEditAction";
 import { useCardFormState } from "../model/useCardFormState";
 
-const CardEditFormHarness = (props: { card: Card; onCancel: () => void; onSaved: () => void }) => {
-  const editAction = useCardEditAction({ onSaved: props.onSaved });
-  const form = useCardFormState({ card: props.card, onCancel: props.onCancel, onSubmit: editAction.update });
+const CardEditFormHarness = (props: { cardId: string; onCancel: () => void; onSaved: () => void }) => {
+  const editor = useCardFormState({ cardId: props.cardId, onCancel: props.onCancel, onSaved: props.onSaved });
 
-  return <CardEditForm form={form} saveError={editAction.error} />;
+  return <CardEditForm form={editor.form} saveError={editor.saveError} />;
 };
 
 // A fresh Entity read after remount proves that the form displays the last successful edit.
 const StoredCardEditFormHarness = (props: { cardId: CardId; onCancel: () => void; onSaved: () => void }) => {
   const card = useCard(props.cardId);
   return card === undefined ? null : (
-    <CardEditFormHarness card={card} onCancel={props.onCancel} onSaved={props.onSaved} />
+    <CardEditFormHarness cardId={card.id} onCancel={props.onCancel} onSaved={props.onSaved} />
   );
 };
 

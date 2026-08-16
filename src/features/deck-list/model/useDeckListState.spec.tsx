@@ -1,8 +1,30 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
+import type { StudySession } from "@/entities/study-session";
+
+const mocks = vi.hoisted(() => ({
+  decks: [] as Deck[],
+  cards: [] as Card[],
+  sessionsByDeckId: {} as Partial<Record<string, StudySession>>,
+}));
+
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/card", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/card")>()),
+  useCards: () => mocks.cards,
+}));
+vi.mock("@/entities/deck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/deck")>()),
+  useDecks: () => mocks.decks,
+}));
+vi.mock("@/entities/study-session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/study-session")>()),
+  useStudySessions: () => mocks.sessionsByDeckId,
+}));
 
 import { createCard, createDeck } from "@/test/factories";
 
@@ -45,7 +67,10 @@ describe("useDeckListState", () => {
       },
     };
 
-    const { result } = renderHook(() => useDeckListState({ decks, cards, sessionsByDeckId }));
+    mocks.decks = decks;
+    mocks.cards = cards;
+    mocks.sessionsByDeckId = sessionsByDeckId;
+    const { result } = renderHook(() => useDeckListState());
     const { sections } = result.current;
 
     expect(sections.studying.map((item) => item.deck.id)).toEqual(["active-new", "active-old"]);

@@ -1,5 +1,3 @@
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
 import type { StudyState } from "@/features/study";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -8,19 +6,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "deck-id" as string | undefined },
-  deck: undefined as Deck | undefined,
-  cards: [] as Card[],
   navigate: vi.fn(),
   studyState: undefined as StudyState | undefined,
-  studyArgs: undefined as { cards: readonly Card[]; deckId: string } | undefined,
+  studyDeckId: undefined as string | undefined,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/deck", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/entities/deck")>();
-  return { ...actual, useDeck: () => mocks.deck };
-});
-vi.mock("@/entities/card", () => ({ useCards: () => mocks.cards }));
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mocks.navigate,
   useParams: () => mocks.params,
@@ -29,8 +20,8 @@ vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
   return {
     ...actual,
-    useStudy: (deckId: string, cards: readonly Card[]) => {
-      mocks.studyArgs = { deckId, cards };
+    useStudy: (deckId: string) => {
+      mocks.studyDeckId = deckId;
       if (mocks.studyState == null) throw new Error("Study state not initialized");
       return mocks.studyState;
     },
@@ -39,7 +30,7 @@ vi.mock("@/features/study", async (importOriginal) => {
 
 import { StudySessionPage } from "./StudySessionPage";
 
-const deck: Deck = {
+const deck = {
   id: "deck-id",
   localMode: false,
   name: "Deck",
@@ -53,7 +44,7 @@ const deck: Deck = {
   scoreMax: null,
   scoreMin: null,
 };
-const card: Card = {
+const card = {
   id: "card-id",
   deckId: deck.id,
   uid: "user-id",
@@ -76,6 +67,8 @@ const commands = () => ({
   swipeRight: vi.fn(),
   toggleBackText: vi.fn(),
   toggleAutoPlay: vi.fn(),
+  toggleHeader: vi.fn(),
+  toggleSwipeButtonList: vi.fn(),
 });
 const commonState = () => ({
   ...commands(),
@@ -90,23 +83,30 @@ const studyingState = (): StudyState => ({
   status: "studying",
   ...commonState(),
   session: {
-    sessionId: "session-id",
-    deckId: deck.id,
-    cardOrderIds: [card.id],
     currentIndex: 0,
-    lastStudiedAt: 0,
+    cardCount: 1,
   },
-  card,
+  card: {
+    frontText: card.frontText,
+    category: "typescript",
+    score: card.score,
+    numberOfSeen: card.numberOfSeen,
+    lastSeenAt: card.lastSeenAt,
+    back: {
+      text: card.backText,
+      category: "typescript",
+      code: true,
+      dark: false,
+    },
+  },
 });
 
 describe("StudySessionPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.params.id = deck.id;
-    mocks.deck = deck;
-    mocks.cards = [card];
     mocks.studyState = studyingState();
-    mocks.studyArgs = undefined;
+    mocks.studyDeckId = undefined;
     window.history.replaceState(null, document.title, document.location.href);
   });
 
@@ -115,10 +115,10 @@ describe("StudySessionPage", () => {
     expect(() => render(<StudySessionPage />)).toThrow("invalid deck id");
   });
 
-  it("passes Entity reads to useStudy and composes the application shell", () => {
+  it("passes the route id to the Study Feature and composes the application shell", () => {
     render(<StudySessionPage />);
 
-    expect(mocks.studyArgs).toMatchObject({ deckId: deck.id, cards: [card] });
+    expect(mocks.studyDeckId).toBe(deck.id);
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     expect(screen.getByText(card.frontText)).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
@@ -150,8 +150,8 @@ describe("StudySessionPage", () => {
     expect(state.swipeLeft).toHaveBeenCalledOnce();
   });
 
-  it("shows route feedback when the Deck Entity is unavailable", () => {
-    mocks.deck = undefined;
+  it("shows route feedback when the Study Feature reports an unavailable Deck", () => {
+    mocks.studyState = { status: "unavailable", ...commonState() };
     render(<StudySessionPage />);
     expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
   });

@@ -1,10 +1,7 @@
 import type * as React from "react";
 import { useParams } from "react-router-dom";
 
-import { useCard } from "@/entities/card";
-import { useDeck } from "@/entities/deck";
-import { usePreferences } from "@/entities/preferences";
-import { buildCardViewContent, CardView } from "@/features/card-view";
+import { CardView, useCardViewState } from "@/features/card-view";
 import { routes, useNavigation } from "@/features/navigate";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -14,12 +11,9 @@ export const CardViewPage: React.FC = () => {
   const navigation = useNavigation();
   const cardId = params.id;
   if (cardId == null) throw new Error("invalid card id");
-  const card = useCard(cardId);
-  const deck = useDeck(card?.deckId);
-  const preferences = usePreferences();
-  const available = card != null && deck != null;
+  const cardView = useCardViewState(cardId);
 
-  if (!available) {
+  if (!cardView.available || cardView.content == null) {
     return (
       <RouteFeedback
         title="Card not found"
@@ -33,7 +27,7 @@ export const CardViewPage: React.FC = () => {
 
   return (
     <AppLayout showHeader>
-      <CardView {...buildCardViewContent(card, deck, preferences.appearance.darkMode)} />
+      <CardView {...cardView.content} />
     </AppLayout>
   );
 };

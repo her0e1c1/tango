@@ -33,8 +33,10 @@ vi.mock("@/entities/deck", () => ({
   useDeck: () => mocks.deck ?? undefined,
 }));
 vi.mock("@/features/card-list", () => ({
-  useCardListState: ({ cards }: { cards: Card[] }) => ({
-    cards,
+  useCardListState: (deckId: string) => ({
+    available: mocks.deck != null,
+    tags: [...new Set(mocks.cards.filter((card) => card.deckId === deckId).flatMap((card) => card.tags))],
+    cards: mocks.cards.filter((card) => card.deckId === deckId),
     answer: undefined,
     deletionTarget: undefined,
     mutationError: null,

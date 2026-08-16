@@ -1,11 +1,11 @@
-import type { Deck, DeckEdit } from "@/entities/deck";
-import type * as React from "react";
+import * as React from "react";
 import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { CATEGORY, deckFormSchema, type DeckId } from "@/entities/deck";
+import { useAuthUid } from "@/entities/auth";
+import { CATEGORY, deckFormSchema, editDeck, type DeckId, useDeck } from "@/entities/deck";
 import type { Form, Input, Select, Switch } from "@/shared/ui/forms";
 
 interface DeckFormFields {
@@ -34,31 +34,44 @@ export interface DeckFormProps {
 type DeckFormValues = z.infer<typeof deckFormSchema>;
 
 interface UseDeckFormStateOptions {
-  deck: Deck;
+  deckId: string;
   onCancel: () => void;
-  onSubmit: (deck: DeckEdit) => Promise<void>;
+  onSaved: () => void;
 }
 
-export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateOptions): DeckFormProps => {
+export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormStateOptions) => {
+  const uid = useAuthUid();
+  const deck = useDeck(deckId);
+  const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
-    defaultValues: {
-      name: deck.name,
-      category: deck.category,
-      url: deck.url,
-      convertToBr: deck.convertToBr,
+    values: {
+      name: deck?.name ?? "",
+      category: deck?.category ?? "raw",
+      url: deck?.url || undefined,
+      convertToBr: deck?.convertToBr ?? false,
     },
     resolver: zodResolver(deckFormSchema),
   });
-  const submit = handleSubmit((values) => onSubmit({ id: deck.id, ...values, url: values.url ?? null }));
+
+  const submit = handleSubmit(async (values) => {
+    if (deck == null) return;
+    setSaveError(null);
+    try {
+      await editDeck(uid, { id: deck.id, ...values, url: values.url ?? null });
+      onSaved();
+    } catch (error) {
+      setSaveError(error);
+    }
+  });
   const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
     void submit(event);
   };
 
-  return {
+  const form: DeckFormProps = {
     deckInfo: {
-      id: deck.id,
-      ...(deck.createdAt ? { createdAt: new Date(deck.createdAt).toLocaleDateString() } : {}),
-      ...(deck.updatedAt ? { updatedAt: new Date(deck.updatedAt).toLocaleDateString() } : {}),
+      id: deck?.id ?? deckId,
+      ...(deck?.createdAt ? { createdAt: new Date(deck.createdAt).toLocaleDateString() } : {}),
+      ...(deck?.updatedAt ? { updatedAt: new Date(deck.updatedAt).toLocaleDateString() } : {}),
     },
     fields: {
       name: register("name"),
@@ -78,4 +91,6 @@ export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateO
     onCancel,
     onSubmit: onFormSubmit,
   };
+
+  return { available: deck != null, deckName: deck?.name ?? "", form, saveError };
 };

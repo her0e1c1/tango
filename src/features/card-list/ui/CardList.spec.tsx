@@ -12,6 +12,9 @@ import { createCard, createDeck, createPreferences } from "@/test/factories";
 const mocks = vi.hoisted(() => ({
   deleteCard: vi.fn(),
   editStudyProgress: vi.fn(),
+  deck: undefined as Deck | undefined,
+  cards: [] as Card[],
+  preferences: undefined as Preferences | undefined,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -21,6 +24,18 @@ vi.mock("@/entities/auth", () => ({
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   deleteCard: mocks.deleteCard,
+  useCardsByDeckId: () => ({
+    cards: mocks.cards,
+    tags: [...new Set(mocks.cards.flatMap((candidate) => candidate.tags))],
+  }),
+}));
+vi.mock("@/entities/deck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/deck")>()),
+  useDeck: () => mocks.deck,
+}));
+vi.mock("@/entities/preferences", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/preferences")>()),
+  usePreferences: () => mocks.preferences,
 }));
 vi.mock("@/entities/study-progress", () => ({ editStudyProgress: mocks.editStudyProgress }));
 
@@ -63,7 +78,7 @@ interface CardListHarnessProps {
 }
 
 const CardListHarness = (props: CardListHarnessProps) => {
-  const state = useCardListState({ cards: props.cards, deck: props.deck, dark: props.preferences.appearance.darkMode });
+  const state = useCardListState(props.deck.id);
 
   return (
     <CardList
@@ -90,8 +105,13 @@ const defaultProps: CardListHarnessProps = {
   onEditCard,
 };
 
-const renderCardList = (overrides: Partial<CardListHarnessProps> = {}) =>
-  render(<CardListHarness {...defaultProps} {...overrides} />);
+const renderCardList = (overrides: Partial<CardListHarnessProps> = {}) => {
+  const props = { ...defaultProps, ...overrides };
+  mocks.deck = props.deck;
+  mocks.cards = props.cards;
+  mocks.preferences = props.preferences;
+  return render(<CardListHarness {...props} />);
+};
 
 const swipe = (article: HTMLElement, from: number, to: number) => {
   fireEvent.mouseDown(article, { clientX: from, clientY: 0 });

@@ -3,7 +3,7 @@
  * The examples make the expected behavior concrete by remounting the form from its saved Deck.
  */
 
-import type { Deck, DeckId } from "@/entities/deck";
+import type { DeckId } from "@/entities/deck";
 
 import type React from "react";
 
@@ -12,7 +12,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createDeck, useDeck } from "@/entities/deck";
+import { createDeck } from "@/entities/deck";
 import { createLocalDeck } from "@/test/factories";
 import { DeckFilterForm } from "../ui/DeckFilterForm";
 import { useDeckFilterState } from "./useDeckFilterState";
@@ -27,29 +27,44 @@ vi.mock("@/shared/firebase", () => ({ db: {} }));
  * Individual tests reuse it to exercise realistic interactions without repeating setup code.
  */
 const DeckFilterHarness: React.FC<{
-  deck: Deck;
+  deckId: DeckId;
   tags: string[];
-}> = ({ deck, tags }) => {
-  const deckFilter = useDeckFilterState(deck);
+}> = ({ deckId, tags }) => {
+  const deckFilter = useDeckFilterState(deckId);
+  if (deckFilter == null) return null;
   return <DeckFilterForm {...deckFilter} tags={tags} />;
-};
-
-// Connects a fresh filter form to the Deck saved by the Entity after each remount.
-const StoredDeckFilterHarness: React.FC<{ deckId: DeckId; tags: string[] }> = ({ deckId, tags }) => {
-  const deck = useDeck(deckId);
-  return deck === undefined ? null : <DeckFilterHarness deck={deck} tags={tags} />;
 };
 
 describe("DeckFilterForm with useDeckFilterState", () => {
   const deckId = "filter-deck";
   const tags = ["tag1", "tag2", "tag3"];
 
+  it("initializes from a Deck that becomes available after the Feature mounts", async () => {
+    const delayedDeckId = "delayed-filter-deck";
+    render(<DeckFilterHarness deckId={delayedDeckId} tags={tags} />);
+
+    await createDeck(
+      "",
+      createLocalDeck({
+        id: delayedDeckId,
+        scoreMax: 2,
+        scoreMin: -2,
+        tagAndFilter: true,
+        selectedTags: ["tag2"],
+      })
+    );
+
+    expect(await screen.findByText("−2 to 2")).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Match all selected tags" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
+  });
+
   it("restores score and tag mode changes from the saved Deck", async () => {
     await createDeck(
       "",
       createLocalDeck({ id: deckId, scoreMax: 1, scoreMin: -1, tagAndFilter: false, selectedTags: [] })
     );
-    const renderFilter = () => render(<StoredDeckFilterHarness deckId={deckId} tags={tags} />);
+    const renderFilter = () => render(<DeckFilterHarness deckId={deckId} tags={tags} />);
     const view = renderFilter();
 
     fireEvent.change(screen.getByRole("slider", { name: "Maximum score value" }), {
@@ -74,7 +89,7 @@ describe("DeckFilterForm with useDeckFilterState", () => {
 
   it("restores enabled score limits and later restores their removal", async () => {
     await createDeck("", createLocalDeck({ id: deckId, scoreMax: null, scoreMin: null }));
-    const renderFilter = () => render(<StoredDeckFilterHarness deckId={deckId} tags={tags} />);
+    const renderFilter = () => render(<DeckFilterHarness deckId={deckId} tags={tags} />);
     let view = renderFilter();
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Enable maximum score" }));
@@ -110,7 +125,7 @@ describe("DeckFilterForm with useDeckFilterState", () => {
 
   it("restores individual, all, and cleared tag selections", async () => {
     await createDeck("", createLocalDeck({ id: deckId, selectedTags: [] }));
-    const renderFilter = () => render(<StoredDeckFilterHarness deckId={deckId} tags={tags} />);
+    const renderFilter = () => render(<DeckFilterHarness deckId={deckId} tags={tags} />);
     let view = renderFilter();
 
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));

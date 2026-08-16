@@ -2,9 +2,6 @@ import type * as React from "react";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { type Card, type CardId, useCardsByDeckId } from "@/entities/card";
-import { type Deck, filterCardsForDeck, useDeck } from "@/entities/deck";
-import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList, useCardListState } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
@@ -12,50 +9,12 @@ import { routes, useNavigation } from "@/features/navigate";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
-const CardListComposition = (props: {
-  deck: Deck;
-  cards: Card[];
-  tags: string[];
-  preferences: Preferences;
-  onEditCard: (id: CardId) => void;
-}) => {
-  const deckFilter = useDeckFilterState(props.deck);
-  const cardList = useCardListState({
-    cards: props.cards,
-    deck: props.deck,
-    dark: props.preferences.appearance.darkMode,
-  });
-
-  return (
-    <CardList
-      state={cardList}
-      filter={{
-        scoreMax: deckFilter.scoreMax,
-        scoreMin: deckFilter.scoreMin,
-        selectedTags: deckFilter.selectedTags,
-        controls: <DeckFilterForm {...deckFilter} tags={props.tags} />,
-        onRemoveTag: (tag) => deckFilter.setSelectedTags(deckFilter.selectedTags.filter((value) => value !== tag)),
-      }}
-      {...(cardList.answer !== undefined ? { answerSlot: <BackText {...cardList.answer} /> } : {})}
-      onEditCard={props.onEditCard}
-    />
-  );
-};
-
-export const CardListPage: React.FC = () => {
-  const params = useParams();
+const CardListContent = ({ deckId }: { deckId: string }) => {
   const navigation = useNavigation();
-  const deckId = params.id;
-  if (deckId == null) throw new Error("invalid deck id");
-  const preferences = usePreferences();
-  const deck = useDeck(deckId);
-  const { cards: deckCards, tags } = useCardsByDeckId(deckId);
-  const cards = deck == null ? [] : filterCardsForDeck(deckCards, deck, preferences.study);
+  const cardList = useCardListState(deckId);
+  const deckFilter = useDeckFilterState(deckId);
 
-  useKey("t", () => void navigation.to(routes.deckList.to()));
-  useKey("s", () => void navigation.to(routes.settings.to()));
-
-  if (deck == null) {
+  if (!cardList.available || deckFilter == null) {
     return (
       <RouteFeedback
         title="Deck not found"
@@ -69,15 +28,31 @@ export const CardListPage: React.FC = () => {
 
   return (
     <AppLayout showHeader>
-      {/* Filters, dialogs, and the shown card belong to one deck and must not survive a route change. */}
-      <CardListComposition
-        key={deck.id}
-        deck={deck}
-        cards={cards}
-        tags={tags}
-        preferences={preferences}
+      <CardList
+        state={cardList}
+        filter={{
+          scoreMax: deckFilter.scoreMax,
+          scoreMin: deckFilter.scoreMin,
+          selectedTags: deckFilter.selectedTags,
+          controls: <DeckFilterForm {...deckFilter} tags={cardList.tags} />,
+          onRemoveTag: (tag) => deckFilter.setSelectedTags(deckFilter.selectedTags.filter((value) => value !== tag)),
+        }}
+        {...(cardList.answer !== undefined ? { answerSlot: <BackText {...cardList.answer} /> } : {})}
         onEditCard={(id) => void navigation.to(routes.cardForm.to(id))}
       />
     </AppLayout>
   );
+};
+
+export const CardListPage: React.FC = () => {
+  const params = useParams();
+  const navigation = useNavigation();
+  const deckId = params.id;
+  if (deckId == null) throw new Error("invalid deck id");
+
+  useKey("t", () => void navigation.to(routes.deckList.to()));
+  useKey("s", () => void navigation.to(routes.settings.to()));
+
+  // Route-scoped Feature state must not survive navigation to another Deck.
+  return <CardListContent key={deckId} deckId={deckId} />;
 };

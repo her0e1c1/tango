@@ -1,8 +1,9 @@
 import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { deleteCard, mustFindCardById, type Card, type CardId } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
+import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
+import { filterCardsForDeck, getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
+import { usePreferences } from "@/entities/preferences";
 import { editStudyProgress } from "@/entities/study-progress";
 
 export interface CardListItem {
@@ -20,13 +21,9 @@ interface CardListAnswer {
   dark: boolean;
 }
 
-interface UseCardListStateOptions {
-  cards: Card[];
-  deck: Deck;
-  dark: boolean;
-}
-
 export interface CardListState {
+  available: boolean;
+  tags: string[];
   cards: CardListItem[];
   answer: CardListAnswer | undefined;
   deletionTarget: { frontText: string; hasError: boolean } | undefined;
@@ -49,8 +46,12 @@ const buildCardListItem = (card: Card): CardListItem => ({
   tags: card.tags,
 });
 
-export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions): CardListState => {
+export const useCardListState = (deckId: string): CardListState => {
   const uid = useAuthUid();
+  const deck = useDeck(deckId);
+  const preferences = usePreferences();
+  const { cards: deckCards, tags } = useCardsByDeckId(deckId);
+  const cards = deck == null ? [] : filterCardsForDeck(deckCards, deck, preferences.study);
   const [shownCard, setShownCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
@@ -84,7 +85,7 @@ export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions)
     }
   };
 
-  const category = shownCard == null ? undefined : getCategory(deck.category, shownCard.tags);
+  const category = shownCard == null || deck == null ? undefined : getCategory(deck.category, shownCard.tags);
   const answer: CardListAnswer | undefined =
     shownCard == null || category == null
       ? undefined
@@ -92,10 +93,12 @@ export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions)
           text: shownCard.backText,
           category,
           code: isHighlightLanguage(category),
-          dark,
+          dark: preferences.appearance.darkMode,
         };
 
   return {
+    available: deck != null,
+    tags,
     cards: cards.map(buildCardListItem),
     answer,
     deletionTarget:

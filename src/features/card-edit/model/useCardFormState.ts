@@ -1,10 +1,11 @@
+import * as React from "react";
 import type * as z from "zod";
-import type * as React from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { cardContentSchema, type Card, type CardEditInput, type CardId } from "@/entities/card";
+import { useAuthUid } from "@/entities/auth";
+import { cardContentSchema, editCard, type CardId, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import type { Form, Option, Tag, Textarea } from "@/shared/ui/forms";
 
@@ -39,31 +40,44 @@ const cardFormSchema = cardContentSchema.omit({ uniqueKey: true });
 type CardFormValues = z.infer<typeof cardFormSchema>;
 
 interface UseCardFormStateOptions {
-  card: Card;
+  cardId: string;
   onCancel: () => void;
-  onSubmit: (card: CardEditInput) => Promise<void>;
+  onSaved: () => void;
 }
 
-export const useCardFormState = ({ card, onCancel, onSubmit }: UseCardFormStateOptions): CardFormProps => {
+export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormStateOptions) => {
+  const uid = useAuthUid();
+  const card = useCard(cardId);
+  const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<CardFormValues>({
-    defaultValues: {
-      frontText: card.frontText,
-      backText: card.backText,
-      tags: card.tags,
+    values: {
+      frontText: card?.frontText ?? "",
+      backText: card?.backText ?? "",
+      tags: card?.tags ?? [],
     },
     resolver: zodResolver(cardFormSchema),
   });
-  const submit = handleSubmit((values) => onSubmit({ id: card.id, ...values }));
+
+  const submit = handleSubmit(async (values) => {
+    if (card == null) return;
+    setSaveError(null);
+    try {
+      await editCard(uid, { id: card.id, ...values });
+      onSaved();
+    } catch (error) {
+      setSaveError(error);
+    }
+  });
   const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
     void submit(event);
   };
 
-  return {
+  const form: CardFormProps = {
     cardInfo: {
-      id: card.id,
-      uniqueKey: card.uniqueKey,
-      ...(card.createdAt ? { createdAt: new Date(card.createdAt).toLocaleDateString() } : {}),
-      ...(card.lastSeenAt != null ? { lastSeenAt: new Date(card.lastSeenAt).toLocaleDateString() } : {}),
+      id: card?.id ?? cardId,
+      uniqueKey: card?.uniqueKey ?? "",
+      ...(card?.createdAt ? { createdAt: new Date(card.createdAt).toLocaleDateString() } : {}),
+      ...(card?.lastSeenAt != null ? { lastSeenAt: new Date(card.lastSeenAt).toLocaleDateString() } : {}),
     },
     fields: {
       frontText: register("frontText"),
@@ -82,4 +96,6 @@ export const useCardFormState = ({ card, onCancel, onSubmit }: UseCardFormStateO
     onCancel,
     onSubmit: onFormSubmit,
   };
+
+  return { available: card != null, form, saveError };
 };

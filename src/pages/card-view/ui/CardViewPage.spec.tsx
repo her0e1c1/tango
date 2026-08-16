@@ -29,7 +29,11 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 vi.mock("@/features/card-view", () => ({
-  buildCardViewContent: (card: Card, deck: Deck) => ({ text: `Card view: ${card.id} / ${deck.id}` }),
+  useCardViewState: () => ({
+    available: mocks.card != null && mocks.deck != null,
+    content:
+      mocks.card == null || mocks.deck == null ? undefined : { text: `Card view: ${mocks.card.id} / ${mocks.deck.id}` },
+  }),
   CardView: ({ text }: { text: string }) => <div>{text}</div>,
 }));
 vi.mock("react-router-dom", () => ({

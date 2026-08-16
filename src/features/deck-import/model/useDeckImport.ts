@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuthUid } from "@/entities/auth";
 import { generateCardId, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
+import { usePreferences } from "@/entities/preferences";
 import { prepareSampleDeck } from "./useAddSampleDeck";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { useDeckImportExecution } from "./useDeckImportExecution";
@@ -16,6 +17,7 @@ export const useDeckImport = () => {
   const uid = useAuthUid();
   const cards = useCards();
   const decks = useDecks();
+  const preferences = usePreferences();
   const execution = useDeckImportExecution(uid);
   const preview = useDeckImportPreview({ uid, cards, decks });
   const [status, setStatus] = useState<DeckImportStatus>("idle");
@@ -57,5 +59,6 @@ export const useDeckImport = () => {
     error: execution.error,
     previewError: preview.error,
     result: execution.result,
+    dark: preferences.appearance.darkMode,
   };
 };

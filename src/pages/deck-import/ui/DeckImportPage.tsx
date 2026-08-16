@@ -1,13 +1,11 @@
 import type React from "react";
 import { useKey } from "react-use";
 
-import { usePreferences } from "@/entities/preferences";
 import { DeckImportView, downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck-import";
 import { routes, useNavigation } from "@/features/navigate";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckImportPage: React.FC = () => {
-  const preferences = usePreferences();
   const navigation = useNavigation();
   const deckImport = useDeckImport();
   useKey("t", () => void navigation.to(routes.deckList.to()));
@@ -38,7 +36,7 @@ export const DeckImportPage: React.FC = () => {
         result={deckImport.result}
         error={deckImport.error}
         previewError={deckImport.previewError}
-        dark={preferences.appearance.darkMode}
+        dark={deckImport.dark}
         sampleText={SAMPLE_CSV_TEXT}
       />
     </AppLayout>

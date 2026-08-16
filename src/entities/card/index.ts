@@ -10,7 +10,6 @@ export { cardContentSchema } from "./model/schema";
 export { clearRemoteCards } from "./model/store";
 export type {
   Card,
-  CardEditInput,
   CardId,
   CardMutation,
   CardRaw,
