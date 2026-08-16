@@ -137,18 +137,6 @@ export default [
       ...strictTypeCheckedRules,
       // Shorthand callbacks that intentionally return void are established project style, not ambiguous expressions.
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
-      // Require explicit conversion so interpolation cannot silently widen as value types evolve.
-      "@typescript-eslint/restrict-template-expressions": [
-        "error",
-        {
-          allowAny: false,
-          allowBoolean: false,
-          allowNever: false,
-          allowNullish: false,
-          allowNumber: false,
-          allowRegExp: false,
-        },
-      ],
       // Keep the unsafe-any boundary introduced by #533 explicit as the preset expands around it.
       "@typescript-eslint/no-unsafe-argument": "error",
       "@typescript-eslint/no-unsafe-assignment": "error",
