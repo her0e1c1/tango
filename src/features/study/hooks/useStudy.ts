@@ -6,7 +6,6 @@ import { editStudyProgress } from "@/entities/study-progress";
 import {
   calculateStudySessionIndex,
   getStudySession,
-  isStudySessionPositionUnchanged,
   moveStudySession,
   planStudySessionSwipe,
   removeStudySession,
@@ -80,18 +79,14 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
     swipeState.current.inProgress = false;
     if (!saved) return;
 
-    const currentSession = getStudySession(deckId);
-    // Position changes during the write own the newer card, while timestamp-only touches still allow advancement.
-    if (!isStudySessionPositionUnchanged(swipePlan.session, currentSession)) return;
+    if (!moveStudySession(swipePlan.session, swipePlan.effect)) return;
 
     feedback.showSwipe(direction);
     if (preferences.appearance.hideBodyWhenCardChanged) hideBackText();
-    moveStudySession(deckId, swipePlan.effect);
   };
   const updateIndex = (currentIndex: number): void => {
-    if (getStudySession(deckId) == null) return;
+    if (!setStudySessionIndex(deckId, currentIndex)) return;
     hideBackText();
-    setStudySessionIndex(deckId, currentIndex);
   };
   const session = useStudySession(deckId);
   const resolvedSession = resolveStudySession(session, cards);
@@ -126,9 +121,7 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
       return;
     }
     const timeout = window.setTimeout(() => {
-      if (getStudySession(deckId) == null) return;
-      setShowBackText(false);
-      setStudySessionIndex(deckId, nextIndex);
+      if (setStudySessionIndex(deckId, nextIndex)) setShowBackText(false);
     }, preferences.study.cardInterval * 1000);
     return () => window.clearTimeout(timeout);
   }, [autoPlay, deckId, preferences.study.cardInterval, resolvedSession.status, session]);
