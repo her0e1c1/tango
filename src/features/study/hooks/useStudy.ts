@@ -5,8 +5,13 @@ import { type SwipeDirection, usePreferences } from "@/entities/preferences";
 import { editStudyProgress } from "@/entities/study-progress";
 import {
   calculateStudySessionIndex,
+  getStudySession,
+  isStudySessionPositionUnchanged,
+  moveStudySession,
+  planStudySessionSwipe,
   removeStudySession,
   resolveStudySession,
+  setStudySessionIndex,
   type StudySession,
   touchStudySession,
   useStudySession,
@@ -14,7 +19,6 @@ import {
 
 import * as React from "react";
 
-import { useStudyActions } from "./useStudyActions";
 import { useSwipeFeedback } from "./useSwipeFeedback";
 
 interface StudyCommands {
@@ -53,12 +57,42 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
   const toggleAutoPlay = () => setAutoPlay((playing) => !playing);
   const feedback = useSwipeFeedback(preferences.appearance.showSwipeFeedback);
   const saveProgress = (progress: Parameters<typeof editStudyProgress>[1]) => editStudyProgress(uid, progress);
-  const actions = useStudyActions(deckId, {
-    cards,
-    saveProgress,
-    onSwipe: feedback.showSwipe,
-    onCardChanged: hideBackText,
-  });
+  const swipeState = React.useRef<{ inProgress: boolean }>({ inProgress: false });
+  const swipe = async (direction: SwipeDirection): Promise<void> => {
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: The awaited write lets another event enter this closure.
+    if (swipeState.current.inProgress) return;
+
+    const swipeAction = preferences.controls[direction];
+    const swipePlan = planStudySessionSwipe(getStudySession(deckId), cards, swipeAction, Date.now());
+    if (swipePlan.effect === "none") return;
+    if (swipePlan.effect === "exit") {
+      feedback.showSwipe(direction);
+      removeStudySession(deckId);
+      return;
+    }
+
+    swipeState.current.inProgress = true;
+    // The visible card advances only after persistence succeeds, so failed writes need no session rollback.
+    const saved = await saveProgress(swipePlan.progress).then(
+      () => true,
+      () => false
+    );
+    swipeState.current.inProgress = false;
+    if (!saved) return;
+
+    const currentSession = getStudySession(deckId);
+    // Position changes during the write own the newer card, while timestamp-only touches still allow advancement.
+    if (!isStudySessionPositionUnchanged(swipePlan.session, currentSession)) return;
+
+    feedback.showSwipe(direction);
+    if (preferences.appearance.hideBodyWhenCardChanged) hideBackText();
+    moveStudySession(deckId, swipePlan.effect);
+  };
+  const updateIndex = (currentIndex: number): void => {
+    if (getStudySession(deckId) == null) return;
+    hideBackText();
+    setStudySessionIndex(deckId, currentIndex);
+  };
   const session = useStudySession(deckId);
   const resolvedSession = resolveStudySession(session, cards);
   const exitingDeck = React.useRef<DeckId>(undefined);
@@ -91,14 +125,18 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
     ) {
       return;
     }
-    const timeout = window.setTimeout(() => actions.updateIndex(nextIndex), preferences.study.cardInterval * 1000);
+    const timeout = window.setTimeout(() => {
+      if (getStudySession(deckId) == null) return;
+      setShowBackText(false);
+      setStudySessionIndex(deckId, nextIndex);
+    }, preferences.study.cardInterval * 1000);
     return () => window.clearTimeout(timeout);
-  }, [actions, autoPlay, preferences.study.cardInterval, resolvedSession.status, session]);
+  }, [autoPlay, deckId, preferences.study.cardInterval, resolvedSession.status, session]);
   const commands: StudyCommands = {
-    swipeUp: actions.swipeUp,
-    swipeDown: actions.swipeDown,
-    swipeLeft: actions.swipeLeft,
-    swipeRight: actions.swipeRight,
+    swipeUp: () => swipe("cardSwipeUp"),
+    swipeDown: () => swipe("cardSwipeDown"),
+    swipeLeft: () => swipe("cardSwipeLeft"),
+    swipeRight: () => swipe("cardSwipeRight"),
     toggleBackText,
     toggleAutoPlay,
   };
@@ -115,7 +153,7 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
     showController: preferences.study.cardInterval > 0,
     showSwipeButtonList: preferences.controls.showSwipeButtonList,
     autoPlay,
-    updateIndex: actions.updateIndex,
+    updateIndex,
     ...(feedback.lastSwipe !== undefined ? { swipeFeedback: feedback.lastSwipe } : {}),
   };
 };

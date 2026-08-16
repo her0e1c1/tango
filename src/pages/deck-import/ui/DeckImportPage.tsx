@@ -30,14 +30,12 @@ export const DeckImportPage: React.FC = () => {
             .then(() => navigation.to(routes.deckList.to()))
             .catch(() => undefined);
         }}
-        onRetry={deckImport.retry}
         onBack={() => void navigation.back()}
         onDownloadSample={downloadSampleCsv}
         validating={deckImport.validating}
         pending={deckImport.pending}
         preview={deckImport.preview}
         result={deckImport.result}
-        partialResult={deckImport.partialResult}
         error={deckImport.error}
         previewError={deckImport.previewError}
         dark={preferences.appearance.darkMode}

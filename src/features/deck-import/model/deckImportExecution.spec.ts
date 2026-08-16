@@ -19,7 +19,7 @@ describe("prepareDeckImport", () => {
     );
 
     expect(attempt.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
-    expect(attempt.remainingMutations).toEqual([
+    expect(attempt.mutations).toEqual([
       { kind: "create", card: expect.objectContaining({ id: "card", uniqueKey: "key-1" }) },
     ]);
   });
@@ -39,7 +39,7 @@ describe("prepareDeckImport", () => {
     );
 
     expect(attempt.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
-    expect(attempt.remainingMutations).toEqual([
+    expect(attempt.mutations).toEqual([
       { kind: "edit", card: expect.objectContaining({ id: existing.id, frontText: "front" }) },
     ]);
   });
@@ -53,7 +53,7 @@ describe("prepareDeckImport", () => {
     );
 
     expect(attempt.plan).toMatchObject({ created: 0, updated: 0, unchanged: 1 });
-    expect(attempt.remainingMutations).toEqual([]);
+    expect(attempt.mutations).toEqual([]);
   });
 
   it("prepares local Deck and Card creation without an account owner", () => {
@@ -63,7 +63,7 @@ describe("prepareDeckImport", () => {
     );
 
     expect(attempt.deck).toEqual({ id: expect.any(String), name: "local.csv", localMode: true });
-    expect(attempt.remainingMutations).toEqual([
+    expect(attempt.mutations).toEqual([
       {
         kind: "create",
         card: {
@@ -97,7 +97,7 @@ describe("prepareDeckImport", () => {
 
     expect(attempt.deck.id).toBe(localDeck.id);
     expect(attempt.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
-    expect(attempt.remainingMutations).toEqual([
+    expect(attempt.mutations).toEqual([
       { kind: "edit", card: expect.objectContaining({ id: localCard.id, frontText: "front" }) },
     ]);
   });

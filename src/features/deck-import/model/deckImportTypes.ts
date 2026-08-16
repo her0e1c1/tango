@@ -42,6 +42,5 @@ export interface DeckImportResult {
   created: number;
   updated: number;
   skipped: number;
-  failed: number;
   deckId: DeckId;
 }

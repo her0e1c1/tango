@@ -1,7 +1,7 @@
 import type { Card, CardMutation, RemoteCard } from "@/entities/card";
 import type { Deck, DeckCreateInput, DeckId, LocalDeckCreateInput } from "@/entities/deck";
 
-import { CardBulkMutationError, hasSameEditableCardContent, indexCardsByUniqueKey } from "@/entities/card";
+import { hasSameEditableCardContent, indexCardsByUniqueKey } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
 
 import type {
@@ -17,8 +17,8 @@ type DeckImportCreateInput = DeckCreateInput | LocalDeckCreateInput;
 export interface DeckImportAttempt {
   uid: string;
   deck: DeckImportCreateInput;
-  createDeckPending: boolean;
-  remainingMutations: CardMutation[];
+  createDeck: boolean;
+  mutations: CardMutation[];
   plan: DeckImportPlan;
 }
 
@@ -70,10 +70,10 @@ const prepareCardMutations = ({
   uid: string;
   localMode: boolean;
   generateCardId: () => string;
-}): Pick<DeckImportAttempt, "plan" | "remainingMutations"> => {
+}): Pick<DeckImportAttempt, "plan" | "mutations"> => {
   const byUniqueKey = indexCardsByUniqueKey(existing);
   const planRows: DeckImportPlanRow[] = [];
-  const remainingMutations: CardMutation[] = [];
+  const mutations: CardMutation[] = [];
   const counts: Record<DeckImportPlanRow["action"], number> = { create: 0, update: 0, unchanged: 0 };
   for (const row of rows) {
     const current = byUniqueKey.get(row.card.uniqueKey);
@@ -84,14 +84,14 @@ const prepareCardMutations = ({
       const cardFields = { ...row.card, id: generateCardId(), deckId };
       // Local persistence stays account-agnostic; Card mutation routing follows the parent Deck's localMode.
       const card = localMode ? cardFields : { ...cardFields, uid };
-      remainingMutations.push({ kind: "create", card });
+      mutations.push({ kind: "create", card });
     } else if (action === "update" && current != null) {
-      remainingMutations.push({ kind: "edit", card: { ...current, ...row.card } });
+      mutations.push({ kind: "edit", card: { ...current, ...row.card } });
     }
   }
 
   return {
-    remainingMutations,
+    mutations,
     plan: {
       rows: planRows,
       created: counts.create,
@@ -116,33 +116,8 @@ export const prepareDeckImport = (
   return {
     uid,
     deck,
-    createDeckPending: existingDeck == null,
+    createDeck: existingDeck == null,
     ...prepareCardMutations({ rows: request.rows, existing, deckId: deck.id, uid, localMode, generateCardId }),
-  };
-};
-
-class DeckImportExecutionError extends Error {
-  readonly result: DeckImportResult;
-
-  constructor(message: string, options: ErrorOptions & { result: DeckImportResult }) {
-    super(message, options);
-    this.result = options.result;
-  }
-}
-
-export const partialResultFrom = (error: unknown): DeckImportResult | undefined =>
-  error instanceof DeckImportExecutionError ? error.result : undefined;
-
-const resultFrom = (attempt: DeckImportAttempt, failedMutations: CardMutation[]): DeckImportResult => {
-  const failedCreates = failedMutations.filter((mutation) => mutation.kind === "create").length;
-  const failedUpdates = failedMutations.length - failedCreates;
-  // The plan remains the total source of truth while retries retain only mutations that still failed.
-  return {
-    created: attempt.plan.created - failedCreates,
-    updated: attempt.plan.updated - failedUpdates,
-    skipped: attempt.plan.unchanged,
-    failed: failedMutations.length,
-    deckId: attempt.deck.id,
   };
 };
 
@@ -151,26 +126,13 @@ export const executePreparedDeckImport = async (
   { uid, createDeck, mutateCards }: DeckImportExecutionDependencies
 ): Promise<DeckImportResult> => {
   if (attempt.uid !== uid) throw new Error("The prepared Deck import belongs to a different user");
-  if (attempt.createDeckPending) {
-    await createDeck(attempt.deck);
-    attempt.createDeckPending = false;
-  }
+  if (attempt.createDeck) await createDeck(attempt.deck);
+  if (attempt.mutations.length > 0) await mutateCards(attempt.mutations);
 
-  const mutations = attempt.remainingMutations;
-  try {
-    if (mutations.length > 0) await mutateCards(mutations);
-  } catch (error) {
-    const failedIds =
-      error instanceof CardBulkMutationError ? error.failedIds : mutations.map((mutation) => mutation.card.id);
-    const failed = new Set(failedIds);
-    // Preserve only failed writes so a retry keeps stable IDs without replaying writes that already succeeded.
-    attempt.remainingMutations = mutations.filter((mutation) => failed.has(mutation.card.id));
-    throw new DeckImportExecutionError(`Deck import did not complete: ${String(error)}`, {
-      cause: error,
-      result: resultFrom(attempt, attempt.remainingMutations),
-    });
-  }
-
-  attempt.remainingMutations = [];
-  return resultFrom(attempt, []);
+  return {
+    created: attempt.plan.created,
+    updated: attempt.plan.updated,
+    skipped: attempt.plan.unchanged,
+    deckId: attempt.deck.id,
+  };
 };
