@@ -15,9 +15,9 @@ import { CardViewPage } from "@/pages/card-view";
 import { DeckFormPage } from "@/pages/deck-form";
 import { DeckImportPage } from "@/pages/deck-import";
 import { DeckListPage } from "@/pages/deck-list";
-import { DeckStudyStartPage } from "@/pages/deck-study-start";
-import { DeckStudyPage } from "@/pages/deck-study";
 import { SettingsPage } from "@/pages/settings";
+import { StudySessionPage } from "@/pages/study-session";
+import { StudySessionStartPage } from "@/pages/study-session-start";
 import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -51,8 +51,8 @@ export const AppRoutes: React.FC = () => (
     <Route path={routes.deckList.path} element={<DeckListPage />} />
     <Route path={routes.cardList.path} element={<CardListPage />} />
     <Route path={routes.deckForm.path} element={<DeckFormPage />} />
-    <Route path={routes.deckStudyStart.path} element={<DeckStudyStartPage />} />
-    <Route path={routes.deckStudy.path} element={<DeckStudyPage />} />
+    <Route path={routes.deckStudyStart.path} element={<StudySessionStartPage />} />
+    <Route path={routes.deckStudy.path} element={<StudySessionPage />} />
     <Route path={routes.cardView.path} element={<CardViewPage />} />
     <Route path={routes.cardForm.path} element={<CardFormPage />} />
     <Route path={routes.settings.path} element={<SettingsPage login={login} logout={signOutCurrentUser} />} />

@@ -6,53 +6,53 @@ import type {
   DeleteCardInput,
   EditCardInput,
   RemoteCard,
+  RemoteCardRead,
 } from "../model/types";
 
 import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
+import { mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
+import { mapCardDocument } from "../model/dto";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceRemoteCards } from "../model/store";
 import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
-const convertCardDocumentToCard = (id: CardId, value: unknown): RemoteCard => {
+/** @public Cross-Entity read contract for the two models sharing one physical Card document. */
+export interface CardRead {
+  card: RemoteCardRead;
+  progress: StudyProgress;
+}
+
+/** Maps one physical Card document into independent Card and StudyProgress read models. */
+const mapCardRead = (id: CardId, value: unknown): CardRead => {
+  // Both Entities share one physical document, so their mappings must observe the same validated snapshot.
   const document = parseCardDocument(id, value);
-  const card: RemoteCard = {
-    id,
-    frontText: document.frontText,
-    backText: document.backText,
-    tags: document.tags,
-    uniqueKey: document.uniqueKey,
-    deckId: document.deckId,
-    uid: document.uid,
-    createdAt: document.createdAt,
-    updatedAt: document.updatedAt,
-    deletedAt: document.deletedAt,
-    score: document.score,
-    numberOfSeen: document.numberOfSeen,
+  return {
+    card: mapCardDocument(id, document),
+    progress: mapStudyProgressDocument(id, document),
   };
-  if (document.lastSeenAt !== undefined) card.lastSeenAt = document.lastSeenAt;
-  if (document.nextSeeingAt !== undefined) card.nextSeeingAt = document.nextSeeingAt;
-  if (document.interval !== undefined) card.interval = document.interval;
-  if (document.url !== undefined) card.url = document.url;
-  if (document.startLine !== undefined) card.startLine = document.startLine;
-  if (document.endLine !== undefined) card.endLine = document.endLine;
-  return card;
 };
 
-export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
+/** Maps active documents and omits tombstones from both read paths. */
+const mapActiveCardReads = (documents: ReadonlyArray<{ id: string; data: () => unknown }>): CardRead[] =>
+  documents.map((document) => mapCardRead(document.id, document.data())).filter(({ card }) => card.deletedAt === null);
+
+/** @public Lets later consumers adopt separated reads without changing current Card state in this PR. */
+export const subscribeCardReads = (
+  uid: string,
+  onReads: (reads: CardRead[]) => void,
+  onError: (error: Error) => void
+): (() => void) =>
   onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
     (snapshot) => {
       try {
-        const cards = snapshot.docs
-          .map((document) => convertCardDocumentToCard(document.id, document.data()))
-          .filter((card) => card.deletedAt === null);
-        replaceRemoteCards(cards);
+        onReads(mapActiveCardReads(snapshot.docs));
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
@@ -60,24 +60,47 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
     onError
   );
 
-export const fetchCards = async (uid: string): Promise<RemoteCard[]> => {
-  const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
-  return snapshot.docs
-    .map((document) => convertCardDocumentToCard(document.id, document.data()))
-    .filter((card) => card.deletedAt === null);
+// Existing consumers stay behind the combined Card API until #604 migrates them to separated reads.
+const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
+  const combinedCard: RemoteCard = {
+    ...card,
+    score: progress.score,
+    numberOfSeen: progress.numberOfSeen,
+  };
+  if (progress.lastSeenAt !== undefined) combinedCard.lastSeenAt = progress.lastSeenAt;
+  if (progress.nextSeeingAt !== undefined) combinedCard.nextSeeingAt = progress.nextSeeingAt;
+  if (progress.interval !== undefined) combinedCard.interval = progress.interval;
+  return combinedCard;
 };
 
+/** Keeps existing Card subscribers on the combined read model until #604. */
+export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
+  subscribeCardReads(uid, (reads) => replaceRemoteCards(reads.map(combineCardRead)), onError);
+
+/** @public Fetch counterpart to subscribeCardReads for the separated read boundary. */
+export const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
+  const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
+  return mapActiveCardReads(snapshot.docs);
+};
+
+/** Keeps existing authoritative fetch consumers on the combined read model until #604. */
+export const fetchCards = async (uid: string): Promise<RemoteCard[]> =>
+  (await fetchCardReads(uid)).map(combineCardRead);
+
+/** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();
   const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 
+/** Validates Card ownership before creating its Firestore document. */
 export const createCard = async (uid: string, card: CardCreateInput): Promise<void> => {
   const input = createCardSchema.parse({ uid, card });
   await createCardDocument(input.card);
 };
 
+/** Writes the editable Card fields and advances the update timestamp. */
 const updateCardDocument = async (card: CardEdit): Promise<void> => {
   const document = omitUndefined({
     frontText: card.frontText,
@@ -92,16 +115,19 @@ const updateCardDocument = async (card: CardEdit): Promise<void> => {
   await updateDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 
+/** Validates Card ownership before editing its Firestore document. */
 export const editCard = async (uid: string, card: EditCardInput["card"]): Promise<void> => {
   const input = editCardSchema.parse({ uid, card });
   await updateCardDocument(input.card);
 };
 
+/** Tombstones a Card so synchronized readers can converge before hiding it. */
 const removeCardDocument = async (id: string): Promise<void> => {
   const updatedAt = getCurrentTimeMillis();
   await updateDoc(doc(db, CARD_COLLECTION, id), { updatedAt, deletedAt: updatedAt });
 };
 
+/** Validates Card ownership before tombstoning its Firestore document. */
 export const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Promise<void> => {
   const input = deleteCardSchema.parse({ uid, card });
   await removeCardDocument(input.card.id);

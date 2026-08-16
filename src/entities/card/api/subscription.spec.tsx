@@ -8,6 +8,7 @@ import { cardStore } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
+  getDocsFromServer: vi.fn(),
   onSnapshot: vi.fn(),
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
@@ -19,6 +20,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
   return {
     ...actual,
     collection: mocks.collection,
+    getDocsFromServer: mocks.getDocsFromServer,
     onSnapshot: mocks.onSnapshot,
     query: mocks.query,
     where: mocks.where,
@@ -26,7 +28,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
-import { subscribeCards } from "./firestore";
+import { fetchCardReads, fetchCards, subscribeCardReads, subscribeCards } from "./firestore";
 
 const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
@@ -55,6 +57,83 @@ describe("Card Firestore subscription", () => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     vi.clearAllMocks();
     mocks.onSnapshot.mockReturnValue(mocks.unsubscribe);
+  });
+
+  it("fetches the same separated read contract as subscriptions", async () => {
+    mocks.getDocsFromServer.mockResolvedValue({
+      docs: [cardDocument("active"), cardDocument("deleted", { deletedAt: 3 })],
+    });
+
+    await expect(fetchCardReads("uid-a")).resolves.toEqual([
+      {
+        card: expect.objectContaining({ id: "active", frontText: "Remote front" }),
+        progress: expect.objectContaining({ cardId: "active", score: 3, numberOfSeen: 4 }),
+      },
+    ]);
+    expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
+  });
+
+  it("keeps combined Card fetches behind the compatibility API", async () => {
+    mocks.getDocsFromServer.mockResolvedValue({
+      docs: [cardDocument("active", { nextSeeingAt: Timestamp.fromMillis(60) })],
+    });
+
+    await expect(fetchCards("uid-a")).resolves.toEqual([
+      expect.objectContaining({
+        id: "active",
+        score: 3,
+        numberOfSeen: 4,
+        nextSeeingAt: new Date(60),
+      }),
+    ]);
+  });
+
+  it("exposes separate Card and StudyProgress reads from each snapshot", () => {
+    const onReads = vi.fn();
+    const unsubscribe = subscribeCardReads("uid-a", onReads, vi.fn());
+
+    act(() =>
+      getSnapshotHandler()({
+        docs: [
+          cardDocument("active", {
+            lastSeenAt: 50,
+            nextSeeingAt: Timestamp.fromMillis(60),
+            interval: 7,
+            url: "https://example.com/card",
+          }),
+          cardDocument("deleted", { deletedAt: 3 }),
+        ],
+      })
+    );
+
+    expect(onReads).toHaveBeenCalledExactlyOnceWith([
+      {
+        card: {
+          id: "active",
+          frontText: "Remote front",
+          backText: "Remote back",
+          tags: ["science"],
+          uniqueKey: "key-active",
+          deckId: "deck-a",
+          uid: "uid-a",
+          createdAt: 1,
+          updatedAt: 2,
+          deletedAt: null,
+          url: "https://example.com/card",
+        },
+        progress: {
+          cardId: "active",
+          score: 3,
+          numberOfSeen: 4,
+          lastSeenAt: 50,
+          nextSeeingAt: new Date(60),
+          interval: 7,
+        },
+      },
+    ]);
+
+    unsubscribe();
+    expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
 
   it("subscribes by UID and fully replaces active Cards from each snapshot", () => {
@@ -105,7 +184,7 @@ describe("Card Firestore subscription", () => {
 
   it("reports invalid Firestore documents", () => {
     const onError = vi.fn();
-    subscribeCards("uid-a", onError);
+    subscribeCardReads("uid-a", vi.fn(), onError);
 
     act(() => getSnapshotHandler()({ docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
 
@@ -117,7 +196,7 @@ describe("Card Firestore subscription", () => {
   it("reports Firestore subscription errors", () => {
     const onError = vi.fn();
     const error = new Error("listener failed");
-    subscribeCards("uid-a", onError);
+    subscribeCardReads("uid-a", vi.fn(), onError);
 
     getErrorHandler()(error);
 

@@ -1,7 +1,7 @@
 import { getCategory, type Deck, useDeck } from "@/entities/deck";
 import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
 
-import type * as React from "react";
+import * as React from "react";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
@@ -72,7 +72,7 @@ const renderStudyScreen = (deck: Deck, state: StudyState, dark: boolean) => {
   );
 };
 
-const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => {
+const StudySessionScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => {
   const preferences = usePreferences();
   useKey("ArrowUp", () => void state.swipeUp());
   useKey("ArrowDown", () => void state.swipeDown());
@@ -86,17 +86,19 @@ const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => 
   return renderStudyScreen(deck, state, preferences.appearance.darkMode);
 };
 
-const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
+const StudySessionContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigation = useNavigation();
-  const handleInvalidSession = () => {
-    void navigation.to(routes.deckList.to(), { replace: true });
-  };
-  const study = useStudy(deck.id, cards, handleInvalidSession);
+  const study = useStudy(deck.id, cards);
 
-  return <DeckStudyScreen deck={deck} state={study} />;
+  React.useEffect(() => {
+    if (study.status !== "invalid") return;
+    void navigation.to(routes.deckList.to(), { replace: true });
+  }, [navigation, study.status]);
+
+  return <StudySessionScreen deck={deck} state={study} />;
 };
 
-export const DeckStudyPage: React.FC = () => {
+export const StudySessionPage: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
@@ -108,5 +110,5 @@ export const DeckStudyPage: React.FC = () => {
     return <RouteFeedback title="Study session unavailable." tone="not-found" />;
   }
 
-  return <DeckStudyContent key={deck.id} cards={cards} deck={deck} />;
+  return <StudySessionContent key={deck.id} cards={cards} deck={deck} />;
 };

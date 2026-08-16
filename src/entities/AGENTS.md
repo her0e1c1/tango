@@ -3,6 +3,12 @@
 - Treat `src/entities` as the FSD Entities layer and each `src/entities/<entity>` directory as an Entity slice.
 - Keep Entity domain code in `model/` and expose the slice through `index.ts`.
 
+## Comments
+
+- Add a brief leading comment to every function, including small helpers, that states what it does.
+- Add a brief leading comment to every interface and type alias that states what it represents.
+- Include non-obvious intent and invariants when relevant, and update comments when behavior changes.
+
 ## `model/schema.ts`
 
 - Define Zod schemas, validation, refinements, and schema-level defaults.

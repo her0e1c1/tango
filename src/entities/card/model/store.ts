@@ -27,6 +27,7 @@ interface CreateCardStoreOptions {
 
 const persistedCardStateSchema = z.object({ localCards: z.array(persistedCardSchema) });
 
+// Reject the stored collection as a unit so live state never mixes validated Cards with an incompatible payload.
 const parsePersistedCardState = (value: unknown): PersistedCardState => {
   const result = persistedCardStateSchema.safeParse(value);
   return result.success ? result.data : { localCards: [] };
@@ -44,6 +45,7 @@ const createCardStore = ({ storage, skipHydration }: CreateCardStoreOptions = {}
         ...currentState,
         ...parsePersistedCardState(persistedState),
       }),
+      // Remote Cards belong to the active subscription and must not survive authentication changes in browser storage.
       partialize: ({ localCards }) => ({ localCards }),
     })
   );
@@ -69,6 +71,7 @@ export const createLocalCard = (input: LocalCardCreateInput): LocalCard => {
   const card = localCardCreateSchema.parse(input);
   const timestamp = Date.now();
   const createdCard = localCardSchema.parse({ ...card, createdAt: timestamp, updatedAt: timestamp });
+  // Treat a retried create as an upsert by id so persisted local data cannot accumulate duplicate Cards.
   const localCards = cardStore.getState().localCards.filter(({ id }) => id !== createdCard.id);
   cardStore.setState({ localCards: [...localCards, createdCard] });
   return createdCard;

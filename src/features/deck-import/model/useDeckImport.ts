@@ -7,9 +7,9 @@ import { useAuthUid } from "@/entities/auth";
 import { fetchCards, generateCardId, mutateCards, useCards } from "@/entities/card";
 import { createDeck, fetchDecks, useDecks } from "@/entities/deck";
 import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
-import type { DeckImportResult, DeckImportStorageMode } from "../model/deckImportExecution";
-import { executePreparedDeckImport, prepareDeckImport } from "../model/deckImportExecution";
-import { prepareSampleDeck } from "../model/sampleDeck";
+import type { DeckImportResult, DeckImportStorageMode } from "./deckImportExecution";
+import { executePreparedDeckImport, prepareDeckImport } from "./deckImportExecution";
+import { prepareSampleDeck } from "./sampleDeck";
 
 type DeckImportAttempt = ReturnType<typeof prepareDeckImport>;
 

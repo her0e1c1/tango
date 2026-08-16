@@ -4,7 +4,7 @@ import { AiOutlineCloudDownload } from "react-icons/ai";
 import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
 import { Upload } from "@/shared/ui/forms";
-import type { DeckImportPreview } from "../hooks/useDeckImport";
+import type { DeckImportPreview } from "../model/useDeckImport";
 import type { DeckImportResult, DeckImportStorageMode } from "../model/deckImportExecution";
 
 interface DeckImportViewProps {

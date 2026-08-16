@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import type { DeckImportPreview } from "../hooks/useDeckImport";
-import { SAMPLE_CSV_TEXT } from "../sampleCsv";
+import type { DeckImportPreview } from "../model/useDeckImport";
+import { SAMPLE_CSV_TEXT } from "../lib/sampleCsv";
 import { DeckImportView as Template } from "./DeckImportView";
 
 const preview = {
