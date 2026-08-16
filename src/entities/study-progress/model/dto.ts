@@ -1,7 +1,9 @@
-import type { CardDocument } from "@/entities/card/@x/study-progress";
-import type { StudyProgress } from "../model/types";
+import type { StudyProgress, StudyProgressDocumentFields } from "./types";
 
-export const mapStudyProgressDocument = (cardId: string, document: CardDocument): StudyProgress => {
+export const mapStudyProgressDocument = (
+  cardId: StudyProgress["cardId"],
+  document: StudyProgressDocumentFields
+): StudyProgress => {
   const progress: StudyProgress = {
     cardId,
     score: document.score,

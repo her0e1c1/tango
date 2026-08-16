@@ -1,2 +1,2 @@
-export { mapStudyProgressDocument } from "../api/document";
+export { mapStudyProgressDocument } from "../model/dto";
 export type { StudyProgress } from "../model/types";

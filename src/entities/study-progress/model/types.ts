@@ -12,6 +12,15 @@ export interface StudyProgress {
   interval?: number;
 }
 
+export interface StudyProgressDocumentFields {
+  score: number;
+  numberOfSeen: number;
+  // Zod-inferred physical documents can retain explicit undefined values at optional keys.
+  lastSeenAt?: number | undefined;
+  nextSeeingAt?: Date | undefined;
+  interval?: number | undefined;
+}
+
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;
 
 export type StudyRating = "mastered" | "not-mastered" | "unrated";

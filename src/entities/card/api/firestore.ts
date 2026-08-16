@@ -6,20 +6,23 @@ import type {
   DeleteCardInput,
   EditCardInput,
   RemoteCard,
+  RemoteCardRead,
 } from "../model/types";
 
 import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
+import { mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
+import { mapCardDocument } from "../model/dto";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceRemoteCards } from "../model/store";
-import { type CardReadModels, readCardDocument } from "./document";
+import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
-const combineCardReadModels = ({ card, progress }: CardReadModels): RemoteCard => {
+const combineCardReadModels = (card: RemoteCardRead, progress: StudyProgress): RemoteCard => {
   // Consumers still receive the combined shape until they migrate together; composition stays at this boundary.
   const combinedCard: RemoteCard = {
     ...card,
@@ -32,8 +35,11 @@ const combineCardReadModels = ({ card, progress }: CardReadModels): RemoteCard =
   return combinedCard;
 };
 
-const convertCardDocumentToCard = (id: CardId, value: unknown): RemoteCard =>
-  combineCardReadModels(readCardDocument(id, value));
+const convertCardDocumentToCard = (id: CardId, value: unknown): RemoteCard => {
+  // The Entities share one physical document, so validate it once before each Entity maps its owned fields.
+  const document = parseCardDocument(id, value);
+  return combineCardReadModels(mapCardDocument(id, document), mapStudyProgressDocument(id, document));
+};
 
 export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
   onSnapshot(

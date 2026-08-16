@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readCardDocument } from "./document";
+import { parseCardDocument } from "./document";
 
 const requiredDocument = {
   frontText: "Front",
@@ -17,22 +17,8 @@ const requiredDocument = {
 };
 
 describe("Card document", () => {
-  it("maps a valid document without adding optional fields", () => {
-    expect(readCardDocument("card-a", requiredDocument)).toEqual({
-      card: {
-        id: "card-a",
-        frontText: "Front",
-        backText: "Back",
-        tags: ["science"],
-        uniqueKey: "key-card-a",
-        deckId: "deck-a",
-        uid: "uid-a",
-        createdAt: 1,
-        updatedAt: 2,
-        deletedAt: null,
-      },
-      progress: { cardId: "card-a", score: 3, numberOfSeen: 4 },
-    });
+  it("parses a valid document without adding optional fields", () => {
+    expect(parseCardDocument("card-a", requiredDocument)).toEqual(requiredDocument);
   });
 
   it("preserves optional fields", () => {
@@ -46,70 +32,21 @@ describe("Card document", () => {
       endLine: 8,
     };
 
-    expect(readCardDocument("card-a", document)).toEqual({
-      card: {
-        id: "card-a",
-        frontText: "Front",
-        backText: "Back",
-        tags: ["science"],
-        uniqueKey: "key-card-a",
-        deckId: "deck-a",
-        uid: "uid-a",
-        createdAt: 1,
-        updatedAt: 2,
-        deletedAt: null,
-        url: "https://example.com/card-a",
-        startLine: 7,
-        endLine: 8,
-      },
-      progress: { cardId: "card-a", score: 3, numberOfSeen: 4, lastSeenAt: 5, interval: 6 },
-    });
+    expect(parseCardDocument("card-a", document)).toEqual(document);
   });
 
   it("normalizes a Firestore Timestamp-like value to a Date", () => {
     const date = new Date(60);
     const nextSeeingAt = { seconds: 0, nanoseconds: 60_000_000, toDate: () => date };
 
-    expect(readCardDocument("card-a", { ...requiredDocument, nextSeeingAt }).progress.nextSeeingAt).toBe(date);
-  });
-
-  it("maps Card and StudyProgress independently from one validated document", () => {
-    expect(
-      readCardDocument("card-a", {
-        ...requiredDocument,
-        lastSeenAt: 5,
-        nextSeeingAt: new Date(6),
-        interval: 7,
-      })
-    ).toEqual({
-      card: {
-        id: "card-a",
-        frontText: "Front",
-        backText: "Back",
-        tags: ["science"],
-        uniqueKey: "key-card-a",
-        deckId: "deck-a",
-        uid: "uid-a",
-        createdAt: 1,
-        updatedAt: 2,
-        deletedAt: null,
-      },
-      progress: {
-        cardId: "card-a",
-        score: 3,
-        numberOfSeen: 4,
-        lastSeenAt: 5,
-        nextSeeingAt: new Date(6),
-        interval: 7,
-      },
-    });
+    expect(parseCardDocument("card-a", { ...requiredDocument, nextSeeingAt }).nextSeeingAt).toBe(date);
   });
 
   it.each([
     ["missing", { ...requiredDocument, frontText: undefined }],
     ["malformed", { ...requiredDocument, tags: [42] }],
   ])("rejects a %s required field", (_case, document) => {
-    expect(() => readCardDocument("card-a", document)).toThrowError(
+    expect(() => parseCardDocument("card-a", document)).toThrowError(
       expect.objectContaining({
         name: "FirestoreDocumentValidationError",
         collectionName: "card",
@@ -119,7 +56,7 @@ describe("Card document", () => {
   });
 
   it("keeps the collection and document context in parse errors", () => {
-    expect(() => readCardDocument("card-a", { ...requiredDocument, nextSeeingAt: null })).toThrowError(
+    expect(() => parseCardDocument("card-a", { ...requiredDocument, nextSeeingAt: null })).toThrowError(
       'Invalid Firestore card document "card-a": nextSeeingAt'
     );
   });
