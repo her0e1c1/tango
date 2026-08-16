@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearStudySessions,
   getStudySession,
-  moveStudySession,
+  moveStudySessionIfPositionUnchanged,
   removeStudySession,
   setStudySessionIndex,
   startStudy,
@@ -83,12 +83,29 @@ describe("study store", () => {
 
   it("moves within a session and removes it when movement reaches an edge", () => {
     startSession("deck-1", ["card-1", "card-2"]);
+    const firstCard = getStudySession("deck-1");
+    if (firstCard == null) throw new Error("Expected an active study session");
 
-    moveStudySession("deck-1", "next");
+    expect(moveStudySessionIfPositionUnchanged("deck-1", firstCard, "next")).toBe(true);
     expect(getStudySession("deck-1")?.currentIndex).toBe(1);
 
-    moveStudySession("deck-1", "next");
+    const finalCard = getStudySession("deck-1");
+    if (finalCard == null) throw new Error("Expected an active study session");
+    expect(moveStudySessionIfPositionUnchanged("deck-1", finalCard, "next")).toBe(true);
     expect(getStudySession("deck-1")).toBeUndefined();
+  });
+
+  it("moves only when the persisted swipe still owns the active card", () => {
+    startSession("deck-1", ["card-1", "card-2"]);
+    const previous = getStudySession("deck-1");
+    if (previous == null) throw new Error("Expected an active study session");
+
+    touchStudySession("deck-1");
+    expect(moveStudySessionIfPositionUnchanged("deck-1", previous, "next")).toBe(true);
+    expect(getStudySession("deck-1")?.currentIndex).toBe(1);
+
+    expect(moveStudySessionIfPositionUnchanged("deck-1", previous, "next")).toBe(false);
+    expect(getStudySession("deck-1")?.currentIndex).toBe(1);
   });
 
   it.each([-1, 2, 0.5])("does not persist an invalid session index: %s", (currentIndex) => {
