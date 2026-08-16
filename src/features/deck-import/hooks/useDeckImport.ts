@@ -172,7 +172,9 @@ export const useDeckImport = () => {
     if (execution.previewAttempt == null) {
       return Promise.reject(new Error("The prepared Deck import is not available"));
     }
-    return run(execution.previewAttempt);
+    const attempt = execution.previewAttempt;
+    execution.previewAttempt = undefined;
+    return run(attempt);
   };
 
   return {
