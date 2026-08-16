@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   authUid: "",
-  subscribeCards: vi.fn(),
+  replaceRemoteCardsFromReads: vi.fn(),
+  subscribeCardReads: vi.fn(),
   subscribeDecks: vi.fn(),
   operations: [] as string[],
 }));
@@ -11,7 +12,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => mocks.authUid }));
 vi.mock("@/entities/card", () => ({
   clearRemoteCards: () => mocks.operations.push("clear remote Cards"),
-  subscribeCards: mocks.subscribeCards,
+  replaceRemoteCardsFromReads: mocks.replaceRemoteCardsFromReads,
+  subscribeCardReads: mocks.subscribeCardReads,
 }));
 vi.mock("@/entities/deck", () => ({
   clearRemoteDecks: () => mocks.operations.push("clear remote Decks"),
@@ -23,7 +25,7 @@ import { FirestoreSubscriptionsProvider } from ".";
 describe("FirestoreSubscriptionsProvider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.subscribeCards.mockImplementation((uid: string) => {
+    mocks.subscribeCardReads.mockImplementation((uid: string) => {
       mocks.operations.push(`start Cards ${uid}`);
       return () => mocks.operations.push(`stop Cards ${uid}`);
     });
@@ -39,6 +41,11 @@ describe("FirestoreSubscriptionsProvider", () => {
     const view = render(<FirestoreSubscriptionsProvider>content</FirestoreSubscriptionsProvider>);
 
     expect(mocks.operations).toEqual(["start Cards test-user", "start Decks test-user"]);
+    expect(mocks.subscribeCardReads).toHaveBeenCalledWith(
+      "test-user",
+      mocks.replaceRemoteCardsFromReads,
+      expect.any(Function)
+    );
     expect(screen.getByText("content")).toBeDefined();
 
     view.unmount();
@@ -86,7 +93,7 @@ describe("FirestoreSubscriptionsProvider", () => {
     view.rerender(<FirestoreSubscriptionsProvider />);
 
     expect(mocks.operations).toEqual([]);
-    expect(mocks.subscribeCards).toHaveBeenCalledOnce();
+    expect(mocks.subscribeCardReads).toHaveBeenCalledOnce();
     expect(mocks.subscribeDecks).toHaveBeenCalledOnce();
   });
 

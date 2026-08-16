@@ -1,7 +1,7 @@
 import React from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { clearRemoteCards, subscribeCards } from "@/entities/card";
+import { clearRemoteCards, replaceRemoteCardsFromReads, subscribeCardReads } from "@/entities/card";
 import { clearRemoteDecks, subscribeDecks } from "@/entities/deck";
 
 const reportSubscriptionError = (error: Error): void => {
@@ -17,7 +17,7 @@ export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> =
       return;
     }
 
-    const stopCards = subscribeCards(uid, reportSubscriptionError);
+    const stopCards = subscribeCardReads(uid, replaceRemoteCardsFromReads, reportSubscriptionError);
     const stopDecks = subscribeDecks(uid, reportSubscriptionError);
 
     return () => {

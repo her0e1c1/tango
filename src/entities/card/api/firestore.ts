@@ -22,8 +22,47 @@ import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
-const combineCardReadModels = (card: RemoteCardRead, progress: StudyProgress): RemoteCard => {
-  // Consumers still receive the combined shape until they migrate together; composition stays at this boundary.
+export interface CardRead {
+  card: RemoteCardRead;
+  progress: StudyProgress;
+}
+
+const mapCardRead = (id: CardId, value: unknown): CardRead => {
+  // Both Entities share one physical document, so their mappings must observe the same validated snapshot.
+  const document = parseCardDocument(id, value);
+  return {
+    card: mapCardDocument(id, document),
+    progress: mapStudyProgressDocument(id, document),
+  };
+};
+
+const mapActiveCardReads = (documents: ReadonlyArray<{ id: string; data: () => unknown }>): CardRead[] =>
+  documents.map((document) => mapCardRead(document.id, document.data())).filter(({ card }) => card.deletedAt === null);
+
+export const subscribeCardReads = (
+  uid: string,
+  onReads: (reads: CardRead[]) => void,
+  onError: (error: Error) => void
+): (() => void) =>
+  onSnapshot(
+    query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
+    (snapshot) => {
+      try {
+        onReads(mapActiveCardReads(snapshot.docs));
+      } catch (cause) {
+        onError(cause instanceof Error ? cause : new Error(String(cause)));
+      }
+    },
+    onError
+  );
+
+const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
+  const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
+  return mapActiveCardReads(snapshot.docs);
+};
+
+const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
+  // Existing consumers keep the combined shape until #604 migrates them to the separated read contract.
   const combinedCard: RemoteCard = {
     ...card,
     score: progress.score,
@@ -35,34 +74,12 @@ const combineCardReadModels = (card: RemoteCardRead, progress: StudyProgress): R
   return combinedCard;
 };
 
-const convertCardDocumentToCard = (id: CardId, value: unknown): RemoteCard => {
-  // The Entities share one physical document, so validate it once before each Entity maps its owned fields.
-  const document = parseCardDocument(id, value);
-  return combineCardReadModels(mapCardDocument(id, document), mapStudyProgressDocument(id, document));
+export const replaceRemoteCardsFromReads = (reads: CardRead[]): void => {
+  replaceRemoteCards(reads.map(combineCardRead));
 };
 
-export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
-  onSnapshot(
-    query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
-    (snapshot) => {
-      try {
-        const cards = snapshot.docs
-          .map((document) => convertCardDocumentToCard(document.id, document.data()))
-          .filter((card) => card.deletedAt === null);
-        replaceRemoteCards(cards);
-      } catch (cause) {
-        onError(cause instanceof Error ? cause : new Error(String(cause)));
-      }
-    },
-    onError
-  );
-
-export const fetchCards = async (uid: string): Promise<RemoteCard[]> => {
-  const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
-  return snapshot.docs
-    .map((document) => convertCardDocumentToCard(document.id, document.data()))
-    .filter((card) => card.deletedAt === null);
-};
+export const fetchCards = async (uid: string): Promise<RemoteCard[]> =>
+  (await fetchCardReads(uid)).map(combineCardRead);
 
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();

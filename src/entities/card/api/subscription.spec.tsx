@@ -26,7 +26,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
-import { subscribeCards } from "./firestore";
+import { replaceRemoteCardsFromReads, subscribeCardReads } from "./firestore";
 
 const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
@@ -57,11 +57,59 @@ describe("Card Firestore subscription", () => {
     mocks.onSnapshot.mockReturnValue(mocks.unsubscribe);
   });
 
+  it("exposes separate Card and StudyProgress reads from each snapshot", () => {
+    const onReads = vi.fn();
+    const unsubscribe = subscribeCardReads("uid-a", onReads, vi.fn());
+
+    act(() =>
+      getSnapshotHandler()({
+        docs: [
+          cardDocument("active", {
+            lastSeenAt: 50,
+            nextSeeingAt: Timestamp.fromMillis(60),
+            interval: 7,
+            url: "https://example.com/card",
+          }),
+          cardDocument("deleted", { deletedAt: 3 }),
+        ],
+      })
+    );
+
+    expect(onReads).toHaveBeenCalledExactlyOnceWith([
+      {
+        card: {
+          id: "active",
+          frontText: "Remote front",
+          backText: "Remote back",
+          tags: ["science"],
+          uniqueKey: "key-active",
+          deckId: "deck-a",
+          uid: "uid-a",
+          createdAt: 1,
+          updatedAt: 2,
+          deletedAt: null,
+          url: "https://example.com/card",
+        },
+        progress: {
+          cardId: "active",
+          score: 3,
+          numberOfSeen: 4,
+          lastSeenAt: 50,
+          nextSeeingAt: new Date(60),
+          interval: 7,
+        },
+      },
+    ]);
+
+    unsubscribe();
+    expect(mocks.unsubscribe).toHaveBeenCalledOnce();
+  });
+
   it("subscribes by UID and fully replaces active Cards from each snapshot", () => {
     const localCard = createLocalCard({ id: "local", frontText: "Local front" });
     cardStore.setState({ localCards: [localCard] });
     const { result } = renderHook(useCards);
-    const unsubscribe = subscribeCards("uid-a", vi.fn());
+    const unsubscribe = subscribeCardReads("uid-a", replaceRemoteCardsFromReads, vi.fn());
 
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
@@ -105,7 +153,7 @@ describe("Card Firestore subscription", () => {
 
   it("reports invalid Firestore documents", () => {
     const onError = vi.fn();
-    subscribeCards("uid-a", onError);
+    subscribeCardReads("uid-a", vi.fn(), onError);
 
     act(() => getSnapshotHandler()({ docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
 
@@ -117,7 +165,7 @@ describe("Card Firestore subscription", () => {
   it("reports Firestore subscription errors", () => {
     const onError = vi.fn();
     const error = new Error("listener failed");
-    subscribeCards("uid-a", onError);
+    subscribeCardReads("uid-a", vi.fn(), onError);
 
     getErrorHandler()(error);
 

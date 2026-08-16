@@ -1,4 +1,4 @@
-export { fetchCards, subscribeCards } from "./api/firestore";
+export { fetchCards, replaceRemoteCardsFromReads, subscribeCardReads } from "./api/firestore";
 export { generateCardId } from "./api/id";
 export { CardBulkMutationError, deleteCard, editCard, mutateCards } from "./api/mutations";
 export type { CardMutation } from "./api/mutations";

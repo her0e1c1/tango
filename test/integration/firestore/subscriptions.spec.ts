@@ -8,7 +8,7 @@ import "@/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { deleteCard, editCard, subscribeCards } from "@/entities/card";
+import { deleteCard, editCard, replaceRemoteCardsFromReads, subscribeCardReads } from "@/entities/card";
 import { createCard as createCardCommand } from "@/entities/card/api/firestore";
 import { createDeck as createDeckCommand, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
@@ -29,7 +29,7 @@ describe("Query realtime subscriptions", () => {
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
-    const stopCards = subscribeCards(uid, (error) => errors.push(error));
+    const stopCards = subscribeCardReads(uid, replaceRemoteCardsFromReads, (error) => errors.push(error));
 
     try {
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
