@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import type { DeckListDeck, DeckListItem, DeckListSections } from "../model/buildDeckListSections";
+import type { DeckListDeck, DeckListItem, DeckListSections } from "../model/useDeckListState";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 

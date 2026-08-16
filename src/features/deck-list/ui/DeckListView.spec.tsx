@@ -5,7 +5,7 @@
  */
 
 import type { DeckId } from "@/entities/deck";
-import type { DeckListSections } from "../model/buildDeckListSections";
+import type { DeckListSections } from "../model/useDeckListState";
 
 import * as React from "react";
 import { fireEvent, render, within, screen } from "@testing-library/react";

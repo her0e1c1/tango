@@ -4,7 +4,7 @@
 
 import * as React from "react";
 
-import type { DeckListItem, DeckListSections } from "../model/buildDeckListSections";
+import type { DeckListItem, DeckListSections } from "../model/useDeckListState";
 
 import { DeckListCard, type DeckListCardActions } from "./DeckListCard";
 
