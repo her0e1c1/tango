@@ -14,9 +14,7 @@ import { prepareSampleDeck } from "../model/sampleDeck";
 
 type DeckImportStatus = "idle" | "validating" | "importing";
 
-type DeckImportFailure =
-  | { stage: "preview"; error: unknown }
-  | { stage: "import"; error: unknown };
+type DeckImportFailure = { stage: "preview"; error: unknown } | { stage: "import"; error: unknown };
 
 interface DeckImportState {
   storageMode: DeckImportStorageMode;
