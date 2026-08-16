@@ -1,5 +1,5 @@
 import type { Card, CardMutation } from "@/entities/card";
-import type { Deck, DeckCreateInput, DeckId, LocalDeckCreateInput } from "@/entities/deck";
+import type { Deck, DeckId } from "@/entities/deck";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -34,15 +34,19 @@ vi.mock("@/entities/card", async (importOriginal) => {
     ...actual,
     filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
     fetchCards: mocks.fetchCards,
+    generateCardId: mocks.generateCardId,
     mutateCards: (_uid: string, mutations: CardMutation[]) => mocks.bulkUpsert(mutations),
+    useCards: () => mocks.cards,
   };
 });
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
+    createDeck: (_uid: string, deck: Parameters<typeof actual.createDeck>[1]) => mocks.createDeck(deck),
     generateDeckId: mocks.generateDeckId,
     fetchDecks: mocks.fetchDecks,
+    useDecks: () => mocks.decks,
   };
 });
 vi.mock("../lib/cardCsv", async (importOriginal) => {
@@ -50,14 +54,6 @@ vi.mock("../lib/cardCsv", async (importOriginal) => {
   return { ...actual, parseCsv: mocks.parseCsv };
 });
 import { useDeckImport } from "./useDeckImport";
-
-const useTestDeckImport = () =>
-  useDeckImport({
-    cards: mocks.cards,
-    createDeck: (_uid: string, deck: DeckCreateInput | LocalDeckCreateInput) => mocks.createDeck(deck),
-    decks: mocks.decks,
-    generateCardId: mocks.generateCardId,
-  });
 
 describe("useDeckImport", () => {
   beforeEach(() => {
@@ -78,7 +74,7 @@ describe("useDeckImport", () => {
   });
 
   it("previews a file without writing until import is confirmed", async () => {
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     let imported: DeckImportResult | undefined;
 
@@ -123,7 +119,7 @@ describe("useDeckImport", () => {
 
   it("imports a local Deck and Cards without Firestore reads or owner fields", async () => {
     mocks.uid = "";
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "local.csv", { type: "text/csv" });
 
     act(() => result.current.setStorageMode("local"));
@@ -169,7 +165,7 @@ describe("useDeckImport", () => {
     });
     mocks.decks = [deck];
     mocks.cards = [card];
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
 
     act(() => result.current.setStorageMode("local"));
     await actAsync(async () =>
@@ -187,7 +183,7 @@ describe("useDeckImport", () => {
 
   it("does not mutate when server-backed preview reads fail", async () => {
     mocks.fetchDecks.mockRejectedValueOnce(new Error("server read failed"));
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
@@ -214,7 +210,7 @@ describe("useDeckImport", () => {
     });
     mocks.fetchDecks.mockResolvedValueOnce([serverDeck]);
     mocks.fetchCards.mockResolvedValueOnce([serverCard]);
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front","new back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => result.current.selectFile(file));
@@ -231,7 +227,7 @@ describe("useDeckImport", () => {
   });
 
   it("keeps invalid files in preview without mutating state", async () => {
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(["front,back"], "invalid.csv", { type: "text/csv" });
 
     await actAsync(async () => {
@@ -264,7 +260,7 @@ describe("useDeckImport", () => {
     ];
     mocks.fetchDecks.mockResolvedValueOnce(mocks.decks);
     mocks.fetchCards.mockResolvedValueOnce(mocks.cards);
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     let imported: DeckImportResult | undefined;
 
@@ -282,7 +278,7 @@ describe("useDeckImport", () => {
   });
 
   it("adds the bundled sample with a stable per-user Deck id", async () => {
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
 
     act(() => result.current.setStorageMode("local"));
     await actAsync(async () => result.current.addSample());
@@ -296,7 +292,7 @@ describe("useDeckImport", () => {
   });
 
   it("clears a prepared preview when its storage mode changes", async () => {
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     await actAsync(async () =>
       result.current.selectFile(new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" }))
     );
@@ -310,7 +306,7 @@ describe("useDeckImport", () => {
 
   it("reuses the same sample Deck for the active user", async () => {
     mocks.decks = [createDeck({ id: "sample-v1-uid-a", name: "Renamed sample" })];
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
 
     await actAsync(async () => result.current.addSample());
 
@@ -325,7 +321,7 @@ describe("useDeckImport", () => {
         finish = resolve;
       })
     );
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
@@ -347,7 +343,7 @@ describe("useDeckImport", () => {
 
   it("retains successful and failed counts after a partial Card write failure", async () => {
     mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError(["card"], 1));
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     await actAsync(async () => {
@@ -380,7 +376,7 @@ describe("useDeckImport", () => {
     mocks.fetchCards.mockResolvedValueOnce([existing]);
     mocks.generateCardId.mockReturnValueOnce("created");
     mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([existing.id], 2));
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"new front","back","","existing"\n"front","back","","created"'], "deck.csv", {
       type: "text/csv",
     });
@@ -422,7 +418,7 @@ describe("useDeckImport", () => {
     mocks.generateDeckId.mockReturnValueOnce(deck.id);
     mocks.generateCardId.mockReturnValueOnce(first.id).mockReturnValueOnce(second.id);
     mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([second.id], 2)).mockResolvedValueOnce(undefined);
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {
       type: "text/csv",
     });
@@ -461,7 +457,7 @@ describe("useDeckImport", () => {
   });
 
   it("clears operation data and error when a new file is selected", async () => {
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     await actAsync(async () => result.current.addSample());
     expect(result.current.data).toBeDefined();
@@ -484,7 +480,7 @@ describe("useDeckImport", () => {
         finishOld = resolve;
       })
     );
-    const { result, rerender } = renderHook(useTestDeckImport);
+    const { result, rerender } = renderHook(useDeckImport);
 
     let oldOperation!: Promise<DeckImportResult>;
     act(() => {
@@ -509,7 +505,7 @@ describe("useDeckImport", () => {
         finishServerRead = resolve;
       })
     );
-    const { result, rerender } = renderHook(useTestDeckImport);
+    const { result, rerender } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
 
     const operation = result.current.selectFile(file);
@@ -534,7 +530,7 @@ describe("useDeckImport", () => {
         finishParse = resolve;
       })
     );
-    const { result, rerender } = renderHook(useTestDeckImport);
+    const { result, rerender } = renderHook(useDeckImport);
     const file = new File(['"stale-front","stale-back","","stale-key"'], "stale.csv", {
       type: "text/csv",
     });
@@ -570,7 +566,7 @@ describe("useDeckImport", () => {
   });
 
   it("does not resurrect import data after an A-to-B-to-A UID transition", async () => {
-    const { result, rerender } = renderHook(useTestDeckImport);
+    const { result, rerender } = renderHook(useDeckImport);
     await actAsync(async () => result.current.addSample());
     expect(result.current.data).toBeDefined();
 
@@ -590,7 +586,7 @@ describe("useDeckImport", () => {
         finish = resolve;
       })
     );
-    const { result, rerender } = renderHook(useTestDeckImport);
+    const { result, rerender } = renderHook(useDeckImport);
 
     let operation!: Promise<DeckImportResult>;
     act(() => {
@@ -614,7 +610,7 @@ describe("useDeckImport", () => {
     mocks.bulkUpsert.mockRejectedValueOnce(
       new CardBulkMutationError(["second"], 2, { cause: new Error("authoritative read failed") })
     );
-    const { result } = renderHook(useTestDeckImport);
+    const { result } = renderHook(useDeckImport);
     const file = new File(['"front-1","back-1","","first"\n"front-2","back-2","","second"'], "deck.csv", {
       type: "text/csv",
     });

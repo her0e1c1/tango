@@ -1,23 +1,16 @@
 import type { Card } from "@/entities/card";
-import type { Deck, DeckCreateInput, LocalDeckCreateInput } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 
 import { useEffect, useRef, useState } from "react";
 
-import { fetchCards, mutateCards } from "@/entities/card";
-import { fetchDecks } from "@/entities/deck";
 import { useAuthUid } from "@/entities/auth";
+import { fetchCards, generateCardId, mutateCards, useCards } from "@/entities/card";
+import { createDeck, fetchDecks, useDecks } from "@/entities/deck";
 import { parseCsv } from "../lib/cardCsv";
 import type { DeckImportAttempt, DeckImportExecutionDependencies } from "../model/deckImportExecution";
 import { executePreparedDeckImport, partialResultFrom, prepareDeckImport } from "../model/deckImportExecution";
 import type { DeckImportPreview, DeckImportResult, DeckImportStorageMode } from "../model/deckImportTypes";
 import { prepareSampleDeck } from "../model/sampleDeck";
-
-export interface DeckImportOptions {
-  cards: Card[];
-  createDeck: (uid: string, deck: DeckCreateInput | LocalDeckCreateInput) => Promise<unknown>;
-  decks: Deck[];
-  generateCardId: () => string;
-}
 
 interface DeckImportSession {
   uid: string;
@@ -57,8 +50,10 @@ const initialState = (uid: string): DeckImportState => ({
   data: undefined,
 });
 
-export const useDeckImport = ({ cards, createDeck, decks, generateCardId }: DeckImportOptions) => {
+export const useDeckImport = () => {
   const uid = useAuthUid();
+  const cards = useCards();
+  const decks = useDecks();
   const sessionRef = useRef(createSession(uid));
   const [state, setState] = useState(() => initialState(uid));
   const currentState = state.uid === uid ? state : initialState(uid);
