@@ -1,11 +1,5 @@
 export { useStudySession, useStudySessions } from "./model/hooks";
-export {
-  canMoveStudySession,
-  compareActiveDecks,
-  findCurrentStudySessionCard,
-  groupDecksByStudyStatus,
-  planStudySessionSwipe,
-} from "./model/rules";
+export { canMoveStudySession, compareActiveDecks, groupDecksByStudyStatus, planStudySessionSwipe } from "./model/rules";
 export type { StudySession } from "./model/types";
 export {
   clearStudySessions,
