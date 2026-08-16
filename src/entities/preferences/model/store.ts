@@ -31,6 +31,7 @@ const createPreferencesStore = () =>
             Object.assign(state.preferences.study, study);
             Object.assign(state.preferences.controls, preferencesInput.controls);
             if (selectedTags != null) {
+              // Do not retain a caller-owned mutable array inside persisted state.
               state.preferences.study.selectedTags = [...selectedTags];
             }
             state.preferences = preferencesSchema.parse(state.preferences);
@@ -39,6 +40,7 @@ const createPreferencesStore = () =>
       {
         name: "tango-config",
         merge: (persistedState, currentState) => {
+          // Revalidate untrusted storage; the schema recovers fields independently and current defaults remain the fallback.
           const result = preferencesSchema.safeParse(
             (persistedState as Partial<PersistedPreferencesState> | undefined)?.preferences
           );

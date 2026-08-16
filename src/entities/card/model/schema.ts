@@ -47,6 +47,7 @@ export const localCardSchema = localCardCreateSchema.extend({
   updatedAt: z.number(),
 });
 
+// Zustand JSON storage serializes Dates as strings; hydration accepts only strings that restore to valid Dates.
 const persistedDateSchema = z.preprocess(
   (value) => (typeof value === "string" ? new Date(value) : value),
   z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date")
@@ -58,6 +59,7 @@ export const localCardEditSchema = editableCardFieldsSchema.partial().extend({ i
 export const cardEditSchema = localCardEditSchema.extend({ uid: cardUidSchema });
 const cardIdentitySchema = z.object({ id: cardIdSchema, uid: cardUidSchema });
 
+// Ownership is established by the authenticated session and must never be selectable by a remote mutation payload.
 const validateCardOwner = (input: { uid: string; card: { uid: string } }, context: z.RefinementCtx): void => {
   if (input.card.uid !== input.uid) {
     context.addIssue({
