@@ -1,16 +1,16 @@
 import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { countCardsByDeckId, filterCardsByDeckId, type Card } from "@/entities/card";
-import { deleteDeck, mustFindDeckById, type Deck, type DeckId } from "@/entities/deck";
-import { compareActiveDecks, groupDecksByStudyStatus, type StudySession } from "@/entities/study-session";
+import { countCardsByDeckId, filterCardsByDeckId, type Card, useCards } from "@/entities/card";
+import { deleteDeck, mustFindDeckById, type Deck, type DeckId, useDecks } from "@/entities/deck";
+import {
+  compareActiveDecks,
+  groupDecksByStudyStatus,
+  type StudySession,
+  touchStudySession,
+  useStudySessions,
+} from "@/entities/study-session";
 import { downloadDeckCsv } from "../lib/deckCsv";
-
-interface UseDeckListStateOptions {
-  decks: Deck[];
-  cards: Card[];
-  sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
-}
 
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
@@ -43,8 +43,11 @@ const buildDeckListSections = (
   };
 };
 
-export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckListStateOptions) => {
+export const useDeckListState = () => {
   const uid = useAuthUid();
+  const cards = useCards();
+  const decks = useDecks();
+  const sessionsByDeckId = useStudySessions();
   const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [deletionErrorDeckId, setDeletionErrorDeckId] = React.useState<DeckId>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
@@ -88,6 +91,7 @@ export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckList
           },
     successMessage,
     onDownload: download,
+    onContinueStudy: touchStudySession,
     onRequestDeletion: requestDeletion,
     onCancelDeletion: () => setDeletionTarget(undefined),
     onConfirmDeletion: confirmDeletion,

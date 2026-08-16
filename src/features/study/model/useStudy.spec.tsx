@@ -1,4 +1,5 @@
 import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 import {
   clearStudySessions,
@@ -12,21 +13,32 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
-import { createPreferences } from "@/test/factories";
+import { createDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   preferences: null as Preferences | null,
+  cards: [] as Card[],
+  deck: undefined as Deck | undefined,
   editStudyProgress: vi.fn(),
   touchStudySession: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-1" }));
-vi.mock("@/entities/preferences", () => ({
+vi.mock("@/entities/preferences", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/preferences")>()),
   usePreferences: () => {
     if (mocks.preferences == null) throw new Error("Preferences not initialized");
     return mocks.preferences;
   },
+}));
+vi.mock("@/entities/card", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/card")>()),
+  useCards: () => mocks.cards,
+}));
+vi.mock("@/entities/deck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/deck")>()),
+  useDeck: () => mocks.deck,
 }));
 vi.mock("@/entities/study-progress", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/study-progress")>()),
@@ -43,7 +55,13 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
   };
 });
 
-import { useStudy } from "./useStudy";
+import { useStudy as useStudyState } from "./useStudy";
+
+const useStudy = (routeDeckId: string) => {
+  const study = useStudyState(routeDeckId);
+  if (study == null) throw new Error("Expected the test Deck to exist");
+  return study;
+};
 
 const deckId = "deck-1";
 const cards: Card[] = ["card-1", "card-2"].map((id) => ({
@@ -68,6 +86,8 @@ describe("useStudy", () => {
     localStorage.clear();
     vi.clearAllMocks();
     mocks.editStudyProgress.mockResolvedValue(undefined);
+    mocks.cards = cards;
+    mocks.deck = createDeck({ id: deckId, category: "raw" });
     mocks.preferences = createPreferences({
       cardInterval: 1,
       defaultAutoPlay: false,
@@ -84,11 +104,11 @@ describe("useStudy", () => {
   });
 
   it("coordinates display state, persistence, and session progression", async () => {
-    const { result } = renderHook(() => useStudy(deckId, cards));
+    const { result } = renderHook(() => useStudy(deckId));
     expect(result.current).toMatchObject({
       status: "studying",
-      session: { deckId, cardOrderIds: ["card-1", "card-2"], currentIndex: 0 },
-      card: { id: "card-1" },
+      session: { currentIndex: 0, cardCount: 2 },
+      card: { frontText: "card-1" },
       showBackText: false,
     });
     expect(result.current).not.toHaveProperty("index");
@@ -99,21 +119,23 @@ describe("useStudy", () => {
     expect(result.current).toMatchObject({ status: "studying", showBackText: true });
     await actAsync(() => result.current.swipeRight());
 
-    await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { id: "card-2" } }));
+    await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { frontText: "card-2" } }));
     expect(result.current).toMatchObject({ showBackText: false, swipeFeedback: "cardSwipeRight" });
     expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }));
   });
 
   it("reports preparing while the session card is not available", () => {
-    const { result } = renderHook(() => useStudy(deckId, []));
+    mocks.cards = [];
+    const { result } = renderHook(() => useStudy(deckId));
     expect(result.current.status).toBe("preparing");
   });
 
   it("reports invalid when the session has no current card", async () => {
     clearStudySessions();
     startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    mocks.cards = [];
 
-    const { result } = renderHook(() => useStudy(deckId, []));
+    const { result } = renderHook(() => useStudy(deckId));
 
     expect(result.current.status).toBe("invalid");
     await waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
@@ -122,18 +144,22 @@ describe("useStudy", () => {
   it("advances the session while autoplay is enabled", () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
-    const { result } = renderHook(() => useStudy(deckId, cards));
+    const { result } = renderHook(() => useStudy(deckId));
     act(() => result.current.toggleBackText());
 
     act(() => vi.advanceTimersByTime(1000));
 
-    expect(result.current).toMatchObject({ status: "studying", card: { id: "card-2" }, showBackText: false });
+    expect(result.current).toMatchObject({
+      status: "studying",
+      card: { frontText: "card-2" },
+      showBackText: false,
+    });
   });
 
   it("does not advance a restarted session with an old autoplay timer", () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
-    renderHook(() => useStudy(deckId, cards));
+    renderHook(() => useStudy(deckId));
     const previousSessionId = getStudySession(deckId)?.sessionId;
 
     act(() => vi.advanceTimersByTime(500));
@@ -148,7 +174,7 @@ describe("useStudy", () => {
 
   it("reports an invalid session and removes it", async () => {
     clearStudySessions();
-    const { result } = renderHook(() => useStudy(deckId, cards));
+    const { result } = renderHook(() => useStudy(deckId));
 
     expect(result.current.status).toBe("invalid");
     await waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
@@ -156,7 +182,7 @@ describe("useStudy", () => {
 
   it("keeps the visible session unchanged when persistence fails", async () => {
     mocks.editStudyProgress.mockRejectedValueOnce(new Error("write failed"));
-    const { result } = renderHook(() => useStudy(deckId, cards));
+    const { result } = renderHook(() => useStudy(deckId));
 
     await actAsync(() => result.current.swipeRight());
 
@@ -171,7 +197,7 @@ describe("useStudy", () => {
         finishWrite = resolve;
       })
     );
-    const { result } = renderHook(() => useStudy(deckId, cards));
+    const { result } = renderHook(() => useStudy(deckId));
 
     const firstSwipe = result.current.swipeRight();
     await actAsync(() => result.current.swipeRight());
@@ -190,7 +216,7 @@ describe("useStudy", () => {
         finishWrite = resolve;
       })
     );
-    const { result } = renderHook(() => useStudy(deckId, cards));
+    const { result } = renderHook(() => useStudy(deckId));
 
     const swipe = result.current.swipeRight();
     setStudySessionIndex(deckId, 1);
@@ -211,7 +237,7 @@ describe("useStudy", () => {
         finishWrite = resolve;
       })
     );
-    const { result } = renderHook(() => useStudy(deckId, cards));
+    const { result } = renderHook(() => useStudy(deckId));
 
     const swipe = result.current.swipeRight();
     vi.mocked(Date.now).mockReturnValue(946_684_800_100);
@@ -227,7 +253,7 @@ describe("useStudy", () => {
 
   it("handles DoNothing and GoBack without writing progress", async () => {
     mocks.preferences = createPreferences({ cardSwipeDown: "DoNothing", cardSwipeLeft: "GoBack" });
-    const { result } = renderHook(() => useStudy(deckId, cards));
+    const { result } = renderHook(() => useStudy(deckId));
 
     await actAsync(() => result.current.swipeDown());
     expect(getStudySession(deckId)).toBeDefined();
@@ -240,7 +266,8 @@ describe("useStudy", () => {
   it("removes the session after the final card is persisted", async () => {
     clearStudySessions();
     startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 });
-    const { result } = renderHook(() => useStudy(deckId, cards.slice(0, 1)));
+    mocks.cards = cards.slice(0, 1);
+    const { result } = renderHook(() => useStudy(deckId));
 
     await actAsync(() => result.current.swipeRight());
 

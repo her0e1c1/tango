@@ -21,6 +21,10 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
 
   const closeMenu = () => setOpenMenuDeckId(undefined);
   const toggleMenu = (id: DeckId) => setOpenMenuDeckId((value) => (value === id ? undefined : id));
+  const continueStudy = (id: DeckId) => {
+    state.onContinueStudy(id);
+    props.onContinueDeck(id);
+  };
 
   return (
     <>
@@ -56,7 +60,7 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
           onCloseMenu: closeMenu,
           onClickEdit: props.onEditDeck,
           onClickName: props.onViewDeck,
-          onClickContinue: props.onContinueDeck,
+          onClickContinue: continueStudy,
           onClickRestart: props.onStartDeck,
           onClickStudy: props.onStartDeck,
           onClickDownload: state.onDownload,

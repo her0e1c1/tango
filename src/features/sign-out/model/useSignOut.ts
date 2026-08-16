@@ -1,6 +1,10 @@
 import { useState } from "react";
 
+import { useAuthAccount, useAuthUid } from "@/entities/auth";
+
 export const useSignOut = (signOut: () => Promise<void>) => {
+  const account = useAuthAccount();
+  const uid = useAuthUid();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -17,5 +21,11 @@ export const useSignOut = (signOut: () => Promise<void>) => {
     }
   };
 
-  return { pending, error, signOut: run };
+  return {
+    pending,
+    error,
+    signOut: run,
+    isLoggedIn: account != null,
+    identity: { uid, displayName: account?.displayName ?? null },
+  };
 };

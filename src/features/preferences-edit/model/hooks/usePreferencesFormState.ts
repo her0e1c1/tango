@@ -1,14 +1,10 @@
-import { studyPreferencesLimits, type Preferences } from "@/entities/preferences";
+import { studyPreferencesLimits, type Preferences, updatePreferences, usePreferences } from "@/entities/preferences";
 
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-export interface UsePreferencesFormStateOptions {
-  preferences: Preferences;
-  onSubmit?: (preferences: Preferences) => void;
-}
-
-export const usePreferencesFormState = ({ preferences, onSubmit }: UsePreferencesFormStateOptions) => {
+export const usePreferencesFormState = () => {
+  const preferences = usePreferences();
   const { control, handleSubmit, register, setValue, subscribe } = useForm<Preferences>({
     defaultValues: preferences,
   });
@@ -19,9 +15,9 @@ export const usePreferencesFormState = ({ preferences, onSubmit }: UsePreference
     () =>
       subscribe({
         formState: { values: true },
-        callback: () => void handleSubmit((data) => onSubmit?.(data))(),
+        callback: () => void handleSubmit(updatePreferences)(),
       }),
-    [handleSubmit, onSubmit, subscribe]
+    [handleSubmit, subscribe]
   );
 
   React.useEffect(() => {

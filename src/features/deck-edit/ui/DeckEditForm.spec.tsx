@@ -1,4 +1,4 @@
-import type { Deck, DeckId } from "@/entities/deck";
+import type { DeckId } from "@/entities/deck";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -36,21 +36,20 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 
 import { DeckEditForm } from "./DeckEditForm";
-import { useDeckEditAction } from "../model/useDeckEditAction";
 import { useDeckFormState } from "../model/useDeckFormState";
 
-const DeckEditFormHarness = (props: { deck: Deck; onCancel: () => void; onSaved: () => void }) => {
-  const editAction = useDeckEditAction({ onSaved: props.onSaved });
-  const form = useDeckFormState({ deck: props.deck, onCancel: props.onCancel, onSubmit: editAction.update });
+const DeckEditFormHarness = (props: { deckId: string; onCancel: () => void; onSaved: () => void }) => {
+  const editor = useDeckFormState({ deckId: props.deckId, onCancel: props.onCancel, onSaved: props.onSaved });
 
-  return <DeckEditForm deckName={props.deck.name} form={form} saveError={editAction.error} />;
+  if (editor == null) return null;
+  return <DeckEditForm deckName={editor.deckName} form={editor.form} saveError={editor.saveError} />;
 };
 
 // A fresh Entity read after remount proves that the form displays the last successful edit.
 const StoredDeckEditFormHarness = (props: { deckId: DeckId; onCancel: () => void; onSaved: () => void }) => {
   const deck = useDeck(props.deckId);
   return deck === undefined ? null : (
-    <DeckEditFormHarness deck={deck} onCancel={props.onCancel} onSaved={props.onSaved} />
+    <DeckEditFormHarness deckId={deck.id} onCancel={props.onCancel} onSaved={props.onSaved} />
   );
 };
 

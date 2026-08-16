@@ -5,7 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StudySession } from "@/entities/study-session";
 import { createCard, createDeck } from "@/test/factories";
 
-const mocks = vi.hoisted(() => ({ deleteDeck: vi.fn(), downloadTextFile: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  deleteDeck: vi.fn(),
+  downloadTextFile: vi.fn(),
+  touchStudySession: vi.fn(),
+}));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.downloadTextFile }));
@@ -13,6 +17,16 @@ vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
   deleteDeck: mocks.deleteDeck,
+  useDecks: () => [otherDeck, oldDeck, recentDeck],
+}));
+vi.mock("@/entities/card", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/card")>()),
+  useCards: () => cards,
+}));
+vi.mock("@/entities/study-session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/study-session")>()),
+  touchStudySession: mocks.touchStudySession,
+  useStudySessions: () => sessionsByDeckId,
 }));
 
 import { useDeckListState } from "../model/useDeckListState";
@@ -52,7 +66,7 @@ const actions = {
 };
 
 const DeckListHarness = () => {
-  const state = useDeckListState({ decks: [otherDeck, oldDeck, recentDeck], cards, sessionsByDeckId });
+  const state = useDeckListState();
 
   return <DeckList state={state} {...actions} />;
 };
@@ -91,6 +105,7 @@ describe("DeckList", () => {
     expect(actions.onStartDeck).toHaveBeenCalledExactlyOnceWith(otherDeck.id);
 
     fireEvent.click(screen.getByRole("button", { name: "Continue Recent deck" }));
+    expect(mocks.touchStudySession).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
     expect(actions.onContinueDeck).toHaveBeenCalledExactlyOnceWith(recentDeck.id);
 
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Alpha deck" }));

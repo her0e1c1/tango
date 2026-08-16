@@ -1,18 +1,26 @@
-import { getCategory, type Deck, useDeck } from "@/entities/deck";
-import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
-
 import * as React from "react";
 import { useParams } from "react-router-dom";
-import { useKey } from "react-use";
+import { useKey, useLatest } from "react-use";
 
-import { type Card, useCards } from "@/entities/card";
-import { buildCardViewContent, CardOverlay, CardView, FrontText } from "@/features/card-view";
-import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
+import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { routes, useNavigation } from "@/features/navigate";
+import { DeckSwiperView, type StudyState, useStudy, useStudyDeck } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
-const renderStudyScreen = (deck: Deck, state: StudyState, dark: boolean) => {
+type StudyShortcutAction =
+  | "swipeUp"
+  | "swipeDown"
+  | "swipeLeft"
+  | "swipeRight"
+  | "toggleBackText"
+  | "toggleHeader"
+  | "toggleSwipeButtonList"
+  | "toggleAutoPlay";
+
+const renderStudyScreen = (state: StudyState | undefined) => {
+  if (state == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+
   if (state.status !== "studying") {
     return state.status === "preparing" ? (
       <RouteFeedback title="Loading…" tone="loading" />
@@ -21,7 +29,6 @@ const renderStudyScreen = (deck: Deck, state: StudyState, dark: boolean) => {
     );
   }
 
-  const category = getCategory(deck.category, state.card.tags);
   const swipeActions = {
     disabled: false,
     onClickUp: () => void state.swipeUp(),
@@ -39,7 +46,7 @@ const renderStudyScreen = (deck: Deck, state: StudyState, dark: boolean) => {
         {...(state.swipeFeedback !== undefined ? { swipeFeedback: state.swipeFeedback } : {})}
         frontTextSlot={
           <FrontText
-            category={category}
+            category={state.card.category}
             text={state.card.frontText}
             onSwipeUp={swipeActions.onClickUp}
             onSwipeDown={swipeActions.onClickDown}
@@ -55,13 +62,11 @@ const renderStudyScreen = (deck: Deck, state: StudyState, dark: boolean) => {
             {...(state.card.lastSeenAt !== undefined ? { lastSeenAt: state.card.lastSeenAt } : {})}
           />
         }
-        backTextSlot={
-          <CardView {...buildCardViewContent(state.card, deck, dark)} onClick={state.toggleBackText} variant="bare" />
-        }
+        backTextSlot={<CardView {...state.card.back} onClick={state.toggleBackText} variant="bare" />}
         controller={{
           autoPlay: state.autoPlay,
           index: state.session.currentIndex,
-          numberOfCards: state.session.cardOrderIds.length,
+          numberOfCards: state.session.cardCount,
           onChange: state.updateIndex,
           onToggleAutoPlay: state.toggleAutoPlay,
         }}
@@ -72,30 +77,39 @@ const renderStudyScreen = (deck: Deck, state: StudyState, dark: boolean) => {
   );
 };
 
-const StudySessionScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => {
-  const preferences = usePreferences();
-  useKey("ArrowUp", () => void state.swipeUp());
-  useKey("ArrowDown", () => void state.swipeDown());
-  useKey("ArrowLeft", () => void state.swipeLeft());
-  useKey("ArrowRight", () => void state.swipeRight());
-  useKey("Enter", state.toggleBackText);
-  useKey("h", toggleShowHeader);
-  useKey("b", toggleShowSwipeButtonList);
-  useKey(" ", state.toggleAutoPlay);
-
-  return renderStudyScreen(deck, state, preferences.appearance.darkMode);
-};
-
-const StudySessionContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
+const StudySession = ({ deckId }: { deckId: string }) => {
   const navigation = useNavigation();
-  const study = useStudy(deck.id, cards);
+  const study = useStudy(deckId);
+  const latestStudy = useLatest(study);
+  const runWhileStudying = (action: StudyShortcutAction) => () => {
+    const currentStudy = latestStudy.current;
+    if (currentStudy?.status === "studying") void currentStudy[action]();
+  };
+
+  // useKey retains its initial handler, so that handler reads current Feature state through one stable ref.
+  useKey("ArrowUp", runWhileStudying("swipeUp"));
+  useKey("ArrowDown", runWhileStudying("swipeDown"));
+  useKey("ArrowLeft", runWhileStudying("swipeLeft"));
+  useKey("ArrowRight", runWhileStudying("swipeRight"));
+  useKey("Enter", runWhileStudying("toggleBackText"));
+  useKey("h", runWhileStudying("toggleHeader"));
+  useKey("b", runWhileStudying("toggleSwipeButtonList"));
+  useKey(" ", runWhileStudying("toggleAutoPlay"));
 
   React.useEffect(() => {
-    if (study.status !== "invalid") return;
+    if (study?.status !== "invalid") return;
     void navigation.to(routes.deckList.to(), { replace: true });
-  }, [navigation, study.status]);
+  }, [navigation, study?.status]);
 
-  return <StudySessionScreen deck={deck} state={study} />;
+  return renderStudyScreen(study);
+};
+
+const StudySessionContent = ({ deckId }: { deckId: string }) => {
+  const deck = useStudyDeck(deckId);
+
+  // Study lifecycle mutates session state, so an unavailable route Deck must not mount it.
+  if (deck == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+  return <StudySession deckId={deckId} />;
 };
 
 export const StudySessionPage: React.FC = () => {
@@ -103,13 +117,6 @@ export const StudySessionPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
 
-  const cards = useCards();
-  const deck = useDeck(deckId);
-
-  if (deck == null) {
-    return <RouteFeedback title="Study session unavailable." tone="not-found" />;
-  }
-
-  // Study state belongs to one deck, so route changes use a fresh session lifecycle.
-  return <StudySessionContent key={deck.id} cards={cards} deck={deck} />;
+  // Study state belongs to one route Deck, so id changes start a fresh Feature lifecycle.
+  return <StudySessionContent key={deckId} deckId={deckId} />;
 };

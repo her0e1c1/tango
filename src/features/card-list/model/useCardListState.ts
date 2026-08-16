@@ -1,9 +1,12 @@
 import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { deleteCard, mustFindCardById, type Card, type CardId } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
+import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
+import { type Deck, editDeck, filterCardsForDeck, getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
+import { usePreferences } from "@/entities/preferences";
 import { editStudyProgress } from "@/entities/study-progress";
+
+type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
 
 export interface CardListItem {
   id: CardId;
@@ -20,13 +23,8 @@ interface CardListAnswer {
   dark: boolean;
 }
 
-interface UseCardListStateOptions {
-  cards: Card[];
-  deck: Deck;
-  dark: boolean;
-}
-
 export interface CardListState {
+  tags: string[];
   cards: CardListItem[];
   answer: CardListAnswer | undefined;
   deletionTarget: { frontText: string; hasError: boolean } | undefined;
@@ -49,13 +47,31 @@ const buildCardListItem = (card: Card): CardListItem => ({
   tags: card.tags,
 });
 
-export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions): CardListState => {
+export const useCardListState = (deckId: string) => {
   const uid = useAuthUid();
+  const deck = useDeck(deckId);
+  const preferences = usePreferences();
+  const { cards: deckCards, tags } = useCardsByDeckId(deckId);
+  const [filter, setFilter] = React.useState<DeckFilterValues>();
   const [shownCard, setShownCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
   const [mutationError, setMutationError] = React.useState<unknown>(null);
   const [successMessage, setSuccessMessage] = React.useState<string>();
+
+  if (deck == null) return;
+
+  const cards = filterCardsForDeck(deckCards, deck, preferences.study);
+  const storedFilter: DeckFilterValues = {
+    scoreMax: deck.scoreMax,
+    scoreMin: deck.scoreMin,
+    selectedTags: deck.selectedTags,
+    tagAndFilter: deck.tagAndFilter,
+  };
+  const updateFilter = <Key extends keyof DeckFilterValues>(key: Key, value: DeckFilterValues[Key]) => {
+    setFilter((current) => ({ ...(current ?? storedFilter), [key]: value }));
+    void editDeck(uid, { id: deck.id, [key]: value }).catch(() => undefined);
+  };
 
   const changeScore = (id: CardId, offset: number) => {
     const card = mustFindCardById(cards, id);
@@ -92,10 +108,18 @@ export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions)
           text: shownCard.backText,
           category,
           code: isHighlightLanguage(category),
-          dark,
+          dark: preferences.appearance.darkMode,
         };
 
   return {
+    filter: {
+      ...(filter ?? storedFilter),
+      setScoreMax: (value: number | null) => updateFilter("scoreMax", value),
+      setScoreMin: (value: number | null) => updateFilter("scoreMin", value),
+      setSelectedTags: (value: string[]) => updateFilter("selectedTags", value),
+      setTagAndFilter: (value: boolean) => updateFilter("tagAndFilter", value),
+    },
+    tags,
     cards: cards.map(buildCardListItem),
     answer,
     deletionTarget:

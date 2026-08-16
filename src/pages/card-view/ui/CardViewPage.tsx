@@ -1,39 +1,30 @@
 import type * as React from "react";
 import { useParams } from "react-router-dom";
 
-import { useCard } from "@/entities/card";
-import { useDeck } from "@/entities/deck";
-import { usePreferences } from "@/entities/preferences";
-import { buildCardViewContent, CardView } from "@/features/card-view";
-import { routes, useNavigation } from "@/features/navigate";
-import { RouteFeedback } from "@/shared/ui/route-feedback";
+import { CardView, useCardViewContent } from "@/features/card-view";
 import { AppLayout } from "@/widgets/app-layout";
+import { RouteNotFound } from "@/widgets/route-not-found";
 
-export const CardViewPage: React.FC = () => {
-  const params = useParams();
-  const navigation = useNavigation();
-  const cardId = params.id;
-  if (cardId == null) throw new Error("invalid card id");
-  const card = useCard(cardId);
-  const deck = useDeck(card?.deckId);
-  const preferences = usePreferences();
-  const available = card != null && deck != null;
+const CardViewContent = ({ cardId }: { cardId: string }) => {
+  const content = useCardViewContent(cardId);
 
-  if (!available) {
+  if (content == null) {
     return (
-      <RouteFeedback
-        title="Card not found"
-        description="The requested card is unavailable or has been removed."
-        tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
-      />
+      <RouteNotFound title="Card not found" description="The requested card is unavailable or has been removed." />
     );
   }
 
   return (
     <AppLayout showHeader>
-      <CardView {...buildCardViewContent(card, deck, preferences.appearance.darkMode)} />
+      <CardView {...content} />
     </AppLayout>
   );
+};
+
+export const CardViewPage: React.FC = () => {
+  const params = useParams();
+  const cardId = params.id;
+  if (cardId == null) throw new Error("invalid card id");
+
+  return <CardViewContent cardId={cardId} />;
 };

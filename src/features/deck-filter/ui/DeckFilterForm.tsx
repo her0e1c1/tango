@@ -2,10 +2,17 @@ import { useId } from "react";
 import type * as React from "react";
 
 import { Form, Slider, Switch } from "@/shared/ui/forms";
-import type { DeckFilterState } from "../model/useDeckFilterState";
 import { TagFilter } from "./TagFilter";
 
-interface DeckFilterFormProps extends DeckFilterState {
+interface DeckFilterFormProps {
+  scoreMax: number | null;
+  scoreMin: number | null;
+  selectedTags: string[];
+  tagAndFilter: boolean;
+  setScoreMax: (value: number | null) => void;
+  setScoreMin: (value: number | null) => void;
+  setSelectedTags: (value: string[]) => void;
+  setTagAndFilter: (value: boolean) => void;
   tags: string[];
 }
 

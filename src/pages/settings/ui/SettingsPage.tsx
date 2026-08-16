@@ -1,8 +1,6 @@
 import type * as React from "react";
 import { useKey } from "react-use";
 
-import { useAuthAccount, useAuthUid } from "@/entities/auth";
-import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { SettingsForm, usePreferencesFormState } from "@/features/preferences-edit";
 import { useSignIn } from "@/features/sign-in";
 import { useSignOut } from "@/features/sign-out";
@@ -16,15 +14,11 @@ interface SettingsPageProps {
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => {
-  const preferences = usePreferences();
-  const authAccount = useAuthAccount();
-  const authUid = useAuthUid();
   const navigation = useNavigation();
-
-  const isLoggedIn = authAccount != null;
 
   const signIn = useSignIn(login);
   const signOut = useSignOut(logout);
+  const { isLoggedIn } = signOut;
   const accountOperation = isLoggedIn
     ? {
         run: signOut.signOut,
@@ -42,17 +36,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
       };
   const runAccountOperation = () => void accountOperation.run().catch(() => undefined);
 
-  const formState = usePreferencesFormState({
-    preferences,
-    onSubmit: updatePreferences,
-  });
+  const formState = usePreferencesFormState();
   useKey("t", () => void navigation.to(routes.deckList.to()));
 
   return (
     <AppLayout showHeader>
       <SettingsForm
         {...formState}
-        identity={{ uid: authUid, displayName: authAccount?.displayName ?? null }}
+        identity={signOut.identity}
         version={__APP_VERSION__}
         isLoggedIn={isLoggedIn}
         onLogin={runAccountOperation}
