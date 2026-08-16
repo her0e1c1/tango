@@ -2,7 +2,6 @@ import type { SwipeAction } from "@/entities/preferences/@x/study-session";
 import { type CardProgressFields, recordCardStudyProgress } from "@/entities/study-progress/@x/study-session";
 
 import type {
-  ResolvedStudySession,
   StudySession,
   StudySessionCard,
   StudySessionMovement,
@@ -31,18 +30,6 @@ interface ActiveDeck<TDeck> {
 interface DecksByStudyStatus<TDeck> {
   active: ActiveDeck<TDeck>[];
   inactive: TDeck[];
-}
-
-/** Preferences that control automatic study-session advancement. */
-interface StudySessionAutoPlayOptions {
-  enabled: boolean;
-  intervalSeconds: number;
-}
-
-/** Current session and delay required to schedule automatic advancement. */
-interface StudySessionAutoPlayPlan {
-  session: StudySession;
-  intervalSeconds: number;
 }
 
 // Compares Deck names with locale-aware ascending order for deterministic presentation ties.
@@ -75,18 +62,14 @@ export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
 const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];
 
-// Resolves a session against loaded Cards, distinguishing an in-flight empty read from a proven missing Card.
-export const resolveStudySession = <Card extends StudySessionCard>(
+// Finds the loaded Card at the active session position without inferring application loading state.
+export const findCurrentStudySessionCard = <Card extends StudySessionCard>(
   session: StudySession | undefined,
   cards: readonly Card[]
-): ResolvedStudySession<Card> => {
-  if (session == null) return { status: "invalid" };
-
+): Card | undefined => {
+  if (session == null) return;
   const cardId = getCurrentStudySessionCardId(session);
-  const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
-  if (card != null) return { status: "studying", session, card };
-  // An empty collection can still be an in-flight read; a populated collection proves the persisted card is absent.
-  return { status: cardId != null && cards.length === 0 ? "preparing" : "invalid" };
+  return cardId == null ? undefined : cards.find(({ id }) => id === cardId);
 };
 
 // Collapses control actions into the movement, exit, or no-op effects understood by a study session.
@@ -108,13 +91,13 @@ export const planStudySessionSwipe = (
   const effect = resolveStudySessionSwipeEffect(swipeAction);
   if (effect === "none" || effect === "exit") return { effect };
 
-  const resolvedSession = resolveStudySession(session, cards);
-  if (resolvedSession.status !== "studying") return { effect: "none" };
+  const card = findCurrentStudySessionCard(session, cards);
+  if (card == null) return { effect: "none" };
 
   return {
     effect,
     session,
-    progress: recordCardStudyProgress(resolvedSession.card, swipeAction, studiedAt),
+    progress: recordCardStudyProgress(card, swipeAction, studiedAt),
   };
 };
 
@@ -133,12 +116,6 @@ export const calculateStudySessionIndex = (
   return nextIndex >= 0 && nextIndex < session.cardOrderIds.length ? nextIndex : undefined;
 };
 
-// Builds a timer plan only while the resolved session can advance automatically.
-export const planStudySessionAutoPlay = (
-  resolvedSession: ResolvedStudySession<StudySessionCard>,
-  { enabled, intervalSeconds }: StudySessionAutoPlayOptions
-): StudySessionAutoPlayPlan | undefined => {
-  if (resolvedSession.status !== "studying" || !enabled || intervalSeconds <= 0) return;
-  const nextIndex = calculateStudySessionIndex(resolvedSession.session, "next");
-  return nextIndex === undefined ? undefined : { session: resolvedSession.session, intervalSeconds };
-};
+// Reports whether the session can move without crossing either end of its Card order.
+export const canMoveStudySession = (session: StudySession, movement: StudySessionMovement): boolean =>
+  calculateStudySessionIndex(session, movement) !== undefined;
