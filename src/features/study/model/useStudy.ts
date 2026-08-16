@@ -7,31 +7,34 @@ import { useStudyControls } from "./useStudyControls";
 import { useStudySessionState } from "./useStudySessionState";
 import { useSwipe } from "./useSwipe";
 
-interface StudyCommands {
-  swipeUp: () => Promise<void>;
-  swipeDown: () => Promise<void>;
-  swipeLeft: () => Promise<void>;
-  swipeRight: () => Promise<void>;
-  toggleBackText: () => void;
-  toggleAutoPlay: () => void;
-}
-
-export type StudyState = StudyCommands &
-  (
-    | { status: "preparing" | "invalid" }
-    | {
-        status: "studying";
-        session: StudySession;
-        card: Card;
-        showHeader: boolean;
-        showBackText: boolean;
-        showController: boolean;
-        showSwipeButtonList: boolean;
-        swipeFeedback?: SwipeDirection;
-        autoPlay: boolean;
-        updateIndex: (index: number) => void;
-      }
-  );
+export type StudyState =
+  | {
+      status: "preparing" | "invalid";
+      swipeUp: () => Promise<void>;
+      swipeDown: () => Promise<void>;
+      swipeLeft: () => Promise<void>;
+      swipeRight: () => Promise<void>;
+      toggleBackText: () => void;
+      toggleAutoPlay: () => void;
+    }
+  | {
+      status: "studying";
+      session: StudySession;
+      card: Card;
+      showHeader: boolean;
+      showBackText: boolean;
+      showController: boolean;
+      showSwipeButtonList: boolean;
+      swipeFeedback?: SwipeDirection;
+      autoPlay: boolean;
+      updateIndex: (index: number) => void;
+      swipeUp: () => Promise<void>;
+      swipeDown: () => Promise<void>;
+      swipeLeft: () => Promise<void>;
+      swipeRight: () => Promise<void>;
+      toggleBackText: () => void;
+      toggleAutoPlay: () => void;
+    };
 
 export const useStudy = (deckId: DeckId, cards: readonly Card[]): StudyState => {
   const preferences = usePreferences();
@@ -41,20 +44,20 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[]): StudyState => 
     cardInterval: preferences.study.cardInterval,
   });
   const swipe = useSwipe(deckId, cards, controls.hideBackText);
-  const commands: StudyCommands = {
-    swipeUp: swipe.swipeUp,
-    swipeDown: swipe.swipeDown,
-    swipeLeft: swipe.swipeLeft,
-    swipeRight: swipe.swipeRight,
-    toggleBackText: controls.toggleBackText,
-    toggleAutoPlay: controls.toggleAutoPlay,
-  };
-
-  if (sessionState.status !== "studying") return { status: sessionState.status, ...commands };
+  if (sessionState.status !== "studying") {
+    return {
+      status: sessionState.status,
+      swipeUp: swipe.swipeUp,
+      swipeDown: swipe.swipeDown,
+      swipeLeft: swipe.swipeLeft,
+      swipeRight: swipe.swipeRight,
+      toggleBackText: controls.toggleBackText,
+      toggleAutoPlay: controls.toggleAutoPlay,
+    };
+  }
 
   return {
     status: "studying",
-    ...commands,
     session: sessionState.session,
     card: sessionState.card,
     showHeader: preferences.appearance.showHeader && !controls.showBackText,
@@ -63,6 +66,12 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[]): StudyState => 
     showSwipeButtonList: preferences.controls.showSwipeButtonList,
     autoPlay: controls.autoPlay,
     updateIndex: controls.updateIndex,
+    swipeUp: swipe.swipeUp,
+    swipeDown: swipe.swipeDown,
+    swipeLeft: swipe.swipeLeft,
+    swipeRight: swipe.swipeRight,
+    toggleBackText: controls.toggleBackText,
+    toggleAutoPlay: controls.toggleAutoPlay,
     ...(swipe.swipeFeedback !== undefined ? { swipeFeedback: swipe.swipeFeedback } : {}),
   };
 };
