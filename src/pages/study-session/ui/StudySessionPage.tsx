@@ -4,7 +4,7 @@ import { useKey, useLatest } from "react-use";
 
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { routes, useNavigation } from "@/features/navigate";
-import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
+import { DeckSwiperView, type StudyState, useStudy, useStudyDeck } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -77,7 +77,7 @@ const renderStudyScreen = (state: StudyState | undefined) => {
   );
 };
 
-const StudySessionContent = ({ deckId }: { deckId: string }) => {
+const StudySession = ({ deckId }: { deckId: string }) => {
   const navigation = useNavigation();
   const study = useStudy(deckId);
   const latestStudy = useLatest(study);
@@ -102,6 +102,14 @@ const StudySessionContent = ({ deckId }: { deckId: string }) => {
   }, [navigation, study?.status]);
 
   return renderStudyScreen(study);
+};
+
+const StudySessionContent = ({ deckId }: { deckId: string }) => {
+  const deck = useStudyDeck(deckId);
+
+  // Study lifecycle mutates session state, so an unavailable route Deck must not mount it.
+  if (deck == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+  return <StudySession deckId={deckId} />;
 };
 
 export const StudySessionPage: React.FC = () => {

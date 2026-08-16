@@ -9,9 +9,11 @@ import { useAutoPlay } from "./useAutoPlay";
 import { useStudySessionState } from "./useStudySessionState";
 import { useSwipe } from "./useSwipe";
 
+export const useStudyDeck = (deckId: string) => useDeck(deckId);
+
 export const useStudy = (deckId: string) => {
   const cards = useCards();
-  const deck = useDeck(deckId);
+  const deck = useStudyDeck(deckId);
   const preferences = usePreferences();
   const sessionState = useStudySessionState(deckId, cards);
   const [showBackText, setShowBackText] = React.useState(false);

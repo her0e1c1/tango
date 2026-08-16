@@ -13,7 +13,9 @@ import { createLocalCard, createLocalDeck, createPreferences } from "@/test/fact
 const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
   editStudyProgress: vi.fn(),
+  removeStudySession: vi.fn(),
   setDarkMode: vi.fn(),
+  touchStudySession: vi.fn(),
   toggleShowHeader: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
 }));
@@ -25,6 +27,20 @@ vi.mock("@/entities/preferences", () => ({
   toggleShowHeader: mocks.toggleShowHeader,
   toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
 }));
+vi.mock("@/entities/study-session", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/entities/study-session")>();
+  return {
+    ...original,
+    removeStudySession: (...args: Parameters<typeof original.removeStudySession>) => {
+      mocks.removeStudySession(...args);
+      original.removeStudySession(...args);
+    },
+    touchStudySession: (...args: Parameters<typeof original.touchStudySession>) => {
+      mocks.touchStudySession(...args);
+      original.touchStudySession(...args);
+    },
+  };
+});
 // Persistence is outside Page behavior; successful writes let the real study workflow advance.
 vi.mock("@/entities/study-progress", () => ({ editStudyProgress: mocks.editStudyProgress }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -66,7 +82,9 @@ describe("StudySessionPage", () => {
     clearStudySessions();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.editStudyProgress.mockReset().mockResolvedValue(undefined);
+    mocks.removeStudySession.mockReset();
     mocks.setDarkMode.mockReset();
+    mocks.touchStudySession.mockReset();
     mocks.toggleShowHeader.mockReset();
     mocks.toggleShowSwipeButtonList.mockReset();
     await createDeck("", deck);
@@ -124,6 +142,8 @@ describe("StudySessionPage", () => {
     renderPage("/deck/missing-deck/study");
 
     expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
+    expect(mocks.removeStudySession).not.toHaveBeenCalled();
+    expect(mocks.touchStudySession).not.toHaveBeenCalled();
   });
 
   it("rejects a route without a deck id", () => {
