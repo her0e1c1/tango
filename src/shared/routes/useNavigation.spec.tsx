@@ -16,40 +16,22 @@ describe("useNavigation", () => {
     vi.clearAllMocks();
   });
 
-  it("navigates to every page destination", () => {
+  it("navigates to a destination", () => {
     const { result } = renderHook(() => useNavigation());
 
     act(() => {
-      void result.current.goToDeckList();
-      void result.current.goToCardList("deck-id");
-      void result.current.goToDeckForm("deck-id");
-      void result.current.goToDeckStudyStart("deck-id");
-      void result.current.goToDeckStudy("deck-id");
-      void result.current.goToCardView("card-id");
-      void result.current.goToCardForm("card-id");
-      void result.current.goToSettings();
-      void result.current.goToDeckImport();
+      void result.current.to("/deck/deck-id");
     });
 
-    expect(mocks.navigate.mock.calls).toEqual([
-      ["/"],
-      ["/deck/deck-id"],
-      ["/deck/deck-id/edit"],
-      ["/deck/deck-id/start"],
-      ["/deck/deck-id/study"],
-      ["/card/card-id"],
-      ["/card/card-id/edit"],
-      ["/settings"],
-      ["/import"],
-    ]);
+    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/deck/deck-id");
   });
 
   it("forwards navigation options and history navigation", () => {
     const { result } = renderHook(() => useNavigation());
 
     act(() => {
-      void result.current.goToDeckStudy("deck-id", { replace: true });
-      void result.current.goBack();
+      void result.current.to("/deck/deck-id/study", { replace: true });
+      void result.current.back();
     });
 
     expect(mocks.navigate.mock.calls).toEqual([["/deck/deck-id/study", { replace: true }], [-1]]);

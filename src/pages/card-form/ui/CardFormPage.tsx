@@ -3,13 +3,13 @@ import { useParams } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
 import { CardEditForm } from "@/features/card-edit";
-import { useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 const CardFormContent = ({ card }: { card: Card }) => {
   const navigation = useNavigation();
-  const goBack = () => void navigation.goBack();
+  const goBack = () => void navigation.back();
 
   return (
     <AppLayout showHeader>
@@ -31,8 +31,8 @@ export const CardFormPage: React.FC = () => {
         title="Card not found"
         description="The requested card is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigation.goToDeckList() }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigation.goBack() }}
+        primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
       />
     );
   }

@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { useCard } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
 import { CardView } from "@/features/card-view";
-import { useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -23,8 +23,8 @@ export const CardViewPage: React.FC = () => {
         title="Card not found"
         description="The requested card is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigation.goToDeckList() }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigation.goBack() }}
+        primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
       />
     );
   }

@@ -8,7 +8,7 @@ import { useKey } from "react-use";
 import { type Card, useCards } from "@/entities/card";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
-import { useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -80,7 +80,7 @@ const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => 
 const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigation = useNavigation();
   const handleInvalidSession = () => {
-    void navigation.goToDeckList({ replace: true });
+    void navigation.to(routes.deckList.to(), { replace: true });
   };
   const study = useStudy(deck.id, cards, handleInvalidSession);
 

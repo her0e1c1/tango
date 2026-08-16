@@ -11,7 +11,7 @@ import { usePreferences } from "@/entities/preferences";
 import { startStudy } from "@/entities/study-session";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { StudySessionStartView } from "@/features/study-session-start";
-import { useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -28,7 +28,7 @@ const DeckStudyStartContent = (props: { deck: Deck; cards: Card[]; preferences: 
   const deckFilter = useDeckFilterState(deck);
   const start = () => {
     startStudy(deck.id, cards, preferences.study);
-    void navigation.goToDeckStudy(deck.id, { replace: true });
+    void navigation.to(routes.deckStudy.to(deck.id), { replace: true });
   };
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
@@ -65,8 +65,8 @@ export const DeckStudyStartPage: React.FC = () => {
         title="Deck not found"
         description="The requested deck is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigation.goToDeckList() }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigation.goBack() }}
+        primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
       />
     );
   }

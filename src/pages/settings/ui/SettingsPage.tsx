@@ -6,7 +6,7 @@ import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { SettingsForm, usePreferencesFormState } from "@/features/preferences-edit";
 import { useSignIn } from "@/features/sign-in";
 import { useSignOut } from "@/features/sign-out";
-import { useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/shared/routes";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -46,7 +46,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => 
     preferences,
     onSubmit: updatePreferences,
   });
-  useKey("t", () => void navigation.goToDeckList());
+  useKey("t", () => void navigation.to(routes.deckList.to()));
 
   return (
     <AppLayout showHeader>

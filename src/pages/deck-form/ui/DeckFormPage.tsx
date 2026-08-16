@@ -3,13 +3,13 @@ import { useParams } from "react-router-dom";
 
 import { type Deck, useDeck } from "@/entities/deck";
 import { DeckEditForm } from "@/features/deck-edit";
-import { useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 const DeckFormContent = ({ deck }: { deck: Deck }) => {
   const navigation = useNavigation();
-  const goToList = () => void navigation.goToDeckList({ replace: true });
+  const goToList = () => void navigation.to(routes.deckList.to(), { replace: true });
 
   return (
     <AppLayout showHeader>
@@ -32,8 +32,8 @@ export const DeckFormPage: React.FC = () => {
       title="Deck not found"
       description="The requested deck is unavailable or has been removed."
       tone="not-found"
-      primaryAction={{ label: "Go home", onClick: () => void navigation.goToDeckList() }}
-      secondaryAction={{ label: "Go back", onClick: () => void navigation.goBack() }}
+      primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
+      secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
     />
   );
 };
