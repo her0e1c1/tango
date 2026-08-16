@@ -1,7 +1,7 @@
 import type * as React from "react";
 
 import { setDarkMode, usePreferences } from "@/entities/preferences";
-import { routes, useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/features/navigate";
 import { Layout } from "@/shared/ui/layout";
 
 type AppLayoutProps = Omit<React.ComponentProps<typeof Layout>, "headerProps">;

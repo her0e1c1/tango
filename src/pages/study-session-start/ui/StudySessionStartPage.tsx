@@ -11,7 +11,7 @@ import { usePreferences } from "@/entities/preferences";
 import { startStudy } from "@/entities/study-session";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { StudySessionStartView } from "@/features/study-session-start";
-import { routes, useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/features/navigate";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 

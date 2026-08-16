@@ -18,8 +18,8 @@ const defineIdRoute = (path: string): IdRoute => ({
   to: (id) => path.replace(":id", () => id),
 });
 
-// This is the deliberate domain-aware shared segment: the app route tree and lower layers must use
-// the same path contract without reversing Feature-Sliced Design dependencies.
+// Route matching and navigation must share one contract so path changes cannot leave generated
+// destinations stale.
 export const routes = {
   deckList: defineStaticRoute("/"),
   cardList: defineIdRoute("/deck/:id"),

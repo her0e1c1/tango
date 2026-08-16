@@ -6,7 +6,7 @@ import { useDecks } from "@/entities/deck";
 import { touchStudySession, useStudySessions } from "@/entities/study-session";
 import { useAddSampleDeck } from "@/features/deck-import";
 import { DeckList, useDeckListState } from "@/features/deck-list";
-import { routes, useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/features/navigate";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckListPage: React.FC = () => {
