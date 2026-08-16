@@ -22,7 +22,7 @@ import { AppLayout } from "@/widgets/app-layout";
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
-const DeckStudyStartContent = (props: { deck: Deck; cards: Card[]; preferences: Preferences; tags: string[] }) => {
+const StudySessionStartContent = (props: { deck: Deck; cards: Card[]; preferences: Preferences; tags: string[] }) => {
   const { deck, cards, preferences, tags } = props;
   const navigation = useNavigation();
   const deckFilter = useDeckFilterState(deck);
@@ -49,7 +49,7 @@ const DeckStudyStartContent = (props: { deck: Deck; cards: Card[]; preferences: 
   );
 };
 
-export const DeckStudyStartPage: React.FC = () => {
+export const StudySessionStartPage: React.FC = () => {
   const params = useParams();
   const navigation = useNavigation();
   const deckId = params.id;
@@ -71,5 +71,5 @@ export const DeckStudyStartPage: React.FC = () => {
     );
   }
 
-  return <DeckStudyStartContent deck={deck} cards={cards} preferences={preferences} tags={tags} />;
+  return <StudySessionStartContent deck={deck} cards={cards} preferences={preferences} tags={tags} />;
 };
