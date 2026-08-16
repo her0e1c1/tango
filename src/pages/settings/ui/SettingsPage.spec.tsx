@@ -45,7 +45,7 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     fireEvent.keyDown(window, { key: "t" });
 
-    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/");
+    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/", undefined);
   });
 
   it("displays an alert when sign-out fails and allows retrying sign-out", async () => {

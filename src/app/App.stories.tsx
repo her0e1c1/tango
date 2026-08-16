@@ -8,6 +8,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect } from "storybook/test";
 
 import { AppRoutes } from "@/app/routes";
+import { routes } from "@/shared/routes";
 import { type PageStoryParameters, preparePageStory, withPageStory } from "@/storybook/PageDecorator";
 import { PAGE_STORY_CARD_ID, PAGE_STORY_DECK_ID, pageStoryState } from "@/storybook/pageFixture";
 import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";
@@ -37,39 +38,39 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const DeckList: Story = {
-  parameters: { page: page("/") },
+  parameters: { page: page(routes.deckList.to()) },
 };
 
 export const CardList: Story = {
-  parameters: { page: page(`/deck/${PAGE_STORY_DECK_ID}`) },
+  parameters: { page: page(routes.cardList.to(PAGE_STORY_DECK_ID)) },
 };
 
 export const DeckForm: Story = {
-  parameters: { page: page(`/deck/${PAGE_STORY_DECK_ID}/edit`) },
+  parameters: { page: page(routes.deckForm.to(PAGE_STORY_DECK_ID)) },
 };
 
 export const DeckStudyStart: Story = {
-  parameters: { page: page(`/deck/${PAGE_STORY_DECK_ID}/start`) },
+  parameters: { page: page(routes.deckStudyStart.to(PAGE_STORY_DECK_ID)) },
 };
 
 export const DeckStudy: Story = {
-  parameters: { page: page(`/deck/${PAGE_STORY_DECK_ID}/study`) },
+  parameters: { page: page(routes.deckStudy.to(PAGE_STORY_DECK_ID)) },
 };
 
 export const CardView: Story = {
-  parameters: { page: page(`/card/${PAGE_STORY_CARD_ID}`) },
+  parameters: { page: page(routes.cardView.to(PAGE_STORY_CARD_ID)) },
 };
 
 export const CardForm: Story = {
-  parameters: { page: page(`/card/${PAGE_STORY_CARD_ID}/edit`) },
+  parameters: { page: page(routes.cardForm.to(PAGE_STORY_CARD_ID)) },
 };
 
 export const Settings: Story = {
-  parameters: { page: page("/settings") },
+  parameters: { page: page(routes.settings.to()) },
 };
 
 export const Import: Story = {
-  parameters: { page: page("/import") },
+  parameters: { page: page(routes.deckImport.to()) },
   play: async () => {
     const response = await fetch(STORYBOOK_DECK_IMPORT_URL);
     expect(response.status).toBe(200);

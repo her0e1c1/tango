@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { type Card, type CardId, useCardsByDeckId } from "@/entities/card";
@@ -8,6 +8,7 @@ import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
+import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -40,7 +41,7 @@ const CardListComposition = (props: {
 
 export const CardListPage: React.FC = () => {
   const params = useParams();
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
   const preferences = usePreferences();
@@ -48,8 +49,8 @@ export const CardListPage: React.FC = () => {
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
   const cards = deck == null ? [] : filterCardsForDeck(deckCards, deck, preferences.study);
 
-  useKey("t", () => void navigate("/"));
-  useKey("s", () => void navigate("/settings"));
+  useKey("t", () => void navigation.to(routes.deckList.to()));
+  useKey("s", () => void navigation.to(routes.settings.to()));
 
   if (deck == null) {
     return (
@@ -57,8 +58,8 @@ export const CardListPage: React.FC = () => {
         title="Deck not found"
         description="The requested deck is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
       />
     );
   }
@@ -70,7 +71,7 @@ export const CardListPage: React.FC = () => {
         cards={cards}
         tags={tags}
         preferences={preferences}
-        onEditCard={(id) => void navigate(`/card/${id}/edit`)}
+        onEditCard={(id) => void navigation.to(routes.cardForm.to(id))}
       />
     </AppLayout>
   );

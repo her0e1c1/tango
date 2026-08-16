@@ -146,8 +146,8 @@ describe("DeckImportPage", () => {
     fireEvent.keyDown(window, { key: "t" });
     fireEvent.keyDown(window, { key: "s" });
 
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings", undefined);
   });
 
   it("adds the bundled sample without navigating automatically", async () => {
@@ -166,7 +166,7 @@ describe("DeckImportPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
     expect(mocks.importPreview).toHaveBeenCalledOnce();
-    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/"));
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/", undefined));
   });
 
   it("stays on the import page when importing fails", async () => {
