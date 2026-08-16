@@ -28,8 +28,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
-import { replaceRemoteCardsFromReads } from "../model/store";
-import { fetchCardReads, subscribeCardReads } from "./firestore";
+import { fetchCardReads, fetchCards, subscribeCardReads, subscribeCards } from "./firestore";
 
 const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
@@ -72,6 +71,21 @@ describe("Card Firestore subscription", () => {
       },
     ]);
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
+  });
+
+  it("keeps combined Card fetches behind the compatibility API", async () => {
+    mocks.getDocsFromServer.mockResolvedValue({
+      docs: [cardDocument("active", { nextSeeingAt: Timestamp.fromMillis(60) })],
+    });
+
+    await expect(fetchCards("uid-a")).resolves.toEqual([
+      expect.objectContaining({
+        id: "active",
+        score: 3,
+        numberOfSeen: 4,
+        nextSeeingAt: new Date(60),
+      }),
+    ]);
   });
 
   it("exposes separate Card and StudyProgress reads from each snapshot", () => {
@@ -126,7 +140,7 @@ describe("Card Firestore subscription", () => {
     const localCard = createLocalCard({ id: "local", frontText: "Local front" });
     cardStore.setState({ localCards: [localCard] });
     const { result } = renderHook(useCards);
-    const unsubscribe = subscribeCardReads("uid-a", replaceRemoteCardsFromReads, vi.fn());
+    const unsubscribe = subscribeCards("uid-a", vi.fn());
 
     expect(mocks.collection).toHaveBeenCalledWith("db", "card");
     expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");

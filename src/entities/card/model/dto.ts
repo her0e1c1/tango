@@ -1,4 +1,4 @@
-import type { CardDocumentFields, CardId, CardRead, RemoteCard, RemoteCardRead } from "./types";
+import type { CardDocumentFields, CardId, RemoteCardRead } from "./types";
 
 export const mapCardDocument = (id: CardId, document: CardDocumentFields): RemoteCardRead => {
   const card: RemoteCardRead = {
@@ -17,17 +17,4 @@ export const mapCardDocument = (id: CardId, document: CardDocumentFields): Remot
   if (document.startLine !== undefined) card.startLine = document.startLine;
   if (document.endLine !== undefined) card.endLine = document.endLine;
   return card;
-};
-
-export const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
-  // Existing consumers keep the combined shape until #604 migrates them to the separated read contract.
-  const combinedCard: RemoteCard = {
-    ...card,
-    score: progress.score,
-    numberOfSeen: progress.numberOfSeen,
-  };
-  if (progress.lastSeenAt !== undefined) combinedCard.lastSeenAt = progress.lastSeenAt;
-  if (progress.nextSeeingAt !== undefined) combinedCard.nextSeeingAt = progress.nextSeeingAt;
-  if (progress.interval !== undefined) combinedCard.interval = progress.interval;
-  return combinedCard;
 };

@@ -2,7 +2,6 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { createStore } from "zustand/vanilla";
 import { z } from "zod";
 
-import { combineCardRead } from "./dto";
 import {
   cardIdSchema,
   localCardCreateSchema,
@@ -10,7 +9,7 @@ import {
   localCardSchema,
   persistedCardSchema,
 } from "./schema";
-import type { Card, CardId, CardRead, LocalCard, LocalCardCreateInput, LocalCardEdit, RemoteCard } from "./types";
+import type { Card, CardId, LocalCard, LocalCardCreateInput, LocalCardEdit, RemoteCard } from "./types";
 
 interface CardState {
   remoteCards: RemoteCard[];
@@ -52,13 +51,8 @@ const createCardStore = ({ storage, skipHydration }: CreateCardStoreOptions = {}
 
 export const cardStore = createCardStore();
 
-/** @public Storybook and integration fixtures seed server-backed Card state through this synchronous model action. */
 export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
   cardStore.setState({ remoteCards });
-};
-
-export const replaceRemoteCardsFromReads = (reads: CardRead[]): void => {
-  replaceRemoteCards(reads.map(combineCardRead));
 };
 
 export const clearRemoteCards = (): void => {

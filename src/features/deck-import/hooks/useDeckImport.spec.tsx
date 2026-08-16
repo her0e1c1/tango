@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
   createDeck: vi.fn(),
   bulkUpsert: vi.fn(),
   fetchDecks: vi.fn(),
-  fetchCardReads: vi.fn(),
+  fetchCards: vi.fn(),
 }));
 
 vi.mock("@/entities/auth", () => ({
@@ -32,9 +32,8 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    combineCardRead: (card: Card) => card,
     filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
-    fetchCardReads: mocks.fetchCardReads,
+    fetchCards: mocks.fetchCards,
     generateCardId: mocks.generateCardId,
     mutateCards: (_uid: string, mutations: CardMutation[]) => mocks.bulkUpsert(mutations),
     useCards: () => mocks.cards,
@@ -71,7 +70,7 @@ describe("useDeckImport", () => {
     mocks.createDeck.mockResolvedValue(undefined);
     mocks.bulkUpsert.mockResolvedValue(undefined);
     mocks.fetchDecks.mockResolvedValue([]);
-    mocks.fetchCardReads.mockResolvedValue([]);
+    mocks.fetchCards.mockResolvedValue([]);
   });
 
   it("previews a file without writing until import is confirmed", async () => {
@@ -115,7 +114,7 @@ describe("useDeckImport", () => {
     ]);
     expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, failed: 0, deckId: "deck" });
     expect(mocks.fetchDecks).toHaveBeenCalledOnce();
-    expect(mocks.fetchCardReads).toHaveBeenCalledOnce();
+    expect(mocks.fetchCards).toHaveBeenCalledOnce();
   });
 
   it("imports a local Deck and Cards without Firestore reads or owner fields", async () => {
@@ -134,7 +133,7 @@ describe("useDeckImport", () => {
     await actAsync(async () => result.current.importPreview());
 
     expect(mocks.fetchDecks).not.toHaveBeenCalled();
-    expect(mocks.fetchCardReads).not.toHaveBeenCalled();
+    expect(mocks.fetchCards).not.toHaveBeenCalled();
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith({
       id: "deck",
       name: "local.csv",
@@ -176,7 +175,7 @@ describe("useDeckImport", () => {
 
     expect(mocks.createDeck).not.toHaveBeenCalled();
     expect(mocks.fetchDecks).not.toHaveBeenCalled();
-    expect(mocks.fetchCardReads).not.toHaveBeenCalled();
+    expect(mocks.fetchCards).not.toHaveBeenCalled();
     expect(mocks.bulkUpsert).toHaveBeenCalledExactlyOnceWith([
       { kind: "edit", card: expect.objectContaining({ id: card.id, backText: "new back" }) },
     ]);
@@ -210,7 +209,7 @@ describe("useDeckImport", () => {
       uniqueKey: "key",
     });
     mocks.fetchDecks.mockResolvedValueOnce([serverDeck]);
-    mocks.fetchCardReads.mockResolvedValueOnce([serverCard]);
+    mocks.fetchCards.mockResolvedValueOnce([serverCard]);
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","new back","","key"'], "deck.csv", { type: "text/csv" });
 
@@ -224,7 +223,7 @@ describe("useDeckImport", () => {
       { kind: "edit", card: expect.objectContaining({ id: "server-card", backText: "new back" }) },
     ]);
     expect(mocks.fetchDecks).toHaveBeenCalledOnce();
-    expect(mocks.fetchCardReads).toHaveBeenCalledOnce();
+    expect(mocks.fetchCards).toHaveBeenCalledOnce();
   });
 
   it("keeps invalid files in preview without mutating state", async () => {
@@ -260,7 +259,7 @@ describe("useDeckImport", () => {
       }),
     ];
     mocks.fetchDecks.mockResolvedValueOnce(mocks.decks);
-    mocks.fetchCardReads.mockResolvedValueOnce(mocks.cards);
+    mocks.fetchCards.mockResolvedValueOnce(mocks.cards);
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
     let imported: DeckImportResult | undefined;
@@ -374,7 +373,7 @@ describe("useDeckImport", () => {
       uniqueKey: "existing",
     });
     mocks.fetchDecks.mockResolvedValueOnce([deck]);
-    mocks.fetchCardReads.mockResolvedValueOnce([existing]);
+    mocks.fetchCards.mockResolvedValueOnce([existing]);
     mocks.generateCardId.mockReturnValueOnce("created");
     mocks.bulkUpsert.mockRejectedValueOnce(new CardBulkMutationError([existing.id], 2));
     const { result } = renderHook(useDeckImport);

@@ -4,7 +4,7 @@ import type { Deck } from "@/entities/deck";
 import { useEffect, useRef, useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { combineCardRead, fetchCardReads, generateCardId, mutateCards, useCards } from "@/entities/card";
+import { fetchCards, generateCardId, mutateCards, useCards } from "@/entities/card";
 import { createDeck, fetchDecks, useDecks } from "@/entities/deck";
 import { parseCsv } from "../lib/cardCsv";
 import type { DeckImportAttempt, DeckImportExecutionDependencies } from "../model/deckImportExecution";
@@ -49,8 +49,6 @@ const initialState = (uid: string): DeckImportState => ({
   error: null,
   result: undefined,
 });
-
-const fetchRemoteCards = async (uid: string): Promise<Card[]> => (await fetchCardReads(uid)).map(combineCardRead);
 
 export const useDeckImport = () => {
   const uid = useAuthUid();
@@ -146,7 +144,7 @@ export const useDeckImport = () => {
 
       // Listener-backed stores can lag, so remote file imports are planned from authoritative server reads.
       const [activeDecks, activeCards]: [Deck[], Card[]] =
-        target.storageMode === "remote" ? await Promise.all([fetchDecks(uid), fetchRemoteCards(uid)]) : [decks, cards];
+        target.storageMode === "remote" ? await Promise.all([fetchDecks(uid), fetchCards(uid)]) : [decks, cards];
 
       if (!isCurrent(target)) throw new Error("Deck import user changed before the preview could finish");
       const attempt = prepareDeckImport(
