@@ -8,11 +8,9 @@ import { cardStore } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
-  getDocsFromServer: vi.fn(),
   onSnapshot: vi.fn(),
   query: vi.fn((...parts: unknown[]) => parts),
   where: vi.fn((...parts: unknown[]) => parts),
-  unsubscribe: vi.fn(),
 }));
 
 vi.mock("firebase/firestore", async (importOriginal) => {
@@ -20,7 +18,6 @@ vi.mock("firebase/firestore", async (importOriginal) => {
   return {
     ...actual,
     collection: mocks.collection,
-    getDocsFromServer: mocks.getDocsFromServer,
     onSnapshot: mocks.onSnapshot,
     query: mocks.query,
     where: mocks.where,
@@ -28,7 +25,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
-import { fetchCardReads, fetchCards, subscribeCardReads, subscribeCards } from "./firestore";
+import { subscribeCardReads, subscribeCards } from "./firestore";
 
 // Builds a Firestore-like Card document with optional field overrides.
 const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
@@ -59,41 +56,12 @@ describe("Card Firestore subscription", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     vi.clearAllMocks();
-    mocks.onSnapshot.mockReturnValue(mocks.unsubscribe);
-  });
-
-  it("fetches the same separated read contract as subscriptions", async () => {
-    mocks.getDocsFromServer.mockResolvedValue({
-      docs: [cardDocument("active"), cardDocument("deleted", { deletedAt: 3 })],
-    });
-
-    await expect(fetchCardReads("uid-a")).resolves.toEqual([
-      {
-        card: expect.objectContaining({ id: "active", frontText: "Remote front" }),
-        progress: expect.objectContaining({ cardId: "active", score: 3, numberOfSeen: 4 }),
-      },
-    ]);
-    expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
-  });
-
-  it("keeps combined Card fetches behind the compatibility API", async () => {
-    mocks.getDocsFromServer.mockResolvedValue({
-      docs: [cardDocument("active", { nextSeeingAt: Timestamp.fromMillis(60) })],
-    });
-
-    await expect(fetchCards("uid-a")).resolves.toEqual([
-      expect.objectContaining({
-        id: "active",
-        score: 3,
-        numberOfSeen: 4,
-        nextSeeingAt: new Date(60),
-      }),
-    ]);
+    mocks.onSnapshot.mockReturnValue(vi.fn());
   });
 
   it("exposes separate Card and StudyProgress reads from each snapshot", () => {
     const onReads = vi.fn();
-    const unsubscribe = subscribeCardReads("uid-a", onReads, vi.fn());
+    subscribeCardReads("uid-a", onReads, vi.fn());
 
     act(() =>
       getSnapshotHandler()({
@@ -134,20 +102,13 @@ describe("Card Firestore subscription", () => {
         },
       },
     ]);
-
-    unsubscribe();
-    expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
 
-  it("subscribes by UID and fully replaces active Cards from each snapshot", () => {
+  it("fully replaces active Cards from each snapshot", () => {
     const localCard = createLocalCard({ id: "local", frontText: "Local front" });
     cardStore.setState({ localCards: [localCard] });
     const { result } = renderHook(useCards);
-    const unsubscribe = subscribeCards("uid-a", vi.fn());
-
-    expect(mocks.collection).toHaveBeenCalledWith("db", "card");
-    expect(mocks.where).toHaveBeenCalledWith("uid", "==", "uid-a");
-    expect(mocks.onSnapshot).toHaveBeenCalledWith(expect.anything(), expect.any(Function), expect.any(Function));
+    subscribeCards("uid-a", vi.fn());
 
     act(() =>
       getSnapshotHandler()({
@@ -180,9 +141,6 @@ describe("Card Firestore subscription", () => {
 
     act(() => getSnapshotHandler()({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
     expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" }), localCard]);
-
-    unsubscribe();
-    expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
 
   it("reports invalid Firestore documents", () => {

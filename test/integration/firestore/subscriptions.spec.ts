@@ -5,11 +5,11 @@
  */
 
 import "@/test/initializeTestFirestore";
-import { afterAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { deleteCard, editCard, mutateCards, subscribeCards } from "@/entities/card";
-import { createDeck, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
+import { deleteCard, editCard, fetchCardReads, fetchCards, mutateCards, subscribeCards } from "@/entities/card";
+import { createDeck, deleteDeck, editDeck, fetchDecks, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
@@ -20,8 +20,39 @@ vi.mock("@/shared/firebase", async () => ({
 }));
 
 describe("Query realtime subscriptions", () => {
+  beforeEach(() => {
+    cardStore.setState({ remoteCards: [], localCards: [] });
+    deckStore.setState({ remoteDecks: [], localDecks: [] });
+  });
+
   afterAll(async () => {
     await Promise.all(getApps().map(deleteApp));
+  });
+
+  it("fetches Cards and Decks through their public read APIs", async () => {
+    const uid = "uid";
+    const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Fetched Deck" });
+    const card = createCard({
+      id: crypto.randomUUID(),
+      deckId: deck.id,
+      uid,
+      frontText: "Fetched Card",
+      score: 2,
+      numberOfSeen: 3,
+    });
+    await createDeck(uid, deck);
+    await mutateCards(uid, [{ kind: "create", card }]);
+
+    const [decks, cards, reads] = await Promise.all([fetchDecks(uid), fetchCards(uid), fetchCardReads(uid)]);
+
+    expect(decks).toContainEqual(expect.objectContaining({ id: deck.id, name: "Fetched Deck" }));
+    expect(cards).toContainEqual(
+      expect.objectContaining({ id: card.id, frontText: "Fetched Card", score: 2, numberOfSeen: 3 })
+    );
+    expect(reads).toContainEqual({
+      card: expect.objectContaining({ id: card.id, frontText: "Fetched Card" }),
+      progress: expect.objectContaining({ cardId: card.id, score: 2, numberOfSeen: 3 }),
+    });
   });
 
   it("delivers initial, update, and delete snapshots without a cursor", async () => {
@@ -62,5 +93,40 @@ describe("Query realtime subscriptions", () => {
       stopCards();
       stopDecks();
     }
+  });
+
+  it("stops changing stores after unsubscribe", async () => {
+    const uid = "uid";
+    const errors: Error[] = [];
+    const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
+    const stopCards = subscribeCards(uid, (error) => errors.push(error));
+    const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Before stop" });
+    const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid, frontText: "Before stop" });
+
+    await createDeck(uid, deck);
+    await mutateCards(uid, [{ kind: "create", card }]);
+    await vi.waitFor(() => {
+      expect(deckStore.getState().remoteDecks).toContainEqual(
+        expect.objectContaining({ id: deck.id, name: "Before stop" })
+      );
+      expect(cardStore.getState().remoteCards).toContainEqual(
+        expect.objectContaining({ id: card.id, frontText: "Before stop" })
+      );
+    });
+
+    stopCards();
+    stopDecks();
+    await editDeck(uid, { ...deck, name: "After stop" });
+    await editCard(uid, { ...card, frontText: "After stop" });
+
+    expect(await fetchDecks(uid)).toContainEqual(expect.objectContaining({ id: deck.id, name: "After stop" }));
+    expect(await fetchCards(uid)).toContainEqual(expect.objectContaining({ id: card.id, frontText: "After stop" }));
+    expect(deckStore.getState().remoteDecks).toContainEqual(
+      expect.objectContaining({ id: deck.id, name: "Before stop" })
+    );
+    expect(cardStore.getState().remoteCards).toContainEqual(
+      expect.objectContaining({ id: card.id, frontText: "Before stop" })
+    );
+    expect(errors).toEqual([]);
   });
 });
