@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
 import type { DeckImportPreview } from "../model/useDeckImport";
-import type { DeckImportResult } from "../model/deckImportExecution";
+import type { DeckImportResult } from "../model/useDeckImportExecution";
 
 import { DeckImportView } from "./DeckImportView";
 

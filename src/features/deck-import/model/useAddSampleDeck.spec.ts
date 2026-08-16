@@ -31,7 +31,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return { ...actual, createDeck: mocks.createDeck, useDecks: () => mocks.decks };
 });
 
-import { useAddSampleDeck } from "./sampleDeck";
+import { useAddSampleDeck } from "./useAddSampleDeck";
 
 describe("useAddSampleDeck", () => {
   beforeEach(() => {

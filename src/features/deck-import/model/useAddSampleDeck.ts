@@ -7,7 +7,7 @@ import { useAuthUid } from "@/entities/auth";
 import { generateCardId, mutateCards, useCards } from "@/entities/card";
 import { createDeck, useDecks } from "@/entities/deck";
 import sampleCards from "../../../../sample/build/output.json";
-import { executePreparedDeckImport, prepareDeckImport } from "./deckImportExecution";
+import { executePreparedDeckImport, prepareDeckImport } from "./useDeckImportExecution";
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;

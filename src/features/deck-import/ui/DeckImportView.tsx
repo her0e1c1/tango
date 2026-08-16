@@ -5,7 +5,7 @@ import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
 import { Upload } from "@/shared/ui/forms";
 import type { DeckImportPreview } from "../model/useDeckImport";
-import type { DeckImportResult, DeckImportStorageMode } from "../model/deckImportExecution";
+import type { DeckImportResult, DeckImportStorageMode } from "../model/useDeckImportExecution";
 
 interface DeckImportViewProps {
   onChange?: (file: File) => void;

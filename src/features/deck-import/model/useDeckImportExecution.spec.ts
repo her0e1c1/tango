@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { createCard, createDeck, createLocalCard, createLocalDeck } from "@/test/factories";
-import { prepareDeckImport } from "./deckImportExecution";
+import { prepareDeckImport } from "./useDeckImportExecution";
 
 describe("prepareDeckImport", () => {
   const row = {
