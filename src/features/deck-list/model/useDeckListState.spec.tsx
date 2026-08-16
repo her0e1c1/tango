@@ -1,12 +1,14 @@
+import { renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 
 import { createCard, createDeck } from "@/test/factories";
 
-import { buildDeckListSections } from "./buildDeckListSections";
+import { useDeckListState } from "./useDeckListState";
 
-describe("buildDeckListSections", () => {
+describe("useDeckListState", () => {
   it("puts active decks in recent order and inactive decks in name order", () => {
     const decks = [
       createDeck({ id: "other-z", name: "Zulu" }),
@@ -43,7 +45,8 @@ describe("buildDeckListSections", () => {
       },
     };
 
-    const sections = buildDeckListSections(decks, cards, sessionsByDeckId);
+    const { result } = renderHook(() => useDeckListState({ decks, cards, sessionsByDeckId }));
+    const { sections } = result.current;
 
     expect(sections.studying.map((item) => item.deck.id)).toEqual(["active-new", "active-old"]);
     expect(sections.studying[0]?.studyProgress).toEqual({

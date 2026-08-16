@@ -9,7 +9,7 @@ import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
 import type { DeckId } from "@/entities/deck";
-import type { DeckListDeck, DeckListStudyProgress } from "../model/buildDeckListSections";
+import type { DeckListDeck, DeckListStudyProgress } from "../model/useDeckListState";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
 
