@@ -30,6 +30,7 @@ export const filterCardsByDeckId = (cards: Card[], deckId: string): Card[] =>
 export const indexCardsByUniqueKey = <T extends Card>(cards: readonly T[]): Map<string, T> =>
   new Map(cards.map((card) => [card.uniqueKey, card]));
 
+// uniqueKey identifies the import target, so only fields controlled by imported content determine whether it changed.
 export const hasSameEditableCardContent = (left: CardRaw, right: CardRaw): boolean =>
   left.frontText === right.frontText &&
   left.backText === right.backText &&

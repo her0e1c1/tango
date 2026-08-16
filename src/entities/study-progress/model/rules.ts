@@ -32,6 +32,7 @@ export const createStudyProgressFromCard = (card: CardProgressFields): StudyProg
 };
 
 const calculateScore = (score: number, rating: StudyRating): number => {
+  // Score records rating direction as a streak; reversing direction must pass through neutral zero.
   if (rating === "mastered") return score >= 0 ? score + 1 : 0;
   if (rating === "not-mastered") return score <= 0 ? score - 1 : 0;
   return score;
@@ -67,6 +68,7 @@ export const buildStudyCardOrder = (
   cards: CardProgressFields[],
   options: StudyCardOrderOptions
 ): StudyProgress["cardId"][] => {
+  // Least-seen Cards lead; stable sorting preserves caller order for ties until optional shuffling.
   let cardOrderIds = cards
     .map(createStudyProgressFromCard)
     .sort(compareStudyProgress)

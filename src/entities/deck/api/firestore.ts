@@ -96,6 +96,7 @@ export const editDeck = async (uid: string, deck: EditDeckInput["deck"]): Promis
 };
 
 const deleteDeckDocuments = async (uid: string, deckId: string): Promise<void> => {
+  // Remove child Cards first so a partial failure leaves a recoverable Deck instead of orphaned Card documents.
   const snapshot = await getDocs(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid), where("deckId", "==", deckId))
   );

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import type { DeckImportPreview } from "../hooks/useDeckImport";
+import type { DeckImportPreview } from "../model/useDeckImport";
 import type { DeckImportResult } from "../model/deckImportExecution";
 
 import { DeckImportView } from "./DeckImportView";

@@ -139,8 +139,10 @@ export const moveStudySession = (previous: StudySession, movement: StudySessionM
     if (current == null || !isStudySessionPositionUnchanged(previous, current)) return;
 
     const nextIndex = calculateStudySessionIndex(current, movement);
-    if (nextIndex === undefined) delete state.sessionsByDeckId[previous.deckId];
-    else {
+    if (nextIndex === undefined) {
+      // Crossing either boundary removes the session; persisted state never represents a terminal sentinel index.
+      delete state.sessionsByDeckId[previous.deckId];
+    } else {
       current.currentIndex = nextIndex;
       current.lastStudiedAt = Date.now();
     }
