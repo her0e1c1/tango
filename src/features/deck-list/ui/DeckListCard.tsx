@@ -41,14 +41,14 @@ const formatLastStudied = (timestamp: number): string => {
   const elapsedSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
   if (elapsedSeconds < 60) return "just now";
   const elapsedMinutes = Math.floor(elapsedSeconds / 60);
-  if (elapsedMinutes < 60) return `${elapsedMinutes}m ago`;
+  if (elapsedMinutes < 60) return `${String(elapsedMinutes)}m ago`;
   const elapsedHours = Math.floor(elapsedMinutes / 60);
-  if (elapsedHours < 24) return `${elapsedHours}h ago`;
+  if (elapsedHours < 24) return `${String(elapsedHours)}h ago`;
   const elapsedDays = Math.floor(elapsedHours / 24);
-  if (elapsedDays < 30) return `${elapsedDays}d ago`;
+  if (elapsedDays < 30) return `${String(elapsedDays)}d ago`;
   const elapsedMonths = Math.floor(elapsedDays / 30);
-  if (elapsedMonths < 12) return `${elapsedMonths}mo ago`;
-  return `${Math.floor(elapsedMonths / 12)}y ago`;
+  if (elapsedMonths < 12) return `${String(elapsedMonths)}mo ago`;
+  return `${String(Math.floor(elapsedMonths / 12))}y ago`;
 };
 
 const primaryActionClassName =
@@ -70,8 +70,8 @@ const DeckListCardStatus: React.FC<{
     )}
     <span className="truncate">
       {active && studyProgress
-        ? `${progressValue} / ${studyProgress.cardCount} · ${formatLastStudied(studyProgress.lastStudiedAt)}`
-        : `${cardCount} ${cardCount === 1 ? "card" : "cards"}`}
+        ? `${String(progressValue)} / ${String(studyProgress.cardCount)} · ${formatLastStudied(studyProgress.lastStudiedAt)}`
+        : `${String(cardCount)} ${cardCount === 1 ? "card" : "cards"}`}
     </span>
   </span>
 );
@@ -93,7 +93,7 @@ const DeckListCardProgressBar: React.FC<{
       aria-valuenow={progressValue}
       className="mt-2 block h-1 overflow-hidden rounded-pill bg-surface-muted"
     >
-      <span className="block h-full rounded-pill bg-accent-primary" style={{ width: `${progressPercent}%` }} />
+      <span className="block h-full rounded-pill bg-accent-primary" style={{ width: `${String(progressPercent)}%` }} />
     </span>
   );
 };

@@ -79,7 +79,7 @@ export const parseCsv = async (content: string): Promise<DeckImportAnalysis> => 
       invalidRows.add(rowNumber);
       issues.push({
         rowNumber,
-        message: `Expected 4 columns, found ${columns.length}.`,
+        message: `Expected 4 columns, found ${String(columns.length)}.`,
         context: rowContext(columns),
       });
       return;

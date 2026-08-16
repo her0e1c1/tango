@@ -17,7 +17,7 @@ export interface DeckListViewProps {
  * Formats the count label text shown to the user.
  * The helper keeps wording and singular or plural rules consistent across the screen.
  */
-const countLabel = (count: number) => `${count} ${count === 1 ? "deck" : "decks"}`;
+const countLabel = (count: number) => `${String(count)} ${count === 1 ? "deck" : "decks"}`;
 
 /**
  * Renders one labeled group of Deck List items.

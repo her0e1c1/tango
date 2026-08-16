@@ -37,16 +37,18 @@ export interface CardListViewProps {
  * Formats the count label text shown to the user.
  * The helper keeps wording and singular or plural rules consistent across the screen.
  */
-const countLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
+const countLabel = (count: number) => `${String(count)} ${count === 1 ? "card" : "cards"}`;
 
 /**
  * Formats the score range label text shown to the user.
  * The helper keeps wording and singular or plural rules consistent across the screen.
  */
 const scoreRangeLabel = (filter: CardListFilterState) => {
-  if (filter.scoreMin != null && filter.scoreMax != null) return `score ${filter.scoreMin}–${filter.scoreMax}`;
-  if (filter.scoreMin != null) return `score ≥ ${filter.scoreMin}`;
-  if (filter.scoreMax != null) return `score ≤ ${filter.scoreMax}`;
+  if (filter.scoreMin != null && filter.scoreMax != null) {
+    return `score ${String(filter.scoreMin)}–${String(filter.scoreMax)}`;
+  }
+  if (filter.scoreMin != null) return `score ≥ ${String(filter.scoreMin)}`;
+  if (filter.scoreMax != null) return `score ≤ ${String(filter.scoreMax)}`;
   return null;
 };
 
@@ -59,7 +61,7 @@ const filterLabel = (filter: CardListFilterState) => {
   const score = scoreRangeLabel(filter);
   if (score != null) labels.push(score);
   if (filter.selectedTags.length > 0) {
-    labels.push(`${filter.selectedTags.length} ${filter.selectedTags.length === 1 ? "tag" : "tags"}`);
+    labels.push(`${String(filter.selectedTags.length)} ${filter.selectedTags.length === 1 ? "tag" : "tags"}`);
   }
   return labels.length > 0 ? labels.join(" · ") : "No filters";
 };

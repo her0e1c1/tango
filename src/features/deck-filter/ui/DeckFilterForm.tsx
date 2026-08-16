@@ -18,7 +18,7 @@ interface ScoreLimitProps {
   onChange: (value: number | null) => void;
 }
 
-const displayScore = (value: number): string => `${value}`.replace("-", "−");
+const displayScore = (value: number): string => String(value).replace("-", "−");
 
 const scoreRangeLabel = (min: number | null, max: number | null): string => {
   if (min != null && max != null) return `${displayScore(min)} to ${displayScore(max)}`;
@@ -53,7 +53,7 @@ const ScoreLimit: React.FC<ScoreLimitProps> = (props) => {
         <Slider
           id={props.sliderId}
           name={props.sliderId}
-          value={`${props.value ?? 0}`}
+          value={String(props.value ?? 0)}
           step={1}
           max={10}
           min={-10}
