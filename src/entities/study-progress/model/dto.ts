@@ -1,5 +1,6 @@
 import type { StudyProgress, StudyProgressDocumentFields } from "./types";
 
+/** Maps only StudyProgress-owned document fields into the Card-scoped learning history. */
 export const mapStudyProgressDocument = (
   cardId: StudyProgress["cardId"],
   document: StudyProgressDocumentFields

@@ -13,16 +13,7 @@ type CardMutationCreateInput = CardCreateInput | LocalCardCreateInput;
 
 export type CardMutation = { kind: "create"; card: CardMutationCreateInput } | { kind: "edit"; card: CardEditInput };
 
-export class CardBulkMutationError extends Error {
-  constructor(
-    readonly failedIds: CardId[],
-    total: number,
-    options?: ErrorOptions
-  ) {
-    super(`${String(failedIds.length)} of ${String(total)} Card writes failed`, options);
-  }
-}
-
+// The owning Deck is the source of truth for persistence mode; callers cannot route individual Cards independently.
 const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode ?? false;
 
 const requireCard = (id: CardId) => {
@@ -59,21 +50,19 @@ export const editCard = async (uid: string, card: CardEditInput): Promise<void> 
     editLocalCard(card);
     return;
   }
+  // Preserve the stored owner so an edit payload cannot move a remote Card between accounts.
   await editRemoteCard(uid, { ...card, uid: requireRemoteCard(currentCard).uid });
 };
 
 export const mutateCards = async (uid: string, mutations: CardMutation[]): Promise<void> => {
-  // Let every independent write settle so callers can retry only failures without replaying successful writes.
+  // Bulk imports are non-transactional: let every independent write settle before surfacing the first failure.
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
       mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
     )
   );
-  const failedIds = results.flatMap((result, index) => {
-    const mutation = mutations[index];
-    return result.status === "rejected" && mutation != null ? [mutation.card.id] : [];
-  });
-  if (failedIds.length > 0) throw new CardBulkMutationError(failedIds, mutations.length);
+  const failure = results.find((result) => result.status === "rejected");
+  if (failure?.status === "rejected") throw failure.reason;
 };
 
 export const deleteCard = async (uid: string, card: { id: CardId }): Promise<void> => {

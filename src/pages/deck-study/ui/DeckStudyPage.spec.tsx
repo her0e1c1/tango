@@ -81,6 +81,7 @@ const studyingState = (): StudyState => ({
   status: "studying",
   ...commands(),
   session: {
+    sessionId: "session-id",
     deckId: deck.id,
     cardOrderIds: [card.id],
     currentIndex: 0,

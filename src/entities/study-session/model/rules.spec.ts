@@ -11,6 +11,7 @@ import {
 import type { StudySession } from "./types";
 
 const session: StudySession = {
+  sessionId: "session-1",
   deckId: "deck-1",
   cardOrderIds: ["card-1", "card-2", "card-3"],
   currentIndex: 1,
@@ -132,7 +133,8 @@ describe("isStudySessionPositionUnchanged", () => {
     expect(isStudySessionPositionUnchanged(session, { ...session, lastStudiedAt: 1 })).toBe(true);
   });
 
-  it("detects a changed index, active card, or removed session", () => {
+  it("detects a replaced session, changed index, active card, or removed session", () => {
+    expect(isStudySessionPositionUnchanged(session, { ...session, sessionId: "session-2" })).toBe(false);
     expect(isStudySessionPositionUnchanged(session, { ...session, currentIndex: 2 })).toBe(false);
     expect(
       isStudySessionPositionUnchanged(session, {

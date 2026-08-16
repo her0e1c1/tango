@@ -31,9 +31,9 @@ describe("AppLayout", () => {
     fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
     fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import", undefined);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, "/settings", undefined);
     expect(mocks.setDarkMode).toHaveBeenCalledExactlyOnceWith(true);
 
     mocks.darkMode = true;

@@ -3,7 +3,8 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import type { DeckImportPreview, DeckImportResult } from "../model/deckImportTypes";
+import type { DeckImportPreview } from "../model/useDeckImport";
+import type { DeckImportResult } from "../model/deckImportExecution";
 
 import { DeckImportView } from "./DeckImportView";
 
@@ -173,19 +174,15 @@ describe("DeckImportView", () => {
     expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 
-  it("keeps success and partial failure results visible with recovery actions", async () => {
+  it("shows success and failure results without a retry action", async () => {
     const onBack = vi.fn();
-    const onRetry = vi.fn();
     const success = {
       created: 2,
       updated: 1,
       skipped: 3,
-      failed: 0,
       deckId: "deck",
     } satisfies DeckImportResult;
-    const view = render(
-      <DeckImportView sampleText="front,back,,key" result={success} onBack={onBack} onRetry={onRetry} />
-    );
+    const view = render(<DeckImportView sampleText="front,back,,key" result={success} onBack={onBack} />);
 
     expect(screen.getByRole("status")).toHaveTextContent("Import complete");
     expect(screen.getByRole("status")).toHaveTextContent("2 created");
@@ -195,19 +192,11 @@ describe("DeckImportView", () => {
     expect(onBack).toHaveBeenCalledOnce();
 
     view.rerender(
-      <DeckImportView
-        sampleText="front,back,,key"
-        error={new Error("Card writes failed")}
-        partialResult={{ ...success, created: 1, failed: 1 }}
-        onBack={onBack}
-        onRetry={onRetry}
-      />
+      <DeckImportView sampleText="front,back,,key" error={new Error("Card writes failed")} onBack={onBack} />
     );
     const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("Import partially completed");
-    expect(alert).toHaveTextContent("1 created");
-    expect(alert).toHaveTextContent("1 failed");
-    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
-    expect(onRetry).toHaveBeenCalledOnce();
+    expect(alert).toHaveTextContent("Import failed");
+    expect(alert).toHaveTextContent("Card writes failed");
+    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 });

@@ -4,7 +4,7 @@ export { fetchCardReads, subscribeCardReads } from "./api/firestore";
 /** @public Separated read contract for the cross-Entity Card document boundary. */
 export type { CardRead } from "./api/firestore";
 export { generateCardId } from "./api/id";
-export { CardBulkMutationError, deleteCard, editCard, mutateCards } from "./api/mutations";
+export { deleteCard, editCard, mutateCards } from "./api/mutations";
 export type { CardMutation } from "./api/mutations";
 export { useCard, useCards, useCardsByDeckId } from "./model/hooks";
 export { cardContentSchema } from "./model/schema";

@@ -1,16 +1,17 @@
 import type { Card } from "@/entities/card";
-import { type Deck, useDeck } from "@/entities/deck";
+import { type Deck, filterCardsForDeck, useDeck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
 import type * as React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useCardsByDeckId } from "@/entities/card";
 import { usePreferences } from "@/entities/preferences";
 import { startStudy } from "@/entities/study-session";
-import { DeckFilterForm, useDeckFilterState, useFilteredStudyCards } from "@/features/deck-filter";
+import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { StudySessionStartView } from "@/features/study-session-start";
+import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -21,13 +22,13 @@ import { AppLayout } from "@/widgets/app-layout";
 const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
-const DeckStudyStartContent = (props: { deck: Deck; cards: Card[]; preferences: Preferences; tags: string[] }) => {
+const StudySessionStartContent = (props: { deck: Deck; cards: Card[]; preferences: Preferences; tags: string[] }) => {
   const { deck, cards, preferences, tags } = props;
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const deckFilter = useDeckFilterState(deck);
   const start = () => {
     startStudy(deck.id, cards, preferences.study);
-    void navigate(`/deck/${deck.id}/study`, { replace: true });
+    void navigation.to(routes.deckStudy.to(deck.id), { replace: true });
   };
   const startFromEnter = (event: KeyboardEvent) => {
     if (cards.length === 0 || hasInteractiveShortcutTarget(event.target)) return;
@@ -48,15 +49,15 @@ const DeckStudyStartContent = (props: { deck: Deck; cards: Card[]; preferences: 
   );
 };
 
-export const DeckStudyStartPage: React.FC = () => {
+export const StudySessionStartPage: React.FC = () => {
   const params = useParams();
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
   const preferences = usePreferences();
   const deck = useDeck(deckId);
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
-  const cards = useFilteredStudyCards(deck, deckCards, preferences);
+  const cards = deck == null ? [] : filterCardsForDeck(deckCards, deck, preferences.study);
 
   if (deck == null) {
     return (
@@ -64,11 +65,11 @@ export const DeckStudyStartPage: React.FC = () => {
         title="Deck not found"
         description="The requested deck is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
       />
     );
   }
 
-  return <DeckStudyStartContent deck={deck} cards={cards} preferences={preferences} tags={tags} />;
+  return <StudySessionStartContent deck={deck} cards={cards} preferences={preferences} tags={tags} />;
 };

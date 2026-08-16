@@ -4,7 +4,8 @@ import { AiOutlineCloudDownload } from "react-icons/ai";
 import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
 import { Upload } from "@/shared/ui/forms";
-import type { DeckImportPreview, DeckImportResult, DeckImportStorageMode } from "../model/deckImportTypes";
+import type { DeckImportPreview } from "../model/useDeckImport";
+import type { DeckImportResult, DeckImportStorageMode } from "../model/deckImportExecution";
 
 interface DeckImportViewProps {
   onChange?: (file: File) => void;
@@ -12,7 +13,6 @@ interface DeckImportViewProps {
   onAddSample?: () => void;
   onDownloadSample?: () => void;
   onImport?: () => void;
-  onRetry?: () => void;
   onBack?: () => void;
   sampleText: string;
   dark?: boolean;
@@ -20,7 +20,6 @@ interface DeckImportViewProps {
   pending?: boolean;
   preview?: DeckImportPreview | undefined;
   result?: DeckImportResult | undefined;
-  partialResult?: DeckImportResult | undefined;
   error?: unknown;
   previewError?: unknown;
   storageMode?: DeckImportStorageMode;
@@ -31,47 +30,22 @@ const resultCounts = (result: DeckImportResult) => (
     <li>{result.created} created</li>
     <li>{result.updated} updated</li>
     <li>{result.skipped} skipped</li>
-    {result.failed > 0 ? <li>{result.failed} failed</li> : null}
   </ul>
 );
 
 interface ImportResultProps {
   result: DeckImportResult | undefined;
-  partialResult: DeckImportResult | undefined;
   error: unknown;
-  onRetry: (() => void) | undefined;
   onBack: (() => void) | undefined;
 }
 
 const ImportResult = (props: ImportResultProps) => {
-  if (props.partialResult != null) {
-    return (
-      <section role="alert" className="rounded-surface border border-warning bg-surface-muted p-4 text-ink">
-        <h2 className="font-bold">Import partially completed</h2>
-        <p className="mt-1 text-caption text-ink-muted">
-          Successful rows are kept. Retry safely rechecks each uniqueKey before writing.
-        </p>
-        {resultCounts(props.partialResult)}
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button size="sm" {...(props.onRetry !== undefined ? { onClick: props.onRetry } : {})}>
-            Retry
-          </Button>
-          <Button variant="quiet" size="sm" {...(props.onBack !== undefined ? { onClick: props.onBack } : {})}>
-            Back to decks
-          </Button>
-        </div>
-      </section>
-    );
-  }
   if (props.error != null) {
     const message = props.error instanceof Error ? props.error.message : "The import could not be completed.";
     return (
       <section role="alert" className="rounded-surface border border-danger bg-surface-muted p-4 text-ink">
         <h2 className="font-bold">Import failed</h2>
         <p className="mt-1 break-words text-caption text-ink-muted">{message}</p>
-        <Button className="mt-3" size="sm" {...(props.onRetry !== undefined ? { onClick: props.onRetry } : {})}>
-          Retry
-        </Button>
       </section>
     );
   }
@@ -235,13 +209,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
             Importing…
           </p>
         ) : null}
-        <ImportResult
-          result={props.result}
-          partialResult={props.partialResult}
-          error={props.error}
-          onRetry={props.onRetry}
-          onBack={props.onBack}
-        />
+        <ImportResult result={props.result} error={props.error} onBack={props.onBack} />
         <PreviewError error={props.previewError} />
         <section className="space-y-4">
           <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>

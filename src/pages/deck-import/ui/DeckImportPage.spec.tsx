@@ -23,13 +23,11 @@ const mocks = vi.hoisted(() => ({
   selectFile: vi.fn(),
   importPreview: vi.fn(),
   addSample: vi.fn(),
-  retry: vi.fn(),
   navigate: vi.fn(),
   downloadSampleCsv: vi.fn(),
   setDarkMode: vi.fn(),
   preview: undefined as DeckImportPreview | undefined,
   result: undefined as DeckImportResult | undefined,
-  partialResult: undefined as DeckImportResult | undefined,
   pending: false,
   validating: false,
   error: null as unknown,
@@ -52,10 +50,8 @@ vi.mock("@/features/deck-import", async (importOriginal) => ({
     selectFile: mocks.selectFile,
     importPreview: mocks.importPreview,
     addSample: mocks.addSample,
-    retry: mocks.retry,
     preview: mocks.preview,
     result: mocks.result,
-    partialResult: mocks.partialResult,
     pending: mocks.pending,
     validating: mocks.validating,
     error: mocks.error,
@@ -108,7 +104,6 @@ describe("DeckImportPage", () => {
     mocks.addSample.mockResolvedValue({});
     mocks.preview = undefined;
     mocks.result = undefined;
-    mocks.partialResult = undefined;
     mocks.pending = false;
     mocks.validating = false;
     mocks.error = null;
@@ -151,8 +146,8 @@ describe("DeckImportPage", () => {
     fireEvent.keyDown(window, { key: "t" });
     fireEvent.keyDown(window, { key: "s" });
 
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings", undefined);
   });
 
   it("adds the bundled sample without navigating automatically", async () => {
@@ -171,7 +166,7 @@ describe("DeckImportPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
     expect(mocks.importPreview).toHaveBeenCalledOnce();
-    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/"));
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/", undefined));
   });
 
   it("stays on the import page when importing fails", async () => {

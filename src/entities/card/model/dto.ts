@@ -1,5 +1,6 @@
 import type { CardDocumentFields, CardId, RemoteCardRead } from "./types";
 
+/** Maps only Card-owned document fields while preserving exact optional-property semantics. */
 export const mapCardDocument = (id: CardId, document: CardDocumentFields): RemoteCardRead => {
   const card: RemoteCardRead = {
     id,

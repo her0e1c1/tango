@@ -28,6 +28,7 @@ export interface CardRead {
   progress: StudyProgress;
 }
 
+/** Maps one physical Card document into independent Card and StudyProgress read models. */
 const mapCardRead = (id: CardId, value: unknown): CardRead => {
   // Both Entities share one physical document, so their mappings must observe the same validated snapshot.
   const document = parseCardDocument(id, value);
@@ -37,6 +38,7 @@ const mapCardRead = (id: CardId, value: unknown): CardRead => {
   };
 };
 
+/** Maps active documents and omits tombstones from both read paths. */
 const mapActiveCardReads = (documents: ReadonlyArray<{ id: string; data: () => unknown }>): CardRead[] =>
   documents.map((document) => mapCardRead(document.id, document.data())).filter(({ card }) => card.deletedAt === null);
 
@@ -71,6 +73,7 @@ const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
   return combinedCard;
 };
 
+/** Keeps existing Card subscribers on the combined read model until #604. */
 export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
   subscribeCardReads(uid, (reads) => replaceRemoteCards(reads.map(combineCardRead)), onError);
 
@@ -80,20 +83,24 @@ export const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
   return mapActiveCardReads(snapshot.docs);
 };
 
+/** Keeps existing authoritative fetch consumers on the combined read model until #604. */
 export const fetchCards = async (uid: string): Promise<RemoteCard[]> =>
   (await fetchCardReads(uid)).map(combineCardRead);
 
+/** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();
   const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 
+/** Validates Card ownership before creating its Firestore document. */
 export const createCard = async (uid: string, card: CardCreateInput): Promise<void> => {
   const input = createCardSchema.parse({ uid, card });
   await createCardDocument(input.card);
 };
 
+/** Writes the editable Card fields and advances the update timestamp. */
 const updateCardDocument = async (card: CardEdit): Promise<void> => {
   const document = omitUndefined({
     frontText: card.frontText,
@@ -108,16 +115,19 @@ const updateCardDocument = async (card: CardEdit): Promise<void> => {
   await updateDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 
+/** Validates Card ownership before editing its Firestore document. */
 export const editCard = async (uid: string, card: EditCardInput["card"]): Promise<void> => {
   const input = editCardSchema.parse({ uid, card });
   await updateCardDocument(input.card);
 };
 
+/** Tombstones a Card so synchronized readers can converge before hiding it. */
 const removeCardDocument = async (id: string): Promise<void> => {
   const updatedAt = getCurrentTimeMillis();
   await updateDoc(doc(db, CARD_COLLECTION, id), { updatedAt, deletedAt: updatedAt });
 };
 
+/** Validates Card ownership before tombstoning its Firestore document. */
 export const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Promise<void> => {
   const input = deleteCardSchema.parse({ uid, card });
   await removeCardDocument(input.card.id);

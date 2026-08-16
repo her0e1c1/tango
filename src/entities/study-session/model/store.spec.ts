@@ -63,8 +63,20 @@ describe("study store", () => {
     startSession("deck-2", ["card-3"]);
 
     expect(store.getState().sessionsByDeckId).toEqual({
-      "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 0, lastStudiedAt: 1000 },
-      "deck-2": { deckId: "deck-2", cardOrderIds: ["card-3"], currentIndex: 0, lastStudiedAt: 2000 },
+      "deck-1": {
+        sessionId: expect.any(String),
+        deckId: "deck-1",
+        cardOrderIds: ["card-1", "card-2"],
+        currentIndex: 0,
+        lastStudiedAt: 1000,
+      },
+      "deck-2": {
+        sessionId: expect.any(String),
+        deckId: "deck-2",
+        cardOrderIds: ["card-3"],
+        currentIndex: 0,
+        lastStudiedAt: 2000,
+      },
     });
   });
 
@@ -83,12 +95,42 @@ describe("study store", () => {
 
   it("moves within a session and removes it when movement reaches an edge", () => {
     startSession("deck-1", ["card-1", "card-2"]);
+    const firstCard = getStudySession("deck-1");
+    if (firstCard == null) throw new Error("Expected an active study session");
 
-    moveStudySession("deck-1", "next");
+    expect(moveStudySession(firstCard, "next")).toBe(true);
     expect(getStudySession("deck-1")?.currentIndex).toBe(1);
 
-    moveStudySession("deck-1", "next");
+    const finalCard = getStudySession("deck-1");
+    if (finalCard == null) throw new Error("Expected an active study session");
+    expect(moveStudySession(finalCard, "next")).toBe(true);
     expect(getStudySession("deck-1")).toBeUndefined();
+  });
+
+  it("moves only when the persisted swipe still owns the active card", () => {
+    startSession("deck-1", ["card-1", "card-2"]);
+    const previous = getStudySession("deck-1");
+    if (previous == null) throw new Error("Expected an active study session");
+
+    touchStudySession("deck-1");
+    expect(moveStudySession(previous, "next")).toBe(true);
+    expect(getStudySession("deck-1")?.currentIndex).toBe(1);
+
+    expect(moveStudySession(previous, "next")).toBe(false);
+    expect(getStudySession("deck-1")?.currentIndex).toBe(1);
+  });
+
+  it("does not move a replacement session that starts on the same card", () => {
+    startSession("deck-1", ["card-1", "card-2"]);
+    const previous = getStudySession("deck-1");
+    if (previous == null) throw new Error("Expected an active study session");
+
+    startSession("deck-1", ["card-1", "card-2"]);
+    const replacement = getStudySession("deck-1");
+
+    expect(replacement?.sessionId).not.toBe(previous.sessionId);
+    expect(moveStudySession(previous, "next")).toBe(false);
+    expect(getStudySession("deck-1")?.currentIndex).toBe(0);
   });
 
   it.each([-1, 2, 0.5])("does not persist an invalid session index: %s", (currentIndex) => {
@@ -148,19 +190,20 @@ describe("study store", () => {
     expect(() => clearStudySessions()).toThrow(failure);
   });
 
-  it("persists exactly the session map in a v3 envelope", async () => {
+  it("persists exactly the session map in a v4 envelope", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
     startSession("deck-1", ["card-1"]);
+    const sessionId = getStudySession("deck-1")?.sessionId;
 
     const persistedSession = localStorage.getItem(STUDY_STORAGE_KEY);
     expect(JSON.parse(persistedSession ?? "{}")).toEqual({
       state: {
         sessionsByDeckId: {
-          "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
+          "deck-1": { sessionId, deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
         },
       },
-      version: 3,
+      version: 4,
     });
 
     store.setState({ sessionsByDeckId: {} });
@@ -168,33 +211,46 @@ describe("study store", () => {
     await store.persist.rehydrate();
     expect(store.getState()).toMatchObject({
       sessionsByDeckId: {
-        "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
+        "deck-1": { sessionId, deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
       },
     });
     expect(store.getState()).not.toHaveProperty("session");
   });
 
-  it("hydrates valid v3 sessions independently and drops unknown metadata", async () => {
+  it("hydrates valid v4 sessions independently and drops unknown metadata", async () => {
     setVersionedStorage(
       {
         sessionsByDeckId: {
           "deck-1": {
+            sessionId: "session-1",
             deckId: "deck-1",
             cardOrderIds: ["card-1", "card-2"],
             currentIndex: 1,
             lastStudiedAt: 1000,
             unknownSessionMetadata: "drop",
           },
-          broken: { deckId: "broken", cardOrderIds: [], currentIndex: 0, lastStudiedAt: 2000 },
+          broken: {
+            sessionId: "session-broken",
+            deckId: "broken",
+            cardOrderIds: [],
+            currentIndex: 0,
+            lastStudiedAt: 2000,
+          },
         },
         unknownRootMetadata: "drop",
       },
-      3
+      4
     );
     await store.persist.rehydrate();
 
     expect(store.getState().sessionsByDeckId).toEqual({
-      "deck-1": { deckId: "deck-1", cardOrderIds: ["card-1", "card-2"], currentIndex: 1, lastStudiedAt: 1000 },
+      "deck-1": {
+        sessionId: "session-1",
+        deckId: "deck-1",
+        cardOrderIds: ["card-1", "card-2"],
+        currentIndex: 1,
+        lastStudiedAt: 1000,
+      },
     });
     expect(store.getState()).not.toHaveProperty("unknownRootMetadata");
   });

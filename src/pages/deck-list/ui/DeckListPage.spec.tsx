@@ -93,11 +93,11 @@ describe("DeckListPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Edit deck" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, `/deck/${deck.id}`);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, `/deck/${deck.id}`, undefined);
     expect(mocks.touchStudySession).toHaveBeenCalledExactlyOnceWith(deck.id);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, `/deck/${deck.id}/study`);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(3, `/deck/${deck.id}/start`);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(4, `/deck/${deck.id}/edit`);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, `/deck/${deck.id}/study`, undefined);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(3, `/deck/${deck.id}/start`, undefined);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(4, `/deck/${deck.id}/edit`, undefined);
     expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith(mocks.authUid, deck);
   });
 
@@ -107,8 +107,8 @@ describe("DeckListPage", () => {
     fireEvent.keyDown(window, { key: "s" });
     fireEvent.keyDown(window, { key: "i" });
 
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings", undefined);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import", undefined);
     expect(mocks.useAddSampleDeck).toHaveBeenCalledWith();
   });
 

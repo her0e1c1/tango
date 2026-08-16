@@ -1,12 +1,11 @@
-import { useAuthUid } from "@/entities/auth";
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preferences";
-import { editStudyProgress } from "@/entities/study-progress";
 import {
   calculateStudySessionIndex,
   removeStudySession,
   resolveStudySession,
+  setStudySessionIndex,
   type StudySession,
   touchStudySession,
   useStudySession,
@@ -14,8 +13,7 @@ import {
 
 import * as React from "react";
 
-import { useStudyActions } from "./useStudyActions";
-import { useSwipeFeedback } from "./useSwipeFeedback";
+import { useSwipe } from "./useSwipe";
 
 interface StudyCommands {
   swipeUp: () => Promise<void>;
@@ -44,21 +42,17 @@ export type StudyState = StudyCommands &
   );
 
 export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () => void): StudyState => {
-  const uid = useAuthUid();
   const preferences = usePreferences();
   const [showBackText, setShowBackText] = React.useState(false);
   const [autoPlay, setAutoPlay] = React.useState(preferences.study.defaultAutoPlay);
   const hideBackText = () => setShowBackText(false);
   const toggleBackText = () => setShowBackText((visible) => !visible);
   const toggleAutoPlay = () => setAutoPlay((playing) => !playing);
-  const feedback = useSwipeFeedback(preferences.appearance.showSwipeFeedback);
-  const saveProgress = (progress: Parameters<typeof editStudyProgress>[1]) => editStudyProgress(uid, progress);
-  const actions = useStudyActions(deckId, {
-    cards,
-    saveProgress,
-    onSwipe: feedback.showSwipe,
-    onCardChanged: hideBackText,
-  });
+  const swipe = useSwipe(deckId, cards, hideBackText);
+  const updateIndex = (currentIndex: number): void => {
+    if (!setStudySessionIndex(deckId, currentIndex)) return;
+    hideBackText();
+  };
   const session = useStudySession(deckId);
   const resolvedSession = resolveStudySession(session, cards);
   const exitingDeck = React.useRef<DeckId>(undefined);
@@ -91,14 +85,16 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
     ) {
       return;
     }
-    const timeout = window.setTimeout(() => actions.updateIndex(nextIndex), preferences.study.cardInterval * 1000);
+    const timeout = window.setTimeout(() => {
+      if (setStudySessionIndex(deckId, nextIndex)) setShowBackText(false);
+    }, preferences.study.cardInterval * 1000);
     return () => window.clearTimeout(timeout);
-  }, [actions, autoPlay, preferences.study.cardInterval, resolvedSession.status, session]);
+  }, [autoPlay, deckId, preferences.study.cardInterval, resolvedSession.status, session]);
   const commands: StudyCommands = {
-    swipeUp: actions.swipeUp,
-    swipeDown: actions.swipeDown,
-    swipeLeft: actions.swipeLeft,
-    swipeRight: actions.swipeRight,
+    swipeUp: swipe.swipeUp,
+    swipeDown: swipe.swipeDown,
+    swipeLeft: swipe.swipeLeft,
+    swipeRight: swipe.swipeRight,
     toggleBackText,
     toggleAutoPlay,
   };
@@ -115,7 +111,7 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
     showController: preferences.study.cardInterval > 0,
     showSwipeButtonList: preferences.controls.showSwipeButtonList,
     autoPlay,
-    updateIndex: actions.updateIndex,
-    ...(feedback.lastSwipe !== undefined ? { swipeFeedback: feedback.lastSwipe } : {}),
+    updateIndex,
+    ...(swipe.swipeFeedback !== undefined ? { swipeFeedback: swipe.swipeFeedback } : {}),
   };
 };

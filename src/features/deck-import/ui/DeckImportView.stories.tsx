@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import type { DeckImportPreview } from "../model/deckImportTypes";
-import { SAMPLE_CSV_TEXT } from "../sampleCsv";
+import type { DeckImportPreview } from "../model/useDeckImport";
+import { SAMPLE_CSV_TEXT } from "../lib/sampleCsv";
 import { DeckImportView as Template } from "./DeckImportView";
 
 const preview = {
@@ -98,15 +98,14 @@ export const Pending: Story = {
 export const Success: Story = {
   args: {
     preview,
-    result: { created: 1, updated: 1, skipped: 0, failed: 0, deckId: "spanish-basics" },
+    result: { created: 1, updated: 1, skipped: 0, deckId: "spanish-basics" },
   },
 };
 
-export const PartialFailure: Story = {
+export const Failure: Story = {
   args: {
     preview,
-    error: new Error("1 Card write failed"),
-    partialResult: { created: 1, updated: 0, skipped: 0, failed: 1, deckId: "spanish-basics" },
+    error: new Error("Card writes failed"),
   },
 };
 

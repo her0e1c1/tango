@@ -14,7 +14,7 @@ const SAMPLE_VERSION = 1;
 
 const sampleDeckId = (uid: string): DeckId => `sample-v${String(SAMPLE_VERSION)}-${uid}`;
 
-export interface SampleDeckPreparationOptions {
+interface SampleDeckPreparationOptions {
   cards: Card[];
   decks: Deck[];
   generateCardId: () => string;

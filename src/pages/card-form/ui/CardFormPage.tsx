@@ -1,14 +1,15 @@
 import type * as React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
 import { CardEditForm } from "@/features/card-edit";
+import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 const CardFormContent = ({ card }: { card: Card }) => {
-  const navigate = useNavigate();
-  const goBack = () => void navigate(-1);
+  const navigation = useNavigation();
+  const goBack = () => void navigation.back();
 
   return (
     <AppLayout showHeader>
@@ -19,7 +20,7 @@ const CardFormContent = ({ card }: { card: Card }) => {
 
 export const CardFormPage: React.FC = () => {
   const params = useParams();
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const cardId = params.id;
   if (cardId == null) throw new Error("invalid card id");
   const card = useCard(cardId);
@@ -30,8 +31,8 @@ export const CardFormPage: React.FC = () => {
         title="Card not found"
         description="The requested card is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
       />
     );
   }

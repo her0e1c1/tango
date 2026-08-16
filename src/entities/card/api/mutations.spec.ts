@@ -7,7 +7,7 @@ import {
   createLocalDeck,
 } from "@/test/factories";
 
-import { type CardBulkMutationError, type CardMutation, deleteCard, editCard, mutateCards } from "./mutations";
+import { type CardMutation, deleteCard, editCard, mutateCards } from "./mutations";
 import { cardStore, findCardById } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
@@ -72,9 +72,7 @@ describe("Card mutations", () => {
     const card = createLocalCard({ id: "ownerless-card", deckId: deck.id });
     mocks.findDeckById.mockReturnValue(deck);
 
-    await expect(mutateCards("uid", [{ kind: "create", card }])).rejects.toMatchObject({
-      failedIds: [card.id],
-    });
+    await expect(mutateCards("uid", [{ kind: "create", card }])).rejects.toThrow();
 
     expect(mocks.createRemoteCard).not.toHaveBeenCalled();
   });
@@ -96,24 +94,31 @@ describe("Card mutations", () => {
     expect(mocks.editRemoteCard).toHaveBeenCalledWith("uid-a", edited);
   });
 
-  it("reports every failed Card while allowing other writes to finish", async () => {
+  it("waits for every Card mutation before rejecting with the first failure", async () => {
     const deck = createDeckFixture({ id: "remote-deck", localMode: false });
     const first = createCardFixture({ id: "first", deckId: deck.id });
     const second = createCardFixture({ id: "second", deckId: deck.id });
+    let finishEdit!: () => void;
     mocks.findDeckById.mockReturnValue(deck);
     cardStore.setState({ remoteCards: [second], localCards: [] });
     mocks.createRemoteCard.mockRejectedValueOnce(new Error("create failed"));
-    mocks.editRemoteCard.mockRejectedValueOnce(new Error("edit failed"));
+    mocks.editRemoteCard.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishEdit = resolve;
+      })
+    );
 
-    await expect(
-      mutateCards("uid-a", [
-        { kind: "create", card: first },
-        { kind: "edit", card: second },
-      ])
-    ).rejects.toMatchObject({
-      failedIds: [first.id, second.id],
-      message: "2 of 2 Card writes failed",
-    } satisfies Partial<CardBulkMutationError>);
+    const mutation = mutateCards("uid-a", [
+      { kind: "create", card: first },
+      { kind: "edit", card: second },
+    ]);
+    const settled = vi.fn();
+    void mutation.then(settled, settled);
+    await Promise.resolve();
+
+    expect(settled).not.toHaveBeenCalled();
+    finishEdit();
+    await expect(mutation).rejects.toThrow("create failed");
   });
 
   it("rejects edit and delete when the Card cannot be resolved", async () => {

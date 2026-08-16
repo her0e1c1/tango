@@ -21,18 +21,21 @@ describe("buildDeckListSections", () => {
     ];
     const sessionsByDeckId = {
       "active-old": {
+        sessionId: "session-active-old",
         deckId: "active-old",
         cardOrderIds: ["old-1", "old-2"],
         currentIndex: 0,
         lastStudiedAt: 100,
       },
       "active-new": {
+        sessionId: "session-active-new",
         deckId: "active-new",
         cardOrderIds: ["new-1", "new-2", "new-3"],
         currentIndex: 1,
         lastStudiedAt: 200,
       },
       missing: {
+        sessionId: "session-missing",
         deckId: "missing",
         cardOrderIds: ["missing-card"],
         currentIndex: 0,
