@@ -22,7 +22,7 @@ interface CardListAnswer {
 
 interface UseCardListStateOptions {
   cards: Card[];
-  deck: Deck;
+  deck: Deck | undefined;
   dark: boolean;
 }
 
@@ -84,7 +84,7 @@ export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions)
     }
   };
 
-  const category = shownCard == null ? undefined : getCategory(deck.category, shownCard.tags);
+  const category = shownCard == null || deck == null ? undefined : getCategory(deck.category, shownCard.tags);
   const answer: CardListAnswer | undefined =
     shownCard == null || category == null
       ? undefined

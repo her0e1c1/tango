@@ -16,22 +16,25 @@ export interface DeckFilterState {
 
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
 
-export const useDeckFilterState = (deck: Deck): DeckFilterState => {
+export const useDeckFilterState = (deck: Deck | undefined): DeckFilterState => {
   const uid = useAuthUid();
-  const [filter, setFilter] = useState<DeckFilterValues>(() => ({
-    scoreMax: deck.scoreMax,
-    scoreMin: deck.scoreMin,
-    selectedTags: deck.selectedTags,
-    tagAndFilter: deck.tagAndFilter,
-  }));
+  const [filter, setFilter] = useState<DeckFilterValues>();
+  const currentFilter = filter ?? {
+    scoreMax: deck?.scoreMax ?? null,
+    scoreMin: deck?.scoreMin ?? null,
+    selectedTags: deck?.selectedTags ?? [],
+    tagAndFilter: deck?.tagAndFilter ?? false,
+  };
 
   const updateFilter = <Key extends keyof DeckFilterValues>(key: Key, value: DeckFilterValues[Key]) => {
-    setFilter((current) => ({ ...current, [key]: value }));
+    setFilter((current) => ({ ...(current ?? currentFilter), [key]: value }));
+    // Route pages call this hook before their not-found return to preserve stable hook ordering.
+    if (deck == null) return;
     void editDeck(uid, { id: deck.id, [key]: value }).catch(() => undefined);
   };
 
   return {
-    ...filter,
+    ...currentFilter,
     setScoreMax: (value) => updateFilter("scoreMax", value),
     setScoreMin: (value) => updateFilter("scoreMin", value),
     setSelectedTags: (value) => updateFilter("selectedTags", value),
