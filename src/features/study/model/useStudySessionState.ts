@@ -1,12 +1,6 @@
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import {
-  findCurrentStudySessionCard,
-  removeStudySession,
-  type StudySession,
-  touchStudySession,
-  useStudySession,
-} from "@/entities/study-session";
+import { removeStudySession, type StudySession, touchStudySession, useStudySession } from "@/entities/study-session";
 
 import * as React from "react";
 
@@ -16,10 +10,11 @@ export type StudySessionState =
 
 export const useStudySessionState = (deckId: DeckId, cards: readonly Card[]): StudySessionState => {
   const session = useStudySession(deckId);
-  const card = findCurrentStudySessionCard(session, cards);
+  const cardId = session?.cardOrderIds[session.currentIndex];
+  const card = cardId == null ? undefined : cards.find(({ id }) => id === cardId);
 
   let sessionState: StudySessionState;
-  if (session == null) sessionState = { status: "invalid" };
+  if (session == null || cardId == null) sessionState = { status: "invalid" };
   else if (card != null) sessionState = { status: "studying", session, card };
   else sessionState = { status: cards.length === 0 ? "preparing" : "invalid" };
 
