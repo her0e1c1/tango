@@ -1,73 +1,104 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import userEvent from "@testing-library/user-event";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import type { useAuthAccount } from "@/entities/auth";
-import type { Preferences } from "@/entities/preferences";
+import { replaceAuthSession } from "@/entities/auth";
+import { updatePreferences } from "@/entities/preferences";
 import { createPreferences } from "@/test/factories";
-
-type AuthAccount = ReturnType<typeof useAuthAccount>;
-
-const mocks = vi.hoisted(() => ({
-  authAccount: undefined as AuthAccount,
-  authUid: "",
-  preferences: null as unknown as Preferences,
-  setDarkMode: vi.fn(),
-}));
-
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/auth", () => ({
-  useAuthAccount: () => mocks.authAccount,
-  useAuthUid: () => mocks.authUid,
-}));
-vi.mock("@/entities/preferences", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/preferences")>()),
-  usePreferences: () => mocks.preferences,
-  setDarkMode: mocks.setDarkMode,
-  updatePreferences: vi.fn(),
-}));
 
 import { SettingsPage } from "./SettingsPage";
 
-const renderPage = (logout = vi.fn(), login = vi.fn()) =>
-  render(
-    <MemoryRouter initialEntries={["/settings"]}>
-      <Routes>
-        <Route path="/" element={<h1>Deck list</h1>} />
-        <Route path="/settings" element={<SettingsPage login={login} logout={logout} />} />
-      </Routes>
-    </MemoryRouter>
+vi.mock("@/shared/firebase", () => ({ auth: {} }));
+
+const successfulOperation = () => Promise.resolve();
+
+const renderPage = ({
+  login = successfulOperation,
+  logout = successfulOperation,
+}: {
+  login?: () => Promise<void>;
+  logout?: () => Promise<void>;
+} = {}) => {
+  const router = createMemoryRouter(
+    [
+      { path: "/", element: <div>Home Page</div> },
+      {
+        path: "/settings",
+        element: <SettingsPage login={login} logout={logout} />,
+      },
+    ],
+    { initialEntries: ["/settings"] }
   );
+
+  return render(<RouterProvider router={router} />);
+};
 
 describe("SettingsPage", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.authAccount = undefined;
-    mocks.authUid = "";
-    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
+    replaceAuthSession({ status: "initializing" });
+    updatePreferences(createPreferences({ appearance: { darkMode: false } }));
   });
 
-  it("navigates to the deck list from the route shortcut", async () => {
+  it("navigates home when the user presses the route shortcut", async () => {
     renderPage();
 
-    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     fireEvent.keyDown(window, { key: "t" });
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    expect(await screen.findByText("Home Page")).toBeVisible();
   });
 
-  it("displays an alert when sign-out fails and clears it after retrying", async () => {
-    mocks.authAccount = { uid: "retry-uid-a", displayName: "Test User" };
-    mocks.authUid = "retry-uid-a";
-    const logout = vi.fn().mockRejectedValueOnce(new Error("sign out failed")).mockResolvedValueOnce(undefined);
-    renderPage(logout);
+  it("lets a signed-in user retry a failed sign-out", async () => {
+    replaceAuthSession({
+      displayName: "Test User",
+      isAnonymous: false,
+      status: "authenticated",
+      uid: "test-user",
+    });
+    let shouldFail = true;
+    const logout = () => {
+      if (shouldFail) {
+        shouldFail = false;
+        return Promise.reject(new Error("Sign-out failed"));
+      }
+      return Promise.resolve();
+    };
+    renderPage({ logout });
 
-    fireEvent.click(screen.getByRole("button", { name: "Logout" }));
+    await userEvent.click(screen.getByRole("button", { name: "Logout" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(screen.getByText("Test User")).toBeVisible();
 
-    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole("button", { name: "Logout" })).toBeEnabled();
+  });
+
+  it("lets a signed-out user retry a failed sign-in", async () => {
+    let shouldFail = true;
+    const login = () => {
+      if (shouldFail) {
+        shouldFail = false;
+        return Promise.reject(new Error("Sign-in failed"));
+      }
+      return Promise.resolve();
+    };
+    renderPage({ login });
+
+    await userEvent.click(screen.getByRole("button", { name: "Login" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign in.");
+
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole("button", { name: "Login" })).toBeEnabled();
   });
 });
