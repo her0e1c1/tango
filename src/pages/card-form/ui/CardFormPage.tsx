@@ -39,5 +39,6 @@ export const CardFormPage: React.FC = () => {
     );
   }
 
-  return <CardFormContent card={card} />;
+  // Form state belongs to one route entity and must start fresh when navigation replaces the card.
+  return <CardFormContent key={card.id} card={card} />;
 };
