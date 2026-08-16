@@ -119,6 +119,22 @@ describe("useStudy", () => {
     expect(result.current).toMatchObject({ status: "studying", card: { id: "card-2" } });
   });
 
+  it("does not advance a restarted session with an old autoplay timer", () => {
+    vi.useFakeTimers();
+    mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
+    renderHook(() => useStudy(deckId, cards));
+    const previousSessionId = getStudySession(deckId)?.sessionId;
+
+    act(() => vi.advanceTimersByTime(500));
+    act(() => startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+    expect(getStudySession(deckId)?.sessionId).not.toBe(previousSessionId);
+    expect(getStudySession(deckId)?.currentIndex).toBe(0);
+
+    act(() => vi.advanceTimersByTime(500));
+
+    expect(getStudySession(deckId)?.currentIndex).toBe(0);
+  });
+
   it("reports an invalid session and removes it", async () => {
     clearStudySessions();
     const { result } = renderHook(() => useStudy(deckId, cards));

@@ -29,14 +29,26 @@ interface DecksByStudyStatus<TDeck> {
   inactive: TDeck[];
 }
 
+interface StudySessionAutoPlayOptions {
+  enabled: boolean;
+  intervalSeconds: number;
+}
+
+interface StudySessionAutoPlayPlan {
+  session: StudySession;
+  intervalSeconds: number;
+}
+
+// Compares Deck names with locale-aware ascending order for deterministic presentation ties.
 const compareDeckNames = (left: NamedDeck, right: NamedDeck): number => left.name.localeCompare(right.name);
 
+// Orders active Decks by most recent study time, then alphabetically when their timestamps match.
 export const compareActiveDecks = <TDeck extends NamedDeck>(
   left: ActiveDeck<TDeck>,
   right: ActiveDeck<TDeck>
 ): number => right.session.lastStudiedAt - left.session.lastStudiedAt || compareDeckNames(left.deck, right.deck);
 
-// Resolve study status here so presentation models cannot redefine which decks have active sessions.
+// Partitions Decks by session presence so presentation models cannot redefine which Decks are actively studied.
 export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
   decks: readonly TDeck[],
   sessionsByDeckId: StudySessions
@@ -53,9 +65,11 @@ export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
   return { active, inactive };
 };
 
+// Reads the Card id at the session cursor, returning undefined for an empty or out-of-range position.
 const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];
 
+// Resolves a session against loaded Cards, distinguishing an in-flight empty read from a proven missing Card.
 export const resolveStudySession = <Card extends StudySessionCard>(
   session: StudySession | undefined,
   cards: readonly Card[]
@@ -69,12 +83,14 @@ export const resolveStudySession = <Card extends StudySessionCard>(
   return { status: cardId != null && cards.length === 0 ? "preparing" : "invalid" };
 };
 
+// Collapses control actions into the movement, exit, or no-op effects understood by a study session.
 const resolveStudySessionSwipeEffect = (swipeAction: SwipeAction): StudySessionSwipeEffect => {
   if (swipeAction === "DoNothing") return "none";
   if (swipeAction === "GoBack") return "exit";
   return swipeAction === "GoToPrevCard" ? "previous" : "next";
 };
 
+// Plans a swipe without mutation and emits progress only when the current session and Card still resolve.
 export const planStudySessionSwipe = (
   session: StudySession | undefined,
   cards: readonly CardProgressFields[],
@@ -96,16 +112,27 @@ export const planStudySessionSwipe = (
   };
 };
 
+// Confirms interaction identity and position while ignoring timestamps that may change during the same write.
 export const isStudySessionPositionUnchanged = (previous: StudySession, current: StudySession | undefined): boolean =>
-  // Timestamps may change during a write, but replacements and position changes belong to a newer interaction.
   current?.sessionId === previous.sessionId &&
   current.currentIndex === previous.currentIndex &&
   getCurrentStudySessionCardId(current) === getCurrentStudySessionCardId(previous);
 
+// Computes the next valid cursor; undefined signals that movement crossed a boundary and should end the session.
 export const calculateStudySessionIndex = (
   session: StudySession,
   movement: StudySessionMovement
 ): number | undefined => {
   const nextIndex = session.currentIndex + (movement === "previous" ? -1 : 1);
   return nextIndex >= 0 && nextIndex < session.cardOrderIds.length ? nextIndex : undefined;
+};
+
+// Builds a timer plan only while the resolved session can advance automatically.
+export const planStudySessionAutoPlay = (
+  resolvedSession: ResolvedStudySession<StudySessionCard>,
+  { enabled, intervalSeconds }: StudySessionAutoPlayOptions
+): StudySessionAutoPlayPlan | undefined => {
+  if (resolvedSession.status !== "studying" || !enabled || intervalSeconds <= 0) return;
+  const nextIndex = calculateStudySessionIndex(resolvedSession.session, "next");
+  return nextIndex === undefined ? undefined : { session: resolvedSession.session, intervalSeconds };
 };

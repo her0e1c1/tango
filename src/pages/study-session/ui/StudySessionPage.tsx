@@ -64,7 +64,7 @@ const renderStudyScreen = (deck: Deck, state: StudyState) => {
   );
 };
 
-const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => {
+const StudySessionScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => {
   useKey("ArrowUp", () => void state.swipeUp());
   useKey("ArrowDown", () => void state.swipeDown());
   useKey("ArrowLeft", () => void state.swipeLeft());
@@ -77,7 +77,7 @@ const DeckStudyScreen = ({ deck, state }: { deck: Deck; state: StudyState }) => 
   return renderStudyScreen(deck, state);
 };
 
-const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
+const StudySessionContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
   const navigation = useNavigation();
   const study = useStudy(deck.id, cards);
 
@@ -86,10 +86,10 @@ const DeckStudyContent = ({ cards, deck }: { cards: Card[]; deck: Deck }) => {
     void navigation.to(routes.deckList.to(), { replace: true });
   }, [navigation, study.status]);
 
-  return <DeckStudyScreen deck={deck} state={study} />;
+  return <StudySessionScreen deck={deck} state={study} />;
 };
 
-export const DeckStudyPage: React.FC = () => {
+export const StudySessionPage: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
@@ -101,5 +101,5 @@ export const DeckStudyPage: React.FC = () => {
     return <RouteFeedback title="Study session unavailable." tone="not-found" />;
   }
 
-  return <DeckStudyContent key={deck.id} cards={cards} deck={deck} />;
+  return <StudySessionContent key={deck.id} cards={cards} deck={deck} />;
 };

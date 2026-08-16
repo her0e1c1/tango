@@ -1,2 +1,2 @@
 export { DeckSwiperView } from "./ui/DeckSwiperView";
-export { useStudy, type StudyState } from "./hooks/useStudy";
+export { useStudy, type StudyState } from "./model/useStudy";

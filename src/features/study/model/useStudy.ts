@@ -2,7 +2,8 @@ import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preferences";
 import {
-  calculateStudySessionIndex,
+  moveStudySession,
+  planStudySessionAutoPlay,
   removeStudySession,
   resolveStudySession,
   setStudySessionIndex,
@@ -13,7 +14,7 @@ import {
 
 import * as React from "react";
 
-import { useSwipe } from "../model/useSwipe";
+import { useSwipe } from "./useSwipe";
 
 interface StudyCommands {
   swipeUp: () => Promise<void>;
@@ -55,6 +56,12 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[]): StudyState => 
   };
   const session = useStudySession(deckId);
   const resolvedSession = resolveStudySession(session, cards);
+  const autoPlayPlan = planStudySessionAutoPlay(resolvedSession, {
+    enabled: autoPlay,
+    intervalSeconds: preferences.study.cardInterval,
+  });
+  const autoPlaySession = autoPlayPlan?.session;
+  const autoPlayIntervalSeconds = autoPlayPlan?.intervalSeconds;
 
   React.useEffect(() => {
     if (resolvedSession.status !== "studying") return;
@@ -69,20 +76,12 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[]): StudyState => 
   }, [deckId, resolvedSession.status]);
 
   React.useEffect(() => {
-    const nextIndex = session == null ? undefined : calculateStudySessionIndex(session, "next");
-    if (
-      resolvedSession.status !== "studying" ||
-      !autoPlay ||
-      preferences.study.cardInterval <= 0 ||
-      nextIndex === undefined
-    ) {
-      return;
-    }
+    if (autoPlaySession === undefined || autoPlayIntervalSeconds === undefined) return;
     const timeout = window.setTimeout(() => {
-      if (setStudySessionIndex(deckId, nextIndex)) setShowBackText(false);
-    }, preferences.study.cardInterval * 1000);
+      if (moveStudySession(autoPlaySession, "next")) setShowBackText(false);
+    }, autoPlayIntervalSeconds * 1000);
     return () => window.clearTimeout(timeout);
-  }, [autoPlay, deckId, preferences.study.cardInterval, resolvedSession.status, session]);
+  }, [autoPlayIntervalSeconds, autoPlaySession]);
   const commands: StudyCommands = {
     swipeUp: swipe.swipeUp,
     swipeDown: swipe.swipeDown,
