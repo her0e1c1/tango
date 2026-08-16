@@ -2,7 +2,7 @@ import type { Preferences } from "@/entities/preferences";
 import type { ComponentProps } from "react";
 import type { DeckList } from "@/features/deck-list";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -18,7 +18,6 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   authUid: "user-1",
   deleteDeck: vi.fn(async (_uid: string, _deck: Deck) => undefined),
-  removeStudySession: vi.fn(),
   touchStudySession: vi.fn(),
   navigate: vi.fn(),
   sampleBootstrap: vi.fn(),
@@ -42,7 +41,6 @@ vi.mock("@/entities/deck", () => ({
 }));
 vi.mock("@/features/deck-import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
 vi.mock("@/entities/study-session", () => ({
-  removeStudySession: mocks.removeStudySession,
   touchStudySession: mocks.touchStudySession,
   useStudySessions: () => ({}),
 }));
@@ -88,7 +86,7 @@ describe("DeckListPage", () => {
     mocks.authUid = "user-1";
   });
 
-  it("composes route and reusable feature actions around the Deck List Feature", async () => {
+  it("composes route and reusable feature actions around the Deck List Feature", () => {
     render(<DeckListPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "View deck" }));
@@ -103,7 +101,6 @@ describe("DeckListPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(3, `/deck/${deck.id}/start`);
     expect(mocks.navigate).toHaveBeenNthCalledWith(4, `/deck/${deck.id}/edit`);
     expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith(mocks.authUid, deck);
-    await waitFor(() => expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id));
   });
 
   it("keeps route shortcuts and sample bootstrap wiring", () => {

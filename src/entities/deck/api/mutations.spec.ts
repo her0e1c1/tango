@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   deleteRemoteDeck: vi.fn(),
   editRemoteDeck: vi.fn(),
   deleteLocalCardsByDeckId: vi.fn(),
+  removeStudySession: vi.fn(),
 }));
 
 vi.mock("./firestore", () => ({
@@ -20,6 +21,10 @@ vi.mock("./firestore", () => ({
 
 vi.mock("@/entities/card/@x/deck", () => ({
   deleteLocalCardsByDeckId: mocks.deleteLocalCardsByDeckId,
+}));
+
+vi.mock("@/entities/study-session/@x/deck", () => ({
+  removeStudySession: mocks.removeStudySession,
 }));
 
 describe("Deck mutations", () => {
@@ -42,6 +47,7 @@ describe("Deck mutations", () => {
 
     expect(findDeckById(deck.id)).toBeUndefined();
     expect(mocks.deleteLocalCardsByDeckId).toHaveBeenCalledExactlyOnceWith(deck.id);
+    expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
   });
 
@@ -58,6 +64,7 @@ describe("Deck mutations", () => {
     expect(mocks.editRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", edit);
     expect(mocks.deleteRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", { id: deck.id, uid: deck.uid });
     expect(mocks.deleteLocalCardsByDeckId).not.toHaveBeenCalled();
+    expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id);
   });
 
   it("rejects edit and delete when the Deck cannot be resolved", async () => {
@@ -68,5 +75,6 @@ describe("Deck mutations", () => {
 
     expect(mocks.editRemoteDeck).not.toHaveBeenCalled();
     expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
+    expect(mocks.removeStudySession).not.toHaveBeenCalled();
   });
 });

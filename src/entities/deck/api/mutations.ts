@@ -1,6 +1,7 @@
 import type { DeckCreateInput, DeckId, EditDeckInput, LocalDeckCreateInput } from "../model/types";
 
 import { deleteLocalCardsByDeckId } from "@/entities/card/@x/deck";
+import { removeStudySession } from "@/entities/study-session/@x/deck";
 import { createLocalDeck, deleteLocalDeck, editLocalDeck, findDeckById } from "../model/store";
 import {
   createDeck as createRemoteDeck,
@@ -35,7 +36,10 @@ export const deleteDeck = async (uid: string, deck: { id: DeckId }): Promise<voi
   if (currentDeck.localMode) {
     deleteLocalCardsByDeckId(deck.id);
     deleteLocalDeck(deck.id);
-    return;
+  } else {
+    await deleteRemoteDeck(uid, { id: deck.id, uid: currentDeck.uid });
   }
-  await deleteRemoteDeck(uid, { id: deck.id, uid: currentDeck.uid });
+
+  // A deleted Deck must not leave a resumable session behind in persisted client state.
+  removeStudySession(deck.id);
 };
