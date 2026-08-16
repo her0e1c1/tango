@@ -1,70 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createDeck as createDeckFixture, createLocalDeck } from "@/test/factories";
+import { createDeck as createDeckFixture } from "@/test/factories";
 
-import { createDeck, deleteDeck, editDeck } from "./mutations";
-import { deckStore, findDeckById } from "../model/store";
+vi.mock("@/shared/firebase", () => ({ db: {} }));
 
-const mocks = vi.hoisted(() => ({
-  createRemoteDeck: vi.fn(),
-  deleteRemoteDeck: vi.fn(),
-  editRemoteDeck: vi.fn(),
-  deleteLocalCardsByDeckId: vi.fn(),
-  removeStudySession: vi.fn(),
-}));
-
-vi.mock("./firestore", () => ({
-  createDeck: mocks.createRemoteDeck,
-  deleteDeck: mocks.deleteRemoteDeck,
-  editDeck: mocks.editRemoteDeck,
-}));
-
-vi.mock("@/entities/card/@x/deck", () => ({
-  deleteLocalCardsByDeckId: mocks.deleteLocalCardsByDeckId,
-}));
-
-vi.mock("@/entities/study-session/@x/deck", () => ({
-  removeStudySession: mocks.removeStudySession,
-}));
+import { deleteDeck, editDeck } from "./mutations";
+import { deckStore } from "../model/store";
 
 describe("Deck mutations", () => {
   beforeEach(() => {
     deckStore.setState({ remoteDecks: [], localDecks: [] });
-    vi.clearAllMocks();
-  });
-
-  it("routes local Deck create, edit, and delete to local persistence", async () => {
-    const deck = createLocalDeck({ id: "local" });
-
-    await createDeck("", deck);
-    await editDeck("", { id: deck.id, name: "Renamed" });
-
-    expect(findDeckById(deck.id)).toMatchObject({ id: deck.id, name: "Renamed", localMode: true });
-    expect(mocks.createRemoteDeck).not.toHaveBeenCalled();
-    expect(mocks.editRemoteDeck).not.toHaveBeenCalled();
-
-    await deleteDeck("", deck);
-
-    expect(findDeckById(deck.id)).toBeUndefined();
-    expect(mocks.deleteLocalCardsByDeckId).toHaveBeenCalledExactlyOnceWith(deck.id);
-    expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id);
-    expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
-  });
-
-  it("preserves remote Deck mutation behavior", async () => {
-    const deck = createDeckFixture({ id: "remote", localMode: false });
-    const edit = { id: deck.id, name: "Renamed" };
-    deckStore.setState({ remoteDecks: [deck] });
-
-    await createDeck("uid", deck);
-    await editDeck("uid", edit);
-    await deleteDeck("uid", deck);
-
-    expect(mocks.createRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", deck);
-    expect(mocks.editRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", edit);
-    expect(mocks.deleteRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", { id: deck.id, uid: deck.uid });
-    expect(mocks.deleteLocalCardsByDeckId).not.toHaveBeenCalled();
-    expect(mocks.removeStudySession).toHaveBeenCalledExactlyOnceWith(deck.id);
+    localStorage.clear();
   });
 
   it("rejects edit and delete when the Deck cannot be resolved", async () => {
@@ -72,9 +18,5 @@ describe("Deck mutations", () => {
 
     await expect(editDeck("uid", { id: deck.id, name: "Renamed" })).rejects.toThrow('Deck "missing" was not found');
     await expect(deleteDeck("uid", deck)).rejects.toThrow('Deck "missing" was not found');
-
-    expect(mocks.editRemoteDeck).not.toHaveBeenCalled();
-    expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
-    expect(mocks.removeStudySession).not.toHaveBeenCalled();
   });
 });

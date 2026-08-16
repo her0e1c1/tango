@@ -8,9 +8,8 @@ import "@/test/initializeTestFirestore";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { deleteCard, editCard, subscribeCards } from "@/entities/card";
-import { createCard as createCardCommand } from "@/entities/card/api/firestore";
-import { createDeck as createDeckCommand, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
+import { deleteCard, editCard, mutateCards, subscribeCards } from "@/entities/card";
+import { createDeck, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
@@ -34,8 +33,8 @@ describe("Query realtime subscriptions", () => {
     try {
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
       const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid });
-      await createDeckCommand(uid, deck);
-      await createCardCommand(uid, card);
+      await createDeck(uid, deck);
+      await mutateCards(uid, [{ kind: "create", card }]);
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(expect.objectContaining({ id: deck.id }));
         expect(cardStore.getState().remoteCards).toContainEqual(expect.objectContaining({ id: card.id }));
