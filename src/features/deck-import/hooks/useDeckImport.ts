@@ -24,6 +24,12 @@ interface DeckImportState {
   result: DeckImportResult | undefined;
 }
 
+interface DeckImportExecutionState {
+  running: boolean;
+  previewAttempt: DeckImportAttempt | undefined;
+  retryAttempt: DeckImportAttempt | undefined;
+}
+
 const INITIAL_STATE: DeckImportState = {
   storageMode: "remote",
   status: "idle",
@@ -32,6 +38,12 @@ const INITIAL_STATE: DeckImportState = {
   result: undefined,
 };
 
+const createExecutionState = (): DeckImportExecutionState => ({
+  running: false,
+  previewAttempt: undefined,
+  retryAttempt: undefined,
+});
+
 export const useDeckImport = () => {
   const uid = useAuthUid();
   const cards = useCards();
@@ -39,10 +51,8 @@ export const useDeckImport = () => {
 
   // The generation invalidates stale async work even when auth changes A-to-B-to-A.
   const generationRef = useRef(0);
-  // Lock synchronously before React publishes status so operations cannot overlap in the same render.
-  const busyRef = useRef(false);
-  const previewAttemptRef = useRef<DeckImportAttempt | undefined>(undefined);
-  const retryAttemptRef = useRef<DeckImportAttempt | undefined>(undefined);
+  // Execution state must update synchronously so operations cannot overlap before React publishes status.
+  const executionRef = useRef<DeckImportExecutionState>(createExecutionState());
   const [state, setState] = useState<DeckImportState>(INITIAL_STATE);
 
   const updateState = (update: Partial<DeckImportState>) => {
@@ -51,20 +61,22 @@ export const useDeckImport = () => {
 
   useEffect(() => {
     generationRef.current += 1;
-    busyRef.current = false;
-    previewAttemptRef.current = undefined;
-    retryAttemptRef.current = undefined;
+    executionRef.current = createExecutionState();
     setState(INITIAL_STATE);
   }, [uid]);
 
   const isCurrent = (generation: number) => generation === generationRef.current;
+  const assertCurrent = (generation: number) => {
+    if (!isCurrent(generation)) throw new Error("Deck import user changed before the preview could finish");
+  };
 
   const run = async (attempt: DeckImportAttempt) => {
-    if (busyRef.current) throw new Error("A Deck import is already running");
+    const execution = executionRef.current;
+    if (execution.running) throw new Error("A Deck import is already running");
 
     const generation = generationRef.current;
-    busyRef.current = true;
-    retryAttemptRef.current = attempt;
+    execution.running = true;
+    execution.retryAttempt = attempt;
     updateState({ status: "importing", failure: undefined });
 
     try {
@@ -75,49 +87,53 @@ export const useDeckImport = () => {
       });
       if (isCurrent(generation)) updateState({ result });
       return result;
-    } catch (error) {
-      if (isCurrent(generation)) updateState({ result: undefined, failure: { stage: "import", error } });
-      throw error;
+    } catch (caughtError) {
+      if (isCurrent(generation)) {
+        updateState({ result: undefined, failure: { stage: "import", error: caughtError } });
+      }
+      throw caughtError;
     } finally {
       if (isCurrent(generation)) {
-        busyRef.current = false;
+        execution.running = false;
         updateState({ status: "idle" });
       }
     }
   };
 
   const retry = () => {
-    const attempt = retryAttemptRef.current;
-    if (attempt != null && !busyRef.current) void run(attempt).catch(() => undefined);
+    const { retryAttempt, running } = executionRef.current;
+    if (retryAttempt != null && !running) void run(retryAttempt).catch(() => undefined);
   };
 
   const setStorageMode = (storageMode: DeckImportStorageMode) => {
-    if (busyRef.current || state.storageMode === storageMode) return;
+    const execution = executionRef.current;
+    if (execution.running || state.storageMode === storageMode) return;
 
-    previewAttemptRef.current = undefined;
-    retryAttemptRef.current = undefined;
+    execution.previewAttempt = undefined;
+    execution.retryAttempt = undefined;
     updateState({ storageMode, preview: undefined, failure: undefined, result: undefined });
   };
 
   const selectFile = async (file: File) => {
-    if (busyRef.current) throw new Error("A Deck import is already running");
+    const execution = executionRef.current;
+    if (execution.running) throw new Error("A Deck import is already running");
 
     const generation = generationRef.current;
-    const storageMode = state.storageMode;
-    busyRef.current = true;
-    previewAttemptRef.current = undefined;
-    retryAttemptRef.current = undefined;
+    const { storageMode } = state;
+    execution.running = true;
+    execution.previewAttempt = undefined;
+    execution.retryAttempt = undefined;
     updateState({ status: "validating", preview: undefined, failure: undefined, result: undefined });
 
     try {
       const analysis = await parseCsv(await file.text());
-      if (!isCurrent(generation)) throw new Error("Deck import user changed before the preview could finish");
+      assertCurrent(generation);
 
       // Listener-backed stores can lag, so remote file imports are planned from authoritative server reads.
       const [activeDecks, activeCards]: [Deck[], Card[]] =
         storageMode === "remote" ? await Promise.all([fetchDecks(uid), fetchCards(uid)]) : [decks, cards];
 
-      if (!isCurrent(generation)) throw new Error("Deck import user changed before the preview could finish");
+      assertCurrent(generation);
 
       const attempt = prepareDeckImport(
         { name: file.name, rows: analysis.rows, storageMode },
@@ -128,22 +144,23 @@ export const useDeckImport = () => {
         analysis,
         plan: attempt.plan,
       };
-      previewAttemptRef.current = attempt;
+      execution.previewAttempt = attempt;
       updateState({ preview });
       return preview;
-    } catch (error) {
-      if (isCurrent(generation)) updateState({ failure: { stage: "preview", error } });
-      throw error;
+    } catch (caughtError) {
+      if (isCurrent(generation)) updateState({ failure: { stage: "preview", error: caughtError } });
+      throw caughtError;
     } finally {
       if (isCurrent(generation)) {
-        busyRef.current = false;
+        execution.running = false;
         updateState({ status: "idle" });
       }
     }
   };
 
   const importPreview = () => {
-    if (busyRef.current) return Promise.reject(new Error("A Deck import is already running"));
+    const execution = executionRef.current;
+    if (execution.running) return Promise.reject(new Error("A Deck import is already running"));
     if (state.preview == null) return Promise.reject(new Error("Select a CSV file before importing"));
     if (state.preview.analysis.invalidCount > 0) {
       return Promise.reject(new Error("Fix invalid CSV rows before importing"));
@@ -151,13 +168,13 @@ export const useDeckImport = () => {
     if (state.preview.analysis.rows.length === 0) {
       return Promise.reject(new Error("The CSV file has no valid rows"));
     }
-
-    const attempt = previewAttemptRef.current;
-    if (attempt == null) return Promise.reject(new Error("The prepared Deck import is not available"));
-    return run(attempt);
+    if (execution.previewAttempt == null) {
+      return Promise.reject(new Error("The prepared Deck import is not available"));
+    }
+    return run(execution.previewAttempt);
   };
 
-  const error = state.failure?.stage === "import" ? state.failure.error : null;
+  const importError = state.failure?.stage === "import" ? state.failure.error : null;
 
   return {
     selectFile,
@@ -168,10 +185,10 @@ export const useDeckImport = () => {
     preview: state.preview,
     validating: state.status === "validating",
     pending: state.status === "importing",
-    error,
+    error: importError,
     previewError: state.failure?.stage === "preview" ? state.failure.error : null,
     result: state.result,
-    partialResult: partialResultFrom(error),
+    partialResult: partialResultFrom(importError),
     retry,
   };
 };
