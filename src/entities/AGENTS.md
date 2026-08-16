@@ -5,12 +5,8 @@
 
 ## Comments
 
-- Add intent comments for Entity invariants, ownership boundaries, and ordering requirements that names and types cannot express.
-- Document why persisted-data recovery, compatibility handling, soft deletion, local/remote routing, and cross-slice cleanup must work a particular way.
-- Explain partial-failure behavior for multi-step or concurrent mutations so callers know what can already have changed when an error is reported.
-- Use JSDoc on exported domain types when consumers must preserve invariants beyond the type shape.
-- Keep straightforward schemas, accessors, selectors, and re-exports comment-free when the code already expresses the complete intent.
-- Update or remove nearby comments whenever the documented behavior changes.
+- Comment non-obvious Entity intent and invariants, especially ownership, persistence, compatibility, ordering, and partial failures.
+- Do not restate clear code; update or remove comments when behavior changes.
 
 ## `model/schema.ts`
 
