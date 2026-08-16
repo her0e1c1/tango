@@ -5,8 +5,8 @@
 
 ## Comments
 
-- Comment non-obvious Entity intent and invariants, especially ownership, persistence, compatibility, ordering, and partial failures.
-- Do not restate clear code; update or remove comments when behavior changes.
+- Add a brief leading comment to every function, including small helpers, that states what it does.
+- Include non-obvious intent and invariants when relevant, and update comments when behavior changes.
 
 ## `model/schema.ts`
 
