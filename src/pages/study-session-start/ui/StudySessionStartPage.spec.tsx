@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/card", () => ({
+  useCard: () => undefined,
   useCardsByDeckId: () => ({ cards: mocks.cards, tags: [] }),
 }));
 vi.mock("@/entities/deck", () => ({

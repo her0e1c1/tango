@@ -31,33 +31,12 @@ const DeckFilterHarness: React.FC<{
   tags: string[];
 }> = ({ deckId, tags }) => {
   const deckFilter = useDeckFilterState(deckId);
-  if (deckFilter == null) return null;
   return <DeckFilterForm {...deckFilter} tags={tags} />;
 };
 
 describe("DeckFilterForm with useDeckFilterState", () => {
   const deckId = "filter-deck";
   const tags = ["tag1", "tag2", "tag3"];
-
-  it("initializes from a Deck that becomes available after the Feature mounts", async () => {
-    const delayedDeckId = "delayed-filter-deck";
-    render(<DeckFilterHarness deckId={delayedDeckId} tags={tags} />);
-
-    await createDeck(
-      "",
-      createLocalDeck({
-        id: delayedDeckId,
-        scoreMax: 2,
-        scoreMin: -2,
-        tagAndFilter: true,
-        selectedTags: ["tag2"],
-      })
-    );
-
-    expect(await screen.findByText("−2 to 2")).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Match all selected tags" })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
-  });
 
   it("restores score and tag mode changes from the saved Deck", async () => {
     await createDeck(

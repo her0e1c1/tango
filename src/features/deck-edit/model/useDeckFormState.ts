@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, deckFormSchema, editDeck, type DeckId, useDeck } from "@/entities/deck";
+import { mustExist } from "@/shared/lib/mustExist";
 import type { Form, Input, Select, Switch } from "@/shared/ui/forms";
 
 interface DeckFormFields {
@@ -41,20 +42,19 @@ interface UseDeckFormStateOptions {
 
 export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormStateOptions) => {
   const uid = useAuthUid();
-  const deck = useDeck(deckId);
+  const deck = mustExist(useDeck(deckId), "Deck form rendered outside RouteEntityBoundary");
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
     values: {
-      name: deck?.name ?? "",
-      category: deck?.category ?? "raw",
-      url: deck?.url || undefined,
-      convertToBr: deck?.convertToBr ?? false,
+      name: deck.name,
+      category: deck.category,
+      url: deck.url || undefined,
+      convertToBr: deck.convertToBr,
     },
     resolver: zodResolver(deckFormSchema),
   });
 
   const submit = handleSubmit(async (values) => {
-    if (deck == null) return;
     setSaveError(null);
     try {
       await editDeck(uid, { id: deck.id, ...values, url: values.url ?? null });
@@ -69,9 +69,9 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
 
   const form: DeckFormProps = {
     deckInfo: {
-      id: deck?.id ?? deckId,
-      ...(deck?.createdAt ? { createdAt: new Date(deck.createdAt).toLocaleDateString() } : {}),
-      ...(deck?.updatedAt ? { updatedAt: new Date(deck.updatedAt).toLocaleDateString() } : {}),
+      id: deck.id,
+      ...(deck.createdAt ? { createdAt: new Date(deck.createdAt).toLocaleDateString() } : {}),
+      ...(deck.updatedAt ? { updatedAt: new Date(deck.updatedAt).toLocaleDateString() } : {}),
     },
     fields: {
       name: register("name"),
@@ -92,5 +92,5 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
     onSubmit: onFormSubmit,
   };
 
-  return { available: deck != null, deckName: deck?.name ?? "", form, saveError };
+  return { deckName: deck.name, form, saveError };
 };

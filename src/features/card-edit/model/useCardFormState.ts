@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { useAuthUid } from "@/entities/auth";
 import { cardContentSchema, editCard, type CardId, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
+import { mustExist } from "@/shared/lib/mustExist";
 import type { Form, Option, Tag, Textarea } from "@/shared/ui/forms";
 
 interface CardFormTagField extends Option {
@@ -47,19 +48,18 @@ interface UseCardFormStateOptions {
 
 export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormStateOptions) => {
   const uid = useAuthUid();
-  const card = useCard(cardId);
+  const card = mustExist(useCard(cardId), "Card form rendered outside RouteEntityBoundary");
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<CardFormValues>({
     values: {
-      frontText: card?.frontText ?? "",
-      backText: card?.backText ?? "",
-      tags: card?.tags ?? [],
+      frontText: card.frontText,
+      backText: card.backText,
+      tags: card.tags,
     },
     resolver: zodResolver(cardFormSchema),
   });
 
   const submit = handleSubmit(async (values) => {
-    if (card == null) return;
     setSaveError(null);
     try {
       await editCard(uid, { id: card.id, ...values });
@@ -74,10 +74,10 @@ export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormState
 
   const form: CardFormProps = {
     cardInfo: {
-      id: card?.id ?? cardId,
-      uniqueKey: card?.uniqueKey ?? "",
-      ...(card?.createdAt ? { createdAt: new Date(card.createdAt).toLocaleDateString() } : {}),
-      ...(card?.lastSeenAt != null ? { lastSeenAt: new Date(card.lastSeenAt).toLocaleDateString() } : {}),
+      id: card.id,
+      uniqueKey: card.uniqueKey,
+      ...(card.createdAt ? { createdAt: new Date(card.createdAt).toLocaleDateString() } : {}),
+      ...(card.lastSeenAt != null ? { lastSeenAt: new Date(card.lastSeenAt).toLocaleDateString() } : {}),
     },
     fields: {
       frontText: register("frontText"),
@@ -97,5 +97,5 @@ export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormState
     onSubmit: onFormSubmit,
   };
 
-  return { available: card != null, form, saveError };
+  return { form, saveError };
 };

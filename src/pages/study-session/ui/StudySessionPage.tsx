@@ -7,6 +7,7 @@ import { routes, useNavigation } from "@/features/navigate";
 import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
+import { RouteEntityBoundary } from "@/widgets/route-entity-boundary";
 
 type StudyShortcutAction =
   | "swipeUp"
@@ -107,6 +108,10 @@ export const StudySessionPage: React.FC = () => {
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
 
-  // Study state belongs to one route Deck, so id changes start a fresh Feature lifecycle.
-  return <StudySessionContent key={deckId} deckId={deckId} />;
+  return (
+    <RouteEntityBoundary entity="Deck" id={deckId} title="Study session unavailable.">
+      {/* Study state belongs to one route Deck, so id changes start a fresh Feature lifecycle. */}
+      <StudySessionContent key={deckId} deckId={deckId} />
+    </RouteEntityBoundary>
+  );
 };

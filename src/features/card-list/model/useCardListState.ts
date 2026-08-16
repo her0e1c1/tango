@@ -5,6 +5,7 @@ import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId 
 import { filterCardsForDeck, getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
 import { editStudyProgress } from "@/entities/study-progress";
+import { mustExist } from "@/shared/lib/mustExist";
 
 export interface CardListItem {
   id: CardId;
@@ -22,7 +23,6 @@ interface CardListAnswer {
 }
 
 export interface CardListState {
-  available: boolean;
   tags: string[];
   cards: CardListItem[];
   answer: CardListAnswer | undefined;
@@ -48,10 +48,10 @@ const buildCardListItem = (card: Card): CardListItem => ({
 
 export const useCardListState = (deckId: string): CardListState => {
   const uid = useAuthUid();
-  const deck = useDeck(deckId);
+  const deck = mustExist(useDeck(deckId), "Card list rendered outside RouteEntityBoundary");
   const preferences = usePreferences();
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
-  const cards = deck == null ? [] : filterCardsForDeck(deckCards, deck, preferences.study);
+  const cards = filterCardsForDeck(deckCards, deck, preferences.study);
   const [shownCard, setShownCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [deletionErrorCardId, setDeletionErrorCardId] = React.useState<CardId>();
@@ -85,7 +85,7 @@ export const useCardListState = (deckId: string): CardListState => {
     }
   };
 
-  const category = shownCard == null || deck == null ? undefined : getCategory(deck.category, shownCard.tags);
+  const category = shownCard == null ? undefined : getCategory(deck.category, shownCard.tags);
   const answer: CardListAnswer | undefined =
     shownCard == null || category == null
       ? undefined
@@ -97,7 +97,6 @@ export const useCardListState = (deckId: string): CardListState => {
         };
 
   return {
-    available: deck != null,
     tags,
     cards: cards.map(buildCardListItem),
     answer,

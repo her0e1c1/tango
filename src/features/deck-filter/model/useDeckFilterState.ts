@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { type Deck, editDeck, useDeck } from "@/entities/deck";
+import { mustExist } from "@/shared/lib/mustExist";
 
 export interface DeckFilterState {
   scoreMax: number | null;
@@ -16,33 +17,25 @@ export interface DeckFilterState {
 
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
 
-export const useDeckFilterState = (deckId: string): DeckFilterState | undefined => {
+export const useDeckFilterState = (deckId: string): DeckFilterState => {
   const uid = useAuthUid();
-  const deck = useDeck(deckId);
+  const deck = mustExist(useDeck(deckId), "Deck filter rendered outside RouteEntityBoundary");
   const [filter, setFilter] = useState<DeckFilterValues>();
 
-  // Keep deriving the initial view until the first local edit because a remote Deck can arrive after this hook mounts.
-  const storedFilter: DeckFilterValues | undefined =
-    deck == null
-      ? undefined
-      : {
-          scoreMax: deck.scoreMax,
-          scoreMin: deck.scoreMin,
-          selectedTags: deck.selectedTags,
-          tagAndFilter: deck.tagAndFilter,
-        };
+  const storedFilter: DeckFilterValues = {
+    scoreMax: deck.scoreMax,
+    scoreMin: deck.scoreMin,
+    selectedTags: deck.selectedTags,
+    tagAndFilter: deck.tagAndFilter,
+  };
 
   const updateFilter = <Key extends keyof DeckFilterValues>(key: Key, value: DeckFilterValues[Key]) => {
-    if (storedFilter == null) return;
     setFilter((current) => ({ ...(current ?? storedFilter), [key]: value }));
     void editDeck(uid, { id: deckId, [key]: value }).catch(() => undefined);
   };
 
-  const currentFilter = filter ?? storedFilter;
-  if (currentFilter == null) return;
-
   return {
-    ...currentFilter,
+    ...(filter ?? storedFilter),
     setScoreMax: (value) => updateFilter("scoreMax", value),
     setScoreMin: (value) => updateFilter("scoreMin", value),
     setSelectedTags: (value) => updateFilter("selectedTags", value),
