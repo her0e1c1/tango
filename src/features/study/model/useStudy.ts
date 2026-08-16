@@ -2,6 +2,7 @@ import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preferences";
 import {
+  moveStudySession,
   planStudySessionAutoPlay,
   removeStudySession,
   resolveStudySession,
@@ -59,7 +60,7 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
     enabled: autoPlay,
     intervalSeconds: preferences.study.cardInterval,
   });
-  const autoPlayNextIndex = autoPlayPlan?.nextIndex;
+  const autoPlaySession = autoPlayPlan?.session;
   const autoPlayIntervalSeconds = autoPlayPlan?.intervalSeconds;
   const exitingDeck = React.useRef<DeckId>(undefined);
 
@@ -82,12 +83,12 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
   }, [deckId, onInvalid, resolvedSession.status]);
 
   React.useEffect(() => {
-    if (autoPlayNextIndex === undefined || autoPlayIntervalSeconds === undefined) return;
+    if (autoPlaySession === undefined || autoPlayIntervalSeconds === undefined) return;
     const timeout = window.setTimeout(() => {
-      if (setStudySessionIndex(deckId, autoPlayNextIndex)) setShowBackText(false);
+      if (moveStudySession(autoPlaySession, "next")) setShowBackText(false);
     }, autoPlayIntervalSeconds * 1000);
     return () => window.clearTimeout(timeout);
-  }, [autoPlayIntervalSeconds, autoPlayNextIndex, deckId]);
+  }, [autoPlayIntervalSeconds, autoPlaySession]);
   const commands: StudyCommands = {
     swipeUp: swipe.swipeUp,
     swipeDown: swipe.swipeDown,

@@ -70,9 +70,9 @@ describe("planStudySessionAutoPlay", () => {
     card: { id: "card-2" },
   };
 
-  it("plans the next index and interval when autoplay can continue", () => {
+  it("plans the active session and interval when autoplay can continue", () => {
     expect(planStudySessionAutoPlay(resolvedSession, { enabled: true, intervalSeconds: 1 })).toEqual({
-      nextIndex: 2,
+      session,
       intervalSeconds: 1,
     });
   });

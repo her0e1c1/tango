@@ -35,7 +35,7 @@ interface StudySessionAutoPlayOptions {
 }
 
 interface StudySessionAutoPlayPlan {
-  nextIndex: number;
+  session: StudySession;
   intervalSeconds: number;
 }
 
@@ -120,11 +120,12 @@ export const calculateStudySessionIndex = (
   return nextIndex >= 0 && nextIndex < session.cardOrderIds.length ? nextIndex : undefined;
 };
 
+// Build a timer plan only while the resolved session can advance automatically.
 export const planStudySessionAutoPlay = (
   resolvedSession: ResolvedStudySession<StudySessionCard>,
   { enabled, intervalSeconds }: StudySessionAutoPlayOptions
 ): StudySessionAutoPlayPlan | undefined => {
   if (resolvedSession.status !== "studying" || !enabled || intervalSeconds <= 0) return;
   const nextIndex = calculateStudySessionIndex(resolvedSession.session, "next");
-  return nextIndex === undefined ? undefined : { nextIndex, intervalSeconds };
+  return nextIndex === undefined ? undefined : { session: resolvedSession.session, intervalSeconds };
 };
