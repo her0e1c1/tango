@@ -1,78 +1,92 @@
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { useSignIn } from "./useSignIn";
 import { actAsync } from "@/test/act";
 
+import { useSignIn } from "./useSignIn";
+
 const deferred = <T,>() => {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((promiseResolve) => {
-    resolve = promiseResolve;
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
   });
-  return { promise, resolve };
+
+  return { promise, reject, resolve };
 };
 
 describe("useSignIn", () => {
-  it("reports pending while sign-in is running", async () => {
+  it("reports a pending sign-in until the operation completes", async () => {
     const request = deferred<void>();
-    const signIn = vi.fn(() => request.promise);
-    const { result } = renderHook(() => useSignIn(signIn));
+    const { result } = renderHook(() => useSignIn(() => request.promise));
 
-    let attempt!: Promise<void>;
+    let operation!: Promise<void>;
     act(() => {
-      attempt = result.current.signIn();
+      operation = result.current.signIn();
     });
 
-    expect(signIn).toHaveBeenCalledOnce();
-    expect(result.current).toMatchObject({ pending: true, error: null });
+    expect(result.current.pending).toBe(true);
+    expect(result.current.error).toBeNull();
 
     await actAsync(async () => {
       request.resolve();
-      await attempt;
+      await operation;
     });
+
     expect(result.current.pending).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
-  it("allows sign-in again after a failure", async () => {
-    const error = new Error("sign in failed");
-    const signIn = vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
+  it("clears a failed sign-in when the user retries", async () => {
+    const failure = new Error("Sign-in failed");
+    const retry = deferred<void>();
+    let firstAttempt = true;
+    const signIn = () => {
+      if (firstAttempt) {
+        firstAttempt = false;
+        return Promise.reject(failure);
+      }
+      return retry.promise;
+    };
     const { result } = renderHook(() => useSignIn(signIn));
-
-    await actAsync(async () => expect(result.current.signIn()).rejects.toBe(error));
-    expect(result.current).toMatchObject({ pending: false, error });
-
-    await actAsync(async () => expect(result.current.signIn()).resolves.toBeUndefined());
-    expect(signIn).toHaveBeenCalledTimes(2);
-    expect(result.current).toMatchObject({ pending: false, error: null });
-  });
-
-  it("clears an earlier failure when a new attempt starts", async () => {
-    const error = new Error("sign in failed");
-    const request = deferred<void>();
-    const signIn = vi.fn().mockRejectedValueOnce(error).mockReturnValueOnce(request.promise);
-    const { result } = renderHook(() => useSignIn(signIn));
-    await actAsync(async () => expect(result.current.signIn()).rejects.toBe(error));
-
-    let attempt!: Promise<void>;
-    act(() => {
-      attempt = result.current.signIn();
-    });
-    expect(result.current).toMatchObject({ pending: true, error: null });
 
     await actAsync(async () => {
-      request.resolve();
-      await attempt;
+      await expect(result.current.signIn()).rejects.toThrow("Sign-in failed");
     });
+    expect(result.current.error).toBe(failure);
+
+    let operation!: Promise<void>;
+    act(() => {
+      operation = result.current.signIn();
+    });
+
+    expect(result.current.pending).toBe(true);
+    expect(result.current.error).toBeNull();
+
+    await actAsync(async () => {
+      retry.resolve();
+      await operation;
+    });
+
+    expect(result.current.pending).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
-  it("does not carry failures to a later mount", async () => {
-    const error = new Error("sign in failed");
-    const signIn = vi.fn().mockRejectedValue(error);
+  it("does not carry a failed sign-in into a later mount", async () => {
+    const failure = new Error("Sign-in failed");
+    const signIn = () => Promise.reject(failure);
     const { result: firstResult, unmount } = renderHook(() => useSignIn(signIn));
-    await actAsync(async () => expect(firstResult.current.signIn()).rejects.toBe(error));
+
+    await actAsync(async () => {
+      await expect(firstResult.current.signIn()).rejects.toThrow("Sign-in failed");
+    });
+    expect(firstResult.current.error).toBe(failure);
     unmount();
 
-    const { result } = renderHook(() => useSignIn(signIn));
-    expect(result.current).toMatchObject({ pending: false, error: null });
+    const { result: secondResult } = renderHook(() => useSignIn(signIn));
+
+    expect(secondResult.current.pending).toBe(false);
+    expect(secondResult.current.error).toBeNull();
   });
 });

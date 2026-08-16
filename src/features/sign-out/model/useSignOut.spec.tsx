@@ -1,58 +1,128 @@
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { useSignOut } from "./useSignOut";
+import { replaceAuthSession } from "@/entities/auth";
 import { actAsync } from "@/test/act";
 
+import { useSignOut } from "./useSignOut";
+
 const deferred = <T,>() => {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((promiseResolve) => {
-    resolve = promiseResolve;
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
   });
-  return { promise, resolve };
+
+  return { promise, reject, resolve };
 };
 
 describe("useSignOut", () => {
-  it("reports pending while sign-out is running", async () => {
-    const request = deferred<void>();
-    const signOut = vi.fn(() => request.promise);
-    const { result } = renderHook(() => useSignOut(signOut));
+  beforeEach(() => {
+    replaceAuthSession({ status: "initializing" });
+  });
 
-    let attempt!: Promise<void>;
+  it("reports a pending sign-out until the operation completes", async () => {
+    const request = deferred<void>();
+    const { result } = renderHook(() => useSignOut(() => request.promise));
+
+    let operation!: Promise<void>;
     act(() => {
-      attempt = result.current.signOut();
+      operation = result.current.signOut();
     });
 
-    expect(signOut).toHaveBeenCalledOnce();
-    expect(result.current).toMatchObject({ pending: true, error: null });
+    expect(result.current.pending).toBe(true);
+    expect(result.current.error).toBeNull();
 
     await actAsync(async () => {
       request.resolve();
-      await attempt;
+      await operation;
     });
+
     expect(result.current.pending).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
-  it("allows sign-out again after a failure", async () => {
-    const error = new Error("sign out failed");
-    const signOut = vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
+  it("clears a failed sign-out when the user retries", async () => {
+    const failure = new Error("Sign-out failed");
+    const retry = deferred<void>();
+    let firstAttempt = true;
+    const signOut = () => {
+      if (firstAttempt) {
+        firstAttempt = false;
+        return Promise.reject(failure);
+      }
+      return retry.promise;
+    };
     const { result } = renderHook(() => useSignOut(signOut));
 
-    await actAsync(async () => expect(result.current.signOut()).rejects.toBe(error));
-    await actAsync(async () => expect(result.current.signOut()).resolves.toBeUndefined());
+    await actAsync(async () => {
+      await expect(result.current.signOut()).rejects.toThrow("Sign-out failed");
+    });
+    expect(result.current.error).toBe(failure);
 
-    expect(signOut).toHaveBeenCalledTimes(2);
-    expect(result.current).toMatchObject({ pending: false, error: null });
+    let operation!: Promise<void>;
+    act(() => {
+      operation = result.current.signOut();
+    });
+
+    expect(result.current.pending).toBe(true);
+    expect(result.current.error).toBeNull();
+
+    await actAsync(async () => {
+      retry.resolve();
+      await operation;
+    });
+
+    expect(result.current.pending).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
-  it("does not carry failures to a later mount", async () => {
-    const error = new Error("sign out failed");
-    const signOut = vi.fn().mockRejectedValue(error);
+  it("does not carry a failed sign-out into a later mount", async () => {
+    const failure = new Error("Sign-out failed");
+    const signOut = () => Promise.reject(failure);
     const { result: firstResult, unmount } = renderHook(() => useSignOut(signOut));
-    await actAsync(async () => expect(firstResult.current.signOut()).rejects.toBe(error));
+
+    await actAsync(async () => {
+      await expect(firstResult.current.signOut()).rejects.toThrow("Sign-out failed");
+    });
+    expect(firstResult.current.error).toBe(failure);
     unmount();
 
-    const { result } = renderHook(() => useSignOut(signOut));
-    expect(result.current).toMatchObject({ pending: false, error: null });
+    const { result: secondResult } = renderHook(() => useSignOut(signOut));
+
+    expect(secondResult.current.pending).toBe(false);
+    expect(secondResult.current.error).toBeNull();
+  });
+
+  it("reflects the current account identity and login state", () => {
+    replaceAuthSession({
+      displayName: "Ada",
+      isAnonymous: false,
+      status: "authenticated",
+      uid: "linked-user",
+    });
+    const { result } = renderHook(() => useSignOut(() => Promise.resolve()));
+
+    expect(result.current.isLoggedIn).toBe(true);
+    expect(result.current.identity).toEqual({
+      displayName: "Ada",
+      uid: "linked-user",
+    });
+
+    act(() => {
+      replaceAuthSession({
+        displayName: null,
+        isAnonymous: true,
+        status: "authenticated",
+        uid: "anonymous-user",
+      });
+    });
+
+    expect(result.current.isLoggedIn).toBe(false);
+    expect(result.current.identity).toEqual({
+      displayName: null,
+      uid: "anonymous-user",
+    });
   });
 });
