@@ -10,12 +10,12 @@ import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
-import { calculateStudySessionIndex } from "./rules";
+import { calculateStudySessionIndex, isStudySessionPositionUnchanged } from "./rules";
 import type { StudySession, StudySessionMovement, StudySessions } from "./types";
 
 const STUDY_STORAGE_KEY = "tango-study";
 // No migration is registered: changing this version deliberately invalidates older state shapes.
-const STUDY_STORAGE_VERSION = 3;
+const STUDY_STORAGE_VERSION = 4;
 
 interface StudySessionState {
   sessionsByDeckId: StudySessions;
@@ -27,8 +27,10 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 // Rebuild canonical sessions from untrusted browser storage so malformed fields cannot break resume logic.
 const sanitizeStudySession = (value: unknown): StudySession | undefined => {
   if (!isRecord(value)) return;
-  const { deckId, cardOrderIds, currentIndex, lastStudiedAt } = value;
+  const { sessionId, deckId, cardOrderIds, currentIndex, lastStudiedAt } = value;
   if (
+    typeof sessionId !== "string" ||
+    sessionId.length === 0 ||
     typeof deckId !== "string" ||
     !Array.isArray(cardOrderIds) ||
     cardOrderIds.length === 0 ||
@@ -44,7 +46,7 @@ const sanitizeStudySession = (value: unknown): StudySession | undefined => {
     return;
   }
 
-  return { deckId, cardOrderIds: [...cardOrderIds], currentIndex, lastStudiedAt };
+  return { sessionId, deckId, cardOrderIds: [...cardOrderIds], currentIndex, lastStudiedAt };
 };
 
 const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
@@ -82,6 +84,8 @@ export const getStudySession = (deckId: DeckId): StudySession | undefined =>
 const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
   studySessionStore.setState((state) => {
     state.sessionsByDeckId[deckId] = {
+      // A fresh identity distinguishes a restarted deck even when it begins on the same card and index.
+      sessionId: crypto.randomUUID(),
       deckId,
       // The store owns this ordering snapshot even if the caller later reuses its array.
       cardOrderIds: [...cardOrderIds],
@@ -107,7 +111,8 @@ export const touchStudySession = (deckId: DeckId): void => {
   });
 };
 
-export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): void => {
+export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): boolean => {
+  let updated = false;
   studySessionStore.setState((state) => {
     const session = state.sessionsByDeckId[deckId];
     // Never persist a resume point that cannot identify an active card.
@@ -121,22 +126,27 @@ export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): void
     }
     session.currentIndex = currentIndex;
     session.lastStudiedAt = Date.now();
+    updated = true;
   });
+  return updated;
 };
 
-export const moveStudySession = (deckId: DeckId, movement: StudySessionMovement): void => {
+export const moveStudySession = (previous: StudySession, movement: StudySessionMovement): boolean => {
+  let moved = false;
   studySessionStore.setState((state) => {
-    const session = state.sessionsByDeckId[deckId];
-    if (session == null) return;
+    const current = state.sessionsByDeckId[previous.deckId];
+    // A persisted swipe may commit after another interaction; only the interaction still owning the card may advance it.
+    if (current == null || !isStudySessionPositionUnchanged(previous, current)) return;
 
-    const nextIndex = calculateStudySessionIndex(session, movement);
-    if (nextIndex === undefined) {
-      delete state.sessionsByDeckId[deckId];
-      return;
+    const nextIndex = calculateStudySessionIndex(current, movement);
+    if (nextIndex === undefined) delete state.sessionsByDeckId[previous.deckId];
+    else {
+      current.currentIndex = nextIndex;
+      current.lastStudiedAt = Date.now();
     }
-    session.currentIndex = nextIndex;
-    session.lastStudiedAt = Date.now();
+    moved = true;
   });
+  return moved;
 };
 
 export const removeStudySession = (deckId: DeckId): void => {

@@ -3,7 +3,6 @@ export {
   calculateStudySessionIndex,
   compareActiveDecks,
   groupDecksByStudyStatus,
-  isStudySessionPositionUnchanged,
   planStudySessionSwipe,
   resolveStudySession,
 } from "./model/rules";

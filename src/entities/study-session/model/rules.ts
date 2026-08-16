@@ -97,8 +97,9 @@ export const planStudySessionSwipe = (
 };
 
 export const isStudySessionPositionUnchanged = (previous: StudySession, current: StudySession | undefined): boolean =>
-  // Persistence timestamps may change during a write, but a position change means another interaction owns the card.
-  current?.currentIndex === previous.currentIndex &&
+  // Timestamps may change during a write, but replacements and position changes belong to a newer interaction.
+  current?.sessionId === previous.sessionId &&
+  current.currentIndex === previous.currentIndex &&
   getCurrentStudySessionCardId(current) === getCurrentStudySessionCardId(previous);
 
 export const calculateStudySessionIndex = (

@@ -11,6 +11,8 @@ import type { StudyProgressEdit } from "@/entities/study-progress/@x/study-sessi
  * sessions that preserve the invariants documented below.
  */
 export interface StudySession {
+  /** Immutable identity for rejecting commits from a study run that has already been replaced. */
+  readonly sessionId: string;
   /** Must match its key in {@link StudySessions}; hydration drops mismatches. */
   deckId: DeckId;
   /** Snapshot fixed at start so later caller mutations cannot reorder the run. */
