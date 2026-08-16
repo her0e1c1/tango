@@ -131,6 +131,7 @@ export const moveStudySession = (deckId: DeckId, movement: StudySessionMovement)
 
     const nextIndex = calculateStudySessionIndex(session, movement);
     if (nextIndex === undefined) {
+      // Crossing either boundary removes the session; persisted state never represents a terminal sentinel index.
       delete state.sessionsByDeckId[deckId];
       return;
     }

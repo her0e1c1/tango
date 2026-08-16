@@ -23,6 +23,7 @@ interface CreateDeckStoreOptions {
 
 const persistedDeckStateSchema = z.object({ localDecks: z.array(localDeckSchema) });
 
+// Reject the stored collection as a unit so live state never mixes validated Decks with an incompatible payload.
 const parsePersistedDeckState = (value: unknown): PersistedDeckState => {
   const result = persistedDeckStateSchema.safeParse(value);
   return result.success ? { localDecks: result.data.localDecks.map(toLocalDeckStore) } : { localDecks: [] };
@@ -40,6 +41,7 @@ const createDeckStore = ({ storage, skipHydration }: CreateDeckStoreOptions = {}
         ...currentState,
         ...parsePersistedDeckState(persistedState),
       }),
+      // Remote Decks belong to the active subscription and must not survive authentication changes in browser storage.
       partialize: ({ localDecks }) => ({ localDecks }),
     })
   );
@@ -65,6 +67,7 @@ export const createLocalDeck = (input: LocalDeckCreateInput): LocalDeck => {
   const deck = localDeckCreateSchema.parse(input);
   const timestamp = Date.now();
   const createdDeck = toLocalDeckStore(localDeckSchema.parse({ ...deck, createdAt: timestamp, updatedAt: timestamp }));
+  // Treat a retried create as an upsert by id so persisted local data cannot accumulate duplicate Decks.
   const localDecks = deckStore.getState().localDecks.filter(({ id }) => id !== createdDeck.id);
   deckStore.setState({ localDecks: [...localDecks, createdDeck] });
   return createdDeck;

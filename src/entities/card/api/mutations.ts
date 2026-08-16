@@ -13,6 +13,7 @@ type CardMutationCreateInput = CardCreateInput | LocalCardCreateInput;
 
 export type CardMutation = { kind: "create"; card: CardMutationCreateInput } | { kind: "edit"; card: CardEditInput };
 
+// The owning Deck is the source of truth for persistence mode; callers cannot route individual Cards independently.
 const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode ?? false;
 
 const requireCard = (id: CardId) => {
@@ -49,10 +50,12 @@ export const editCard = async (uid: string, card: CardEditInput): Promise<void> 
     editLocalCard(card);
     return;
   }
+  // Preserve the stored owner so an edit payload cannot move a remote Card between accounts.
   await editRemoteCard(uid, { ...card, uid: requireRemoteCard(currentCard).uid });
 };
 
 export const mutateCards = async (uid: string, mutations: CardMutation[]): Promise<void> => {
+  // Bulk imports are non-transactional: let every independent write settle before surfacing the first failure.
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
       mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)

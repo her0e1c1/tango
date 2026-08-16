@@ -2,7 +2,9 @@ import { z } from "zod";
 
 import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/api";
 
+// Reads accept compatible legacy values; command schemas enforce the stricter invariants required for new writes.
 const cardDocumentSchema = z.object({
+  // Older documents may duplicate the Firestore document id in their stored fields.
   id: z.string().optional(),
   frontText: z.string(),
   backText: z.string(),

@@ -3,6 +3,15 @@
 - Treat `src/entities` as the FSD Entities layer and each `src/entities/<entity>` directory as an Entity slice.
 - Keep Entity domain code in `model/` and expose the slice through `index.ts`.
 
+## Comments
+
+- Add intent comments for Entity invariants, ownership boundaries, and ordering requirements that names and types cannot express.
+- Document why persisted-data recovery, compatibility handling, soft deletion, local/remote routing, and cross-slice cleanup must work a particular way.
+- Explain partial-failure behavior for multi-step or concurrent mutations so callers know what can already have changed when an error is reported.
+- Use JSDoc on exported domain types when consumers must preserve invariants beyond the type shape.
+- Keep straightforward schemas, accessors, selectors, and re-exports comment-free when the code already expresses the complete intent.
+- Update or remove nearby comments whenever the documented behavior changes.
+
 ## `model/schema.ts`
 
 - Define Zod schemas, validation, refinements, and schema-level defaults.

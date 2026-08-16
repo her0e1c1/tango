@@ -35,6 +35,7 @@ const convertCardDocumentToCard = (id: CardId, value: unknown): RemoteCard => {
     score: document.score,
     numberOfSeen: document.numberOfSeen,
   };
+  // Preserve exact optional-property semantics instead of exposing parsed fields whose value is explicitly undefined.
   if (document.lastSeenAt !== undefined) card.lastSeenAt = document.lastSeenAt;
   if (document.nextSeeingAt !== undefined) card.nextSeeingAt = document.nextSeeingAt;
   if (document.interval !== undefined) card.interval = document.interval;
@@ -99,6 +100,7 @@ export const editCard = async (uid: string, card: EditCardInput["card"]): Promis
 
 const removeCardDocument = async (id: string): Promise<void> => {
   const updatedAt = getCurrentTimeMillis();
+  // Individual Card deletion is tombstoned so synchronized readers can converge before both read paths hide it.
   await updateDoc(doc(db, CARD_COLLECTION, id), { updatedAt, deletedAt: updatedAt });
 };
 
