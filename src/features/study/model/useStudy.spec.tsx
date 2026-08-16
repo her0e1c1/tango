@@ -109,6 +109,16 @@ describe("useStudy", () => {
     expect(result.current.status).toBe("preparing");
   });
 
+  it("reports invalid when the session has no current card", async () => {
+    clearStudySessions();
+    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 });
+
+    const { result } = renderHook(() => useStudy(deckId, []));
+
+    expect(result.current.status).toBe("invalid");
+    await waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
+  });
+
   it("advances the session while autoplay is enabled", () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
