@@ -12,74 +12,40 @@ interface UseDeckListStateOptions {
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
 }
 
-interface DeletionTarget {
-  deck: Deck;
-  cardCount: number;
-}
-
-export interface DeckListStudyProgress {
-  currentIndex: number;
-  cardCount: number;
-  lastStudiedAt: number;
-}
-
-export type DeckListDeck = Pick<Deck, "id" | "name" | "category" | "isPublic">;
-
-export interface DeckListItem {
-  deck: DeckListDeck;
-  cardCount: number;
-  studyProgress?: DeckListStudyProgress;
-}
-
-export interface DeckListSections {
-  studying: DeckListItem[];
-  other: DeckListItem[];
-}
-
-export interface DeckListState {
-  sections: DeckListSections;
-  deletionTarget: { deckName: string; cardCount: number; hasError: boolean } | undefined;
-  successMessage: string | undefined;
-  onDownload: (id: DeckId) => void;
-  onRequestDeletion: (id: DeckId) => void;
-  onCancelDeletion: () => void;
-  onConfirmDeletion: () => Promise<void>;
-}
-
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
-
-const createDeckListStudyProgress = (session: StudySession): DeckListStudyProgress => ({
-  currentIndex: session.currentIndex,
-  cardCount: session.cardOrderIds.length,
-  lastStudiedAt: session.lastStudiedAt,
-});
 
 const buildDeckListSections = (
   decks: Deck[],
   cards: Card[],
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>
-): DeckListSections => {
+) => {
   const cardCounts = countCardsByDeckId(cards);
-  const createItem = (deck: Deck): DeckListItem => ({
+  const createItem = (deck: Pick<Deck, "id" | "name" | "category" | "isPublic">, session?: StudySession) => ({
     deck,
     cardCount: cardCounts.get(deck.id) ?? 0,
+    ...(session == null
+      ? {}
+      : {
+          studyProgress: {
+            currentIndex: session.currentIndex,
+            cardCount: session.cardOrderIds.length,
+            lastStudiedAt: session.lastStudiedAt,
+          },
+        }),
   });
   const { active: studyingDecks, inactive: otherDecks } = groupDecksByStudyStatus(decks, sessionsByDeckId);
   studyingDecks.sort(compareActiveDecks);
   otherDecks.sort(compareDeckNames);
 
   return {
-    studying: studyingDecks.map(({ deck, session }) => ({
-      ...createItem(deck),
-      studyProgress: createDeckListStudyProgress(session),
-    })),
-    other: otherDecks.map(createItem),
+    studying: studyingDecks.map(({ deck, session }) => createItem(deck, session)),
+    other: otherDecks.map((deck) => createItem(deck)),
   };
 };
 
-export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckListStateOptions): DeckListState => {
+export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckListStateOptions) => {
   const uid = useAuthUid();
-  const [deletionTarget, setDeletionTarget] = React.useState<DeletionTarget>();
+  const [deletionTarget, setDeletionTarget] = React.useState<{ deck: Deck; cardCount: number }>();
   const [deletionErrorDeckId, setDeletionErrorDeckId] = React.useState<DeckId>();
   const [successMessage, setSuccessMessage] = React.useState<string>();
 
@@ -127,3 +93,5 @@ export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckList
     onConfirmDeletion: confirmDeletion,
   };
 };
+
+export type DeckListState = ReturnType<typeof useDeckListState>;

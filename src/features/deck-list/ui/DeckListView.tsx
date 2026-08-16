@@ -4,12 +4,12 @@
 
 import * as React from "react";
 
-import type { DeckListItem, DeckListSections } from "../model/useDeckListState";
+import type { DeckListState } from "../model/useDeckListState";
 
 import { DeckListCard, type DeckListCardActions } from "./DeckListCard";
 
 export interface DeckListViewProps {
-  sections: DeckListSections;
+  sections: DeckListState["sections"];
   deckCard?: DeckListCardActions;
 }
 
@@ -25,7 +25,7 @@ const countLabel = (count: number) => `${String(count)} ${count === 1 ? "deck" :
 const DeckListSection: React.FC<{
   title: string;
   note: string;
-  items: DeckListItem[];
+  items: DeckListState["sections"]["other"];
   actions: DeckListCardActions | undefined;
 }> = ({ title, note, items, actions }) => {
   const headingId = React.useId();
