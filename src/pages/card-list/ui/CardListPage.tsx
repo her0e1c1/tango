@@ -8,7 +8,7 @@ import { type Preferences, usePreferences } from "@/entities/preferences";
 import { CardList, useCardListState } from "@/features/card-list";
 import { BackText } from "@/features/card-view";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
-import { routes, useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/features/navigate";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 

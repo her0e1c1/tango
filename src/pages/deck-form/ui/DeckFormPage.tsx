@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 
 import { type Deck, useDeck } from "@/entities/deck";
 import { DeckEditForm, useDeckEditAction, useDeckFormState } from "@/features/deck-edit";
-import { routes, useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/features/navigate";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 

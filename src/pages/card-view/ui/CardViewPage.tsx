@@ -5,7 +5,7 @@ import { useCard } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
 import { buildCardViewContent, CardView } from "@/features/card-view";
-import { routes, useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/features/navigate";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 

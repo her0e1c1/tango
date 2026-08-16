@@ -8,7 +8,7 @@ import { useKey } from "react-use";
 import { type Card, useCards } from "@/entities/card";
 import { buildCardViewContent, CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
-import { routes, useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/features/navigate";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 

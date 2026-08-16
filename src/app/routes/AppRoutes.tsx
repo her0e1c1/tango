@@ -7,6 +7,7 @@
 import type React from "react";
 import { Route, Routes } from "react-router-dom";
 
+import { routes, useNavigation } from "@/features/navigate";
 import { loginGoogle } from "@/features/sign-in";
 import { signOutCurrentUser } from "@/features/sign-out";
 import { CardFormPage } from "@/pages/card-form";
@@ -18,7 +19,6 @@ import { DeckListPage } from "@/pages/deck-list";
 import { SettingsPage } from "@/pages/settings";
 import { StudySessionPage } from "@/pages/study-session";
 import { StudySessionStartPage } from "@/pages/study-session-start";
-import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 /**

@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
 import { CardEditForm, useCardEditAction, useCardFormState } from "@/features/card-edit";
-import { routes, useNavigation } from "@/shared/routes";
+import { routes, useNavigation } from "@/features/navigate";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
