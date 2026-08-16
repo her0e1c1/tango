@@ -6,7 +6,6 @@ export const useNavigation = () => {
 
   return {
     back: () => navigate(-1),
-    to: (destination: To, options?: NavigateOptions) =>
-      options === undefined ? navigate(destination) : navigate(destination, options),
+    to: (destination: To, options?: NavigateOptions) => navigate(destination, options),
   };
 };

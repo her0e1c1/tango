@@ -23,7 +23,7 @@ describe("useNavigation", () => {
       void result.current.to("/deck/deck-id");
     });
 
-    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/deck/deck-id");
+    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/deck/deck-id", undefined);
   });
 
   it("forwards navigation options and history navigation", () => {

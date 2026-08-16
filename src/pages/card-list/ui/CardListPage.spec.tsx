@@ -93,7 +93,7 @@ describe("CardListPage", () => {
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: "Edit card" }));
-    expect(mocks.navigate).toHaveBeenCalledWith(`/card/${card.id}/edit`);
+    expect(mocks.navigate).toHaveBeenCalledWith(`/card/${card.id}/edit`, undefined);
 
     await userEvent.click(screen.getByRole("button", { name: "Change tags" }));
     expect(mocks.onClickTag).toHaveBeenCalledExactlyOnceWith(["react"]);
@@ -104,8 +104,8 @@ describe("CardListPage", () => {
 
     fireEvent.keyDown(window, { key: "t" });
     fireEvent.keyDown(window, { key: "s" });
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
+    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings", undefined);
   });
 
   it("renders not-found feedback with route navigation", async () => {
@@ -116,7 +116,7 @@ describe("CardListPage", () => {
     expect(screen.queryByText("Card list feature")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, -1);
   });
 });

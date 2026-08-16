@@ -68,7 +68,7 @@ describe("CardViewPage", () => {
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/");
+    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, -1);
   });
 
