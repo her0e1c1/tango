@@ -1,355 +1,228 @@
-import type { Card, CardMutation } from "@/entities/card";
-import type { Deck, DeckId } from "@/entities/deck";
+import type { Card } from "@/entities/card";
+import type { Deck } from "@/entities/deck";
 
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard, createDeck, createLocalCard, createLocalDeck } from "@/test/factories";
-import type { DeckImportResult } from "./useDeckImportExecution";
+import { useCards } from "@/entities/card";
+import { useDecks } from "@/entities/deck";
 import { actAsync } from "@/test/act";
+import { createCard, createDeck } from "@/test/factories";
 
-const mocks = vi.hoisted(() => ({
-  uid: "uid-a",
-  decks: [] as Deck[],
-  cards: [] as Card[],
-  parseCsv: vi.fn(),
-  generateDeckId: vi.fn(() => "deck"),
-  generateCardId: vi.fn(() => "card"),
-  createDeck: vi.fn(),
-  bulkUpsert: vi.fn(),
-  fetchDecks: vi.fn(),
-  fetchCards: vi.fn(),
+const controls = vi.hoisted(() => ({
+  uid: "",
+  remoteDecks: [] as Deck[],
+  remoteCards: [] as Card[],
+  remoteReadError: undefined as unknown,
+  nextMutationError: undefined as unknown,
 }));
 
-vi.mock("@/entities/auth", () => ({
-  useAuthUid: () => mocks.uid,
-}));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => controls.uid }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    filterCardsByDeckId: (cards: Card[], id: DeckId) => cards.filter((card) => card.deckId === id),
-    fetchCards: mocks.fetchCards,
-    generateCardId: mocks.generateCardId,
-    mutateCards: (_uid: string, mutations: CardMutation[]) => mocks.bulkUpsert(mutations),
-    useCards: () => mocks.cards,
+    fetchCards: () => {
+      if (controls.remoteReadError !== undefined) return Promise.reject(controls.remoteReadError);
+      return Promise.resolve(controls.remoteCards);
+    },
+    mutateCards: (...arguments_: Parameters<typeof actual.mutateCards>) => {
+      if (controls.nextMutationError !== undefined) {
+        const error = controls.nextMutationError;
+        controls.nextMutationError = undefined;
+        return Promise.reject(error);
+      }
+      return actual.mutateCards(...arguments_);
+    },
   };
 });
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
-    createDeck: (_uid: string, deck: Parameters<typeof actual.createDeck>[1]) => mocks.createDeck(deck),
-    generateDeckId: mocks.generateDeckId,
-    fetchDecks: mocks.fetchDecks,
-    useDecks: () => mocks.decks,
+    fetchDecks: () => {
+      if (controls.remoteReadError !== undefined) return Promise.reject(controls.remoteReadError);
+      return Promise.resolve(controls.remoteDecks);
+    },
   };
 });
-vi.mock("../lib/cardCsv", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../lib/cardCsv")>();
-  return { ...actual, parseCsv: mocks.parseCsv };
-});
+
 import { useDeckImport } from "./useDeckImport";
+
+const csvFile = (name: string, backText = "back") =>
+  new File([`"front","${backText}","tag","key"`], name, { type: "text/csv" });
+
+const renderDeckImport = () =>
+  renderHook(() => ({
+    deckImport: useDeckImport(),
+    decks: useDecks(),
+    cards: useCards(),
+  }));
+
+const findDeck = (decks: Deck[], name: string) => decks.find((deck) => deck.name === name);
 
 describe("useDeckImport", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.uid = "uid-a";
-    mocks.decks = [];
-    mocks.cards = [];
-    mocks.parseCsv.mockImplementation(async (content: string) => {
-      const { parseCsv } = await vi.importActual<typeof import("../lib/cardCsv")>("../lib/cardCsv");
-      return parseCsv(content);
-    });
-    mocks.generateDeckId.mockReturnValue("deck");
-    mocks.generateCardId.mockReturnValue("card");
-    mocks.createDeck.mockResolvedValue(undefined);
-    mocks.bulkUpsert.mockResolvedValue(undefined);
-    mocks.fetchDecks.mockResolvedValue([]);
-    mocks.fetchCards.mockResolvedValue([]);
+    controls.uid = "";
+    controls.remoteDecks = [];
+    controls.remoteCards = [];
+    controls.remoteReadError = undefined;
+    controls.nextMutationError = undefined;
   });
 
-  it("previews a file without writing until import is confirmed", async () => {
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-    let imported: DeckImportResult | undefined;
+  it("previews a local CSV before saving its Deck and Cards", async () => {
+    const name = "behavior-preview.csv";
+    const { result } = renderDeckImport();
 
-    await actAsync(async () => {
-      await result.current.selectFile(file);
-    });
+    act(() => result.current.deckImport.setStorageMode("local"));
+    await actAsync(async () => result.current.deckImport.selectFile(csvFile(name)));
 
-    expect(result.current.preview).toMatchObject({
-      deckName: "deck.csv",
+    expect(result.current.deckImport.preview).toMatchObject({
+      deckName: name,
       analysis: { invalidCount: 0 },
       plan: { created: 1, updated: 0, unchanged: 0 },
     });
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+    expect(findDeck(result.current.decks, name)).toBeUndefined();
 
-    await actAsync(async () => {
-      imported = await result.current.importPreview();
-    });
-    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith({
-      id: "deck",
-      uid: "uid-a",
-      name: "deck.csv",
-    });
-    expect(mocks.bulkUpsert).toHaveBeenCalledWith([
-      {
-        kind: "create",
-        card: {
-          id: "card",
-          deckId: "deck",
-          uid: "uid-a",
-          frontText: "front",
-          backText: "back",
-          tags: [],
-          uniqueKey: "key",
-        },
-      },
+    await actAsync(async () => result.current.deckImport.importPreview());
+
+    const savedDeck = findDeck(result.current.decks, name);
+    expect(savedDeck).toMatchObject({ name, localMode: true });
+    expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toEqual([
+      expect.objectContaining({
+        frontText: "front",
+        backText: "back",
+        tags: ["tag"],
+        uniqueKey: "key",
+      }),
     ]);
-    expect(imported).toEqual({ created: 1, updated: 0, skipped: 0, deckId: "deck" });
-    expect(mocks.fetchDecks).toHaveBeenCalledOnce();
-    expect(mocks.fetchCards).toHaveBeenCalledOnce();
+    expect(result.current.cards.find((card) => card.deckId === savedDeck?.id)).not.toHaveProperty("uid");
+    expect(result.current.deckImport.result).toMatchObject({ created: 1, updated: 0, skipped: 0 });
   });
 
-  it("imports a local Deck and Cards without Firestore reads or owner fields", async () => {
-    mocks.uid = "";
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front","back","","key"'], "local.csv", { type: "text/csv" });
+  it("updates a local Card and then skips an identical re-import", async () => {
+    const name = "behavior-reimport.csv";
+    const { result } = renderDeckImport();
+    act(() => result.current.deckImport.setStorageMode("local"));
 
-    act(() => result.current.setStorageMode("local"));
-    await actAsync(async () => result.current.selectFile(file));
-    expect(result.current.preview?.plan).toMatchObject({
-      created: 1,
-      updated: 0,
-      unchanged: 0,
-    });
+    await actAsync(async () => result.current.deckImport.selectFile(csvFile(name, "old back")));
+    await actAsync(async () => result.current.deckImport.importPreview());
+    const originalDeck = findDeck(result.current.decks, name);
+    const originalCard = result.current.cards.find((card) => card.deckId === originalDeck?.id);
 
-    await actAsync(async () => result.current.importPreview());
+    await actAsync(async () => result.current.deckImport.selectFile(csvFile(name, "new back")));
+    expect(result.current.deckImport.preview?.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
+    await actAsync(async () => result.current.deckImport.importPreview());
 
-    expect(mocks.fetchDecks).not.toHaveBeenCalled();
-    expect(mocks.fetchCards).not.toHaveBeenCalled();
-    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith({
-      id: "deck",
-      name: "local.csv",
-      localMode: true,
-    });
-    expect(mocks.bulkUpsert).toHaveBeenCalledExactlyOnceWith([
-      {
-        kind: "create",
-        card: {
-          id: "card",
-          deckId: "deck",
-          frontText: "front",
-          backText: "back",
-          tags: [],
-          uniqueKey: "key",
-        },
-      },
+    expect(result.current.decks.filter((deck) => deck.name === name)).toHaveLength(1);
+    expect(result.current.cards.filter((card) => card.deckId === originalDeck?.id)).toEqual([
+      expect.objectContaining({ id: originalCard?.id, backText: "new back" }),
     ]);
+
+    await actAsync(async () => result.current.deckImport.selectFile(csvFile(name, "new back")));
+    expect(result.current.deckImport.preview?.plan).toMatchObject({ created: 0, updated: 0, unchanged: 1 });
+    await actAsync(async () => result.current.deckImport.importPreview());
+
+    expect(result.current.deckImport.result).toMatchObject({ created: 0, updated: 0, skipped: 1 });
+    expect(result.current.cards.filter((card) => card.deckId === originalDeck?.id)).toHaveLength(1);
   });
 
-  it("plans a local re-import from local state", async () => {
-    const deck = createLocalDeck({ id: "local-deck", name: "local.csv" });
-    const card = createLocalCard({
-      id: "local-card",
-      deckId: deck.id,
-      uniqueKey: "key",
-      frontText: "front",
-      backText: "old back",
-    });
-    mocks.decks = [deck];
-    mocks.cards = [card];
-    const { result } = renderHook(useDeckImport);
+  it("keeps an invalid CSV in preview without creating a Deck", async () => {
+    const name = "behavior-invalid.csv";
+    const { result } = renderDeckImport();
+    act(() => result.current.deckImport.setStorageMode("local"));
 
-    act(() => result.current.setStorageMode("local"));
     await actAsync(async () =>
-      result.current.selectFile(new File(['"front","new back","","key"'], "local.csv", { type: "text/csv" }))
+      result.current.deckImport.selectFile(new File(["front,back"], name, { type: "text/csv" }))
     );
-    await actAsync(async () => result.current.importPreview());
 
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.fetchDecks).not.toHaveBeenCalled();
-    expect(mocks.fetchCards).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).toHaveBeenCalledExactlyOnceWith([
-      { kind: "edit", card: expect.objectContaining({ id: card.id, backText: "new back" }) },
-    ]);
-  });
-
-  it("does not mutate when server-backed preview reads fail", async () => {
-    mocks.fetchDecks.mockRejectedValueOnce(new Error("server read failed"));
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-
-    await actAsync(async () => {
-      await expect(result.current.selectFile(file)).rejects.toThrow("server read failed");
-    });
-
-    expect(result.current.preview).toBeUndefined();
-    expect(result.current.previewError).toEqual(new Error("server read failed"));
-    expect(result.current.error).toBeNull();
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
-  });
-
-  it("previews and executes the same server-backed plan when local state is stale", async () => {
-    const serverDeck = createDeck({ id: "server-deck", name: "deck.csv", uid: "uid-a" });
-    const serverCard = createCard({
-      id: "server-card",
-      deckId: serverDeck.id,
-      uid: "uid-a",
-      frontText: "front",
-      backText: "old back",
-      tags: [],
-      uniqueKey: "key",
-    });
-    mocks.fetchDecks.mockResolvedValueOnce([serverDeck]);
-    mocks.fetchCards.mockResolvedValueOnce([serverCard]);
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front","new back","","key"'], "deck.csv", { type: "text/csv" });
-
-    await actAsync(async () => result.current.selectFile(file));
-    expect(result.current.preview?.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
-
-    await actAsync(async () => result.current.importPreview());
-
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).toHaveBeenCalledWith([
-      { kind: "edit", card: expect.objectContaining({ id: "server-card", backText: "new back" }) },
-    ]);
-    expect(mocks.fetchDecks).toHaveBeenCalledOnce();
-    expect(mocks.fetchCards).toHaveBeenCalledOnce();
-  });
-
-  it("keeps invalid files in preview without mutating state", async () => {
-    const { result } = renderHook(useDeckImport);
-    const file = new File(["front,back"], "invalid.csv", { type: "text/csv" });
-
-    await actAsync(async () => {
-      await result.current.selectFile(file);
-    });
-
-    expect(result.current.preview).toMatchObject({
+    expect(result.current.deckImport.preview).toMatchObject({
       analysis: {
         rows: [],
         invalidCount: 1,
         issues: [expect.objectContaining({ rowNumber: 1, message: "Expected 4 columns, found 2." })],
       },
     });
-    await expect(result.current.importPreview()).rejects.toThrow("Fix invalid CSV rows");
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
+    await expect(result.current.deckImport.importPreview()).rejects.toThrow("Fix invalid CSV rows");
+    expect(findDeck(result.current.decks, name)).toBeUndefined();
   });
 
-  it("skips an identical CSV re-import by uniqueKey", async () => {
-    mocks.decks = [createDeck({ id: "deck", name: "deck.csv", uid: "uid-a" })];
-    mocks.cards = [
+  it("clears a prepared preview when the destination changes", async () => {
+    const { result } = renderDeckImport();
+    act(() => result.current.deckImport.setStorageMode("local"));
+    await actAsync(async () => result.current.deckImport.selectFile(csvFile("behavior-mode.csv")));
+
+    act(() => result.current.deckImport.setStorageMode("remote"));
+
+    expect(result.current.deckImport.storageMode).toBe("remote");
+    expect(result.current.deckImport.preview).toBeUndefined();
+    await expect(result.current.deckImport.importPreview()).rejects.toThrow("Select a CSV file");
+  });
+
+  it("builds a remote preview from current server data instead of stale local state", async () => {
+    controls.uid = "uid-a";
+    const serverDeck = createDeck({ id: "remote-preview-deck", name: "behavior-remote.csv", uid: controls.uid });
+    controls.remoteDecks = [serverDeck];
+    controls.remoteCards = [
       createCard({
-        id: "existing",
-        deckId: "deck",
+        id: "remote-preview-card",
+        deckId: serverDeck.id,
+        uid: controls.uid,
         frontText: "front",
-        backText: "back",
-        tags: [],
+        backText: "old back",
+        tags: ["tag"],
         uniqueKey: "key",
       }),
     ];
-    mocks.fetchDecks.mockResolvedValueOnce(mocks.decks);
-    mocks.fetchCards.mockResolvedValueOnce(mocks.cards);
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-    let imported: DeckImportResult | undefined;
+    const { result } = renderDeckImport();
+
+    await actAsync(async () => result.current.deckImport.selectFile(csvFile("behavior-remote.csv", "new back")));
+
+    expect(result.current.deckImport.preview?.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
+    expect(findDeck(result.current.decks, "behavior-remote.csv")).toBeUndefined();
+  });
+
+  it("exposes a remote preview failure without changing stored data", async () => {
+    controls.uid = "uid-a";
+    controls.remoteReadError = new Error("server read failed");
+    const name = "behavior-read-failure.csv";
+    const { result } = renderDeckImport();
 
     await actAsync(async () => {
-      await result.current.selectFile(file);
+      await expect(result.current.deckImport.selectFile(csvFile(name))).rejects.toThrow("server read failed");
     });
+
+    expect(result.current.deckImport.preview).toBeUndefined();
+    expect(result.current.deckImport.previewError).toEqual(new Error("server read failed"));
+    expect(result.current.deckImport.error).toBeNull();
+    expect(findDeck(result.current.decks, name)).toBeUndefined();
+  });
+
+  it("requires a fresh preview after a failed save and then completes the retry", async () => {
+    const name = "behavior-retry.csv";
+    const file = csvFile(name);
+    const { result } = renderDeckImport();
+    act(() => result.current.deckImport.setStorageMode("local"));
+    await actAsync(async () => result.current.deckImport.selectFile(file));
+    controls.nextMutationError = new Error("card mutation failed");
+
     await actAsync(async () => {
-      imported = await result.current.importPreview();
+      await expect(result.current.deckImport.importPreview()).rejects.toThrow("card mutation failed");
     });
 
-    expect(result.current.preview?.plan).toMatchObject({ created: 0, updated: 0, unchanged: 1 });
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).not.toHaveBeenCalled();
-    expect(imported).toEqual({ created: 0, updated: 0, skipped: 1, deckId: "deck" });
-  });
+    const savedDeck = findDeck(result.current.decks, name);
+    expect(savedDeck).toBeDefined();
+    expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toEqual([]);
+    expect(result.current.deckImport.error).toEqual(new Error("card mutation failed"));
+    await expect(result.current.deckImport.importPreview()).rejects.toThrow("prepared Deck import is not available");
 
-  it("adds the bundled sample with a stable per-user Deck id", async () => {
-    const { result } = renderHook(useDeckImport);
+    await actAsync(async () => result.current.deckImport.selectFile(file));
+    expect(result.current.deckImport.error).toBeNull();
+    expect(result.current.deckImport.preview?.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
+    await actAsync(async () => result.current.deckImport.importPreview());
 
-    act(() => result.current.setStorageMode("local"));
-    await actAsync(async () => result.current.addSample());
-
-    expect(mocks.createDeck).toHaveBeenCalledWith({
-      id: "sample-v1-uid-a",
-      name: "Sample Deck",
-      uid: "uid-a",
-    });
-    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
-  });
-
-  it("clears a prepared preview when its storage mode changes", async () => {
-    const { result } = renderHook(useDeckImport);
-    await actAsync(async () =>
-      result.current.selectFile(new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" }))
-    );
-
-    act(() => result.current.setStorageMode("local"));
-
-    expect(result.current.storageMode).toBe("local");
-    expect(result.current.preview).toBeUndefined();
-    await expect(result.current.importPreview()).rejects.toThrow("Select a CSV file");
-  });
-
-  it("reuses the same sample Deck for the active user", async () => {
-    mocks.decks = [createDeck({ id: "sample-v1-uid-a", name: "Renamed sample" })];
-    const { result } = renderHook(useDeckImport);
-
-    await actAsync(async () => result.current.addSample());
-
-    expect(mocks.createDeck).not.toHaveBeenCalled();
-    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
-  });
-
-  it("requires a new preview before retrying a failed import", async () => {
-    const createdDeck = createDeck({ id: "deck", name: "deck.csv", uid: "uid-a" });
-    mocks.fetchDecks.mockResolvedValueOnce([]).mockResolvedValueOnce([createdDeck]);
-    mocks.bulkUpsert.mockRejectedValueOnce(new Error("card mutation failed")).mockResolvedValueOnce(undefined);
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-
-    await actAsync(async () => result.current.selectFile(file));
-    await actAsync(async () => {
-      await expect(result.current.importPreview()).rejects.toThrow("card mutation failed");
-    });
-
-    expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
-    await expect(result.current.importPreview()).rejects.toThrow("prepared Deck import is not available");
-    expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
-
-    await actAsync(async () => result.current.selectFile(file));
-    await actAsync(async () => result.current.importPreview());
-
-    expect(mocks.createDeck).toHaveBeenCalledOnce();
-    expect(mocks.bulkUpsert).toHaveBeenCalledTimes(2);
-  });
-
-  it("clears operation data and error when a new file is selected", async () => {
-    const { result } = renderHook(useDeckImport);
-    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
-    await actAsync(async () => result.current.addSample());
-    expect(result.current.result).toBeDefined();
-
-    mocks.bulkUpsert.mockRejectedValueOnce(new Error("failed"));
-    await actAsync(async () => {
-      await expect(result.current.addSample()).rejects.toThrow("failed");
-    });
-    expect(result.current.error).toBeDefined();
-
-    await actAsync(async () => result.current.selectFile(file));
-    expect(result.current.result).toBeUndefined();
-    expect(result.current.error).toBeNull();
+    expect(result.current.deckImport.result).toMatchObject({ created: 1, updated: 0, skipped: 0 });
+    expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toHaveLength(1);
   });
 });
