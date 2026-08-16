@@ -18,7 +18,17 @@ interface DeletionTarget {
   cardCount: number;
 }
 
-export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckListStateOptions) => {
+export interface DeckListState {
+  sections: ReturnType<typeof buildDeckListSections>;
+  deletionTarget: { deckName: string; cardCount: number; hasError: boolean } | undefined;
+  successMessage: string | undefined;
+  onDownload: (id: DeckId) => void;
+  onRequestDeletion: (id: DeckId) => void;
+  onCancelDeletion: () => void;
+  onConfirmDeletion: () => Promise<void>;
+}
+
+export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckListStateOptions): DeckListState => {
   const uid = useAuthUid();
   const [deletionTarget, setDeletionTarget] = React.useState<DeletionTarget>();
   const [deletionErrorDeckId, setDeletionErrorDeckId] = React.useState<DeckId>();
@@ -26,7 +36,7 @@ export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckList
 
   const cardsForDeck = (id: DeckId) => filterCardsByDeckId(cards, id);
 
-  const requestDeletion = (id: string) => {
+  const requestDeletion = (id: DeckId) => {
     const deck = mustFindDeckById(decks, id);
     setSuccessMessage(undefined);
     setDeletionErrorDeckId(undefined);
@@ -46,7 +56,7 @@ export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckList
     }
   };
 
-  const download = (id: string) => {
+  const download = (id: DeckId) => {
     const deck = mustFindDeckById(decks, id);
     downloadDeckCsv(deck, cardsForDeck(id));
   };

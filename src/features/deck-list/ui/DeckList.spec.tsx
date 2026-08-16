@@ -54,18 +54,7 @@ const actions = {
 const DeckListHarness = () => {
   const state = useDeckListState({ decks: [otherDeck, oldDeck, recentDeck], cards, sessionsByDeckId });
 
-  return (
-    <DeckList
-      sections={state.sections}
-      {...(state.deletionTarget !== undefined ? { deletionTarget: state.deletionTarget } : {})}
-      {...(state.successMessage !== undefined ? { successMessage: state.successMessage } : {})}
-      {...actions}
-      onDownload={state.onDownload}
-      onRequestDeletion={state.onRequestDeletion}
-      onCancelDeletion={state.onCancelDeletion}
-      onConfirmDeletion={state.onConfirmDeletion}
-    />
-  );
+  return <DeckList state={state} {...actions} />;
 };
 
 const renderDeckList = () => render(<DeckListHarness />);

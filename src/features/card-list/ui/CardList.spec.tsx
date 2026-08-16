@@ -1,4 +1,4 @@
-import type { Card } from "@/entities/card";
+import type { Card, CardId } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
@@ -59,7 +59,7 @@ interface CardListHarnessProps {
     onRemoveTag: (tag: string) => void;
   };
   renderBackText: (answer: CardListAnswer) => React.ReactNode;
-  onEditCard: (id: string) => void;
+  onEditCard: (id: CardId) => void;
 }
 
 const CardListHarness = (props: CardListHarnessProps) => {
@@ -67,20 +67,10 @@ const CardListHarness = (props: CardListHarnessProps) => {
 
   return (
     <CardList
-      cards={state.cards}
+      state={state}
       filter={props.filter}
       {...(state.answer !== undefined ? { answerSlot: props.renderBackText(state.answer) } : {})}
-      {...(state.deletionTarget !== undefined ? { deletionTarget: state.deletionTarget } : {})}
-      mutationError={state.mutationError}
-      {...(state.successMessage !== undefined ? { successMessage: state.successMessage } : {})}
-      onShowCard={state.onShowCard}
-      onCloseCard={state.onCloseCard}
-      onSwipedLeft={state.onSwipedLeft}
-      onSwipedRight={state.onSwipedRight}
       onEditCard={props.onEditCard}
-      onRequestDeletion={state.onRequestDeletion}
-      onCancelDeletion={state.onCancelDeletion}
-      onConfirmDeletion={state.onConfirmDeletion}
     />
   );
 };

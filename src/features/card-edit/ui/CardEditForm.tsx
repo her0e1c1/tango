@@ -2,7 +2,8 @@ import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 
 import { Feedback } from "@/shared/ui/feedback";
-import { CardForm, type CardFormProps } from "./CardForm";
+import type { CardFormProps } from "../model/useCardFormState";
+import { CardForm } from "./CardForm";
 
 export interface CardEditFormProps {
   form: CardFormProps;

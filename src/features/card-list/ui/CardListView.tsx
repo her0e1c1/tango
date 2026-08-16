@@ -6,6 +6,7 @@
 import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
+import type { CardId } from "@/entities/card";
 import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
 
@@ -29,7 +30,7 @@ export interface CardListViewProps {
   filterSlot?: React.ReactNode;
   card?: CardProps;
   overlay?: CardListOverlayProps;
-  onShowCard?: (id: string) => void;
+  onShowCard?: (id: CardId) => void;
   onRemoveTag?: (tag: string) => void;
 }
 
@@ -74,7 +75,7 @@ const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selec
  * Storybook.
  */
 const CardListRows: React.FC<Pick<CardListViewProps, "cards" | "card" | "onShowCard">> = (props) => {
-  const [openMenuCardId, setOpenMenuCardId] = React.useState<string>();
+  const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
 
   return (
     <div className="overflow-visible rounded-surface border border-border bg-surface shadow-surface dark:border-black">

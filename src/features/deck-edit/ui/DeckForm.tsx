@@ -3,29 +3,7 @@ import { useId } from "react";
 
 import { Button } from "@/shared/ui/button";
 import { Form, FormItem, Input, Select, Switch } from "@/shared/ui/forms";
-
-interface DeckFormFields {
-  name: React.ComponentProps<typeof Input>;
-  convertToBr: React.ComponentProps<typeof Switch>;
-  url: React.ComponentProps<typeof Input>;
-  category: React.ComponentProps<typeof Select>;
-}
-
-export interface DeckFormProps {
-  deckInfo: {
-    id: string;
-    createdAt?: string;
-    updatedAt?: string;
-  };
-  fields: DeckFormFields;
-  errors: {
-    name: string | undefined;
-    url: string | undefined;
-  };
-  isSubmitting: boolean;
-  onCancel: () => void;
-  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
-}
+import type { DeckFormProps } from "../model/useDeckFormState";
 
 export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();

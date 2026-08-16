@@ -9,7 +9,7 @@ export interface DeckListStudyProgress {
 }
 
 export interface DeckListDeck {
-  id: string;
+  id: DeckId;
   name: string;
   category: string;
   isPublic: boolean;

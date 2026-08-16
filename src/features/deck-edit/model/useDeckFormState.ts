@@ -1,11 +1,35 @@
 import type { Deck, DeckEdit } from "@/entities/deck";
+import type * as React from "react";
 import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { CATEGORY, deckFormSchema } from "@/entities/deck";
-import type { DeckFormProps } from "../ui/DeckForm";
+import { CATEGORY, deckFormSchema, type DeckId } from "@/entities/deck";
+import type { Form, Input, Select, Switch } from "@/shared/ui/forms";
+
+interface DeckFormFields {
+  name: React.ComponentProps<typeof Input>;
+  convertToBr: React.ComponentProps<typeof Switch>;
+  url: React.ComponentProps<typeof Input>;
+  category: React.ComponentProps<typeof Select>;
+}
+
+export interface DeckFormProps {
+  deckInfo: {
+    id: DeckId;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+  fields: DeckFormFields;
+  errors: {
+    name: string | undefined;
+    url: string | undefined;
+  };
+  isSubmitting: boolean;
+  onCancel: () => void;
+  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
+}
 
 type DeckFormValues = z.infer<typeof deckFormSchema>;
 

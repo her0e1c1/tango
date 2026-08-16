@@ -47,7 +47,7 @@ vi.mock("@/features/card-list", () => ({
     onConfirmDeletion: vi.fn(),
   }),
   CardList: (props: {
-    cards: Card[];
+    state: { cards: Card[] };
     filter: { selectedTags: string[]; onRemoveTag: (tag: string) => void };
     onEditCard: (id: string) => void;
   }) => {
@@ -55,7 +55,7 @@ vi.mock("@/features/card-list", () => ({
     return (
       <div>
         <span>Card list feature</span>
-        <button type="button" onClick={() => props.onEditCard(props.cards[0]?.id ?? "missing")}>
+        <button type="button" onClick={() => props.onEditCard(props.state.cards[0]?.id ?? "missing")}>
           Edit card
         </button>
         <button type="button" onClick={() => props.filter.onRemoveTag("typescript")}>

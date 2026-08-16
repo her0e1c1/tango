@@ -2,7 +2,8 @@ import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 
 import { Feedback } from "@/shared/ui/feedback";
-import { DeckForm, type DeckFormProps } from "./DeckForm";
+import type { DeckFormProps } from "../model/useDeckFormState";
+import { DeckForm } from "./DeckForm";
 
 export interface DeckEditFormProps {
   deckName: string;

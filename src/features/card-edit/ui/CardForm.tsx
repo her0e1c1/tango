@@ -3,34 +3,8 @@ import { useId } from "react";
 
 import { Button } from "@/shared/ui/button";
 import { TagList } from "@/shared/ui/content";
-import { Form, FormItem, Tag, Textarea, type Option } from "@/shared/ui/forms";
-
-interface CardFormTagField extends Option {
-  input: React.ComponentProps<typeof Tag>;
-}
-
-interface CardFormFields {
-  frontText: React.ComponentProps<typeof Textarea>;
-  backText: React.ComponentProps<typeof Textarea>;
-  tags: CardFormTagField[];
-}
-
-export interface CardFormProps {
-  cardInfo: {
-    uniqueKey: string;
-    id: string;
-    createdAt?: string;
-    lastSeenAt?: string;
-  };
-  fields: CardFormFields;
-  errors: {
-    frontText: string | undefined;
-    backText: string | undefined;
-  };
-  isSubmitting: boolean;
-  onCancel: () => void;
-  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
-}
+import { Form, FormItem, Tag, Textarea } from "@/shared/ui/forms";
+import type { CardFormProps } from "../model/useCardFormState";
 
 export const CardForm: React.FC<CardFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();

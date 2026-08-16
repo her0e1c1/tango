@@ -134,6 +134,7 @@ export default [
           patterns: [
             {
               group: ["@/entities", "@/entities/*"],
+              allowTypeImports: true,
               message: "Feature UI must receive Entity data through presentational props.",
             },
             {

@@ -28,7 +28,7 @@ const CardListComposition = (props: {
 
   return (
     <CardList
-      cards={cardList.cards}
+      state={cardList}
       filter={{
         scoreMax: deckFilter.scoreMax,
         scoreMin: deckFilter.scoreMin,
@@ -37,17 +37,7 @@ const CardListComposition = (props: {
         onRemoveTag: (tag) => deckFilter.setSelectedTags(deckFilter.selectedTags.filter((value) => value !== tag)),
       }}
       {...(cardList.answer !== undefined ? { answerSlot: <BackText {...cardList.answer} /> } : {})}
-      {...(cardList.deletionTarget !== undefined ? { deletionTarget: cardList.deletionTarget } : {})}
-      mutationError={cardList.mutationError}
-      {...(cardList.successMessage !== undefined ? { successMessage: cardList.successMessage } : {})}
-      onShowCard={cardList.onShowCard}
-      onCloseCard={cardList.onCloseCard}
-      onSwipedLeft={cardList.onSwipedLeft}
-      onSwipedRight={cardList.onSwipedRight}
       onEditCard={props.onEditCard}
-      onRequestDeletion={cardList.onRequestDeletion}
-      onCancelDeletion={cardList.onCancelDeletion}
-      onConfirmDeletion={cardList.onConfirmDeletion}
     />
   );
 };

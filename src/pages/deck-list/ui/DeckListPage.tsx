@@ -23,9 +23,7 @@ export const DeckListPage: React.FC = () => {
   return (
     <AppLayout showHeader>
       <DeckList
-        sections={deckList.sections}
-        {...(deckList.deletionTarget !== undefined ? { deletionTarget: deckList.deletionTarget } : {})}
-        {...(deckList.successMessage !== undefined ? { successMessage: deckList.successMessage } : {})}
+        state={deckList}
         onViewDeck={(id) => void navigation.to(routes.cardList.to(id))}
         onContinueDeck={(id) => {
           touchStudySession(id);
@@ -33,10 +31,6 @@ export const DeckListPage: React.FC = () => {
         }}
         onStartDeck={(id) => void navigation.to(routes.deckStudyStart.to(id))}
         onEditDeck={(id) => void navigation.to(routes.deckForm.to(id))}
-        onDownload={deckList.onDownload}
-        onRequestDeletion={deckList.onRequestDeletion}
-        onCancelDeletion={deckList.onCancelDeletion}
-        onConfirmDeletion={deckList.onConfirmDeletion}
       />
     </AppLayout>
   );

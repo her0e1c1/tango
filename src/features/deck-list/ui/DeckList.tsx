@@ -1,65 +1,55 @@
 import * as React from "react";
 
+import type { DeckId } from "@/entities/deck";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 
-import type { DeckListSections } from "../model/buildDeckListSections";
+import type { DeckListState } from "../model/useDeckListState";
 import { DeckListView } from "./DeckListView";
 
-interface DeckListDeletionTarget {
-  deckName: string;
-  cardCount: number;
-  hasError: boolean;
-}
-
 export interface DeckListProps {
-  sections: DeckListSections;
-  deletionTarget?: DeckListDeletionTarget;
-  successMessage?: string;
-  onViewDeck: (id: string) => void;
-  onContinueDeck: (id: string) => void;
-  onStartDeck: (id: string) => void;
-  onEditDeck: (id: string) => void;
-  onDownload: (id: string) => void;
-  onRequestDeletion: (id: string) => void;
-  onCancelDeletion: () => void;
-  onConfirmDeletion: () => Promise<void>;
+  state: DeckListState;
+  onViewDeck: (id: DeckId) => void;
+  onContinueDeck: (id: DeckId) => void;
+  onStartDeck: (id: DeckId) => void;
+  onEditDeck: (id: DeckId) => void;
 }
 
 export const DeckList: React.FC<DeckListProps> = (props) => {
-  const [openMenuDeckId, setOpenMenuDeckId] = React.useState<string>();
+  const { state } = props;
+  const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
 
   const closeMenu = () => setOpenMenuDeckId(undefined);
-  const toggleMenu = (id: string) => setOpenMenuDeckId((value) => (value === id ? undefined : id));
+  const toggleMenu = (id: DeckId) => setOpenMenuDeckId((value) => (value === id ? undefined : id));
 
   return (
     <>
-      <Feedback tone="success">{props.successMessage}</Feedback>
-      {props.deletionTarget != null ? (
+      <Feedback tone="success">{state.successMessage}</Feedback>
+      {state.deletionTarget != null ? (
         <DestructiveActionDialog
           title="Delete deck?"
           targetLabel="Deck"
-          targetName={props.deletionTarget.deckName}
+          targetName={state.deletionTarget.deckName}
           confirmLabel="Delete deck"
-          {...(props.deletionTarget.hasError
+          {...(state.deletionTarget.hasError
             ? { errorMessage: "Unable to delete this deck. Check your connection and try again." }
             : {})}
           description={
             <>
               <p>
-                This permanently deletes {props.deletionTarget.cardCount}{" "}
-                {props.deletionTarget.cardCount === 1 ? "card" : "cards"} in this deck.
+                This permanently deletes {state.deletionTarget.cardCount}{" "}
+                {state.deletionTarget.cardCount === 1 ? "card" : "cards"} in this deck.
               </p>
               <p>Any in-progress study session for this deck will also end.</p>
               <p>This action cannot be undone.</p>
             </>
           }
-          onCancel={props.onCancelDeletion}
-          onConfirm={props.onConfirmDeletion}
+          onCancel={state.onCancelDeletion}
+          onConfirm={state.onConfirmDeletion}
         />
       ) : null}
       <DeckListView
-        sections={props.sections}
+        sections={state.sections}
         deckCard={{
           openMenuDeckId,
           onToggleMenu: toggleMenu,
@@ -69,8 +59,8 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
           onClickContinue: props.onContinueDeck,
           onClickRestart: props.onStartDeck,
           onClickStudy: props.onStartDeck,
-          onClickDownload: props.onDownload,
-          onClickDelete: props.onRequestDeletion,
+          onClickDownload: state.onDownload,
+          onClickDelete: state.onRequestDeletion,
         }}
       />
     </>

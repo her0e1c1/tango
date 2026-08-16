@@ -6,7 +6,7 @@ import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
 import { editStudyProgress } from "@/entities/study-progress";
 
 export interface CardListItem {
-  id: string;
+  id: CardId;
   frontText: string;
   score: number;
   numberOfSeen: number;
@@ -26,6 +26,21 @@ interface UseCardListStateOptions {
   dark: boolean;
 }
 
+export interface CardListState {
+  cards: CardListItem[];
+  answer: CardListAnswer | undefined;
+  deletionTarget: { frontText: string; hasError: boolean } | undefined;
+  mutationError: unknown;
+  successMessage: string | undefined;
+  onShowCard: (id: CardId) => void;
+  onCloseCard: () => void;
+  onSwipedLeft: (id: CardId) => void;
+  onSwipedRight: (id: CardId) => void;
+  onRequestDeletion: (id: CardId) => void;
+  onCancelDeletion: () => void;
+  onConfirmDeletion: () => Promise<void>;
+}
+
 const buildCardListItem = (card: Card): CardListItem => ({
   id: card.id,
   frontText: card.frontText,
@@ -34,7 +49,7 @@ const buildCardListItem = (card: Card): CardListItem => ({
   tags: card.tags,
 });
 
-export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions) => {
+export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions): CardListState => {
   const uid = useAuthUid();
   const [shownCard, setShownCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
@@ -42,14 +57,14 @@ export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions)
   const [mutationError, setMutationError] = React.useState<unknown>(null);
   const [successMessage, setSuccessMessage] = React.useState<string>();
 
-  const changeScore = (id: string, offset: number) => {
+  const changeScore = (id: CardId, offset: number) => {
     const card = mustFindCardById(cards, id);
     void editStudyProgress(uid, { cardId: card.id, score: card.score + offset })
       .then(() => setMutationError(null))
       .catch(setMutationError);
   };
 
-  const requestDeletion = (id: string) => {
+  const requestDeletion = (id: CardId) => {
     const card = mustFindCardById(cards, id);
     setSuccessMessage(undefined);
     setDeletionErrorCardId(undefined);
@@ -92,10 +107,10 @@ export const useCardListState = ({ cards, deck, dark }: UseCardListStateOptions)
           },
     mutationError,
     successMessage,
-    onShowCard: (id: string) => setShownCard(mustFindCardById(cards, id)),
+    onShowCard: (id: CardId) => setShownCard(mustFindCardById(cards, id)),
     onCloseCard: () => setShownCard(undefined),
-    onSwipedLeft: (id: string) => changeScore(id, -1),
-    onSwipedRight: (id: string) => changeScore(id, 1),
+    onSwipedLeft: (id: CardId) => changeScore(id, -1),
+    onSwipedRight: (id: CardId) => changeScore(id, 1),
     onRequestDeletion: requestDeletion,
     onCancelDeletion: () => setDeletionTarget(undefined),
     onConfirmDeletion: confirmDeletion,

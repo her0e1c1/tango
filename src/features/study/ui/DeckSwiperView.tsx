@@ -1,11 +1,10 @@
 import cx from "classnames";
 import type * as React from "react";
+import type { SwipeDirection } from "@/entities/preferences";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
 import { SwipeButtonList, type SwipeButtonListProps } from "./SwipeButtonList";
-
-type SwipeDirection = "cardSwipeLeft" | "cardSwipeUp" | "cardSwipeDown" | "cardSwipeRight";
 
 const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
   cardSwipeUp: "Swiped up",

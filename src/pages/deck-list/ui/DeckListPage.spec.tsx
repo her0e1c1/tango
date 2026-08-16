@@ -48,7 +48,7 @@ vi.mock("@/features/deck-list", () => ({
     onConfirmDeletion: vi.fn(),
   }),
   DeckList: (props: DeckListProps) => {
-    const [item] = props.sections.other;
+    const [item] = props.state.sections.other;
     const deck = item?.deck;
     if (deck == null) return null;
     return (
@@ -65,7 +65,7 @@ vi.mock("@/features/deck-list", () => ({
         <button type="button" onClick={() => props.onEditDeck(deck.id)}>
           Edit deck
         </button>
-        <button type="button" onClick={() => props.onRequestDeletion(deck.id)}>
+        <button type="button" onClick={() => props.state.onRequestDeletion(deck.id)}>
           Delete deck
         </button>
       </section>
