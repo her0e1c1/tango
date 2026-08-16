@@ -15,34 +15,25 @@ import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceRemoteCards } from "../model/store";
-import { parseCardDocument } from "./document";
+import { type CardReadModels, readCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
-const convertCardDocumentToCard = (id: CardId, value: unknown): RemoteCard => {
-  const document = parseCardDocument(id, value);
-  const card: RemoteCard = {
-    id,
-    frontText: document.frontText,
-    backText: document.backText,
-    tags: document.tags,
-    uniqueKey: document.uniqueKey,
-    deckId: document.deckId,
-    uid: document.uid,
-    createdAt: document.createdAt,
-    updatedAt: document.updatedAt,
-    deletedAt: document.deletedAt,
-    score: document.score,
-    numberOfSeen: document.numberOfSeen,
+const combineCardReadModels = ({ card, progress }: CardReadModels): RemoteCard => {
+  // Consumers still receive the combined shape until they migrate together; composition stays at this boundary.
+  const combinedCard: RemoteCard = {
+    ...card,
+    score: progress.score,
+    numberOfSeen: progress.numberOfSeen,
   };
-  if (document.lastSeenAt !== undefined) card.lastSeenAt = document.lastSeenAt;
-  if (document.nextSeeingAt !== undefined) card.nextSeeingAt = document.nextSeeingAt;
-  if (document.interval !== undefined) card.interval = document.interval;
-  if (document.url !== undefined) card.url = document.url;
-  if (document.startLine !== undefined) card.startLine = document.startLine;
-  if (document.endLine !== undefined) card.endLine = document.endLine;
-  return card;
+  if (progress.lastSeenAt !== undefined) combinedCard.lastSeenAt = progress.lastSeenAt;
+  if (progress.nextSeeingAt !== undefined) combinedCard.nextSeeingAt = progress.nextSeeingAt;
+  if (progress.interval !== undefined) combinedCard.interval = progress.interval;
+  return combinedCard;
 };
+
+const convertCardDocumentToCard = (id: CardId, value: unknown): RemoteCard =>
+  combineCardReadModels(readCardDocument(id, value));
 
 export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
   onSnapshot(

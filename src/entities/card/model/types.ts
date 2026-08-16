@@ -13,6 +13,8 @@ import type {
 } from "./schema";
 
 export type RemoteCard = z.infer<typeof cardSchema>;
+type StudyProgressField = "score" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval";
+export type RemoteCardRead = Omit<RemoteCard, StudyProgressField>;
 export type LocalCard = z.infer<typeof localCardSchema>;
 export type Card = RemoteCard | LocalCard;
 export type CardCreate = z.infer<typeof cardCreateSchema>;
