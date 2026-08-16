@@ -10,8 +10,13 @@
 
 ## `model/types.ts`
 
-- Define shared Entity types and interfaces.
-- Prefer deriving types from Zod schemas.
+- Define Entity domain types and boundary-specific types.
+- Keep types separate when domain, store, persistence, or public API meanings differ.
+- Derive types from Zod when Zod defines the validation boundary.
+
+## `model/dto.ts`
+
+- Define pure mappings between Entity boundary types.
 
 ## `model/defaults.ts`
 
