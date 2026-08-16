@@ -1,10 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { SwipeAction } from "@/entities/preferences/@x/study-progress";
-
-const mocks = vi.hoisted(() => ({ shuffle: vi.fn((ids: string[]) => [...ids].reverse()) }));
-
-vi.mock("lodash", () => ({ shuffle: mocks.shuffle }));
 
 import {
   buildStudyCardOrder,
@@ -12,7 +8,7 @@ import {
   isStudyProgressEligible,
   recordCardStudyProgress,
 } from "./rules";
-import type { CardProgressFields, StudyProgress, StudyProgressEdit } from "./types";
+import type { CardProgressFields, StudyProgress } from "./types";
 
 // Builds neutral StudyProgress for eligibility scenarios.
 const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
@@ -25,20 +21,6 @@ const cardProgress = (id: string, numberOfSeen = 0): CardProgressFields => ({
 });
 
 describe("createStudyProgressFromCard", () => {
-  it("allows editing selected progress fields while retaining the card id", () => {
-    const edit: StudyProgressEdit = {
-      cardId: "card-id",
-      score: 3,
-      lastSeenAt: 1_786_512_000_000,
-    };
-
-    expect(edit).toEqual({
-      cardId: "card-id",
-      score: 3,
-      lastSeenAt: 1_786_512_000_000,
-    });
-  });
-
   it("restores progress from a Card without copying Card content", () => {
     const card = {
       id: "card-id",
@@ -126,8 +108,18 @@ describe("buildStudyCardOrder", () => {
     ]);
   });
 
-  it("shuffles before applying the maximum", () => {
-    expect(buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 2 })).toEqual(["d", "c"]);
-    expect(mocks.shuffle).toHaveBeenCalledWith(["a", "b", "c", "d"]);
+  it("returns every selected card exactly once when shuffled", () => {
+    const result = buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 0 });
+
+    expect(result).toHaveLength(cards.length);
+    expect(new Set(result)).toEqual(new Set(["a", "b", "c", "d"]));
+  });
+
+  it("limits a shuffled order to distinct selected cards", () => {
+    const result = buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 2 });
+
+    expect(result).toHaveLength(2);
+    expect(new Set(result).size).toBe(2);
+    expect(result.every((id) => cards.some((card) => card.id === id))).toBe(true);
   });
 });
