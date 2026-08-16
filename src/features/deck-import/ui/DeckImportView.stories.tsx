@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import type { DeckImportPreview } from "../hooks/useDeckImport";
+import type { DeckImportPreview } from "../model/useDeckImport";
 import { SAMPLE_CSV_TEXT } from "../sampleCsv";
 import { DeckImportView as Template } from "./DeckImportView";
 
