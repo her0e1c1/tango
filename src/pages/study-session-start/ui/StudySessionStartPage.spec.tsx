@@ -3,18 +3,18 @@ import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createCard, createPreferences, createDeck } from "@/test/factories";
+import { clearStudySessions, useStudySession } from "@/entities/study-session";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  params: { id: "deck-id" as string | undefined },
   preferences: null as unknown as Preferences,
   deck: null as Deck | null,
   cards: [] as Card[],
-  start: vi.fn(),
-  navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
 
@@ -24,9 +24,6 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/deck", () => ({
   filterCardsForDeck: (cards: Card[]) => cards,
   useDeck: () => mocks.deck ?? undefined,
-}));
-vi.mock("@/entities/study-session", () => ({
-  startStudy: () => mocks.start(),
 }));
 vi.mock("@/features/deck-filter", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/deck-filter")>();
@@ -49,24 +46,45 @@ vi.mock("@/entities/preferences", () => ({
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("react-router-dom", () => ({
-  useNavigate: () => mocks.navigate,
-  useParams: () => mocks.params,
-}));
 
 import { StudySessionStartPage } from "./StudySessionStartPage";
 
+// Read the destination's public Entity state so navigation cannot hide a missing session mutation.
+const StudySessionDestination = () => {
+  const session = useStudySession("deck-id");
+  return (
+    <main>
+      <h1>Study session</h1>
+      <p>{session === undefined ? "No active session" : `Studying ${session.cardOrderIds.join(", ")}`}</p>
+    </main>
+  );
+};
+
 describe("StudySessionStartPage", () => {
+  const deckId = "deck-id";
+  const cardId = "card-id";
+  const renderPage = (path = `/deck/${deckId}/start`) =>
+    render(
+      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+        <Routes>
+          <Route path="/previous" element={<h1>Previous page</h1>} />
+          <Route path="/" element={<h1>Deck list</h1>} />
+          <Route path="/deck/:id/start" element={<StudySessionStartPage />} />
+          <Route path="/deck/:id/study" element={<StudySessionDestination />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
   beforeEach(() => {
-    mocks.params.id = "deck-id";
+    clearStudySessions();
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
-    mocks.deck = createDeck({ id: "deck-id", name: "Japanese vocabulary" });
-    mocks.cards = [createCard({ deckId: "deck-id" })];
+    mocks.deck = createDeck({ id: deckId, name: "Japanese vocabulary" });
+    mocks.cards = [createCard({ id: cardId, deckId })];
     vi.clearAllMocks();
   });
 
   it("composes route data, the application shell, and the study view", () => {
-    render(<StudySessionStartPage />);
+    renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
@@ -74,45 +92,58 @@ describe("StudySessionStartPage", () => {
   });
 
   it("starts from Enter only outside interactive controls", () => {
-    render(<StudySessionStartPage />);
+    renderPage();
 
-    fireEvent.keyDown(document.body, { key: "Enter" });
-    expect(mocks.start).toHaveBeenCalledOnce();
-
-    mocks.start.mockClear();
     fireEvent.keyDown(screen.getByRole("slider", { name: "Maximum score value" }), { key: "Enter" });
-    expect(mocks.start).not.toHaveBeenCalled();
-  });
-
-  it("owns navigation after the study session starts", () => {
-    mocks.start.mockImplementationOnce(() => expect(mocks.navigate).not.toHaveBeenCalled());
-    render(<StudySessionStartPage />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Start 1 card" }));
-
-    expect(mocks.start).toHaveBeenCalledOnce();
-    expect(mocks.navigate).toHaveBeenCalledWith("/deck/deck-id/study", { replace: true });
-  });
-
-  it("does not start when no cards match", () => {
-    mocks.cards = [];
-    render(<StudySessionStartPage />);
+    expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
     fireEvent.keyDown(document.body, { key: "Enter" });
-    expect(mocks.start).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Start 0 cards" })).toBeDisabled();
+    expect(screen.getByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
+    expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
 
-  it("renders missing-deck recovery outside the application shell", () => {
+  it("creates a study session before navigating to it", async () => {
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Start 1 card" }));
+
+    expect(screen.getByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
+    expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
+  });
+
+  it("stays on the start page when no cards match", () => {
+    mocks.cards = [];
+    renderPage();
+
+    fireEvent.keyDown(document.body, { key: "Enter" });
+
+    expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Start 0 cards" })).toBeDisabled();
+    expect(screen.queryByRole("heading", { level: 1, name: "Study session" })).not.toBeInTheDocument();
+  });
+
+  it("navigates with both recovery actions when the deck is unavailable", async () => {
     mocks.deck = null;
-    render(<StudySessionStartPage />);
+    const view = renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+
+    view.unmount();
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Go back" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
   it("rejects a route without a deck id", () => {
-    mocks.params.id = undefined;
-    expect(() => render(<StudySessionStartPage />)).toThrowError("invalid deck id");
+    expect(() =>
+      render(
+        <MemoryRouter>
+          <StudySessionStartPage />
+        </MemoryRouter>
+      )
+    ).toThrowError("invalid deck id");
   });
 });

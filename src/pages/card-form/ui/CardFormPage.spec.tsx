@@ -1,104 +1,100 @@
-import type { Card } from "@/entities/card";
 import type { Preferences } from "@/entities/preferences";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createCard, createPreferences } from "@/test/factories";
+import { mutateCards } from "@/entities/card";
+import { createDeck } from "@/entities/deck";
+import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  params: { id: "card-id" as string | undefined },
   preferences: null as unknown as Preferences,
-  card: null as Card | null,
-  navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
 
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("@/entities/card", () => ({
-  useCard: () => mocks.card ?? undefined,
-}));
-vi.mock("@/features/card-edit", () => ({
-  useCardEditAction: ({ onSaved }: { onSaved: () => void }) => ({ error: null, update: onSaved }),
-  useCardFormState: ({ card, onCancel, onSubmit }: { card: Card; onCancel: () => void; onSubmit: () => void }) => ({
-    card,
-    onCancel,
-    onSubmit,
-  }),
-  CardEditForm: (props: { form: { card: Card; onCancel: () => void; onSubmit: () => void } }) => (
-    <section>
-      <h1>{props.form.card.frontText}</h1>
-      <button type="button" onClick={props.form.onSubmit}>
-        Save changes
-      </button>
-      <button type="button" onClick={props.form.onCancel}>
-        Cancel
-      </button>
-    </section>
-  ),
-}));
-vi.mock("react-router-dom", () => ({
-  useParams: () => mocks.params,
-  useNavigate: () => mocks.navigate,
-}));
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardFormPage } from "./CardFormPage";
 
 describe("CardFormPage", () => {
-  const card = createCard({ id: "card-id", frontText: "Front text" });
+  const deckId = "card-form-deck";
+  const cardId = "card-id";
+  const renderPage = (path = `/card/${cardId}/edit`) =>
+    render(
+      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+        <Routes>
+          <Route path="/previous" element={<h1>Previous page</h1>} />
+          <Route path="/" element={<h1>Deck list</h1>} />
+          <Route path="/card/:id/edit" element={<CardFormPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
 
-  beforeEach(() => {
-    mocks.params.id = card.id;
+  beforeEach(async () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
-    mocks.card = card;
-    mocks.navigate.mockReset();
     mocks.setDarkMode.mockReset();
+    await createDeck("", createLocalDeck({ id: deckId }));
+    await mutateCards("", [
+      {
+        kind: "create",
+        card: createLocalCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" }),
+      },
+    ]);
   });
 
-  it("composes the resolved card editor in the application shell", () => {
-    render(<CardFormPage />);
+  it("renders the stored card editor in the application shell", () => {
+    renderPage();
 
-    expect(screen.getByRole("heading", { level: 1, name: "Front text" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "Edit card" })).toBeVisible();
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front text");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
-  it("owns navigation after saving", async () => {
-    render(<CardFormPage />);
+  it("returns to the previous page after saving", async () => {
+    renderPage();
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    expect(mocks.navigate).toHaveBeenCalledWith(-1);
+    expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
-  it("owns cancellation navigation", async () => {
-    render(<CardFormPage />);
+  it("returns to the previous page after cancellation", async () => {
+    renderPage();
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-    expect(mocks.navigate).toHaveBeenCalledWith(-1);
+    expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
-  it("shows recovery actions when the card is unavailable", async () => {
-    mocks.card = null;
-    render(<CardFormPage />);
+  it("navigates with both recovery actions when the card is unavailable", async () => {
+    const view = renderPage("/card/missing-card/edit");
 
     expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+
+    view.unmount();
+    renderPage("/card/missing-card/edit");
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, -1);
+    expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
   it("rejects a route without a card id", () => {
-    mocks.params.id = undefined;
-
-    expect(() => render(<CardFormPage />)).toThrowError("invalid card id");
+    expect(() =>
+      render(
+        <MemoryRouter>
+          <CardFormPage />
+        </MemoryRouter>
+      )
+    ).toThrowError("invalid card id");
   });
 });
