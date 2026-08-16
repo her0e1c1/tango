@@ -17,6 +17,8 @@ type DeckImportStatus = "idle" | "validating" | "importing";
 type DeckImportFailure = { stage: "preview"; error: unknown } | { stage: "import"; error: unknown };
 
 interface DeckImportState {
+  uid: string;
+  generation: number;
   storageMode: DeckImportStorageMode;
   status: DeckImportStatus;
   preview: DeckImportPreview | undefined;
@@ -30,13 +32,15 @@ interface DeckImportExecutionState {
   retryAttempt: DeckImportAttempt | undefined;
 }
 
-const INITIAL_STATE: DeckImportState = {
+const initialState = (uid: string, generation: number): DeckImportState => ({
+  uid,
+  generation,
   storageMode: "remote",
   status: "idle",
   preview: undefined,
   failure: undefined,
   result: undefined,
-};
+});
 
 const createExecutionState = (): DeckImportExecutionState => ({
   running: false,
@@ -53,16 +57,25 @@ export const useDeckImport = () => {
   const generationRef = useRef(0);
   // Execution state must update synchronously so operations cannot overlap before React publishes status.
   const executionRef = useRef<DeckImportExecutionState>(createExecutionState());
-  const [state, setState] = useState<DeckImportState>(INITIAL_STATE);
+  const [state, setState] = useState<DeckImportState>(() => initialState(uid, generationRef.current));
+  const currentState =
+    state.uid === uid && state.generation === generationRef.current
+      ? state
+      : initialState(uid, generationRef.current);
 
-  const updateState = (update: Partial<DeckImportState>) => {
-    setState((current) => ({ ...current, ...update }));
+  const updateState = (update: Partial<Omit<DeckImportState, "uid" | "generation">>) => {
+    setState((current) => {
+      const base =
+        current.uid === uid && current.generation === generationRef.current
+          ? current
+          : initialState(uid, generationRef.current);
+      return { ...base, ...update };
+    });
   };
 
   useEffect(() => {
     generationRef.current += 1;
     executionRef.current = createExecutionState();
-    setState(INITIAL_STATE);
   }, [uid]);
 
   const isCurrent = (generation: number) => generation === generationRef.current;
@@ -107,7 +120,7 @@ export const useDeckImport = () => {
 
   const setStorageMode = (storageMode: DeckImportStorageMode) => {
     const execution = executionRef.current;
-    if (execution.running || state.storageMode === storageMode) return;
+    if (execution.running || currentState.storageMode === storageMode) return;
 
     execution.previewAttempt = undefined;
     execution.retryAttempt = undefined;
@@ -119,7 +132,7 @@ export const useDeckImport = () => {
     if (execution.running) throw new Error("A Deck import is already running");
 
     const generation = generationRef.current;
-    const { storageMode } = state;
+    const { storageMode } = currentState;
     execution.running = true;
     execution.previewAttempt = undefined;
     execution.retryAttempt = undefined;
@@ -161,11 +174,11 @@ export const useDeckImport = () => {
   const importPreview = () => {
     const execution = executionRef.current;
     if (execution.running) return Promise.reject(new Error("A Deck import is already running"));
-    if (state.preview == null) return Promise.reject(new Error("Select a CSV file before importing"));
-    if (state.preview.analysis.invalidCount > 0) {
+    if (currentState.preview == null) return Promise.reject(new Error("Select a CSV file before importing"));
+    if (currentState.preview.analysis.invalidCount > 0) {
       return Promise.reject(new Error("Fix invalid CSV rows before importing"));
     }
-    if (state.preview.analysis.rows.length === 0) {
+    if (currentState.preview.analysis.rows.length === 0) {
       return Promise.reject(new Error("The CSV file has no valid rows"));
     }
     if (execution.previewAttempt == null) {
@@ -174,20 +187,20 @@ export const useDeckImport = () => {
     return run(execution.previewAttempt);
   };
 
-  const importError = state.failure?.stage === "import" ? state.failure.error : null;
+  const importError = currentState.failure?.stage === "import" ? currentState.failure.error : null;
 
   return {
     selectFile,
     setStorageMode,
     importPreview,
     addSample: () => run(prepareSampleDeck(uid, { cards, decks, generateCardId })),
-    storageMode: state.storageMode,
-    preview: state.preview,
-    validating: state.status === "validating",
-    pending: state.status === "importing",
+    storageMode: currentState.storageMode,
+    preview: currentState.preview,
+    validating: currentState.status === "validating",
+    pending: currentState.status === "importing",
     error: importError,
-    previewError: state.failure?.stage === "preview" ? state.failure.error : null,
-    result: state.result,
+    previewError: currentState.failure?.stage === "preview" ? currentState.failure.error : null,
+    result: currentState.result,
     partialResult: partialResultFrom(importError),
     retry,
   };
