@@ -77,9 +77,18 @@ const commands = () => ({
   toggleBackText: vi.fn(),
   toggleAutoPlay: vi.fn(),
 });
+const commonState = () => ({
+  ...commands(),
+  showHeader: true,
+  showBackText: false,
+  showController: true,
+  showSwipeButtonList: true,
+  autoPlay: false,
+  updateIndex: noop,
+});
 const studyingState = (): StudyState => ({
   status: "studying",
-  ...commands(),
+  ...commonState(),
   session: {
     sessionId: "session-id",
     deckId: deck.id,
@@ -88,12 +97,6 @@ const studyingState = (): StudyState => ({
     lastStudiedAt: 0,
   },
   card,
-  showHeader: true,
-  showBackText: false,
-  showController: true,
-  showSwipeButtonList: true,
-  autoPlay: false,
-  updateIndex: noop,
 });
 
 describe("StudySessionPage", () => {
@@ -125,13 +128,13 @@ describe("StudySessionPage", () => {
     ["preparing", "Loading…"],
     ["invalid", "Study session unavailable."],
   ] as const)("renders route feedback for %s workflow state", (status, title) => {
-    mocks.studyState = { status, ...commands() };
+    mocks.studyState = { status, ...commonState() };
     render(<StudySessionPage />);
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
   });
 
   it("returns to the deck list when the study session is invalid", async () => {
-    mocks.studyState = { status: "invalid", ...commands() };
+    mocks.studyState = { status: "invalid", ...commonState() };
     render(<StudySessionPage />);
 
     await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
