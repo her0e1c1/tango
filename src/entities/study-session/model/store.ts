@@ -17,6 +17,10 @@ const STUDY_STORAGE_KEY = "tango-study";
 // No migration is registered: changing this version deliberately invalidates older state shapes.
 const STUDY_STORAGE_VERSION = 4;
 
+// Keep session replacement detection available on non-secure origins where randomUUID is not exposed.
+const createStudySessionId = (): string =>
+  typeof crypto.randomUUID === "function" ? crypto.randomUUID() : crypto.getRandomValues(new Uint32Array(4)).join("-");
+
 interface StudySessionState {
   sessionsByDeckId: StudySessions;
 }
@@ -85,7 +89,7 @@ const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
   studySessionStore.setState((state) => {
     state.sessionsByDeckId[deckId] = {
       // A fresh identity distinguishes a restarted deck even when it begins on the same card and index.
-      sessionId: crypto.randomUUID(),
+      sessionId: createStudySessionId(),
       deckId,
       // The store owns this ordering snapshot even if the caller later reuses its array.
       cardOrderIds: [...cardOrderIds],

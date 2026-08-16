@@ -43,6 +43,7 @@ describe("study store", () => {
   afterEach(() => {
     vi.useRealTimers();
     clearStudySessions();
+    vi.unstubAllGlobals();
   });
 
   it("starts at index zero with the configured card order", () => {
@@ -52,6 +53,16 @@ describe("study store", () => {
       cardOrderIds: ["card-1", "card-2"],
       currentIndex: 0,
     });
+  });
+
+  it("starts a session when randomUUID is unavailable", () => {
+    vi.stubGlobal("crypto", {
+      getRandomValues: () => new Uint32Array([1, 2, 3, 4]),
+    });
+
+    startSession("deck-1", ["card-1"]);
+
+    expect(getStudySession("deck-1")?.sessionId).toBe("1-2-3-4");
   });
 
   it("keeps independent study sessions for multiple decks", () => {
