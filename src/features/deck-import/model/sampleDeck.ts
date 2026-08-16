@@ -27,8 +27,10 @@ export const prepareSampleDeck = (uid: string, options: Omit<SampleDeckOptions, 
     { uid, ...options }
   );
 
-export const addSampleDeck = (uid: string, options: SampleDeckOptions) =>
-  executePreparedDeckImport(prepareSampleDeck(uid, options), {
+export const addSampleDeck = (uid: string, options: SampleDeckOptions) => {
+  if (uid === "" || options.decks.length > 0) return Promise.resolve();
+
+  return executePreparedDeckImport(prepareSampleDeck(uid, options), {
     uid,
     createDeck: (deck) => {
       // Samples remain account-synced even when CSV imports support a local destination.
@@ -37,3 +39,4 @@ export const addSampleDeck = (uid: string, options: SampleDeckOptions) =>
     },
     mutateCards: (mutations) => mutateCards(uid, mutations),
   });
+};

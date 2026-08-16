@@ -18,9 +18,9 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   authUid: "user-1",
   deleteDeck: vi.fn(async (_uid: string, _deck: Deck) => undefined),
+  addSampleDeck: vi.fn(async () => undefined),
   touchStudySession: vi.fn(),
   navigate: vi.fn(),
-  sampleBootstrap: vi.fn(),
 }));
 
 vi.mock("@/entities/preferences", () => ({
@@ -39,7 +39,7 @@ vi.mock("@/entities/deck", () => ({
   deleteDeck: mocks.deleteDeck,
   useDecks: () => mocks.decks,
 }));
-vi.mock("@/features/deck-import", () => ({ useSampleDeckBootstrap: mocks.sampleBootstrap }));
+vi.mock("@/features/deck-import", () => ({ addSampleDeck: mocks.addSampleDeck }));
 vi.mock("@/entities/study-session", () => ({
   touchStudySession: mocks.touchStudySession,
   useStudySessions: () => ({}),
@@ -103,7 +103,7 @@ describe("DeckListPage", () => {
     expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith(mocks.authUid, deck);
   });
 
-  it("keeps route shortcuts and sample bootstrap wiring", () => {
+  it("keeps route shortcuts and sample Deck wiring", () => {
     render(<DeckListPage />);
 
     fireEvent.keyDown(window, { key: "s" });
@@ -111,7 +111,12 @@ describe("DeckListPage", () => {
 
     expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/settings");
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/import");
-    expect(mocks.sampleBootstrap).toHaveBeenCalledWith();
+    expect(mocks.addSampleDeck).toHaveBeenCalledWith(mocks.authUid, {
+      cards: mocks.cards,
+      createDeck: expect.any(Function),
+      decks: mocks.decks,
+      generateCardId: expect.any(Function),
+    });
   });
 
   it("renders empty list when no decks exist", () => {
