@@ -28,6 +28,7 @@
 
 - Define pure domain rules, calculations, relationships, selections, and transformations.
 - Express rules using Entity domain types, not store, persistence, or public API types.
+- Let callers pass public Entity types directly when they satisfy the required domain shape; do not map to or construct domain types outside the Entity.
 - Do not access stores, React, browser APIs, or external systems.
 
 ## `model/store.ts`
