@@ -1,183 +1,140 @@
-/**
- * @file Verifies the "DeckImportPage" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "selects a CSV without
- * importing or navigating automatically", "adds the bundled sample without navigating
- * automatically", "navigates to the Deck list after importing the preview", "stays on the import
- * page when importing fails".
- */
-
-import type { ComponentProps } from "react";
-
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import "@testing-library/jest-dom/vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
 
-import type { DeckImportView } from "@/features/deck-import";
+import { useCards } from "@/entities/card";
+import { useDecks } from "@/entities/deck";
 
-type DeckImportViewProps = ComponentProps<typeof DeckImportView>;
-type DeckImportPreview = NonNullable<DeckImportViewProps["preview"]>;
-type DeckImportResult = NonNullable<DeckImportViewProps["result"]>;
-
-const mocks = vi.hoisted(() => ({
-  selectFile: vi.fn(),
-  importPreview: vi.fn(),
-  addSample: vi.fn(),
-  navigate: vi.fn(),
-  downloadSampleCsv: vi.fn(),
+const controls = vi.hoisted(() => ({
+  nextMutationError: undefined as unknown,
   setDarkMode: vi.fn(),
-  preview: undefined as DeckImportPreview | undefined,
-  result: undefined as DeckImportResult | undefined,
-  pending: false,
-  validating: false,
-  error: null as unknown,
-  previewError: null as unknown,
-  storageMode: "remote" as "local" | "remote",
-  setStorageMode: vi.fn(),
 }));
 
-vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/entities/deck", () => ({ createDeck: vi.fn(), useDecks: () => [] }));
-vi.mock("@/entities/card", () => ({
-  generateCardId: vi.fn(),
-  useCards: () => [],
-}));
-vi.mock("@/features/deck-import", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/features/deck-import")>()),
-  SAMPLE_CSV_TEXT: "sample csv",
-  downloadSampleCsv: mocks.downloadSampleCsv,
-  useDeckImport: () => ({
-    selectFile: mocks.selectFile,
-    importPreview: mocks.importPreview,
-    addSample: mocks.addSample,
-    preview: mocks.preview,
-    result: mocks.result,
-    pending: mocks.pending,
-    validating: mocks.validating,
-    error: mocks.error,
-    previewError: mocks.previewError,
-    storageMode: mocks.storageMode,
-    setStorageMode: mocks.setStorageMode,
-  }),
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "" }));
+vi.mock("@/entities/card", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/card")>();
+  return {
+    ...actual,
+    mutateCards: (...arguments_: Parameters<typeof actual.mutateCards>) => {
+      if (controls.nextMutationError !== undefined) {
+        const error = controls.nextMutationError;
+        controls.nextMutationError = undefined;
+        return Promise.reject(error);
+      }
+      return actual.mutateCards(...arguments_);
+    },
+  };
+});
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => ({ appearance: { darkMode: false } }),
+  setDarkMode: controls.setDarkMode,
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-vi.mock("@/entities/preferences", () => ({
-  usePreferences: () => ({ appearance: { darkMode: false } }),
-  setDarkMode: mocks.setDarkMode,
-}));
-
 import { DeckImportPage } from "./DeckImportPage";
 
-const preview = {
-  deckName: "deck.csv",
-  analysis: {
-    rows: [
-      {
-        rowNumber: 1,
-        card: { frontText: "front", backText: "back", tags: [], uniqueKey: "key" },
-      },
-    ],
-    skippedRows: [],
-    issues: [],
-    invalidCount: 0,
-  },
-  plan: {
-    rows: [
-      {
-        rowNumber: 1,
-        card: { frontText: "front", backText: "back", tags: [], uniqueKey: "key" },
-        action: "create",
-      },
-    ],
-    created: 1,
-    updated: 0,
-    unchanged: 0,
-  },
-} satisfies DeckImportPreview;
+const DeckListDestination = () => {
+  const decks = useDecks();
+  const cards = useCards();
+  return (
+    <>
+      <h1>Deck list destination</h1>
+      {decks.map((deck) => (
+        <p key={deck.id}>{deck.name}</p>
+      ))}
+      {cards.map((card) => (
+        <p key={card.id}>{`${card.frontText}: ${card.backText}`}</p>
+      ))}
+    </>
+  );
+};
+
+const renderPage = () =>
+  render(
+    <MemoryRouter initialEntries={["/previous", "/import"]} initialIndex={1}>
+      <Routes>
+        <Route path="/previous" element={<h1>Previous page</h1>} />
+        <Route path="/" element={<DeckListDestination />} />
+        <Route path="/settings" element={<h1>Settings destination</h1>} />
+        <Route path="/import" element={<DeckImportPage />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+const selectLocalFile = async (name: string, backText = "back") => {
+  await userEvent.click(screen.getByRole("radio", { name: /Local only/ }));
+  fireEvent.change(screen.getByLabelText("Upload a csv file"), {
+    target: {
+      files: [new File([`"front","${backText}","tag","key"`], name, { type: "text/csv" })],
+    },
+  });
+  await screen.findByRole("heading", { level: 2, name: "Review import" });
+};
 
 describe("DeckImportPage", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.selectFile.mockResolvedValue(preview);
-    mocks.importPreview.mockResolvedValue({});
-    mocks.addSample.mockResolvedValue({});
-    mocks.preview = undefined;
-    mocks.result = undefined;
-    mocks.pending = false;
-    mocks.validating = false;
-    mocks.error = null;
-    mocks.previewError = null;
-    mocks.storageMode = "remote";
-  });
-
-  it("selects a CSV without importing or navigating automatically", async () => {
-    render(<DeckImportPage />);
-    const file = new File(["front,back,,key"], "deck.csv", { type: "text/csv" });
-
-    fireEvent.change(screen.getByLabelText("Upload a csv file"), {
-      target: { files: [file] },
-    });
-    await userEvent.click(screen.getByRole("button", { name: "Download CSV sample" }));
-
-    expect(mocks.selectFile).toHaveBeenCalledWith(file);
-    expect(mocks.importPreview).not.toHaveBeenCalled();
-    expect(mocks.navigate).not.toHaveBeenCalled();
-    expect(mocks.downloadSampleCsv).toHaveBeenCalledOnce();
-  });
-
-  it("forwards the selected import storage mode to the import controller", async () => {
-    render(<DeckImportPage />);
-
-    await userEvent.click(screen.getByRole("radio", { name: /Local only/ }));
-
-    expect(mocks.setStorageMode).toHaveBeenCalledExactlyOnceWith("local");
+    controls.nextMutationError = undefined;
+    controls.setDarkMode.mockReset();
   });
 
   it("renders the import screen in the application shell", () => {
-    render(<DeckImportPage />);
+    renderPage();
 
+    expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
-  it("navigates from top and settings keyboard shortcuts", () => {
-    render(<DeckImportPage />);
+  it.each([
+    { key: "t", destination: "Deck list destination" },
+    { key: "s", destination: "Settings destination" },
+  ])("opens $destination with the $key shortcut", ({ key, destination }) => {
+    renderPage();
 
-    fireEvent.keyDown(window, { key: "t" });
-    fireEvent.keyDown(window, { key: "s" });
+    fireEvent.keyDown(window, { key });
 
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, "/settings", undefined);
+    expect(screen.getByRole("heading", { level: 1, name: destination })).toBeVisible();
   });
 
-  it("adds the bundled sample without navigating automatically", async () => {
-    render(<DeckImportPage />);
+  it("saves a reviewed local CSV before navigating to the Deck list", async () => {
+    const name = "page-behavior-import.csv";
+    renderPage();
 
-    await userEvent.click(screen.getByRole("button", { name: "Add sample deck" }));
+    await selectLocalFile(name, "saved back");
 
-    expect(mocks.addSample).toHaveBeenCalledOnce();
-    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(screen.getByText("1 create")).toBeVisible();
+    expect(screen.queryByRole("heading", { level: 1, name: "Deck list destination" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Import" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+    expect(screen.getByText(name)).toBeVisible();
+    expect(screen.getByText("front: saved back")).toBeVisible();
   });
 
-  it("navigates to the Deck list after importing the preview", async () => {
-    mocks.preview = preview;
-    render(<DeckImportPage />);
+  it("shows a failed save in place and completes after the file is selected again", async () => {
+    const name = "page-behavior-retry.csv";
+    renderPage();
+    await selectLocalFile(name, "retry back");
+    controls.nextMutationError = new Error("card mutation failed");
 
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
-    expect(mocks.importPreview).toHaveBeenCalledOnce();
-    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/", undefined));
-  });
+    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed");
+    expect(screen.getByRole("alert")).toHaveTextContent("card mutation failed");
+    expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
 
-  it("stays on the import page when importing fails", async () => {
-    mocks.preview = preview;
-    mocks.importPreview.mockRejectedValue(new Error("Import failed"));
-    render(<DeckImportPage />);
-
+    fireEvent.change(screen.getByLabelText(/Upload a csv file/), {
+      target: {
+        files: [new File(['"front","retry back","tag","key"'], name, { type: "text/csv" })],
+      },
+    });
+    expect(await screen.findByRole("heading", { level: 2, name: "Review import" })).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mocks.importPreview).toHaveBeenCalledOnce();
-    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+    expect(screen.getByText(name)).toBeVisible();
+    expect(screen.getByText("front: retry back")).toBeVisible();
   });
 });
