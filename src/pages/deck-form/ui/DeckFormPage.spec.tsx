@@ -1,95 +1,92 @@
-import type { Deck } from "@/entities/deck";
+import type { Preferences } from "@/entities/preferences";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createDeck } from "@/test/factories";
+import { createDeck } from "@/entities/deck";
+import { createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  params: { id: "deck-id" as string | undefined },
-  deck: null as Deck | null,
-  navigate: vi.fn(),
+  preferences: null as unknown as Preferences,
+  setDarkMode: vi.fn(),
 }));
 
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
+  setDarkMode: mocks.setDarkMode,
+}));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-
-vi.mock("@/entities/deck", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/entities/deck")>();
-  return {
-    ...actual,
-    useDeck: () => mocks.deck ?? undefined,
-  };
-});
-vi.mock("@/features/deck-edit", () => ({
-  useDeckEditAction: ({ onSaved }: { onSaved: () => void }) => ({ error: null, update: onSaved }),
-  useDeckFormState: ({ deck, onCancel, onSubmit }: { deck: Deck; onCancel: () => void; onSubmit: () => void }) => ({
-    deck,
-    onCancel,
-    onSubmit,
-  }),
-  DeckEditForm: (props: { deckName: string; form: { onCancel: () => void; onSubmit: () => void } }) => (
-    <section>
-      <h1>{props.deckName}</h1>
-      <button type="button" onClick={props.form.onSubmit}>
-        Save changes
-      </button>
-      <button type="button" onClick={props.form.onCancel}>
-        Cancel
-      </button>
-    </section>
-  ),
-}));
-
-vi.mock("react-router-dom", () => ({
-  useParams: () => mocks.params,
-  useNavigate: () => mocks.navigate,
-}));
 
 import { DeckFormPage } from "./DeckFormPage";
 
 describe("DeckFormPage", () => {
-  const deck = createDeck({ id: "deck-id", name: "Deck name", url: "", category: "", convertToBr: false });
+  const deckId = "deck-id";
+  const renderPage = (path = `/deck/${deckId}/edit`) =>
+    render(
+      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+        <Routes>
+          <Route path="/previous" element={<h1>Previous page</h1>} />
+          <Route path="/" element={<h1>Deck list</h1>} />
+          <Route path="/deck/:id/edit" element={<DeckFormPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
 
-  beforeEach(() => {
-    mocks.params.id = deck.id;
-    mocks.deck = deck;
-    vi.clearAllMocks();
+  beforeEach(async () => {
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
+    mocks.setDarkMode.mockReset();
+    await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr: false }));
   });
 
-  it("composes the route, application shell, and deck editor", () => {
-    render(<DeckFormPage />);
+  it("renders the stored deck editor in the application shell", () => {
+    renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck name" })).toBeVisible();
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
-  it("owns navigation after saving", async () => {
-    render(<DeckFormPage />);
+  it("navigates to the deck list after saving", async () => {
+    renderPage();
+
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
 
-  it("owns cancellation navigation", async () => {
-    render(<DeckFormPage />);
+  it("navigates to the deck list after cancellation", async () => {
+    renderPage();
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-    expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
 
-  it("renders missing-deck recovery outside the application shell", () => {
-    mocks.deck = null;
-    render(<DeckFormPage />);
+  it("navigates with both recovery actions when the deck is unavailable", async () => {
+    const view = renderPage("/deck/missing-deck/edit");
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+
+    view.unmount();
+    renderPage("/deck/missing-deck/edit");
+    await userEvent.click(screen.getByRole("button", { name: "Go back" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
   it("rejects a route without a deck id", () => {
-    mocks.params.id = undefined;
-    expect(() => render(<DeckFormPage />)).toThrowError("invalid deck id");
+    expect(() =>
+      render(
+        <MemoryRouter>
+          <DeckFormPage />
+        </MemoryRouter>
+      )
+    ).toThrowError("invalid deck id");
   });
 });
