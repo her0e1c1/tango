@@ -7,34 +7,31 @@ import { useAuthUid } from "@/entities/auth";
 import { fetchCards, generateCardId, mutateCards, useCards } from "@/entities/card";
 import { createDeck, fetchDecks, useDecks } from "@/entities/deck";
 import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
-import type { DeckImportResult, DeckImportStorageMode } from "./deckImportExecution";
+import type { DeckImportResult, DeckImportStorageMode, PreparedDeckImport } from "./deckImportExecution";
 import { executePreparedDeckImport, prepareDeckImport } from "./deckImportExecution";
 import { prepareSampleDeck } from "./sampleDeck";
-
-type DeckImportAttempt = ReturnType<typeof prepareDeckImport>;
 
 export interface DeckImportPreview {
   deckName: string;
   analysis: DeckImportAnalysis;
-  plan: DeckImportAttempt["plan"];
+  plan: PreparedDeckImport["plan"];
 }
 
 type DeckImportStatus = "idle" | "validating" | "importing";
-
-type DeckImportFailure = { stage: "preview"; error: unknown } | { stage: "import"; error: unknown };
 
 interface DeckImportState {
   uid: string;
   storageMode: DeckImportStorageMode;
   status: DeckImportStatus;
   preview: DeckImportPreview | undefined;
-  failure: DeckImportFailure | undefined;
+  previewError: unknown;
+  error: unknown;
   result: DeckImportResult | undefined;
 }
 
 interface DeckImportExecutionState {
   running: boolean;
-  previewAttempt: DeckImportAttempt | undefined;
+  preparedImport: PreparedDeckImport | undefined;
 }
 
 const initialState = (uid: string): DeckImportState => ({
@@ -42,14 +39,27 @@ const initialState = (uid: string): DeckImportState => ({
   storageMode: "remote",
   status: "idle",
   preview: undefined,
-  failure: undefined,
+  previewError: null,
+  error: null,
   result: undefined,
 });
 
 const createExecutionState = (): DeckImportExecutionState => ({
   running: false,
-  previewAttempt: undefined,
+  preparedImport: undefined,
 });
+
+const loadDestinationData = async (
+  storageMode: DeckImportStorageMode,
+  uid: string,
+  localData: { decks: Deck[]; cards: Card[] }
+): Promise<{ decks: Deck[]; cards: Card[] }> => {
+  if (storageMode === "local") return localData;
+
+  // Listener-backed stores may lag, so remote plans must use authoritative server reads.
+  const [decks, cards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
+  return { decks, cards };
+};
 
 export const useDeckImport = () => {
   const uid = useAuthUid();
@@ -79,16 +89,16 @@ export const useDeckImport = () => {
     if (!isCurrent(generation)) throw new Error("Deck import user changed before the preview could finish");
   };
 
-  const run = async (attempt: DeckImportAttempt) => {
+  const run = async (preparedImport: PreparedDeckImport) => {
     const execution = executionRef.current;
     if (execution.running) throw new Error("A Deck import is already running");
 
     const generation = generationRef.current;
     execution.running = true;
-    updateState({ status: "importing", failure: undefined });
+    updateState({ status: "importing", previewError: null, error: null });
 
     try {
-      const result = await executePreparedDeckImport(attempt, {
+      const result = await executePreparedDeckImport(preparedImport, {
         uid,
         createDeck: (deck) => createDeck(uid, deck),
         mutateCards: (mutations) => mutateCards(uid, mutations),
@@ -96,9 +106,7 @@ export const useDeckImport = () => {
       if (isCurrent(generation)) updateState({ result });
       return result;
     } catch (caughtError) {
-      if (isCurrent(generation)) {
-        updateState({ result: undefined, failure: { stage: "import", error: caughtError } });
-      }
+      if (isCurrent(generation)) updateState({ result: undefined, error: caughtError });
       throw caughtError;
     } finally {
       if (isCurrent(generation)) {
@@ -112,8 +120,8 @@ export const useDeckImport = () => {
     const execution = executionRef.current;
     if (execution.running || currentState.storageMode === storageMode) return;
 
-    execution.previewAttempt = undefined;
-    updateState({ storageMode, preview: undefined, failure: undefined, result: undefined });
+    execution.preparedImport = undefined;
+    updateState({ storageMode, preview: undefined, previewError: null, error: null, result: undefined });
   };
 
   const selectFile = async (file: File) => {
@@ -123,33 +131,37 @@ export const useDeckImport = () => {
     const generation = generationRef.current;
     const { storageMode } = currentState;
     execution.running = true;
-    execution.previewAttempt = undefined;
-    updateState({ status: "validating", preview: undefined, failure: undefined, result: undefined });
+    execution.preparedImport = undefined;
+    updateState({
+      status: "validating",
+      preview: undefined,
+      previewError: null,
+      error: null,
+      result: undefined,
+    });
 
     try {
       const analysis = await parseCsv(await file.text());
       assertCurrent(generation);
 
-      // Listener-backed stores can lag, so remote file imports are planned from authoritative server reads.
-      const [activeDecks, activeCards]: [Deck[], Card[]] =
-        storageMode === "remote" ? await Promise.all([fetchDecks(uid), fetchCards(uid)]) : [decks, cards];
+      const destinationData = await loadDestinationData(storageMode, uid, { decks, cards });
 
       assertCurrent(generation);
 
-      const attempt = prepareDeckImport(
+      const preparedImport = prepareDeckImport(
         { name: file.name, rows: analysis.rows, storageMode },
-        { uid, decks: activeDecks, cards: activeCards, generateCardId }
+        { uid, ...destinationData, generateCardId }
       );
       const preview = {
         deckName: file.name,
         analysis,
-        plan: attempt.plan,
+        plan: preparedImport.plan,
       };
-      execution.previewAttempt = attempt;
+      execution.preparedImport = preparedImport;
       updateState({ preview });
       return preview;
     } catch (caughtError) {
-      if (isCurrent(generation)) updateState({ failure: { stage: "preview", error: caughtError } });
+      if (isCurrent(generation)) updateState({ previewError: caughtError });
       throw caughtError;
     } finally {
       if (isCurrent(generation)) {
@@ -169,12 +181,12 @@ export const useDeckImport = () => {
     if (currentState.preview.analysis.rows.length === 0) {
       return Promise.reject(new Error("The CSV file has no valid rows"));
     }
-    if (execution.previewAttempt == null) {
+    if (execution.preparedImport == null) {
       return Promise.reject(new Error("The prepared Deck import is not available"));
     }
-    const attempt = execution.previewAttempt;
-    execution.previewAttempt = undefined;
-    return run(attempt);
+    const { preparedImport } = execution;
+    execution.preparedImport = undefined;
+    return run(preparedImport);
   };
 
   return {
@@ -186,8 +198,8 @@ export const useDeckImport = () => {
     preview: currentState.preview,
     validating: currentState.status === "validating",
     pending: currentState.status === "importing",
-    error: currentState.failure?.stage === "import" ? currentState.failure.error : null,
-    previewError: currentState.failure?.stage === "preview" ? currentState.failure.error : null,
+    error: currentState.error,
+    previewError: currentState.previewError,
     result: currentState.result,
   };
 };
