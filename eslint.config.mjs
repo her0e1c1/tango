@@ -137,8 +137,18 @@ export default [
       ...strictTypeCheckedRules,
       // Shorthand callbacks that intentionally return void are established project style, not ambiguous expressions.
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
-      // Primitive template interpolation is project policy, not a correctness constraint.
-      "@typescript-eslint/restrict-template-expressions": "off",
+      // Numeric interpolation is intentional for labels and identifiers; other non-string types remain rejected.
+      "@typescript-eslint/restrict-template-expressions": [
+        "error",
+        {
+          allowAny: false,
+          allowBoolean: false,
+          allowNever: false,
+          allowNullish: false,
+          allowNumber: true,
+          allowRegExp: false,
+        },
+      ],
       // Keep the unsafe-any boundary introduced by #533 explicit as the preset expands around it.
       "@typescript-eslint/no-unsafe-argument": "error",
       "@typescript-eslint/no-unsafe-assignment": "error",
