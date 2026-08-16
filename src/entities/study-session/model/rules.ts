@@ -29,6 +29,16 @@ interface DecksByStudyStatus<TDeck> {
   inactive: TDeck[];
 }
 
+interface StudySessionAutoPlayOptions {
+  enabled: boolean;
+  intervalSeconds: number;
+}
+
+interface StudySessionAutoPlayPlan {
+  session: StudySession;
+  intervalSeconds: number;
+}
+
 // Compares Deck names with locale-aware ascending order for deterministic presentation ties.
 const compareDeckNames = (left: NamedDeck, right: NamedDeck): number => left.name.localeCompare(right.name);
 
@@ -115,4 +125,14 @@ export const calculateStudySessionIndex = (
 ): number | undefined => {
   const nextIndex = session.currentIndex + (movement === "previous" ? -1 : 1);
   return nextIndex >= 0 && nextIndex < session.cardOrderIds.length ? nextIndex : undefined;
+};
+
+// Builds a timer plan only while the resolved session can advance automatically.
+export const planStudySessionAutoPlay = (
+  resolvedSession: ResolvedStudySession<StudySessionCard>,
+  { enabled, intervalSeconds }: StudySessionAutoPlayOptions
+): StudySessionAutoPlayPlan | undefined => {
+  if (resolvedSession.status !== "studying" || !enabled || intervalSeconds <= 0) return;
+  const nextIndex = calculateStudySessionIndex(resolvedSession.session, "next");
+  return nextIndex === undefined ? undefined : { session: resolvedSession.session, intervalSeconds };
 };

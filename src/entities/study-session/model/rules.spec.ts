@@ -5,6 +5,7 @@ import {
   compareActiveDecks,
   groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
+  planStudySessionAutoPlay,
   planStudySessionSwipe,
   resolveStudySession,
 } from "./rules";
@@ -59,6 +60,37 @@ describe("calculateStudySessionIndex", () => {
   it("returns no index when movement completes the session", () => {
     expect(calculateStudySessionIndex({ ...session, currentIndex: 0 }, "previous")).toBeUndefined();
     expect(calculateStudySessionIndex({ ...session, currentIndex: 2 }, "next")).toBeUndefined();
+  });
+});
+
+describe("planStudySessionAutoPlay", () => {
+  const resolvedSession = {
+    status: "studying" as const,
+    session,
+    card: { id: "card-2" },
+  };
+
+  it("plans the active session and interval when autoplay can continue", () => {
+    expect(planStudySessionAutoPlay(resolvedSession, { enabled: true, intervalSeconds: 1 })).toEqual({
+      session,
+      intervalSeconds: 1,
+    });
+  });
+
+  it("returns no plan when autoplay is disabled, has no interval, or reaches the final card", () => {
+    expect(planStudySessionAutoPlay(resolvedSession, { enabled: false, intervalSeconds: 1 })).toBeUndefined();
+    expect(planStudySessionAutoPlay(resolvedSession, { enabled: true, intervalSeconds: 0 })).toBeUndefined();
+    expect(
+      planStudySessionAutoPlay(
+        { ...resolvedSession, session: { ...session, currentIndex: 2 }, card: { id: "card-3" } },
+        { enabled: true, intervalSeconds: 1 }
+      )
+    ).toBeUndefined();
+  });
+
+  it("returns no plan without an active study session", () => {
+    expect(planStudySessionAutoPlay({ status: "preparing" }, { enabled: true, intervalSeconds: 1 })).toBeUndefined();
+    expect(planStudySessionAutoPlay({ status: "invalid" }, { enabled: true, intervalSeconds: 1 })).toBeUndefined();
   });
 });
 

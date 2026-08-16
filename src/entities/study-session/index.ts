@@ -1,8 +1,8 @@
 export { useStudySession, useStudySessions } from "./model/hooks";
 export {
-  calculateStudySessionIndex,
   compareActiveDecks,
   groupDecksByStudyStatus,
+  planStudySessionAutoPlay,
   planStudySessionSwipe,
   resolveStudySession,
 } from "./model/rules";
