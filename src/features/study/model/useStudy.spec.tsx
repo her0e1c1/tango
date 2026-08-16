@@ -113,10 +113,11 @@ describe("useStudy", () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
     const { result } = renderHook(() => useStudy(deckId, cards));
+    act(() => result.current.toggleBackText());
 
     act(() => vi.advanceTimersByTime(1000));
 
-    expect(result.current).toMatchObject({ status: "studying", card: { id: "card-2" } });
+    expect(result.current).toMatchObject({ status: "studying", card: { id: "card-2" }, showBackText: false });
   });
 
   it("does not advance a restarted session with an old autoplay timer", () => {
