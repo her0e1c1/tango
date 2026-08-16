@@ -28,7 +28,7 @@ interface DeckImportState {
   preview: DeckImportPreview | undefined;
   previewError: unknown;
   error: unknown;
-  data: DeckImportResult | undefined;
+  result: DeckImportResult | undefined;
 }
 
 const createSession = (uid: string): DeckImportSession => ({
@@ -47,7 +47,7 @@ const initialState = (uid: string): DeckImportState => ({
   preview: undefined,
   previewError: null,
   error: null,
-  data: undefined,
+  result: undefined,
 });
 
 export const useDeckImport = () => {
@@ -88,10 +88,10 @@ export const useDeckImport = () => {
     publish(target, { pending: true, error: null });
     try {
       const result = await executePreparedDeckImport(attempt, executionDependencies);
-      publish(target, { data: result });
+      publish(target, { result });
       return result;
     } catch (importError) {
-      publish(target, { data: undefined, error: importError });
+      publish(target, { result: undefined, error: importError });
       throw importError;
     } finally {
       if (isCurrent(target)) {
@@ -119,7 +119,7 @@ export const useDeckImport = () => {
       preview: undefined,
       previewError: null,
       error: null,
-      data: undefined,
+      result: undefined,
     });
   };
 
@@ -136,7 +136,7 @@ export const useDeckImport = () => {
       preview: undefined,
       previewError: null,
       error: null,
-      data: undefined,
+      result: undefined,
     });
     try {
       const analysis = await parseCsv(await file.text());
@@ -167,7 +167,7 @@ export const useDeckImport = () => {
     }
   };
 
-  const { storageMode, preview, previewError, validating, pending, error, data } = currentState;
+  const { storageMode, preview, previewError, validating, pending, error, result } = currentState;
 
   const importPreview = () => {
     const target = sessionRef.current;
@@ -194,7 +194,7 @@ export const useDeckImport = () => {
     pending,
     error,
     previewError,
-    data,
+    result,
     partialResult: partialResultFrom(error),
     retry,
   };
