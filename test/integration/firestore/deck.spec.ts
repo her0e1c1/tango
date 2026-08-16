@@ -73,6 +73,17 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
+  it("preserves an omitted URL and removes a cleared URL", async () => {
+    const deck = { ...newDeck, id: uuid(), url: "https://example.com/deck" };
+    await createDeck("uid", deck);
+
+    await editDeck("uid", { id: deck.id, name: "updated" });
+    expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({ url: deck.url });
+
+    await editDeck("uid", { id: deck.id, url: null });
+    expect((await getDoc(doc(db, "deck", deck.id))).data()).not.toHaveProperty("url");
+  });
+
   it("should delete a deck and its Cards", async () => {
     const d = { ...newDeck, id: uuid() };
     const cards = [
