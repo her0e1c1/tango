@@ -17,7 +17,6 @@ import { createPreferences } from "@/test/factories";
 const mocks = vi.hoisted(() => ({
   preferences: null as Preferences | null,
   editStudyProgress: vi.fn(),
-  onInvalid: vi.fn(),
   touchStudySession: vi.fn(),
 }));
 
@@ -85,7 +84,7 @@ describe("useStudy", () => {
   });
 
   it("coordinates display state, persistence, and session progression", async () => {
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, cards));
     expect(result.current).toMatchObject({
       status: "studying",
       session: { deckId, cardOrderIds: ["card-1", "card-2"], currentIndex: 0 },
@@ -106,32 +105,31 @@ describe("useStudy", () => {
   });
 
   it("reports preparing while the session card is not available", () => {
-    const { result } = renderHook(() => useStudy(deckId, [], mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, []));
     expect(result.current.status).toBe("preparing");
-    expect(mocks.onInvalid).not.toHaveBeenCalled();
   });
 
   it("advances the session while autoplay is enabled", () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, cards));
 
     act(() => vi.advanceTimersByTime(1000));
 
     expect(result.current).toMatchObject({ status: "studying", card: { id: "card-2" } });
   });
 
-  it("reports and handles an invalid session", async () => {
+  it("reports an invalid session and removes it", async () => {
     clearStudySessions();
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, cards));
 
     expect(result.current.status).toBe("invalid");
-    await waitFor(() => expect(mocks.onInvalid).toHaveBeenCalledOnce());
+    await waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
   });
 
   it("keeps the visible session unchanged when persistence fails", async () => {
     mocks.editStudyProgress.mockRejectedValueOnce(new Error("write failed"));
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, cards));
 
     await actAsync(() => result.current.swipeRight());
 
@@ -146,7 +144,7 @@ describe("useStudy", () => {
         finishWrite = resolve;
       })
     );
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, cards));
 
     const firstSwipe = result.current.swipeRight();
     await actAsync(() => result.current.swipeRight());
@@ -165,7 +163,7 @@ describe("useStudy", () => {
         finishWrite = resolve;
       })
     );
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, cards));
 
     const swipe = result.current.swipeRight();
     setStudySessionIndex(deckId, 1);
@@ -186,7 +184,7 @@ describe("useStudy", () => {
         finishWrite = resolve;
       })
     );
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, cards));
 
     const swipe = result.current.swipeRight();
     vi.mocked(Date.now).mockReturnValue(946_684_800_100);
@@ -202,7 +200,7 @@ describe("useStudy", () => {
 
   it("handles DoNothing and GoBack without writing progress", async () => {
     mocks.preferences = createPreferences({ cardSwipeDown: "DoNothing", cardSwipeLeft: "GoBack" });
-    const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, cards));
 
     await actAsync(() => result.current.swipeDown());
     expect(getStudySession(deckId)).toBeDefined();
@@ -215,7 +213,7 @@ describe("useStudy", () => {
   it("removes the session after the final card is persisted", async () => {
     clearStudySessions();
     startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 });
-    const { result } = renderHook(() => useStudy(deckId, cards.slice(0, 1), mocks.onInvalid));
+    const { result } = renderHook(() => useStudy(deckId, cards.slice(0, 1)));
 
     await actAsync(() => result.current.swipeRight());
 
