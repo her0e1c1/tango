@@ -21,10 +21,8 @@ export interface DeckImportAnalysis {
   invalidCount: number;
 }
 
-export type DeckImportAction = "create" | "update" | "unchanged";
-
 export interface DeckImportPlanRow extends DeckImportRow {
-  action: DeckImportAction;
+  action: "create" | "update" | "unchanged";
 }
 
 export interface DeckImportPlan {

@@ -5,7 +5,6 @@ import { CardBulkMutationError, hasSameEditableCardContent, indexCardsByUniqueKe
 import { generateDeckId } from "@/entities/deck";
 
 import type {
-  DeckImportAction,
   DeckImportPlan,
   DeckImportPlanRow,
   DeckImportResult,
@@ -23,21 +22,21 @@ export interface DeckImportAttempt {
   plan: DeckImportPlan;
 }
 
-export interface DeckImportRequest {
+interface DeckImportRequest {
   name: string;
   preferredDeckId?: DeckId;
   rows: DeckImportRow[];
   storageMode?: DeckImportStorageMode;
 }
 
-export interface DeckImportPreparationDependencies {
+interface DeckImportPreparationDependencies {
   uid: string;
   decks: Deck[];
   cards: Card[];
   generateCardId: () => string;
 }
 
-export interface DeckImportExecutionDependencies {
+interface DeckImportExecutionDependencies {
   uid: string;
   createDeck: (deck: DeckImportCreateInput) => Promise<unknown>;
   mutateCards: (mutations: CardMutation[]) => Promise<unknown>;
@@ -75,7 +74,7 @@ const prepareCardMutations = ({
   const byUniqueKey = indexCardsByUniqueKey(existing);
   const planRows: DeckImportPlanRow[] = [];
   const remainingMutations: CardMutation[] = [];
-  const counts: Record<DeckImportAction, number> = { create: 0, update: 0, unchanged: 0 };
+  const counts: Record<DeckImportPlanRow["action"], number> = { create: 0, update: 0, unchanged: 0 };
   for (const row of rows) {
     const current = byUniqueKey.get(row.card.uniqueKey);
     const action = current == null ? "create" : hasSameEditableCardContent(current, row.card) ? "unchanged" : "update";

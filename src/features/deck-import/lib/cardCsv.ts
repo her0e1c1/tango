@@ -5,20 +5,17 @@ import * as Papa from "papaparse";
 import type { DeckImportAnalysis, DeckImportIssue, DeckImportRow } from "../model/deckImportTypes";
 
 const fromRow = (row: string[]): CardRaw => ({
-  frontText: row[0] || "",
-  backText: row[1] || "",
-  tags:
-    typeof row[2] === "string"
-      ? [
-          ...new Set(
-            row[2]
-              .split(",")
-              .map((tag) => tag.trim())
-              .filter(Boolean)
-          ),
-        ]
-      : [],
-  uniqueKey: (row[3] || "").trim(),
+  frontText: row[0] ?? "",
+  backText: row[1] ?? "",
+  tags: [
+    ...new Set(
+      (row[2] ?? "")
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean)
+    ),
+  ],
+  uniqueKey: (row[3] ?? "").trim(),
 });
 
 const rowContext = (columns: string[]) => JSON.stringify(columns);
@@ -52,25 +49,21 @@ export const parseCsv = async (content: string): Promise<DeckImportAnalysis> => 
   const skippedRows: number[] = [];
   const issues: DeckImportIssue[] = [];
   const invalidRows = new Set<number>();
-  const parseErrorRows = new Set<number>();
   const uniqueKeys = new Set<string>();
-  let fileIssueCount = 0;
 
   parsed.errors.forEach((error) => {
     if (error.row == null) {
-      fileIssueCount += 1;
       issues.push({ message: error.message });
       return;
     }
     const rowNumber = error.row + 1;
     invalidRows.add(rowNumber);
-    parseErrorRows.add(error.row);
     issues.push({ rowNumber, message: error.message, context: rowContext(parsed.data[error.row] ?? []) });
   });
 
   parsed.data.forEach((columns, index) => {
     const rowNumber = index + 1;
-    if (parseErrorRows.has(index)) return;
+    if (invalidRows.has(rowNumber)) return;
     if (columns.every((column) => column.trim() === "")) {
       skippedRows.push(rowNumber);
       return;
@@ -96,9 +89,9 @@ export const parseCsv = async (content: string): Promise<DeckImportAnalysis> => 
   });
 
   if (rows.length === 0 && issues.length === 0) {
-    fileIssueCount += 1;
     issues.push({ message: "The CSV file is empty." });
   }
 
+  const fileIssueCount = issues.filter((issue) => issue.rowNumber === undefined).length;
   return { rows, skippedRows, issues, invalidCount: invalidRows.size + fileIssueCount };
 };
