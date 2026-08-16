@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateStudySessionIndex,
+  canMoveStudySession,
   compareActiveDecks,
+  findCurrentStudySessionCard,
   groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
-  planStudySessionAutoPlay,
   planStudySessionSwipe,
-  resolveStudySession,
 } from "./rules";
 import type { StudySession } from "./types";
 
@@ -63,58 +63,29 @@ describe("calculateStudySessionIndex", () => {
   });
 });
 
-describe("planStudySessionAutoPlay", () => {
-  const resolvedSession = {
-    status: "studying" as const,
-    session,
-    card: { id: "card-2" },
-  };
-
-  it("plans the active session and interval when autoplay can continue", () => {
-    expect(planStudySessionAutoPlay(resolvedSession, { enabled: true, intervalSeconds: 1 })).toEqual({
-      session,
-      intervalSeconds: 1,
-    });
-  });
-
-  it("returns no plan when autoplay is disabled, has no interval, or reaches the final card", () => {
-    expect(planStudySessionAutoPlay(resolvedSession, { enabled: false, intervalSeconds: 1 })).toBeUndefined();
-    expect(planStudySessionAutoPlay(resolvedSession, { enabled: true, intervalSeconds: 0 })).toBeUndefined();
-    expect(
-      planStudySessionAutoPlay(
-        { ...resolvedSession, session: { ...session, currentIndex: 2 }, card: { id: "card-3" } },
-        { enabled: true, intervalSeconds: 1 }
-      )
-    ).toBeUndefined();
-  });
-
-  it("returns no plan without an active study session", () => {
-    expect(planStudySessionAutoPlay({ status: "preparing" }, { enabled: true, intervalSeconds: 1 })).toBeUndefined();
-    expect(planStudySessionAutoPlay({ status: "invalid" }, { enabled: true, intervalSeconds: 1 })).toBeUndefined();
+describe("canMoveStudySession", () => {
+  it("reports whether movement stays inside the Card order", () => {
+    expect(canMoveStudySession(session, "previous")).toBe(true);
+    expect(canMoveStudySession(session, "next")).toBe(true);
+    expect(canMoveStudySession({ ...session, currentIndex: 0 }, "previous")).toBe(false);
+    expect(canMoveStudySession({ ...session, currentIndex: 2 }, "next")).toBe(false);
   });
 });
 
-describe("resolveStudySession", () => {
+describe("findCurrentStudySessionCard", () => {
   const cards = [
     { id: "card-1", label: "one" },
     { id: "card-2", label: "two" },
   ];
 
-  it("resolves the card at the persisted session position", () => {
-    expect(resolveStudySession(session, cards)).toEqual({
-      status: "studying",
-      session,
-      card: cards[1],
-    });
+  it("returns the Card at the persisted session position", () => {
+    expect(findCurrentStudySessionCard(session, cards)).toEqual(cards[1]);
   });
 
-  it("waits while cards for an active session are being prepared", () => {
-    expect(resolveStudySession(session, [])).toEqual({ status: "preparing" });
-  });
-
-  it("reports invalid when the session or its active card is missing", () => {
-    expect(resolveStudySession(undefined, cards)).toEqual({ status: "invalid" });
-    expect(resolveStudySession(session, cards.slice(0, 1))).toEqual({ status: "invalid" });
+  it("returns no Card when the session or active Card is unavailable", () => {
+    expect(findCurrentStudySessionCard(undefined, cards)).toBeUndefined();
+    expect(findCurrentStudySessionCard(session, [])).toBeUndefined();
+    expect(findCurrentStudySessionCard(session, cards.slice(0, 1))).toBeUndefined();
   });
 });
 
