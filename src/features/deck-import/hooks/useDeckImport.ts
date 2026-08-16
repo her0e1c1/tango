@@ -18,7 +18,6 @@ type DeckImportFailure = { stage: "preview"; error: unknown } | { stage: "import
 
 interface DeckImportState {
   uid: string;
-  generation: number;
   storageMode: DeckImportStorageMode;
   status: DeckImportStatus;
   preview: DeckImportPreview | undefined;
@@ -32,9 +31,8 @@ interface DeckImportExecutionState {
   retryAttempt: DeckImportAttempt | undefined;
 }
 
-const initialState = (uid: string, generation: number): DeckImportState => ({
+const initialState = (uid: string): DeckImportState => ({
   uid,
-  generation,
   storageMode: "remote",
   status: "idle",
   preview: undefined,
@@ -57,18 +55,13 @@ export const useDeckImport = () => {
   const generationRef = useRef(0);
   // Execution state must update synchronously so operations cannot overlap before React publishes status.
   const executionRef = useRef<DeckImportExecutionState>(createExecutionState());
-  const [state, setState] = useState<DeckImportState>(() => initialState(uid, generationRef.current));
-  const currentState =
-    state.uid === uid && state.generation === generationRef.current ? state : initialState(uid, generationRef.current);
+  const [state, setState] = useState<DeckImportState>(() => initialState(uid));
 
-  const updateState = (update: Partial<Omit<DeckImportState, "uid" | "generation">>) => {
-    setState((current) => {
-      const base =
-        current.uid === uid && current.generation === generationRef.current
-          ? current
-          : initialState(uid, generationRef.current);
-      return { ...base, ...update };
-    });
+  if (state.uid !== uid) setState(initialState(uid));
+  const currentState = state.uid === uid ? state : initialState(uid);
+
+  const updateState = (update: Partial<Omit<DeckImportState, "uid">>) => {
+    setState((current) => ({ ...(current.uid === uid ? current : initialState(uid)), ...update }));
   };
 
   useEffect(() => {
