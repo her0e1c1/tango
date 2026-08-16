@@ -8,7 +8,7 @@ export const studySessionSchema: z.ZodType<StudySession> = z
     deckId: z.string().min(1),
     cardOrderIds: z.array(z.string().min(1)).min(1),
     currentIndex: z.number().int().nonnegative(),
-    lastStudiedAt: z.number().finite().nonnegative(),
+    lastStudiedAt: z.number().nonnegative(),
   })
   .refine((session) => session.currentIndex < session.cardOrderIds.length, {
     message: "Study session index must point to an active card",
