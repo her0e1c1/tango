@@ -40,7 +40,7 @@ export const DeckImportPage: React.FC = () => {
             .catch(() => undefined);
         }}
         onRetry={deckImport.retry}
-        onBack={() => navigate(-1)}
+        onBack={() => void navigate(-1)}
         onDownloadSample={downloadSampleCsv}
         validating={deckImport.validating}
         pending={deckImport.pending}

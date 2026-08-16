@@ -25,6 +25,10 @@ export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateO
     },
     resolver: zodResolver(deckFormSchema),
   });
+  const submit = handleSubmit((values) => onSubmit({ id: deck.id, ...values, url: values.url ?? null }));
+  const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
+    void submit(event);
+  };
 
   return {
     deck,
@@ -44,6 +48,6 @@ export const useDeckFormState = ({ deck, onCancel, onSubmit }: UseDeckFormStateO
     },
     isSubmitting: formState.isSubmitting,
     onCancel,
-    onSubmit: handleSubmit((values) => onSubmit({ id: deck.id, ...values, url: values.url ?? null })),
+    onSubmit: onFormSubmit,
   };
 };
