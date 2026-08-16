@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  calculateStudySessionAutoPlayIndex,
   calculateStudySessionIndex,
   compareActiveDecks,
   groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
+  planStudySessionAutoPlay,
   planStudySessionSwipe,
   resolveStudySession,
 } from "./rules";
@@ -63,20 +63,34 @@ describe("calculateStudySessionIndex", () => {
   });
 });
 
-describe("calculateStudySessionAutoPlayIndex", () => {
-  it("returns the next index when autoplay can continue", () => {
-    expect(calculateStudySessionAutoPlayIndex(session, "studying", true, 1)).toBe(2);
+describe("planStudySessionAutoPlay", () => {
+  const resolvedSession = {
+    status: "studying" as const,
+    session,
+    card: { id: "card-2" },
+  };
+
+  it("plans the next index and interval when autoplay can continue", () => {
+    expect(planStudySessionAutoPlay(resolvedSession, { enabled: true, intervalSeconds: 1 })).toEqual({
+      nextIndex: 2,
+      intervalSeconds: 1,
+    });
   });
 
-  it("returns no index when autoplay is disabled, has no interval, or reaches the final card", () => {
-    expect(calculateStudySessionAutoPlayIndex(session, "studying", false, 1)).toBeUndefined();
-    expect(calculateStudySessionAutoPlayIndex(session, "studying", true, 0)).toBeUndefined();
-    expect(calculateStudySessionAutoPlayIndex({ ...session, currentIndex: 2 }, "studying", true, 1)).toBeUndefined();
+  it("returns no plan when autoplay is disabled, has no interval, or reaches the final card", () => {
+    expect(planStudySessionAutoPlay(resolvedSession, { enabled: false, intervalSeconds: 1 })).toBeUndefined();
+    expect(planStudySessionAutoPlay(resolvedSession, { enabled: true, intervalSeconds: 0 })).toBeUndefined();
+    expect(
+      planStudySessionAutoPlay(
+        { ...resolvedSession, session: { ...session, currentIndex: 2 }, card: { id: "card-3" } },
+        { enabled: true, intervalSeconds: 1 }
+      )
+    ).toBeUndefined();
   });
 
-  it("returns no index without an active study session", () => {
-    expect(calculateStudySessionAutoPlayIndex(session, "preparing", true, 1)).toBeUndefined();
-    expect(calculateStudySessionAutoPlayIndex(undefined, "invalid", true, 1)).toBeUndefined();
+  it("returns no plan without an active study session", () => {
+    expect(planStudySessionAutoPlay({ status: "preparing" }, { enabled: true, intervalSeconds: 1 })).toBeUndefined();
+    expect(planStudySessionAutoPlay({ status: "invalid" }, { enabled: true, intervalSeconds: 1 })).toBeUndefined();
   });
 });
 

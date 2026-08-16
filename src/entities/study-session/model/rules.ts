@@ -29,6 +29,16 @@ interface DecksByStudyStatus<TDeck> {
   inactive: TDeck[];
 }
 
+interface StudySessionAutoPlayOptions {
+  enabled: boolean;
+  intervalSeconds: number;
+}
+
+interface StudySessionAutoPlayPlan {
+  nextIndex: number;
+  intervalSeconds: number;
+}
+
 const compareDeckNames = (left: NamedDeck, right: NamedDeck): number => left.name.localeCompare(right.name);
 
 export const compareActiveDecks = <TDeck extends NamedDeck>(
@@ -110,12 +120,11 @@ export const calculateStudySessionIndex = (
   return nextIndex >= 0 && nextIndex < session.cardOrderIds.length ? nextIndex : undefined;
 };
 
-export const calculateStudySessionAutoPlayIndex = (
-  session: StudySession | undefined,
-  status: ResolvedStudySession<StudySessionCard>["status"],
-  autoPlay: boolean,
-  cardInterval: number
-): number | undefined => {
-  if (session == null || status !== "studying" || !autoPlay || cardInterval <= 0) return;
-  return calculateStudySessionIndex(session, "next");
+export const planStudySessionAutoPlay = (
+  resolvedSession: ResolvedStudySession<StudySessionCard>,
+  { enabled, intervalSeconds }: StudySessionAutoPlayOptions
+): StudySessionAutoPlayPlan | undefined => {
+  if (resolvedSession.status !== "studying" || !enabled || intervalSeconds <= 0) return;
+  const nextIndex = calculateStudySessionIndex(resolvedSession.session, "next");
+  return nextIndex === undefined ? undefined : { nextIndex, intervalSeconds };
 };

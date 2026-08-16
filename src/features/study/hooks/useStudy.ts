@@ -4,9 +4,9 @@ import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preferences";
 import { editStudyProgress } from "@/entities/study-progress";
 import {
-  calculateStudySessionAutoPlayIndex,
   getStudySession,
   moveStudySession,
+  planStudySessionAutoPlay,
   planStudySessionSwipe,
   removeStudySession,
   resolveStudySession,
@@ -90,6 +90,12 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
   };
   const session = useStudySession(deckId);
   const resolvedSession = resolveStudySession(session, cards);
+  const autoPlayPlan = planStudySessionAutoPlay(resolvedSession, {
+    enabled: autoPlay,
+    intervalSeconds: preferences.study.cardInterval,
+  });
+  const autoPlayNextIndex = autoPlayPlan?.nextIndex;
+  const autoPlayIntervalSeconds = autoPlayPlan?.intervalSeconds;
   const exitingDeck = React.useRef<DeckId>(undefined);
 
   React.useEffect(() => {
@@ -111,18 +117,12 @@ export const useStudy = (deckId: DeckId, cards: readonly Card[], onInvalid: () =
   }, [deckId, onInvalid, resolvedSession.status]);
 
   React.useEffect(() => {
-    const nextIndex = calculateStudySessionAutoPlayIndex(
-      session,
-      resolvedSession.status,
-      autoPlay,
-      preferences.study.cardInterval
-    );
-    if (nextIndex === undefined) return;
+    if (autoPlayNextIndex === undefined || autoPlayIntervalSeconds === undefined) return;
     const timeout = window.setTimeout(() => {
-      if (setStudySessionIndex(deckId, nextIndex)) setShowBackText(false);
-    }, preferences.study.cardInterval * 1000);
+      if (setStudySessionIndex(deckId, autoPlayNextIndex)) setShowBackText(false);
+    }, autoPlayIntervalSeconds * 1000);
     return () => window.clearTimeout(timeout);
-  }, [autoPlay, deckId, preferences.study.cardInterval, resolvedSession.status, session]);
+  }, [autoPlayIntervalSeconds, autoPlayNextIndex, deckId]);
   const commands: StudyCommands = {
     swipeUp: () => swipe("cardSwipeUp"),
     swipeDown: () => swipe("cardSwipeDown"),
