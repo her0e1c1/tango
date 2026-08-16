@@ -1,4 +1,5 @@
-import type { DeckCreate, DeckDocument, DeckDomain, DeckId, DeckStore, DeckView, LocalDeck, RemoteDeck } from "./types";
+import type { DeckDocument } from "../api/document";
+import type { DeckCreate, DeckDomain, DeckId, DeckStore, DeckView, LocalDeck, RemoteDeck } from "./types";
 
 // Zod may retain explicit undefined at input boundaries; every mapper removes it before creating Domain-backed data.
 type DeckDomainDto = Omit<DeckDomain, "url"> & { url?: string | undefined };

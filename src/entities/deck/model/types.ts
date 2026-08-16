@@ -3,6 +3,7 @@ import type { z } from "zod";
 import type {
   deckCreateSchema,
   deckEditSchema,
+  deckIdSchema,
   deleteDeckSchema,
   editDeckSchema,
   localDeckCreateSchema,
@@ -11,7 +12,7 @@ import type {
 /** Deck rendering category or syntax-highlighting language. */
 export type Category = string;
 /** Stable identifier shared by Deck boundaries and dependent Entities. */
-export type DeckId = string;
+export type DeckId = z.infer<typeof deckIdSchema>;
 
 /** Entity-internal Deck data without ownership, persistence, or presentation metadata. */
 export type DeckDomain = {
@@ -55,15 +56,6 @@ export interface PersistedDeckState {
 export type DeckView = DeckDomain & { localMode: boolean };
 /** Public Deck read model exposed outside the Entity. */
 export type Deck = DeckView;
-/** Field shape stored in one remote Deck Firestore document. */
-export type DeckDocument = Omit<DeckDomain, "id" | "url"> & {
-  /** Legacy documents may duplicate the Firestore document id in their stored fields. */
-  id?: DeckId | undefined;
-  /** Boundary validation may preserve an explicit undefined before the DTO mapper removes it. */
-  url?: string | undefined;
-  uid: string;
-  deletedAt: number | null;
-};
 /** Validated payload used to create a remote Deck document. */
 export type DeckCreate = z.infer<typeof deckCreateSchema>;
 /** Input accepted at the remote Deck creation boundary. */

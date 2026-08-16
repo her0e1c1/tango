@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { parseFirestoreDocument } from "@/shared/api";
-import type { DeckDocument, DeckId } from "../model/types";
+import type { DeckId } from "../model/types";
 
 const deckDocumentSchema = z.object({
   // Older documents duplicate the Firestore document id in their data.
@@ -21,6 +21,9 @@ const deckDocumentSchema = z.object({
   category: z.string(),
   convertToBr: z.boolean(),
 });
+
+/** Validated field shape stored in one physical Deck Firestore document. */
+export type DeckDocument = z.infer<typeof deckDocumentSchema>;
 
 // Parses one Firestore payload and reports Deck-specific validation context.
 export const parseDeckDocument = (id: DeckId, value: unknown): DeckDocument =>
