@@ -52,8 +52,8 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
 }));
 
 describe("useStudy", () => {
-  beforeEach(async () => {
-    await clearStudySessions();
+  beforeEach(() => {
+    clearStudySessions();
     localStorage.clear();
     vi.clearAllMocks();
     mocks.editStudyProgress.mockResolvedValue(undefined);
@@ -107,7 +107,7 @@ describe("useStudy", () => {
   });
 
   it("reports and handles an invalid session", async () => {
-    await clearStudySessions();
+    clearStudySessions();
     const { result } = renderHook(() => useStudy(deckId, cards, mocks.onInvalid));
 
     expect(result.current.status).toBe("invalid");

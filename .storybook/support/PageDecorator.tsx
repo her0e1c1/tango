@@ -51,8 +51,8 @@ const cloneCard = (card: RemoteCard): RemoteCard => ({
  * Rehydrates persisted stores and replaces their values with one story's deterministic fixture.
  * Running this in a Storybook loader guarantees study hydration is complete before the route renders.
  */
-export const preparePageStory = async (parameters: PageStoryParameters): Promise<void> => {
-  await clearStudySessions();
+export const preparePageStory = (parameters: PageStoryParameters): void => {
+  clearStudySessions();
 
   replaceAuthSession({
     status: "authenticated",

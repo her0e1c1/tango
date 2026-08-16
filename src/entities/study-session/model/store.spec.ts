@@ -40,9 +40,9 @@ describe("study store", () => {
     localStorage.clear();
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     vi.useRealTimers();
-    await clearStudySessions();
+    clearStudySessions();
   });
 
   it("starts at index zero with the configured card order", () => {
@@ -126,26 +126,26 @@ describe("study store", () => {
     });
   });
 
-  it("clears both memory and persisted storage", async () => {
+  it("clears both memory and persisted storage", () => {
     localStorage.clear();
     startSession("deck-1", ["card-1"]);
 
     expect(getStudySession("deck-1")).toBeDefined();
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).not.toBeNull();
 
-    await clearStudySessions();
+    clearStudySessions();
 
     expect(getStudySession("deck-1")).toBeUndefined();
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
   });
 
-  it("rejects when persisted storage cleanup fails", async () => {
+  it("throws when persisted storage cleanup fails", () => {
     const failure = new Error("storage cleanup failed");
     vi.spyOn(store.persist, "clearStorage").mockImplementationOnce(() => {
       throw failure;
     });
 
-    await expect(clearStudySessions()).rejects.toBe(failure);
+    expect(() => clearStudySessions()).toThrow(failure);
   });
 
   it("persists exactly the session map in a v3 envelope", async () => {

@@ -52,8 +52,8 @@ describe("useStudyActions", () => {
   const onSwipe = vi.fn();
   const onCardChanged = vi.fn();
 
-  beforeEach(async () => {
-    await clearStudySessions();
+  beforeEach(() => {
+    clearStudySessions();
     localStorage.clear();
     vi.clearAllMocks();
     vi.spyOn(Date, "now").mockReturnValue(946_684_800_000);
