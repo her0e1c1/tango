@@ -1,186 +1,138 @@
-import type { StudyState } from "@/features/study";
+import type { Preferences } from "@/entities/preferences";
 
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import "@testing-library/jest-dom/vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
+
+import { deleteCard, mutateCards } from "@/entities/card";
+import { createDeck } from "@/entities/deck";
+import { clearStudySessions, startStudy } from "@/entities/study-session";
+import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  params: { id: "deck-id" as string | undefined },
-  navigate: vi.fn(),
-  studyState: undefined as StudyState | undefined,
-  studyDeckId: undefined as string | undefined,
-  studyListeners: new Set<() => void>(),
+  preferences: null as unknown as Preferences,
+  editStudyProgress: vi.fn(),
+  setDarkMode: vi.fn(),
+  toggleShowHeader: vi.fn(),
+  toggleShowSwipeButtonList: vi.fn(),
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("react-router-dom", () => ({
-  useNavigate: () => mocks.navigate,
-  useParams: () => mocks.params,
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
+  setDarkMode: mocks.setDarkMode,
+  toggleShowHeader: mocks.toggleShowHeader,
+  toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
 }));
-vi.mock("@/features/study", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/study")>();
-  const React = await import("react");
-  return {
-    ...actual,
-    useStudy: (deckId: string) => {
-      mocks.studyDeckId = deckId;
-      const studyState = React.useSyncExternalStore(
-        (listener) => {
-          mocks.studyListeners.add(listener);
-          return () => mocks.studyListeners.delete(listener);
-        },
-        () => mocks.studyState
-      );
-      if (studyState == null) throw new Error("Study state not initialized");
-      return studyState;
-    },
-  };
-});
+// Persistence is outside Page behavior; successful writes let the real study workflow advance.
+vi.mock("@/entities/study-progress", () => ({ editStudyProgress: mocks.editStudyProgress }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionPage } from "./StudySessionPage";
 
-const deck = {
-  id: "deck-id",
-  localMode: false,
-  name: "Deck",
-  isPublic: false,
-  createdAt: 0,
-  updatedAt: 0,
-  category: "raw",
-  convertToBr: false,
-  selectedTags: [],
-  tagAndFilter: false,
-  scoreMax: null,
-  scoreMin: null,
-};
-const card = {
-  id: "card-id",
-  deckId: deck.id,
-  uid: "user-id",
-  frontText: "FRONT SLOT",
-  backText: "const answer = 42;",
-  tags: ["typescript"],
-  uniqueKey: "unique-key",
-  score: 2,
-  numberOfSeen: 3,
-  createdAt: 0,
-  updatedAt: 0,
-  deletedAt: null,
-  lastSeenAt: 1,
-};
-const noop = vi.fn();
-const commands = () => ({
-  swipeUp: vi.fn(),
-  swipeDown: vi.fn(),
-  swipeLeft: vi.fn(),
-  swipeRight: vi.fn(),
-  toggleBackText: vi.fn(),
-  toggleAutoPlay: vi.fn(),
-  toggleHeader: vi.fn(),
-  toggleSwipeButtonList: vi.fn(),
-});
-const commonState = () => ({
-  ...commands(),
-  showHeader: true,
-  showBackText: false,
-  showController: true,
-  showSwipeButtonList: true,
-  autoPlay: false,
-  updateIndex: noop,
-});
-const studyingState = (): StudyState => ({
-  status: "studying",
-  ...commonState(),
-  session: {
-    currentIndex: 0,
-    cardCount: 1,
-  },
-  card: {
-    frontText: card.frontText,
-    category: "typescript",
-    score: card.score,
-    numberOfSeen: card.numberOfSeen,
-    lastSeenAt: card.lastSeenAt,
-    back: {
-      text: card.backText,
-      category: "typescript",
-      code: true,
-      dark: false,
-    },
-  },
-});
-
 describe("StudySessionPage", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.params.id = deck.id;
-    mocks.studyState = studyingState();
-    mocks.studyDeckId = undefined;
-    mocks.studyListeners.clear();
-    window.history.replaceState(null, document.title, document.location.href);
+  const deckId = "deck-id";
+  const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
+  const firstCard = createLocalCard({
+    id: "first-card",
+    deckId,
+    frontText: "Front one",
+    backText: "Back one",
+    uniqueKey: "first-card",
+    score: 2,
+    numberOfSeen: 3,
+  });
+  const secondCard = createLocalCard({
+    id: "second-card",
+    deckId,
+    frontText: "Front two",
+    backText: "Back two",
+    uniqueKey: "second-card",
+    score: 1,
+    numberOfSeen: 4,
+  });
+  const renderPage = (path = `/deck/${deckId}/study`) =>
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/" element={<h1>Deck list destination</h1>} />
+          <Route path="/deck/:id/study" element={<StudySessionPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+  beforeEach(async () => {
+    clearStudySessions();
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
+    mocks.editStudyProgress.mockReset().mockResolvedValue(undefined);
+    mocks.setDarkMode.mockReset();
+    mocks.toggleShowHeader.mockReset();
+    mocks.toggleShowSwipeButtonList.mockReset();
+    await createDeck("", deck);
+    await mutateCards("", [
+      { kind: "create", card: firstCard },
+      { kind: "create", card: secondCard },
+    ]);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
   });
 
-  it("validates the route parameter", () => {
-    mocks.params.id = undefined;
-    expect(() => render(<StudySessionPage />)).toThrow("invalid deck id");
-  });
+  it("renders the active session from stored Entity state", () => {
+    renderPage();
 
-  it("passes the route id to the Study Feature and composes the application shell", () => {
-    render(<StudySessionPage />);
-
-    expect(mocks.studyDeckId).toBe(deck.id);
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
-    expect(screen.getByText(card.frontText)).toBeVisible();
+    expect(screen.getByText("Front one")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
 
-  it.each([
-    ["preparing", "Loading…"],
-    ["invalid", "Study session unavailable."],
-  ] as const)("renders route feedback for %s workflow state", (status, title) => {
-    mocks.studyState = { status, ...commonState() };
-    render(<StudySessionPage />);
-    expect(screen.getByRole("heading", { name: title })).toBeVisible();
-  });
-
-  it("returns to the deck list when the study session is invalid", async () => {
-    mocks.studyState = { status: "invalid", ...commonState() };
-    render(<StudySessionPage />);
-
-    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
-  });
-
-  it("delegates a representative Study shortcut to the workflow action", () => {
-    render(<StudySessionPage />);
-    const state = mocks.studyState;
-    if (state?.status !== "studying") throw new Error("expected studying workflow state");
-
-    fireEvent.keyDown(window, { key: "ArrowLeft" });
-
-    expect(state.swipeLeft).toHaveBeenCalledOnce();
-  });
-
-  it("uses the current Study action after the workflow finishes preparing", () => {
-    const preparing = { status: "preparing" as const, ...commonState() };
-    mocks.studyState = preparing;
-    render(<StudySessionPage />);
+  it("reveals the current answer from the Enter shortcut", () => {
+    renderPage();
 
     fireEvent.keyDown(window, { key: "Enter" });
-    expect(preparing.toggleBackText).not.toHaveBeenCalled();
 
-    const studying = studyingState();
-    act(() => {
-      mocks.studyState = studying;
-      for (const listener of [...mocks.studyListeners]) listener();
-    });
-    fireEvent.keyDown(window, { key: "Enter" });
-
-    expect(studying.toggleBackText).toHaveBeenCalledOnce();
+    expect(screen.getByText("Back one")).toBeVisible();
   });
 
-  it("shows route feedback when the Study Feature reports an unavailable Deck", () => {
-    mocks.studyState = { status: "unavailable", ...commonState() };
-    render(<StudySessionPage />);
+  it("shows the next stored card after the ArrowRight shortcut", async () => {
+    renderPage();
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+
+    await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
+    expect(screen.queryByText("Front one")).not.toBeInTheDocument();
+  });
+
+  it("shows loading feedback while active session cards are unavailable", async () => {
+    await deleteCard("", firstCard);
+    await deleteCard("", secondCard);
+    clearStudySessions();
+    startStudy(deckId, [firstCard], mocks.preferences.study);
+
+    renderPage();
+
+    expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
+  });
+
+  it("returns to the deck list when no active session exists", async () => {
+    clearStudySessions();
+    renderPage();
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+  });
+
+  it("shows route feedback when the Deck Entity is unavailable", () => {
+    renderPage("/deck/missing-deck/study");
+
     expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
+  });
+
+  it("rejects a route without a deck id", () => {
+    expect(() =>
+      render(
+        <MemoryRouter>
+          <StudySessionPage />
+        </MemoryRouter>
+      )
+    ).toThrowError("invalid deck id");
   });
 });
