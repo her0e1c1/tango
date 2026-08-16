@@ -62,12 +62,11 @@ export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
 const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];
 
-// Finds the loaded Card at the active session position without inferring application loading state.
-export const findCurrentStudySessionCard = <Card extends StudySessionCard>(
-  session: StudySession | undefined,
+// Finds the loaded Card at the active session position for swipe planning.
+const findCurrentStudySessionCard = <Card extends StudySessionCard>(
+  session: StudySession,
   cards: readonly Card[]
 ): Card | undefined => {
-  if (session == null) return;
   const cardId = getCurrentStudySessionCardId(session);
   return cardId == null ? undefined : cards.find(({ id }) => id === cardId);
 };
