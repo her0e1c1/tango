@@ -94,21 +94,31 @@ describe("Card mutations", () => {
     expect(mocks.editRemoteCard).toHaveBeenCalledWith("uid-a", edited);
   });
 
-  it("rejects when a Card mutation fails", async () => {
+  it("waits for every Card mutation before rejecting with the first failure", async () => {
     const deck = createDeckFixture({ id: "remote-deck", localMode: false });
     const first = createCardFixture({ id: "first", deckId: deck.id });
     const second = createCardFixture({ id: "second", deckId: deck.id });
+    let finishEdit!: () => void;
     mocks.findDeckById.mockReturnValue(deck);
     cardStore.setState({ remoteCards: [second], localCards: [] });
     mocks.createRemoteCard.mockRejectedValueOnce(new Error("create failed"));
-    mocks.editRemoteCard.mockRejectedValueOnce(new Error("edit failed"));
+    mocks.editRemoteCard.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishEdit = resolve;
+      })
+    );
 
-    await expect(
-      mutateCards("uid-a", [
-        { kind: "create", card: first },
-        { kind: "edit", card: second },
-      ])
-    ).rejects.toThrow("create failed");
+    const mutation = mutateCards("uid-a", [
+      { kind: "create", card: first },
+      { kind: "edit", card: second },
+    ]);
+    const settled = vi.fn();
+    void mutation.then(settled, settled);
+    await Promise.resolve();
+
+    expect(settled).not.toHaveBeenCalled();
+    finishEdit();
+    await expect(mutation).rejects.toThrow("create failed");
   });
 
   it("rejects edit and delete when the Card cannot be resolved", async () => {

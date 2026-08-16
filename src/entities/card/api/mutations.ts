@@ -53,11 +53,13 @@ export const editCard = async (uid: string, card: CardEditInput): Promise<void> 
 };
 
 export const mutateCards = async (uid: string, mutations: CardMutation[]): Promise<void> => {
-  await Promise.all(
+  const results = await Promise.allSettled(
     mutations.map((mutation) =>
       mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
     )
   );
+  const failure = results.find((result) => result.status === "rejected");
+  if (failure?.status === "rejected") throw failure.reason;
 };
 
 export const deleteCard = async (uid: string, card: { id: CardId }): Promise<void> => {
