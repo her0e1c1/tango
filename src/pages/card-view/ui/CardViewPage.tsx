@@ -1,15 +1,16 @@
 import type * as React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { useCard } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
 import { CardView } from "@/features/card-view";
+import { useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const CardViewPage: React.FC = () => {
   const params = useParams();
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const cardId = params.id;
   if (cardId == null) throw new Error("invalid card id");
   const card = useCard(cardId);
@@ -22,8 +23,8 @@ export const CardViewPage: React.FC = () => {
         title="Card not found"
         description="The requested card is unavailable or has been removed."
         tone="not-found"
-        primaryAction={{ label: "Go home", onClick: () => void navigate("/") }}
-        secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
+        primaryAction={{ label: "Go home", onClick: () => void navigation.goToDeckList() }}
+        secondaryAction={{ label: "Go back", onClick: () => void navigation.goBack() }}
       />
     );
   }

@@ -1,5 +1,4 @@
 import type * as React from "react";
-import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuthUid } from "@/entities/auth";
@@ -8,18 +7,19 @@ import { deleteDeck, useDecks } from "@/entities/deck";
 import { touchStudySession, useStudySessions } from "@/entities/study-session";
 import { useAddSampleDeck } from "@/features/deck-import";
 import { DeckList } from "@/features/deck-list";
+import { useNavigation } from "@/shared/routes";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckListPage: React.FC = () => {
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const uid = useAuthUid();
   const cards = useCards();
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
 
   useAddSampleDeck();
-  useKey("s", () => void navigate("/settings"));
-  useKey("i", () => void navigate("/import"));
+  useKey("s", () => void navigation.goToSettings());
+  useKey("i", () => void navigation.goToDeckImport());
 
   return (
     <AppLayout showHeader>
@@ -27,13 +27,13 @@ export const DeckListPage: React.FC = () => {
         decks={decks}
         cards={cards}
         sessionsByDeckId={sessionsByDeckId}
-        onViewDeck={(id) => void navigate(`/deck/${id}`)}
+        onViewDeck={(id) => void navigation.goToCardList(id)}
         onContinueDeck={(id) => {
           touchStudySession(id);
-          void navigate(`/deck/${id}/study`);
+          void navigation.goToDeckStudy(id);
         }}
-        onStartDeck={(id) => void navigate(`/deck/${id}/start`)}
-        onEditDeck={(id) => void navigate(`/deck/${id}/edit`)}
+        onStartDeck={(id) => void navigation.goToDeckStudyStart(id)}
+        onEditDeck={(id) => void navigation.goToDeckForm(id)}
         onDeleteDeck={(deck) => deleteDeck(uid, deck)}
       />
     </AppLayout>

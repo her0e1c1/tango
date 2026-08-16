@@ -1,17 +1,17 @@
 import type React from "react";
-import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { usePreferences } from "@/entities/preferences";
 import { DeckImportView, downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck-import";
+import { useNavigation } from "@/shared/routes";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckImportPage: React.FC = () => {
   const preferences = usePreferences();
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const deckImport = useDeckImport();
-  useKey("t", () => void navigate("/"));
-  useKey("s", () => void navigate("/settings"));
+  useKey("t", () => void navigation.goToDeckList());
+  useKey("s", () => void navigation.goToSettings());
 
   return (
     <AppLayout showHeader>
@@ -27,11 +27,11 @@ export const DeckImportPage: React.FC = () => {
         onImport={() => {
           void deckImport
             .importPreview()
-            .then(() => navigate("/"))
+            .then(() => navigation.goToDeckList())
             .catch(() => undefined);
         }}
         onRetry={deckImport.retry}
-        onBack={() => void navigate(-1)}
+        onBack={() => void navigation.goBack()}
         onDownloadSample={downloadSampleCsv}
         validating={deckImport.validating}
         pending={deckImport.pending}
