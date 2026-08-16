@@ -47,12 +47,15 @@ export const localDeckSchema = localDeckCreateSchema.extend({
   updatedAt: z.number(),
 });
 
+export const persistedDeckStateSchema = z.object({ localDecks: z.array(localDeckSchema) });
+
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   id: deckIdSchema,
   url: editableDeckFieldsSchema.shape.url.nullable(),
 });
 const deckIdentitySchema = z.object({ id: deckIdSchema, uid: deckUidSchema });
 
+// Rejects remote Deck commands whose stored owner differs from the authenticated user.
 const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, context: z.RefinementCtx): void => {
   if (input.deck.uid !== input.uid) {
     context.addIssue({

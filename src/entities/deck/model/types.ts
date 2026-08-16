@@ -3,13 +3,16 @@ import type { z } from "zod";
 import type {
   deckCreateSchema,
   deckEditSchema,
+  deckIdSchema,
   deleteDeckSchema,
   editDeckSchema,
   localDeckCreateSchema,
 } from "./schema";
 
+/** Deck rendering category or syntax-highlighting language. */
 export type Category = string;
-export type DeckId = string;
+/** Stable identifier shared by Deck boundaries and dependent Entities. */
+export type DeckId = z.infer<typeof deckIdSchema>;
 
 /** Entity-internal Deck data without ownership, persistence, or presentation metadata. */
 export type DeckDomain = {
@@ -39,22 +42,29 @@ export type DeckDomain = {
   updatedAt: number;
 };
 
+/** Browser-persisted Deck variant without remote ownership metadata. */
 export type LocalDeck = DeckDomain & { localMode: true };
+/** Firestore-backed Deck variant with authenticated ownership metadata. */
 export type RemoteDeck = DeckDomain & { uid: string; localMode: false };
+/** Entity store read model spanning both Deck persistence modes. */
 export type DeckStore = RemoteDeck | LocalDeck;
+/** Canonical browser-persisted Deck state after boundary data is mapped into store types. */
+export interface PersistedDeckState {
+  localDecks: LocalDeck[];
+}
+/** Public Deck view that exposes persistence mode without ownership metadata. */
 export type DeckView = DeckDomain & { localMode: boolean };
+/** Public Deck read model exposed outside the Entity. */
 export type Deck = DeckView;
-export type DeckDocument = Omit<DeckDomain, "id" | "url"> & {
-  /** Legacy documents may duplicate the Firestore document id in their stored fields. */
-  id?: DeckId | undefined;
-  /** Boundary validation may preserve an explicit undefined before the DTO mapper removes it. */
-  url?: string | undefined;
-  uid: string;
-  deletedAt: number | null;
-};
+/** Validated payload used to create a remote Deck document. */
 export type DeckCreate = z.infer<typeof deckCreateSchema>;
+/** Input accepted at the remote Deck creation boundary. */
 export type DeckCreateInput = z.input<typeof deckCreateSchema>;
+/** Input accepted at the local Deck creation boundary. */
 export type LocalDeckCreateInput = z.input<typeof localDeckCreateSchema>;
+/** Validated partial edit for a Deck. */
 export type DeckEdit = z.infer<typeof deckEditSchema>;
+/** Validated authenticated Deck edit command. */
 export type EditDeckInput = z.infer<typeof editDeckSchema>;
+/** Validated authenticated Deck delete command. */
 export type DeleteDeckInput = z.infer<typeof deleteDeckSchema>;

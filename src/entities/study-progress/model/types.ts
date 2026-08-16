@@ -29,14 +29,17 @@ export interface StudyProgressDocumentFields {
 /** Firestore patch shape: cardId selects the document and every progress field is independently optional. */
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;
 
+/** Learning outcome derived from one study interaction. */
 export type StudyRating = "mastered" | "not-mastered" | "unrated";
 
+/** Inclusive score and due-time constraints for Card eligibility. */
 export interface StudyProgressFilter {
   minimumScore: number | null;
   maximumScore: number | null;
   respectNextSeeingAt: boolean;
 }
 
+/** Card fields needed to reconstruct its StudyProgress model. */
 export interface CardProgressFields {
   id: CardId;
   score: number;
@@ -47,9 +50,11 @@ export interface CardProgressFields {
   interval?: number | undefined;
 }
 
+/** Ordering and size controls used when starting a study session. */
 export interface StudyCardOrderOptions {
   shuffled: boolean;
   maxNumberOfCardsToLearn: number;
 }
 
+/** Validated authenticated command for editing persisted StudyProgress. */
 export type EditStudyProgressInput = z.infer<typeof editStudyProgressSchema>;

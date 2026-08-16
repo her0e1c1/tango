@@ -11,8 +11,9 @@
 
 ## `model/schema.ts`
 
-- Define Zod schemas, validation, refinements, and schema-level defaults.
+- Define Entity model Zod schemas, validation, refinements, and schema-level defaults.
 - Keep schema definitions pure.
+- Raw persistence document schemas owned by `api/document.ts` are outside this role.
 
 ## `model/types.ts`
 
@@ -53,6 +54,7 @@
 - Define Entity-specific Firestore access and persistence implementations.
 - Keep Firestore access in `api/` to resources related to this Entity.
 - Collection names, document IDs, Entity CRUD, and Entity-specific query or parsing primitives belong here.
+- Keep raw persistence document schemas beside the parser in `api/document.ts`, together with any types inferred directly from those schemas.
 - Firestore SDK access is allowed here, not in `model/`.
 
 ## `@x/`

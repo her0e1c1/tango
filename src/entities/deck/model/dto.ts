@@ -1,8 +1,10 @@
-import type { DeckCreate, DeckDocument, DeckDomain, DeckId, DeckStore, DeckView, LocalDeck, RemoteDeck } from "./types";
+import type { DeckDocument } from "../api/document";
+import type { DeckCreate, DeckDomain, DeckId, DeckStore, DeckView, LocalDeck, RemoteDeck } from "./types";
 
 // Zod may retain explicit undefined at input boundaries; every mapper removes it before creating Domain-backed data.
 type DeckDomainDto = Omit<DeckDomain, "url"> & { url?: string | undefined };
 
+// Maps validated Deck domain data into the local store variant.
 export const toLocalDeckStore = (deck: DeckDomainDto): LocalDeck => ({
   id: deck.id,
   localMode: true,
@@ -19,6 +21,7 @@ export const toLocalDeckStore = (deck: DeckDomainDto): LocalDeck => ({
   updatedAt: deck.updatedAt,
 });
 
+// Maps one validated Firestore document into the remote Deck store variant.
 export const toRemoteDeckStore = (id: DeckId, document: DeckDocument): RemoteDeck => ({
   id,
   uid: document.uid,
@@ -53,6 +56,7 @@ export const toDeckView = (deck: DeckStore): DeckView => ({
   localMode: deck.localMode,
 });
 
+// Maps a validated remote create payload into its Firestore document fields.
 export const toDeckDocument = (deck: DeckCreate, timestamp: number): DeckDocument => ({
   id: deck.id,
   uid: deck.uid,

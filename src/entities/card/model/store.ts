@@ -1,31 +1,35 @@
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
-import { z } from "zod";
 
 import {
+  cardDeckIdSchema,
   cardIdSchema,
   localCardCreateSchema,
   localCardEditSchema,
   localCardSchema,
-  persistedCardSchema,
+  persistedCardStateSchema,
 } from "./schema";
-import type { Card, CardId, LocalCard, LocalCardCreateInput, LocalCardEdit, RemoteCard } from "./types";
+import type {
+  Card,
+  CardId,
+  LocalCard,
+  LocalCardCreateInput,
+  LocalCardEdit,
+  PersistedCardState,
+  RemoteCard,
+} from "./types";
 
+/** Live Card collections separated by remote and local persistence ownership. */
 interface CardState {
   remoteCards: RemoteCard[];
   localCards: LocalCard[];
 }
 
-interface PersistedCardState {
-  localCards: LocalCard[];
-}
-
+/** Injectable persistence controls used to create an isolated Card store. */
 interface CreateCardStoreOptions {
   storage?: StateStorage;
   skipHydration?: boolean;
 }
-
-const persistedCardStateSchema = z.object({ localCards: z.array(persistedCardSchema) });
 
 // Reject the stored collection as a unit so live state never mixes validated Cards with an incompatible payload.
 const parsePersistedCardState = (value: unknown): PersistedCardState => {
@@ -33,6 +37,7 @@ const parsePersistedCardState = (value: unknown): PersistedCardState => {
   return result.success ? result.data : { localCards: [] };
 };
 
+// Creates a Card store whose durable state contains only validated local Cards.
 const createCardStore = ({ storage, skipHydration }: CreateCardStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedCardState>(() => storage ?? localStorage);
   return createStore<CardState>()(
@@ -53,20 +58,24 @@ const createCardStore = ({ storage, skipHydration }: CreateCardStoreOptions = {}
 
 export const cardStore = createCardStore();
 
+// Replaces the remote Card snapshot published by the active subscription.
 export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
   cardStore.setState({ remoteCards });
 };
 
+// Clears all remote Cards when their authentication scope ends.
 export const clearRemoteCards = (): void => {
   cardStore.setState({ remoteCards: [] });
 };
 
+// Finds one Card across remote and local collections after validating its identifier.
 export const findCardById = (id: CardId): Card | undefined => {
   const cardId = cardIdSchema.parse(id);
   const state = cardStore.getState();
   return state.remoteCards.find((card) => card.id === cardId) ?? state.localCards.find((card) => card.id === cardId);
 };
 
+// Creates and persists a local Card with Entity-owned timestamps.
 export const createLocalCard = (input: LocalCardCreateInput): LocalCard => {
   const card = localCardCreateSchema.parse(input);
   const timestamp = Date.now();
@@ -77,6 +86,7 @@ export const createLocalCard = (input: LocalCardCreateInput): LocalCard => {
   return createdCard;
 };
 
+// Applies a validated partial edit to an existing local Card.
 export const editLocalCard = (input: LocalCardEdit): LocalCard => {
   const edit = localCardEditSchema.parse(input);
   const { localCards } = cardStore.getState();
@@ -88,12 +98,14 @@ export const editLocalCard = (input: LocalCardEdit): LocalCard => {
   return updatedCard;
 };
 
+// Removes one local Card after validating its identifier.
 export const deleteLocalCard = (input: CardId): void => {
   const cardId = cardIdSchema.parse(input);
   cardStore.setState({ localCards: cardStore.getState().localCards.filter(({ id }) => id !== cardId) });
 };
 
+// Removes every local Card owned by a deleted Deck.
 export const deleteLocalCardsByDeckId = (deckId: string): void => {
-  const parsedDeckId = z.string().min(1, "Card deck is required").parse(deckId);
+  const parsedDeckId = cardDeckIdSchema.parse(deckId);
   cardStore.setState({ localCards: cardStore.getState().localCards.filter((card) => card.deckId !== parsedDeckId) });
 };

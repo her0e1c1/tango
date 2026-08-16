@@ -19,6 +19,7 @@ import {
 
 const STUDY_STORAGE_KEY = "tango-study";
 
+// Starts a deterministic study session from the supplied Card order.
 const startSession = (deckId: string, cardOrderIds: string[]): void => {
   startStudy(
     deckId,
@@ -27,6 +28,7 @@ const startSession = (deckId: string, cardOrderIds: string[]): void => {
   );
 };
 
+// Writes an arbitrary versioned payload directly to study-session storage.
 const setVersionedStorage = (state: unknown, version: number): void => {
   // Bypass store mutations so hydration tests model arbitrary browser payloads.
   localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify({ state, version }));

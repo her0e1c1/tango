@@ -25,7 +25,9 @@ const cardDocumentSchema = z.object({
   endLine: z.number().optional(),
 });
 
+/** Validated field shape stored in one physical Card Firestore document. */
 export type CardDocument = z.infer<typeof cardDocumentSchema>;
 
+// Parses one Firestore payload and reports Card-specific validation context.
 export const parseCardDocument = (id: string, value: unknown): CardDocument =>
   parseFirestoreDocument(cardDocumentSchema, "card", id, value);

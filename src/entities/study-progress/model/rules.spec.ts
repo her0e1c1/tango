@@ -14,8 +14,10 @@ import {
 } from "./rules";
 import type { CardProgressFields, StudyProgress, StudyProgressEdit } from "./types";
 
+// Builds neutral StudyProgress for eligibility scenarios.
 const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
 
+// Builds the Card fields required by StudyProgress ordering rules.
 const cardProgress = (id: string, numberOfSeen = 0): CardProgressFields => ({
   id,
   score: 0,

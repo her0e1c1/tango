@@ -11,29 +11,35 @@ import type {
   StudySessionSwipePlan,
 } from "./types";
 
+/** Minimal Deck identity needed to look up a study session. */
 interface StudySessionDeck {
   id: StudySession["deckId"];
 }
 
+/** Deck display name needed for deterministic ordering. */
 interface NamedDeck {
   name: string;
 }
 
+/** Deck paired with its currently active study session. */
 interface ActiveDeck<TDeck> {
   deck: TDeck;
   session: StudySession;
 }
 
+/** Partition of Decks with and without active study sessions. */
 interface DecksByStudyStatus<TDeck> {
   active: ActiveDeck<TDeck>[];
   inactive: TDeck[];
 }
 
+/** Preferences that control automatic study-session advancement. */
 interface StudySessionAutoPlayOptions {
   enabled: boolean;
   intervalSeconds: number;
 }
 
+/** Current session and delay required to schedule automatic advancement. */
 interface StudySessionAutoPlayPlan {
   session: StudySession;
   intervalSeconds: number;

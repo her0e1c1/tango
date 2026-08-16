@@ -7,6 +7,7 @@ import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { editStudyProgressSchema } from "../model/schema";
 
+// Validates and writes StudyProgress-owned fields into the shared Card document.
 export const editStudyProgress = async (uid: string, progress: EditStudyProgressInput["progress"]): Promise<void> => {
   const input = editStudyProgressSchema.parse({ uid, progress });
   const { cardId, ...fields } = input.progress;

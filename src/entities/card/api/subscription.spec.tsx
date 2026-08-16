@@ -30,6 +30,7 @@ vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
 import { fetchCardReads, fetchCards, subscribeCardReads, subscribeCards } from "./firestore";
 
+// Builds a Firestore-like Card document with optional field overrides.
 const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
   data: () => ({
@@ -48,8 +49,10 @@ const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   }),
 });
 
+// Returns the snapshot callback registered by the Card subscription.
 const getSnapshotHandler = () =>
   mocks.onSnapshot.mock.calls[0]?.[1] as (snapshot: { docs: ReturnType<typeof cardDocument>[] }) => void;
+// Returns the error callback registered by the Card subscription.
 const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
 describe("Card Firestore subscription", () => {

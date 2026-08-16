@@ -6,19 +6,23 @@ import { defaultPreferences } from "./defaults";
 import { preferencesSchema } from "./schema";
 import type { Preferences } from "./types";
 
+/** Partial updates grouped by each top-level preference category. */
 type PartialPreferences = {
   [K in keyof Preferences]?: Partial<Preferences[K]>;
 };
 
+/** Live preferences state and its validated update operation. */
 interface PreferencesStoreState {
   preferences: Preferences;
   updatePreferences: (preferences: PartialPreferences) => void;
 }
 
+/** Browser-persisted subset of preferences state. */
 interface PersistedPreferencesState {
   preferences: Preferences;
 }
 
+// Creates a persisted preferences store that validates updates and hydrated data.
 const createPreferencesStore = () =>
   createStore<PreferencesStoreState>()(
     persist<PreferencesStoreState, [], [["zustand/immer", never]], PersistedPreferencesState>(
@@ -53,16 +57,20 @@ const createPreferencesStore = () =>
 
 export const preferencesStore = createPreferencesStore();
 
+// Applies a partial preferences update through the store's validation boundary.
 export const updatePreferences: PreferencesStoreState["updatePreferences"] = (preferences) =>
   preferencesStore.getState().updatePreferences(preferences);
 
+// Sets the appearance color mode preference explicitly.
 export const setDarkMode = (darkMode: boolean): void => updatePreferences({ appearance: { darkMode } });
 
+// Toggles whether the application header is shown.
 export const toggleShowHeader = (): void => {
   const { showHeader } = preferencesStore.getState().preferences.appearance;
   updatePreferences({ appearance: { showHeader: !showHeader } });
 };
 
+// Toggles whether study swipe controls are shown.
 export const toggleShowSwipeButtonList = (): void => {
   const { showSwipeButtonList } = preferencesStore.getState().preferences.controls;
   updatePreferences({ controls: { showSwipeButtonList: !showSwipeButtonList } });

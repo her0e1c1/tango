@@ -4,6 +4,7 @@ import { isNonBlank } from "@/shared/lib/isNonBlank";
 
 const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Card writes");
 export const cardIdSchema = z.string().min(1, "Card id is required");
+export const cardDeckIdSchema = z.string().min(1, "Card deck is required");
 const cardUidSchema = z.string().min(1, "Card owner is required");
 
 const cardFrontTextSchema = z.string().refine(isNonBlank, { message: "Front text is required." });
@@ -25,7 +26,7 @@ const editableCardFieldsSchema = cardContentSchema.extend({
 
 const cardCreateFieldsSchema = editableCardFieldsSchema.extend({
   id: cardIdSchema,
-  deckId: z.string().min(1, "Card deck is required"),
+  deckId: cardDeckIdSchema,
   deletedAt: z.number().nullable().default(null),
   score: z.number().default(0),
   numberOfSeen: z.number().default(0),
@@ -53,7 +54,8 @@ const persistedDateSchema = z.preprocess(
   z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date")
 );
 
-export const persistedCardSchema = localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
+const persistedCardSchema = localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
+export const persistedCardStateSchema = z.object({ localCards: z.array(persistedCardSchema) });
 
 export const localCardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });
 export const cardEditSchema = localCardEditSchema.extend({ uid: cardUidSchema });
