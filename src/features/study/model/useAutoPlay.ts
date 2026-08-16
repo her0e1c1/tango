@@ -1,4 +1,4 @@
-import { moveStudySession, planStudySessionAutoPlay } from "@/entities/study-session";
+import { canMoveStudySession, moveStudySession } from "@/entities/study-session";
 
 import * as React from "react";
 
@@ -16,20 +16,21 @@ export const useAutoPlay = (
 ) => {
   const [autoPlay, setAutoPlay] = React.useState(defaultAutoPlay);
   const onAdvanceEvent = React.useEffectEvent(onAdvance);
-  const autoPlayPlan = planStudySessionAutoPlay(sessionState, {
-    enabled: autoPlay,
-    intervalSeconds: cardInterval,
-  });
-  const autoPlaySession = autoPlayPlan?.session;
-  const autoPlayIntervalSeconds = autoPlayPlan?.intervalSeconds;
+  const autoPlaySession =
+    sessionState.status === "studying" &&
+    autoPlay &&
+    cardInterval > 0 &&
+    canMoveStudySession(sessionState.session, "next")
+      ? sessionState.session
+      : undefined;
 
   React.useEffect(() => {
-    if (autoPlaySession === undefined || autoPlayIntervalSeconds === undefined) return;
+    if (autoPlaySession === undefined) return;
     const timeout = window.setTimeout(() => {
       if (moveStudySession(autoPlaySession, "next")) onAdvanceEvent();
-    }, autoPlayIntervalSeconds * 1000);
+    }, cardInterval * 1000);
     return () => window.clearTimeout(timeout);
-  }, [autoPlayIntervalSeconds, autoPlaySession]);
+  }, [autoPlaySession, cardInterval]);
 
   return {
     autoPlay,
