@@ -18,9 +18,9 @@ interface DeckImportViewProps {
   dark?: boolean;
   validating?: boolean;
   pending?: boolean;
-  preview?: DeckImportPreview;
-  result?: DeckImportResult;
-  partialResult?: DeckImportResult;
+  preview?: DeckImportPreview | undefined;
+  result?: DeckImportResult | undefined;
+  partialResult?: DeckImportResult | undefined;
   error?: unknown;
   previewError?: unknown;
   storageMode?: DeckImportStorageMode;

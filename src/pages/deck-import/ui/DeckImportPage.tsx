@@ -35,9 +35,9 @@ export const DeckImportPage: React.FC = () => {
         onDownloadSample={downloadSampleCsv}
         validating={deckImport.validating}
         pending={deckImport.pending}
-        {...(deckImport.preview !== undefined ? { preview: deckImport.preview } : {})}
-        {...(deckImport.data !== undefined ? { result: deckImport.data } : {})}
-        {...(deckImport.partialResult !== undefined ? { partialResult: deckImport.partialResult } : {})}
+        preview={deckImport.preview}
+        result={deckImport.result}
+        partialResult={deckImport.partialResult}
         error={deckImport.error}
         previewError={deckImport.previewError}
         dark={preferences.appearance.darkMode}

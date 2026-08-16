@@ -28,7 +28,7 @@ const mocks = vi.hoisted(() => ({
   downloadSampleCsv: vi.fn(),
   setDarkMode: vi.fn(),
   preview: undefined as DeckImportPreview | undefined,
-  data: undefined as DeckImportResult | undefined,
+  result: undefined as DeckImportResult | undefined,
   partialResult: undefined as DeckImportResult | undefined,
   pending: false,
   validating: false,
@@ -54,7 +54,7 @@ vi.mock("@/features/deck-import", async (importOriginal) => ({
     addSample: mocks.addSample,
     retry: mocks.retry,
     preview: mocks.preview,
-    data: mocks.data,
+    result: mocks.result,
     partialResult: mocks.partialResult,
     pending: mocks.pending,
     validating: mocks.validating,
@@ -107,7 +107,7 @@ describe("DeckImportPage", () => {
     mocks.importPreview.mockResolvedValue({});
     mocks.addSample.mockResolvedValue({});
     mocks.preview = undefined;
-    mocks.data = undefined;
+    mocks.result = undefined;
     mocks.partialResult = undefined;
     mocks.pending = false;
     mocks.validating = false;
