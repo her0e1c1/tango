@@ -16,6 +16,16 @@ export interface StudyProgress {
   interval?: number;
 }
 
+/** StudyProgress-owned fields read from the shared physical Firestore document. */
+export interface StudyProgressDocumentFields {
+  score: number;
+  numberOfSeen: number;
+  // Zod-inferred physical documents can retain explicit undefined values at optional keys.
+  lastSeenAt?: number | undefined;
+  nextSeeingAt?: Date | undefined;
+  interval?: number | undefined;
+}
+
 /** Firestore patch shape: cardId selects the document and every progress field is independently optional. */
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;
 

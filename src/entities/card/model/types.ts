@@ -14,6 +14,12 @@ import type {
 
 /** Firestore-backed Card data whose ownership and deletion metadata must remain at the Entity boundary. */
 export type RemoteCard = z.infer<typeof cardSchema>;
+/** Learning-progress fields retained only by the legacy combined Card model. */
+type StudyProgressField = "score" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval";
+/** Firestore Card read model without StudyProgress-owned fields. */
+export type RemoteCardRead = Omit<RemoteCard, StudyProgressField>;
+/** Card-owned fields read from the shared physical Firestore document. */
+export type CardDocumentFields = Omit<RemoteCardRead, "id">;
 /** Browser-persisted Card data owned by a local-mode Deck and therefore intentionally lacking a uid. */
 export type LocalCard = z.infer<typeof localCardSchema>;
 /** Entity read model spanning both persistence modes; mutations route through the owning Deck. */
