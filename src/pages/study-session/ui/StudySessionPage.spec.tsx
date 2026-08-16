@@ -1,6 +1,6 @@
 import type { StudyState } from "@/features/study";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   studyState: undefined as StudyState | undefined,
   studyDeckId: undefined as string | undefined,
+  studyListeners: new Set<() => void>(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -18,12 +19,20 @@ vi.mock("react-router-dom", () => ({
 }));
 vi.mock("@/features/study", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/study")>();
+  const React = await import("react");
   return {
     ...actual,
     useStudy: (deckId: string) => {
       mocks.studyDeckId = deckId;
-      if (mocks.studyState == null) throw new Error("Study state not initialized");
-      return mocks.studyState;
+      const studyState = React.useSyncExternalStore(
+        (listener) => {
+          mocks.studyListeners.add(listener);
+          return () => mocks.studyListeners.delete(listener);
+        },
+        () => mocks.studyState
+      );
+      if (studyState == null) throw new Error("Study state not initialized");
+      return studyState;
     },
   };
 });
@@ -107,6 +116,7 @@ describe("StudySessionPage", () => {
     mocks.params.id = deck.id;
     mocks.studyState = studyingState();
     mocks.studyDeckId = undefined;
+    mocks.studyListeners.clear();
     window.history.replaceState(null, document.title, document.location.href);
   });
 
@@ -148,6 +158,24 @@ describe("StudySessionPage", () => {
     fireEvent.keyDown(window, { key: "ArrowLeft" });
 
     expect(state.swipeLeft).toHaveBeenCalledOnce();
+  });
+
+  it("uses the current Study action after the workflow finishes preparing", () => {
+    const preparing = { status: "preparing" as const, ...commonState() };
+    mocks.studyState = preparing;
+    render(<StudySessionPage />);
+
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(preparing.toggleBackText).not.toHaveBeenCalled();
+
+    const studying = studyingState();
+    act(() => {
+      mocks.studyState = studying;
+      for (const listener of [...mocks.studyListeners]) listener();
+    });
+    fireEvent.keyDown(window, { key: "Enter" });
+
+    expect(studying.toggleBackText).toHaveBeenCalledOnce();
   });
 
   it("shows route feedback when the Study Feature reports an unavailable Deck", () => {

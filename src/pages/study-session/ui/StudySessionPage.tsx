@@ -1,12 +1,22 @@
 import * as React from "react";
 import { useParams } from "react-router-dom";
-import { useKey } from "react-use";
+import { useKey, useLatest } from "react-use";
 
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { routes, useNavigation } from "@/features/navigate";
 import { DeckSwiperView, type StudyState, useStudy } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
+
+type StudyShortcutAction =
+  | "swipeUp"
+  | "swipeDown"
+  | "swipeLeft"
+  | "swipeRight"
+  | "toggleBackText"
+  | "toggleHeader"
+  | "toggleSwipeButtonList"
+  | "toggleAutoPlay";
 
 const renderStudyScreen = (state: StudyState) => {
   if (state.status !== "studying") {
@@ -68,18 +78,21 @@ const renderStudyScreen = (state: StudyState) => {
 const StudySessionContent = ({ deckId }: { deckId: string }) => {
   const navigation = useNavigation();
   const study = useStudy(deckId);
-  const runWhileStudying = (action: () => unknown) => () => {
-    if (study.status === "studying") void action();
+  const latestStudy = useLatest(study);
+  const runWhileStudying = (action: StudyShortcutAction) => () => {
+    const currentStudy = latestStudy.current;
+    if (currentStudy.status === "studying") void currentStudy[action]();
   };
 
-  useKey("ArrowUp", runWhileStudying(study.swipeUp));
-  useKey("ArrowDown", runWhileStudying(study.swipeDown));
-  useKey("ArrowLeft", runWhileStudying(study.swipeLeft));
-  useKey("ArrowRight", runWhileStudying(study.swipeRight));
-  useKey("Enter", runWhileStudying(study.toggleBackText));
-  useKey("h", runWhileStudying(study.toggleHeader));
-  useKey("b", runWhileStudying(study.toggleSwipeButtonList));
-  useKey(" ", runWhileStudying(study.toggleAutoPlay));
+  // useKey retains its initial handler, so that handler reads current Feature state through one stable ref.
+  useKey("ArrowUp", runWhileStudying("swipeUp"));
+  useKey("ArrowDown", runWhileStudying("swipeDown"));
+  useKey("ArrowLeft", runWhileStudying("swipeLeft"));
+  useKey("ArrowRight", runWhileStudying("swipeRight"));
+  useKey("Enter", runWhileStudying("toggleBackText"));
+  useKey("h", runWhileStudying("toggleHeader"));
+  useKey("b", runWhileStudying("toggleSwipeButtonList"));
+  useKey(" ", runWhileStudying("toggleAutoPlay"));
 
   React.useEffect(() => {
     if (study.status !== "invalid") return;
