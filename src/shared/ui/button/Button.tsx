@@ -39,7 +39,7 @@ const sizeClasses: Record<ButtonSize, string> = {
 const resolveVariant = (props: ButtonProps): ButtonVariant => props.variant ?? "secondary";
 const resolveSize = (props: ButtonProps): ButtonSize => props.size ?? "md";
 const getLoadingAnnouncement = (content: React.ReactNode) =>
-  typeof content === "string" || typeof content === "number" ? `Loading ${content}` : "Loading";
+  typeof content === "string" || typeof content === "number" ? `Loading ${String(content)}` : "Loading";
 
 /**
  * Renders the Button user interface.

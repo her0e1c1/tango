@@ -17,13 +17,17 @@ const scoreDisplayLimit = 99;
 export const Score: React.FC<{ score?: number; large?: boolean; className?: string }> = (props) => {
   const score = props.score ?? 0;
   const displayScore =
-    score > scoreDisplayLimit ? `>${scoreDisplayLimit}` : score < -scoreDisplayLimit ? `<-${scoreDisplayLimit}` : score;
+    score > scoreDisplayLimit
+      ? `>${String(scoreDisplayLimit)}`
+      : score < -scoreDisplayLimit
+        ? `<-${String(scoreDisplayLimit)}`
+        : score;
   const isDisplayBounded = Math.abs(score) > scoreDisplayLimit;
   const cue = score > 0 ? "positive" : score < 0 ? "negative" : "neutral";
   return (
     <div
       role="status"
-      aria-label={`Score ${score}, ${cue}`}
+      aria-label={`Score ${String(score)}, ${cue}`}
       className={cx(
         "inline-flex justify-center rounded-pill font-semibold text-ink-inverse",
         {

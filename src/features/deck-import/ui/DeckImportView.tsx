@@ -155,8 +155,10 @@ const ImportPreview = (props: ImportPreviewProps) => {
           <h3 className="font-semibold">Fix these CSV rows</h3>
           <ul className="mt-2 space-y-2">
             {preview.analysis.issues.map((issue) => (
-              <li key={`${issue.rowNumber ?? "file"}-${issue.message}-${issue.context ?? ""}`}>
-                <span className="font-semibold">{issue.rowNumber == null ? "File" : `Row ${issue.rowNumber}`}:</span>{" "}
+              <li key={`${String(issue.rowNumber ?? "file")}-${issue.message}-${issue.context ?? ""}`}>
+                <span className="font-semibold">
+                  {issue.rowNumber == null ? "File" : `Row ${String(issue.rowNumber)}`}:
+                </span>{" "}
                 {issue.message}
                 {issue.context == null ? null : (
                   <code className="mt-1 block overflow-x-auto whitespace-pre-wrap text-ink-muted">{issue.context}</code>

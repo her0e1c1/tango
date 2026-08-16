@@ -35,7 +35,7 @@ export type CardProps = CardActionsProps;
  */
 const studiedText = (count: number) => {
   if (count === 0) return "not studied yet";
-  return `studied ${count} ${count === 1 ? "time" : "times"}`;
+  return `studied ${String(count)} ${count === 1 ? "time" : "times"}`;
 };
 
 /**

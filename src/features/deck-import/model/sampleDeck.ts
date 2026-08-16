@@ -8,7 +8,7 @@ import { executePreparedDeckImport, prepareDeckImport } from "./deckImportExecut
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
 
-const sampleDeckId = (uid: string): DeckId => `sample-v${SAMPLE_VERSION}-${uid}`;
+const sampleDeckId = (uid: string): DeckId => `sample-v${String(SAMPLE_VERSION)}-${uid}`;
 
 export interface SampleDeckOptions {
   cards: Card[];

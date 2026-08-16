@@ -137,7 +137,7 @@ export default [
       ...strictTypeCheckedRules,
       // Shorthand callbacks that intentionally return void are established project style, not ambiguous expressions.
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
-      // Numeric interpolation is intentional for labels and identifiers; other non-string types remain rejected.
+      // Require explicit conversion so interpolation cannot silently widen as value types evolve.
       "@typescript-eslint/restrict-template-expressions": [
         "error",
         {
@@ -145,7 +145,7 @@ export default [
           allowBoolean: false,
           allowNever: false,
           allowNullish: false,
-          allowNumber: true,
+          allowNumber: false,
           allowRegExp: false,
         },
       ],

@@ -161,7 +161,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 {...props.fields.maxNumberOfCardsToLearn}
                 id={inputIds.maxNumberOfCardsToLearn}
                 aria-describedby={descriptionId(inputIds.maxNumberOfCardsToLearn)}
-                aria-valuetext={`${props.maxNumberOfCardsToLearn} cards`}
+                aria-valuetext={`${String(props.maxNumberOfCardsToLearn)} cards`}
               />
               <span className="min-w-10 rounded-control bg-surface-muted px-2 py-1 text-center text-caption font-bold text-accent-primary">
                 {props.maxNumberOfCardsToLearn}
@@ -196,7 +196,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 {...props.fields.cardInterval}
                 id={inputIds.cardInterval}
                 aria-describedby={descriptionId(inputIds.cardInterval)}
-                aria-valuetext={`${props.cardInterval} seconds`}
+                aria-valuetext={`${String(props.cardInterval)} seconds`}
               />
               <span className="min-w-10 rounded-control bg-surface-muted px-2 py-1 text-center text-caption font-bold text-accent-primary">
                 {props.cardInterval}s

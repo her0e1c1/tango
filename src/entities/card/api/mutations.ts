@@ -19,7 +19,7 @@ export class CardBulkMutationError extends Error {
     total: number,
     options?: ErrorOptions
   ) {
-    super(`${failedIds.length} of ${total} Card writes failed`, options);
+    super(`${String(failedIds.length)} of ${String(total)} Card writes failed`, options);
   }
 }
 

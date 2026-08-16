@@ -36,7 +36,7 @@ export const Controller: React.FC<ControllerProps> = (props) => {
             }}
           />
         </div>
-        {index < numberOfCards && <Title>{`${index + 1} / ${numberOfCards}`}</Title>}
+        {index < numberOfCards && <Title>{`${String(index + 1)} / ${String(numberOfCards)}`}</Title>}
       </div>
     </IconContext.Provider>
   );

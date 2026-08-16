@@ -10,7 +10,7 @@ export interface StudySessionStartViewProps {
   onClickStart?: () => void;
 }
 
-const cardsLabel = (count: number) => `${count} ${count === 1 ? "card" : "cards"}`;
+const cardsLabel = (count: number) => `${String(count)} ${count === 1 ? "card" : "cards"}`;
 
 export const StudySessionStartView: React.FC<StudySessionStartViewProps> = (props) => {
   const sessionCardsLength =
