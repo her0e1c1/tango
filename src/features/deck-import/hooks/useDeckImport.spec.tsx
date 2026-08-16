@@ -338,6 +338,31 @@ describe("useDeckImport", () => {
     expect(result.current.pending).toBe(false);
   });
 
+  it("requires a new preview before retrying a failed import", async () => {
+    const createdDeck = createDeck({ id: "deck", name: "deck.csv", uid: "uid-a" });
+    mocks.fetchDecks.mockResolvedValueOnce([]).mockResolvedValueOnce([createdDeck]);
+    mocks.bulkUpsert.mockRejectedValueOnce(new Error("card mutation failed")).mockResolvedValueOnce(undefined);
+    const { result } = renderHook(useDeckImport);
+    const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
+
+    await actAsync(async () => result.current.selectFile(file));
+    await actAsync(async () => {
+      await expect(result.current.importPreview()).rejects.toThrow("card mutation failed");
+    });
+
+    expect(mocks.createDeck).toHaveBeenCalledOnce();
+    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
+    await expect(result.current.importPreview()).rejects.toThrow("prepared Deck import is not available");
+    expect(mocks.createDeck).toHaveBeenCalledOnce();
+    expect(mocks.bulkUpsert).toHaveBeenCalledOnce();
+
+    await actAsync(async () => result.current.selectFile(file));
+    await actAsync(async () => result.current.importPreview());
+
+    expect(mocks.createDeck).toHaveBeenCalledOnce();
+    expect(mocks.bulkUpsert).toHaveBeenCalledTimes(2);
+  });
+
   it("clears operation data and error when a new file is selected", async () => {
     const { result } = renderHook(useDeckImport);
     const file = new File(['"front","back","","key"'], "deck.csv", { type: "text/csv" });
