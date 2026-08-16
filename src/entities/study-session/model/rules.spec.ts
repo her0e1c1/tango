@@ -110,7 +110,9 @@ describe("planStudySessionSwipe", () => {
   it("ignores swipes without a resolvable active session", () => {
     expect(planStudySessionSwipe(undefined, cards, "GoToNextCard", 0)).toEqual({ effect: "none" });
     expect(planStudySessionSwipe(session, cards.slice(0, 1), "GoToNextCard", 0)).toEqual({ effect: "none" });
-    expect(planStudySessionSwipe({ ...session, currentIndex: 3 }, cards, "GoToNextCard", 0)).toEqual({ effect: "none" });
+    expect(planStudySessionSwipe({ ...session, currentIndex: 3 }, cards, "GoToNextCard", 0)).toEqual({
+      effect: "none",
+    });
   });
 });
 
