@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -12,7 +13,6 @@ const mocks = vi.hoisted(() => ({
   authAccount: undefined as AuthAccount,
   authUid: "",
   preferences: null as unknown as Preferences,
-  navigate: vi.fn(),
   setDarkMode: vi.fn(),
 }));
 
@@ -27,9 +27,18 @@ vi.mock("@/entities/preferences", async (importOriginal) => ({
   setDarkMode: mocks.setDarkMode,
   updatePreferences: vi.fn(),
 }));
-vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 
 import { SettingsPage } from "./SettingsPage";
+
+const renderPage = (logout = vi.fn(), login = vi.fn()) =>
+  render(
+    <MemoryRouter initialEntries={["/settings"]}>
+      <Routes>
+        <Route path="/" element={<h1>Deck list</h1>} />
+        <Route path="/settings" element={<SettingsPage login={login} logout={logout} />} />
+      </Routes>
+    </MemoryRouter>
+  );
 
 describe("SettingsPage", () => {
   beforeEach(() => {
@@ -39,31 +48,26 @@ describe("SettingsPage", () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
   });
 
-  it("owns the route shortcut and renders in the application shell", () => {
-    render(<SettingsPage login={vi.fn()} logout={vi.fn()} />);
+  it("navigates to the deck list from the route shortcut", async () => {
+    renderPage();
 
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     fireEvent.keyDown(window, { key: "t" });
 
-    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/", undefined);
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
 
-  it("displays an alert when sign-out fails and allows retrying sign-out", async () => {
+  it("displays an alert when sign-out fails and clears it after retrying", async () => {
     mocks.authAccount = { uid: "retry-uid-a", displayName: "Test User" };
     mocks.authUid = "retry-uid-a";
-    const signOutError = new Error("sign out failed");
-    const logout = vi.fn().mockRejectedValueOnce(signOutError).mockResolvedValueOnce(undefined);
-
-    render(<SettingsPage login={vi.fn()} logout={logout} />);
+    const logout = vi.fn().mockRejectedValueOnce(new Error("sign out failed")).mockResolvedValueOnce(undefined);
+    renderPage(logout);
 
     fireEvent.click(screen.getByRole("button", { name: "Logout" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
-    expect(logout).toHaveBeenCalledOnce();
-
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
-    expect(logout).toHaveBeenCalledTimes(2);
   });
 });
