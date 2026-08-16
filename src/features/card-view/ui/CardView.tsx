@@ -1,27 +1,23 @@
 import type * as React from "react";
 
-import type { Card } from "@/entities/card";
-import { getCategory, isHighlightLanguage, type Deck } from "@/entities/deck";
-import { usePreferences } from "@/entities/preferences";
-
 import { BackText } from "./BackText";
 
 export interface CardViewProps {
-  card: Card;
-  deck: Deck;
+  text: string;
+  category?: string;
+  code?: boolean;
+  dark?: boolean;
   onClick?: () => void;
   variant?: "surface" | "bare";
 }
 
-export const CardView: React.FC<CardViewProps> = ({ card, deck, onClick, variant = "surface" }) => {
-  const preferences = usePreferences();
-  const category = getCategory(deck.category, card.tags);
+export const CardView: React.FC<CardViewProps> = ({ text, category, code, dark, onClick, variant = "surface" }) => {
   const content = (
     <BackText
-      category={category}
-      code={isHighlightLanguage(category)}
-      dark={preferences.appearance.darkMode}
-      text={card.backText}
+      text={text}
+      {...(category !== undefined ? { category } : {})}
+      {...(code !== undefined ? { code } : {})}
+      {...(dark !== undefined ? { dark } : {})}
       {...(onClick !== undefined ? { onClick } : {})}
     />
   );

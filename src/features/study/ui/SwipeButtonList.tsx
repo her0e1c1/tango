@@ -1,7 +1,6 @@
-import type { SwipeDirection } from "@/entities/preferences";
-
 import type * as React from "react";
 import { AiOutlineArrowUp, AiOutlineArrowDown, AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
+import type { SwipeDirection } from "@/entities/preferences";
 
 const directions: SwipeDirection[] = ["cardSwipeLeft", "cardSwipeUp", "cardSwipeDown", "cardSwipeRight"];
 const icons = {

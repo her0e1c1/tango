@@ -22,6 +22,15 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 }));
 
 import { DeckEditForm } from "./DeckEditForm";
+import { useDeckEditAction } from "../model/useDeckEditAction";
+import { useDeckFormState } from "../model/useDeckFormState";
+
+const DeckEditFormHarness = (props: { deck: Deck; onCancel: () => void; onSaved: () => void }) => {
+  const editAction = useDeckEditAction({ onSaved: props.onSaved });
+  const form = useDeckFormState({ deck: props.deck, onCancel: props.onCancel, onSubmit: editAction.update });
+
+  return <DeckEditForm deckName={props.deck.name} form={form} saveError={editAction.error} />;
+};
 
 describe("DeckEditForm", () => {
   const deck: Deck = createDeck({
@@ -38,7 +47,7 @@ describe("DeckEditForm", () => {
 
   it("saves edited form values for the authenticated user and reports success", async () => {
     const onSaved = vi.fn();
-    render(<DeckEditForm deck={deck} onCancel={vi.fn()} onSaved={onSaved} />);
+    render(<DeckEditFormHarness deck={deck} onCancel={vi.fn()} onSaved={onSaved} />);
 
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
@@ -68,7 +77,7 @@ describe("DeckEditForm", () => {
           finishSave = resolve;
         })
     );
-    render(<DeckEditForm deck={deck} onCancel={vi.fn()} onSaved={vi.fn()} />);
+    render(<DeckEditFormHarness deck={deck} onCancel={vi.fn()} onSaved={vi.fn()} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
@@ -79,7 +88,11 @@ describe("DeckEditForm", () => {
 
   it("submits a cleared optional URL as an explicit deletion", async () => {
     render(
-      <DeckEditForm deck={{ ...deck, url: "https://example.com/deck.csv" }} onCancel={vi.fn()} onSaved={vi.fn()} />
+      <DeckEditFormHarness
+        deck={{ ...deck, url: "https://example.com/deck.csv" }}
+        onCancel={vi.fn()}
+        onSaved={vi.fn()}
+      />
     );
     await userEvent.clear(screen.getByRole("textbox", { name: "Source URL" }));
 
@@ -91,7 +104,7 @@ describe("DeckEditForm", () => {
   it("keeps edited values and allows another save after a failure", async () => {
     mocks.editDeck.mockRejectedValueOnce(new Error("write failed"));
     const onSaved = vi.fn();
-    render(<DeckEditForm deck={deck} onCancel={vi.fn()} onSaved={onSaved} />);
+    render(<DeckEditFormHarness deck={deck} onCancel={vi.fn()} onSaved={onSaved} />);
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
     await userEvent.type(name, "Retry deck");
@@ -111,7 +124,7 @@ describe("DeckEditForm", () => {
 
   it("forwards cancellation from both navigation actions", async () => {
     const onCancel = vi.fn();
-    render(<DeckEditForm deck={deck} onCancel={onCancel} onSaved={vi.fn()} />);
+    render(<DeckEditFormHarness deck={deck} onCancel={onCancel} onSaved={vi.fn()} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -120,7 +133,7 @@ describe("DeckEditForm", () => {
   });
 
   it("validates fields before saving", async () => {
-    render(<DeckEditForm deck={deck} onCancel={vi.fn()} onSaved={vi.fn()} />);
+    render(<DeckEditFormHarness deck={deck} onCancel={vi.fn()} onSaved={vi.fn()} />);
     await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "not-a-url");
 

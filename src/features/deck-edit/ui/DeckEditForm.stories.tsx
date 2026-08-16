@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+import type { DeckFormProps } from "../model/useDeckFormState";
 import { DeckEditForm } from "./DeckEditForm";
 
 const longDeck = {
@@ -9,6 +10,24 @@ const longDeck = {
   url: `https://example.com/${"deeply-nested/".repeat(12)}deck.csv`,
   category: "value 3",
 };
+
+const createForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
+  deckInfo: {
+    id: deck.id,
+    createdAt: new Date(deck.createdAt).toLocaleDateString(),
+    updatedAt: new Date(deck.updatedAt).toLocaleDateString(),
+  },
+  fields: {
+    name: { defaultValue: deck.name },
+    convertToBr: { checked: deck.convertToBr },
+    url: { defaultValue: deck.url },
+    category: { defaultValue: deck.category, options: [{ label: deck.category, value: deck.category }] },
+  },
+  errors: { name: undefined, url: undefined },
+  isSubmitting: false,
+  onCancel: () => undefined,
+  onSubmit: () => undefined,
+});
 
 const meta = {
   title: "Features/Deck Edit/DeckEditForm",
@@ -18,9 +37,8 @@ const meta = {
     viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" },
   },
   args: {
-    deck: fixture.deck.default,
-    onCancel: () => undefined,
-    onSaved: () => undefined,
+    deckName: fixture.deck.default.name,
+    form: createForm(fixture.deck.default),
   },
 } satisfies Meta<typeof DeckEditForm>;
 
@@ -28,7 +46,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-export const LongValues: Story = { args: { deck: longDeck } };
+export const LongValues: Story = { args: { deckName: longDeck.name, form: createForm(longDeck) } };
 export const Dark: Story = { ...LongValues, globals: { theme: "dark" } };
 export const Mobile: Story = {
   ...LongValues,

@@ -4,8 +4,6 @@
  * outside the view.
  */
 
-import type { Card } from "@/entities/card";
-
 import type * as React from "react";
 import { Description, Score } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
@@ -15,17 +13,20 @@ import { Overlay } from "@/shared/ui/feedback";
  * Shows the active card's score and tags in a compact overlay, falling back to neutral values
  * before a card is available.
  */
-export const CardOverlay: React.FC<{ card?: Card }> = (props) => {
-  const { card } = props;
-  return (
-    <Overlay position="top">
-      <div className="mx-auto flex max-w-reading flex-row items-center gap-2 bg-surface-elevated p-2 text-ink">
-        <Score score={card?.score ?? 0} />
-        <Description>
-          {card?.numberOfSeen != null && `${String(card.numberOfSeen)} times`}
-          {card?.lastSeenAt != null && ` since ${new Date(card.lastSeenAt).toLocaleDateString()}`}
-        </Description>
-      </div>
-    </Overlay>
-  );
-};
+export interface CardOverlayProps {
+  score?: number;
+  numberOfSeen?: number;
+  lastSeenAt?: number;
+}
+
+export const CardOverlay: React.FC<CardOverlayProps> = (props) => (
+  <Overlay position="top">
+    <div className="mx-auto flex max-w-reading flex-row items-center gap-2 bg-surface-elevated p-2 text-ink">
+      <Score score={props.score ?? 0} />
+      <Description>
+        {props.numberOfSeen != null && `${String(props.numberOfSeen)} times`}
+        {props.lastSeenAt != null && ` since ${new Date(props.lastSeenAt).toLocaleDateString()}`}
+      </Description>
+    </div>
+  </Overlay>
+);

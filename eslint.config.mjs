@@ -125,6 +125,29 @@ export default [
     },
   },
   {
+    files: ["src/features/*/ui/**/*.{ts,tsx}"],
+    ignores: testFiles,
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/entities", "@/entities/*"],
+              allowTypeImports: true,
+              message: "Feature UI must receive Entity data through presentational props.",
+            },
+            {
+              group: ["../hooks/*", "../model/*", "../../hooks/*", "../../model/*"],
+              allowTypeImports: true,
+              message: "Feature UI must receive Feature state and workflows through props.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     ...testingLibrary.configs["flat/react"],
     files: vitestFiles,
   },

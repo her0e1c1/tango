@@ -5,12 +5,14 @@ import "@testing-library/jest-dom/vitest";
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { createCard, createDeck } from "@/test/factories";
+import type { Preferences } from "@/entities/preferences";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   params: { id: "card-id" as string | undefined },
   card: null as Card | null,
   deck: null as Deck | null,
+  preferences: null as unknown as Preferences,
   navigate: vi.fn(),
 }));
 
@@ -18,6 +20,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 vi.mock("@/entities/card", () => ({
   useCard: () => mocks.card ?? undefined,
 }));
+vi.mock("@/entities/preferences", () => ({ usePreferences: () => mocks.preferences, setDarkMode: vi.fn() }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
@@ -26,7 +29,8 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 vi.mock("@/features/card-view", () => ({
-  CardView: ({ card, deck }: { card: Card; deck: Deck }) => <div>{`Card view: ${card.id} / ${deck.id}`}</div>,
+  buildCardViewContent: (card: Card, deck: Deck) => ({ text: `Card view: ${card.id} / ${deck.id}` }),
+  CardView: ({ text }: { text: string }) => <div>{text}</div>,
 }));
 vi.mock("react-router-dom", () => ({
   useParams: () => mocks.params,
@@ -45,6 +49,7 @@ describe("CardViewPage", () => {
     mocks.params.id = "card-id";
     mocks.card = card;
     mocks.deck = createDeck({ id: "deck-id", category: "raw" });
+    mocks.preferences = createPreferences();
     mocks.navigate.mockReset();
   });
 

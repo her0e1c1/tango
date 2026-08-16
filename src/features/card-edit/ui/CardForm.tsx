@@ -1,33 +1,10 @@
-import type { Card } from "@/entities/card";
-
 import type * as React from "react";
 import { useId } from "react";
 
 import { Button } from "@/shared/ui/button";
 import { TagList } from "@/shared/ui/content";
-import { Form, FormItem, Tag, Textarea, type Option } from "@/shared/ui/forms";
-
-interface CardFormTagField extends Option {
-  input: React.ComponentProps<typeof Tag>;
-}
-
-interface CardFormFields {
-  frontText: React.ComponentProps<typeof Textarea>;
-  backText: React.ComponentProps<typeof Textarea>;
-  tags: CardFormTagField[];
-}
-
-export interface CardFormProps {
-  card: Card;
-  fields: CardFormFields;
-  errors: {
-    frontText: string | undefined;
-    backText: string | undefined;
-  };
-  isSubmitting: boolean;
-  onCancel: () => void;
-  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
-}
+import { Form, FormItem, Tag, Textarea } from "@/shared/ui/forms";
+import type { CardFormProps } from "../model/useCardFormState";
 
 export const CardForm: React.FC<CardFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();
@@ -116,22 +93,22 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
         <dl className="mt-4 grid gap-3 text-caption">
           <div className="min-w-0">
             <dt className="font-medium text-ink-muted">Unique key</dt>
-            <dd className="break-all text-ink">{props.card.uniqueKey}</dd>
+            <dd className="break-all text-ink">{props.cardInfo.uniqueKey}</dd>
           </div>
           <div className="min-w-0">
             <dt className="font-medium text-ink-muted">ID</dt>
-            <dd className="break-all text-ink">{props.card.id}</dd>
+            <dd className="break-all text-ink">{props.cardInfo.id}</dd>
           </div>
-          {Boolean(props.card.createdAt) && (
+          {props.cardInfo.createdAt !== undefined && (
             <div>
               <dt className="font-medium text-ink-muted">Created</dt>
-              <dd className="text-ink">{new Date(props.card.createdAt).toLocaleDateString()}</dd>
+              <dd className="text-ink">{props.cardInfo.createdAt}</dd>
             </div>
           )}
-          {props.card.lastSeenAt != null && (
+          {props.cardInfo.lastSeenAt !== undefined && (
             <div>
               <dt className="font-medium text-ink-muted">Last seen</dt>
-              <dd className="text-ink">{new Date(props.card.lastSeenAt).toLocaleDateString()}</dd>
+              <dd className="text-ink">{props.cardInfo.lastSeenAt}</dd>
             </div>
           )}
         </dl>

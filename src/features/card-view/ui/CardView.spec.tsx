@@ -1,32 +1,12 @@
-import type { Preferences } from "@/entities/preferences";
-
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { createCard, createDeck, createPreferences } from "@/test/factories";
-
-const mocks = vi.hoisted(() => ({
-  preferences: null as unknown as Preferences,
-}));
-
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/preferences", () => ({
-  usePreferences: () => mocks.preferences,
-}));
+import { describe, expect, it, vi } from "vitest";
 
 import { CardView } from "./CardView";
 
 describe("CardView", () => {
-  beforeEach(() => {
-    mocks.preferences = createPreferences({ appearance: { darkMode: true } });
-  });
-
-  it("renders the answer using the card category and appearance", () => {
-    const card = createCard({ backText: "const answer = 42;", tags: ["typescript"] });
-    const deck = createDeck({ category: "raw" });
-
-    render(<CardView card={card} deck={deck} />);
+  it("renders prepared answer content and appearance", () => {
+    render(<CardView text="const answer = 42;" category="typescript" code dark />);
 
     const code = screen.getByText(/answer =/);
     expect(code).toHaveTextContent("const answer = 42;");
@@ -38,9 +18,7 @@ describe("CardView", () => {
   it("supports the bare study layout and click behavior", () => {
     const onClick = vi.fn();
 
-    render(
-      <CardView card={createCard({ backText: "Card answer" })} deck={createDeck()} onClick={onClick} variant="bare" />
-    );
+    render(<CardView text="Card answer" onClick={onClick} variant="bare" />);
 
     const answer = screen.getByText("Card answer");
     expect(screen.queryByRole("region", { name: "Card answer" })).not.toBeInTheDocument();

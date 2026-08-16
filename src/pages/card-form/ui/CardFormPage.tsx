@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useParams } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
-import { CardEditForm } from "@/features/card-edit";
+import { CardEditForm, useCardEditAction, useCardFormState } from "@/features/card-edit";
 import { routes, useNavigation } from "@/shared/routes";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -10,10 +10,12 @@ import { AppLayout } from "@/widgets/app-layout";
 const CardFormContent = ({ card }: { card: Card }) => {
   const navigation = useNavigation();
   const goBack = () => void navigation.back();
+  const editAction = useCardEditAction({ onSaved: goBack });
+  const form = useCardFormState({ card, onCancel: goBack, onSubmit: editAction.update });
 
   return (
     <AppLayout showHeader>
-      <CardEditForm card={card} onSaved={goBack} onCancel={goBack} />
+      <CardEditForm form={form} saveError={editAction.error} />
     </AppLayout>
   );
 };

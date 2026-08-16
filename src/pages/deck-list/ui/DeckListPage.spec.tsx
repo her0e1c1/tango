@@ -16,9 +16,8 @@ const mocks = vi.hoisted(() => ({
   preferences: {} as Preferences,
   decks: [] as Deck[],
   cards: [] as Card[],
-  authUid: "user-1",
-  deleteDeck: vi.fn(async (_uid: string, _deck: Deck) => undefined),
   useAddSampleDeck: vi.fn(),
+  requestDeletion: vi.fn(),
   touchStudySession: vi.fn(),
   navigate: vi.fn(),
 }));
@@ -27,14 +26,10 @@ vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: vi.fn(),
 }));
-vi.mock("@/entities/auth", () => ({
-  useAuthUid: () => mocks.authUid,
-}));
 vi.mock("@/entities/card", () => ({
   useCards: () => mocks.cards,
 }));
 vi.mock("@/entities/deck", () => ({
-  deleteDeck: mocks.deleteDeck,
   useDecks: () => mocks.decks,
 }));
 vi.mock("@/features/deck-import", () => ({ useAddSampleDeck: mocks.useAddSampleDeck }));
@@ -43,8 +38,18 @@ vi.mock("@/entities/study-session", () => ({
   useStudySessions: () => ({}),
 }));
 vi.mock("@/features/deck-list", () => ({
+  useDeckListState: ({ decks }: { decks: Deck[] }) => ({
+    sections: { studying: [], other: decks.map((deck) => ({ deck, cardCount: 0 })) },
+    deletionTarget: undefined,
+    successMessage: undefined,
+    onDownload: vi.fn(),
+    onRequestDeletion: mocks.requestDeletion,
+    onCancelDeletion: vi.fn(),
+    onConfirmDeletion: vi.fn(),
+  }),
   DeckList: (props: DeckListProps) => {
-    const [deck] = props.decks;
+    const [item] = props.state.sections.other;
+    const deck = item?.deck;
     if (deck == null) return null;
     return (
       <section aria-label="Deck list feature">
@@ -60,7 +65,7 @@ vi.mock("@/features/deck-list", () => ({
         <button type="button" onClick={() => props.onEditDeck(deck.id)}>
           Edit deck
         </button>
-        <button type="button" onClick={() => void props.onDeleteDeck(deck)}>
+        <button type="button" onClick={() => props.state.onRequestDeletion(deck.id)}>
           Delete deck
         </button>
       </section>
@@ -81,7 +86,6 @@ describe("DeckListPage", () => {
     mocks.preferences = createPreferences({ darkMode: false });
     mocks.decks = [deck];
     mocks.cards = [card];
-    mocks.authUid = "user-1";
   });
 
   it("composes route and reusable feature actions around the Deck List Feature", () => {
@@ -98,7 +102,7 @@ describe("DeckListPage", () => {
     expect(mocks.navigate).toHaveBeenNthCalledWith(2, `/deck/${deck.id}/study`, undefined);
     expect(mocks.navigate).toHaveBeenNthCalledWith(3, `/deck/${deck.id}/start`, undefined);
     expect(mocks.navigate).toHaveBeenNthCalledWith(4, `/deck/${deck.id}/edit`, undefined);
-    expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith(mocks.authUid, deck);
+    expect(mocks.requestDeletion).toHaveBeenCalledExactlyOnceWith(deck.id);
   });
 
   it("keeps route shortcuts and sample Deck wiring", () => {

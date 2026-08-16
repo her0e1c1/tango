@@ -8,8 +8,8 @@ import cx from "classnames";
 import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
-import type { Deck, DeckId } from "@/entities/deck";
-import type { DeckListStudyProgress } from "../model/buildDeckListSections";
+import type { DeckId } from "@/entities/deck";
+import type { DeckListDeck, DeckListStudyProgress } from "../model/buildDeckListSections";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
 
@@ -28,7 +28,7 @@ export interface DeckListCardActions {
 }
 
 export interface DeckListCardProps extends DeckListCardActions {
-  deck: Deck;
+  deck: DeckListDeck;
   cardCount: number;
   studyProgress?: DeckListStudyProgress;
 }
@@ -55,7 +55,7 @@ const primaryActionClassName =
   "inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 const DeckListCardStatus: React.FC<{
-  deck: Deck;
+  deck: DeckListDeck;
   active: boolean;
   studyProgress: DeckListStudyProgress | undefined;
   progressValue: number;
