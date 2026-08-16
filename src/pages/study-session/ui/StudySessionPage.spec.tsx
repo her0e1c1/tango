@@ -37,7 +37,7 @@ vi.mock("@/features/study", async (importOriginal) => {
   };
 });
 
-import { DeckStudyPage } from "./DeckStudyPage";
+import { StudySessionPage } from "./StudySessionPage";
 
 const deck: Deck = {
   id: "deck-id",
@@ -96,7 +96,7 @@ const studyingState = (): StudyState => ({
   updateIndex: noop,
 });
 
-describe("DeckStudyPage", () => {
+describe("StudySessionPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.params.id = deck.id;
@@ -109,11 +109,11 @@ describe("DeckStudyPage", () => {
 
   it("validates the route parameter", () => {
     mocks.params.id = undefined;
-    expect(() => render(<DeckStudyPage />)).toThrow("invalid deck id");
+    expect(() => render(<StudySessionPage />)).toThrow("invalid deck id");
   });
 
   it("passes Entity reads to useStudy and composes the application shell", () => {
-    render(<DeckStudyPage />);
+    render(<StudySessionPage />);
 
     expect(mocks.studyArgs).toMatchObject({ deckId: deck.id, cards: [card] });
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
@@ -126,18 +126,18 @@ describe("DeckStudyPage", () => {
     ["invalid", "Study session unavailable."],
   ] as const)("renders route feedback for %s workflow state", (status, title) => {
     mocks.studyState = { status, ...commands() };
-    render(<DeckStudyPage />);
+    render(<StudySessionPage />);
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
   });
 
   it("converts invalid session intent into current route navigation", () => {
-    render(<DeckStudyPage />);
+    render(<StudySessionPage />);
     act(() => mocks.studyArgs?.onInvalid());
     expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
   });
 
   it("delegates a representative Study shortcut to the workflow action", () => {
-    render(<DeckStudyPage />);
+    render(<StudySessionPage />);
     const state = mocks.studyState;
     if (state?.status !== "studying") throw new Error("expected studying workflow state");
 
@@ -148,7 +148,7 @@ describe("DeckStudyPage", () => {
 
   it("shows route feedback when the Deck Entity is unavailable", () => {
     mocks.deck = undefined;
-    render(<DeckStudyPage />);
+    render(<StudySessionPage />);
     expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
   });
 });
