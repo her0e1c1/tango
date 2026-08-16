@@ -17,14 +17,11 @@ export type StudySessionState =
 export const useStudySessionState = (deckId: DeckId, cards: readonly Card[]): StudySessionState => {
   const session = useStudySession(deckId);
   const card = findCurrentStudySessionCard(session, cards);
-  const sessionState: StudySessionState =
-    session == null
-      ? { status: "invalid" }
-      : card != null
-        ? { status: "studying", session, card }
-        : cards.length === 0
-          ? { status: "preparing" }
-          : { status: "invalid" };
+
+  let sessionState: StudySessionState;
+  if (session == null) sessionState = { status: "invalid" };
+  else if (card != null) sessionState = { status: "studying", session, card };
+  else sessionState = { status: cards.length === 0 ? "preparing" : "invalid" };
 
   React.useEffect(() => {
     if (sessionState.status !== "studying") return;
