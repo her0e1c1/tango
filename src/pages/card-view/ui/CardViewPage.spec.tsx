@@ -1,84 +1,82 @@
+import type { Preferences } from "@/entities/preferences";
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
-import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { mutateCards } from "@/entities/card";
+import { createDeck } from "@/entities/deck";
+import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
-  params: { id: "card-id" as string | undefined },
-  card: null as Card | null,
-  deck: null as Deck | null,
   preferences: null as unknown as Preferences,
-  navigate: vi.fn(),
+  setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
-vi.mock("@/entities/card", () => ({
-  useCard: () => mocks.card ?? undefined,
+vi.mock("@/entities/preferences", () => ({
+  usePreferences: () => mocks.preferences,
+  setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("@/entities/preferences", () => ({ usePreferences: () => mocks.preferences, setDarkMode: vi.fn() }));
-vi.mock("@/entities/deck", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/entities/deck")>();
-  return {
-    ...actual,
-    useDeck: () => mocks.deck ?? undefined,
-  };
-});
-vi.mock("@/features/card-view", () => ({
-  buildCardViewContent: (card: Card, deck: Deck) => ({ text: `Card view: ${card.id} / ${deck.id}` }),
-  CardView: ({ text }: { text: string }) => <div>{text}</div>,
-}));
-vi.mock("react-router-dom", () => ({
-  useParams: () => mocks.params,
-  useNavigate: () => mocks.navigate,
-}));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardViewPage } from "./CardViewPage";
 
 describe("CardViewPage", () => {
-  const card = createCard({
-    id: "card-id",
-    deckId: "deck-id",
+  const deckId = "card-view-deck";
+  const cardId = "card-id";
+  const renderPage = (path = `/card/${cardId}`) =>
+    render(
+      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+        <Routes>
+          <Route path="/previous" element={<h1>Previous page</h1>} />
+          <Route path="/" element={<h1>Deck list destination</h1>} />
+          <Route path="/card/:id" element={<CardViewPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+  beforeEach(async () => {
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
+    mocks.setDarkMode.mockReset();
+    await createDeck("", createLocalDeck({ id: deckId, category: "raw" }));
+    await mutateCards("", [
+      {
+        kind: "create",
+        card: createLocalCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" }),
+      },
+    ]);
   });
 
-  beforeEach(() => {
-    mocks.params.id = "card-id";
-    mocks.card = card;
-    mocks.deck = createDeck({ id: "deck-id", category: "raw" });
-    mocks.preferences = createPreferences();
-    mocks.navigate.mockReset();
-  });
+  it("renders the stored card answer in the application shell", () => {
+    renderPage();
 
-  it("connects the available card and deck to the feature", () => {
-    render(<CardViewPage />);
-
-    expect(screen.getByText("Card view: card-id / deck-id")).toBeVisible();
-  });
-
-  it("renders the ready screen in the application shell", () => {
-    render(<CardViewPage />);
-
+    expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Back text");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
-  it("shows recovery actions when the card is unavailable", async () => {
-    mocks.card = null;
-    render(<CardViewPage />);
+  it("navigates with both recovery actions when the card is unavailable", async () => {
+    const view = renderPage("/card/missing-card");
 
-    expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+
+    view.unmount();
+    renderPage("/card/missing-card");
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
-    expect(mocks.navigate).toHaveBeenNthCalledWith(1, "/", undefined);
-    expect(mocks.navigate).toHaveBeenNthCalledWith(2, -1);
+    expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
-  it("preserves the invalid route error", () => {
-    mocks.params.id = undefined;
-    expect(() => render(<CardViewPage />)).toThrowError("invalid card id");
+  it("rejects a route without a card id", () => {
+    expect(() =>
+      render(
+        <MemoryRouter>
+          <CardViewPage />
+        </MemoryRouter>
+      )
+    ).toThrowError("invalid card id");
   });
 });
