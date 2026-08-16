@@ -6,7 +6,8 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import type { DeckListDeck, DeckListItem, DeckListSections } from "../model/useDeckListState";
+import type { Deck } from "@/entities/deck";
+import type { DeckListState } from "../model/useDeckListState";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
@@ -17,14 +18,13 @@ import { DeckListView as Template } from "./DeckListView";
  * The helper keeps sample setup separate from the component configuration readers are meant to
  * inspect.
  */
-const otherItems = (decks: DeckListDeck[]): DeckListItem[] =>
-  decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
+const otherItems = (decks: Deck[]) => decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
 /**
  * Prepares studying items data for the Storybook examples in this file.
  * The helper keeps sample setup separate from the component configuration readers are meant to
  * inspect.
  */
-const studyingItems = (decks: DeckListDeck[]): DeckListItem[] =>
+const studyingItems = (decks: Deck[]) =>
   decks.map((deck, index) => ({
     deck,
     cardCount: 30 + index,
@@ -35,14 +35,14 @@ const studyingItems = (decks: DeckListDeck[]): DeckListItem[] =>
     },
   }));
 
-const mixed: DeckListSections = {
+const mixed = {
   studying: studyingItems(fixture.decks.default.slice(0, 3)),
   other: otherItems(fixture.decks.default.slice(3)),
-};
-const longSections: DeckListSections = {
+} satisfies DeckListState["sections"];
+const longSections = {
   studying: studyingItems(fixture.decks.long.slice(0, 4)),
   other: otherItems(fixture.decks.long.slice(4)),
-};
+} satisfies DeckListState["sections"];
 
 const meta = {
   title: "Features/DeckList/DeckListView",

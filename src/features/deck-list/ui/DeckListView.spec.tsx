@@ -5,7 +5,7 @@
  */
 
 import type { DeckId } from "@/entities/deck";
-import type { DeckListSections } from "../model/useDeckListState";
+import type { DeckListState } from "../model/useDeckListState";
 
 import * as React from "react";
 import { fireEvent, render, within, screen } from "@testing-library/react";
@@ -19,7 +19,7 @@ import { DeckListView } from "./DeckListView";
 const activeDeck = createDeck({ id: "active", name: "Active deck", category: "math" });
 const otherDeck = createDeck({ id: "other", name: "Other deck", category: "history" });
 
-const sections: DeckListSections = {
+const sections = {
   studying: [
     {
       deck: activeDeck,
@@ -28,7 +28,7 @@ const sections: DeckListSections = {
     },
   ],
   other: [{ deck: otherDeck, cardCount: 7 }],
-};
+} satisfies DeckListState["sections"];
 
 /**
  * Renders the test-only Controlled Deck List component with controlled state or providers.

@@ -9,7 +9,7 @@ import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
 import type { DeckId } from "@/entities/deck";
-import type { DeckListDeck, DeckListStudyProgress } from "../model/useDeckListState";
+import type { DeckListState } from "../model/useDeckListState";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
 
@@ -27,11 +27,7 @@ export interface DeckListCardActions {
   onCloseMenu?: () => void;
 }
 
-export interface DeckListCardProps extends DeckListCardActions {
-  deck: DeckListDeck;
-  cardCount: number;
-  studyProgress?: DeckListStudyProgress;
-}
+export type DeckListCardProps = DeckListCardActions & DeckListState["sections"]["other"][number];
 
 /**
  * Formats a deck's last-study time for display in the deck list.
@@ -55,9 +51,9 @@ const primaryActionClassName =
   "inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 const DeckListCardStatus: React.FC<{
-  deck: DeckListDeck;
+  deck: DeckListCardProps["deck"];
   active: boolean;
-  studyProgress: DeckListStudyProgress | undefined;
+  studyProgress: DeckListCardProps["studyProgress"];
   progressValue: number;
   cardCount: number;
   statusId: string;
