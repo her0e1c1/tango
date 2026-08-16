@@ -1,47 +1,17 @@
 import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { countCardsByDeckId, filterCardsByDeckId, type Card } from "@/entities/card";
+import { filterCardsByDeckId, type Card } from "@/entities/card";
 import { deleteDeck, mustFindDeckById, type Deck, type DeckId } from "@/entities/deck";
-import { compareActiveDecks, groupDecksByStudyStatus, type StudySession } from "@/entities/study-session";
+import type { StudySession } from "@/entities/study-session";
 import { downloadDeckCsv } from "../lib/deckCsv";
+import { buildDeckListSections } from "./buildDeckListSections";
 
 interface UseDeckListStateOptions {
   decks: Deck[];
   cards: Card[];
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
 }
-
-const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
-
-const buildDeckListSections = (
-  decks: Deck[],
-  cards: Card[],
-  sessionsByDeckId: Partial<Record<DeckId, StudySession>>
-) => {
-  const cardCounts = countCardsByDeckId(cards);
-  const createItem = (deck: Pick<Deck, "id" | "name" | "category" | "isPublic">, session?: StudySession) => ({
-    deck,
-    cardCount: cardCounts.get(deck.id) ?? 0,
-    ...(session == null
-      ? {}
-      : {
-          studyProgress: {
-            currentIndex: session.currentIndex,
-            cardCount: session.cardOrderIds.length,
-            lastStudiedAt: session.lastStudiedAt,
-          },
-        }),
-  });
-  const { active: studyingDecks, inactive: otherDecks } = groupDecksByStudyStatus(decks, sessionsByDeckId);
-  studyingDecks.sort(compareActiveDecks);
-  otherDecks.sort(compareDeckNames);
-
-  return {
-    studying: studyingDecks.map(({ deck, session }) => createItem(deck, session)),
-    other: otherDecks.map((deck) => createItem(deck)),
-  };
-};
 
 export const useDeckListState = ({ decks, cards, sessionsByDeckId }: UseDeckListStateOptions) => {
   const uid = useAuthUid();
