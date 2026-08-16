@@ -58,10 +58,7 @@ export const useDeckImport = () => {
   // Execution state must update synchronously so operations cannot overlap before React publishes status.
   const executionRef = useRef<DeckImportExecutionState>(createExecutionState());
   const [state, setState] = useState<DeckImportState>(() => initialState(uid, generationRef.current));
-  const currentState =
-    state.uid === uid && state.generation === generationRef.current
-      ? state
-      : initialState(uid, generationRef.current);
+  const currentState = state.uid === uid && state.generation === generationRef.current ? state : initialState(uid, generationRef.current);
 
   const updateState = (update: Partial<Omit<DeckImportState, "uid" | "generation">>) => {
     setState((current) => {
