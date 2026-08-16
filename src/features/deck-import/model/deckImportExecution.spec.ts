@@ -24,7 +24,7 @@ describe("prepareDeckImport", () => {
     ]);
   });
 
-  it("prepares an update from the Card with the same unique key", () => {
+  it("creates a new Deck when an existing Deck has the same name", () => {
     const deck = createDeck({ id: "deck", name: "deck.csv", uid: "uid" });
     const existing = createCard({
       id: "existing",
@@ -35,25 +35,29 @@ describe("prepareDeckImport", () => {
     });
     const attempt = prepareDeckImport(
       { name: deck.name, rows },
-      { uid: deck.uid, decks: [deck], cards: [existing], generateCardId: vi.fn() }
+      { uid: deck.uid, decks: [deck], cards: [existing], generateCardId: vi.fn(() => "new-card") }
     );
 
-    expect(attempt.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
+    expect(attempt.deck.id).not.toBe(deck.id);
+    expect(attempt.createDeck).toBe(true);
+    expect(attempt.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
     expect(attempt.mutations).toEqual([
-      { kind: "edit", card: expect.objectContaining({ id: existing.id, frontText: "front" }) },
+      { kind: "create", card: expect.objectContaining({ id: "new-card", frontText: "front" }) },
     ]);
   });
 
-  it("skips a Card with identical editable content", () => {
+  it("does not inspect Cards from a same-name Deck", () => {
     const deck = createDeck({ id: "deck", name: "deck.csv", uid: "uid" });
     const existing = createCard({ ...row.card, deckId: deck.id, uid: deck.uid });
     const attempt = prepareDeckImport(
       { name: deck.name, rows },
-      { uid: deck.uid, decks: [deck], cards: [existing], generateCardId: vi.fn() }
+      { uid: deck.uid, decks: [deck], cards: [existing], generateCardId: vi.fn(() => "new-card") }
     );
 
-    expect(attempt.plan).toMatchObject({ created: 0, updated: 0, unchanged: 1 });
-    expect(attempt.mutations).toEqual([]);
+    expect(attempt.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
+    expect(attempt.mutations).toEqual([
+      { kind: "create", card: expect.objectContaining({ id: "new-card", uniqueKey: "key-1" }) },
+    ]);
   });
 
   it("prepares local Deck and Card creation without an account owner", () => {
@@ -75,7 +79,7 @@ describe("prepareDeckImport", () => {
     ]);
   });
 
-  it("plans a local re-import from only the matching local Deck", () => {
+  it("creates a new local Deck when local and remote Decks have the same name", () => {
     const remoteDeck = createDeck({ id: "remote", name: "shared.csv", uid: "uid" });
     const localDeck = createLocalDeck({ id: "local", name: "shared.csv" });
     const remoteCard = createCard({ ...row.card, id: "remote-card", deckId: remoteDeck.id, uid: remoteDeck.uid });
@@ -91,14 +95,15 @@ describe("prepareDeckImport", () => {
         uid: "uid",
         decks: [remoteDeck, localDeck],
         cards: [remoteCard, localCard],
-        generateCardId: vi.fn(),
+        generateCardId: vi.fn(() => "new-card"),
       }
     );
 
-    expect(attempt.deck.id).toBe(localDeck.id);
-    expect(attempt.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
+    expect(attempt.deck.id).not.toBe(localDeck.id);
+    expect(attempt.createDeck).toBe(true);
+    expect(attempt.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
     expect(attempt.mutations).toEqual([
-      { kind: "edit", card: expect.objectContaining({ id: localCard.id, frontText: "front" }) },
+      { kind: "create", card: expect.objectContaining({ id: "new-card", frontText: "front" }) },
     ]);
   });
 });

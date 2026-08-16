@@ -1,12 +1,4 @@
-import type {
-  DeckCreate,
-  DeckCreateInput,
-  DeckEdit,
-  DeckId,
-  DeleteDeckInput,
-  EditDeckInput,
-  Deck,
-} from "../model/types";
+import type { DeckCreate, DeckCreateInput, DeckEdit, DeckId, DeleteDeckInput, EditDeckInput } from "../model/types";
 
 import {
   collection,
@@ -14,7 +6,6 @@ import {
   deleteField,
   doc,
   getDocs,
-  getDocsFromServer,
   onSnapshot,
   query,
   setDoc,
@@ -25,7 +16,7 @@ import {
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
-import { toDeckDocument, toDeckView, toRemoteDeckStore } from "../model/dto";
+import { toDeckDocument, toRemoteDeckStore } from "../model/dto";
 import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
 import { replaceRemoteDecks } from "../model/store";
 import { parseDeckDocument } from "./document";
@@ -54,14 +45,6 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     },
     onError
   );
-
-export const fetchDecks = async (uid: string): Promise<Deck[]> => {
-  const snapshot = await getDocsFromServer(query(collection(db, DECK_COLLECTION), where("uid", "==", uid)));
-  return snapshot.docs.flatMap((document) => {
-    const deck = readActiveRemoteDeck(document.id, document.data());
-    return deck === undefined ? [] : [toDeckView(deck)];
-  });
-};
 
 const createDeckDocument = async (deck: DeckCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();

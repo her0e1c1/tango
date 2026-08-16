@@ -48,7 +48,8 @@ const isRemoteCard = (card: Card): card is RemoteCard => "uid" in card;
 
 const matchesImportDestination = (candidate: Deck, request: DeckImportRequest, localMode: boolean): boolean =>
   candidate.localMode === localMode &&
-  (request.preferredDeckId === undefined ? candidate.name === request.name : candidate.id === request.preferredDeckId);
+  request.preferredDeckId !== undefined &&
+  candidate.id === request.preferredDeckId;
 
 const createImportDeck = (request: DeckImportRequest, uid: string, localMode: boolean): DeckImportCreateInput => {
   const id = request.preferredDeckId ?? generateDeckId();

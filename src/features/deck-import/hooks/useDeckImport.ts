@@ -1,11 +1,8 @@
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
-
 import { useEffect, useRef, useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { fetchCards, generateCardId, mutateCards, useCards } from "@/entities/card";
-import { createDeck, fetchDecks, useDecks } from "@/entities/deck";
+import { generateCardId, mutateCards, useCards } from "@/entities/card";
+import { createDeck, useDecks } from "@/entities/deck";
 import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
 import type { DeckImportResult, DeckImportStorageMode } from "../model/deckImportExecution";
 import { executePreparedDeckImport, prepareDeckImport } from "../model/deckImportExecution";
@@ -130,15 +127,9 @@ export const useDeckImport = () => {
       const analysis = await parseCsv(await file.text());
       assertCurrent(generation);
 
-      // Listener-backed stores can lag, so remote file imports are planned from authoritative server reads.
-      const [activeDecks, activeCards]: [Deck[], Card[]] =
-        storageMode === "remote" ? await Promise.all([fetchDecks(uid), fetchCards(uid)]) : [decks, cards];
-
-      assertCurrent(generation);
-
       const attempt = prepareDeckImport(
         { name: file.name, rows: analysis.rows, storageMode },
-        { uid, decks: activeDecks, cards: activeCards, generateCardId }
+        { uid, decks: [], cards: [], generateCardId }
       );
       const preview = {
         deckName: file.name,
