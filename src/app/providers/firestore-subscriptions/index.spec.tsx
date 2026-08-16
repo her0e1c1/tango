@@ -1,107 +1,164 @@
-import { render, screen } from "@testing-library/react";
+interface FirestoreQuery {
+  collectionName: "card" | "deck";
+  uid: string;
+}
+
+interface FirestoreSnapshot {
+  docs: { id: string; data: () => Record<string, unknown> }[];
+}
+
+import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
 
-const mocks = vi.hoisted(() => ({
-  authUid: "",
-  subscribeCards: vi.fn(),
-  subscribeDecks: vi.fn(),
-  operations: [] as string[],
-}));
+import { replaceAuthSession } from "@/entities/auth";
+import { clearRemoteCards, useCards } from "@/entities/card";
+import { clearRemoteDecks, useDecks } from "@/entities/deck";
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => mocks.authUid }));
-vi.mock("@/entities/card", () => ({
-  clearRemoteCards: () => mocks.operations.push("clear remote Cards"),
-  subscribeCards: mocks.subscribeCards,
-}));
-vi.mock("@/entities/deck", () => ({
-  clearRemoteDecks: () => mocks.operations.push("clear remote Decks"),
-  subscribeDecks: mocks.subscribeDecks,
-}));
+vi.mock("@/shared/firebase", () => ({ db: {} }));
+vi.mock("firebase/firestore", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("firebase/firestore")>();
+  return {
+    ...actual,
+    collection: (_database: unknown, collectionName: FirestoreQuery["collectionName"]) => ({ collectionName }),
+    where: (_field: string, _operator: string, uid: string) => ({ uid }),
+    query: (collectionReference: Pick<FirestoreQuery, "collectionName">, filter: Pick<FirestoreQuery, "uid">) => ({
+      ...collectionReference,
+      ...filter,
+    }),
+    onSnapshot: (
+      request: FirestoreQuery,
+      publishSnapshot: (snapshot: FirestoreSnapshot) => void,
+      _onError: (error: Error) => void
+    ) => {
+      const deckId = `deck-${request.uid}`;
+      const document =
+        request.collectionName === "deck"
+          ? {
+              id: deckId,
+              data: () => ({
+                name: `Deck for ${request.uid}`,
+                isPublic: false,
+                uid: request.uid,
+                createdAt: 1,
+                updatedAt: 2,
+                deletedAt: null,
+                scoreMax: null,
+                scoreMin: null,
+                selectedTags: [],
+                tagAndFilter: false,
+                category: "",
+                convertToBr: false,
+              }),
+            }
+          : {
+              id: `card-${request.uid}`,
+              data: () => ({
+                frontText: `Front for ${request.uid}`,
+                backText: `Back for ${request.uid}`,
+                tags: [],
+                uniqueKey: `key-${request.uid}`,
+                deckId,
+                uid: request.uid,
+                createdAt: 1,
+                updatedAt: 2,
+                deletedAt: null,
+                score: 0,
+                numberOfSeen: 0,
+              }),
+            };
+      publishSnapshot({ docs: [document] });
+      return () => undefined;
+    },
+  };
+});
 
 import { FirestoreSubscriptionsProvider } from ".";
 
+const authenticatedSession = (uid: string) => ({
+  status: "authenticated" as const,
+  uid,
+  isAnonymous: true,
+  displayName: null,
+});
+
+const RepositoryView = () => {
+  const cards = useCards();
+  const decks = useDecks();
+  return (
+    <>
+      <p>{decks.length === 0 ? "No remote Decks" : decks.map((deck) => deck.name).join(", ")}</p>
+      <p>{cards.length === 0 ? "No remote Cards" : cards.map((card) => card.frontText).join(", ")}</p>
+    </>
+  );
+};
+
+const renderProvider = () =>
+  render(
+    <FirestoreSubscriptionsProvider>
+      <p>Application content</p>
+      <RepositoryView />
+    </FirestoreSubscriptionsProvider>
+  );
+
 describe("FirestoreSubscriptionsProvider", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.subscribeCards.mockImplementation((uid: string) => {
-      mocks.operations.push(`start Cards ${uid}`);
-      return () => mocks.operations.push(`stop Cards ${uid}`);
-    });
-    mocks.subscribeDecks.mockImplementation((uid: string) => {
-      mocks.operations.push(`start Decks ${uid}`);
-      return () => mocks.operations.push(`stop Decks ${uid}`);
-    });
-    mocks.operations.length = 0;
-    mocks.authUid = "test-user";
+    clearRemoteCards();
+    clearRemoteDecks();
+    replaceAuthSession({ status: "initializing" });
   });
 
-  it("starts subscriptions for the authenticated UID and cleans them up on unmount", () => {
-    const view = render(<FirestoreSubscriptionsProvider>content</FirestoreSubscriptionsProvider>);
+  it("leaves application content available without remote data before authentication", () => {
+    renderProvider();
 
-    expect(mocks.operations).toEqual(["start Cards test-user", "start Decks test-user"]);
-    expect(screen.getByText("content")).toBeDefined();
+    expect(screen.getByText("Application content")).toBeVisible();
+    expect(screen.getByText("No remote Decks")).toBeVisible();
+    expect(screen.getByText("No remote Cards")).toBeVisible();
+  });
+
+  it("shows remote data for the authenticated identity", () => {
+    act(() => replaceAuthSession(authenticatedSession("user-a")));
+
+    renderProvider();
+
+    expect(screen.getByText("Deck for user-a")).toBeVisible();
+    expect(screen.getByText("Front for user-a")).toBeVisible();
+  });
+
+  it("replaces visible remote data when the authenticated identity changes", () => {
+    act(() => replaceAuthSession(authenticatedSession("user-a")));
+    renderProvider();
+    expect(screen.getByText("Deck for user-a")).toBeVisible();
+
+    act(() => replaceAuthSession(authenticatedSession("user-b")));
+
+    expect(screen.getByText("Deck for user-b")).toBeVisible();
+    expect(screen.getByText("Front for user-b")).toBeVisible();
+    expect(screen.queryByText("Deck for user-a")).not.toBeInTheDocument();
+    expect(screen.queryByText("Front for user-a")).not.toBeInTheDocument();
+  });
+
+  it("clears visible remote data on logout while preserving application content", () => {
+    act(() => replaceAuthSession(authenticatedSession("user-a")));
+    renderProvider();
+    expect(screen.getByText("Deck for user-a")).toBeVisible();
+
+    act(() => replaceAuthSession({ status: "unauthenticated" }));
+
+    expect(screen.getByText("Application content")).toBeVisible();
+    expect(screen.getByText("No remote Decks")).toBeVisible();
+    expect(screen.getByText("No remote Cards")).toBeVisible();
+  });
+
+  it("clears remote data when the provider unmounts", () => {
+    act(() => replaceAuthSession(authenticatedSession("user-a")));
+    const view = renderProvider();
+    expect(screen.getByText("Deck for user-a")).toBeVisible();
 
     view.unmount();
+    render(<RepositoryView />);
 
-    expect(mocks.operations).toEqual([
-      "start Cards test-user",
-      "start Decks test-user",
-      "stop Cards test-user",
-      "stop Decks test-user",
-      "clear remote Cards",
-      "clear remote Decks",
-    ]);
-  });
-
-  it("does not subscribe or clear remote state before authentication", () => {
-    mocks.authUid = "";
-
-    const view = render(<FirestoreSubscriptionsProvider />);
-    view.unmount();
-
-    expect(mocks.operations).toEqual([]);
-  });
-
-  it("replaces subscriptions when the authenticated UID changes", () => {
-    const view = render(<FirestoreSubscriptionsProvider />);
-    mocks.operations.length = 0;
-
-    mocks.authUid = "next-user";
-    view.rerender(<FirestoreSubscriptionsProvider />);
-
-    expect(mocks.operations).toEqual([
-      "stop Cards test-user",
-      "stop Decks test-user",
-      "clear remote Cards",
-      "clear remote Decks",
-      "start Cards next-user",
-      "start Decks next-user",
-    ]);
-  });
-
-  it("keeps subscriptions when the authenticated UID is unchanged", () => {
-    const view = render(<FirestoreSubscriptionsProvider />);
-    mocks.operations.length = 0;
-
-    view.rerender(<FirestoreSubscriptionsProvider />);
-
-    expect(mocks.operations).toEqual([]);
-    expect(mocks.subscribeCards).toHaveBeenCalledOnce();
-    expect(mocks.subscribeDecks).toHaveBeenCalledOnce();
-  });
-
-  it("stops subscriptions and clears related state on logout", () => {
-    const view = render(<FirestoreSubscriptionsProvider />);
-    mocks.operations.length = 0;
-
-    mocks.authUid = "";
-    view.rerender(<FirestoreSubscriptionsProvider />);
-
-    expect(mocks.operations).toEqual([
-      "stop Cards test-user",
-      "stop Decks test-user",
-      "clear remote Cards",
-      "clear remote Decks",
-    ]);
+    expect(screen.getByText("No remote Decks")).toBeVisible();
+    expect(screen.getByText("No remote Cards")).toBeVisible();
   });
 });
