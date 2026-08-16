@@ -1,26 +1,42 @@
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import { removeStudySession, resolveStudySession, touchStudySession, useStudySession } from "@/entities/study-session";
+import {
+  findCurrentStudySessionCard,
+  removeStudySession,
+  type StudySession,
+  touchStudySession,
+  useStudySession,
+} from "@/entities/study-session";
 
 import * as React from "react";
 
-export const useStudySessionState = (deckId: DeckId, cards: readonly Card[]) => {
+export type StudySessionState =
+  | { status: "preparing" | "invalid" }
+  | { status: "studying"; session: StudySession; card: Card };
+
+export const useStudySessionState = (deckId: DeckId, cards: readonly Card[]): StudySessionState => {
   const session = useStudySession(deckId);
-  const resolvedSession = resolveStudySession(session, cards);
+  const card = findCurrentStudySessionCard(session, cards);
+  const sessionState: StudySessionState =
+    session == null
+      ? { status: "invalid" }
+      : card != null
+        ? { status: "studying", session, card }
+        : cards.length === 0
+          ? { status: "preparing" }
+          : { status: "invalid" };
 
   React.useEffect(() => {
-    if (resolvedSession.status !== "studying") return;
+    if (sessionState.status !== "studying") return;
     touchStudySession(deckId);
-  }, [deckId, resolvedSession.status]);
+  }, [deckId, sessionState.status]);
 
   React.useEffect(() => {
-    if (resolvedSession.status !== "invalid") return;
+    if (sessionState.status !== "invalid") return;
 
     // Invalid active progress must be removed before leaving so reopening the deck cannot repeat the same failure.
     removeStudySession(deckId);
-  }, [deckId, resolvedSession.status]);
+  }, [deckId, sessionState.status]);
 
-  return resolvedSession;
+  return sessionState;
 };
-
-export type StudySessionState = ReturnType<typeof useStudySessionState>;
