@@ -10,10 +10,10 @@ export interface StudyProgress {
   score: number;
   /** Number of recorded study interactions, including interactions that do not change the score. */
   numberOfSeen: number;
-  lastSeenAt?: number;
+  lastSeenAt?: number | undefined;
   /** Earliest time the Card is eligible when interval filtering is enabled. */
-  nextSeeingAt?: Date;
-  interval?: number;
+  nextSeeingAt?: Date | undefined;
+  interval?: number | undefined;
 }
 
 /** StudyProgress-owned fields read from the shared physical Firestore document. */
