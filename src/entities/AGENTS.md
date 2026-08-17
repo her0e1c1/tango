@@ -15,16 +15,27 @@
 - Keep schema definitions pure.
 - Raw persistence document schemas owned by `api/document.ts` are outside this role.
 
+## `model/domain.ts`
+
+- Define canonical, normalized Entity domain state and pure creation, restoration, and transition functions.
+- Use domain terminology instead of persistence terminology, such as `ownerId` rather than a database field named `uid`.
+- Keep domain code independent from stores, React, browser APIs, SDKs, and persistence document types.
+- Do not export domain types from the Entity Public API.
+- When a slice defines a canonical Domain model, route domain-bearing data between public, store, and persistence
+  boundaries through that model.
+
 ## `model/types.ts`
 
-- Define Entity domain types and boundary-specific types.
+- Define public contracts and boundary-specific store, persistence, or command types.
 - Keep types separate when domain, store, persistence, or public API meanings differ.
+- Do not derive public, store, or persistence types from a Domain type through inheritance or intersection.
 - Derive types from Zod when Zod defines the validation boundary.
-- Do not export domain types from the Entity Public API.
 
 ## `model/dto.ts`
 
-- Define pure mappings between Entity boundary types.
+- Define pure mappings between Entity boundary types and canonical Domain state.
+- Do not map domain-bearing fields directly from one external boundary representation to another when a canonical
+  Domain model exists.
 
 ## `model/defaults.ts`
 
@@ -34,15 +45,17 @@
 ## `model/rules.ts`
 
 - Define pure domain rules, calculations, relationships, selections, and transformations.
-- Express rules using Entity domain types, not store, persistence, or public API types.
-- Let callers pass public Entity types directly when they satisfy the required domain shape; do not map to or construct domain types outside the Entity.
+- Express internal rules using Entity domain types or the smallest semantic domain projection required.
+- Convert public Entity values into domain-rule inputs inside the Entity rather than treating structural compatibility
+  as a shared boundary.
 - Do not access stores, React, browser APIs, or external systems.
 
 ## `model/store.ts`
 
 - Define the global Entity store with Zustand and synchronous state mutations.
 - Do not perform external access, subscriptions, or asynchronous workflows.
-- Treat persistence middleware as an explicit exception for storage access, state hydration, and persistence subscriptions.
+- Treat persistence middleware as an explicit exception for storage access, state hydration, and persistence
+  subscriptions.
 
 ## `model/hooks.ts`
 
@@ -54,7 +67,8 @@
 - Define Entity-specific Firestore access and persistence implementations.
 - Keep Firestore access in `api/` to resources related to this Entity.
 - Collection names, document IDs, Entity CRUD, and Entity-specific query or parsing primitives belong here.
-- Keep raw persistence document schemas beside the parser in `api/document.ts`, together with any types inferred directly from those schemas.
+- Keep raw persistence document schemas beside the parser in `api/document.ts`, together with any types inferred
+  directly from those schemas.
 - Firestore SDK access is allowed here, not in `model/`.
 
 ## `@x/`

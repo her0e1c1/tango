@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createDeck as createDeckFixture } from "@/test/factories";
-
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 
 import { deleteDeck, editDeck } from "./mutations";
@@ -14,9 +12,9 @@ describe("Deck mutations", () => {
   });
 
   it("rejects edit and delete when the Deck cannot be resolved", async () => {
-    const deck = createDeckFixture({ id: "missing" });
-
-    await expect(editDeck("uid", { id: deck.id, name: "Renamed" })).rejects.toThrow('Deck "missing" was not found');
-    await expect(deleteDeck("uid", deck)).rejects.toThrow('Deck "missing" was not found');
+    await expect(editDeck("uid", { id: "missing", name: "Renamed" })).rejects.toThrow(
+      'Deck "missing" was not found'
+    );
+    await expect(deleteDeck("uid", "missing")).rejects.toThrow('Deck "missing" was not found');
   });
 });

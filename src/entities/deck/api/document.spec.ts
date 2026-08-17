@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { createDeck } from "@/test/factories";
-import { toDeckDocument, toRemoteDeckStore } from "../model/dto";
+import { createDeckDomain } from "../model/domain";
+import { toDeckDocument, toDeckDomainFromDocument, toRemoteDeckStore } from "../model/dto";
 import { parseDeckDocument } from "./document";
 
 describe("Deck Firestore document mapping", () => {
@@ -39,10 +39,24 @@ describe("Deck Firestore document mapping", () => {
     });
   });
 
-  it("maps a remote create command to the Firestore boundary", () => {
-    const deck = createDeck({ id: "deck", uid: "owner" });
+  it("maps canonical account-owned domain state to the Firestore boundary", () => {
+    const domain = createDeckDomain(
+      {
+        ownerId: "owner",
+        id: "deck",
+        name: "Deck",
+        isPublic: false,
+        scoreMax: null,
+        scoreMin: null,
+        selectedTags: [],
+        tagAndFilter: false,
+        category: "",
+        convertToBr: false,
+      },
+      10
+    );
 
-    expect(toDeckDocument(deck, 10)).toEqual({
+    expect(toDeckDocument(domain)).toEqual({
       id: "deck",
       uid: "owner",
       name: "Deck",
@@ -59,7 +73,7 @@ describe("Deck Firestore document mapping", () => {
     });
   });
 
-  it("maps a Firestore document to the remote store boundary", () => {
+  it("maps a Firestore document through domain state to the remote store boundary", () => {
     const document = parseDeckDocument("deck", {
       id: "legacy-duplicate-id",
       uid: "owner",
@@ -75,8 +89,10 @@ describe("Deck Firestore document mapping", () => {
       createdAt: 1,
       updatedAt: 2,
     });
+    const domain = toDeckDomainFromDocument("deck", document);
 
-    expect(toRemoteDeckStore("deck", document)).toEqual({
+    expect(domain.ownerId).toBe("owner");
+    expect(toRemoteDeckStore(domain)).toEqual({
       id: "deck",
       uid: "owner",
       localMode: false,

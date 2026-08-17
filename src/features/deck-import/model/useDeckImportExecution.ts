@@ -1,5 +1,5 @@
 import type { Card, CardMutation, RemoteCard } from "@/entities/card";
-import type { Deck, DeckCreateInput, DeckId, LocalDeckCreateInput } from "@/entities/deck";
+import type { Deck, DeckCreateInput, DeckId } from "@/entities/deck";
 
 import { useState } from "react";
 
@@ -12,15 +12,19 @@ import { createDeck as persistDeck, generateDeckId } from "@/entities/deck";
 
 import type { DeckImportRow } from "../lib/cardCsv";
 
-type DeckImportCreateInput = DeckCreateInput | LocalDeckCreateInput;
 export type DeckImportStorageMode = "local" | "remote";
-
 type DeckImportAction = "create" | "update" | "unchanged";
+
+/** Stable destination identity independent from whether a Deck must be created. */
+interface DeckImportDestination {
+  id: DeckId;
+  storageMode: DeckImportStorageMode;
+}
 
 export interface PreparedDeckImport {
   uid: string;
-  destination: DeckImportCreateInput;
-  needsDeckCreation: boolean;
+  destination: DeckImportDestination;
+  createDeckInput?: DeckCreateInput;
   mutations: CardMutation[];
   plan: {
     rows: (DeckImportRow & { action: DeckImportAction })[];
@@ -46,15 +50,18 @@ interface DeckImportPreparationDependencies {
 
 interface DeckImportExecutionDependencies {
   uid: string;
-  createDeck: (deck: DeckImportCreateInput) => Promise<unknown>;
+  createDeck: (deck: DeckCreateInput) => Promise<unknown>;
   mutateCards: (mutations: CardMutation[]) => Promise<unknown>;
 }
 
+// Reports whether one Card belongs to account-backed persistence.
 const isRemoteCard = (card: Card): card is RemoteCard => "uid" in card;
 
+// Reports whether one Card belongs to the selected Deck persistence mode.
 const usesStorageMode = (card: Card, storageMode: DeckImportStorageMode): boolean =>
   storageMode === "remote" ? isRemoteCard(card) : !isRemoteCard(card);
 
+// Reports whether one public Deck matches the requested import destination.
 const matchesDestination = (candidate: Deck, source: DeckImportSource, storageMode: DeckImportStorageMode): boolean => {
   if (candidate.localMode !== (storageMode === "local")) return false;
   return source.preferredDeckId === undefined
@@ -62,23 +69,30 @@ const matchesDestination = (candidate: Deck, source: DeckImportSource, storageMo
     : candidate.id === source.preferredDeckId;
 };
 
+// Creates destination identity and the optional public command needed to persist a new Deck.
 const createDestination = (
   source: DeckImportSource,
-  uid: string,
   storageMode: DeckImportStorageMode
-): DeckImportCreateInput => {
+): Pick<PreparedDeckImport, "destination" | "createDeckInput"> => {
   const id = source.preferredDeckId ?? generateDeckId();
-  return storageMode === "local" ? { id, name: source.name, localMode: true } : { id, uid, name: source.name };
+  return {
+    destination: { id, storageMode },
+    createDeckInput: { id, name: source.name, localMode: storageMode === "local" },
+  };
 };
 
-const reuseDestination = (deck: Deck, uid: string): DeckImportCreateInput =>
-  deck.localMode ? { id: deck.id, name: deck.name, localMode: true } : { id: deck.id, uid, name: deck.name };
+// Reuses one existing public Deck without representing it as a creation command.
+const reuseDestination = (deck: Deck): Pick<PreparedDeckImport, "destination"> => ({
+  destination: { id: deck.id, storageMode: deck.localMode ? "local" : "remote" },
+});
 
+// Determines whether one imported row creates, updates, or preserves a Card.
 const actionFor = (existing: Card | undefined, row: DeckImportRow): DeckImportAction => {
   if (existing == null) return "create";
   return hasSameEditableCardContent(existing, row.card) ? "unchanged" : "update";
 };
 
+// Builds Card mutations and preview counts for one resolved Deck destination.
 const prepareCardMutations = ({
   rows,
   existing,
@@ -107,7 +121,7 @@ const prepareCardMutations = ({
 
     if (action === "create") {
       const cardFields = { ...row.card, id: generateCardId(), deckId: destinationId };
-      // Local persistence stays account-agnostic; Card mutation routing follows the parent Deck's localMode.
+      // Local persistence stays account-agnostic; Card mutation routing follows the parent Deck's storage mode.
       const card = storageMode === "local" ? cardFields : { ...cardFields, uid };
       mutations.push({ kind: "create", card });
     } else if (action === "update" && current != null) {
@@ -126,6 +140,7 @@ const prepareCardMutations = ({
   };
 };
 
+// Resolves a Deck destination and prepares every Card change without performing persistence.
 export const prepareDeckImport = (
   source: DeckImportSource,
   { uid, decks, cards, generateCardId }: DeckImportPreparationDependencies
@@ -134,19 +149,19 @@ export const prepareDeckImport = (
   if (storageMode === "remote" && uid === "") throw new Error("A confirmed user is required for remote imports");
 
   const existingDeck = decks.find((candidate) => matchesDestination(candidate, source, storageMode));
-  // View models intentionally omit ownership metadata, so remote commands recover it from the active session.
-  const destination =
-    existingDeck == null ? createDestination(source, uid, storageMode) : reuseDestination(existingDeck, uid);
+  const preparedDestination =
+    existingDeck === undefined ? createDestination(source, storageMode) : reuseDestination(existingDeck);
+  const existing = cards.filter(
+    (card) => card.deckId === preparedDestination.destination.id && usesStorageMode(card, storageMode)
+  );
 
-  const existing = cards.filter((card) => card.deckId === destination.id && usesStorageMode(card, storageMode));
   return {
     uid,
-    destination,
-    needsDeckCreation: existingDeck == null,
+    ...preparedDestination,
     ...prepareCardMutations({
       rows: source.rows,
       existing,
-      destinationId: destination.id,
+      destinationId: preparedDestination.destination.id,
       uid,
       storageMode,
       generateCardId,
@@ -154,12 +169,13 @@ export const prepareDeckImport = (
   };
 };
 
+// Executes one immutable import plan after confirming that its authenticated context is unchanged.
 export const executePreparedDeckImport = async (
   preparedImport: PreparedDeckImport,
   { uid, createDeck, mutateCards }: DeckImportExecutionDependencies
 ) => {
   if (preparedImport.uid !== uid) throw new Error("The prepared Deck import belongs to a different user");
-  if (preparedImport.needsDeckCreation) await createDeck(preparedImport.destination);
+  if (preparedImport.createDeckInput !== undefined) await createDeck(preparedImport.createDeckInput);
   if (preparedImport.mutations.length > 0) await mutateCards(preparedImport.mutations);
 
   return {
@@ -177,8 +193,10 @@ interface DeckImportExecutionState {
   result: DeckImportResult | undefined;
 }
 
+// Creates the initial import execution state.
 const initialState = (): DeckImportExecutionState => ({ error: null, result: undefined });
 
+// Executes prepared imports and exposes their latest result or error to React callers.
 export const useDeckImportExecution = (uid: string) => {
   const [state, setState] = useState<DeckImportExecutionState>(initialState);
   const updateState = (update: Partial<DeckImportExecutionState>) => {

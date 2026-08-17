@@ -7,7 +7,7 @@ import type { Deck, DeckCreateInput } from "@/entities/deck";
 import type { RemoteDeck } from "@/entities/deck/model/types";
 
 import "@/test/initializeTestFirestore";
-import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card/api/firestore";
 import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
@@ -42,7 +42,6 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
   it("should create a deck and check if exists", async () => {
     const d = {
       id: uuid(),
-      uid: "uid",
       name: "new deck name",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
@@ -65,7 +64,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
-    await editDeck("uid", n);
+    await editDeck("uid", d, n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...toFirestoreDeck(d), name: "updated" });
     expect(data).not.toHaveProperty("localMode");
@@ -77,10 +76,10 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     const deck = { ...newDeck, id: uuid(), url: "https://example.com/deck" };
     await createDeck("uid", deck);
 
-    await editDeck("uid", { id: deck.id, name: "updated" });
+    await editDeck("uid", deck, { id: deck.id, name: "updated" });
     expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({ url: deck.url });
 
-    await editDeck("uid", { id: deck.id, url: null });
+    await editDeck("uid", deck, { id: deck.id, url: null });
     expect((await getDoc(doc(db, "deck", deck.id))).data()).not.toHaveProperty("url");
   });
 
