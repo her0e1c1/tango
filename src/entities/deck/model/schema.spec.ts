@@ -2,18 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { createDeck as createDeckFixture } from "@/test/factories";
 
-import { createDeckSchema, editDeckSchema } from "./schema";
+import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "./schema";
 
 describe("Deck operation schemas", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
   describe("createDeckSchema", () => {
-    it("applies entity defaults without adding persistence timestamps", () => {
-      expect(createDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", uid: "uid-a", name: " Deck " } })).toEqual({
+    it("derives remote ownership from the authenticated context and applies Deck defaults", () => {
+      expect(createDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", name: " Deck " } })).toEqual({
         uid: "uid-a",
         deck: {
           id: "deck",
-          uid: "uid-a",
           name: "Deck",
           localMode: false,
           isPublic: false,
@@ -28,13 +27,11 @@ describe("Deck operation schemas", () => {
     });
 
     it.each([
-      ["authenticated uid", { uid: "", deck }, "confirmed user"],
-      ["Deck id", { uid: "uid-a", deck: { ...deck, id: "" } }, "Deck id"],
-      ["Deck uid", { uid: "uid-a", deck: { ...deck, uid: "" } }, "Deck owner"],
-      ["Deck name", { uid: "uid-a", deck: { ...deck, name: "   " } }, "Deck name"],
-      ["Deck URL", { uid: "uid-a", deck: { ...deck, url: "not-a-url" } }, "valid URL"],
-      ["local mode", { uid: "uid-a", deck: { ...deck, localMode: true } }, "Invalid input"],
-      ["owner relationship", { uid: "uid-b", deck }, "owner does not match"],
+      ["authenticated uid", { uid: "", deck: { id: "deck", name: "Deck" } }, "confirmed user"],
+      ["Deck id", { uid: "uid-a", deck: { id: "", name: "Deck" } }, "Deck id"],
+      ["Deck name", { uid: "uid-a", deck: { id: "deck", name: "   " } }, "Deck name"],
+      ["Deck URL", { uid: "uid-a", deck: { id: "deck", name: "Deck", url: "not-a-url" } }, "valid URL"],
+      ["local mode", { uid: "uid-a", deck: { id: "deck", name: "Deck", localMode: true } }, "local mode"],
     ])("rejects an invalid %s", (_case, input, message) => {
       expect(() => createDeckSchema.parse(input)).toThrow(message);
     });
@@ -55,13 +52,6 @@ describe("Deck operation schemas", () => {
       expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", url: null } }).deck).toHaveProperty("url", null);
     });
 
-    it("accepts disabling local mode as an edit command", () => {
-      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", localMode: false } }).deck).toEqual({
-        id: "deck",
-        localMode: false,
-      });
-    });
-
     it.each([
       ["authenticated uid", { uid: "", deck: { id: "deck" } }, "confirmed user"],
       ["Deck id", { uid: "uid-a", deck: { id: "" } }, "Deck id"],
@@ -69,6 +59,19 @@ describe("Deck operation schemas", () => {
       ["provided Deck URL", { uid: "uid-a", deck: { id: "deck", url: "not-a-url" } }, "valid URL"],
     ])("rejects an invalid %s", (_case, input, message) => {
       expect(() => editDeckSchema.parse(input)).toThrow(message);
+    });
+  });
+
+  describe("deleteDeckSchema", () => {
+    it("accepts an authenticated actor and stable Deck identity", () => {
+      expect(deleteDeckSchema.parse({ uid: "uid-a", deckId: deck.id })).toEqual({ uid: "uid-a", deckId: "deck" });
+    });
+
+    it.each([
+      ["authenticated uid", { uid: "", deckId: deck.id }, "confirmed user"],
+      ["Deck id", { uid: "uid-a", deckId: "" }, "Deck id"],
+    ])("rejects an invalid %s", (_case, input, message) => {
+      expect(() => deleteDeckSchema.parse(input)).toThrow(message);
     });
   });
 });

@@ -1,4 +1,5 @@
-import type { Category, DeckId } from "./types";
+import { matchesDeckTagSelection } from "./domain";
+import type { Category, Deck, DeckId } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -51,18 +52,17 @@ export const getCategory = (category: Category, tags: string[]): Category => {
   return tagCategory ?? category;
 };
 
-// Applies the Deck's all-or-any tag mode; an empty selection deliberately accepts every tag set.
+// Converts the public filter projection into the domain rule input before matching Card tags.
 export const isDeckTagSelectionMatching = (
   candidateTags: readonly string[],
-  selectedTags: readonly string[],
-  tagAndFilter: boolean
-): boolean => {
-  if (selectedTags.length === 0) return true;
-  if (tagAndFilter) return selectedTags.every((tag) => candidateTags.includes(tag));
-  return selectedTags.some((tag) => candidateTags.includes(tag));
-};
+  deck: Pick<Deck, "selectedTags" | "tagAndFilter">
+): boolean =>
+  matchesDeckTagSelection(candidateTags, {
+    selectedTags: deck.selectedTags,
+    tagAndFilter: deck.tagAndFilter,
+  });
 
-// Returns the requested Deck or throws when a caller's Deck reference no longer resolves.
+// Returns the requested Deck-like value or throws when its stable identity no longer resolves.
 export const mustFindDeckById = <TDeck extends { id: DeckId }>(decks: readonly TDeck[], id: DeckId): TDeck => {
   const deck = decks.find((candidate) => candidate.id === id);
 

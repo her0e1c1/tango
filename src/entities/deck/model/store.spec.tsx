@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { createDeck, createLocalDeck as createLocalDeckFixture } from "@/test/factories";
+import { toDeckDomainFromStore, toDeckView } from "./dto";
 import { useDeck, useDecks } from "./hooks";
 import {
   clearRemoteDecks,
@@ -12,6 +13,7 @@ import {
   editLocalDeck,
   replaceRemoteDecks,
 } from "./store";
+import type { DeckStore } from "./types";
 
 // Creates a synchronous in-memory implementation of Zustand storage.
 const createMemoryStorage = (initial: Record<string, string> = {}): StateStorage => {
@@ -29,6 +31,9 @@ const useMemoryStorage = (initial: Record<string, string> = {}): StateStorage =>
   deckStore.persist.setOptions({ storage: createJSONStorage(() => storage) });
   return storage;
 };
+
+// Maps one internal store fixture through canonical domain state to its public view.
+const toPublicDeck = (deck: DeckStore) => toDeckView(toDeckDomainFromStore(deck), deck.localMode);
 
 describe("Deck store", () => {
   beforeEach(() => {
@@ -54,9 +59,9 @@ describe("Deck store", () => {
     const localDeck = createLocalDeckFixture({ id: "local" });
     deckStore.setState({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
 
-    expect(renderHook(useDecks).result.current).toEqual([remoteDeck, localDeck]);
-    expect(renderHook(() => useDeck("remote")).result.current).toBe(remoteDeck);
-    expect(renderHook(() => useDeck("local")).result.current).toBe(localDeck);
+    expect(renderHook(useDecks).result.current).toEqual([toPublicDeck(remoteDeck), toPublicDeck(localDeck)]);
+    expect(renderHook(() => useDeck("remote")).result.current).toEqual(toPublicDeck(remoteDeck));
+    expect(renderHook(() => useDeck("local")).result.current).toEqual(toPublicDeck(localDeck));
     expect(renderHook(() => useDeck("missing")).result.current).toBeUndefined();
   });
 
@@ -134,7 +139,7 @@ describe("Deck store", () => {
     expect(deckStore.getState().localDecks).toEqual([]);
   });
 
-  it("creates, edits, and deletes a local Deck synchronously", () => {
+  it("creates, edits, and deletes a local Deck synchronously through domain transitions", () => {
     vi.spyOn(Date, "now").mockReturnValueOnce(10).mockReturnValueOnce(20);
     const createdDeck = createLocalDeck({
       id: "local",

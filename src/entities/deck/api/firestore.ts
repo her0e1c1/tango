@@ -1,5 +1,4 @@
-import type { z } from "zod";
-import type { DeckCreateInput, DeckId } from "../model/types";
+import type { Deck, DeckCreateInput, DeckId, EditDeckInput, RemoteDeck } from "../model/types";
 
 import {
   collection,
@@ -7,6 +6,7 @@ import {
   deleteField,
   doc,
   getDocs,
+  getDocsFromServer,
   onSnapshot,
   query,
   setDoc,
@@ -17,23 +17,32 @@ import {
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
+import { editDeckDomain, isDeckOwnedBy, type DeckDomain, type EditDeckDomainInput } from "../model/domain";
 import {
-  authenticatedUidSchema,
-  createDeckSchema,
-  type deckEditSchema,
-  deckIdSchema,
-  editDeckSchema,
-} from "../model/schema";
+  toDeckDocument,
+  toDeckDomainEdit,
+  toDeckDomainFromCreate,
+  toDeckDomainFromDocument,
+  toDeckDomainFromStore,
+  toDeckView,
+  toRemoteDeckStore,
+} from "../model/dto";
+import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
 import { replaceRemoteDecks } from "../model/store";
-import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
+import { parseDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
 const CARD_COLLECTION = "card";
 
-// Parses an active remote Deck while omitting tombstoned documents.
-const readActiveRemoteDeck = (id: DeckId, value: unknown) => {
+// Parses an active remote Deck into canonical domain state while omitting tombstoned documents.
+const readActiveRemoteDeckDomain = (id: DeckId, value: unknown): DeckDomain | undefined => {
   const document = parseDeckDocument(id, value);
-  return document.deletedAt === null ? toDeck(id, document) : undefined;
+  return document.deletedAt === null ? toDeckDomainFromDocument(id, document) : undefined;
+};
+
+// Rejects an authenticated actor who does not own the current remote Deck domain state.
+const assertDeckOwner = (deck: DeckDomain, actorId: string): void => {
+  if (!isDeckOwnedBy(deck, actorId)) throw new Error("Deck owner does not match the authenticated user");
 };
 
 // Subscribes the remote Deck store to active documents owned by one user.
@@ -43,8 +52,8 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     (snapshot) => {
       try {
         const decks = snapshot.docs.flatMap((document) => {
-          const deck = readActiveRemoteDeck(document.id, document.data());
-          return deck === undefined ? [] : [deck];
+          const deck = readActiveRemoteDeckDomain(document.id, document.data());
+          return deck === undefined ? [] : [toRemoteDeckStore(deck)];
         });
         replaceRemoteDecks(decks);
       } catch (cause) {
@@ -54,40 +63,51 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     onError
   );
 
-// Writes a new Deck document with synchronized creation and update timestamps.
-const createDeckDocument = async (deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {
-  const createdAt = getCurrentTimeMillis();
-  const document = toDeckDocument(deck, createdAt);
-  await setDoc(doc(db, DECK_COLLECTION, deck.id), document);
+// Fetches an authoritative snapshot of active Deck views owned by one user.
+export const fetchDecks = async (uid: string): Promise<Deck[]> => {
+  const snapshot = await getDocsFromServer(query(collection(db, DECK_COLLECTION), where("uid", "==", uid)));
+  return snapshot.docs.flatMap((document) => {
+    const deck = readActiveRemoteDeckDomain(document.id, document.data());
+    return deck === undefined ? [] : [toDeckView(deck, false)];
+  });
 };
 
-// Validates Deck ownership before creating its Firestore document.
+// Validates a remote creation command, creates canonical domain state, and writes its Firestore document.
 export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<void> => {
   const input = createDeckSchema.parse({ uid, deck });
-  await createDeckDocument(input.deck);
+  const domain = toDeckDomainFromCreate(input.uid, input.deck, getCurrentTimeMillis());
+  await setDoc(doc(db, DECK_COLLECTION, domain.id), toDeckDocument(domain));
 };
 
-// Writes editable Deck fields and advances the update timestamp.
-const updateDeckDocument = async (deck: z.infer<typeof deckEditSchema>): Promise<void> => {
+// Writes only requested editable fields while sourcing their values from updated canonical domain state.
+const updateDeckDocument = async (deck: DeckDomain, edit: EditDeckDomainInput): Promise<void> => {
   const document = omitUndefined({
-    name: deck.name,
-    url: deck.url === null ? deleteField() : deck.url,
-    isPublic: deck.isPublic,
-    updatedAt: getCurrentTimeMillis(),
-    scoreMax: deck.scoreMax,
-    scoreMin: deck.scoreMin,
-    selectedTags: deck.selectedTags,
-    tagAndFilter: deck.tagAndFilter,
-    category: deck.category,
-    convertToBr: deck.convertToBr,
+    name: edit.name === undefined ? undefined : deck.name,
+    url: edit.url === undefined ? undefined : deck.url === null ? deleteField() : deck.url,
+    isPublic: edit.isPublic === undefined ? undefined : deck.isPublic,
+    updatedAt: deck.updatedAt,
+    scoreMax: edit.scoreMax === undefined ? undefined : deck.scoreMax,
+    scoreMin: edit.scoreMin === undefined ? undefined : deck.scoreMin,
+    selectedTags: edit.selectedTags === undefined ? undefined : [...deck.selectedTags],
+    tagAndFilter: edit.tagAndFilter === undefined ? undefined : deck.tagAndFilter,
+    category: edit.category === undefined ? undefined : deck.category,
+    convertToBr: edit.convertToBr === undefined ? undefined : deck.convertToBr,
   });
   await updateDoc(doc(db, DECK_COLLECTION, deck.id), document);
 };
 
-// Validates an authenticated Deck edit before updating Firestore.
-export const editDeck = async (uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> => {
+// Validates ownership and applies a remote Deck edit through the canonical domain transition.
+export const editDeck = async (
+  uid: string,
+  currentDeck: RemoteDeck,
+  deck: EditDeckInput["deck"]
+): Promise<void> => {
   const input = editDeckSchema.parse({ uid, deck });
-  await updateDeckDocument(input.deck);
+  const currentDomain = toDeckDomainFromStore(currentDeck);
+  assertDeckOwner(currentDomain, input.uid);
+  const domainEdit = toDeckDomainEdit(input.deck);
+  const updatedDomain = editDeckDomain(currentDomain, domainEdit, getCurrentTimeMillis());
+  await updateDeckDocument(updatedDomain, domainEdit);
 };
 
 // Deletes a remote Deck and every child Card document owned by the same user.
@@ -100,9 +120,10 @@ const deleteDeckDocuments = async (uid: string, deckId: string): Promise<void> =
   await deleteDoc(doc(db, DECK_COLLECTION, deckId));
 };
 
-// Validates Deck ownership before deleting its remote document graph.
-export const deleteDeck = async (uid: string, deckId: DeckId): Promise<void> => {
-  const userId = authenticatedUidSchema.parse(uid);
-  const id = deckIdSchema.parse(deckId);
-  await deleteDeckDocuments(userId, id);
+// Validates ownership before deleting the current remote Deck domain graph.
+export const deleteDeck = async (uid: string, currentDeck: RemoteDeck): Promise<void> => {
+  const domain = toDeckDomainFromStore(currentDeck);
+  const input = deleteDeckSchema.parse({ uid, deckId: domain.id });
+  assertDeckOwner(domain, input.uid);
+  await deleteDeckDocuments(input.uid, input.deckId);
 };
