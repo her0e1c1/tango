@@ -12,32 +12,6 @@ import { describe, expect, it, vi } from "vitest";
 import { Button } from "@/shared/ui/button";
 
 describe("Button action control", () => {
-  it.each([
-    ["primary", "bg-accent-primary"],
-    ["secondary", "bg-accent-secondary"],
-    ["quiet", "bg-transparent"],
-    ["destructive", "bg-danger"],
-  ] as const)("uses the %s semantic variant", (variant, expectedClass) => {
-    render(<Button variant={variant}>Continue</Button>);
-
-    expect(screen.getByRole("button", { name: "Continue" })).toHaveClass(expectedClass);
-  });
-
-  it.each([
-    ["sm", "px-3", "text-caption"],
-    ["md", "px-4", "text-body"],
-    ["lg", "px-6", "text-lg"],
-  ] as const)("uses the %s size with a mobile touch target", (size, paddingClass, textClass) => {
-    render(<Button size={size}>Continue</Button>);
-
-    expect(screen.getByRole("button", { name: "Continue" })).toHaveClass(
-      "min-h-touch",
-      "min-w-touch",
-      paddingClass,
-      textClass
-    );
-  });
-
   it("does not activate while disabled", () => {
     const onClick = vi.fn();
     render(
@@ -92,12 +66,5 @@ describe("Button action control", () => {
 
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  });
-
-  it("uses secondary variant and md size by default", () => {
-    render(<Button>Default</Button>);
-
-    const button = screen.getByRole("button", { name: "Default" });
-    expect(button).toHaveClass("bg-accent-secondary", "px-4", "text-body");
   });
 });

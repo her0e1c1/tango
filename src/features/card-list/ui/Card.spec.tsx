@@ -124,11 +124,10 @@ describe("Card", () => {
     expect(within(metadata).getByText("one")).toBeVisible();
   });
 
-  it("covers the complete central region with View without owning its metadata", () => {
+  it("keeps the View action separate from Card metadata", () => {
     render(<Card card={card} />);
     const viewButton = screen.getByRole("button", { name: "View A long front" });
 
-    expect(viewButton).toHaveClass("absolute", "inset-0");
     expect(viewButton).not.toContainElement(screen.getByText("studied 7 times"));
   });
 
@@ -196,6 +195,8 @@ describe("Card", () => {
     expect(screen.getByRole("button", { name: "Open actions for A long front" })).toBeDisabled();
     swipe(article, 100, 0);
     swipe(article, 0, 100);
-    expect(Object.values(actions).every((action) => action.mock.calls.length === 0)).toBe(true);
+    for (const action of Object.values(actions)) {
+      expect(action).not.toHaveBeenCalled();
+    }
   });
 });

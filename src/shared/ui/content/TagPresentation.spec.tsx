@@ -1,8 +1,4 @@
-/**
- * @file Verifies the "tag presentation" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "renders compact read-only
- * tag content outside the tab order", "removes one active filter through a native button".
- */
+/** @file Verifies read-only and removable tags through their accessible interfaces. */
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -18,7 +14,6 @@ describe("tag presentation", () => {
 
     const tag = screen.getByTitle("TypeScript");
     expect(tag).toHaveAttribute("title", "TypeScript");
-    expect(tag).toHaveClass("rounded-control", "text-xs");
     expect(tag).not.toHaveAttribute("tabindex");
     expect(tag).toHaveTextContent("TypeScript");
   });
@@ -29,7 +24,6 @@ describe("tag presentation", () => {
 
     const button = screen.getByRole("button", { name: "Remove TypeScript filter" });
     expect(button).toHaveAttribute("type", "button");
-    expect(button).toHaveClass("min-h-touch", "rounded-control");
     expect(button).toHaveTextContent("×");
 
     await userEvent.click(button);

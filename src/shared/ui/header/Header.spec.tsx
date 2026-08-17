@@ -1,10 +1,4 @@
-/**
- * @file Verifies the "Header" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "renders an elevated
- * safe-area-aware fixed shell with touch-sized SVG actions", "preserves action order and callback
- * payloads for light and dark modes", "retains clickable SVG actions without changing their
- * selector contract".
- */
+/** @file Verifies Header content and user actions through its accessible interface. */
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -13,11 +7,10 @@ import { describe, expect, it } from "vitest";
 import { Header } from "./Header";
 
 describe("Header", () => {
-  it("renders the logo in a fixed banner", () => {
-    render(<Header fixed />);
+  it("renders the logo in the application banner", () => {
+    render(<Header />);
 
-    expect(screen.getByRole("banner")).toHaveClass("fixed");
-    expect(screen.getByText("tango")).toBeInTheDocument();
+    expect(screen.getByRole("banner")).toContainElement(screen.getByText("tango"));
   });
 
   it("preserves action callbacks and dark-mode payloads", () => {

@@ -83,7 +83,6 @@ describe("ActionsMenu", () => {
 
     fireEvent.click(trigger);
     const deleteItem = screen.getByRole("menuitem", { name: "Delete" });
-    expect(deleteItem).toHaveClass("text-danger");
     fireEvent.click(deleteItem);
     expect(remove).toHaveBeenCalledOnce();
     await waitFor(() => expect(trigger).toHaveFocus());

@@ -1,71 +1,95 @@
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { replaceAuthSession } from "@/entities/auth";
+import { mutateCards } from "@/entities/card";
+import { createDeck, deleteDeck } from "@/entities/deck";
+import { updatePreferences } from "@/entities/preferences";
+import { clearStudySessions, getStudySession } from "@/entities/study-session";
+import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
-import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { useStudySessionStartState } from "./useStudySessionStartState";
 
-const mocks = vi.hoisted(() => ({
-  cards: [] as Card[],
-  cardsDeckId: undefined as string | undefined,
-  deck: undefined as Deck | undefined,
-  deckId: undefined as string | undefined,
-  preferences: null as unknown as Preferences,
-  startStudy: vi.fn(),
-  tags: [] as string[],
-}));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-vi.mock("@/entities/card", () => ({
-  useCardsByDeckId: (deckId: string) => {
-    mocks.cardsDeckId = deckId;
-    return { cards: mocks.cards, tags: mocks.tags };
-  },
-}));
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
-vi.mock("@/entities/deck", () => ({
-  editDeck: vi.fn(),
-  filterCardsForDeck: (cards: Card[]) => cards.filter(({ tags }) => tags.includes("eligible")),
-  useDeck: (deckId: string) => {
-    mocks.deckId = deckId;
-    return mocks.deck;
-  },
-}));
-vi.mock("@/entities/preferences", () => ({
-  usePreferences: () => mocks.preferences,
-}));
-vi.mock("@/entities/study-session", () => ({
-  startStudy: mocks.startStudy,
-}));
+const preferences = createPreferences({ study: { maxNumberOfCardsToLearn: 12, shuffled: false } });
+const deck = createLocalDeck({
+  id: "study-start-deck",
+  name: "Japanese vocabulary",
+  selectedTags: ["eligible"],
+});
+const eligibleCard = createLocalCard({
+  id: "eligible-card",
+  deckId: deck.id,
+  tags: ["eligible"],
+  uniqueKey: "eligible-card",
+});
+const laterCard = createLocalCard({
+  id: "later-card",
+  deckId: deck.id,
+  tags: ["later"],
+  uniqueKey: "later-card",
+});
 
 describe("useStudySessionStartState", () => {
-  beforeEach(() => {
-    mocks.cards = [];
-    mocks.cardsDeckId = undefined;
-    mocks.deck = createDeck({ id: "deck-id", name: "Japanese vocabulary" });
-    mocks.deckId = undefined;
-    mocks.preferences = createPreferences({ study: { maxNumberOfCardsToLearn: 12 } });
-    mocks.startStudy.mockReset();
-    mocks.tags = ["eligible", "later"];
+  beforeEach(async () => {
+    replaceAuthSession({
+      displayName: null,
+      isAnonymous: true,
+      status: "authenticated",
+      uid: "local-user",
+    });
+    clearStudySessions();
+    updatePreferences(preferences);
+    await createDeck("", deck);
+    await mutateCards("", [
+      { kind: "create", card: eligibleCard },
+      { kind: "create", card: laterCard },
+    ]);
   });
 
-  it("starts the route Deck with its eligible Cards and Study preferences", () => {
-    const eligibleCard = createCard({ id: "eligible-card", deckId: "deck-id", tags: ["eligible"] });
-    mocks.cards = [eligibleCard, createCard({ id: "later-card", deckId: "deck-id", tags: ["later"] })];
+  afterEach(async () => {
+    await deleteDeck("", deck);
+    clearStudySessions();
+  });
 
-    const { result } = renderHook(() => useStudySessionStartState("deck-id"));
-    result.current?.onStart();
+  it("starts the stored Deck with its eligible Cards and Study preferences", () => {
+    const { result } = renderHook(() => useStudySessionStartState(deck.id));
 
-    expect(mocks.deckId).toBe("deck-id");
-    expect(mocks.cardsDeckId).toBe("deck-id");
     expect(result.current).toMatchObject({
       deckName: "Japanese vocabulary",
       maxNumberOfCardsToLearn: 12,
       cardsLength: 1,
       tags: ["eligible", "later"],
     });
-    expect(mocks.startStudy).toHaveBeenCalledWith("deck-id", [eligibleCard], mocks.preferences.study);
+
+    act(() => {
+      result.current?.onStart();
+    });
+
+    expect(getStudySession(deck.id)).toMatchObject({
+      deckId: deck.id,
+      cardOrderIds: [eligibleCard.id],
+      currentIndex: 0,
+    });
+  });
+
+  it("starts with Cards matching a filter changed by the user", async () => {
+    const { result } = renderHook(() => useStudySessionStartState(deck.id));
+
+    act(() => {
+      result.current?.filter.setSelectedTags(["later"]);
+    });
+
+    await waitFor(() => {
+      expect(result.current?.filter.selectedTags).toEqual(["later"]);
+      expect(result.current?.cardsLength).toBe(1);
+    });
+
+    act(() => {
+      result.current?.onStart();
+    });
+
+    expect(getStudySession(deck.id)?.cardOrderIds).toEqual([laterCard.id]);
   });
 });

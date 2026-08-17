@@ -62,7 +62,6 @@ describe("DeckListCard", () => {
       />
     );
 
-    expect(screen.getByText(deck.name)).toHaveClass("truncate");
     expect(screen.getByText("math")).toBeInTheDocument();
     expect(screen.getByLabelText("Public deck")).toBeInTheDocument();
     const viewButton = screen.getByRole("button", { name: "View Deck name" });

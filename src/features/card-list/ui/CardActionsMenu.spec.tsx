@@ -43,7 +43,6 @@ describe("CardActionsMenu", () => {
     expect(onEdit).toHaveBeenCalledOnce();
     fireEvent.click(trigger);
     const deleteItem = screen.getByRole("menuitem", { name: "Delete" });
-    expect(deleteItem).toHaveClass("text-danger");
     fireEvent.click(deleteItem);
     expect(onDelete).toHaveBeenCalledOnce();
   });

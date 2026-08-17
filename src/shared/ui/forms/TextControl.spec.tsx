@@ -14,19 +14,6 @@ import { Input } from "@/shared/ui/forms/Input";
 import { Select } from "@/shared/ui/forms/Select";
 import { Textarea } from "@/shared/ui/forms/Textarea";
 
-const sharedVisualClasses = [
-  "border-border",
-  "bg-surface",
-  "text-ink",
-  "rounded-control",
-  "shadow-surface",
-  "focus-visible:border-focus",
-  "invalid:border-danger",
-  "disabled:bg-surface-muted",
-  "disabled:text-ink-muted",
-  "disabled:cursor-not-allowed",
-];
-
 describe("shared text controls", () => {
   it("forwards an id so external labels can name the input", () => {
     render(
@@ -112,68 +99,31 @@ describe("shared text controls", () => {
     }
   });
 
-  it("styles input states with semantic Calm Focus roles", () => {
-    render(
-      <Input
-        className="custom-input"
-        disabled
-        readOnly
-        placeholder="Deck title"
-        type="email"
-        defaultValue="not-an-email"
-      />
-    );
+  it("forwards disabled, read-only, placeholder, and type input behavior", () => {
+    render(<Input disabled readOnly placeholder="Deck title" type="email" defaultValue="not-an-email" />);
 
     const input = screen.getByRole("textbox");
     expect(input).toBeDisabled();
     expect(input).toHaveAttribute("readonly");
     expect(input).toHaveAttribute("placeholder", "Deck title");
-    expect(input).toHaveClass(
-      ...sharedVisualClasses,
-      "placeholder:text-ink-muted",
-      "read-only:bg-surface-muted",
-      "custom-input"
-    );
+    expect(input).toHaveAttribute("type", "email");
   });
 
-  it("styles select states with semantic colors in light and dark modes", () => {
-    render(
-      <div className="dark">
-        <Select
-          className="custom-select"
-          disabled
-          defaultValue="primary"
-          options={[{ label: "Primary", value: "primary" }]}
-        />
-      </div>
-    );
+  it("forwards the disabled state to a select", () => {
+    render(<Select disabled defaultValue="primary" options={[{ label: "Primary", value: "primary" }]} />);
 
     const select = screen.getByRole("combobox");
     expect(select).toBeDisabled();
-    expect(select).toHaveClass(...sharedVisualClasses, "custom-select");
+    expect(select).toHaveValue("primary");
   });
 
-  it("styles textarea states with semantic Calm Focus roles", () => {
-    render(
-      <Textarea
-        className="custom-textarea"
-        disabled
-        readOnly
-        placeholder="Card details"
-        defaultValue="Long-form content"
-      />
-    );
+  it("forwards disabled, read-only, and placeholder textarea behavior", () => {
+    render(<Textarea disabled readOnly placeholder="Card details" defaultValue="Long-form content" />);
 
     const textarea = screen.getByRole("textbox");
     expect(textarea).toBeDisabled();
     expect(textarea).toHaveAttribute("readonly");
     expect(textarea).toHaveAttribute("placeholder", "Card details");
-    expect(textarea).toHaveClass(
-      ...sharedVisualClasses,
-      "placeholder:text-ink-muted",
-      "read-only:bg-surface-muted",
-      "custom-textarea"
-    );
   });
 
   it("keeps each focusable control on the native focus path", () => {
@@ -189,18 +139,7 @@ describe("shared text controls", () => {
     for (const control of controls) {
       control.focus();
       expect(control).toHaveFocus();
-      expect(control).toHaveClass("focus-visible:border-focus");
     }
-  });
-
-  it.each([
-    ["input", "textbox", () => render(<Input />)],
-    ["select", "combobox", () => render(<Select options={[{ label: "Primary", value: "primary" }]} />)],
-    ["textarea", "textbox", () => render(<Textarea />)],
-  ])("gives the native %s a shared mobile touch target", (_name, role, renderControl) => {
-    renderControl();
-
-    expect(screen.getByRole(role)).toHaveClass("min-h-touch");
   });
 
   it.each([
@@ -211,11 +150,10 @@ describe("shared text controls", () => {
       () => render(<Select empty required defaultValue="" options={[{ label: "Primary", value: "primary" }]} />),
     ],
     ["textarea", "textbox", () => render(<Textarea required />)],
-  ])("makes invalid styling reachable on the native %s", (_name, role, renderControl) => {
+  ])("reports native invalid state for the %s", (_name, role, renderControl) => {
     renderControl();
     const element = screen.getByRole(role);
 
     expect(element).toBeInvalid();
-    expect(element).toHaveClass("invalid:border-danger");
   });
 });

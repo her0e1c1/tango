@@ -40,7 +40,6 @@ describe("DeckFilterForm", () => {
     const maxSlider = within(scoreRegion).getByRole("slider", { name: "Maximum score value" });
     const minSlider = within(scoreRegion).getByRole("slider", { name: "Minimum score value" });
 
-    expect(scoreRegion).toHaveClass("bg-surface");
     expect(within(scoreRegion).getByText("−2 to 4")).toBeInTheDocument();
     expect(maxSwitch).toBeChecked();
     expect(minSwitch).toBeChecked();

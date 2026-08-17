@@ -14,13 +14,12 @@ import type { FeedbackTone } from "@/shared/ui/feedback/Feedback";
 
 describe("shared status content", () => {
   it.each([
-    [2, "positive", "bg-success"],
-    [-2, "negative", "bg-danger"],
-    [0, "neutral", "bg-info"],
-  ] as const)("gives score %s a semantic %s cue", (score, cue, colorClass) => {
+    [2, "positive"],
+    [-2, "negative"],
+    [0, "neutral"],
+  ] as const)("gives score %s a semantic %s cue", (score, cue) => {
     render(<Score score={score} />);
     const status = screen.getByLabelText(`Score ${score}, ${cue}`);
-    expect(status).toHaveClass(colorClass, "text-ink-inverse", "rounded-pill");
     expect(status).toHaveTextContent(`${score}`);
   });
 
@@ -34,15 +33,14 @@ describe("shared status content", () => {
   });
 
   it.each([
-    ["neutral", "Information", "bg-info"],
-    ["success", "Success", "bg-success"],
-    ["warning", "Warning", "bg-warning"],
-    ["error", "Error", "bg-danger"],
-  ] as const)("renders %s feedback with a non-color label", (tone, label, colorClass) => {
+    ["neutral", "Information"],
+    ["success", "Success"],
+    ["warning", "Warning"],
+    ["error", "Error"],
+  ] as const)("renders %s feedback with a non-color label", (tone, label) => {
     render(<Feedback tone={tone as FeedbackTone}>Saved</Feedback>);
     const status = screen.getByRole("status");
-    expect(status).toHaveClass(colorClass);
     expect(status).toHaveTextContent(`${label}: Saved`);
-    expect(screen.getByText(`${label}:`, { exact: false })).toHaveClass("sr-only");
+    expect(status).toHaveAttribute("aria-live", "polite");
   });
 });

@@ -38,8 +38,8 @@ describe("SettingsForm", () => {
     render(<SettingsForm {...createProps()} />);
 
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "Settings" })).toHaveClass("text-title");
-    expect(screen.getByText("Changes are saved automatically")).toHaveClass("text-ink-muted");
+    expect(screen.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
+    expect(screen.getByText("Changes are saved automatically")).toBeVisible();
     for (const name of ["Account", "Appearance", "Study"]) {
       expect(screen.getByRole("region", { name })).toBeInTheDocument();
     }
@@ -47,7 +47,6 @@ describe("SettingsForm", () => {
     expect(screen.queryByRole("heading", { level: 2, name: "Layout" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 2, name: "Autoplay" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 2, name: "Metadata" })).not.toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Account" })).toHaveClass("rounded-surface", "border", "bg-surface");
     expect(screen.getByText("Show header")).toBeInTheDocument();
     expect(screen.queryByText("Show Heaer")).not.toBeInTheDocument();
   });

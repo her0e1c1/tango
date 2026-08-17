@@ -1,36 +1,37 @@
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mutateCards } from "@/entities/card";
+import { createDeck, deleteDeck } from "@/entities/deck";
+import { setDarkMode, updatePreferences } from "@/entities/preferences";
+import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
-import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { useCardViewContent } from "./useCardViewContent";
 
-const mocks = vi.hoisted(() => ({
-  card: null as unknown as Card,
-  deck: null as unknown as Deck,
-  preferences: null as unknown as Preferences,
-}));
-
-vi.mock("@/entities/card", () => ({ useCard: () => mocks.card }));
-vi.mock("@/entities/deck", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/deck")>()),
-  useDeck: () => mocks.deck,
-}));
-vi.mock("@/entities/preferences", () => ({ usePreferences: () => mocks.preferences }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
+const deck = createLocalDeck({ id: "card-view-deck", category: "raw" });
+const card = createLocalCard({
+  id: "card-view-card",
+  deckId: deck.id,
+  backText: "const answer = 42;",
+  tags: ["typescript"],
+  uniqueKey: "card-view-card",
+});
+
 describe("useCardViewContent", () => {
-  beforeEach(() => {
-    mocks.card = createCard({ id: "card-id", deckId: "deck-id", backText: "const answer = 42;", tags: ["typescript"] });
-    mocks.deck = createDeck({ id: "deck-id", category: "raw" });
-    mocks.preferences = createPreferences({ appearance: { darkMode: true } });
+  beforeEach(async () => {
+    updatePreferences(createPreferences({ appearance: { darkMode: true } }));
+    await createDeck("", deck);
+    await mutateCards("", [{ kind: "create", card }]);
   });
 
-  it("maps the route Entities to Card presentation content", () => {
-    const { result } = renderHook(() => useCardViewContent("card-id"));
+  afterEach(async () => {
+    await deleteDeck("", deck);
+  });
+
+  it("shows stored Card content with its Deck category and current theme", () => {
+    const { result } = renderHook(() => useCardViewContent(card.id));
 
     expect(result.current).toEqual({
       text: "const answer = 42;",
@@ -38,5 +39,17 @@ describe("useCardViewContent", () => {
       code: true,
       dark: true,
     });
+
+    act(() => {
+      setDarkMode(false);
+    });
+
+    expect(result.current).toMatchObject({ dark: false });
+  });
+
+  it("does not expose content for an unavailable Card", () => {
+    const { result } = renderHook(() => useCardViewContent("missing-card"));
+
+    expect(result.current).toBeUndefined();
   });
 });
