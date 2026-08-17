@@ -12,9 +12,7 @@ describe("Deck mutations", () => {
   });
 
   it("rejects edit and delete when the Deck cannot be resolved", async () => {
-    await expect(editDeck("uid", { id: "missing", name: "Renamed" })).rejects.toThrow(
-      'Deck "missing" was not found'
-    );
+    await expect(editDeck("uid", { id: "missing", name: "Renamed" })).rejects.toThrow('Deck "missing" was not found');
     await expect(deleteDeck("uid", "missing")).rejects.toThrow('Deck "missing" was not found');
   });
 });
