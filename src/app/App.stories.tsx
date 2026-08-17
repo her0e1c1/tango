@@ -11,7 +11,6 @@ import { AppRoutes } from "@/app/routes";
 import { routes } from "@/features/navigate";
 import { type PageStoryParameters, preparePageStory, withPageStory } from "@/storybook/PageDecorator";
 import { PAGE_STORY_CARD_ID, PAGE_STORY_DECK_ID, pageStoryState } from "@/storybook/pageFixture";
-import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";
 
 const page = (path: string, overrides: Partial<Omit<PageStoryParameters, "path">> = {}): PageStoryParameters => ({
   ...pageStoryState,
@@ -71,10 +70,19 @@ export const Settings: Story = {
 
 export const Import: Story = {
   parameters: { page: page(routes.deckImport.to()) },
-  play: async () => {
-    const response = await fetch(STORYBOOK_DECK_IMPORT_URL);
-    expect(response.status).toBe(200);
-    expect(await response.text()).toContain("hello word in python");
+  play: async ({ canvas, userEvent }) => {
+    const file = new File(
+      ['"storybook prompt","storybook answer","story","storybook-import"'],
+      "storybook-import.csv",
+      { type: "text/csv" }
+    );
+
+    await userEvent.click(canvas.getByRole("radio", { name: /Local only/ }));
+    await userEvent.upload(canvas.getByLabelText("Upload a csv file"), file);
+
+    await expect(await canvas.findByRole("heading", { level: 2, name: "Review import" })).toBeVisible();
+    await expect(canvas.getByText("1 create")).toBeVisible();
+    await expect(canvas.getByText("storybook answer")).toBeVisible();
   },
 };
 

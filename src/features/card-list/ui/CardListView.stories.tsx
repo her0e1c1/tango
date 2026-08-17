@@ -88,11 +88,16 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const HoverHighlight: Story = {
-  play: async ({ canvas, userEvent }) => {
-    const [firstCard] = canvas.getAllByRole("button", { name: /^View / });
-    if (firstCard == null) throw new Error("HoverHighlight requires at least one card");
-    await userEvent.hover(firstCard);
+export const ViewCard: Story = {
+  args: { onShowCard: fn() },
+  play: async ({ args, canvas, userEvent }) => {
+    const [viewButton] = canvas.getAllByRole("button", { name: /^View / });
+    const [firstCard] = fixture.cards.default;
+    if (viewButton == null || firstCard == null) throw new Error("ViewCard requires at least one Card");
+
+    await userEvent.click(viewButton);
+
+    await expect(args.onShowCard).toHaveBeenCalledWith(firstCard.id);
   },
 };
 
