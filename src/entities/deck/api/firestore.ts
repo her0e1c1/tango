@@ -97,11 +97,7 @@ const updateDeckDocument = async (deck: DeckDomain, edit: EditDeckDomainInput): 
 };
 
 // Validates ownership and applies a remote Deck edit through the canonical domain transition.
-export const editDeck = async (
-  uid: string,
-  currentDeck: RemoteDeck,
-  deck: EditDeckInput["deck"]
-): Promise<void> => {
+export const editDeck = async (uid: string, currentDeck: RemoteDeck, deck: EditDeckInput["deck"]): Promise<void> => {
   const input = editDeckSchema.parse({ uid, deck });
   const currentDomain = toDeckDomainFromStore(currentDeck);
   assertDeckOwner(currentDomain, input.uid);
