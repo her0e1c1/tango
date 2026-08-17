@@ -12,19 +12,25 @@ describe("prepareDeckImport", () => {
   };
   const rows = [row];
 
-  it("prepares a Card creation and its preview action together", () => {
+  it("prepares a Deck command, Card creation, and preview action together", () => {
     const preparedImport = prepareDeckImport(
       { name: "deck.csv", rows },
       { uid: "uid", decks: [], cards: [], generateCardId: vi.fn(() => "card") }
     );
 
+    expect(preparedImport.destination).toEqual({ id: expect.any(String), storageMode: "remote" });
+    expect(preparedImport.createDeckInput).toEqual({
+      id: preparedImport.destination.id,
+      name: "deck.csv",
+      localMode: false,
+    });
     expect(preparedImport.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
     expect(preparedImport.mutations).toEqual([
       { kind: "create", card: expect.objectContaining({ id: "card", uniqueKey: "key-1" }) },
     ]);
   });
 
-  it("prepares an update from the Card with the same unique key", () => {
+  it("reuses an existing Deck without constructing a creation command", () => {
     const deck = createDeck({ id: "deck", name: "deck.csv", uid: "uid" });
     const existing = createCard({
       id: "existing",
@@ -38,6 +44,8 @@ describe("prepareDeckImport", () => {
       { uid: deck.uid, decks: [deck], cards: [existing], generateCardId: vi.fn() }
     );
 
+    expect(preparedImport.destination).toEqual({ id: deck.id, storageMode: "remote" });
+    expect(preparedImport.createDeckInput).toBeUndefined();
     expect(preparedImport.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
     expect(preparedImport.mutations).toEqual([
       { kind: "edit", card: expect.objectContaining({ id: existing.id, frontText: "front" }) },
@@ -62,7 +70,12 @@ describe("prepareDeckImport", () => {
       { uid: "", decks: [], cards: [], generateCardId: vi.fn(() => "local-card") }
     );
 
-    expect(preparedImport.destination).toEqual({ id: expect.any(String), name: "local.csv", localMode: true });
+    expect(preparedImport.destination).toEqual({ id: expect.any(String), storageMode: "local" });
+    expect(preparedImport.createDeckInput).toEqual({
+      id: preparedImport.destination.id,
+      name: "local.csv",
+      localMode: true,
+    });
     expect(preparedImport.mutations).toEqual([
       {
         kind: "create",
@@ -95,7 +108,8 @@ describe("prepareDeckImport", () => {
       }
     );
 
-    expect(preparedImport.destination.id).toBe(localDeck.id);
+    expect(preparedImport.destination).toEqual({ id: localDeck.id, storageMode: "local" });
+    expect(preparedImport.createDeckInput).toBeUndefined();
     expect(preparedImport.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
     expect(preparedImport.mutations).toEqual([
       { kind: "edit", card: expect.objectContaining({ id: localCard.id, frontText: "front" }) },
