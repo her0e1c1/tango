@@ -1,0 +1,63 @@
+name: Format Deck domain PR
+
+on:
+  push:
+    branches:
+      - agent/clarify-deck-domain
+    paths:
+      - .github/workflows/format-deck-domain-pr.yml
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.15.0
+          cache: npm
+
+      - name: Install npm
+        run: npm install --global npm@12.0.1
+
+      - run: npm ci
+
+      - name: Capture repository formatter output
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run fmt > /tmp/fmt-before.log 2>&1 || true
+
+          mapfile -d '' TYPESCRIPT_FILES < <(
+            git diff --name-only -z origin/main...HEAD -- 'src/**/*.ts' 'src/**/*.tsx' 'test/**/*.ts' 'test/**/*.tsx'
+          )
+          if [ "${#TYPESCRIPT_FILES[@]}" -gt 0 ]; then
+            npx biome format --write "${TYPESCRIPT_FILES[@]}"
+            npx biome lint --write "${TYPESCRIPT_FILES[@]}" || true
+          fi
+
+          mapfile -d '' MARKDOWN_FILES < <(git diff --name-only -z origin/main...HEAD -- '*.md')
+          if [ "${#MARKDOWN_FILES[@]}" -gt 0 ]; then
+            npx markdownlint-cli2 --fix "${MARKDOWN_FILES[@]}"
+          fi
+
+          git diff --binary > /tmp/format.patch
+          npm run fmt > /tmp/fmt-after.log 2>&1 || true
+          git status --short > /tmp/status.log
+
+      - name: Upload formatter diagnostics
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: deck-domain-format-diagnostics
+          path: |
+            /tmp/format.patch
+            /tmp/fmt-before.log
+            /tmp/fmt-after.log
+            /tmp/status.log
+          if-no-files-found: error
