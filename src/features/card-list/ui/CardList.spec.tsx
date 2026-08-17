@@ -37,7 +37,10 @@ vi.mock("@/entities/preferences", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preferences")>()),
   usePreferences: () => mocks.preferences,
 }));
-vi.mock("@/entities/study-progress", () => ({ editStudyProgress: mocks.editStudyProgress }));
+vi.mock("@/entities/study-progress", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/study-progress")>()),
+  editStudyProgress: mocks.editStudyProgress,
+}));
 
 import type * as React from "react";
 import { useCardListState } from "../model/useCardListState";

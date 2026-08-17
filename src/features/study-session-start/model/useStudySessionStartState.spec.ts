@@ -12,15 +12,20 @@ import { useStudySessionStartState } from "./useStudySessionStartState";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-const preferences = createPreferences({ study: { maxNumberOfCardsToLearn: 12, shuffled: false } });
+const preferences = createPreferences({
+  study: { maxNumberOfCardsToLearn: 12, shuffled: false, useCardInterval: true },
+});
 const deck = createLocalDeck({
   id: "study-start-deck",
   name: "Japanese vocabulary",
+  scoreMax: 1,
+  scoreMin: -1,
   selectedTags: ["eligible"],
 });
 const eligibleCard = createLocalCard({
   id: "eligible-card",
   deckId: deck.id,
+  score: 1,
   tags: ["eligible"],
   uniqueKey: "eligible-card",
 });
@@ -29,6 +34,20 @@ const laterCard = createLocalCard({
   deckId: deck.id,
   tags: ["later"],
   uniqueKey: "later-card",
+});
+const highScoreCard = createLocalCard({
+  id: "high-score-card",
+  deckId: deck.id,
+  score: 2,
+  tags: ["eligible"],
+  uniqueKey: "high-score-card",
+});
+const futureCard = createLocalCard({
+  id: "future-card",
+  deckId: deck.id,
+  nextSeeingAt: new Date(253_402_300_799_999),
+  tags: ["eligible"],
+  uniqueKey: "future-card",
 });
 
 describe("useStudySessionStartState", () => {
@@ -45,6 +64,8 @@ describe("useStudySessionStartState", () => {
     await mutateCards("", [
       { kind: "create", card: eligibleCard },
       { kind: "create", card: laterCard },
+      { kind: "create", card: highScoreCard },
+      { kind: "create", card: futureCard },
     ]);
   });
 
@@ -59,6 +80,7 @@ describe("useStudySessionStartState", () => {
     expect(result.current).toMatchObject({
       deckName: "Japanese vocabulary",
       maxNumberOfCardsToLearn: 12,
+      rawCardsLength: 4,
       cardsLength: 1,
       tags: ["eligible", "later"],
     });

@@ -1,12 +1,29 @@
 import { useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { useCardsByDeckId } from "@/entities/card";
-import { type Deck, editDeck, filterCardsForDeck, useDeck } from "@/entities/deck";
+import { type Card, useCardsByDeckId } from "@/entities/card";
+import { type Deck, editDeck, isDeckTagSelectionMatching, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
+import { createStudyProgressFromCard, isStudyProgressEligible } from "@/entities/study-progress";
 import { startStudy } from "@/entities/study-session";
 
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
+
+// Keeps multi-Entity selection in the use-case owner while each Entity supplies only its own pure rule.
+const selectStudyCards = (cards: Card[], deck: Deck, useCardInterval: boolean, now = Date.now()): Card[] =>
+  cards.filter(
+    (card) =>
+      isDeckTagSelectionMatching(card.tags, deck) &&
+      isStudyProgressEligible(
+        createStudyProgressFromCard(card),
+        {
+          maximumScore: deck.scoreMax,
+          minimumScore: deck.scoreMin,
+          respectNextSeeingAt: useCardInterval,
+        },
+        now
+      )
+  );
 
 export const useStudySessionStartState = (deckId: string) => {
   const uid = useAuthUid();
@@ -17,7 +34,7 @@ export const useStudySessionStartState = (deckId: string) => {
 
   if (deck == null) return;
 
-  const cards = filterCardsForDeck(deckCards, deck, preferences.study);
+  const cards = selectStudyCards(deckCards, deck, preferences.study.useCardInterval);
   const storedFilter: DeckFilterValues = {
     scoreMax: deck.scoreMax,
     scoreMin: deck.scoreMin,
@@ -39,6 +56,8 @@ export const useStudySessionStartState = (deckId: string) => {
     },
     deckName: deck.name,
     maxNumberOfCardsToLearn: preferences.study.maxNumberOfCardsToLearn,
+    // Preserves the source count so presentation can distinguish an empty Deck from zero filter matches.
+    rawCardsLength: deckCards.length,
     cardsLength: cards.length,
     tags,
     onStart: () => startStudy(deck.id, cards, preferences.study),

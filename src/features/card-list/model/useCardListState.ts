@@ -2,9 +2,16 @@ import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
-import { type Deck, editDeck, filterCardsForDeck, getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
+import {
+  type Deck,
+  editDeck,
+  getCategory,
+  isDeckTagSelectionMatching,
+  isHighlightLanguage,
+  useDeck,
+} from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
-import { editStudyProgress } from "@/entities/study-progress";
+import { createStudyProgressFromCard, editStudyProgress, isStudyProgressEligible } from "@/entities/study-progress";
 
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
 
@@ -25,6 +32,8 @@ interface CardListAnswer {
 
 export interface CardListState {
   tags: string[];
+  /** Lets presentation distinguish an empty Deck from a filter with zero matches. */
+  rawCardsLength: number;
   cards: CardListItem[];
   answer: CardListAnswer | undefined;
   deletionTarget: { frontText: string; hasError: boolean } | undefined;
@@ -47,6 +56,22 @@ const buildCardListItem = (card: Card): CardListItem => ({
   tags: card.tags,
 });
 
+// Keeps multi-Entity selection in the use-case owner while each Entity supplies only its own pure rule.
+const selectStudyCards = (cards: Card[], deck: Deck, useCardInterval: boolean, now = Date.now()): Card[] =>
+  cards.filter(
+    (card) =>
+      isDeckTagSelectionMatching(card.tags, deck) &&
+      isStudyProgressEligible(
+        createStudyProgressFromCard(card),
+        {
+          maximumScore: deck.scoreMax,
+          minimumScore: deck.scoreMin,
+          respectNextSeeingAt: useCardInterval,
+        },
+        now
+      )
+  );
+
 export const useCardListState = (deckId: string) => {
   const uid = useAuthUid();
   const deck = useDeck(deckId);
@@ -61,7 +86,7 @@ export const useCardListState = (deckId: string) => {
 
   if (deck == null) return;
 
-  const cards = filterCardsForDeck(deckCards, deck, preferences.study);
+  const cards = selectStudyCards(deckCards, deck, preferences.study.useCardInterval);
   const storedFilter: DeckFilterValues = {
     scoreMax: deck.scoreMax,
     scoreMin: deck.scoreMin,
@@ -120,6 +145,7 @@ export const useCardListState = (deckId: string) => {
       setTagAndFilter: (value: boolean) => updateFilter("tagAndFilter", value),
     },
     tags,
+    rawCardsLength: deckCards.length,
     cards: cards.map(buildCardListItem),
     answer,
     deletionTarget:
