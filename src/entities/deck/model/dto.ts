@@ -1,20 +1,6 @@
 import type { DeckDocument } from "../api/document";
-import {
-  createDeckDomain,
-  restoreDeckDomain,
-  type DeckDomain,
-  type EditDeckDomainInput,
-} from "./domain";
-import type {
-  Deck,
-  DeckCreate,
-  DeckEdit,
-  DeckId,
-  DeckStore,
-  LocalDeck,
-  PersistedLocalDeck,
-  RemoteDeck,
-} from "./types";
+import { createDeckDomain, restoreDeckDomain, type DeckDomain, type EditDeckDomainInput } from "./domain";
+import type { Deck, DeckCreate, DeckEdit, DeckId, DeckStore, LocalDeck, PersistedLocalDeck, RemoteDeck } from "./types";
 
 // Maps one validated public creation command into canonical Deck domain state.
 export const toDeckDomainFromCreate = (ownerId: string | null, deck: DeckCreate, timestamp: number): DeckDomain =>
