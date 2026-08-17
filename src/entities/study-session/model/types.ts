@@ -49,3 +49,8 @@ export type StudySessionSwipePlan =
 
 /** Minimal Card identity needed to resolve a study session position. */
 export type StudySessionCard = { id: StudySession["cardOrderIds"][number] };
+
+/** Resolution of an active study session against the currently loaded Cards. */
+export type ResolvedStudySession<Card extends StudySessionCard> =
+  | { status: "preparing" | "invalid" }
+  | { status: "studying"; session: StudySession; card: Card };
