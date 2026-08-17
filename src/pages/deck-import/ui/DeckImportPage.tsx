@@ -23,8 +23,8 @@ export const DeckImportPage: React.FC = () => {
           void deckImport.addSample();
         }}
         onImport={() => {
-          void deckImport.importPreview().then((operation) => {
-            if (operation.status === "success") return navigation.to(routes.deckList.to());
+          void deckImport.importPreview().then((result) => {
+            if (result !== undefined) return navigation.to(routes.deckList.to());
           });
         }}
         onBack={() => void navigation.back()}

@@ -145,7 +145,7 @@ describe("useDeckImport", () => {
       },
     });
     await actAsync(async () => {
-      expect(await result.current.deckImport.importPreview()).toEqual({ status: "failure" });
+      expect(await result.current.deckImport.importPreview()).toBeUndefined();
     });
     expect(result.current.deckImport.previewError).toEqual(new Error("Fix invalid CSV rows before importing"));
     expect(findDeck(result.current.decks, name)).toBeUndefined();
@@ -161,7 +161,7 @@ describe("useDeckImport", () => {
     expect(result.current.deckImport.storageMode).toBe("remote");
     expect(result.current.deckImport.preview).toBeUndefined();
     await actAsync(async () => {
-      expect(await result.current.deckImport.importPreview()).toEqual({ status: "failure" });
+      expect(await result.current.deckImport.importPreview()).toBeUndefined();
     });
     expect(result.current.deckImport.previewError).toEqual(new Error("Select a CSV file before importing"));
   });
@@ -196,7 +196,7 @@ describe("useDeckImport", () => {
     const { result } = renderDeckImport();
 
     await actAsync(async () => {
-      expect(await result.current.deckImport.selectFile(csvFile(name))).toEqual({ status: "failure" });
+      expect(await result.current.deckImport.selectFile(csvFile(name))).toBeUndefined();
     });
 
     expect(result.current.deckImport.fileName).toBe(name);
@@ -215,7 +215,7 @@ describe("useDeckImport", () => {
     controls.nextMutationError = new Error("card mutation failed");
 
     await actAsync(async () => {
-      expect(await result.current.deckImport.importPreview()).toEqual({ status: "failure" });
+      expect(await result.current.deckImport.importPreview()).toBeUndefined();
     });
 
     const savedDeck = findDeck(result.current.decks, name);
@@ -226,7 +226,7 @@ describe("useDeckImport", () => {
     expect(result.current.deckImport.fileName).toBe(name);
     expect(result.current.deckImport.fileReselectionRequired).toBe(true);
     await actAsync(async () => {
-      expect(await result.current.deckImport.importPreview()).toEqual({ status: "failure" });
+      expect(await result.current.deckImport.importPreview()).toBeUndefined();
     });
     expect(result.current.deckImport.previewError).toEqual(new Error("Select a CSV file before importing"));
 
@@ -244,7 +244,7 @@ describe("useDeckImport", () => {
     const { result } = renderDeckImport();
 
     await actAsync(async () => {
-      expect(await result.current.deckImport.addSample()).toEqual({ status: "failure" });
+      expect(await result.current.deckImport.addSample()).toBeUndefined();
     });
 
     expect(result.current.deckImport.error).toEqual(new Error("A confirmed user is required for remote imports"));

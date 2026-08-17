@@ -5,17 +5,13 @@ import { generateCardId, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
 import { prepareSampleDeck } from "./useAddSampleDeck";
-import type { DeckImportResult, DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
+import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { useDeckImportExecution } from "./useDeckImportExecution";
 import { useDeckImportPreview } from "./useDeckImportPreview";
 
 export type { DeckImportPreview } from "./useDeckImportPreview";
 
 type DeckImportStatus = "idle" | "validating" | "importing";
-type DeckImportOperationResult<Value> = { status: "success"; value: Value } | { status: "failure" };
-
-const operationSucceeded = <Value>(value: Value): DeckImportOperationResult<Value> => ({ status: "success", value });
-const operationFailed = { status: "failure" } as const;
 
 export const useDeckImport = () => {
   const uid = useAuthUid();
@@ -32,8 +28,7 @@ export const useDeckImport = () => {
     setFileReselectionRequired(false);
     setStatus("validating");
     try {
-      const selectedPreview = await preview.selectFile(file);
-      return selectedPreview === undefined ? operationFailed : operationSucceeded(selectedPreview);
+      return await preview.selectFile(file);
     } finally {
       setStatus("idle");
     }
@@ -46,22 +41,16 @@ export const useDeckImport = () => {
     }
   };
 
-  const runImport = async (
-    prepare: () => PreparedDeckImport | undefined,
-    onExecutionFailure?: () => void
-  ): Promise<DeckImportOperationResult<DeckImportResult>> => {
+  const runImport = async (prepare: () => PreparedDeckImport | undefined, onExecutionFailure?: () => void) => {
     const preparedImport = prepare();
-    if (preparedImport === undefined) return operationFailed;
+    if (preparedImport === undefined) return;
 
     preview.clearError();
     setStatus("importing");
     try {
       const importResult = await execution.run(preparedImport);
-      if (importResult === undefined) {
-        onExecutionFailure?.();
-        return operationFailed;
-      }
-      return operationSucceeded(importResult);
+      if (importResult === undefined) onExecutionFailure?.();
+      return importResult;
     } finally {
       setStatus("idle");
     }
@@ -71,7 +60,7 @@ export const useDeckImport = () => {
     setFileReselectionRequired(false);
     if (uid === "") {
       execution.fail(new Error("A confirmed user is required for remote imports"));
-      return Promise.resolve(operationFailed);
+      return Promise.resolve();
     }
     return runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId }));
   };
