@@ -7,7 +7,6 @@ const deckUidSchema = z.string().min(1, "Deck owner is required");
 const editableDeckFieldsSchema = z.object({
   name: z.string().trim().min(1, "Deck name is required."),
   url: z.url("Enter a valid URL.").optional(),
-  isPublic: z.boolean(),
   scoreMax: z.number().nullable(),
   scoreMin: z.number().nullable(),
   selectedTags: z.array(z.string()),
@@ -25,7 +24,6 @@ export const deckFormSchema = editableDeckFieldsSchema.pick({
 
 const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
-  isPublic: editableDeckFieldsSchema.shape.isPublic.default(false),
   scoreMax: editableDeckFieldsSchema.shape.scoreMax.default(null),
   scoreMin: editableDeckFieldsSchema.shape.scoreMin.default(null),
   selectedTags: editableDeckFieldsSchema.shape.selectedTags.default([]),

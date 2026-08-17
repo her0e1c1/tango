@@ -42,7 +42,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
       const savedDeck: Deck = {
         id: deck.id,
         name: deck.name,
-        isPublic: deck.isPublic ?? false,
         scoreMax: deck.scoreMax ?? null,
         scoreMin: deck.scoreMin ?? null,
         selectedTags: deck.selectedTags ?? [],

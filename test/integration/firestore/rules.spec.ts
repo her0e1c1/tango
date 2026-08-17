@@ -56,7 +56,7 @@ describe("firestore/rule", () => {
     describe("deck", () => {
       it("should read a deck", async () => {
         const id = uuid();
-        await createData("deck", id, { uid: "uid", isPublic: false });
+        await createData("deck", id, { uid: "uid" });
         await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
 
@@ -120,10 +120,10 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "deck", id)));
       });
 
-      it("should read a publick deck", async () => {
+      it("should not read a legacy deck marked public", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
-        await assertSucceeds(getDoc(doc(db, "deck", id)));
+        await assertFails(getDoc(doc(db, "deck", id)));
       });
 
       it("should not create a deck", async () => {
@@ -151,11 +151,11 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "card", id)));
       });
 
-      it("should read a public card", async () => {
+      it("should not read a card from a legacy deck marked public", async () => {
         const [deckId, id] = [uuid(), uuid()];
         await createData("deck", deckId, { uid: "uid", isPublic: true });
         await createData("card", id, { uid: "uid", deckId });
-        await assertSucceeds(getDoc(doc(db, "card", id)));
+        await assertFails(getDoc(doc(db, "card", id)));
       });
 
       it("should not create a card", async () => {
@@ -191,10 +191,10 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "deck", id)));
       });
 
-      it("should read a publick deck", async () => {
+      it("should not read a legacy deck marked public", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
-        await assertSucceeds(getDoc(doc(db, "deck", id)));
+        await assertFails(getDoc(doc(db, "deck", id)));
       });
 
       it("should not create a deck", async () => {
@@ -222,11 +222,11 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "card", id)));
       });
 
-      it("should read a public card", async () => {
+      it("should not read a card from a legacy deck marked public", async () => {
         const [deckId, id] = [uuid(), uuid()];
         await createData("deck", deckId, { uid: "uid", isPublic: true });
         await createData("card", id, { uid: "uid", deckId });
-        await assertSucceeds(getDoc(doc(db, "card", id)));
+        await assertFails(getDoc(doc(db, "card", id)));
       });
 
       it("should not create a card", async () => {

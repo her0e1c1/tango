@@ -38,7 +38,6 @@ vi.mock("firebase/firestore", async (importOriginal) => {
               id: deckId,
               data: () => ({
                 name: `Deck for ${request.uid}`,
-                isPublic: false,
                 uid: request.uid,
                 createdAt: 1,
                 updatedAt: 2,

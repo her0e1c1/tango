@@ -94,11 +94,13 @@ describe("Deck store", () => {
     expect(deckStore.getState().localDecks[0]).not.toHaveProperty("uid");
   });
 
-  it("hydrates version 1 local Decks with create defaults", async () => {
+  it("hydrates version 1 local Decks with create defaults and without legacy public visibility", async () => {
     useMemoryStorage({
       "tango-local-decks": JSON.stringify({
         state: {
-          localDecks: [{ id: "legacy-local", localMode: true, name: "Legacy", createdAt: 1, updatedAt: 2 }],
+          localDecks: [
+            { id: "legacy-local", localMode: true, name: "Legacy", isPublic: true, createdAt: 1, updatedAt: 2 },
+          ],
         },
         version: 1,
       }),
@@ -111,7 +113,6 @@ describe("Deck store", () => {
         id: "legacy-local",
         localMode: true,
         name: "Legacy",
-        isPublic: false,
         scoreMax: null,
         scoreMin: null,
         selectedTags: [],

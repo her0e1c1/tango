@@ -31,7 +31,6 @@ export const deck = {
   default: createDeck({
     id: "deck-default",
     name: "Deck Default Name",
-    isPublic: true,
     category: "math",
     url: "http://example.com",
     createdAt: 0,
@@ -40,7 +39,6 @@ export const deck = {
   tooLongName: createDeck({
     id: "deck-too-long-name",
     name: "too long name".repeat(10),
-    isPublic: true,
     category: "math",
     url: "http://example.com",
     createdAt: 0,

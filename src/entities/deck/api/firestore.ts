@@ -84,7 +84,6 @@ const updateDeckDocument = async (deck: DeckEdit): Promise<void> => {
   const document = omitUndefined({
     name: deck.name,
     url: deck.url === null ? deleteField() : deck.url,
-    isPublic: deck.isPublic,
     updatedAt: getCurrentTimeMillis(),
     scoreMax: deck.scoreMax,
     scoreMin: deck.scoreMin,

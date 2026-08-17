@@ -50,7 +50,6 @@ const getDocument = async (collection: "deck" | "card", id: string) => {
 const deckFields = (uid: string, name: string) => ({
   uid: field.string(uid),
   name: field.string(name),
-  isPublic: field.boolean(false),
   createdAt: field.integer(1),
   updatedAt: field.integer(2),
   deletedAt: field.null(),

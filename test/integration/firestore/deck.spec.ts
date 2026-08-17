@@ -44,13 +44,15 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       id: uuid(),
       uid: "uid",
       name: "new deck name",
+      isPublic: true,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies DeckCreateInput & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies DeckCreateInput & { isPublic: boolean; currentIndex: number; cardOrderIds: string[] };
     await createDeck("uid", d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...toFirestoreDeck(newDeck), id: d.id });
     expect(data).not.toHaveProperty("localMode");
+    expect(data).not.toHaveProperty("isPublic");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
     expect((await getDoc(doc(db, "deck", d.id))).exists()).toBe(true);
@@ -62,13 +64,15 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     const n = {
       ...d,
       name: "updated",
+      isPublic: true,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies Deck & { isPublic: boolean; currentIndex: number; cardOrderIds: string[] };
     await editDeck("uid", n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
-    expect(data).toEqual({ ...toFirestoreDeck(d), name: "updated" });
+    expect(data).toEqual({ ...toFirestoreDeck(newDeck), id: d.id, name: "updated" });
     expect(data).not.toHaveProperty("localMode");
+    expect(data).not.toHaveProperty("isPublic");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });

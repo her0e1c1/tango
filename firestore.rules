@@ -11,10 +11,7 @@ service cloud.firestore {
   }
   match /databases/{database}/documents {
     match /deck/{deckId} {
-      function isPublic() {
-        return resource.data.isPublic == true;
-      }
-      allow read: if isOwner() || isPublic();
+      allow read: if isOwner();
       allow create: if isValid();
       allow update: if isValidOwner();
       allow delete: if isOwner();
@@ -23,13 +20,10 @@ service cloud.firestore {
       function getDeck(deckId) {
         return get(/databases/$(database)/documents/deck/$(deckId));
       }
-      function isPublic() {
-        return getDeck(resource.data.deckId).data.isPublic == true;
-      }
       function belongsToDeck() {
         return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
       }
-      allow read: if isOwner() || isPublic();
+      allow read: if isOwner();
       allow create: if isValid() && belongsToDeck();
       allow update: if isValidOwner() && belongsToDeck();
       allow delete: if isOwner();

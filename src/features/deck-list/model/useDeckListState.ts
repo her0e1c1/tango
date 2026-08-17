@@ -20,7 +20,7 @@ const buildDeckListSections = (
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>
 ) => {
   const cardCounts = countCardsByDeckId(cards);
-  const createItem = (deck: Pick<Deck, "id" | "name" | "category" | "isPublic">, session?: StudySession) => ({
+  const createItem = (deck: Pick<Deck, "id" | "name" | "category">, session?: StudySession) => ({
     deck,
     cardCount: cardCounts.get(deck.id) ?? 0,
     ...(session == null

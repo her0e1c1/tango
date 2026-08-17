@@ -36,7 +36,6 @@ const deck = createDeck({
   id: "deck-id",
   name: "Deck name",
   category: "math",
-  isPublic: true,
 });
 
 describe("DeckListCard", () => {
@@ -63,7 +62,6 @@ describe("DeckListCard", () => {
     );
 
     expect(screen.getByText("math")).toBeInTheDocument();
-    expect(screen.getByLabelText("Public deck")).toBeInTheDocument();
     const viewButton = screen.getByRole("button", { name: "View Deck name" });
     const progressbar = screen.getByRole("progressbar", { name: "Progress for Deck name" });
     expect(viewButton).toHaveAccessibleDescription("math2 / 3 · 5m ago");

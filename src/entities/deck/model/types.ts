@@ -22,8 +22,6 @@ export type DeckDomain = {
   name: string;
   /** Optional source location retained for Decks whose content originates from an external resource. */
   url?: string;
-  /** Whether the Deck is marked for public visibility; local Decks normally keep this disabled. */
-  isPublic: boolean;
   /** Inclusive upper Card-score boundary, or `null` when the Deck has no upper score restriction. */
   scoreMax: number | null;
   /** Inclusive lower Card-score boundary, or `null` when the Deck has no lower score restriction. */

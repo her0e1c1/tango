@@ -11,7 +11,6 @@ const offlineDeck = {
   deletedAt: null,
   scoreMax: null,
   scoreMin: null,
-  isPublic: false,
   selectedTags: [],
   tagAndFilter: false,
   convertToBr: false,

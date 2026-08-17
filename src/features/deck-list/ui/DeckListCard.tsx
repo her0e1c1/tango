@@ -6,7 +6,7 @@
 
 import cx from "classnames";
 import * as React from "react";
-import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
+import { AiFillCaretRight } from "react-icons/ai";
 
 import type { DeckId } from "@/entities/deck";
 import type { DeckListState } from "../model/useDeckListState";
@@ -131,11 +131,6 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           disabled={pending}
         >
           <span className="truncate text-body font-semibold text-ink">{deck.name}</span>
-          {deck.isPublic ? (
-            <span role="img" aria-label="Public deck" className="shrink-0 text-ink-muted">
-              <AiOutlineCloud aria-hidden="true" size={16} />
-            </span>
-          ) : null}
         </button>
 
         <DeckListCardStatus

@@ -13,7 +13,6 @@ const e2eDeck = {
   deletedAt: null,
   scoreMax: null,
   scoreMin: null,
-  isPublic: false,
   selectedTags: [],
   tagAndFilter: false,
   convertToBr: false,

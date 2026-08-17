@@ -8,15 +8,19 @@ describe("Deck operation schemas", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
   describe("createDeckSchema", () => {
-    it("applies entity defaults without adding persistence timestamps", () => {
-      expect(createDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", uid: "uid-a", name: " Deck " } })).toEqual({
+    it("applies entity defaults without retaining obsolete or persistence-only fields", () => {
+      expect(
+        createDeckSchema.parse({
+          uid: "uid-a",
+          deck: { id: "deck", uid: "uid-a", name: " Deck ", isPublic: true, createdAt: 1 },
+        })
+      ).toEqual({
         uid: "uid-a",
         deck: {
           id: "deck",
           uid: "uid-a",
           name: "Deck",
           localMode: false,
-          isPublic: false,
           scoreMax: null,
           scoreMin: null,
           selectedTags: [],

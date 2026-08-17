@@ -9,7 +9,6 @@ const deckDocumentSchema = z.object({
   // Read validation remains permissive for legacy data; command schemas enforce current write constraints.
   name: z.string(),
   url: z.string().optional(),
-  isPublic: z.boolean(),
   uid: z.string(),
   createdAt: z.number(),
   updatedAt: z.number(),

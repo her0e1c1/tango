@@ -13,7 +13,6 @@ const createDeck = (id: string, name: string) => ({
   deletedAt: null,
   scoreMax: null,
   scoreMin: null,
-  isPublic: false,
   selectedTags: [],
   tagAndFilter: false,
   convertToBr: false,

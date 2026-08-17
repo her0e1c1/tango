@@ -11,7 +11,6 @@ describe("Deck DTO mapping", () => {
       id: "remote",
       localMode: false,
       name: "Deck",
-      isPublic: false,
       createdAt: 0,
       updatedAt: 0,
       scoreMax: null,
