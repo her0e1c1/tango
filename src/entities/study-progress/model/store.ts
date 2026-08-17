@@ -26,7 +26,7 @@ const LOCAL_STUDY_PROGRESS_STORAGE_KEY = "tango-local-study-progresses";
 const LEGACY_LOCAL_CARD_STORAGE_KEY = "tango-local-cards";
 
 const persistedStudyProgressStateSchema = z.object({
-  localProgresses: z.array(persistedStudyProgressSchema),
+  localProgresses: z.array(z.unknown()),
 });
 
 const legacyLocalCardProgressSchema = persistedStudyProgressSchema.omit({ cardId: true }).extend({
@@ -37,10 +37,16 @@ const legacyLocalCardStorageSchema = z.object({
   version: z.literal(1),
 });
 
-// Rejects an incompatible collection as a unit so live state receives only validated progress.
+// Keeps every recoverable record so one damaged entry cannot hide otherwise valid local Cards after the join.
 const parsePersistedStudyProgressState = (value: unknown): PersistedStudyProgressState => {
   const result = persistedStudyProgressStateSchema.safeParse(value);
-  return result.success ? result.data : { localProgresses: [] };
+  if (!result.success) return { localProgresses: [] };
+  return {
+    localProgresses: result.data.localProgresses.flatMap((progress) => {
+      const parsedProgress = persistedStudyProgressSchema.safeParse(progress);
+      return parsedProgress.success ? [parsedProgress.data] : [];
+    }),
+  };
 };
 
 // Extracts individually valid progress records from the released combined local Card payload.

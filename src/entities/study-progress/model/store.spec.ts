@@ -27,6 +27,29 @@ describe("StudyProgress store", () => {
     expect(editLocalStudyProgress({ cardId: local.cardId, score: 2 })).toEqual({ ...local, score: 2 });
   });
 
+  it("hydrates valid progress while discarding a malformed neighboring record", async () => {
+    const valid = { ...createStudyProgress("valid"), nextSeeingAt: new Date(1000) };
+    localStorage.setItem(
+      "tango-local-study-progresses",
+      JSON.stringify({
+        state: {
+          localProgresses: [
+            { ...valid, nextSeeingAt: valid.nextSeeingAt.toISOString() },
+            { ...createStudyProgress("malformed"), numberOfSeen: "invalid" },
+          ],
+        },
+        version: 1,
+      })
+    );
+
+    const { editLocalStudyProgress } = await loadStore();
+
+    expect(editLocalStudyProgress({ cardId: valid.cardId })).toEqual(valid);
+    expect(() => editLocalStudyProgress({ cardId: "malformed" })).toThrow(
+      'Local StudyProgress "malformed" was not found'
+    );
+  });
+
   it("migrates released local Card progress into its dedicated store once", async () => {
     const nextSeeingAt = new Date(1000);
     const legacyCard = {
