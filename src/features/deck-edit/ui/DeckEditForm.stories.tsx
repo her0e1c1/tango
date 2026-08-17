@@ -19,7 +19,7 @@ const createForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
   },
   fields: {
     name: { defaultValue: deck.name },
-    convertToBr: { checked: deck.convertToBr },
+    convertToBr: { checked: deck.convertToBr, onChange: () => undefined },
     url: { defaultValue: deck.url },
     category: { defaultValue: deck.category, options: [{ label: deck.category, value: deck.category }] },
   },
