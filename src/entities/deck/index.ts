@@ -3,8 +3,8 @@ export { generateDeckId } from "./api/id";
 export { createDeck, deleteDeck, editDeck } from "./api/mutations";
 export {
   CATEGORY,
-  filterCardsForDeck,
   getCategory,
+  isDeckTagSelectionMatching,
   isHighlightLanguage,
   mustFindDeckById,
 } from "./model/rules";
