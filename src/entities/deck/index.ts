@@ -4,8 +4,8 @@ export { createDeck, deleteDeck, editDeck } from "./api/mutations";
 export {
   CATEGORY,
   getCategory,
-  isDeckTagSelectionMatching,
   isHighlightLanguage,
+  isStudyCardEligible,
   mustFindDeckById,
 } from "./model/rules";
 export { useDeck, useDecks } from "./model/hooks";

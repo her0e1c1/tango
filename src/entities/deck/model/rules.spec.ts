@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { createDeck } from "@/test/factories";
-import { CATEGORY, getCategory, isDeckTagSelectionMatching, isHighlightLanguage, mustFindDeckById } from "./rules";
+import { createCard, createDeck, createStudyProgress } from "@/test/factories";
+import { CATEGORY, getCategory, isHighlightLanguage, isStudyCardEligible, mustFindDeckById } from "./rules";
 
 describe("category", () => {
   it("defines supported categories including application categories and major languages", () => {
@@ -50,13 +50,26 @@ describe("mustFindDeckById", () => {
   });
 });
 
-describe("isDeckTagSelectionMatching", () => {
-  it("accepts any tag set when the Deck has no selected tags", () => {
-    expect(isDeckTagSelectionMatching([], createDeck({ selectedTags: [] }))).toBe(true);
-  });
+describe("isStudyCardEligible", () => {
+  const card = createCard({ id: "card", tags: ["selected"] });
+  const progress = createStudyProgress({ cardId: card.id, score: 1 });
+  const deck = createDeck({ selectedTags: ["selected"], scoreMin: 0, scoreMax: 2 });
 
-  it("applies the Deck's OR and AND tag modes", () => {
-    expect(isDeckTagSelectionMatching(["x"], createDeck({ selectedTags: ["x", "y"], tagAndFilter: false }))).toBe(true);
-    expect(isDeckTagSelectionMatching(["x"], createDeck({ selectedTags: ["x", "y"], tagAndFilter: true }))).toBe(false);
+  it("requires the Deck tag, score, and due-time constraints to pass", () => {
+    const options = { useCardInterval: true, now: 1000 };
+    expect(isStudyCardEligible(card, progress, deck, options)).toBe(true);
+    expect(isStudyCardEligible({ ...card, tags: [] }, progress, { ...deck, selectedTags: [] }, options)).toBe(true);
+    expect(isStudyCardEligible({ ...card, tags: [] }, progress, deck, options)).toBe(false);
+    expect(
+      isStudyCardEligible(card, progress, { ...deck, selectedTags: ["selected", "other"], tagAndFilter: true }, options)
+    ).toBe(false);
+    expect(isStudyCardEligible(card, { ...progress, score: 3 }, deck, options)).toBe(false);
+    expect(isStudyCardEligible(card, { ...progress, nextSeeingAt: new Date(1001) }, deck, options)).toBe(false);
+    expect(
+      isStudyCardEligible(card, { ...progress, nextSeeingAt: new Date(1001) }, deck, {
+        ...options,
+        useCardInterval: false,
+      })
+    ).toBe(true);
   });
 });

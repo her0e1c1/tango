@@ -2,16 +2,10 @@ import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
-import {
-  type Deck,
-  editDeck,
-  getCategory,
-  isDeckTagSelectionMatching,
-  isHighlightLanguage,
-  useDeck,
-} from "@/entities/deck";
+import { type Deck, editDeck, getCategory, isHighlightLanguage, isStudyCardEligible, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
-import { editStudyProgress, isStudyProgressEligible, useStudyProgresses } from "@/entities/study-progress";
+import { editStudyProgress, useStudyProgresses } from "@/entities/study-progress";
+import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
 
@@ -32,11 +26,6 @@ interface CardListAnswer {
 
 type StudyProgress = ReturnType<typeof useStudyProgresses>[number];
 
-interface CardWithProgress {
-  card: Card;
-  progress: StudyProgress;
-}
-
 export interface CardListState {
   tags: string[];
   /** Lets presentation distinguish an empty Deck from a filter with zero matches. */
@@ -55,43 +44,13 @@ export interface CardListState {
   onConfirmDeletion: () => Promise<void>;
 }
 
-const buildCardListItem = ({ card, progress }: CardWithProgress): CardListItem => ({
+const buildCardListItem = (card: Card, progress: StudyProgress): CardListItem => ({
   id: card.id,
   frontText: card.frontText,
   score: progress.score,
   numberOfSeen: progress.numberOfSeen,
   tags: card.tags,
 });
-
-// Pairs each Card with its independently owned progress while omitting incomplete read snapshots.
-const joinCardsWithProgress = (cards: Card[], progresses: StudyProgress[]): CardWithProgress[] => {
-  const progressByCardId = new Map(progresses.map((progress) => [progress.cardId, progress]));
-  return cards.flatMap((card) => {
-    const progress = progressByCardId.get(card.id);
-    return progress === undefined ? [] : [{ card, progress }];
-  });
-};
-
-// Keeps multi-Entity selection in the use-case owner while each Entity supplies only its own pure rule.
-const selectStudyCards = (
-  cards: CardWithProgress[],
-  deck: Deck,
-  useCardInterval: boolean,
-  now = Date.now()
-): CardWithProgress[] =>
-  cards.filter(
-    ({ card, progress }) =>
-      isDeckTagSelectionMatching(card.tags, deck) &&
-      isStudyProgressEligible(
-        progress,
-        {
-          maximumScore: deck.scoreMax,
-          minimumScore: deck.scoreMin,
-          respectNextSeeingAt: useCardInterval,
-        },
-        now
-      )
-  );
 
 export const useCardListState = (deckId: string) => {
   const uid = useAuthUid();
@@ -108,7 +67,15 @@ export const useCardListState = (deckId: string) => {
 
   if (deck == null) return;
 
-  const cards = selectStudyCards(joinCardsWithProgress(deckCards, progresses), deck, preferences.study.useCardInterval);
+  const progressByCardId = new Map(progresses.map((progress) => [progress.cardId, progress]));
+  const eligibilityOptions = { useCardInterval: preferences.study.useCardInterval, now: getCurrentTimeMillis() };
+  // Incomplete snapshots stay hidden while the Deck Entity owns the shared product eligibility rule.
+  const cards = deckCards.flatMap((card) => {
+    const progress = progressByCardId.get(card.id);
+    return progress != null && isStudyCardEligible(card, progress, deck, eligibilityOptions)
+      ? [{ card, progress }]
+      : [];
+  });
   const storedFilter: DeckFilterValues = {
     scoreMax: deck.scoreMax,
     scoreMin: deck.scoreMin,
@@ -172,7 +139,7 @@ export const useCardListState = (deckId: string) => {
     },
     tags,
     rawCardsLength: deckCards.length,
-    cards: cards.map(buildCardListItem),
+    cards: cards.map(({ card, progress }) => buildCardListItem(card, progress)),
     answer,
     deletionTarget:
       deletionTarget == null

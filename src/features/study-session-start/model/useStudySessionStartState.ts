@@ -1,49 +1,14 @@
 import { useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { type Card, useCardsByDeckId } from "@/entities/card";
-import { type Deck, editDeck, isDeckTagSelectionMatching, useDeck } from "@/entities/deck";
+import { useCardsByDeckId } from "@/entities/card";
+import { type Deck, editDeck, isStudyCardEligible, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
-import { isStudyProgressEligible, useStudyProgresses } from "@/entities/study-progress";
+import { useStudyProgresses } from "@/entities/study-progress";
 import { startStudy } from "@/entities/study-session";
+import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
-type StudyProgress = ReturnType<typeof useStudyProgresses>[number];
-
-interface CardWithProgress {
-  card: Card;
-  progress: StudyProgress;
-}
-
-// Pairs each Card with its independently owned progress while omitting incomplete read snapshots.
-const joinCardsWithProgress = (cards: Card[], progresses: StudyProgress[]): CardWithProgress[] => {
-  const progressByCardId = new Map(progresses.map((progress) => [progress.cardId, progress]));
-  return cards.flatMap((card) => {
-    const progress = progressByCardId.get(card.id);
-    return progress === undefined ? [] : [{ card, progress }];
-  });
-};
-
-// Keeps multi-Entity selection in the use-case owner while each Entity supplies only its own pure rule.
-const selectStudyCards = (
-  cards: CardWithProgress[],
-  deck: Deck,
-  useCardInterval: boolean,
-  now = Date.now()
-): CardWithProgress[] =>
-  cards.filter(
-    ({ card, progress }) =>
-      isDeckTagSelectionMatching(card.tags, deck) &&
-      isStudyProgressEligible(
-        progress,
-        {
-          maximumScore: deck.scoreMax,
-          minimumScore: deck.scoreMin,
-          respectNextSeeingAt: useCardInterval,
-        },
-        now
-      )
-  );
 
 export const useStudySessionStartState = (deckId: string) => {
   const uid = useAuthUid();
@@ -55,7 +20,15 @@ export const useStudySessionStartState = (deckId: string) => {
 
   if (deck == null) return;
 
-  const cards = selectStudyCards(joinCardsWithProgress(deckCards, progresses), deck, preferences.study.useCardInterval);
+  const progressByCardId = new Map(progresses.map((progress) => [progress.cardId, progress]));
+  const eligibilityOptions = { useCardInterval: preferences.study.useCardInterval, now: getCurrentTimeMillis() };
+  // Incomplete snapshots stay hidden while the Deck Entity owns the shared product eligibility rule.
+  const cards = deckCards.flatMap((card) => {
+    const progress = progressByCardId.get(card.id);
+    return progress != null && isStudyCardEligible(card, progress, deck, eligibilityOptions)
+      ? [{ card, progress }]
+      : [];
+  });
   const storedFilter: DeckFilterValues = {
     scoreMax: deck.scoreMax,
     scoreMin: deck.scoreMin,

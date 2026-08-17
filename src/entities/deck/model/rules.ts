@@ -1,4 +1,7 @@
-import type { Category, DeckDomain, DeckId } from "./types";
+import type { Card } from "@/entities/card/@x/deck";
+import { isStudyProgressEligible, type StudyProgress } from "@/entities/study-progress/@x/deck";
+
+import type { Category, DeckDomain, DeckId, StudyCardEligibilityOptions } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -52,7 +55,7 @@ export const getCategory = (category: Category, tags: string[]): Category => {
 };
 
 // Applies the Deck's all-or-any tag mode; an empty selection deliberately accepts every tag set.
-export const isDeckTagSelectionMatching = (
+const isDeckTagSelectionMatching = (
   candidateTags: readonly string[],
   deck: Pick<DeckDomain, "selectedTags" | "tagAndFilter">
 ): boolean => {
@@ -61,6 +64,24 @@ export const isDeckTagSelectionMatching = (
   if (deck.tagAndFilter) return tags.every((tag) => candidateTags.includes(tag));
   return tags.some((tag) => candidateTags.includes(tag));
 };
+
+// Combines Deck tag selection with StudyProgress constraints so every study entry point uses one eligibility rule.
+export const isStudyCardEligible = (
+  card: Pick<Card, "tags">,
+  progress: StudyProgress,
+  deck: DeckDomain,
+  options: StudyCardEligibilityOptions
+): boolean =>
+  isDeckTagSelectionMatching(card.tags, deck) &&
+  isStudyProgressEligible(
+    progress,
+    {
+      maximumScore: deck.scoreMax,
+      minimumScore: deck.scoreMin,
+      respectNextSeeingAt: options.useCardInterval,
+    },
+    options.now
+  );
 
 // Returns the requested Deck or throws when a caller's Deck reference no longer resolves.
 export const mustFindDeckById = <TDeck extends DeckDomain>(decks: readonly TDeck[], id: DeckId): TDeck => {
