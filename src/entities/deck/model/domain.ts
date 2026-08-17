@@ -81,11 +81,7 @@ export const createDeckDomain = (input: CreateDeckDomainInput, timestamp: number
   restoreDeckDomain({ ...input, createdAt: timestamp, updatedAt: timestamp });
 
 /** Applies a validated edit while preserving Deck identity, ownership, and creation time. */
-export const editDeckDomain = (
-  current: DeckDomain,
-  edit: EditDeckDomainInput,
-  updatedAt: number
-): DeckDomain => {
+export const editDeckDomain = (current: DeckDomain, edit: EditDeckDomainInput, updatedAt: number): DeckDomain => {
   if (current.id !== edit.id) throw new Error(`Deck edit id "${edit.id}" does not match "${current.id}"`);
 
   return restoreDeckDomain({
