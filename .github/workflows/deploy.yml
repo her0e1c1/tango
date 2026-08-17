@@ -11,18 +11,7 @@ permissions:
 jobs:
   test:
     name: Test
-    permissions:
-      contents: read
-      packages: read
     uses: ./.github/workflows/test.yml
-
-  docker:
-    needs: [test]
-    name: Update Docker Image
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/docker.yml
 
   deploy:
     needs: [test]

@@ -1,5 +1,6 @@
 x-dev: &dev
-  image: ghcr.io/her0e1c1/tango
+  image: tango-dev
+  pull_policy: build
   build:
     context: ..
   stdin_open: true
