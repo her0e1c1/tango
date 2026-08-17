@@ -110,6 +110,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# The E2E override forbids remote pulls, so local runs must create the same image that CI loads before startup.
+docker compose build app
 docker compose up --wait --wait-timeout 120 --remove-orphans
 docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 """

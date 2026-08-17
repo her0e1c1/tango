@@ -1,6 +1,7 @@
 
 x-image: &image
-  image: ghcr.io/her0e1c1/tango-sample:${BRANCH:-latest}
+  image: tango-sample:${BRANCH:-latest}
+  pull_policy: build
   build: .
 
 x-base: &base
