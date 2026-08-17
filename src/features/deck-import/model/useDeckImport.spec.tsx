@@ -222,10 +222,17 @@ describe("useDeckImport", () => {
     expect(savedDeck).toBeDefined();
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toEqual([]);
     expect(result.current.deckImport.error).toEqual(new Error("card mutation failed"));
-    await expect(result.current.deckImport.importPreview()).rejects.toThrow("prepared Deck import is not available");
+    expect(result.current.deckImport.preview).toBeUndefined();
+    expect(result.current.deckImport.fileName).toBe(name);
+    expect(result.current.deckImport.fileReselectionRequired).toBe(true);
+    await actAsync(async () => {
+      expect(await result.current.deckImport.importPreview()).toEqual({ status: "failure" });
+    });
+    expect(result.current.deckImport.previewError).toEqual(new Error("Select a CSV file before importing"));
 
     await actAsync(async () => result.current.deckImport.selectFile(file));
     expect(result.current.deckImport.error).toBeNull();
+    expect(result.current.deckImport.fileReselectionRequired).toBe(false);
     expect(result.current.deckImport.preview?.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
     await actAsync(async () => result.current.deckImport.importPreview());
 

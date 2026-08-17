@@ -24,6 +24,7 @@ interface DeckImportViewProps {
   previewError?: unknown;
   storageMode?: DeckImportStorageMode;
   fileName?: string;
+  fileReselectionRequired?: boolean;
 }
 
 const resultCounts = (result: DeckImportResult) => (
@@ -38,6 +39,7 @@ interface ImportResultProps {
   result: DeckImportResult | undefined;
   error: unknown;
   onBack: (() => void) | undefined;
+  fileReselectionRequired: boolean | undefined;
 }
 
 const ImportResult = (props: ImportResultProps) => {
@@ -47,6 +49,9 @@ const ImportResult = (props: ImportResultProps) => {
       <section role="alert" className="rounded-surface border border-danger bg-surface-muted p-4 text-ink">
         <h2 className="font-bold">Import failed</h2>
         <p className="mt-1 break-words text-caption text-ink-muted">{message}</p>
+        {props.fileReselectionRequired ? (
+          <p className="mt-2 text-caption text-ink-muted">Choose the CSV file again to rebuild the import preview.</p>
+        ) : null}
       </section>
     );
   }
@@ -211,7 +216,12 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
             Importing…
           </p>
         ) : null}
-        <ImportResult result={props.result} error={props.error} onBack={props.onBack} />
+        <ImportResult
+          result={props.result}
+          error={props.error}
+          onBack={props.onBack}
+          fileReselectionRequired={props.fileReselectionRequired}
+        />
         <PreviewError error={props.previewError} />
         <section className="space-y-4">
           <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>

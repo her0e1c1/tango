@@ -122,7 +122,10 @@ describe("DeckImportPage", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Import failed");
     expect(screen.getByRole("alert")).toHaveTextContent("card mutation failed");
+    expect(screen.getByRole("alert")).toHaveTextContent("Choose the CSV file again to rebuild the import preview");
     expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Import" })).not.toBeInTheDocument();
+    expect(screen.getByText(name)).toBeVisible();
 
     fireEvent.change(screen.getByLabelText(/Upload a csv file/), {
       target: {

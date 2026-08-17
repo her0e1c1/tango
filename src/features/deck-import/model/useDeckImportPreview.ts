@@ -133,6 +133,10 @@ export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreview
     selectFile,
     setStorageMode,
     takePreparedImport,
+    invalidate: () => {
+      preparedImportRef.current.preparedImport = undefined;
+      updateState({ preview: undefined });
+    },
     clearError: () => updateState({ error: null }),
     storageMode: state.storageMode,
     fileName: state.fileName,

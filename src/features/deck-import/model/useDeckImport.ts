@@ -25,9 +25,11 @@ export const useDeckImport = () => {
   const execution = useDeckImportExecution(uid);
   const preview = useDeckImportPreview({ uid, cards, decks });
   const [status, setStatus] = useState<DeckImportStatus>("idle");
+  const [fileReselectionRequired, setFileReselectionRequired] = useState(false);
 
   const selectFile = async (file: File) => {
     execution.clear();
+    setFileReselectionRequired(false);
     setStatus("validating");
     try {
       const selectedPreview = await preview.selectFile(file);
@@ -38,11 +40,15 @@ export const useDeckImport = () => {
   };
 
   const setStorageMode = (storageMode: DeckImportStorageMode) => {
-    if (preview.setStorageMode(storageMode)) execution.clear();
+    if (preview.setStorageMode(storageMode)) {
+      execution.clear();
+      setFileReselectionRequired(false);
+    }
   };
 
   const runImport = async (
-    prepare: () => PreparedDeckImport | undefined
+    prepare: () => PreparedDeckImport | undefined,
+    onExecutionFailure?: () => void
   ): Promise<DeckImportOperationResult<DeckImportResult>> => {
     const preparedImport = prepare();
     if (preparedImport === undefined) return operationFailed;
@@ -51,13 +57,18 @@ export const useDeckImport = () => {
     setStatus("importing");
     try {
       const importResult = await execution.run(preparedImport);
-      return importResult === undefined ? operationFailed : operationSucceeded(importResult);
+      if (importResult === undefined) {
+        onExecutionFailure?.();
+        return operationFailed;
+      }
+      return operationSucceeded(importResult);
     } finally {
       setStatus("idle");
     }
   };
 
   const addSample = () => {
+    setFileReselectionRequired(false);
     if (uid === "") {
       execution.fail(new Error("A confirmed user is required for remote imports"));
       return Promise.resolve(operationFailed);
@@ -65,16 +76,24 @@ export const useDeckImport = () => {
     return runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId }));
   };
 
+  const importPreview = () =>
+    runImport(preview.takePreparedImport, () => {
+      // Persistence can fail after creating the Deck, so retry must rebuild a plan from current destination data.
+      preview.invalidate();
+      setFileReselectionRequired(true);
+    });
+
   return {
     selectFile,
     setStorageMode,
-    importPreview: () => runImport(preview.takePreparedImport),
+    importPreview,
     addSample,
     storageMode: preview.storageMode,
     fileName: preview.fileName,
     preview: preview.preview,
     validating: status === "validating",
     pending: status === "importing",
+    fileReselectionRequired,
     error: execution.error,
     previewError: preview.error,
     result: execution.result,

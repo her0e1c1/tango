@@ -31,6 +31,7 @@ export const DeckImportPage: React.FC = () => {
         onDownloadSample={downloadSampleCsv}
         validating={deckImport.validating}
         pending={deckImport.pending}
+        fileReselectionRequired={deckImport.fileReselectionRequired}
         {...(deckImport.fileName !== undefined ? { fileName: deckImport.fileName } : {})}
         preview={deckImport.preview}
         result={deckImport.result}
